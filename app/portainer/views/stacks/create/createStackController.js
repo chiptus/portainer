@@ -44,14 +44,6 @@ angular
       uploadYamlValidationError: '',
     };
 
-    $scope.addEnvironmentVariable = function () {
-      $scope.formValues.Env.push({ name: '', value: '' });
-    };
-
-    $scope.removeEnvironmentVariable = function (index) {
-      $scope.formValues.Env.splice(index, 1);
-    };
-
     function validateForm(accessControlData, isAdmin) {
       $scope.state.formValidationError = '';
       var error = '';
@@ -112,6 +104,11 @@ angular
         };
         return StackService.createComposeStackFromGitRepository(name, repositoryOptions, env, endpointId);
       }
+    }
+
+    $scope.handleEnvVarChange = handleEnvVarChange;
+    function handleEnvVarChange(value) {
+      $scope.formValues.Env = value;
     }
 
     $scope.deployStack = function () {
