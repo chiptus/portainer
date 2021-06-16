@@ -418,8 +418,8 @@ type (
 
 	// QuayRegistryData represents data required for Quay registry to work
 	QuayRegistryData struct {
-		UseOrganisation   bool   `json:"UseOrganisation"`
-		OrganisationName  string `json:"OrganisationName"`
+		UseOrganisation  bool   `json:"UseOrganisation"`
+		OrganisationName string `json:"OrganisationName"`
 	}
 
 	// JobType represents a job type
@@ -1519,9 +1519,9 @@ const (
 	// APIVersion is the version number of the Portainer API
 	APIVersion = "2.4.1"
 	// DBVersion is the version number of the Portainer CE database
-	DBVersion = 31
+	DBVersion = 30
 	// DBVersionEE is the version number of the Portainer EE database
-	DBVersionEE = 31
+	DBVersionEE = 30
 	// Edition is the edition of the Portainer API
 	Edition = PortainerEE
 	// ComposeSyntaxMaxVersion is a maximum supported version of the docker compose syntax
