@@ -174,12 +174,21 @@ func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter,
 	projectPath := handler.FileService.GetStackProjectPath(strconv.Itoa(int(stack.ID)))
 	stack.ProjectPath = projectPath
 
+	gitCloneParams := &cloneRepositoryParameters{
+		url:            payload.RepositoryURL,
+		referenceName:  payload.RepositoryReferenceName,
+		path:           projectPath,
+		authentication: payload.RepositoryAuthentication,
+		username:       payload.RepositoryUsername,
+		password:       payload.RepositoryPassword,
+	}
+
 	doCleanUp := true
 	defer handler.cleanUp(stack, &doCleanUp)
 
-	err = handler.cloneAndSaveConfig(stack, projectPath, payload.RepositoryURL, payload.RepositoryReferenceName, payload.ComposeFilePathInRepository, payload.RepositoryAuthentication, payload.RepositoryUsername, payload.RepositoryPassword)
+	err = handler.cloneGitRepository(gitCloneParams)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to clone git repository", Err: err}
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to clone git repository", err}
 	}
 
 	config, configErr := handler.createSwarmDeployConfig(r, stack, endpoint, false)

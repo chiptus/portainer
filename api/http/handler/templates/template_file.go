@@ -63,7 +63,12 @@ func (handler *Handler) templateFile(w http.ResponseWriter, r *http.Request) *ht
 
 	defer handler.cleanUp(projectPath)
 
-	err = handler.GitService.CloneRepository(projectPath, payload.RepositoryURL, "", "", "")
+	gitCloneParams := &cloneRepositoryParameters{
+		url:  payload.RepositoryURL,
+		path: projectPath,
+	}
+
+	err = handler.cloneGitRepository(gitCloneParams)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to clone git repository", err}
 	}

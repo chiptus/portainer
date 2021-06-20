@@ -215,7 +215,16 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request) (*por
 	projectPath := handler.FileService.GetEdgeStackProjectPath(strconv.Itoa(int(stack.ID)))
 	stack.ProjectPath = projectPath
 
-	err = handler.GitService.CloneRepository(projectPath, payload.RepositoryURL, payload.RepositoryReferenceName, payload.RepositoryUsername, payload.RepositoryPassword)
+	gitCloneParams := &cloneRepositoryParameters{
+		url:            payload.RepositoryURL,
+		referenceName:  payload.RepositoryReferenceName,
+		path:           projectPath,
+		authentication: payload.RepositoryAuthentication,
+		username:       payload.RepositoryUsername,
+		password:       payload.RepositoryPassword,
+	}
+
+	err = handler.cloneGitRepository(gitCloneParams)
 	if err != nil {
 		return nil, err
 	}

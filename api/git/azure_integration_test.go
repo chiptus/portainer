@@ -2,13 +2,12 @@ package git
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"testing"
-
 	"github.com/docker/docker/pkg/ioutils"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/assert"
+	"os"
+	"path/filepath"
+	"testing"
 )
 
 func TestService_ClonePublicRepository_Azure(t *testing.T) {
@@ -55,7 +54,7 @@ func TestService_ClonePublicRepository_Azure(t *testing.T) {
 			assert.NoError(t, err)
 			defer os.RemoveAll(dst)
 			repositoryUrl := fmt.Sprintf(tt.args.repositoryURLFormat, tt.args.password)
-			err = service.CloneRepository(dst, repositoryUrl, tt.args.referenceName, "", "")
+			err = service.ClonePublicRepository(repositoryUrl, tt.args.referenceName, dst)
 			assert.NoError(t, err)
 			assert.FileExists(t, filepath.Join(dst, "README.md"))
 		})
@@ -73,7 +72,7 @@ func TestService_ClonePrivateRepository_Azure(t *testing.T) {
 	defer os.RemoveAll(dst)
 
 	repositoryUrl := "https://portainer.visualstudio.com/Playground/_git/dev_integration"
-	err = service.CloneRepository(dst, repositoryUrl, "refs/heads/main", "", pat)
+	err = service.ClonePrivateRepositoryWithBasicAuth(repositoryUrl, "refs/heads/main", dst, "", pat)
 	assert.NoError(t, err)
 	assert.FileExists(t, filepath.Join(dst, "README.md"))
 }
