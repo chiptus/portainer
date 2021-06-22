@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/portainer/liblicense"
+	gittypes "github.com/portainer/portainer/api/git/types"
 )
 
 type (
@@ -792,6 +793,8 @@ type (
 		UpdateDate int64 `example:"1587399600"`
 		// The username which last updated this stack
 		UpdatedBy string `example:"bob"`
+		// The git configuration of a git stack
+		GitConfig *gittypes.RepoConfig
 	}
 
 	// StackID represents a stack identifier (it must be composed of Name + "_" + SwarmID to create a unique identifier)
@@ -1270,8 +1273,7 @@ type (
 
 	// GitService represents a service for managing Git
 	GitService interface {
-		ClonePublicRepository(repositoryURL, referenceName string, destination string) error
-		ClonePrivateRepositoryWithBasicAuth(repositoryURL, referenceName string, destination, username, password string) error
+		CloneRepository(destination string, repositoryURL, referenceName string, username, password string) error
 	}
 
 	// JWTService represents a service for managing JWT tokens

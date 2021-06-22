@@ -20,6 +20,7 @@ export function StackViewModel(data) {
   this.External = false;
   this.Orphaned = false;
   this.Checked = false;
+  this.GitConfig = data.GitConfig;
 }
 
 export function ExternalStackViewModel(name, type, creationDate) {
