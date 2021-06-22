@@ -48,7 +48,12 @@ func (handler *Handler) stackStop(w http.ResponseWriter, r *http.Request) *httpe
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a stack with the specified identifier inside the database", err}
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(stack.EndpointID)
+	endpointID, err := request.RetrieveNumericQueryParameter(r, "endpointId", true)
+	if err != nil {
+		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: endpointId", err}
+	}
+
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an endpoint with the specified identifier inside the database", err}
 	} else if err != nil {

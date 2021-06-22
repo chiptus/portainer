@@ -41,13 +41,21 @@ angular.module('portainer.app').controller('StacksDatatableController', [
         return false;
       }
 
+      if (item.Orphaned && !this.isAdmin) {
+        return false;
+      }
+
       return !(item.External && !this.isAdmin && !this.isEndpointAdmin);
     };
 
     this.applyFilters = applyFilters.bind(this);
     function applyFilters(stack) {
       const { showActiveStacks, showUnactiveStacks } = this.filters.state;
-      return (stack.Status === 1 && showActiveStacks) || (stack.Status === 2 && showUnactiveStacks) || stack.External || !stack.Status;
+      if (stack.Orphaned) {
+        return stack.OrphanedRunning || this.settings.allOrphanedStacks;
+      } else {
+        return (stack.Status === 1 && showActiveStacks) || (stack.Status === 2 && showUnactiveStacks) || stack.External || !stack.Status;
+      }
     }
 
     this.onFilterChange = onFilterChange.bind(this);
@@ -57,10 +65,14 @@ angular.module('portainer.app').controller('StacksDatatableController', [
       DatatableService.setDataTableFilters(this.tableKey, this.filters);
     }
 
+    this.onSettingsAllOrphanedStacksChange = function () {
+      DatatableService.setDataTableSettings(this.tableKey, this.settings);
+    };
+
     this.$onInit = function () {
       this.isAdmin = Authentication.isAdmin();
-      this.isEndpointAdmin = Authentication.hasAuthorizations(['EndpointResourcesAccess']);
-
+      this.hasAccessToOrphanedStack = Authentication.hasAuthorizations(['EndpointResourcesAccess']);
+      this.isEndpointAdmin = Authentication.hasAuthorizations(['PortainerStackCreate', 'PortainerStackDelete']) && this.hasAccessToOrphanedStack;
       this.setDefaults();
       this.prepareTableFromDataset();
 
@@ -89,6 +101,7 @@ angular.module('portainer.app').controller('StacksDatatableController', [
       if (storedSettings !== null) {
         this.settings = storedSettings;
         this.settings.open = false;
+        this.settings.allOrphanedStacks = this.settings.allOrphanedStacks && this.isAdmin;
       }
       this.onSettingsRepeaterChange();
 
