@@ -2,9 +2,8 @@ package useractivity
 
 import (
 	"fmt"
+	"log"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 
 	storm "github.com/asdine/storm/v3"
 	"github.com/asdine/storm/v3/q"
@@ -16,7 +15,7 @@ func (store *Store) startCleanupLoop() error {
 		return nil
 	}
 
-	log.Debugf("[useractivity] [check_interval_seconds: %f] [message: starting logs cleanup process]", cleanupInterval.Seconds())
+	log.Printf("[DEBUG] [useractivity] [check_interval_seconds: %f] [message: starting logs cleanup process]", cleanupInterval.Seconds())
 	err := store.cleanLogs()
 	if err != nil {
 		return fmt.Errorf("failed starting logs cleanup process: %w", err)

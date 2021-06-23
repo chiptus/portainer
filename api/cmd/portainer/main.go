@@ -533,8 +533,6 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 func main() {
 	flags := initCLI()
 
-	configureLogger(flags.JsonLogger)
-
 	for {
 		server := buildServer(flags)
 		log.Printf("Starting Portainer %s on %s\n", portainer.APIVersion, *flags.Addr)

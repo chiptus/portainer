@@ -87,7 +87,6 @@ type (
 		SSLCert                   *string
 		SSLKey                    *string
 		SnapshotInterval          *string
-		JsonLogger                *bool
 	}
 
 	// CustomTemplate represents a custom template
