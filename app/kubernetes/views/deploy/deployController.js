@@ -1,7 +1,7 @@
 import angular from 'angular';
 import _ from 'lodash-es';
 import stripAnsi from 'strip-ansi';
-import { KubernetesDeployManifestTypes } from 'Kubernetes/models/deploy';
+import { KubernetesDeployManifestTypes, KubernetesDeployBuildMethods, KubernetesDeployRequestMethods } from 'Kubernetes/models/deploy';
 
 class KubernetesDeployController {
   /* @ngInject */
@@ -21,7 +21,14 @@ class KubernetesDeployController {
   }
 
   disableDeploy() {
-    return _.isEmpty(this.formValues.EditorContent) || _.isEmpty(this.formValues.Namespace) || this.state.actionInProgress;
+    const isGitFormInvalid =
+      this.state.BuildMethod === KubernetesDeployBuildMethods.GIT &&
+      (!this.formValues.RepositoryURL ||
+        !this.formValues.FilePathInRepository ||
+        (this.formValues.RepositoryAuthentication && (!this.formValues.RepositoryUsername || !this.formValues.RepositoryPassword)));
+    const isWebEditorInvalid = this.state.BuildMethod === KubernetesDeployBuildMethods.WEB_EDITOR && _.isEmpty(this.formValues.EditorContent);
+
+    return isGitFormInvalid || isWebEditorInvalid || _.isEmpty(this.formValues.Namespace) || this.state.actionInProgress;
   }
 
   async editorUpdateAsync(cm) {
@@ -43,8 +50,28 @@ class KubernetesDeployController {
     this.state.actionInProgress = true;
 
     try {
-      const compose = this.state.DeployType === this.ManifestDeployTypes.COMPOSE;
-      await this.StackService.kubernetesDeploy(this.endpointId, this.formValues.Namespace, this.formValues.EditorContent, compose);
+      const method = this.state.BuildMethod === this.BuildMethods.GIT ? KubernetesDeployRequestMethods.REPOSITORY : KubernetesDeployRequestMethods.STRING;
+
+      const payload = {
+        ComposeFormat: this.state.DeployType === this.ManifestDeployTypes.COMPOSE,
+        Namespace: this.formValues.Namespace,
+      };
+
+      if (method === KubernetesDeployRequestMethods.REPOSITORY) {
+        payload.RepositoryURL = this.formValues.RepositoryURL;
+        payload.RepositoryReferenceName = this.formValues.RepositoryReferenceName;
+        payload.RepositoryAuthentication = this.formValues.RepositoryAuthentication ? true : false;
+        if (payload.RepositoryAuthentication) {
+          payload.RepositoryUsername = this.formValues.RepositoryUsername;
+          payload.RepositoryPassword = this.formValues.RepositoryPassword;
+        }
+        payload.FilePathInRepository = this.formValues.FilePathInRepository;
+      } else {
+        payload.StackFileContent = this.formValues.EditorContent;
+      }
+
+      await this.StackService.kubernetesDeploy(this.endpointId, method, payload);
+
       this.Notifications.success('Manifest successfully deployed');
       this.$state.go('kubernetes.applications');
     } catch (err) {
@@ -85,6 +112,7 @@ class KubernetesDeployController {
   async onInit() {
     this.state = {
       DeployType: KubernetesDeployManifestTypes.KUBERNETES,
+      BuildMethod: KubernetesDeployBuildMethods.GIT,
       tabLogsDisabled: true,
       activeTab: 0,
       viewReady: false,
@@ -92,6 +120,7 @@ class KubernetesDeployController {
 
     this.formValues = {};
     this.ManifestDeployTypes = KubernetesDeployManifestTypes;
+    this.BuildMethods = KubernetesDeployBuildMethods;
     this.endpointId = this.EndpointProvider.endpointID();
 
     await this.getNamespaces();

@@ -48,10 +48,10 @@ func (handler *Handler) createComposeStackFromFileContent(w http.ResponseWriter,
 
 	isUnique, err := handler.checkUniqueName(endpoint, payload.Name, 0, false)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to check for name collision", err}
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to check for name collision", Err: err}
 	}
 	if !isUnique {
-		return &httperror.HandlerError{http.StatusConflict, fmt.Sprintf("A stack with the name '%s' already exists", payload.Name), errStackAlreadyExists}
+		return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: fmt.Sprintf("A stack with the name '%s' already exists", payload.Name), Err: errStackAlreadyExists}
 	}
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
