@@ -5,6 +5,7 @@ angular.module('portainer.app').controller('StackController', [
   '$q',
   '$scope',
   '$state',
+  '$window',
   '$transition$',
   'StackService',
   'NodeService',
@@ -29,6 +30,7 @@ angular.module('portainer.app').controller('StackController', [
     $q,
     $scope,
     $state,
+    $window,
     $transition$,
     StackService,
     NodeService,
@@ -54,6 +56,7 @@ angular.module('portainer.app').controller('StackController', [
       migrationInProgress: false,
       showEditorTab: false,
       yamlError: false,
+      isEditorDirty: false,
     };
 
     $scope.formValues = {
@@ -68,6 +71,12 @@ angular.module('portainer.app').controller('StackController', [
       $scope.formValues.Env = value;
     }
 
+    $window.onbeforeunload = () => {
+      if ($scope.stackFileContent && $scope.state.isEditorDirty) {
+        return '';
+      }
+    };
+
     $scope.duplicateStack = function duplicateStack(name, endpointId) {
       var stack = $scope.stack;
       var env = FormHelper.removeInvalidEnvVars($scope.formValues.Env);
@@ -77,6 +86,7 @@ angular.module('portainer.app').controller('StackController', [
 
       function onDuplicationSuccess() {
         Notifications.success('Stack successfully duplicated');
+        $scope.state.isEditorDirty = false;
         $state.go('docker.stacks', {}, { reload: true });
         EndpointProvider.setEndpointID(stack.EndpointId);
       }
@@ -211,6 +221,7 @@ angular.module('portainer.app').controller('StackController', [
       StackService.updateStack(stack, stackFile, env, prune)
         .then(function success() {
           Notifications.success('Stack successfully deployed');
+          $scope.state.isEditorDirty = false;
           $state.reload();
         })
         .catch(function error(err) {
@@ -222,8 +233,13 @@ angular.module('portainer.app').controller('StackController', [
     };
 
     $scope.editorUpdate = function (cm) {
+      if ($scope.stackFileContent.replace(/(\r\n|\n|\r)/gm, '') !== cm.getValue().replace(/(\r\n|\n|\r)/gm, '')) {
+        $scope.state.isEditorDirty = true;
+        $scope.stackFileContent = cm.getValue();
+      }
       $scope.stackFileContent = cm.getValue();
       $scope.state.yamlError = StackHelper.validateYAML($scope.stackFileContent, $scope.containerNames);
+      $scope.state.isEditorDirty = true;
     };
 
     $scope.stopStack = stopStack;
@@ -407,6 +423,12 @@ angular.module('portainer.app').controller('StackController', [
           Notifications.error('Failure', err, 'Unable to retrieve stack details');
         });
     }
+
+    this.uiCanExit = async function () {
+      if ($scope.stackFileContent && $scope.state.isEditorDirty) {
+        return ModalService.confirmWebEditorDiscard();
+      }
+    };
 
     async function initView() {
       var stackName = $transition$.params().name;

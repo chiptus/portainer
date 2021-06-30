@@ -1,11 +1,12 @@
 angular.module('portainer.docker').controller('BuildImageController', BuildImageController);
 
 /* @ngInject */
-function BuildImageController($scope, $async, $window, BuildService, Notifications, HttpRequestHelper) {
+function BuildImageController($scope, $async, $window, ModalService, BuildService, Notifications, HttpRequestHelper) {
   $scope.state = {
     BuildType: 'editor',
     actionInProgress: false,
     activeTab: 0,
+    isEditorDirty: false,
   };
 
   $scope.formValues = {
@@ -15,6 +16,16 @@ function BuildImageController($scope, $async, $window, BuildService, Notificatio
     URL: '',
     Path: 'Dockerfile',
     NodeName: null,
+  };
+
+  $window.onbeforeunload = () => {
+    if ($scope.state.BuildType === 'editor' && $scope.formValues.DockerFileContent && $scope.state.isEditorDirty) {
+      return '';
+    }
+  };
+
+  $scope.addImageName = function () {
+    $scope.formValues.ImageNames.push({ Name: '' });
   };
 
   $scope.addImageName = function () {
@@ -92,5 +103,12 @@ function BuildImageController($scope, $async, $window, BuildService, Notificatio
 
   $scope.editorUpdate = function (cm) {
     $scope.formValues.DockerFileContent = cm.getValue();
+    $scope.state.isEditorDirty = true;
+  };
+
+  this.uiCanExit = async function () {
+    if ($scope.state.BuildType === 'editor' && $scope.formValues.DockerFileContent && $scope.state.isEditorDirty) {
+      return ModalService.confirmWebEditorDiscard();
+    }
   };
 }

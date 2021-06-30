@@ -5,9 +5,11 @@ import { KubernetesDeployManifestTypes, KubernetesDeployBuildMethods, Kubernetes
 
 class KubernetesDeployController {
   /* @ngInject */
-  constructor($async, $state, Notifications, EndpointProvider, KubernetesResourcePoolService, StackService) {
+  constructor($async, $state, $window, ModalService, Notifications, EndpointProvider, KubernetesResourcePoolService, StackService) {
     this.$async = $async;
     this.$state = $state;
+    this.$window = $window;
+    this.ModalService = ModalService;
     this.Notifications = Notifications;
     this.EndpointProvider = EndpointProvider;
     this.KubernetesResourcePoolService = KubernetesResourcePoolService;
@@ -33,6 +35,7 @@ class KubernetesDeployController {
 
   async editorUpdateAsync(cm) {
     this.formValues.EditorContent = cm.getValue();
+    this.state.isEditorDirty = true;
   }
 
   editorUpdate(cm) {
@@ -73,6 +76,7 @@ class KubernetesDeployController {
       await this.StackService.kubernetesDeploy(this.endpointId, method, payload);
 
       this.Notifications.success('Manifest successfully deployed');
+      this.state.isEditorDirty = false;
       this.$state.go('kubernetes.applications');
     } catch (err) {
       this.Notifications.error('Unable to deploy manifest', err, 'Unable to deploy resources');
@@ -109,6 +113,12 @@ class KubernetesDeployController {
     return this.$async(this.getNamespacesAsync);
   }
 
+  async uiCanExit() {
+    if (this.formValues.EditorContent && this.state.isEditorDirty) {
+      return this.ModalService.confirmWebEditorDiscard();
+    }
+  }
+
   async onInit() {
     this.state = {
       DeployType: KubernetesDeployManifestTypes.KUBERNETES,
@@ -116,6 +126,7 @@ class KubernetesDeployController {
       tabLogsDisabled: true,
       activeTab: 0,
       viewReady: false,
+      isEditorDirty: false,
     };
 
     this.formValues = {};
@@ -126,6 +137,12 @@ class KubernetesDeployController {
     await this.getNamespaces();
 
     this.state.viewReady = true;
+
+    this.$window.onbeforeunload = () => {
+      if (this.formValues.EditorContent && this.state.isEditorDirty) {
+        return '';
+      }
+    };
   }
 
   $onInit() {

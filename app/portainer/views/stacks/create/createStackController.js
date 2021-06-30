@@ -9,6 +9,8 @@ angular
     $scope,
     $state,
     $async,
+    $window,
+    ModalService,
     StackService,
     Authentication,
     Notifications,
@@ -42,6 +44,21 @@ angular
       StackType: null,
       editorYamlValidationError: '',
       uploadYamlValidationError: '',
+      isEditorDirty: false,
+    };
+
+    $window.onbeforeunload = () => {
+      if ($scope.state.Method === 'editor' && $scope.formValues.StackFileContent && $scope.state.isEditorDirty) {
+        return '';
+      }
+    };
+
+    $scope.addEnvironmentVariable = function () {
+      $scope.formValues.Env.push({ name: '', value: '' });
+    };
+
+    $scope.removeEnvironmentVariable = function (index) {
+      $scope.formValues.Env.splice(index, 1);
     };
 
     $scope.onChangeFormValues = onChangeFormValues;
@@ -155,6 +172,7 @@ angular
         })
         .then(function success() {
           Notifications.success('Stack successfully deployed');
+          $scope.state.isEditorDirty = false;
           $state.go('docker.stacks');
         })
         .catch(function error(err) {
@@ -168,6 +186,7 @@ angular
     $scope.editorUpdate = function (cm) {
       $scope.formValues.StackFileContent = cm.getValue();
       $scope.state.editorYamlValidationError = StackHelper.validateYAML($scope.formValues.StackFileContent, $scope.containerNames);
+      $scope.state.isEditorDirty = true;
     };
 
     async function onFileLoadAsync(event) {
@@ -226,6 +245,12 @@ angular
         Notifications.error('Failure', err, 'Unable to retrieve Containers');
       }
     }
+
+    this.uiCanExit = async function () {
+      if ($scope.state.Method === 'editor' && $scope.formValues.StackFileContent && $scope.state.isEditorDirty) {
+        return ModalService.confirmWebEditorDiscard();
+      }
+    };
 
     initView();
 
