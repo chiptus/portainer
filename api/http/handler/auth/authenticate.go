@@ -259,12 +259,6 @@ func (handler *Handler) writeToken(w http.ResponseWriter, user *portainer.User, 
 	return handler.persistAndWriteToken(w, tokenData, nil, method)
 }
 
-func (handler *Handler) writeTokenForOAuth(w http.ResponseWriter, user *portainer.User, expiryTime *time.Time, method portainer.AuthenticationMethod) (*authMiddlewareResponse, *httperror.HandlerError) {
-	tokenData := composeTokenData(user)
-
-	return handler.persistAndWriteToken(w, tokenData, expiryTime, method)
-}
-
 func (handler *Handler) persistAndWriteToken(w http.ResponseWriter, tokenData *portainer.TokenData, expiryTime *time.Time, method portainer.AuthenticationMethod) (*authMiddlewareResponse, *httperror.HandlerError) {
 	resp := &authMiddlewareResponse{
 		Username: tokenData.Username,
