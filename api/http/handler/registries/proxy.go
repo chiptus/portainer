@@ -1,12 +1,15 @@
 package registries
 
 import (
+	"log"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	"github.com/portainer/portainer/api"
+	portainer "github.com/portainer/portainer/api"
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
 	"github.com/portainer/portainer/api/http/errors"
 )
@@ -43,13 +46,42 @@ func (handler *Handler) proxyRequestsToRegistryAPI(w http.ResponseWriter, r *htt
 		forceCreate = true
 	}
 
-	proxy, err := handler.registryProxyService.GetProxy(key, registry.URL, managementConfiguration, forceCreate)
+	managementUrl := getRegistryManagementUrl(registry)
+	proxy, err := handler.registryProxyService.GetProxy(key, managementUrl, managementConfiguration, forceCreate)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to create registry proxy", err}
 	}
 
+	if registry.Type == portainer.ProGetRegistry {
+		// replacePathRaw function does the following r.URL.RawPath = strings.Replace(r.URL.RawPath, "%2F", "/", -1)
+		proxy = replacePathRaw("%2F", "/", proxy)
+	}
+
 	http.StripPrefix("/registries/"+key, proxy).ServeHTTP(w, r)
+
 	return nil
+}
+
+func getRegistryManagementUrl(registry *portainer.Registry) string {
+	if registry.Type == portainer.ProGetRegistry && registry.BaseURL != "" {
+		log.Printf("[DEBUG] using BaseURL = \"%s\" for registry %d", registry.BaseURL, registry.ID)
+		return registry.BaseURL
+	}
+	return registry.URL
+}
+
+func replacePathRaw(o, n string, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.URL.RawPath, o) {
+			h.ServeHTTP(w, r)
+		} else {
+			r2 := *r
+			r2.URL = new(url.URL)
+			*r2.URL = *r.URL
+			r2.URL.RawPath = strings.Replace(r.URL.RawPath, o, n, -1)
+			h.ServeHTTP(w, &r2)
+		}
+	})
 }
 
 func createDefaultManagementConfiguration(registry *portainer.Registry) *portainer.RegistryManagementConfiguration {

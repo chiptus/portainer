@@ -34,13 +34,22 @@ type Handler struct {
 
 // NewHandler creates a handler to manage registry operations.
 func NewHandler(bouncer *security.RequestBouncer, userActivityStore portainer.UserActivityStore) *Handler {
-	h := &Handler{
+	h := newHandler(bouncer, userActivityStore)
+	h.initRouter(bouncer)
+
+	return h
+}
+
+func newHandler(bouncer *security.RequestBouncer, userActivityStore portainer.UserActivityStore) *Handler {
+	return &Handler{
 		Router:               mux.NewRouter(),
 		requestBouncer:       bouncer,
 		registryProxyService: registryproxy.NewService(userActivityStore),
 		UserActivityStore:    userActivityStore,
 	}
+}
 
+func (h *Handler) initRouter(bouncer accessGuard) {
 	h.Handle("/registries",
 		bouncer.AdminAccess(httperror.LoggerHandler(h.registryCreate))).Methods(http.MethodPost)
 	h.Handle("/registries",
@@ -59,5 +68,10 @@ func NewHandler(bouncer *security.RequestBouncer, userActivityStore portainer.Us
 		bouncer.RestrictedAccess(httperror.LoggerHandler(h.proxyRequestsToGitlabAPIWithRegistry)))
 	h.PathPrefix("/registries/proxies/gitlab").Handler(
 		bouncer.AdminAccess(httperror.LoggerHandler(h.proxyRequestsToGitlabAPIWithoutRegistry)))
-	return h
+}
+
+type accessGuard interface {
+	AdminAccess(h http.Handler) http.Handler
+	RestrictedAccess(h http.Handler) http.Handler
+	AuthenticatedAccess(h http.Handler) http.Handler
 }

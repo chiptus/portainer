@@ -15,7 +15,8 @@ import (
 
 type registryUpdatePayload struct {
 	Name               *string                      `json:",omitempty" example:"my-registry" validate:"required"`
-	URL                *string                      `json:",omitempty" example:"registry.mydomain.tld:2375" validate:"required"`
+	URL                *string                      `json:",omitempty" example:"registry.mydomain.tld:2375/feed" validate:"required"`
+	BaseURL            *string                      `json:",omitempty" example:"registry.mydomain.tld:2375"`
 	Authentication     *bool                        `json:",omitempty" example:"false" validate:"required"`
 	Username           *string                      `json:",omitempty" example:"registry_user"`
 	Password           *string                      `json:",omitempty" example:"registry_password"`
@@ -79,6 +80,10 @@ func (handler *Handler) registryUpdate(w http.ResponseWriter, r *http.Request) *
 		}
 
 		registry.URL = *payload.URL
+	}
+
+	if registry.Type == portainer.ProGetRegistry && payload.BaseURL != nil {
+		registry.BaseURL = *payload.BaseURL
 	}
 
 	if payload.Authentication != nil {
