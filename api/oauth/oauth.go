@@ -3,7 +3,6 @@ package oauth
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"mime"
@@ -24,20 +23,35 @@ func NewService() *Service {
 }
 
 // Authenticate takes an access code and exchanges it for an access token from portainer OAuthSettings token endpoint.
-// On success, it will then return the username and token expiry time associated to authenticated user by fetching this information
-// from the resource server and matching it with the user identifier setting.
-func (*Service) Authenticate(code string, configuration *portainer.OAuthSettings) (string, error) {
+// On success, it will then return an OAuthInfo struct associated to authenticated user.
+// The OAuthInfo struct contains data associated to the authenticated user.
+// This data is obtained from the OAuth providers resource server and matched with the attributes of the user identifier(s).
+func (*Service) Authenticate(code string, configuration *portainer.OAuthSettings) (*portainer.OAuthInfo, error) {
 	token, err := getOAuthToken(code, configuration)
 	if err != nil {
-		log.Printf("[DEBUG] - Failed retrieving access token: %v", err)
-		return "", err
+		log.Printf("[DEBUG] [internal,oauth] [message: failed retrieving oauth token: %v]", err)
+		return nil, err
 	}
-	username, err := getUsername(token.AccessToken, configuration)
+
+	resource, err := getResource(token.AccessToken, configuration)
 	if err != nil {
-		log.Printf("[DEBUG] - Failed retrieving oauth user name: %v", err)
-		return "", err
+		log.Printf("[DEBUG] [internal,oauth] [message: failed retrieving resource: %v]", err)
+		return nil, err
 	}
-	return username, nil
+
+	username, err := getUsername(resource, configuration)
+	if err != nil {
+		log.Printf("[DEBUG] [internal,oauth] [message: failed retrieving username: %v]", err)
+		return nil, err
+	}
+
+	teams, err := getTeams(resource, configuration)
+	if err != nil {
+		log.Printf("[DEBUG] [internal,oauth] [message: failed retrieving oauth teams: %v]", err)
+		return nil, err
+	}
+
+	return &portainer.OAuthInfo{Username: username, Teams: teams}, nil
 }
 
 func getOAuthToken(code string, configuration *portainer.OAuthSettings) (*oauth2.Token, error) {
@@ -55,27 +69,27 @@ func getOAuthToken(code string, configuration *portainer.OAuthSettings) (*oauth2
 	return token, nil
 }
 
-func getUsername(token string, configuration *portainer.OAuthSettings) (string, error) {
+func getResource(token string, configuration *portainer.OAuthSettings) (map[string]interface{}, error) {
 	req, err := http.NewRequest("GET", configuration.ResourceURI, nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	client := &http.Client{}
 	req.Header.Set("Authorization", "Bearer "+token)
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", &oauth2.RetrieveError{
+		return nil, &oauth2.RetrieveError{
 			Response: resp,
 			Body:     body,
 		}
@@ -83,47 +97,32 @@ func getUsername(token string, configuration *portainer.OAuthSettings) (string, 
 
 	content, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if content == "application/x-www-form-urlencoded" || content == "text/plain" {
 		values, err := url.ParseQuery(string(body))
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
-		username := values.Get(configuration.UserIdentifier)
-		if username == "" {
-			return username, &oauth2.RetrieveError{
-				Response: resp,
-				Body:     body,
+		datamap := make(map[string]interface{})
+		for k, v := range values {
+			if len(v) == 0 {
+				datamap[k] = ""
+			} else {
+				datamap[k] = v[0]
 			}
 		}
-
-		return username, nil
+		return datamap, nil
 	}
 
 	var datamap map[string]interface{}
 	if err = json.Unmarshal(body, &datamap); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	username, ok := datamap[configuration.UserIdentifier].(string)
-	if ok && username != "" {
-		return username, nil
-	}
-
-	if !ok {
-		username, ok := datamap[configuration.UserIdentifier].(float64)
-		if ok && username != 0 {
-			return fmt.Sprint(int(username)), nil
-		}
-	}
-
-	return "", &oauth2.RetrieveError{
-		Response: resp,
-		Body:     body,
-	}
+	return datamap, nil
 }
 
 func buildConfig(configuration *portainer.OAuthSettings) *oauth2.Config {

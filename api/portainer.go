@@ -545,21 +545,41 @@ type (
 	// MembershipRole represents the role of a user within a team
 	MembershipRole int
 
+	// OAuthClaimMappings represents oAuth group claim value to portainer team name mapping
+	OAuthClaimMappings struct {
+		ClaimValRegex string `json:"ClaimValRegex"`
+		Team          int    `json:"Team"`
+	}
+
+	// TeamMemberships represents oAuth group claim to portainer team membership mappings
+	TeamMemberships struct {
+		OAuthClaimName     string               `json:"OAuthClaimName"`
+		OAuthClaimMappings []OAuthClaimMappings `json:"OAuthClaimMappings"`
+	}
+
 	// OAuthSettings represents the settings used to authorize with an authorization server
 	OAuthSettings struct {
-		ClientID             string `json:"ClientID"`
-		ClientSecret         string `json:"ClientSecret,omitempty"`
-		AccessTokenURI       string `json:"AccessTokenURI"`
-		AuthorizationURI     string `json:"AuthorizationURI"`
-		ResourceURI          string `json:"ResourceURI"`
-		RedirectURI          string `json:"RedirectURI"`
-		UserIdentifier       string `json:"UserIdentifier"`
-		Scopes               string `json:"Scopes"`
-		OAuthAutoCreateUsers bool   `json:"OAuthAutoCreateUsers"`
-		DefaultTeamID        TeamID `json:"DefaultTeamID"`
-		SSO                  bool   `json:"SSO"`
-		HideInternalAuth     bool   `json:"HideInternalAuth"`
-		LogoutURI            string `json:"LogoutURI"`
+		ClientID                    string          `json:"ClientID"`
+		ClientSecret                string          `json:"ClientSecret,omitempty"`
+		AccessTokenURI              string          `json:"AccessTokenURI"`
+		AuthorizationURI            string          `json:"AuthorizationURI"`
+		ResourceURI                 string          `json:"ResourceURI"`
+		RedirectURI                 string          `json:"RedirectURI"`
+		UserIdentifier              string          `json:"UserIdentifier"`
+		Scopes                      string          `json:"Scopes"`
+		OAuthAutoCreateUsers        bool            `json:"OAuthAutoCreateUsers"`
+		OAuthAutoMapTeamMemberships bool            `json:"OAuthAutoMapTeamMemberships"`
+		TeamMemberships             TeamMemberships `json:"TeamMemberships"`
+		DefaultTeamID               TeamID          `json:"DefaultTeamID"`
+		SSO                         bool            `json:"SSO"`
+		HideInternalAuth            bool            `json:"HideInternalAuth"`
+		LogoutURI                   string          `json:"LogoutURI"`
+	}
+
+	// OAuthInfo represents extracted data from the resource object obtained from an OAuth providers resource URL
+	OAuthInfo struct {
+		Username string
+		Teams    []string
 	}
 
 	// Pair defines a key/value string pair
@@ -1350,7 +1370,7 @@ type (
 
 	// OAuthService represents a service used to authenticate users using OAuth
 	OAuthService interface {
-		Authenticate(code string, configuration *OAuthSettings) (string, error)
+		Authenticate(code string, configuration *OAuthSettings) (*OAuthInfo, error)
 	}
 
 	// RegistryService represents a service for managing registry data

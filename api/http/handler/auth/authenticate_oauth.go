@@ -26,21 +26,21 @@ func (payload *oauthPayload) Validate(r *http.Request) error {
 	return nil
 }
 
-func (handler *Handler) authenticateOAuth(code string, settings *portainer.OAuthSettings) (string, error) {
+func (handler *Handler) authenticateOAuth(code string, settings *portainer.OAuthSettings) (*portainer.OAuthInfo, error) {
 	if code == "" {
-		return "", errors.New("Invalid OAuth authorization code")
+		return nil, errors.New("Invalid OAuth authorization code")
 	}
 
 	if settings == nil {
-		return "", errors.New("Invalid OAuth configuration")
+		return nil, errors.New("Invalid OAuth configuration")
 	}
 
-	username, err := handler.OAuthService.Authenticate(code, settings)
+	authInfo, err := handler.OAuthService.Authenticate(code, settings)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return username, nil
+	return authInfo, nil
 }
 
 // @id ValidateOAuth
@@ -86,7 +86,7 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 		}
 	}
 
-	username, err := handler.authenticateOAuth(payload.Code, &settings.OAuthSettings)
+	authInfo, err := handler.authenticateOAuth(payload.Code, &settings.OAuthSettings)
 	if err != nil {
 		log.Printf("[DEBUG] - OAuth authentication error: %s", err)
 		return resp, &httperror.HandlerError{
@@ -96,9 +96,9 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 		}
 	}
 
-	resp.Username = username
+	resp.Username = authInfo.Username
 
-	user, err := handler.DataStore.User().UserByUsername(username)
+	user, err := handler.DataStore.User().UserByUsername(authInfo.Username)
 	if err != nil && err != bolterrors.ErrObjectNotFound {
 		return resp, &httperror.HandlerError{
 			StatusCode: http.StatusInternalServerError,
@@ -107,7 +107,7 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 		}
 	}
 
-	if user == nil && !settings.OAuthSettings.OAuthAutoCreateUsers {
+	if user == nil && !settings.OAuthSettings.OAuthAutoMapTeamMemberships && !settings.OAuthSettings.OAuthAutoCreateUsers {
 		return resp, &httperror.HandlerError{
 			StatusCode: http.StatusForbidden,
 			Message:    "Account not created beforehand in Portainer and automatic user provisioning not enabled",
@@ -117,7 +117,7 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 
 	if user == nil {
 		user = &portainer.User{
-			Username:                username,
+			Username:                authInfo.Username,
 			Role:                    portainer.StandardUserRole,
 			PortainerAuthorizations: authorization.DefaultPortainerAuthorizations(),
 		}
@@ -147,6 +147,34 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 						Message:    "Unable to persist team membership inside the database",
 						Err:        err,
 					}
+			}
+		}
+
+		err = handler.AuthorizationService.UpdateUsersAuthorizations()
+		if err != nil {
+			return resp, &httperror.HandlerError{
+				StatusCode: http.StatusInternalServerError,
+				Message:    "Unable to update user authorizations",
+				Err:        err,
+			}
+		}
+	}
+
+	if settings.OAuthSettings.OAuthAutoMapTeamMemberships {
+		if settings.OAuthSettings.TeamMemberships.OAuthClaimName == "" {
+			return resp, &httperror.HandlerError{
+				StatusCode: http.StatusInternalServerError,
+				Message:    "Unable to process user oauth team memberships",
+				Err:        errors.New("empty value set for oauth team membership Claim name"),
+			}
+		}
+
+		err = updateOAuthTeamMemberships(handler.DataStore, settings.OAuthSettings, *user, authInfo.Teams)
+		if err != nil {
+			return resp, &httperror.HandlerError{
+				StatusCode: http.StatusInternalServerError,
+				Message:    "Unable to update user oauth team memberships",
+				Err:        err,
 			}
 		}
 
