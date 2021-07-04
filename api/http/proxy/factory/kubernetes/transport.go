@@ -1,8 +1,11 @@
 package kubernetes
 
 import (
+	"bytes"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"regexp"
@@ -32,11 +35,13 @@ type (
 
 	agentTransport struct {
 		*baseTransport
+		dataStore        portainer.DataStore
 		signatureService portainer.DigitalSignatureService
 	}
 
 	edgeTransport struct {
 		*baseTransport
+		dataStore            portainer.DataStore
 		reverseTunnelService portainer.ReverseTunnelService
 	}
 )
@@ -170,8 +175,9 @@ func (transport *localTransport) RoundTrip(request *http.Request) (*http.Respons
 }
 
 // NewAgentTransport returns a new transport that can be used to send signed requests to a Portainer agent
-func NewAgentTransport(signatureService portainer.DigitalSignatureService, tlsConfig *tls.Config, tokenManager *tokenManager, endpoint *portainer.Endpoint, userActivityStore portainer.UserActivityStore) *agentTransport {
+func NewAgentTransport(datastore portainer.DataStore, signatureService portainer.DigitalSignatureService, tlsConfig *tls.Config, tokenManager *tokenManager, endpoint *portainer.Endpoint, userActivityStore portainer.UserActivityStore) *agentTransport {
 	transport := &agentTransport{
+		dataStore: datastore,
 		baseTransport: &baseTransport{
 			httpTransport: &http.Transport{
 				TLSClientConfig: tlsConfig,
@@ -188,12 +194,16 @@ func NewAgentTransport(signatureService portainer.DigitalSignatureService, tlsCo
 
 // RoundTrip is the implementation of the the http.RoundTripper interface
 func (transport *agentTransport) RoundTrip(request *http.Request) (*http.Response, error) {
-	token, err := getRoundTripToken(request, transport.tokenManager, transport.endpoint.ID)
+	token, err := getRoundTripToken(request, transport.baseTransport.tokenManager, transport.baseTransport.endpoint.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	request.Header.Set(portainer.PortainerAgentKubernetesSATokenHeader, token)
+
+	if strings.HasPrefix(request.URL.Path, "/v2") {
+		decorateAgentRequest(request, transport.dataStore)
+	}
 
 	signature, err := transport.signatureService.CreateSignature(portainer.PortainerAgentSignatureMessage)
 	if err != nil {
@@ -206,9 +216,10 @@ func (transport *agentTransport) RoundTrip(request *http.Request) (*http.Respons
 	return transport.baseTransport.RoundTrip(request)
 }
 
-// NewAgentTransport returns a new transport that can be used to send signed requests to a Portainer Edge agent
-func NewEdgeTransport(reverseTunnelService portainer.ReverseTunnelService, endpoint *portainer.Endpoint, tokenManager *tokenManager, userActivityStore portainer.UserActivityStore) *edgeTransport {
+// NewEdgeTransport returns a new transport that can be used to send signed requests to a Portainer Edge agent
+func NewEdgeTransport(datastore portainer.DataStore, reverseTunnelService portainer.ReverseTunnelService, endpoint *portainer.Endpoint, tokenManager *tokenManager, userActivityStore portainer.UserActivityStore) *edgeTransport {
 	transport := &edgeTransport{
+		dataStore: datastore,
 		baseTransport: &baseTransport{
 			httpTransport:     &http.Transport{},
 			tokenManager:      tokenManager,
@@ -223,12 +234,16 @@ func NewEdgeTransport(reverseTunnelService portainer.ReverseTunnelService, endpo
 
 // RoundTrip is the implementation of the the http.RoundTripper interface
 func (transport *edgeTransport) RoundTrip(request *http.Request) (*http.Response, error) {
-	token, err := getRoundTripToken(request, transport.tokenManager, transport.endpoint.ID)
+	token, err := getRoundTripToken(request, transport.baseTransport.tokenManager, transport.baseTransport.endpoint.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	request.Header.Set(portainer.PortainerAgentKubernetesSATokenHeader, token)
+
+	if strings.HasPrefix(request.URL.Path, "/v2") {
+		decorateAgentRequest(request, transport.dataStore)
+	}
 
 	response, err := transport.baseTransport.RoundTrip(request)
 
@@ -260,4 +275,34 @@ func getRoundTripToken(request *http.Request, tokenManager *tokenManager, endpoi
 	}
 
 	return token, nil
+}
+
+func decorateAgentRequest(r *http.Request, dataStore portainer.DataStore) error {
+	requestPath := strings.TrimPrefix(r.URL.Path, "/v2")
+
+	switch {
+	case strings.HasPrefix(requestPath, "/dockerhub"):
+		decorateAgentDockerHubRequest(r, dataStore)
+	}
+
+	return nil
+}
+
+func decorateAgentDockerHubRequest(r *http.Request, dataStore portainer.DataStore) error {
+	dockerhub, err := dataStore.DockerHub().DockerHub()
+	if err != nil {
+		return err
+	}
+
+	newBody, err := json.Marshal(dockerhub)
+	if err != nil {
+		return err
+	}
+
+	r.Method = http.MethodPost
+
+	r.Body = ioutil.NopCloser(bytes.NewReader(newBody))
+	r.ContentLength = int64(len(newBody))
+
+	return nil
 }

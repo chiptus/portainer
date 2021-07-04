@@ -403,6 +403,7 @@ func DefaultEndpointAuthorizationsForStandardUserRole() portainer.Authorizations
 		portainer.OperationDockerAgentList:                    true,
 		portainer.OperationDockerAgentHostInfo:                true,
 		portainer.OperationDockerAgentUndefined:               true,
+		portainer.OperationPortainerDockerHubInspect:          true,
 		portainer.OperationPortainerResourceControlUpdate:     true,
 		portainer.OperationPortainerStackList:                 true,
 		portainer.OperationPortainerStackInspect:              true,

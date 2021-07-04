@@ -216,6 +216,8 @@ func portainerEndpointGroupOperationAuthorization(url, method string) portainer.
 
 func portainerEndpointOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("endpoints", url)
+	urlParts := strings.Split(url, "/")
+	baseResource := strings.Split(urlParts[1], "?")[0]
 
 	switch method {
 	case http.MethodGet:
@@ -223,6 +225,9 @@ func portainerEndpointOperationAuthorization(url, method string) portainer.Autho
 			return portainer.OperationPortainerEndpointList
 		} else if resource != "" && action == "" {
 			return portainer.OperationPortainerEndpointInspect
+		}
+		if action == "dockerhub" {
+			return portainerDockerhubOperationAuthorization(strings.TrimPrefix(url, "/"+baseResource), method)
 		}
 	case http.MethodPost:
 		switch action {
