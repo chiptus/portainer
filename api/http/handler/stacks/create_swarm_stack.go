@@ -15,6 +15,7 @@ import (
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/http/useractivity"
+	consts "github.com/portainer/portainer/api/useractivity"
 )
 
 type swarmStackFromFileContentPayload struct {
@@ -197,6 +198,10 @@ func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter,
 	err = handler.DataStore.Stack().CreateStack(stack)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the stack inside the database", err}
+	}
+
+	if payload.RepositoryPassword != "" {
+		payload.RepositoryPassword = consts.RedactedValue
 	}
 
 	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)

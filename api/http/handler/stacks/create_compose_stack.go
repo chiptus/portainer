@@ -15,6 +15,7 @@ import (
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/http/useractivity"
+	consts "github.com/portainer/portainer/api/useractivity"
 )
 
 type composeStackFromFileContentPayload struct {
@@ -193,6 +194,10 @@ func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWrite
 	err = handler.DataStore.Stack().CreateStack(stack)
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist the stack inside the database", Err: err}
+	}
+
+	if payload.RepositoryPassword != "" {
+		payload.RepositoryPassword = consts.RedactedValue
 	}
 
 	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
