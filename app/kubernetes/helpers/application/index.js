@@ -267,7 +267,7 @@ class KubernetesApplicationHelper {
   /* #endregion */
 
   /* #region  PUBLISHED PORTS FV <> PUBLISHED PORTS */
-  static generatePublishedPortsFormValuesFromPublishedPorts(serviceType, publishedPorts) {
+  static generatePublishedPortsFormValuesFromPublishedPorts(serviceType, publishedPorts, ingress) {
     const generatePort = (port, rule) => {
       const res = new KubernetesApplicationPublishedPortFormValue();
       res.IsNew = false;
@@ -275,7 +275,9 @@ class KubernetesApplicationHelper {
         res.IngressName = rule.IngressName;
         res.IngressRoute = rule.Path;
         res.IngressHost = rule.Host;
+        res.IngressHosts = ingress.find((i) => i.Name === rule.IngressName).Hosts;
       }
+
       res.Protocol = port.Protocol;
       res.ContainerPort = port.TargetPort;
       if (serviceType === KubernetesServiceTypes.LOAD_BALANCER) {
