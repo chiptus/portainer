@@ -25,12 +25,12 @@ function computeTolerations(nodes, application) {
       const anyKeyAnyValueAnyEffect = _.find(pod.Tolerations, { Key: '', Operator: 'Exists', Effect: '' });
 
       if (!matchKeyMatchValueMatchEffect && !matchKeyAnyValueMatchEffect && !matchKeyMatchValueAnyEffect && !matchKeyAnyValueAnyEffect && !anyKeyAnyValueAnyEffect) {
-        n.AcceptsApplication = false;
         n.UnmetTaints.push(t);
-      } else {
-        n.AcceptsApplication = true;
       }
     });
+    if (n.UnmetTaints.length) {
+      n.AcceptsApplication = false;
+    }
   });
   return nodes;
 }
@@ -310,6 +310,7 @@ class KubernetesApplicationController {
       });
 
       this.placements = computePlacements(nodes, this.application);
+      this.state.placementWarning = _.find(this.placements, { AcceptsApplication: true }) ? false : true;
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to retrieve application details');
     } finally {
@@ -335,6 +336,7 @@ class KubernetesApplicationController {
         name: this.$transition$.params().name,
       },
       eventWarningCount: 0,
+      placementWarning: false,
       expandedNote: false,
       useIngress: false,
       useServerMetrics: this.EndpointProvider.currentEndpoint().Kubernetes.Configuration.UseServerMetrics,
