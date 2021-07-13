@@ -179,14 +179,17 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 			return transport.administratorOperation(r)
 		}
 
+		volumeName := volumeIDParameter[0]
+
 		agentTargetHeader := r.Header.Get(portainer.PortainerAgentTargetHeader)
-		resourceID, err := transport.getVolumeResourceID(agentTargetHeader, volumeIDParameter[0])
+
+		resourceID, err := transport.getVolumeResourceID(agentTargetHeader, volumeName)
 		if err != nil {
 			return nil, err
 		}
 
 		// volume browser request
-		return transport.restrictedResourceOperation(r, resourceID, portainer.VolumeResourceControl, true)
+		return transport.restrictedResourceOperation(r, resourceID, volumeName, portainer.VolumeResourceControl, true)
 	case strings.HasPrefix(requestPath, "/dockerhub"):
 		dockerhub, err := transport.dataStore.DockerHub().DockerHub()
 		if err != nil {
@@ -222,10 +225,10 @@ func (transport *Transport) proxyConfigRequest(request *http.Request) (*http.Res
 		if request.Method == http.MethodGet {
 			return transport.rewriteOperation(request, transport.configInspectOperation)
 		} else if request.Method == http.MethodDelete {
-			return transport.executeGenericResourceDeletionOperation(request, configID, portainer.ConfigResourceControl)
+			return transport.executeGenericResourceDeletionOperation(request, configID, configID, portainer.ConfigResourceControl)
 		}
 
-		return transport.restrictedResourceOperation(request, configID, portainer.ConfigResourceControl, false)
+		return transport.restrictedResourceOperation(request, configID, configID, portainer.ConfigResourceControl, false)
 	}
 }
 
@@ -250,16 +253,16 @@ func (transport *Transport) proxyContainerRequest(request *http.Request) (*http.
 			if action == "json" {
 				return transport.rewriteOperation(request, transport.containerInspectOperation)
 			}
-			return transport.restrictedResourceOperation(request, containerID, portainer.ContainerResourceControl, false)
+			return transport.restrictedResourceOperation(request, containerID, containerID, portainer.ContainerResourceControl, false)
 		} else if match, _ := path.Match("/containers/*", requestPath); match {
 			// Handle /containers/{id} requests
 			containerID := path.Base(requestPath)
 
 			if request.Method == http.MethodDelete {
-				return transport.executeGenericResourceDeletionOperation(request, containerID, portainer.ContainerResourceControl)
+				return transport.executeGenericResourceDeletionOperation(request, containerID, containerID, portainer.ContainerResourceControl)
 			}
 
-			return transport.restrictedResourceOperation(request, containerID, portainer.ContainerResourceControl, false)
+			return transport.restrictedResourceOperation(request, containerID, containerID, portainer.ContainerResourceControl, false)
 		}
 		return transport.executeDockerRequest(request, true)
 	}
@@ -278,7 +281,7 @@ func (transport *Transport) proxyServiceRequest(request *http.Request) (*http.Re
 		if match, _ := path.Match("/services/*/*", requestPath); match {
 			// Handle /services/{id}/{action} requests
 			serviceID := path.Base(path.Dir(requestPath))
-			return transport.restrictedResourceOperation(request, serviceID, portainer.ServiceResourceControl, false)
+			return transport.restrictedResourceOperation(request, serviceID, serviceID, portainer.ServiceResourceControl, false)
 		} else if match, _ := path.Match("/services/*", requestPath); match {
 			// Handle /services/{id} requests
 			serviceID := path.Base(requestPath)
@@ -287,9 +290,9 @@ func (transport *Transport) proxyServiceRequest(request *http.Request) (*http.Re
 			case http.MethodGet:
 				return transport.rewriteOperation(request, transport.serviceInspectOperation)
 			case http.MethodDelete:
-				return transport.executeGenericResourceDeletionOperation(request, serviceID, portainer.ServiceResourceControl)
+				return transport.executeGenericResourceDeletionOperation(request, serviceID, serviceID, portainer.ServiceResourceControl)
 			}
-			return transport.restrictedResourceOperation(request, serviceID, portainer.ServiceResourceControl, false)
+			return transport.restrictedResourceOperation(request, serviceID, serviceID, portainer.ServiceResourceControl, false)
 		}
 		return transport.executeDockerRequest(request, true)
 	}
@@ -327,9 +330,9 @@ func (transport *Transport) proxyNetworkRequest(request *http.Request) (*http.Re
 		if request.Method == http.MethodGet {
 			return transport.rewriteOperation(request, transport.networkInspectOperation)
 		} else if request.Method == http.MethodDelete {
-			return transport.executeGenericResourceDeletionOperation(request, networkID, portainer.NetworkResourceControl)
+			return transport.executeGenericResourceDeletionOperation(request, networkID, networkID, portainer.NetworkResourceControl)
 		}
-		return transport.restrictedResourceOperation(request, networkID, portainer.NetworkResourceControl, false)
+		return transport.restrictedResourceOperation(request, networkID, networkID, portainer.NetworkResourceControl, false)
 	}
 }
 
@@ -348,9 +351,9 @@ func (transport *Transport) proxySecretRequest(request *http.Request) (*http.Res
 		if request.Method == http.MethodGet {
 			return transport.rewriteOperation(request, transport.secretInspectOperation)
 		} else if request.Method == http.MethodDelete {
-			return transport.executeGenericResourceDeletionOperation(request, secretID, portainer.SecretResourceControl)
+			return transport.executeGenericResourceDeletionOperation(request, secretID, secretID, portainer.SecretResourceControl)
 		}
-		return transport.restrictedResourceOperation(request, secretID, portainer.SecretResourceControl, false)
+		return transport.restrictedResourceOperation(request, secretID, secretID, portainer.SecretResourceControl, false)
 	}
 }
 
@@ -437,7 +440,7 @@ func (transport *Transport) replaceRegistryAuthenticationHeader(request *http.Re
 	return transport.decorateGenericResourceCreationOperation(request, serviceObjectIdentifier, portainer.ServiceResourceControl, true)
 }
 
-func (transport *Transport) restrictedResourceOperation(request *http.Request, resourceID string, resourceType portainer.ResourceControlType, volumeBrowseRestrictionCheck bool) (*http.Response, error) {
+func (transport *Transport) restrictedResourceOperation(request *http.Request, resourceID string, dockerResourceID string, resourceType portainer.ResourceControlType, volumeBrowseRestrictionCheck bool) (*http.Response, error) {
 	var err error
 	tokenData, err := security.RetrieveTokenData(request)
 	if err != nil {
@@ -490,9 +493,13 @@ func (transport *Transport) restrictedResourceOperation(request *http.Request, r
 		if resourceControl == nil {
 			agentTargetHeader := request.Header.Get(portainer.PortainerAgentTargetHeader)
 
+			if dockerResourceID == "" {
+				dockerResourceID = resourceID
+			}
+
 			// This resource was created outside of portainer,
 			// is part of a Docker service or part of a Docker Swarm/Compose stack.
-			inheritedResourceControl, err := transport.getInheritedResourceControlFromServiceOrStack(resourceID, agentTargetHeader, resourceType, resourceControls)
+			inheritedResourceControl, err := transport.getInheritedResourceControlFromServiceOrStack(dockerResourceID, agentTargetHeader, resourceType, resourceControls)
 			if err != nil {
 				return nil, err
 			}
@@ -607,8 +614,8 @@ func (transport *Transport) decorateGenericResourceCreationOperation(request *ht
 	return response, err
 }
 
-func (transport *Transport) executeGenericResourceDeletionOperation(request *http.Request, resourceIdentifierAttribute string, resourceType portainer.ResourceControlType) (*http.Response, error) {
-	response, err := transport.restrictedResourceOperation(request, resourceIdentifierAttribute, resourceType, false)
+func (transport *Transport) executeGenericResourceDeletionOperation(request *http.Request, resourceIdentifierAttribute string, volumeName string, resourceType portainer.ResourceControlType) (*http.Response, error) {
+	response, err := transport.restrictedResourceOperation(request, resourceIdentifierAttribute, volumeName, resourceType, false)
 	if err != nil {
 		return response, err
 	}
