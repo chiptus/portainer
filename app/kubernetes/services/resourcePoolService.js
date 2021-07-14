@@ -6,7 +6,7 @@ import KubernetesResourceQuotaHelper from 'Kubernetes/helpers/resourceQuotaHelpe
 import KubernetesCommonHelper from 'Kubernetes/helpers/commonHelper';
 
 /* @ngInject */
-export function KubernetesResourcePoolService($async, KubernetesNamespaceService, KubernetesResourceQuotaService, KubernetesIngressService) {
+export function KubernetesResourcePoolService($async, EndpointService, KubernetesNamespaceService, KubernetesResourceQuotaService, KubernetesIngressService) {
   return {
     get,
     create,
@@ -62,7 +62,7 @@ export function KubernetesResourcePoolService($async, KubernetesNamespaceService
 
     return $async(async () => {
       try {
-        const [namespace, quota, ingresses] = KubernetesResourcePoolConverter.formValuesToResourcePool(formValues);
+        const [namespace, quota, ingresses, registries] = KubernetesResourcePoolConverter.formValuesToResourcePool(formValues);
         await KubernetesNamespaceService.create(namespace);
 
         if (quota) {
@@ -71,6 +71,10 @@ export function KubernetesResourcePoolService($async, KubernetesNamespaceService
 
         const ingressPromises = _.map(ingresses, (i) => KubernetesIngressService.create(i));
         await Promise.all(ingressPromises);
+
+        const endpointId = formValues.EndpointId;
+        const registriesPromises = _.map(registries, (r) => EndpointService.updateRegistryAccess(endpointId, r.Id, r.RegistryAccesses[endpointId]));
+        await Promise.all(registriesPromises);
       } catch (err) {
         throw err;
       }
@@ -80,8 +84,8 @@ export function KubernetesResourcePoolService($async, KubernetesNamespaceService
   function patch(oldFormValues, newFormValues) {
     return $async(async () => {
       try {
-        const [oldNamespace, oldQuota, oldIngresses] = KubernetesResourcePoolConverter.formValuesToResourcePool(oldFormValues);
-        const [newNamespace, newQuota, newIngresses] = KubernetesResourcePoolConverter.formValuesToResourcePool(newFormValues);
+        const [oldNamespace, oldQuota, oldIngresses, oldRegistries] = KubernetesResourcePoolConverter.formValuesToResourcePool(oldFormValues);
+        const [newNamespace, newQuota, newIngresses, newRegistries] = KubernetesResourcePoolConverter.formValuesToResourcePool(newFormValues);
         void oldNamespace, newNamespace;
 
         if (oldQuota && newQuota) {
@@ -107,6 +111,18 @@ export function KubernetesResourcePoolService($async, KubernetesNamespaceService
 
         const promises = _.flatten([createPromises, delPromises, patchPromises]);
         await Promise.all(promises);
+
+        const endpointId = newFormValues.EndpointId;
+        const keptRegistries = _.intersectionBy(oldRegistries, newRegistries, 'Id');
+        const removedRegistries = _.without(oldRegistries, ...keptRegistries);
+
+        const newRegistriesPromises = _.map(newRegistries, (r) => EndpointService.updateRegistryAccess(endpointId, r.Id, r.RegistryAccesses[endpointId]));
+        const removedRegistriesPromises = _.map(removedRegistries, (r) => {
+          _.pull(r.RegistryAccesses[endpointId].Namespaces, newFormValues.Name);
+          return EndpointService.updateRegistryAccess(endpointId, r.Id, r.RegistryAccesses[endpointId]);
+        });
+
+        await Promise.all(_.concat(newRegistriesPromises, removedRegistriesPromises));
       } catch (err) {
         throw err;
       }

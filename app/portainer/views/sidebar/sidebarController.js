@@ -19,17 +19,27 @@ angular.module('portainer.app').controller('SidebarController', [
       $scope.isTeamLeader = isLeader;
     }
 
+    function isClusterAdmin() {
+      return Authentication.isAdmin();
+    }
+
+    function isEndpointAdmin() {
+      return Authentication.hasAuthorizations(['EndpointResourcesAccess']);
+    }
+
     async function initView() {
       $scope.uiVersion = StateManager.getState().application.version;
       //$scope.edition = StateManager.getState().application.edition;
       $scope.edition = 'Business Edition';
       $scope.logo = StateManager.getState().application.logo;
-      $scope.showStacks = await shouldShowStacks();
+
+      $scope.endpointId = EndpointProvider.endpointID();
+      $scope.showStacks = shouldShowStacks();
 
       let userDetails = Authentication.getUserDetails();
-      let isAdmin = Authentication.isAdmin();
+      const isAdmin = isClusterAdmin();
       $scope.isAdmin = isAdmin;
-      $scope.endpointId = EndpointProvider.endpointID();
+      $scope.isEndpointAdmin = isEndpointAdmin();
 
       $q.when(!isAdmin ? UserService.userMemberships(userDetails.ID) : [])
         .then(function success(data) {
@@ -38,18 +48,12 @@ angular.module('portainer.app').controller('SidebarController', [
         .catch(function error(err) {
           Notifications.error('Failure', err, 'Unable to retrieve user memberships');
         });
-
-      $transitions.onEnter({}, () => {
-        $scope.endpointId = EndpointProvider.endpointID();
-      });
     }
 
     initView();
 
-    async function shouldShowStacks() {
-      const isAdmin = Authentication.isAdmin();
-
-      if (isAdmin || Authentication.hasAuthorizations(['EndpointResourcesAccess'])) {
+    function shouldShowStacks() {
+      if (isClusterAdmin() || isEndpointAdmin()) {
         return true;
       }
 
@@ -62,7 +66,10 @@ angular.module('portainer.app').controller('SidebarController', [
     }
 
     $transitions.onEnter({}, async () => {
-      $scope.showStacks = await shouldShowStacks();
+      $scope.endpointId = EndpointProvider.endpointID();
+      $scope.showStacks = shouldShowStacks();
+      $scope.isAdmin = isClusterAdmin();
+      $scope.isEndpointAdmin = isEndpointAdmin();
 
       if ($scope.applicationState.endpoint.name) {
         document.title = `${$rootScope.defaultTitle} | ${$scope.applicationState.endpoint.name}`;

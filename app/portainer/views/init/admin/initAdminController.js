@@ -1,5 +1,4 @@
 angular.module('portainer.app').controller('InitAdminController', [
-  '$async',
   '$scope',
   '$state',
   'Notifications',
@@ -9,7 +8,7 @@ angular.module('portainer.app').controller('InitAdminController', [
   'UserService',
   'BackupService',
   'StatusService',
-  function ($async, $scope, $state, Notifications, Authentication, StateManager, SettingsService, UserService, BackupService, StatusService) {
+  function ($scope, $state, Notifications, Authentication, StateManager, SettingsService, UserService, BackupService, StatusService) {
     $scope.logo = StateManager.getState().application.logo;
     $scope.RESTORE_FORM_TYPES = { S3: 's3', FILE: 'file' }
     $scope.formValues = {

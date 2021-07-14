@@ -1,12 +1,16 @@
 export function KubernetesResourcePoolFormValues(defaults) {
-  this.Name = '';
-  this.MemoryLimit = defaults.MemoryLimit;
-  this.CpuLimit = defaults.CpuLimit;
-  this.LoadBalancers = defaults.LoadBalancers;
-  this.UseLoadBalancersQuota = false;
-  this.HasQuota = false;
-  this.IngressClasses = []; // KubernetesResourcePoolIngressClassFormValue
-  this.StorageClasses = []; // KubernetesResourcePoolStorageClassFormValue
+  return {
+    Name: '',
+    MemoryLimit: defaults.MemoryLimit,
+    CpuLimit: defaults.CpuLimit,
+    LoadBalancers: defaults.LoadBalancers,
+    UseLoadBalancersQuota: false,
+    HasQuota: false,
+    IngressClasses: [], // KubernetesResourcePoolIngressClassFormValue
+    StorageClasses: [], // KubernetesResourcePoolStorageClassFormValue
+    EndpointId: 0,
+    Registries: [], // RegistryViewModel
+  };
 }
 
 /**

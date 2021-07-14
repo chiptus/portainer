@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/pkg/errors"
+	"github.com/portainer/portainer/api/http/proxy/factory/utils"
 	useractivityhttp "github.com/portainer/portainer/api/http/useractivity"
-	"github.com/portainer/portainer/api/http/utils"
 	"github.com/portainer/portainer/api/useractivity"
 )
 

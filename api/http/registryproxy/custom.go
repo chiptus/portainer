@@ -6,8 +6,8 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
+	"github.com/portainer/portainer/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer/api/http/useractivity"
-	"github.com/portainer/portainer/api/http/utils"
 )
 
 type customTransport struct {

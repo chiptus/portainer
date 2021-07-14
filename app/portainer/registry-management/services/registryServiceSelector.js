@@ -1,4 +1,4 @@
-import { RegistryTypes } from '@/portainer/registry-management/models/registryTypes';
+import { RegistryTypes } from 'Portainer/models/registryTypes';
 
 angular.module('portainer.registrymanagement').factory('RegistryServiceSelector', [
   '$q',

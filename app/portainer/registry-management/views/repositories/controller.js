@@ -1,6 +1,6 @@
 import _ from 'lodash-es';
 
-import { RegistryTypes } from '@/portainer/registry-management/models/registryTypes';
+import { RegistryTypes } from 'Portainer/models/registryTypes';
 
 export class RegistryRepositoriesController {
   /* @ngInject */

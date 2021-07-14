@@ -4,11 +4,10 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/portainer/portainer/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer/api/http/useractivity"
-	"github.com/portainer/portainer/api/http/utils"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/proxy/factory/responseutils"
 )
 
 // proxy for /subscriptions/*/resourceGroups/*/providers/Microsoft.ContainerInstance/containerGroups/*
@@ -26,7 +25,7 @@ func (transport *Transport) proxyContainerGroupRequest(request *http.Request) (*
 }
 
 func (transport *Transport) proxyContainerGroupPutRequest(request *http.Request) (*http.Response, error) {
-	//add a lock before processing existense check
+	//add a lock before processing existence check
 	transport.mutex.Lock()
 	defer transport.mutex.Unlock()
 
@@ -52,7 +51,7 @@ func (transport *Transport) proxyContainerGroupPutRequest(request *http.Request)
 		errObj := map[string]string{
 			"message": "A container instance with the same name already exists inside the selected resource group",
 		}
-		err = responseutils.RewriteResponse(resp, errObj, http.StatusConflict)
+		err = utils.RewriteResponse(resp, errObj, http.StatusConflict)
 		return resp, err
 	}
 
@@ -71,7 +70,7 @@ func (transport *Transport) proxyContainerGroupPutRequest(request *http.Request)
 		useractivity.LogProxyActivity(transport.userActivityStore, transport.endpoint.Name, request, body)
 	}
 
-	responseObject, err := responseutils.GetResponseAsJSONObject(response)
+	responseObject, err := utils.GetResponseAsJSONObject(response)
 	if err != nil {
 		return response, err
 	}
@@ -93,7 +92,7 @@ func (transport *Transport) proxyContainerGroupPutRequest(request *http.Request)
 
 	responseObject = decorateObject(responseObject, resourceControl)
 
-	err = responseutils.RewriteResponse(response, responseObject, http.StatusOK)
+	err = utils.RewriteResponse(response, responseObject, http.StatusOK)
 	if err != nil {
 		return response, err
 	}
@@ -107,7 +106,7 @@ func (transport *Transport) proxyContainerGroupGetRequest(request *http.Request)
 		return response, err
 	}
 
-	responseObject, err := responseutils.GetResponseAsJSONObject(response)
+	responseObject, err := utils.GetResponseAsJSONObject(response)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +118,7 @@ func (transport *Transport) proxyContainerGroupGetRequest(request *http.Request)
 
 	responseObject = transport.decorateContainerGroup(responseObject, context)
 
-	responseutils.RewriteResponse(response, responseObject, http.StatusOK)
+	utils.RewriteResponse(response, responseObject, http.StatusOK)
 
 	return response, nil
 }
@@ -136,7 +135,7 @@ func (transport *Transport) proxyContainerGroupDeleteRequest(request *http.Reque
 	}
 
 	if !transport.userCanDeleteContainerGroup(request, context) {
-		return responseutils.WriteAccessDeniedResponse()
+		return utils.WriteAccessDeniedResponse()
 	}
 
 	response, err := http.DefaultTransport.RoundTrip(request)
@@ -149,14 +148,14 @@ func (transport *Transport) proxyContainerGroupDeleteRequest(request *http.Reque
 		useractivity.LogProxyActivity(transport.userActivityStore, transport.endpoint.Name, request, body)
 	}
 
-	responseObject, err := responseutils.GetResponseAsJSONObject(response)
+	responseObject, err := utils.GetResponseAsJSONObject(response)
 	if err != nil {
 		return nil, err
 	}
 
 	transport.removeResourceControl(responseObject, context)
 
-	responseutils.RewriteResponse(response, responseObject, http.StatusOK)
+	utils.RewriteResponse(response, responseObject, http.StatusOK)
 
 	return response, nil
 }

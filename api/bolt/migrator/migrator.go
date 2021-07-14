@@ -5,6 +5,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/bolt/dockerhub"
 	"github.com/portainer/portainer/api/bolt/endpoint"
 	"github.com/portainer/portainer/api/bolt/endpointgroup"
 	"github.com/portainer/portainer/api/bolt/endpointrelation"
@@ -48,6 +49,7 @@ type (
 		versionService          *version.Service
 		fileService             portainer.FileService
 		authorizationService    *authorization.Service
+		dockerhubService        *dockerhub.Service
 	}
 
 	// Parameters represents the required parameters to create a new Migrator instance.
@@ -72,6 +74,7 @@ type (
 		VersionService          *version.Service
 		FileService             portainer.FileService
 		AuthorizationService    *authorization.Service
+		DockerhubService        *dockerhub.Service
 	}
 )
 
@@ -97,6 +100,7 @@ func NewMigrator(parameters *Parameters) *Migrator {
 		versionService:          parameters.VersionService,
 		fileService:             parameters.FileService,
 		authorizationService:    parameters.AuthorizationService,
+		dockerhubService:        parameters.DockerhubService,
 	}
 }
 

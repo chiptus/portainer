@@ -2,11 +2,33 @@ package security
 
 import (
 	"net/http"
+	"path"
 	"regexp"
 	"strings"
 
 	portainer "github.com/portainer/portainer/api"
 )
+
+// IsAdminOrEndpointAdmin checks if current request is for an admin or an endpoint admin
+func IsAdminOrEndpointAdmin(request *http.Request, dataStore portainer.DataStore, endpointID portainer.EndpointID) (bool, error) {
+	tokenData, err := RetrieveTokenData(request)
+	if err != nil {
+		return false, err
+	}
+
+	if tokenData.Role == portainer.AdministratorRole {
+		return true, nil
+	}
+
+	user, err := dataStore.User().User(tokenData.ID)
+	if err != nil {
+		return false, err
+	}
+
+	_, endpointResourceAccess := user.EndpointAuthorizations[endpointID][portainer.EndpointResourcesAccess]
+
+	return endpointResourceAccess, nil
+}
 
 // AuthorizedOperation checks if operations is authorized
 func authorizedOperation(operation *portainer.APIOperationAuthorizationRequest) bool {
@@ -221,14 +243,22 @@ func portainerEndpointOperationAuthorization(url, method string) portainer.Autho
 
 	switch method {
 	case http.MethodGet:
-		if resource == "" && action == "" {
+		if resource == "" && action == "" { // GET /endpoints
 			return portainer.OperationPortainerEndpointList
-		} else if resource != "" && action == "" {
+		} else if resource != "" && action == "" { // GET /endpoints/:id
 			return portainer.OperationPortainerEndpointInspect
 		}
 		if action == "dockerhub" {
 			return portainerDockerhubOperationAuthorization(strings.TrimPrefix(url, "/"+baseResource), method)
 		}
+
+		path, base := path.Split(action)
+		if path == "" && base == "registries" { // GET /endpoints/:id/registries
+			return portainer.OperationPortainerRegistryList
+		} else if path == "registries/" && base != "" { // GET /endpoints/:id/registries/:id
+			return portainer.OperationPortainerRegistryInspect
+		}
+
 	case http.MethodPost:
 		switch action {
 		case "":
@@ -255,6 +285,8 @@ func portainerEndpointOperationAuthorization(url, method string) portainer.Autho
 			return portainer.OperationPortainerEndpointUpdateSettings
 		} else if action == "forceupdateservice" {
 			return portainer.OperationDockerServiceForceUpdateService
+		} else if strings.HasPrefix(action, "registries/") {
+			return portainer.OperationPortainerRegistryUpdateAccess
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
@@ -311,8 +343,6 @@ func portainerRegistryOperationAuthorization(url, method string) portainer.Autho
 	case http.MethodPut:
 		if resource != "" && action == "" {
 			return portainer.OperationPortainerRegistryUpdate
-		} else if action == "access" {
-			return portainer.OperationPortainerRegistryUpdateAccess
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {

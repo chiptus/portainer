@@ -50,7 +50,6 @@ angular.module('portainer.docker').controller('ServiceController', [
   'VolumeService',
   'ImageHelper',
   'WebhookService',
-  'EndpointProvider',
   'clipboard',
   'WebhookHelper',
   'NetworkService',
@@ -83,7 +82,6 @@ angular.module('portainer.docker').controller('ServiceController', [
     VolumeService,
     ImageHelper,
     WebhookService,
-    EndpointProvider,
     clipboard,
     WebhookHelper,
     NetworkService,
@@ -91,7 +89,6 @@ angular.module('portainer.docker').controller('ServiceController', [
     EndpointService
   ) {
     $scope.endpoint = endpoint;
-
     $scope.state = {
       updateInProgress: false,
       deletionInProgress: false,
@@ -339,7 +336,7 @@ angular.module('portainer.docker').controller('ServiceController', [
             Notifications.error('Failure', err, 'Unable to delete webhook');
           });
       } else {
-        WebhookService.createServiceWebhook(service.Id, EndpointProvider.endpointID())
+        WebhookService.createServiceWebhook(service.Id, endpoint.Id)
           .then(function success(data) {
             $scope.WebhookExists = true;
             $scope.webhookID = data.Id;
@@ -609,7 +606,7 @@ angular.module('portainer.docker').controller('ServiceController', [
 
     function forceUpdateService(service, pullImage) {
       $scope.state.updateInProgress = true;
-      EndpointService.forceUpdateService(EndpointProvider.endpointID(), service.Id, pullImage)
+      EndpointService.forceUpdateService(endpoint.Id, service.Id, pullImage)
         .then(function success() {
           Notifications.success('Service successfully updated', service.Name);
           $scope.cancelChanges({});
@@ -682,7 +679,7 @@ angular.module('portainer.docker').controller('ServiceController', [
             availableImages: ImageService.images(),
             availableLoggingDrivers: PluginService.loggingPlugins(apiVersion < 1.25),
             availableNetworks: NetworkService.networks(true, true, apiVersion >= 1.25),
-            webhooks: WebhookService.webhooks(service.Id, EndpointProvider.endpointID()),
+            webhooks: WebhookService.webhooks(service.Id, endpoint.Id),
           });
         })
         .then(async function success(data) {

@@ -5,7 +5,6 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/errors"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -39,11 +38,6 @@ func (handler *Handler) registryInspect(w http.ResponseWriter, r *http.Request) 
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a registry with the specified identifier inside the database", err}
 	}
 
-	err = handler.requestBouncer.RegistryAccess(r, registry)
-	if err != nil {
-		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access registry", errors.ErrEndpointAccessDenied}
-	}
-
-	hideFields(registry)
+	hideFields(registry, false)
 	return response.JSON(w, registry)
 }

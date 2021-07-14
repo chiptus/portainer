@@ -16,6 +16,7 @@
       <kubernetes-sidebar-content
         ng-if="applicationState.endpoint.mode && applicationState.endpoint.mode.provider === 'KUBERNETES'"
         endpoint-id="endpointId"
+        admin-access="isAdmin || isEndpointAdmin"
         current-state="$state.current.name"
       >
       </kubernetes-sidebar-content>
@@ -28,7 +29,7 @@
         endpoint-api-version="applicationState.endpoint.apiVersion"
         swarm-management="applicationState.endpoint.mode.provider === 'DOCKER_SWARM_MODE' && applicationState.endpoint.mode.role === 'MANAGER'"
         standalone-management="applicationState.endpoint.mode.provider === 'DOCKER_STANDALONE'"
-        admin-access="isAdmin"
+        admin-access="isAdmin || isEndpointAdmin"
         offline-mode="endpointState.OfflineMode"
         endpoint-id="endpointId"
       ></docker-sidebar-content>
@@ -107,7 +108,7 @@
       <li class="sidebar-list" ng-if="isAdmin && applicationState.application.enableEdgeComputeFeatures">
         <a ui-sref="edge.jobs" ui-sref-active="active">Edge Jobs <span class="menu-icon fa fa-clock fa-fw"></span></a>
       </li>
-      <li class="sidebar-title">
+      <li class="sidebar-title" ng-if="isAdmin || isTeamLeader">
         <span>Settings</span>
       </li>
       <li class="sidebar-list" ng-if="isAdmin || isTeamLeader">
@@ -184,7 +185,7 @@
           <a ui-sref="portainer.tags" ui-sref-active="active">Tags</a>
         </div>
       </li>
-      <li class="sidebar-list">
+      <li class="sidebar-list" ng-if="isAdmin">
         <a ui-sref="portainer.registries" ui-sref-active="active">Registries <span class="menu-icon fa fa-database fa-fw"></span></a>
       </li>
       <li class="sidebar-list" ng-if="isAdmin">

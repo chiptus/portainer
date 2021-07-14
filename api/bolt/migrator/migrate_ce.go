@@ -264,11 +264,13 @@ func (m *Migrator) MigrateCE() error {
 		if err != nil {
 			return err
 		}
+		migrateLog.Info("Successful migration of endpoints settings to DB version 26")
 
 		err = m.updateRbacRolesToDB26()
 		if err != nil {
 			return err
 		}
+		migrateLog.Info("Successful migration of RBAC roles to DB version 26")
 	}
 
 	// Portainer 2.2.0
@@ -277,6 +279,7 @@ func (m *Migrator) MigrateCE() error {
 		if err != nil {
 			return err
 		}
+		migrateLog.Info("Successful migration to DB version 27")
 	}
 
 	// Portainer EE-2.4.0
@@ -285,27 +288,38 @@ func (m *Migrator) MigrateCE() error {
 		if err != nil {
 			return err
 		}
+		migrateLog.Info("Successful migration to DB version 28")
 	}
 
 	// Portainer EE-2.4.0
 	if m.currentDBVersion < 29 {
-		err := m.updateRbacRolesToDB29()
+		err := m.refreshRBACRoles()
 		if err != nil {
 			return err
 		}
+		migrateLog.Info("Successful migration to DB version 29")
 	}
 
-	// Portainer 2.6.0
+	// Portainer EE-2.6.0
 	if m.currentDBVersion < 30 {
 		err := m.migrateDBVersionTo30()
 		if err != nil {
 			return err
 		}
+		migrateLog.Info("Successful migration to DB version 30")
 	}
 
-	// Portainer 2.7.0
+	// Portainer EE-2.7.0
 	if m.currentDBVersion < 31 {
 		err := m.migrateDBVersionTo31()
+		if err != nil {
+			return err
+		}
+	}
+
+	// Portainer EE-2.9.0
+	if m.currentDBVersion < 32 {
+		err := m.migrateDBVersionTo32()
 		if err != nil {
 			return err
 		}

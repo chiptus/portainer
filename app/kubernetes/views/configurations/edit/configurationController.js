@@ -57,6 +57,10 @@ class KubernetesConfigurationController {
     return this.KubernetesNamespaceHelper.isSystemNamespace(this.configuration.Namespace);
   }
 
+  isSystemConfig() {
+    return this.isSystemNamespace() || this.configuration.IsRegistrySecret;
+  }
+
   selectTab(index) {
     this.LocalStorage.storeActiveTab('configuration', index);
   }
@@ -136,6 +140,11 @@ class KubernetesConfigurationController {
       const name = this.$transition$.params().name;
       const namespace = this.$transition$.params().namespace;
       const [configMap, secret] = await Promise.allSettled([this.KubernetesConfigMapService.get(namespace, name), this.KubernetesSecretService.get(namespace, name)]);
+      if (secret.status === 'rejected' && secret.reason.err.status === 403) {
+        this.$state.go('kubernetes.configurations');
+        throw new Error('Not authorized to edit secret');
+      }
+
       if (secret.status === 'fulfilled') {
         this.configuration = KubernetesConfigurationConverter.secretToConfiguration(secret.value);
         this.formValues.Data = secret.value.Data;
@@ -143,11 +152,14 @@ class KubernetesConfigurationController {
         this.configuration = KubernetesConfigurationConverter.configMapToConfiguration(configMap.value);
         this.formValues.Data = configMap.value.Data;
       }
+
       this.formValues.ResourcePool = _.find(this.resourcePools, (resourcePool) => resourcePool.Namespace.Name === this.configuration.Namespace);
       this.formValues.Id = this.configuration.Id;
       this.formValues.Name = this.configuration.Name;
       this.formValues.Type = this.configuration.Type;
       this.oldDataYaml = this.formValues.DataYaml;
+
+      return this.configuration;
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to retrieve configuration');
     } finally {
@@ -254,11 +266,13 @@ class KubernetesConfigurationController {
       this.formValues = new KubernetesConfigurationFormValues();
 
       this.resourcePools = await this.KubernetesResourcePoolService.get();
-      await this.getConfiguration();
-      await this.getApplications(this.configuration.Namespace);
-      await this.getEvents(this.configuration.Namespace);
-      await this.getConfigurations();
 
+      const configuration = await this.getConfiguration();
+      if (configuration) {
+        await this.getApplications(this.configuration.Namespace);
+        await this.getEvents(this.configuration.Namespace);
+        await this.getConfigurations();
+      }
       this.tagUsedDataKeys();
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to load view data');

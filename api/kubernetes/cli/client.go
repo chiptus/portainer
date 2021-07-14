@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	cmap "github.com/orcaman/concurrent-map"
 
@@ -18,6 +19,7 @@ import (
 type (
 	// ClientFactory is used to create Kubernetes clients
 	ClientFactory struct {
+		dataStore            portainer.DataStore
 		reverseTunnelService portainer.ReverseTunnelService
 		signatureService     portainer.DigitalSignatureService
 		instanceID           string
@@ -33,8 +35,9 @@ type (
 )
 
 // NewClientFactory returns a new instance of a ClientFactory
-func NewClientFactory(signatureService portainer.DigitalSignatureService, reverseTunnelService portainer.ReverseTunnelService, instanceID string) *ClientFactory {
+func NewClientFactory(signatureService portainer.DigitalSignatureService, reverseTunnelService portainer.ReverseTunnelService, dataStore portainer.DataStore, instanceID string) *ClientFactory {
 	return &ClientFactory{
+		dataStore:            dataStore,
 		signatureService:     signatureService,
 		reverseTunnelService: reverseTunnelService,
 		instanceID:           instanceID,
@@ -135,8 +138,31 @@ func (factory *ClientFactory) buildAgentClient(endpoint *portainer.Endpoint) (*k
 }
 
 func (factory *ClientFactory) buildEdgeClient(endpoint *portainer.Endpoint) (*kubernetes.Clientset, error) {
+
 	tunnel := factory.reverseTunnelService.GetTunnelDetails(endpoint.ID)
-	endpointURL := fmt.Sprintf("http://localhost:%d/kubernetes", tunnel.Port)
+
+	if tunnel.Status == portainer.EdgeAgentIdle {
+		err := factory.reverseTunnelService.SetTunnelStatusToRequired(endpoint.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed opening tunnel to endpoint: %w", err)
+		}
+
+		if endpoint.EdgeCheckinInterval == 0 {
+			settings, err := factory.dataStore.Settings().Settings()
+			if err != nil {
+				return nil, fmt.Errorf("failed fetching settings from db: %w", err)
+			}
+
+			endpoint.EdgeCheckinInterval = settings.EdgeAgentCheckinInterval
+		}
+
+		waitForAgentToConnect := time.Duration(endpoint.EdgeCheckinInterval) * time.Second
+		time.Sleep(waitForAgentToConnect * 2)
+
+		tunnel = factory.reverseTunnelService.GetTunnelDetails(endpoint.ID)
+	}
+
+	endpointURL := fmt.Sprintf("http://127.0.0.1:%d/kubernetes", tunnel.Port)
 
 	config, err := clientcmd.BuildConfigFromFlags(endpointURL, "")
 	if err != nil {

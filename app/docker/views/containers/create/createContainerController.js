@@ -17,7 +17,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
   '$filter',
   'Container',
   'ContainerHelper',
-  'Image',
   'ImageHelper',
   'Volume',
   'NetworkService',
@@ -43,7 +42,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
     $filter,
     Container,
     ContainerHelper,
-    Image,
     ImageHelper,
     Volume,
     NetworkService,
@@ -60,6 +58,7 @@ angular.module('portainer.docker').controller('CreateContainerController', [
     HttpRequestHelper,
     endpoint
   ) {
+    $scope.endpoint = endpoint;
     $scope.create = create;
     $scope.endpoint = endpoint;
 
@@ -575,7 +574,7 @@ angular.module('portainer.docker').controller('CreateContainerController', [
     }
 
     function loadFromContainerImageConfig() {
-      RegistryService.retrievePorRegistryModelFromRepository($scope.config.Image)
+      RegistryService.retrievePorRegistryModelFromRepository($scope.config.Image, endpoint.Id)
         .then((model) => {
           $scope.formValues.RegistryModel = model;
         })

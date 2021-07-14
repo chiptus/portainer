@@ -7,7 +7,6 @@ import (
 	"github.com/portainer/portainer/api/http/handler/auth"
 	"github.com/portainer/portainer/api/http/handler/backup"
 	"github.com/portainer/portainer/api/http/handler/customtemplates"
-	"github.com/portainer/portainer/api/http/handler/dockerhub"
 	"github.com/portainer/portainer/api/http/handler/edgegroups"
 	"github.com/portainer/portainer/api/http/handler/edgejobs"
 	"github.com/portainer/portainer/api/http/handler/edgestacks"
@@ -42,7 +41,6 @@ type Handler struct {
 	AuthHandler            *auth.Handler
 	BackupHandler          *backup.Handler
 	CustomTemplatesHandler *customtemplates.Handler
-	DockerHubHandler       *dockerhub.Handler
 	EdgeGroupsHandler      *edgegroups.Handler
 	EdgeJobsHandler        *edgejobs.Handler
 	EdgeStacksHandler      *edgestacks.Handler
@@ -152,8 +150,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.BackupHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/restore"):
 		http.StripPrefix("/api", h.BackupHandler).ServeHTTP(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/dockerhub"):
-		http.StripPrefix("/api", h.DockerHubHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/custom_templates"):
 		http.StripPrefix("/api", h.CustomTemplatesHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/edge_stacks"):

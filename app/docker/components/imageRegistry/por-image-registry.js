@@ -9,6 +9,8 @@ angular.module('portainer.docker').component('porImageRegistry', {
     inputClass: '@',
     endpoint: '<',
     isAdmin: '<',
+    namespace: '<',
+
     checkRateLimits: '<',
     onImageChange: '&',
     setValidity: '<',

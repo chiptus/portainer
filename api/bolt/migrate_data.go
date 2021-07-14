@@ -183,6 +183,7 @@ func (store *Store) newMigrator() (*migrator.Migrator, error) {
 		UserService:             store.UserService,
 		VersionService:          store.VersionService,
 		FileService:             store.fileService,
+		DockerhubService:        store.DockerHubService,
 		AuthorizationService:    authorization.NewService(store),
 	}
 

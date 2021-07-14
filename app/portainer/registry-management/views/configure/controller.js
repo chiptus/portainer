@@ -1,5 +1,5 @@
-import { RegistryTypes } from '@/portainer/registry-management/models/registryTypes';
-import { RegistryManagementConfigurationDefaultModel } from '@/portainer/models/registry';
+import { RegistryTypes } from 'Portainer/models/registryTypes';
+import { RegistryManagementConfigurationDefaultModel } from 'Portainer/models/registry';
 
 export class ConfigureRegistryController {
   /* @ngInject */

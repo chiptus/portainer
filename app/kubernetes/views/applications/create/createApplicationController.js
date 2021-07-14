@@ -38,7 +38,6 @@ class KubernetesCreateApplicationController {
     $async,
     $state,
     Notifications,
-    EndpointProvider,
     Authentication,
     DockerHubService,
     ModalService,
@@ -50,12 +49,12 @@ class KubernetesCreateApplicationController {
     KubernetesIngressService,
     KubernetesPersistentVolumeClaimService,
     KubernetesNamespaceHelper,
-    KubernetesVolumeService
+    KubernetesVolumeService,
+    RegistryService
   ) {
     this.$async = $async;
     this.$state = $state;
     this.Notifications = Notifications;
-    this.EndpointProvider = EndpointProvider;
     this.Authentication = Authentication;
     this.DockerHubService = DockerHubService;
     this.ModalService = ModalService;
@@ -68,6 +67,7 @@ class KubernetesCreateApplicationController {
     this.KubernetesIngressService = KubernetesIngressService;
     this.KubernetesPersistentVolumeClaimService = KubernetesPersistentVolumeClaimService;
     this.KubernetesNamespaceHelper = KubernetesNamespaceHelper;
+    this.RegistryService = RegistryService;
 
     this.ApplicationDeploymentTypes = KubernetesApplicationDeploymentTypes;
     this.ApplicationDataAccessPolicies = KubernetesApplicationDataAccessPolicies;
@@ -76,6 +76,67 @@ class KubernetesCreateApplicationController {
     this.ApplicationTypes = KubernetesApplicationTypes;
     this.ApplicationConfigurationFormValueOverridenKeyTypes = KubernetesApplicationConfigurationFormValueOverridenKeyTypes;
     this.ServiceTypes = KubernetesServiceTypes;
+
+    this.state = {
+      actionInProgress: false,
+      useLoadBalancer: false,
+      useServerMetrics: false,
+      storages: {
+        quotasComputed: false,
+        allRestricted: false,
+        availabilities: {},
+        quotaExceeded: false,
+      },
+      sliders: {
+        cpu: {
+          min: 0,
+          max: 0,
+        },
+        memory: {
+          min: 0,
+          max: 0,
+        },
+      },
+      nodes: {
+        memory: 0,
+        cpu: 0,
+      },
+      maxLoadBalancers: null,
+      maxLoadBalancersQuota: null,
+      resourcePoolHasQuota: false,
+      viewReady: false,
+      availableSizeUnits: ['MB', 'GB', 'TB'],
+      alreadyExists: false,
+      duplicates: {
+        environmentVariables: new KubernetesFormValidationReferences(),
+        persistedFolders: new KubernetesFormValidationReferences(),
+        configurationPaths: new KubernetesFormValidationReferences(),
+        existingVolumes: new KubernetesFormValidationReferences(),
+        publishedPorts: {
+          containerPorts: new KubernetesFormValidationReferences(),
+          nodePorts: new KubernetesFormValidationReferences(),
+          ingressRoutes: new KubernetesFormValidationReferences(),
+          loadBalancerPorts: new KubernetesFormValidationReferences(),
+        },
+        placements: new KubernetesFormValidationReferences(),
+      },
+      exceeded: {
+        persistedFolders: new KubernetesFormValidationReferences(),
+      },
+      isEdit: false,
+      persistedFoldersUseExistingVolumes: false,
+      pullImageValidity: false,
+    };
+
+    this.isAdmin = false;
+
+    this.editChanges = [];
+
+    this.storageClasses = [];
+    this.state.useLoadBalancer = false;
+    this.state.useServerMetrics = false;
+
+    this.formValues = new KubernetesApplicationFormValues();
 
     this.updateApplicationAsync = this.updateApplicationAsync.bind(this);
     this.deployApplicationAsync = this.deployApplicationAsync.bind(this);
@@ -994,13 +1055,24 @@ class KubernetesCreateApplicationController {
   getApplication() {
     return this.$async(async () => {
       try {
-        const namespace = this.state.params.namespace;
+        const namespace = this.$state.params.namespace;
         [this.application, this.persistentVolumeClaims] = await Promise.all([
-          this.KubernetesApplicationService.get(namespace, this.state.params.name),
+          this.KubernetesApplicationService.get(namespace, this.$state.params.name),
           this.KubernetesPersistentVolumeClaimService.get(namespace),
         ]);
       } catch (err) {
         this.Notifications.error('Failure', err, 'Unable to retrieve application details');
+      }
+    });
+  }
+
+  async parseImageConfiguration(imageModel) {
+    return this.$async(async () => {
+      try {
+        return await this.RegistryService.retrievePorRegistryModelFromRepository(imageModel.Image, this.endpoint.Id, imageModel.Registry.Id, this.$state.params.namespace);
+      } catch (err) {
+        this.Notifications.error('Failure', err, 'Unable to retrieve registry');
+        return imageModel;
       }
     });
   }
@@ -1012,76 +1084,13 @@ class KubernetesCreateApplicationController {
       try {
         this.Authentication.redirectIfUnauthorized(['K8sApplicationDetailsW']);
 
-        this.state = {
-          actionInProgress: false,
-          useLoadBalancer: false,
-          useServerMetrics: false,
-          storages: {
-            quotasComputed: false,
-            allRestricted: false,
-            availabilities: {},
-            quotaExceeded: false,
-          },
-          sliders: {
-            cpu: {
-              min: 0,
-              max: 0,
-            },
-            memory: {
-              min: 0,
-              max: 0,
-            },
-          },
-          nodes: {
-            memory: 0,
-            cpu: 0,
-          },
-          maxLoadBalancers: null,
-          maxLoadBalancersQuota: null,
-          resourcePoolHasQuota: false,
-          viewReady: false,
-          availableSizeUnits: ['MB', 'GB', 'TB'],
-          alreadyExists: false,
-          duplicates: {
-            environmentVariables: new KubernetesFormValidationReferences(),
-            persistedFolders: new KubernetesFormValidationReferences(),
-            configurationPaths: new KubernetesFormValidationReferences(),
-            existingVolumes: new KubernetesFormValidationReferences(),
-            publishedPorts: {
-              containerPorts: new KubernetesFormValidationReferences(),
-              nodePorts: new KubernetesFormValidationReferences(),
-              ingressRoutes: new KubernetesFormValidationReferences(),
-              loadBalancerPorts: new KubernetesFormValidationReferences(),
-            },
-            placements: new KubernetesFormValidationReferences(),
-          },
-          exceeded: {
-            persistedFolders: new KubernetesFormValidationReferences(),
-          },
-          isEdit: false,
-          params: {
-            namespace: this.$transition$.params().namespace,
-            name: this.$transition$.params().name,
-          },
-          persistedFoldersUseExistingVolumes: false,
-          pullImageValidity: false,
-        };
-
         this.isAdmin = this.Authentication.isAdmin();
 
-        this.editChanges = [];
+        this.state.isEdit = this.$state.params.namespace && this.$state.params.name;
 
-        if (this.state.params.namespace && this.state.params.name) {
-          this.state.isEdit = true;
-        }
-
-        const endpoint = this.EndpointProvider.currentEndpoint();
-        this.endpoint = endpoint;
-        this.storageClasses = endpoint.Kubernetes.Configuration.StorageClasses;
-        this.state.useLoadBalancer = endpoint.Kubernetes.Configuration.UseLoadBalancer;
-        this.state.useServerMetrics = endpoint.Kubernetes.Configuration.UseServerMetrics;
-
-        this.formValues = new KubernetesApplicationFormValues();
+        this.storageClasses = this.endpoint.Kubernetes.Configuration.StorageClasses;
+        this.state.useLoadBalancer = this.endpoint.Kubernetes.Configuration.UseLoadBalancer;
+        this.state.useServerMetrics = this.endpoint.Kubernetes.Configuration.UseServerMetrics;
 
         const [resourcePools, nodes, ingresses] = await Promise.all([
           this.KubernetesResourcePoolService.get(),
@@ -1101,7 +1110,7 @@ class KubernetesCreateApplicationController {
         });
         this.nodesLabels = KubernetesNodeHelper.generateNodeLabelsFromNodes(nodes);
 
-        const namespace = this.state.isEdit ? this.state.params.namespace : this.formValues.ResourcePool.Namespace.Name;
+        const namespace = this.state.isEdit ? this.$state.params.namespace : this.formValues.ResourcePool.Namespace.Name;
         await this.refreshNamespaceData(namespace);
 
         if (this.state.isEdit) {
@@ -1115,6 +1124,7 @@ class KubernetesCreateApplicationController {
             this.filteredIngresses
           );
           this.formValues.OriginalIngresses = this.filteredIngresses;
+          this.formValues.ImageModel = await this.parseImageConfiguration(this.formValues.ImageModel);
           this.savedFormValues = angular.copy(this.formValues);
           delete this.formValues.ApplicationType;
 

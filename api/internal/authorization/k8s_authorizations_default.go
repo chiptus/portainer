@@ -28,6 +28,8 @@ func DefaultK8sClusterAuthorizations() map[portainer.RoleID]portainer.Authorizat
 			portainer.OperationK8sConfigurationsW:                  true,
 			portainer.OperationK8sConfigurationsDetailsR:           true,
 			portainer.OperationK8sConfigurationsDetailsW:           true,
+			portainer.OperationK8sRegistrySecretList:               true,
+			portainer.OperationK8sRegistrySecretInspect:            true,
 			portainer.OperationK8sVolumesR:                         true,
 			portainer.OperationK8sVolumesW:                         true,
 			portainer.OperationK8sVolumeDetailsR:                   true,
