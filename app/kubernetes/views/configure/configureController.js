@@ -28,7 +28,8 @@ class KubernetesConfigureController {
     ModalService,
     KubernetesNamespaceHelper,
     KubernetesResourcePoolService,
-    KubernetesIngressService
+    KubernetesIngressService,
+    KubernetesMetricsService
   ) {
     this.$async = $async;
     this.$state = $state;
@@ -41,6 +42,7 @@ class KubernetesConfigureController {
     this.KubernetesNamespaceHelper = KubernetesNamespaceHelper;
     this.KubernetesResourcePoolService = KubernetesResourcePoolService;
     this.KubernetesIngressService = KubernetesIngressService;
+    this.KubernetesMetricsService = KubernetesMetricsService;
 
     this.IngressClassTypes = KubernetesIngressClassTypes;
 
