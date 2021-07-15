@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	_ "github.com/joho/godotenv/autoload"
 	"github.com/pkg/errors"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
@@ -27,6 +28,10 @@ const (
 )
 
 func TestMain(m *testing.M) {
+	if !integrationTest() {
+		return
+	}
+
 	sess, stopMinio := startMinio()
 	s3session = sess
 
@@ -115,4 +120,12 @@ func startMinio() (*session.Session, func()) {
 			log.Fatal(errors.Wrap(err, "failed to run docker-compose rm"))
 		}
 	}
+}
+
+func integrationTest() bool {
+	if val, ok := os.LookupEnv("INTEGRATION_TEST"); ok {
+		return strings.EqualFold(val, "true")
+	}
+
+	return false
 }

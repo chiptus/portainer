@@ -1,4 +1,3 @@
-// +build integration
 package exec
 
 import (
@@ -10,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	_ "github.com/joho/godotenv/autoload"
+
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -19,6 +20,14 @@ services:
     image: "alpine:latest"
     container_name: "compose_wrapper_test"`
 const composedContainerName = "compose_wrapper_test"
+
+func TestMain(m *testing.M) {
+	if !integrationTest() {
+		return
+	}
+
+	m.Run()
+}
 
 func setup(t *testing.T) (*portainer.Stack, *portainer.Endpoint) {
 	dir := t.TempDir()
@@ -76,4 +85,12 @@ func containerExists(containerName string) bool {
 	}
 
 	return strings.Contains(string(out), containerName)
+}
+
+func integrationTest() bool {
+	if val, ok := os.LookupEnv("INTEGRATION_TEST"); ok {
+		return strings.EqualFold(val, "true")
+	}
+
+	return false
 }

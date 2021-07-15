@@ -3,11 +3,12 @@ package bolt
 import (
 	"fmt"
 
+	"github.com/portainer/portainer/api/cli"
+
 	portainer "github.com/portainer/portainer/api"
 	errors "github.com/portainer/portainer/api/bolt/errors"
 	plog "github.com/portainer/portainer/api/bolt/log"
 	"github.com/portainer/portainer/api/bolt/migrator"
-	"github.com/portainer/portainer/api/cli"
 	"github.com/portainer/portainer/api/internal/authorization"
 )
 
@@ -110,7 +111,11 @@ func (store *Store) RollbackFailedUpgradeToEE() error {
 
 // RollbackToCE rollbacks the store to the current ce version
 func (store *Store) RollbackToCE() error {
+	// RollbackToCE rollbacks the store to the current ce version
+	return store.rollbackToCE(false)
+}
 
+func (store *Store) rollbackToCE(forceUpdate bool) error {
 	migrator, err := store.newMigrator()
 	if err != nil {
 		return err
@@ -129,9 +134,11 @@ func (store *Store) RollbackToCE() error {
 		return err
 	}
 
-	confirmed, err := cli.Confirm(fmt.Sprintf("Are you sure you want to rollback your database to %d?", previousVersion))
-	if err != nil || !confirmed {
-		return err
+	if !forceUpdate {
+		confirmed, err := cli.Confirm(fmt.Sprintf("Are you sure you want to rollback your database to %d?", previousVersion))
+		if err != nil || !confirmed {
+			return err
+		}
 	}
 
 	if previousVersion < 25 {

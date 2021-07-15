@@ -63,7 +63,7 @@ func TestMigrateData(t *testing.T) {
 		})
 
 		t.Run(fmt.Sprintf("Restoring DB after migrateData for %s version %d", tc.edition.GetEditionLabel(), tc.version), func(t *testing.T) {
-			store.RollbackToCE()
+			store.rollbackToCE(true)
 			testVersion(store, tc.version, t)
 			testEdition(store, tc.edition, t)
 		})

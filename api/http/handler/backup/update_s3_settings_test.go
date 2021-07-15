@@ -27,7 +27,7 @@ func Test_ValidateCronRules(t *testing.T) {
 			isErr: true,
 		},
 		{
-			name:  "standart cron rule",
+			name:  "standard cron rule",
 			rule:  "* * * * 1",
 			isErr: false,
 		},
@@ -39,12 +39,20 @@ func Test_ValidateCronRules(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			s := &backupSettings{
 				S3BackupSettings: portainer.S3BackupSettings{
-					CronRule: test.rule,
+					CronRule:        test.rule,
+					AccessKeyID:     "keyID",
+					SecretAccessKey: "secret",
+					Region:          "us-east-1",
+					BucketName:      "my-bucket",
 				},
 			}
 
 			err := s.Validate(emtpyRequest)
-			assert.Equal(t, err != nil, test.isErr)
+			if test.isErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
 		})
 	}
 }
