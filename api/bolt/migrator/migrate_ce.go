@@ -302,7 +302,7 @@ func (m *Migrator) MigrateCE() error {
 
 	// Portainer EE-2.6.0
 	if m.currentDBVersion < 30 {
-		err := m.migrateDBVersionTo30()
+		err := m.migrateDBVersionToDB30()
 		if err != nil {
 			return err
 		}
@@ -311,7 +311,7 @@ func (m *Migrator) MigrateCE() error {
 
 	// Portainer EE-2.7.0
 	if m.currentDBVersion < 31 {
-		err := m.migrateDBVersionTo31()
+		err := m.migrateDBVersionToDB31()
 		if err != nil {
 			return err
 		}
@@ -319,7 +319,7 @@ func (m *Migrator) MigrateCE() error {
 
 	// Portainer EE-2.9.0
 	if m.currentDBVersion < 32 {
-		err := m.migrateDBVersionTo32()
+		err := m.migrateDBVersionToDB32()
 		if err != nil {
 			return err
 		}
