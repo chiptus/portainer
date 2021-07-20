@@ -236,10 +236,8 @@ angular.module('portainer.app').controller('StackController', [
       if ($scope.stackFileContent.replace(/(\r\n|\n|\r)/gm, '') !== cm.getValue().replace(/(\r\n|\n|\r)/gm, '')) {
         $scope.state.isEditorDirty = true;
         $scope.stackFileContent = cm.getValue();
+        $scope.state.yamlError = StackHelper.validateYAML($scope.stackFileContent, $scope.containerNames);
       }
-      $scope.stackFileContent = cm.getValue();
-      $scope.state.yamlError = StackHelper.validateYAML($scope.stackFileContent, $scope.containerNames);
-      $scope.state.isEditorDirty = true;
     };
 
     $scope.stopStack = stopStack;
