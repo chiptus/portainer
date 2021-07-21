@@ -1,4 +1,5 @@
 import { PortainerEndpointCreationTypes, PortainerEndpointTypes } from 'Portainer/models/endpoint/models';
+import { getAgentShortVersion } from 'Portainer/views/endpoints/helpers';
 import { EndpointSecurityFormData } from '../../../components/endpointSecurity/porEndpointSecurityModel';
 
 angular
@@ -15,7 +16,8 @@ angular
     TagService,
     SettingsService,
     Notifications,
-    Authentication
+    Authentication,
+    StateManager
   ) {
     $scope.state = {
       EnvironmentType: 'agent',
@@ -43,6 +45,9 @@ angular
       ],
     };
 
+    const agentVersion = StateManager.getState().application.version;
+    $scope.agentShortVersion = getAgentShortVersion(agentVersion);
+
     $scope.formValues = {
       Name: '',
       URL: '',
@@ -58,15 +63,21 @@ angular
 
     $scope.copyAgentCommand = function () {
       if ($scope.state.deploymentTab === 2 && $scope.state.PlatformType === 'linux') {
-        clipboard.copyText('curl -L https://downloads.portainer.io/agent-stack-ee24.yml -o agent-stack.yml && docker stack deploy --compose-file=agent-stack.yml portainer-agent');
+        clipboard.copyText(
+          `curl -L https://downloads.portainer.io/agent-stack-ee${$scope.agentShortVersion}.yml -o agent-stack.yml && docker stack deploy --compose-file=agent-stack.yml portainer-agent`
+        );
       } else if ($scope.state.deploymentTab === 2 && $scope.state.PlatformType === 'windows') {
         clipboard.copyText(
-          'curl -L https://downloads.portainer.io/agent-stack-ee24-windows.yml -o agent-stack-windows.yml && docker stack deploy --compose-file=agent-stack-windows.yml portainer-agent'
+          `curl -L https://downloads.portainer.io/agent-stack-ee${$scope.agentShortVersion}-windows.yml -o agent-stack-windows.yml && docker stack deploy --compose-file=agent-stack-windows.yml portainer-agent`
         );
       } else if ($scope.state.deploymentTab === 1) {
-        clipboard.copyText('curl -L https://downloads.portainer.io/portainer-agent-ee24-k8s-nodeport.yaml -o portainer-agent-k8s.yaml; kubectl apply -f portainer-agent-k8s.yaml');
+        clipboard.copyText(
+          `curl -L https://downloads.portainer.io/portainer-agent-ee${$scope.agentShortVersion}-k8s-nodeport.yaml -o portainer-agent-k8s.yaml; kubectl apply -f portainer-agent-k8s.yaml`
+        );
       } else {
-        clipboard.copyText('curl -L https://downloads.portainer.io/portainer-agent-ee24-k8s-lb.yaml -o portainer-agent-k8s.yaml; kubectl apply -f portainer-agent-k8s.yaml');
+        clipboard.copyText(
+          `curl -L https://downloads.portainer.io/portainer-agent-ee${$scope.agentShortVersion}-k8s-lb.yaml -o portainer-agent-k8s.yaml; kubectl apply -f portainer-agent-k8s.yaml`
+        );
       }
       $('#copyNotification').show().fadeOut(2500);
     };
