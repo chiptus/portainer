@@ -2,6 +2,7 @@ package migrator
 
 import (
 	portainer "github.com/portainer/portainer/api"
+	bolterrors "github.com/portainer/portainer/api/bolt/errors"
 	"github.com/portainer/portainer/api/internal/authorization"
 )
 
@@ -20,7 +21,11 @@ func (m *Migrator) refreshRBACRoles() error {
 	for roleID, defaultAuthorizations := range defaultAuthorizationsOfRoles {
 		role, err := m.roleService.Role(roleID)
 		if err != nil {
-			return err
+			if err == bolterrors.ErrObjectNotFound {
+				continue
+			} else {
+				return err
+			}
 		}
 		role.Authorizations = defaultAuthorizations
 
