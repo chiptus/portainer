@@ -55,35 +55,43 @@ function ImageHelperFactory() {
  */
 export function buildImageFullURI(imageModel) {
   if (!imageModel.UseRegistry) {
-    return imageModel.Image;
+    return ensureTag(imageModel.Image);
   }
 
-  let fullImageName = '';
+  const imageName = buildImageFullURIWithRegistry(imageModel);
 
-  switch (imageModel.Registry.Type) {
-    case RegistryTypes.GITLAB:
-      fullImageName = imageModel.Registry.URL + '/' + imageModel.Registry.Gitlab.ProjectPath + (imageModel.Image.startsWith(':') ? '' : '/') + imageModel.Image;
-      break;
-    case RegistryTypes.QUAY:
-      fullImageName = buildQuayImageFullURI(imageModel);
-      break;
-    case RegistryTypes.ANONYMOUS:
-      fullImageName = imageModel.Image;
-      break;
-    default:
-      fullImageName = imageModel.Registry.URL + '/' + imageModel.Image;
-      break;
+  return ensureTag(imageName);
+
+  function ensureTag(image, defaultTag = 'latest') {
+    return image.includes(':') ? image : `${image}:${defaultTag}`;
   }
-
-  if (!imageModel.Image.includes(':')) {
-    fullImageName += ':latest';
-  }
-
-  return fullImageName;
 }
 
-function buildQuayImageFullURI(imageModel) {
-  const name = imageModel.Registry.Quay.UseOrganisation ? imageModel.Registry.Quay.OrganisationName : imageModel.Registry.Username;
-  const url = imageModel.Registry.URL ? imageModel.Registry.URL + '/' : '';
-  return url + name + '/' + imageModel.Image;
+function buildImageFullURIWithRegistry(imageModel) {
+  switch (imageModel.Registry.Type) {
+    case RegistryTypes.GITLAB:
+      return buildImageURIForGitLab(imageModel);
+    case RegistryTypes.QUAY:
+      return buildImageURIForQuay(imageModel);
+    case RegistryTypes.ANONYMOUS:
+      return imageModel.Image;
+    default:
+      return buildImageURIForOtherRegistry(imageModel);
+  }
+
+  function buildImageURIForGitLab(imageModel) {
+    const slash = imageModel.Image.startsWith(':') ? '' : '/';
+    return `${imageModel.Registry.URL}/${imageModel.Registry.Gitlab.ProjectPath}${slash}${imageModel.Image}`;
+  }
+
+  function buildImageURIForQuay(imageModel) {
+    const name = imageModel.Registry.Quay.UseOrganisation ? imageModel.Registry.Quay.OrganisationName : imageModel.Registry.Username;
+    const url = imageModel.Registry.URL ? imageModel.Registry.URL + '/' : '';
+    return `${url}${name}/${imageModel.Image}`;
+  }
+
+  function buildImageURIForOtherRegistry(imageModel) {
+    const url = imageModel.Registry.URL ? imageModel.Registry.URL + '/' : '';
+    return url + imageModel.Image;
+  }
 }
