@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 
 	wrapper "github.com/portainer/docker-compose-wrapper"
@@ -79,7 +80,8 @@ func (w *ComposeStackManager) Down(stack *portainer.Stack, endpoint *portainer.E
 
 // NormalizeStackName returns the passed stack name, for interface implementation only
 func (w *ComposeStackManager) NormalizeStackName(name string) string {
-	return name
+	r := regexp.MustCompile("[^a-z0-9]+")
+	return r.ReplaceAllString(strings.ToLower(name), "")
 }
 
 func stackFilePath(stack *portainer.Stack) string {
