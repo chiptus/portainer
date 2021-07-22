@@ -14,6 +14,7 @@ import (
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/authorization"
+	consts "github.com/portainer/portainer/api/useractivity"
 )
 
 // @id CustomTemplateCreate
@@ -251,6 +252,9 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request) (
 		return nil, err
 	}
 
+	if payload.RepositoryPassword != "" {
+		payload.RepositoryPassword = consts.RedactedValue
+	}
 	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, payload)
 
 	return customTemplate, nil
