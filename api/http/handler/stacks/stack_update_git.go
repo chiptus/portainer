@@ -16,7 +16,9 @@ import (
 	"github.com/portainer/portainer/api/filesystem"
 	httperrors "github.com/portainer/portainer/api/http/errors"
 	"github.com/portainer/portainer/api/http/security"
+	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/stackutils"
+	consts "github.com/portainer/portainer/api/useractivity"
 )
 
 type updateStackGitPayload struct {
@@ -155,6 +157,12 @@ func (handler *Handler) stackUpdateGit(w http.ResponseWriter, r *http.Request) *
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the stack changes inside the database", err}
 	}
+
+	if payload.RepositoryPassword != "" {
+		payload.RepositoryPassword = consts.RedactedValue
+	}
+
+	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
 
 	return response.JSON(w, stack)
 }
