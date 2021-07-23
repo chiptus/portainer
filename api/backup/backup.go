@@ -19,8 +19,8 @@ const rwxr__r__ os.FileMode = 0744
 
 var filesToBackup = []string{"compose", "config.json", "custom_templates", "edge_jobs", "edge_stacks", "extensions", "portainer.key", "portainer.pub", "tls"}
 
-func BackupToS3(settings portainer.S3BackupSettings, gate *offlinegate.OfflineGate, datastore portainer.DataStore, filestorePath string) error {
-	archivePath, err := CreateBackupArchive(settings.Password, gate, datastore, filestorePath)
+func BackupToS3(settings portainer.S3BackupSettings, gate *offlinegate.OfflineGate, datastore portainer.DataStore, userActivityStore portainer.UserActivityStore, filestorePath string) error {
+	archivePath, err := CreateBackupArchive(settings.Password, gate, datastore, userActivityStore, filestorePath)
 	if err != nil {
 		log.Printf("[ERROR] failed to backup: %s \n", err)
 		return err
@@ -47,7 +47,7 @@ func BackupToS3(settings portainer.S3BackupSettings, gate *offlinegate.OfflineGa
 }
 
 // Creates a tar.gz system archive and encrypts it if password is not empty. Returns a path to the archive file.
-func CreateBackupArchive(password string, gate *offlinegate.OfflineGate, datastore portainer.DataStore, filestorePath string) (string, error) {
+func CreateBackupArchive(password string, gate *offlinegate.OfflineGate, datastore portainer.DataStore, userActivityStore portainer.UserActivityStore, filestorePath string) (string, error) {
 	unlock := gate.Lock()
 	defer unlock()
 
@@ -58,6 +58,10 @@ func CreateBackupArchive(password string, gate *offlinegate.OfflineGate, datasto
 
 	if err := backupDb(backupDirPath, datastore); err != nil {
 		return "", errors.Wrap(err, "Failed to backup database")
+	}
+
+	if err := backupUserActivityStore(backupDirPath, userActivityStore); err != nil {
+		return "", errors.Wrap(err, "Failed to backup user activity store")
 	}
 
 	for _, filename := range filesToBackup {
@@ -88,6 +92,17 @@ func backupDb(backupDirPath string, datastore portainer.DataStore) error {
 		return err
 	}
 	if err = datastore.BackupTo(backupWriter); err != nil {
+		return err
+	}
+	return backupWriter.Close()
+}
+
+func backupUserActivityStore(backupDirPath string, userActivityStore portainer.UserActivityStore) error {
+	backupWriter, err := os.Create(filepath.Join(backupDirPath, "useractivity.db"))
+	if err != nil {
+		return err
+	}
+	if err = userActivityStore.BackupTo(backupWriter); err != nil {
 		return err
 	}
 	return backupWriter.Close()

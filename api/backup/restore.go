@@ -14,10 +14,10 @@ import (
 	"github.com/portainer/portainer/api/http/offlinegate"
 )
 
-var filesToRestore = append(filesToBackup, "portainer.db")
+var filesToRestore = append(filesToBackup, "portainer.db", "useractivity.db")
 
 // Restores system state from backup archive, will trigger system shutdown, when finished.
-func RestoreArchive(archive io.Reader, password string, filestorePath string, gate *offlinegate.OfflineGate, datastore portainer.DataStore, shutdownTrigger context.CancelFunc) error {
+func RestoreArchive(archive io.Reader, password string, filestorePath string, gate *offlinegate.OfflineGate, datastore portainer.DataStore, userActivityStore portainer.UserActivityStore, shutdownTrigger context.CancelFunc) error {
 	var err error
 	if password != "" {
 		archive, err = decrypt(archive, password)
@@ -39,6 +39,10 @@ func RestoreArchive(archive io.Reader, password string, filestorePath string, ga
 
 	if err = datastore.Close(); err != nil {
 		return errors.Wrap(err, "Failed to stop db")
+	}
+
+	if err = userActivityStore.Close(); err != nil {
+		return errors.Wrap(err, "Failed to stop user activity store")
 	}
 
 	if err = restoreFiles(restorePath, filestorePath); err != nil {

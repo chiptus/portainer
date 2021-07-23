@@ -13,23 +13,25 @@ import (
 
 // BackupScheduler orchestrates S3 settings and active backup cron jobs
 type BackupScheduler struct {
-	cronmanager     *cron.Cron
-	s3backupService portainer.S3BackupService
-	gate            *offlinegate.OfflineGate
-	datastore       portainer.DataStore
-	filestorePath   string
+	cronmanager       *cron.Cron
+	s3backupService   portainer.S3BackupService
+	gate              *offlinegate.OfflineGate
+	datastore         portainer.DataStore
+	userActivityStore portainer.UserActivityStore
+	filestorePath     string
 }
 
-func NewBackupScheduler(offlineGate *offlinegate.OfflineGate, datastore portainer.DataStore, filestorePath string) *BackupScheduler {
+func NewBackupScheduler(offlineGate *offlinegate.OfflineGate, datastore portainer.DataStore, userActivityStore portainer.UserActivityStore, filestorePath string) *BackupScheduler {
 	crontab := cron.New(cron.WithChain(cron.Recover(cron.DefaultLogger)))
 	s3backupService := datastore.S3Backup()
 
 	return &BackupScheduler{
-		cronmanager:     crontab,
-		s3backupService: s3backupService,
-		gate:            offlineGate,
-		datastore:       datastore,
-		filestorePath:   filestorePath,
+		cronmanager:       crontab,
+		s3backupService:   s3backupService,
+		gate:              offlineGate,
+		datastore:         datastore,
+		filestorePath:     filestorePath,
+		userActivityStore: userActivityStore,
 	}
 }
 
@@ -106,7 +108,7 @@ func canBeScheduled(s portainer.S3BackupSettings) bool {
 
 func (s *BackupScheduler) backup(settings portainer.S3BackupSettings) func() {
 	return func() {
-		err := BackupToS3(settings, s.gate, s.datastore, s.filestorePath)
+		err := BackupToS3(settings, s.gate, s.datastore, s.userActivityStore, s.filestorePath)
 		status := portainer.S3BackupStatus{
 			Failed:    err != nil,
 			Timestamp: time.Now(),

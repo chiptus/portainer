@@ -1,12 +1,14 @@
 package useractivity
 
 import (
+	"io"
 	"path"
 	"time"
 
 	storm "github.com/asdine/storm/v3"
 	"github.com/asdine/storm/v3/q"
 	portainer "github.com/portainer/portainer/api"
+	"go.etcd.io/bbolt"
 )
 
 const (
@@ -61,6 +63,15 @@ func NewUserActivityStore(dataPath string) (*Store, error) {
 	}
 
 	return store, nil
+}
+
+// BackupTo backs up db to a provided writer.
+// It does hot backup and doesn't block other database reads and writes
+func (store *Store) BackupTo(w io.Writer) error {
+	return store.db.Bolt.View(func(tx *bbolt.Tx) error {
+		_, err := tx.WriteTo(w)
+		return err
+	})
 }
 
 // Close closes the DB

@@ -110,11 +110,11 @@ func (server *Server) Start() error {
 	adminMonitor := adminmonitor.New(5*time.Minute, server.DataStore, server.ShutdownCtx)
 	adminMonitor.Start()
 
-	backupScheduler := backupOps.NewBackupScheduler(offlineGate, server.DataStore, server.FileService.GetDatastorePath())
+	backupScheduler := backupOps.NewBackupScheduler(offlineGate, server.DataStore, server.UserActivityStore, server.FileService.GetDatastorePath())
 	if err := backupScheduler.Start(); err != nil {
 		return errors.Wrap(err, "failed to start backup scheduler")
 	}
-	var backupHandler = backup.NewHandler(requestBouncer, server.DataStore, offlineGate, server.FileService.GetDatastorePath(), backupScheduler, server.ShutdownTrigger, adminMonitor)
+	var backupHandler = backup.NewHandler(requestBouncer, server.DataStore, server.UserActivityStore, offlineGate, server.FileService.GetDatastorePath(), backupScheduler, server.ShutdownTrigger, adminMonitor)
 
 	var roleHandler = roles.NewHandler(requestBouncer)
 	roleHandler.DataStore = server.DataStore

@@ -47,7 +47,7 @@ func (h *Handler) restore(w http.ResponseWriter, r *http.Request) *httperror.Han
 	}
 
 	var archiveReader io.Reader = bytes.NewReader(payload.FileContent)
-	err = operations.RestoreArchive(archiveReader, payload.Password, h.filestorePath, h.gate, h.dataStore, h.shutdownTrigger)
+	err = operations.RestoreArchive(archiveReader, payload.Password, h.filestorePath, h.gate, h.dataStore, h.userActivityStore, h.shutdownTrigger)
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Failed to restore the backup", Err: err}
 	}

@@ -16,26 +16,28 @@ import (
 // Handler is an http handler responsible for backup and restore portainer state
 type Handler struct {
 	*mux.Router
-	backupScheduler *operations.BackupScheduler
-	bouncer         *security.RequestBouncer
-	dataStore       portainer.DataStore
-	gate            *offlinegate.OfflineGate
-	filestorePath   string
-	shutdownTrigger context.CancelFunc
-	adminMonitor    *adminmonitor.Monitor
+	backupScheduler   *operations.BackupScheduler
+	bouncer           *security.RequestBouncer
+	dataStore         portainer.DataStore
+	userActivityStore portainer.UserActivityStore
+	gate              *offlinegate.OfflineGate
+	filestorePath     string
+	shutdownTrigger   context.CancelFunc
+	adminMonitor      *adminmonitor.Monitor
 }
 
 // NewHandler creates an new instance of backup handler
-func NewHandler(bouncer *security.RequestBouncer, dataStore portainer.DataStore, gate *offlinegate.OfflineGate, filestorePath string, backupScheduler *operations.BackupScheduler, shutdownTrigger context.CancelFunc, adminMonitor *adminmonitor.Monitor) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore portainer.DataStore, userActivityStore portainer.UserActivityStore, gate *offlinegate.OfflineGate, filestorePath string, backupScheduler *operations.BackupScheduler, shutdownTrigger context.CancelFunc, adminMonitor *adminmonitor.Monitor) *Handler {
 	h := &Handler{
-		Router:          mux.NewRouter(),
-		bouncer:         bouncer,
-		backupScheduler: backupScheduler,
-		dataStore:       dataStore,
-		gate:            gate,
-		filestorePath:   filestorePath,
-		shutdownTrigger: shutdownTrigger,
-		adminMonitor:    adminMonitor,
+		Router:            mux.NewRouter(),
+		bouncer:           bouncer,
+		backupScheduler:   backupScheduler,
+		dataStore:         dataStore,
+		userActivityStore: userActivityStore,
+		gate:              gate,
+		filestorePath:     filestorePath,
+		shutdownTrigger:   shutdownTrigger,
+		adminMonitor:      adminMonitor,
 	}
 
 	h.Handle("/backup/s3/settings", bouncer.RestrictedAccess(adminAccess(httperror.LoggerHandler(h.backupSettingsFetch)))).Methods(http.MethodGet)

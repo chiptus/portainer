@@ -1508,6 +1508,9 @@ type (
 
 	// UserActivityStore store all logs related to user activity: authentication, actions, ...
 	UserActivityStore interface {
+		BackupTo(w io.Writer) error
+		Close() error
+
 		GetAuthLogs(opts AuthLogsQuery) ([]*AuthActivityLog, int, error)
 		LogAuthActivity(username, origin string, context AuthenticationMethod, activityType AuthenticationActivityType) (*AuthActivityLog, error)
 

@@ -93,7 +93,7 @@ func (h *Handler) restoreFromS3(w http.ResponseWriter, r *http.Request) *httperr
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Failed to download file from S3", Err: err}
 	}
 
-	if err = operations.RestoreArchive(backupFile, payload.Password, h.filestorePath, h.gate, h.dataStore, h.shutdownTrigger); err != nil {
+	if err = operations.RestoreArchive(backupFile, payload.Password, h.filestorePath, h.gate, h.dataStore, h.userActivityStore, h.shutdownTrigger); err != nil {
 		log.Printf("[ERROR] %s", errors.Wrap(err, "faild to restore system from backup"))
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Failed to restore backup", Err: err}
 	}

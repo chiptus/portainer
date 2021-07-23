@@ -10,7 +10,7 @@ import (
 )
 
 func newScheduler(status *portainer.S3BackupStatus, settings *portainer.S3BackupSettings) *BackupScheduler {
-	scheduler := NewBackupScheduler(nil, i.NewDatastore(i.WithS3BackupService(status, settings)), "")
+	scheduler := NewBackupScheduler(nil, i.NewDatastore(i.WithS3BackupService(status, settings)), i.NewUserActivityStore(), "")
 	scheduler.Start()
 
 	return scheduler
