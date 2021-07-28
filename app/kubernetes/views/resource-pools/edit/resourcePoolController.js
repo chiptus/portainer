@@ -3,6 +3,7 @@ import _ from 'lodash-es';
 import filesizeParser from 'filesize-parser';
 import { KubernetesResourceQuotaDefaults } from 'Kubernetes/models/resource-quota/models';
 import KubernetesResourceReservationHelper from 'Kubernetes/helpers/resourceReservationHelper';
+import { KubernetesResourceReservation } from 'Kubernetes/models/resource-reservation/models';
 import KubernetesEventHelper from 'Kubernetes/helpers/eventHelper';
 import {
   KubernetesResourcePoolFormValues,
@@ -29,6 +30,7 @@ class KubernetesResourcePoolController {
     ModalService,
     EndpointService,
     KubernetesNodeService,
+    KubernetesMetricsService,
     KubernetesResourceQuotaService,
     KubernetesResourcePoolService,
     KubernetesEventService,
@@ -47,6 +49,7 @@ class KubernetesResourcePoolController {
       ModalService,
       EndpointService,
       KubernetesNodeService,
+      KubernetesMetricsService,
       KubernetesResourceQuotaService,
       KubernetesResourcePoolService,
       KubernetesEventService,
@@ -253,6 +256,8 @@ class KubernetesResourcePoolController {
         if (this.formValues.LoadBalancers > 0) {
           this.state.loadBalancersUsage = (this.state.loadBalancersUsed / this.formValues.LoadBalancers) * 100;
         }
+
+        await this.getResourceUsage(this.pool.Namespace.Name);
       } catch (err) {
         this.Notifications.error('Failure', err, 'Unable to retrieve applications.');
       } finally {
@@ -338,11 +343,26 @@ class KubernetesResourcePoolController {
     sc.Usage = Math.round((used / available) * 100);
   }
 
+  async getResourceUsage(namespace) {
+    try {
+      const namespaceMetrics = await this.KubernetesMetricsService.getPods(namespace);
+      // extract resource usage of all containers within each pod of the namespace
+      const containerResourceUsageList = namespaceMetrics.items.flatMap((i) => i.containers.map((c) => c.usage));
+      const namespaceResourceUsage = containerResourceUsageList.reduce((total, u) => {
+        total.CPU += KubernetesResourceReservationHelper.parseCPU(u.cpu);
+        total.Memory += KubernetesResourceReservationHelper.megaBytesValue(u.memory);
+        return total;
+      }, new KubernetesResourceReservation());
+      this.state.resourceUsage = namespaceResourceUsage;
+    } catch (err) {
+      this.Notifications.error('Failure', 'Unable to retrieve namespace resource usage', err);
+    }
+  }
+
   /* #region  ON INIT */
   $onInit() {
     return this.$async(async () => {
       try {
-        const endpoint = this.endpoint;
         this.canEdit = this.Authentication.hasAuthorizations(['K8sResourcePoolDetailsW']);
 
         this.state = {
@@ -350,9 +370,8 @@ class KubernetesResourcePoolController {
           sliderMaxMemory: 0,
           sliderMaxCpu: 0,
           cpuUsage: 0,
-          cpuUsed: 0,
           memoryUsage: 0,
-          memoryUsed: 0,
+          resourceReservation: { CPU: 0, Memory: 0 },
           activeTab: 0,
           currentName: this.$state.$current.name,
           showEditorTab: false,
@@ -361,10 +380,11 @@ class KubernetesResourcePoolController {
           ingressesLoading: true,
           viewReady: false,
           eventWarningCount: 0,
-          canUseIngress: endpoint.Kubernetes.Configuration.IngressClasses.length,
-          resourceOverCommitEnabled: endpoint.Kubernetes.Configuration.EnableResourceOverCommit,
-          resourceOverCommitPercentage: endpoint.Kubernetes.Configuration.ResourceOverCommitPercentage,
-          useLoadBalancer: endpoint.Kubernetes.Configuration.UseLoadBalancer,
+          canUseIngress: this.endpoint.Kubernetes.Configuration.IngressClasses.length,
+          resourceOverCommitEnabled: this.endpoint.Kubernetes.Configuration.EnableResourceOverCommit,
+          resourceOverCommitPercentage: this.endpoint.Kubernetes.Configuration.ResourceOverCommitPercentage,
+          useLoadBalancer: this.endpoint.Kubernetes.Configuration.UseLoadBalancer,
+          useServerMetrics: this.endpoint.Kubernetes.Configuration.UseServerMetrics,
           hasWriteAuthorization: this.Authentication.hasAuthorizations(['K8sResourcePoolDetailsW']),
           loadBalancersUsed: 0,
           loadBalancersUsage: 0,
@@ -401,8 +421,8 @@ class KubernetesResourcePoolController {
           this.formValues = KubernetesResourceQuotaConverter.quotaToResourcePoolFormValues(quota);
           this.formValues.EndpointId = this.endpoint.Id;
 
-          this.state.cpuUsed = quota.CpuLimitUsed;
-          this.state.memoryUsed = KubernetesResourceReservationHelper.megaBytesValue(quota.MemoryLimitUsed);
+          this.state.resourceReservation.CPU = quota.CpuLimitUsed;
+          this.state.resourceReservation.Memory = KubernetesResourceReservationHelper.megaBytesValue(quota.MemoryLimitUsed);
         }
 
         this.isEditable = !this.KubernetesNamespaceHelper.isSystemNamespace(this.pool.Namespace.Name);
@@ -418,7 +438,7 @@ class KubernetesResourcePoolController {
 
         if (this.state.canUseIngress) {
           await this.getIngresses();
-          const ingressClasses = endpoint.Kubernetes.Configuration.IngressClasses;
+          const ingressClasses = this.endpoint.Kubernetes.Configuration.IngressClasses;
           this.formValues.IngressClasses = KubernetesIngressConverter.ingressClassesToFormValues(ingressClasses, this.ingresses);
           _.forEach(this.formValues.IngressClasses, (ic) => {
             if (ic.Hosts.length === 0) {
@@ -427,7 +447,7 @@ class KubernetesResourcePoolController {
           });
         }
         await this.getVolumes();
-        const storageClasses = KubernetesStorageClassConverter.storageClassesToResourcePoolFormValues(endpoint.Kubernetes.Configuration.StorageClasses);
+        const storageClasses = KubernetesStorageClassConverter.storageClassesToResourcePoolFormValues(this.endpoint.Kubernetes.Configuration.StorageClasses);
         _.remove(storageClasses, (sc) => _.find(this.formValues.StorageClasses, { Name: sc.Name }));
         this.formValues.StorageClasses = _.concat(this.formValues.StorageClasses, storageClasses);
         _.forEach(this.formValues.StorageClasses, (sc) => {

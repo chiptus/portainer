@@ -86,6 +86,11 @@ func getPortainerDefaultK8sRoles() map[portainer.K8sRole]k8sRoleConfig {
 					Resources: []string{"ingresses"},
 					APIGroups: []string{"networking.k8s.io"},
 				},
+				{
+					Verbs:     []string{"list"},
+					Resources: []string{"namespaces", "pods"},
+					APIGroups: []string{"metrics.k8s.io"},
+				},
 			},
 		},
 		portainer.K8sRolePortainerHelpdesk: k8sRoleConfig{
@@ -106,6 +111,11 @@ func getPortainerDefaultK8sRoles() map[portainer.K8sRole]k8sRoleConfig {
 					Resources: []string{"ingresses"},
 					APIGroups: []string{"networking.k8s.io"},
 				},
+				{
+					Verbs:     []string{"get", "list", "watch"},
+					Resources: []string{"pods", "nodes", "nodes/stats", "namespaces"},
+					APIGroups: []string{"metrics.k8s.io"},
+				},
 			},
 		},
 		portainer.K8sRolePortainerOperator: k8sRoleConfig{
@@ -125,6 +135,11 @@ func getPortainerDefaultK8sRoles() map[portainer.K8sRole]k8sRoleConfig {
 					Verbs:     []string{"patch"},
 					Resources: []string{"deployments"},
 					APIGroups: []string{"apps"},
+				},
+				{
+					Verbs:     []string{"get", "list", "watch"},
+					Resources: []string{"pods", "nodes", "nodes/stats", "namespaces"},
+					APIGroups: []string{"metrics.k8s.io"},
 				},
 			},
 		},
