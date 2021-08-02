@@ -2,6 +2,7 @@ package portainer
 
 import (
 	"io"
+	"net/http"
 	"time"
 
 	"github.com/portainer/liblicense"
@@ -1321,7 +1322,7 @@ type (
 			namespaceRoles map[string]Role,
 		) error
 		GetServiceAccountBearerToken(userID int) (string, error)
-		StartExecProcess(namespace, podName, containerName string, command []string, stdin io.Reader, stdout io.Writer) error
+		StartExecProcess(token string, useAdminToken bool, namespace, podName, containerName string, command []string, stdin io.Reader, stdout io.Writer) error
 		GetNamespaces() (map[string]K8sNamespaceInfo, error)
 		RemoveUserServiceAccount(userID int) error
 		RemoveUserNamespaceBindings(
@@ -1338,7 +1339,7 @@ type (
 
 	// KubernetesDeployer represents a service to deploy a manifest inside a Kubernetes endpoint
 	KubernetesDeployer interface {
-		Deploy(endpoint *Endpoint, data string, namespace string) (string, error)
+		Deploy(request *http.Request, endpoint *Endpoint, data string, namespace string) (string, error)
 		ConvertCompose(data string) ([]byte, error)
 	}
 

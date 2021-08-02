@@ -125,9 +125,9 @@ func getRoundTripToken(request *http.Request, tokenManager *tokenManager, endpoi
 
 	var token string
 	if tokenData.Role == portainer.AdministratorRole {
-		token = tokenManager.getAdminServiceAccountToken()
+		token = tokenManager.GetAdminServiceAccountToken()
 	} else {
-		token, err = tokenManager.getUserServiceAccountToken(int(tokenData.ID), int(endpointID))
+		token, err = tokenManager.GetUserServiceAccountToken(int(tokenData.ID), int(endpointID))
 		if err != nil {
 			log.Printf("Failed retrieving service account token: %v", err)
 			return "", err

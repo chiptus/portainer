@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	httperror "github.com/portainer/libhttp/error"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/kubernetes/cli"
@@ -21,15 +22,17 @@ type Handler struct {
 	requestBouncer          *security.RequestBouncer
 	connectionUpgrader      websocket.Upgrader
 	UserActivityStore       portainer.UserActivityStore
+	kubernetesTokenCacheManager *kubernetes.TokenCacheManager
 }
 
 // NewHandler creates a handler to manage websocket operations.
-func NewHandler(bouncer *security.RequestBouncer, authorizationService *authorization.Service) *Handler {
+func NewHandler(kubernetesTokenCacheManager *kubernetes.TokenCacheManager, bouncer *security.RequestBouncer, authorizationService *authorization.Service) *Handler {
 	h := &Handler{
-		Router:               mux.NewRouter(),
-		connectionUpgrader:   websocket.Upgrader{},
-		requestBouncer:       bouncer,
-		authorizationService: authorizationService,
+		Router:                      mux.NewRouter(),
+		connectionUpgrader:          websocket.Upgrader{},
+		requestBouncer:              bouncer,
+		authorizationService:        authorizationService,
+		kubernetesTokenCacheManager: kubernetesTokenCacheManager,
 	}
 	h.PathPrefix("/websocket/exec").Handler(
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.websocketExec)))

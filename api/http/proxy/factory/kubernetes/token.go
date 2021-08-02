@@ -1,11 +1,9 @@
 package kubernetes
 
 import (
-	"io/ioutil"
-	"sync"
-
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/internal/authorization"
+	"io/ioutil"
 )
 
 const defaultServiceAccountTokenFile = "/var/run/secrets/kubernetes.io/serviceaccount/token"
@@ -14,7 +12,6 @@ type tokenManager struct {
 	tokenCache  *tokenCache
 	kubecli     portainer.KubeClient
 	dataStore   portainer.DataStore
-	mutex       sync.Mutex
 	adminToken  string
 	authService *authorization.Service
 }
@@ -33,7 +30,6 @@ func NewTokenManager(
 		tokenCache:  cache,
 		kubecli:     kubecli,
 		dataStore:   dataStore,
-		mutex:       sync.Mutex{},
 		adminToken:  "",
 		authService: authService,
 	}
@@ -50,16 +46,16 @@ func NewTokenManager(
 	return tokenManager, nil
 }
 
-func (manager *tokenManager) getAdminServiceAccountToken() string {
+func (manager *tokenManager) GetAdminServiceAccountToken() string {
 	return manager.adminToken
 }
 
 // setup a user's service account if not exist, then retrieve its token
-func (manager *tokenManager) getUserServiceAccountToken(
+func (manager *tokenManager) GetUserServiceAccountToken(
 	userID int, endpointID int,
 ) (string, error) {
-	manager.mutex.Lock()
-	defer manager.mutex.Unlock()
+	manager.tokenCache.mutex.Lock()
+	defer manager.tokenCache.mutex.Unlock()
 
 	token, ok := manager.tokenCache.getToken(userID)
 	if !ok {

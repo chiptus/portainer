@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"strconv"
+	"sync"
 
 	cmap "github.com/orcaman/concurrent-map"
 )
@@ -14,6 +15,7 @@ type (
 
 	tokenCache struct {
 		userTokenCache cmap.ConcurrentMap
+		mutex       sync.Mutex
 	}
 )
 
@@ -33,6 +35,18 @@ func (manager *TokenCacheManager) CreateTokenCache(endpointID int) *tokenCache {
 	manager.tokenCaches.Set(key, tokenCache)
 
 	return tokenCache
+}
+
+// GetOrCreateTokenCache will get the tokenCache from the manager map of caches if it exists,
+// otherwise it will create a new tokenCache object, associate it to the manager map of caches
+// and return a pointer to that tokenCache instance.
+func (manager *TokenCacheManager) GetOrCreateTokenCache(endpointID int) *tokenCache {
+	key := strconv.Itoa(endpointID)
+	if epCache, ok := manager.tokenCaches.Get(key); ok {
+		return epCache.(*tokenCache)
+	}
+
+	return manager.CreateTokenCache(endpointID)
 }
 
 // RemoveUserFromCache will ensure that the specific userID is removed from all registered caches.
@@ -65,6 +79,7 @@ func (manager *TokenCacheManager) HandleUserAuthDelete(userID int) {
 func newTokenCache() *tokenCache {
 	return &tokenCache{
 		userTokenCache: cmap.New(),
+		mutex:       sync.Mutex{},
 	}
 }
 
