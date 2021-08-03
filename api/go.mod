@@ -35,6 +35,7 @@ require (
 	github.com/portainer/libhttp v0.0.0-20190806161843-ba068f58be33
 	github.com/portainer/liblicense v0.0.0-20210409011001-c758dd044fbb
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	go.etcd.io/bbolt v1.3.5
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
