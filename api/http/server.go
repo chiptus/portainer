@@ -27,6 +27,7 @@ import (
 	"github.com/portainer/portainer/api/http/handler/endpointproxy"
 	"github.com/portainer/portainer/api/http/handler/endpoints"
 	"github.com/portainer/portainer/api/http/handler/file"
+	kube "github.com/portainer/portainer/api/http/handler/kubernetes"
 	"github.com/portainer/portainer/api/http/handler/ldap"
 	"github.com/portainer/portainer/api/http/handler/licenses"
 	"github.com/portainer/portainer/api/http/handler/motd"
@@ -177,6 +178,10 @@ func (server *Server) Start() error {
 
 	var fileHandler = file.NewHandler(filepath.Join(server.AssetsPath, "public"))
 
+	var kubernetesHandler = kube.NewHandler(requestBouncer, server.AuthorizationService)
+	kubernetesHandler.DataStore = server.DataStore
+	kubernetesHandler.KubernetesClientFactory = server.KubernetesClientFactory
+
 	var ldapHandler = ldap.NewHandler(requestBouncer)
 	ldapHandler.DataStore = server.DataStore
 	ldapHandler.FileService = server.FileService
@@ -279,6 +284,7 @@ func (server *Server) Start() error {
 		EndpointEdgeHandler:    endpointEdgeHandler,
 		EndpointProxyHandler:   endpointProxyHandler,
 		FileHandler:            fileHandler,
+		KubernetesHandler:      kubernetesHandler,
 		LDAPHandler:            ldapHandler,
 		LicenseHandler:         licenseHandler,
 		MOTDHandler:            motdHandler,

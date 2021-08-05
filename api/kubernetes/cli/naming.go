@@ -6,13 +6,15 @@ import (
 )
 
 const (
-	defaultNamespace                    = "default"
-	portainerNamespace                  = "portainer"
-	portainerUserServiceAccountPrefix   = "portainer-sa-user"
-	portainerRBPrefix                   = "portainer-rb"
-	portainerCRBPrefix                  = "portainer-crb"
-	portainerConfigMapName              = "portainer-config"
-	portainerConfigMapAccessPoliciesKey = "NamespaceAccessPolicies"
+	defaultNamespace                        = "default"
+	portainerNamespace                      = "portainer"
+	portainerClusterAdminServiceAccountName = "portainer-sa-clusteradmin"
+	portainerUserServiceAccountPrefix       = "portainer-sa-user"
+	portainerRBPrefix                       = "portainer-rb"
+	portainerCRBPrefix                      = "portainer-crb"
+	portainerConfigMapName                  = "portainer-config"
+	portainerConfigMapAccessPoliciesKey     = "NamespaceAccessPolicies"
+	portainerShellPodPrefix                 = "portainer-pod-kubectl-shell"
 )
 
 func userServiceAccountName(userID int, instanceID string) string {
@@ -41,4 +43,8 @@ func matchRoleBindingName(target string, namespace string, instanceID string) bo
 func matchClusterRoleBindingName(target string, instanceID string) bool {
 	return regexp.MustCompile("^" + clusterRoleBindingName("(.*)", instanceID) + "$").
 		MatchString(target)
+}
+
+func userShellPodPrefix(serviceAccountName string) string {
+	return fmt.Sprintf("%s-%s-", portainerShellPodPrefix, serviceAccountName)
 }

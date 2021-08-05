@@ -6,6 +6,7 @@ body,
 #view {
   height: 100%;
   width: 100%;
+  overflow-y: initial;
 }
 
 #view {
@@ -1031,4 +1032,10 @@ json-tree .branch-preview {
 
 .dashboard-item {
   color: #65798e;
+}
+
+.kubectl-shell {
+  display: block;
+  text-align: center;
+  padding-bottom: 5px;
 }
