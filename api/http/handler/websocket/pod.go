@@ -117,21 +117,21 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 	r.Header.Del("Origin")
 
 	if endpoint.Type == portainer.AgentOnKubernetesEnvironment {
+		useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, nil)
 		err := handler.proxyAgentWebsocketRequest(w, r, params)
+
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to proxy websocket request to agent", err}
 		}
 
-		useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, nil)
-
 		return nil
 	} else if endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment {
+		useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, nil)
+
 		err := handler.proxyEdgeAgentWebsocketRequest(w, r, params)
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to proxy websocket request to Edge agent", err}
 		}
-
-		useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, nil)
 
 		return nil
 	}

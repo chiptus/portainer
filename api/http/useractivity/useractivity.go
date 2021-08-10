@@ -56,6 +56,6 @@ func logActivity(store portainer.UserActivityStore, context string, request *htt
 		body = nil
 	}
 
-	store.LogUserActivity(username, context, fmt.Sprintf("%s %s", request.Method, request.RequestURI), body)
+	store.LogUserActivity(username, context, fmt.Sprintf("%s %s", request.Method, request.URL.String()), body)
 
 }

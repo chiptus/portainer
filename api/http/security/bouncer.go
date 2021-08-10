@@ -276,7 +276,13 @@ func (bouncer *RequestBouncer) mwCheckAuthentication(next http.Handler) http.Han
 
 		// Optionally, token might be set via the "token" query parameter.
 		// For example, in websocket requests
-		token = r.URL.Query().Get("token")
+		// For these cases, hide the token from the query
+		query := r.URL.Query()
+		token = query.Get("token")
+		if token != "" {
+			query.Del("token")
+			r.URL.RawQuery = query.Encode()
+		}
 
 		// Get token from the Authorization header
 		tokens, ok := r.Header["Authorization"]

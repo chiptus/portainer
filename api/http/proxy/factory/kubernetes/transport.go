@@ -64,6 +64,8 @@ func (transport *baseTransport) proxyKubernetesRequest(request *http.Request) (*
 		return transport.executeKubernetesRequest(request, true)
 	case strings.HasPrefix(requestPath, "/namespaces"):
 		return transport.proxyNamespacedRequest(request, requestPath)
+	case strings.HasPrefix(requestPath, "/v2"):
+		return transport.proxyV2Request(request, requestPath)
 	default:
 		return transport.executeKubernetesRequest(request, true)
 	}
