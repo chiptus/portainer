@@ -4,6 +4,7 @@ class InternalAuthenticationController {
   /* @ngInject */
   constructor(
     $async,
+    $analytics,
     $scope,
     $state,
     $stateParams,
@@ -18,6 +19,7 @@ class InternalAuthenticationController {
     LicenseService
   ) {
     this.$async = $async;
+    this.$analytics = $analytics;
     this.$scope = $scope;
     this.$state = $state;
     this.$stateParams = $stateParams;
@@ -106,6 +108,7 @@ class InternalAuthenticationController {
     await this.StateManager.initialize();
 
     const isAdmin = this.Authentication.isAdmin();
+    this.$analytics.setUserRole(isAdmin ? 'admin' : 'standard-user');
     let path = 'portainer.home';
     if (isAdmin) {
       path = await this.checkForLicensesAsync();

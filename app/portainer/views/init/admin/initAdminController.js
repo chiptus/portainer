@@ -10,13 +10,13 @@ angular.module('portainer.app').controller('InitAdminController', [
   'StatusService',
   function ($scope, $state, Notifications, Authentication, StateManager, SettingsService, UserService, BackupService, StatusService) {
     $scope.logo = StateManager.getState().application.logo;
-    $scope.RESTORE_FORM_TYPES = { S3: 's3', FILE: 'file' }
+    $scope.RESTORE_FORM_TYPES = { S3: 's3', FILE: 'file' };
     $scope.formValues = {
       Username: 'admin',
       Password: '',
       ConfirmPassword: '',
-      enableTelemetry: true,
-      restoreFormType: $scope.RESTORE_FORM_TYPES.FILE
+      enableTelemetry: process.env.NODE_ENV === 'production',
+      restoreFormType: $scope.RESTORE_FORM_TYPES.FILE,
     };
 
     $scope.state = {
@@ -112,8 +112,8 @@ angular.module('portainer.app').controller('InitAdminController', [
         SecretAccessKey: $scope.formValues.SecretAccessKey,
         Region: $scope.formValues.Region,
         BucketName: $scope.formValues.BucketName,
-        Filename: $scope.formValues.Filename
-      }
+        Filename: $scope.formValues.Filename,
+      };
 
       try {
         await BackupService.restoreFromS3(payload);

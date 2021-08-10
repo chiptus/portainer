@@ -5,6 +5,7 @@ class AuthenticationController {
   /* @ngInject */
   constructor(
     $async,
+    $analytics,
     $scope,
     $state,
     $stateParams,
@@ -21,6 +22,7 @@ class AuthenticationController {
     LicenseService
   ) {
     this.$async = $async;
+    this.$analytics = $analytics;
     this.$scope = $scope;
     this.$state = $state;
     this.$stateParams = $stateParams;
@@ -35,6 +37,7 @@ class AuthenticationController {
     this.LocalStorage = LocalStorage;
     this.StatusService = StatusService;
     this.LicenseService = LicenseService;
+
     this.logo = this.StateManager.getState().application.logo;
     this.formValues = {
       Username: '',
@@ -164,6 +167,8 @@ class AuthenticationController {
     await this.StateManager.initialize();
 
     const isAdmin = this.Authentication.isAdmin();
+    this.$analytics.setUserRole(isAdmin ? 'admin' : 'standard-user');
+
     let path = 'portainer.home';
     if (isAdmin) {
       path = await this.checkForLicensesAsync();
