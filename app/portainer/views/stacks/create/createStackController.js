@@ -53,6 +53,10 @@ angular
       }
     };
 
+    $scope.$on('$destroy', function () {
+      $scope.state.isEditorDirty = false;
+    });
+
     $scope.addEnvironmentVariable = function () {
       $scope.formValues.Env.push({ name: '', value: '' });
     };

@@ -77,6 +77,10 @@ angular.module('portainer.app').controller('StackController', [
       }
     };
 
+    $scope.$on('$destroy', function () {
+      $scope.state.isEditorDirty = false;
+    });
+
     $scope.duplicateStack = function duplicateStack(name, endpointId) {
       var stack = $scope.stack;
       var env = FormHelper.removeInvalidEnvVars($scope.formValues.Env);

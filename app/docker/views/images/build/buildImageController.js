@@ -24,6 +24,10 @@ function BuildImageController($scope, $async, $window, ModalService, BuildServic
     }
   };
 
+  $scope.$on('$destroy', function () {
+    $scope.state.isEditorDirty = false;
+  });
+
   $scope.addImageName = function () {
     $scope.formValues.ImageNames.push({ Name: '' });
   };
@@ -77,7 +81,13 @@ function BuildImageController($scope, $async, $window, ModalService, BuildServic
       try {
         const data = await buildImageBasedOnBuildType(buildType, imageNames);
         $scope.buildLogs = data.buildLogs;
+
+        if ($scope.buildLogs) {
+          $scope.state.isEditorDirty = false;
+        }
+
         $scope.state.activeTab = 1;
+
         if (data.hasError) {
           Notifications.error('An error occurred during build', { msg: 'Please check build logs output' });
         } else {
