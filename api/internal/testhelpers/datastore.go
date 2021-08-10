@@ -18,6 +18,7 @@ type datastore struct {
 	registry         portainer.RegistryService
 	resourceControl  portainer.ResourceControlService
 	role             portainer.RoleService
+	sslSettings      portainer.SSLSettingsService
 	settings         portainer.SettingsService
 	s3backup         portainer.S3BackupService
 	stack            portainer.StackService
@@ -50,6 +51,7 @@ func (d *datastore) ResourceControl() portainer.ResourceControlService   { retur
 func (d *datastore) Role() portainer.RoleService                         { return d.role }
 func (d *datastore) S3Backup() portainer.S3BackupService                 { return d.s3backup }
 func (d *datastore) Settings() portainer.SettingsService                 { return d.settings }
+func (d *datastore) SSLSettings() portainer.SSLSettingsService           { return d.sslSettings }
 func (d *datastore) Stack() portainer.StackService                       { return d.stack }
 func (d *datastore) Tag() portainer.TagService                           { return d.tag }
 func (d *datastore) TeamMembership() portainer.TeamMembershipService     { return d.teamMembership }

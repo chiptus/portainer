@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer/api/bolt/internal"
 	"github.com/portainer/portainer/api/bolt/license"
 	"github.com/portainer/portainer/api/bolt/s3backup"
+	"github.com/portainer/portainer/api/bolt/ssl"
 
 	"github.com/boltdb/bolt"
 	portainer "github.com/portainer/portainer/api"
@@ -63,6 +64,7 @@ type Store struct {
 	S3BackupService         *s3backup.Service
 	ScheduleService         *schedule.Service
 	SettingsService         *settings.Service
+	SSLSettingsService      *ssl.Service
 	StackService            *stack.Service
 	TagService              *tag.Service
 	TeamMembershipService   *teammembership.Service
@@ -124,6 +126,7 @@ func (store *Store) Open() error {
 }
 
 // Close closes the BoltDB database.
+// Safe to being called multiple times.
 func (store *Store) Close() error {
 	if store.connection.DB != nil {
 		return store.connection.Close()

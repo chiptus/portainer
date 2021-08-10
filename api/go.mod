@@ -31,7 +31,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/portainer/docker-compose-wrapper v0.0.0-20210415235931-d457f9aba1cc
 	github.com/portainer/libcompose v0.5.3
-	github.com/portainer/libcrypto v0.0.0-20190723020515-23ebe86ab2c2
+	github.com/portainer/libcrypto v0.0.0-20210422035235-c652195c5c3a
 	github.com/portainer/libhttp v0.0.0-20190806161843-ba068f58be33
 	github.com/portainer/liblicense v0.0.0-20210409011001-c758dd044fbb
 	github.com/robfig/cron/v3 v3.0.1

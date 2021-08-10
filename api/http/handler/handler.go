@@ -24,6 +24,7 @@ import (
 	"github.com/portainer/portainer/api/http/handler/resourcecontrols"
 	"github.com/portainer/portainer/api/http/handler/roles"
 	"github.com/portainer/portainer/api/http/handler/settings"
+	"github.com/portainer/portainer/api/http/handler/ssl"
 	"github.com/portainer/portainer/api/http/handler/stacks"
 	"github.com/portainer/portainer/api/http/handler/status"
 	"github.com/portainer/portainer/api/http/handler/tags"
@@ -59,6 +60,7 @@ type Handler struct {
 	ResourceControlHandler *resourcecontrols.Handler
 	RoleHandler            *roles.Handler
 	SettingsHandler        *settings.Handler
+	SSLHandler             *ssl.Handler
 	StackHandler           *stacks.Handler
 	StatusHandler          *status.Handler
 	TagHandler             *tags.Handler
@@ -213,6 +215,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.UserHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/useractivity"):
 		http.StripPrefix("/api", h.UserActivityHandler).ServeHTTP(w, r)
+	case strings.HasPrefix(r.URL.Path, "/api/ssl"):
+		http.StripPrefix("/api", h.SSLHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/teams"):
 		http.StripPrefix("/api", h.TeamHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/team_memberships"):

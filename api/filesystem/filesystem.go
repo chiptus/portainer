@@ -50,6 +50,12 @@ const (
 	CustomTemplateStorePath = "custom_templates"
 	// TempPath represent the subfolder where temporary files are saved
 	TempPath = "tmp"
+	// SSLCertPath represents the default ssl certificates path
+	SSLCertPath = "certs"
+	// DefaultSSLCertFilename represents the default ssl certificate file name
+	DefaultSSLCertFilename = "cert.pem"
+	// DefaultSSLKeyFilename represents the default ssl key file name
+	DefaultSSLKeyFilename = "key.pem"
 )
 
 // ErrUndefinedTLSFileType represents an error returned on undefined TLS file type
@@ -70,6 +76,11 @@ func NewService(dataStorePath, fileStorePath string) (*Service, error) {
 	}
 
 	err := os.MkdirAll(dataStorePath, 0755)
+	if err != nil {
+		return nil, err
+	}
+
+	err = service.createDirectoryInStore(SSLCertPath)
 	if err != nil {
 		return nil, err
 	}
@@ -565,6 +576,58 @@ func (service *Service) GetTemporaryPath() (string, error) {
 // GetDataStorePath returns path to data folder
 func (service *Service) GetDatastorePath() string {
 	return service.dataStorePath
+}
+
+func (service *Service) wrapFileStore(filepath string) string {
+	return path.Join(service.fileStorePath, filepath)
+}
+
+func defaultCertPathUnderFileStore() (string, string) {
+	certPath := path.Join(SSLCertPath, DefaultSSLCertFilename)
+	keyPath := path.Join(SSLCertPath, DefaultSSLKeyFilename)
+	return certPath, keyPath
+}
+
+// GetDefaultSSLCertsPath returns the ssl certs path
+func (service *Service) GetDefaultSSLCertsPath() (string, string) {
+	certPath, keyPath := defaultCertPathUnderFileStore()
+	return service.wrapFileStore(certPath), service.wrapFileStore(keyPath)
+}
+
+// StoreSSLCertPair stores a ssl certificate pair
+func (service *Service) StoreSSLCertPair(cert, key []byte) (string, string, error) {
+	certPath, keyPath := defaultCertPathUnderFileStore()
+
+	r := bytes.NewReader(cert)
+	err := service.createFileInStore(certPath, r)
+	if err != nil {
+		return "", "", err
+	}
+
+	r = bytes.NewReader(key)
+	err = service.createFileInStore(keyPath, r)
+	if err != nil {
+		return "", "", err
+	}
+
+	return service.wrapFileStore(certPath), service.wrapFileStore(keyPath), nil
+}
+
+// CopySSLCertPair copies a ssl certificate pair
+func (service *Service) CopySSLCertPair(certPath, keyPath string) (string, string, error) {
+	defCertPath, defKeyPath := service.GetDefaultSSLCertsPath()
+
+	err := service.Copy(certPath, defCertPath, false)
+	if err != nil {
+		return "", "", err
+	}
+
+	err = service.Copy(keyPath, defKeyPath, false)
+	if err != nil {
+		return "", "", err
+	}
+
+	return defCertPath, defKeyPath, nil
 }
 
 // FileExists checks for the existence of the specified file.
