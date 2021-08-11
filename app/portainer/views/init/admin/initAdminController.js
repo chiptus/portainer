@@ -9,8 +9,13 @@ angular.module('portainer.app').controller('InitAdminController', [
   'BackupService',
   'StatusService',
   function ($scope, $state, Notifications, Authentication, StateManager, SettingsService, UserService, BackupService, StatusService) {
+    $scope.uploadBackup = uploadBackup;
+    $scope.restoreFromS3 = restoreFromS3;
+
     $scope.logo = StateManager.getState().application.logo;
+
     $scope.RESTORE_FORM_TYPES = { S3: 's3', FILE: 'file' };
+
     $scope.formValues = {
       Username: 'admin',
       Password: '',
@@ -24,6 +29,8 @@ angular.module('portainer.app').controller('InitAdminController', [
       showInitPassword: true,
       showRestorePortainer: false,
     };
+
+    createAdministratorFlow();
 
     $scope.togglePanel = function () {
       $scope.state.showInitPassword = !$scope.state.showInitPassword;
@@ -68,41 +75,15 @@ angular.module('portainer.app').controller('InitAdminController', [
         });
     }
 
-    createAdministratorFlow();
-
-    async function waitPortainerRestart() {
-      for (let i = 0; i < 10; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
-        try {
-          const status = await StatusService.status();
-          if (status && status.Version) {
-            return;
-          }
-        } catch (e) {
-          // pass
-        }
-      }
-      throw 'Timeout to wait for Portainer restarting';
-    }
-
-    $scope.uploadBackup = async function () {
+    async function uploadBackup() {
       $scope.state.backupInProgress = true;
       const file = $scope.formValues.BackupFile;
       const password = $scope.formValues.Password;
 
-      try {
-        await BackupService.uploadBackup(file, password);
-        await waitPortainerRestart();
-        Notifications.success('The backup has successfully been restored');
-        $state.go('portainer.auth');
-      } catch (err) {
-        Notifications.error('Failure', err, 'Unable to restore the backup');
-      } finally {
-        $scope.state.backupInProgress = false;
-      }
-    };
+      restoreAndRefresh(() => BackupService.uploadBackup(file, password));
+    }
 
-    $scope.restoreFromS3 = async function () {
+    async function restoreFromS3() {
       $scope.state.backupInProgress = true;
 
       const payload = {
@@ -115,16 +96,51 @@ angular.module('portainer.app').controller('InitAdminController', [
         Filename: $scope.formValues.Filename,
       };
 
+      restoreAndRefresh(() => BackupService.restoreFromS3(payload));
+    }
+
+    async function restoreAndRefresh(restoreAsyncFn) {
+      $scope.state.backupInProgress = true;
+
       try {
-        await BackupService.restoreFromS3(payload);
+        await restoreAsyncFn();
+      } catch (err) {
+        Notifications.error('Failure', err, 'Unable to restore the backup');
+        $scope.state.backupInProgress = false;
+
+        return;
+      }
+
+      try {
         await waitPortainerRestart();
         Notifications.success('The backup has successfully been restored');
         $state.go('portainer.auth');
       } catch (err) {
-        Notifications.error('Failure', err, 'Unable to restore the backup');
-      } finally {
-        $scope.state.backupInProgress = false;
+        Notifications.error('Failure', err, 'Unable to check for status');
+        await wait(2);
+        location.reload();
       }
-    };
+
+      $scope.state.backupInProgress = false;
+    }
+
+    async function waitPortainerRestart() {
+      for (let i = 0; i < 10; i++) {
+        await wait(5);
+        try {
+          const status = await StatusService.status();
+          if (status && status.Version) {
+            return;
+          }
+        } catch (e) {
+          // pass
+        }
+      }
+      throw new Error('Timeout to wait for Portainer restarting');
+    }
   },
 ]);
+
+function wait(seconds = 0) {
+  return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+}
