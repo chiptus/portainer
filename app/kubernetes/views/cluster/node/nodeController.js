@@ -47,6 +47,7 @@ class KubernetesNodeController {
     this.getEndpointsAsync = this.getEndpointsAsync.bind(this);
     this.updateNodeAsync = this.updateNodeAsync.bind(this);
     this.drainNodeAsync = this.drainNodeAsync.bind(this);
+    this.hasResourceUsageAccess = this.hasResourceUsageAccess.bind(this);
     this.getNodeUsageAsync = this.getNodeUsageAsync.bind(this);
   }
 

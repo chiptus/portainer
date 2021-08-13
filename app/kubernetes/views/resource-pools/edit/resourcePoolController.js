@@ -257,7 +257,9 @@ class KubernetesResourcePoolController {
           this.state.loadBalancersUsage = (this.state.loadBalancersUsed / this.formValues.LoadBalancers) * 100;
         }
 
-        await this.getResourceUsage(this.pool.Namespace.Name);
+        if (this.state.useServerMetrics) {
+          await this.getResourceUsage(this.pool.Namespace.Name);
+        }
       } catch (err) {
         this.Notifications.error('Failure', err, 'Unable to retrieve applications.');
       } finally {
