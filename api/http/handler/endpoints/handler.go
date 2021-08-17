@@ -35,6 +35,8 @@ type Handler struct {
 	ComposeStackManager  portainer.ComposeStackManager
 	DockerClientFactory  *docker.ClientFactory
 	UserActivityStore    portainer.UserActivityStore
+	BindAddress          string
+	BindAddressHTTPS     string
 }
 
 // NewHandler creates a handler to manage endpoint operations.

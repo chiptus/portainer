@@ -163,6 +163,8 @@ func (server *Server) Start() error {
 	endpointHandler.ComposeStackManager = server.ComposeStackManager
 	endpointHandler.DockerClientFactory = server.DockerClientFactory
 	endpointHandler.UserActivityStore = server.UserActivityStore
+	endpointHandler.BindAddress = server.BindAddress
+	endpointHandler.BindAddressHTTPS = server.BindAddressHTTPS
 
 	var endpointEdgeHandler = endpointedge.NewHandler(requestBouncer)
 	endpointEdgeHandler.DataStore = server.DataStore
