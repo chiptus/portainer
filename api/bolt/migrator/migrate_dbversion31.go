@@ -30,6 +30,10 @@ func (m *Migrator) migrateDBVersionToDB32() error {
 		return err
 	}
 
+	if err := migrateStackEntryPoint(m.stackService); err != nil {
+		return err
+	}
+
 	if err := m.updateVolumeResourceControlToDB32(); err != nil {
 		return err
 	}
@@ -139,6 +143,24 @@ func (m *Migrator) updateDockerhubToDB32() error {
 	}
 
 	return m.registryService.CreateRegistry(registry)
+}
+
+func migrateStackEntryPoint(stackService portainer.StackService) error {
+	stacks, err := stackService.Stacks()
+	if err != nil {
+		return err
+	}
+	for i := range stacks {
+		stack := &stacks[i]
+		if stack.GitConfig == nil {
+			continue
+		}
+		stack.GitConfig.ConfigFilePath = stack.EntryPoint
+		if err := stackService.UpdateStack(stack.ID, stack); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (m *Migrator) updateVolumeResourceControlToDB32() error {

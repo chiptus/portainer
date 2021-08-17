@@ -2,6 +2,7 @@ package backup
 
 import (
 	"context"
+	"github.com/portainer/portainer/api/filesystem"
 	"io"
 	"os"
 	"path/filepath"
@@ -63,7 +64,7 @@ func extractArchive(r io.Reader, destinationDirPath string) error {
 
 func restoreFiles(srcDir string, destinationDir string) error {
 	for _, filename := range filesToRestore {
-		err := copyPath(filepath.Join(srcDir, filename), destinationDir)
+		err := filesystem.CopyPath(filepath.Join(srcDir, filename), destinationDir)
 		if err != nil {
 			return err
 		}

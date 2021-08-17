@@ -11,11 +11,8 @@ angular.module('portainer.app').controller('InitAdminController', [
   function ($scope, $state, Notifications, Authentication, StateManager, SettingsService, UserService, BackupService, StatusService) {
     $scope.uploadBackup = uploadBackup;
     $scope.restoreFromS3 = restoreFromS3;
-
     $scope.logo = StateManager.getState().application.logo;
-
     $scope.RESTORE_FORM_TYPES = { S3: 's3', FILE: 'file' };
-
     $scope.formValues = {
       Username: 'admin',
       Password: '',

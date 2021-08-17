@@ -55,6 +55,8 @@ import (
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/internal/ssl"
 	"github.com/portainer/portainer/api/kubernetes/cli"
+	"github.com/portainer/portainer/api/scheduler"
+	stackdeloyer "github.com/portainer/portainer/api/stacks"
 )
 
 // Server implements the portainer.Server interface
@@ -86,8 +88,10 @@ type Server struct {
 	DockerClientFactory         *docker.ClientFactory
 	KubernetesClientFactory     *cli.ClientFactory
 	KubernetesDeployer          portainer.KubernetesDeployer
+	Scheduler                   *scheduler.Scheduler
 	ShutdownCtx                 context.Context
 	ShutdownTrigger             context.CancelFunc
+	StackDeployer               stackdeloyer.StackDeployer
 }
 
 // Start starts the HTTP server
@@ -215,17 +219,19 @@ func (server *Server) Start() error {
 	sslHandler.SSLService = server.SSLService
 
 	var stackHandler = stacks.NewHandler(requestBouncer)
-	stackHandler.DataStore = server.DataStore
 	stackHandler.DockerClientFactory = server.DockerClientFactory
 	stackHandler.FileService = server.FileService
-	stackHandler.SwarmStackManager = server.SwarmStackManager
-	stackHandler.ComposeStackManager = server.ComposeStackManager
+	stackHandler.DataStore = server.DataStore
 	stackHandler.KubernetesDeployer = server.KubernetesDeployer
 	stackHandler.GitService = server.GitService
 	stackHandler.DockerClientFactory = server.DockerClientFactory
 	stackHandler.KubernetesClientFactory = server.KubernetesClientFactory
 	stackHandler.AuthorizationService = server.AuthorizationService
 	stackHandler.UserActivityStore = server.UserActivityStore
+	stackHandler.Scheduler = server.Scheduler
+	stackHandler.SwarmStackManager = server.SwarmStackManager
+	stackHandler.ComposeStackManager = server.ComposeStackManager
+	stackHandler.StackDeployer = server.StackDeployer
 
 	var statusHandler = status.NewHandler(requestBouncer, server.Status)
 	statusHandler.DataStore = server.DataStore

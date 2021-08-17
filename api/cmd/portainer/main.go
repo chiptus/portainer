@@ -31,6 +31,8 @@ import (
 	"github.com/portainer/portainer/api/libcompose"
 	"github.com/portainer/portainer/api/license"
 	"github.com/portainer/portainer/api/oauth"
+	"github.com/portainer/portainer/api/scheduler"
+	"github.com/portainer/portainer/api/stacks"
 	"github.com/portainer/portainer/api/useractivity"
 )
 
@@ -554,6 +556,10 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 		log.Fatalf("failed starting license service: %s", err)
 	}
 
+	scheduler := scheduler.NewScheduler(shutdownCtx)
+	stackDeployer := stacks.NewStackDeployer(swarmStackManager, composeStackManager)
+	stacks.StartStackSchedules(scheduler, stackDeployer, dataStore, gitService)
+
 	sslSettings, err := dataStore.SSLSettings().Settings()
 	if err != nil {
 		log.Fatalf("failed to fetch ssl settings from DB")
@@ -586,8 +592,10 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 		DockerClientFactory:         dockerClientFactory,
 		UserActivityStore:           userActivityStore,
 		KubernetesClientFactory:     kubernetesClientFactory,
+		Scheduler:                   scheduler,
 		ShutdownCtx:                 shutdownCtx,
 		ShutdownTrigger:             shutdownTrigger,
+		StackDeployer:               stackDeployer,
 	}
 }
 

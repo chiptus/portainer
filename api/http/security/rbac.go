@@ -479,12 +479,14 @@ func portainerStackOperationAuthorization(url, method string) portainer.Authoriz
 			if resource == "" {
 				return portainer.OperationPortainerStackCreate
 			}
+		case "git":
+			return portainer.OperationPortainerStackUpdate
 		case "migrate":
 			return portainer.OperationPortainerStackMigrate
 		}
 
 	case http.MethodPut:
-		if resource != "" && (action == "" || action == "git") {
+		if resource != "" && (action == "" || action == "git" || action == `git/redeploy`) {
 			return portainer.OperationPortainerStackUpdate
 		}
 	case http.MethodDelete:

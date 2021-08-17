@@ -2,6 +2,7 @@ package backup
 
 import (
 	"fmt"
+	"github.com/portainer/portainer/api/filesystem"
 	"log"
 	"os"
 	"path/filepath"
@@ -65,7 +66,7 @@ func CreateBackupArchive(password string, gate *offlinegate.OfflineGate, datasto
 	}
 
 	for _, filename := range filesToBackup {
-		err := copyPath(filepath.Join(filestorePath, filename), backupDirPath)
+		err := filesystem.CopyPath(filepath.Join(filestorePath, filename), backupDirPath)
 		if err != nil {
 			return "", errors.Wrap(err, "Failed to create backup file")
 		}

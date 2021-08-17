@@ -29,7 +29,7 @@ require (
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/orcaman/concurrent-map v0.0.0-20190826125027-8c72a8bb44f6
 	github.com/pkg/errors v0.9.1
-	github.com/portainer/docker-compose-wrapper v0.0.0-20210415235931-d457f9aba1cc
+	github.com/portainer/docker-compose-wrapper v0.0.0-20210810234209-d01bc85eb481
 	github.com/portainer/libcompose v0.5.3
 	github.com/portainer/libcrypto v0.0.0-20210422035235-c652195c5c3a
 	github.com/portainer/libhttp v0.0.0-20190806161843-ba068f58be33

@@ -88,5 +88,10 @@ func (handler *Handler) stackAssociate(w http.ResponseWriter, r *http.Request) *
 
 	stack.ResourceControl = resourceControl
 
+	if stack.GitConfig != nil && stack.GitConfig.Authentication != nil && stack.GitConfig.Authentication.Password != "" {
+		// sanitize password in the http response to minimise possible security leaks
+		stack.GitConfig.Authentication.Password = ""
+	}
+
 	return response.JSON(w, stack)
 }

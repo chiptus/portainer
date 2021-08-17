@@ -63,7 +63,7 @@ angular.module('portainer.oauth').controller('OAuthSettingsController', function
   function updateSSO() {
     ctrl.settings.HideInternalAuth = ctrl.settings.SSO;
   }
-  
+
   function addTeamMembershipMapping() {
     ctrl.settings.TeamMemberships.OAuthClaimMappings.push({ ClaimValRegex: '', Team: ctrl.settings.DefaultTeamID });
   }
