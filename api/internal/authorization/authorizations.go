@@ -249,7 +249,6 @@ func DefaultEndpointAuthorizationsForOperatorRole() portainer.Authorizations {
 		portainer.OperationDockerImageSearch:               true,
 		portainer.OperationDockerImageGetAll:               true,
 		portainer.OperationDockerImageGet:                  true,
-		portainer.OperationDockerImageCreate:               true,
 		portainer.OperationDockerImageHistory:              true,
 		portainer.OperationDockerImageInspect:              true,
 		portainer.OperationDockerNetworkList:               true,
