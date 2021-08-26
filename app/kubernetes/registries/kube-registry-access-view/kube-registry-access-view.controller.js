@@ -45,7 +45,7 @@ export default class KubernetesRegistryAccessController {
 
   $onInit() {
     return this.$async(async () => {
-      this.Authentication.redirectIfUnauthorized(['OperationPortainerRegistryUpdateAccess']);
+      this.Authentication.redirectIfUnauthorized(['PortainerRegistryUpdateAccess']);
       try {
         this.registry = await this.EndpointService.registry(this.endpoint.Id, this.$state.params.id);
         if (this.registry.RegistryAccesses && this.registry.RegistryAccesses[this.endpoint.Id]) {

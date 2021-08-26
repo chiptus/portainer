@@ -57,7 +57,7 @@ class DockerRegistryAccessController {
 
   $onInit() {
     return this.$async(async () => {
-      this.Authentication.redirectIfUnauthorized(['OperationPortainerRegistryUpdateAccess']);
+      this.Authentication.redirectIfUnauthorized(['PortainerRegistryUpdateAccess']);
 
       try {
         this.state = {
