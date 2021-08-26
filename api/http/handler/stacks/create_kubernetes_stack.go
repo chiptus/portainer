@@ -17,7 +17,7 @@ import (
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/http/useractivity"
-	endpointutils "github.com/portainer/portainer/api/internal/endpoint"
+	"github.com/portainer/portainer/api/internal/endpointutils"
 	consts "github.com/portainer/portainer/api/useractivity"
 )
 

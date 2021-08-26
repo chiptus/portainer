@@ -28,7 +28,7 @@ import (
 	"github.com/portainer/portainer/api/http/handler/endpointproxy"
 	"github.com/portainer/portainer/api/http/handler/endpoints"
 	"github.com/portainer/portainer/api/http/handler/file"
-	kube "github.com/portainer/portainer/api/http/handler/kubernetes"
+	kubehandler "github.com/portainer/portainer/api/http/handler/kubernetes"
 	"github.com/portainer/portainer/api/http/handler/ldap"
 	"github.com/portainer/portainer/api/http/handler/licenses"
 	"github.com/portainer/portainer/api/http/handler/motd"
@@ -181,15 +181,16 @@ func (server *Server) Start() error {
 	endpointProxyHandler.ProxyManager = server.ProxyManager
 	endpointProxyHandler.ReverseTunnelService = server.ReverseTunnelService
 
+	var kubernetesHandler = kubehandler.NewHandler(requestBouncer, server.DataStore)
+	kubernetesHandler.AuthorizationService = server.AuthorizationService
+	kubernetesHandler.KubernetesClientFactory = server.KubernetesClientFactory
+	kubernetesHandler.UserActivityStore = server.UserActivityStore
+
 	var licenseHandler = licenses.NewHandler(requestBouncer)
 	licenseHandler.LicenseService = server.LicenseService
 	licenseHandler.UserActivityStore = server.UserActivityStore
 
 	var fileHandler = file.NewHandler(filepath.Join(server.AssetsPath, "public"))
-
-	var kubernetesHandler = kube.NewHandler(requestBouncer, server.AuthorizationService)
-	kubernetesHandler.DataStore = server.DataStore
-	kubernetesHandler.KubernetesClientFactory = server.KubernetesClientFactory
 
 	var ldapHandler = ldap.NewHandler(requestBouncer)
 	ldapHandler.DataStore = server.DataStore
@@ -297,8 +298,8 @@ func (server *Server) Start() error {
 		EndpointHandler:        endpointHandler,
 		EndpointEdgeHandler:    endpointEdgeHandler,
 		EndpointProxyHandler:   endpointProxyHandler,
-		FileHandler:            fileHandler,
 		KubernetesHandler:      kubernetesHandler,
+		FileHandler:            fileHandler,
 		LDAPHandler:            ldapHandler,
 		LicenseHandler:         licenseHandler,
 		MOTDHandler:            motdHandler,

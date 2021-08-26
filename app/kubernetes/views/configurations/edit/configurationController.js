@@ -1,10 +1,12 @@
 import angular from 'angular';
+import _ from 'lodash-es';
+
 import { KubernetesConfigurationFormValues } from 'Kubernetes/models/configuration/formvalues';
 import { KubernetesConfigurationTypes } from 'Kubernetes/models/configuration/models';
 import KubernetesConfigurationHelper from 'Kubernetes/helpers/configurationHelper';
 import KubernetesConfigurationConverter from 'Kubernetes/converters/configuration';
 import KubernetesEventHelper from 'Kubernetes/helpers/eventHelper';
-import _ from 'lodash-es';
+import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
 
 class KubernetesConfigurationController {
   /* @ngInject */
@@ -22,8 +24,7 @@ class KubernetesConfigurationController {
     KubernetesResourcePoolService,
     ModalService,
     KubernetesApplicationService,
-    KubernetesEventService,
-    KubernetesNamespaceHelper
+    KubernetesEventService
   ) {
     this.$async = $async;
     this.$state = $state;
@@ -40,7 +41,6 @@ class KubernetesConfigurationController {
     this.KubernetesApplicationService = KubernetesApplicationService;
     this.KubernetesEventService = KubernetesEventService;
     this.KubernetesConfigurationTypes = KubernetesConfigurationTypes;
-    this.KubernetesNamespaceHelper = KubernetesNamespaceHelper;
 
     this.onInit = this.onInit.bind(this);
     this.getConfigurationAsync = this.getConfigurationAsync.bind(this);
@@ -54,7 +54,7 @@ class KubernetesConfigurationController {
   }
 
   isSystemNamespace() {
-    return this.KubernetesNamespaceHelper.isSystemNamespace(this.configuration.Namespace);
+    return KubernetesNamespaceHelper.isSystemNamespace(this.configuration.Namespace);
   }
 
   isSystemConfig() {

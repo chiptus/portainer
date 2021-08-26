@@ -15,7 +15,7 @@ import (
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
-	endpointutils "github.com/portainer/portainer/api/internal/endpoint"
+	"github.com/portainer/portainer/api/internal/endpointutils"
 	"github.com/portainer/portainer/api/internal/stackutils"
 )
 

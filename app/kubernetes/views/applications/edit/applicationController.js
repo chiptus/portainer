@@ -7,6 +7,7 @@ import KubernetesApplicationHelper from 'Kubernetes/helpers/application';
 import { KubernetesServiceTypes } from 'Kubernetes/models/service/models';
 import { KubernetesPodNodeAffinityNodeSelectorRequirementOperators } from 'Kubernetes/pod/models';
 import { KubernetesPodContainerTypes } from 'Kubernetes/pod/models/index';
+import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
 
 function computeTolerations(nodes, application) {
   const pod = application.Pods[0];
@@ -107,7 +108,6 @@ class KubernetesApplicationController {
     KubernetesStackService,
     KubernetesPodService,
     KubernetesNodeService,
-    KubernetesNamespaceHelper,
     EndpointProvider
   ) {
     this.$async = $async;
@@ -123,8 +123,6 @@ class KubernetesApplicationController {
     this.KubernetesStackService = KubernetesStackService;
     this.KubernetesPodService = KubernetesPodService;
     this.KubernetesNodeService = KubernetesNodeService;
-
-    this.KubernetesNamespaceHelper = KubernetesNamespaceHelper;
 
     this.KubernetesApplicationDeploymentTypes = KubernetesApplicationDeploymentTypes;
     this.KubernetesApplicationTypes = KubernetesApplicationTypes;
@@ -154,7 +152,7 @@ class KubernetesApplicationController {
   }
 
   isSystemNamespace() {
-    return this.KubernetesNamespaceHelper.isSystemNamespace(this.application.ResourcePool);
+    return KubernetesNamespaceHelper.isSystemNamespace(this.application.ResourcePool);
   }
 
   isExternalApplication() {

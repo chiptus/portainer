@@ -1,13 +1,13 @@
 import angular from 'angular';
 import KubernetesVolumeHelper from 'Kubernetes/helpers/volumeHelper';
+import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
 
 // TODO: review - refactor to use `extends GenericDatatableController`
 class KubernetesVolumesDatatableController {
   /* @ngInject */
-  constructor($async, $controller, KubernetesNamespaceHelper, DatatableService, Authentication) {
+  constructor($async, $controller, DatatableService, Authentication) {
     this.$async = $async;
     this.$controller = $controller;
-    this.KubernetesNamespaceHelper = KubernetesNamespaceHelper;
     this.DatatableService = DatatableService;
     this.Authentication = Authentication;
 
@@ -29,7 +29,7 @@ class KubernetesVolumesDatatableController {
   }
 
   isSystemNamespace(item) {
-    return this.KubernetesNamespaceHelper.isSystemNamespace(item.ResourcePool.Namespace.Name);
+    return KubernetesNamespaceHelper.isSystemNamespace(item.ResourcePool.Namespace.Name);
   }
 
   isDisplayed(item) {

@@ -4,15 +4,16 @@ import angular from 'angular';
 import PortainerError from 'Portainer/error';
 import { KubernetesCommonParams } from 'Kubernetes/models/common/params';
 import KubernetesNamespaceConverter from 'Kubernetes/converters/namespace';
+import { updateNamespaces } from 'Kubernetes/store/namespace';
 import $allSettled from 'Portainer/services/allSettled';
+import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
 
 class KubernetesNamespaceService {
   /* @ngInject */
-  constructor($async, KubernetesNamespaces, Authentication, KubernetesNamespaceHelper) {
+  constructor($async, KubernetesNamespaces, Authentication) {
     this.$async = $async;
     this.KubernetesNamespaces = KubernetesNamespaces;
     this.Authentication = Authentication;
-    this.KubernetesNamespaceHelper = KubernetesNamespaceHelper;
 
     this.getAsync = this.getAsync.bind(this);
     this.getAllAsync = this.getAllAsync.bind(this);
@@ -29,7 +30,9 @@ class KubernetesNamespaceService {
       params.id = name;
       await this.KubernetesNamespaces().status(params).$promise;
       const [raw, yaml] = await Promise.all([this.KubernetesNamespaces().get(params).$promise, this.KubernetesNamespaces().getYaml(params).$promise]);
-      return KubernetesNamespaceConverter.apiToNamespace(raw, yaml);
+      const ns = KubernetesNamespaceConverter.apiToNamespace(raw, yaml);
+      updateNamespaces([ns]);
+      return ns;
     } catch (err) {
       throw new PortainerError('Unable to retrieve namespace', err);
     }
@@ -44,7 +47,7 @@ class KubernetesNamespaceService {
       const visibleNamespaces = _.map(namespaces.fulfilled, (item) => {
         if (item.status.phase !== 'Terminating') {
           const namespace = KubernetesNamespaceConverter.apiToNamespace(item);
-          if (this.KubernetesNamespaceHelper.isSystemNamespace(namespace.Name)) {
+          if (KubernetesNamespaceHelper.isSystemNamespace(namespace)) {
             if (hasK8sAccessSystemNamespaces) {
               return namespace;
             }
@@ -53,7 +56,9 @@ class KubernetesNamespaceService {
           }
         }
       });
-      return _.without(visibleNamespaces, undefined);
+      const res = _.without(visibleNamespaces, undefined);
+      updateNamespaces(res);
+      return res;
     } catch (err) {
       throw new PortainerError('Unable to retrieve namespaces', err);
     }

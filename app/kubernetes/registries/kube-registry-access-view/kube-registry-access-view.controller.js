@@ -1,12 +1,13 @@
+import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
+
 export default class KubernetesRegistryAccessController {
   /* @ngInject */
-  constructor($async, $state, Authentication, EndpointService, Notifications, KubernetesResourcePoolService, KubernetesNamespaceHelper) {
+  constructor($async, $state, Authentication, EndpointService, Notifications, KubernetesResourcePoolService) {
     this.$async = $async;
     this.$state = $state;
     this.Authentication = Authentication;
     this.Notifications = Notifications;
     this.KubernetesResourcePoolService = KubernetesResourcePoolService;
-    this.KubernetesNamespaceHelper = KubernetesNamespaceHelper;
     this.EndpointService = EndpointService;
 
     this.state = {
@@ -59,7 +60,7 @@ export default class KubernetesRegistryAccessController {
         const resourcePools = await this.KubernetesResourcePoolService.get();
 
         this.resourcePools = resourcePools
-          .filter((pool) => !this.KubernetesNamespaceHelper.isSystemNamespace(pool.Namespace.Name) && !this.savedResourcePools.find(({ value }) => value === pool.Namespace.Name))
+          .filter((pool) => !KubernetesNamespaceHelper.isSystemNamespace(pool.Namespace.Name) && !this.savedResourcePools.find(({ value }) => value === pool.Namespace.Name))
           .map((pool) => ({ name: pool.Namespace.Name, id: pool.Namespace.Id }));
       } catch (err) {
         this.Notifications.error('Failure', err, 'Unable to retrieve namespaces');

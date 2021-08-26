@@ -38,7 +38,8 @@ func authorizedOperation(operation *portainer.APIOperationAuthorizationRequest) 
 
 var dockerRule = regexp.MustCompile(`/(?P<identifier>\d+)/docker(?P<operation>/.*)`)
 var storidgeRule = regexp.MustCompile(`/(?P<identifier>\d+)/storidge(?P<operation>/.*)`)
-var k8sRule = regexp.MustCompile(`/(?P<identifier>\d+)/kubernetes(?P<operation>/.*)`)
+var k8sProxyRule = regexp.MustCompile(`/(?P<identifier>\d+)/kubernetes(?P<operation>/.*)`)
+var k8sRule = regexp.MustCompile(`/kubernetes/(?P<identifier>\d+)(?P<operation>/.*)`)
 var azureRule = regexp.MustCompile(`/(?P<identifier>\d+)/azure(?P<operation>/.*)`)
 
 func extractMatches(regex *regexp.Regexp, str string) map[string]string {
@@ -67,17 +68,39 @@ func getOperationAuthorization(url, method string) portainer.Authorization {
 		return getDockerOperationAuthorization(strings.TrimPrefix(url, "/"+match[1]+"/docker"), method)
 	} else if storidgeRule.MatchString(url) {
 		return portainer.OperationIntegrationStoridgeAdmin
-	} else if k8sRule.MatchString(url) {
-		// if the k8sRule is matched, only tests if the user can access
+	} else if k8sProxyRule.MatchString(url) {
+		// if the k8sProxyRule is matched, only tests if the user can access
 		// the current endpoint. The namespace + resource authorization
 		// is done in the k8s level.
 		return portainer.OperationK8sResourcePoolsR
 	} else if azureRule.MatchString(url) {
 		match := azureRule.FindStringSubmatch(url)
 		return getAzureOperationAuthorization(strings.TrimPrefix(url, "/"+match[1]+"/azure"), method)
+	} else if k8sRule.MatchString(url) {
+		match := k8sRule.FindStringSubmatch(url)
+		return getKubernetesOperationAuthorization(strings.TrimPrefix(url, "/kubernetes/"+match[1]), method)
 	}
 
 	return getPortainerOperationAuthorization(url, method)
+}
+
+func getKubernetesOperationAuthorization(url, method string) portainer.Authorization {
+	urlParts := strings.Split(url, "/")
+	baseResource := strings.Split(urlParts[1], "?")[0]
+	_, action := extractResourceAndActionFromURL(baseResource, url)
+
+	authorizationsBindings := map[string]map[string]map[string]portainer.Authorization{
+		"namespaces": {
+			"system": {
+				http.MethodPut: portainer.OperationK8sResourcePoolDetailsW,
+			},
+		},
+	}
+
+	if authorization, ok := authorizationsBindings[baseResource][action][method]; ok {
+		return authorization
+	}
+	return portainer.OperationK8sUndefined
 }
 
 func getPortainerOperationAuthorization(url, method string) portainer.Authorization {

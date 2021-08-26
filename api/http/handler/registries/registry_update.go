@@ -12,7 +12,7 @@ import (
 	httperrors "github.com/portainer/portainer/api/http/errors"
 	"github.com/portainer/portainer/api/http/security"
 	useractivityhttp "github.com/portainer/portainer/api/http/useractivity"
-	endpointutils "github.com/portainer/portainer/api/internal/endpoint"
+	"github.com/portainer/portainer/api/internal/endpointutils"
 	"github.com/portainer/portainer/api/useractivity"
 )
 

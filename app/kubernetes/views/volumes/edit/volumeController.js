@@ -4,6 +4,7 @@ import KubernetesVolumeHelper from 'Kubernetes/helpers/volumeHelper';
 import KubernetesEventHelper from 'Kubernetes/helpers/eventHelper';
 import { KubernetesStorageClassAccessPolicies } from 'Kubernetes/models/storage-class/models';
 import filesizeParser from 'filesize-parser';
+import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
 
 class KubernetesVolumeController {
   /* @ngInject */
@@ -14,7 +15,6 @@ class KubernetesVolumeController {
     LocalStorage,
     KubernetesVolumeService,
     KubernetesEventService,
-    KubernetesNamespaceHelper,
     KubernetesApplicationService,
     KubernetesPersistentVolumeClaimService,
     KubernetesResourcePoolService,
@@ -28,7 +28,6 @@ class KubernetesVolumeController {
 
     this.KubernetesVolumeService = KubernetesVolumeService;
     this.KubernetesEventService = KubernetesEventService;
-    this.KubernetesNamespaceHelper = KubernetesNamespaceHelper;
     this.KubernetesApplicationService = KubernetesApplicationService;
     this.KubernetesPersistentVolumeClaimService = KubernetesPersistentVolumeClaimService;
     this.KubernetesResourcePoolService = KubernetesResourcePoolService;
@@ -57,7 +56,7 @@ class KubernetesVolumeController {
   }
 
   isSystemNamespace() {
-    return this.KubernetesNamespaceHelper.isSystemNamespace(this.volume.ResourcePool.Namespace.Name);
+    return KubernetesNamespaceHelper.isSystemNamespace(this.volume.ResourcePool.Namespace.Name);
   }
 
   isUsed() {
