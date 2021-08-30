@@ -3,14 +3,13 @@ import * as fit from 'xterm/lib/addons/fit/fit';
 
 export default class KubectlShellController {
   /* @ngInject */
-  constructor(TerminalWindow, $window, $async, Authentication, EndpointProvider, LocalStorage, KubernetesConfigService, Notifications) {
+  constructor(TerminalWindow, $window, $async, Authentication, EndpointProvider, LocalStorage, Notifications) {
     this.$async = $async;
     this.$window = $window;
     this.TerminalWindow = TerminalWindow;
     this.Authentication = Authentication;
     this.EndpointProvider = EndpointProvider;
     this.LocalStorage = LocalStorage;
-    this.KubernetesConfigService = KubernetesConfigService;
     this.Notifications = Notifications;
   }
 
@@ -84,7 +83,7 @@ export default class KubectlShellController {
       endpointId: this.EndpointProvider.endpointID(),
     };
 
-    const wsProtocol = this.state.isHTTPS ? 'wss://' : 'ws://';
+    const wsProtocol = this.$window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const path = '/api/websocket/kubernetes-shell';
     const queryParams = Object.entries(params)
       .map(([k, v]) => `${k}=${v}`)
@@ -98,10 +97,6 @@ export default class KubectlShellController {
     this.configureSocketAndTerminal(this.state.shell.socket, this.state.shell.term);
   }
 
-  async downloadKubeconfig() {
-    await this.KubernetesConfigService.downloadConfig();
-  }
-
   $onInit() {
     return this.$async(async () => {
       this.Authentication.redirectIfUnauthorized(['K8sApplicationConsoleRW']);
@@ -110,7 +105,6 @@ export default class KubectlShellController {
         css: 'normal',
         checked: false,
         icon: 'fa-window-minimize',
-        isHTTPS: this.$window.location.protocol === 'https:',
         shell: {
           connected: false,
           socket: null,
