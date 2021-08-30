@@ -21,14 +21,6 @@ services:
     container_name: "compose_wrapper_test"`
 const composedContainerName = "compose_wrapper_test"
 
-func TestMain(m *testing.M) {
-	if !integrationTest() {
-		return
-	}
-
-	m.Run()
-}
-
 func setup(t *testing.T) (*portainer.Stack, *portainer.Endpoint) {
 	dir := t.TempDir()
 	composeFileName := "compose_wrapper_test.yml"
@@ -49,6 +41,10 @@ func setup(t *testing.T) (*portainer.Stack, *portainer.Endpoint) {
 }
 
 func Test_UpAndDown(t *testing.T) {
+
+	if !integrationTest() {
+		return
+	}
 
 	stack, endpoint := setup(t)
 
