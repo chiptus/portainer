@@ -45,7 +45,7 @@ func (kcl *KubeClient) SetupUserServiceAccount(
 ) error {
 	serviceAccountName := userServiceAccountName(int(user.ID), kcl.instanceID)
 
-	err := kcl.createPortainerK8sClusterRoles()
+	err := kcl.upsertPortainerK8sClusterRoles()
 	if err != nil {
 		return err
 	}

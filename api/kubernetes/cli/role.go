@@ -83,11 +83,6 @@ func getPortainerDefaultK8sRoles() map[portainer.K8sRole]k8sRoleConfig {
 				},
 				{
 					Verbs:     []string{"list"},
-					Resources: []string{"ingresses"},
-					APIGroups: []string{"networking.k8s.io"},
-				},
-				{
-					Verbs:     []string{"list"},
 					Resources: []string{"namespaces", "pods"},
 					APIGroups: []string{"metrics.k8s.io"},
 				},
@@ -107,7 +102,7 @@ func getPortainerDefaultK8sRoles() map[portainer.K8sRole]k8sRoleConfig {
 					APIGroups: []string{"storage.k8s.io"},
 				},
 				{
-					Verbs:     []string{"get", "list", "watch"},
+					Verbs:     []string{"get", "watch"},
 					Resources: []string{"ingresses"},
 					APIGroups: []string{"networking.k8s.io"},
 				},
@@ -143,6 +138,7 @@ func getPortainerDefaultK8sRoles() map[portainer.K8sRole]k8sRoleConfig {
 				},
 			},
 		},
+		// namespaced role
 		portainer.K8sRolePortainerEdit: k8sRoleConfig{
 			isSystem: false,
 			rules: []rbacv1.PolicyRule{
@@ -188,6 +184,7 @@ func getPortainerDefaultK8sRoles() map[portainer.K8sRole]k8sRoleConfig {
 				},
 			},
 		},
+		// namespaced role
 		portainer.K8sRolePortainerView: k8sRoleConfig{
 			isSystem: false,
 			rules: []rbacv1.PolicyRule{
@@ -232,7 +229,8 @@ func getPortainerDefaultK8sRoles() map[portainer.K8sRole]k8sRoleConfig {
 }
 
 // create all portainer k8s roles (cluster and non-cluster)
-func (kcl *KubeClient) createPortainerK8sClusterRoles() error {
+// update them if they already exist
+func (kcl *KubeClient) upsertPortainerK8sClusterRoles() error {
 	for roleName, roleConfig := range getPortainerDefaultK8sRoles() {
 		// skip the system roles
 		if roleConfig.isSystem {
@@ -247,9 +245,14 @@ func (kcl *KubeClient) createPortainerK8sClusterRoles() error {
 			Rules: roleConfig.rules,
 		}
 		_, err := kcl.cli.RbacV1().ClusterRoles().Create(clusterRole)
-		// ignore error if role exists
-		if err != nil && !k8serrors.IsAlreadyExists(err) {
-			return err
+
+		if err != nil  {
+			if k8serrors.IsAlreadyExists(err) {
+				_, err = kcl.cli.RbacV1().ClusterRoles().Update(clusterRole)
+			}
+			if err != nil {
+				return err
+			}
 		}
 	}
 
