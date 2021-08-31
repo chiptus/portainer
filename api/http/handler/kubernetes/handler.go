@@ -40,6 +40,8 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore portainer.DataStore)
 
 	kubeRouter.PathPrefix("/config").Handler(
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.getKubernetesConfig))).Methods(http.MethodGet)
+	kubeRouter.PathPrefix("/nodes_limits").Handler(
+		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.getKubernetesNodesLimits))).Methods(http.MethodGet)
 
 	// namespaces
 	// in the future this piece of code might be in another package (or a few different packages - namespaces/namespace?)

@@ -437,6 +437,13 @@ type (
 		IsDefault bool
 	}
 
+	K8sNodeLimits struct {
+		CPU    int64 `json:"CPU"`
+		Memory int64 `json:"Memory"`
+	}
+
+	K8sNodesLimits map[string]*K8sNodeLimits
+
 	K8sNamespaceAccessPolicy struct {
 		UserAccessPolicies UserAccessPolicies `json:"UserAccessPolicies"`
 		TeamAccessPolicies TeamAccessPolicies `json:"TeamAccessPolicies"`
@@ -1368,6 +1375,7 @@ type (
 		CreateUserShellPod(ctx context.Context, serviceAccountName string) (*KubernetesShellPod, error)
 		StartExecProcess(token string, useAdminToken bool, namespace, podName, containerName string, command []string, stdin io.Reader, stdout io.Writer) error
 		GetNamespaces() (map[string]K8sNamespaceInfo, error)
+		GetNodesLimits() (K8sNodesLimits, error)
 		RemoveUserServiceAccount(userID int) error
 		RemoveUserNamespaceBindings(
 			userID int,
