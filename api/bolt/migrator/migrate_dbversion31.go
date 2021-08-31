@@ -38,6 +38,10 @@ func (m *Migrator) migrateDBVersionToDB32() error {
 		return err
 	}
 
+	if err := m.kubeconfigExpiryToDB32(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -242,4 +246,13 @@ func findResourcesToUpdateToDB32(dockerID string, volumesData map[string]interfa
 			toUpdate[resourceControl.ID] = fmt.Sprintf("%s_%s", volumeName, dockerID)
 		}
 	}
+}
+
+func (m *Migrator) kubeconfigExpiryToDB32() error {
+	settings, err := m.settingsService.Settings()
+	if err != nil {
+		return err
+	}
+	settings.KubeconfigExpiry = portainer.DefaultKubeconfigExpiry
+	return m.settingsService.UpdateSettings(settings)
 }

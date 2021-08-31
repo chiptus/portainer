@@ -186,6 +186,7 @@ func (server *Server) Start() error {
 	kubernetesHandler.KubernetesClientFactory = server.KubernetesClientFactory
 	kubernetesHandler.UserActivityStore = server.UserActivityStore
 	kubernetesHandler.KubernetesClientFactory = server.KubernetesClientFactory
+	kubernetesHandler.JwtService = server.JWTService
 
 	var licenseHandler = licenses.NewHandler(requestBouncer)
 	licenseHandler.LicenseService = server.LicenseService

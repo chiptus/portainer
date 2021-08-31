@@ -22,6 +22,7 @@ type Handler struct {
 	KubernetesClientFactory *cli.ClientFactory
 	AuthorizationService    *authorization.Service
 	UserActivityStore       portainer.UserActivityStore
+	JwtService              portainer.JWTService
 }
 
 // NewHandler creates a handler to process pre-proxied requests to external APIs.
