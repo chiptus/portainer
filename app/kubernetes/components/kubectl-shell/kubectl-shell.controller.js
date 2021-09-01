@@ -20,6 +20,7 @@ export default class KubectlShellController {
     this.state.shell.term.dispose();
     this.state.shell.connected = false;
     this.TerminalWindow.terminalclose();
+    this.$window.onresize = null;
   }
 
   screenClear() {
