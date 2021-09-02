@@ -45,15 +45,13 @@ class KubernetesNamespaceService {
       const namespaces = await $allSettled(promises);
       const hasK8sAccessSystemNamespaces = this.Authentication.hasAuthorizations(['K8sAccessSystemNamespaces']);
       const visibleNamespaces = _.map(namespaces.fulfilled, (item) => {
-        if (item.status.phase !== 'Terminating') {
-          const namespace = KubernetesNamespaceConverter.apiToNamespace(item);
-          if (KubernetesNamespaceHelper.isSystemNamespace(namespace)) {
-            if (hasK8sAccessSystemNamespaces) {
-              return namespace;
-            }
-          } else {
+        const namespace = KubernetesNamespaceConverter.apiToNamespace(item);
+        if (KubernetesNamespaceHelper.isSystemNamespace(namespace)) {
+          if (hasK8sAccessSystemNamespaces) {
             return namespace;
           }
+        } else {
+          return namespace;
         }
       });
       const res = _.without(visibleNamespaces, undefined);
