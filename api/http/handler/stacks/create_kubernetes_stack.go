@@ -1,7 +1,6 @@
 package stacks
 
 import (
-	"errors"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
@@ -9,6 +8,7 @@ import (
 	"time"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/pkg/errors"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -18,6 +18,7 @@ import (
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/endpointutils"
+	k "github.com/portainer/portainer/api/kubernetes"
 	consts "github.com/portainer/portainer/api/useractivity"
 )
 
@@ -107,7 +108,12 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 	doCleanUp := true
 	defer handler.cleanUp(stack, &doCleanUp)
 
-	output, err := handler.deployKubernetesStack(r, endpoint, payload.StackFileContent, payload.ComposeFormat, payload.Namespace)
+	output, err := handler.deployKubernetesStack(r, endpoint, payload.StackFileContent, payload.ComposeFormat, payload.Namespace, k.KubeAppLabels{
+		StackID: stackID,
+		Name:    stack.Name,
+		Owner:   stack.CreatedBy,
+		Kind:    "content",
+	})
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to deploy Kubernetes stack", Err: err}
 	}
@@ -123,6 +129,7 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 
 	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
 
+	doCleanUp = false
 	return response.JSON(w, resp)
 }
 
@@ -161,7 +168,12 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Failed to process Kubernetes manifest from Git repository", Err: err}
 	}
 
-	output, err := handler.deployKubernetesStack(r, endpoint, stackFileContent, payload.ComposeFormat, payload.Namespace)
+	output, err := handler.deployKubernetesStack(r, endpoint, stackFileContent, payload.ComposeFormat, payload.Namespace, k.KubeAppLabels{
+		StackID: stackID,
+		Name:    stack.Name,
+		Owner:   stack.CreatedBy,
+		Kind:    "git",
+	})
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to deploy Kubernetes stack", Err: err}
 	}
@@ -177,25 +189,33 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 	if payload.RepositoryPassword != "" {
 		payload.RepositoryPassword = consts.RedactedValue
 	}
+
+	doCleanUp = false
 	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
 	return response.JSON(w, resp)
 }
 
-func (handler *Handler) deployKubernetesStack(request *http.Request, endpoint *portainer.Endpoint, stackConfig string, composeFormat bool, namespace string) (string, error) {
+func (handler *Handler) deployKubernetesStack(r *http.Request, endpoint *portainer.Endpoint, stackConfig string, composeFormat bool, namespace string, appLabels k.KubeAppLabels) (string, error) {
 	handler.stackCreationMutex.Lock()
 	defer handler.stackCreationMutex.Unlock()
 
+	manifest := []byte(stackConfig)
 	if composeFormat {
-		convertedConfig, err := handler.KubernetesDeployer.ConvertCompose(stackConfig)
+		convertedConfig, err := handler.KubernetesDeployer.ConvertCompose(manifest)
 		if err != nil {
-			return "", err
+			return "", errors.Wrap(err, "failed to convert docker compose file to a kube manifest")
 		}
-		stackConfig = string(convertedConfig)
+		manifest = convertedConfig
 	}
 
-	return handler.KubernetesDeployer.Deploy(request, endpoint, stackConfig, namespace)
+	manifest, err := k.AddAppLabels(manifest, appLabels)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to add application labels")
+	}
 
+	return handler.KubernetesDeployer.Deploy(r, endpoint, string(manifest), namespace)
 }
+
 func (handler *Handler) checkEndpointPermission(r *http.Request, namespace string, endpoint *portainer.Endpoint) (string, *httperror.HandlerError) {
 	permissionDeniedErr := errors.New("Permission denied to access endpoint")
 	tokenData, err := security.RetrieveTokenData(r)
