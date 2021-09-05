@@ -49,6 +49,9 @@
     ng-disabled="$ctrl.isSubmitButtonDisabled() || $ctrl.state.hasUnsavedChanges || !$ctrl.redeployGitForm.$valid"
     style="margin-top: 7px; margin-left: 0;"
     button-spinner="$ctrl.state.redeployInProgress"
+    analytics-on
+    analytics-event="docker-stack-pull-redeploy"
+    analytics-category="docker"
   >
     <span ng-hide="$ctrl.state.redeployInProgress"> <i class="fa fa-sync space-right" aria-hidden="true"></i> Pull and redeploy </span>
     <span ng-show="$ctrl.state.redeployInProgress">In progress...</span>
@@ -59,6 +62,10 @@
     ng-disabled="$ctrl.isSubmitButtonDisabled() || !$ctrl.state.hasUnsavedChanges || !$ctrl.redeployGitForm.$valid"
     style="margin-top: 7px; margin-left: 0;"
     button-spinner="$ctrl.state.inProgress"
+    analytics-on
+    analytics-event="docker-stack-update-git-settings"
+    analytics-category="docker"
+    analytics-properties="$ctrl.buildAnalyticsProperties()"
   >
     <span ng-hide="$ctrl.state.inProgress"> Save settings </span>
     <span ng-show="$ctrl.state.inProgress">In progress...</span>

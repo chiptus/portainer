@@ -24,7 +24,7 @@ class StackRedeployGitFormController {
       RepositoryUsername: '',
       RepositoryPassword: '',
       Env: [],
-      // auto upadte
+      // auto update
       AutoUpdate: {
         RepositoryAutomaticUpdates: false,
         RepositoryMechanism: 'Interval',
@@ -37,6 +37,26 @@ class StackRedeployGitFormController {
     this.onChangeRef = this.onChangeRef.bind(this);
     this.onChangeAutoUpdate = this.onChangeAutoUpdate.bind(this);
     this.onChangeEnvVar = this.onChangeEnvVar.bind(this);
+    this.handleEnvVarChange = this.handleEnvVarChange.bind(this);
+  }
+
+  buildAnalyticsProperties() {
+    const metadata = {};
+
+    if (this.formValues.RepositoryAutomaticUpdates) {
+      metadata.automaticUpdates = autoSyncLabel(this.formValues.RepositoryMechanism);
+    }
+    return { metadata };
+
+    function autoSyncLabel(type) {
+      switch (type) {
+        case 'Interval':
+          return 'polling';
+        case 'Webhook':
+          return 'webhook';
+      }
+      return 'off';
+    }
   }
 
   onChange(values) {
@@ -99,10 +119,17 @@ class StackRedeployGitFormController {
     return this.$async(async () => {
       try {
         this.state.inProgress = true;
-        await this.StackService.updateGitStackSettings(this.stack.Id, this.stack.EndpointId, this.FormHelper.removeInvalidEnvVars(this.formValues.Env), this.formValues);
+        const stack = await this.StackService.updateGitStackSettings(
+          this.stack.Id,
+          this.stack.EndpointId,
+          this.FormHelper.removeInvalidEnvVars(this.formValues.Env),
+          this.formValues
+        );
         this.savedFormValues = angular.copy(this.formValues);
         this.state.hasUnsavedChanges = false;
         this.Notifications.success('Save stack settings successfully');
+
+        this.stack = stack;
       } catch (err) {
         this.Notifications.error('Failure', err, 'Unable to save stack settings');
       } finally {
@@ -113,6 +140,12 @@ class StackRedeployGitFormController {
 
   isSubmitButtonDisabled() {
     return this.state.inProgress || this.state.redeployInProgress;
+  }
+
+  isAutoUpdateChanged() {
+    const wasEnabled = !!(this.stack.AutoUpdate && (this.stack.AutoUpdate.Interval || this.stack.AutoUpdate.Webhook));
+    const isEnabled = this.formValues.AutoUpdate.RepositoryAutomaticUpdates;
+    return isEnabled !== wasEnabled;
   }
 
   $onInit() {

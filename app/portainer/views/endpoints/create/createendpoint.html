@@ -220,7 +220,9 @@
               <label for="connect_socket" class="col-sm_12 control-label text-left">
                 Connect via socket
               </label>
-              <label class="switch" style="margin-left: 20px;"> <input type="checkbox" ng-model="formValues.ConnectSocket" /><i data-cy="endpointCreate-connectSocketSwitch"></i> </label>
+              <label class="switch" style="margin-left: 20px;">
+                <input type="checkbox" ng-model="formValues.ConnectSocket" /><i data-cy="endpointCreate-connectSocketSwitch"></i>
+              </label>
             </div>
           </div>
           <div ng-if="state.EnvironmentType === 'docker' && formValues.ConnectSocket">
@@ -491,6 +493,10 @@
                 ng-click="addDockerEndpoint()"
                 button-spinner="state.actionInProgress"
                 data-cy="endpointCreate-createDockerEndpoint"
+                analytics-on
+                analytics-category="portainer"
+                analytics-event="portainer-endpoint-creation"
+                analytics-properties="{ metadata: { type: 'docker-api' } }"
               >
                 <span ng-hide="state.actionInProgress"><i class="fa fa-plus" aria-hidden="true"></i> Add endpoint</span>
                 <span ng-show="state.actionInProgress">Creating endpoint...</span>
@@ -515,6 +521,10 @@
                 ng-click="addEdgeAgentEndpoint()"
                 button-spinner="state.actionInProgress"
                 data-cy="endpointCreate-createEdgeAgentEndpoint"
+                analytics-on
+                analytics-category="portainer"
+                analytics-event="portainer-endpoint-creation"
+                analytics-properties="{ metadata: { type: 'edge-agent' } }"
               >
                 <span ng-hide="state.actionInProgress"><i class="fa fa-plus" aria-hidden="true"></i> Add endpoint</span>
                 <span ng-show="state.actionInProgress">Creating endpoint...</span>
@@ -526,6 +536,10 @@
                 ng-disabled="state.actionInProgress || !endpointCreationForm.$valid"
                 ng-click="addKubernetesEndpoint()"
                 button-spinner="state.actionInProgress"
+                analytics-on
+                analytics-category="portainer"
+                analytics-event="portainer-endpoint-creation"
+                analytics-properties="{ metadata: { type: 'kubernetes-api' } }"
               >
                 <span ng-hide="state.actionInProgress"><i class="fa fa-plus" aria-hidden="true"></i> Add endpoint</span>
                 <span ng-show="state.actionInProgress">Creating endpoint...</span>
@@ -538,6 +552,10 @@
                 ng-click="addAzureEndpoint()"
                 button-spinner="state.actionInProgress"
                 data-cy="endpointCreate-createAzureEndpoint"
+                analytics-on
+                analytics-category="portainer"
+                analytics-event="portainer-endpoint-creation"
+                analytics-properties="{ metadata: { type: 'azure-api' } }"
               >
                 <span ng-hide="state.actionInProgress"><i class="fa fa-plus" aria-hidden="true"></i> Add endpoint</span>
                 <span ng-show="state.actionInProgress">Creating endpoint...</span>
