@@ -1,6 +1,7 @@
 package stacks
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strconv"
@@ -182,5 +183,5 @@ func (handler *Handler) deleteStack(stack *portainer.Stack, endpoint *portainer.
 	if stack.Type == portainer.DockerSwarmStack {
 		return handler.SwarmStackManager.Remove(stack, endpoint)
 	}
-	return handler.ComposeStackManager.Down(stack, endpoint)
+	return handler.ComposeStackManager.Down(context.TODO(), stack, endpoint)
 }
