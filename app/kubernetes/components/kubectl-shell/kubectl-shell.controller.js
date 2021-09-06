@@ -3,11 +3,10 @@ import * as fit from 'xterm/lib/addons/fit/fit';
 
 export default class KubectlShellController {
   /* @ngInject */
-  constructor(TerminalWindow, $window, $async, Authentication, EndpointProvider, LocalStorage, Notifications) {
+  constructor(TerminalWindow, $window, $async, EndpointProvider, LocalStorage, Notifications) {
     this.$async = $async;
     this.$window = $window;
     this.TerminalWindow = TerminalWindow;
-    this.Authentication = Authentication;
     this.EndpointProvider = EndpointProvider;
     this.LocalStorage = LocalStorage;
     this.Notifications = Notifications;
@@ -100,8 +99,6 @@ export default class KubectlShellController {
 
   $onInit() {
     return this.$async(async () => {
-      this.Authentication.redirectIfUnauthorized(['K8sApplicationConsoleRW']);
-
       this.state = {
         css: 'normal',
         checked: false,
