@@ -11,7 +11,7 @@ body.hamburg .row.header .meta {
  */
 .row.header {
   min-height: 60px;
-  background: #fff;
+  background: var(--bg-header-color);
   margin-bottom: 15px;
 }
 .row.header > div:last-child {

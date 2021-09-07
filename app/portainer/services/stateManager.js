@@ -54,6 +54,11 @@ angular.module('portainer.app').factory('StateManager', [
       LocalStorage.storeApplicationState(state.application);
     };
 
+    manager.updateTheme = function (theme) {
+      state.application.theme = theme;
+      LocalStorage.storeApplicationState(state.application);
+    };
+
     manager.updateSnapshotInterval = function (interval) {
       state.application.snapshotInterval = interval;
       LocalStorage.storeApplicationState(state.application);
@@ -77,6 +82,7 @@ angular.module('portainer.app').factory('StateManager', [
 
       state.application.enableTelemetry = settings.EnableTelemetry;
       state.application.logo = settings.LogoURL;
+      state.application.theme = settings.Theme;
       state.application.snapshotInterval = settings.SnapshotInterval;
       state.application.enableEdgeComputeFeatures = settings.EnableEdgeComputeFeatures;
       state.application.validity = moment().unix();

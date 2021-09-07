@@ -9,7 +9,8 @@ angular.module('portainer.app').factory('Authentication', [
   'StateManager',
   'EndpointProvider',
   'UserService',
-  function AuthenticationFactory($async, $state, Auth, OAuth, jwtHelper, LocalStorage, StateManager, EndpointProvider, UserService) {
+  'ThemeManager',
+  function AuthenticationFactory($async, $state, Auth, OAuth, jwtHelper, LocalStorage, StateManager, EndpointProvider, UserService, ThemeManager) {
     'use strict';
 
     var service = {};
@@ -88,6 +89,10 @@ angular.module('portainer.app').factory('Authentication', [
       const data = await UserService.user(user.ID);
       user.endpointAuthorizations = data.EndpointAuthorizations;
       user.portainerAuthorizations = data.PortainerAuthorizations;
+
+      // Initialize user theme base on Usertheme from database
+      const userTheme = data.UserTheme;
+      ThemeManager.setTheme(userTheme);
     }
 
     async function setUser(jwt) {

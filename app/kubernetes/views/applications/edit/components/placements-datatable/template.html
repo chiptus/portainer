@@ -75,8 +75,7 @@
           <tbody>
             <tr
               dir-paginate-start="item in ($ctrl.state.filteredDataSet = ($ctrl.dataset | filter:$ctrl.state.textFilter | filter: $ctrl.isDisplayed | orderBy:$ctrl.state.orderBy:$ctrl.state.reverseOrder | itemsPerPage: $ctrl.state.paginatedItemLimit: $ctrl.tableKey))"
-              ng-class="{ active: item.Checked }"
-              ng-style="{ background: item.Highlighted ? '#d5e8f3' : '' }"
+              ng-class="{ active: item.Checked, 'datatable-highlighted': item.Highlighted }"
               ng-click="$ctrl.expandItem(item, !item.Expanded)"
               pagination-id="$ctrl.tableKey"
             >
@@ -96,7 +95,7 @@
               authorization="K8sApplicationErrorDetailsR"
               ng-show="item.Expanded"
               ng-repeat="taint in item.UnmetTaints"
-              ng-style="{ background: item.Highlighted ? '#d5e8f3' : '#f5f5f5' }"
+              ng-class="{ 'datatable-highlighted': item.Highlighted, 'datatable-unhighlighted': !item.Highlighted }"
             >
               <td colspan="2">
                 This application is missing a toleration for the taint <code>{{ taint.Key }}{{ taint.Value ? '=' + taint.Value : '' }}:{{ taint.Effect }}</code>
@@ -108,7 +107,7 @@
               exclude-authorization="K8sApplicationErrorDetailsR"
               ng-if="item.UnmetTaints.length"
               ng-show="item.Expanded"
-              ng-style="{ background: item.Highlighted ? '#d5e8f3' : '#f5f5f5' }"
+              ng-class="{ 'datatable-highlighted': item.Highlighted, 'datatable-unhighlighted': !item.Highlighted }"
             >
               <td colspan="2">
                 Placement constraint not respected for that node.
@@ -120,7 +119,7 @@
               authorization="K8sApplicationErrorDetailsR"
               ng-show="item.Expanded"
               ng-repeat="label in item.UnmatchedNodeSelectorLabels"
-              ng-style="{ background: item.Highlighted ? '#d5e8f3' : '#f5f5f5' }"
+              ng-class="{ 'datatable-highlighted': item.Highlighted, 'datatable-unhighlighted': !item.Highlighted }"
             >
               <td colspan="2">
                 This application can only be scheduled on a node where the label <code>{{ label.key }}</code> is set to <code>{{ label.value }}</code>
@@ -132,7 +131,7 @@
               exclude-authorization="K8sApplicationErrorDetailsR"
               ng-if="item.UnmatchedNodeSelectorLabels.length || item.UnmatchedNodeAffinities.length"
               ng-show="item.Expanded"
-              ng-style="{ background: item.Highlighted ? '#d5e8f3' : '#f5f5f5' }"
+              ng-class="{ 'datatable-highlighted': item.Highlighted, 'datatable-unhighlighted': !item.Highlighted }"
             >
               <td colspan="2">
                 Placement label not respected for that node.
@@ -143,7 +142,7 @@
             <tr
               authorization="K8sApplicationErrorDetailsR"
               ng-show="item.Expanded && item.UnmatchedNodeAffinities.length"
-              ng-style="{ background: item.Highlighted ? '#d5e8f3' : '#f5f5f5' }"
+              ng-class="{ 'datatable-highlighted': item.Highlighted, 'datatable-unhighlighted': !item.Highlighted }"
             >
               <td colspan="2">
                 This application can only be scheduled on nodes respecting one of the following labels combination:
@@ -154,7 +153,7 @@
               authorization="K8sApplicationErrorDetailsR"
               ng-show="item.Expanded"
               ng-repeat="aff in item.UnmatchedNodeAffinities"
-              ng-style="{ background: item.Highlighted ? '#d5e8f3' : '#f5f5f5' }"
+              ng-class="{ 'datatable-highlighted': item.Highlighted, 'datatable-unhighlighted': !item.Highlighted }"
             >
               <td></td>
               <td>
