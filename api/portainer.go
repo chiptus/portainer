@@ -835,7 +835,7 @@ type (
 		ID StackID `json:"Id" example:"1"`
 		// Stack name
 		Name string `json:"Name" example:"myStack"`
-		// Stack type. 1 for a Swarm stack, 2 for a Compose stack
+		// Stack type. 1 for a Swarm stack, 2 for a Compose stack, 3 for a Kubernetes stack
 		Type StackType `json:"Type" example:"2"`
 		// Endpoint identifier. Reference the endpoint that will be used for deployment
 		EndpointID EndpointID `json:"EndpointId" example:"1"`
@@ -865,6 +865,10 @@ type (
 		AutoUpdate *StackAutoUpdate `json:"AutoUpdate"`
 		// The git configuration of a git stack
 		GitConfig *gittypes.RepoConfig
+		// Kubernetes namespace if stack is a kube application
+		Namespace string `example:"default"`
+		// IsComposeFormat indicates if the Kubernetes stack is created from a Docker Compose file
+		IsComposeFormat bool `example:"false"`
 	}
 
 	//StackAutoUpdate represents the git auto sync config for stack deployment

@@ -1,6 +1,7 @@
 package stacks
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
@@ -15,6 +16,7 @@ import (
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
+	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/portainer/portainer/api/http/client"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/http/useractivity"
@@ -22,8 +24,6 @@ import (
 	k "github.com/portainer/portainer/api/kubernetes"
 	consts "github.com/portainer/portainer/api/useractivity"
 )
-
-const defaultReferenceName = "refs/heads/master"
 
 type kubernetesStringDeploymentPayload struct {
 	ComposeFormat    bool
@@ -43,9 +43,9 @@ type kubernetesGitDeploymentPayload struct {
 }
 
 type kubernetesManifestURLDeploymentPayload struct {
-	Namespace 		string
-	ComposeFormat 	bool
-	ManifestURL 	string
+	Namespace     string
+	ComposeFormat bool
+	ManifestURL   string
 }
 
 func (payload *kubernetesStringDeploymentPayload) Validate(r *http.Request) error {
@@ -72,7 +72,7 @@ func (payload *kubernetesGitDeploymentPayload) Validate(r *http.Request) error {
 		return errors.New("Invalid file path in repository")
 	}
 	if govalidator.IsNull(payload.RepositoryReferenceName) {
-		payload.RepositoryReferenceName = defaultReferenceName
+		payload.RepositoryReferenceName = defaultGitReferenceName
 	}
 	return nil
 }
@@ -103,19 +103,26 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
 	stack := &portainer.Stack{
-		ID:           portainer.StackID(stackID),
-		Type:         portainer.KubernetesStack,
-		EndpointID:   endpoint.ID,
-		EntryPoint:   filesystem.ManifestFileDefaultName,
-		Status:       portainer.StackStatusActive,
-		CreationDate: time.Now().Unix(),
-		CreatedBy:    username,
+		ID:              portainer.StackID(stackID),
+		Type:            portainer.KubernetesStack,
+		EndpointID:      endpoint.ID,
+		EntryPoint:      filesystem.ManifestFileDefaultName,
+		Namespace:       payload.Namespace,
+		Status:          portainer.StackStatusActive,
+		CreationDate:    time.Now().Unix(),
+		CreatedBy:       username,
+		IsComposeFormat: payload.ComposeFormat,
 	}
 
 	stackFolder := strconv.Itoa(int(stack.ID))
 	projectPath, err := handler.FileService.StoreStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist Kubernetes manifest file on disk", Err: err}
+		fileType := "Manifest"
+		if stack.IsComposeFormat {
+			fileType = "Compose"
+		}
+		errMsg := fmt.Sprintf("Unable to persist Kubernetes %s file on disk", fileType)
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: errMsg, Err: err}
 	}
 	stack.ProjectPath = projectPath
 
@@ -136,6 +143,8 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist the Kubernetes stack inside the database", Err: err}
 	}
+
+	doCleanUp = false
 
 	resp := &createKubernetesStackResponse{
 		Output: output,
@@ -162,13 +171,27 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
 	stack := &portainer.Stack{
-		ID:           portainer.StackID(stackID),
-		Type:         portainer.KubernetesStack,
-		EndpointID:   endpoint.ID,
-		EntryPoint:   payload.FilePathInRepository,
-		Status:       portainer.StackStatusActive,
-		CreationDate: time.Now().Unix(),
-		CreatedBy:    username,
+		ID:         portainer.StackID(stackID),
+		Type:       portainer.KubernetesStack,
+		EndpointID: endpoint.ID,
+		EntryPoint: payload.FilePathInRepository,
+		GitConfig: &gittypes.RepoConfig{
+			URL:            payload.RepositoryURL,
+			ReferenceName:  payload.RepositoryReferenceName,
+			ConfigFilePath: payload.FilePathInRepository,
+		},
+		Namespace:       payload.Namespace,
+		Status:          portainer.StackStatusActive,
+		CreationDate:    time.Now().Unix(),
+		CreatedBy:       username,
+		IsComposeFormat: payload.ComposeFormat,
+	}
+
+	if payload.RepositoryAuthentication {
+		stack.GitConfig.Authentication = &gittypes.GitAuthentication{
+			Username: payload.RepositoryUsername,
+			Password: payload.RepositoryPassword,
+		}
 	}
 
 	projectPath := handler.FileService.GetStackProjectPath(strconv.Itoa(int(stack.ID)))
@@ -176,6 +199,12 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 
 	doCleanUp := true
 	defer handler.cleanUp(stack, &doCleanUp)
+
+	commitId, err := handler.latestCommitID(payload.RepositoryURL, payload.RepositoryReferenceName, payload.RepositoryAuthentication, payload.RepositoryUsername, payload.RepositoryPassword)
+	if err != nil {
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to fetch git repository id", Err: err}
+	}
+	stack.GitConfig.ConfigHash = commitId
 
 	stackFileContent, err := handler.cloneManifestContentFromGitRepo(&payload, stack.ProjectPath)
 	if err != nil {
@@ -196,6 +225,8 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist the Kubernetes stack inside the database", Err: err}
 	}
+
+	doCleanUp = false
 
 	resp := &createKubernetesStackResponse{
 		Output: output,

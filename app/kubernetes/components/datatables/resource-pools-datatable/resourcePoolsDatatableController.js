@@ -39,7 +39,7 @@ angular.module('portainer.docker').controller('KubernetesResourcePoolsDatatableC
       return !ctrl.isSystemNamespace(item) || ctrl.settings.showSystem;
     };
 
-    this.namespaceStatusColor = function(status) {
+    this.namespaceStatusColor = function (status) {
       switch (status.toLowerCase()) {
         case 'active':
           return 'success';

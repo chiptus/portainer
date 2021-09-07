@@ -37,7 +37,6 @@ class StackRedeployGitFormController {
     this.onChangeRef = this.onChangeRef.bind(this);
     this.onChangeAutoUpdate = this.onChangeAutoUpdate.bind(this);
     this.onChangeEnvVar = this.onChangeEnvVar.bind(this);
-    this.handleEnvVarChange = this.handleEnvVarChange.bind(this);
   }
 
   buildAnalyticsProperties() {

@@ -18,7 +18,13 @@
                 <div class="menuContent">
                   <div>
                     <div class="md-checkbox" authorization="K8sAccessSystemNamespaces">
-                      <input id="setting_show_system" type="checkbox" ng-model="$ctrl.settings.showSystem" ng-change="$ctrl.onSettingsShowSystemChange()" data-cy="k8sConfig-systemResourceCheckbox"/>
+                      <input
+                        id="setting_show_system"
+                        type="checkbox"
+                        ng-model="$ctrl.settings.showSystem"
+                        ng-change="$ctrl.onSettingsShowSystemChange()"
+                        data-cy="k8sConfig-systemResourceCheckbox"
+                      />
                       <label for="setting_show_system">Show system resources</label>
                     </div>
                     <div class="md-checkbox">
@@ -51,7 +57,13 @@
         </div>
       </div>
       <div class="actionBar" authorization="K8sConfigurationsW">
-        <button type="button" class="btn btn-sm btn-danger" ng-disabled="$ctrl.state.selectedItemCount === 0" ng-click="$ctrl.removeAction($ctrl.state.selectedItems)" data-cy="k8sConfig-removeConfigButton">
+        <button
+          type="button"
+          class="btn btn-sm btn-danger"
+          ng-disabled="$ctrl.state.selectedItemCount === 0"
+          ng-click="$ctrl.removeAction($ctrl.state.selectedItems)"
+          data-cy="k8sConfig-removeConfigButton"
+        >
           <i class="fa fa-trash-alt space-right" aria-hidden="true"></i>Remove
         </button>
         <button type="button" class="btn btn-sm btn-primary" ui-sref="kubernetes.configurations.new" data-cy="k8sConfig-addConfigWithFormButton">

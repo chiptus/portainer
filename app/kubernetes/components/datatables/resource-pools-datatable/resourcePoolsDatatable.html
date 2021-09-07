@@ -51,7 +51,13 @@
         </div>
       </div>
       <div authorization="K8sResourcePoolDetailsW" class="actionBar">
-        <button type="button" class="btn btn-sm btn-danger" ng-disabled="$ctrl.state.selectedItemCount === 0" ng-click="$ctrl.removeAction($ctrl.state.selectedItems)" data-cy="k8sNamespace-removeNamespaceButton">
+        <button
+          type="button"
+          class="btn btn-sm btn-danger"
+          ng-disabled="$ctrl.state.selectedItemCount === 0"
+          ng-click="$ctrl.removeAction($ctrl.state.selectedItems)"
+          data-cy="k8sNamespace-removeNamespaceButton"
+        >
           <i class="fa fa-trash-alt space-right" aria-hidden="true"></i>Remove
         </button>
         <button type="button" class="btn btn-sm btn-primary" ui-sref="kubernetes.resourcePools.new" data-cy="k8sNamespace-addNamespaceWithFormButton">
@@ -95,7 +101,7 @@
                   <i class="fa fa-sort-alpha-down" aria-hidden="true" ng-if="$ctrl.state.orderBy === 'Namespace.Status' && !$ctrl.state.reverseOrder"></i>
                   <i class="fa fa-sort-alpha-up" aria-hidden="true" ng-if="$ctrl.state.orderBy === 'Namespace.Status' && $ctrl.state.reverseOrder"></i>
                 </a>
-              </th>  
+              </th>
               <th>
                 <a ng-click="$ctrl.changeOrderBy('Quota')">
                   Quota
