@@ -129,7 +129,7 @@ class AuthenticationController {
         return 'portainer.init.endpoint';
       }
     } catch (err) {
-      this.error(err, 'Unable to retrieve endpoints');
+      this.error(err, 'Unable to retrieve environments');
     }
     return 'portainer.home';
   }

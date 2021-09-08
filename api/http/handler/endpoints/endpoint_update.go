@@ -74,7 +74,7 @@ func (payload *endpointUpdatePayload) Validate(r *http.Request) error {
 // @router /endpoints/{id} [put]
 func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	// make sure user has been issued a token
-	permissionDeniedErr := "Permission denied to update endpoint"
+	permissionDeniedErr := "Permission denied to update environment"
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
@@ -82,7 +82,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid endpoint identifier route variable", err}
+		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
 	}
 
 	var payload endpointUpdatePayload
@@ -93,9 +93,9 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an endpoint with the specified identifier inside the database", err}
+		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an endpoint with the specified identifier inside the database", err}
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
 	}
 
 	isAdmin := tokenData.Role == portainer.AdministratorRole
@@ -289,7 +289,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		if payload.URL != nil || payload.TLS != nil || endpoint.Type == portainer.AzureEnvironment {
 			_, err = handler.ProxyManager.CreateAndRegisterEndpointProxy(endpoint)
 			if err != nil {
-				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to register HTTP proxy for the endpoint", err}
+				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to register HTTP proxy for the environment", err}
 			}
 		}
 	}
@@ -305,7 +305,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 	err = handler.DataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist endpoint changes inside the database", err}
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist environment changes inside the database", err}
 	}
 
 	if updateAuthorizations {
@@ -318,12 +318,12 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 	if (endpoint.Type == portainer.EdgeAgentOnDockerEnvironment || endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment) && (groupIDChanged || tagsChanged) {
 		relation, err := handler.DataStore.EndpointRelation().EndpointRelation(endpoint.ID)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find endpoint relation inside the database", err}
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find environment relation inside the database", err}
 		}
 
 		endpointGroup, err := handler.DataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find endpoint group inside the database", err}
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find environment group inside the database", err}
 		}
 
 		edgeGroups, err := handler.DataStore.EdgeGroup().EdgeGroups()
@@ -347,7 +347,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 		err = handler.DataStore.EndpointRelation().UpdateEndpointRelation(endpoint.ID, relation)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist endpoint relation changes inside the database", err}
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist environment relation changes inside the database", err}
 		}
 	}
 

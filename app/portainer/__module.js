@@ -87,7 +87,7 @@ angular
 
                 return endpoint;
               } catch (e) {
-                Notifications.error('Failed loading endpoint', e);
+                Notifications.error('Failed loading environment', e);
                 $state.go('portainer.home', {}, { reload: true });
                 return;
               }
@@ -506,7 +506,7 @@ function run($transitions, UserService, Authentication, LicenseService, Endpoint
 
       return stateService.target('portainer.home');
     } catch (err) {
-      Notifications.error('Failure', err, 'Unable to retrieve endpoint info');
+      Notifications.error('Failure', err, 'Unable to retrieve environment info');
       throw err;
     }
   });

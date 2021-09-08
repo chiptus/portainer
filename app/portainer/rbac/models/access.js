@@ -12,5 +12,5 @@ export default function AccessViewerPolicyModel(policy, endpoint, roles, group, 
     this.TeamId = team.Id;
     this.TeamName = team.Name;
   }
-  this.AccessLocation = group ? 'endpoint group' : 'endpoint';
+  this.AccessLocation = group ? 'environment group' : 'environment';
 }

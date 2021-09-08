@@ -25,7 +25,7 @@ func (payload *registryAccessPayload) Validate(r *http.Request) error {
 func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid endpoint identifier route variable", Err: err}
+		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid environment identifier route variable", Err: err}
 	}
 
 	registryID, err := request.RetrieveNumericRouteVariableValue(r, "registryId")
@@ -35,14 +35,14 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find an endpoint with the specified identifier inside the database", Err: err}
+		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
 	} else if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find an endpoint with the specified identifier inside the database", Err: err}
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
 	}
 
 	err = handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access endpoint", err}
+		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access environment", err}
 	}
 
 	isAdminOrEndpointAdmin, err := security.IsAdminOrEndpointAdmin(r, handler.DataStore, portainer.EndpointID(endpointID))
@@ -55,9 +55,9 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 
 	registry, err := handler.DataStore.Registry().Registry(portainer.RegistryID(registryID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find an endpoint with the specified identifier inside the database", Err: err}
+		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
 	} else if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find an endpoint with the specified identifier inside the database", Err: err}
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
 	}
 
 	var payload registryAccessPayload

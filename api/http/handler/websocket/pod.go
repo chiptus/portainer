@@ -66,9 +66,9 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find the endpoint associated to the stack inside the database", err}
+		return &httperror.HandlerError{http.StatusNotFound, "Unable to find the environment associated to the stack inside the database", err}
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find the endpoint associated to the stack inside the database", err}
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find the environment associated to the stack inside the database", err}
 	}
 
 	cli, err := handler.KubernetesClientFactory.GetKubeClient(endpoint)
@@ -76,7 +76,7 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to create Kubernetes client", err}
 	}
 
-	permissionDeniedErr := "Permission denied to access endpoint"
+	permissionDeniedErr := "Permission denied to access environment"
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}

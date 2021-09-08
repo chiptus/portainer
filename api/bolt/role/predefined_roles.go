@@ -10,36 +10,36 @@ import (
 func (service *Service) CreateOrUpdatePredefinedRoles() error {
 	predefinedRoles := map[portainer.RoleID]*portainer.Role{
 		portainer.RoleIDEndpointAdmin: &portainer.Role{
-			Name:           "Endpoint administrator",
-			Description:    "Full control of all resources in an endpoint",
+			Name:           "Environment administrator",
+			Description:    "Full control of all resources in an environment",
 			ID:             portainer.RoleIDEndpointAdmin,
 			Priority:       1,
 			Authorizations: authorization.DefaultEndpointAuthorizationsForEndpointAdministratorRole(),
 		},
 		portainer.RoleIDOperator: &portainer.Role{
 			Name:           "Operator",
-			Description:    "Operational control of all existing resources in an endpoint",
+			Description:    "Operational control of all existing resources in an environment",
 			ID:             portainer.RoleIDOperator,
 			Priority:       2,
 			Authorizations: authorization.DefaultEndpointAuthorizationsForOperatorRole(),
 		},
 		portainer.RoleIDHelpdesk: &portainer.Role{
 			Name:           "Helpdesk",
-			Description:    "Read-only access of all resources in an endpoint",
+			Description:    "Read-only access of all resources in an environment",
 			ID:             portainer.RoleIDHelpdesk,
 			Priority:       3,
 			Authorizations: authorization.DefaultEndpointAuthorizationsForHelpDeskRole(),
 		},
 		portainer.RoleIDStandardUser: &portainer.Role{
 			Name:           "Standard user",
-			Description:    "Full control of assigned resources in an endpoint",
+			Description:    "Full control of assigned resources in an environment",
 			ID:             portainer.RoleIDStandardUser,
 			Priority:       4,
 			Authorizations: authorization.DefaultEndpointAuthorizationsForStandardUserRole(),
 		},
 		portainer.RoleIDReadonly: &portainer.Role{
 			Name:           "Read-only user",
-			Description:    "Read-only access of assigned resources in an endpoint",
+			Description:    "Read-only access of assigned resources in an environment",
 			ID:             portainer.RoleIDReadonly,
 			Priority:       5,
 			Authorizations: authorization.DefaultEndpointAuthorizationsForReadOnlyUserRole(),

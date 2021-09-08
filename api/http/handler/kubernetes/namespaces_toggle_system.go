@@ -38,7 +38,7 @@ func (payload *namespacesToggleSystemPayload) Validate(r *http.Request) error {
 func (handler *Handler) namespacesToggleSystem(rw http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an endpoint on request context", err}
+		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment on request context", err}
 	}
 
 	err = handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)

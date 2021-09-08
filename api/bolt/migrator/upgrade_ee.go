@@ -75,7 +75,7 @@ func (m *Migrator) updateSettingsToEE() error {
 func (m *Migrator) updateRoleAuthorizationsToEE() error {
 	migrateLog.Debug("Retriving settings")
 
-	migrateLog.Debug("Updating Endpoint Admin Role")
+	migrateLog.Debug("Updating Environment Admin Role")
 	endpointAdministratorRole, err := m.roleService.Role(portainer.RoleID(1))
 	if err != nil {
 		return err
@@ -138,14 +138,14 @@ func (m *Migrator) updateUserRolesToEE() error {
 		}
 	}
 
-	migrateLog.Debug("Retriving endpoint groups")
+	migrateLog.Debug("Retriving environment groups")
 	endpointGroups, err := m.endpointGroupService.EndpointGroups()
 	if err != nil {
 		return err
 	}
 
 	for _, endpointGroup := range endpointGroups {
-		migrateLog.Debug(fmt.Sprintf("Updating user policies for endpoint group %v", endpointGroup.ID))
+		migrateLog.Debug(fmt.Sprintf("Updating user policies for environment group %v", endpointGroup.ID))
 		for key := range endpointGroup.UserAccessPolicies {
 			updateUserAccessPolicyToReadOnlyRole(endpointGroup.UserAccessPolicies, key)
 		}
@@ -160,14 +160,14 @@ func (m *Migrator) updateUserRolesToEE() error {
 		}
 	}
 
-	migrateLog.Debug("Retriving endpoints")
+	migrateLog.Debug("Retriving environments")
 	endpoints, err := m.endpointService.Endpoints()
 	if err != nil {
 		return err
 	}
 
 	for _, endpoint := range endpoints {
-		migrateLog.Debug(fmt.Sprintf("Updating user policies for endpoint %v", endpoint.ID))
+		migrateLog.Debug(fmt.Sprintf("Updating user policies for environment %v", endpoint.ID))
 		for key := range endpoint.UserAccessPolicies {
 			updateUserAccessPolicyToReadOnlyRole(endpoint.UserAccessPolicies, key)
 		}

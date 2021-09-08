@@ -60,7 +60,7 @@ func (handler *Handler) teamDelete(w http.ResponseWriter, r *http.Request) *http
 
 	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to get user endpoint access", err}
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to get user environment access", err}
 	}
 
 	for _, endpoint := range endpoints {
@@ -72,7 +72,7 @@ func (handler *Handler) teamDelete(w http.ResponseWriter, r *http.Request) *http
 
 		kcl, err := handler.K8sClientFactory.GetKubeClient(&endpoint)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to get k8s endpoint access", err}
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to get k8s environment access", err}
 		}
 
 		accessPolicies, err := kcl.GetNamespaceAccessPolicies()

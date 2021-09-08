@@ -64,9 +64,9 @@ func (handler *Handler) webhookCreate(w http.ResponseWriter, r *http.Request) *h
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an endpoint with the specified identifier inside the database", err}
+		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an endpoint with the specified identifier inside the database", err}
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
 	}
 
 	token, err := uuid.NewV4()

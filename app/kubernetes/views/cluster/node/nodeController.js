@@ -239,7 +239,7 @@ class KubernetesNodeController {
         });
       }
     } catch (err) {
-      this.Notifications.error('Failure', err, 'Unable to retrieve endpoints');
+      this.Notifications.error('Failure', err, 'Unable to retrieve environments');
     }
   }
 

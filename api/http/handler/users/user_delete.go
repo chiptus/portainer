@@ -114,7 +114,7 @@ func (handler *Handler) deleteUser(w http.ResponseWriter, user *portainer.User) 
 
 	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to get user endpoint access", err}
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to get user environment access", err}
 	}
 
 	errs := []string{}
@@ -127,14 +127,14 @@ func (handler *Handler) deleteUser(w http.ResponseWriter, user *portainer.User) 
 		}
 		kcl, err := handler.K8sClientFactory.GetKubeClient(&endpoint)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("Unable to get k8s endpoint access @ %d: %w", int(endpoint.ID), err).Error())
+			errs = append(errs, fmt.Errorf("Unable to get k8s environment access @ %d: %w", int(endpoint.ID), err).Error())
 			continue
 		}
 		kcl.RemoveUserServiceAccount(int(user.ID))
 
 		accessPolicies, err := kcl.GetNamespaceAccessPolicies()
 		if err != nil {
-			errs = append(errs, fmt.Errorf("Unable to get endpoint namespace access @ %d: %w", int(endpoint.ID), err).Error())
+			errs = append(errs, fmt.Errorf("Unable to get environment namespace access @ %d: %w", int(endpoint.ID), err).Error())
 			continue
 		}
 
@@ -144,7 +144,7 @@ func (handler *Handler) deleteUser(w http.ResponseWriter, user *portainer.User) 
 		if hasChange {
 			err = kcl.UpdateNamespaceAccessPolicies(accessPolicies)
 			if err != nil {
-				errs = append(errs, fmt.Errorf("Unable to update endpoint namespace access @ %d: %w", int(endpoint.ID), err).Error())
+				errs = append(errs, fmt.Errorf("Unable to update environment namespace access @ %d: %w", int(endpoint.ID), err).Error())
 				continue
 			}
 		}

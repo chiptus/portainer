@@ -68,12 +68,12 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 	if payload.EdgeGroups != nil {
 		endpoints, err := handler.DataStore.Endpoint().Endpoints()
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve endpoints from database", err}
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve environments from database", err}
 		}
 
 		endpointGroups, err := handler.DataStore.EndpointGroup().EndpointGroups()
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve endpoint groups from database", err}
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve environment groups from database", err}
 		}
 
 		edgeGroups, err := handler.DataStore.EdgeGroup().EdgeGroups()
@@ -83,12 +83,12 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 
 		oldRelated, err := edge.EdgeStackRelatedEndpoints(stack.EdgeGroups, endpoints, endpointGroups, edgeGroups)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge stack related endpoints from database", err}
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge stack related environments from database", err}
 		}
 
 		newRelated, err := edge.EdgeStackRelatedEndpoints(payload.EdgeGroups, endpoints, endpointGroups, edgeGroups)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge stack related endpoints from database", err}
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge stack related environments from database", err}
 		}
 
 		oldRelatedSet := EndpointSet(oldRelated)
@@ -104,14 +104,14 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 		for endpointID := range endpointsToRemove {
 			relation, err := handler.DataStore.EndpointRelation().EndpointRelation(endpointID)
 			if err != nil {
-				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find endpoint relation in database", err}
+				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find environment relation in database", err}
 			}
 
 			delete(relation.EdgeStacks, stack.ID)
 
 			err = handler.DataStore.EndpointRelation().UpdateEndpointRelation(endpointID, relation)
 			if err != nil {
-				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist endpoint relation in database", err}
+				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist environment relation in database", err}
 			}
 		}
 
@@ -125,14 +125,14 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 		for endpointID := range endpointsToAdd {
 			relation, err := handler.DataStore.EndpointRelation().EndpointRelation(endpointID)
 			if err != nil {
-				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find endpoint relation in database", err}
+				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find environment relation in database", err}
 			}
 
 			relation.EdgeStacks[stack.ID] = true
 
 			err = handler.DataStore.EndpointRelation().UpdateEndpointRelation(endpointID, relation)
 			if err != nil {
-				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist endpoint relation in database", err}
+				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist environment relation in database", err}
 			}
 		}
 

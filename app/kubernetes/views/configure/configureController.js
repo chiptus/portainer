@@ -308,7 +308,7 @@ class KubernetesConfigureController {
 
       this.oldFormValues = Object.assign({}, this.formValues);
     } catch (err) {
-      this.Notifications.error('Failure', err, 'Unable to retrieve endpoint configuration');
+      this.Notifications.error('Failure', err, 'Unable to retrieve environment configuration');
     } finally {
       this.state.viewReady = true;
     }

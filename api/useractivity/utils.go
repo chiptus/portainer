@@ -74,7 +74,7 @@ func MarshalLogsToCSV(w io.Writer, logs []*portainer.UserActivityLog) error {
 	var headers = []string{
 		"Time",
 		"Username",
-		"Endpoint",
+		"Environment",
 		"Action",
 		"Payload",
 	}

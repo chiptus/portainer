@@ -16,7 +16,7 @@ type nodesCountResponse struct {
 func (handler *Handler) statusNodesCount(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Failed to get endpoint list", err}
+		return &httperror.HandlerError{http.StatusInternalServerError, "Failed to get environment list", err}
 	}
 
 	nodes := 0

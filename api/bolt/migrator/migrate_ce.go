@@ -264,7 +264,7 @@ func (m *Migrator) MigrateCE() error {
 		if err != nil {
 			return err
 		}
-		migrateLog.Info("Successful migration of endpoints settings to DB version 26")
+		migrateLog.Info("Successful migration of environments settings to DB version 26")
 
 		err = m.updateRbacRolesToDB26()
 		if err != nil {

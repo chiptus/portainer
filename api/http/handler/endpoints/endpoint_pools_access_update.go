@@ -30,7 +30,7 @@ func (payload *resourcePoolUpdatePayload) Validate(r *http.Request) error {
 func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid endpoint identifier route variable", err}
+		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
 	}
 
 	resourcePoolName, err := request.RetrieveRouteVariableValue(r, "rpn")
@@ -40,12 +40,12 @@ func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an endpoint with the specified identifier inside the database", err}
+		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an endpoint with the specified identifier inside the database", err}
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
 	}
 
-	permissionDeniedErr := "Permission denied to access endpoint"
+	permissionDeniedErr := "Permission denied to access environment"
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
@@ -83,7 +83,7 @@ func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http
 			// by the current endpoint admin
 			role, err := handler.AuthorizationService.GetUserEndpointRole(userID, endpointID)
 			if err != nil {
-				errs = append(errs, fmt.Errorf("Unable to get user endpoint access %d @ %d: %w", userID, endpointID, err).Error())
+				errs = append(errs, fmt.Errorf("Unable to get user environment access %d @ %d: %w", userID, endpointID, err).Error())
 			} else if role != nil {
 				handler.AuthorizationService.TriggerUserAuthUpdate(userID)
 			} else {
@@ -97,14 +97,14 @@ func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http
 	if payload.UsersToRemove != nil && len(payload.UsersToRemove) > 0 {
 		kcl, err := handler.K8sClientFactory.GetKubeClient(endpoint)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("Unable to get k8s endpoint access @ %d: %w", endpointID, err).Error())
+			errs = append(errs, fmt.Errorf("Unable to get k8s environment access @ %d: %w", endpointID, err).Error())
 		} else {
 			for _, userID := range payload.UsersToRemove {
 				// make sure the user has a role in the current endpoint, thus is managed
 				// by the current endpoint admin
 				role, err := handler.AuthorizationService.GetUserEndpointRole(userID, endpointID)
 				if err != nil {
-					errs = append(errs, fmt.Errorf("Unable to get user endpoint access %d @ %d: %w", userID, endpointID, err).Error())
+					errs = append(errs, fmt.Errorf("Unable to get user environment access %d @ %d: %w", userID, endpointID, err).Error())
 				} else if role != nil {
 					err := kcl.RemoveUserNamespaceBindings(userID, resourcePoolName)
 					handler.AuthorizationService.TriggerUserAuthUpdate(userID)

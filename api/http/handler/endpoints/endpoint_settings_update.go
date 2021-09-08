@@ -54,7 +54,7 @@ func (payload *endpointSettingsUpdatePayload) Validate(r *http.Request) error {
 func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid endpoint identifier route variable", err}
+		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
 	}
 
 	var payload endpointSettingsUpdatePayload
@@ -65,14 +65,14 @@ func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Re
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err == errors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an endpoint with the specified identifier inside the database", err}
+		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an endpoint with the specified identifier inside the database", err}
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
 	}
 
 	err = handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access endpoint", err}
+		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access environment", err}
 	}
 
 	securitySettings := endpoint.SecuritySettings
@@ -119,7 +119,7 @@ func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Re
 
 	err = handler.DataStore.Endpoint().UpdateEndpoint(portainer.EndpointID(endpointID), endpoint)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Failed persisting endpoint in database", err}
+		return &httperror.HandlerError{http.StatusInternalServerError, "Failed persisting environment in database", err}
 	}
 
 	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)

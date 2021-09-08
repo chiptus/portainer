@@ -90,7 +90,7 @@ type createKubernetesStackResponse struct {
 
 func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWriter, r *http.Request, endpoint *portainer.Endpoint) *httperror.HandlerError {
 	if !endpointutils.IsKubernetesEndpoint(endpoint) {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Endpoint type does not match", Err: errors.New("Endpoint type does not match")}
+		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Environment type does not match", Err: errors.New("Environment type does not match")}
 	}
 	var payload kubernetesStringDeploymentPayload
 	if err := request.DecodeAndValidateJSONPayload(r, &payload); err != nil {
@@ -158,7 +158,7 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 
 func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWriter, r *http.Request, endpoint *portainer.Endpoint) *httperror.HandlerError {
 	if !endpointutils.IsKubernetesEndpoint(endpoint) {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Endpoint type does not match", Err: errors.New("Endpoint type does not match")}
+		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Environment type does not match", Err: errors.New("Environment type does not match")}
 	}
 	var payload kubernetesGitDeploymentPayload
 	if err := request.DecodeAndValidateJSONPayload(r, &payload); err != nil {
@@ -316,7 +316,7 @@ func (handler *Handler) deployKubernetesStack(r *http.Request, endpoint *portain
 }
 
 func (handler *Handler) checkEndpointPermission(r *http.Request, namespace string, endpoint *portainer.Endpoint) (string, *httperror.HandlerError) {
-	permissionDeniedErr := errors.New("Permission denied to access endpoint")
+	permissionDeniedErr := errors.New("Permission denied to access environment")
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
 		return "", &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: permissionDeniedErr.Error(), Err: err}

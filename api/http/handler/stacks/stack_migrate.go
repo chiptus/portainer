@@ -66,14 +66,14 @@ func (handler *Handler) stackMigrate(w http.ResponseWriter, r *http.Request) *ht
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(stack.EndpointID)
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an endpoint with the specified identifier inside the database", err}
+		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an endpoint with the specified identifier inside the database", err}
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
 	}
 
 	err = handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access endpoint", err}
+		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access environment", err}
 	}
 
 	if stack.Type == portainer.DockerSwarmStack || stack.Type == portainer.DockerComposeStack {
@@ -109,9 +109,9 @@ func (handler *Handler) stackMigrate(w http.ResponseWriter, r *http.Request) *ht
 
 	targetEndpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(payload.EndpointID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an endpoint with the specified identifier inside the database", err}
+		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an endpoint with the specified identifier inside the database", err}
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
 	}
 
 	stack.EndpointID = portainer.EndpointID(payload.EndpointID)
@@ -130,7 +130,7 @@ func (handler *Handler) stackMigrate(w http.ResponseWriter, r *http.Request) *ht
 	}
 
 	if !isUnique {
-		return &httperror.HandlerError{http.StatusConflict, fmt.Sprintf("A stack with the name '%s' is already running on endpoint '%s'", stack.Name, targetEndpoint.Name), errStackAlreadyExists}
+		return &httperror.HandlerError{http.StatusConflict, fmt.Sprintf("A stack with the name '%s' is already running on environment '%s'", stack.Name, targetEndpoint.Name), errStackAlreadyExists}
 	}
 
 	migrationError := handler.migrateStack(r, stack, targetEndpoint)

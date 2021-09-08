@@ -346,7 +346,7 @@ func createTLSSecuredEndpoint(flags *portainer.CLIFlags, dataStore portainer.Dat
 
 	err := snapshotService.SnapshotEndpoint(endpoint)
 	if err != nil {
-		log.Printf("http error: endpoint snapshot error (endpoint=%s, URL=%s) (err=%s)\n", endpoint.Name, endpoint.URL, err)
+		log.Printf("http error: environment snapshot error (endpoint=%s, URL=%s) (err=%s)\n", endpoint.Name, endpoint.URL, err)
 	}
 
 	return dataStore.Endpoint().CreateEndpoint(endpoint)
@@ -392,7 +392,7 @@ func createUnsecuredEndpoint(endpointURL string, dataStore portainer.DataStore, 
 
 	err := snapshotService.SnapshotEndpoint(endpoint)
 	if err != nil {
-		log.Printf("http error: endpoint snapshot error (endpoint=%s, URL=%s) (err=%s)\n", endpoint.Name, endpoint.URL, err)
+		log.Printf("http error: environment snapshot error (endpoint=%s, URL=%s) (err=%s)\n", endpoint.Name, endpoint.URL, err)
 	}
 
 	return dataStore.Endpoint().CreateEndpoint(endpoint)
@@ -409,7 +409,7 @@ func initEndpoint(flags *portainer.CLIFlags, dataStore portainer.DataStore, snap
 	}
 
 	if len(endpoints) > 0 {
-		log.Println("Instance already has defined endpoints. Skipping the endpoint defined via CLI.")
+		log.Println("Instance already has defined environments. Skipping the environment defined via CLI.")
 		return nil
 	}
 
@@ -508,7 +508,7 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 
 	err = initEndpoint(flags, dataStore, snapshotService)
 	if err != nil {
-		log.Fatalf("failed initializing endpoint: %s", err)
+		log.Fatalf("failed initializing environment: %s", err)
 	}
 
 	adminPasswordHash := ""

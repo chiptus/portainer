@@ -9,7 +9,7 @@
         <tr>
           <th>
             <a ng-click="$ctrl.changeOrderBy('EndpointName')">
-              Endpoint
+              Environment
               <i class="fa fa-sort-alpha-down" aria-hidden="true" ng-if="$ctrl.state.orderBy === 'EndpointName' && !$ctrl.state.reverseOrder"></i>
               <i class="fa fa-sort-alpha-up" aria-hidden="true" ng-if="$ctrl.state.orderBy === 'EndpointName' && $ctrl.state.reverseOrder"></i>
             </a>
@@ -45,7 +45,7 @@
           <td colspan="3" class="text-center text-muted">Select a user to show associated access and role</td>
         </tr>
         <tr ng-if="$ctrl.state.filteredDataSet.length === 0">
-          <td colspan="3" class="text-center text-muted">The selected user does not have access to any endpoint(s)</td>
+          <td colspan="3" class="text-center text-muted">The selected user does not have access to any environment(s)</td>
         </tr>
       </tbody>
     </table>
