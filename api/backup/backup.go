@@ -2,11 +2,12 @@ package backup
 
 import (
 	"fmt"
-	"github.com/portainer/portainer/api/filesystem"
 	"log"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/portainer/portainer/api/filesystem"
 
 	"github.com/pkg/errors"
 	portainer "github.com/portainer/portainer/api"
@@ -18,7 +19,18 @@ import (
 
 const rwxr__r__ os.FileMode = 0744
 
-var filesToBackup = []string{"compose", "config.json", "custom_templates", "edge_jobs", "edge_stacks", "extensions", "portainer.key", "portainer.pub", "tls"}
+var filesToBackup = []string{
+	"certs",
+	"compose",
+	"config.json",
+	"custom_templates",
+	"edge_jobs",
+	"edge_stacks",
+	"extensions",
+	"portainer.key",
+	"portainer.pub",
+	"tls",
+}
 
 func BackupToS3(settings portainer.S3BackupSettings, gate *offlinegate.OfflineGate, datastore portainer.DataStore, userActivityStore portainer.UserActivityStore, filestorePath string) error {
 	archivePath, err := CreateBackupArchive(settings.Password, gate, datastore, userActivityStore, filestorePath)
