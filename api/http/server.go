@@ -147,6 +147,7 @@ func (server *Server) Start() error {
 	edgeStacksHandler.DataStore = server.DataStore
 	edgeStacksHandler.FileService = server.FileService
 	edgeStacksHandler.GitService = server.GitService
+	edgeStacksHandler.KubernetesDeployer = server.KubernetesDeployer
 	edgeStacksHandler.UserActivityStore = server.UserActivityStore
 
 	var edgeTemplatesHandler = edgetemplates.NewHandler(requestBouncer)
