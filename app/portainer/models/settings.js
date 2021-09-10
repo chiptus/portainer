@@ -22,6 +22,7 @@ export function PublicSettingsViewModel(settings) {
   this.EnableTelemetry = settings.EnableTelemetry;
   this.OAuthHideInternalAuth = settings.OAuthHideInternalAuth;
   this.OAuthLogoutURI = settings.OAuthLogoutURI;
+  this.KubeconfigExpiry = settings.KubeconfigExpiry;
 }
 
 export function LDAPSettingsViewModel(data) {
