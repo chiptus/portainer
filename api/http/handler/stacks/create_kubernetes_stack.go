@@ -152,7 +152,6 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 
 	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
 
-	doCleanUp = false
 	return response.JSON(w, resp)
 }
 
@@ -200,11 +199,11 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 	doCleanUp := true
 	defer handler.cleanUp(stack, &doCleanUp)
 
-	commitId, err := handler.latestCommitID(payload.RepositoryURL, payload.RepositoryReferenceName, payload.RepositoryAuthentication, payload.RepositoryUsername, payload.RepositoryPassword)
+	commitID, err := handler.latestCommitID(payload.RepositoryURL, payload.RepositoryReferenceName, payload.RepositoryAuthentication, payload.RepositoryUsername, payload.RepositoryPassword)
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to fetch git repository id", Err: err}
 	}
-	stack.GitConfig.ConfigHash = commitId
+	stack.GitConfig.ConfigHash = commitID
 
 	stackFileContent, err := handler.cloneManifestContentFromGitRepo(&payload, stack.ProjectPath)
 	if err != nil {
@@ -235,8 +234,8 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 		payload.RepositoryPassword = consts.RedactedValue
 	}
 
-	doCleanUp = false
 	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
+
 	return response.JSON(w, resp)
 }
 
@@ -245,21 +244,28 @@ func (handler *Handler) createKubernetesStackFromManifestURL(w http.ResponseWrit
 	if err := request.DecodeAndValidateJSONPayload(r, &payload); err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
 	}
+	username, permissionErr := handler.checkEndpointPermission(r, payload.Namespace, endpoint)
+	if permissionErr != nil {
+		return permissionErr
+	}
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
 	stack := &portainer.Stack{
-		ID:           portainer.StackID(stackID),
-		Type:         portainer.KubernetesStack,
-		EndpointID:   endpoint.ID,
-		EntryPoint:   filesystem.ManifestFileDefaultName,
-		Status:       portainer.StackStatusActive,
-		CreationDate: time.Now().Unix(),
+		ID:              portainer.StackID(stackID),
+		Type:            portainer.KubernetesStack,
+		EndpointID:      endpoint.ID,
+		EntryPoint:      filesystem.ManifestFileDefaultName,
+		Namespace:       payload.Namespace,
+		Status:          portainer.StackStatusActive,
+		CreationDate:    time.Now().Unix(),
+		CreatedBy:       username,
+		IsComposeFormat: payload.ComposeFormat,
 	}
 
 	var manifestContent []byte
 	manifestContent, err := client.Get(payload.ManifestURL, 30)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve manifest from URL", err}
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve manifest from URL", Err: err}
 	}
 
 	stackFolder := strconv.Itoa(int(stack.ID))
@@ -287,9 +293,13 @@ func (handler *Handler) createKubernetesStackFromManifestURL(w http.ResponseWrit
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist the Kubernetes stack inside the database", Err: err}
 	}
 
+	doCleanUp = false
+
 	resp := &createKubernetesStackResponse{
 		Output: output,
 	}
+
+	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
 
 	return response.JSON(w, resp)
 }
