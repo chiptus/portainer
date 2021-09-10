@@ -60,6 +60,8 @@ angular
           return KubernetesApplicationTypeStrings.STATEFULSET;
         case KubernetesApplicationTypes.POD:
           return KubernetesApplicationTypeStrings.POD;
+        case KubernetesApplicationTypes.HELM:
+          return KubernetesApplicationTypeStrings.HELM;
         default:
           return '-';
       }

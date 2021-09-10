@@ -13,6 +13,7 @@ import (
 	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/docker"
 
+	"github.com/portainer/libhelm"
 	"github.com/portainer/portainer/api/exec"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/git"
@@ -128,6 +129,10 @@ func initSwarmStackManager(assetsPath string, configPath string, signatureServic
 
 func initKubernetesDeployer(authService *authorization.Service, kubernetesTokenCacheManager *kubeproxy.TokenCacheManager, kubernetesClientFactory *kubecli.ClientFactory, dataStore portainer.DataStore, reverseTunnelService portainer.ReverseTunnelService, signatureService portainer.DigitalSignatureService, assetsPath string) portainer.KubernetesDeployer {
 	return exec.NewKubernetesDeployer(authService, kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, reverseTunnelService, signatureService, assetsPath)
+}
+
+func initHelmPackageManager(assetsPath string) (libhelm.HelmPackageManager, error) {
+	return libhelm.NewHelmPackageManager(libhelm.HelmConfig{BinaryPath: assetsPath})
 }
 
 func initJWTService(dataStore portainer.DataStore) (portainer.JWTService, error) {
@@ -451,6 +456,11 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 		log.Fatal(err)
 	}
 
+	sslSettings, err := sslService.GetSSLSettings()
+	if err != nil {
+		log.Fatalf("failed to get ssl settings: %s", err)
+	}
+
 	err = initKeyPair(fileService, digitalSignatureService)
 	if err != nil {
 		log.Fatalf("failed initializing key pair: %s", err)
@@ -477,6 +487,8 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 
 	kubernetesTokenCacheManager := kubeproxy.NewTokenCacheManager()
 
+	kubeConfigService := kubernetes.NewKubeConfigCAService(*flags.AddrHTTPS, sslSettings.CertPath)
+
 	userActivityStore := initUserActivityStore(*flags.Data, shutdownCtx)
 
 	proxyManager := proxy.NewManager(dataStore, digitalSignatureService, reverseTunnelService, dockerClientFactory, kubernetesClientFactory, kubernetesTokenCacheManager, authorizationService, userActivityStore)
@@ -491,6 +503,11 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 	}
 
 	kubernetesDeployer := initKubernetesDeployer(authorizationService, kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, reverseTunnelService, digitalSignatureService, *flags.Assets)
+
+	helmPackageManager, err := initHelmPackageManager(*flags.Assets)
+	if err != nil {
+		log.Fatalf("failed initializing helm package manager: %s", err)
+	}
 
 	if dataStore.IsNew() {
 		err = updateSettingsFromFlags(dataStore, flags)
@@ -562,7 +579,7 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 	stackDeployer := stacks.NewStackDeployer(swarmStackManager, composeStackManager)
 	stacks.StartStackSchedules(scheduler, stackDeployer, dataStore, gitService)
 
-	sslSettings, err := dataStore.SSLSettings().Settings()
+	sslDBSettings, err := dataStore.SSLSettings().Settings()
 	if err != nil {
 		log.Fatalf("failed to fetch ssl settings from DB")
 	}
@@ -573,13 +590,14 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 		Status:                      applicationStatus,
 		BindAddress:                 *flags.Addr,
 		BindAddressHTTPS:            *flags.AddrHTTPS,
-		HTTPEnabled:                 sslSettings.HTTPEnabled,
+		HTTPEnabled:                 sslDBSettings.HTTPEnabled,
 		AssetsPath:                  *flags.Assets,
 		DataStore:                   dataStore,
 		LicenseService:              licenseService,
 		SwarmStackManager:           swarmStackManager,
 		ComposeStackManager:         composeStackManager,
 		KubernetesDeployer:          kubernetesDeployer,
+		HelmPackageManager:          helmPackageManager,
 		CryptoService:               cryptoService,
 		JWTService:                  jwtService,
 		FileService:                 fileService,
@@ -588,6 +606,7 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 		GitService:                  gitService,
 		ProxyManager:                proxyManager,
 		KubernetesTokenCacheManager: kubernetesTokenCacheManager,
+		KubeConfigService:           kubeConfigService,
 		SignatureService:            digitalSignatureService,
 		SnapshotService:             snapshotService,
 		SSLService:                  sslService,

@@ -42,6 +42,10 @@ func (m *Migrator) migrateDBVersionToDB32() error {
 		return err
 	}
 
+	if err := m.helmRepositoryURLToDB32(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -254,5 +258,14 @@ func (m *Migrator) kubeconfigExpiryToDB32() error {
 		return err
 	}
 	settings.KubeconfigExpiry = portainer.DefaultKubeconfigExpiry
+	return m.settingsService.UpdateSettings(settings)
+}
+
+func (m *Migrator) helmRepositoryURLToDB32() error {
+	settings, err := m.settingsService.Settings()
+	if err != nil {
+		return err
+	}
+	settings.HelmRepositoryURL = portainer.DefaultHelmRepositoryURL
 	return m.settingsService.UpdateSettings(settings)
 }

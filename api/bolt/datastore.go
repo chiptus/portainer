@@ -5,6 +5,8 @@ import (
 	"path"
 	"time"
 
+	"github.com/portainer/portainer/api/bolt/helmuserrepository"
+
 	"github.com/portainer/portainer/api/bolt/errors"
 	"github.com/portainer/portainer/api/bolt/internal"
 	"github.com/portainer/portainer/api/bolt/license"
@@ -44,35 +46,36 @@ var (
 // Store defines the implementation of portainer.DataStore using
 // BoltDB as the storage system.
 type Store struct {
-	path                    string
-	connection              *internal.DbConnection
-	isNew                   bool
-	fileService             portainer.FileService
-	CustomTemplateService   *customtemplate.Service
-	DockerHubService        *dockerhub.Service
-	EdgeGroupService        *edgegroup.Service
-	EdgeJobService          *edgejob.Service
-	EdgeStackService        *edgestack.Service
-	EndpointGroupService    *endpointgroup.Service
-	EndpointService         *endpoint.Service
-	EndpointRelationService *endpointrelation.Service
-	ExtensionService        *extension.Service
-	LicenseService          *license.Service
-	RegistryService         *registry.Service
-	ResourceControlService  *resourcecontrol.Service
-	RoleService             *role.Service
-	S3BackupService         *s3backup.Service
-	ScheduleService         *schedule.Service
-	SettingsService         *settings.Service
-	SSLSettingsService      *ssl.Service
-	StackService            *stack.Service
-	TagService              *tag.Service
-	TeamMembershipService   *teammembership.Service
-	TeamService             *team.Service
-	TunnelServerService     *tunnelserver.Service
-	UserService             *user.Service
-	VersionService          *version.Service
-	WebhookService          *webhook.Service
+	path                      string
+	connection                *internal.DbConnection
+	isNew                     bool
+	fileService               portainer.FileService
+	CustomTemplateService     *customtemplate.Service
+	DockerHubService          *dockerhub.Service
+	EdgeGroupService          *edgegroup.Service
+	EdgeJobService            *edgejob.Service
+	EdgeStackService          *edgestack.Service
+	EndpointGroupService      *endpointgroup.Service
+	EndpointService           *endpoint.Service
+	EndpointRelationService   *endpointrelation.Service
+	ExtensionService          *extension.Service
+	HelmUserRepositoryService *helmuserrepository.Service
+	LicenseService            *license.Service
+	RegistryService           *registry.Service
+	ResourceControlService    *resourcecontrol.Service
+	RoleService               *role.Service
+	S3BackupService           *s3backup.Service
+	ScheduleService           *schedule.Service
+	SettingsService           *settings.Service
+	SSLSettingsService        *ssl.Service
+	StackService              *stack.Service
+	TagService                *tag.Service
+	TeamMembershipService     *teammembership.Service
+	TeamService               *team.Service
+	TunnelServerService       *tunnelserver.Service
+	UserService               *user.Service
+	VersionService            *version.Service
+	WebhookService            *webhook.Service
 }
 
 func (store *Store) version() (int, error) {

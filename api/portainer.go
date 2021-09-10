@@ -429,6 +429,18 @@ type (
 		ProjectPath string `json:"ProjectPath"`
 	}
 
+	HelmUserRepositoryID int
+
+	// HelmUserRepositories stores a Helm repository URL for the given user
+	HelmUserRepository struct {
+		// Membership Identifier
+		ID HelmUserRepositoryID `json:"Id" example:"1"`
+		// User identifier
+		UserID UserID `json:"UserId" example:"1"`
+		// Helm repository URL
+		URL string `json:"URL" example:"https://charts.bitnami.com/bitnami"`
+	}
+
 	// QuayRegistryData represents data required for Quay registry to work
 	QuayRegistryData struct {
 		UseOrganisation  bool   `json:"UseOrganisation"`
@@ -805,6 +817,8 @@ type (
 		KubeconfigExpiry string `json:"KubeconfigExpiry" example:"24h"`
 		// Whether telemetry is enabled
 		EnableTelemetry bool `json:"EnableTelemetry" example:"false"`
+		// Helm repository URL, defaults to "https://charts.bitnami.com/bitnami"
+		HelmRepositoryURL string `json:"HelmRepositoryURL" example:"https://charts.bitnami.com/bitnami"`
 
 		// Deprecated fields
 		DisplayDonationHeader       bool
@@ -1239,6 +1253,7 @@ type (
 		Endpoint() EndpointService
 		EndpointGroup() EndpointGroupService
 		EndpointRelation() EndpointRelationService
+		HelmUserRepository() HelmUserRepositoryService
 		License() LicenseRepository
 		Registry() RegistryService
 		ResourceControl() ResourceControlService
@@ -1367,6 +1382,12 @@ type (
 	GitService interface {
 		CloneRepository(destination string, repositoryURL, referenceName string, username, password string) error
 		LatestCommitID(repositoryURL, referenceName, username, password string) (string, error)
+	}
+
+	// HelmUserRepositoryService represents a service to manage HelmUserRepositories
+	HelmUserRepositoryService interface {
+		HelmUserRepositoryByUserID(userID UserID) ([]HelmUserRepository, error)
+		CreateHelmUserRepository(record *HelmUserRepository) error
 	}
 
 	// JWTService represents a service for managing JWT tokens
@@ -1667,6 +1688,8 @@ const (
 	DefaultEdgeAgentCheckinIntervalInSeconds = 5
 	// DefaultTemplatesURL represents the URL to the official templates supported by Portainer
 	DefaultTemplatesURL = "https://raw.githubusercontent.com/portainer/templates/master/templates-2.0.json"
+	// DefaultHelmrepositoryURL represents the URL to the official templates supported by Bitnami
+	DefaultHelmRepositoryURL = "https://charts.bitnami.com/bitnami"
 	// DefaultUserSessionTimeout represents the default timeout after which the user session is cleared
 	DefaultUserSessionTimeout = "8h"
 	// DefaultUserSessionTimeout represents the default timeout after which the user session is cleared
@@ -2201,6 +2224,11 @@ const (
 	OperationK8sClusterSetupRW                   Authorization = "K8sClusterSetupRW"
 	OperationK8sApplicationErrorDetailsR         Authorization = "K8sApplicationErrorDetailsR"
 	OperationK8sStorageClassDisabledR            Authorization = "K8sStorageClassDisabledR"
+	// Helm operations
+	OperationHelmRepoList       Authorization = "HelmRepoList"
+	OperationHelmRepoCreate     Authorization = "HelmRepoCreate"
+	OperationHelmInstallChart   Authorization = "HelmInstallChart"
+	OperationHelmUninstallChart Authorization = "HelmUninstallChart"
 )
 
 // GetEditionLabel returns the portainer edition label

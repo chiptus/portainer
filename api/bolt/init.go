@@ -48,6 +48,7 @@ func (store *Store) Init() error {
 			},
 			EdgeAgentCheckinInterval: portainer.DefaultEdgeAgentCheckinIntervalInSeconds,
 			TemplatesURL:             portainer.DefaultTemplatesURL,
+			HelmRepositoryURL:        portainer.DefaultHelmRepositoryURL,
 			UserSessionTimeout:       portainer.DefaultUserSessionTimeout,
 			KubeconfigExpiry:         portainer.DefaultKubeconfigExpiry,
 		}

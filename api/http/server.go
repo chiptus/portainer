@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/portainer/libhelm"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/adminmonitor"
 	backupOps "github.com/portainer/portainer/api/backup"
@@ -28,6 +29,7 @@ import (
 	"github.com/portainer/portainer/api/http/handler/endpointproxy"
 	"github.com/portainer/portainer/api/http/handler/endpoints"
 	"github.com/portainer/portainer/api/http/handler/file"
+	"github.com/portainer/portainer/api/http/handler/helm"
 	kubehandler "github.com/portainer/portainer/api/http/handler/kubernetes"
 	"github.com/portainer/portainer/api/http/handler/ldap"
 	"github.com/portainer/portainer/api/http/handler/licenses"
@@ -54,6 +56,7 @@ import (
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/internal/ssl"
+	k8s "github.com/portainer/portainer/api/kubernetes"
 	"github.com/portainer/portainer/api/kubernetes/cli"
 	"github.com/portainer/portainer/api/scheduler"
 	stackdeloyer "github.com/portainer/portainer/api/stacks"
@@ -83,11 +86,13 @@ type Server struct {
 	UserActivityStore           portainer.UserActivityStore
 	ProxyManager                *proxy.Manager
 	KubernetesTokenCacheManager *kubernetes.TokenCacheManager
+	KubeConfigService           k8s.KubeConfigService
 	Handler                     *handler.Handler
 	SSLService                  *ssl.Service
 	DockerClientFactory         *docker.ClientFactory
 	KubernetesClientFactory     *cli.ClientFactory
 	KubernetesDeployer          portainer.KubernetesDeployer
+	HelmPackageManager          libhelm.HelmPackageManager
 	Scheduler                   *scheduler.Scheduler
 	ShutdownCtx                 context.Context
 	ShutdownTrigger             context.CancelFunc
@@ -186,7 +191,6 @@ func (server *Server) Start() error {
 	kubernetesHandler.AuthorizationService = server.AuthorizationService
 	kubernetesHandler.KubernetesClientFactory = server.KubernetesClientFactory
 	kubernetesHandler.UserActivityStore = server.UserActivityStore
-	kubernetesHandler.KubernetesClientFactory = server.KubernetesClientFactory
 	kubernetesHandler.JwtService = server.JWTService
 
 	var licenseHandler = licenses.NewHandler(requestBouncer)
@@ -194,6 +198,10 @@ func (server *Server) Start() error {
 	licenseHandler.UserActivityStore = server.UserActivityStore
 
 	var fileHandler = file.NewHandler(filepath.Join(server.AssetsPath, "public"))
+
+	var endpointHelmHandler = helm.NewHandler(requestBouncer, server.DataStore, server.HelmPackageManager, server.KubeConfigService, server.UserActivityStore)
+
+	var helmTemplatesHandler = helm.NewTemplateHandler(requestBouncer, server.HelmPackageManager)
 
 	var ldapHandler = ldap.NewHandler(requestBouncer)
 	ldapHandler.DataStore = server.DataStore
@@ -299,8 +307,10 @@ func (server *Server) Start() error {
 		EdgeTemplatesHandler:   edgeTemplatesHandler,
 		EndpointGroupHandler:   endpointGroupHandler,
 		EndpointHandler:        endpointHandler,
+		EndpointHelmHandler:    endpointHelmHandler,
 		EndpointEdgeHandler:    endpointEdgeHandler,
 		EndpointProxyHandler:   endpointProxyHandler,
+		HelmTemplatesHandler:   helmTemplatesHandler,
 		KubernetesHandler:      kubernetesHandler,
 		FileHandler:            fileHandler,
 		LDAPHandler:            ldapHandler,

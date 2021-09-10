@@ -29,6 +29,16 @@
 </sidebar-menu-item>
 
 <sidebar-menu-item
+  path="kubernetes.templates.helm"
+  path-params="{ endpointId: $ctrl.endpointId }"
+  icon-class="fa-dharmachakra fa-fw"
+  class-name="sidebar-list"
+  authorization="HelmInstallChart"
+>
+  Helm
+</sidebar-menu-item>
+
+<sidebar-menu-item
   path="kubernetes.applications"
   path-params="{ endpointId: $ctrl.endpointId }"
   icon-class="fa-laptop-code fa-fw"
