@@ -64,7 +64,7 @@ angular.module('portainer.app').controller('InitAdminController', [
       UserService.administratorExists()
         .then(function success(exists) {
           if (exists) {
-            $state.go('portainer.home');
+            $state.go('portainer.wizard');
           }
         })
         .catch(function error(err) {

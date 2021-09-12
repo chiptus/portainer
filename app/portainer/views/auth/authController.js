@@ -126,7 +126,7 @@ class AuthenticationController {
       const endpoints = await this.EndpointService.endpoints(0, 1);
 
       if (endpoints.value.length === 0) {
-        return 'portainer.init.endpoint';
+        return 'portainer.wizard';
       }
     } catch (err) {
       this.error(err, 'Unable to retrieve environments');

@@ -36,7 +36,7 @@ export default class InitLicenseViewController {
           throw new Error(failedKeys[this.license]);
         }
 
-        this.$state.go('portainer.init.endpoint');
+        this.$state.go('portainer.wizard');
       } catch (err) {
         this.Notifications.error('Failure', err, 'Failed validating licenses');
       } finally {
