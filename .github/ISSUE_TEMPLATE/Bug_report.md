@@ -41,7 +41,7 @@ You can see how [here](https://documentation.portainer.io/archive/1.23.2/faq/#ho
 - Portainer version:
 - Docker version (managed by Portainer):
 - Platform (windows/linux):
-- Command used to start Portainer (`docker run -p 9000:9000 portainer/portainer`):
+- Command used to start Portainer (`docker run -p 9443:9443 portainer/portainer`):
 - Browser:
 
 **Additional context**
