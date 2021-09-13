@@ -44,12 +44,7 @@ func (p *backupSettings) Validate(r *http.Request) error {
 // @tags backup
 // @security jwt
 // @produce json
-// @param CronRule body string false "Crontab rule to make periodical backups"
-// @param AccessKeyID body string false "AWS access key id"
-// @param SecretAccessKey body string false "AWS secret access key"
-// @param Region body string false "AWS S3 region"
-// @param BucketName body string false "AWS S3 bucket name"
-// @param Password body string false "Password to encrypt the backup with"
+// @param s3_backup_settings body portainer.S3BackupSettings false "S3 backup settings"
 // @success 200  "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"

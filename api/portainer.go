@@ -741,12 +741,18 @@ type (
 
 	// S3BackupSettings represents when and where to backup
 	S3BackupSettings struct {
-		CronRule        string
-		AccessKeyID     string
+		// Crontab rule to make periodical backups
+		CronRule string
+		// AWS access key id
+		AccessKeyID string
+		// AWS secret access key
 		SecretAccessKey string
-		Region          string
-		BucketName      string
-		Password        string
+		// AWS S3 region
+		Region string
+		// AWS S3 bucket name
+		BucketName string
+		// Password to encrypt the backup with
+		Password string
 	}
 
 	// S3BackupStatus represents result of the scheduled s3 backup
@@ -757,11 +763,16 @@ type (
 
 	// S3Location represents s3 file localtion
 	S3Location struct {
-		AccessKeyID     string
+		// AWS access key id
+		AccessKeyID string
+		// AWS secret access key
 		SecretAccessKey string
-		Region          string
-		BucketName      string
-		Filename        string
+		// AWS S3 region
+		Region string
+		// AWS S3 bucket name
+		BucketName string
+		// AWS S3 filename in the bucket
+		Filename string
 	}
 
 	// Schedule represents a scheduled job.

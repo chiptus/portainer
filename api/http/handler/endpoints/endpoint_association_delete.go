@@ -4,15 +4,16 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"net/http"
+	"regexp"
+	"strings"
+
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
 	"github.com/portainer/portainer/api/http/useractivity"
-	"net/http"
-	"regexp"
-	"strings"
 )
 
 // @id EndpointAssociationDelete
@@ -27,7 +28,7 @@ import (
 // @failure 400 "Invalid request"
 // @failure 404 "Endpoint not found"
 // @failure 500 "Server error"
-// @router /api/endpoints/:id/association [put]
+// @router /api/endpoints/{id}/association [put]
 func (handler *Handler) endpointAssociationDelete(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
@@ -87,5 +88,5 @@ func (handler *Handler) updateEdgeKey(edgeKey string) (string, error) {
 
 func getPort(url string) string {
 	items := strings.Split(url, ":")
-	return items[len(items) - 1]
+	return items[len(items)-1]
 }

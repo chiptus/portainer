@@ -46,12 +46,7 @@ func (p *restoreS3Settings) Validate(r *http.Request) error {
 // @description Triggers a system restore using details of s3 backup
 // @description **Access policy**: public
 // @tags backup
-// @param AccessKeyID body string false "AWS access key id"
-// @param SecretAccessKey body string false "AWS secret access key"
-// @param Region body string false "AWS S3 region"
-// @param BucketName body string false "AWS S3 bucket name"
-// @param Filename body string false "AWS S3 filename in the bucket"
-// @param Password body string false "Password to decrypt the backup with"
+// @param S3Location body portainer.S3Location false "S3 Location Payload"
 // @success 200  "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
