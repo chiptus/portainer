@@ -121,8 +121,8 @@ func (m *Migrator) updateRoleAuthorizationsToEE() error {
 	return nil
 }
 
-// If RBAC extension wasn't installed before, update all users in endpoints and
-// endpoint groups to have read only access.
+// If RBAC extension wasn't installed before, update all users in environments(endpoints) and
+// environment(endpoint) groups to have read only access.
 func (m *Migrator) updateUserRolesToEE() error {
 	err := m.updateUserAuthorizationToEE()
 	if err != nil {

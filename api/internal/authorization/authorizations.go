@@ -23,8 +23,8 @@ func NewService(dataStore portainer.DataStore) *Service {
 	}
 }
 
-// DefaultEndpointAuthorizationsForEndpointAdministratorRole returns the default endpoint authorizations
-// associated to the endpoint administrator role.
+// DefaultEndpointAuthorizationsForEndpointAdministratorRole returns the default environment(endpoint) authorizations
+// associated to the environment(endpoint) administrator role.
 func DefaultEndpointAuthorizationsForEndpointAdministratorRole() portainer.Authorizations {
 	return unionAuthorizations(map[portainer.Authorization]bool{
 		portainer.OperationDockerContainerArchiveInfo:         true,
@@ -172,7 +172,7 @@ func DefaultEndpointAuthorizationsForEndpointAdministratorRole() portainer.Autho
 	)
 }
 
-// DefaultEndpointAuthorizationsForHelpDeskRole returns the default endpoint authorizations
+// DefaultEndpointAuthorizationsForHelpDeskRole returns the default environment(endpoint) authorizations
 // associated to the helpdesk role.
 func DefaultEndpointAuthorizationsForHelpDeskRole() portainer.Authorizations {
 	authorizations := unionAuthorizations(map[portainer.Authorization]bool{
@@ -229,7 +229,7 @@ func DefaultEndpointAuthorizationsForHelpDeskRole() portainer.Authorizations {
 	return authorizations
 }
 
-// DefaultEndpointAuthorizationsForOperatorRole returns the default endpoint authorizations
+// DefaultEndpointAuthorizationsForOperatorRole returns the default environment(endpoint) authorizations
 // associated to the Operator role.
 func DefaultEndpointAuthorizationsForOperatorRole() portainer.Authorizations {
 	authorizations := unionAuthorizations(map[portainer.Authorization]bool{
@@ -299,7 +299,7 @@ func DefaultEndpointAuthorizationsForOperatorRole() portainer.Authorizations {
 	return authorizations
 }
 
-// DefaultEndpointAuthorizationsForStandardUserRole returns the default endpoint authorizations
+// DefaultEndpointAuthorizationsForStandardUserRole returns the default environment(endpoint) authorizations
 // associated to the standard user role.
 func DefaultEndpointAuthorizationsForStandardUserRole() portainer.Authorizations {
 	authorizations := unionAuthorizations(map[portainer.Authorization]bool{
@@ -434,7 +434,7 @@ func DefaultEndpointAuthorizationsForStandardUserRole() portainer.Authorizations
 	return authorizations
 }
 
-// DefaultEndpointAuthorizationsForReadOnlyUserRole returns the default endpoint authorizations
+// DefaultEndpointAuthorizationsForReadOnlyUserRole returns the default environment(endpoint) authorizations
 // associated to the readonly user role.
 func DefaultEndpointAuthorizationsForReadOnlyUserRole() portainer.Authorizations {
 	authorizations := unionAuthorizations(map[portainer.Authorization]bool{
@@ -516,7 +516,7 @@ func (service *Service) RegisterEventHandler(id string, handler portainer.AuthEv
 	service.authEventHandlers[id] = handler
 }
 
-// TriggerEndpointAuthUpdate triggers endpoint auth update event on the registered
+// TriggerEndpointAuthUpdate triggers environment(endpoint) auth update event on the registered
 // event handlers (e.g. token cache manager)
 func (service *Service) TriggerEndpointAuthUpdate(endpointID int) {
 	for _, handler := range service.authEventHandlers {
@@ -766,7 +766,7 @@ func getUserEndpointAuthorizations(user *portainer.User, endpoints []portainer.E
 	return endpointAuthorizations
 }
 
-// get the user and team policies from the endpoint group definitions
+// get the user and team policies from the environment(endpoint) group definitions
 func getGroupPolicies(endpointGroups []portainer.EndpointGroup) (
 	map[portainer.EndpointGroupID]portainer.UserAccessPolicies,
 	map[portainer.EndpointGroupID]portainer.TeamAccessPolicies,
@@ -781,7 +781,7 @@ func getGroupPolicies(endpointGroups []portainer.EndpointGroup) (
 }
 
 // UpdateUserNamespaceAccessPolicies takes an input accessPolicies
-// and updates it with the user and his team's endpoint roles.
+// and updates it with the user and his team's environment(endpoint) roles.
 // Returns the updated policies and whether there is any update.
 func (service *Service) UpdateUserNamespaceAccessPolicies(
 	userID int, endpoint *portainer.Endpoint,
@@ -823,7 +823,7 @@ func (service *Service) UpdateUserNamespaceAccessPolicies(
 }
 
 // updateNamespaceAccessPolicies takes an input accessPolicies
-// and updates it with the endpoint users/teams roles.
+// and updates it with the environment(endpoint) users/teams roles.
 func (service *Service) updateNamespaceAccessPolicies(
 	selectedUserID int, selectedTeamIDs []int,
 	usersEndpointRole map[int]int, teamsEndpointRole map[int]int,
@@ -948,8 +948,8 @@ func (service *Service) RemoveTeamNamespaceAccessPolicies(
 	return policiesToUpdate, hasChange, nil
 }
 
-// GetUserEndpointRole returns the endpoint role of the user.
-// It returns nil if there is no role assigned to the user at the endpoint.
+// GetUserEndpointRole returns the environment(endpoint) role of the user.
+// It returns nil if there is no role assigned to the user at the environment(endpoint).
 func (service *Service) GetUserEndpointRole(
 	userID int,
 	endpointID int,
@@ -992,7 +992,7 @@ func (service *Service) GetNamespaceAuthorizations(
 ) (map[string]portainer.Authorizations, error) {
 	namespaceAuthorizations := make(map[string]portainer.Authorizations)
 
-	// skip non k8s endpoints
+	// skip non k8s environments(endpoints)
 	if endpoint.Type != portainer.KubernetesLocalEnvironment &&
 		endpoint.Type != portainer.AgentOnKubernetesEnvironment &&
 		endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment {
@@ -1004,7 +1004,7 @@ func (service *Service) GetNamespaceAuthorizations(
 		return nil, err
 	}
 
-	// no endpoint role for the user, continue
+	// no environment(endpoint) role for the user, continue
 	if endpointRole == nil {
 		return namespaceAuthorizations, nil
 	}
@@ -1066,7 +1066,7 @@ func (service *Service) GetUserNamespaceAuthorizations(
 	return namespaceAuthorizations, nil
 }
 
-// GetUserNamespaceRoles returns the endpoint role of the user.
+// GetUserNamespaceRoles returns the environment(endpoint) role of the user.
 func (service *Service) GetUserNamespaceRoles(
 	userID int,
 	userEndpointRoleID int,
@@ -1188,10 +1188,10 @@ func getUserNamespaceRole(
 	return role
 }
 
-// For each endpoint, first calculate the role(s) of a team
+// For each environment(endpoint), first calculate the role(s) of a team
 // based on the sequence of searching:
-//  - Team's endpoint role (multiple, 1 user has n teams)
-//  - Team's roles in all the assigned endpoint groups (multiple, 1 user has n teams, 1 team has 1 endpoint group)
+//  - Team's environment(endpoint) role (multiple, 1 user has n teams)
+//  - Team's roles in all the assigned environment(endpoint) groups (multiple, 1 user has n teams, 1 team has 1 environment(endpoint) group)
 //
 // If roles are found in any of the step, the search stops.
 // Then the role with the hightest priority is returned.
@@ -1232,12 +1232,12 @@ func (service *Service) GetTeamEndpointRole(
 	return role, nil
 }
 
-// For each endpoint, first calculate the role(s) of a user
+// For each environment(endpoint), first calculate the role(s) of a user
 // based on the sequence of searching:
-//  - His endpoint role (single)
-//  - His endpoint group role (single, 1 endpoint has 1 endpoint group)
-//  - His teams endpoint role (multiple, 1 user has n teams)
-//  - His teams roles in all the assigned endpoint groups (multiple, 1 user has n teams, 1 team has 1 endpoint group)
+//  - His environment(endpoint) role (single)
+//  - His environment(endpoint) group role (single, 1 environment(endpoint) has 1 environment(endpoint) group)
+//  - His teams environment(endpoint) role (multiple, 1 user has n teams)
+//  - His teams roles in all the assigned environment(endpoint) groups (multiple, 1 user has n teams, 1 team has 1 environment(endpoint) group)
 //
 // If roles are found in any of the step, the search stops.
 // Then the role with the hightest priority is returned.
@@ -1286,7 +1286,7 @@ func getUserEndpointRoles(user *portainer.User, endpoints []portainer.Endpoint,
 	return results
 }
 
-// A user may have 1 role in each assigned Endpoints.
+// A user may have 1 role in each assigned environments(endpoints).
 func getRoleFromUserAccessPolicies(
 	user *portainer.User,
 	userAccessPolicies portainer.UserAccessPolicies,
@@ -1305,7 +1305,7 @@ func getRoleFromUserAccessPolicies(
 	return getKeyRole(policyRoles, roles)
 }
 
-// An endpoint can only have 1 EndpointGroup.
+// An environment(endpoint) can only have 1 EndpointGroup.
 //
 // A user may have 1 role in each assigned EndpointGroups.
 func getRoleFromUserEndpointGroupPolicy(user *portainer.User,
@@ -1324,7 +1324,7 @@ func getRoleFromUserEndpointGroupPolicy(user *portainer.User,
 	return getKeyRole(policyRoles, roles)
 }
 
-// A team may have 1 role in each assigned Endpoints
+// A team may have 1 role in each assigned environments(endpoints)
 func getRoleFromTeamAccessPolicies(
 	memberships []portainer.TeamMembership,
 	teamAccessPolicies portainer.TeamAccessPolicies,
@@ -1345,7 +1345,7 @@ func getRoleFromTeamAccessPolicies(
 	return getKeyRole(policyRoles, roles)
 }
 
-// An endpoint can only have 1 EndpointGroup.
+// An environment(endpoint) can only have 1 EndpointGroup.
 //
 // A team may have 1 role in each assigned EndpointGroups.
 func getRoleFromTeamEndpointGroupPolicies(memberships []portainer.TeamMembership,

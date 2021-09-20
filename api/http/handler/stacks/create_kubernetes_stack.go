@@ -336,7 +336,7 @@ func (handler *Handler) checkEndpointPermission(r *http.Request, namespace strin
 		return tokenData.Username, nil
 	}
 
-	// check if the user has OperationK8sApplicationsAdvancedDeploymentRW access in the endpoint
+	// check if the user has OperationK8sApplicationsAdvancedDeploymentRW access in the environment(endpoint)
 	endpointRole, err := handler.AuthorizationService.GetUserEndpointRole(int(tokenData.ID), int(endpoint.ID))
 	if err != nil {
 		return "", &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: permissionDeniedErr.Error(), Err: err}

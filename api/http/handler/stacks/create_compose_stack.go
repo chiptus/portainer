@@ -24,7 +24,7 @@ type composeStackFromFileContentPayload struct {
 	Name string `example:"myStack" validate:"required"`
 	// Content of the Stack file
 	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx" validate:"required"`
-	// A list of environment variables used during stack deployment
+	// A list of environment(endpoint) variables used during stack deployment
 	Env []portainer.Pair
 }
 
@@ -120,7 +120,7 @@ type composeStackFromGitRepositoryPayload struct {
 	AdditionalFiles []string `example:"[nz.compose.yml, uat.compose.yml]"`
 	// Optional auto update configuration
 	AutoUpdate *portainer.StackAutoUpdate
-	// A list of environment variables used during stack deployment
+	// A list of environment(endpoint) variables used during stack deployment
 	Env []portainer.Pair
 }
 

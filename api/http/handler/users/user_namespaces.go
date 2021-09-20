@@ -12,7 +12,7 @@ import (
 )
 
 // GET request on /api/users/:id/namespaces
-// returns user's role authorizations of all namespaces in all k8s endpoints
+// returns user's role authorizations of all namespaces in all k8s environments(endpoints)
 func (handler *Handler) userNamespaces(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	userID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
@@ -37,7 +37,7 @@ func (handler *Handler) userNamespaces(w http.ResponseWriter, r *http.Request) *
 	results := make(map[int]map[string]portainer.Authorizations)
 	for _, endpoint := range endpoints {
 
-		// skip non k8s endpoints
+		// skip non k8s environments(endpoints)
 		if endpoint.Type != portainer.KubernetesLocalEnvironment &&
 			endpoint.Type != portainer.AgentOnKubernetesEnvironment &&
 			endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment {

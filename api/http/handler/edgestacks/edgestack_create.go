@@ -69,8 +69,8 @@ type swarmStackFromFileContentPayload struct {
 	EdgeGroups []portainer.EdgeGroupID `example:"1"`
 	// Deployment type to deploy this stack
 	// Valid values are: 0 - 'compose', 1 - 'kubernetes'
-	// for compose stacks will use kompose to convert to kubernetes manifest for kubernetes endpoints
-	// kubernetes deploytype is enabled only for kubernetes endpoints
+	// for compose stacks will use kompose to convert to kubernetes manifest for kubernetes environments(endpoints)
+	// kubernetes deploytype is enabled only for kubernetes environments(endpoints)
 	DeploymentType portainer.EdgeStackDeploymentType `example:"0" enums:"0,1"`
 }
 
@@ -138,11 +138,11 @@ func (handler *Handler) createSwarmStackFromFileContent(r *http.Request) (*porta
 	} else {
 		hasDockerEndpoint, err := hasDockerEndpoint(handler.DataStore.Endpoint(), relatedEndpointIds)
 		if err != nil {
-			return nil, fmt.Errorf("unable to check for existence of docker endpoint: %w", err)
+			return nil, fmt.Errorf("unable to check for existence of docker environment: %w", err)
 		}
 
 		if hasDockerEndpoint {
-			return nil, fmt.Errorf("edge stack with docker endpoint cannot be deployed with kubernetes config")
+			return nil, fmt.Errorf("edge stack with docker environment cannot be deployed with kubernetes config")
 		}
 
 		stack.ManifestPath = filesystem.ManifestFileDefaultName
@@ -157,7 +157,7 @@ func (handler *Handler) createSwarmStackFromFileContent(r *http.Request) (*porta
 
 	err = updateEndpointRelations(handler.DataStore.EndpointRelation(), stack.ID, relatedEndpointIds)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to update endpoint relations: %w", err)
+		return nil, fmt.Errorf("Unable to update environment relations: %w", err)
 	}
 
 	err = handler.DataStore.EdgeStack().CreateEdgeStack(stack)
@@ -189,8 +189,8 @@ type swarmStackFromGitRepositoryPayload struct {
 	EdgeGroups []portainer.EdgeGroupID `example:"1"`
 	// Deployment type to deploy this stack
 	// Valid values are: 0 - 'compose', 1 - 'kubernetes'
-	// for compose stacks will use kompose to convert to kubernetes manifest for kubernetes endpoints
-	// kubernetes deploytype is enabled only for kubernetes endpoints
+	// for compose stacks will use kompose to convert to kubernetes manifest for kubernetes environments(endpoints)
+	// kubernetes deploytype is enabled only for kubernetes environments(endpoints)
 	DeploymentType portainer.EdgeStackDeploymentType `example:"0" enums:"0,1"`
 }
 
@@ -253,7 +253,7 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request) (*por
 
 	relatedEndpointIds, err := edge.EdgeStackRelatedEndpoints(stack.EdgeGroups, relationConfig.endpoints, relationConfig.endpointGroups, relationConfig.edgeGroups)
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve related endpoints: %w", err)
+		return nil, fmt.Errorf("unable to retrieve related environment: %w", err)
 	}
 
 	err = handler.GitService.CloneRepository(projectPath, payload.RepositoryURL, payload.RepositoryReferenceName, repositoryUsername, repositoryPassword)
@@ -274,7 +274,7 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request) (*por
 
 	err = updateEndpointRelations(handler.DataStore.EndpointRelation(), stack.ID, relatedEndpointIds)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to update endpoint relations: %w", err)
+		return nil, fmt.Errorf("Unable to update environment relations: %w", err)
 	}
 
 	err = handler.DataStore.EdgeStack().CreateEdgeStack(stack)
@@ -356,7 +356,7 @@ func (handler *Handler) createSwarmStackFromFileUpload(r *http.Request) (*portai
 
 	relatedEndpointIds, err := edge.EdgeStackRelatedEndpoints(stack.EdgeGroups, relationConfig.endpoints, relationConfig.endpointGroups, relationConfig.edgeGroups)
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve related endpoints: %w", err)
+		return nil, fmt.Errorf("unable to retrieve related environment: %w", err)
 	}
 
 	stackFolder := strconv.Itoa(int(stack.ID))
@@ -386,7 +386,7 @@ func (handler *Handler) createSwarmStackFromFileUpload(r *http.Request) (*portai
 
 	err = updateEndpointRelations(handler.DataStore.EndpointRelation(), stack.ID, relatedEndpointIds)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to update endpoint relations: %w", err)
+		return nil, fmt.Errorf("Unable to update environment relations: %w", err)
 	}
 
 	err = handler.DataStore.EdgeStack().CreateEdgeStack(stack)
@@ -413,19 +413,19 @@ func (handler *Handler) validateUniqueName(name string) error {
 	return nil
 }
 
-// updateEndpointRelations adds a relation between the Edge Stack to the related endpoints
+// updateEndpointRelations adds a relation between the Edge Stack to the related environments(endpoints)
 func updateEndpointRelations(endpointRelationService portainer.EndpointRelationService, edgeStackID portainer.EdgeStackID, relatedEndpointIds []portainer.EndpointID) error {
 	for _, endpointID := range relatedEndpointIds {
 		relation, err := endpointRelationService.EndpointRelation(endpointID)
 		if err != nil {
-			return fmt.Errorf("unable to find endpoint relation in database: %w", err)
+			return fmt.Errorf("unable to find environment relation in database: %w", err)
 		}
 
 		relation.EdgeStacks[edgeStackID] = true
 
 		err = endpointRelationService.UpdateEndpointRelation(endpointID, relation)
 		if err != nil {
-			return fmt.Errorf("unable to persist endpoint relation in database: %w", err)
+			return fmt.Errorf("unable to persist environment relation in database: %w", err)
 		}
 	}
 

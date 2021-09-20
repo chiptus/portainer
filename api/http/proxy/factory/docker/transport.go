@@ -479,7 +479,7 @@ func (transport *Transport) restrictedResourceOperation(request *http.Request, r
 			}
 
 			if !securitySettings.AllowVolumeBrowserForRegularUsers {
-				// Return access denied for all roles except endpoint-administrator
+				// Return access denied for all roles except environment(endpoint)-administrator
 				_, userCanBrowse := user.EndpointAuthorizations[transport.endpoint.ID][portainer.OperationDockerAgentBrowseList]
 				if !userCanBrowse {
 					return utils.WriteAccessDeniedResponse()

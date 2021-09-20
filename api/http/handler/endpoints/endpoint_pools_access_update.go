@@ -52,7 +52,7 @@ func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http
 	}
 
 	if tokenData.Role != portainer.AdministratorRole {
-		// check if the user has Configuration RW access in the endpoint
+		// check if the user has Configuration RW access in the environment(endpoint)
 		endpointRole, err := handler.AuthorizationService.GetUserEndpointRole(int(tokenData.ID), int(endpoint.ID))
 		if err != nil {
 			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
@@ -79,8 +79,8 @@ func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http
 	// frontend will handle the configmap update
 	if payload.UsersToAdd != nil && len(payload.UsersToAdd) > 0 {
 		for _, userID := range payload.UsersToAdd {
-			// make sure the user has a role in the current endpoint, thus is managed
-			// by the current endpoint admin
+			// make sure the user has a role in the current environment(endpoint), thus is managed
+			// by the current environment(endpoint) admin
 			role, err := handler.AuthorizationService.GetUserEndpointRole(userID, endpointID)
 			if err != nil {
 				errs = append(errs, fmt.Errorf("Unable to get user environment access %d @ %d: %w", userID, endpointID, err).Error())
@@ -93,15 +93,15 @@ func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http
 	}
 
 	// for users been removed, we refresh his token cache and remove his role bindings
-	// in the namespaces of the specified endpoint. frontend will handle the configmap update
+	// in the namespaces of the specified environment(endpoint). frontend will handle the configmap update
 	if payload.UsersToRemove != nil && len(payload.UsersToRemove) > 0 {
 		kcl, err := handler.K8sClientFactory.GetKubeClient(endpoint)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("Unable to get k8s environment access @ %d: %w", endpointID, err).Error())
 		} else {
 			for _, userID := range payload.UsersToRemove {
-				// make sure the user has a role in the current endpoint, thus is managed
-				// by the current endpoint admin
+				// make sure the user has a role in the current environment(endpoint), thus is managed
+				// by the current environment(endpoint) admin
 				role, err := handler.AuthorizationService.GetUserEndpointRole(userID, endpointID)
 				if err != nil {
 					errs = append(errs, fmt.Errorf("Unable to get user environment access %d @ %d: %w", userID, endpointID, err).Error())

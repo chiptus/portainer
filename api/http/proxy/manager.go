@@ -18,7 +18,7 @@ import (
 // TODO: contain code related to legacy extension management
 
 type (
-	// Manager represents a service used to manage proxies to endpoints and extensions.
+	// Manager represents a service used to manage proxies to environments(endpoints) and extensions.
 	Manager struct {
 		proxyFactory           *factory.ProxyFactory
 		endpointProxies        cmap.ConcurrentMap
@@ -55,7 +55,7 @@ func NewManager(
 	}
 }
 
-// CreateAndRegisterEndpointProxy creates a new HTTP reverse proxy based on endpoint properties and and adds it to the registered proxies.
+// CreateAndRegisterEndpointProxy creates a new HTTP reverse proxy based on environment(endpoint) properties and and adds it to the registered proxies.
 // It can also be used to create a new HTTP reverse proxy and replace an already registered proxy.
 func (manager *Manager) CreateAndRegisterEndpointProxy(endpoint *portainer.Endpoint) (http.Handler, error) {
 	proxy, err := manager.proxyFactory.NewEndpointProxy(endpoint)
@@ -67,7 +67,7 @@ func (manager *Manager) CreateAndRegisterEndpointProxy(endpoint *portainer.Endpo
 	return proxy, nil
 }
 
-// CreateComposeProxyServer creates a new HTTP reverse proxy based on endpoint properties and and adds it to the registered proxies.
+// CreateComposeProxyServer creates a new HTTP reverse proxy based on environment(endpoint) properties and and adds it to the registered proxies.
 // It can also be used to create a new HTTP reverse proxy and replace an already registered proxy.
 func (manager *Manager) CreateComposeProxyServer(endpoint *portainer.Endpoint) (*factory.ProxyServer, error) {
 	return manager.proxyFactory.NewDockerComposeAgentProxy(endpoint)
@@ -84,7 +84,7 @@ func (manager *Manager) GetEndpointProxy(endpoint *portainer.Endpoint) http.Hand
 }
 
 // DeleteEndpointProxy deletes the proxy associated to a key
-// and cleans the k8s endpoint client cache. DeleteEndpointProxy
+// and cleans the k8s environment(endpoint) client cache. DeleteEndpointProxy
 // is currently only called for edge connection clean up.
 func (manager *Manager) DeleteEndpointProxy(endpoint *portainer.Endpoint) {
 	manager.endpointProxies.Remove(fmt.Sprint(endpoint.ID))

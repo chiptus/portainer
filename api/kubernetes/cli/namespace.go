@@ -22,7 +22,7 @@ func defaultSystemNamespaces() map[string]struct{} {
 	}
 }
 
-// GetNamespaces gets the namespaces in the current k8s endpoint connection
+// GetNamespaces gets the namespaces in the current k8s environment(endpoint) connection
 func (kcl *KubeClient) GetNamespaces() (map[string]portainer.K8sNamespaceInfo, error) {
 	namespaces, err := kcl.cli.CoreV1().Namespaces().List(metav1.ListOptions{})
 	if err != nil {

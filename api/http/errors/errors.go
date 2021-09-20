@@ -3,7 +3,7 @@ package errors
 import "errors"
 
 var (
-	// ErrEndpointAccessDenied Access denied to endpoint error
+	// ErrEndpointAccessDenied Access denied to environment(endpoint) error
 	ErrEndpointAccessDenied = errors.New("Access denied to environment")
 	// ErrNoValidLicense Unauthorized error
 	ErrNoValidLicense = errors.New("No valid Portainer License found")

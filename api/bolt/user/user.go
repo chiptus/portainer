@@ -13,7 +13,7 @@ const (
 	BucketName = "users"
 )
 
-// Service represents a service for managing endpoint data.
+// Service represents a service for managing environment(endpoint) data.
 type Service struct {
 	connection *internal.DbConnection
 }

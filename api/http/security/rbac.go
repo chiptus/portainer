@@ -9,7 +9,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 )
 
-// IsAdminOrEndpointAdmin checks if current request is for an admin or an endpoint admin
+// IsAdminOrEndpointAdmin checks if current request is for an admin or an environment(endpoint) admin
 func IsAdminOrEndpointAdmin(request *http.Request, dataStore portainer.DataStore, endpointID portainer.EndpointID) (bool, error) {
 	tokenData, err := RetrieveTokenData(request)
 	if err != nil {
@@ -70,7 +70,7 @@ func getOperationAuthorization(url, method string) portainer.Authorization {
 		return portainer.OperationIntegrationStoridgeAdmin
 	} else if k8sProxyRule.MatchString(url) {
 		// if the k8sProxyRule is matched, only tests if the user can access
-		// the current endpoint. The namespace + resource authorization
+		// the current environment(endpoint). The namespace + resource authorization
 		// is done in the k8s level.
 		return portainer.OperationK8sResourcePoolsR
 	} else if azureRule.MatchString(url) {

@@ -26,12 +26,12 @@ import (
 // @tags websocket
 // @accept json
 // @produce json
-// @param endpointId query int true "endpoint ID of the endpoint where the resource is located"
+// @param endpointId query int true "environment(endpoint) ID of the environment(endpoint) where the resource is located"
 // @param namespace query string true "namespace where the container is located"
 // @param podName query string true "name of the pod containing the container"
 // @param containerName query string true "name of the container"
 // @param command query string true "command to execute in the container"
-// @param token query string true "JWT token used for authentication against this endpoint"
+// @param token query string true "JWT token used for authentication against this environment(endpoint)"
 // @success 200
 // @failure 400
 // @failure 403
@@ -83,7 +83,7 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 	}
 
 	if tokenData.Role != portainer.AdministratorRole {
-		// check if the user has console RW access in the endpoint
+		// check if the user has console RW access in the environment(endpoint)
 		endpointRole, err := handler.authorizationService.GetUserEndpointRole(int(tokenData.ID), int(endpoint.ID))
 		if err != nil {
 			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}

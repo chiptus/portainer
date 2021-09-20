@@ -39,8 +39,8 @@ func NewRequestBouncer(dataStore portainer.DataStore, licenseService portainer.L
 	}
 }
 
-// PublicAccess defines a security check for public API endpoints.
-// No authentication is required to access these endpoints.
+// PublicAccess defines a security check for public API environments(endpoints).
+// No authentication is required to access these environments(endpoints).
 func (bouncer *RequestBouncer) PublicAccess(h http.Handler) http.Handler {
 	h = mwSecureHeaders(h)
 	return h
@@ -52,8 +52,8 @@ func (bouncer *RequestBouncer) AdminAccess(h http.Handler) http.Handler {
 	return bouncer.RestrictedAccess(h)
 }
 
-// RestrictedAccess defines a security check for restricted API endpoints.
-// Authentication and authorizations are required to access these endpoints.
+// RestrictedAccess defines a security check for restricted API environments(endpoints).
+// Authentication and authorizations are required to access these environments(endpoints).
 // The request context will be enhanced with a RestrictedRequestContext object
 // that might be used later to inside the API operation for extra authorization validation
 // and resource filtering.
@@ -71,8 +71,8 @@ func (bouncer *RequestBouncer) RestrictedAccess(h http.Handler) http.Handler {
 	return h
 }
 
-// AuthenticatedAccess defines a security check for restricted API endpoints.
-// Authentication is required to access these endpoints.
+// AuthenticatedAccess defines a security check for restricted API environments(endpoints).
+// Authentication is required to access these environments(endpoints).
 // The request context will be enhanced with a RestrictedRequestContext object
 // that might be used later to inside the API operation for extra authorization validation
 // and resource filtering.
@@ -87,9 +87,9 @@ func (bouncer *RequestBouncer) AuthenticatedAccess(h http.Handler) http.Handler 
 }
 
 // AuthorizedEndpointOperation retrieves the JWT token from the request context and verifies
-// that the user can access the specified endpoint.
+// that the user can access the specified environment(endpoint).
 // If the authorizationCheck flag is set, it will also validate that the user can execute the specified operation.
-// An error is returned when access to the endpoint is denied or if the user do not have the required
+// An error is returned when access to the environment(endpoint) is denied or if the user do not have the required
 // authorization to execute the operation.
 func (bouncer *RequestBouncer) AuthorizedEndpointOperation(r *http.Request, endpoint *portainer.Endpoint, authorizationCheck bool) error {
 	tokenData, err := RetrieveTokenData(r)
@@ -125,7 +125,7 @@ func (bouncer *RequestBouncer) AuthorizedEndpointOperation(r *http.Request, endp
 	return nil
 }
 
-// AuthorizedEdgeEndpointOperation verifies that the request was received from a valid Edge endpoint
+// AuthorizedEdgeEndpointOperation verifies that the request was received from a valid Edge environment(endpoint)
 func (bouncer *RequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portainer.Endpoint) error {
 	if endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment && endpoint.Type != portainer.EdgeAgentOnDockerEnvironment {
 		return errors.New("Invalid environment type")
@@ -207,7 +207,7 @@ func (bouncer *RequestBouncer) mwCheckLicense(next http.Handler) http.Handler {
 }
 
 // mwCheckPortainerAuthorizations will verify that the user has the required authorization to access
-// a specific API endpoint.
+// a specific API environment(endpoint).
 func (bouncer *RequestBouncer) mwCheckPortainerAuthorizations(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenData, err := RetrieveTokenData(r)

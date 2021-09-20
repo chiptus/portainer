@@ -22,7 +22,7 @@ func NewService() *Service {
 	return &Service{}
 }
 
-// Authenticate takes an access code and exchanges it for an access token from portainer OAuthSettings token endpoint.
+// Authenticate takes an access code and exchanges it for an access token from portainer OAuthSettings token environment(endpoint).
 // On success, it will then return an OAuthInfo struct associated to authenticated user.
 // The OAuthInfo struct contains data associated to the authenticated user.
 // This data is obtained from the OAuth providers resource server and matched with the attributes of the user identifier(s).
