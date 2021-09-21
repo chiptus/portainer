@@ -1510,6 +1510,7 @@ type (
 		SetTunnelStatusToActive(endpointID EndpointID)
 		SetTunnelStatusToRequired(endpointID EndpointID) error
 		SetTunnelStatusToIdle(endpointID EndpointID)
+		KeepTunnelAlive(endpointID EndpointID, ctx context.Context, maxKeepAlive time.Duration)
 		GetTunnelDetails(endpointID EndpointID) *TunnelDetails
 		AddEdgeJob(endpointID EndpointID, edgeJob *EdgeJob)
 		RemoveEdgeJob(edgeJobID EdgeJobID)
@@ -1705,6 +1706,8 @@ const (
 	DefaultUserSessionTimeout = "8h"
 	// DefaultUserSessionTimeout represents the default timeout after which the user session is cleared
 	DefaultKubeconfigExpiry = "0"
+	// WebSocketKeepAlive web socket keep alive for edge environments
+	WebSocketKeepAlive = 1 * time.Hour
 )
 
 const (

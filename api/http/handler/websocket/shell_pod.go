@@ -1,14 +1,13 @@
 package websocket
 
 import (
-	"net/http"
-
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	portainer "github.com/portainer/portainer/api"
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/http/useractivity"
+	"net/http"
 )
 
 // websocketShellPodExec handles GET requests on /websocket/pod?token=<token>&endpointId=<endpointID>
