@@ -136,7 +136,9 @@
   --bg-tooltip-color: var(--white-color);
   --bg-input-sm-color: var(--white-color);
   --bg-service-datatable-thead: var(--grey-23);
+  --bg-app-datatable-thead: var(--grey-23);
   --bg-service-datatable-tbody: var(--grey-24);
+  --bg-app-datatable-tbody: var(--grey-24);
   --bg-multiselect-color: var(--white-color);
   --bg-daterangepicker-color: var(--white-color);
   --bg-calendar-color: var(--white-color);
@@ -296,7 +298,9 @@
   --bg-tooltip-color: var(--grey-3);
   --bg-input-sm-color: var(--grey-1);
   --bg-service-datatable-thead: var(--grey-1);
+  --bg-app-datatable-thead: var(--grey-1);
   --bg-service-datatable-tbody: var(--grey-1);
+  --bg-app-datatable-tbody: var(--grey-1);
   --bg-multiselect-color: var(--grey-1);
   --bg-daterangepicker-color: var(--grey-3);
   --bg-calendar-color: var(--grey-3);
@@ -449,7 +453,9 @@
   --bg-input-sm-color: var(--black-color);
   --bg-item-highlighted-color: var(--black-color);
   --bg-service-datatable-thead: var(--black-color);
+  --bg-app-datatable-thead: var(--black-color);
   --bg-service-datatable-tbody: var(--black-color);
+  --bg-app-datatable-tbody: var(--black-color);
   --bg-pagination-color: var(--grey-3);
   --bg-pagination-span-color: var(--grey-3);
   --bg-multiselect-color: var(--grey-1);
