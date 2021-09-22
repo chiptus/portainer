@@ -39,7 +39,7 @@ For community support: You can find more information about Portainer's community
 
 - Issues: https://github.com/portainer/portainer/issues
 - FAQ: https://documentation.portainer.io
-- Slack (chat): https://portainer.io/slack/
+- Slack (chat): [https://portainer.slack.com/](https://join.slack.com/t/portainer/shared_invite/zt-txh3ljab-52QHTyjCqbe5RibC2lcjKA)
 
 ## Reporting bugs and contributing
 
