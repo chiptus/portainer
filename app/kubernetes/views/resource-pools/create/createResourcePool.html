@@ -471,7 +471,7 @@
             </div>
 
             <!-- summary -->
-            <kubernetes-summary-view ng-if="resourcePoolCreationForm.$valid && !ctrl.isCreateButtonDisabled()" form-values="ctrl.formValues"></kubernetes-summary-view>
+            <kubernetes-summary-view ng-if="resourcePoolCreationForm.$valid && !$ctrl.isCreateButtonDisabled()" form-values="$ctrl.formValues"></kubernetes-summary-view>
             <!-- !summary -->
 
             <div class="col-sm-12 form-section-title">
