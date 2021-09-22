@@ -111,7 +111,9 @@ class KubernetesDeployController {
       this.state.BuildMethod === KubernetesDeployBuildMethods.WEB_EDITOR && _.isEmpty(this.formValues.EditorContent) && _.isEmpty(this.formValues.Namespace);
     const isURLFormInvalid = this.state.BuildMethod == KubernetesDeployBuildMethods.WEB_EDITOR.URL && _.isEmpty(this.formValues.ManifestURL);
 
-    return isGitFormInvalid || isWebEditorInvalid || isURLFormInvalid || this.state.actionInProgress;
+    const isNamespaceInvalid = _.isEmpty(this.formValues.Namespace);
+
+    return isGitFormInvalid || isWebEditorInvalid || isURLFormInvalid || this.state.actionInProgress || isNamespaceInvalid;
   }
 
   onChangeFormValues(values) {
@@ -233,7 +235,9 @@ class KubernetesDeployController {
         return 0;
       });
       this.namespaces = namespaces;
-      this.formValues.Namespace = this.namespaces[0].Name;
+      if (this.namespaces.length > 0) {
+        this.formValues.Namespace = this.namespaces[0].Name;
+      }
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to load namespaces data');
     }
