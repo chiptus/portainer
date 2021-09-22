@@ -2,6 +2,7 @@ package migrator
 
 import (
 	"fmt"
+	"log"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/bolt/errors"
@@ -199,6 +200,7 @@ func (m *Migrator) updateVolumeResourceControlToDB32() error {
 
 		totalSnapshots := len(endpoint.Snapshots)
 		if totalSnapshots == 0 {
+			log.Println("[DEBUG] [volume migration] [message: no snapshot found]")
 			continue
 		}
 
@@ -211,6 +213,7 @@ func (m *Migrator) updateVolumeResourceControlToDB32() error {
 
 		if volumesData, done := snapshot.SnapshotRaw.Volumes.(map[string]interface{}); done {
 			if volumesData["Volumes"] == nil {
+				log.Println("[DEBUG] [volume migration] [message: no volume data found]")
 				continue
 			}
 
@@ -231,7 +234,7 @@ func (m *Migrator) updateVolumeResourceControlToDB32() error {
 			if err != nil {
 				return fmt.Errorf("failed deleting resource control %d: %w", resourceControl.ID, err)
 			}
-
+			log.Printf("[DEBUG] [volume migration] [message: legacy resource control(%s) has been deleted]", resourceControl.ResourceID)
 		}
 	}
 
