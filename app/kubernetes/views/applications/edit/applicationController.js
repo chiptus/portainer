@@ -216,7 +216,7 @@ class KubernetesApplicationController {
       const revision = _.nth(this.application.Revisions, -2);
       await this.KubernetesApplicationService.rollback(this.application, revision);
       this.Notifications.success('Application successfully rolled back');
-      this.$state.reload();
+      this.$state.reload(this.$state.current);
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to rollback the application');
     }
@@ -237,7 +237,7 @@ class KubernetesApplicationController {
       const promises = _.map(this.application.Pods, (item) => this.KubernetesPodService.delete(item));
       await Promise.all(promises);
       this.Notifications.success('Application successfully redeployed');
-      this.$state.reload();
+      this.$state.reload(this.$state.current);
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to redeploy the application');
     }
@@ -260,7 +260,7 @@ class KubernetesApplicationController {
       application.Note = this.formValues.Note;
       await this.KubernetesApplicationService.patch(this.application, application, true);
       this.Notifications.success('Application successfully updated');
-      this.$state.reload();
+      this.$state.reload(this.$state.current);
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to update application');
     }

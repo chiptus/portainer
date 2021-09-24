@@ -50,7 +50,7 @@ class KubernetesConfigurationsController {
       } finally {
         --actionCount;
         if (actionCount === 0) {
-          this.$state.reload();
+          this.$state.reload(this.$state.current);
         }
       }
     }

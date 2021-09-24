@@ -46,7 +46,7 @@ class KubernetesApplicationsController {
       } finally {
         --actionCount;
         if (actionCount === 0) {
-          this.$state.reload();
+          this.$state.reload(this.$state.current);
         }
       }
     }
@@ -80,7 +80,7 @@ class KubernetesApplicationsController {
       } finally {
         --actionCount;
         if (actionCount === 0) {
-          this.$state.reload();
+          this.$state.reload(this.$state.current);
         }
       }
     }

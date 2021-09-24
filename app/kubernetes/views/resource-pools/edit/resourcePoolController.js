@@ -183,7 +183,7 @@ class KubernetesResourcePoolController {
       this.checkDefaults();
       await this.KubernetesResourcePoolService.patch(oldFormValues, newFormValues);
       this.Notifications.success('Namespace successfully updated', this.pool.Namespace.Name);
-      this.$state.reload();
+      this.$state.reload(this.$state.current);
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to create namespace');
     } finally {
@@ -245,7 +245,7 @@ class KubernetesResourcePoolController {
         await this.KubernetesResourcePoolService.toggleSystem(this.endpoint.Id, namespaceName, !this.isSystem);
 
         this.Notifications.success('Namespace successfully updated', namespaceName);
-        this.$state.reload();
+        this.$state.reload(this.$state.current);
       } catch (err) {
         this.Notifications.error('Failure', err, 'Unable to create namespace');
       } finally {
