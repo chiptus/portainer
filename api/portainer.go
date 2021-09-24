@@ -1512,6 +1512,7 @@ type (
 		SetTunnelStatusToIdle(endpointID EndpointID)
 		KeepTunnelAlive(endpointID EndpointID, ctx context.Context, maxKeepAlive time.Duration)
 		GetTunnelDetails(endpointID EndpointID) *TunnelDetails
+		GetActiveTunnel(endpoint *Endpoint) (*TunnelDetails, error)
 		AddEdgeJob(endpointID EndpointID, edgeJob *EdgeJob)
 		RemoveEdgeJob(edgeJobID EdgeJobID)
 	}

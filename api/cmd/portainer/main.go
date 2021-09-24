@@ -127,8 +127,8 @@ func initSwarmStackManager(assetsPath string, configPath string, signatureServic
 	return exec.NewSwarmStackManager(assetsPath, configPath, signatureService, fileService, reverseTunnelService)
 }
 
-func initKubernetesDeployer(authService *authorization.Service, kubernetesTokenCacheManager *kubeproxy.TokenCacheManager, kubernetesClientFactory *kubecli.ClientFactory, dataStore portainer.DataStore, reverseTunnelService portainer.ReverseTunnelService, signatureService portainer.DigitalSignatureService, assetsPath string) portainer.KubernetesDeployer {
-	return exec.NewKubernetesDeployer(authService, kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, reverseTunnelService, signatureService, assetsPath)
+func initKubernetesDeployer(authService *authorization.Service, kubernetesTokenCacheManager *kubeproxy.TokenCacheManager, kubernetesClientFactory *kubecli.ClientFactory, dataStore portainer.DataStore, reverseTunnelService portainer.ReverseTunnelService, signatureService portainer.DigitalSignatureService, proxyManager *proxy.Manager, assetsPath string) portainer.KubernetesDeployer {
+	return exec.NewKubernetesDeployer(authService, kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, reverseTunnelService, signatureService, proxyManager, assetsPath)
 }
 
 func initHelmPackageManager(assetsPath string) (libhelm.HelmPackageManager, error) {
@@ -502,7 +502,7 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 		log.Fatalf("failed initializing swarm stack manager: %s", err)
 	}
 
-	kubernetesDeployer := initKubernetesDeployer(authorizationService, kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, reverseTunnelService, digitalSignatureService, *flags.Assets)
+	kubernetesDeployer := initKubernetesDeployer(authorizationService, kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, reverseTunnelService, digitalSignatureService, proxyManager, *flags.Assets)
 
 	helmPackageManager, err := initHelmPackageManager(*flags.Assets)
 	if err != nil {
