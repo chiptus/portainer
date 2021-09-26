@@ -61,7 +61,12 @@ angular.module('portainer').config([
       },
     ]);
 
-    toastr.options.timeOut = 3000;
+    toastr.options = {
+      timeOut: 3000,
+      closeButton: true,
+      progressBar: true,
+      tapToDismiss: false,
+    };
 
     Terminal.applyAddon(fit);
 
