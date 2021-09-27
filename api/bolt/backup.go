@@ -13,10 +13,12 @@ import (
 
 var backupDefaults = struct {
 	backupDir        string
+	commonDir        string
 	editions         []string
 	databaseFileName string
 }{
 	"backups",
+	"common",
 	[]string{"CE", "BE", "EE"},
 	databaseFileName,
 }
@@ -29,14 +31,21 @@ var backupLog = plog.NewScopedLog("bolt, backup")
 
 // createBackupFolders create initial folders for backups
 func (store *Store) createBackupFolders() {
+	// create common dir
+	commonDir := store.commonBackupDir()
+	if exists, _ := store.fileService.FileExists(commonDir); !exists {
+		if err := os.MkdirAll(commonDir, 0700); err != nil {
+			backupLog.Error("Error while creating common backup folder", err)
+		}
+	}
+
+	// create backup folders for editions
 	for _, e := range backupDefaults.editions {
-
 		p := path.Join(store.path, backupDefaults.backupDir, e)
-
 		if exists, _ := store.fileService.FileExists(p); !exists {
 			err := os.MkdirAll(p, 0700)
 			if err != nil {
-				backupLog.Error("Error while creating backup folders", err)
+				backupLog.Error("Error while creating edition backup folders", err)
 			}
 		}
 	}
@@ -44,6 +53,10 @@ func (store *Store) createBackupFolders() {
 
 func (store *Store) databasePath() string {
 	return path.Join(store.path, databaseFileName)
+}
+
+func (store *Store) commonBackupDir() string {
+	return path.Join(store.path, backupDefaults.backupDir, backupDefaults.commonDir)
 }
 
 func (store *Store) editionBackupDir(edition portainer.SoftwareEdition) string {
@@ -143,13 +156,10 @@ func (store *Store) Backup() (string, error) {
 // - default: restore latest from current edition
 // - restore a specific
 func (store *Store) RestoreWithOptions(options *BackupOptions) error {
-
-	// Check if backup file exist before restoring
-
 	options = store.setupOptions(options)
 
+	// Check if backup file exist before restoring
 	_, err := os.Stat(options.BackupPath)
-
 	if os.IsNotExist(err) {
 		backupLog.Error(fmt.Sprintf("Backup file to restore does not exist %s", options.BackupPath), err)
 		return err
@@ -160,11 +170,13 @@ func (store *Store) RestoreWithOptions(options *BackupOptions) error {
 		backupLog.Error("Error while closing store before restore", err)
 		return err
 	}
+
 	backupLog.Info("Restoring db backup")
 	err = store.copyDBFile(options.BackupPath, store.databasePath())
 	if err != nil {
 		return err
 	}
+
 	return store.Open()
 }
 
@@ -177,5 +189,26 @@ func (store *Store) Restore() error {
 		return err
 	}
 	return store.RestoreWithOptions(options)
+}
 
+// RemoveWithOptions removes backup database based on supplied options
+func (store *Store) RemoveWithOptions(options *BackupOptions) error {
+	backupLog.Info("Removing db backup")
+
+	options = store.setupOptions(options)
+	_, err := os.Stat(options.BackupPath)
+
+	if os.IsNotExist(err) {
+		backupLog.Error(fmt.Sprintf("Backup file to remove does not exist %s", options.BackupPath), err)
+		return err
+	}
+
+	backupLog.Info(fmt.Sprintf("Removing db file at %s", options.BackupPath))
+	err = os.Remove(options.BackupPath)
+	if err != nil {
+		backupLog.Error("Failed", err)
+		return err
+	}
+
+	return nil
 }

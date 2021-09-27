@@ -3,6 +3,8 @@ package bolt
 import (
 	"fmt"
 	"log"
+	"os"
+	"path"
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
@@ -81,6 +83,18 @@ func TestBackup(t *testing.T) {
 		}
 		store.Close()
 	})
+	t.Run("BackupWithOption should create a name specific backup at common path", func(t *testing.T) {
+		store := NewTestStore(portainer.PortainerCE, portainer.DBVersion, false)
+		store.BackupWithOptions(&BackupOptions{
+			BackupFileName: beforePortainerVersionUpgradeBackup,
+			BackupDir:      store.commonBackupDir(),
+		})
+		backupFileName := path.Join("tmp", "backups", "common", beforePortainerVersionUpgradeBackup)
+		if !isFileExist(backupFileName) {
+			t.Errorf("Expect backup file to be created %s", backupFileName)
+		}
+		store.Close()
+	})
 
 	teardown()
 }
@@ -114,5 +128,48 @@ func TestRestore(t *testing.T) {
 		store.Close()
 	}
 
+	teardown()
+}
+
+func TestRemoveWithOptions(t *testing.T) {
+	store := NewTestStore(portainer.PortainerCE, portainer.DBVersion, false)
+
+	t.Run("successfully removes file if existent", func(t *testing.T) {
+		store.createBackupFolders()
+		options := &BackupOptions{
+			BackupDir:      store.commonBackupDir(),
+			BackupFileName: "test.txt",
+		}
+
+		filePath := path.Join(options.BackupDir, options.BackupFileName)
+		f, err := os.Create(filePath)
+		if err != nil {
+			t.Fatalf("file should be created; err=%s", err)
+		}
+		f.Close()
+
+		err = store.RemoveWithOptions(options)
+		if err != nil {
+			t.Errorf("RemoveWithOptions should successfully remove file; err=%w", err)
+		}
+
+		if isFileExist(f.Name()) {
+			t.Errorf("RemoveWithOptions should successfully remove file; file=%s", f.Name())
+		}
+	})
+
+	t.Run("fails to removes file if non-existent", func(t *testing.T) {
+		options := &BackupOptions{
+			BackupDir:      store.commonBackupDir(),
+			BackupFileName: "test.txt",
+		}
+
+		err := store.RemoveWithOptions(options)
+		if err == nil {
+			t.Error("RemoveWithOptions should fail for non-existent file")
+		}
+	})
+
+	store.Close()
 	teardown()
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/portainer/portainer/api/cli"
 
+	werrors "github.com/pkg/errors"
 	portainer "github.com/portainer/portainer/api"
 	errors "github.com/portainer/portainer/api/bolt/errors"
 	plog "github.com/portainer/portainer/api/bolt/log"
@@ -12,7 +13,10 @@ import (
 	"github.com/portainer/portainer/api/internal/authorization"
 )
 
-const beforePortainerUpgradeToEEBackup = "portainer.db.before-EE-upgrade"
+const (
+	beforePortainerUpgradeToEEBackup    = "portainer.db.before-EE-upgrade"
+	beforePortainerVersionUpgradeBackup = "portainer.db.bak"
+)
 
 var migrateLog = plog.NewScopedLog("bolt, migrate")
 
@@ -51,6 +55,19 @@ func (store *Store) MigrateData(force bool) error {
 		return err
 	}
 
+	// backup db file before upgrading DB to support rollback
+	isUpdating, err := store.VersionService.IsUpdating()
+	if err != nil && err != errors.ErrObjectNotFound {
+		return err
+	}
+
+	if !isUpdating && migrator.Version() != portainer.DBVersion {
+		err = store.backupVersion(migrator)
+		if err != nil {
+			return werrors.Wrapf(err, "failed to backup database")
+		}
+	}
+
 	if migrator.Edition() == portainer.PortainerCE {
 		// backup before migrating
 		store.BackupWithOptions(&BackupOptions{
@@ -83,7 +100,6 @@ func (store *Store) MigrateData(force bool) error {
 				store.RollbackFailedUpgradeToEE()
 				return err
 			}
-
 		}
 
 		// 3 – if DB is EE Edition we need to migrate to latest version of EE
@@ -197,19 +213,48 @@ func (store *Store) newMigrator() (*migrator.Migrator, error) {
 	return migrator.NewMigrator(params), nil
 }
 
-// RollbackVersion down migrate to previous version
-func (store *Store) RollbackVersion(version int) error {
-	// TODO
-	backupLog.NotImplemented("RollbackVersion")
+// getBackupRestoreOptions returns options to store db at common backup dir location; used by:
+// - db backup prior to version upgrade
+// - db rollback
+func getBackupRestoreOptions(store *Store) *BackupOptions {
+	return &BackupOptions{
+		BackupDir:      store.commonBackupDir(),
+		BackupFileName: beforePortainerVersionUpgradeBackup,
+	}
+}
+
+// backupVersion will backup the database or panic if any errors occur
+func (store *Store) backupVersion(migrator *migrator.Migrator) error {
+	migrateLog.Info("Backing up database prior to version upgrade...")
+
+	options := getBackupRestoreOptions(store)
+
+	_, err := store.BackupWithOptions(options)
+	if err != nil {
+		migrateLog.Error("An error occurred during database backup", err)
+		store.RemoveWithOptions(options)
+		return err
+	}
+
 	return nil
 }
 
-// RollbackEdition downgrade to previous edition
-func (store *Store) RollbackEdition(edition portainer.SoftwareEdition) error {
-	// TODO
-	backupLog.NotImplemented("RollbackEdition")
-	// Change Edition
-	// Migrate Services
-	// Restore Latest
-	return nil
+// Rollback to a pre-upgrade backup copy/snapshot of portainer.db
+func (store *Store) Rollback(force bool) error {
+
+	if !force {
+		confirmed, err := cli.Confirm("Are you sure you want to rollback your database to the previous backup?")
+		if err != nil || !confirmed {
+			return err
+		}
+	}
+
+	options := getBackupRestoreOptions(store)
+
+	err := store.RestoreWithOptions(options)
+	if err != nil {
+		return err
+	}
+
+	return store.Close()
 }

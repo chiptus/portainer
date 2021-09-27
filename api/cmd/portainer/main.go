@@ -73,7 +73,7 @@ func initFileService(dataStorePath string) portainer.FileService {
 	return fileService
 }
 
-func initDataStore(dataStorePath string, rollback bool, fileService portainer.FileService, shutdownCtx context.Context) portainer.DataStore {
+func initDataStore(dataStorePath string, rollback bool, rollbackToCE bool, fileService portainer.FileService, shutdownCtx context.Context) portainer.DataStore {
 	store, err := bolt.NewStore(dataStorePath, fileService)
 	if err != nil {
 		log.Fatalf("failed creating data store: %s", err)
@@ -84,12 +84,23 @@ func initDataStore(dataStorePath string, rollback bool, fileService portainer.Fi
 		log.Fatalf("failed opening store: %s", err)
 	}
 
+	if rollback {
+		err := store.Rollback(false)
+		if err != nil {
+			log.Fatalf("failed rolling back: %s", err)
+		}
+
+		log.Println("Exiting rollback")
+		os.Exit(0)
+		return nil
+	}
+
 	err = store.Init()
 	if err != nil {
 		log.Fatalf("failed initializing data store: %s", err)
 	}
 
-	if rollback {
+	if rollbackToCE {
 		err := store.RollbackToCE()
 		if err != nil {
 			log.Fatalf("failed rolling back to CE: %s", err)
@@ -429,7 +440,7 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 
 	fileService := initFileService(*flags.Data)
 
-	dataStore := initDataStore(*flags.Data, *flags.RollbackToCE, fileService, shutdownCtx)
+	dataStore := initDataStore(*flags.Data, *flags.Rollback, *flags.RollbackToCE, fileService, shutdownCtx)
 
 	jwtService, err := initJWTService(dataStore)
 	if err != nil {

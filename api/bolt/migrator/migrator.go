@@ -118,7 +118,6 @@ func (migrator *Migrator) Edition() portainer.SoftwareEdition {
 func (migrator *Migrator) Migrate(version int) error {
 
 	migrateLog.Info(fmt.Sprintf("Migrating %s database from version %d to %d.", migrator.Edition().GetEditionLabel(), migrator.currentDBVersion, version))
-	// TODO : run backup before migration and restore if failed
 	err := migrator.MigrateCE() //CE
 	if err != nil {
 		migrateLog.Error("An error occurred during database migration", err)
@@ -129,18 +128,4 @@ func (migrator *Migrator) Migrate(version int) error {
 	migrator.currentDBVersion = version
 
 	return nil
-}
-
-// RollbackVersion rolls back the db to version
-func (migrator *Migrator) RollbackVersion(version int) error {
-
-	err := migrator.versionService.StoreDBVersion(version) // portainer.DBVersion
-	return err
-}
-
-// RollbackEdition rolls back the db to portainer CE
-func (migrator *Migrator) RollbackEdition(edition portainer.SoftwareEdition) error {
-
-	err := migrator.versionService.StoreEdition(portainer.PortainerCE)
-	return err
 }

@@ -3,6 +3,8 @@ package bolt
 import (
 	"fmt"
 	"log"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/boltdb/bolt"
@@ -84,6 +86,74 @@ func TestMigrateData(t *testing.T) {
 		store.Close()
 	})
 
+	t.Run("MigrateData should create backup file upon update", func(t *testing.T) {
+		version := 21
+		store = NewTestStore(portainer.PortainerCE, version, true)
+
+		store.MigrateData(true)
+
+		options := getBackupRestoreOptions(store)
+		options = store.setupOptions(options)
+
+		if !isFileExist(options.BackupPath) {
+			t.Errorf("Backup file should exist; file=%s", options.BackupPath)
+		}
+
+		os.Remove(options.BackupPath)
+		store.Close()
+	})
+
+	t.Run("MigrateData should fail to create backup if database file is set to updating", func(t *testing.T) {
+		version := 21
+		store = NewTestStore(portainer.PortainerCE, version, true)
+		store.VersionService.StoreIsUpdating(true)
+
+		store.MigrateData(true)
+
+		options := getBackupRestoreOptions(store)
+		options = store.setupOptions(options)
+
+		if isFileExist(options.BackupPath) {
+			t.Errorf("Backup file should not exist for dirty database; file=%s", options.BackupPath)
+		}
+
+		store.Close()
+	})
+
+	t.Run("MigrateData should not create backup on startup if portainer version matches db", func(t *testing.T) {
+		store = NewTestStore(portainer.PortainerCE, portainer.DBVersion, true)
+
+		store.MigrateData(true)
+
+		options := getBackupRestoreOptions(store)
+		options = store.setupOptions(options)
+
+		if isFileExist(options.BackupPath) {
+			t.Errorf("Backup file should not exist for dirty database; file=%s", options.BackupPath)
+		}
+
+		store.Close()
+	})
+
+	teardown()
+}
+
+func Test_getBackupRestoreOptions(t *testing.T) {
+	store := NewTestStore(portainer.PortainerCE, portainer.DBVersion, true)
+	defer store.Close()
+
+	options := getBackupRestoreOptions(store)
+
+	wantDir := store.commonBackupDir()
+	if !strings.HasSuffix(options.BackupDir, wantDir) {
+		log.Fatalf("incorrect backup dir; got=%s, want=%s", options.BackupDir, wantDir)
+	}
+
+	wantFilename := "portainer.db.bak"
+	if options.BackupFileName != wantFilename {
+		log.Fatalf("incorrect backup file; got=%s, want=%s", options.BackupFileName, wantFilename)
+	}
+
 	teardown()
 }
 
@@ -96,4 +166,40 @@ func deleteBucket(db *bolt.DB, bucketName string) {
 		}
 		return err
 	})
+}
+
+func TestRollback(t *testing.T) {
+
+	t.Run("Rollback should restore upgrade after backup", func(t *testing.T) {
+		version := 21
+		store := NewTestStore(portainer.PortainerEE, version, true)
+
+		_, err := store.BackupWithOptions(getBackupRestoreOptions(store))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Change the current edition
+		err = store.VersionService.StoreDBVersion(version + 10)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		store.Close()
+
+		err = store.Rollback(true)
+		if err != nil {
+			t.Logf("Rollback failed: %s", err)
+			t.Fail()
+			return
+		}
+
+		store.Open()
+
+		testVersion(store, version, t)
+
+		store.Close()
+	})
+
+	teardown()
 }
