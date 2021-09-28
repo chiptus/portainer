@@ -1,13 +1,14 @@
 package websocket
 
 import (
+	"net/http"
+
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	portainer "github.com/portainer/portainer/api"
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/http/useractivity"
-	"net/http"
 )
 
 // websocketShellPodExec handles GET requests on /websocket/pod?token=<token>&endpointId=<endpointID>
@@ -45,7 +46,12 @@ func (handler *Handler) websocketShellPodExec(w http.ResponseWriter, r *http.Req
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find serviceaccount associated with user", err}
 	}
 
-	shellPod, err := cli.CreateUserShellPod(r.Context(), serviceAccount.Name)
+	settings, err := handler.DataStore.Settings().Settings()
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable read settings", err}
+	}
+
+	shellPod, err := cli.CreateUserShellPod(r.Context(), serviceAccount.Name, settings.KubectlShellImage)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to create user shell", err}
 	}

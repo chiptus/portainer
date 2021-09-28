@@ -335,10 +335,19 @@ func (m *Migrator) MigrateCE() error {
 		}
 	}
 
+	// Portainer 2.9.1
 	if m.currentDBVersion < 33 {
 		err := m.migrateDBVersionToDB33()
 		if err != nil {
 			return migrationError(err, "migrateDBVersionToDB33")
+		}
+	}
+
+	// Portainer 2.10.0
+	if m.currentDBVersion < 34 {
+		err := m.migrateDBVersionToDB34()
+		if err != nil {
+			return migrationError(err, "migrateDBVersionToDB34")
 		}
 	}
 
