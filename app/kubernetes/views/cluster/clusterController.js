@@ -15,7 +15,6 @@ class KubernetesClusterController {
     KubernetesNodeService,
     KubernetesMetricsService,
     KubernetesApplicationService,
-    KubernetesComponentStatusService,
     KubernetesEndpointService
   ) {
     this.$async = $async;
@@ -26,30 +25,14 @@ class KubernetesClusterController {
     this.KubernetesNodeService = KubernetesNodeService;
     this.KubernetesMetricsService = KubernetesMetricsService;
     this.KubernetesApplicationService = KubernetesApplicationService;
-    this.KubernetesComponentStatusService = KubernetesComponentStatusService;
     this.KubernetesEndpointService = KubernetesEndpointService;
 
     this.onInit = this.onInit.bind(this);
     this.getNodes = this.getNodes.bind(this);
     this.getNodesAsync = this.getNodesAsync.bind(this);
     this.getApplicationsAsync = this.getApplicationsAsync.bind(this);
-    this.getComponentStatus = this.getComponentStatus.bind(this);
-    this.getComponentStatusAsync = this.getComponentStatusAsync.bind(this);
     this.getEndpointsAsync = this.getEndpointsAsync.bind(this);
     this.hasResourceUsageAccess = this.hasResourceUsageAccess.bind(this);
-  }
-
-  async getComponentStatusAsync() {
-    try {
-      this.componentStatuses = await this.KubernetesComponentStatusService.get();
-      this.hasUnhealthyComponentStatus = _.find(this.componentStatuses, { Healthy: false }) ? true : false;
-    } catch (err) {
-      this.Notifications.error('Failure', err, 'Unable to retrieve cluster component statuses');
-    }
-  }
-
-  getComponentStatus() {
-    return this.$async(this.getComponentStatusAsync);
   }
 
   async getEndpointsAsync() {
@@ -150,7 +133,6 @@ class KubernetesClusterController {
     this.state = {
       applicationsLoading: true,
       viewReady: false,
-      hasUnhealthyComponentStatus: false,
       hasK8sClusterNodeR,
       useServerMetrics: false,
     };
@@ -160,7 +142,6 @@ class KubernetesClusterController {
     await this.getNodes();
     if (hasK8sClusterNodeR) {
       await this.getEndpoints();
-      await this.getComponentStatus();
     }
     await this.getApplications();
 
