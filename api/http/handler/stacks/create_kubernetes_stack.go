@@ -317,7 +317,7 @@ func (handler *Handler) deployKubernetesStack(r *http.Request, endpoint *portain
 		manifest = convertedConfig
 	}
 
-	manifest, err := k.AddAppLabels(manifest, appLabels)
+	manifest, err := k.AddAppLabels(manifest, appLabels.ToMap())
 	if err != nil {
 		return "", errors.Wrap(err, "failed to add application labels")
 	}
