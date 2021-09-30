@@ -153,7 +153,7 @@ func (handler *Handler) createKubernetesStack(w http.ResponseWriter, r *http.Req
 	case "url":
 		return handler.createKubernetesStackFromManifestURL(w, r, endpoint)		
 	}
-	return &httperror.HandlerError{http.StatusBadRequest, "Invalid value for query parameter: method. Value must be one of: string or repository", errors.New(request.ErrInvalidQueryParameter)}
+	return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid value for query parameter: method. Value must be one of: string or repository", Err: errors.New(request.ErrInvalidQueryParameter)}
 }
 
 func (handler *Handler) isValidStackFile(stackFileContent []byte, securitySettings *portainer.EndpointSecuritySettings) error {

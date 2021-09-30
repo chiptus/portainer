@@ -158,7 +158,9 @@
                 <label class="control-label text-left">
                   Restrict access to the default namespace
                 </label>
-                <label class="switch" style="margin-left: 20px;"> <input type="checkbox" ng-model="ctrl.formValues.RestrictDefaultNamespace" /><i data-cy="kubeSetup-restrictDefaultNsToggle"></i> </label>
+                <label class="switch" style="margin-left: 20px;">
+                  <input type="checkbox" ng-model="ctrl.formValues.RestrictDefaultNamespace" /><i data-cy="kubeSetup-restrictDefaultNsToggle"></i>
+                </label>
               </div>
             </div>
             <!-- #endregion -->
@@ -183,7 +185,9 @@
                   Allow resource over-commit
                 </label>
                 <label class="switch" style="margin-left: 20px;">
-                  <input type="checkbox" ng-change="ctrl.onChangeEnableResourceOverCommit()" ng-model="ctrl.formValues.EnableResourceOverCommit" /><i data-cy="kubeSetup-resourceOverCommitToggle"></i>
+                  <input type="checkbox" ng-change="ctrl.onChangeEnableResourceOverCommit()" ng-model="ctrl.formValues.EnableResourceOverCommit" /><i
+                    data-cy="kubeSetup-resourceOverCommitToggle"
+                  ></i>
                 </label>
               </div>
             </div>

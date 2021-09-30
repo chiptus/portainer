@@ -11,7 +11,7 @@ function NameValidatorFactory(EndpointService, Notifications) {
     try {
       const endpoints = await EndpointService.endpoints();
       const endpointArray = endpoints.value;
-      const nameDuplicated = endpointArray.filter((item) => item.Name === environmentName)
+      const nameDuplicated = endpointArray.filter((item) => item.Name === environmentName);
       return nameDuplicated.length > 0;
     } catch (err) {
       Notifications.error('Failure', err, 'Unable to retrieve environment details');

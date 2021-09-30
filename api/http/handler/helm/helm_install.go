@@ -2,6 +2,7 @@ package helm
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -12,20 +13,18 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/middlewares"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/kubernetes"
-	validation "github.com/portainer/portainer/api/kubernetes/validation"
+	"github.com/portainer/portainer/api/kubernetes/validation"
 	"golang.org/x/sync/errgroup"
 )
 
 type installChartPayload struct {
 	Namespace string `json:"namespace"`
 	Name      string `json:"name"`
-	Repo      string `json:"repo"`
 	Chart     string `json:"chart"`
+	Repo      string `json:"repo"`
 	Values    string `json:"values"`
 }
 
@@ -50,11 +49,6 @@ var errChartNameInvalid = errors.New("invalid chart name. " +
 // @failure 500 "Server error"
 // @router /endpoints/{id}/kubernetes/helm [post]
 func (handler *Handler) helmInstall(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	httperr := handler.authoriseHelmOperation(r, portainer.OperationHelmInstallChart)
-	if httperr != nil {
-		return httperr
-	}
-
 	var payload installChartPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
@@ -73,8 +67,6 @@ func (handler *Handler) helmInstall(w http.ResponseWriter, r *http.Request) *htt
 			Err:        err,
 		}
 	}
-
-	useractivity.LogHttpActivity(handler.userActivityStore, handlerActivityContext, r, payload)
 
 	w.WriteHeader(http.StatusCreated)
 	return response.JSON(w, release)
@@ -110,12 +102,11 @@ func (handler *Handler) installChart(r *http.Request, p installChartPayload) (*r
 	if httperr != nil {
 		return nil, httperr.Err
 	}
-
 	installOpts := options.InstallOptions{
 		Name:      p.Name,
-		Repo:      p.Repo,
 		Chart:     p.Chart,
 		Namespace: p.Namespace,
+		Repo:      p.Repo,
 		KubernetesClusterAccess: &options.KubernetesClusterAccess{
 			ClusterServerURL:         clusterAccess.ClusterServerURL,
 			CertificateAuthorityFile: clusterAccess.CertificateAuthorityFile,
@@ -191,6 +182,12 @@ func (handler *Handler) updateHelmAppManifest(r *http.Request, manifest []byte, 
 	if err != nil {
 		return errors.Wrap(err, "unable to find an endpoint on request context")
 	}
+
+	tokenData, err := security.RetrieveTokenData(r)
+	if err != nil {
+		return errors.Wrap(err, "unable to retrieve user details from authentication token")
+	}
+
 	// extract list of yaml resources from helm manifest
 	yamlResources, err := kubernetes.ExtractDocuments(manifest, nil)
 	if err != nil {
@@ -202,6 +199,19 @@ func (handler *Handler) updateHelmAppManifest(r *http.Request, manifest []byte, 
 	for _, resource := range yamlResources {
 		resource := resource // https://golang.org/doc/faq#closures_and_goroutines
 		g.Go(func() error {
+			tmpfile, err := ioutil.TempFile("", "helm-manifest-*")
+			if err != nil {
+				return errors.Wrap(err, "failed to create a tmp helm manifest file")
+			}
+			defer func() {
+				tmpfile.Close()
+				os.Remove(tmpfile.Name())
+			}()
+
+			if _, err := tmpfile.Write(resource); err != nil {
+				return errors.Wrap(err, "failed to write a tmp helm manifest file")
+			}
+
 			// get resource namespace, fallback to provided namespace if not explicit on resource
 			resourceNamespace, err := kubernetes.GetNamespace(resource)
 			if err != nil {
@@ -210,7 +220,8 @@ func (handler *Handler) updateHelmAppManifest(r *http.Request, manifest []byte, 
 			if resourceNamespace == "" {
 				resourceNamespace = namespace
 			}
-			_, err = handler.kubernetesDeployer.Deploy(r, endpoint, string(resource), resourceNamespace)
+
+			_, err = handler.kubernetesDeployer.Deploy(tokenData.ID, endpoint, []string{tmpfile.Name()}, resourceNamespace)
 			return err
 		})
 	}
