@@ -6,7 +6,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -81,8 +80,7 @@ func (manager *ComposeStackManager) Down(ctx context.Context, stack *portainer.S
 
 // NormalizeStackName returns the passed stack name, for interface implementation only
 func (manager *ComposeStackManager) NormalizeStackName(name string) string {
-	r := regexp.MustCompile("[^a-z0-9]+")
-	return r.ReplaceAllString(strings.ToLower(name), "")
+	return stackNameNormalizeRegex.ReplaceAllString(strings.ToLower(name), "")
 }
 
 func (manager *ComposeStackManager) fetchEndpointProxy(endpoint *portainer.Endpoint) (string, *factory.ProxyServer, error) {
