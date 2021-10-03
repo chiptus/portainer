@@ -74,12 +74,8 @@ func initFileService(dataStorePath string) portainer.FileService {
 }
 
 func initDataStore(dataStorePath string, rollback bool, rollbackToCE bool, fileService portainer.FileService, shutdownCtx context.Context) portainer.DataStore {
-	store, err := bolt.NewStore(dataStorePath, fileService)
-	if err != nil {
-		log.Fatalf("failed creating data store: %s", err)
-	}
-
-	err = store.Open()
+	store := bolt.NewStore(dataStorePath, fileService)
+	err := store.Open()
 	if err != nil {
 		log.Fatalf("failed opening store: %s", err)
 	}

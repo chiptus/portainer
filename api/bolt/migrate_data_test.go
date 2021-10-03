@@ -18,17 +18,13 @@ import (
 func TestMigrateData(t *testing.T) {
 	var store *Store
 
-	t.Run("MigrateData for New Store", func(t *testing.T) {
+	t.Run("MigrateData for New Store & Re-Open Check", func(t *testing.T) {
 		fileService, err := filesystem.NewService(dataStorePath, "")
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		store, err := NewStore(dataStorePath, fileService)
-		if err != nil {
-			log.Fatal(err)
-		}
-
+		store := NewStore(dataStorePath, fileService)
 		err = store.Open()
 		if err != nil {
 			log.Fatal(err)
@@ -43,6 +39,17 @@ func TestMigrateData(t *testing.T) {
 
 		testVersion(store, portainer.DBVersionEE, t)
 		testEdition(store, portainer.PortainerEE, t)
+
+		store.Close()
+
+		store.Open()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if store.IsNew() {
+			t.Error("Expect store to NOT be new DB")
+		}
 
 		store.Close()
 	})

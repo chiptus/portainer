@@ -40,11 +40,7 @@ func NewTestStore(edition portainer.SoftwareEdition, version int, init bool) *St
 		log.Fatal(err)
 	}
 
-	store, err := NewStore(dataStorePath, fileService)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	store := NewStore(dataStorePath, fileService)
 	err = store.Open()
 	if err != nil {
 		log.Fatal(err)

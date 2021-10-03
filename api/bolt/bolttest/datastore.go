@@ -36,11 +36,7 @@ func NewTestStore(init bool) (*bolt.Store, func(), error) {
 		return nil, nil, err
 	}
 
-	store, err := bolt.NewStore(dataStorePath, fileService)
-	if err != nil {
-		return nil, nil, err
-	}
-
+	store := bolt.NewStore(dataStorePath, fileService)
 	err = store.Open()
 	if err != nil {
 		return nil, nil, err
