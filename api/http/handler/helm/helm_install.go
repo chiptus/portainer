@@ -13,6 +13,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/middlewares"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/kubernetes"
@@ -49,6 +50,12 @@ var errChartNameInvalid = errors.New("invalid chart name. " +
 // @failure 500 "Server error"
 // @router /endpoints/{id}/kubernetes/helm [post]
 func (handler *Handler) helmInstall(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+
+	httperr := handler.authoriseHelmOperation(r, portainer.OperationHelmInstallChart)
+	if httperr != nil {
+		return httperr
+	}
+
 	var payload installChartPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
