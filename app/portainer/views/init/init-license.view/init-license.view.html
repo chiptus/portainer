@@ -20,7 +20,6 @@
             <div class="form-group">
               <span class="col-sm-12 text-muted small">
                 <p>Please register your Portainer license.</p>
-                <p> <i class="fa fa-info-circle blue-icon" aria-hidden="true" style="margin-right: 2px;"></i> You'll be able to register multiple licenses at a later stage. </p>
               </span>
             </div>
 
@@ -44,6 +43,9 @@
                   <span ng-hide="$ctrl.state.actionInProgress">Submit</span>
                   <span ng-show="$ctrl.state.actionInProgress">In progress...</span>
                 </button>
+                <div style="padding: 15px 0px; font-weight: bold;">
+                  <a href="https://www.portainer.io/get-a-license" target="_blank">Don't have a license?</a>
+                </div>
                 <span class="text-danger" ng-if="$ctrl.state.formError" style="margin-left: 5px;">{{ $ctrl.state.formError }}</span>
               </div>
             </div>
