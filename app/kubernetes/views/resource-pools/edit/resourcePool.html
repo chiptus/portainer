@@ -179,13 +179,18 @@
                           of load balancers in this namespace.
                         </p>
                       </div>
+
                       <div class="col-sm-12">
-                        <label class="control-label text-left">
-                          Load Balancer quota
-                        </label>
-                        <label class="switch" style="margin-left: 20px;"> <input type="checkbox" ng-model="ctrl.formValues.UseLoadBalancersQuota" /><i></i> </label>
+                        <por-switch-field
+                          ng-data-cy="k8sNamespaceCreate-loadBalancerQuotaToggle"
+                          label="Load Balancer quota"
+                          name="k8s-resourcepool-Lbquota"
+                          feature="ctrl.LBQuotaFeatureId"
+                          ng-model="ctrl.formValues.UseLoadBalancersQuota"
+                        ></por-switch-field>
                       </div>
                     </div>
+
                     <div class="form-group" ng-if="ctrl.formValues.UseLoadBalancersQuota">
                       <label for="pool_name" class="col-sm-2 control-label text-left">Max Load Balancers</label>
                       <div class="col-sm-3">
@@ -445,22 +450,23 @@
                   </div>
 
                   <div class="form-group" ng-repeat-start="sc in ctrl.formValues.StorageClasses">
-                    <div class="text-muted col-sm-12" style="width: 100%;">
+                    <div class="text-muted col-sm-12 my-8" style="width: 100%;">
                       <div style="border-bottom: 1px solid #cdcdcd; padding-bottom: 5px;">
                         <i class="fa fa-route" aria-hidden="true" style="margin-right: 2px;"></i> {{ sc.Name }}
                       </div>
                     </div>
 
-                    <div>
-                      <div class="col-sm-2" style="margin-top: 10px;">
-                        <label class="control-label text-left">
-                          Enable quota
-                        </label>
-                      </div>
-                      <div class="col-sm-10" style="margin-top: 10px;">
-                        <label class="switch"> <input type="checkbox" ng-model="sc.Selected" /><i></i> </label>
-                      </div>
+                    <!-- <div class="form-group"> -->
+                    <div class="col-sm-12">
+                      <por-switch-field
+                        ng-data-cy="k8sNamespaceCreate-enableQuotaToggle"
+                        label="Enable quota"
+                        name="k8s-resourcepool-storagequota"
+                        feature="ctrl.StorageQuotaFeatureId"
+                        ng-model="sc.Selected"
+                      ></por-switch-field>
                     </div>
+                    <!-- </div> -->
                   </div>
 
                   <div ng-repeat-end ng-if="sc.Selected">

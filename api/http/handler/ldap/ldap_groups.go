@@ -7,7 +7,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	"github.com/portainer/portainer/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type groupsPayload struct {
@@ -22,7 +22,18 @@ func (payload *groupsPayload) Validate(r *http.Request) error {
 	return nil
 }
 
-// POST request on /ldap/groups
+// @id LDAPGroups
+// @summary Search LDAP Groups
+// @description
+// @description **Access policy**: administrator
+// @tags ldap
+// @security jwt
+// @accept json
+// @param body body groupsPayload true "details"
+// @success 200 {array} portainer.LDAPUser "Success"
+// @failure 400 "Invalid request"
+// @failure 500 "Server error"
+// @router /ldap/groups [post]
 func (handler *Handler) ldapGroups(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	var payload groupsPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)

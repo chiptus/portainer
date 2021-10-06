@@ -1,11 +1,11 @@
 import _ from 'lodash-es';
-import angular from 'angular';
 
 import AccessViewerPolicyModel from '../../models/access';
 
-class AccessViewerController {
+export default class AccessViewerController {
   /* @ngInject */
-  constructor(Notifications, RoleService, UserService, EndpointService, GroupService, TeamService, TeamMembershipService) {
+  constructor(featureService, Notifications, RoleService, UserService, EndpointService, GroupService, TeamService, TeamMembershipService) {
+    this.featureService = featureService;
     this.Notifications = Notifications;
     this.RoleService = RoleService;
     this.UserService = UserService;
@@ -13,6 +13,9 @@ class AccessViewerController {
     this.GroupService = GroupService;
     this.TeamService = TeamService;
     this.TeamMembershipService = TeamMembershipService;
+
+    this.limitedFeature = 'rbac-roles';
+    this.users = [];
   }
 
   onUserSelect() {
@@ -99,6 +102,12 @@ class AccessViewerController {
 
   async $onInit() {
     try {
+      const limitedToBE = this.featureService.isLimitedToBE(this.limitedFeature);
+
+      if (limitedToBE) {
+        return;
+      }
+
       this.users = await this.UserService.users();
       this.endpoints = _.keyBy((await this.EndpointService.endpoints()).value, 'Id');
       const groups = await this.GroupService.groups();
@@ -117,6 +126,3 @@ class AccessViewerController {
     }
   }
 }
-
-export default AccessViewerController;
-angular.module('portainer.app').controller('AccessViewerController', AccessViewerController);

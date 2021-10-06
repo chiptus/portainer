@@ -1,11 +1,14 @@
 import _ from 'lodash-es';
-
 import angular from 'angular';
+
+import { RoleTypes } from '@/portainer/rbac/models/role';
 
 class PorAccessManagementController {
   /* @ngInject */
-  constructor(Notifications, AccessService, RoleService) {
-    Object.assign(this, { Notifications, AccessService, RoleService });
+  constructor(Notifications, AccessService, RoleService, featureService) {
+    Object.assign(this, { Notifications, AccessService, RoleService, featureService });
+
+    this.limitedToBE = false;
 
     this.unauthorizeAccess = this.unauthorizeAccess.bind(this);
     this.updateAction = this.updateAction.bind(this);
@@ -50,15 +53,39 @@ class PorAccessManagementController {
     this.updateAccess();
   }
 
+  isRoleLimitedToBE(role) {
+    if (!this.limitedToBE) {
+      return false;
+    }
+
+    return role.ID !== RoleTypes.STANDARD;
+  }
+
+  roleLabel(role) {
+    if (!this.limitedToBE) {
+      return role.Name;
+    }
+
+    if (this.isRoleLimitedToBE(role)) {
+      return `${role.Name} (Business Edition Feature)`;
+    }
+
+    return `${role.Name} (Default)`;
+  }
+
   async $onInit() {
     try {
+      if (this.limitedFeature) {
+        this.limitedToBE = this.featureService.isLimitedToBE(this.limitedFeature);
+      }
+
       const entity = this.accessControlledEntity;
       const parent = this.inheritFrom;
 
       const roles = await this.RoleService.roles();
       this.roles = _.orderBy(roles, 'Priority', 'asc');
       this.formValues = {
-        selectedRole: this.roles[0],
+        selectedRole: this.roles.find((role) => !this.isRoleLimitedToBE(role)),
       };
 
       const data = await this.AccessService.accesses(entity, parent, this.roles);

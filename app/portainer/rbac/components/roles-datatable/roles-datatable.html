@@ -1,4 +1,4 @@
-<div class="datatable" ng-class="{ 'portainer-disabled-datatable': !$ctrl.rbacEnabled }">
+<div class="datatable">
   <rd-widget>
     <rd-widget-body classes="no-padding">
       <div class="toolBar">
@@ -34,6 +34,7 @@
                   <i class="fa fa-sort-alpha-up" aria-hidden="true" ng-if="$ctrl.state.orderBy === 'Description' && $ctrl.state.reverseOrder"></i>
                 </a>
               </th>
+              <th class="be-visual-indicator-col"></th>
             </tr>
           </thead>
           <tbody>
@@ -43,12 +44,18 @@
             >
               <td>{{ item.Name }}</td>
               <td>{{ item.Description }}</td>
+              <td class="be-visual-indicator-col" ng-switch on="$ctrl.isDefaultItem(item)">
+                <span ng-switch-when="false">
+                  <be-feature-indicator feature="$ctrl.limitedFeature"></be-feature-indicator>
+                </span>
+                <b ng-switch-when="true">Default</b>
+              </td>
             </tr>
             <tr ng-if="!$ctrl.dataset">
-              <td colspan="2" class="text-center text-muted">Loading...</td>
+              <td colspan="3" class="text-center text-muted">Loading...</td>
             </tr>
             <tr ng-if="$ctrl.state.filteredDataSet.length === 0">
-              <td colspan="2" class="text-center text-muted">No role available.</td>
+              <td colspan="3" class="text-center text-muted">No role available.</td>
             </tr>
           </tbody>
         </table>

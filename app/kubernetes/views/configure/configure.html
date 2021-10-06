@@ -181,14 +181,14 @@
               </span>
 
               <div class="col-sm-12">
-                <label class="control-label text-left">
-                  Allow resource over-commit
-                </label>
-                <label class="switch" style="margin-left: 20px;">
-                  <input type="checkbox" ng-change="ctrl.onChangeEnableResourceOverCommit()" ng-model="ctrl.formValues.EnableResourceOverCommit" /><i
-                    data-cy="kubeSetup-resourceOverCommitToggle"
-                  ></i>
-                </label>
+                <por-switch-field
+                  ng-data-cy="kubeSetup-resourceOverCommitToggle"
+                  label="Allow resource over-commit"
+                  name="resource-over-commit-switch"
+                  feature="ctrl.limitedFeature"
+                  ng-model="ctrl.formValues.EnableResourceOverCommit"
+                  ng-change="ctrl.onChangeEnableResourceOverCommit()"
+                ></por-switch-field>
               </div>
             </div>
 

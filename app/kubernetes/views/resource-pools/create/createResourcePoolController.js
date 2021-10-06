@@ -12,6 +12,8 @@ import { KubernetesFormValidationReferences } from 'Kubernetes/models/applicatio
 import { KubernetesIngressClassTypes } from 'Kubernetes/ingress/constants';
 import KubernetesStorageClassConverter from 'Kubernetes/converters/storageClass';
 
+import { K8S_RESOURCE_POOL_LB_QUOTA, K8S_RESOURCE_POOL_STORAGE_QUOTA } from '@/portainer/feature-flags/feature-ids';
+
 class KubernetesCreateResourcePoolController {
   /* #region  CONSTRUCTOR */
   /* @ngInject */
@@ -28,6 +30,8 @@ class KubernetesCreateResourcePoolController {
     });
 
     this.IngressClassTypes = KubernetesIngressClassTypes;
+    this.LBQuotaFeatureId = K8S_RESOURCE_POOL_LB_QUOTA;
+    this.StorageQuotaFeatureId = K8S_RESOURCE_POOL_STORAGE_QUOTA;
   }
   /* #endregion */
 

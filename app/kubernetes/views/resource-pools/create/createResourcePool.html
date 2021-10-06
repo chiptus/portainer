@@ -187,12 +187,13 @@
                   </p>
                 </div>
                 <div class="col-sm-12">
-                  <label class="control-label text-left">
-                    Load Balancer quota
-                  </label>
-                  <label class="switch" style="margin-left: 20px;">
-                    <input type="checkbox" ng-model="$ctrl.formValues.UseLoadBalancersQuota" /><i data-cy="k8sNamespaceCreate-enableQuotaToggle"></i>
-                  </label>
+                  <por-switch-field
+                    ng-data-cy="k8sNamespaceCreate-loadBalancerQuotaToggle"
+                    label="Load Balancer quota"
+                    name="k8s-resourcepool-Ibquota"
+                    feature="$ctrl.LBQuotaFeatureId"
+                    ng-model="lbquota"
+                  ></por-switch-field>
                 </div>
               </div>
               <div class="form-group" ng-if="$ctrl.formValues.UseLoadBalancersQuota">
@@ -475,14 +476,13 @@
                   </div>
                 </div>
 
-                <div class="col-sm-2" style="margin-top: 10px;">
-                  <label class="control-label text-left">
-                    Enable quota
-                  </label>
-                </div>
-                <div class="col-sm-10" style="margin-top: 10px;">
-                  <label class="switch"> <input type="checkbox" ng-model="sc.Selected" /><i></i> </label>
-                </div>
+                <por-switch-field
+                  ng-data-cy="k8sNamespaceCreate-enableQuotaToggle"
+                  label="Enable quota"
+                  name="k8s-resourcepool-storagequota"
+                  feature="$ctrl.StorageQuotaFeatureId"
+                  ng-model="storagequota"
+                ></por-switch-field>
               </div>
 
               <div ng-repeat-end ng-if="sc.Selected">

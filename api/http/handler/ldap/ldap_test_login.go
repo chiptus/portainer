@@ -7,7 +7,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	"github.com/portainer/portainer/api"
+	portainer "github.com/portainer/portainer/api"
 	httperrors "github.com/portainer/portainer/api/http/errors"
 )
 
@@ -29,7 +29,18 @@ func (payload *testLoginPayload) Validate(r *http.Request) error {
 	return nil
 }
 
-// POST request on /ldap/test
+// @id LDAPTestLogin
+// @summary Test Login to ldap server
+// @description
+// @description **Access policy**: administrator
+// @tags ldap
+// @security jwt
+// @accept json
+// @param body body testLoginPayload true "details"
+// @success 200 {object} testLoginResponse "Success"
+// @failure 400 "Invalid request"
+// @failure 500 "Server error"
+// @router /ldap/test [post]
 func (handler *Handler) ldapTestLogin(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	var payload testLoginPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)

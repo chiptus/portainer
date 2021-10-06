@@ -7,7 +7,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	"github.com/portainer/portainer/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type checkPayload struct {
@@ -22,7 +22,18 @@ func (payload *checkPayload) Validate(r *http.Request) error {
 	return nil
 }
 
-// POST request on /ldap/check
+// @id LDAPCheck
+// @summary Test LDAP connectivity
+// @description Test LDAP connectivity using LDAP details
+// @description **Access policy**: administrator
+// @tags ldap
+// @security jwt
+// @accept json
+// @param body body checkPayload true "details"
+// @success 204 "Success"
+// @failure 400 "Invalid request"
+// @failure 500 "Server error"
+// @router /ldap/check [post]
 func (handler *Handler) ldapCheck(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	var payload checkPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)

@@ -1,5 +1,5 @@
 import moment from 'moment';
-
+import { ACTIVITY_AUDIT } from '@/portainer/feature-flags/feature-ids';
 export default class ActivityLogsViewController {
   /* @ngInject */
   constructor($async, UserActivityService, Notifications) {
@@ -7,6 +7,7 @@ export default class ActivityLogsViewController {
     this.UserActivityService = UserActivityService;
     this.Notifications = Notifications;
 
+    this.limitedFeature = ACTIVITY_AUDIT;
     this.state = {
       keyword: '',
       date: {

@@ -250,47 +250,38 @@
           <div class="col-sm-12 form-section-title">
             Backup configuration
           </div>
-          <div class="form-group"></div>
-          <div class="form-group">
-            <div class="boxselector_wrapper">
-              <div>
-                <input type="radio" id="backup_file" ng-model="formValues.backupFormType" value="file" />
-                <label for="backup_file" style="padding-bottom: 20px;">
-                  <div class="boxselector_header">
-                    <i class="fa fa-download" aria-hidden="true" style="margin-right: 2px;"></i>
-                    Download backup file
-                  </div>
-                  <p></p>
-                </label>
-              </div>
-              <div>
-                <input type="radio" id="backup_s3" ng-model="formValues.backupFormType" value="s3" />
-                <label for="backup_s3">
-                  <div class="boxselector_header">
-                    <i class="fa fa-upload" aria-hidden="true" style="margin-right: 2px;"></i>
-                    Store in S3
-                  </div>
-                  <p>Define a cron schedule</p>
-                </label>
-              </div>
-            </div>
-          </div>
+          <box-selector options="backupOptions" ng-model="formValues.backupFormType" on-change="(onBackupOptionsChange)"></box-selector>
           <div ng-if="formValues.backupFormType === BACKUP_FORM_TYPES.S3">
             <!-- Schedule automatic backups -->
             <div class="form-group">
-              <label for="schedule_automatic_backups" class="col-sm-2 control-label text-left">Schedule automatic backups</label>
-              <div class="col-sm-10">
-                <label class="switch">
-                  <input type="checkbox" id="schedule_automatic_backups" name="schedule_automatic_backups" ng-model="formValues.scheduleAutomaticBackups" /><i></i>
-                </label>
-              </div>
+              <div class="col-sm-12">
+                <por-switch-field
+                  label="Schedule automatic backups"
+                  name="s3-backup-setting"
+                  feature="s3BackupFeatureId"
+                  ng-model="formValues.scheduleAutomaticBackups"
+                  label-class="col-sm-2"
+                ></por-switch-field
+              ></div>
             </div>
             <!-- !Schedule automatic backups -->
             <!-- Cron rule  -->
             <div class="form-group" ng-if="formValues.scheduleAutomaticBackups">
               <label for="cron_rule" class="col-sm-2 col-lg-2 control-label text-left">Cron rule</label>
               <div class="col-sm-10 col-lg-10">
-                <input type="text" class="form-control" placeholder="0 2 * * *" id="cron_rule" name="cron_rule" ng-model="formValues.cronRule" required cronRule />
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="0 2 * * *"
+                  id="cron_rule"
+                  name="cron_rule"
+                  ng-model="formValues.cronRule"
+                  limited-feature-dir="{{::s3BackupFeatureId}}"
+                  limited-feature-disabled
+                  limited-feature-class="limited-be"
+                  required
+                  cronRule
+                />
               </div>
             </div>
             <!-- !Cron rule  -->
@@ -313,6 +304,9 @@
                   name="access_key_id"
                   ng-model="formValues.accessKeyId"
                   ng-required="formValues.scheduleAutomaticBackups"
+                  limited-feature-dir="{{::s3BackupFeatureId}}"
+                  limited-feature-disabled
+                  limited-feature-class="limited-be"
                 />
               </div>
             </div>
@@ -335,6 +329,9 @@
                   name="secret_access_key"
                   ng-model="formValues.secretAccessKey"
                   ng-required="formValues.scheduleAutomaticBackups"
+                  limited-feature-dir="{{::s3BackupFeatureId}}"
+                  limited-feature-disabled
+                  limited-feature-class="limited-be"
                 />
               </div>
             </div>
@@ -358,6 +355,9 @@
                   name="region"
                   ng-model="formValues.region"
                   ng-required="formValues.scheduleAutomaticBackups"
+                  limited-feature-dir="{{::s3BackupFeatureId}}"
+                  limited-feature-disabled
+                  limited-feature-class="limited-be"
                 />
               </div>
             </div>
@@ -373,7 +373,16 @@
             <div class="form-group">
               <label for="bucket_name" class="col-sm-3 col-lg-2 control-label text-left">Bucket name</label>
               <div class="col-sm-9 col-lg-10">
-                <input type="text" class="form-control" id="bucket_name" name="bucket_name" ng-model="formValues.bucketName" ng-required="formValues.scheduleAutomaticBackups" />
+                <input
+                  type="text"
+                  class="form-control"
+                  id="bucket_name"
+                  name="bucket_name"
+                  ng-model="formValues.bucketName"
+                  ng-required="formValues.scheduleAutomaticBackups"
+                  limited-feature-dir="{{::s3BackupFeatureId}}"
+                  limited-feature-class="limited-be"
+                />
               </div>
             </div>
             <div class="form-group col-md-12" ng-show="backupPortainerForm.bucket_name.$invalid">
@@ -412,7 +421,15 @@
             <!-- !Password S3 -->
             <div class="form-group">
               <div class="col-sm-12">
-                <button type="button" class="btn btn-primary btn-sm" ng-disabled="backupPortainerForm.$invalid" ng-click="exportBackup()">
+                <button
+                  type="button"
+                  class="btn btn-primary btn-sm"
+                  ng-disabled="backupPortainerForm.$invalid"
+                  ng-click="exportBackup()"
+                  limited-feature-dir="{{::s3BackupFeatureId}}"
+                  limited-feature-disabled
+                  limited-feature-class="limited-be"
+                >
                   <span><i class="fa fa-upload" aria-hidden="true"></i> Export backup</span>
                 </button>
               </div>
@@ -420,7 +437,15 @@
             <div class="form-group">
               <hr />
               <div class="col-sm-12">
-                <button type="submit" class="btn btn-primary btn-sm" ng-disabled="backupPortainerForm.$invalid ||state.backupInProgress" ng-click="saveS3BackupSettings()">
+                <button
+                  type="submit"
+                  class="btn btn-primary btn-sm"
+                  ng-disabled="backupPortainerForm.$invalid ||state.backupInProgress"
+                  ng-click="saveS3BackupSettings()"
+                  limited-feature-dir="{{::s3BackupFeatureId}}"
+                  limited-feature-disabled
+                  limited-feature-class="limited-be"
+                >
                   <span>Save backup settings</span>
                 </button>
               </div>
