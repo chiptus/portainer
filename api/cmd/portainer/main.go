@@ -584,7 +584,7 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 
 	scheduler := scheduler.NewScheduler(shutdownCtx)
 	stackDeployer := stacks.NewStackDeployer(swarmStackManager, composeStackManager, kubernetesDeployer)
-	stacks.StartStackSchedules(scheduler, stackDeployer, dataStore, gitService)
+	stacks.StartStackSchedules(scheduler, stackDeployer, dataStore, gitService, userActivityStore)
 
 	sslDBSettings, err := dataStore.SSLSettings().Settings()
 	if err != nil {

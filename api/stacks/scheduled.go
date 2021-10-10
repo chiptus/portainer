@@ -8,7 +8,7 @@ import (
 	"github.com/portainer/portainer/api/scheduler"
 )
 
-func StartStackSchedules(scheduler *scheduler.Scheduler, stackdeployer StackDeployer, datastore portainer.DataStore, gitService portainer.GitService) error {
+func StartStackSchedules(scheduler *scheduler.Scheduler, stackdeployer StackDeployer, datastore portainer.DataStore, gitService portainer.GitService, activityStore portainer.UserActivityStore) error {
 	stacks, err := datastore.Stack().RefreshableStacks()
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch refreshable stacks")
@@ -21,7 +21,7 @@ func StartStackSchedules(scheduler *scheduler.Scheduler, stackdeployer StackDepl
 		}
 		stackID := stack.ID // to be captured by the scheduled function
 		jobID := scheduler.StartJobEvery(d, func() error {
-			return RedeployWhenChanged(stackID, stackdeployer, datastore, gitService)
+			return RedeployWhenChanged(stackID, stackdeployer, datastore, gitService, activityStore)
 		})
 
 		stack.AutoUpdate.JobID = jobID

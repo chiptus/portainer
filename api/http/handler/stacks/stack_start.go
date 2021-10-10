@@ -94,7 +94,7 @@ func (handler *Handler) stackStart(w http.ResponseWriter, r *http.Request) *http
 	if stack.AutoUpdate != nil && stack.AutoUpdate.Interval != "" {
 		stopAutoupdate(stack.ID, stack.AutoUpdate.JobID, *handler.Scheduler)
 
-		jobID, e := startAutoupdate(stack.ID, stack.AutoUpdate.Interval, handler.Scheduler, handler.StackDeployer, handler.DataStore, handler.GitService)
+		jobID, e := startAutoupdate(stack.ID, stack.AutoUpdate.Interval, handler.Scheduler, handler.StackDeployer, handler.DataStore, handler.GitService, handler.UserActivityStore)
 		if e != nil {
 			return e
 		}

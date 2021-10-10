@@ -1,6 +1,7 @@
 package stacks
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -8,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/security"
+	consts "github.com/portainer/portainer/api/useractivity"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,7 +22,8 @@ func (e *StackAuthorMissingErr) Error() string {
 	return fmt.Sprintf("stack's %v author %s is missing", e.stackID, e.authorName)
 }
 
-func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, datastore portainer.DataStore, gitService portainer.GitService) error {
+// RedeployWhenChanged pull and redeploy the stack when  git repo changed
+func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, datastore portainer.DataStore, gitService portainer.GitService, activityStore portainer.UserActivityStore) error {
 	logger := log.WithFields(log.Fields{"stackID": stackID})
 	logger.Debug("redeploying stack")
 
@@ -109,6 +112,15 @@ func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, data
 	stack.GitConfig.ConfigHash = newHash
 	if err := datastore.Stack().UpdateStack(stack.ID, stack); err != nil {
 		return errors.WithMessagef(err, "failed to update the stack %v", stack.ID)
+	}
+
+	if activityStore != nil {
+		if stack.GitConfig != nil && stack.GitConfig.Authentication != nil && stack.GitConfig.Authentication.Password != "" {
+			stack.GitConfig.Authentication.Password = consts.RedactedValue
+		}
+
+		body, _ := json.Marshal(stack)
+		activityStore.LogUserActivity(author, endpoint.Name, "[INTERNAL] stack auto update", body)
 	}
 
 	return nil

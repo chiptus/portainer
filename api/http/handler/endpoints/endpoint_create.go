@@ -224,6 +224,17 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 	handler.AuthorizationService.TriggerUsersAuthUpdate()
 
 	payload.AzureAuthenticationKey = consts.RedactedValue
+
+	//sanitise cert files if necessary
+	if len(payload.TLSCACertFile) > 0 {
+		payload.TLSCACertFile = []byte{}
+	}
+	if len(payload.TLSCertFile) > 0 {
+		payload.TLSCertFile = []byte{}
+	}
+	if len(payload.TLSKeyFile) > 0 {
+		payload.TLSKeyFile = []byte{}
+	}
 	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
 
 	return response.JSON(w, endpoint)

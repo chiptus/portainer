@@ -43,7 +43,7 @@ func Test_redeployWhenChanged_FailsWhenCannotFindStack(t *testing.T) {
 	store, teardown := bolt.MustNewTestStore(true)
 	defer teardown()
 
-	err := RedeployWhenChanged(1, nil, store, nil)
+	err := RedeployWhenChanged(1, nil, store, nil, nil)
 	assert.Error(t, err)
 	assert.Truef(t, strings.HasPrefix(err.Error(), "failed to get the stack"), "it isn't an error we expected: %v", err.Error())
 }
@@ -59,7 +59,7 @@ func Test_redeployWhenChanged_DoesNothingWhenNotAGitBasedStack(t *testing.T) {
 	err = store.Stack().CreateStack(&portainer.Stack{ID: 1, CreatedBy: "admin"})
 	assert.NoError(t, err, "failed to create a test stack")
 
-	err = RedeployWhenChanged(1, nil, store, &gitService{nil, ""})
+	err = RedeployWhenChanged(1, nil, store, &gitService{nil, ""}, nil)
 	assert.NoError(t, err)
 }
 
@@ -84,7 +84,7 @@ func Test_redeployWhenChanged_DoesNothingWhenNoGitChanges(t *testing.T) {
 		}})
 	assert.NoError(t, err, "failed to create a test stack")
 
-	err = RedeployWhenChanged(1, nil, store, &gitService{nil, "oldHash"})
+	err = RedeployWhenChanged(1, nil, store, &gitService{nil, "oldHash"}, nil)
 	assert.NoError(t, err)
 }
 
@@ -107,7 +107,7 @@ func Test_redeployWhenChanged_FailsWhenCannotClone(t *testing.T) {
 		}})
 	assert.NoError(t, err, "failed to create a test stack")
 
-	err = RedeployWhenChanged(1, nil, store, &gitService{cloneErr, "newHash"})
+	err = RedeployWhenChanged(1, nil, store, &gitService{cloneErr, "newHash"}, nil)
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, cloneErr, "should failed to clone but didn't, check test setup")
 }
@@ -142,7 +142,7 @@ func Test_redeployWhenChanged(t *testing.T) {
 		stack.Type = portainer.DockerComposeStack
 		store.Stack().UpdateStack(stack.ID, &stack)
 
-		err = RedeployWhenChanged(1, &noopDeployer{}, store, &gitService{nil, "newHash"})
+		err = RedeployWhenChanged(1, &noopDeployer{}, store, &gitService{nil, "newHash"}, nil)
 		assert.NoError(t, err)
 	})
 
@@ -150,7 +150,7 @@ func Test_redeployWhenChanged(t *testing.T) {
 		stack.Type = portainer.DockerSwarmStack
 		store.Stack().UpdateStack(stack.ID, &stack)
 
-		err = RedeployWhenChanged(1, &noopDeployer{}, store, &gitService{nil, "newHash"})
+		err = RedeployWhenChanged(1, &noopDeployer{}, store, &gitService{nil, "newHash"}, nil)
 		assert.NoError(t, err)
 	})
 
@@ -158,7 +158,7 @@ func Test_redeployWhenChanged(t *testing.T) {
 		stack.Type = portainer.KubernetesStack
 		store.Stack().UpdateStack(stack.ID, &stack)
 
-		err = RedeployWhenChanged(1, &noopDeployer{}, store, &gitService{nil, "newHash"})
+		err = RedeployWhenChanged(1, &noopDeployer{}, store, &gitService{nil, "newHash"}, nil)
 		assert.NoError(t, err)
 	})
 }

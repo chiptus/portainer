@@ -183,15 +183,15 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist the stack changes inside the database", Err: errors.Wrap(err, "failed to update the stack")}
 	}
 
-	if payload.RepositoryPassword != "" {
-		payload.RepositoryPassword = consts.RedactedValue
-	}
-	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
+	logData := stack
 
 	if stack.GitConfig != nil && stack.GitConfig.Authentication != nil && stack.GitConfig.Authentication.Password != "" {
 		// sanitize password in the http response to minimise possible security leaks
 		stack.GitConfig.Authentication.Password = ""
+		logData.GitConfig.Authentication.Password = consts.RedactedValue
 	}
+
+	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, logData)
 
 	return response.JSON(w, stack)
 }
