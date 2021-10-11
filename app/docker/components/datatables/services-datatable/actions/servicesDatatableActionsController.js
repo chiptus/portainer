@@ -61,7 +61,7 @@ angular.module('portainer.docker').controller('ServicesDatatableActionsControlle
             Notifications.success('Service successfully updated', service.Name);
           })
           .catch(function error(err) {
-            Notifications.error('Failure', err, 'Unable to force update service', service.Name);
+            Notifications.error('Failure', err, 'Unable to force update service' + service.Name);
           })
           .finally(function final() {
             --actionCount;
