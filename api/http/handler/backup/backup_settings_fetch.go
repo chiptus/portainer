@@ -9,7 +9,7 @@ import (
 
 // @id BackupSettingsFetch
 // @summary Fetch s3 backup settings/configurations
-// @description **Access policy**: admin
+// @description **Access policy**: administrator
 // @tags backup
 // @security jwt
 // @produce json

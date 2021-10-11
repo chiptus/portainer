@@ -26,7 +26,22 @@ func (payload *resourcePoolUpdatePayload) Validate(r *http.Request) error {
 	return nil
 }
 
-// PUT request on /api/endpoints/:id/pools/:rpn/access
+// @id endpointPoolsAccessUpdate
+// @summary update resource pool access
+// @description update the access on the resource pool in the current environment
+// @description **Access policy**: restricted
+// @tags endpoints
+// @security jwt
+// @accept json
+// @param id path int true "endpoint id"
+// @param rpn path int true "namespace"
+// @param body body resourcePoolUpdatePayload true "details"
+// @success 204 "Success"
+// @failure 400 "Invalid request"
+// @failure 403 "Permission denied"
+// @failure 404 "Endpoint not found"
+// @failure 500 "Server error"
+// @router /endpoints/{id}/pools/{rpn}/access [put]
 func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {

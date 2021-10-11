@@ -16,7 +16,9 @@ import (
 )
 
 type forceUpdateServicePayload struct {
+	// ServiceId to update
 	ServiceID string
+	// PullImage if true will pull the image
 	PullImage bool
 }
 
@@ -24,7 +26,22 @@ func (payload *forceUpdateServicePayload) Validate(r *http.Request) error {
 	return nil
 }
 
-// PUT request on /api/endpoints/:id/forceupdateservice
+// @id endpointForceUpdateService
+// @summary force update a docker service
+// @description force update a docker service
+// @description **Access policy**: authenticated
+// @tags endpoints
+// @security jwt
+// @accept json
+// @produce json
+// @param id path int true "endpoint identifier"
+// @param body body forceUpdateServicePayload true "details"
+// @success 200 {object} dockertypes.ServiceUpdateResponse "Success"
+// @failure 400 "Invalid request"
+// @failure 403 "Permission denied"
+// @failure 404 "endpoint not found"
+// @failure 500 "Server error"
+// @router /endpoints/{id}/forceupdateservice [put]
 func (handler *Handler) endpointForceUpdateService(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {

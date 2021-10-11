@@ -60,7 +60,7 @@ func (payload *endpointUpdatePayload) Validate(r *http.Request) error {
 // @id EndpointUpdate
 // @summary Update an environment(endpoint)
 // @description Update an environment(endpoint).
-// @description **Access policy**: administrator
+// @description **Access policy**: authenticated
 // @security jwt
 // @tags endpoints
 // @accept json

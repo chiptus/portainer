@@ -47,8 +47,9 @@ func (payload *s3BackupPayload) Validate(r *http.Request) error {
 // @description **Access policy**: admin
 // @tags backup
 // @security jwt
+// @accept json
 // @produce octet-stream
-// @param Password body string false "Password to encrypt the backup with"
+// @param body body backupPayload false "An object contains the password to encrypt the backup with"
 // @success 200 "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
@@ -75,9 +76,10 @@ func (h *Handler) backup(w http.ResponseWriter, r *http.Request) *httperror.Hand
 // @id BackupToS3
 // @summary Execute backup to AWS S3 Bucket
 // @description Creates an archive with a system data snapshot and upload it to the target S3 bucket
-// @description **Access policy**: admin
+// @description **Access policy**: administrator
 // @tags backup
 // @security jwt
+// @accept json
 // @param body body s3BackupPayload true "S3 backup settings"
 // @success 204 "Success"
 // @failure 400 "Invalid request"

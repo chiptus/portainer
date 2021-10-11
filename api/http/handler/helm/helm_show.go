@@ -15,7 +15,7 @@ import (
 // @id HelmShow
 // @summary Show Helm Chart Information
 // @description
-// @description **Access policy**: authorized
+// @description **Access policy**: authenticated
 // @tags helm
 // @param repo query string true "Helm repository URL"
 // @param chart query string true "Chart name"

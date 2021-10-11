@@ -52,7 +52,7 @@ func (payload *updateSwarmStackPayload) Validate(r *http.Request) error {
 // @id StackUpdate
 // @summary Update a stack
 // @description Update a stack.
-// @description **Access policy**: restricted
+// @description **Access policy**: authenticated
 // @tags stacks
 // @security jwt
 // @accept json

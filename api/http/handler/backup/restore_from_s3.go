@@ -46,8 +46,9 @@ func (p *restoreS3Settings) Validate(r *http.Request) error {
 // @description Triggers a system restore using details of s3 backup
 // @description **Access policy**: public
 // @tags backup
-// @param S3Location body portainer.S3Location false "S3 Location Payload"
-// @success 200  "Success"
+// @accept json
+// @param body body restoreS3Settings false "S3 Location Payload"
+// @success 200 "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /backup/s3/restore [post]

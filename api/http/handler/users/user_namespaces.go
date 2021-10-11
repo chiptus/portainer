@@ -11,8 +11,23 @@ import (
 	"github.com/portainer/portainer/api/http/security"
 )
 
-// GET request on /api/users/:id/namespaces
-// returns user's role authorizations of all namespaces in all k8s environments(endpoints)
+// namespaceMapping is a struct created only for swagger API generation purposes
+type namespaceMapping map[int]map[string]portainer.Authorizations
+
+// @id UserNamespaces
+// @summary Retrieves all k8s namespaces for an user
+// @description Retrieves user's role authorizations of all namespaces in all k8s environments(endpoints)
+// @description **Access policy**: restricted
+// @tags users
+// @security jwt
+// @produce json
+// @param id path int true "User identifier"
+// @success 200 {object} namespaceMapping "Success"
+// @failure 400 "Invalid request"
+// @failure 403 "Permission denied"
+// @failure 404 "User not found"
+// @failure 500 "Server error"
+// @router /users/{id}/namespaces [get]
 func (handler *Handler) userNamespaces(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	userID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {

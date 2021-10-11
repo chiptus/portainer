@@ -34,7 +34,7 @@ func (handler *Handler) cleanUp(stack *portainer.Stack, doCleanUp *bool) error {
 // @id StackCreate
 // @summary Deploy a new stack
 // @description Deploy a new stack into a Docker environment(endpoint) specified via the environment(endpoint) identifier.
-// @description **Access policy**: restricted
+// @description **Access policy**: authenticated
 // @tags stacks
 // @security jwt
 // @accept json,multipart/form-data
@@ -151,7 +151,7 @@ func (handler *Handler) createKubernetesStack(w http.ResponseWriter, r *http.Req
 	case "repository":
 		return handler.createKubernetesStackFromGitRepository(w, r, endpoint)
 	case "url":
-		return handler.createKubernetesStackFromManifestURL(w, r, endpoint)		
+		return handler.createKubernetesStackFromManifestURL(w, r, endpoint)
 	}
 	return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid value for query parameter: method. Value must be one of: string or repository", Err: errors.New(request.ErrInvalidQueryParameter)}
 }

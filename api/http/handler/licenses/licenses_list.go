@@ -7,7 +7,15 @@ import (
 	"github.com/portainer/libhttp/response"
 )
 
-// GET request on /api/licenses
+// @id licensesList
+// @summary fetches the list of licenses on Portainer
+// @description
+// @description **Access policy**: administrator
+// @tags license
+// @security jwt
+// @produce json
+// @success 200 {array} liblicense.PortainerLicense "Licenses"
+// @router /licenses [get]
 func (handler *Handler) licensesList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	licenses, err := handler.LicenseService.Licenses()
 	if err != nil {

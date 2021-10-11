@@ -12,6 +12,7 @@ import (
 
 type (
 	deletePayload struct {
+		// List of license keys to remove
 		LicenseKeys []string
 	}
 
@@ -28,7 +29,17 @@ func (payload *deletePayload) Validate(r *http.Request) error {
 	return nil
 }
 
-// DELETE request on /api/licenses
+// @id licensesDelete
+// @summary delete license from portainer instance
+// @description
+// @description **Access policy**: administrator
+// @tags license
+// @security jwt
+// @accept json
+// @produce json
+// @param body body deletePayload true "list of license keys to remove"
+// @success 200 {object} deleteResponse "Failures will be in `body.FailedKeys[key] = error`"
+// @router /licenses [delete]
 func (handler *Handler) licensesDelete(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	var payload deletePayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)

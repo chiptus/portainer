@@ -5,14 +5,22 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
-	"github.com/portainer/portainer/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type nodesCountResponse struct {
 	Nodes int `json:"nodes"`
 }
 
-// GET request on /api/status
+// @id statusNodesCount
+// @summary Retrieve the count of nodes
+// @description **Access policy**: authenticated
+// @security jwt
+// @tags status
+// @produce json
+// @success 200 {object} nodesCountResponse "Success"
+// @failure 500 "Server error"
+// @router /status/nodes [get]
 func (handler *Handler) statusNodesCount(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
@@ -60,8 +68,8 @@ func countKubernetesNodes(endpoint *portainer.Endpoint) int {
 }
 
 func max(a, b int) int {
-    if a > b {
-        return a
-    }
-    return b
+	if a > b {
+		return a
+	}
+	return b
 }
