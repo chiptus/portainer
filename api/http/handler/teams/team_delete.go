@@ -38,27 +38,6 @@ func (handler *Handler) teamDelete(w http.ResponseWriter, r *http.Request) *http
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a team with the specified identifier inside the database", err}
 	}
 
-	err = handler.DataStore.Team().DeleteTeam(portainer.TeamID(teamID))
-	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to delete the team from the database", err}
-	}
-
-	err = handler.DataStore.TeamMembership().DeleteTeamMembershipByTeamID(portainer.TeamID(teamID))
-	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to delete associated team memberships from the database", err}
-	}
-
-	err = handler.AuthorizationService.RemoveTeamAccessPolicies(portainer.TeamID(teamID))
-	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to clean-up team access policies", err}
-	}
-
-	// update default team if deleted team was default
-	err = handler.updateDefaultTeamIfDeleted(portainer.TeamID(teamID))
-	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to reset default team", err}
-	}
-
 	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to get user environment access", err}
@@ -90,6 +69,27 @@ func (handler *Handler) teamDelete(w http.ResponseWriter, r *http.Request) *http
 				break
 			}
 		}
+	}
+
+	err = handler.DataStore.Team().DeleteTeam(portainer.TeamID(teamID))
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to delete the team from the database", err}
+	}
+
+	err = handler.DataStore.TeamMembership().DeleteTeamMembershipByTeamID(portainer.TeamID(teamID))
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to delete associated team memberships from the database", err}
+	}
+
+	err = handler.AuthorizationService.RemoveTeamAccessPolicies(portainer.TeamID(teamID))
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to clean-up team access policies", err}
+	}
+
+	// update default team if deleted team was default
+	err = handler.updateDefaultTeamIfDeleted(portainer.TeamID(teamID))
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to reset default team", err}
 	}
 
 	handler.AuthorizationService.TriggerUsersAuthUpdate()

@@ -101,16 +101,6 @@ func (handler *Handler) deleteAdminUser(w http.ResponseWriter, user *portainer.U
 }
 
 func (handler *Handler) deleteUser(w http.ResponseWriter, user *portainer.User) *httperror.HandlerError {
-	err := handler.DataStore.User().DeleteUser(user.ID)
-	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove user from the database", err}
-	}
-
-	err = handler.DataStore.TeamMembership().DeleteTeamMembershipByUserID(user.ID)
-	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove user memberships from the database", err}
-	}
-
 	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to get user environment access", err}
@@ -157,6 +147,16 @@ func (handler *Handler) deleteUser(w http.ResponseWriter, user *portainer.User) 
 	if len(errs) > 0 {
 		err = fmt.Errorf(strings.Join(errs, "\n"))
 		return &httperror.HandlerError{http.StatusInternalServerError, "There are 1 or more errors when deleting user", err}
+	}
+
+	err = handler.DataStore.User().DeleteUser(user.ID)
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove user from the database", err}
+	}
+
+	err = handler.DataStore.TeamMembership().DeleteTeamMembershipByUserID(user.ID)
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove user memberships from the database", err}
 	}
 
 	return response.Empty(w)

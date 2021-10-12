@@ -1,6 +1,9 @@
 package authorization
 
-import portainer "github.com/portainer/portainer/api"
+import (
+	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/bolt/errors"
+)
 
 // CleanNAPWithOverridePolicies Clean Namespace Access Policies with override policies
 func (service *Service) CleanNAPWithOverridePolicies(
@@ -32,6 +35,11 @@ func (service *Service) CleanNAPWithOverridePolicies(
 		}
 
 		for userID := range policy.UserAccessPolicies {
+			_, err := service.dataStore.User().User(userID)
+			if err == errors.ErrObjectNotFound {
+				continue
+			}
+
 			endpointRole, err := service.GetUserEndpointRoleWithOverridePolicies(userID, endpoint, endpointGroup)
 			if err != nil {
 				return err

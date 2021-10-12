@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -129,6 +130,11 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 
 	handler.AuthorizationService.TriggerUsersAuthUpdate()
 
+	err = handler.deleteAccessPolicies(*endpoint)
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to delete endpoint access policies", err}
+	}
+
 	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, nil)
 
 	return response.Empty(w)
@@ -150,4 +156,24 @@ func removeElement(arr []portainer.EndpointID, index int) []portainer.EndpointID
 	lastTagIdx := len(arr) - 1
 	arr[index] = arr[lastTagIdx]
 	return arr[:lastTagIdx]
+}
+
+func (handler *Handler) deleteAccessPolicies(endpoint portainer.Endpoint) error {
+	if endpoint.Type != portainer.KubernetesLocalEnvironment &&
+		endpoint.Type != portainer.AgentOnKubernetesEnvironment &&
+		endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment {
+		return nil
+	}
+
+	kcl, err := handler.K8sClientFactory.GetKubeClient(&endpoint)
+	if err != nil {
+		return fmt.Errorf("Unable to get k8s environment access @ %d: %w", int(endpoint.ID), err)
+	}
+
+	emptyPolicies := make(map[string]portainer.K8sNamespaceAccessPolicy)
+	err = kcl.UpdateNamespaceAccessPolicies(emptyPolicies)
+	if err != nil {
+		return fmt.Errorf("Unable to update environment namespace access @ %d: %w", int(endpoint.ID), err)
+	}
+	return nil
 }
