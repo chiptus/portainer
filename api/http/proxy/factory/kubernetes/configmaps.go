@@ -2,13 +2,13 @@ package kubernetes
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/pkg/errors"
 	"github.com/portainer/portainer/api/http/proxy/factory/utils"
 	useractivityhttp "github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/useractivity"
+	"github.com/sirupsen/logrus"
 )
 
 func (transport *baseTransport) proxyConfigMapsRequest(request *http.Request, requestPath string) (*http.Response, error) {
@@ -23,7 +23,7 @@ func (transport *baseTransport) proxyConfigMapsRequest(request *http.Request, re
 func (transport *baseTransport) decorateConfigWriteOperation(request *http.Request) (*http.Response, error) {
 	body, err := utils.CopyBody(request)
 	if err != nil {
-		return nil, err
+		logrus.WithError(err).Debugf("[k8s configmap] failed parsing body")
 	}
 
 	response, err := transport.executeKubernetesRequest(request, false)
@@ -38,8 +38,11 @@ func (transport *baseTransport) decorateConfigWriteOperation(request *http.Reque
 func (transport *baseTransport) logCreateConfigOperation(request *http.Request, body []byte) {
 	cleanBody, err := hideConfigInfo(body)
 	if err != nil {
-		log.Printf("[ERROR] [http,docker,config] [message: failed cleaning request body] [error: %s]", err)
-		return
+		logrus.WithError(err).Debugf("[http,docker,config] message: failed cleaning request body")
+
+	}
+	if cleanBody == nil {
+		cleanBody = make(map[string]interface{})
 	}
 
 	useractivityhttp.LogHttpActivity(transport.userActivityStore, transport.endpoint.Name, request, cleanBody)
@@ -58,7 +61,7 @@ func hideConfigInfo(body []byte) (interface{}, error) {
 	var payload requestPayload
 	err := json.Unmarshal(body, &payload)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed parsing body")
+		return nil, errors.Wrap(err, "[configmaps] failed parsing body")
 	}
 
 	for key := range payload.Data {

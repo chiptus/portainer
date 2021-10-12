@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/proxy/factory/utils"
@@ -80,7 +81,7 @@ func (transport *Transport) secretInspectOperation(response *http.Response, exec
 func (transport *Transport) decorateSecretCreationOperation(request *http.Request) (*http.Response, error) {
 	body, err := utils.CopyBody(request)
 	if err != nil {
-		return nil, err
+		logrus.WithError(err).Debug("[docker secret] failed parsing body")
 	}
 
 	response, err := transport.decorateGenericResourceCreationOperation(request, secretObjectIdentifier, portainer.SecretResourceControl, false)
@@ -128,7 +129,7 @@ func hideSecretInfo(body []byte) (interface{}, error) {
 	var payload createSecretRequestPayload
 	err := json.Unmarshal(body, &payload)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed parsing body")
+		return nil, errors.Wrap(err, "[secrets] failed parsing body")
 	}
 
 	payload.Data = useractivity.RedactedValue

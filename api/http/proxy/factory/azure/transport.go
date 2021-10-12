@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer/api/http/client"
 	"github.com/portainer/portainer/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer/api/http/useractivity"
+	"github.com/sirupsen/logrus"
 )
 
 type (
@@ -73,7 +74,7 @@ func (transport *Transport) proxyAzureRequest(request *http.Request) (*http.Resp
 
 	body, err := utils.CopyBody(request)
 	if err != nil {
-		return nil, err
+		logrus.WithError(err).Debug("[azure transport] failed parsing body")
 	}
 
 	resp, err := http.DefaultTransport.RoundTrip(request)

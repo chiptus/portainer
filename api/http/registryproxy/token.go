@@ -8,6 +8,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer/api/http/useractivity"
+	"github.com/sirupsen/logrus"
 )
 
 type (
@@ -59,7 +60,7 @@ func (transport *tokenSecuredTransport) RoundTrip(request *http.Request) (*http.
 
 	body, err := utils.CopyBody(request)
 	if err != nil {
-		return nil, err
+		logrus.WithError(err).Debug("[registrytoken] failed parsing body")
 	}
 
 	response, err := http.DefaultTransport.RoundTrip(requestCopy)

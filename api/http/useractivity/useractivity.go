@@ -18,10 +18,9 @@ func LogHttpActivity(store portainer.UserActivityStore, context string, request 
 		bodyMarshalled, err := json.Marshal(payload)
 		if err != nil {
 			log.Printf("[ERROR] [http,useractivity] [message: failed marshalling payload] [error: %s]", err)
-			return
+		} else {
+			body = bodyMarshalled
 		}
-
-		body = bodyMarshalled
 	}
 
 	logActivity(store, context, request, body)

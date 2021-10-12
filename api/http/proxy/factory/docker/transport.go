@@ -21,6 +21,7 @@ import (
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/authorization"
+	"github.com/sirupsen/logrus"
 )
 
 var apiVersionRe = regexp.MustCompile(`(/v[0-9]\.[0-9]*)?`)
@@ -143,7 +144,7 @@ func (transport *Transport) executeDockerRequest(request *http.Request, shouldLo
 	if shouldLog {
 		bodyBytes, err := utils.CopyBody(request)
 		if err != nil {
-			return nil, err
+			logrus.WithError(err).Debugf("[docker transport] failed parsing body")
 		}
 
 		body = bodyBytes

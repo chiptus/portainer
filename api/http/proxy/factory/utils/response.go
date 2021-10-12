@@ -2,11 +2,12 @@ package utils
 
 import (
 	"bytes"
-	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/pkg/errors"
 )
 
 // GetResponseAsJSONObject returns the response content as a generic JSON object
@@ -16,7 +17,10 @@ func GetResponseAsJSONObject(response *http.Response) (map[string]interface{}, e
 		return nil, err
 	}
 
-	responseObject := responseData.(map[string]interface{})
+	responseObject, ok := responseData.(map[string]interface{})
+	if !ok {
+		return nil, nil
+	}
 	return responseObject, nil
 }
 
@@ -25,6 +29,9 @@ func GetResponseAsJSONArray(response *http.Response) ([]interface{}, error) {
 	responseData, err := getResponseBody(response)
 	if err != nil {
 		return nil, err
+	}
+	if responseData == nil {
+		return nil, nil
 	}
 
 	switch responseObject := responseData.(type) {
@@ -87,7 +94,30 @@ func getResponseBody(response *http.Response) (interface{}, error) {
 		response.Header.Del("Content-Encoding")
 	}
 
-	return getBody(response.Body, getContentType(response.Header), isGzip)
+	bodyBytes, err := CopyResponseBody(response)
+	if err != nil {
+		return nil, err
+	}
+
+	return getBody(ioutil.NopCloser(bytes.NewBuffer(bodyBytes)), getContentType(response.Header), isGzip)
+}
+
+// CopyBody copies the request body and recreates it
+func CopyResponseBody(response *http.Response) ([]byte, error) {
+	if response.Body == nil {
+		return nil, nil
+	}
+
+	bodyBytes, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to read body")
+	}
+
+	response.Body.Close()
+	// recreate body to pass to actual request handler
+	response.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+
+	return bodyBytes, nil
 }
 
 func getContentType(headers http.Header) string {

@@ -34,7 +34,11 @@ func GetRequestAsMap(request *http.Request) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	return data.(map[string]interface{}), nil
+	o, ok := data.(map[string]interface{})
+	if !ok {
+		return nil, nil
+	}
+	return o, nil
 }
 
 // RewriteRequest will replace the existing request body with the one specified

@@ -7,6 +7,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer/api/http/useractivity"
+	"github.com/sirupsen/logrus"
 )
 
 type Transport struct {
@@ -39,7 +40,7 @@ func (transport *Transport) RoundTrip(request *http.Request) (*http.Response, er
 
 	body, err := utils.CopyBody(request)
 	if err != nil {
-		return nil, err
+		logrus.WithError(err).Debug("[gitlab transport] failed parsing body")
 	}
 
 	resp, err := transport.httpTransport.RoundTrip(r)

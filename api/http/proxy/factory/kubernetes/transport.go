@@ -17,6 +17,7 @@ import (
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/kubernetes/cli"
+	"github.com/sirupsen/logrus"
 
 	portainer "github.com/portainer/portainer/api"
 )
@@ -99,7 +100,7 @@ func (transport *baseTransport) executeKubernetesRequest(request *http.Request, 
 	if shouldLog {
 		bodyBytes, err := utils.CopyBody(request)
 		if err != nil {
-			return nil, err
+			logrus.WithError(err).Debug("[k8s transport] failed parsing body")
 		}
 
 		body = bodyBytes
@@ -110,6 +111,18 @@ func (transport *baseTransport) executeKubernetesRequest(request *http.Request, 
 	// log if request is success
 	if shouldLog && err == nil && (200 <= resp.StatusCode && resp.StatusCode < 300) {
 		useractivity.LogProxyActivity(transport.userActivityStore, transport.endpoint.Name, request, body)
+	}
+
+	// This fix was made to resolve a k8s e2e test, more detailed investigation should be done later.
+	if err == nil && resp.StatusCode == http.StatusMovedPermanently {
+		oldLocation := resp.Header.Get("Location")
+		if oldLocation != "" {
+			stripedPrefix := strings.TrimSuffix(request.RequestURI, request.URL.Path)
+			// local proxy strips "/kubernetes" but agent proxy and edge agent proxy do not
+			stripedPrefix = strings.TrimSuffix(stripedPrefix, "/kubernetes")
+			newLocation := stripedPrefix + "/kubernetes" + oldLocation
+			resp.Header.Set("Location", newLocation)
+		}
 	}
 
 	return resp, err

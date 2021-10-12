@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/proxy/factory/utils"
@@ -80,7 +81,7 @@ func (transport *Transport) configInspectOperation(response *http.Response, exec
 func (transport *Transport) decorateConfigCreationOperation(request *http.Request) (*http.Response, error) {
 	body, err := utils.CopyBody(request)
 	if err != nil {
-		return nil, err
+		logrus.WithError(err).Debug("[docker configs] failed parsing body")
 	}
 
 	response, err := transport.decorateGenericResourceCreationOperation(request, configObjectIdentifier, portainer.ConfigResourceControl, false)
@@ -128,7 +129,7 @@ func hideConfigInfo(body []byte) (interface{}, error) {
 	var payload requestPayload
 	err := json.Unmarshal(body, &payload)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed parsing body")
+		return nil, errors.Wrap(err, "[configs] failed parsing body")
 	}
 
 	payload.Data = useractivity.RedactedValue
