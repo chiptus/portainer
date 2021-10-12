@@ -42,6 +42,7 @@ function SettingsAuthenticationController($q, $scope, $state, Notifications, Set
       adSettings: buildAdSettingsModel(),
       ldapSettings: buildLdapSettingsModel(),
     },
+    selectedAdminGroups: [],
   };
 
   $scope.authOptions = [
@@ -169,6 +170,16 @@ function SettingsAuthenticationController($q, $scope, $state, Notifications, Set
 
     const uploadRequired = (settings.TLSConfig.TLS || settings.StartTLS) && !settings.TLSConfig.TLSSkipVerify;
 
+    if (settings.AdminAutoPopulate && $scope.formValues.selectedAdminGroups.length > 0) {
+      settings.AdminGroups = _.map($scope.formValues.selectedAdminGroups, (team) => team.name);
+    } else {
+      settings.AdminGroups = [];
+    }
+
+    if ($scope.formValues.selectedAdminGroups.length === 0) {
+      settings.AdminAutoPopulate = false;
+    }
+
     return { settings, uploadRequired, tlscaFile };
   }
 
@@ -180,7 +191,8 @@ function SettingsAuthenticationController($q, $scope, $state, Notifications, Set
     return (
       _.compact(ldapSettings.URLs).length &&
       (ldapSettings.AnonymousMode || (ldapSettings.ReaderDN && ldapSettings.Password)) &&
-      (!isTLSMode || $scope.formValues.TLSCACert || ldapSettings.TLSConfig.TLSSkipVerify)
+      (!isTLSMode || $scope.formValues.TLSCACert || ldapSettings.TLSConfig.TLSSkipVerify) &&
+      (!$scope.settings.LDAPSettings.AdminAutoPopulate || ($scope.settings.LDAPSettings.AdminAutoPopulate && $scope.formValues.selectedAdminGroups.length > 0))
     );
   }
 

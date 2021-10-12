@@ -52,6 +52,7 @@
             tlsca-cert="formValues.TLSCACert"
             state="state"
             connectivity-check="LDAPConnectivityCheck"
+            selected-admin-groups="formValues.selectedAdminGroups"
           ></ldap-settings>
 
           <ad-settings
@@ -60,6 +61,7 @@
             tlsca-cert="formValues.TLSCACert"
             state="state"
             connectivity-check="LDAPConnectivityCheck"
+            selected-admin-groups="formValues.selectedAdminGroups"
           ></ad-settings>
 
           <oauth-settings ng-if="authenticationMethodSelected(3)" settings="OAuthSettings" teams="teams"></oauth-settings>

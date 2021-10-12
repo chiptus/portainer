@@ -10,31 +10,35 @@ import (
 	portainer "github.com/portainer/portainer/api"
 )
 
-type groupsPayload struct {
+type adminGroupsPayload struct {
 	LDAPSettings portainer.LDAPSettings
 }
 
-func (payload *groupsPayload) Validate(r *http.Request) error {
+func (payload *adminGroupsPayload) Validate(r *http.Request) error {
 	if len(payload.LDAPSettings.URLs) == 0 {
 		return errors.New("Invalid LDAP URLs. At least one URL is required")
+	}
+	if len(payload.LDAPSettings.AdminGroupSearchSettings) == 0 {
+		return errors.New("Invalid AdminGroupSearchSettings. When 'AdminAutoPopulate' is true, at least one search settings is required")
 	}
 	return nil
 }
 
-// @id LDAPGroups
-// @summary Search LDAP Groups
-// @description
+// @id LDAPAdminGroups
+// @summary Fetch LDAP admin groups
+// @description Fetch LDAP admin groups from LDAP server based on AdminGroupSearchSettings
 // @description **Access policy**: administrator
 // @tags ldap
 // @security jwt
 // @accept json
-// @param body body groupsPayload true "details"
-// @success 200 {array} portainer.LDAPUser "Success"
+// @produce json
+// @param body body adminGroupsPayload true "LDAPSettings"
+// @success 200 {array} string "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
-// @router /ldap/groups [post]
-func (handler *Handler) ldapGroups(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	var payload groupsPayload
+// @router /ldap/admin-groups [post]
+func (handler *Handler) ldapAdminGroups(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+	var payload adminGroupsPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
@@ -47,9 +51,9 @@ func (handler *Handler) ldapGroups(w http.ResponseWriter, r *http.Request) *http
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to fetch default settings", Err: err}
 	}
 
-	groups, err := handler.LDAPService.SearchGroups(settings)
+	groups, err := handler.LDAPService.SearchAdminGroups(settings)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to search for groups", Err: err}
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to search admin groups", Err: err}
 	}
 
 	return response.JSON(w, groups)

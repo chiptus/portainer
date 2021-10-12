@@ -1,4 +1,5 @@
 import _ from 'lodash-es';
+const DEFAULT_GROUP_FILTER = '(objectClass=group)';
 import { HIDE_INTERNAL_AUTH } from '@/portainer/feature-flags/feature-ids';
 
 export default class AdSettingsController {
@@ -11,6 +12,7 @@ export default class AdSettingsController {
     this.onTlscaCertChange = this.onTlscaCertChange.bind(this);
     this.searchUsers = this.searchUsers.bind(this);
     this.searchGroups = this.searchGroups.bind(this);
+    this.searchAdminGroups = this.searchAdminGroups.bind(this);
     this.parseDomainName = this.parseDomainName.bind(this);
     this.onAccountChange = this.onAccountChange.bind(this);
   }
@@ -41,6 +43,19 @@ export default class AdSettingsController {
 
   searchGroups() {
     return this.LDAPService.groups(this.settings);
+  }
+
+  searchAdminGroups() {
+    if (this.settings.AdminAutoPopulate) {
+      this.settings.AdminGroups = this.selectedAdminGroups.map((team) => team.name);
+    }
+
+    const settings = {
+      ...this.settings,
+      AdminGroupSearchSettings: this.settings.AdminGroupSearchSettings.map((search) => ({ ...search, GroupFilter: search.GroupFilter || DEFAULT_GROUP_FILTER })),
+    };
+
+    return this.LDAPService.adminGroups(settings);
   }
 
   onTlscaCertChange(file) {

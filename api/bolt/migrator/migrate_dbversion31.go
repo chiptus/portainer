@@ -31,6 +31,16 @@ func (m *Migrator) migrateDBVersionToDB32() error {
 		return err
 	}
 
+	err = m.updateVolumeResourceControlToDB32()
+	if err != nil {
+		return err
+	}
+
+	err = m.updateAdminGroupSearchSettingsToDB32()
+	if err != nil {
+		return err
+	}
+
 	if err := migrateStackEntryPoint(m.stackService); err != nil {
 		return err
 	}
@@ -68,16 +78,16 @@ func (m *Migrator) updateRegistriesToDB32() error {
 		for _, endpoint := range endpoints {
 
 			filteredUserAccessPolicies := portainer.UserAccessPolicies{}
-			for userId, registryPolicy := range registry.UserAccessPolicies {
-				if _, found := endpoint.UserAccessPolicies[userId]; found {
-					filteredUserAccessPolicies[userId] = registryPolicy
+			for userID, registryPolicy := range registry.UserAccessPolicies {
+				if _, found := endpoint.UserAccessPolicies[userID]; found {
+					filteredUserAccessPolicies[userID] = registryPolicy
 				}
 			}
 
 			filteredTeamAccessPolicies := portainer.TeamAccessPolicies{}
-			for teamId, registryPolicy := range registry.TeamAccessPolicies {
-				if _, found := endpoint.TeamAccessPolicies[teamId]; found {
-					filteredTeamAccessPolicies[teamId] = registryPolicy
+			for teamID, registryPolicy := range registry.TeamAccessPolicies {
+				if _, found := endpoint.TeamAccessPolicies[teamID]; found {
+					filteredTeamAccessPolicies[teamID] = registryPolicy
 				}
 			}
 
@@ -126,18 +136,18 @@ func (m *Migrator) updateDockerhubToDB32() error {
 			endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment {
 
 			userAccessPolicies := portainer.UserAccessPolicies{}
-			for userId := range endpoint.UserAccessPolicies {
-				if _, found := endpoint.UserAccessPolicies[userId]; found {
-					userAccessPolicies[userId] = portainer.AccessPolicy{
+			for userID := range endpoint.UserAccessPolicies {
+				if _, found := endpoint.UserAccessPolicies[userID]; found {
+					userAccessPolicies[userID] = portainer.AccessPolicy{
 						RoleID: 0,
 					}
 				}
 			}
 
 			teamAccessPolicies := portainer.TeamAccessPolicies{}
-			for teamId := range endpoint.TeamAccessPolicies {
-				if _, found := endpoint.TeamAccessPolicies[teamId]; found {
-					teamAccessPolicies[teamId] = portainer.AccessPolicy{
+			for teamID := range endpoint.TeamAccessPolicies {
+				if _, found := endpoint.TeamAccessPolicies[teamID]; found {
+					teamAccessPolicies[teamID] = portainer.AccessPolicy{
 						RoleID: 0,
 					}
 				}
@@ -258,6 +268,19 @@ func findResourcesToUpdateToDB32(dockerID string, volumesData map[string]interfa
 			toUpdate[resourceControl.ID] = fmt.Sprintf("%s_%s", volumeName, dockerID)
 		}
 	}
+}
+
+func (m *Migrator) updateAdminGroupSearchSettingsToDB32() error {
+	legacySettings, err := m.settingsService.Settings()
+	if err != nil {
+		return err
+	}
+	if legacySettings.LDAPSettings.AdminGroupSearchSettings == nil {
+		legacySettings.LDAPSettings.AdminGroupSearchSettings = []portainer.LDAPGroupSearchSettings{
+			{},
+		}
+	}
+	return m.settingsService.UpdateSettings(legacySettings)
 }
 
 func (m *Migrator) kubeconfigExpiryToDB32() error {

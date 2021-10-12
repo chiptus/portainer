@@ -35,10 +35,13 @@ func (store *Store) Init() error {
 				TLSConfig:       portainer.TLSConfiguration{},
 				URLs:            []string{},
 				SearchSettings: []portainer.LDAPSearchSettings{
-					portainer.LDAPSearchSettings{},
+					{},
 				},
 				GroupSearchSettings: []portainer.LDAPGroupSearchSettings{
-					portainer.LDAPGroupSearchSettings{},
+					{},
+				},
+				AdminGroupSearchSettings: []portainer.LDAPGroupSearchSettings{
+					{},
 				},
 			},
 			OAuthSettings: portainer.OAuthSettings{

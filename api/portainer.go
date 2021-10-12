@@ -558,7 +558,12 @@ type (
 		GroupSearchSettings []LDAPGroupSearchSettings `json:"GroupSearchSettings"`
 		// Automatically provision users and assign them to matching LDAP group names
 		AutoCreateUsers bool           `json:"AutoCreateUsers" example:"true"`
-		ServerType      LDAPServerType `json:"ServerType"`
+		ServerType      LDAPServerType `json:"ServerType" example:"1"`
+		// Whether auto admin population is switched on or not
+		AdminAutoPopulate        bool                      `json:"AdminAutoPopulate" example:"true"`
+		AdminGroupSearchSettings []LDAPGroupSearchSettings `json:"AdminGroupSearchSettings"`
+		// Saved admin group list, the user will be populated as an admin role if any user group matches the record in the list
+		AdminGroups []string `json:"AdminGroups" example:"['manager','operator']"`
 		// Deprecated
 		URL string `json:"URL"`
 	}
@@ -1458,8 +1463,9 @@ type (
 	LDAPService interface {
 		AuthenticateUser(username, password string, settings *LDAPSettings) error
 		TestConnectivity(settings *LDAPSettings) error
-		GetUserGroups(username string, settings *LDAPSettings) ([]string, error)
+		GetUserGroups(username string, settings *LDAPSettings, useAutoAdminSearchSettings bool) ([]string, error)
 		SearchGroups(settings *LDAPSettings) ([]LDAPUser, error)
+		SearchAdminGroups(settings *LDAPSettings) ([]string, error)
 		SearchUsers(settings *LDAPSettings) ([]string, error)
 	}
 

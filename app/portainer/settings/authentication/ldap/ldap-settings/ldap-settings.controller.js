@@ -26,6 +26,7 @@ export default class LdapSettingsController {
     this.onTlscaCertChange = this.onTlscaCertChange.bind(this);
     this.searchUsers = this.searchUsers.bind(this);
     this.searchGroups = this.searchGroups.bind(this);
+    this.searchAdminGroups = this.searchAdminGroups.bind(this);
     this.onChangeServerType = this.onChangeServerType.bind(this);
   }
 
@@ -69,5 +70,18 @@ export default class LdapSettingsController {
       GroupSearchSettings: this.settings.GroupSearchSettings.map((search) => ({ ...search, GroupFilter: search.GroupFilter || DEFAULT_GROUP_FILTER })),
     };
     return this.LDAPService.groups(settings);
+  }
+
+  searchAdminGroups() {
+    if (this.settings.AdminAutoPopulate) {
+      this.settings.AdminGroups = this.selectedAdminGroups.map((team) => team.Name);
+    }
+
+    const settings = {
+      ...this.settings,
+      AdminGroupSearchSettings: this.settings.AdminGroupSearchSettings.map((search) => ({ ...search, GroupFilter: search.GroupFilter || DEFAULT_GROUP_FILTER })),
+    };
+
+    return this.LDAPService.adminGroups(settings);
   }
 }

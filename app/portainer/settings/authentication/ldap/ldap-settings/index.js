@@ -5,6 +5,7 @@ export const ldapSettings = {
   controller,
   bindings: {
     settings: '=',
+    selectedAdminGroups: '=',
     state: '<',
     connectivityCheck: '<',
   },

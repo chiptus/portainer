@@ -13,6 +13,7 @@ import { ldapUserSearch } from './ldap-user-search';
 import { ldapUserSearchItem } from './ldap-user-search-item';
 import { ldapSettingsDnBuilder } from './ldap-settings-dn-builder';
 import { ldapSettingsGroupDnBuilder } from './ldap-settings-group-dn-builder';
+import { ldapCustomAdminGroup } from './ldap-custom-admin-group';
 import { ldapCustomGroupSearch } from './ldap-custom-group-search';
 import { ldapSettingsSecurity } from './ldap-settings-security';
 import { ldapSettingsTestLogin } from './ldap-settings-test-login';
@@ -41,4 +42,5 @@ export default angular
   .component('ldapSettingsSecurity', ldapSettingsSecurity)
   .component('ldapSettingsTestLogin', ldapSettingsTestLogin)
   .component('ldapCustomUserSearch', ldapCustomUserSearch)
+  .component('ldapCustomAdminGroup', ldapCustomAdminGroup)
   .component('ldapUsersDatatable', ldapUsersDatatable).name;

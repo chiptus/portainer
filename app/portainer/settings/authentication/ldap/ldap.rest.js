@@ -9,6 +9,7 @@ export function LDAP($resource) {
       check: { method: 'POST', params: { action: 'check' } },
       users: { method: 'POST', isArray: true, params: { action: 'users' } },
       groups: { method: 'POST', isArray: true, params: { action: 'groups' } },
+      adminGroups: { method: 'POST', isArray: true, params: { action: 'admin-groups' } },
       testLogin: { method: 'POST', params: { action: 'test' } },
     }
   );

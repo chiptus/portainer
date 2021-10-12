@@ -27,7 +27,10 @@
     connectivity-check="$ctrl.connectivityCheck"
     on-search-users-click="($ctrl.searchUsers)"
     on-search-groups-click="($ctrl.searchGroups)"
+    on-search-admin-groups-click="($ctrl.searchAdminGroups)"
+    selected-admin-groups="$ctrl.selectedAdminGroups"
   ></ldap-settings-custom>
+
   <ldap-settings-open-ldap
     ng-if="$ctrl.settings.ServerType === $ctrl.SERVER_TYPES.OPEN_LDAP"
     settings="$ctrl.settings"

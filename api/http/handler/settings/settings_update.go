@@ -82,6 +82,12 @@ func (payload *settingsUpdatePayload) Validate(r *http.Request) error {
 		if len(payload.LDAPSettings.URLs) == 0 {
 			return errors.New("Invalid LDAP URLs. At least one URL is required")
 		}
+		if payload.LDAPSettings.AdminAutoPopulate && len(payload.LDAPSettings.AdminGroupSearchSettings) == 0 {
+			return errors.New("Missing Admin group Search settings. when AdminAutoPopulate is true, at least one settings is required")
+		}
+		if !payload.LDAPSettings.AdminAutoPopulate && len(payload.LDAPSettings.AdminGroups) > 0 {
+			payload.LDAPSettings.AdminGroups = []string{}
+		}
 	}
 
 	return nil
@@ -104,12 +110,12 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 	var payload settingsUpdatePayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
+		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
 	}
 
 	settings, err := handler.DataStore.Settings().Settings()
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve the settings from the database", err}
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve the settings from the database", Err: err}
 	}
 
 	if payload.AuthenticationMethod != nil {
@@ -203,7 +209,7 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 	if payload.SnapshotInterval != nil && *payload.SnapshotInterval != settings.SnapshotInterval {
 		err := handler.updateSnapshotInterval(settings, *payload.SnapshotInterval)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to update snapshot interval", err}
+			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to update snapshot interval", Err: err}
 		}
 	}
 
@@ -238,7 +244,7 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 
 	err = handler.DataStore.Settings().UpdateSettings(settings)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist settings changes inside the database", err}
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist settings changes inside the database", Err: err}
 	}
 
 	if payload.LDAPSettings != nil {
@@ -273,7 +279,7 @@ func (handler *Handler) updateTLS(settings *portainer.Settings) *httperror.Handl
 		settings.LDAPSettings.TLSConfig.TLSCACertPath = ""
 		err := handler.FileService.DeleteTLSFiles(filesystem.LDAPStorePath)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove TLS files from disk", err}
+			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to remove TLS files from disk", Err: err}
 		}
 	}
 	return nil

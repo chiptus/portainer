@@ -7,9 +7,11 @@ export const ldapSettingsCustom = {
     settings: '=',
     tlscaCert: '=',
     state: '=',
+    selectedAdminGroups: '=',
     onTlscaCertChange: '<',
     connectivityCheck: '<',
     onSearchUsersClick: '<',
     onSearchGroupsClick: '<',
+    onSearchAdminGroupsClick: '<',
   },
 };

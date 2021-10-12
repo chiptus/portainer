@@ -31,6 +31,7 @@ export function LDAPSettingsViewModel(data) {
   this.URL = data.URL;
   this.SearchSettings = data.SearchSettings;
   this.GroupSearchSettings = data.GroupSearchSettings;
+  this.AdminGroupSearchSettings = data.AdminGroupSearchSettings;
   this.AutoCreateUsers = data.AutoCreateUsers;
 }
 

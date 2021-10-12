@@ -1,6 +1,6 @@
 /* @ngInject */
 export function LDAPService(LDAP) {
-  return { users, groups, check, testLogin };
+  return { users, groups, adminGroups, check, testLogin };
 
   function users(ldapSettings) {
     return LDAP.users({ ldapSettings }).$promise;
@@ -17,6 +17,11 @@ export function LDAPService(LDAP) {
       }
       return { Groups, Name: name };
     });
+  }
+
+  async function adminGroups(ldapSettings) {
+    const userGroups = await LDAP.adminGroups({ ldapSettings }).$promise;
+    return userGroups.sort((a, b) => (a.toLowerCase() > b.toLowerCase() ? 1 : -1)).map((name) => ({ name, selected: ldapSettings.AdminGroups.includes(name) }));
   }
 
   function check(ldapSettings) {

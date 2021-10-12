@@ -28,6 +28,8 @@ func NewHandler(bouncer *security.RequestBouncer) *Handler {
 		bouncer.AdminAccess(httperror.LoggerHandler(h.ldapCheck))).Methods(http.MethodPost)
 	h.Handle("/ldap/groups",
 		bouncer.AdminAccess(httperror.LoggerHandler(h.ldapGroups))).Methods(http.MethodPost)
+	h.Handle("/ldap/admin-groups",
+		bouncer.AdminAccess(httperror.LoggerHandler(h.ldapAdminGroups))).Methods(http.MethodPost)
 	h.Handle("/ldap/users",
 		bouncer.AdminAccess(httperror.LoggerHandler(h.ldapUsers))).Methods(http.MethodPost)
 	h.Handle("/ldap/test",

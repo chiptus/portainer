@@ -5,6 +5,7 @@ export const adSettings = {
   controller,
   bindings: {
     settings: '=',
+    selectedAdminGroups: '=',
     tlscaCert: '=',
     state: '=',
     connectivityCheck: '<',
