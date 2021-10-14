@@ -72,7 +72,7 @@ func getPortainerDefaultK8sRoles() map[portainer.K8sRole]k8sRoleConfig {
 			isSystem: false,
 			rules: []rbacv1.PolicyRule{
 				{
-					Verbs:     []string{"list"},
+					Verbs:     []string{"list", "get"},
 					Resources: []string{"namespaces", "nodes"},
 					APIGroups: []string{""},
 				},
@@ -82,8 +82,8 @@ func getPortainerDefaultK8sRoles() map[portainer.K8sRole]k8sRoleConfig {
 					APIGroups: []string{"storage.k8s.io"},
 				},
 				{
-					Verbs:     []string{"list"},
-					Resources: []string{"namespaces", "pods"},
+					Verbs:     []string{"list", "get"},
+					Resources: []string{"namespaces", "pods", "nodes"},
 					APIGroups: []string{"metrics.k8s.io"},
 				},
 			},
