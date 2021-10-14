@@ -435,11 +435,11 @@
                 </div>
                 <!-- #endregion -->
 
-                <div authorization="K8sResourcePoolDetailsW" ng-if="ctrl.isEditable && ctrl.formValues.StorageClasses.length">
+                <div authorization="K8sResourcePoolDetailsR" ng-if="ctrl.isEditable && ctrl.formValues.StorageClasses.length">
                   <div class="col-sm-12 form-section-title">
                     Storage
                   </div>
-                  <div class="form-group">
+                  <div authorization="K8sResourcePoolDetailsW" class="form-group">
                     <div class="col-sm-12 small text-muted">
                       <p>
                         <i class="fa fa-info-circle blue-icon" aria-hidden="true" style="margin-right: 2px;"></i>
@@ -456,21 +456,21 @@
                       </div>
                     </div>
 
-                    <!-- <div class="form-group"> -->
-                    <div class="col-sm-12">
-                      <por-switch-field
-                        ng-data-cy="k8sNamespaceCreate-enableQuotaToggle"
-                        label="Enable quota"
-                        name="k8s-resourcepool-storagequota"
-                        feature="ctrl.StorageQuotaFeatureId"
-                        ng-model="sc.Selected"
-                      ></por-switch-field>
+                    <div authorization="K8sResourcePoolDetailsW">
+                      <div class="col-sm-12">
+                        <por-switch-field
+                          ng-data-cy="k8sNamespaceCreate-enableQuotaToggle"
+                          label="Enable quota"
+                          name="k8s-resourcepool-storagequota"
+                          feature="ctrl.StorageQuotaFeatureId"
+                          ng-model="sc.Selected"
+                        ></por-switch-field>
+                      </div>
                     </div>
-                    <!-- </div> -->
                   </div>
 
                   <div ng-repeat-end ng-if="sc.Selected">
-                    <div class="form-group">
+                    <div class="form-group" authorization="K8sResourcePoolDetailsW">
                       <label class="control-label text-left col-sm-2">
                         Maximum usage
                       </label>
