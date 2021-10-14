@@ -55,6 +55,7 @@ angular.module('portainer.docker').controller('ServiceController', [
   'NetworkService',
   'endpoint',
   'EndpointService',
+  'RegistryService',
   function (
     $q,
     $scope,
@@ -86,7 +87,8 @@ angular.module('portainer.docker').controller('ServiceController', [
     WebhookHelper,
     NetworkService,
     endpoint,
-    EndpointService
+    EndpointService,
+    RegistryService
   ) {
     $scope.endpoint = endpoint;
     $scope.state = {
@@ -354,22 +356,22 @@ angular.module('portainer.docker').controller('ServiceController', [
       $('#copyNotification').fadeOut(2000);
     };
 
-    $scope.cancelChanges = function cancelChanges(service, keys) {
+    $scope.cancelChanges = async function cancelChanges(service, keys) {
       if (keys) {
         // clean out the keys only from the list of modified keys
-        keys.forEach(function (key) {
+        for (const key of keys) {
           if (key === 'Image') {
-            $scope.formValues.RegistryModel.Image = '';
+            $scope.formValues.RegistryModel = await RegistryService.retrievePorRegistryModelFromRepository(originalService.Image, endpoint.Id);
           } else {
             var index = previousServiceValues.indexOf(key);
             if (index >= 0) {
               previousServiceValues.splice(index, 1);
             }
           }
-        });
+        }
       } else {
         // clean out all changes
-        $scope.formValues.RegistryModel.Image = '';
+        $scope.formValues.RegistryModel = await RegistryService.retrievePorRegistryModelFromRepository(originalService.Image, endpoint.Id);
         keys = Object.keys(service);
         previousServiceValues = [];
       }
@@ -383,7 +385,9 @@ angular.module('portainer.docker').controller('ServiceController', [
       var hasChanges = false;
       elements.forEach(function (key) {
         if (key === 'Image') {
-          hasChanges = hasChanges || $scope.formValues.RegistryModel.Image ? true : false;
+          const originalImage = service ? service.Model.Spec.TaskTemplate.ContainerSpec.Image : null;
+          const currentImage = ImageHelper.createImageConfigForContainer($scope.formValues.RegistryModel).fromImage;
+          hasChanges = hasChanges || originalImage !== currentImage;
         } else {
           hasChanges = hasChanges || previousServiceValues.indexOf(key) >= 0;
         }
@@ -755,6 +759,11 @@ angular.module('portainer.docker').controller('ServiceController', [
           } else {
             $scope.state.sliderMaxCpu = 32;
           }
+
+          const image = $scope.service.Model.Spec.TaskTemplate.ContainerSpec.Image;
+          RegistryService.retrievePorRegistryModelFromRepository(image, endpoint.Id).then((model) => {
+            $scope.formValues.RegistryModel = model;
+          });
 
           // Default values
           $scope.state.addSecret = { override: false };
