@@ -51,7 +51,7 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove environment from the database", err}
 	}
 
-	handler.ProxyManager.DeleteEndpointProxy(endpoint)
+	handler.ProxyManager.DeleteEndpointProxy(endpoint.ID)
 
 	if len(endpoint.UserAccessPolicies) > 0 || len(endpoint.TeamAccessPolicies) > 0 {
 		err = handler.AuthorizationService.UpdateUsersAuthorizations()

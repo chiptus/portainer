@@ -500,6 +500,8 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 
 	proxyManager := proxy.NewManager(dataStore, digitalSignatureService, reverseTunnelService, dockerClientFactory, kubernetesClientFactory, kubernetesTokenCacheManager, authorizationService, userActivityStore)
 
+	reverseTunnelService.ProxyManager = proxyManager
+
 	dockerConfigPath := fileService.GetDockerConfigPath()
 
 	composeStackManager := initComposeStackManager(*flags.Assets, dockerConfigPath, reverseTunnelService, proxyManager)
