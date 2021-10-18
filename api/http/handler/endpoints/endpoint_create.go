@@ -223,6 +223,18 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 
 	handler.AuthorizationService.TriggerUsersAuthUpdate()
 
+	// sanitise TLS data to prevent it from showing up in user activity logs
+	if len(payload.TLSCACertFile) > 0 {
+		payload.TLSCACertFile = []byte{}
+	}
+	if len(payload.TLSCertFile) > 0 {
+		payload.TLSCertFile = []byte{}
+	}
+	if len(payload.TLSKeyFile) > 0 {
+		payload.TLSKeyFile = []byte{}
+	}
+
+	// sanitise AzureAuthenticationKey to prevent it from showing up in user activity logs
 	payload.AzureAuthenticationKey = consts.RedactedValue
 
 	//sanitise cert files if necessary
