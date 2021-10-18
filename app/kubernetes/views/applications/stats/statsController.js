@@ -130,6 +130,7 @@ class KubernetesApplicationStatsController {
     } catch (error) {
       this.state.getMetrics = false;
       this.state.viewReady = true;
+      this.Notifications.error('Failure', error, 'Unable to retrieve pod stats');
       return;
     }
 
