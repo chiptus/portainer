@@ -469,20 +469,23 @@
                 </div>
               </div>
 
-              <div class="form-group" ng-repeat-start="sc in $ctrl.formValues.StorageClasses">
-                <div class="text-muted col-sm-12" style="width: 100%;">
+              <div ng-repeat-start="sc in $ctrl.formValues.StorageClasses">
+                <div class="form-section-title text-muted col-sm-12" style="width: 100%;">
                   <div style="border-bottom: 1px solid #cdcdcd; padding-bottom: 5px;">
                     <i class="fa fa-route" aria-hidden="true" style="margin-right: 2px;"></i> {{ sc.Name }}
                   </div>
                 </div>
-
-                <por-switch-field
-                  ng-data-cy="k8sNamespaceCreate-enableQuotaToggle"
-                  label="Enable quota"
-                  name="k8s-resourcepool-storagequota"
-                  feature="$ctrl.StorageQuotaFeatureId"
-                  ng-model="storagequota"
-                ></por-switch-field>
+                <div class="form-group">
+                  <div class="col-sm-2">
+                    <por-switch-field
+                      ng-data-cy="k8sNamespaceCreate-enableQuotaToggle"
+                      label="Enable quota"
+                      name="k8s-resourcepool-storagequota"
+                      feature="$ctrl.StorageQuotaFeatureId"
+                      ng-model="sc.Selected"
+                    ></por-switch-field>
+                  </div>
+                </div>
               </div>
 
               <div ng-repeat-end ng-if="sc.Selected">
