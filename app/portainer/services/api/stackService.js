@@ -100,7 +100,7 @@ angular.module('portainer.app').factory('StackService', [
         queries.push(service.composeStacks(endpointId, true, { EndpointID: endpointId, IncludeOrphanedStacks: includeOrphanedStacks }));
       }
       if (swarm) {
-        queries.push(service.swarmStacks(endpointId, true, { EndpointID: endpointId, IncludeOrphanedStacks: includeOrphanedStacks }));
+        queries.push(service.swarmStacks(endpointId, true, { IncludeOrphanedStacks: includeOrphanedStacks }));
       }
 
       $q.all(queries)
