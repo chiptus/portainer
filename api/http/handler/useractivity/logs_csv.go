@@ -20,11 +20,13 @@ import (
 // @param after query int false "Results after timestamp (unix)"
 // @param sortBy query string false "Sort by this column" Enum("Timestamp", "Context", "Username", "Action")
 // @param sortDesc query bool false "Sort order, if true will return results by descending order"
+// @param limit query int false "Limit results"
 // @param keyword query string false "Query logs by this keyword"
 // @success 200 "Success"
 // @failure 500 "Server error"
 // @router /useractivity/logs.csv [get]
 func (handler *Handler) logsCSV(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+	limit, _ := request.RetrieveNumericQueryParameter(r, "limit", true)
 	before, _ := request.RetrieveNumericQueryParameter(r, "before", true)
 	after, _ := request.RetrieveNumericQueryParameter(r, "after", true)
 	sortBy, _ := request.RetrieveQueryParameter(r, "sortBy", true)
@@ -37,6 +39,7 @@ func (handler *Handler) logsCSV(w http.ResponseWriter, r *http.Request) *httperr
 		SortBy:          sortBy,
 		SortDesc:        sortDesc,
 		Keyword:         keyword,
+		Limit:           limit,
 	}
 
 	logs, _, err := handler.UserActivityStore.GetUserActivityLogs(opts)
