@@ -138,6 +138,8 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		}
 
 		settings.HelmRepositoryURL = newHelmRepo
+	} else {
+		settings.HelmRepositoryURL = ""
 	}
 
 	if payload.BlackListedLabels != nil {
@@ -208,7 +210,7 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		}
 
 		if !payload.OAuthSettings.TeamMemberships.AdminAutoPopulate {
-			settings.OAuthSettings.TeamMemberships.AdminGroupClaimsRegexList = []string{};
+			settings.OAuthSettings.TeamMemberships.AdminGroupClaimsRegexList = []string{}
 		}
 	}
 
