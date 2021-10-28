@@ -65,6 +65,7 @@ class KubernetesDeployController {
       AdditionalFiles: [],
       ComposeFilePathInRepository: '',
       RepositoryAutomaticUpdates: true,
+      RepositoryAutomaticUpdatesForce: false,
       RepositoryMechanism: RepositoryMechanismTypes.INTERVAL,
       RepositoryFetchInterval: '5m',
       RepositoryWebhookURL: this.WebhookHelper.returnStackWebhookUrl(uuidv4()),
@@ -230,7 +231,9 @@ class KubernetesDeployController {
         payload.ManifestFile = this.formValues.ComposeFilePathInRepository;
         payload.AdditionalFiles = this.formValues.AdditionalFiles;
         if (this.formValues.RepositoryAutomaticUpdates) {
-          payload.AutoUpdate = {};
+          payload.AutoUpdate = {
+            ForceUpdate: this.formValues.RepositoryAutomaticUpdatesForce,
+          }; 
           if (this.formValues.RepositoryMechanism === RepositoryMechanismTypes.INTERVAL) {
             payload.AutoUpdate.Interval = this.formValues.RepositoryFetchInterval;
           } else if (this.formValues.RepositoryMechanism === RepositoryMechanismTypes.WEBHOOK) {

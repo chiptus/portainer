@@ -45,6 +45,7 @@ angular
       ComposeFilePathInRepository: 'docker-compose.yml',
       AccessControlData: new AccessControlFormData(),
       RepositoryAutomaticUpdates: true,
+      RepositoryAutomaticUpdatesForce: false,
       RepositoryMechanism: RepositoryMechanismTypes.INTERVAL,
       RepositoryFetchInterval: '5m',
       RepositoryWebhookURL: WebhookHelper.returnStackWebhookUrl(uuidv4()),
@@ -168,7 +169,9 @@ angular
 
     function getAutoUpdatesProperty(repositoryOptions) {
       if ($scope.formValues.RepositoryAutomaticUpdates) {
-        repositoryOptions.AutoUpdate = {};
+        repositoryOptions.AutoUpdate = {
+          ForceUpdate: $scope.formValues.RepositoryAutomaticUpdatesForce,
+        };
         if ($scope.formValues.RepositoryMechanism === RepositoryMechanismTypes.INTERVAL) {
           repositoryOptions.AutoUpdate.Interval = $scope.formValues.RepositoryFetchInterval;
         } else if ($scope.formValues.RepositoryMechanism === RepositoryMechanismTypes.WEBHOOK) {

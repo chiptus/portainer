@@ -919,6 +919,8 @@ type (
 		Webhook string `example:"05de31a2-79fa-4644-9c12-faa67e5c49f0"`
 		// Autoupdate job id
 		JobID string `example:"15"`
+		// Force update ignores repo changes
+		ForceUpdate bool `example:"false"`
 	}
 
 	// StackID represents a stack identifier (it must be composed of Name + "_" + SwarmID to create a unique identifier)

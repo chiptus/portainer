@@ -56,9 +56,10 @@ func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, data
 	if err != nil {
 		return errors.WithMessagef(err, "failed to fetch latest commit id of the stack %v", stack.ID)
 	}
-
-	if strings.EqualFold(newHash, string(stack.GitConfig.ConfigHash)) {
-		return nil
+	if stack.AutoUpdate != nil && !stack.AutoUpdate.ForceUpdate {
+		if strings.EqualFold(newHash, string(stack.GitConfig.ConfigHash)) {
+			return nil
+		}
 	}
 
 	cloneParams := &cloneRepositoryParameters{

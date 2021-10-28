@@ -28,6 +28,7 @@ class StackRedeployGitFormController {
       // auto update
       AutoUpdate: {
         RepositoryAutomaticUpdates: false,
+        RepositoryAutomaticUpdatesForce: false,
         RepositoryMechanism: RepositoryMechanismTypes.INTERVAL,
         RepositoryFetchInterval: '5m',
         RepositoryWebhookURL: '',
@@ -154,6 +155,7 @@ class StackRedeployGitFormController {
     // Init auto update
     if (this.stack.AutoUpdate && (this.stack.AutoUpdate.Interval || this.stack.AutoUpdate.Webhook)) {
       this.formValues.AutoUpdate.RepositoryAutomaticUpdates = true;
+      this.formValues.AutoUpdate.RepositoryAutomaticUpdatesForce = this.stack.AutoUpdate.ForceUpdate;
 
       if (this.stack.AutoUpdate.Interval) {
         this.formValues.AutoUpdate.RepositoryMechanism = RepositoryMechanismTypes.INTERVAL;

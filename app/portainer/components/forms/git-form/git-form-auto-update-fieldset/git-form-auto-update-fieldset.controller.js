@@ -1,10 +1,14 @@
+import { FORCE_REDEPLOYMENT } from '@/portainer/feature-flags/feature-ids';
 class GitFormAutoUpdateFieldsetController {
   /* @ngInject */
   constructor(clipboard) {
     this.onChangeAutoUpdate = this.onChangeField('RepositoryAutomaticUpdates');
+    this.onChangeAutoUpdateForce = this.onChangeField('RepositoryAutomaticUpdatesForce');
     this.onChangeMechanism = this.onChangeField('RepositoryMechanism');
     this.onChangeInterval = this.onChangeField('RepositoryFetchInterval');
     this.clipboard = clipboard;
+
+    this.limitedFeature = FORCE_REDEPLOYMENT;
   }
 
   copyWebhook() {

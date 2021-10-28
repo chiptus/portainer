@@ -278,6 +278,7 @@ angular.module('portainer.app').factory('StackService', [
       } else {
         const autoUpdate = {};
         if (gitConfig.AutoUpdate && gitConfig.AutoUpdate.RepositoryAutomaticUpdates) {
+          autoUpdate.ForceUpdate = gitConfig.AutoUpdate.RepositoryAutomaticUpdatesForce;
           if (gitConfig.AutoUpdate.RepositoryMechanism === RepositoryMechanismTypes.INTERVAL) {
             autoUpdate.Interval = gitConfig.AutoUpdate.RepositoryFetchInterval;
           } else if (gitConfig.AutoUpdate.RepositoryMechanism === RepositoryMechanismTypes.WEBHOOK) {
@@ -463,6 +464,7 @@ angular.module('portainer.app').factory('StackService', [
       const autoUpdate = {};
 
       if (gitConfig.AutoUpdate && gitConfig.AutoUpdate.RepositoryAutomaticUpdates) {
+        autoUpdate.ForceUpdate = gitConfig.AutoUpdate.RepositoryAutomaticUpdatesForce;
         if (gitConfig.AutoUpdate.RepositoryMechanism === RepositoryMechanismTypes.INTERVAL) {
           autoUpdate.Interval = gitConfig.AutoUpdate.RepositoryFetchInterval;
         } else if (gitConfig.AutoUpdate.RepositoryMechanism === RepositoryMechanismTypes.WEBHOOK) {
