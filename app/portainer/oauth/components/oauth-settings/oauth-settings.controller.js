@@ -22,6 +22,8 @@ export default class OAuthSettingsController {
     this.updateSSO = this.updateSSO.bind(this);
     this.addTeamMembershipMapping = this.addTeamMembershipMapping.bind(this);
     this.removeTeamMembership = this.removeTeamMembership.bind(this);
+    this.addAdminClaimRegex = this.addAdminClaimRegex.bind(this);
+    this.removeAdminClaimRegex = this.removeAdminClaimRegex.bind(this);
   }
 
   onMicrosoftTenantIDChange() {
@@ -72,6 +74,14 @@ export default class OAuthSettingsController {
     this.settings.TeamMemberships.OAuthClaimMappings.splice(index, 1);
   }
 
+  addAdminClaimRegex() {
+    this.settings.TeamMemberships.AdminGroupClaimsRegexList.push('');
+  }
+
+  removeAdminClaimRegex(index) {
+    this.settings.TeamMemberships.AdminGroupClaimsRegexList.splice(index, 1);
+  }
+
   $onInit() {
     this.isLimitedToBE = this.featureService.isLimitedToBE(this.limitedFeature);
 
@@ -104,6 +114,10 @@ export default class OAuthSettingsController {
 
     if (this.settings.TeamMemberships.OAuthClaimMappings === null) {
       this.settings.TeamMemberships.OAuthClaimMappings = [];
+    }
+
+    if (this.settings.TeamMemberships.AdminGroupClaimsRegexList === null) {
+      this.settings.TeamMemberships.AdminGroupClaimsRegexList = [];
     }
   }
 }

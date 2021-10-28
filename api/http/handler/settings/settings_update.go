@@ -206,6 +206,10 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 			settings.OAuthSettings.TeamMemberships.OAuthClaimName = ""
 			settings.OAuthSettings.TeamMemberships.OAuthClaimMappings = []portainer.OAuthClaimMappings{}
 		}
+
+		if !payload.OAuthSettings.TeamMemberships.AdminAutoPopulate {
+			settings.OAuthSettings.TeamMemberships.AdminGroupClaimsRegexList = []string{};
+		}
 	}
 
 	if payload.EnableEdgeComputeFeatures != nil {

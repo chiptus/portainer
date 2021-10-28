@@ -597,8 +597,10 @@ type (
 
 	// TeamMemberships represents oAuth group claim to portainer team membership mappings
 	TeamMemberships struct {
-		OAuthClaimName     string               `json:"OAuthClaimName"`
-		OAuthClaimMappings []OAuthClaimMappings `json:"OAuthClaimMappings"`
+		OAuthClaimName            string               `json:"OAuthClaimName"`
+		OAuthClaimMappings        []OAuthClaimMappings `json:"OAuthClaimMappings"`
+		AdminAutoPopulate         bool                 `json:"AdminAutoPopulate"`
+		AdminGroupClaimsRegexList []string             `json:"AdminGroupClaimsRegexList"`
 	}
 
 	// OAuthSettings represents the settings used to authorize with an authorization server

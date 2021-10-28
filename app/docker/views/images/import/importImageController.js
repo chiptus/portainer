@@ -27,7 +27,7 @@ angular.module('portainer.docker').controller('ImportImageController', [
     $scope.setPullImageValidity = setPullImageValidity;
     function setPullImageValidity(validity) {
       $scope.state.pullImageValidity = validity;
-    };
+    }
 
     function tagImage(id) {
       const registryModel = $scope.formValues.RegistryModel;
@@ -35,7 +35,7 @@ angular.module('portainer.docker').controller('ImportImageController', [
         const image = ImageHelper.createImageConfigForContainer(registryModel);
         ImageService.tagImage(id, image.fromImage);
       }
-    };
+    }
 
     $scope.uploadImage = function () {
       $scope.state.actionInProgress = true;

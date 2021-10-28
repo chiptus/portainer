@@ -76,7 +76,7 @@
                 type="button"
                 class="btn btn-primary btn-sm"
                 ng-click="saveSettings()"
-                ng-disabled="state.actionInProgress || (settings.AuthenticationMethod === 2 && !isLDAPFormValid()) || (settings.AuthenticationMethod === 3 && !isOAuthTeamMembershipFormValid()) || authSettingsForm.$invalid"
+                ng-disabled="state.actionInProgress || (settings.AuthenticationMethod === 2 && !isLDAPFormValid()) || (settings.AuthenticationMethod === 3 && !isOAuthTeamMembershipFormValid()) || (settings.AuthenticationMethod === 3 && !isOAuthAdminMappingFormValid()) || authSettingsForm.$invalid"
                 button-spinner="state.actionInProgress"
               >
                 <span ng-hide="state.actionInProgress">Save settings</span>

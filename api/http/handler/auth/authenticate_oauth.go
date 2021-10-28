@@ -79,7 +79,7 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 		}
 	}
 
-	if settings.AuthenticationMethod != 3 {
+	if settings.AuthenticationMethod != portainer.AuthenticationOAuth {
 		return resp, &httperror.HandlerError{
 			StatusCode: http.StatusForbidden,
 			Message:    "OAuth authentication is not enabled",
@@ -111,51 +111,41 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 	if user == nil && !settings.OAuthSettings.OAuthAutoMapTeamMemberships && !settings.OAuthSettings.OAuthAutoCreateUsers {
 		return resp, &httperror.HandlerError{
 			StatusCode: http.StatusForbidden,
-			Message:    "Account not created beforehand in Portainer and automatic user provisioning not enabled",
+			Message:    "Auto OAuth team membership failed: user not created beforehand in Portainer and automatic user provisioning not enabled",
 			Err:        httperrors.ErrUnauthorized,
 		}
 	}
 
-	if user == nil {
+	//try to match retrieved oauth teams with pre-set auto admin claims
+	isValidAdminClaims, err := validateAdminClaims(settings.OAuthSettings, authInfo.Teams)
+	if err != nil {
+		return resp, &httperror.HandlerError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Failed to validate OAuth auto admin claims",
+			Err:        err,
+		}
+	}
+
+	if user != nil {
+		//if user exists, check oauth settings and update user's role if needed
+		if err := handler.updateUser(user, settings.OAuthSettings, isValidAdminClaims); err != nil {
+			return resp, &httperror.HandlerError{
+				StatusCode: http.StatusInternalServerError,
+				Message:    "Failed to update user OAuth membership",
+				Err:        err,
+			}
+		}
+	} else {
+		//if user not exists, create a new user with the correct role (according to AdminAutoPopulate settings)
 		user = &portainer.User{
 			Username:                authInfo.Username,
 			Role:                    portainer.StandardUserRole,
 			PortainerAuthorizations: authorization.DefaultPortainerAuthorizations(),
 		}
-
-		err = handler.DataStore.User().CreateUser(user)
-		if err != nil {
+		if err := handler.createUserAndDefaultTeamMembership(user, settings.OAuthSettings, isValidAdminClaims); err != nil {
 			return resp, &httperror.HandlerError{
 				StatusCode: http.StatusInternalServerError,
-				Message:    "Unable to persist user inside the database",
-				Err:        err,
-			}
-		}
-
-		if settings.OAuthSettings.DefaultTeamID != 0 {
-			membership := &portainer.TeamMembership{
-				UserID: user.ID,
-				TeamID: settings.OAuthSettings.DefaultTeamID,
-				Role:   portainer.TeamMember,
-			}
-
-			err = handler.DataStore.TeamMembership().CreateTeamMembership(membership)
-			if err != nil {
-				return &authMiddlewareResponse{
-						Method: portainer.AuthenticationOAuth,
-					}, &httperror.HandlerError{
-						StatusCode: http.StatusInternalServerError,
-						Message:    "Unable to persist team membership inside the database",
-						Err:        err,
-					}
-			}
-		}
-
-		err = handler.AuthorizationService.UpdateUsersAuthorizations()
-		if err != nil {
-			return resp, &httperror.HandlerError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Unable to update user authorizations",
+				Message:    "Failed to create user or OAuth membership",
 				Err:        err,
 			}
 		}
@@ -200,4 +190,60 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 	}
 
 	return handler.writeToken(w, user, portainer.AuthenticationOAuth)
+}
+
+func (handler *Handler) updateUser(user *portainer.User, oauthSettings portainer.OAuthSettings, validAdminClaim bool) error {
+	//if AdminAutoPopulate is switched off, no need to update user
+	if !oauthSettings.TeamMemberships.AdminAutoPopulate {
+		return nil
+	}
+
+	if validAdminClaim {
+		user.Role = portainer.AdministratorRole
+	} else {
+		user.Role = portainer.StandardUserRole
+	}
+
+	if err := handler.DataStore.User().UpdateUser(user.ID, user); err != nil {
+		return errors.New("Unable to persist user changes inside the database")
+	}
+
+	if err := handler.AuthorizationService.UpdateUsersAuthorizations(); err != nil {
+		return errors.New("Unable to update user authorizations")
+	}
+
+	return nil
+}
+
+func (handler *Handler) createUserAndDefaultTeamMembership(user *portainer.User, oauthSettings portainer.OAuthSettings, validAdminClaim bool) error {
+	//if AdminAutoPopulate is switched on and valid OAuth group is identified
+	//set user role as admin
+	if oauthSettings.TeamMemberships.AdminAutoPopulate && validAdminClaim {
+		user.Role = portainer.AdministratorRole
+	}
+
+	err := handler.DataStore.User().CreateUser(user)
+	if err != nil {
+		return errors.New("Unable to persist user inside the database")
+	}
+
+	if oauthSettings.DefaultTeamID != 0 {
+		membership := &portainer.TeamMembership{
+			UserID: user.ID,
+			TeamID: oauthSettings.DefaultTeamID,
+			Role:   portainer.TeamMember,
+		}
+
+		err = handler.DataStore.TeamMembership().CreateTeamMembership(membership)
+		if err != nil {
+			return errors.New("Unable to persist team membership inside the database")
+		}
+	}
+
+	err = handler.AuthorizationService.UpdateUsersAuthorizations()
+	if err != nil {
+		return errors.New("Unable to update user authorizations")
+	}
+
+	return nil
 }
