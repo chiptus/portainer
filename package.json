@@ -38,7 +38,8 @@
     "lint": "yarn lint:client; yarn lint:server",
     "lint:server": "cd api && golangci-lint run -E exportloopref",
     "lint:client": "eslint --cache --fix .",
-    "lint:pr": "make lint-pr"
+    "lint:pr": "make lint-pr",
+    "test:server": "cd api && go test ./..."
   },
   "scriptsComments": {
     "build": "Build the entire app (backend/frontend) in development mode",
