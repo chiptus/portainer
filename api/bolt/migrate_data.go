@@ -21,13 +21,16 @@ const (
 var migrateLog = plog.NewScopedLog("bolt, migrate")
 
 // FailSafeMigrate backup and restore DB if migration fail
-func (store *Store) FailSafeMigrate(migrator *migrator.Migrator, version int) error {
+func (store *Store) FailSafeMigrate(migrator *migrator.Migrator, version int) (err error) {
 	defer func() {
-		if err := recover(); err != nil {
-			migrateLog.Info(fmt.Sprintf("Error during migration, recovering [%v]", err))
-			store.Restore()
+		if e := recover(); e != nil {
+			store.Rollback(true)
+			err = fmt.Errorf("%v", e)
 		}
 	}()
+
+	// !Important: we must use a named return value in the function definition and not a local
+	// !variable referenced from the closure or else the return value will be incorrectly set
 	return migrator.Migrate(version)
 }
 
