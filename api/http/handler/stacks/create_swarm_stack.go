@@ -3,7 +3,6 @@ package stacks
 import (
 	"fmt"
 	"net/http"
-	"path"
 	"strconv"
 	"time"
 
@@ -411,8 +410,7 @@ func (handler *Handler) deploySwarmStack(config *swarmStackDeploymentConfig) err
 
 	if !settings.AllowBindMountsForRegularUsers && !isAdminOrEndpointAdmin {
 		for _, file := range append([]string{config.stack.EntryPoint}, config.stack.AdditionalFiles...) {
-			path := path.Join(config.stack.ProjectPath, file)
-			stackContent, err := handler.FileService.GetFileContent(path)
+			stackContent, err := handler.FileService.GetFileContent(config.stack.ProjectPath, file)
 			if err != nil {
 				return errors.WithMessage(err, "failed to get stack file content")
 			}
