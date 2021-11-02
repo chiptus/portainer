@@ -2,14 +2,15 @@ package endpoints
 
 import (
 	"net/http"
+	"time"
 
+	werrors "github.com/pkg/errors"
 	"github.com/portainer/portainer/api/docker"
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/proxy"
-	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/kubernetes/cli"
 )
@@ -21,10 +22,21 @@ func hideFields(endpoint *portainer.Endpoint) {
 	}
 }
 
+// This requestBouncer exists because security.RequestBounder is a type and not an interface.
+// Therefore we can not swit	 it out with a dummy bouncer for go tests.  This interface works around it
+type requestBouncer interface {
+	AuthenticatedAccess(h http.Handler) http.Handler
+	RestrictedAccess(h http.Handler) http.Handler
+	AdminAccess(h http.Handler) http.Handler
+	PublicAccess(h http.Handler) http.Handler
+	AuthorizedEndpointOperation(r *http.Request, endpoint *portainer.Endpoint, authorizationCheck bool) error
+	AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portainer.Endpoint) error
+}
+
 // Handler is the HTTP handler used to handle environment(endpoint) operations.
 type Handler struct {
 	*mux.Router
-	requestBouncer       *security.RequestBouncer
+	requestBouncer       requestBouncer
 	AuthorizationService *authorization.Service
 	DataStore            portainer.DataStore
 	FileService          portainer.FileService
@@ -40,7 +52,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.
-func NewHandler(bouncer *security.RequestBouncer) *Handler {
+func NewHandler(bouncer requestBouncer) *Handler {
 	h := &Handler{
 		Router:         mux.NewRouter(),
 		requestBouncer: bouncer,
@@ -84,4 +96,22 @@ func NewHandler(bouncer *security.RequestBouncer) *Handler {
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.endpointRegistryAccess))).Methods(http.MethodPut)
 
 	return h
+}
+
+func validateAutoUpdateSettings(autoUpdateWindow portainer.EndpointChangeWindow) error {
+	if !validTime24(autoUpdateWindow.StartTime) {
+		return werrors.New("AutoUpdateWindow.StartTime: invalid time format, expected HH:MM")
+	}
+
+	if !validTime24(autoUpdateWindow.EndTime) {
+		return werrors.New("AutoUpdateWindow.EndTime: invalid time format, expected HH:MM")
+	}
+
+	return nil
+}
+
+// Return true if the time string specified is a valid 24hr time. e.g. 22:30
+func validTime24(ts string) bool {
+	_, err := time.Parse(portainer.TimeFormat24, ts)
+	return err == nil
 }

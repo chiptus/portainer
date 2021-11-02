@@ -22,7 +22,7 @@ angular.module('portainer.app').factory('Endpoints', [
         snapshots: { method: 'POST', params: { action: 'snapshot' } },
         snapshot: { method: 'POST', params: { id: '@id', action: 'snapshot' } },
         status: { method: 'GET', params: { id: '@id', action: 'status' } },
-        updateSecuritySettings: { method: 'PUT', params: { id: '@id', action: 'settings' } },
+        updateSettings: { method: 'PUT', params: { id: '@id', action: 'settings' } },
         dockerhubLimits: { method: 'GET', url: `${API_ENDPOINT_ENDPOINTS}/:id/dockerhub/:registryId` },
         updatePoolAccess: { url: API_ENDPOINT_ENDPOINTS + '/:id/pools/:rpn/access', method: 'PUT', params: { id: '@id', rpn: '@rpn' } },
         forceUpdateService: { method: 'PUT', params: { id: '@id', action: 'forceupdateservice' } },

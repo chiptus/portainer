@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"strings"
 	"testing"
+	"time"
 
 	portainer "github.com/portainer/portainer/api"
 	bolt "github.com/portainer/portainer/api/bolt/bolttest"
@@ -78,6 +79,14 @@ func Test_redeployWhenChanged_FailsWhenCannotClone(t *testing.T) {
 	admin := &portainer.User{ID: 1, Username: "admin"}
 	err := store.User().CreateUser(admin)
 	assert.NoError(t, err, "error creating an admin")
+
+	err = store.Endpoint().CreateEndpoint(&portainer.Endpoint{
+		ID: 0,
+		ChangeWindow: portainer.EndpointChangeWindow{
+			Enabled: false,
+		},
+	})
+	assert.NoError(t, err, "error creating environment")
 
 	err = store.Stack().CreateStack(&portainer.Stack{
 		ID:        1,
@@ -169,6 +178,14 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff(t *testing.T) {
 	admin := &portainer.User{ID: 1, Username: "admin"}
 	err := store.User().CreateUser(admin)
 	assert.NoError(t, err, "error creating an admin")
+
+	err = store.Endpoint().CreateEndpoint(&portainer.Endpoint{
+		ID: 0,
+		ChangeWindow: portainer.EndpointChangeWindow{
+			Enabled: false,
+		},
+	})
+	assert.NoError(t, err, "error creating environment")
 
 	err = store.Stack().CreateStack(&portainer.Stack{
 		ID:          1,
@@ -331,5 +348,106 @@ func Test_getUserRegistries(t *testing.T) {
 		registries, err := getUserRegistries(store, user, portainer.EndpointID(endpointID))
 		assert.NoError(t, err)
 		assert.ElementsMatch(t, []portainer.Registry{registryReachableByUser, registryReachableByTeam}, registries)
+	})
+}
+
+func newChangeWindow(start, end string) *portainer.Endpoint {
+	return &portainer.Endpoint{
+		ChangeWindow: portainer.EndpointChangeWindow{
+			Enabled:   true,
+			StartTime: start,
+			EndTime:   end,
+		},
+	}
+}
+
+type MockClock struct {
+	timeNow string
+}
+
+func (mc MockClock) Now() time.Time {
+	gt, _ := time.Parse("15:04", mc.timeNow)
+	return gt
+}
+
+func NewMockClock(t string) Clock {
+	return MockClock{
+		timeNow: t,
+	}
+}
+
+func Test_updateAllowed(t *testing.T) {
+	is := assert.New(t)
+
+	// Ensure change window works to the following rules including edge cases (start <= t < endtime) = true
+	t.Run("updateAllowed is true inside the time window", func(t *testing.T) {
+		endpoint := newChangeWindow("22:00", "23:00")
+		allowed, err := updateAllowed(endpoint, NewMockClock("22:30"))
+		is.NoError(err)
+		is.Equal(true, allowed, "updateAllowed should be true")
+	})
+
+	t.Run("updateAllowed is true when time equal to start time", func(t *testing.T) {
+		endpoint := newChangeWindow("10:00", "23:00")
+		allowed, err := updateAllowed(endpoint, NewMockClock("10:00"))
+		is.NoError(err)
+		is.Equal(true, allowed, "updateAllowed should be true")
+	})
+
+	t.Run("updateAllowed is false when time equal to end time (exclusive)", func(t *testing.T) {
+		endpoint := newChangeWindow("10:00", "11:00")
+		allowed, err := updateAllowed(endpoint, NewMockClock("11:00"))
+		is.NoError(err)
+		is.Equal(false, allowed, "updateAllowed should be false")
+	})
+
+	t.Run("updateAllowed is true when start and end time are equal", func(t *testing.T) {
+		// we treat this as 24hrs window which means fully on
+		endpoint := newChangeWindow("10:00", "10:00")
+		allowed, err := updateAllowed(endpoint, NewMockClock("12:00"))
+		is.NoError(err)
+		is.Equal(true, allowed, "updateAllowed should be true")
+	})
+
+	t.Run("updateAllowed is false when time outside the time window", func(t *testing.T) {
+		endpoint := newChangeWindow("00:00", "05:00")
+		allowed, err := updateAllowed(endpoint, NewMockClock("07:00"))
+		is.NoError(err)
+		is.Equal(false, allowed, "updateAllowed should be false")
+	})
+
+	t.Run("updateAllowed when end time spans over to the next day", func(t *testing.T) {
+		endpoint := newChangeWindow("10:00", "02:00")
+		allowed, err := updateAllowed(endpoint, NewMockClock("11:00"))
+		is.NoError(err)
+		is.Equal(true, allowed, "updateAllowed should be true")
+	})
+
+	t.Run("updateAllowed when end time spans over to the next day and time within and next day", func(t *testing.T) {
+		endpoint := newChangeWindow("10:00", "02:00")
+		allowed, err := updateAllowed(endpoint, NewMockClock("01:00"))
+		is.NoError(err)
+		is.Equal(true, allowed, "updateAllowed should be true")
+	})
+
+	t.Run("updateAllowed when end time spans over to the next day and time within current day", func(t *testing.T) {
+		endpoint := newChangeWindow("10:35", "02:45")
+		allowed, err := updateAllowed(endpoint, NewMockClock("10:47"))
+		is.NoError(err)
+		is.Equal(true, allowed, "updateAllowed should be true")
+	})
+
+	t.Run("updateAllowed when end time spans over to the next day and time within next day same hour", func(t *testing.T) {
+		endpoint := newChangeWindow("10:30", "02:27")
+		allowed, err := updateAllowed(endpoint, NewMockClock("02:20"))
+		is.NoError(err)
+		is.Equal(true, allowed, "updateAllowed should be true")
+	})
+
+	t.Run("updateAllowed when end time spans over to the next day time outside window next day same hour", func(t *testing.T) {
+		endpoint := newChangeWindow("10:35", "02:45")
+		allowed, err := updateAllowed(endpoint, NewMockClock("02:47"))
+		is.NoError(err)
+		is.Equal(false, allowed, "updateAllowed should be false")
 	})
 }

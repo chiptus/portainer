@@ -22,6 +22,35 @@ func (e *StackAuthorMissingErr) Error() string {
 	return fmt.Sprintf("stack's %v author %s is missing", e.stackID, e.authorName)
 }
 
+// Clock is an interface to determine the current time
+type Clock interface {
+	Now() time.Time
+}
+
+// RealClock is an implementation of a clock that returns the time in UTC
+type realClockUTC struct{}
+
+func (rc realClockUTC) Now() time.Time {
+	return time.Now().UTC()
+}
+
+// updateAllowed returns true if AutoUpdateWindow.Enabled = false or
+// AutoUpdateWindow.Enabled=true and the current UTC time is between StartTime and EndTime
+// StartTime always begins BEFORE EndTime.  If EndTime is < StartTime then EndTime
+// falls into the next day
+func updateAllowed(endpoint *portainer.Endpoint, clock Clock) (bool, error) {
+	if !endpoint.ChangeWindow.Enabled {
+		return true, nil
+	}
+
+	tw, err := NewTimeWindow(endpoint.ChangeWindow.StartTime, endpoint.ChangeWindow.EndTime)
+	if err != nil {
+		return false, errors.WithMessagef(err, "invalid time window")
+	}
+
+	return tw.Within(clock.Now()), nil
+}
+
 // RedeployWhenChanged pull and redeploy the stack when  git repo changed
 func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, datastore portainer.DataStore, gitService portainer.GitService, activityStore portainer.UserActivityStore) error {
 	logger := log.WithFields(log.Fields{"stackID": stackID})
@@ -34,6 +63,23 @@ func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, data
 
 	if stack.GitConfig == nil {
 		return nil // do nothing if it isn't a git-based stack
+	}
+
+	endpoint, err := datastore.Endpoint().Endpoint(stack.EndpointID)
+	if err != nil {
+		return errors.WithMessagef(err, "failed to find the environment %v associated to the stack %v", stack.EndpointID, stack.ID)
+	}
+
+	var clock realClockUTC
+
+	// return early if redeployment is not within change window and this feature is enabled
+	if allowed, err := updateAllowed(endpoint, clock); !allowed {
+		if err != nil {
+			return errors.WithMessagef(err, "failed to parse the time stored in the portainer database")
+		}
+
+		logger.Debug("not in update window. ignoring changes/webhooks")
+		return nil // do nothing right now as we're not within the update window
 	}
 
 	author := stack.UpdatedBy
@@ -76,11 +122,6 @@ func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, data
 
 	if err := cloneGitRepository(gitService, cloneParams); err != nil {
 		return errors.WithMessagef(err, "failed to do a fresh clone of the stack %v", stack.ID)
-	}
-
-	endpoint, err := datastore.Endpoint().Endpoint(stack.EndpointID)
-	if err != nil {
-		return errors.WithMessagef(err, "failed to find the environment %v associated to the stack %v", stack.EndpointID, stack.ID)
 	}
 
 	registries, err := getUserRegistries(datastore, user, endpoint.ID)

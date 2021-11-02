@@ -250,6 +250,13 @@ type (
 	//EdgeStackStatusType represents an edge stack status type
 	EdgeStackStatusType int
 
+	// EndpointChangeWindow determine when automatic stack/app updates may occur
+	EndpointChangeWindow struct {
+		Enabled   bool   `json:"Enabled" example:"true"`
+		StartTime string `json:"StartTime" example:"22:00"`
+		EndTime   string `json:"EndTime" example:"02:00"`
+	}
+
 	// Environment(Endpoint) represents a Docker environment(endpoint) with all the info required
 	// to connect to it
 	Endpoint struct {
@@ -291,6 +298,9 @@ type (
 		// Environment(Endpoint) specific security settings
 		SecuritySettings EndpointSecuritySettings
 		LastCheckInDate  int64
+
+		// Automatic update change window restriction for stacks and apps
+		ChangeWindow EndpointChangeWindow `json:"ChangeWindow"`
 
 		// Deprecated fields
 		// Deprecated in DBVersion == 4
@@ -1725,6 +1735,8 @@ const (
 	DefaultKubectlShellImage = "portainer/kubectl-shell"
 	// WebSocketKeepAlive web socket keep alive for edge environments
 	WebSocketKeepAlive = 1 * time.Hour
+	// For parsing 24hr time
+	TimeFormat24 = "15:04"
 )
 
 const (

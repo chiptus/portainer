@@ -314,6 +314,10 @@ func (handler *Handler) createAzureEndpoint(payload *endpointCreatePayload) (*po
 		Status:             portainer.EndpointStatusUp,
 		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portainer.KubernetesDefault(),
+
+		ChangeWindow: portainer.EndpointChangeWindow{
+			Enabled: false,
+		},
 	}
 
 	err = handler.saveEndpointAndUpdateAuthorizations(endpoint)
@@ -363,6 +367,10 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 		EdgeKey:             edgeKey,
 		EdgeCheckinInterval: payload.EdgeCheckinInterval,
 		Kubernetes:          portainer.KubernetesDefault(),
+
+		ChangeWindow: portainer.EndpointChangeWindow{
+			Enabled: false,
+		},
 	}
 
 	err = handler.saveEndpointAndUpdateAuthorizations(endpoint)
@@ -401,6 +409,10 @@ func (handler *Handler) createUnsecuredEndpoint(payload *endpointCreatePayload) 
 		Status:             portainer.EndpointStatusUp,
 		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portainer.KubernetesDefault(),
+
+		ChangeWindow: portainer.EndpointChangeWindow{
+			Enabled: false,
+		},
 	}
 
 	err := handler.snapshotAndPersistEndpoint(endpoint)
@@ -436,6 +448,10 @@ func (handler *Handler) createKubernetesEndpoint(payload *endpointCreatePayload)
 		Status:             portainer.EndpointStatusUp,
 		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portainer.KubernetesDefault(),
+
+		ChangeWindow: portainer.EndpointChangeWindow{
+			Enabled: false,
+		},
 	}
 
 	err := handler.snapshotAndPersistEndpoint(endpoint)
@@ -466,6 +482,10 @@ func (handler *Handler) createTLSSecuredEndpoint(payload *endpointCreatePayload,
 		Status:             portainer.EndpointStatusUp,
 		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portainer.KubernetesDefault(),
+
+		ChangeWindow: portainer.EndpointChangeWindow{
+			Enabled: false,
+		},
 	}
 
 	err := handler.storeTLSFiles(endpoint, payload)

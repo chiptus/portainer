@@ -1,0 +1,7 @@
+<div ng-if="$ctrl.state.timeWindow.Enabled" class="form-group">
+  <span class="col-sm-12 text-muted small">
+    <i class="fa fa-info-circle orange-icon" aria-hidden="true" style="margin-right: 2px;"></i>
+    A change window has been specified to only allow updates between {{ $ctrl.state.startTimeUtc | date: 'shortTime' }} and {{ $ctrl.state.endTimeUtc | date: 'shortTime' }} UTC (
+    {{ $ctrl.state.startTimeUser | date: 'shortTime' }} - {{ $ctrl.state.endTimeUser | date: 'shortTime' }} {{ $ctrl.state.dst ? 'DST' : '' }} {{ $ctrl.state.timezone }} )
+  </span>
+</div>

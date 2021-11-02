@@ -7,7 +7,7 @@ angular.module('portainer.app').factory('EndpointService', [
   function EndpointServiceFactory($q, Endpoints, FileUploadService) {
     'use strict';
     var service = {
-      updateSecuritySettings,
+      updateSettings,
       registries,
       registry,
       updateRegistryAccess,
@@ -202,8 +202,8 @@ angular.module('portainer.app').factory('EndpointService', [
       return Endpoints.registries({ namespace, id }).$promise;
     }
 
-    function updateSecuritySettings(id, securitySettings) {
-      return Endpoints.updateSecuritySettings({ id }, securitySettings).$promise;
+    function updateSettings(id, settings) {
+      return Endpoints.updateSettings({ id }, settings).$promise;
     }
 
     function registry(endpointId, registryId) {

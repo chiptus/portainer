@@ -1,10 +1,15 @@
+import { HIDE_AUTO_UPDATE_WINDOW } from 'Portainer/feature-flags/feature-ids';
+
 export default class DockerFeaturesConfigurationController {
   /* @ngInject */
-  constructor($async, EndpointService, Notifications, StateManager) {
+  constructor($analytics, $async, EndpointService, Notifications, StateManager) {
+    this.$analytics = $analytics;
     this.$async = $async;
     this.EndpointService = EndpointService;
     this.Notifications = Notifications;
     this.StateManager = StateManager;
+
+    this.limitedFeature = HIDE_AUTO_UPDATE_WINDOW;
 
     this.formValues = {
       enableHostManagementFeatures: false,
@@ -61,10 +66,26 @@ export default class DockerFeaturesConfigurationController {
           allowContainerCapabilitiesForRegularUsers: !this.formValues.disableContainerCapabilitiesForRegularUsers,
           allowSysctlSettingForRegularUsers: !this.formValues.disableSysctlSettingForRegularUsers,
         };
+        const settings = {
+          securitySettings,
+          changeWindow: this.state.autoUpdateSettings,
+        };
 
-        await this.EndpointService.updateSecuritySettings(this.endpoint.Id, securitySettings);
+        await this.EndpointService.updateSettings(this.endpoint.Id, settings);
 
-        this.endpoint.SecuritySettings = securitySettings;
+        this.endpoint.SecuritySettings = settings.securitySettings;
+        this.endpoint.ChangeWindow = settings.changeWindow;
+
+        // Timezone is only for Analytics, not for API payload
+        this.$analytics.eventTrack('time-window-create', {
+          category: 'docker',
+          metadata: {
+            'Start-time': settings.changeWindow.StartTime,
+            'End-time': settings.changeWindow.EndTime,
+            'Time-zone': this.state.timeZone,
+          },
+        });
+
         this.Notifications.success('Saved settings successfully');
       } catch (e) {
         this.Notifications.error('Failure', e, 'Failed saving settings');
@@ -94,6 +115,10 @@ export default class DockerFeaturesConfigurationController {
       disableStackManagementForRegularUsers: !securitySettings.allowStackManagementForRegularUsers,
       disableContainerCapabilitiesForRegularUsers: !securitySettings.allowContainerCapabilitiesForRegularUsers,
       disableSysctlSettingForRegularUsers: !securitySettings.allowSysctlSettingForRegularUsers,
+    };
+    this.state = {
+      autoUpdateSettings: this.endpoint.ChangeWindow,
+      timeZone: '',
     };
   }
 }

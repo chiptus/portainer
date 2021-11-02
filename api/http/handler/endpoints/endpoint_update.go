@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 
+	werrors "github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
@@ -51,9 +52,17 @@ type endpointUpdatePayload struct {
 	EdgeCheckinInterval *int `example:"5"`
 	// Associated Kubernetes data
 	Kubernetes *portainer.KubernetesData
+	// Whether automatic update time restrictions are enabled
+	ChangeWindow *portainer.EndpointChangeWindow
 }
 
 func (payload *endpointUpdatePayload) Validate(r *http.Request) error {
+	if payload.ChangeWindow != nil {
+		err := validateAutoUpdateSettings(*payload.ChangeWindow)
+		if err != nil {
+			return werrors.WithMessage(err, "Validation failed")
+		}
+	}
 	return nil
 }
 
@@ -303,6 +312,10 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
+	if payload.ChangeWindow != nil {
+		endpoint.ChangeWindow = *payload.ChangeWindow
+	}
+
 	err = handler.DataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist environment changes inside the database", err}
@@ -349,6 +362,12 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist environment relation changes inside the database", err}
 		}
+	}
+
+	if payload.ChangeWindow != nil {
+		// Make it clear that the time stored in the user activity log is actually UTC despite
+		payload.ChangeWindow.StartTime = payload.ChangeWindow.StartTime + " [UTC]"
+		payload.ChangeWindow.EndTime = payload.ChangeWindow.EndTime + " [UTC]"
 	}
 
 	redacted := consts.RedactedValue

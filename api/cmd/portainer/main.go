@@ -338,6 +338,10 @@ func createTLSSecuredEndpoint(flags *portainer.CLIFlags, dataStore portainer.Dat
 			AllowDeviceMappingForRegularUsers:         true,
 			AllowStackManagementForRegularUsers:       true,
 		},
+
+		ChangeWindow: portainer.EndpointChangeWindow{
+			Enabled: false,
+		},
 	}
 
 	if strings.HasPrefix(endpoint.URL, "tcp://") {
@@ -399,6 +403,10 @@ func createUnsecuredEndpoint(endpointURL string, dataStore portainer.DataStore, 
 			AllowContainerCapabilitiesForRegularUsers: true,
 			AllowDeviceMappingForRegularUsers:         true,
 			AllowStackManagementForRegularUsers:       true,
+		},
+
+		ChangeWindow: portainer.EndpointChangeWindow{
+			Enabled: false,
 		},
 	}
 

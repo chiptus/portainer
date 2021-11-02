@@ -7,11 +7,13 @@ import KubernetesFormValidationHelper from 'Kubernetes/helpers/formValidationHel
 import { KubernetesIngressClassTypes } from 'Kubernetes/ingress/constants';
 import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
 import { K8S_SETUP_DEFAULT } from '@/portainer/feature-flags/feature-ids';
+import { HIDE_AUTO_UPDATE_WINDOW } from 'Portainer/feature-flags/feature-ids';
 class KubernetesConfigureController {
   /* #region  CONSTRUCTOR */
 
   /* @ngInject */
   constructor(
+    $analytics,
     $async,
     $state,
     Notifications,
@@ -23,6 +25,7 @@ class KubernetesConfigureController {
     KubernetesIngressService,
     KubernetesMetricsService
   ) {
+    this.$analytics = $analytics;
     this.$async = $async;
     this.$state = $state;
     this.Notifications = Notifications;
@@ -39,6 +42,7 @@ class KubernetesConfigureController {
     this.onInit = this.onInit.bind(this);
     this.configureAsync = this.configureAsync.bind(this);
     this.limitedFeature = K8S_SETUP_DEFAULT;
+    this.limitedFeatureAutoWindow = HIDE_AUTO_UPDATE_WINDOW;
   }
   /* #endregion */
 
@@ -120,6 +124,7 @@ class KubernetesConfigureController {
     endpoint.Kubernetes.Configuration.ResourceOverCommitPercentage = this.formValues.ResourceOverCommitPercentage;
     endpoint.Kubernetes.Configuration.IngressClasses = ingressClasses;
     endpoint.Kubernetes.Configuration.RestrictDefaultNamespace = this.formValues.RestrictDefaultNamespace;
+    endpoint.ChangeWindow = this.state.autoUpdateSettings;
   }
 
   transformFormValues() {
@@ -228,6 +233,16 @@ class KubernetesConfigureController {
       this.Notifications.error('Failure', err, 'Unable to apply configuration');
     } finally {
       this.state.actionInProgress = false;
+
+      // Timezone is only for Analytics, not for API payload
+      this.$analytics.eventTrack('time-window-create', {
+        category: 'kubernetes',
+        metadata: {
+          'Start-time': this.state.autoUpdateSettings.StartTime,
+          'End-time': this.state.autoUpdateSettings.EndTime,
+          'Time-zone': this.state.timeZone,
+        },
+      });
     }
   }
 
@@ -267,6 +282,7 @@ class KubernetesConfigureController {
         isServerRunning: false,
         userClick: false,
       },
+      timeZone: '',
     };
 
     this.formValues = {
@@ -276,10 +292,14 @@ class KubernetesConfigureController {
       ResourceOverCommitPercentage: 20,
       IngressClasses: [],
       RestrictDefaultNamespace: false,
+      enableAutoUpdateTimeWindow: false,
     };
 
     try {
       [this.StorageClasses, this.endpoint] = await Promise.all([this.KubernetesStorageService.get(this.state.endpointId), this.EndpointService.endpoint(this.state.endpointId)]);
+
+      this.state.autoUpdateSettings = this.endpoint.ChangeWindow;
+
       _.forEach(this.StorageClasses, (item) => {
         item.availableAccessModes = new KubernetesStorageClassAccessPolicies();
         const storage = _.find(this.endpoint.Kubernetes.Configuration.StorageClasses, (sc) => sc.Name === item.Name);

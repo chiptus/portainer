@@ -1,0 +1,30 @@
+.time-window-wrapper {
+  max-width: 700px;
+}
+
+.time-window-container {
+  display: grid;
+  grid-template-columns: 27% 3% 27% 40%;
+  grid-gap: 10px;
+}
+
+.time-window-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.action-link-container {
+  padding: 15px 0px;
+}
+
+.action-link {
+  text-decoration-line: underline;
+  padding: 0px 10px;
+}
+
+.time-window-warning {
+  color: var(--text-muted-color);
+  margin: 10px 0px 15px 0px;
+  font-size: 12px;
+}

@@ -3,6 +3,7 @@ package endpoints
 import (
 	"net/http"
 
+	werrors "github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
@@ -12,27 +13,39 @@ import (
 )
 
 type endpointSettingsUpdatePayload struct {
-	// Whether non-administrator should be able to use bind mounts when creating containers
-	AllowBindMountsForRegularUsers *bool `json:"allowBindMountsForRegularUsers" example:"false"`
-	// Whether non-administrator should be able to use privileged mode when creating containers
-	AllowPrivilegedModeForRegularUsers *bool `json:"allowPrivilegedModeForRegularUsers" example:"false"`
-	// Whether non-administrator should be able to browse volumes
-	AllowVolumeBrowserForRegularUsers *bool `json:"allowVolumeBrowserForRegularUsers" example:"true"`
-	// Whether non-administrator should be able to use the host pid
-	AllowHostNamespaceForRegularUsers *bool `json:"allowHostNamespaceForRegularUsers" example:"true"`
-	// Whether non-administrator should be able to use device mapping
-	AllowDeviceMappingForRegularUsers *bool `json:"allowDeviceMappingForRegularUsers" example:"true"`
-	// Whether non-administrator should be able to manage stacks
-	AllowStackManagementForRegularUsers *bool `json:"allowStackManagementForRegularUsers" example:"true"`
-	// Whether non-administrator should be able to use container capabilities
-	AllowContainerCapabilitiesForRegularUsers *bool `json:"allowContainerCapabilitiesForRegularUsers" example:"true"`
-	// Whether non-administrator should be able to use sysctl settings
-	AllowSysctlSettingForRegularUsers *bool `json:"allowSysctlSettingForRegularUsers" example:"true"`
-	// Whether host management features are enabled
-	EnableHostManagementFeatures *bool `json:"enableHostManagementFeatures" example:"true"`
+	// Security settings updates
+	SecuritySettings struct {
+		// Whether non-administrator should be able to use bind mounts when creating containers
+		AllowBindMountsForRegularUsers *bool `json:"allowBindMountsForRegularUsers" example:"false"`
+		// Whether non-administrator should be able to use privileged mode when creating containers
+		AllowPrivilegedModeForRegularUsers *bool `json:"allowPrivilegedModeForRegularUsers" example:"false"`
+		// Whether non-administrator should be able to browse volumes
+		AllowVolumeBrowserForRegularUsers *bool `json:"allowVolumeBrowserForRegularUsers" example:"true"`
+		// Whether non-administrator should be able to use the host pid
+		AllowHostNamespaceForRegularUsers *bool `json:"allowHostNamespaceForRegularUsers" example:"true"`
+		// Whether non-administrator should be able to use device mapping
+		AllowDeviceMappingForRegularUsers *bool `json:"allowDeviceMappingForRegularUsers" example:"true"`
+		// Whether non-administrator should be able to manage stacks
+		AllowStackManagementForRegularUsers *bool `json:"allowStackManagementForRegularUsers" example:"true"`
+		// Whether non-administrator should be able to use container capabilities
+		AllowContainerCapabilitiesForRegularUsers *bool `json:"allowContainerCapabilitiesForRegularUsers" example:"true"`
+		// Whether non-administrator should be able to use sysctl settings
+		AllowSysctlSettingForRegularUsers *bool `json:"allowSysctlSettingForRegularUsers" example:"true"`
+		// Whether host management features are enabled
+		EnableHostManagementFeatures *bool `json:"enableHostManagementFeatures" example:"true"`
+	} `json:"securitySettings"`
+	// Whether automatic update time restrictions are enabled
+	ChangeWindow *portainer.EndpointChangeWindow `json:"changeWindow"`
 }
 
-func (payload *endpointSettingsUpdatePayload) Validate(r *http.Request) error {
+func (payload *endpointSettingsUpdatePayload) Validate(_ *http.Request) error {
+	if payload.ChangeWindow != nil {
+		err := validateAutoUpdateSettings(*payload.ChangeWindow)
+		if err != nil {
+			return werrors.WithMessage(err, "Validation failed")
+		}
+	}
+
 	return nil
 }
 
@@ -77,49 +90,59 @@ func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Re
 
 	securitySettings := endpoint.SecuritySettings
 
-	if payload.AllowBindMountsForRegularUsers != nil {
-		securitySettings.AllowBindMountsForRegularUsers = *payload.AllowBindMountsForRegularUsers
+	if payload.SecuritySettings.AllowBindMountsForRegularUsers != nil {
+		securitySettings.AllowBindMountsForRegularUsers = *payload.SecuritySettings.AllowBindMountsForRegularUsers
 	}
 
-	if payload.AllowContainerCapabilitiesForRegularUsers != nil {
-		securitySettings.AllowContainerCapabilitiesForRegularUsers = *payload.AllowContainerCapabilitiesForRegularUsers
+	if payload.SecuritySettings.AllowContainerCapabilitiesForRegularUsers != nil {
+		securitySettings.AllowContainerCapabilitiesForRegularUsers = *payload.SecuritySettings.AllowContainerCapabilitiesForRegularUsers
 	}
 
-	if payload.AllowDeviceMappingForRegularUsers != nil {
-		securitySettings.AllowDeviceMappingForRegularUsers = *payload.AllowDeviceMappingForRegularUsers
+	if payload.SecuritySettings.AllowDeviceMappingForRegularUsers != nil {
+		securitySettings.AllowDeviceMappingForRegularUsers = *payload.SecuritySettings.AllowDeviceMappingForRegularUsers
 	}
 
-	if payload.AllowHostNamespaceForRegularUsers != nil {
-		securitySettings.AllowHostNamespaceForRegularUsers = *payload.AllowHostNamespaceForRegularUsers
+	if payload.SecuritySettings.AllowHostNamespaceForRegularUsers != nil {
+		securitySettings.AllowHostNamespaceForRegularUsers = *payload.SecuritySettings.AllowHostNamespaceForRegularUsers
 	}
 
-	if payload.AllowPrivilegedModeForRegularUsers != nil {
-		securitySettings.AllowPrivilegedModeForRegularUsers = *payload.AllowPrivilegedModeForRegularUsers
+	if payload.SecuritySettings.AllowPrivilegedModeForRegularUsers != nil {
+		securitySettings.AllowPrivilegedModeForRegularUsers = *payload.SecuritySettings.AllowPrivilegedModeForRegularUsers
 	}
 
-	if payload.AllowStackManagementForRegularUsers != nil {
-		securitySettings.AllowStackManagementForRegularUsers = *payload.AllowStackManagementForRegularUsers
+	if payload.SecuritySettings.AllowStackManagementForRegularUsers != nil {
+		securitySettings.AllowStackManagementForRegularUsers = *payload.SecuritySettings.AllowStackManagementForRegularUsers
 	}
 
 	updateAuthorizations := false
-	if payload.AllowVolumeBrowserForRegularUsers != nil {
-		updateAuthorizations = securitySettings.AllowVolumeBrowserForRegularUsers != *payload.AllowVolumeBrowserForRegularUsers
-		securitySettings.AllowVolumeBrowserForRegularUsers = *payload.AllowVolumeBrowserForRegularUsers
+	if payload.SecuritySettings.AllowVolumeBrowserForRegularUsers != nil {
+		updateAuthorizations = securitySettings.AllowVolumeBrowserForRegularUsers != *payload.SecuritySettings.AllowVolumeBrowserForRegularUsers
+		securitySettings.AllowVolumeBrowserForRegularUsers = *payload.SecuritySettings.AllowVolumeBrowserForRegularUsers
 	}
 
-	if payload.AllowSysctlSettingForRegularUsers != nil {
-		securitySettings.AllowSysctlSettingForRegularUsers = *payload.AllowSysctlSettingForRegularUsers
+	if payload.SecuritySettings.AllowSysctlSettingForRegularUsers != nil {
+		securitySettings.AllowSysctlSettingForRegularUsers = *payload.SecuritySettings.AllowSysctlSettingForRegularUsers
 	}
 
-	if payload.EnableHostManagementFeatures != nil {
-		securitySettings.EnableHostManagementFeatures = *payload.EnableHostManagementFeatures
+	if payload.SecuritySettings.EnableHostManagementFeatures != nil {
+		securitySettings.EnableHostManagementFeatures = *payload.SecuritySettings.EnableHostManagementFeatures
 	}
 
 	endpoint.SecuritySettings = securitySettings
 
+	if payload.ChangeWindow != nil {
+		endpoint.ChangeWindow = *payload.ChangeWindow
+	}
+
 	err = handler.DataStore.Endpoint().UpdateEndpoint(portainer.EndpointID(endpointID), endpoint)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Failed persisting environment in database", err}
+	}
+
+	if payload.ChangeWindow != nil {
+		// Make it clear that the time stored in the user activity log is actually UTC despite, not the timezone value
+		payload.ChangeWindow.StartTime = payload.ChangeWindow.StartTime + " [UTC]"
+		payload.ChangeWindow.EndTime = payload.ChangeWindow.EndTime + " [UTC]"
 	}
 
 	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
