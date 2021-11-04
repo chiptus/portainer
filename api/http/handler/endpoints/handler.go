@@ -99,6 +99,10 @@ func NewHandler(bouncer requestBouncer) *Handler {
 }
 
 func validateAutoUpdateSettings(autoUpdateWindow portainer.EndpointChangeWindow) error {
+	if !autoUpdateWindow.Enabled {
+		return nil
+	}
+
 	if !validTime24(autoUpdateWindow.StartTime) {
 		return werrors.New("AutoUpdateWindow.StartTime: invalid time format, expected HH:MM")
 	}
