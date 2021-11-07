@@ -45,10 +45,6 @@ func (m *Migrator) migrateDBVersionToDB32() error {
 		return err
 	}
 
-	if err := m.updateVolumeResourceControlToDB32(); err != nil {
-		return err
-	}
-
 	if err := m.kubeconfigExpiryToDB32(); err != nil {
 		return err
 	}
