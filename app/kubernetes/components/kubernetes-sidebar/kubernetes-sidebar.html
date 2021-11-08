@@ -69,11 +69,11 @@
   path="kubernetes.cluster"
   path-params="{ endpointId: $ctrl.endpointId }"
   is-sidebar-open="$ctrl.isSidebarOpen"
-  children-paths="['kubernetes.cluster', 'portainer.endpoints.endpoint.kubernetesConfig', 'kubernetes.registries', 'kubernetes.registries.access']"
+  children-paths="['kubernetes.cluster', 'portainer.k8sendpoint.kubernetesConfig', 'kubernetes.registries', 'kubernetes.registries.access']"
 >
   <sidebar-menu-item
     authorization="K8sClusterSetupRW"
-    path="portainer.endpoints.endpoint.kubernetesConfig"
+    path="portainer.k8sendpoint.kubernetesConfig"
     path-params="{ id: $ctrl.endpointId }"
     class-name="sidebar-sublist"
     data-cy="k8sSidebar-setup"
