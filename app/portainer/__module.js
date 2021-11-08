@@ -196,8 +196,13 @@ angular
         },
       };
 
+      var k8sendpoint = {
+        name: 'portainer.k8sendpoint',
+        url: '/:id',
+      };
+
       const endpointKubernetesConfiguration = {
-        name: 'portainer.endpoints.endpoint.kubernetesConfig',
+        name: 'portainer.k8sendpoint.kubernetesConfig',
         url: '/configure',
         views: {
           'content@': {
@@ -466,6 +471,7 @@ angular
       $stateRegistryProvider.register(logout);
       $stateRegistryProvider.register(endpoints);
       $stateRegistryProvider.register(endpoint);
+      $stateRegistryProvider.register(k8sendpoint);
       $stateRegistryProvider.register(endpointAccess);
       $stateRegistryProvider.register(endpointCreation);
       $stateRegistryProvider.register(endpointKubernetesConfiguration);
