@@ -63,6 +63,7 @@ export default class OAuthSettingsController {
   }
 
   updateSSO() {
+    this.settings.SSO = !this.settings.SSO;
     this.settings.HideInternalAuth = this.settings.SSO;
   }
 

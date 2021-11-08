@@ -11,7 +11,7 @@
         tooltip="When using SSO the OAuth provider is not forced to prompt for credentials."
         name="use-sso"
         ng-model="$ctrl.settings.SSO"
-        on-change="$ctrl.updateSSO()"
+        on-change="($ctrl.updateSSO)"
       ></por-switch-field>
     </div>
   </div>
