@@ -61,7 +61,7 @@ func (service *Service) GenerateToken(data *portainer.TokenData) (string, error)
 }
 
 // GenerateTokenForOAuth generates a new JWT token for OAuth login
-// token expiry time responsed from OAuth provider is considered
+// token expiry time from the OAuth provider is considered
 func (service *Service) GenerateTokenForOAuth(data *portainer.TokenData, expiryTime *time.Time) (string, error) {
 	expireAt := service.defaultExpireAt()
 	if expiryTime != nil && !expiryTime.IsZero() {
@@ -108,6 +108,7 @@ func (service *Service) generateSignedToken(data *portainer.TokenData, expiresAt
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, cl)
+
 	signedToken, err := token.SignedString(service.secret)
 	if err != nil {
 		return "", err

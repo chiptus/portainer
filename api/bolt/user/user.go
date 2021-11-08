@@ -1,11 +1,13 @@
 package user
 
 import (
-	"github.com/boltdb/bolt"
+	"strings"
+
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/bolt/errors"
 	"github.com/portainer/portainer/api/bolt/internal"
-	"strings"
+
+	"github.com/boltdb/bolt"
 )
 
 const (

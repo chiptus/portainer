@@ -18,7 +18,6 @@ type Scheduler struct {
 
 func NewScheduler(ctx context.Context) *Scheduler {
 	crontab := cron.New(cron.WithChain(cron.Recover(cron.DefaultLogger)))
-
 	crontab.Start()
 
 	s := &Scheduler{
