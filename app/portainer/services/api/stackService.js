@@ -100,7 +100,7 @@ angular.module('portainer.app').factory('StackService', [
         queries.push(service.composeStacks(endpointId, true, { EndpointID: endpointId, IncludeOrphanedStacks: includeOrphanedStacks }));
       }
       if (swarm) {
-        queries.push(service.swarmStacks(endpointId, true, { IncludeOrphanedStacks: includeOrphanedStacks }));
+        queries.push(service.swarmStacks(endpointId, true, { EndpointID: endpointId, IncludeOrphanedStacks: includeOrphanedStacks }));
       }
 
       $q.all(queries)
@@ -112,6 +112,7 @@ angular.module('portainer.app').factory('StackService', [
           if (data[1]) {
             stacks = stacks.concat(data[1]);
           }
+          stacks = _.uniqWith(stacks, (s1, s2) => s1.Id === s2.Id && s1.Name === s2.Name);
           deferred.resolve(stacks);
         })
         .catch(function error(err) {
