@@ -25,7 +25,11 @@ export default class ThemeSettingsController {
   }
 
   setTheme(theme) {
-    this.ThemeManager.setTheme(theme);
+    if (theme === 'auto' || !theme) {
+      this.ThemeManager.autoTheme();
+    } else {
+      this.ThemeManager.setTheme(theme);
+    }
     this.state.themeInProgress = true;
   }
 
@@ -35,7 +39,7 @@ export default class ThemeSettingsController {
         userId: null,
         userTheme: '',
         initTheme: '',
-        defaultTheme: 'light',
+        defaultTheme: 'auto',
         themeInProgress: false,
       };
 
@@ -43,6 +47,7 @@ export default class ThemeSettingsController {
         buildOption('light', 'fas fa-sun', 'Light Theme', 'Default color mode', 'light'),
         buildOption('dark', 'fas fa-moon', 'Dark Theme', 'Dark color mode', 'dark'),
         buildOption('highcontrast', 'fas fa-adjust', 'High Contrast', 'High contrast color mode', 'highcontrast'),
+        buildOption('auto', 'fas fa-sync-alt', 'Auto', 'Sync with system theme', 'auto'),
       ];
 
       try {
