@@ -1,13 +1,13 @@
 package cli
 
 import (
+	"context"
 	"strconv"
 	"sync"
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
-
 	core "k8s.io/api/core/v1"
 	ktypes "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,7 +27,7 @@ func Test_ToggleSystemState(t *testing.T) {
 		err := kcl.ToggleSystemState(nsName, true)
 		assert.NoError(t, err)
 
-		ns, err := kcl.cli.CoreV1().Namespaces().Get(nsName, meta.GetOptions{})
+		ns, err := kcl.cli.CoreV1().Namespaces().Get(context.Background(), nsName, meta.GetOptions{})
 		assert.NoError(t, err)
 
 		_, exists := ns.Labels[systemNamespaceLabel]
@@ -69,7 +69,7 @@ func Test_ToggleSystemState(t *testing.T) {
 				err := kcl.ToggleSystemState(nsName, test.isSystem)
 				assert.NoError(t, err)
 
-				ns, err := kcl.cli.CoreV1().Namespaces().Get(nsName, meta.GetOptions{})
+				ns, err := kcl.cli.CoreV1().Namespaces().Get(context.Background(), nsName, meta.GetOptions{})
 				assert.NoError(t, err)
 
 				assert.Equal(t, test.isSystem, isSystemNamespace(*ns))
@@ -89,7 +89,7 @@ func Test_ToggleSystemState(t *testing.T) {
 		err := kcl.ToggleSystemState(nsName, true)
 		assert.NoError(t, err)
 
-		ns, err := kcl.cli.CoreV1().Namespaces().Get(nsName, meta.GetOptions{})
+		ns, err := kcl.cli.CoreV1().Namespaces().Get(context.Background(), nsName, meta.GetOptions{})
 		assert.NoError(t, err)
 
 		labelValue, exists := ns.Labels[systemNamespaceLabel]
@@ -110,7 +110,7 @@ func Test_ToggleSystemState(t *testing.T) {
 		err := kcl.ToggleSystemState(nsName, false)
 		assert.NoError(t, err)
 
-		ns, err := kcl.cli.CoreV1().Namespaces().Get(nsName, meta.GetOptions{})
+		ns, err := kcl.cli.CoreV1().Namespaces().Get(context.Background(), nsName, meta.GetOptions{})
 		assert.NoError(t, err)
 
 		labelValue, exists := ns.Labels[systemNamespaceLabel]
@@ -133,7 +133,7 @@ func Test_ToggleSystemState(t *testing.T) {
 		err := kcl.ToggleSystemState(nsName, false)
 		assert.NoError(t, err)
 
-		ns, err := kcl.cli.CoreV1().Namespaces().Get(nsName, meta.GetOptions{})
+		ns, err := kcl.cli.CoreV1().Namespaces().Get(context.Background(), nsName, meta.GetOptions{})
 		assert.NoError(t, err)
 
 		labelValue, exists := ns.Labels[systemNamespaceLabel]
@@ -167,7 +167,7 @@ func Test_ToggleSystemState(t *testing.T) {
 		err := kcl.ToggleSystemState(nsName, true)
 		assert.NoError(t, err)
 
-		ns, err := kcl.cli.CoreV1().Namespaces().Get(nsName, meta.GetOptions{})
+		ns, err := kcl.cli.CoreV1().Namespaces().Get(context.Background(), nsName, meta.GetOptions{})
 		assert.NoError(t, err)
 
 		labelValue, exists := ns.Labels[systemNamespaceLabel]

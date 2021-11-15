@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 
 	portainer "github.com/portainer/portainer/api"
@@ -19,7 +20,7 @@ func (kcl *KubeClient) GetServiceAccount(tokenData *portainer.TokenData) (*v1.Se
 	}
 
 	// verify name exists as service account resource within portainer namespace
-	serviceAccount, err := kcl.cli.CoreV1().ServiceAccounts(portainerNamespace).Get(portainerServiceAccountName, metav1.GetOptions{})
+	serviceAccount, err := kcl.cli.CoreV1().ServiceAccounts(portainerNamespace).Get(context.TODO(), portainerServiceAccountName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +111,7 @@ func (kcl *KubeClient) createUserServiceAccount(namespace, serviceAccountName st
 			Name: serviceAccountName,
 		},
 	}
-	_, err := kcl.cli.CoreV1().ServiceAccounts(namespace).Create(serviceAccount)
+	_, err := kcl.cli.CoreV1().ServiceAccounts(namespace).Create(context.TODO(), serviceAccount, metav1.CreateOptions{})
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err
 	}
@@ -119,7 +120,7 @@ func (kcl *KubeClient) createUserServiceAccount(namespace, serviceAccountName st
 }
 
 func (kcl *KubeClient) removeUserServiceAccount(namespace, serviceAccountName string) error {
-	err := kcl.cli.CoreV1().ServiceAccounts(namespace).Delete(serviceAccountName, &metav1.DeleteOptions{})
+	err := kcl.cli.CoreV1().ServiceAccounts(namespace).Delete(context.TODO(), serviceAccountName, metav1.DeleteOptions{})
 	if err != nil && !k8serrors.IsNotFound(err) {
 		return err
 	}

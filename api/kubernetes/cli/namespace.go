@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -24,7 +25,7 @@ func defaultSystemNamespaces() map[string]struct{} {
 
 // GetNamespaces gets the namespaces in the current k8s environment(endpoint) connection
 func (kcl *KubeClient) GetNamespaces() (map[string]portainer.K8sNamespaceInfo, error) {
-	namespaces, err := kcl.cli.CoreV1().Namespaces().List(metav1.ListOptions{})
+	namespaces, err := kcl.cli.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +65,7 @@ func (kcl *KubeClient) ToggleSystemState(namespaceName string, isSystem bool) er
 
 	nsService := kcl.cli.CoreV1().Namespaces()
 
-	namespace, err := nsService.Get(namespaceName, metav1.GetOptions{})
+	namespace, err := nsService.Get(context.TODO(), namespaceName, metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed fetching namespace object")
 	}
@@ -79,7 +80,7 @@ func (kcl *KubeClient) ToggleSystemState(namespaceName string, isSystem bool) er
 
 	namespace.Labels[systemNamespaceLabel] = strconv.FormatBool(isSystem)
 
-	_, err = nsService.Update(namespace)
+	_, err = nsService.Update(context.TODO(), namespace, metav1.UpdateOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed updating namespace object")
 	}
