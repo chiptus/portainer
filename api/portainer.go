@@ -630,6 +630,7 @@ type (
 		SSO                         bool            `json:"SSO"`
 		HideInternalAuth            bool            `json:"HideInternalAuth"`
 		LogoutURI                   string          `json:"LogoutURI"`
+		KubeSecretKey               []byte          `json:"KubeSecretKey"`
 	}
 
 	// OAuthInfo represents extracted data from the resource object obtained from an OAuth providers resource URL

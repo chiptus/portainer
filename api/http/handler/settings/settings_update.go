@@ -173,12 +173,17 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		if clientSecret == "" {
 			clientSecret = settings.OAuthSettings.ClientSecret
 		}
-		//if SSO is switched off, then make sure HideInternalAuth is swithed off
+		kubeSecret := payload.OAuthSettings.KubeSecretKey
+		if kubeSecret == nil {
+			kubeSecret = settings.OAuthSettings.KubeSecretKey
+		}
+		//if SSO is switched off, then make sure HideInternalAuth is switched off
 		if !payload.OAuthSettings.SSO && payload.OAuthSettings.HideInternalAuth {
 			payload.OAuthSettings.HideInternalAuth = false
 		}
 		settings.OAuthSettings = *payload.OAuthSettings
 		settings.OAuthSettings.ClientSecret = clientSecret
+		settings.OAuthSettings.KubeSecretKey = kubeSecret
 
 		if !payload.OAuthSettings.OAuthAutoMapTeamMemberships || payload.OAuthSettings.TeamMemberships.OAuthClaimName == "" {
 			settings.OAuthSettings.TeamMemberships.OAuthClaimMappings = []portainer.OAuthClaimMappings{}

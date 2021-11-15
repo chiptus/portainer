@@ -13,6 +13,7 @@ import (
 func hideFields(settings *portainer.Settings) {
 	settings.LDAPSettings.Password = ""
 	settings.OAuthSettings.ClientSecret = ""
+	settings.OAuthSettings.KubeSecretKey = nil
 }
 
 const (
