@@ -74,6 +74,7 @@ type (
 		AdminPasswordFile         *string
 		Assets                    *string
 		Data                      *string
+		FeatureFlags              *[]Pair
 		EnableEdgeComputeFeatures *bool
 		EndpointURL               *string
 		Labels                    *[]Pair
@@ -430,6 +431,9 @@ type (
 		Expiration string `json:"Expiration,omitempty"`
 		Valid      bool   `json:"Valid,omitempty"`
 	}
+
+	// Feature represents a feature that can be enabled or disabled via feature flags
+	Feature string
 
 	// GitlabRegistryData represents data required for gitlab registry to work
 	GitlabRegistryData struct {
@@ -831,6 +835,7 @@ type (
 		AuthenticationMethod AuthenticationMethod `json:"AuthenticationMethod" example:"1"`
 		LDAPSettings         LDAPSettings         `json:"LDAPSettings"`
 		OAuthSettings        OAuthSettings        `json:"OAuthSettings"`
+		FeatureFlagSettings  map[Feature]bool     `json:"FeatureFlagSettings" example:""`
 		// The interval in which environment(endpoint) snapshots are created
 		SnapshotInterval string `json:"SnapshotInterval" example:"5m"`
 		// URL to the templates that will be displayed in the UI when navigating to App Templates
@@ -1738,6 +1743,18 @@ const (
 	// For parsing 24hr time
 	TimeFormat24 = "15:04"
 )
+
+// Supported feature flags
+const (
+	FeatOpenAMT Feature = "open-amt"
+	FeatFDO     Feature = "fdo"
+)
+
+// List of supported features
+var SupportedFeatureFlags = []Feature{
+	FeatOpenAMT,
+	FeatFDO,
+}
 
 const (
 	_ AuthenticationMethod = iota
