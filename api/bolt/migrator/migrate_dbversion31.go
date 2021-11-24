@@ -11,44 +11,53 @@ import (
 )
 
 func (m *Migrator) migrateDBVersionToDB32() error {
+	migrateLog.Info("Updating registries")
 	err := m.updateRegistriesToDB32()
 	if err != nil {
 		return err
 	}
 
+	migrateLog.Info("Updating dockerhub")
 	err = m.updateDockerhubToDB32()
 	if err != nil {
 		return err
 	}
 
+	migrateLog.Info("Refreshing RBAC roles")
 	err = m.refreshRBACRoles()
 	if err != nil {
 		return err
 	}
 
+	migrateLog.Info("Refreshing user authorizations")
 	err = m.refreshUserAuthorizations()
 	if err != nil {
 		return err
 	}
 
+	migrateLog.Info("Updating resource controls")
 	err = m.updateVolumeResourceControlToDB32()
 	if err != nil {
 		return err
 	}
 
+	migrateLog.Info("Updating admin group search settings")
 	err = m.updateAdminGroupSearchSettingsToDB32()
 	if err != nil {
 		return err
 	}
 
+	migrateLog.Info("Migrating stack entry points")
 	if err := migrateStackEntryPoint(m.stackService); err != nil {
 		return err
 	}
 
+	migrateLog.Info("Updating kubeconfig expiry")
 	if err := m.kubeconfigExpiryToDB32(); err != nil {
 		return err
 	}
 
+	migrateLog.Info("Setting default helm repository url")
 	if err := m.helmRepositoryURLToDB32(); err != nil {
 		return err
 	}
