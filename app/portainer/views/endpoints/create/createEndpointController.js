@@ -69,7 +69,7 @@ angular
         );
       } else if ($scope.state.deploymentTab === 2 && $scope.state.PlatformType === 'windows') {
         clipboard.copyText(
-          `curl https://downloads.portainer.io/agent-stack-ee${$scope.agentShortVersion}-windows.yml -o agent-stack-windows.yml ; docker stack deploy --compose-file=agent-stack-windows.yml portainer-agent`
+          `curl -L https://downloads.portainer.io/agent-stack-ee${$scope.agentShortVersion}-windows.yml -o agent-stack-windows.yml && docker stack deploy --compose-file=agent-stack-windows.yml portainer-agent`
         );
       } else if ($scope.state.deploymentTab === 1) {
         clipboard.copyText(
