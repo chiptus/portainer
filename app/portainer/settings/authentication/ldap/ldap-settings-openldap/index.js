@@ -12,5 +12,8 @@ export const ldapSettingsOpenLdap = {
     onTlscaCertChange: '<',
     onSearchUsersClick: '<',
     onSearchGroupsClick: '<',
+    onSaveSettings: '<',
+    saveButtonState: '<',
+    saveButtonDisabled: '<',
   },
 };

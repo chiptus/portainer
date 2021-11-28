@@ -8,6 +8,7 @@ export default class OAuthSettingsController {
     this.featureService = featureService;
 
     this.limitedFeature = HIDE_INTERNAL_AUTH;
+    this.limitedFeatureClass = 'limited-be';
 
     this.state = {
       provider: 'custom',
@@ -81,6 +82,31 @@ export default class OAuthSettingsController {
 
   removeAdminClaimRegex(index) {
     this.settings.TeamMemberships.AdminGroupClaimsRegexList.splice(index, 1);
+  }
+
+  isOAuthTeamMembershipFormValid() {
+    if (this.settings.OAuthAutoMapTeamMemberships && this.settings.TeamMemberships) {
+      if (!this.settings.TeamMemberships.OAuthClaimName) {
+        return false;
+      }
+
+      const hasInvalidMapping = this.settings.TeamMemberships.OAuthClaimMappings.some((m) => !(m.ClaimValRegex && m.Team));
+      if (hasInvalidMapping) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  isOAuthAdminMappingFormValid() {
+    if (this.settings.AdminAutoPopulate && this.settings.AdminGroupClaimsRegexList) {
+      const hasInvalidMapping = this.settings.AdminGroupClaimsRegexList.length === 0 || this.settings.AdminGroupClaimsRegexList.some((e) => e === '');
+      if (hasInvalidMapping) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   $onInit() {

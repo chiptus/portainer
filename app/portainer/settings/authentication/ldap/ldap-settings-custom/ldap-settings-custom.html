@@ -125,4 +125,10 @@
 
 <div limited-feature-dir="{{ $ctrl.limitedFeatureId }}" limited-feature-class="limited-be">
   <ldap-settings-test-login settings="$ctrl.settings" limited-feature-id="$ctrl.limitedFeatureId" show-be-indicator-if-needed="true"></ldap-settings-test-login>
+  <save-auth-settings-button
+    on-save-settings="($ctrl.onSaveSettings)"
+    save-button-state="($ctrl.saveButtonState)"
+    save-button-disabled="!$ctrl.saveButtonDisabled()"
+    limited-feature-dir="{{ $ctrl.limitedFeatureId }}"
+  ></save-auth-settings-button>
 </div>

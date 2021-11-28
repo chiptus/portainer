@@ -162,4 +162,10 @@
   ></ldap-custom-admin-group>
 
   <ldap-settings-test-login settings="$ctrl.settings" limited-feature-id="$ctrl.limitedFeatureId"></ldap-settings-test-login>
+  <save-auth-settings-button
+    on-save-settings="($ctrl.onSaveSettings)"
+    save-button-state="($ctrl.saveButtonState)"
+    limited-feature-id="$ctrl.limitedFeatureId"
+    save-button-disabled="($ctrl.isSaveSettingButtonDisabled())"
+  ></save-auth-settings-button>
 </ng-form>

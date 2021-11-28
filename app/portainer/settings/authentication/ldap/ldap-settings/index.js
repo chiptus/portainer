@@ -8,5 +8,8 @@ export const ldapSettings = {
     selectedAdminGroups: '=',
     state: '<',
     connectivityCheck: '<',
+    onSaveSettings: '<',
+    saveButtonState: '<',
+    isLdapFormValid: '<',
   },
 };
