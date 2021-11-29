@@ -5,6 +5,7 @@ portainer-checksum.txt
 api/cmd/portainer/portainer*
 storybook-static
 .tmp
+*.DS_Store
 **/.vscode/settings.json
 **/.vscode/tasks.json
 *.DS_Store
