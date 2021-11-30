@@ -31,6 +31,7 @@ import (
 	"github.com/portainer/portainer/api/http/handler/endpoints"
 	"github.com/portainer/portainer/api/http/handler/file"
 	"github.com/portainer/portainer/api/http/handler/helm"
+	"github.com/portainer/portainer/api/http/handler/hostmanagement/openamt"
 	kubehandler "github.com/portainer/portainer/api/http/handler/kubernetes"
 	"github.com/portainer/portainer/api/http/handler/ldap"
 	"github.com/portainer/portainer/api/http/handler/licenses"
@@ -82,6 +83,7 @@ type Server struct {
 	DataStore                   portainer.DataStore
 	GitService                  portainer.GitService
 	APIKeyService               apikey.APIKeyService
+	OpenAMTService              portainer.OpenAMTService
 	JWTService                  portainer.JWTService
 	LDAPService                 portainer.LDAPService
 	OAuthService                portainer.OAuthService
@@ -235,6 +237,15 @@ func (server *Server) Start() error {
 	var sslHandler = sslhandler.NewHandler(requestBouncer)
 	sslHandler.SSLService = server.SSLService
 
+	openAMTHandler, err := openamt.NewHandler(requestBouncer, server.DataStore)
+	if err != nil {
+		return err
+	}
+	if openAMTHandler != nil {
+		openAMTHandler.OpenAMTService = server.OpenAMTService
+		openAMTHandler.DataStore = server.DataStore
+	}
+
 	var stackHandler = stacks.NewHandler(requestBouncer)
 	stackHandler.DockerClientFactory = server.DockerClientFactory
 	stackHandler.FileService = server.FileService
@@ -321,6 +332,7 @@ func (server *Server) Start() error {
 		LDAPHandler:            ldapHandler,
 		LicenseHandler:         licenseHandler,
 		MOTDHandler:            motdHandler,
+		OpenAMTHandler:         openAMTHandler,
 		RegistryHandler:        registryHandler,
 		ResourceControlHandler: resourceControlHandler,
 		SettingsHandler:        settingsHandler,

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/portainer/portainer/api/http/handler/hostmanagement/openamt"
 	"net/http"
 	"strings"
 
@@ -60,6 +61,7 @@ type Handler struct {
 	LDAPHandler            *ldap.Handler
 	MOTDHandler            *motd.Handler
 	LicenseHandler         *licenses.Handler
+	OpenAMTHandler         *openamt.Handler
 	RegistryHandler        *registries.Handler
 	ResourceControlHandler *resourcecontrols.Handler
 	RoleHandler            *roles.Handler
@@ -230,6 +232,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.UserActivityHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/ssl"):
 		http.StripPrefix("/api", h.SSLHandler).ServeHTTP(w, r)
+	case strings.HasPrefix(r.URL.Path, "/api/open_amt"):
+		if h.OpenAMTHandler != nil {
+			http.StripPrefix("/api", h.OpenAMTHandler).ServeHTTP(w, r)
+		}
 	case strings.HasPrefix(r.URL.Path, "/api/teams"):
 		http.StripPrefix("/api", h.TeamHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/team_memberships"):
