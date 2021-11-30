@@ -99,9 +99,11 @@ func createDefaultManagementConfiguration(registry *portainer.Registry) *portain
 	}
 
 	if registry.Authentication {
-		config.Authentication = true
 		config.Username = registry.Username
 		config.Password = registry.Password
+		config.Ecr = registry.Ecr
+		config.AccessToken = registry.AccessToken
+		config.AccessTokenExpiry = registry.AccessTokenExpiry
 	}
 
 	return config

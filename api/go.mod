@@ -8,6 +8,9 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535
 	github.com/asdine/storm/v3 v3.2.1
 	github.com/aws/aws-sdk-go v1.38.3
+	github.com/aws/aws-sdk-go-v2 v1.10.0
+	github.com/aws/aws-sdk-go-v2/credentials v1.5.0
+	github.com/aws/aws-sdk-go-v2/service/ecr v1.8.0
 	github.com/boltdb/bolt v1.3.1
 	github.com/containerd/containerd v1.5.7 // indirect
 	github.com/coreos/go-semver v0.3.0

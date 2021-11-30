@@ -25,6 +25,7 @@ type registryUpdatePayload struct {
 	Password         *string `json:",omitempty" example:"registry_password"`
 	Quay             *portainer.QuayRegistryData
 	RegistryAccesses *portainer.RegistryAccesses `json:",omitempty"`
+	Ecr              *portainer.EcrData `json:",omitempty" example:"{Region: \"ap-southeast-2\"}"`
 }
 
 func (payload *registryUpdatePayload) Validate(r *http.Request) error {
@@ -87,22 +88,34 @@ func (handler *Handler) registryUpdate(w http.ResponseWriter, r *http.Request) *
 	shouldUpdateSecrets := false
 
 	if payload.Authentication != nil {
+		shouldUpdateSecrets = shouldUpdateSecrets || (registry.Authentication != *payload.Authentication)
+
 		if *payload.Authentication {
 			registry.Authentication = true
-			shouldUpdateSecrets = shouldUpdateSecrets || (payload.Username != nil && *payload.Username != registry.Username) || (payload.Password != nil && *payload.Password != registry.Password)
 
 			if payload.Username != nil {
+				shouldUpdateSecrets = shouldUpdateSecrets || (registry.Username != *payload.Username)
 				registry.Username = *payload.Username
 			}
 
 			if payload.Password != nil && *payload.Password != "" {
+				shouldUpdateSecrets = shouldUpdateSecrets || (registry.Password != *payload.Password)
 				registry.Password = *payload.Password
 			}
 
+			if registry.Type == portainer.EcrRegistry && payload.Ecr != nil && payload.Ecr.Region != "" {
+				shouldUpdateSecrets = shouldUpdateSecrets || (registry.Ecr.Region != payload.Ecr.Region)
+				registry.Ecr.Region = payload.Ecr.Region
+			}
 		} else {
 			registry.Authentication = false
 			registry.Username = ""
 			registry.Password = ""
+
+			registry.Ecr.Region = ""
+
+			registry.AccessToken = ""
+			registry.AccessTokenExpiry = 0
 		}
 	}
 
@@ -123,6 +136,9 @@ func (handler *Handler) registryUpdate(w http.ResponseWriter, r *http.Request) *
 	}
 
 	if shouldUpdateSecrets {
+		registry.AccessToken = ""
+		registry.AccessTokenExpiry = 0
+
 		for endpointID, endpointAccess := range registry.RegistryAccesses {
 			endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
 			if err != nil {

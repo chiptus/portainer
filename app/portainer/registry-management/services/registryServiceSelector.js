@@ -4,22 +4,24 @@ angular.module('portainer.registrymanagement').factory('RegistryServiceSelector'
   '$q',
   'RegistryV2Service',
   'RegistryGitlabService',
-  function RegistryServiceSelector($q, RegistryV2Service, RegistryGitlabService) {
+  'RegistryEcrService',
+  function RegistryServiceSelector($q, RegistryV2Service, RegistryGitlabService, RegistryEcrService) {
     'use strict';
-    const service = {};
-
-    service.ping = ping;
-    service.repositories = repositories;
-    service.getRepositoriesDetails = getRepositoriesDetails;
-    service.tags = tags;
-    service.getTagsDetails = getTagsDetails;
-    service.tag = tag;
-    service.addTag = addTag;
-    service.deleteManifest = deleteManifest;
-
-    service.shortTagsWithProgress = shortTagsWithProgress;
-    service.deleteTagsWithProgress = deleteTagsWithProgress;
-    service.retagWithProgress = retagWithProgress;
+    const service = {
+      ping,
+      repositories,
+      getRepositoriesDetails,
+      tag,
+      tags,
+      getTagsDetails,
+      addTag,
+      retagWithProgress,
+      shortTagsWithProgress,
+      deleteTagsWithProgress,
+      deleteManifest,
+      deleteRepository,
+      batchDeleteTags,
+    };
 
     function ping(registry, forceNewConfig) {
       let service = RegistryV2Service;
@@ -76,7 +78,22 @@ angular.module('portainer.registrymanagement').factory('RegistryServiceSelector'
 
     function retagWithProgress(registry, repository, modifiedTags, modifiedDigests, impactedTags) {
       let service = RegistryV2Service;
+      if (registry.Type === RegistryTypes.ECR) {
+        service = RegistryEcrService;
+      }
       return service.retagWithProgress(registry, repository, modifiedTags, modifiedDigests, impactedTags);
+    }
+
+    function batchDeleteTags(params, data) {
+      // Only for ECR
+      const service = RegistryEcrService;
+      return service.batchDeleteTags(params, data);
+    }
+
+    function deleteRepository(registry, repository) {
+      // Only for ECR
+      const service = RegistryEcrService;
+      return service.deleteRepository(registry, repository);
     }
 
     return service;

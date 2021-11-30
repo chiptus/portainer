@@ -84,5 +84,4 @@ func TestHandler_registryUpdate(t *testing.T) {
 	assert.Equal(t, *payload.Authentication, updatedRegistry.Authentication)
 	assert.Equal(t, *payload.Username, updatedRegistry.Username)
 	assert.Equal(t, *payload.Password, updatedRegistry.Password)
-
 }

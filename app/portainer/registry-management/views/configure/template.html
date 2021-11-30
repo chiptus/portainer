@@ -36,7 +36,12 @@
           <!-- authentication-checkbox -->
           <div
             class="form-group"
-            ng-if="$ctrl.registry.Type === $ctrl.RegistryTypes.CUSTOM || $ctrl.registry.Type === $ctrl.RegistryTypes.GITLAB || $ctrl.registry.Type === $ctrl.RegistryTypes.PROGET"
+            ng-if="
+              $ctrl.registry.Type === $ctrl.RegistryTypes.CUSTOM ||
+              $ctrl.registry.Type === $ctrl.RegistryTypes.GITLAB ||
+              $ctrl.registry.Type === $ctrl.RegistryTypes.PROGET ||
+              $ctrl.registry.Type === $ctrl.RegistryTypes.ECR
+            "
           >
             <div class="col-sm-12">
               <label for="registry_auth" class="control-label text-left">
@@ -51,7 +56,9 @@
           <div ng-if="$ctrl.model.Authentication">
             <!-- credentials-user -->
             <div class="form-group">
-              <label for="credentials_username" class="col-sm-3 col-lg-2 control-label text-left">Username</label>
+              <label for="credentials_username" class="col-sm-3 col-lg-2 control-label text-left">
+                {{ $ctrl.registry.Type === $ctrl.RegistryTypes.ECR ? 'AWS Access Key' : 'Username' }}
+              </label>
               <div class="col-sm-9 col-lg-10">
                 <input type="text" class="form-control" id="credentials_username" ng-model="$ctrl.model.Username" />
               </div>
@@ -59,17 +66,34 @@
             <!-- !credentials-user -->
             <!-- credentials-password -->
             <div class="form-group">
-              <label for="credentials_password" class="col-sm-3 col-lg-2 control-label text-left">Password</label>
+              <label for="credentials_password" class="col-sm-3 col-lg-2 control-label text-left">
+                {{ $ctrl.registry.Type === $ctrl.RegistryTypes.ECR ? 'AWS Secret Access Key' : 'Password' }}
+              </label>
               <div class="col-sm-9 col-lg-10">
                 <input type="password" class="form-control" id="credentials_password" ng-model="$ctrl.model.Password" placeholder="*******" />
               </div>
             </div>
             <!-- !credentials-password -->
+
+            <!-- region -->
+            <div class="form-group" ng-if="$ctrl.registry.Type == $ctrl.RegistryTypes.ECR">
+              <label for="registry_region" class="col-sm-3 col-lg-2 control-label text-left">Region</label>
+              <div class="col-sm-9 col-lg-10">
+                <input type="text" class="form-control" id="registry_region" name="registry_region" placeholder="us-west-1" ng-model="$ctrl.model.Region" required />
+              </div>
+            </div>
+            <!-- !region -->
           </div>
           <!-- !authentication-credentials -->
+
           <!-- tls -->
           <div
-            ng-if="$ctrl.registry.Type === $ctrl.RegistryTypes.CUSTOM || $ctrl.registry.Type === $ctrl.RegistryTypes.GITLAB || $ctrl.registry.Type === $ctrl.RegistryTypes.PROGET"
+            ng-if="
+              $ctrl.registry.Type === $ctrl.RegistryTypes.CUSTOM ||
+              $ctrl.registry.Type === $ctrl.RegistryTypes.GITLAB ||
+              $ctrl.registry.Type === $ctrl.RegistryTypes.PROGET ||
+              $ctrl.registry.Type === $ctrl.RegistryTypes.ECR
+            "
           >
             <!-- tls-checkbox -->
             <div class="form-group">

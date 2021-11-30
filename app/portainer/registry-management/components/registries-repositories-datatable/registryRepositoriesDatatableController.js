@@ -32,7 +32,7 @@ angular.module('portainer.app').controller('RegistryRepositoriesDatatableControl
       },
       function (newValue, oldValue) {
         if (newValue && areDifferent(oldValue, newValue)) {
-          ctrl.paginationAction(_.filter(newValue, { TagsCount: 0 }));
+          ctrl.paginationAction(_.filter(newValue, ({ TagsCount }) => !TagsCount));
         }
       },
       true

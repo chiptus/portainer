@@ -989,6 +989,15 @@ definitions:
       ProjectPath:
         type: string
     type: object
+  portainer.EcrRegistryData:
+    properties:
+      AccessKeyID:
+        type: string
+      SecretAccessKey:
+        type: string
+      Region:
+        type: string
+    type: object
   portainer.KubernetesConfiguration:
     properties:
       IngressClasses:
@@ -1168,6 +1177,9 @@ definitions:
           example: 3
           type: integer
         type: array
+      Ecr:
+        $ref: '#/definitions/portainer.EcrRegistryData'
+        description: AWS ECR specific details, required if Authentication is true and type = 6
       Gitlab:
         $ref: '#/definitions/portainer.GitlabRegistryData'
       Id:
@@ -1187,13 +1199,14 @@ definitions:
       TeamAccessPolicies:
         $ref: '#/definitions/portainer.TeamAccessPolicies'
       Type:
-        description: Registry Type (1 - Quay, 2 - Azure, 3 - Custom, 4 - Gitlab, 5 - ProGet)
+        description: Registry Type (1 - Quay, 2 - Azure, 3 - Custom, 4 - Gitlab, 5 - ProGet, 6 - AWS ECR)
         enum:
         - 1
         - 2
         - 3
         - 4
         - 5
+        - 6
         type: integer
       URL:
         description: URL or IP address of the Docker registry
@@ -1821,6 +1834,9 @@ definitions:
       gitlab:
         $ref: '#/definitions/portainer.GitlabRegistryData'
         description: Gitlab specific details, required when type = 4
+      ecr:
+        $ref: '#/definitions/portainer.EcrRegistryData'
+        description: AWS ECR specific details, required if Authentication is true and type = 6
       name:
         description: Name that will be used to identify this registry
         example: my-registry
@@ -1832,13 +1848,14 @@ definitions:
         type: string
       type:
         description: 'Registry Type. Valid values are: 1 (Quay.io), 2 (Azure container
-          registry), 3 (custom registry), 4 (Gitlab registry) or 5 (ProGet registry)'
+          registry), 3 (custom registry), 4 (Gitlab registry), 5 (ProGet registry) or 6 (AWS ECR registry)'
         enum:
         - 1
         - 2
         - 3
         - 4
         - 5
+        - 6
         example: 1
         type: integer
       url:
@@ -1866,6 +1883,9 @@ definitions:
         description: Is authentication against this registry enabled
         example: false
         type: boolean
+      ecr:
+        $ref: '#/definitions/portainer.EcrRegistryData'
+        description: AWS ECR specific details, required if authentication is true and type = 6
       name:
         description: Name that will be used to identify this registry
         example: my-registry

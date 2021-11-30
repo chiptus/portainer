@@ -1,6 +1,7 @@
 package registryproxy
 
 import (
+	"encoding/base64"
 	"net/http"
 	"net/url"
 	"time"
@@ -8,6 +9,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer/api/http/useractivity"
+	"github.com/portainer/portainer/api/internal/registryutils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -53,7 +55,7 @@ func newTokenSecuredRegistryProxy(uri string, config *portainer.RegistryManageme
 // retrieve an authentication token. It will then retry the original request
 // decorated with a new Authorization header containing the authentication token.
 func (transport *tokenSecuredTransport) RoundTrip(request *http.Request) (*http.Response, error) {
-	requestCopy, err := http.NewRequest(request.Method, request.URL.String(), nil)
+	requestCopy, err := cloneRequest(request)
 	if err != nil {
 		return nil, err
 	}
@@ -61,6 +63,15 @@ func (transport *tokenSecuredTransport) RoundTrip(request *http.Request) (*http.
 	body, err := utils.CopyBody(request)
 	if err != nil {
 		logrus.WithError(err).Debug("[registrytoken] failed parsing body")
+	}
+
+	if transport.config.Type == portainer.EcrRegistry {
+		err = registryutils.EnsureManegeTokenValid(transport.config)
+		if err != nil {
+			return nil, err
+		}
+
+		requestCopy.Header.Set("Authorization", "Basic "+ base64.StdEncoding.EncodeToString([]byte(transport.config.AccessToken)))
 	}
 
 	response, err := http.DefaultTransport.RoundTrip(requestCopy)

@@ -1,4 +1,5 @@
 import _ from 'lodash-es';
+import { RegistryTypes } from 'Portainer/models/registryTypes';
 import { RepositoryShortTag, RepositoryTagViewModel } from '@/portainer/registry-management/models/repositoryTag';
 
 angular.module('portainer.app').controller('RegistryRepositoryController', RegistryRepositoryController);
@@ -253,7 +254,26 @@ function RegistryRepositoryController($q, $async, $scope, $uibModal, $interval, 
     $scope.state.tagsDelete.asyncGenerator = RegistryServiceSelector.deleteTagsWithProgress($scope.registry, $scope.repository.Name, modifiedDigests, impactedTags);
   }
 
+  async function removeEcrTagsAsync(selectedTags) {
+    try {
+      const tags = selectedTags.map((tag) => tag.Name);
+
+      await RegistryServiceSelector.batchDeleteTags({ id: $scope.registry.Id, repositoryName: $scope.repository.Name }, { Tags: tags });
+
+      await loadRepositoryDetails();
+      Notifications.success('Success', 'Tags successfully deleted');
+    } catch (err) {
+      Notifications.error('Failure', err, 'Unable to delete tags');
+    }
+  }
+
   async function removeTagsAsync(selectedTags) {
+    if ($scope.registry.Type === RegistryTypes.ECR) {
+      // ECR does NOT support DELETE v2/<repository>/manifests/<sha256>
+      // So, use ECR SDK BatchDeleteImage() instead
+      return removeEcrTagsAsync(selectedTags);
+    }
+
     let modal = null;
     try {
       $scope.state.tagsDelete.running = true;
@@ -316,11 +336,15 @@ function RegistryRepositoryController($q, $async, $scope, $uibModal, $interval, 
    */
   async function removeRepositoryAsync() {
     try {
-      const digests = _.uniqBy($scope.short.Tags, 'ImageDigest');
-      const promises = [];
-      _.map(digests, (item) => promises.push(RegistryServiceSelector.deleteManifest($scope.registry, $scope.repository.Name, item.ImageDigest)));
-      await Promise.all(promises);
-      Notifications.success('Success', 'Repository sucessfully removed');
+      if ($scope.registry.Type == RegistryTypes.ECR) {
+        await RegistryServiceSelector.deleteRepository($scope.registry, $scope.repository);
+      } else {
+        const digests = _.uniqBy($scope.short.Tags, 'ImageDigest');
+        const promises = [];
+        _.map(digests, (item) => promises.push(RegistryServiceSelector.deleteManifest($scope.registry, $scope.repository.Name, item.ImageDigest)));
+        await Promise.all(promises);
+      }
+      Notifications.success('Success', 'Repository successfully removed');
       $state.go('portainer.registries.registry.repositories', { id: $scope.registry.Id }, { reload: true });
     } catch (err) {
       Notifications.error('Failure', err, 'Unable to delete repository');

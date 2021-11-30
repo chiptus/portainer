@@ -5,6 +5,7 @@
  */
 
 import $ from 'jquery';
+import { Sha256 } from '@aws-crypto/sha256-js';
 
 angular.module('portainer.registrymanagement').factory('RegistryManifestsJquery', [
   'API_ENDPOINT_REGISTRIES',
@@ -22,6 +23,7 @@ angular.module('portainer.registrymanagement').factory('RegistryManifestsJquery'
           dataType: 'JSON',
           url: buildUrl(params),
           headers: {
+            Accept: 'application/vnd.docker.distribution.manifest.v1+json',
             'Cache-Control': 'no-cache',
             'If-Modified-Since': 'Mon, 26 Jul 1997 05:00:00 GMT',
           },
@@ -35,15 +37,17 @@ angular.module('portainer.registrymanagement').factory('RegistryManifestsJquery'
       return new Promise((resolve, reject) => {
         $.ajax({
           type: 'GET',
-          dataType: 'JSON',
+          dataType: 'text',
           url: buildUrl(params),
           headers: {
             Accept: 'application/vnd.docker.distribution.manifest.v2+json',
             'Cache-Control': 'no-cache',
             'If-Modified-Since': 'Mon, 26 Jul 1997 05:00:00 GMT',
           },
-          success: (result, status, request) => {
-            result.digest = request.getResponseHeader('Docker-Content-Digest');
+          success: async (resultText, status, request) => {
+            const result = JSON.parse(resultText);
+            // ECR does not return the digest header
+            result.digest = request.getResponseHeader('Docker-Content-Digest') || (await sha256(resultText));
             resolve(result);
           },
           error: (error) => reject(error),
@@ -88,3 +92,9 @@ angular.module('portainer.registrymanagement').factory('RegistryManifestsJquery'
     };
   },
 ]);
+
+async function sha256(string) {
+  const hash = new Sha256();
+  hash.update(string);
+  return await hash.digest();
+}

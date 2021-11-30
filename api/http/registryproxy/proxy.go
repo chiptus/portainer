@@ -38,7 +38,7 @@ func (service *Service) createProxy(key, uri string, config *portainer.RegistryM
 	var err error
 
 	switch config.Type {
-	case portainer.AzureRegistry:
+	case portainer.AzureRegistry, portainer.EcrRegistry:
 		proxy, err = newTokenSecuredRegistryProxy(uri, config, service.userActivityStore)
 	case portainer.GitlabRegistry:
 		if strings.Contains(key, "gitlab") {

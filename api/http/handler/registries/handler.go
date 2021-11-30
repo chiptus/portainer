@@ -73,6 +73,10 @@ func (h *Handler) initRouter(bouncer accessGuard) {
 		bouncer.RestrictedAccess(httperror.LoggerHandler(h.proxyRequestsToGitlabAPIWithRegistry))) // admin
 	h.PathPrefix("/registries/proxies/gitlab").Handler(
 		bouncer.AdminAccess(httperror.LoggerHandler(h.proxyRequestsToGitlabAPIWithoutRegistry)))
+	h.Handle("/registries/{id}/ecr/repositories/{repositoryName}",
+		bouncer.RestrictedAccess(httperror.LoggerHandler(h.ecrDeleteRepository))).Methods(http.MethodDelete) // admin
+	h.Handle("/registries/{id}/ecr/repositories/{repositoryName}/tags",
+		bouncer.RestrictedAccess(httperror.LoggerHandler(h.ecrDeleteTags))).Methods(http.MethodDelete) // admin
 }
 
 type accessGuard interface {
