@@ -31,6 +31,7 @@ func (payload *forceUpdateServicePayload) Validate(r *http.Request) error {
 // @description force update a docker service
 // @description **Access policy**: authenticated
 // @tags endpoints
+// @security ApiKeyAuth
 // @security jwt
 // @accept json
 // @produce json

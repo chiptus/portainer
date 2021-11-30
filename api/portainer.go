@@ -760,6 +760,20 @@ type (
 	// RoleID represents a role identifier
 	RoleID int
 
+	// APIKeyID represents an API key identifier
+	APIKeyID int
+
+	// APIKey represents an API key
+	APIKey struct {
+		ID          APIKeyID `json:"id" example:"1"`
+		UserID      UserID   `json:"userId" example:"1"`
+		Description string   `json:"description" example:"portainer-api-key"`
+		Prefix      string   `json:"prefix"`           // API key identifier (7 char prefix)
+		DateCreated int64    `json:"dateCreated"`      // Unix timestamp (UTC) when the API key was created
+		LastUsed    int64    `json:"lastUsed"`         // Unix timestamp (UTC) when the API key was last used
+		Digest      []byte   `json:"digest,omitempty"` // Digest represents SHA256 hash of the raw API key
+	}
+
 	// S3BackupSettings represents when and where to backup
 	S3BackupSettings struct {
 		// Crontab rule to make periodical backups
@@ -1296,6 +1310,7 @@ type (
 		Registry() RegistryService
 		ResourceControl() ResourceControlService
 		Role() RoleService
+		APIKeyRepository() APIKeyRepository
 		S3Backup() S3BackupService
 		SSLSettings() SSLSettingsService
 		Settings() SettingsService
@@ -1553,6 +1568,16 @@ type (
 		UpdateRole(ID RoleID, role *Role) error
 	}
 
+	// APIKeyRepositoryService
+	APIKeyRepository interface {
+		CreateAPIKey(key *APIKey) error
+		GetAPIKey(keyID APIKeyID) (*APIKey, error)
+		UpdateAPIKey(key *APIKey) error
+		DeleteAPIKey(ID APIKeyID) error
+		GetAPIKeysByUserID(userID UserID) ([]APIKey, error)
+		GetAPIKeyByDigest(digest []byte) (*APIKey, error)
+	}
+
 	// S3BackupService represents a storage service for managing S3 backup settings and status
 	S3BackupService interface {
 		GetStatus() (S3BackupStatus, error)
@@ -1696,9 +1721,9 @@ const (
 	// APIVersion is the version number of the Portainer API
 	APIVersion = "2.10.0"
 	// DBVersion is the version number of the Portainer CE database
-	DBVersion = 35
+	DBVersion = 36
 	// DBVersionEE is the version number of the Portainer EE database
-	DBVersionEE = 35
+	DBVersionEE = 36
 	// Edition is the edition of the Portainer API
 	Edition = PortainerEE
 	// ComposeSyntaxMaxVersion is a maximum supported version of the docker compose syntax
@@ -2223,6 +2248,9 @@ const (
 	OperationPortainerUserInspect             Authorization = "PortainerUserInspect"
 	OperationPortainerUserMemberships         Authorization = "PortainerUserMemberships"
 	OperationPortainerUserCreate              Authorization = "PortainerUserCreate"
+	OperationPortainerUserListToken           Authorization = "PortainerUserListToken"
+	OperationPortainerUserCreateToken         Authorization = "PortainerUserCreateToken"
+	OperationPortainerUserRevokeToken         Authorization = "PortainerUserRevokeToken"
 	OperationPortainerUserUpdate              Authorization = "PortainerUserUpdate"
 	OperationPortainerUserUpdatePassword      Authorization = "PortainerUserUpdatePassword"
 	OperationPortainerUserDelete              Authorization = "PortainerUserDelete"

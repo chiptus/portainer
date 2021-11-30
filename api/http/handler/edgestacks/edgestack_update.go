@@ -36,6 +36,7 @@ func (payload *updateEdgeStackPayload) Validate(r *http.Request) error {
 // @summary Update an EdgeStack
 // @description **Access policy**: administrator
 // @tags edge_stacks
+// @security ApiKeyAuth
 // @security jwt
 // @accept json
 // @produce json

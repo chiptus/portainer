@@ -31,6 +31,7 @@ func (payload *resourcePoolUpdatePayload) Validate(r *http.Request) error {
 // @description update the access on the resource pool in the current environment
 // @description **Access policy**: restricted
 // @tags endpoints
+// @security ApiKeyAuth
 // @security jwt
 // @accept json
 // @param id path int true "endpoint id"

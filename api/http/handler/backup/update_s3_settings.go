@@ -42,6 +42,7 @@ func (p *backupSettings) Validate(r *http.Request) error {
 // @description Updates stored s3 backup settings and updates running cron jobs as needed
 // @description **Access policy**: administrator
 // @tags backup
+// @security ApiKeyAuth
 // @security jwt
 // @accept json
 // @param s3_backup_settings body portainer.S3BackupSettings false "S3 backup settings"

@@ -27,6 +27,7 @@ func (payload *usersPayload) Validate(r *http.Request) error {
 // @description
 // @description **Access policy**: administrator
 // @tags ldap
+// @security ApiKeyAuth
 // @security jwt
 // @accept json
 // @param body body usersPayload true "details"

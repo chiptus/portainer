@@ -19,6 +19,7 @@ type namespaceMapping map[int]map[string]portainer.Authorizations
 // @description Retrieves user's role authorizations of all namespaces in all k8s environments(endpoints)
 // @description **Access policy**: restricted
 // @tags users
+// @security ApiKeyAuth
 // @security jwt
 // @produce json
 // @param id path int true "User identifier"

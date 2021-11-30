@@ -30,6 +30,7 @@ func (payload *teamCreatePayload) Validate(r *http.Request) error {
 // @description Create a new team.
 // @description **Access policy**: administrator
 // @tags teams
+// @security ApiKeyAuth
 // @security jwt
 // @accept json
 // @produce json

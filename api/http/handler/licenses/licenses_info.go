@@ -12,6 +12,7 @@ import (
 // @description
 // @description **Access policy**: administrator
 // @tags license
+// @security ApiKeyAuth
 // @security jwt
 // @produce json
 // @success 200 {object} portainer.LicenseInfo "License info"

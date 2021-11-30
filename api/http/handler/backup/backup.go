@@ -46,6 +46,7 @@ func (payload *s3BackupPayload) Validate(r *http.Request) error {
 // @description  Creates an archive with a system data snapshot that could be used to restore the system.
 // @description **Access policy**: admin
 // @tags backup
+// @security ApiKeyAuth
 // @security jwt
 // @accept json
 // @produce octet-stream
@@ -78,6 +79,7 @@ func (h *Handler) backup(w http.ResponseWriter, r *http.Request) *httperror.Hand
 // @description Creates an archive with a system data snapshot and upload it to the target S3 bucket
 // @description **Access policy**: administrator
 // @tags backup
+// @security ApiKeyAuth
 // @security jwt
 // @accept json
 // @param body body s3BackupPayload true "S3 backup settings"

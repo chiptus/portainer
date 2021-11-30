@@ -11,6 +11,7 @@ import (
 // @summary Fetch s3 backup settings/configurations
 // @description **Access policy**: administrator
 // @tags backup
+// @security ApiKeyAuth
 // @security jwt
 // @produce json
 // @success 200 {object} portainer.S3BackupSettings "Success"

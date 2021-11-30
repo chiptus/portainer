@@ -5,6 +5,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/portainer/portainer/api/bolt/apikeyrepository"
 	"github.com/portainer/portainer/api/bolt/helmuserrepository"
 
 	"github.com/portainer/portainer/api/bolt/errors"
@@ -64,6 +65,7 @@ type Store struct {
 	RegistryService           *registry.Service
 	ResourceControlService    *resourcecontrol.Service
 	RoleService               *role.Service
+	APIKeyRepositoryService   *apikeyrepository.Service
 	S3BackupService           *s3backup.Service
 	ScheduleService           *schedule.Service
 	SettingsService           *settings.Service

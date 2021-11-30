@@ -26,6 +26,7 @@ func (payload *groupsPayload) Validate(r *http.Request) error {
 // @description
 // @description **Access policy**: administrator
 // @tags ldap
+// @security ApiKeyAuth
 // @security jwt
 // @accept json
 // @param body body groupsPayload true "details"

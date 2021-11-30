@@ -29,6 +29,7 @@ func (payload *adminGroupsPayload) Validate(r *http.Request) error {
 // @description Fetch LDAP admin groups from LDAP server based on AdminGroupSearchSettings
 // @description **Access policy**: administrator
 // @tags ldap
+// @security ApiKeyAuth
 // @security jwt
 // @accept json
 // @produce json

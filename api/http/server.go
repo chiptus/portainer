@@ -13,6 +13,7 @@ import (
 	"github.com/portainer/libhelm"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/adminmonitor"
+	"github.com/portainer/portainer/api/apikey"
 	backupOps "github.com/portainer/portainer/api/backup"
 	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/docker"
@@ -80,6 +81,7 @@ type Server struct {
 	FileService                 portainer.FileService
 	DataStore                   portainer.DataStore
 	GitService                  portainer.GitService
+	APIKeyService               apikey.APIKeyService
 	JWTService                  portainer.JWTService
 	LDAPService                 portainer.LDAPService
 	OAuthService                portainer.OAuthService
@@ -104,7 +106,7 @@ type Server struct {
 func (server *Server) Start() error {
 	server.AuthorizationService.RegisterEventHandler("kubernetesTokenCacheManager", server.KubernetesTokenCacheManager)
 
-	requestBouncer := security.NewRequestBouncer(server.DataStore, server.LicenseService, server.JWTService)
+	requestBouncer := security.NewRequestBouncer(server.DataStore, server.LicenseService, server.JWTService, server.APIKeyService)
 
 	rateLimiter := security.NewRateLimiter(10, 1*time.Second, 1*time.Hour)
 	offlineGate := offlinegate.NewOfflineGate()
@@ -200,7 +202,7 @@ func (server *Server) Start() error {
 
 	var fileHandler = file.NewHandler(filepath.Join(server.AssetsPath, "public"))
 
-	var endpointHelmHandler = helm.NewHandler(requestBouncer, server.DataStore, server.KubernetesDeployer, server.HelmPackageManager, server.KubeConfigService, server.UserActivityStore)
+	var endpointHelmHandler = helm.NewHandler(requestBouncer, server.DataStore, server.JWTService, server.KubernetesDeployer, server.HelmPackageManager, server.KubeConfigService, server.UserActivityStore)
 
 	var helmTemplatesHandler = helm.NewTemplateHandler(requestBouncer, server.HelmPackageManager)
 
@@ -277,7 +279,7 @@ func (server *Server) Start() error {
 	uploadHandler.FileService = server.FileService
 	uploadHandler.UserActivityStore = server.UserActivityStore
 
-	var userHandler = users.NewHandler(requestBouncer, rateLimiter)
+	var userHandler = users.NewHandler(requestBouncer, rateLimiter, server.APIKeyService)
 	userHandler.AuthorizationService = server.AuthorizationService
 	userHandler.DataStore = server.DataStore
 	userHandler.CryptoService = server.CryptoService

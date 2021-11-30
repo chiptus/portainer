@@ -13,34 +13,41 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	bolt "github.com/portainer/portainer/api/bolt/bolttest"
 	"github.com/portainer/portainer/api/exec/exectest"
+	"github.com/portainer/portainer/api/http/security"
 	helper "github.com/portainer/portainer/api/internal/testhelpers"
+	"github.com/portainer/portainer/api/jwt"
 	"github.com/portainer/portainer/api/kubernetes"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_helmList(t *testing.T) {
+	is := assert.New(t)
+
 	store, teardown := bolt.MustNewTestStore(true)
 	defer teardown()
 
 	err := store.Endpoint().CreateEndpoint(&portainer.Endpoint{ID: 1})
-	assert.NoError(t, err, "error creating environment")
+	is.NoError(err, "error creating environment")
 
 	err = store.User().CreateUser(&portainer.User{Username: "admin", Role: portainer.AdministratorRole})
-	assert.NoError(t, err, "error creating a user")
+	is.NoError(err, "error creating a user")
+
+	jwtService, err := jwt.NewService("1h", store)
+	is.NoError(err, "Error initialising jwt service")
 
 	kubernetesDeployer := exectest.NewKubernetesDeployer()
 	helmPackageManager := test.NewMockHelmBinaryPackageManager("")
 	kubeConfigService := kubernetes.NewKubeConfigCAService("", "")
-	h := NewHandler(helper.NewTestRequestBouncer(), store, kubernetesDeployer, helmPackageManager, kubeConfigService, helper.NewUserActivityStore())
+	h := NewHandler(helper.NewTestRequestBouncer(), store, jwtService, kubernetesDeployer, helmPackageManager, kubeConfigService, helper.NewUserActivityStore())
 
 	// Install a single chart.  We expect to get these values back
 	options := options.InstallOptions{Name: "nginx-1", Chart: "nginx", Namespace: "default"}
 	h.helmPackageManager.Install(options)
 
 	t.Run("helmList", func(t *testing.T) {
-		is := assert.New(t)
-
 		req := httptest.NewRequest(http.MethodGet, "/1/kubernetes/helm", nil)
+		ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "admin", Role: 1})
+		req = req.WithContext(ctx)
 		req.Header.Add("Authorization", "Bearer dummytoken")
 
 		rr := httptest.NewRecorder()

@@ -2,6 +2,7 @@ package bolt
 
 import (
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/bolt/apikeyrepository"
 	"github.com/portainer/portainer/api/bolt/customtemplate"
 	"github.com/portainer/portainer/api/bolt/dockerhub"
 	"github.com/portainer/portainer/api/bolt/edgegroup"
@@ -169,6 +170,12 @@ func (store *Store) initServices() error {
 	}
 	store.UserService = userService
 
+	apiKeyService, err := apikeyrepository.NewService(store.connection)
+	if err != nil {
+		return err
+	}
+	store.APIKeyRepositoryService = apiKeyService
+
 	versionService, err := version.NewService(store.connection)
 	if err != nil {
 		return err
@@ -247,6 +254,11 @@ func (store *Store) ResourceControl() portainer.ResourceControlService {
 // Role gives access to the Role data management layer
 func (store *Store) Role() portainer.RoleService {
 	return store.RoleService
+}
+
+// APIKeyRepository gives access to the api-key data management layer
+func (store *Store) APIKeyRepository() portainer.APIKeyRepository {
+	return store.APIKeyRepositoryService
 }
 
 // S3Backup gives access to S3 backup settings and status

@@ -19,6 +19,7 @@ type logsListResponse struct {
 // @description List logs by provided query
 // @description **Access policy**: admin
 // @tags useractivity
+// @security ApiKeyAuth
 // @security jwt
 // @produce json
 // @param offset query int false "Pagination offset"

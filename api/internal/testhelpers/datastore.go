@@ -8,29 +8,30 @@ import (
 )
 
 type datastore struct {
-	customTemplate     portainer.CustomTemplateService
-	edgeGroup          portainer.EdgeGroupService
-	edgeJob            portainer.EdgeJobService
-	edgeStack          portainer.EdgeStackService
-	endpoint           portainer.EndpointService
-	endpointGroup      portainer.EndpointGroupService
-	endpointRelation   portainer.EndpointRelationService
-	helmUserRepository portainer.HelmUserRepositoryService
-	license            portainer.LicenseRepository
-	registry           portainer.RegistryService
-	resourceControl    portainer.ResourceControlService
-	role               portainer.RoleService
-	sslSettings        portainer.SSLSettingsService
-	settings           portainer.SettingsService
-	s3backup           portainer.S3BackupService
-	stack              portainer.StackService
-	tag                portainer.TagService
-	teamMembership     portainer.TeamMembershipService
-	team               portainer.TeamService
-	tunnelServer       portainer.TunnelServerService
-	user               portainer.UserService
-	version            portainer.VersionService
-	webhook            portainer.WebhookService
+	customTemplate          portainer.CustomTemplateService
+	edgeGroup               portainer.EdgeGroupService
+	edgeJob                 portainer.EdgeJobService
+	edgeStack               portainer.EdgeStackService
+	endpoint                portainer.EndpointService
+	endpointGroup           portainer.EndpointGroupService
+	endpointRelation        portainer.EndpointRelationService
+	helmUserRepository      portainer.HelmUserRepositoryService
+	license                 portainer.LicenseRepository
+	registry                portainer.RegistryService
+	resourceControl         portainer.ResourceControlService
+	apiKeyRepositoryService portainer.APIKeyRepository
+	role                    portainer.RoleService
+	sslSettings             portainer.SSLSettingsService
+	settings                portainer.SettingsService
+	s3backup                portainer.S3BackupService
+	stack                   portainer.StackService
+	tag                     portainer.TagService
+	teamMembership          portainer.TeamMembershipService
+	team                    portainer.TeamService
+	tunnelServer            portainer.TunnelServerService
+	user                    portainer.UserService
+	version                 portainer.VersionService
+	webhook                 portainer.WebhookService
 }
 
 func (d *datastore) BackupTo(io.Writer) error                            { return nil }
@@ -55,17 +56,20 @@ func (d *datastore) License() portainer.LicenseRepository              { return 
 func (d *datastore) Registry() portainer.RegistryService               { return d.registry }
 func (d *datastore) ResourceControl() portainer.ResourceControlService { return d.resourceControl }
 func (d *datastore) Role() portainer.RoleService                       { return d.role }
-func (d *datastore) S3Backup() portainer.S3BackupService               { return d.s3backup }
-func (d *datastore) Settings() portainer.SettingsService               { return d.settings }
-func (d *datastore) SSLSettings() portainer.SSLSettingsService         { return d.sslSettings }
-func (d *datastore) Stack() portainer.StackService                     { return d.stack }
-func (d *datastore) Tag() portainer.TagService                         { return d.tag }
-func (d *datastore) TeamMembership() portainer.TeamMembershipService   { return d.teamMembership }
-func (d *datastore) Team() portainer.TeamService                       { return d.team }
-func (d *datastore) TunnelServer() portainer.TunnelServerService       { return d.tunnelServer }
-func (d *datastore) User() portainer.UserService                       { return d.user }
-func (d *datastore) Version() portainer.VersionService                 { return d.version }
-func (d *datastore) Webhook() portainer.WebhookService                 { return d.webhook }
+func (d *datastore) APIKeyRepository() portainer.APIKeyRepository {
+	return d.apiKeyRepositoryService
+}
+func (d *datastore) S3Backup() portainer.S3BackupService             { return d.s3backup }
+func (d *datastore) Settings() portainer.SettingsService             { return d.settings }
+func (d *datastore) SSLSettings() portainer.SSLSettingsService       { return d.sslSettings }
+func (d *datastore) Stack() portainer.StackService                   { return d.stack }
+func (d *datastore) Tag() portainer.TagService                       { return d.tag }
+func (d *datastore) TeamMembership() portainer.TeamMembershipService { return d.teamMembership }
+func (d *datastore) Team() portainer.TeamService                     { return d.team }
+func (d *datastore) TunnelServer() portainer.TunnelServerService     { return d.tunnelServer }
+func (d *datastore) User() portainer.UserService                     { return d.user }
+func (d *datastore) Version() portainer.VersionService               { return d.version }
+func (d *datastore) Webhook() portainer.WebhookService               { return d.webhook }
 
 type datastoreOption = func(d *datastore)
 

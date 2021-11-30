@@ -19,6 +19,7 @@ import (
 // @summary Create an EdgeJob
 // @description **Access policy**: administrator
 // @tags edge_jobs
+// @security ApiKeyAuth
 // @security jwt
 // @produce json
 // @param method query string true "Creation Method" Enums(file, string)

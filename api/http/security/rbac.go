@@ -657,11 +657,15 @@ func portainerUserOperationAuthorization(url, method string) portainer.Authoriza
 			}
 		case "memberships":
 			return portainer.OperationPortainerUserMemberships
+		case "tokens":
+			return portainer.OperationPortainerUserListToken
 		}
 
 	case http.MethodPost:
 		if resource == "" && action == "" {
 			return portainer.OperationPortainerUserCreate
+		} else if action == "tokens" {
+			return portainer.OperationPortainerUserCreateToken
 		}
 	case http.MethodPut:
 		if resource != "" && action == "" {
@@ -672,6 +676,8 @@ func portainerUserOperationAuthorization(url, method string) portainer.Authoriza
 	case http.MethodDelete:
 		if resource != "" && action == "" {
 			return portainer.OperationPortainerUserDelete
+		} else if strings.HasPrefix(action, "tokens") {
+			return portainer.OperationPortainerUserRevokeToken
 		}
 	}
 

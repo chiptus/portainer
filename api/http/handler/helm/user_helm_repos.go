@@ -33,6 +33,7 @@ func (p *addHelmRepoUrlPayload) Validate(_ *http.Request) error {
 // @description Create a user helm repository.
 // @description **Access policy**: authenticated
 // @tags helm
+// @security ApiKeyAuth
 // @security jwt
 // @accept json
 // @produce json
@@ -98,6 +99,7 @@ func (handler *Handler) userCreateHelmRepo(w http.ResponseWriter, r *http.Reques
 // @description Inspect a user helm repositories.
 // @description **Access policy**: authenticated
 // @tags helm
+// @security ApiKeyAuth
 // @security jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"

@@ -34,6 +34,7 @@ func (payload *deletePayload) Validate(r *http.Request) error {
 // @description
 // @description **Access policy**: administrator
 // @tags license
+// @security ApiKeyAuth
 // @security jwt
 // @accept json
 // @produce json

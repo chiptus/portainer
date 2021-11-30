@@ -14,6 +14,7 @@ import (
 // @description Download user activity logs as CSV by provided query
 // @description **Access policy**: admin
 // @tags useractivity
+// @security ApiKeyAuth
 // @security jwt
 // @produce text/csv
 // @param before query int false "Results before timestamp (unix)"
