@@ -45,6 +45,7 @@ export function ContainerViewModel(data) {
   }
   this.Mounts = data.Mounts;
 
+  this.IsPortainer = data.IsPortainer;
   this.Ports = [];
   if (data.Ports) {
     for (var i = 0; i < data.Ports.length; ++i) {
@@ -139,4 +140,5 @@ export function ContainerDetailsViewModel(data) {
   if (data.Portainer && data.Portainer.ResourceControl) {
     this.ResourceControl = new ResourceControlViewModel(data.Portainer.ResourceControl);
   }
+  this.IsPortainer = data.IsPortainer;
 }
