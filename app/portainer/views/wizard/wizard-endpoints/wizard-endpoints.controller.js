@@ -63,8 +63,6 @@ export default class WizardEndpointsController {
       // NOTICE: This is the temporary fix for excluded docker api endpoint been counted as local endpoint
       this.state.counter.localEndpoint = filter.length - this.state.counter.dockerApi;
 
-      console.log(this.state.counter.localEndpoint);
-
       this.$analytics.eventTrack('endpoint-wizard-environment-add-finish', {
         category: 'portainer',
         metadata: {

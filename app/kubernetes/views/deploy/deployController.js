@@ -240,7 +240,7 @@ class KubernetesDeployController {
         if (this.formValues.RepositoryAutomaticUpdates) {
           payload.AutoUpdate = {
             ForceUpdate: this.formValues.RepositoryAutomaticUpdatesForce,
-          }; 
+          };
           if (this.formValues.RepositoryMechanism === RepositoryMechanismTypes.INTERVAL) {
             payload.AutoUpdate.Interval = this.formValues.RepositoryFetchInterval;
           } else if (this.formValues.RepositoryMechanism === RepositoryMechanismTypes.WEBHOOK) {

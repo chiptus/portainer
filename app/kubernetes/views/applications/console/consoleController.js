@@ -1,5 +1,6 @@
 import angular from 'angular';
 import { Terminal } from 'xterm';
+import { baseHref } from '@/portainer/helpers/pathHelper';
 
 class KubernetesApplicationConsoleController {
   /* @ngInject */
@@ -60,7 +61,8 @@ class KubernetesApplicationConsoleController {
     };
 
     let url =
-      window.location.href.split('#')[0] +
+      window.location.origin +
+      baseHref() +
       'api/websocket/pod?' +
       Object.keys(params)
         .map((k) => k + '=' + params[k])

@@ -29,15 +29,15 @@ export function ContainerGroupViewModel(data) {
   this.Location = data.location;
   this.IPAddress = data.properties.ipAddress ? data.properties.ipAddress.ip : '';
   this.Ports = addressPorts.length
-  ? addressPorts.map((binding, index) => {
-      const port = containerPorts[index] ? containerPorts[index].port : undefined;
-      return {
-        container: port,
-        host: binding.port,
-        protocol: binding.protocol,
-      };
-    })
-  : [];
+    ? addressPorts.map((binding, index) => {
+        const port = containerPorts[index] ? containerPorts[index].port : undefined;
+        return {
+          container: port,
+          host: binding.port,
+          protocol: binding.protocol,
+        };
+      })
+    : [];
   this.Image = container.properties.image || '';
   this.OSType = data.properties.osType;
   this.AllocatePublicIP = data.properties.ipAddress && data.properties.ipAddress.type === 'Public';

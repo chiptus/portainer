@@ -121,6 +121,7 @@ type (
 		SSLCert                   *string
 		SSLKey                    *string
 		SnapshotInterval          *string
+		BaseURL                   *string
 	}
 
 	// CustomTemplate represents a custom template
