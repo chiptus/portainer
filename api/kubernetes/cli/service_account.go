@@ -16,7 +16,7 @@ func (kcl *KubeClient) GetServiceAccount(tokenData *portainer.TokenData) (*v1.Se
 	if tokenData.Role == portainer.AdministratorRole {
 		portainerServiceAccountName = portainerClusterAdminServiceAccountName
 	} else {
-		portainerServiceAccountName = userServiceAccountName(int(tokenData.ID), kcl.instanceID)
+		portainerServiceAccountName = UserServiceAccountName(int(tokenData.ID), kcl.instanceID)
 	}
 
 	// verify name exists as service account resource within portainer namespace
@@ -30,7 +30,7 @@ func (kcl *KubeClient) GetServiceAccount(tokenData *portainer.TokenData) (*v1.Se
 
 // GetServiceAccountBearerToken returns the ServiceAccountToken associated to the specified user.
 func (kcl *KubeClient) GetServiceAccountBearerToken(userID int) (string, error) {
-	serviceAccountName := userServiceAccountName(userID, kcl.instanceID)
+	serviceAccountName := UserServiceAccountName(userID, kcl.instanceID)
 
 	return kcl.getServiceAccountToken(serviceAccountName)
 }
@@ -44,7 +44,7 @@ func (kcl *KubeClient) SetupUserServiceAccount(
 	namespaces map[string]portainer.K8sNamespaceInfo,
 	namespaceRoles map[string]portainer.Role,
 ) error {
-	serviceAccountName := userServiceAccountName(int(user.ID), kcl.instanceID)
+	serviceAccountName := UserServiceAccountName(int(user.ID), kcl.instanceID)
 
 	err := kcl.upsertPortainerK8sClusterRoles()
 	if err != nil {
@@ -76,7 +76,7 @@ func (kcl *KubeClient) RemoveUserNamespaceBindings(
 	userID int,
 	namespace string,
 ) error {
-	serviceAccountName := userServiceAccountName(userID, kcl.instanceID)
+	serviceAccountName := UserServiceAccountName(userID, kcl.instanceID)
 
 	err := kcl.removeRoleBinding(serviceAccountName, namespace)
 
@@ -88,7 +88,7 @@ func (kcl *KubeClient) RemoveUserNamespaceBindings(
 func (kcl *KubeClient) RemoveUserServiceAccount(
 	userID int,
 ) error {
-	serviceAccountName := userServiceAccountName(userID, kcl.instanceID)
+	serviceAccountName := UserServiceAccountName(userID, kcl.instanceID)
 
 	err := kcl.removeRoleBindings(serviceAccountName)
 	if err != nil {
