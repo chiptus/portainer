@@ -27,6 +27,8 @@ type composeStackFromFileContentPayload struct {
 	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx" validate:"required"`
 	// A list of environment(endpoint) variables used during stack deployment
 	Env []portainer.Pair
+	// Whether the stack is from a app template
+	FromAppTemplate bool `example:"false"`
 }
 
 func (payload *composeStackFromFileContentPayload) Validate(r *http.Request) error {
@@ -102,14 +104,15 @@ func (handler *Handler) createComposeStackFromFileContent(w http.ResponseWriter,
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
 	stack := &portainer.Stack{
-		ID:           portainer.StackID(stackID),
-		Name:         payload.Name,
-		Type:         portainer.DockerComposeStack,
-		EndpointID:   endpoint.ID,
-		EntryPoint:   filesystem.ComposeFileDefaultName,
-		Env:          payload.Env,
-		Status:       portainer.StackStatusActive,
-		CreationDate: time.Now().Unix(),
+		ID:              portainer.StackID(stackID),
+		Name:            payload.Name,
+		Type:            portainer.DockerComposeStack,
+		EndpointID:      endpoint.ID,
+		EntryPoint:      filesystem.ComposeFileDefaultName,
+		Env:             payload.Env,
+		Status:          portainer.StackStatusActive,
+		CreationDate:    time.Now().Unix(),
+		FromAppTemplate: payload.FromAppTemplate,
 	}
 
 	stackFolder := strconv.Itoa(int(stack.ID))
@@ -166,6 +169,8 @@ type composeStackFromGitRepositoryPayload struct {
 	AutoUpdate *portainer.StackAutoUpdate
 	// A list of environment(endpoint) variables used during stack deployment
 	Env []portainer.Pair
+	// Whether the stack is from a app template
+	FromAppTemplate bool `example:"false"`
 }
 
 func (payload *composeStackFromGitRepositoryPayload) Validate(r *http.Request) error {
@@ -241,6 +246,7 @@ func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWrite
 		AdditionalFiles: payload.AdditionalFiles,
 		AutoUpdate:      payload.AutoUpdate,
 		Env:             payload.Env,
+		FromAppTemplate: payload.FromAppTemplate,
 		GitConfig: &gittypes.RepoConfig{
 			URL:            payload.RepositoryURL,
 			ReferenceName:  payload.RepositoryReferenceName,

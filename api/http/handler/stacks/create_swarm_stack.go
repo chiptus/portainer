@@ -27,6 +27,8 @@ type swarmStackFromFileContentPayload struct {
 	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx" validate:"required"`
 	// A list of environment(endpoint) variables used during stack deployment
 	Env []portainer.Pair
+	// Whether the stack is from a app template
+	FromAppTemplate bool `example:"false"`
 }
 
 func (payload *swarmStackFromFileContentPayload) Validate(r *http.Request) error {
@@ -62,15 +64,16 @@ func (handler *Handler) createSwarmStackFromFileContent(w http.ResponseWriter, r
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
 	stack := &portainer.Stack{
-		ID:           portainer.StackID(stackID),
-		Name:         payload.Name,
-		Type:         portainer.DockerSwarmStack,
-		SwarmID:      payload.SwarmID,
-		EndpointID:   endpoint.ID,
-		EntryPoint:   filesystem.ComposeFileDefaultName,
-		Env:          payload.Env,
-		Status:       portainer.StackStatusActive,
-		CreationDate: time.Now().Unix(),
+		ID:              portainer.StackID(stackID),
+		Name:            payload.Name,
+		Type:            portainer.DockerSwarmStack,
+		SwarmID:         payload.SwarmID,
+		EndpointID:      endpoint.ID,
+		EntryPoint:      filesystem.ComposeFileDefaultName,
+		Env:             payload.Env,
+		Status:          portainer.StackStatusActive,
+		CreationDate:    time.Now().Unix(),
+		FromAppTemplate: payload.FromAppTemplate,
 	}
 
 	stackFolder := strconv.Itoa(int(stack.ID))
@@ -130,6 +133,8 @@ type swarmStackFromGitRepositoryPayload struct {
 	AdditionalFiles []string `example:"[nz.compose.yml, uat.compose.yml]"`
 	// Optional auto update configuration
 	AutoUpdate *portainer.StackAutoUpdate
+	// Whether the stack is from a app template
+	FromAppTemplate bool `example:"false"`
 }
 
 func (payload *swarmStackFromGitRepositoryPayload) Validate(r *http.Request) error {
@@ -197,9 +202,10 @@ func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter,
 			ReferenceName:  payload.RepositoryReferenceName,
 			ConfigFilePath: payload.ComposeFile,
 		},
-		Env:          payload.Env,
-		Status:       portainer.StackStatusActive,
-		CreationDate: time.Now().Unix(),
+		FromAppTemplate: payload.FromAppTemplate,
+		Env:             payload.Env,
+		Status:          portainer.StackStatusActive,
+		CreationDate:    time.Now().Unix(),
 	}
 
 	if payload.RepositoryAuthentication {
