@@ -2,84 +2,70 @@ import toastr from 'toastr';
 import { Terminal } from 'xterm';
 import * as fit from 'xterm/lib/addons/fit/fit';
 
-angular.module('portainer').config([
-  '$urlRouterProvider',
-  '$httpProvider',
-  'localStorageServiceProvider',
-  'jwtOptionsProvider',
-  '$uibTooltipProvider',
-  '$compileProvider',
-  'cfpLoadingBarProvider',
-  function ($urlRouterProvider, $httpProvider, localStorageServiceProvider, jwtOptionsProvider, $uibTooltipProvider, $compileProvider, cfpLoadingBarProvider) {
-    'use strict';
+/* @ngInject */
+export function configApp($urlRouterProvider, $httpProvider, localStorageServiceProvider, jwtOptionsProvider, $uibTooltipProvider, $compileProvider, cfpLoadingBarProvider) {
+  if (process.env.NODE_ENV === 'testing') {
+    $compileProvider.debugInfoEnabled(false);
+  }
 
-    if (process.env.NODE_ENV === 'testing') {
-      $compileProvider.debugInfoEnabled(false);
-    }
+  localStorageServiceProvider.setPrefix('portainer');
 
-    localStorageServiceProvider.setPrefix('portainer');
+  jwtOptionsProvider.config({
+    tokenGetter: /* @ngInject */ function tokenGetter(LocalStorage) {
+      return LocalStorage.getJWT();
+    },
+  });
+  $httpProvider.interceptors.push('jwtInterceptor');
+  $httpProvider.interceptors.push('EndpointStatusInterceptor');
 
-    jwtOptionsProvider.config({
-      tokenGetter: [
-        'LocalStorage',
-        function (LocalStorage) {
-          return LocalStorage.getJWT();
-        },
-      ],
-    });
+  if (!$httpProvider.defaults.headers.get) {
+    $httpProvider.defaults.headers.get = {};
+  }
+  //disable IE ajax request caching
+  $httpProvider.defaults.headers.get['If-Modified-Since'] = 'Mon, 26 Jul 1997 05:00:00 GMT';
+  // disable cache AB#160
+  $httpProvider.defaults.headers.get['Cache-Control'] = 'no-cache';
+  $httpProvider.defaults.headers.get['Pragma'] = 'no-cache';
 
-    $httpProvider.interceptors.push('jwtInterceptor');
-    $httpProvider.interceptors.push('EndpointStatusInterceptor');
-    $httpProvider.defaults.headers.post['Content-Type'] = 'application/json';
-    $httpProvider.defaults.headers.put['Content-Type'] = 'application/json';
-    $httpProvider.defaults.headers.patch['Content-Type'] = 'application/json';
+  $httpProvider.defaults.headers.post['Content-Type'] = 'application/json';
+  $httpProvider.defaults.headers.put['Content-Type'] = 'application/json';
+  $httpProvider.defaults.headers.patch['Content-Type'] = 'application/json';
 
-    if (!$httpProvider.defaults.headers.get) {
-      $httpProvider.defaults.headers.get = {};
-    }
-    //disable IE ajax request caching
-    $httpProvider.defaults.headers.get['If-Modified-Since'] = 'Mon, 26 Jul 1997 05:00:00 GMT';
-    // disable cache AB#160
-    $httpProvider.defaults.headers.get['Cache-Control'] = 'no-cache';
-    $httpProvider.defaults.headers.get['Pragma'] = 'no-cache';
-
-    $httpProvider.interceptors.push([
-      'HttpRequestHelper',
-      function (HttpRequestHelper) {
-        return {
-          request: function (config) {
-            if (config.url.indexOf('/docker/') > -1) {
-              config.headers['X-PortainerAgent-Target'] = HttpRequestHelper.portainerAgentTargetHeader();
-              if (HttpRequestHelper.portainerAgentManagerOperation()) {
-                config.headers['X-PortainerAgent-ManagerOperation'] = '1';
-              }
+  $httpProvider.interceptors.push(
+    /* @ngInject */ function (HttpRequestHelper) {
+      return {
+        request(config) {
+          if (config.url.indexOf('/docker/') > -1) {
+            config.headers['X-PortainerAgent-Target'] = HttpRequestHelper.portainerAgentTargetHeader();
+            if (HttpRequestHelper.portainerAgentManagerOperation()) {
+              config.headers['X-PortainerAgent-ManagerOperation'] = '1';
             }
-            return config;
-          },
-        };
-      },
-    ]);
+          }
+          return config;
+        },
+      };
+    }
+  );
 
-    toastr.options = {
-      timeOut: 3000,
-      closeButton: true,
-      progressBar: true,
-      tapToDismiss: false,
-    };
+  toastr.options = {
+    timeOut: 3000,
+    closeButton: true,
+    progressBar: true,
+    tapToDismiss: false,
+  };
 
-    Terminal.applyAddon(fit);
+  Terminal.applyAddon(fit);
 
-    $uibTooltipProvider.setTriggers({
-      mouseenter: 'mouseleave',
-      click: 'click',
-      focus: 'blur',
-      outsideClick: 'outsideClick',
-    });
+  $uibTooltipProvider.setTriggers({
+    mouseenter: 'mouseleave',
+    click: 'click',
+    focus: 'blur',
+    outsideClick: 'outsideClick',
+  });
 
-    cfpLoadingBarProvider.includeSpinner = false;
-    cfpLoadingBarProvider.parentSelector = '#loadingbar-placeholder';
-    cfpLoadingBarProvider.latencyThreshold = 600;
+  cfpLoadingBarProvider.includeSpinner = false;
+  cfpLoadingBarProvider.parentSelector = '#loadingbar-placeholder';
+  cfpLoadingBarProvider.latencyThreshold = 600;
 
-    $urlRouterProvider.otherwise('/auth');
-  },
-]);
+  $urlRouterProvider.otherwise('/auth');
+}
