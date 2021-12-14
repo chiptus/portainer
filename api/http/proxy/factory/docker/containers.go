@@ -226,7 +226,7 @@ func (transport *Transport) decorateContainerCreationOperation(request *http.Req
 		request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 	}
 
-	response, err := transport.executeDockerRequest(request, true)
+	response, err := transport.executeDockerRequest(request)
 	if err != nil {
 		return response, err
 	}

@@ -5,22 +5,21 @@ import (
 	"net/http"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer/api/http/useractivity"
-	"github.com/sirupsen/logrus"
+	ru "github.com/portainer/portainer/api/http/utils"
 )
 
 type Transport struct {
-	httpTransport     *http.Transport
-	userActivityStore portainer.UserActivityStore
+	httpTransport       *http.Transport
+	userActivityService portainer.UserActivityService
 }
 
 // NewTransport returns a pointer to a new instance of Transport that implements the HTTP Transport
 // interface for proxying requests to the Gitlab API.
-func NewTransport(userActivityStore portainer.UserActivityStore) *Transport {
+func NewTransport(userActivityService portainer.UserActivityService) *Transport {
 	return &Transport{
-		userActivityStore: userActivityStore,
-		httpTransport:     &http.Transport{},
+		userActivityService: userActivityService,
+		httpTransport:       &http.Transport{},
 	}
 }
 
@@ -38,17 +37,13 @@ func (transport *Transport) RoundTrip(request *http.Request) (*http.Response, er
 
 	r.Header.Set("Private-Token", token)
 
-	body, err := utils.CopyBody(request)
-	if err != nil {
-		logrus.WithError(err).Debug("[gitlab transport] failed parsing body")
+	// need a copy of the request body to preserve the original
+	body := ru.CopyRequestBody(request)
+
+	response, err := transport.httpTransport.RoundTrip(request)
+	if err == nil {
+		useractivity.LogProxiedActivity(transport.userActivityService, nil, response.StatusCode, body, request)
 	}
 
-	resp, err := transport.httpTransport.RoundTrip(r)
-
-	// log if request is success
-	if err == nil && (200 <= resp.StatusCode && resp.StatusCode < 300) {
-		useractivity.LogProxyActivity(transport.userActivityStore, "Portainer", r, body)
-	}
-
-	return resp, err
+	return response, err
 }

@@ -14,8 +14,6 @@ import (
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
-	consts "github.com/portainer/portainer/api/useractivity"
 )
 
 type swarmStackFromFileContentPayload struct {
@@ -102,8 +100,6 @@ func (handler *Handler) createSwarmStackFromFileContent(w http.ResponseWriter, r
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the stack inside the database", err}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
 
 	doCleanUp = false
 	return handler.decorateStackResponse(w, stack, userID)
@@ -243,7 +239,7 @@ func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter,
 	}
 
 	if payload.AutoUpdate != nil && payload.AutoUpdate.Interval != "" {
-		jobID, e := startAutoupdate(stack.ID, stack.AutoUpdate.Interval, handler.Scheduler, handler.StackDeployer, handler.DataStore, handler.GitService, handler.UserActivityStore)
+		jobID, e := startAutoupdate(stack.ID, stack.AutoUpdate.Interval, handler.Scheduler, handler.StackDeployer, handler.DataStore, handler.GitService, handler.userActivityService)
 		if e != nil {
 			return e
 		}
@@ -257,12 +253,6 @@ func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter,
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist the stack inside the database", Err: err}
 	}
-
-	if payload.RepositoryPassword != "" {
-		payload.RepositoryPassword = consts.RedactedValue
-	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
 
 	doCleanUp = false
 	return handler.decorateStackResponse(w, stack, userID)
@@ -360,8 +350,6 @@ func (handler *Handler) createSwarmStackFromFileUpload(w http.ResponseWriter, r 
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the stack inside the database", err}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
 
 	doCleanUp = false
 	return handler.decorateStackResponse(w, stack, userID)

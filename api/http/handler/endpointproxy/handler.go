@@ -3,7 +3,7 @@ package endpointproxy
 import (
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
-	"github.com/portainer/portainer/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/proxy"
 	"github.com/portainer/portainer/api/http/security"
 )
@@ -23,17 +23,14 @@ func NewHandler(bouncer *security.RequestBouncer) *Handler {
 		Router:         mux.NewRouter(),
 		requestBouncer: bouncer,
 	}
-	h.PathPrefix("/{id}/azure").Handler(
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.proxyRequestsToAzureAPI)))
-	h.PathPrefix("/{id}/docker").Handler(
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.proxyRequestsToDockerAPI)))
-	h.PathPrefix("/{id}/kubernetes").Handler(
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.proxyRequestsToKubernetesAPI)))
-	h.PathPrefix("/{id}/agent/docker").Handler(
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.proxyRequestsToDockerAPI)))
-	h.PathPrefix("/{id}/agent/kubernetes").Handler(
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.proxyRequestsToKubernetesAPI)))
-	h.PathPrefix("/{id}/storidge").Handler(
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.proxyRequestsToStoridgeAPI)))
+
+	h.Use(bouncer.AuthenticatedAccess)
+
+	h.PathPrefix("/{id}/azure").Handler(httperror.LoggerHandler(h.proxyRequestsToAzureAPI))
+	h.PathPrefix("/{id}/docker").Handler(httperror.LoggerHandler(h.proxyRequestsToDockerAPI))
+	h.PathPrefix("/{id}/kubernetes").Handler(httperror.LoggerHandler(h.proxyRequestsToKubernetesAPI))
+	h.PathPrefix("/{id}/agent/docker").Handler(httperror.LoggerHandler(h.proxyRequestsToDockerAPI))
+	h.PathPrefix("/{id}/agent/kubernetes").Handler(httperror.LoggerHandler(h.proxyRequestsToKubernetesAPI))
+	h.PathPrefix("/{id}/storidge").Handler(httperror.LoggerHandler(h.proxyRequestsToStoridgeAPI))
 	return h
 }

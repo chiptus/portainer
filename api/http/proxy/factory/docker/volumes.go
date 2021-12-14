@@ -145,7 +145,7 @@ func (transport *Transport) decorateVolumeResourceCreationOperation(request *htt
 		}
 	}
 
-	response, err := transport.executeDockerRequest(request, true)
+	response, err := transport.executeDockerRequest(request)
 	if err != nil {
 		return response, err
 	}

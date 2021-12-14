@@ -9,9 +9,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/authorization"
-	consts "github.com/portainer/portainer/api/useractivity"
 )
 
 type adminInitPayload struct {
@@ -75,9 +73,6 @@ func (handler *Handler) adminInit(w http.ResponseWriter, r *http.Request) *httpe
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist user inside the database", err}
 	}
-
-	payload.Password = consts.RedactedValue
-	useractivity.LogHttpActivity(handler.UserActivityStore, "", r, payload)
 
 	return response.JSON(w, user)
 }

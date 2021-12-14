@@ -12,7 +12,6 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 // @id UserDelete
@@ -62,7 +61,6 @@ func (handler *Handler) userDelete(w http.ResponseWriter, r *http.Request) *http
 			return responseErr
 		}
 
-		useractivity.LogHttpActivity(handler.UserActivityStore, "", r, nil)
 		return nil
 	}
 
@@ -73,7 +71,6 @@ func (handler *Handler) userDelete(w http.ResponseWriter, r *http.Request) *http
 		return responseErr
 	}
 
-	useractivity.LogHttpActivity(handler.UserActivityStore, "", r, nil)
 	return nil
 }
 

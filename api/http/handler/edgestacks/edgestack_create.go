@@ -14,9 +14,7 @@ import (
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
-	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/edge"
-	consts "github.com/portainer/portainer/api/useractivity"
 )
 
 // @id EdgeStackCreate
@@ -165,8 +163,6 @@ func (handler *Handler) createSwarmStackFromFileContent(r *http.Request) (*porta
 		return nil, err
 	}
 
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, payload)
-
 	return stack, nil
 }
 
@@ -282,11 +278,6 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request) (*por
 		return nil, err
 	}
 
-	if payload.RepositoryPassword != "" {
-		payload.RepositoryPassword = consts.RedactedValue
-	}
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, payload)
-
 	return stack, nil
 }
 
@@ -393,8 +384,6 @@ func (handler *Handler) createSwarmStackFromFileUpload(r *http.Request) (*portai
 	if err != nil {
 		return nil, err
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, payload)
 
 	return stack, nil
 }

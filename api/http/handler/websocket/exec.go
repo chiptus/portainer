@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/useractivity"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/websocket"
@@ -55,7 +54,7 @@ func (handler *Handler) websocketExec(w http.ResponseWriter, r *http.Request) *h
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: endpointId", err}
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err == errors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find the environment associated to the stack inside the database", err}
 	} else if err != nil {
@@ -77,9 +76,6 @@ func (handler *Handler) websocketExec(w http.ResponseWriter, r *http.Request) *h
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "An error occured during websocket exec operation", err}
 	}
-
-	params.endpoint = nil
-	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, params)
 
 	return nil
 }

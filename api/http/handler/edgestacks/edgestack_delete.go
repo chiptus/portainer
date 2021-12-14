@@ -8,7 +8,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/edge"
 )
 
@@ -65,8 +64,6 @@ func (handler *Handler) edgeStackDelete(w http.ResponseWriter, r *http.Request) 
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist environment relation in database", err}
 		}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, nil)
 
 	return response.Empty(w)
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/edge"
 )
 
@@ -129,8 +128,6 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist Environment relation changes inside the database", err}
 		}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, "Portainer", r, payload)
 
 	return response.JSON(w, edgeGroup)
 }

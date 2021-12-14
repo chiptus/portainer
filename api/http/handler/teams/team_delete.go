@@ -9,7 +9,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 // @id TeamDelete
@@ -94,8 +93,6 @@ func (handler *Handler) teamDelete(w http.ResponseWriter, r *http.Request) *http
 	}
 
 	handler.AuthorizationService.TriggerUsersAuthUpdate()
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, nil)
 
 	return response.Empty(w)
 }

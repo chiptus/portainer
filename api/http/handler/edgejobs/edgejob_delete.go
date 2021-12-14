@@ -9,7 +9,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 // @id EdgeJobDelete
@@ -49,8 +48,6 @@ func (handler *Handler) edgeJobDelete(w http.ResponseWriter, r *http.Request) *h
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove the Edge job from the database", err}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, "Portainer", r, nil)
 
 	return response.Empty(w)
 }

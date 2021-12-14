@@ -6,18 +6,15 @@ import (
 	"net/url"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/proxy/factory/utils"
-	"github.com/portainer/portainer/api/http/useractivity"
-	"github.com/sirupsen/logrus"
 )
 
 type gitlabTransport struct {
-	config            *portainer.RegistryManagementConfiguration
-	httpTransport     *http.Transport
-	userActivityStore portainer.UserActivityStore
+	config              *portainer.RegistryManagementConfiguration
+	httpTransport       http.RoundTripper
+	userActivityService portainer.UserActivityService
 }
 
-func newGitlabRegistryProxy(uri string, config *portainer.RegistryManagementConfiguration, userActivityStore portainer.UserActivityStore) (http.Handler, error) {
+func newGitlabRegistryProxy(uri string, config *portainer.RegistryManagementConfiguration, httpTransport http.RoundTripper) (http.Handler, error) {
 	url, err := url.Parse(uri)
 	if err != nil {
 		return nil, err
@@ -25,9 +22,8 @@ func newGitlabRegistryProxy(uri string, config *portainer.RegistryManagementConf
 
 	proxy := newSingleHostReverseProxyWithHostHeader(url)
 	proxy.Transport = &gitlabTransport{
-		config:            config,
-		httpTransport:     &http.Transport{},
-		userActivityStore: userActivityStore,
+		config:        config,
+		httpTransport: httpTransport,
 	}
 
 	return proxy, nil
@@ -51,17 +47,7 @@ func (transport *gitlabTransport) RoundTrip(request *http.Request) (*http.Respon
 
 	r.Header.Set("Private-Token", token)
 
-	body, err := utils.CopyBody(request)
-	if err != nil {
-		logrus.WithError(err).Debug("[gitlabtoken] failed parsing body")
-	}
+	response, err := transport.httpTransport.RoundTrip(request)
 
-	resp, err := transport.httpTransport.RoundTrip(r)
-
-	// log if request is success
-	if err == nil && (200 <= resp.StatusCode && resp.StatusCode < 300) {
-		useractivity.LogProxyActivity(transport.userActivityStore, "Portainer", r, body)
-	}
-
-	return resp, err
+	return response, err
 }

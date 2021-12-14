@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/useractivity"
+	"github.com/portainer/portainer/api/http/middlewares"
 	"github.com/portainer/portainer/api/internal/stackutils"
 
 	"github.com/portainer/portainer/api/http/security"
@@ -65,6 +65,7 @@ func (handler *Handler) stackStop(w http.ResponseWriter, r *http.Request) *httpe
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
 	}
+	middlewares.SetEndpoint(endpoint, r)
 
 	err = handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
 	if err != nil {
@@ -104,8 +105,6 @@ func (handler *Handler) stackStop(w http.ResponseWriter, r *http.Request) *httpe
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to update stack status", err}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, nil)
 
 	if stack.GitConfig != nil && stack.GitConfig.Authentication != nil && stack.GitConfig.Authentication.Password != "" {
 		// sanitize password in the http response to minimise possible security leaks

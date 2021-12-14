@@ -7,7 +7,6 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	"github.com/portainer/portainer/api/http/middlewares"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 type namespacesToggleSystemPayload struct {
@@ -67,8 +66,6 @@ func (handler *Handler) namespacesToggleSystem(rw http.ResponseWriter, r *http.R
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to toggle system status", err}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
 
 	return response.Empty(rw)
 

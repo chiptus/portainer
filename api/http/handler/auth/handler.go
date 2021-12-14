@@ -26,7 +26,7 @@ type Handler struct {
 	ProxyManager                *proxy.Manager
 	KubernetesTokenCacheManager *kubernetes.TokenCacheManager
 	AuthorizationService        *authorization.Service
-	UserActivityStore           portainer.UserActivityStore
+	UserActivityService         portainer.UserActivityService
 }
 
 // NewHandler creates a handler to manage authentication operations.
@@ -68,7 +68,7 @@ func (handler *Handler) authActivityMiddleware(prev authMiddlewareHandler, defau
 
 		origin := getOrigin(r.RemoteAddr)
 
-		_, err := handler.UserActivityStore.LogAuthActivity(resp.Username, origin, method, activityType)
+		err := handler.UserActivityService.LogAuthActivity(resp.Username, origin, method, activityType)
 		if err != nil {
 			log.Printf("[ERROR] [msg: Failed logging auth activity] [error: %s]", err)
 		}

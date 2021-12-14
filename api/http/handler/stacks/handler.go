@@ -15,6 +15,7 @@ import (
 	dberrors "github.com/portainer/portainer/api/bolt/errors"
 	"github.com/portainer/portainer/api/docker"
 	"github.com/portainer/portainer/api/http/security"
+	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/kubernetes/cli"
 	"github.com/portainer/portainer/api/scheduler"
@@ -26,15 +27,15 @@ const defaultGitReferenceName = "refs/heads/master"
 var (
 	errStackAlreadyExists     = errors.New("A stack already exists with this name")
 	errWebhookIDAlreadyExists = errors.New("A webhook ID already exists")
-	errStackNotExternal       = errors.New("Not an external stack")
 )
 
 // Handler is the HTTP handler used to handle stack operations.
 type Handler struct {
-	stackCreationMutex *sync.Mutex
-	stackDeletionMutex *sync.Mutex
-	requestBouncer     *security.RequestBouncer
 	*mux.Router
+	stackCreationMutex      *sync.Mutex
+	stackDeletionMutex      *sync.Mutex
+	requestBouncer          *security.RequestBouncer
+	userActivityService     portainer.UserActivityService
 	DataStore               portainer.DataStore
 	DockerClientFactory     *docker.ClientFactory
 	FileService             portainer.FileService
@@ -44,51 +45,51 @@ type Handler struct {
 	KubernetesDeployer      portainer.KubernetesDeployer
 	KubernetesClientFactory *cli.ClientFactory
 	AuthorizationService    *authorization.Service
-	UserActivityStore       portainer.UserActivityStore
 	Scheduler               *scheduler.Scheduler
 	StackDeployer           stacks.StackDeployer
 }
 
-func stackExistsError(name string) (*httperror.HandlerError){
+func stackExistsError(name string) *httperror.HandlerError {
 	msg := fmt.Sprintf("A stack with the normalized name '%s' already exists", name)
 	err := errors.New(msg)
 	return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: msg, Err: err}
 }
 
 // NewHandler creates a handler to manage stack operations.
-func NewHandler(bouncer *security.RequestBouncer) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore portainer.DataStore, userActivityService portainer.UserActivityService) *Handler {
 	h := &Handler{
-		Router:             mux.NewRouter(),
-		stackCreationMutex: &sync.Mutex{},
-		stackDeletionMutex: &sync.Mutex{},
-		requestBouncer:     bouncer,
+		Router:              mux.NewRouter(),
+		DataStore:           dataStore,
+		stackCreationMutex:  &sync.Mutex{},
+		stackDeletionMutex:  &sync.Mutex{},
+		requestBouncer:      bouncer,
+		userActivityService: userActivityService,
 	}
-	h.Handle("/stacks",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackCreate))).Methods(http.MethodPost)
-	h.Handle("/stacks",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackList))).Methods(http.MethodGet)
-	h.Handle("/stacks/{id}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackInspect))).Methods(http.MethodGet)
-	h.Handle("/stacks/{id}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackDelete))).Methods(http.MethodDelete)
-	h.Handle("/stacks/{id}/associate",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.stackAssociate))).Methods(http.MethodPut)
-	h.Handle("/stacks/{id}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackUpdate))).Methods(http.MethodPut)
-	h.Handle("/stacks/{id}/git",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackUpdateGit))).Methods(http.MethodPost)
-	h.Handle("/stacks/{id}/git/redeploy",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackGitRedeploy))).Methods(http.MethodPut)
-	h.Handle("/stacks/{id}/file",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackFile))).Methods(http.MethodGet)
-	h.Handle("/stacks/{id}/migrate",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackMigrate))).Methods(http.MethodPost)
-	h.Handle("/stacks/{id}/start",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackStart))).Methods(http.MethodPost)
-	h.Handle("/stacks/{id}/stop",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackStop))).Methods(http.MethodPost)
-	h.Handle("/stacks/webhooks/{webhookID}",
-		httperror.LoggerHandler(h.webhookInvoke)).Methods(http.MethodPost)
+
+	authenticatedRouter := h.NewRoute().Subrouter()
+	authenticatedRouter.Use(bouncer.AuthenticatedAccess, useractivity.LogUserActivity(h.userActivityService))
+
+	adminRouter := h.NewRoute().Subrouter()
+	adminRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
+
+	publicRouter := h.NewRoute().Subrouter()
+	publicRouter.Use(bouncer.PublicAccess)
+
+	authenticatedRouter.Handle("/stacks", httperror.LoggerHandler(h.stackCreate)).Methods(http.MethodPost)
+	authenticatedRouter.Handle("/stacks", httperror.LoggerHandler(h.stackList)).Methods(http.MethodGet)
+	authenticatedRouter.Handle("/stacks/{id}", httperror.LoggerHandler(h.stackInspect)).Methods(http.MethodGet)
+	authenticatedRouter.Handle("/stacks/{id}", httperror.LoggerHandler(h.stackDelete)).Methods(http.MethodDelete)
+	authenticatedRouter.Handle("/stacks/{id}", httperror.LoggerHandler(h.stackUpdate)).Methods(http.MethodPut)
+	authenticatedRouter.Handle("/stacks/{id}/git", httperror.LoggerHandler(h.stackUpdateGit)).Methods(http.MethodPost)
+	authenticatedRouter.Handle("/stacks/{id}/git/redeploy", httperror.LoggerHandler(h.stackGitRedeploy)).Methods(http.MethodPut)
+	authenticatedRouter.Handle("/stacks/{id}/file", httperror.LoggerHandler(h.stackFile)).Methods(http.MethodGet)
+	authenticatedRouter.Handle("/stacks/{id}/migrate", httperror.LoggerHandler(h.stackMigrate)).Methods(http.MethodPost)
+	authenticatedRouter.Handle("/stacks/{id}/start", httperror.LoggerHandler(h.stackStart)).Methods(http.MethodPost)
+	authenticatedRouter.Handle("/stacks/{id}/stop", httperror.LoggerHandler(h.stackStop)).Methods(http.MethodPost)
+
+	adminRouter.Handle("/stacks/{id}/associate", httperror.LoggerHandler(h.stackAssociate)).Methods(http.MethodPut)
+
+	publicRouter.Handle("/stacks/webhooks/{webhookID}", httperror.LoggerHandler(h.webhookInvoke)).Methods(http.MethodPost)
 
 	return h
 }

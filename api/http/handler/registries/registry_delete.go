@@ -10,7 +10,6 @@ import (
 	"github.com/portainer/portainer/api/bolt/errors"
 	httperrors "github.com/portainer/portainer/api/http/errors"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 // @id RegistryDelete
@@ -51,8 +50,6 @@ func (handler *Handler) registryDelete(w http.ResponseWriter, r *http.Request) *
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove the registry from the database", err}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, nil)
 
 	return response.Empty(w)
 }

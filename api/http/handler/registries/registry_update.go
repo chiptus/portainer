@@ -11,9 +11,7 @@ import (
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
 	httperrors "github.com/portainer/portainer/api/http/errors"
 	"github.com/portainer/portainer/api/http/security"
-	useractivityhttp "github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/endpointutils"
-	"github.com/portainer/portainer/api/useractivity"
 )
 
 type registryUpdatePayload struct {
@@ -25,7 +23,7 @@ type registryUpdatePayload struct {
 	Password         *string `json:",omitempty" example:"registry_password"`
 	Quay             *portainer.QuayRegistryData
 	RegistryAccesses *portainer.RegistryAccesses `json:",omitempty"`
-	Ecr              *portainer.EcrData `json:",omitempty" example:"{Region: \"ap-southeast-2\"}"`
+	Ecr              *portainer.EcrData          `json:",omitempty" example:"{Region: \"ap-southeast-2\"}"`
 }
 
 func (payload *registryUpdatePayload) Validate(r *http.Request) error {
@@ -162,12 +160,6 @@ func (handler *Handler) registryUpdate(w http.ResponseWriter, r *http.Request) *
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist registry changes inside the database", err}
 	}
-
-	if payload.Password != nil {
-		*payload.Password = useractivity.RedactedValue
-	}
-
-	useractivityhttp.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, payload)
 
 	return response.JSON(w, registry)
 }

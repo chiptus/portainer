@@ -8,7 +8,6 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	"github.com/portainer/liblicense"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 type (
@@ -64,8 +63,6 @@ func (handler *Handler) licensesAttach(w http.ResponseWriter, r *http.Request) *
 
 		resp.Licenses = append(resp.Licenses, license)
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, payload)
 
 	return response.JSON(w, resp)
 }

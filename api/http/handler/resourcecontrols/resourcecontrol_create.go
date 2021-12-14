@@ -9,7 +9,6 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 type resourceControlCreatePayload struct {
@@ -98,7 +97,7 @@ func (handler *Handler) resourceControlCreate(w http.ResponseWriter, r *http.Req
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid type value. Value must be one of: container, service, volume, network, secret, stack or config", errInvalidResourceControlType}
 	}
 
-	rc, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(payload.ResourceID, resourceControlType)
+	rc, err := handler.dataStore.ResourceControl().ResourceControlByResourceIDAndType(payload.ResourceID, resourceControlType)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve resource controls from the database", err}
 	}
@@ -134,12 +133,10 @@ func (handler *Handler) resourceControlCreate(w http.ResponseWriter, r *http.Req
 		TeamAccesses:       teamAccesses,
 	}
 
-	err = handler.DataStore.ResourceControl().CreateResourceControl(&resourceControl)
+	err = handler.dataStore.ResourceControl().CreateResourceControl(&resourceControl)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the resource control inside the database", err}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, payload)
 
 	return response.JSON(w, resourceControl)
 }

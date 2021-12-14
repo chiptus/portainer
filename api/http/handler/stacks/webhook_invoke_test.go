@@ -6,11 +6,10 @@ import (
 	"testing"
 
 	"github.com/gofrs/uuid"
-	"github.com/stretchr/testify/assert"
-
 	portainer "github.com/portainer/portainer/api"
-
 	"github.com/portainer/portainer/api/bolt/bolttest"
+	helper "github.com/portainer/portainer/api/internal/testhelpers"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHandler_webhookInvoke(t *testing.T) {
@@ -24,8 +23,7 @@ func TestHandler_webhookInvoke(t *testing.T) {
 		},
 	})
 
-	h := NewHandler(nil)
-	h.DataStore = store
+	h := NewHandler(nil, store, helper.NewUserActivityService())
 
 	t.Run("invalid uuid results in http.StatusBadRequest", func(t *testing.T) {
 		w := httptest.NewRecorder()

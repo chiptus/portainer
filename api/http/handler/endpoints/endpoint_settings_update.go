@@ -9,7 +9,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 type endpointSettingsUpdatePayload struct {
@@ -77,7 +76,7 @@ func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Re
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err == errors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -135,18 +134,10 @@ func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Re
 		endpoint.ChangeWindow = *payload.ChangeWindow
 	}
 
-	err = handler.DataStore.Endpoint().UpdateEndpoint(portainer.EndpointID(endpointID), endpoint)
+	err = handler.dataStore.Endpoint().UpdateEndpoint(portainer.EndpointID(endpointID), endpoint)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Failed persisting environment in database", err}
 	}
-
-	if payload.ChangeWindow != nil {
-		// Make it clear that the time stored in the user activity log is actually UTC despite, not the timezone value
-		payload.ChangeWindow.StartTime = payload.ChangeWindow.StartTime + " [UTC]"
-		payload.ChangeWindow.EndTime = payload.ChangeWindow.EndTime + " [UTC]"
-	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
 
 	if updateAuthorizations {
 		err := handler.AuthorizationService.UpdateUsersAuthorizations()

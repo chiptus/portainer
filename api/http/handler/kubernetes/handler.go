@@ -9,6 +9,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/middlewares"
 	"github.com/portainer/portainer/api/http/security"
+	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/internal/endpointutils"
 	"github.com/portainer/portainer/api/kubernetes/cli"
@@ -21,18 +22,19 @@ type Handler struct {
 	DataStore               portainer.DataStore
 	KubernetesClientFactory *cli.ClientFactory
 	AuthorizationService    *authorization.Service
-	UserActivityStore       portainer.UserActivityStore
+	userActivityService     portainer.UserActivityService
 	JwtService              portainer.JWTService
 	BaseURL                 string
 }
 
 // NewHandler creates a handler to process pre-proxied requests to external APIs.
-func NewHandler(bouncer *security.RequestBouncer, dataStore portainer.DataStore, baseURL string) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore portainer.DataStore, baseURL string, userActivityService portainer.UserActivityService) *Handler {
 	h := &Handler{
-		Router:         mux.NewRouter(),
-		requestBouncer: bouncer,
-		DataStore:      dataStore,
-		BaseURL:        baseURL,
+		Router:              mux.NewRouter(),
+		requestBouncer:      bouncer,
+		DataStore:           dataStore,
+		BaseURL:             baseURL,
+		userActivityService: userActivityService,
 	}
 
 	kubeRouter := h.PathPrefix("/kubernetes").Subrouter()
@@ -52,6 +54,7 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore portainer.DataStore,
 	// in the future this piece of code might be in another package (or a few different packages - namespaces/namespace?)
 	// to keep it simple, we've decided to leave it like this.
 	namespaceRouter := endpointRouter.PathPrefix("/namespaces/{namespace}").Subrouter()
+	namespaceRouter.Use(useractivity.LogUserActivity(h.userActivityService))
 	namespaceRouter.Handle("/system", httperror.LoggerHandler(h.namespacesToggleSystem)).Methods(http.MethodPut)
 
 	return h

@@ -1,7 +1,6 @@
 package registries
 
 import (
-	"github.com/portainer/portainer/api/http/useractivity"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
@@ -14,7 +13,7 @@ import (
 )
 
 type deleteTagsPayload struct {
-	Tags         []string
+	Tags []string
 }
 
 func (p *deleteTagsPayload) Validate(r *http.Request) error {
@@ -71,8 +70,6 @@ func (handler *Handler) ecrDeleteTags(w http.ResponseWriter, r *http.Request) *h
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to delete ECR tags", err}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, payload)
 
 	return response.Empty(w)
 }

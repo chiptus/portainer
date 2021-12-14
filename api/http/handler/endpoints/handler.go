@@ -10,7 +10,9 @@ import (
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/http/middlewares"
 	"github.com/portainer/portainer/api/http/proxy"
+	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/kubernetes/cli"
 )
@@ -26,7 +28,6 @@ func hideFields(endpoint *portainer.Endpoint) {
 // Therefore we can not swit	 it out with a dummy bouncer for go tests.  This interface works around it
 type requestBouncer interface {
 	AuthenticatedAccess(h http.Handler) http.Handler
-	RestrictedAccess(h http.Handler) http.Handler
 	AdminAccess(h http.Handler) http.Handler
 	PublicAccess(h http.Handler) http.Handler
 	AuthorizedEndpointOperation(r *http.Request, endpoint *portainer.Endpoint, authorizationCheck bool) error
@@ -38,7 +39,7 @@ type Handler struct {
 	*mux.Router
 	requestBouncer       requestBouncer
 	AuthorizationService *authorization.Service
-	DataStore            portainer.DataStore
+	dataStore            portainer.DataStore
 	FileService          portainer.FileService
 	ProxyManager         *proxy.Manager
 	ReverseTunnelService portainer.ReverseTunnelService
@@ -46,54 +47,51 @@ type Handler struct {
 	K8sClientFactory     *cli.ClientFactory
 	ComposeStackManager  portainer.ComposeStackManager
 	DockerClientFactory  *docker.ClientFactory
-	UserActivityStore    portainer.UserActivityStore
 	BindAddress          string
 	BindAddressHTTPS     string
+	userActivityService  portainer.UserActivityService
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.
-func NewHandler(bouncer requestBouncer) *Handler {
+func NewHandler(bouncer requestBouncer, userActivityService portainer.UserActivityService, dataStore portainer.DataStore) *Handler {
 	h := &Handler{
-		Router:         mux.NewRouter(),
-		requestBouncer: bouncer,
+		Router:              mux.NewRouter(),
+		requestBouncer:      bouncer,
+		userActivityService: userActivityService,
+		dataStore:           dataStore,
 	}
 
-	h.Handle("/endpoints",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.endpointCreate))).Methods(http.MethodPost)
-	h.Handle("/endpoints/{id}/settings",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.endpointSettingsUpdate))).Methods(http.MethodPut)
-	h.Handle("/endpoints/{id}/association",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.endpointAssociationDelete))).Methods(http.MethodDelete)
-	h.Handle("/endpoints/snapshot",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.endpointSnapshots))).Methods(http.MethodPost)
-	h.Handle("/endpoints",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.endpointList))).Methods(http.MethodGet)
-	h.Handle("/endpoints/{id}",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.endpointInspect))).Methods(http.MethodGet)
-	h.Handle("/endpoints/{id}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.endpointUpdate))).Methods(http.MethodPut)
-	h.Handle("/endpoints/{id}",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.endpointDelete))).Methods(http.MethodDelete)
-	h.Handle("/endpoints/{id}/dockerhub/{registryId}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.endpointDockerhubStatus))).Methods(http.MethodGet)
-	h.Handle("/endpoints/{id}/extensions",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.endpointExtensionAdd))).Methods(http.MethodPost)
-	h.Handle("/endpoints/{id}/extensions/{extensionType}",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.endpointExtensionRemove))).Methods(http.MethodDelete)
-	h.Handle("/endpoints/{id}/snapshot",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.endpointSnapshot))).Methods(http.MethodPost)
-	h.Handle("/endpoints/{id}/status",
-		bouncer.PublicAccess(httperror.LoggerHandler(h.endpointStatusInspect))).Methods(http.MethodGet)
-	h.Handle("/endpoints/{id}/pools/{rpn}/access",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.endpointPoolsAccessUpdate))).Methods(http.MethodPut)
-	h.Handle("/endpoints/{id}/forceupdateservice",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.endpointForceUpdateService))).Methods(http.MethodPut)
-	h.Handle("/endpoints/{id}/registries",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.endpointRegistriesList))).Methods(http.MethodGet)
-	h.Handle("/endpoints/{id}/registries/{registryId}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.endpointRegistryInspect))).Methods(http.MethodGet)
-	h.Handle("/endpoints/{id}/registries/{registryId}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.endpointRegistryAccess))).Methods(http.MethodPut)
+	logEndpointActivity := useractivity.LogUserActivityWithContext(h.userActivityService, middlewares.FindInPath(dataStore.Endpoint(), "id"))
+
+	adminRouter := h.NewRoute().Subrouter()
+	adminRouter.Use(bouncer.AdminAccess, logEndpointActivity)
+
+	authenticatedRouter := h.NewRoute().Subrouter()
+	authenticatedRouter.Use(bouncer.AuthenticatedAccess, logEndpointActivity)
+
+	publicRouter := h.NewRoute().Subrouter()
+	publicRouter.Use(bouncer.PublicAccess)
+
+	adminRouter.Handle("/endpoints", httperror.LoggerHandler(h.endpointCreate)).Methods(http.MethodPost)
+	adminRouter.Handle("/endpoints/snapshot", httperror.LoggerHandler(h.endpointSnapshots)).Methods(http.MethodPost)
+	adminRouter.Handle("/endpoints", httperror.LoggerHandler(h.endpointList)).Methods(http.MethodGet)
+	adminRouter.Handle("/endpoints/{id}", httperror.LoggerHandler(h.endpointInspect)).Methods(http.MethodGet)
+	adminRouter.Handle("/endpoints/{id}", httperror.LoggerHandler(h.endpointDelete)).Methods(http.MethodDelete)
+	adminRouter.Handle("/endpoints/{id}/association", httperror.LoggerHandler(h.endpointAssociationDelete)).Methods(http.MethodDelete)
+	adminRouter.Handle("/endpoints/{id}/extensions", httperror.LoggerHandler(h.endpointExtensionAdd)).Methods(http.MethodPost)
+	adminRouter.Handle("/endpoints/{id}/extensions/{extensionType}", httperror.LoggerHandler(h.endpointExtensionRemove)).Methods(http.MethodDelete)
+	adminRouter.Handle("/endpoints/{id}/snapshot", httperror.LoggerHandler(h.endpointSnapshot)).Methods(http.MethodPost)
+
+	authenticatedRouter.Handle("/endpoints/{id}", httperror.LoggerHandler(h.endpointUpdate)).Methods(http.MethodPut)
+	authenticatedRouter.Handle("/endpoints/{id}/settings", httperror.LoggerHandler(h.endpointSettingsUpdate)).Methods(http.MethodPut)
+	authenticatedRouter.Handle("/endpoints/{id}/dockerhub/{registryId}", httperror.LoggerHandler(h.endpointDockerhubStatus)).Methods(http.MethodGet)
+	authenticatedRouter.Handle("/endpoints/{id}/pools/{rpn}/access", httperror.LoggerHandler(h.endpointPoolsAccessUpdate)).Methods(http.MethodPut)
+	authenticatedRouter.Handle("/endpoints/{id}/forceupdateservice", httperror.LoggerHandler(h.endpointForceUpdateService)).Methods(http.MethodPut)
+	authenticatedRouter.Handle("/endpoints/{id}/registries", httperror.LoggerHandler(h.endpointRegistriesList)).Methods(http.MethodGet)
+	authenticatedRouter.Handle("/endpoints/{id}/registries/{registryId}", httperror.LoggerHandler(h.endpointRegistryInspect)).Methods(http.MethodGet)
+	authenticatedRouter.Handle("/endpoints/{id}/registries/{registryId}", httperror.LoggerHandler(h.endpointRegistryAccess)).Methods(http.MethodPut)
+
+	publicRouter.Handle("/endpoints/{id}/status", httperror.LoggerHandler(h.endpointStatusInspect)).Methods(http.MethodGet)
 
 	return h
 }

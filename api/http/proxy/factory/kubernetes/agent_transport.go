@@ -15,7 +15,7 @@ type agentTransport struct {
 }
 
 // NewAgentTransport returns a new transport that can be used to send signed requests to a Portainer agent
-func NewAgentTransport(dataStore portainer.DataStore, signatureService portainer.DigitalSignatureService, tlsConfig *tls.Config, tokenManager *tokenManager, endpoint *portainer.Endpoint, userActivityStore portainer.UserActivityStore, k8sClientFactory *cli.ClientFactory) *agentTransport {
+func NewAgentTransport(dataStore portainer.DataStore, signatureService portainer.DigitalSignatureService, tlsConfig *tls.Config, tokenManager *tokenManager, endpoint *portainer.Endpoint, userActivityService portainer.UserActivityService, k8sClientFactory *cli.ClientFactory) *agentTransport {
 	transport := &agentTransport{
 		signatureService: signatureService,
 		baseTransport: newBaseTransport(
@@ -24,7 +24,7 @@ func NewAgentTransport(dataStore portainer.DataStore, signatureService portainer
 			},
 			tokenManager,
 			endpoint,
-			userActivityStore,
+			userActivityService,
 			k8sClientFactory,
 			dataStore,
 		),

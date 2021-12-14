@@ -9,6 +9,7 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/security"
+	helper "github.com/portainer/portainer/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -54,14 +55,6 @@ type testRegistryService struct {
 	createRegistry func(r *portainer.Registry) error
 	updateRegistry func(ID portainer.RegistryID, r *portainer.Registry) error
 	getRegistry    func(ID portainer.RegistryID) (*portainer.Registry, error)
-}
-
-type testUserActivityStore struct {
-	portainer.UserActivityStore
-}
-
-func (receiver testUserActivityStore) LogUserActivity(_, _, _ string, _ []byte) (*portainer.UserActivityLog, error) {
-	return nil, nil
 }
 
 type testDataStore struct {
@@ -114,8 +107,7 @@ func TestHandler_registryCreate(t *testing.T) {
 	r = r.WithContext(ctx)
 
 	registry := portainer.Registry{}
-	handler := Handler{}
-	handler.UserActivityStore = testUserActivityStore{}
+	handler := NewHandler(helper.NewTestRequestBouncer(), helper.NewUserActivityService())
 	handler.DataStore = testDataStore{
 		registry: &testRegistryService{
 			createRegistry: func(r *portainer.Registry) error {

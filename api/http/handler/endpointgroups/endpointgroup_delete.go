@@ -9,7 +9,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 // @id EndpointGroupDelete
@@ -89,8 +88,6 @@ func (handler *Handler) endpointGroupDelete(w http.ResponseWriter, r *http.Reque
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist tag changes inside the database", err}
 		}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, nil)
 
 	return response.Empty(w)
 }

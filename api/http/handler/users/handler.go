@@ -6,9 +6,11 @@ import (
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
+
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/apikey"
 	"github.com/portainer/portainer/api/http/security"
+	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/kubernetes/cli"
 )
@@ -34,42 +36,40 @@ type Handler struct {
 	CryptoService        portainer.CryptoService
 	DataStore            portainer.DataStore
 	K8sClientFactory     *cli.ClientFactory
-	UserActivityStore    portainer.UserActivityStore
+	userActivityService  portainer.UserActivityService
 }
 
 // NewHandler creates a handler to manage user operations.
-func NewHandler(bouncer *security.RequestBouncer, rateLimiter *security.RateLimiter, apiKeyService apikey.APIKeyService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, rateLimiter *security.RateLimiter, apiKeyService apikey.APIKeyService, userActivityService portainer.UserActivityService) *Handler {
 	h := &Handler{
-		Router:        mux.NewRouter(),
-		bouncer:       bouncer,
-		apiKeyService: apiKeyService,
+		Router:              mux.NewRouter(),
+		bouncer:             bouncer,
+		apiKeyService:       apiKeyService,
+		userActivityService: userActivityService,
 	}
-	h.Handle("/users",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.userCreate))).Methods(http.MethodPost)
-	h.Handle("/users",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.userList))).Methods(http.MethodGet)
-	h.Handle("/users/{id}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.userInspect))).Methods(http.MethodGet)
-	h.Handle("/users/{id}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.userUpdate))).Methods(http.MethodPut)
-	h.Handle("/users/{id}",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.userDelete))).Methods(http.MethodDelete)
-	h.Handle("/users/{id}/tokens",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.userGetAccessTokens))).Methods(http.MethodGet)
-	h.Handle("/users/{id}/tokens",
-		rateLimiter.LimitAccess(bouncer.RestrictedAccess(httperror.LoggerHandler(h.userCreateAccessToken)))).Methods(http.MethodPost)
-	h.Handle("/users/{id}/tokens/{keyID}",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.userRemoveAccessToken))).Methods(http.MethodDelete)
-	h.Handle("/users/{id}/memberships",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.userMemberships))).Methods(http.MethodGet)
-	h.Handle("/users/{id}/passwd",
-		rateLimiter.LimitAccess(bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.userUpdatePassword)))).Methods(http.MethodPut)
-	h.Handle("/users/admin/check",
-		bouncer.PublicAccess(httperror.LoggerHandler(h.adminCheck))).Methods(http.MethodGet)
-	h.Handle("/users/admin/init",
-		bouncer.PublicAccess(httperror.LoggerHandler(h.adminInit))).Methods(http.MethodPost)
-	h.Handle("/users/{id}/namespaces",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.userNamespaces))).Methods(http.MethodGet)
+
+	adminRouter := h.NewRoute().Subrouter()
+	adminRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
+
+	authenticatedRouter := h.NewRoute().Subrouter()
+	authenticatedRouter.Use(bouncer.AuthenticatedAccess, useractivity.LogUserActivity(h.userActivityService))
+
+	publicRouter := h.NewRoute().Subrouter()
+	publicRouter.Use(bouncer.PublicAccess, useractivity.LogUserActivity(h.userActivityService))
+
+	adminRouter.Handle("/users", httperror.LoggerHandler(h.userCreate)).Methods(http.MethodPost)
+	adminRouter.Handle("/users", httperror.LoggerHandler(h.userList)).Methods(http.MethodGet)
+	authenticatedRouter.Handle("/users/{id}", httperror.LoggerHandler(h.userInspect)).Methods(http.MethodGet)
+	authenticatedRouter.Handle("/users/{id}", httperror.LoggerHandler(h.userUpdate)).Methods(http.MethodPut)
+	adminRouter.Handle("/users/{id}", httperror.LoggerHandler(h.userDelete)).Methods(http.MethodDelete)
+	adminRouter.Handle("/users/{id}/tokens", httperror.LoggerHandler(h.userGetAccessTokens)).Methods(http.MethodGet)
+	adminRouter.Handle("/users/{id}/tokens", rateLimiter.LimitAccess(httperror.LoggerHandler(h.userCreateAccessToken))).Methods(http.MethodPost)
+	adminRouter.Handle("/users/{id}/tokens/{keyID}", httperror.LoggerHandler(h.userRemoveAccessToken)).Methods(http.MethodDelete)
+	adminRouter.Handle("/users/{id}/memberships", httperror.LoggerHandler(h.userMemberships)).Methods(http.MethodGet)
+	adminRouter.Handle("/users/{id}/namespaces", httperror.LoggerHandler(h.userNamespaces)).Methods(http.MethodGet)
+	authenticatedRouter.Handle("/users/{id}/passwd", rateLimiter.LimitAccess(httperror.LoggerHandler(h.userUpdatePassword))).Methods(http.MethodPut)
+	publicRouter.Handle("/users/admin/check", httperror.LoggerHandler(h.adminCheck)).Methods(http.MethodGet)
+	publicRouter.Handle("/users/admin/init", httperror.LoggerHandler(h.adminInit)).Methods(http.MethodPost)
 
 	return h
 }

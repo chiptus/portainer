@@ -54,14 +54,17 @@ func initCLI() *portainer.CLIFlags {
 	return flags
 }
 
-func initUserActivityStore(dataStorePath string, shutdownCtx context.Context) portainer.UserActivityStore {
-	store, err := useractivity.NewUserActivityStore(dataStorePath)
+func initUserActivity(dataStorePath string, shutdownCtx context.Context) (portainer.UserActivityService, portainer.UserActivityStore) {
+	store, err := useractivity.NewStore(dataStorePath)
 	if err != nil {
 		log.Fatalf("Failed initalizing user activity store: %s", err)
 	}
 
+	service := useractivity.NewService(store)
+
 	go shutdownUserActivityStore(shutdownCtx, store)
-	return store
+
+	return service, store
 }
 
 func shutdownUserActivityStore(shutdownCtx context.Context, store portainer.UserActivityStore) {
@@ -573,9 +576,9 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 
 	kubeConfigService := kubernetes.NewKubeConfigCAService(*flags.AddrHTTPS, sslSettings.CertPath)
 
-	userActivityStore := initUserActivityStore(*flags.Data, shutdownCtx)
+	userActivityService, userActivityStore := initUserActivity(*flags.Data, shutdownCtx)
 
-	proxyManager := proxy.NewManager(dataStore, digitalSignatureService, reverseTunnelService, dockerClientFactory, kubernetesClientFactory, kubernetesTokenCacheManager, authorizationService, userActivityStore)
+	proxyManager := proxy.NewManager(dataStore, digitalSignatureService, reverseTunnelService, dockerClientFactory, kubernetesClientFactory, kubernetesTokenCacheManager, authorizationService, userActivityService)
 
 	reverseTunnelService.ProxyManager = proxyManager
 
@@ -661,7 +664,7 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 
 	scheduler := scheduler.NewScheduler(shutdownCtx)
 	stackDeployer := stacks.NewStackDeployer(swarmStackManager, composeStackManager, kubernetesDeployer)
-	stacks.StartStackSchedules(scheduler, stackDeployer, dataStore, gitService, userActivityStore)
+	stacks.StartStackSchedules(scheduler, stackDeployer, dataStore, gitService, userActivityService)
 
 	sslDBSettings, err := dataStore.SSLSettings().Settings()
 	if err != nil {
@@ -697,6 +700,7 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 		SnapshotService:             snapshotService,
 		SSLService:                  sslService,
 		DockerClientFactory:         dockerClientFactory,
+		UserActivityService:         userActivityService,
 		UserActivityStore:           userActivityStore,
 		KubernetesClientFactory:     kubernetesClientFactory,
 		Scheduler:                   scheduler,

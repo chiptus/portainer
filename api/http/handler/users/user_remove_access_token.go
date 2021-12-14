@@ -11,7 +11,6 @@ import (
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
 	httperrors "github.com/portainer/portainer/api/http/errors"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 // @id UserRemoveAPIKey
@@ -73,8 +72,6 @@ func (handler *Handler) userRemoveAccessToken(w http.ResponseWriter, r *http.Req
 		}
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove the api-key from the user", err}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, "", r, nil)
 
 	return response.Empty(w)
 }

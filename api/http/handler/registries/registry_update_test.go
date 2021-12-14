@@ -9,6 +9,7 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/security"
+	helper "github.com/portainer/portainer/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,20 +19,6 @@ func ps(s string) *string {
 
 func pb(b bool) *bool {
 	return &b
-}
-
-type TestBouncer struct{}
-
-func (t TestBouncer) AdminAccess(h http.Handler) http.Handler {
-	return h
-}
-
-func (t TestBouncer) RestrictedAccess(h http.Handler) http.Handler {
-	return h
-}
-
-func (t TestBouncer) AuthenticatedAccess(h http.Handler) http.Handler {
-	return h
 }
 
 func TestHandler_registryUpdate(t *testing.T) {
@@ -58,8 +45,7 @@ func TestHandler_registryUpdate(t *testing.T) {
 	r = r.WithContext(ctx)
 
 	updatedRegistry := portainer.Registry{}
-	handler := newHandler(nil, testUserActivityStore{})
-	handler.initRouter(TestBouncer{})
+	handler := NewHandler(helper.NewTestRequestBouncer(), helper.NewUserActivityService())
 	handler.DataStore = testDataStore{
 		registry: &testRegistryService{
 			getRegistry: func(_ portainer.RegistryID) (*portainer.Registry, error) {
@@ -73,7 +59,7 @@ func TestHandler_registryUpdate(t *testing.T) {
 		},
 	}
 
-	handler.Router.ServeHTTP(w, r)
+	handler.ServeHTTP(w, r)
 	assert.Equal(t, http.StatusOK, w.Code)
 	// Registry type should remain intact
 	assert.Equal(t, registry.Type, updatedRegistry.Type)

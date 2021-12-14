@@ -13,9 +13,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/authorization"
-	consts "github.com/portainer/portainer/api/useractivity"
 )
 
 // @id CustomTemplateCreate
@@ -173,8 +171,6 @@ func (handler *Handler) createCustomTemplateFromFileContent(r *http.Request) (*p
 	}
 	customTemplate.ProjectPath = projectPath
 
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, payload)
-
 	return customTemplate, nil
 }
 
@@ -275,11 +271,6 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request) (
 		return nil, err
 	}
 
-	if payload.RepositoryPassword != "" {
-		payload.RepositoryPassword = consts.RedactedValue
-	}
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, payload)
-
 	return customTemplate, nil
 }
 
@@ -364,8 +355,6 @@ func (handler *Handler) createCustomTemplateFromFileUpload(r *http.Request) (*po
 		return nil, err
 	}
 	customTemplate.ProjectPath = projectPath
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, payload)
 
 	return customTemplate, nil
 }

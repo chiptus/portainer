@@ -11,7 +11,6 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	httperrors "github.com/portainer/portainer/api/http/errors"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 type userAccessTokenCreatePayload struct {
@@ -89,8 +88,6 @@ func (handler *Handler) userCreateAccessToken(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Internal Server Error", err}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, "", r, payload)
 
 	w.WriteHeader(http.StatusCreated)
 	return response.JSON(w, accessTokenResponse{rawAPIKey, *apiKey})

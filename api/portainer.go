@@ -1726,16 +1726,21 @@ type (
 		UpdateInfo(info *TunnelServerInfo) error
 	}
 
+	UserActivityService interface {
+		LogAuthActivity(username, origin string, context AuthenticationMethod, activityType AuthenticationActivityType) error
+		LogUserActivity(username, context, action string, payload []byte) error
+	}
+
 	// UserActivityStore store all logs related to user activity: authentication, actions, ...
 	UserActivityStore interface {
 		BackupTo(w io.Writer) error
 		Close() error
 
 		GetAuthLogs(opts AuthLogsQuery) ([]*AuthActivityLog, int, error)
-		LogAuthActivity(username, origin string, context AuthenticationMethod, activityType AuthenticationActivityType) (*AuthActivityLog, error)
+		StoreAuthLog(authLog *AuthActivityLog) error
 
 		GetUserActivityLogs(opts UserActivityLogBaseQuery) ([]*UserActivityLog, int, error)
-		LogUserActivity(username, context, action string, payload []byte) (*UserActivityLog, error)
+		StoreUserActivityLog(userLog *UserActivityLog) error
 	}
 
 	// UserService represents a service for managing user data

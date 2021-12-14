@@ -10,7 +10,6 @@ import (
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
 	"github.com/portainer/portainer/api/http/errors"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 // @id TeamMembershipDelete
@@ -60,8 +59,6 @@ func (handler *Handler) teamMembershipDelete(w http.ResponseWriter, r *http.Requ
 	}
 
 	handler.AuthorizationService.TriggerUserAuthUpdate(int(membership.UserID))
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, nil)
 
 	return response.Empty(w)
 }

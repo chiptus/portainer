@@ -8,7 +8,6 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 // @id HelmDelete
@@ -57,8 +56,6 @@ func (handler *Handler) helmDelete(w http.ResponseWriter, r *http.Request) *http
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Helm returned an error", err}
 	}
-
-	useractivity.LogHttpActivity(handler.userActivityStore, handlerActivityContext, r, nil)
 
 	return response.Empty(w)
 }

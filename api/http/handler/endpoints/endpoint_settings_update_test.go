@@ -28,9 +28,7 @@ func Test_endpointUpdate(t *testing.T) {
 	is.NoError(err, "error creating a user")
 
 	bouncer := helper.NewTestRequestBouncer()
-	h := NewHandler(bouncer)
-	h.DataStore = store
-	h.UserActivityStore = helper.NewUserActivityStore()
+	h := NewHandler(bouncer, helper.NewUserActivityService(), store)
 
 	t.Run("Test valid autoUpdate settings", func(t *testing.T) {
 		start := "00:00"

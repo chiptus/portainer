@@ -18,11 +18,9 @@ import (
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/portainer/portainer/api/http/client"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/endpointutils"
 	"github.com/portainer/portainer/api/internal/stackutils"
 	k "github.com/portainer/portainer/api/kubernetes"
-	consts "github.com/portainer/portainer/api/useractivity"
 )
 
 type kubernetesStringDeploymentPayload struct {
@@ -171,8 +169,6 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 		Output: output,
 	}
 
-	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
-
 	doCleanUp = false
 	return response.JSON(w, resp)
 }
@@ -274,7 +270,7 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 	}
 
 	if payload.AutoUpdate != nil && payload.AutoUpdate.Interval != "" {
-		jobID, e := startAutoupdate(stack.ID, stack.AutoUpdate.Interval, handler.Scheduler, handler.StackDeployer, handler.DataStore, handler.GitService, handler.UserActivityStore)
+		jobID, e := startAutoupdate(stack.ID, stack.AutoUpdate.Interval, handler.Scheduler, handler.StackDeployer, handler.DataStore, handler.GitService, handler.userActivityService)
 		if e != nil {
 			return e
 		}
@@ -290,11 +286,6 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 	resp := &createKubernetesStackResponse{
 		Output: output,
 	}
-	if payload.RepositoryPassword != "" {
-		payload.RepositoryPassword = consts.RedactedValue
-	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
 
 	doCleanUp = false
 	return response.JSON(w, resp)
@@ -367,8 +358,6 @@ func (handler *Handler) createKubernetesStackFromManifestURL(w http.ResponseWrit
 	resp := &createKubernetesStackResponse{
 		Output: output,
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
 
 	doCleanUp = false
 	return response.JSON(w, resp)

@@ -1,7 +1,6 @@
 package registries
 
 import (
-	"github.com/portainer/portainer/api/http/useractivity"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
@@ -58,8 +57,6 @@ func (handler *Handler) ecrDeleteRepository(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to list ECR repositories", err}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, nil)
 
 	return response.Empty(w)
 }

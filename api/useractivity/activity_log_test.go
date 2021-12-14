@@ -8,6 +8,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func createActivityLog(username, context, action string, payload []byte) *portainer.UserActivityLog {
+	return &portainer.UserActivityLog{
+		UserActivityLogBase: portainer.UserActivityLogBase{
+			Timestamp: time.Now().Unix(),
+			Username:  username,
+		},
+		Context: context,
+		Action:  action,
+		Payload: payload,
+	}
+}
+
 func TestAddUserActivity(t *testing.T) {
 	store, err := setup(t.TempDir())
 	if err != nil {
@@ -18,26 +30,12 @@ func TestAddUserActivity(t *testing.T) {
 
 	expectedPayloadString := "payload"
 
-	expected := portainer.UserActivityLog{
-		UserActivityLogBase: portainer.UserActivityLogBase{
-			Username: "username",
-		},
-		Context: "context",
-		Action:  "action",
+	userLog := createActivityLog("username", "context", "action", []byte(expectedPayloadString))
 
-		Payload: []byte(expectedPayloadString),
-	}
-
-	createdLog, err := store.LogUserActivity(expected.Username, expected.Context, expected.Action, expected.Payload)
+	err = store.StoreUserActivityLog(userLog)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
-
-	assert.Equal(t, expected.Username, createdLog.Username)
-	assert.Equal(t, expected.Context, createdLog.Context)
-	assert.Equal(t, expected.Action, createdLog.Action)
-	assert.Equal(t, expected.Payload, createdLog.Payload)
-	assert.Equal(t, expectedPayloadString, string(createdLog.Payload), "stored payload should have the same value")
 
 	var logs []*portainer.UserActivityLog
 
@@ -47,7 +45,7 @@ func TestAddUserActivity(t *testing.T) {
 	}
 
 	assert.Equal(t, 1, len(logs), "Store should have one element")
-	assert.Equal(t, createdLog, logs[0], "logs should be equal")
+	assert.Equal(t, userLog, logs[0], "logs should be equal")
 }
 
 func TestGetUserActivityLogs(t *testing.T) {
@@ -58,17 +56,20 @@ func TestGetUserActivityLogs(t *testing.T) {
 
 	defer store.Close()
 
-	log1, err := store.LogUserActivity("username1", "context1", "action1", []byte("payload1"))
+	log1 := createActivityLog("username1", "context1", "action1", []byte("payload1"))
+	err = store.StoreUserActivityLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log2, err := store.LogUserActivity("username2", "context2", "action2", []byte("payload2"))
+	log2 := createActivityLog("username2", "context2", "action2", []byte("payload2"))
+	err = store.StoreUserActivityLog(log2)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log3, err := store.LogUserActivity("username3", "context3", "action3", []byte("payload3"))
+	log3 := createActivityLog("username3", "context3", "action3", []byte("payload3"))
+	err = store.StoreUserActivityLog(log3)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -89,21 +90,24 @@ func TestGetUserActivityLogsByTimestamp(t *testing.T) {
 
 	defer store.Close()
 
-	log1, err := store.LogUserActivity("username1", "context1", "action1", []byte("payload1"))
+	log1 := createActivityLog("username1", "context1", "action1", []byte("payload1"))
+	err = store.StoreUserActivityLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
 	time.Sleep(time.Second * 1)
 
-	log2, err := store.LogUserActivity("username2", "context2", "action2", []byte("payload2"))
+	log2 := createActivityLog("username2", "context2", "action2", []byte("payload2"))
+	err = store.StoreUserActivityLog(log2)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
 	time.Sleep(time.Second * 1)
 
-	log3, err := store.LogUserActivity("username3", "context3", "action3", []byte("payload3"))
+	log3 := createActivityLog("username3", "context3", "action3", []byte("payload3"))
+	err = store.StoreUserActivityLog(log3)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -128,17 +132,20 @@ func TestGetUserActivityLogsByKeyword(t *testing.T) {
 
 	defer store.Close()
 
-	log1, err := store.LogUserActivity("username1", "context1", "action1", []byte("success"))
+	log1 := createActivityLog("username1", "context1", "action1", []byte("success"))
+	err = store.StoreUserActivityLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log2, err := store.LogUserActivity("username2", "context2", "action2", []byte("error"))
+	log2 := createActivityLog("username2", "context2", "action2", []byte("error"))
+	err = store.StoreUserActivityLog(log2)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log3, err := store.LogUserActivity("username3", "context3", "action3", []byte("success"))
+	log3 := createActivityLog("username3", "context3", "action3", []byte("success"))
+	err = store.StoreUserActivityLog(log3)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -186,22 +193,26 @@ func TestGetUserActivityLogsSortOrderAndPaginate(t *testing.T) {
 
 	defer store.Close()
 
-	log1, err := store.LogUserActivity("username1", "context1", "action1", []byte("payload1"))
+	log1 := createActivityLog("username1", "context1", "action1", []byte("payload1"))
+	err = store.StoreUserActivityLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log2, err := store.LogUserActivity("username2", "context2", "action2", []byte("payload2"))
+	log2 := createActivityLog("username2", "context2", "action2", []byte("payload2"))
+	err = store.StoreUserActivityLog(log2)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log3, err := store.LogUserActivity("username3", "context3", "action3", []byte("payload3"))
+	log3 := createActivityLog("username3", "context3", "action3", []byte("payload3"))
+	err = store.StoreUserActivityLog(log3)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log4, err := store.LogUserActivity("username4", "context4", "action4", []byte("payload4"))
+	log4 := createActivityLog("username4", "context4", "action4", []byte("payload4"))
+	err = store.StoreUserActivityLog(log4)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -241,17 +252,20 @@ func TestGetUserActivityLogsDesc(t *testing.T) {
 
 	defer store.Close()
 
-	log1, err := store.LogUserActivity("username1", "context1", "action1", []byte("payload1"))
+	log1 := createActivityLog("username1", "context1", "action1", []byte("payload1"))
+	err = store.StoreUserActivityLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log2, err := store.LogUserActivity("username2", "context2", "action2", []byte("payload2"))
+	log2 := createActivityLog("username2", "context2", "action2", []byte("payload2"))
+	err = store.StoreUserActivityLog(log2)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log3, err := store.LogUserActivity("username3", "context3", "action3", []byte("payload3"))
+	log3 := createActivityLog("username3", "context3", "action3", []byte("payload3"))
+	err = store.StoreUserActivityLog(log3)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}

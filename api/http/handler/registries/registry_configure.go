@@ -12,8 +12,6 @@ import (
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
 	httperrors "github.com/portainer/portainer/api/http/errors"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
-	consts "github.com/portainer/portainer/api/useractivity"
 )
 
 type registryConfigurePayload struct {
@@ -179,9 +177,6 @@ func (handler *Handler) registryConfigure(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist registry changes inside the database", err}
 	}
-
-	payload.Password = consts.RedactedValue
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, payload)
 
 	return response.Empty(w)
 }

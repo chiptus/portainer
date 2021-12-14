@@ -11,14 +11,14 @@ import (
 	"github.com/portainer/portainer/api/stacks"
 )
 
-func startAutoupdate(stackID portainer.StackID, interval string, scheduler *scheduler.Scheduler, stackDeployer stacks.StackDeployer, datastore portainer.DataStore, gitService portainer.GitService, activityStore portainer.UserActivityStore) (jobID string, e *httperror.HandlerError) {
+func startAutoupdate(stackID portainer.StackID, interval string, scheduler *scheduler.Scheduler, stackDeployer stacks.StackDeployer, datastore portainer.DataStore, gitService portainer.GitService, activityService portainer.UserActivityService) (jobID string, e *httperror.HandlerError) {
 	d, err := time.ParseDuration(interval)
 	if err != nil {
 		return "", &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Unable to parse stack's auto update interval", Err: err}
 	}
 
 	jobID = scheduler.StartJobEvery(d, func() error {
-		return stacks.RedeployWhenChanged(stackID, stackDeployer, datastore, gitService, activityStore)
+		return stacks.RedeployWhenChanged(stackID, stackDeployer, datastore, gitService, activityService)
 	})
 
 	return jobID, nil

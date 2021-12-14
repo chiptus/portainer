@@ -3,9 +3,10 @@ package webhooks
 import (
 	"context"
 	"errors"
-	"github.com/portainer/portainer/api/internal/registryutils"
 	"net/http"
 	"strings"
+
+	"github.com/portainer/portainer/api/internal/registryutils"
 
 	dockertypes "github.com/docker/docker/api/types"
 	httperror "github.com/portainer/libhttp/error"
@@ -32,7 +33,7 @@ func (handler *Handler) webhookExecute(w http.ResponseWriter, r *http.Request) *
 		return &httperror.HandlerError{http.StatusInternalServerError, "Invalid service id parameter", err}
 	}
 
-	webhook, err := handler.DataStore.Webhook().WebhookByToken(webhookToken)
+	webhook, err := handler.dataStore.Webhook().WebhookByToken(webhookToken)
 
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a webhook with this token", err}
@@ -45,7 +46,7 @@ func (handler *Handler) webhookExecute(w http.ResponseWriter, r *http.Request) *
 	registryID := webhook.RegistryID
 	webhookType := webhook.WebhookType
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -99,13 +100,13 @@ func (handler *Handler) executeServiceWebhook(
 	}
 
 	if registryID != 0 {
-		registry, err := handler.DataStore.Registry().Registry(registryID)
+		registry, err := handler.dataStore.Registry().Registry(registryID)
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Error getting registry", err}
 		}
 
 		if registry.Authentication {
-			registryutils.EnsureRegTokenValid(handler.DataStore, registry)
+			registryutils.EnsureRegTokenValid(handler.dataStore, registry)
 			serviceUpdateOptions.EncodedRegistryAuth, err = registryutils.GetRegistryAuthHeader(registry)
 			if err != nil {
 				return &httperror.HandlerError{http.StatusInternalServerError, "Error getting registry auth header", err}

@@ -17,9 +17,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/http/client"
-	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/edge"
-	consts "github.com/portainer/portainer/api/useractivity"
 )
 
 type endpointCreatePayload struct {
@@ -190,17 +188,17 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		return endpointCreationError
 	}
 
-	endpointGroup, err := handler.DataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
+	endpointGroup, err := handler.dataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment group inside the database", err}
 	}
 
-	edgeGroups, err := handler.DataStore.EdgeGroup().EdgeGroups()
+	edgeGroups, err := handler.dataStore.EdgeGroup().EdgeGroups()
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge groups from the database", err}
 	}
 
-	edgeStacks, err := handler.DataStore.EdgeStack().EdgeStacks()
+	edgeStacks, err := handler.dataStore.EdgeStack().EdgeStacks()
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge stacks from the database", err}
 	}
@@ -217,38 +215,12 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
-	err = handler.DataStore.EndpointRelation().CreateEndpointRelation(relationObject)
+	err = handler.dataStore.EndpointRelation().CreateEndpointRelation(relationObject)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the relation object inside the database", err}
 	}
 
 	handler.AuthorizationService.TriggerUsersAuthUpdate()
-
-	// sanitise TLS data to prevent it from showing up in user activity logs
-	if len(payload.TLSCACertFile) > 0 {
-		payload.TLSCACertFile = []byte{}
-	}
-	if len(payload.TLSCertFile) > 0 {
-		payload.TLSCertFile = []byte{}
-	}
-	if len(payload.TLSKeyFile) > 0 {
-		payload.TLSKeyFile = []byte{}
-	}
-
-	// sanitise AzureAuthenticationKey to prevent it from showing up in user activity logs
-	payload.AzureAuthenticationKey = consts.RedactedValue
-
-	//sanitise cert files if necessary
-	if len(payload.TLSCACertFile) > 0 {
-		payload.TLSCACertFile = []byte{}
-	}
-	if len(payload.TLSCertFile) > 0 {
-		payload.TLSCertFile = []byte{}
-	}
-	if len(payload.TLSKeyFile) > 0 {
-		payload.TLSKeyFile = []byte{}
-	}
-	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
 
 	return response.JSON(w, endpoint)
 }
@@ -299,7 +271,7 @@ func (handler *Handler) createAzureEndpoint(payload *endpointCreatePayload) (*po
 		return nil, &httperror.HandlerError{http.StatusInternalServerError, "Unable to authenticate against Azure", err}
 	}
 
-	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
+	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
 	endpoint := &portainer.Endpoint{
 		ID:                 portainer.EndpointID(endpointID),
 		Name:               payload.Name,
@@ -330,7 +302,7 @@ func (handler *Handler) createAzureEndpoint(payload *endpointCreatePayload) (*po
 }
 
 func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) (*portainer.Endpoint, *httperror.HandlerError) {
-	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
+	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
 
 	portainerURL, err := url.Parse(payload.URL)
 	if err != nil {
@@ -392,7 +364,7 @@ func (handler *Handler) createUnsecuredEndpoint(payload *endpointCreatePayload) 
 		}
 	}
 
-	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
+	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
 	endpoint := &portainer.Endpoint{
 		ID:        portainer.EndpointID(endpointID),
 		Name:      payload.Name,
@@ -429,7 +401,7 @@ func (handler *Handler) createKubernetesEndpoint(payload *endpointCreatePayload)
 		payload.URL = "https://kubernetes.default.svc"
 	}
 
-	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
+	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
 
 	endpoint := &portainer.Endpoint{
 		ID:        portainer.EndpointID(endpointID),
@@ -464,7 +436,7 @@ func (handler *Handler) createKubernetesEndpoint(payload *endpointCreatePayload)
 }
 
 func (handler *Handler) createTLSSecuredEndpoint(payload *endpointCreatePayload, endpointType portainer.EndpointType) (*portainer.Endpoint, *httperror.HandlerError) {
-	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
+	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
 	endpoint := &portainer.Endpoint{
 		ID:        portainer.EndpointID(endpointID),
 		Name:      payload.Name,
@@ -533,12 +505,12 @@ func (handler *Handler) saveEndpointAndUpdateAuthorizations(endpoint *portainer.
 		AllowStackManagementForRegularUsers:       true,
 	}
 
-	err := handler.DataStore.Endpoint().CreateEndpoint(endpoint)
+	err := handler.dataStore.Endpoint().CreateEndpoint(endpoint)
 	if err != nil {
 		return err
 	}
 
-	group, err := handler.DataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
+	group, err := handler.dataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
 	if err != nil {
 		return err
 	}
@@ -551,14 +523,14 @@ func (handler *Handler) saveEndpointAndUpdateAuthorizations(endpoint *portainer.
 	}
 
 	for _, tagID := range endpoint.TagIDs {
-		tag, err := handler.DataStore.Tag().Tag(tagID)
+		tag, err := handler.dataStore.Tag().Tag(tagID)
 		if err != nil {
 			return err
 		}
 
 		tag.Endpoints[endpoint.ID] = true
 
-		err = handler.DataStore.Tag().UpdateTag(tagID, tag)
+		err = handler.dataStore.Tag().UpdateTag(tagID, tag)
 		if err != nil {
 			return err
 		}

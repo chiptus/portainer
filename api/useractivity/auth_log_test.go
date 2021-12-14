@@ -11,6 +11,22 @@ import (
 	portainer "github.com/portainer/portainer/api"
 )
 
+const (
+	testType = portainer.AuthenticationActivityType(0)
+)
+
+func createAuthLog(username, origin string, context portainer.AuthenticationMethod, activityType portainer.AuthenticationActivityType) *portainer.AuthActivityLog {
+	return &portainer.AuthActivityLog{
+		Type: activityType,
+		UserActivityLogBase: portainer.UserActivityLogBase{
+			Timestamp: time.Now().Unix(),
+			Username:  username,
+		},
+		Origin:  origin,
+		Context: context,
+	}
+}
+
 func BenchmarkAuthLog(b *testing.B) {
 	defer timeTrack(time.Now(), "AuthActivityLog")
 
@@ -30,8 +46,10 @@ func BenchmarkAuthLog(b *testing.B) {
 
 	defer store.Close()
 
+	authLog := createAuthLog("username", "endpoint", portainer.AuthenticationInternal, testType)
+
 	for i := 0; i < 100; i++ {
-		_, err = store.LogAuthActivity("username", "endpoint", portainer.AuthenticationInternal, testType)
+		err = store.StoreAuthLog(authLog)
 		if err != nil {
 			b.Fatalf("Failed adding activity log: %s", err)
 		}
@@ -46,10 +64,6 @@ func BenchmarkAuthLog(b *testing.B) {
 
 }
 
-const (
-	testType = portainer.AuthenticationActivityType(0)
-)
-
 func TestAddActivity(t *testing.T) {
 	store, err := setup(t.TempDir())
 	if err != nil {
@@ -57,8 +71,9 @@ func TestAddActivity(t *testing.T) {
 	}
 
 	defer store.Close()
+	authLog := createAuthLog("username", "endpoint", portainer.AuthenticationInternal, testType)
 
-	_, err = store.LogAuthActivity("username", "endpoint", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(authLog)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -79,17 +94,20 @@ func TestGetAuthLogs(t *testing.T) {
 
 	defer store.Close()
 
-	log1, err := store.LogAuthActivity("username1", "endpoint1", portainer.AuthenticationInternal, testType)
+	log1 := createAuthLog("username1", "endpoint1", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log2, err := store.LogAuthActivity("username2", "endpoint2", portainer.AuthenticationInternal, testType)
+	log2 := createAuthLog("username2", "endpoint2", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log2)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log3, err := store.LogAuthActivity("username3", "endpoint3", portainer.AuthenticationInternal, testType)
+	log3 := createAuthLog("username3", "endpoint3", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log3)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -110,21 +128,24 @@ func TestGetAuthLogsByTimestamp(t *testing.T) {
 
 	defer store.Close()
 
-	log1, err := store.LogAuthActivity("username1", "endpoint1", portainer.AuthenticationInternal, testType)
+	log1 := createAuthLog("username1", "endpoint1", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
 	time.Sleep(time.Second * 1)
 
-	log2, err := store.LogAuthActivity("username2", "endpoint2", portainer.AuthenticationInternal, testType)
+	log2 := createAuthLog("username2", "endpoint2", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log2)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
 	time.Sleep(time.Second * 1)
 
-	log3, err := store.LogAuthActivity("username3", "endpoint3", portainer.AuthenticationInternal, testType)
+	log3 := createAuthLog("username3", "endpoint3", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log3)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -151,17 +172,20 @@ func TestGetAuthLogsByKeyword(t *testing.T) {
 
 	defer store.Close()
 
-	log1, err := store.LogAuthActivity("username1", "endpoint1", portainer.AuthenticationInternal, testType)
+	log1 := createAuthLog("username1", "endpoint1", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log2, err := store.LogAuthActivity("username2", "endpoint2", portainer.AuthenticationInternal, testType)
+	log2 := createAuthLog("username2", "endpoint2", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log2)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log3, err := store.LogAuthActivity("username3", "endpoint3", portainer.AuthenticationInternal, testType)
+	log3 := createAuthLog("username3", "endpoint3", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log3)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -214,17 +238,20 @@ func TestGetAuthLogsByContext(t *testing.T) {
 
 	defer store.Close()
 
-	log1, err := store.LogAuthActivity("username1", "endpoint1", portainer.AuthenticationInternal, testType)
+	log1 := createAuthLog("username1", "endpoint1", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log2, err := store.LogAuthActivity("username2", "endpoint2", portainer.AuthenticationLDAP, testType)
+	log2 := createAuthLog("username2", "endpoint2", portainer.AuthenticationLDAP, testType)
+	err = store.StoreAuthLog(log2)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log3, err := store.LogAuthActivity("username3", "endpoint3", portainer.AuthenticationOAuth, testType)
+	log3 := createAuthLog("username3", "endpoint3", portainer.AuthenticationOAuth, testType)
+	err = store.StoreAuthLog(log3)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -265,17 +292,20 @@ func TestGetAuthLogsByType(t *testing.T) {
 
 	defer store.Close()
 
-	log1, err := store.LogAuthActivity("username1", "endpoint1", portainer.AuthenticationInternal, portainer.AuthenticationActivityFailure)
+	log1 := createAuthLog("username1", "endpoint1", portainer.AuthenticationInternal, portainer.AuthenticationActivityFailure)
+	err = store.StoreAuthLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log2, err := store.LogAuthActivity("username2", "endpoint2", portainer.AuthenticationLDAP, portainer.AuthenticationActivityLogOut)
+	log2 := createAuthLog("username2", "endpoint2", portainer.AuthenticationLDAP, portainer.AuthenticationActivityLogOut)
+	err = store.StoreAuthLog(log2)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log3, err := store.LogAuthActivity("username3", "endpoint3", portainer.AuthenticationOAuth, portainer.AuthenticationActivitySuccess)
+	log3 := createAuthLog("username3", "endpoint3", portainer.AuthenticationOAuth, portainer.AuthenticationActivitySuccess)
+	err = store.StoreAuthLog(log3)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -316,22 +346,26 @@ func TestGetAuthLogsSortOrderAndPaginate(t *testing.T) {
 
 	defer store.Close()
 
-	log1, err := store.LogAuthActivity("username1", "endpoint1", portainer.AuthenticationInternal, testType)
+	log1 := createAuthLog("username1", "endpoint1", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log2, err := store.LogAuthActivity("username2", "endpoint2", portainer.AuthenticationInternal, testType)
+	log2 := createAuthLog("username2", "endpoint2", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log2)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log3, err := store.LogAuthActivity("username3", "endpoint3", portainer.AuthenticationInternal, testType)
+	log3 := createAuthLog("username3", "endpoint3", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log3)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log4, err := store.LogAuthActivity("username4", "endpoint4", portainer.AuthenticationInternal, testType)
+	log4 := createAuthLog("username4", "endpoint4", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log4)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -375,17 +409,20 @@ func TestGetAuthLogsDesc(t *testing.T) {
 
 	defer store.Close()
 
-	log1, err := store.LogAuthActivity("username1", "endpoint1", portainer.AuthenticationInternal, testType)
+	log1 := createAuthLog("username1", "endpoint1", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log2, err := store.LogAuthActivity("username2", "endpoint2", portainer.AuthenticationInternal, testType)
+	log2 := createAuthLog("username2", "endpoint2", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log2)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	log3, err := store.LogAuthActivity("username3", "endpoint3", portainer.AuthenticationInternal, testType)
+	log3 := createAuthLog("username3", "endpoint3", portainer.AuthenticationInternal, testType)
+	err = store.StoreAuthLog(log3)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}

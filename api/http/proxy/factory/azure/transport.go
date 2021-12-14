@@ -9,9 +9,8 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/client"
-	"github.com/portainer/portainer/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer/api/http/useractivity"
-	"github.com/sirupsen/logrus"
+	ru "github.com/portainer/portainer/api/http/utils"
 )
 
 type (
@@ -21,13 +20,13 @@ type (
 	}
 
 	Transport struct {
-		credentials       *portainer.AzureCredentials
-		client            *client.HTTPClient
-		token             *azureAPIToken
-		mutex             sync.Mutex
-		dataStore         portainer.DataStore
-		endpoint          *portainer.Endpoint
-		userActivityStore portainer.UserActivityStore
+		credentials         *portainer.AzureCredentials
+		client              *client.HTTPClient
+		token               *azureAPIToken
+		mutex               sync.Mutex
+		dataStore           portainer.DataStore
+		endpoint            *portainer.Endpoint
+		userActivityService portainer.UserActivityService
 	}
 
 	azureRequestContext struct {
@@ -41,13 +40,13 @@ type (
 
 // NewTransport returns a pointer to a new instance of Transport that implements the HTTP Transport
 // interface for proxying requests to the Azure API.
-func NewTransport(credentials *portainer.AzureCredentials, userActivityStore portainer.UserActivityStore, dataStore portainer.DataStore, endpoint *portainer.Endpoint) *Transport {
+func NewTransport(credentials *portainer.AzureCredentials, userActivityService portainer.UserActivityService, dataStore portainer.DataStore, endpoint *portainer.Endpoint) *Transport {
 	return &Transport{
-		credentials:       credentials,
-		client:            client.NewHTTPClient(),
-		dataStore:         dataStore,
-		endpoint:          endpoint,
-		userActivityStore: userActivityStore,
+		credentials:         credentials,
+		client:              client.NewHTTPClient(),
+		dataStore:           dataStore,
+		endpoint:            endpoint,
+		userActivityService: userActivityService,
 	}
 }
 
@@ -72,19 +71,15 @@ func (transport *Transport) proxyAzureRequest(request *http.Request) (*http.Resp
 		return transport.proxyContainerGroupRequest(request)
 	}
 
-	body, err := utils.CopyBody(request)
-	if err != nil {
-		logrus.WithError(err).Debug("[azure transport] failed parsing body")
+	// need a copy of the request body to preserve the original
+	body := ru.CopyRequestBody(request)
+
+	response, err := http.DefaultTransport.RoundTrip(request)
+	if err == nil {
+		useractivity.LogProxiedActivity(transport.userActivityService, transport.endpoint, response.StatusCode, body, request)
 	}
 
-	resp, err := http.DefaultTransport.RoundTrip(request)
-
-	// log if request is success
-	if err == nil && (200 <= resp.StatusCode && resp.StatusCode < 300) {
-		useractivity.LogProxyActivity(transport.userActivityStore, transport.endpoint.Name, request, body)
-	}
-
-	return resp, err
+	return response, err
 }
 
 func (transport *Transport) authenticate() error {

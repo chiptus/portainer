@@ -9,7 +9,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 // @id EdgeGroupDelete
@@ -54,8 +53,5 @@ func (handler *Handler) edgeGroupDelete(w http.ResponseWriter, r *http.Request) 
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove the Edge group from the database", err}
 	}
 
-	useractivity.LogHttpActivity(handler.UserActivityStore, "Portainer", r, nil)
-
 	return response.Empty(w)
-
 }

@@ -11,6 +11,7 @@ import (
 	bolt "github.com/portainer/portainer/api/bolt/bolttest"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
+	"github.com/portainer/portainer/api/internal/testhelpers"
 	"github.com/portainer/portainer/api/jwt"
 	"github.com/stretchr/testify/assert"
 )
@@ -34,7 +35,7 @@ func Test_updateUserRemovesAccessTokens(t *testing.T) {
 	rateLimiter := security.NewRateLimiter(10, 1*time.Second, 1*time.Hour)
 	authorizationService := authorization.NewService(store)
 
-	h := NewHandler(requestBouncer, rateLimiter, apiKeyService)
+	h := NewHandler(requestBouncer, rateLimiter, apiKeyService, testhelpers.NewUserActivityService())
 	h.DataStore = store
 	h.AuthorizationService = authorizationService
 

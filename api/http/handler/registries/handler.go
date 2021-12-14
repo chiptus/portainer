@@ -8,12 +8,8 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/proxy"
 	"github.com/portainer/portainer/api/http/registryproxy"
-	"github.com/portainer/portainer/api/http/security"
+	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/kubernetes/cli"
-)
-
-const (
-	handlerActivityContext = "Portainer"
 )
 
 func hideFields(registry *portainer.Registry, hideAccesses bool) {
@@ -27,62 +23,51 @@ func hideFields(registry *portainer.Registry, hideAccesses bool) {
 // Handler is the HTTP handler used to handle registry operations.
 type Handler struct {
 	*mux.Router
-	requestBouncer       *security.RequestBouncer
+	requestBouncer       accessGuard
 	registryProxyService *registryproxy.Service
 
-	DataStore         portainer.DataStore
-	FileService       portainer.FileService
-	ProxyManager      *proxy.Manager
-	UserActivityStore portainer.UserActivityStore
-	K8sClientFactory  *cli.ClientFactory
+	DataStore           portainer.DataStore
+	FileService         portainer.FileService
+	ProxyManager        *proxy.Manager
+	userActivityService portainer.UserActivityService
+	K8sClientFactory    *cli.ClientFactory
 }
 
 // NewHandler creates a handler to manage registry operations.
-func NewHandler(bouncer *security.RequestBouncer, userActivityStore portainer.UserActivityStore) *Handler {
-	h := newHandler(bouncer, userActivityStore)
+func NewHandler(bouncer accessGuard, userActivityService portainer.UserActivityService) *Handler {
+	h := newHandler(bouncer, userActivityService)
 	h.initRouter(bouncer)
 
 	return h
 }
 
-func newHandler(bouncer *security.RequestBouncer, userActivityStore portainer.UserActivityStore) *Handler {
+func newHandler(bouncer accessGuard, userActivityService portainer.UserActivityService) *Handler {
 	return &Handler{
 		Router:               mux.NewRouter(),
 		requestBouncer:       bouncer,
-		registryProxyService: registryproxy.NewService(userActivityStore),
-		UserActivityStore:    userActivityStore,
+		registryProxyService: registryproxy.NewService(userActivityService),
+		userActivityService:  userActivityService,
 	}
 }
 
 func (h *Handler) initRouter(bouncer accessGuard) {
-	h.Handle("/registries",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.registryCreate))).Methods(http.MethodPost) // admin
-	h.Handle("/registries",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.registryList))).Methods(http.MethodGet) // admin
-	h.Handle("/registries/{id}",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.registryInspect))).Methods(http.MethodGet) // filtered
-	h.Handle("/registries/{id}",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.registryUpdate))).Methods(http.MethodPut) // admin
-	h.Handle("/registries/{id}/configure",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.registryConfigure))).Methods(http.MethodPost) // admin
-	h.Handle("/registries/{id}",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.registryDelete))).Methods(http.MethodDelete) // admin
-	h.PathPrefix("/registries/{id}/v2").Handler(
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.proxyRequestsToRegistryAPI))) // admin
-	h.PathPrefix("/registries/{id}/proxies/gitlab").Handler(
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.proxyRequestsToGitlabAPIWithRegistry))) // admin
-	h.PathPrefix("/registries/proxies/gitlab").Handler(
-		bouncer.AdminAccess(httperror.LoggerHandler(h.proxyRequestsToGitlabAPIWithoutRegistry)))
-	h.Handle("/registries/{id}/ecr/repositories/{repositoryName}",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.ecrDeleteRepository))).Methods(http.MethodDelete) // admin
-	h.Handle("/registries/{id}/ecr/repositories/{repositoryName}/tags",
-		bouncer.RestrictedAccess(httperror.LoggerHandler(h.ecrDeleteTags))).Methods(http.MethodDelete) // admin
+	h.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
+
+	h.Handle("/registries", httperror.LoggerHandler(h.registryCreate)).Methods(http.MethodPost)
+	h.Handle("/registries", httperror.LoggerHandler(h.registryList)).Methods(http.MethodGet)
+	h.Handle("/registries/{id}", httperror.LoggerHandler(h.registryInspect)).Methods(http.MethodGet)
+	h.Handle("/registries/{id}", httperror.LoggerHandler(h.registryUpdate)).Methods(http.MethodPut)
+	h.Handle("/registries/{id}/configure", httperror.LoggerHandler(h.registryConfigure)).Methods(http.MethodPost)
+	h.Handle("/registries/{id}", httperror.LoggerHandler(h.registryDelete)).Methods(http.MethodDelete)
+	h.Handle("/registries/{id}/ecr/repositories/{repositoryName}", httperror.LoggerHandler(h.ecrDeleteRepository)).Methods(http.MethodDelete)
+	h.Handle("/registries/{id}/ecr/repositories/{repositoryName}/tags", httperror.LoggerHandler(h.ecrDeleteTags)).Methods(http.MethodDelete)
+	h.PathPrefix("/registries/{id}/v2").Handler(httperror.LoggerHandler(h.proxyRequestsToRegistryAPI))
+	h.PathPrefix("/registries/{id}/proxies/gitlab").Handler(httperror.LoggerHandler(h.proxyRequestsToGitlabAPIWithRegistry))
+	h.PathPrefix("/registries/proxies/gitlab").Handler(httperror.LoggerHandler(h.proxyRequestsToGitlabAPIWithoutRegistry))
 }
 
 type accessGuard interface {
 	AdminAccess(h http.Handler) http.Handler
-	RestrictedAccess(h http.Handler) http.Handler
-	AuthenticatedAccess(h http.Handler) http.Handler
 }
 
 func (handler *Handler) registriesHaveSameURLAndCredentials(r1, r2 *portainer.Registry) bool {

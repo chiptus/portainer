@@ -16,7 +16,6 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 // @summary Execute a websocket on pod
@@ -65,7 +64,7 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: command", err}
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find the environment associated to the stack inside the database", err}
 	} else if err != nil {
@@ -118,7 +117,6 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 	r.Header.Del("Origin")
 
 	if endpoint.Type == portainer.AgentOnKubernetesEnvironment {
-		useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, nil)
 		err := handler.proxyAgentWebsocketRequest(w, r, params)
 
 		if err != nil {
@@ -127,7 +125,6 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 
 		return nil
 	} else if endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment {
-		useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, nil)
 
 		err := handler.proxyEdgeAgentWebsocketRequest(w, r, params)
 		if err != nil {
@@ -177,8 +174,6 @@ func (handler *Handler) hijackPodExecStartOperation(
 	// the blocking operation is completed.
 	go cli.StartExecProcess(serviceAccountToken, isAdminToken, namespace, podName, containerName, commandArray, stdinReader, stdoutWriter, errorChan)
 
-	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, nil)
-
 	err = <-errorChan
 
 	// websocket client successfully disconnected
@@ -203,7 +198,7 @@ func (handler *Handler) getToken(request *http.Request, endpoint *portainer.Endp
 
 	tokenCache := handler.kubernetesTokenCacheManager.GetOrCreateTokenCache(int(endpoint.ID))
 
-	tokenManager, err := kubernetes.NewTokenManager(kubecli, handler.DataStore, tokenCache, setLocalAdminToken, handler.authorizationService)
+	tokenManager, err := kubernetes.NewTokenManager(kubecli, handler.dataStore, tokenCache, setLocalAdminToken, handler.authorizationService)
 	if err != nil {
 		return "", false, err
 	}

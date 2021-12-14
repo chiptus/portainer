@@ -14,7 +14,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 type settingsUpdatePayload struct {
@@ -265,28 +264,13 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist settings changes inside the database", Err: err}
 	}
 
-	if payload.LDAPSettings != nil {
-		payload.LDAPSettings.Password = ""
-	}
-
-	if payload.OAuthSettings != nil {
-		payload.OAuthSettings.ClientSecret = ""
-	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, payload)
-
 	return response.JSON(w, settings)
 }
 
 func (handler *Handler) updateSnapshotInterval(settings *portainer.Settings, snapshotInterval string) error {
 	settings.SnapshotInterval = snapshotInterval
 
-	err := handler.SnapshotService.SetSnapshotInterval(snapshotInterval)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return handler.SnapshotService.SetSnapshotInterval(snapshotInterval)
 }
 
 func (handler *Handler) updateTLS(settings *portainer.Settings) *httperror.HandlerError {

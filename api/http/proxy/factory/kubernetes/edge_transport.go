@@ -15,7 +15,7 @@ type edgeTransport struct {
 }
 
 // NewAgentTransport returns a new transport that can be used to send signed requests to a Portainer Edge agent
-func NewEdgeTransport(dataStore portainer.DataStore, signatureService portainer.DigitalSignatureService, reverseTunnelService portainer.ReverseTunnelService, endpoint *portainer.Endpoint, tokenManager *tokenManager, userActivityStore portainer.UserActivityStore, k8sClientFactory *cli.ClientFactory) *edgeTransport {
+func NewEdgeTransport(dataStore portainer.DataStore, signatureService portainer.DigitalSignatureService, reverseTunnelService portainer.ReverseTunnelService, endpoint *portainer.Endpoint, tokenManager *tokenManager, userActivityService portainer.UserActivityService, k8sClientFactory *cli.ClientFactory) *edgeTransport {
 	transport := &edgeTransport{
 		reverseTunnelService: reverseTunnelService,
 		signatureService:     signatureService,
@@ -23,7 +23,7 @@ func NewEdgeTransport(dataStore portainer.DataStore, signatureService portainer.
 			&http.Transport{},
 			tokenManager,
 			endpoint,
-			userActivityStore,
+			userActivityService,
 			k8sClientFactory,
 			dataStore,
 		),

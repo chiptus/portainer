@@ -12,7 +12,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 type forceUpdateServicePayload struct {
@@ -55,7 +54,7 @@ func (handler *Handler) endpointForceUpdateService(w http.ResponseWriter, r *htt
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -88,8 +87,6 @@ func (handler *Handler) endpointForceUpdateService(w http.ResponseWriter, r *htt
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Error force update service", err}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
 
 	return response.JSON(w, newService)
 }

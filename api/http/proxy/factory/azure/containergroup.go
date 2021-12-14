@@ -6,7 +6,7 @@ import (
 
 	"github.com/portainer/portainer/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer/api/http/useractivity"
-	"github.com/sirupsen/logrus"
+	ru "github.com/portainer/portainer/api/http/utils"
 
 	portainer "github.com/portainer/portainer/api"
 )
@@ -56,20 +56,15 @@ func (transport *Transport) proxyContainerGroupPutRequest(request *http.Request)
 		return resp, err
 	}
 
-	body, err := utils.CopyBody(request)
-	if err != nil {
-		logrus.WithError(err).Debug("[azure containergroup put] failed parsing body")
-	}
+	// need a copy of the request body to preserve the original
+	body := ru.CopyRequestBody(request)
 
 	response, err := http.DefaultTransport.RoundTrip(request)
 	if err != nil {
 		return response, err
 	}
 
-	// log if request is success
-	if 200 <= response.StatusCode && response.StatusCode < 300 {
-		useractivity.LogProxyActivity(transport.userActivityStore, transport.endpoint.Name, request, body)
-	}
+	useractivity.LogProxiedActivity(transport.userActivityService, transport.endpoint, response.StatusCode, body, request)
 
 	responseObject, err := utils.GetResponseAsJSONObject(response)
 	if err != nil {
@@ -125,11 +120,6 @@ func (transport *Transport) proxyContainerGroupGetRequest(request *http.Request)
 }
 
 func (transport *Transport) proxyContainerGroupDeleteRequest(request *http.Request) (*http.Response, error) {
-	body, err := utils.CopyBody(request)
-	if err != nil {
-		logrus.WithError(err).Debug("[azure containergroup delete] failed parsing body")
-	}
-
 	context, err := transport.createAzureRequestContext(request)
 	if err != nil {
 		return nil, err
@@ -139,15 +129,15 @@ func (transport *Transport) proxyContainerGroupDeleteRequest(request *http.Reque
 		return utils.WriteAccessDeniedResponse()
 	}
 
+	// need a copy of the request body to preserve the original
+	body := ru.CopyRequestBody(request)
+
 	response, err := http.DefaultTransport.RoundTrip(request)
 	if err != nil {
 		return response, err
 	}
 
-	// log if request is success
-	if 200 <= response.StatusCode && response.StatusCode < 300 {
-		useractivity.LogProxyActivity(transport.userActivityStore, transport.endpoint.Name, request, body)
-	}
+	useractivity.LogProxiedActivity(transport.userActivityService, transport.endpoint, response.StatusCode, body, request)
 
 	responseObject, err := utils.GetResponseAsJSONObject(response)
 	if err != nil {

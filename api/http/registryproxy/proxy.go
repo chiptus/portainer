@@ -6,19 +6,20 @@ import (
 
 	cmap "github.com/orcaman/concurrent-map"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/crypto"
 )
 
 // Service represents a service used to manage registry proxies.
 type Service struct {
-	proxies           cmap.ConcurrentMap
-	userActivityStore portainer.UserActivityStore
+	proxies             cmap.ConcurrentMap
+	userActivityService portainer.UserActivityService
 }
 
 // NewService returns a pointer to a Service.
-func NewService(userActivityStore portainer.UserActivityStore) *Service {
+func NewService(userActivityService portainer.UserActivityService) *Service {
 	return &Service{
-		proxies:           cmap.New(),
-		userActivityStore: userActivityStore,
+		proxies:             cmap.New(),
+		userActivityService: userActivityService,
 	}
 }
 
@@ -36,18 +37,28 @@ func (service *Service) GetProxy(key, uri string, config *portainer.RegistryMana
 func (service *Service) createProxy(key, uri string, config *portainer.RegistryManagementConfiguration) (http.Handler, error) {
 	var proxy http.Handler
 	var err error
+	transport := &http.Transport{}
 
 	switch config.Type {
 	case portainer.AzureRegistry, portainer.EcrRegistry:
-		proxy, err = newTokenSecuredRegistryProxy(uri, config, service.userActivityStore)
+		proxy, err = newTokenSecuredRegistryProxy(uri, config, NewLoggingTransport(service.userActivityService, transport))
 	case portainer.GitlabRegistry:
 		if strings.Contains(key, "gitlab") {
-			proxy, err = newGitlabRegistryProxy(uri, config, service.userActivityStore)
+			proxy, err = newGitlabRegistryProxy(uri, config, NewLoggingTransport(service.userActivityService, transport))
 		} else {
-			proxy, err = newTokenSecuredRegistryProxy(uri, config, service.userActivityStore)
+			proxy, err = newTokenSecuredRegistryProxy(uri, config, NewLoggingTransport(service.userActivityService, transport))
 		}
 	default:
-		proxy, err = newCustomRegistryProxy(uri, config, service.userActivityStore)
+		if config.TLSConfig.TLS {
+			tlsConfig, err := crypto.CreateTLSConfigurationFromDisk(config.TLSConfig.TLSCACertPath, config.TLSConfig.TLSCertPath, config.TLSConfig.TLSKeyPath, config.TLSConfig.TLSSkipVerify)
+			if err != nil {
+				return nil, err
+			}
+
+			transport.TLSClientConfig = tlsConfig
+		}
+
+		proxy, err = newCustomRegistryProxy(uri, config, NewLoggingTransport(service.userActivityService, transport))
 	}
 
 	if err != nil {

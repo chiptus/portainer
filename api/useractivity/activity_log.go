@@ -1,30 +1,19 @@
 package useractivity
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/asdine/storm/v3/q"
+	"github.com/pkg/errors"
 	portainer "github.com/portainer/portainer/api"
 )
 
-func (store *Store) LogUserActivity(username, context, action string, payload []byte) (*portainer.UserActivityLog, error) {
-	activity := &portainer.UserActivityLog{
-		UserActivityLogBase: portainer.UserActivityLogBase{
-			Timestamp: time.Now().Unix(),
-			Username:  username,
-		},
-		Context: context,
-		Action:  action,
-		Payload: payload,
-	}
+func (store *Store) StoreUserActivityLog(userLog *portainer.UserActivityLog) error {
 
-	err := store.db.Save(activity)
+	err := store.db.Save(userLog)
 	if err != nil {
-		return nil, fmt.Errorf("failed saving activity to db: %w", err)
+		return errors.Wrap(err, "failed saving activity to db")
 	}
 
-	return activity, nil
+	return nil
 }
 
 // GetActivityLogs queries the db for activity logs

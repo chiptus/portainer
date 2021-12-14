@@ -38,7 +38,7 @@ func (handler *Handler) endpointRegistryInspect(w http.ResponseWriter, r *http.R
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid registry identifier route variable", Err: err}
 	}
 
-	registry, err := handler.DataStore.Registry().Registry(portainer.RegistryID(registryID))
+	registry, err := handler.dataStore.Registry().Registry(portainer.RegistryID(registryID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find a registry with the specified identifier inside the database", Err: err}
 	} else if err != nil {
@@ -50,7 +50,7 @@ func (handler *Handler) endpointRegistryInspect(w http.ResponseWriter, r *http.R
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve info from request context", Err: err}
 	}
 
-	user, err := handler.DataStore.User().User(securityContext.UserID)
+	user, err := handler.dataStore.User().User(securityContext.UserID)
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve user from the database", Err: err}
 	}

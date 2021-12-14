@@ -2,30 +2,19 @@ package useractivity
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/asdine/storm/v3/q"
 	portainer "github.com/portainer/portainer/api"
 )
 
-// LogAuthActivity logs a new authentication activity log
-func (store *Store) LogAuthActivity(username, origin string, context portainer.AuthenticationMethod, activityType portainer.AuthenticationActivityType) (*portainer.AuthActivityLog, error) {
-	activity := &portainer.AuthActivityLog{
-		Type: activityType,
-		UserActivityLogBase: portainer.UserActivityLogBase{
-			Timestamp: time.Now().Unix(),
-			Username:  username,
-		},
-		Origin:  origin,
-		Context: context,
-	}
-
-	err := store.db.Save(activity)
+// StoreAuthLog stores a new authLog in the store
+func (store *Store) StoreAuthLog(authLog *portainer.AuthActivityLog) error {
+	err := store.db.Save(authLog)
 	if err != nil {
-		return nil, fmt.Errorf("failed saving activity to db: %w", err)
+		return fmt.Errorf("failed saving activity to db: %w", err)
 	}
 
-	return activity, nil
+	return nil
 }
 
 // GetAuthLogs queries the db for authentication activity logs

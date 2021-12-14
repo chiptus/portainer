@@ -19,14 +19,14 @@ func (s *store) GetAuthLogs(opts portainer.AuthLogsQuery) ([]*portainer.AuthActi
 	return nil, 0, nil
 }
 
-func (s *store) LogAuthActivity(username, origin string, context portainer.AuthenticationMethod, activityType portainer.AuthenticationActivityType) (*portainer.AuthActivityLog, error) {
-	return nil, nil
-}
-
 func (s *store) GetUserActivityLogs(opts portainer.UserActivityLogBaseQuery) ([]*portainer.UserActivityLog, int, error) {
 	return nil, 0, nil
 }
 
-func (s *store) LogUserActivity(username, context, action string, payload []byte) (*portainer.UserActivityLog, error) {
-	return nil, nil
+func (s *store) StoreAuthLog(authLog *portainer.AuthActivityLog) error {
+	return nil
+}
+
+func (s *store) StoreUserActivityLog(userLog *portainer.UserActivityLog) error {
+	return nil
 }

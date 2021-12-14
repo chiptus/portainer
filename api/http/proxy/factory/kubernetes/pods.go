@@ -8,8 +8,8 @@ func (transport *baseTransport) proxyPodsRequest(request *http.Request, namespac
 	switch request.Method {
 	case "DELETE":
 		transport.refreshRegistry(request, namespace)
-		return transport.executeKubernetesRequest(request, true)
+		return transport.executeKubernetesRequest(request)
 	default:
-		return transport.executeKubernetesRequest(request, true)
+		return transport.executeKubernetesRequest(request)
 	}
 }

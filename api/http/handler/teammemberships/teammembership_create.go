@@ -10,7 +10,6 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	httperrors "github.com/portainer/portainer/api/http/errors"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 type teamMembershipCreatePayload struct {
@@ -98,8 +97,6 @@ func (handler *Handler) teamMembershipCreate(w http.ResponseWriter, r *http.Requ
 	}
 
 	handler.AuthorizationService.TriggerUserAuthUpdate(payload.UserID)
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, handlerActivityContext, r, payload)
 
 	return response.JSON(w, membership)
 }

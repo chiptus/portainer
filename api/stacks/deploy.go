@@ -52,7 +52,7 @@ func updateAllowed(endpoint *portainer.Endpoint, clock Clock) (bool, error) {
 }
 
 // RedeployWhenChanged pull and redeploy the stack when  git repo changed
-func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, datastore portainer.DataStore, gitService portainer.GitService, activityStore portainer.UserActivityStore) error {
+func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, datastore portainer.DataStore, gitService portainer.GitService, activityService portainer.UserActivityService) error {
 	logger := log.WithFields(log.Fields{"stackID": stackID})
 	logger.Debug("redeploying stack")
 
@@ -156,13 +156,13 @@ func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, data
 		return errors.WithMessagef(err, "failed to update the stack %v", stack.ID)
 	}
 
-	if activityStore != nil {
+	if activityService != nil {
 		if stack.GitConfig != nil && stack.GitConfig.Authentication != nil && stack.GitConfig.Authentication.Password != "" {
 			stack.GitConfig.Authentication.Password = consts.RedactedValue
 		}
 
 		body, _ := json.Marshal(stack)
-		activityStore.LogUserActivity(author, endpoint.Name, "[INTERNAL] stack auto update", body)
+		activityService.LogUserActivity(author, endpoint.Name, "[INTERNAL] stack auto update", body)
 	}
 
 	return nil

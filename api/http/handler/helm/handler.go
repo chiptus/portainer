@@ -11,6 +11,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/middlewares"
 	"github.com/portainer/portainer/api/http/security"
+	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/kubernetes"
 )
 
@@ -25,46 +26,48 @@ type requestBouncer interface {
 // Handler is the HTTP handler used to handle environment(endpoint) group operations.
 type Handler struct {
 	*mux.Router
-	requestBouncer     requestBouncer
-	dataStore          portainer.DataStore
-	jwtService         portainer.JWTService
-	kubeConfigService  kubernetes.KubeConfigService
-	kubernetesDeployer portainer.KubernetesDeployer
-	helmPackageManager libhelm.HelmPackageManager
-	userActivityStore  portainer.UserActivityStore
+	requestBouncer      requestBouncer
+	dataStore           portainer.DataStore
+	jwtService          portainer.JWTService
+	kubeConfigService   kubernetes.KubeConfigService
+	kubernetesDeployer  portainer.KubernetesDeployer
+	helmPackageManager  libhelm.HelmPackageManager
+	userActivityService portainer.UserActivityService
 }
 
 // NewHandler creates a handler to manage endpoint group operations.
-func NewHandler(bouncer requestBouncer, dataStore portainer.DataStore, jwtService portainer.JWTService, kubernetesDeployer portainer.KubernetesDeployer, helmPackageManager libhelm.HelmPackageManager, kubeConfigService kubernetes.KubeConfigService, userActivityStore portainer.UserActivityStore) *Handler {
+func NewHandler(bouncer requestBouncer, dataStore portainer.DataStore, jwtService portainer.JWTService, kubernetesDeployer portainer.KubernetesDeployer, helmPackageManager libhelm.HelmPackageManager, kubeConfigService kubernetes.KubeConfigService, userActivityService portainer.UserActivityService) *Handler {
 	h := &Handler{
-		Router:             mux.NewRouter(),
-		requestBouncer:     bouncer,
-		dataStore:          dataStore,
-		jwtService:         jwtService,
-		kubeConfigService:  kubeConfigService,
-		kubernetesDeployer: kubernetesDeployer,
-		helmPackageManager: helmPackageManager,
-		userActivityStore:  userActivityStore,
+		Router:              mux.NewRouter(),
+		requestBouncer:      bouncer,
+		dataStore:           dataStore,
+		jwtService:          jwtService,
+		kubeConfigService:   kubeConfigService,
+		kubernetesDeployer:  kubernetesDeployer,
+		helmPackageManager:  helmPackageManager,
+		userActivityService: userActivityService,
 	}
 
-	h.Use(middlewares.WithEndpoint(dataStore.Endpoint(), "id"))
+	h.Use(middlewares.WithEndpoint(dataStore.Endpoint(), "id"),
+		bouncer.AuthenticatedAccess,
+		useractivity.LogUserActivity(h.userActivityService))
 
 	// `helm list -o json`
 	h.Handle("/{id}/kubernetes/helm",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.helmList))).Methods(http.MethodGet)
+		httperror.LoggerHandler(h.helmList)).Methods(http.MethodGet)
 
 	// `helm delete RELEASE_NAME`
 	h.Handle("/{id}/kubernetes/helm/{release}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.helmDelete))).Methods(http.MethodDelete)
+		httperror.LoggerHandler(h.helmDelete)).Methods(http.MethodDelete)
 
 	// `helm install [NAME] [CHART] flags`
 	h.Handle("/{id}/kubernetes/helm",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.helmInstall))).Methods(http.MethodPost)
+		httperror.LoggerHandler(h.helmInstall)).Methods(http.MethodPost)
 
 	h.Handle("/{id}/kubernetes/helm/repositories",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.userGetHelmRepos))).Methods(http.MethodGet)
+		httperror.LoggerHandler(h.userGetHelmRepos)).Methods(http.MethodGet)
 	h.Handle("/{id}/kubernetes/helm/repositories",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.userCreateHelmRepo))).Methods(http.MethodPost)
+		httperror.LoggerHandler(h.userCreateHelmRepo)).Methods(http.MethodPost)
 
 	return h
 }
@@ -78,11 +81,11 @@ func NewTemplateHandler(bouncer requestBouncer, helmPackageManager libhelm.HelmP
 	}
 
 	h.Handle("/templates/helm",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.helmRepoSearch))).Methods(http.MethodGet)
+		httperror.LoggerHandler(h.helmRepoSearch)).Methods(http.MethodGet)
 
 	// helm show [COMMAND] [CHART] [REPO] flags
 	h.Handle("/templates/helm/{command:chart|values|readme}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.helmShow))).Methods(http.MethodGet)
+		httperror.LoggerHandler(h.helmShow)).Methods(http.MethodGet)
 
 	return h
 }

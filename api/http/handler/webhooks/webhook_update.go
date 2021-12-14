@@ -1,16 +1,17 @@
 package webhooks
 
 import (
+	"net/http"
+
+	"github.com/portainer/portainer/api/http/middlewares"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/registryutils/access"
-	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 type webhookUpdatePayload struct {
@@ -47,21 +48,22 @@ func (handler *Handler) webhookUpdate(w http.ResponseWriter, r *http.Request) *h
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	webhook, err := handler.DataStore.Webhook().Webhook(webhookID)
+	webhook, err := handler.dataStore.Webhook().Webhook(webhookID)
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a webhooks with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a webhooks with the specified identifier inside the database", err}
 	}
 
-
 	endpointID := webhook.EndpointID
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(endpointID)
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
 	}
+	// endpoint will be used in the user activity logging middleware
+	middlewares.SetEndpoint(endpoint, r)
 
 	if payload.RegistryID != 0 {
 		tokenData, err := security.RetrieveTokenData(r)
@@ -69,7 +71,7 @@ func (handler *Handler) webhookUpdate(w http.ResponseWriter, r *http.Request) *h
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}
 		}
 
-		_, err = access.GetAccessibleRegistry(handler.DataStore, tokenData.ID, endpointID, payload.RegistryID)
+		_, err = access.GetAccessibleRegistry(handler.dataStore, tokenData.ID, endpointID, payload.RegistryID)
 		if err != nil {
 			return &httperror.HandlerError{http.StatusForbidden, "Permission deny to access registry", err}
 		}
@@ -77,12 +79,10 @@ func (handler *Handler) webhookUpdate(w http.ResponseWriter, r *http.Request) *h
 
 	webhook.RegistryID = payload.RegistryID
 
-	err = handler.DataStore.Webhook().UpdateWebhook(portainer.WebhookID(id), webhook)
+	err = handler.dataStore.Webhook().UpdateWebhook(portainer.WebhookID(id), webhook)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the webhook inside the database", err}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, endpoint.Name, r, payload)
 
 	return response.JSON(w, webhook)
 }

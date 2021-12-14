@@ -5,19 +5,14 @@ import (
 	"net/url"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/crypto"
-	"github.com/portainer/portainer/api/http/proxy/factory/utils"
-	"github.com/portainer/portainer/api/http/useractivity"
-	"github.com/sirupsen/logrus"
 )
 
 type customTransport struct {
-	config            *portainer.RegistryManagementConfiguration
-	httpTransport     *http.Transport
-	userActivityStore portainer.UserActivityStore
+	config        *portainer.RegistryManagementConfiguration
+	httpTransport http.RoundTripper
 }
 
-func newCustomRegistryProxy(uri string, config *portainer.RegistryManagementConfiguration, userActivityStore portainer.UserActivityStore) (http.Handler, error) {
+func newCustomRegistryProxy(uri string, config *portainer.RegistryManagementConfiguration, httpTransport http.RoundTripper) (http.Handler, error) {
 	scheme := "http"
 	if config.TLSConfig.TLS {
 		scheme = "https"
@@ -32,18 +27,8 @@ func newCustomRegistryProxy(uri string, config *portainer.RegistryManagementConf
 
 	proxy := newSingleHostReverseProxyWithHostHeader(url)
 	proxy.Transport = &customTransport{
-		config:            config,
-		httpTransport:     &http.Transport{},
-		userActivityStore: userActivityStore,
-	}
-
-	if config.TLSConfig.TLS {
-		tlsConfig, err := crypto.CreateTLSConfigurationFromDisk(config.TLSConfig.TLSCACertPath, config.TLSConfig.TLSCertPath, config.TLSConfig.TLSKeyPath, config.TLSConfig.TLSSkipVerify)
-		if err != nil {
-			return nil, err
-		}
-
-		proxy.Transport.(*customTransport).httpTransport.TLSClientConfig = tlsConfig
+		config:        config,
+		httpTransport: httpTransport,
 	}
 
 	return proxy, nil
@@ -67,11 +52,6 @@ func (transport *customTransport) RoundTrip(request *http.Request) (*http.Respon
 		clonedRequest.SetBasicAuth(transport.config.Username, transport.config.Password)
 	}
 
-	body, err := utils.CopyBody(request)
-	if err != nil {
-		logrus.WithError(err).Debug("[customtoken] failed parsing body")
-	}
-
 	response, err := transport.httpTransport.RoundTrip(clonedRequest)
 	if err != nil {
 		return nil, err
@@ -88,11 +68,6 @@ func (transport *customTransport) RoundTrip(request *http.Request) (*http.Respon
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	// log if request is success
-	if err == nil && (200 <= response.StatusCode && response.StatusCode < 300) {
-		useractivity.LogProxyActivity(transport.userActivityStore, "Portainer", request, body)
 	}
 
 	return response, err

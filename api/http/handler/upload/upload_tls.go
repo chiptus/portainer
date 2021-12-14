@@ -8,7 +8,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 // @id UploadTLS
@@ -59,8 +58,6 @@ func (handler *Handler) uploadTLS(w http.ResponseWriter, r *http.Request) *httpe
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist certificate file on disk", err}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, "", r, nil)
 
 	return response.Empty(w)
 }

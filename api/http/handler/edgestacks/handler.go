@@ -10,43 +10,42 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/http/security"
-)
-
-const (
-	handlerActivityContext = "Portainer"
+	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 // Handler is the HTTP handler used to handle environment(endpoint) group operations.
 type Handler struct {
 	*mux.Router
-	requestBouncer     *security.RequestBouncer
-	DataStore          portainer.DataStore
-	FileService        portainer.FileService
-	GitService         portainer.GitService
-	UserActivityStore  portainer.UserActivityStore
-	KubernetesDeployer portainer.KubernetesDeployer
+	requestBouncer      *security.RequestBouncer
+	DataStore           portainer.DataStore
+	FileService         portainer.FileService
+	GitService          portainer.GitService
+	userActivityService portainer.UserActivityService
+	KubernetesDeployer  portainer.KubernetesDeployer
 }
 
 // NewHandler creates a handler to manage environment(endpoint) group operations.
-func NewHandler(bouncer *security.RequestBouncer) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, userActivityService portainer.UserActivityService) *Handler {
 	h := &Handler{
-		Router:         mux.NewRouter(),
-		requestBouncer: bouncer,
+		Router:              mux.NewRouter(),
+		requestBouncer:      bouncer,
+		userActivityService: userActivityService,
 	}
-	h.Handle("/edge_stacks",
-		bouncer.AdminAccess(bouncer.EdgeComputeOperation(httperror.LoggerHandler(h.edgeStackCreate)))).Methods(http.MethodPost)
-	h.Handle("/edge_stacks",
-		bouncer.AdminAccess(bouncer.EdgeComputeOperation(httperror.LoggerHandler(h.edgeStackList)))).Methods(http.MethodGet)
-	h.Handle("/edge_stacks/{id}",
-		bouncer.AdminAccess(bouncer.EdgeComputeOperation(httperror.LoggerHandler(h.edgeStackInspect)))).Methods(http.MethodGet)
-	h.Handle("/edge_stacks/{id}",
-		bouncer.AdminAccess(bouncer.EdgeComputeOperation(httperror.LoggerHandler(h.edgeStackUpdate)))).Methods(http.MethodPut)
-	h.Handle("/edge_stacks/{id}",
-		bouncer.AdminAccess(bouncer.EdgeComputeOperation(httperror.LoggerHandler(h.edgeStackDelete)))).Methods(http.MethodDelete)
-	h.Handle("/edge_stacks/{id}/file",
-		bouncer.AdminAccess(bouncer.EdgeComputeOperation(httperror.LoggerHandler(h.edgeStackFile)))).Methods(http.MethodGet)
-	h.Handle("/edge_stacks/{id}/status",
-		bouncer.PublicAccess(httperror.LoggerHandler(h.edgeStackStatusUpdate))).Methods(http.MethodPut)
+
+	adminRouter := h.NewRoute().Subrouter()
+	adminRouter.Use(bouncer.AdminAccess, bouncer.EdgeComputeOperation, useractivity.LogUserActivity(h.userActivityService))
+
+	publicRouter := h.NewRoute().Subrouter()
+	publicRouter.Use(useractivity.LogUserActivity(h.userActivityService))
+
+	adminRouter.Handle("/edge_stacks", httperror.LoggerHandler(h.edgeStackCreate)).Methods(http.MethodPost)
+	adminRouter.Handle("/edge_stacks", httperror.LoggerHandler(h.edgeStackList)).Methods(http.MethodGet)
+	adminRouter.Handle("/edge_stacks/{id}", httperror.LoggerHandler(h.edgeStackInspect)).Methods(http.MethodGet)
+	adminRouter.Handle("/edge_stacks/{id}", httperror.LoggerHandler(h.edgeStackUpdate)).Methods(http.MethodPut)
+	adminRouter.Handle("/edge_stacks/{id}", httperror.LoggerHandler(h.edgeStackDelete)).Methods(http.MethodDelete)
+	adminRouter.Handle("/edge_stacks/{id}/file", httperror.LoggerHandler(h.edgeStackFile)).Methods(http.MethodGet)
+
+	publicRouter.Handle("/edge_stacks/{id}/status", httperror.LoggerHandler(h.edgeStackStatusUpdate)).Methods(http.MethodPut)
 	return h
 }
 

@@ -14,9 +14,6 @@ import (
 const (
 	cleanupInterval = 24 * time.Hour
 	maxLogsAge      = 7
-
-	// RedactedValue is used for cleared fields
-	RedactedValue = "[REDACTED]"
 )
 
 // Store is a store for user activities
@@ -32,8 +29,8 @@ type dbWrapper struct {
 
 const databaseFileName = "useractivity.db"
 
-// NewUserActivityStore Creates a new store
-func NewUserActivityStore(dataPath string) (*Store, error) {
+// NewStore Creates a new store
+func NewStore(dataPath string) (*Store, error) {
 	databasePath := path.Join(dataPath, databaseFileName)
 
 	db, err := storm.Open(databasePath)

@@ -9,7 +9,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 // @id EdgeJobTasksClear
@@ -62,8 +61,6 @@ func (handler *Handler) edgeJobTasksClear(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist Edge job changes in the database", err}
 	}
-
-	useractivity.LogHttpActivity(handler.UserActivityStore, "Portainer", r, nil)
 
 	return response.Empty(w)
 }

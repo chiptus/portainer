@@ -12,8 +12,6 @@ import (
 	bolterrors "github.com/portainer/portainer/api/bolt/errors"
 	httperrors "github.com/portainer/portainer/api/http/errors"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
-	consts "github.com/portainer/portainer/api/useractivity"
 )
 
 type userUpdatePasswordPayload struct {
@@ -92,10 +90,6 @@ func (handler *Handler) userUpdatePassword(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist user changes inside the database", err}
 	}
-
-	payload.Password = consts.RedactedValue
-	payload.NewPassword = consts.RedactedValue
-	useractivity.LogHttpActivity(handler.UserActivityStore, "", r, payload)
 
 	return response.Empty(w)
 }

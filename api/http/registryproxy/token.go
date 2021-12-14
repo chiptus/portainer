@@ -7,17 +7,14 @@ import (
 	"time"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/proxy/factory/utils"
-	"github.com/portainer/portainer/api/http/useractivity"
 	"github.com/portainer/portainer/api/internal/registryutils"
-	"github.com/sirupsen/logrus"
 )
 
 type (
 	tokenSecuredTransport struct {
-		config            *portainer.RegistryManagementConfiguration
-		client            *http.Client
-		userActivityStore portainer.UserActivityStore
+		config        *portainer.RegistryManagementConfiguration
+		client        *http.Client
+		httpTransport http.RoundTripper
 	}
 
 	genericAuthenticationResponse struct {
@@ -29,7 +26,7 @@ type (
 	}
 )
 
-func newTokenSecuredRegistryProxy(uri string, config *portainer.RegistryManagementConfiguration, userActivityStore portainer.UserActivityStore) (http.Handler, error) {
+func newTokenSecuredRegistryProxy(uri string, config *portainer.RegistryManagementConfiguration, httpTransport http.RoundTripper) (http.Handler, error) {
 	url, err := url.Parse("https://" + uri)
 	if err != nil {
 		return nil, err
@@ -37,8 +34,8 @@ func newTokenSecuredRegistryProxy(uri string, config *portainer.RegistryManageme
 
 	proxy := newSingleHostReverseProxyWithHostHeader(url)
 	proxy.Transport = &tokenSecuredTransport{
-		config:            config,
-		userActivityStore: userActivityStore,
+		config:        config,
+		httpTransport: httpTransport,
 		client: &http.Client{
 			Timeout: time.Second * 10,
 		},
@@ -60,21 +57,16 @@ func (transport *tokenSecuredTransport) RoundTrip(request *http.Request) (*http.
 		return nil, err
 	}
 
-	body, err := utils.CopyBody(request)
-	if err != nil {
-		logrus.WithError(err).Debug("[registrytoken] failed parsing body")
-	}
-
 	if transport.config.Type == portainer.EcrRegistry {
 		err = registryutils.EnsureManegeTokenValid(transport.config)
 		if err != nil {
 			return nil, err
 		}
 
-		requestCopy.Header.Set("Authorization", "Basic "+ base64.StdEncoding.EncodeToString([]byte(transport.config.AccessToken)))
+		requestCopy.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(transport.config.AccessToken)))
 	}
 
-	response, err := http.DefaultTransport.RoundTrip(requestCopy)
+	response, err := transport.httpTransport.RoundTrip(requestCopy)
 	if err != nil {
 		return response, err
 	}
@@ -86,16 +78,11 @@ func (transport *tokenSecuredTransport) RoundTrip(request *http.Request) (*http.
 		}
 
 		request.Header.Set("Authorization", "Bearer "+*token)
-		response, err = http.DefaultTransport.RoundTrip(request)
+		response, err = transport.httpTransport.RoundTrip(request)
 		if err != nil {
 			return nil, err
 		}
 
-	}
-
-	// log if request is success
-	if 200 <= response.StatusCode && response.StatusCode < 300 {
-		useractivity.LogProxyActivity(transport.userActivityStore, "Portainer", request, body)
 	}
 
 	return response, nil

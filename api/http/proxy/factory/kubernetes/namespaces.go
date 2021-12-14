@@ -64,5 +64,5 @@ func (transport *baseTransport) proxyNamespaceDeleteOperation(request *http.Requ
 		}
 	}
 
-	return transport.executeKubernetesRequest(request, false)
+	return transport.executeKubernetesRequest(request)
 }

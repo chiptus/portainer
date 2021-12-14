@@ -13,32 +13,31 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/portainer/portainer/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/http/useractivity"
+	ru "github.com/portainer/portainer/api/http/utils"
 	"github.com/portainer/portainer/api/kubernetes/cli"
-	"github.com/sirupsen/logrus"
 
 	portainer "github.com/portainer/portainer/api"
 )
 
 type baseTransport struct {
-	httpTransport     *http.Transport
-	tokenManager      *tokenManager
-	endpoint          *portainer.Endpoint
-	userActivityStore portainer.UserActivityStore
-	k8sClientFactory  *cli.ClientFactory
-	dataStore         portainer.DataStore
+	httpTransport       *http.Transport
+	tokenManager        *tokenManager
+	endpoint            *portainer.Endpoint
+	userActivityService portainer.UserActivityService
+	k8sClientFactory    *cli.ClientFactory
+	dataStore           portainer.DataStore
 }
 
-func newBaseTransport(httpTransport *http.Transport, tokenManager *tokenManager, endpoint *portainer.Endpoint, userActivityStore portainer.UserActivityStore, k8sClientFactory *cli.ClientFactory, dataStore portainer.DataStore) *baseTransport {
+func newBaseTransport(httpTransport *http.Transport, tokenManager *tokenManager, endpoint *portainer.Endpoint, userActivityService portainer.UserActivityService, k8sClientFactory *cli.ClientFactory, dataStore portainer.DataStore) *baseTransport {
 	return &baseTransport{
-		httpTransport:     httpTransport,
-		tokenManager:      tokenManager,
-		endpoint:          endpoint,
-		userActivityStore: userActivityStore,
-		k8sClientFactory:  k8sClientFactory,
-		dataStore:         dataStore,
+		httpTransport:       httpTransport,
+		tokenManager:        tokenManager,
+		endpoint:            endpoint,
+		userActivityService: userActivityService,
+		k8sClientFactory:    k8sClientFactory,
+		dataStore:           dataStore,
 	}
 }
 
@@ -65,13 +64,11 @@ func (transport *baseTransport) proxyKubernetesRequest(request *http.Request) (*
 
 	switch {
 	case strings.EqualFold(requestPath, "/namespaces"):
-		return transport.executeKubernetesRequest(request, true)
+		return transport.executeKubernetesRequest(request)
 	case strings.HasPrefix(requestPath, "/namespaces"):
 		return transport.proxyNamespacedRequest(request, requestPath)
-	case strings.HasPrefix(requestPath, "/v2"):
-		return transport.proxyV2Request(request, requestPath)
 	default:
-		return transport.executeKubernetesRequest(request, true)
+		return transport.executeKubernetesRequest(request)
 	}
 }
 
@@ -86,38 +83,24 @@ func (transport *baseTransport) proxyNamespacedRequest(request *http.Request, fu
 	}
 
 	switch {
-	case strings.HasPrefix(requestPath, "configmaps"):
-		return transport.proxyConfigMapsRequest(request, requestPath)
 	case strings.HasPrefix(requestPath, "pods"):
 		return transport.proxyPodsRequest(request, namespace, requestPath)
 	case strings.HasPrefix(requestPath, "deployments"):
 		return transport.proxyDeploymentsRequest(request, namespace, requestPath)
-	case strings.HasPrefix(requestPath, "secrets"):
-		return transport.proxySecretsRequest(request, namespace, requestPath)
 	case requestPath == "" && request.Method == "DELETE":
 		return transport.proxyNamespaceDeleteOperation(request, namespace)
 	default:
-		return transport.executeKubernetesRequest(request, true)
+		return transport.executeKubernetesRequest(request)
 	}
 }
 
-func (transport *baseTransport) executeKubernetesRequest(request *http.Request, shouldLog bool) (*http.Response, error) {
-	var body []byte
-
-	if shouldLog {
-		bodyBytes, err := utils.CopyBody(request)
-		if err != nil {
-			logrus.WithError(err).Debug("[k8s transport] failed parsing body")
-		}
-
-		body = bodyBytes
-	}
+func (transport *baseTransport) executeKubernetesRequest(request *http.Request) (*http.Response, error) {
+	// need a copy of the request body to preserve the original
+	body := ru.CopyRequestBody(request)
 
 	resp, err := transport.httpTransport.RoundTrip(request)
-
-	// log if request is success
-	if shouldLog && err == nil && (200 <= resp.StatusCode && resp.StatusCode < 300) {
-		useractivity.LogProxyActivity(transport.userActivityStore, transport.endpoint.Name, request, body)
+	if err == nil {
+		useractivity.LogProxiedActivity(transport.userActivityService, transport.endpoint, resp.StatusCode, body, request)
 	}
 
 	// This fix was made to resolve a k8s e2e test, more detailed investigation should be done later.
