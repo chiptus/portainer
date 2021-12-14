@@ -17,7 +17,6 @@ function EndpointController(
   EndpointService,
   GroupService,
   TagService,
-  EndpointProvider,
   Notifications,
   Authentication,
   SettingsService,
@@ -186,7 +185,6 @@ function EndpointController(
     EndpointService.updateEndpoint(endpoint.Id, payload).then(
       function success() {
         Notifications.success('Environment updated', $scope.endpoint.Name);
-        EndpointProvider.setEndpointPublicURL(endpoint.PublicURL);
         $state.go('portainer.endpoints', {}, { reload: true });
       },
       function error(err) {

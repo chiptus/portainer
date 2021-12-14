@@ -4,13 +4,12 @@ import { baseHref } from '@/portainer/helpers/pathHelper';
 
 class KubernetesApplicationConsoleController {
   /* @ngInject */
-  constructor($async, $state, Notifications, Authentication, KubernetesApplicationService, EndpointProvider, LocalStorage) {
+  constructor($async, $state, Notifications, Authentication, KubernetesApplicationService, LocalStorage) {
     this.$async = $async;
     this.$state = $state;
     this.Notifications = Notifications;
     this.Authentication = Authentication;
     this.KubernetesApplicationService = KubernetesApplicationService;
-    this.EndpointProvider = EndpointProvider;
     this.LocalStorage = LocalStorage;
 
     this.onInit = this.onInit.bind(this);
@@ -53,7 +52,7 @@ class KubernetesApplicationConsoleController {
   connectConsole() {
     const params = {
       token: this.LocalStorage.getJWT(),
-      endpointId: this.EndpointProvider.endpointID(),
+      endpointId: this.endpoint.Id,
       namespace: this.application.ResourcePool,
       podName: this.podName,
       containerName: this.containerName,

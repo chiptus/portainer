@@ -21,24 +21,12 @@ function computeSize(volumes) {
 
 class KubernetesVolumesController {
   /* @ngInject */
-  constructor(
-    $async,
-    $state,
-    Notifications,
-    ModalService,
-    LocalStorage,
-    EndpointProvider,
-    Authentication,
-    KubernetesStorageService,
-    KubernetesVolumeService,
-    KubernetesApplicationService
-  ) {
+  constructor($async, $state, Notifications, ModalService, LocalStorage, Authentication, KubernetesStorageService, KubernetesVolumeService, KubernetesApplicationService) {
     this.$async = $async;
     this.$state = $state;
     this.Notifications = Notifications;
     this.ModalService = ModalService;
     this.LocalStorage = LocalStorage;
-    this.EndpointProvider = EndpointProvider;
     this.Authentication = Authentication;
     this.KubernetesStorageService = KubernetesStorageService;
     this.KubernetesVolumeService = KubernetesVolumeService;
@@ -87,7 +75,7 @@ class KubernetesVolumesController {
       const [volumes, applications, storages] = await Promise.all([
         this.KubernetesVolumeService.get(),
         this.KubernetesApplicationService.get(),
-        this.KubernetesStorageService.get(this.state.endpointId),
+        this.KubernetesStorageService.get(this.endpoint.Id),
       ]);
 
       this.volumes = _.map(volumes, (volume) => {
@@ -95,7 +83,7 @@ class KubernetesVolumesController {
         return volume;
       });
       const tempStorages = buildStorages(storages, volumes);
-      const activatedStoragesClasses = this.EndpointProvider.currentEndpoint().Kubernetes.Configuration.StorageClasses;
+      const activatedStoragesClasses = this.endpoint.Kubernetes.Configuration.StorageClasses;
       this.storages = _.filter(tempStorages, (item) => {
         const storage = _.find(activatedStoragesClasses, (sc) => sc.Name === item.Name);
         if (storage || this.Authentication.hasAuthorizations(['K8sStorageClassDisabledR'])) {
@@ -114,9 +102,7 @@ class KubernetesVolumesController {
   async onInit() {
     this.state = {
       viewReady: false,
-      // endpointId: this.$transition$.params().endpointId, // TODO: use this when moving to endpointID in URL
       currentName: this.$state.$current.name,
-      endpointId: this.EndpointProvider.endpointID(),
       activeTab: this.LocalStorage.getActiveTab('volumes'),
     };
 

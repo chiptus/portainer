@@ -309,11 +309,7 @@ angular
         $scope.state.StackType = 1;
       }
 
-      try {
-        $scope.composeSyntaxMaxVersion = endpoint.ComposeSyntaxMaxVersion;
-      } catch (err) {
-        Notifications.error('Failure', err, 'Unable to retrieve the ComposeSyntaxMaxVersion');
-      }
+      $scope.composeSyntaxMaxVersion = endpoint.ComposeSyntaxMaxVersion;
 
       try {
         const containers = await ContainerService.containers(true);

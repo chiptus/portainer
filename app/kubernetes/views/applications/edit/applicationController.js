@@ -113,7 +113,6 @@ class KubernetesApplicationController {
     KubernetesStackService,
     KubernetesPodService,
     KubernetesNodeService,
-    EndpointProvider,
     StackService
   ) {
     this.$async = $async;
@@ -136,7 +135,6 @@ class KubernetesApplicationController {
     this.ApplicationDataAccessPolicies = KubernetesApplicationDataAccessPolicies;
     this.KubernetesServiceTypes = KubernetesServiceTypes;
     this.KubernetesPodContainerTypes = KubernetesPodContainerTypes;
-    this.EndpointProvider = EndpointProvider;
     this.KubernetesDeploymentTypes = KubernetesDeploymentTypes;
 
     this.onInit = this.onInit.bind(this);
@@ -366,7 +364,7 @@ class KubernetesApplicationController {
       placementWarning: false,
       expandedNote: false,
       useIngress: false,
-      useServerMetrics: this.EndpointProvider.currentEndpoint().Kubernetes.Configuration.UseServerMetrics,
+      useServerMetrics: this.endpoint.Kubernetes.Configuration.UseServerMetrics,
       isAuthorized: this.Authentication.hasAuthorizations(['K8sApplicationDetailsW']),
       canAccessNode: this.Authentication.hasAuthorizations(['K8sClusterNodeR']),
       canShowConsole: this.Authentication.hasAuthorizations(['K8sApplicationConsoleRW']),

@@ -134,10 +134,8 @@ class KubernetesClusterController {
       applicationsLoading: true,
       viewReady: false,
       hasK8sClusterNodeR,
-      useServerMetrics: false,
+      useServerMetrics: this.endpoint.Kubernetes.Configuration.UseServerMetrics,
     };
-
-    this.state.useServerMetrics = this.endpoint.Kubernetes.Configuration.UseServerMetrics;
 
     await this.getNodes();
     if (hasK8sClusterNodeR) {
