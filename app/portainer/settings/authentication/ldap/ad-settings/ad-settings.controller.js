@@ -1,6 +1,6 @@
 import _ from 'lodash-es';
+import { FeatureId } from '@/portainer/feature-flags/enums';
 const DEFAULT_GROUP_FILTER = '(objectClass=group)';
-import { HIDE_INTERNAL_AUTH } from '@/portainer/feature-flags/feature-ids';
 
 export default class AdSettingsController {
   /* @ngInject */
@@ -9,7 +9,7 @@ export default class AdSettingsController {
     this.featureService = featureService;
 
     this.domainSuffix = '';
-    this.limitedFeatureId = HIDE_INTERNAL_AUTH;
+    this.limitedFeatureId = FeatureId.HIDE_INTERNAL_AUTH;
     this.onTlscaCertChange = this.onTlscaCertChange.bind(this);
     this.searchUsers = this.searchUsers.bind(this);
     this.searchGroups = this.searchGroups.bind(this);

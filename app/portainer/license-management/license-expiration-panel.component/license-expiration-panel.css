@@ -1,9 +1,0 @@
-.license-expiration-panel {
-  display: flex;
-  align-items: center;
-  margin-top: 5px;
-}
-
-.license-expiration-panel .license-expiration-message {
-  text-align: justify;
-}

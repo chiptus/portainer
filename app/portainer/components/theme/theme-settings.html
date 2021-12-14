@@ -11,7 +11,7 @@
   <rd-widget-body>
     <form class="theme-panel">
       <!-- Theme Selector-->
-      <box-selector radio-name="theme" ng-model="$ctrl.state.userTheme" options="$ctrl.state.availableThemes" on-change="($ctrl.setTheme)"></box-selector>
+      <box-selector radio-name="'theme'" value="$ctrl.state.userTheme" options="$ctrl.state.availableThemes" on-change="($ctrl.setTheme)"></box-selector>
       <button ng-click="$ctrl.updateTheme()" class="btn btn-primary btn-sm">Update theme</button>
       <!-- !Theme -->
     </form>

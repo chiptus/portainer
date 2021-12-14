@@ -18,7 +18,7 @@ import KubernetesResourceQuotaConverter from 'Kubernetes/converters/resourceQuot
 import KubernetesStorageClassConverter from 'Kubernetes/converters/storageClass';
 import KubernetesResourceQuotaHelper from 'Kubernetes/helpers/resourceQuotaHelper';
 import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
-import { K8S_RESOURCE_POOL_LB_QUOTA, K8S_RESOURCE_POOL_STORAGE_QUOTA } from '@/portainer/feature-flags/feature-ids';
+import { FeatureId } from '@/portainer/feature-flags/enums';
 
 class KubernetesResourcePoolController {
   /* #region  CONSTRUCTOR */
@@ -26,6 +26,7 @@ class KubernetesResourcePoolController {
   constructor(
     $async,
     $state,
+    $scope,
     Authentication,
     Notifications,
     LocalStorage,
@@ -44,6 +45,7 @@ class KubernetesResourcePoolController {
     Object.assign(this, {
       $async,
       $state,
+      $scope,
       Authentication,
       Notifications,
       LocalStorage,
@@ -63,13 +65,27 @@ class KubernetesResourcePoolController {
     this.IngressClassTypes = KubernetesIngressClassTypes;
     this.ResourceQuotaDefaults = KubernetesResourceQuotaDefaults;
 
-    this.LBQuotaFeatureId = K8S_RESOURCE_POOL_LB_QUOTA;
-    this.StorageQuotaFeatureId = K8S_RESOURCE_POOL_STORAGE_QUOTA;
+    this.LBQuotaFeatureId = FeatureId.K8S_RESOURCE_POOL_LB_QUOTA;
+    this.StorageQuotaFeatureId = FeatureId.K8S_RESOURCE_POOL_STORAGE_QUOTA;
 
     this.updateResourcePoolAsync = this.updateResourcePoolAsync.bind(this);
     this.getEvents = this.getEvents.bind(this);
+    this.onToggleLoadBalancersQuota = this.onToggleLoadBalancersQuota.bind(this);
+    this.onToggleStorageQuota = this.onToggleStorageQuota.bind(this);
   }
   /* #endregion */
+
+  onToggleLoadBalancersQuota(checked) {
+    return this.$scope.$evalAsync(() => {
+      this.formValues.UseLoadBalancersQuota = checked;
+    });
+  }
+
+  onToggleStorageQuota(storageClassName, enabled) {
+    this.$scope.$evalAsync(() => {
+      this.formValues.StorageClasses = this.formValues.StorageClasses.map((sClass) => (sClass.Name !== storageClassName ? sClass : { ...sClass, Selected: enabled }));
+    });
+  }
 
   /* #region  INGRESS MANAGEMENT */
   onChangeIngressHostname() {

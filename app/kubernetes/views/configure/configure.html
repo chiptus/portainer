@@ -150,11 +150,12 @@
             <div class="form-group">
               <div class="col-sm-12">
                 <por-switch-field
-                  ng-model="ctrl.state.autoUpdateSettings.Enabled"
-                  name="disableSysctlSettingForRegularUsers"
-                  label="Enable Change Window"
-                  feature="ctrl.limitedFeatureAutoWindow"
-                  tooltip="Automatic updates to stacks or applications outside the defined change window will not occur."
+                  checked="ctrl.state.autoUpdateSettings.Enabled"
+                  name="'disableSysctlSettingForRegularUsers'"
+                  label="'Enable Change Window'"
+                  feature-id="ctrl.limitedFeatureAutoWindow"
+                  tooltip="'Automatic updates to stacks or applications outside the defined change window will not occur.'"
+                  on-change="(ctrl.onToggleAutoUpdate)"
                 >
                 </por-switch-field>
               </div>
@@ -205,12 +206,12 @@
 
               <div class="col-sm-12">
                 <por-switch-field
-                  ng-data-cy="kubeSetup-resourceOverCommitToggle"
-                  label="Allow resource over-commit"
-                  name="resource-over-commit-switch"
-                  feature="ctrl.limitedFeature"
-                  ng-model="ctrl.formValues.EnableResourceOverCommit"
-                  ng-change="ctrl.onChangeEnableResourceOverCommit()"
+                  data-cy="'kubeSetup-resourceOverCommitToggle'"
+                  label="'Allow resource over-commit'"
+                  name="'resource-over-commit-switch'"
+                  feature-id="ctrl.limitedFeature"
+                  checked="ctrl.formValues.EnableResourceOverCommit"
+                  on-change="(ctrl.onChangeEnableResourceOverCommit)"
                 ></por-switch-field>
               </div>
             </div>

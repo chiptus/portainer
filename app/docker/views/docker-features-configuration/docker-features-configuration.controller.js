@@ -1,15 +1,16 @@
-import { HIDE_AUTO_UPDATE_WINDOW } from 'Portainer/feature-flags/feature-ids';
+import { FeatureId } from '@/portainer/feature-flags/enums';
 
 export default class DockerFeaturesConfigurationController {
   /* @ngInject */
-  constructor($analytics, $async, EndpointService, Notifications, StateManager) {
+  constructor($analytics, $async, $scope, EndpointService, Notifications, StateManager) {
     this.$analytics = $analytics;
     this.$async = $async;
+    this.$scope = $scope;
     this.EndpointService = EndpointService;
     this.Notifications = Notifications;
     this.StateManager = StateManager;
 
-    this.limitedFeature = HIDE_AUTO_UPDATE_WINDOW;
+    this.limitedFeature = FeatureId.HIDE_AUTO_UPDATE_WINDOW;
 
     this.formValues = {
       enableHostManagementFeatures: false,
@@ -27,9 +28,45 @@ export default class DockerFeaturesConfigurationController {
 
     this.state = {
       actionInProgress: false,
+      autoUpdateSettings: { Enabled: false },
+      timeZone: '',
     };
 
     this.save = this.save.bind(this);
+    this.onChangeField = this.onChangeField.bind(this);
+    this.onToggleAutoUpdate = this.onToggleAutoUpdate.bind(this);
+    this.onChangeEnableHostManagementFeatures = this.onChangeField('enableHostManagementFeatures');
+    this.onChangeAllowVolumeBrowserForRegularUsers = this.onChangeField('allowVolumeBrowserForRegularUsers');
+    this.onChangeDisableBindMountsForRegularUsers = this.onChangeField('disableBindMountsForRegularUsers');
+    this.onChangeDisablePrivilegedModeForRegularUsers = this.onChangeField('disablePrivilegedModeForRegularUsers');
+    this.onChangeDisableHostNamespaceForRegularUsers = this.onChangeField('disableHostNamespaceForRegularUsers');
+    this.onChangeDisableStackManagementForRegularUsers = this.onChangeField('disableStackManagementForRegularUsers');
+    this.onChangeDisableDeviceMappingForRegularUsers = this.onChangeField('disableDeviceMappingForRegularUsers');
+    this.onChangeDisableContainerCapabilitiesForRegularUsers = this.onChangeField('disableContainerCapabilitiesForRegularUsers');
+    this.onChangeDisableSysctlSettingForRegularUsers = this.onChangeField('disableSysctlSettingForRegularUsers');
+  }
+
+  onToggleAutoUpdate(value) {
+    return this.$scope.$evalAsync(() => {
+      this.state.autoUpdateSettings.Enabled = value;
+    });
+  }
+
+  onChange(values) {
+    return this.$scope.$evalAsync(() => {
+      this.formValues = {
+        ...this.formValues,
+        ...values,
+      };
+    });
+  }
+
+  onChangeField(field) {
+    return (value) => {
+      this.onChange({
+        [field]: value,
+      });
+    };
   }
 
   isContainerEditDisabled() {
@@ -116,9 +153,7 @@ export default class DockerFeaturesConfigurationController {
       disableContainerCapabilitiesForRegularUsers: !securitySettings.allowContainerCapabilitiesForRegularUsers,
       disableSysctlSettingForRegularUsers: !securitySettings.allowSysctlSettingForRegularUsers,
     };
-    this.state = {
-      autoUpdateSettings: this.endpoint.ChangeWindow,
-      timeZone: '',
-    };
+
+    this.state.autoUpdateSettings = this.endpoint.ChangeWindow;
   }
 }

@@ -7,12 +7,26 @@ import gitFormModule from './forms/git-form';
 import porAccessManagementModule from './accessManagement';
 import formComponentsModule from './form-components';
 import widgetModule from './widget';
+import boxSelectorModule from './BoxSelector';
+import dateRangePickerModule from './date-range-picker';
+import headerModule from './Header';
 
 import { ReactExampleAngular } from './ReactExample';
 import { TooltipAngular } from './Tip/Tooltip';
+import { beFeatureIndicatorAngular } from './BEFeatureIndicator';
 
 export default angular
-  .module('portainer.app.components', [widgetModule, sidebarModule, gitFormModule, porAccessManagementModule, formComponentsModule])
+  .module('portainer.app.components', [
+    headerModule,
+    boxSelectorModule,
+    widgetModule,
+    sidebarModule,
+    dateRangePickerModule,
+    gitFormModule,
+    porAccessManagementModule,
+    formComponentsModule,
+  ])
   .component('portainerTooltip', TooltipAngular)
   .component('reactExample', ReactExampleAngular)
+  .component('beFeatureIndicator', beFeatureIndicatorAngular)
   .component('createAccessToken', CreateAccessTokenAngular).name;

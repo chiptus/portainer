@@ -7,6 +7,7 @@ import settingsModule from './settings';
 import userActivityModule from './user-activity';
 import componentsModule from './components';
 import featureFlagModule from './feature-flags';
+import servicesModule from './services';
 
 async function initAuthentication(authManager, Authentication, $rootScope, $state) {
   authManager.checkAuthOnRefresh();
@@ -34,6 +35,7 @@ angular
     userActivityModule,
     featureFlagModule,
     'portainer.shared.datatable',
+    servicesModule,
   ])
   .config([
     '$stateRegistryProvider',
@@ -66,18 +68,6 @@ angular
           'sidebar@': {
             templateUrl: './views/sidebar/sidebar.html',
             controller: 'SidebarController',
-          },
-        },
-        resolve: {
-          featuresServiceInitialized: /* @ngInject */ function featuresServiceInitialized($async, featureService, Notifications) {
-            return $async(async () => {
-              try {
-                await featureService.init();
-              } catch (e) {
-                Notifications.error('Failed initializing features service', e);
-                throw e;
-              }
-            });
           },
         },
       };

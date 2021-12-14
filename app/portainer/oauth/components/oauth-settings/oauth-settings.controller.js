@@ -1,14 +1,15 @@
-import { HIDE_INTERNAL_AUTH } from '@/portainer/feature-flags/feature-ids';
 import { baseHref } from '@/portainer/helpers/pathHelper';
+import { FeatureId } from '@/portainer/feature-flags/enums';
+import { isLimitedToBE } from '@/portainer/feature-flags/feature-flags.service';
 
 import providers, { getProviderByUrl } from './providers';
 
 export default class OAuthSettingsController {
   /* @ngInject */
-  constructor(featureService) {
-    this.featureService = featureService;
+  constructor($scope) {
+    Object.assign(this, { $scope });
 
-    this.limitedFeature = HIDE_INTERNAL_AUTH;
+    this.limitedFeature = FeatureId.HIDE_INTERNAL_AUTH;
     this.limitedFeatureClass = 'limited-be';
 
     this.state = {
@@ -26,6 +27,8 @@ export default class OAuthSettingsController {
     this.removeTeamMembership = this.removeTeamMembership.bind(this);
     this.addAdminClaimRegex = this.addAdminClaimRegex.bind(this);
     this.removeAdminClaimRegex = this.removeAdminClaimRegex.bind(this);
+    this.onChangeHideInternalAuth = this.onChangeHideInternalAuth.bind(this);
+    this.onToggleAutoTeamMembership = this.onToggleAutoTeamMembership.bind(this);
   }
 
   onMicrosoftTenantIDChange() {
@@ -64,9 +67,23 @@ export default class OAuthSettingsController {
     this.useDefaultProviderConfiguration(provider);
   }
 
-  updateSSO() {
-    this.settings.SSO = !this.settings.SSO;
-    this.settings.HideInternalAuth = this.settings.SSO;
+  updateSSO(checked) {
+    this.$scope.$evalAsync(() => {
+      this.settings.SSO = checked;
+      this.onChangeHideInternalAuth(checked);
+    });
+  }
+
+  onChangeHideInternalAuth(checked) {
+    this.$scope.$evalAsync(() => {
+      this.settings.HideInternalAuth = checked;
+    });
+  }
+
+  onToggleAutoTeamMembership(checked) {
+    this.$scope.$evalAsync(() => {
+      this.settings.OAuthAutoMapTeamMemberships = checked;
+    });
   }
 
   addTeamMembershipMapping() {
@@ -111,7 +128,7 @@ export default class OAuthSettingsController {
   }
 
   $onInit() {
-    this.isLimitedToBE = this.featureService.isLimitedToBE(this.limitedFeature);
+    this.isLimitedToBE = isLimitedToBE(this.limitedFeature);
 
     if (this.isLimitedToBE) {
       return;

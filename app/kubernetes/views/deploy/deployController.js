@@ -5,7 +5,8 @@ import stripAnsi from 'strip-ansi';
 import PortainerError from 'Portainer/error';
 
 import { KubernetesDeployManifestTypes, KubernetesDeployBuildMethods, KubernetesDeployRequestMethods, RepositoryMechanismTypes } from 'Kubernetes/models/deploy';
-import { buildOption } from '@/portainer/components/box-selector';
+import { buildOption } from '@/portainer/components/BoxSelector';
+
 class KubernetesDeployController {
   /* @ngInject */
   constructor($async, $state, $window, Authentication, CustomTemplateService, ModalService, Notifications, KubernetesResourcePoolService, StackService, WebhookHelper) {
@@ -68,7 +69,8 @@ class KubernetesDeployController {
     this.getNamespacesAsync = this.getNamespacesAsync.bind(this);
     this.onChangeFormValues = this.onChangeFormValues.bind(this);
     this.buildAnalyticsProperties = this.buildAnalyticsProperties.bind(this);
-    this.onDeployTypeChange = this.onDeployTypeChange.bind(this);
+    this.onChangeMethod = this.onChangeMethod.bind(this);
+    this.onChangeDeployType = this.onChangeDeployType.bind(this);
   }
 
   buildAnalyticsProperties() {
@@ -124,6 +126,19 @@ class KubernetesDeployController {
         case KubernetesDeployManifestTypes.KUBERNETES:
           return 'manifest';
       }
+    }
+  }
+
+  onChangeMethod(method) {
+    this.state.BuildMethod = method;
+  }
+
+  onChangeDeployType(type) {
+    this.state.DeployType = type;
+    if (type == this.ManifestDeployTypes.COMPOSE) {
+      this.DeployMethod = 'compose';
+    } else {
+      this.DeployMethod = 'manifest';
     }
   }
 
@@ -279,14 +294,6 @@ class KubernetesDeployController {
 
   getNamespaces() {
     return this.$async(this.getNamespacesAsync);
-  }
-
-  onDeployTypeChange(value) {
-    if (value == this.ManifestDeployTypes.COMPOSE) {
-      this.DeployMethod = 'compose';
-    } else {
-      this.DeployMethod = 'manifest';
-    }
   }
 
   async uiCanExit() {

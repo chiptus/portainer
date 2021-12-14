@@ -1,7 +1,7 @@
 import angular from 'angular';
 
-import { buildOption } from '@/portainer/components/box-selector';
-import { S3_BACKUP_SETTING } from '@/portainer/feature-flags/feature-ids';
+import { buildOption } from '@/portainer/components/BoxSelector';
+import { FeatureId } from '@/portainer/feature-flags/enums';
 
 angular.module('portainer.app').controller('SettingsController', [
   '$scope',
@@ -12,10 +12,10 @@ angular.module('portainer.app').controller('SettingsController', [
   'BackupService',
   'FileSaver',
   function ($scope, $state, Notifications, SettingsService, StateManager, BackupService, FileSaver) {
-    $scope.s3BackupFeatureId = S3_BACKUP_SETTING;
+    $scope.s3BackupFeatureId = FeatureId.S3_BACKUP_SETTING;
     $scope.backupOptions = [
       buildOption('backup_file', 'fa fa-download', 'Download backup file', '', 'file'),
-      buildOption('backup_s3', 'fa fa-upload', 'Store in S3', 'Define a cron schedule', 's3', S3_BACKUP_SETTING),
+      buildOption('backup_s3', 'fa fa-upload', 'Store in S3', 'Define a cron schedule', 's3', FeatureId.S3_BACKUP_SETTING),
     ];
 
     $scope.state = {
@@ -77,6 +77,12 @@ angular.module('portainer.app').controller('SettingsController', [
       region: '',
       bucketName: '',
       backupFormType: $scope.BACKUP_FORM_TYPES.FILE,
+    };
+
+    $scope.onToggleAutoBackups = function onToggleAutoBackups(checked) {
+      $scope.$evalAsync(() => {
+        $scope.formValues.scheduleAutomaticBackups = checked;
+      });
     };
 
     $scope.onBackupOptionsChange = function (type, limited) {

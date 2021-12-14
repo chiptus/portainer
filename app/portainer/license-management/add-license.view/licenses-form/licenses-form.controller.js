@@ -36,35 +36,37 @@ export default class LicensesFormController {
   }
 
   async submit() {
-    if (!this.isFormValid()) {
-      this.state.formError = 'Form is invalid';
-      return;
-    }
-    let licenses = _.compact(this.licenses);
+    return this.$async(async () => {
+      if (!this.isFormValid()) {
+        this.state.formError = 'Form is invalid';
+        return;
+      }
+      let licenses = _.compact(this.licenses);
 
-    if (!licenses.length) {
-      this.state.formError = 'At least one license should be provided';
-      return;
-    }
-
-    licenses = licenses.filter((key) => !this.keyValidations[key] || !this.keyValidations[key].status);
-
-    if (!licenses.length) {
-      this.onSubmitSuccess();
-      return;
-    }
-
-    try {
-      const { failedKeys } = await this.LicenseService.attach(licenses);
-
-      if (failedKeys && Object.keys(failedKeys).length) {
-        this.keyValidations = Object.fromEntries(licenses.map((key) => [key, { status: !failedKeys[key], message: failedKeys[key] }]));
+      if (!licenses.length) {
+        this.state.formError = 'At least one license should be provided';
         return;
       }
 
-      this.onSubmitSuccess();
-    } catch (err) {
-      this.Notifications.error('Failure', err, 'Failed validating licenses');
-    }
+      licenses = licenses.filter((key) => !this.keyValidations[key] || !this.keyValidations[key].status);
+
+      if (!licenses.length) {
+        this.onSubmitSuccess();
+        return;
+      }
+
+      try {
+        const { failedKeys } = await this.LicenseService.attach(licenses);
+
+        if (failedKeys && Object.keys(failedKeys).length) {
+          this.keyValidations = Object.fromEntries(licenses.map((key) => [key, { status: !failedKeys[key], message: failedKeys[key] }]));
+          return;
+        }
+
+        this.onSubmitSuccess();
+      } catch (err) {
+        this.Notifications.error('Failure', err, 'Failed validating licenses');
+      }
+    });
   }
 }

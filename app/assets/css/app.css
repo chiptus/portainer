@@ -739,19 +739,6 @@ a[ng-click] {
 }
 /*!toaster override*/
 
-/*angular-loading-bar override*/
-#loadingbar-placeholder {
-  margin-bottom: 0;
-  height: 3px;
-}
-
-#loading-bar .bar {
-  position: relative;
-  height: 3px;
-  background: var(--blue-3);
-}
-/*!angular-loading-bar override*/
-
 .monospaced {
   font-family: monospace;
   font-weight: 600;
