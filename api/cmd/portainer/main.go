@@ -265,14 +265,16 @@ func updateSettingsFromFlags(dataStore portainer.DataStore, flags *portainer.CLI
 		return err
 	}
 
-	httpEnabled := !*flags.HTTPDisabled
-
 	sslSettings, err := dataStore.SSLSettings().Settings()
 	if err != nil {
 		return err
 	}
 
-	sslSettings.HTTPEnabled = httpEnabled
+	if *flags.HTTPDisabled {
+		sslSettings.HTTPEnabled = false
+	} else {
+		sslSettings.HTTPEnabled = *flags.HTTPEnabled || sslSettings.HTTPEnabled
+	}
 
 	err = dataStore.SSLSettings().UpdateSettings(sslSettings)
 	if err != nil {
@@ -593,11 +595,9 @@ func buildServer(flags *portainer.CLIFlags) portainer.Server {
 		log.Fatalf("failed initializing helm package manager: %s", err)
 	}
 
-	if dataStore.IsNew() {
-		err = updateSettingsFromFlags(dataStore, flags)
-		if err != nil {
-			log.Fatalf("failed updating settings from flags: %s", err)
-		}
+	err = updateSettingsFromFlags(dataStore, flags)
+	if err != nil {
+		log.Fatalf("failed updating settings from flags: %s", err)
 	}
 
 	err = edge.LoadEdgeJobs(dataStore, reverseTunnelService)

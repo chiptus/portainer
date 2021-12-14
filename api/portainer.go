@@ -117,6 +117,7 @@ type (
 		Rollback                  *bool
 		RollbackToCE              *bool
 		HTTPDisabled              *bool
+		HTTPEnabled               *bool
 		SSL                       *bool
 		SSLCert                   *string
 		SSLKey                    *string
@@ -704,7 +705,7 @@ type (
 		ManagementConfiguration *RegistryManagementConfiguration `json:"ManagementConfiguration"`
 		Gitlab                  GitlabRegistryData               `json:"Gitlab"`
 		Quay                    QuayRegistryData                 `json:"Quay"`
-		Ecr                  	EcrData                       	 `json:"Ecr"`
+		Ecr                     EcrData                          `json:"Ecr"`
 		RegistryAccesses        RegistryAccesses                 `json:"RegistryAccesses"`
 
 		// Deprecated fields
