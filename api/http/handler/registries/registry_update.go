@@ -23,7 +23,7 @@ type registryUpdatePayload struct {
 	Password         *string `json:",omitempty" example:"registry_password"`
 	Quay             *portainer.QuayRegistryData
 	RegistryAccesses *portainer.RegistryAccesses `json:",omitempty"`
-	Ecr              *portainer.EcrData          `json:",omitempty" example:"{Region: \"ap-southeast-2\"}"`
+	Ecr              *portainer.EcrData          `json:",omitempty" example:"\{\"Region\": \"ap-southeast-2\"\}"`
 }
 
 func (payload *registryUpdatePayload) Validate(r *http.Request) error {
