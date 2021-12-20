@@ -80,7 +80,7 @@ func (handler *Handler) endpointForceUpdateService(w http.ResponseWriter, r *htt
 	service.Spec.TaskTemplate.ForceUpdate++
 
 	if payload.PullImage {
-		service.Spec.TaskTemplate.ContainerSpec.Image = strings.Split(service.Spec.TaskTemplate.ContainerSpec.Image, ":")[0]
+		service.Spec.TaskTemplate.ContainerSpec.Image = strings.Split(service.Spec.TaskTemplate.ContainerSpec.Image, "@sha")[0]
 	}
 
 	newService, err := dockerClient.ServiceUpdate(context.Background(), payload.ServiceID, service.Version, service.Spec, dockertypes.ServiceUpdateOptions{QueryRegistry: true})
