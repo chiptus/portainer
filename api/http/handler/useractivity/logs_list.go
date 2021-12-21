@@ -31,7 +31,7 @@ type logsListResponse struct {
 // @param keyword query string false "Query logs by this keyword"
 // @success 200 {object} logsListResponse "Success"
 // @failure 500 "Server error"
-// @router /useractivity/activitylogs [get]
+// @router /useractivity/logs [get]
 func (handler *Handler) logsList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	offset, _ := request.RetrieveNumericQueryParameter(r, "offset", true)
 	limit, _ := request.RetrieveNumericQueryParameter(r, "limit", true)
