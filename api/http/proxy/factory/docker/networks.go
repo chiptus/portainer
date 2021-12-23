@@ -4,14 +4,14 @@ import (
 	"context"
 	"net/http"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 
 	"github.com/docker/docker/api/types"
 
 	"github.com/docker/docker/client"
 
-	"github.com/portainer/portainer/api/http/proxy/factory/utils"
-	"github.com/portainer/portainer/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 	networkObjectName       = "Name"
 )
 
-func getInheritedResourceControlFromNetworkLabels(dockerClient *client.Client, endpointID portainer.EndpointID, networkID string, resourceControls []portainer.ResourceControl) (*portainer.ResourceControl, error) {
+func getInheritedResourceControlFromNetworkLabels(dockerClient *client.Client, endpointID portaineree.EndpointID, networkID string, resourceControls []portaineree.ResourceControl) (*portaineree.ResourceControl, error) {
 	network, err := dockerClient.NetworkInspect(context.Background(), networkID, types.NetworkInspectOptions{})
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func getInheritedResourceControlFromNetworkLabels(dockerClient *client.Client, e
 
 	stackResourceID := getStackResourceIDFromLabels(network.Labels, endpointID)
 	if stackResourceID != "" {
-		return authorization.GetResourceControlByResourceIDAndType(stackResourceID, portainer.StackResourceControl, resourceControls), nil
+		return authorization.GetResourceControlByResourceIDAndType(stackResourceID, portaineree.StackResourceControl, resourceControls), nil
 	}
 
 	return nil, nil
@@ -45,7 +45,7 @@ func (transport *Transport) networkListOperation(response *http.Response, execut
 
 	resourceOperationParameters := &resourceOperationParameters{
 		resourceIdentifierAttribute: networkObjectIdentifier,
-		resourceType:                portainer.NetworkResourceControl,
+		resourceType:                portaineree.NetworkResourceControl,
 		labelsObjectSelector:        selectorNetworkLabels,
 	}
 
@@ -69,7 +69,7 @@ func (transport *Transport) networkInspectOperation(response *http.Response, exe
 
 	resourceOperationParameters := &resourceOperationParameters{
 		resourceIdentifierAttribute: networkObjectIdentifier,
-		resourceType:                portainer.NetworkResourceControl,
+		resourceType:                portaineree.NetworkResourceControl,
 		labelsObjectSelector:        selectorNetworkLabels,
 	}
 
@@ -78,7 +78,7 @@ func (transport *Transport) networkInspectOperation(response *http.Response, exe
 
 // findSystemNetworkResourceControl will check if the network object is a system network
 // and will return a system resource control if that's the case.
-func findSystemNetworkResourceControl(networkObject map[string]interface{}) *portainer.ResourceControl {
+func findSystemNetworkResourceControl(networkObject map[string]interface{}) *portaineree.ResourceControl {
 	if networkObject[networkObjectName] == nil {
 		return nil
 	}
@@ -87,7 +87,7 @@ func findSystemNetworkResourceControl(networkObject map[string]interface{}) *por
 	networkName := networkObject[networkObjectName].(string)
 
 	if networkName == "bridge" || networkName == "host" || networkName == "none" {
-		return authorization.NewSystemResourceControl(networkID, portainer.NetworkResourceControl)
+		return authorization.NewSystemResourceControl(networkID, portaineree.NetworkResourceControl)
 	}
 
 	return nil

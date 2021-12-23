@@ -6,11 +6,11 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/apikey"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/apikey"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id UserRemoveAPIKey
@@ -44,11 +44,11 @@ func (handler *Handler) userRemoveAccessToken(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}
 	}
-	if tokenData.Role != portainer.AdministratorRole && tokenData.ID != portainer.UserID(userID) {
+	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portaineree.UserID(userID) {
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to get user access tokens", httperrors.ErrUnauthorized}
 	}
 
-	_, err = handler.DataStore.User().User(portainer.UserID(userID))
+	_, err = handler.DataStore.User().User(portaineree.UserID(userID))
 	if err != nil {
 		if err == bolterrors.ErrObjectNotFound {
 			return &httperror.HandlerError{http.StatusNotFound, "Unable to find a user with the specified identifier inside the database", err}
@@ -57,15 +57,15 @@ func (handler *Handler) userRemoveAccessToken(w http.ResponseWriter, r *http.Req
 	}
 
 	// check if the key exists and the key belongs to the user
-	apiKey, err := handler.apiKeyService.GetAPIKey(portainer.APIKeyID(apiKeyID))
+	apiKey, err := handler.apiKeyService.GetAPIKey(portaineree.APIKeyID(apiKeyID))
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "API Key not found", err}
 	}
-	if apiKey.UserID != portainer.UserID(userID) {
+	if apiKey.UserID != portaineree.UserID(userID) {
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to remove api-key", httperrors.ErrUnauthorized}
 	}
 
-	err = handler.apiKeyService.DeleteAPIKey(portainer.APIKeyID(apiKeyID))
+	err = handler.apiKeyService.DeleteAPIKey(portaineree.APIKeyID(apiKeyID))
 	if err != nil {
 		if err == apikey.ErrInvalidAPIKey {
 			return &httperror.HandlerError{http.StatusNotFound, "Unable to find an api-key with the specified identifier inside the database", err}

@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/boltdb/bolt"
-	"github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
-	"github.com/portainer/portainer/api/bolt/stack"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
+	"github.com/portainer/portainer-ee/api/bolt/stack"
 )
 
 func (m *Migrator) updateEndpointsToVersion12() error {
@@ -47,12 +47,12 @@ func (m *Migrator) updateEndpointGroupsToVersion12() error {
 }
 
 type legacyStack struct {
-	ID          string               `json:"Id"`
-	Name        string               `json:"Name"`
-	EndpointID  portainer.EndpointID `json:"EndpointId"`
-	SwarmID     string               `json:"SwarmId"`
-	EntryPoint  string               `json:"EntryPoint"`
-	Env         []portainer.Pair     `json:"Env"`
+	ID          string                 `json:"Id"`
+	Name        string                 `json:"Name"`
+	EndpointID  portaineree.EndpointID `json:"EndpointId"`
+	SwarmID     string                 `json:"SwarmId"`
+	EntryPoint  string                 `json:"EntryPoint"`
+	Env         []portaineree.Pair     `json:"Env"`
 	ProjectPath string
 }
 
@@ -74,10 +74,10 @@ func (m *Migrator) updateStacksToVersion12() error {
 
 func (m *Migrator) convertLegacyStack(s *legacyStack) error {
 	stackID := m.stackService.GetNextIdentifier()
-	stack := &portainer.Stack{
-		ID:         portainer.StackID(stackID),
+	stack := &portaineree.Stack{
+		ID:         portaineree.StackID(stackID),
 		Name:       s.Name,
-		Type:       portainer.DockerSwarmStack,
+		Type:       portaineree.DockerSwarmStack,
 		SwarmID:    s.SwarmID,
 		EndpointID: 0,
 		EntryPoint: s.EntryPoint,

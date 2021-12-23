@@ -5,46 +5,45 @@ import (
 	"path"
 	"time"
 
-	"github.com/portainer/portainer/api/bolt/apikeyrepository"
-	"github.com/portainer/portainer/api/bolt/helmuserrepository"
-
-	"github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/bolt/internal"
-	"github.com/portainer/portainer/api/bolt/license"
-	"github.com/portainer/portainer/api/bolt/s3backup"
-	"github.com/portainer/portainer/api/bolt/ssl"
-
 	"github.com/boltdb/bolt"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/apikeyrepository"
+	"github.com/portainer/portainer-ee/api/bolt/customtemplate"
+	"github.com/portainer/portainer-ee/api/bolt/dockerhub"
+	"github.com/portainer/portainer-ee/api/bolt/edgegroup"
+	"github.com/portainer/portainer-ee/api/bolt/edgejob"
+	"github.com/portainer/portainer-ee/api/bolt/edgestack"
+	"github.com/portainer/portainer-ee/api/bolt/endpoint"
+	"github.com/portainer/portainer-ee/api/bolt/endpointgroup"
+	"github.com/portainer/portainer-ee/api/bolt/endpointrelation"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/bolt/extension"
+	"github.com/portainer/portainer-ee/api/bolt/helmuserrepository"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
+	"github.com/portainer/portainer-ee/api/bolt/license"
+	"github.com/portainer/portainer-ee/api/bolt/registry"
+	"github.com/portainer/portainer-ee/api/bolt/resourcecontrol"
+	"github.com/portainer/portainer-ee/api/bolt/role"
+	"github.com/portainer/portainer-ee/api/bolt/s3backup"
+	"github.com/portainer/portainer-ee/api/bolt/schedule"
+	"github.com/portainer/portainer-ee/api/bolt/settings"
+	"github.com/portainer/portainer-ee/api/bolt/ssl"
+	"github.com/portainer/portainer-ee/api/bolt/stack"
+	"github.com/portainer/portainer-ee/api/bolt/tag"
+	"github.com/portainer/portainer-ee/api/bolt/team"
+	"github.com/portainer/portainer-ee/api/bolt/teammembership"
+	"github.com/portainer/portainer-ee/api/bolt/tunnelserver"
+	"github.com/portainer/portainer-ee/api/bolt/user"
+	"github.com/portainer/portainer-ee/api/bolt/version"
+	"github.com/portainer/portainer-ee/api/bolt/webhook"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/customtemplate"
-	"github.com/portainer/portainer/api/bolt/dockerhub"
-	"github.com/portainer/portainer/api/bolt/edgegroup"
-	"github.com/portainer/portainer/api/bolt/edgejob"
-	"github.com/portainer/portainer/api/bolt/edgestack"
-	"github.com/portainer/portainer/api/bolt/endpoint"
-	"github.com/portainer/portainer/api/bolt/endpointgroup"
-	"github.com/portainer/portainer/api/bolt/endpointrelation"
-	"github.com/portainer/portainer/api/bolt/extension"
-	"github.com/portainer/portainer/api/bolt/registry"
-	"github.com/portainer/portainer/api/bolt/resourcecontrol"
-	"github.com/portainer/portainer/api/bolt/role"
-	"github.com/portainer/portainer/api/bolt/schedule"
-	"github.com/portainer/portainer/api/bolt/settings"
-	"github.com/portainer/portainer/api/bolt/stack"
-	"github.com/portainer/portainer/api/bolt/tag"
-	"github.com/portainer/portainer/api/bolt/team"
-	"github.com/portainer/portainer/api/bolt/teammembership"
-	"github.com/portainer/portainer/api/bolt/tunnelserver"
-	"github.com/portainer/portainer/api/bolt/user"
-	"github.com/portainer/portainer/api/bolt/version"
-	"github.com/portainer/portainer/api/bolt/webhook"
 )
 
 var (
 	databaseFileName = "portainer.db"
 )
 
-// Store defines the implementation of portainer.DataStore using
+// Store defines the implementation of portaineree.DataStore using
 // BoltDB as the storage system.
 type Store struct {
 	path                      string
@@ -88,10 +87,10 @@ func (store *Store) version() (int, error) {
 	return version, err
 }
 
-func (store *Store) edition() portainer.SoftwareEdition {
+func (store *Store) edition() portaineree.SoftwareEdition {
 	edition, err := store.VersionService.Edition()
 	if err == errors.ErrObjectNotFound {
-		edition = portainer.PortainerCE
+		edition = portaineree.PortainerCE
 	}
 	return edition
 }

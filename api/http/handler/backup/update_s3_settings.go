@@ -8,11 +8,11 @@ import (
 	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type backupSettings struct {
-	portainer.S3BackupSettings
+	portaineree.S3BackupSettings
 }
 
 func (p *backupSettings) Validate(r *http.Request) error {
@@ -45,7 +45,7 @@ func (p *backupSettings) Validate(r *http.Request) error {
 // @security ApiKeyAuth
 // @security jwt
 // @accept json
-// @param s3_backup_settings body portainer.S3BackupSettings false "S3 backup settings"
+// @param s3_backup_settings body portaineree.S3BackupSettings false "S3 backup settings"
 // @success 200 "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"

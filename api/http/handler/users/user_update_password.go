@@ -8,10 +8,10 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 type userUpdatePasswordPayload struct {
@@ -59,7 +59,7 @@ func (handler *Handler) userUpdatePassword(w http.ResponseWriter, r *http.Reques
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}
 	}
 
-	if tokenData.Role != portainer.AdministratorRole && tokenData.ID != portainer.UserID(userID) {
+	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portaineree.UserID(userID) {
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to update user", httperrors.ErrUnauthorized}
 	}
 
@@ -69,7 +69,7 @@ func (handler *Handler) userUpdatePassword(w http.ResponseWriter, r *http.Reques
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	user, err := handler.DataStore.User().User(portainer.UserID(userID))
+	user, err := handler.DataStore.User().User(portaineree.UserID(userID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a user with the specified identifier inside the database", err}
 	} else if err != nil {

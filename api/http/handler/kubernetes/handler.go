@@ -6,29 +6,29 @@ import (
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/middlewares"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
-	"github.com/portainer/portainer/api/internal/authorization"
-	"github.com/portainer/portainer/api/internal/endpointutils"
-	"github.com/portainer/portainer/api/kubernetes/cli"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 )
 
 // Handler is the HTTP handler which will natively deal with to external environments(endpoints).
 type Handler struct {
 	*mux.Router
 	requestBouncer          *security.RequestBouncer
-	DataStore               portainer.DataStore
+	DataStore               portaineree.DataStore
 	KubernetesClientFactory *cli.ClientFactory
 	AuthorizationService    *authorization.Service
-	userActivityService     portainer.UserActivityService
-	JwtService              portainer.JWTService
+	userActivityService     portaineree.UserActivityService
+	JwtService              portaineree.JWTService
 	BaseURL                 string
 }
 
 // NewHandler creates a handler to process pre-proxied requests to external APIs.
-func NewHandler(bouncer *security.RequestBouncer, dataStore portainer.DataStore, baseURL string, userActivityService portainer.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore portaineree.DataStore, baseURL string, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		requestBouncer:      bouncer,

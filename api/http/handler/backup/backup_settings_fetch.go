@@ -14,7 +14,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @success 200 {object} portainer.S3BackupSettings "Success"
+// @success 200 {object} portaineree.S3BackupSettings "Success"
 // @failure 401 "Unauthorized"
 // @failure 500 "Server error"
 // @router /backup/s3/settings [get]

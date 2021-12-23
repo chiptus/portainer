@@ -1,6 +1,6 @@
 package migrator
 
-import "github.com/portainer/portainer/api"
+import portaineree "github.com/portainer/portainer-ee/api"
 
 func (m *Migrator) updateSettingsToVersion13() error {
 	legacySettings, err := m.settingsService.Settings()
@@ -9,8 +9,8 @@ func (m *Migrator) updateSettingsToVersion13() error {
 	}
 
 	legacySettings.LDAPSettings.AutoCreateUsers = false
-	legacySettings.LDAPSettings.GroupSearchSettings = []portainer.LDAPGroupSearchSettings{
-		portainer.LDAPGroupSearchSettings{},
+	legacySettings.LDAPSettings.GroupSearchSettings = []portaineree.LDAPGroupSearchSettings{
+		portaineree.LDAPGroupSearchSettings{},
 	}
 
 	return m.settingsService.UpdateSettings(legacySettings)

@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
-	consts "github.com/portainer/portainer/api/useractivity"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
+	consts "github.com/portainer/portainer-ee/api/useractivity"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -38,7 +38,7 @@ func (rc realClockUTC) Now() time.Time {
 // AutoUpdateWindow.Enabled=true and the current UTC time is between StartTime and EndTime
 // StartTime always begins BEFORE EndTime.  If EndTime is < StartTime then EndTime
 // falls into the next day
-func updateAllowed(endpoint *portainer.Endpoint, clock Clock) (bool, error) {
+func updateAllowed(endpoint *portaineree.Endpoint, clock Clock) (bool, error) {
 	if !endpoint.ChangeWindow.Enabled {
 		return true, nil
 	}
@@ -52,7 +52,7 @@ func updateAllowed(endpoint *portainer.Endpoint, clock Clock) (bool, error) {
 }
 
 // RedeployWhenChanged pull and redeploy the stack when  git repo changed
-func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, datastore portainer.DataStore, gitService portainer.GitService, activityService portainer.UserActivityService) error {
+func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, datastore portaineree.DataStore, gitService portaineree.GitService, activityService portaineree.UserActivityService) error {
 	logger := log.WithFields(log.Fields{"stackID": stackID})
 	logger.Debug("redeploying stack")
 
@@ -130,17 +130,17 @@ func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, data
 	}
 
 	switch stack.Type {
-	case portainer.DockerComposeStack:
+	case portaineree.DockerComposeStack:
 		err := deployer.DeployComposeStack(stack, endpoint, registries)
 		if err != nil {
 			return errors.WithMessagef(err, "failed to deploy a docker compose stack %v", stackID)
 		}
-	case portainer.DockerSwarmStack:
+	case portaineree.DockerSwarmStack:
 		err := deployer.DeploySwarmStack(stack, endpoint, registries, true)
 		if err != nil {
 			return errors.WithMessagef(err, "failed to deploy a docker compose stack %v", stackID)
 		}
-	case portainer.KubernetesStack:
+	case portaineree.KubernetesStack:
 		logger.Debugf("deploying a kube app")
 		err := deployer.DeployKubernetesStack(stack, endpoint, user)
 		if err != nil {
@@ -168,13 +168,13 @@ func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, data
 	return nil
 }
 
-func getUserRegistries(datastore portainer.DataStore, user *portainer.User, endpointID portainer.EndpointID) ([]portainer.Registry, error) {
+func getUserRegistries(datastore portaineree.DataStore, user *portaineree.User, endpointID portaineree.EndpointID) ([]portaineree.Registry, error) {
 	registries, err := datastore.Registry().Registries()
 	if err != nil {
 		return nil, errors.WithMessage(err, "unable to retrieve registries from the database")
 	}
 
-	if user.Role == portainer.AdministratorRole {
+	if user.Role == portaineree.AdministratorRole {
 		return registries, nil
 	}
 
@@ -183,7 +183,7 @@ func getUserRegistries(datastore portainer.DataStore, user *portainer.User, endp
 		return nil, errors.WithMessagef(err, "failed to fetch memberships of the stack author [%s]", user.Username)
 	}
 
-	filteredRegistries := make([]portainer.Registry, 0, len(registries))
+	filteredRegistries := make([]portaineree.Registry, 0, len(registries))
 	for _, registry := range registries {
 		if security.AuthorizedRegistryAccess(&registry, user, userMemberships, endpointID) {
 			filteredRegistries = append(filteredRegistries, registry)
@@ -205,7 +205,7 @@ type gitAuth struct {
 	password string
 }
 
-func cloneGitRepository(gitService portainer.GitService, cloneParams *cloneRepositoryParameters) error {
+func cloneGitRepository(gitService portaineree.GitService, cloneParams *cloneRepositoryParameters) error {
 	if cloneParams.auth != nil {
 		return gitService.CloneRepository(cloneParams.toDir, cloneParams.url, cloneParams.ref, cloneParams.auth.username, cloneParams.auth.password)
 	}

@@ -2,17 +2,18 @@ package registryutils
 
 import (
 	"time"
+
 	log "github.com/sirupsen/logrus"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/aws/ecr"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/aws/ecr"
 )
 
-func isRegTokenValid(registry *portainer.Registry) (valid bool) {
-	return registry.AccessToken != "" && registry.AccessTokenExpiry > time.Now().Unix();
+func isRegTokenValid(registry *portaineree.Registry) (valid bool) {
+	return registry.AccessToken != "" && registry.AccessTokenExpiry > time.Now().Unix()
 }
 
-func doGetRegToken(dataStore portainer.DataStore, registry *portainer.Registry) (err error) {
+func doGetRegToken(dataStore portaineree.DataStore, registry *portaineree.Registry) (err error) {
 	ecrClient := ecr.NewService(registry.Username, registry.Password, registry.Ecr.Region)
 	accessToken, expiryAt, err := ecrClient.GetAuthorizationToken()
 	if err != nil {
@@ -27,13 +28,13 @@ func doGetRegToken(dataStore portainer.DataStore, registry *portainer.Registry) 
 	return
 }
 
-func parseRegToken(registry *portainer.Registry) (username, password string, err error) {
+func parseRegToken(registry *portaineree.Registry) (username, password string, err error) {
 	ecrClient := ecr.NewService(registry.Username, registry.Password, registry.Ecr.Region)
 	return ecrClient.ParseAuthorizationToken(registry.AccessToken)
 }
 
-func EnsureRegTokenValid(dataStore portainer.DataStore, registry *portainer.Registry) (err error) {
-	if registry.Type == portainer.EcrRegistry {
+func EnsureRegTokenValid(dataStore portaineree.DataStore, registry *portaineree.Registry) (err error) {
+	if registry.Type == portaineree.EcrRegistry {
 		if isRegTokenValid(registry) {
 			log.Println("[DEBUG] [registry, GetEcrAccessToken] [message: curretn ECR token is still valid]")
 		} else {
@@ -47,8 +48,8 @@ func EnsureRegTokenValid(dataStore portainer.DataStore, registry *portainer.Regi
 	return
 }
 
-func GetRegEffectiveCredential(registry *portainer.Registry) (username, password string, err error) {
-	if registry.Type == portainer.EcrRegistry {
+func GetRegEffectiveCredential(registry *portaineree.Registry) (username, password string, err error) {
+	if registry.Type == portaineree.EcrRegistry {
 		username, password, err = parseRegToken(registry)
 	} else {
 		username = registry.Username

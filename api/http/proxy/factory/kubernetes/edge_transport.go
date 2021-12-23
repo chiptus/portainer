@@ -4,18 +4,18 @@ import (
 	"net/http"
 	"strings"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/kubernetes/cli"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 )
 
 type edgeTransport struct {
 	*baseTransport
-	signatureService     portainer.DigitalSignatureService
-	reverseTunnelService portainer.ReverseTunnelService
+	signatureService     portaineree.DigitalSignatureService
+	reverseTunnelService portaineree.ReverseTunnelService
 }
 
 // NewAgentTransport returns a new transport that can be used to send signed requests to a Portainer Edge agent
-func NewEdgeTransport(dataStore portainer.DataStore, signatureService portainer.DigitalSignatureService, reverseTunnelService portainer.ReverseTunnelService, endpoint *portainer.Endpoint, tokenManager *tokenManager, userActivityService portainer.UserActivityService, k8sClientFactory *cli.ClientFactory) *edgeTransport {
+func NewEdgeTransport(dataStore portaineree.DataStore, signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, endpoint *portaineree.Endpoint, tokenManager *tokenManager, userActivityService portaineree.UserActivityService, k8sClientFactory *cli.ClientFactory) *edgeTransport {
 	transport := &edgeTransport{
 		reverseTunnelService: reverseTunnelService,
 		signatureService:     signatureService,
@@ -39,19 +39,19 @@ func (transport *edgeTransport) RoundTrip(request *http.Request) (*http.Response
 		return nil, err
 	}
 
-	request.Header.Set(portainer.PortainerAgentKubernetesSATokenHeader, token)
+	request.Header.Set(portaineree.PortainerAgentKubernetesSATokenHeader, token)
 
 	if strings.HasPrefix(request.URL.Path, "/v2") {
 		decorateAgentRequest(request, transport.dataStore)
 	}
 
-	signature, err := transport.signatureService.CreateSignature(portainer.PortainerAgentSignatureMessage)
+	signature, err := transport.signatureService.CreateSignature(portaineree.PortainerAgentSignatureMessage)
 	if err != nil {
 		return nil, err
 	}
 
-	request.Header.Set(portainer.PortainerAgentPublicKeyHeader, transport.signatureService.EncodedPublicKey())
-	request.Header.Set(portainer.PortainerAgentSignatureHeader, signature)
+	request.Header.Set(portaineree.PortainerAgentPublicKeyHeader, transport.signatureService.EncodedPublicKey())
+	request.Header.Set(portaineree.PortainerAgentSignatureHeader, signature)
 
 	response, err := transport.baseTransport.RoundTrip(request)
 

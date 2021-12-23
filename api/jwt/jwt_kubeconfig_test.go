@@ -4,22 +4,22 @@ import (
 	"testing"
 
 	"github.com/dgrijalva/jwt-go"
-	portainer "github.com/portainer/portainer/api"
-	i "github.com/portainer/portainer/api/internal/testhelpers"
+	portaineree "github.com/portainer/portainer-ee/api"
+	i "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestService_GenerateTokenForKubeconfig(t *testing.T) {
 	type fields struct {
 		userSessionTimeout string
-		dataStore          portainer.DataStore
+		dataStore          portaineree.DataStore
 	}
 
 	type args struct {
-		data *portainer.TokenData
+		data *portaineree.TokenData
 	}
 
-	mySettings := &portainer.Settings{
+	mySettings := &portaineree.Settings{
 		KubeconfigExpiry: "0",
 	}
 
@@ -28,7 +28,7 @@ func TestService_GenerateTokenForKubeconfig(t *testing.T) {
 		dataStore:          i.NewDatastore(i.WithSettingsService(mySettings)),
 	}
 
-	myTokenData := &portainer.TokenData{
+	myTokenData := &portaineree.TokenData{
 		Username: "Joe",
 		ID:       1,
 		Role:     1,

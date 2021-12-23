@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/agent"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer/api/crypto"
-	"github.com/portainer/portainer/api/http/proxy/factory/agent"
-	"github.com/portainer/portainer/api/internal/endpointutils"
 )
 
 // ProxyServer provide an extended proxy with a local server to forward requests
@@ -22,7 +22,7 @@ type ProxyServer struct {
 }
 
 // NewAgentProxy creates a new instance of ProxyServer that wrap http requests with agent headers
-func (factory *ProxyFactory) NewAgentProxy(endpoint *portainer.Endpoint) (*ProxyServer, error) {
+func (factory *ProxyFactory) NewAgentProxy(endpoint *portaineree.Endpoint) (*ProxyServer, error) {
 	urlString := endpoint.URL
 
 	if endpointutils.IsEdgeEndpoint(endpoint) {

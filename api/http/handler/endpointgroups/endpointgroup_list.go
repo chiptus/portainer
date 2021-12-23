@@ -5,7 +5,7 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
-	"github.com/portainer/portainer/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id EndpointGroupList
@@ -18,7 +18,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @success 200 {array} portainer.EndpointGroup "Environment(Endpoint) group"
+// @success 200 {array} portaineree.EndpointGroup "Environment(Endpoint) group"
 // @failure 500 "Server error"
 // @router /endpoint_groups [get]
 func (handler *Handler) endpointGroupList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {

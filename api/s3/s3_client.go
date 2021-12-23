@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/pkg/errors"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 func NewSession(region string, accessKeyID string, secretAccessKey string) (*session.Session, error) {
@@ -43,7 +43,7 @@ func Upload(sess *session.Session, r io.Reader, bucketname string, filename stri
 	return nil
 }
 
-func Download(sess *session.Session, w io.WriterAt, settings portainer.S3Location) error {
+func Download(sess *session.Session, w io.WriterAt, settings portaineree.S3Location) error {
 	downloader := s3manager.NewDownloader(sess)
 
 	_, err := downloader.Download(w, &s3.GetObjectInput{

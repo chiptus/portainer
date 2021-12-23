@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type (
@@ -19,7 +19,7 @@ type (
 	}
 )
 
-func (service *Service) createOrUpdateWirelessConfig(configuration portainer.OpenAMTConfiguration, wirelessConfigName string) (*WirelessProfile, error) {
+func (service *Service) createOrUpdateWirelessConfig(configuration portaineree.OpenAMTConfiguration, wirelessConfigName string) (*WirelessProfile, error) {
 	wirelessConfig, err := service.getWirelessConfig(configuration, wirelessConfigName)
 	if err != nil {
 		return nil, err
@@ -37,7 +37,7 @@ func (service *Service) createOrUpdateWirelessConfig(configuration portainer.Ope
 	return wirelessConfig, nil
 }
 
-func (service *Service) getWirelessConfig(configuration portainer.OpenAMTConfiguration, configName string) (*WirelessProfile, error) {
+func (service *Service) getWirelessConfig(configuration portaineree.OpenAMTConfiguration, configName string) (*WirelessProfile, error) {
 	url := fmt.Sprintf("https://%s/rps/api/v1/admin/wirelessconfigs/%s", configuration.MPSServer, configName)
 
 	responseBody, err := service.executeGetRequest(url, configuration.Credentials.MPSToken)
@@ -56,7 +56,7 @@ func (service *Service) getWirelessConfig(configuration portainer.OpenAMTConfigu
 	return &result, nil
 }
 
-func (service *Service) saveWirelessConfig(method string, configuration portainer.OpenAMTConfiguration, configName string) (*WirelessProfile, error) {
+func (service *Service) saveWirelessConfig(method string, configuration portaineree.OpenAMTConfiguration, configName string) (*WirelessProfile, error) {
 	parsedAuthenticationMethod, err := strconv.Atoi(configuration.WirelessConfiguration.AuthenticationMethod)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing wireless authentication method: %s", err.Error())

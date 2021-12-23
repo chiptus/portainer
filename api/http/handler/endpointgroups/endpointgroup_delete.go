@@ -7,8 +7,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // @id EndpointGroupDelete
@@ -34,14 +34,14 @@ func (handler *Handler) endpointGroupDelete(w http.ResponseWriter, r *http.Reque
 		return &httperror.HandlerError{http.StatusForbidden, "Unable to remove the default 'Unassigned' group", errors.New("Cannot remove the default environment group")}
 	}
 
-	endpointGroup, err := handler.DataStore.EndpointGroup().EndpointGroup(portainer.EndpointGroupID(endpointGroupID))
+	endpointGroup, err := handler.DataStore.EndpointGroup().EndpointGroup(portaineree.EndpointGroupID(endpointGroupID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment group with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment group with the specified identifier inside the database", err}
 	}
 
-	err = handler.DataStore.EndpointGroup().DeleteEndpointGroup(portainer.EndpointGroupID(endpointGroupID))
+	err = handler.DataStore.EndpointGroup().DeleteEndpointGroup(portaineree.EndpointGroupID(endpointGroupID))
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove the environment group from the database", err}
 	}
@@ -53,9 +53,9 @@ func (handler *Handler) endpointGroupDelete(w http.ResponseWriter, r *http.Reque
 
 	updateAuthorizations := false
 	for _, endpoint := range endpoints {
-		if endpoint.GroupID == portainer.EndpointGroupID(endpointGroupID) {
+		if endpoint.GroupID == portaineree.EndpointGroupID(endpointGroupID) {
 			updateAuthorizations = true
-			endpoint.GroupID = portainer.EndpointGroupID(1)
+			endpoint.GroupID = portaineree.EndpointGroupID(1)
 			err = handler.DataStore.Endpoint().UpdateEndpoint(endpoint.ID, &endpoint)
 			if err != nil {
 				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to update environment", err}

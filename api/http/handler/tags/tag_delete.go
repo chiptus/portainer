@@ -6,9 +6,9 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/internal/edge"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/internal/edge"
 )
 
 // @id TagDelete
@@ -30,7 +30,7 @@ func (handler *Handler) tagDelete(w http.ResponseWriter, r *http.Request) *httpe
 	if err != nil {
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid tag identifier route variable", err}
 	}
-	tagID := portainer.TagID(id)
+	tagID := portaineree.TagID(id)
 
 	tag, err := handler.DataStore.Tag().Tag(tagID)
 	if err == errors.ErrObjectNotFound {
@@ -87,7 +87,7 @@ func (handler *Handler) tagDelete(w http.ResponseWriter, r *http.Request) *httpe
 	}
 
 	for _, endpoint := range endpoints {
-		if (tag.Endpoints[endpoint.ID] || tag.EndpointGroups[endpoint.GroupID]) && (endpoint.Type == portainer.EdgeAgentOnDockerEnvironment || endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment) {
+		if (tag.Endpoints[endpoint.ID] || tag.EndpointGroups[endpoint.GroupID]) && (endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment) {
 			err = handler.updateEndpointRelations(endpoint, edgeGroups, edgeStacks)
 			if err != nil {
 				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to update environment relations in the database", err}
@@ -115,7 +115,7 @@ func (handler *Handler) tagDelete(w http.ResponseWriter, r *http.Request) *httpe
 	return response.Empty(w)
 }
 
-func (handler *Handler) updateEndpointRelations(endpoint portainer.Endpoint, edgeGroups []portainer.EdgeGroup, edgeStacks []portainer.EdgeStack) error {
+func (handler *Handler) updateEndpointRelations(endpoint portaineree.Endpoint, edgeGroups []portaineree.EdgeGroup, edgeStacks []portaineree.EdgeStack) error {
 	endpointRelation, err := handler.DataStore.EndpointRelation().EndpointRelation(endpoint.ID)
 	if err != nil {
 		return err
@@ -127,7 +127,7 @@ func (handler *Handler) updateEndpointRelations(endpoint portainer.Endpoint, edg
 	}
 
 	endpointStacks := edge.EndpointRelatedEdgeStacks(&endpoint, endpointGroup, edgeGroups, edgeStacks)
-	stacksSet := map[portainer.EdgeStackID]bool{}
+	stacksSet := map[portaineree.EdgeStackID]bool{}
 	for _, edgeStackID := range endpointStacks {
 		stacksSet[edgeStackID] = true
 	}
@@ -136,7 +136,7 @@ func (handler *Handler) updateEndpointRelations(endpoint portainer.Endpoint, edg
 	return handler.DataStore.EndpointRelation().UpdateEndpointRelation(endpoint.ID, endpointRelation)
 }
 
-func findTagIndex(tags []portainer.TagID, searchTagID portainer.TagID) int {
+func findTagIndex(tags []portaineree.TagID, searchTagID portaineree.TagID) int {
 	for idx, tagID := range tags {
 		if searchTagID == tagID {
 			return idx
@@ -145,7 +145,7 @@ func findTagIndex(tags []portainer.TagID, searchTagID portainer.TagID) int {
 	return -1
 }
 
-func removeElement(arr []portainer.TagID, index int) []portainer.TagID {
+func removeElement(arr []portaineree.TagID, index int) []portaineree.TagID {
 	if index < 0 {
 		return arr
 	}

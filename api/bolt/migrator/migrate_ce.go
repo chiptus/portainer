@@ -3,12 +3,12 @@ package migrator
 import (
 	"log"
 
-	werrors "github.com/pkg/errors"
-	portainer "github.com/portainer/portainer/api"
+	"github.com/pkg/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 func migrationError(err error, context string) error {
-	return werrors.Wrap(err, "failed in "+context)
+	return errors.Wrap(err, "failed in "+context)
 }
 
 // MigrateCE checks the database version and migrate the existing data to the most recent data model.
@@ -378,8 +378,8 @@ func (m *Migrator) MigrateCE() error {
 		}
 	}
 
-	log.Println("Update DB version to ", portainer.DBVersion)
-	err = m.versionService.StoreDBVersion(portainer.DBVersion)
+	log.Println("Update DB version to ", portaineree.DBVersion)
+	err = m.versionService.StoreDBVersion(portaineree.DBVersion)
 	if err != nil {
 		return migrationError(err, "StoreDBVersion")
 	}

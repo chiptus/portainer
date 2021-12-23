@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kfake "k8s.io/client-go/kubernetes/fake"
@@ -17,7 +17,7 @@ func Test_GetServiceAccount(t *testing.T) {
 			cli:        kfake.NewSimpleClientset(),
 			instanceID: "test",
 		}
-		tokenData := &portainer.TokenData{ID: 1}
+		tokenData := &portaineree.TokenData{ID: 1}
 		_, err := k.GetServiceAccount(tokenData)
 		if err == nil {
 			t.Error("GetServiceAccount should fail with service account not found")
@@ -30,9 +30,9 @@ func Test_GetServiceAccount(t *testing.T) {
 			instanceID: "test",
 		}
 
-		tokenData := &portainer.TokenData{
+		tokenData := &portaineree.TokenData{
 			ID:       1,
-			Role:     portainer.AdministratorRole,
+			Role:     portaineree.AdministratorRole,
 			Username: portainerClusterAdminServiceAccountName,
 		}
 		serviceAccount := &v1.ServiceAccount{
@@ -63,9 +63,9 @@ func Test_GetServiceAccount(t *testing.T) {
 			instanceID: "test",
 		}
 
-		tokenData := &portainer.TokenData{
+		tokenData := &portaineree.TokenData{
 			ID:   1,
-			Role: portainer.StandardUserRole,
+			Role: portaineree.StandardUserRole,
 		}
 		serviceAccountName := UserServiceAccountName(int(tokenData.ID), k.instanceID)
 		serviceAccount := &v1.ServiceAccount{

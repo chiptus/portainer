@@ -1,7 +1,7 @@
 package migrator
 
 import (
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 func (m *Migrator) updateEndpointSettingsToDB26() error {
@@ -19,13 +19,13 @@ func (m *Migrator) updateEndpointSettingsToDB26() error {
 	for i := range endpoints {
 		endpoint := endpoints[i]
 
-		securitySettings := portainer.EndpointSecuritySettings{}
+		securitySettings := portaineree.EndpointSecuritySettings{}
 
-		if endpoint.Type == portainer.EdgeAgentOnDockerEnvironment ||
-			endpoint.Type == portainer.AgentOnDockerEnvironment ||
-			endpoint.Type == portainer.DockerEnvironment {
+		if endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment ||
+			endpoint.Type == portaineree.AgentOnDockerEnvironment ||
+			endpoint.Type == portaineree.DockerEnvironment {
 
-			securitySettings = portainer.EndpointSecuritySettings{
+			securitySettings = portaineree.EndpointSecuritySettings{
 				AllowBindMountsForRegularUsers:            settings.AllowBindMountsForRegularUsers,
 				AllowContainerCapabilitiesForRegularUsers: settings.AllowContainerCapabilitiesForRegularUsers,
 				AllowDeviceMappingForRegularUsers:         settings.AllowDeviceMappingForRegularUsers,
@@ -34,7 +34,7 @@ func (m *Migrator) updateEndpointSettingsToDB26() error {
 				AllowStackManagementForRegularUsers:       settings.AllowStackManagementForRegularUsers,
 			}
 
-			if endpoint.Type == portainer.AgentOnDockerEnvironment || endpoint.Type == portainer.EdgeAgentOnDockerEnvironment {
+			if endpoint.Type == portaineree.AgentOnDockerEnvironment || endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment {
 				securitySettings.AllowVolumeBrowserForRegularUsers = settings.AllowVolumeBrowserForRegularUsers
 				securitySettings.EnableHostManagementFeatures = settings.EnableHostManagementFeatures
 			}

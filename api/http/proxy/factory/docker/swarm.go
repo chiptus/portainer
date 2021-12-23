@@ -3,7 +3,7 @@ package docker
 import (
 	"net/http"
 
-	"github.com/portainer/portainer/api/http/proxy/factory/utils"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
 )
 
 // swarmInspectOperation extracts the response as a JSON object and rewrites the response based

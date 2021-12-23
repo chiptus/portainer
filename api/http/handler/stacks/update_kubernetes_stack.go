@@ -11,11 +11,11 @@ import (
 	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
+	k "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
-	"github.com/portainer/portainer/api/http/security"
-	k "github.com/portainer/portainer/api/kubernetes"
 )
 
 type kubernetesFileStackUpdatePayload struct {
@@ -27,7 +27,7 @@ type kubernetesGitStackUpdatePayload struct {
 	RepositoryAuthentication bool
 	RepositoryUsername       string
 	RepositoryPassword       string
-	AutoUpdate               *portainer.StackAutoUpdate
+	AutoUpdate               *portaineree.StackAutoUpdate
 }
 
 func (payload *kubernetesFileStackUpdatePayload) Validate(r *http.Request) error {
@@ -47,7 +47,7 @@ func (payload *kubernetesGitStackUpdatePayload) Validate(r *http.Request) error 
 	return nil
 }
 
-func (handler *Handler) updateKubernetesStack(r *http.Request, stack *portainer.Stack, endpoint *portainer.Endpoint) *httperror.HandlerError {
+func (handler *Handler) updateKubernetesStack(r *http.Request, stack *portaineree.Stack, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 
 	if stack.GitConfig != nil {
 		//stop the autoupdate job if there is any

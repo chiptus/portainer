@@ -1,6 +1,6 @@
 package migrator
 
-import portainer "github.com/portainer/portainer/api"
+import portaineree "github.com/portainer/portainer-ee/api"
 
 func (m *Migrator) migrateDBVersionToDB33() error {
 	if err := m.migrateSettingsToDB33(); err != nil {
@@ -16,6 +16,6 @@ func (m *Migrator) migrateSettingsToDB33() error {
 		return err
 	}
 
-	settings.KubectlShellImage = portainer.DefaultKubectlShellImage
+	settings.KubectlShellImage = portaineree.DefaultKubectlShellImage
 	return m.settingsService.UpdateSettings(settings)
 }

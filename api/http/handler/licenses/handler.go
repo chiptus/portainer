@@ -6,9 +6,9 @@ import (
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
 )
 
 const (
@@ -18,12 +18,12 @@ const (
 // Handler is the HTTP handler used to handle Edge job operations.
 type Handler struct {
 	*mux.Router
-	LicenseService      portainer.LicenseService
-	userActivityService portainer.UserActivityService
+	LicenseService      portaineree.LicenseService
+	userActivityService portaineree.UserActivityService
 }
 
 // NewHandler creates a handler to manage Edge job operations.
-func NewHandler(bouncer *security.RequestBouncer, userActivityService portainer.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		userActivityService: userActivityService,

@@ -11,10 +11,10 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/client"
-	"github.com/portainer/portainer/api/internal/endpointutils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/client"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 )
 
 type dockerhubStatusResponse struct {
@@ -51,11 +51,11 @@ func (handler *Handler) endpointDockerhubStatus(w http.ResponseWriter, r *http.R
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid registry identifier route variable", err}
 	}
 
-	registry := &portainer.Registry{
-		Type: portainer.DockerHubRegistry,
+	registry := &portaineree.Registry{
+		Type: portaineree.DockerHubRegistry,
 	}
 	if registryID != 0 {
-		registry, err = handler.dataStore.Registry().Registry(portainer.RegistryID(registryID))
+		registry, err = handler.dataStore.Registry().Registry(portaineree.RegistryID(registryID))
 		if err == bolterrors.ErrObjectNotFound {
 			return &httperror.HandlerError{http.StatusNotFound, "Unable to find a registry with the specified identifier inside the database", err}
 		} else if err != nil {
@@ -63,11 +63,11 @@ func (handler *Handler) endpointDockerhubStatus(w http.ResponseWriter, r *http.R
 		}
 	}
 
-	if registry.Type != portainer.DockerHubRegistry {
+	if registry.Type != portaineree.DockerHubRegistry {
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid registry type", errors.New("Invalid registry type")}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -92,7 +92,7 @@ func (handler *Handler) endpointDockerhubStatus(w http.ResponseWriter, r *http.R
 	return response.JSON(w, resp)
 }
 
-func getDockerHubToken(httpClient *client.HTTPClient, registry *portainer.Registry) (string, error) {
+func getDockerHubToken(httpClient *client.HTTPClient, registry *portaineree.Registry) (string, error) {
 	type dockerhubTokenResponse struct {
 		Token string `json:"token"`
 	}

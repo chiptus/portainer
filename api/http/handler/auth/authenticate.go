@@ -11,10 +11,10 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/internal/authorization"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 type authenticatePayload struct {
@@ -54,7 +54,7 @@ func (payload *authenticatePayload) Validate(r *http.Request) error {
 // @router /auth [post]
 func (handler *Handler) authenticate(rw http.ResponseWriter, r *http.Request) (*authMiddlewareResponse, *httperror.HandlerError) {
 	resp := &authMiddlewareResponse{
-		Method: portainer.AuthenticationInternal,
+		Method: portaineree.AuthenticationInternal,
 	}
 
 	var payload authenticatePayload
@@ -89,7 +89,7 @@ func (handler *Handler) authenticate(rw http.ResponseWriter, r *http.Request) (*
 		}
 	}
 
-	if err == bolterrors.ErrObjectNotFound && (settings.AuthenticationMethod == portainer.AuthenticationInternal || settings.AuthenticationMethod == portainer.AuthenticationOAuth) {
+	if err == bolterrors.ErrObjectNotFound && (settings.AuthenticationMethod == portaineree.AuthenticationInternal || settings.AuthenticationMethod == portaineree.AuthenticationOAuth) {
 		return resp, &httperror.HandlerError{
 			StatusCode: http.StatusUnprocessableEntity,
 			Message:    "Invalid credentials",
@@ -98,7 +98,7 @@ func (handler *Handler) authenticate(rw http.ResponseWriter, r *http.Request) (*
 
 	}
 
-	if settings.AuthenticationMethod == portainer.AuthenticationLDAP {
+	if settings.AuthenticationMethod == portaineree.AuthenticationLDAP {
 		if u == nil {
 			if settings.LDAPSettings.AutoCreateUsers || settings.LDAPSettings.AdminAutoPopulate {
 				return handler.authenticateLDAPAndCreateUser(rw, payload.Username, payload.Password, &settings.LDAPSettings)
@@ -117,9 +117,9 @@ func (handler *Handler) authenticate(rw http.ResponseWriter, r *http.Request) (*
 	return handler.authenticateInternal(rw, u, payload.Password)
 }
 
-func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainer.User, password string, ldapSettings *portainer.LDAPSettings) (*authMiddlewareResponse, *httperror.HandlerError) {
+func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portaineree.User, password string, ldapSettings *portaineree.LDAPSettings) (*authMiddlewareResponse, *httperror.HandlerError) {
 	resp := &authMiddlewareResponse{
-		Method:   portainer.AuthenticationLDAP,
+		Method:   portaineree.AuthenticationLDAP,
 		Username: user.Username,
 	}
 
@@ -138,8 +138,8 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainer.
 					Err:        err,
 				}
 		}
-		if isLDAPAdmin && user.Role != portainer.AdministratorRole {
-			if err := handler.updateUserRole(user, portainer.AdministratorRole); err != nil {
+		if isLDAPAdmin && user.Role != portaineree.AdministratorRole {
+			if err := handler.updateUserRole(user, portaineree.AdministratorRole); err != nil {
 				return resp,
 					&httperror.HandlerError{
 						StatusCode: http.StatusUnprocessableEntity,
@@ -148,8 +148,8 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainer.
 					}
 			}
 		}
-		if !isLDAPAdmin && user.Role == portainer.AdministratorRole {
-			if err := handler.updateUserRole(user, portainer.StandardUserRole); err != nil {
+		if !isLDAPAdmin && user.Role == portaineree.AdministratorRole {
+			if err := handler.updateUserRole(user, portaineree.StandardUserRole); err != nil {
 				return resp,
 					&httperror.HandlerError{
 						StatusCode: http.StatusUnprocessableEntity,
@@ -178,7 +178,7 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainer.
 
 	info := handler.LicenseService.Info()
 
-	if user.Role != portainer.AdministratorRole && !info.Valid {
+	if user.Role != portaineree.AdministratorRole && !info.Valid {
 		return resp,
 			&httperror.HandlerError{
 				StatusCode: http.StatusForbidden,
@@ -191,9 +191,9 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainer.
 	return handler.writeToken(w, user, resp.Method)
 }
 
-func (handler *Handler) authenticateInternal(w http.ResponseWriter, user *portainer.User, password string) (*authMiddlewareResponse, *httperror.HandlerError) {
+func (handler *Handler) authenticateInternal(w http.ResponseWriter, user *portaineree.User, password string) (*authMiddlewareResponse, *httperror.HandlerError) {
 	resp := &authMiddlewareResponse{
-		Method:   portainer.AuthenticationInternal,
+		Method:   portaineree.AuthenticationInternal,
 		Username: user.Username,
 	}
 
@@ -210,7 +210,7 @@ func (handler *Handler) authenticateInternal(w http.ResponseWriter, user *portai
 
 	info := handler.LicenseService.Info()
 
-	if user.Role != portainer.AdministratorRole && !info.Valid {
+	if user.Role != portaineree.AdministratorRole && !info.Valid {
 		return resp,
 			&httperror.HandlerError{
 				StatusCode: http.StatusForbidden,
@@ -223,9 +223,9 @@ func (handler *Handler) authenticateInternal(w http.ResponseWriter, user *portai
 	return handler.writeToken(w, user, resp.Method)
 }
 
-func (handler *Handler) authenticateLDAPAndCreateUser(w http.ResponseWriter, username, password string, ldapSettings *portainer.LDAPSettings) (*authMiddlewareResponse, *httperror.HandlerError) {
+func (handler *Handler) authenticateLDAPAndCreateUser(w http.ResponseWriter, username, password string, ldapSettings *portaineree.LDAPSettings) (*authMiddlewareResponse, *httperror.HandlerError) {
 	resp := &authMiddlewareResponse{
-		Method:   portainer.AuthenticationLDAP,
+		Method:   portaineree.AuthenticationLDAP,
 		Username: username,
 	}
 
@@ -240,9 +240,9 @@ func (handler *Handler) authenticateLDAPAndCreateUser(w http.ResponseWriter, use
 
 	}
 
-	user := &portainer.User{
+	user := &portaineree.User{
 		Username:                username,
-		Role:                    portainer.StandardUserRole,
+		Role:                    portaineree.StandardUserRole,
 		PortainerAuthorizations: authorization.DefaultPortainerAuthorizations(),
 	}
 
@@ -259,7 +259,7 @@ func (handler *Handler) authenticateLDAPAndCreateUser(w http.ResponseWriter, use
 		}
 
 		if isLDAPAdmin {
-			user.Role = portainer.AdministratorRole
+			user.Role = portaineree.AdministratorRole
 		}
 	}
 
@@ -305,13 +305,13 @@ func (handler *Handler) authenticateLDAPAndCreateUser(w http.ResponseWriter, use
 	return handler.writeToken(w, user, resp.Method)
 }
 
-func (handler *Handler) writeToken(w http.ResponseWriter, user *portainer.User, method portainer.AuthenticationMethod) (*authMiddlewareResponse, *httperror.HandlerError) {
+func (handler *Handler) writeToken(w http.ResponseWriter, user *portaineree.User, method portaineree.AuthenticationMethod) (*authMiddlewareResponse, *httperror.HandlerError) {
 	tokenData := composeTokenData(user)
 
 	return handler.persistAndWriteToken(w, tokenData, nil, method)
 }
 
-func (handler *Handler) persistAndWriteToken(w http.ResponseWriter, tokenData *portainer.TokenData, expiryTime *time.Time, method portainer.AuthenticationMethod) (*authMiddlewareResponse, *httperror.HandlerError) {
+func (handler *Handler) persistAndWriteToken(w http.ResponseWriter, tokenData *portaineree.TokenData, expiryTime *time.Time, method portaineree.AuthenticationMethod) (*authMiddlewareResponse, *httperror.HandlerError) {
 	resp := &authMiddlewareResponse{
 		Username: tokenData.Username,
 		Method:   method,
@@ -320,7 +320,7 @@ func (handler *Handler) persistAndWriteToken(w http.ResponseWriter, tokenData *p
 	var token string
 	var err error
 
-	if method == portainer.AuthenticationOAuth {
+	if method == portaineree.AuthenticationOAuth {
 		token, err = handler.JWTService.GenerateTokenForOAuth(tokenData, expiryTime)
 		if err != nil {
 			return resp,
@@ -347,7 +347,7 @@ func (handler *Handler) persistAndWriteToken(w http.ResponseWriter, tokenData *p
 
 }
 
-func (handler *Handler) addUserIntoTeams(user *portainer.User, settings *portainer.LDAPSettings) error {
+func (handler *Handler) addUserIntoTeams(user *portaineree.User, settings *portaineree.LDAPSettings) error {
 	teams, err := handler.DataStore.Team().Teams()
 	if err != nil {
 		return err
@@ -370,10 +370,10 @@ func (handler *Handler) addUserIntoTeams(user *portainer.User, settings *portain
 				continue
 			}
 
-			membership := &portainer.TeamMembership{
+			membership := &portaineree.TeamMembership{
 				UserID: user.ID,
 				TeamID: team.ID,
-				Role:   portainer.TeamMember,
+				Role:   portaineree.TeamMember,
 			}
 
 			err := handler.DataStore.TeamMembership().CreateTeamMembership(membership)
@@ -387,7 +387,7 @@ func (handler *Handler) addUserIntoTeams(user *portainer.User, settings *portain
 	return nil
 }
 
-func isLDAPAdmin(username string, ldapService portainer.LDAPService, ldapSettings *portainer.LDAPSettings) (bool, error) {
+func isLDAPAdmin(username string, ldapService portaineree.LDAPService, ldapSettings *portaineree.LDAPSettings) (bool, error) {
 	//get groups the user belongs to
 	userGroups, err := ldapService.GetUserGroups(username, ldapSettings, true)
 	if err != nil {
@@ -409,7 +409,7 @@ func isLDAPAdmin(username string, ldapService portainer.LDAPService, ldapSetting
 	return false, nil
 }
 
-func (handler *Handler) updateUserRole(user *portainer.User, role portainer.UserRole) error {
+func (handler *Handler) updateUserRole(user *portaineree.User, role portaineree.UserRole) error {
 	user.Role = role
 	err := handler.DataStore.User().UpdateUser(user.ID, user)
 	return errors.Wrap(err, "unable to update user role inside the database")
@@ -424,7 +424,7 @@ func teamExists(teamName string, ldapGroups []string) bool {
 	return false
 }
 
-func teamMembershipExists(teamID portainer.TeamID, memberships []portainer.TeamMembership) bool {
+func teamMembershipExists(teamID portaineree.TeamID, memberships []portaineree.TeamMembership) bool {
 	for _, membership := range memberships {
 		if membership.TeamID == teamID {
 			return true
@@ -433,8 +433,8 @@ func teamMembershipExists(teamID portainer.TeamID, memberships []portainer.TeamM
 	return false
 }
 
-func composeTokenData(user *portainer.User) *portainer.TokenData {
-	return &portainer.TokenData{
+func composeTokenData(user *portaineree.User) *portaineree.TokenData {
+	return &portaineree.TokenData{
 		ID:       user.ID,
 		Username: user.Username,
 		Role:     user.Role,

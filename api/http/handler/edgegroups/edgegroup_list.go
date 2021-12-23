@@ -6,13 +6,13 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type decoratedEdgeGroup struct {
-	portainer.EdgeGroup
+	portaineree.EdgeGroup
 	HasEdgeStack  bool `json:"HasEdgeStack"`
-	EndpointTypes []portainer.EndpointType
+	EndpointTypes []portaineree.EndpointType
 }
 
 // @id EdgeGroupList
@@ -37,7 +37,7 @@ func (handler *Handler) edgeGroupList(w http.ResponseWriter, r *http.Request) *h
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve Edge stacks from the database", err}
 	}
 
-	usedEdgeGroups := make(map[portainer.EdgeGroupID]bool)
+	usedEdgeGroups := make(map[portaineree.EdgeGroupID]bool)
 
 	for _, stack := range edgeStacks {
 		for _, groupID := range stack.EdgeGroups {
@@ -49,7 +49,7 @@ func (handler *Handler) edgeGroupList(w http.ResponseWriter, r *http.Request) *h
 	for _, orgEdgeGroup := range edgeGroups {
 		edgeGroup := decoratedEdgeGroup{
 			EdgeGroup:     orgEdgeGroup,
-			EndpointTypes: []portainer.EndpointType{},
+			EndpointTypes: []portaineree.EndpointType{},
 		}
 		if edgeGroup.Dynamic {
 			endpointIDs, err := handler.getEndpointsByTags(edgeGroup.TagIDs, edgeGroup.PartialMatch)
@@ -75,8 +75,8 @@ func (handler *Handler) edgeGroupList(w http.ResponseWriter, r *http.Request) *h
 	return response.JSON(w, decoratedEdgeGroups)
 }
 
-func getEndpointTypes(endpointService portainer.EndpointService, endpointIds []portainer.EndpointID) ([]portainer.EndpointType, error) {
-	typeSet := map[portainer.EndpointType]bool{}
+func getEndpointTypes(endpointService portaineree.EndpointService, endpointIds []portaineree.EndpointID) ([]portaineree.EndpointType, error) {
+	typeSet := map[portaineree.EndpointType]bool{}
 	for _, endpointID := range endpointIds {
 		endpoint, err := endpointService.Endpoint(endpointID)
 		if err != nil {
@@ -86,7 +86,7 @@ func getEndpointTypes(endpointService portainer.EndpointService, endpointIds []p
 		typeSet[endpoint.Type] = true
 	}
 
-	endpointTypes := make([]portainer.EndpointType, 0, len(typeSet))
+	endpointTypes := make([]portaineree.EndpointType, 0, len(typeSet))
 	for endpointType := range typeSet {
 		endpointTypes = append(endpointTypes, endpointType)
 	}

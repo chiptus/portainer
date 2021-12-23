@@ -7,14 +7,14 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/portainer/portainer/api/filesystem"
-
 	"github.com/pkg/errors"
-	portainer "github.com/portainer/portainer/api"
+
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/offlinegate"
+	"github.com/portainer/portainer-ee/api/s3"
 	"github.com/portainer/portainer/api/archive"
 	"github.com/portainer/portainer/api/crypto"
-	"github.com/portainer/portainer/api/http/offlinegate"
-	"github.com/portainer/portainer/api/s3"
+	"github.com/portainer/portainer/api/filesystem"
 )
 
 const rwxr__r__ os.FileMode = 0744
@@ -32,7 +32,7 @@ var filesToBackup = []string{
 	"tls",
 }
 
-func BackupToS3(settings portainer.S3BackupSettings, gate *offlinegate.OfflineGate, datastore portainer.DataStore, userActivityStore portainer.UserActivityStore, filestorePath string) error {
+func BackupToS3(settings portaineree.S3BackupSettings, gate *offlinegate.OfflineGate, datastore portaineree.DataStore, userActivityStore portaineree.UserActivityStore, filestorePath string) error {
 	archivePath, err := CreateBackupArchive(settings.Password, gate, datastore, userActivityStore, filestorePath)
 	if err != nil {
 		log.Printf("[ERROR] failed to backup: %s \n", err)
@@ -60,7 +60,7 @@ func BackupToS3(settings portainer.S3BackupSettings, gate *offlinegate.OfflineGa
 }
 
 // Creates a tar.gz system archive and encrypts it if password is not empty. Returns a path to the archive file.
-func CreateBackupArchive(password string, gate *offlinegate.OfflineGate, datastore portainer.DataStore, userActivityStore portainer.UserActivityStore, filestorePath string) (string, error) {
+func CreateBackupArchive(password string, gate *offlinegate.OfflineGate, datastore portaineree.DataStore, userActivityStore portaineree.UserActivityStore, filestorePath string) (string, error) {
 	unlock := gate.Lock()
 	defer unlock()
 
@@ -99,7 +99,7 @@ func CreateBackupArchive(password string, gate *offlinegate.OfflineGate, datasto
 	return archivePath, nil
 }
 
-func backupDb(backupDirPath string, datastore portainer.DataStore) error {
+func backupDb(backupDirPath string, datastore portaineree.DataStore) error {
 	backupWriter, err := os.Create(filepath.Join(backupDirPath, "portainer.db"))
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ func backupDb(backupDirPath string, datastore portainer.DataStore) error {
 	return backupWriter.Close()
 }
 
-func backupUserActivityStore(backupDirPath string, userActivityStore portainer.UserActivityStore) error {
+func backupUserActivityStore(backupDirPath string, userActivityStore portaineree.UserActivityStore) error {
 	backupWriter, err := os.Create(filepath.Join(backupDirPath, "useractivity.db"))
 	if err != nil {
 		return err

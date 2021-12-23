@@ -1,8 +1,8 @@
 package helmuserrepository
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 
 	"github.com/boltdb/bolt"
 )
@@ -30,15 +30,15 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // HelmUserRepositoryByUserID return an array containing all the HelmUserRepository objects where the specified userID is present.
-func (service *Service) HelmUserRepositoryByUserID(userID portainer.UserID) ([]portainer.HelmUserRepository, error) {
-	var result = make([]portainer.HelmUserRepository, 0)
+func (service *Service) HelmUserRepositoryByUserID(userID portaineree.UserID) ([]portaineree.HelmUserRepository, error) {
+	var result = make([]portaineree.HelmUserRepository, 0)
 
 	err := service.connection.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var record portainer.HelmUserRepository
+			var record portaineree.HelmUserRepository
 			err := internal.UnmarshalObject(v, &record)
 			if err != nil {
 				return err
@@ -56,12 +56,12 @@ func (service *Service) HelmUserRepositoryByUserID(userID portainer.UserID) ([]p
 }
 
 // CreateHelmUserRepository creates a new HelmUserRepository object.
-func (service *Service) CreateHelmUserRepository(record *portainer.HelmUserRepository) error {
+func (service *Service) CreateHelmUserRepository(record *portaineree.HelmUserRepository) error {
 	return service.connection.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		id, _ := bucket.NextSequence()
-		record.ID = portainer.HelmUserRepositoryID(id)
+		record.ID = portaineree.HelmUserRepositoryID(id)
 
 		data, err := internal.MarshalObject(record)
 		if err != nil {

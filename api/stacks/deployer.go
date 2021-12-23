@@ -7,26 +7,26 @@ import (
 
 	"github.com/pkg/errors"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/internal/stackutils"
-	k "github.com/portainer/portainer/api/kubernetes"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/stackutils"
+	k "github.com/portainer/portainer-ee/api/kubernetes"
 )
 
 type StackDeployer interface {
-	DeploySwarmStack(stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune bool) error
-	DeployComposeStack(stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry) error
-	DeployKubernetesStack(stack *portainer.Stack, endpoint *portainer.Endpoint, user *portainer.User) error
+	DeploySwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, prune bool) error
+	DeployComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry) error
+	DeployKubernetesStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, user *portaineree.User) error
 }
 
 type stackDeployer struct {
 	lock                *sync.Mutex
-	swarmStackManager   portainer.SwarmStackManager
-	composeStackManager portainer.ComposeStackManager
-	kubernetesDeployer  portainer.KubernetesDeployer
+	swarmStackManager   portaineree.SwarmStackManager
+	composeStackManager portaineree.ComposeStackManager
+	kubernetesDeployer  portaineree.KubernetesDeployer
 }
 
 // NewStackDeployer inits a stackDeployer struct with a SwarmStackManager, a ComposeStackManager and a KubernetesDeployer
-func NewStackDeployer(swarmStackManager portainer.SwarmStackManager, composeStackManager portainer.ComposeStackManager, kubernetesDeployer portainer.KubernetesDeployer) *stackDeployer {
+func NewStackDeployer(swarmStackManager portaineree.SwarmStackManager, composeStackManager portaineree.ComposeStackManager, kubernetesDeployer portaineree.KubernetesDeployer) *stackDeployer {
 	return &stackDeployer{
 		lock:                &sync.Mutex{},
 		swarmStackManager:   swarmStackManager,
@@ -35,7 +35,7 @@ func NewStackDeployer(swarmStackManager portainer.SwarmStackManager, composeStac
 	}
 }
 
-func (d *stackDeployer) DeploySwarmStack(stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune bool) error {
+func (d *stackDeployer) DeploySwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, prune bool) error {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
@@ -45,7 +45,7 @@ func (d *stackDeployer) DeploySwarmStack(stack *portainer.Stack, endpoint *porta
 	return d.swarmStackManager.Deploy(stack, prune, endpoint)
 }
 
-func (d *stackDeployer) DeployComposeStack(stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry) error {
+func (d *stackDeployer) DeployComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry) error {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
@@ -55,7 +55,7 @@ func (d *stackDeployer) DeployComposeStack(stack *portainer.Stack, endpoint *por
 	return d.composeStackManager.Up(context.TODO(), stack, endpoint)
 }
 
-func (d *stackDeployer) DeployKubernetesStack(stack *portainer.Stack, endpoint *portainer.Endpoint, user *portainer.User) error {
+func (d *stackDeployer) DeployKubernetesStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, user *portaineree.User) error {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 

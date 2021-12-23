@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -18,8 +18,8 @@ import (
 // - The shell pod will be automatically removed if it's not ready after specified period of time
 // - The shell pod will be automatically removed after a specified max life (prevent zombie pods)
 // - The shell pod will be automatically removed if request is cancelled (or client closes websocket connection)
-func (kcl *KubeClient) CreateUserShellPod(ctx context.Context, serviceAccountName, shellPodImage string) (*portainer.KubernetesShellPod, error) {
-	maxPodKeepAliveSecondsStr := fmt.Sprintf("%d", int(portainer.WebSocketKeepAlive.Seconds()))
+func (kcl *KubeClient) CreateUserShellPod(ctx context.Context, serviceAccountName, shellPodImage string) (*portaineree.KubernetesShellPod, error) {
+	maxPodKeepAliveSecondsStr := fmt.Sprintf("%d", int(portaineree.WebSocketKeepAlive.Seconds()))
 
 	podPrefix := userShellPodPrefix(serviceAccountName)
 
@@ -67,7 +67,7 @@ func (kcl *KubeClient) CreateUserShellPod(ctx context.Context, serviceAccountNam
 		return nil, fmt.Errorf("incorrect shell pod state, expecting single container to be present")
 	}
 
-	podData := &portainer.KubernetesShellPod{
+	podData := &portaineree.KubernetesShellPod{
 		Namespace:        shellPod.Namespace,
 		PodName:          shellPod.Name,
 		ContainerName:    shellPod.Spec.Containers[0].Name,
@@ -77,7 +77,7 @@ func (kcl *KubeClient) CreateUserShellPod(ctx context.Context, serviceAccountNam
 	// Handle pod lifecycle/cleanup - terminate pod after maxPodKeepAlive or upon request (long-lived) cancellation
 	go func() {
 		select {
-		case <-time.After(portainer.WebSocketKeepAlive):
+		case <-time.After(portaineree.WebSocketKeepAlive):
 			log.Println("[DEBUG] [internal,kubernetes/pod] [message: pod removal schedule duration exceeded]")
 			kcl.cli.CoreV1().Pods(portainerNamespace).Delete(context.TODO(), shellPod.Name, metav1.DeleteOptions{})
 		case <-ctx.Done():

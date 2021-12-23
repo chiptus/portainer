@@ -6,8 +6,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // @id EndpointInspect
@@ -19,7 +19,7 @@ import (
 // @security jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
-// @success 200 {object} portainer.Endpoint "Success"
+// @success 200 {object} portaineree.Endpoint "Success"
 // @failure 400 "Invalid request"
 // @failure 404 "Environment(Endpoint) not found"
 // @failure 500 "Server error"
@@ -30,7 +30,7 @@ func (handler *Handler) endpointInspect(w http.ResponseWriter, r *http.Request) 
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == errors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {

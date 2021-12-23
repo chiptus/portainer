@@ -7,7 +7,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/securecookie"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 // scope represents JWT scopes that are supported in JWT claims.
@@ -17,7 +17,7 @@ type scope string
 type Service struct {
 	secrets            map[scope][]byte
 	userSessionTimeout time.Duration
-	dataStore          portainer.DataStore
+	dataStore          portaineree.DataStore
 }
 
 type claims struct {
@@ -39,7 +39,7 @@ const (
 )
 
 // NewService initializes a new service. It will generate a random key that will be used to sign JWT tokens.
-func NewService(userSessionDuration string, dataStore portainer.DataStore) (*Service, error) {
+func NewService(userSessionDuration string, dataStore portaineree.DataStore) (*Service, error) {
 	userSessionTimeout, err := time.ParseDuration(userSessionDuration)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func NewService(userSessionDuration string, dataStore portainer.DataStore) (*Ser
 	return service, nil
 }
 
-func getOrCreateKubeSecret(dataStore portainer.DataStore) ([]byte, error) {
+func getOrCreateKubeSecret(dataStore portaineree.DataStore) ([]byte, error) {
 	settings, err := dataStore.Settings().Settings()
 	if err != nil {
 		return nil, err
@@ -92,13 +92,13 @@ func (service *Service) defaultExpireAt() int64 {
 }
 
 // GenerateToken generates a new JWT token.
-func (service *Service) GenerateToken(data *portainer.TokenData) (string, error) {
+func (service *Service) GenerateToken(data *portaineree.TokenData) (string, error) {
 	return service.generateSignedToken(data, service.defaultExpireAt(), defaultScope)
 }
 
 // GenerateTokenForOAuth generates a new JWT token for OAuth login
 // token expiry time response from OAuth provider is considered
-func (service *Service) GenerateTokenForOAuth(data *portainer.TokenData, expiryTime *time.Time) (string, error) {
+func (service *Service) GenerateTokenForOAuth(data *portaineree.TokenData, expiryTime *time.Time) (string, error) {
 	expireAt := service.defaultExpireAt()
 	if expiryTime != nil && !expiryTime.IsZero() {
 		expireAt = expiryTime.Unix()
@@ -107,7 +107,7 @@ func (service *Service) GenerateTokenForOAuth(data *portainer.TokenData, expiryT
 }
 
 // ParseAndVerifyToken parses a JWT token and verify its validity. It returns an error if token is invalid.
-func (service *Service) ParseAndVerifyToken(token string) (*portainer.TokenData, error) {
+func (service *Service) ParseAndVerifyToken(token string) (*portaineree.TokenData, error) {
 	scope := parseScope(token)
 	secret := service.secrets[scope]
 	parsedToken, err := jwt.ParseWithClaims(token, &claims{}, func(token *jwt.Token) (interface{}, error) {
@@ -120,10 +120,10 @@ func (service *Service) ParseAndVerifyToken(token string) (*portainer.TokenData,
 
 	if err == nil && parsedToken != nil {
 		if cl, ok := parsedToken.Claims.(*claims); ok && parsedToken.Valid {
-			return &portainer.TokenData{
-				ID:       portainer.UserID(cl.UserID),
+			return &portaineree.TokenData{
+				ID:       portaineree.UserID(cl.UserID),
 				Username: cl.Username,
-				Role:     portainer.UserRole(cl.Role),
+				Role:     portaineree.UserRole(cl.Role),
 			}, nil
 		}
 	}
@@ -148,7 +148,7 @@ func (service *Service) SetUserSessionDuration(userSessionDuration time.Duration
 	service.userSessionTimeout = userSessionDuration
 }
 
-func (service *Service) generateSignedToken(data *portainer.TokenData, expiresAt int64, scope scope) (string, error) {
+func (service *Service) generateSignedToken(data *portaineree.TokenData, expiresAt int64, scope scope) (string, error) {
 	secret, found := service.secrets[scope]
 	if !found {
 		return "", fmt.Errorf("invalid scope: %v", scope)

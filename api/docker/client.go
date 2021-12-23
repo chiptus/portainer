@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/docker/docker/client"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer/api/crypto"
 )
 
@@ -21,12 +21,12 @@ const (
 
 // ClientFactory is used to create Docker clients
 type ClientFactory struct {
-	signatureService     portainer.DigitalSignatureService
-	reverseTunnelService portainer.ReverseTunnelService
+	signatureService     portaineree.DigitalSignatureService
+	reverseTunnelService portaineree.ReverseTunnelService
 }
 
 // NewClientFactory returns a new instance of a ClientFactory
-func NewClientFactory(signatureService portainer.DigitalSignatureService, reverseTunnelService portainer.ReverseTunnelService) *ClientFactory {
+func NewClientFactory(signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService) *ClientFactory {
 	return &ClientFactory{
 		signatureService:     signatureService,
 		reverseTunnelService: reverseTunnelService,
@@ -36,12 +36,12 @@ func NewClientFactory(signatureService portainer.DigitalSignatureService, revers
 // createClient is a generic function to create a Docker client based on
 // a specific environment(endpoint) configuration. The nodeName parameter can be used
 // with an agent enabled environment(endpoint) to target a specific node in an agent cluster.
-func (factory *ClientFactory) CreateClient(endpoint *portainer.Endpoint, nodeName string) (*client.Client, error) {
-	if endpoint.Type == portainer.AzureEnvironment {
+func (factory *ClientFactory) CreateClient(endpoint *portaineree.Endpoint, nodeName string) (*client.Client, error) {
+	if endpoint.Type == portaineree.AzureEnvironment {
 		return nil, errUnsupportedEnvironmentType
-	} else if endpoint.Type == portainer.AgentOnDockerEnvironment {
+	} else if endpoint.Type == portaineree.AgentOnDockerEnvironment {
 		return createAgentClient(endpoint, factory.signatureService, nodeName)
-	} else if endpoint.Type == portainer.EdgeAgentOnDockerEnvironment {
+	} else if endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment {
 		return createEdgeClient(endpoint, factory.signatureService, factory.reverseTunnelService, nodeName)
 	}
 
@@ -51,14 +51,14 @@ func (factory *ClientFactory) CreateClient(endpoint *portainer.Endpoint, nodeNam
 	return createTCPClient(endpoint)
 }
 
-func createLocalClient(endpoint *portainer.Endpoint) (*client.Client, error) {
+func createLocalClient(endpoint *portaineree.Endpoint) (*client.Client, error) {
 	return client.NewClientWithOpts(
 		client.WithHost(endpoint.URL),
 		client.WithVersion(dockerClientVersion),
 	)
 }
 
-func createTCPClient(endpoint *portainer.Endpoint) (*client.Client, error) {
+func createTCPClient(endpoint *portaineree.Endpoint) (*client.Client, error) {
 	httpCli, err := httpClient(endpoint)
 	if err != nil {
 		return nil, err
@@ -71,24 +71,24 @@ func createTCPClient(endpoint *portainer.Endpoint) (*client.Client, error) {
 	)
 }
 
-func createEdgeClient(endpoint *portainer.Endpoint, signatureService portainer.DigitalSignatureService, reverseTunnelService portainer.ReverseTunnelService, nodeName string) (*client.Client, error) {
+func createEdgeClient(endpoint *portaineree.Endpoint, signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, nodeName string) (*client.Client, error) {
 	httpCli, err := httpClient(endpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	signature, err := signatureService.CreateSignature(portainer.PortainerAgentSignatureMessage)
+	signature, err := signatureService.CreateSignature(portaineree.PortainerAgentSignatureMessage)
 	if err != nil {
 		return nil, err
 	}
 
 	headers := map[string]string{
-		portainer.PortainerAgentPublicKeyHeader: signatureService.EncodedPublicKey(),
-		portainer.PortainerAgentSignatureHeader: signature,
+		portaineree.PortainerAgentPublicKeyHeader: signatureService.EncodedPublicKey(),
+		portaineree.PortainerAgentSignatureHeader: signature,
 	}
 
 	if nodeName != "" {
-		headers[portainer.PortainerAgentTargetHeader] = nodeName
+		headers[portaineree.PortainerAgentTargetHeader] = nodeName
 	}
 
 	tunnel, err := reverseTunnelService.GetActiveTunnel(endpoint)
@@ -106,24 +106,24 @@ func createEdgeClient(endpoint *portainer.Endpoint, signatureService portainer.D
 	)
 }
 
-func createAgentClient(endpoint *portainer.Endpoint, signatureService portainer.DigitalSignatureService, nodeName string) (*client.Client, error) {
+func createAgentClient(endpoint *portaineree.Endpoint, signatureService portaineree.DigitalSignatureService, nodeName string) (*client.Client, error) {
 	httpCli, err := httpClient(endpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	signature, err := signatureService.CreateSignature(portainer.PortainerAgentSignatureMessage)
+	signature, err := signatureService.CreateSignature(portaineree.PortainerAgentSignatureMessage)
 	if err != nil {
 		return nil, err
 	}
 
 	headers := map[string]string{
-		portainer.PortainerAgentPublicKeyHeader: signatureService.EncodedPublicKey(),
-		portainer.PortainerAgentSignatureHeader: signature,
+		portaineree.PortainerAgentPublicKeyHeader: signatureService.EncodedPublicKey(),
+		portaineree.PortainerAgentSignatureHeader: signature,
 	}
 
 	if nodeName != "" {
-		headers[portainer.PortainerAgentTargetHeader] = nodeName
+		headers[portaineree.PortainerAgentTargetHeader] = nodeName
 	}
 
 	return client.NewClientWithOpts(
@@ -134,7 +134,7 @@ func createAgentClient(endpoint *portainer.Endpoint, signatureService portainer.
 	)
 }
 
-func httpClient(endpoint *portainer.Endpoint) (*http.Client, error) {
+func httpClient(endpoint *portaineree.Endpoint) (*http.Client, error) {
 	transport := &http.Transport{}
 
 	if endpoint.TLSConfig.TLS {

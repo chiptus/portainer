@@ -3,12 +3,12 @@ package stackutils
 import (
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_GetStackFilePaths(t *testing.T) {
-	stack := &portainer.Stack{
+	stack := &portaineree.Stack{
 		ProjectPath: "/tmp/stack/1",
 		EntryPoint:  "file-one.yml",
 	}

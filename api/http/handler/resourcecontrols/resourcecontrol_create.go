@@ -8,7 +8,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type resourceControlCreatePayload struct {
@@ -63,7 +63,7 @@ func (payload *resourceControlCreatePayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param body body resourceControlCreatePayload true "Resource control details"
-// @success 200 {object} portainer.ResourceControl "Success"
+// @success 200 {object} portaineree.ResourceControl "Success"
 // @failure 400 "Invalid request"
 // @failure 409 "Resource control already exists"
 // @failure 500 "Server error"
@@ -75,24 +75,24 @@ func (handler *Handler) resourceControlCreate(w http.ResponseWriter, r *http.Req
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	var resourceControlType portainer.ResourceControlType
+	var resourceControlType portaineree.ResourceControlType
 	switch payload.Type {
 	case "container":
-		resourceControlType = portainer.ContainerResourceControl
+		resourceControlType = portaineree.ContainerResourceControl
 	case "container-group":
-		resourceControlType = portainer.ContainerGroupResourceControl
+		resourceControlType = portaineree.ContainerGroupResourceControl
 	case "service":
-		resourceControlType = portainer.ServiceResourceControl
+		resourceControlType = portaineree.ServiceResourceControl
 	case "volume":
-		resourceControlType = portainer.VolumeResourceControl
+		resourceControlType = portaineree.VolumeResourceControl
 	case "network":
-		resourceControlType = portainer.NetworkResourceControl
+		resourceControlType = portaineree.NetworkResourceControl
 	case "secret":
-		resourceControlType = portainer.SecretResourceControl
+		resourceControlType = portaineree.SecretResourceControl
 	case "stack":
-		resourceControlType = portainer.StackResourceControl
+		resourceControlType = portaineree.StackResourceControl
 	case "config":
-		resourceControlType = portainer.ConfigResourceControl
+		resourceControlType = portaineree.ConfigResourceControl
 	default:
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid type value. Value must be one of: container, service, volume, network, secret, stack or config", errInvalidResourceControlType}
 	}
@@ -105,25 +105,25 @@ func (handler *Handler) resourceControlCreate(w http.ResponseWriter, r *http.Req
 		return &httperror.HandlerError{http.StatusConflict, "A resource control is already associated to this resource", errResourceControlAlreadyExists}
 	}
 
-	var userAccesses = make([]portainer.UserResourceAccess, 0)
+	var userAccesses = make([]portaineree.UserResourceAccess, 0)
 	for _, v := range payload.Users {
-		userAccess := portainer.UserResourceAccess{
-			UserID:      portainer.UserID(v),
-			AccessLevel: portainer.ReadWriteAccessLevel,
+		userAccess := portaineree.UserResourceAccess{
+			UserID:      portaineree.UserID(v),
+			AccessLevel: portaineree.ReadWriteAccessLevel,
 		}
 		userAccesses = append(userAccesses, userAccess)
 	}
 
-	var teamAccesses = make([]portainer.TeamResourceAccess, 0)
+	var teamAccesses = make([]portaineree.TeamResourceAccess, 0)
 	for _, v := range payload.Teams {
-		teamAccess := portainer.TeamResourceAccess{
-			TeamID:      portainer.TeamID(v),
-			AccessLevel: portainer.ReadWriteAccessLevel,
+		teamAccess := portaineree.TeamResourceAccess{
+			TeamID:      portaineree.TeamID(v),
+			AccessLevel: portaineree.ReadWriteAccessLevel,
 		}
 		teamAccesses = append(teamAccesses, teamAccess)
 	}
 
-	resourceControl := portainer.ResourceControl{
+	resourceControl := portaineree.ResourceControl{
 		ResourceID:         payload.ResourceID,
 		SubResourceIDs:     payload.SubResourceIDs,
 		Type:               resourceControlType,

@@ -1,21 +1,21 @@
 package exectest
 
 import (
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type kubernetesMockDeployer struct{}
 
 //NewKubernetesDeployer creates a mock kubernetes deployer
-func NewKubernetesDeployer() portainer.KubernetesDeployer {
+func NewKubernetesDeployer() portaineree.KubernetesDeployer {
 	return &kubernetesMockDeployer{}
 }
 
-func (deployer *kubernetesMockDeployer) Deploy(userID portainer.UserID, endpoint *portainer.Endpoint, manifestFiles []string, namespace string) (string, error) {
+func (deployer *kubernetesMockDeployer) Deploy(userID portaineree.UserID, endpoint *portaineree.Endpoint, manifestFiles []string, namespace string) (string, error) {
 	return "", nil
 }
 
-func (deployer *kubernetesMockDeployer) Remove(userID portainer.UserID, endpoint *portainer.Endpoint, manifestFiles []string, namespace string) (string, error) {
+func (deployer *kubernetesMockDeployer) Remove(userID portaineree.UserID, endpoint *portaineree.Endpoint, manifestFiles []string, namespace string) (string, error) {
 	return "", nil
 }
 

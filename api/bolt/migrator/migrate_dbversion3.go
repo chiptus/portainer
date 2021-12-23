@@ -1,6 +1,6 @@
 package migrator
 
-import "github.com/portainer/portainer/api"
+import portaineree "github.com/portainer/portainer-ee/api"
 
 func (m *Migrator) updateEndpointsToDBVersion4() error {
 	legacyEndpoints, err := m.endpointService.Endpoints()
@@ -9,7 +9,7 @@ func (m *Migrator) updateEndpointsToDBVersion4() error {
 	}
 
 	for _, endpoint := range legacyEndpoints {
-		endpoint.TLSConfig = portainer.TLSConfiguration{}
+		endpoint.TLSConfig = portaineree.TLSConfiguration{}
 		if endpoint.TLS {
 			endpoint.TLSConfig.TLS = true
 			endpoint.TLSConfig.TLSSkipVerify = false

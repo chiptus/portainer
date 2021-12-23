@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"net/url"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/proxy/factory/azure"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/azure"
 )
 
-func newAzureProxy(userActivityService portainer.UserActivityService, endpoint *portainer.Endpoint, dataStore portainer.DataStore) (http.Handler, error) {
+func newAzureProxy(userActivityService portaineree.UserActivityService, endpoint *portaineree.Endpoint, dataStore portaineree.DataStore) (http.Handler, error) {
 	remoteURL, err := url.Parse(azureAPIBaseURL)
 	if err != nil {
 		return nil, err

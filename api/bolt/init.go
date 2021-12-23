@@ -2,8 +2,8 @@ package bolt
 
 import (
 	"github.com/gofrs/uuid"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // Init creates the default data set.
@@ -26,35 +26,35 @@ func (store *Store) Init() error {
 
 	_, err = store.SettingsService.Settings()
 	if err == errors.ErrObjectNotFound {
-		defaultSettings := &portainer.Settings{
-			AuthenticationMethod: portainer.AuthenticationInternal,
-			BlackListedLabels:    make([]portainer.Pair, 0),
-			LDAPSettings: portainer.LDAPSettings{
+		defaultSettings := &portaineree.Settings{
+			AuthenticationMethod: portaineree.AuthenticationInternal,
+			BlackListedLabels:    make([]portaineree.Pair, 0),
+			LDAPSettings: portaineree.LDAPSettings{
 				AnonymousMode:   true,
 				AutoCreateUsers: true,
-				TLSConfig:       portainer.TLSConfiguration{},
+				TLSConfig:       portaineree.TLSConfiguration{},
 				URLs:            []string{},
-				SearchSettings: []portainer.LDAPSearchSettings{
+				SearchSettings: []portaineree.LDAPSearchSettings{
 					{},
 				},
-				GroupSearchSettings: []portainer.LDAPGroupSearchSettings{
+				GroupSearchSettings: []portaineree.LDAPGroupSearchSettings{
 					{},
 				},
-				AdminGroupSearchSettings: []portainer.LDAPGroupSearchSettings{
+				AdminGroupSearchSettings: []portaineree.LDAPGroupSearchSettings{
 					{},
 				},
 			},
-			OAuthSettings: portainer.OAuthSettings{
-				TeamMemberships: portainer.TeamMemberships{
-					OAuthClaimMappings: make([]portainer.OAuthClaimMappings, 0),
+			OAuthSettings: portaineree.OAuthSettings{
+				TeamMemberships: portaineree.TeamMemberships{
+					OAuthClaimMappings: make([]portaineree.OAuthClaimMappings, 0),
 				},
 			},
-			EdgeAgentCheckinInterval: portainer.DefaultEdgeAgentCheckinIntervalInSeconds,
-			TemplatesURL:             portainer.DefaultTemplatesURL,
-			HelmRepositoryURL:        portainer.DefaultHelmRepositoryURL,
-			UserSessionTimeout:       portainer.DefaultUserSessionTimeout,
-			KubeconfigExpiry:         portainer.DefaultKubeconfigExpiry,
-			KubectlShellImage:        portainer.DefaultKubectlShellImage,
+			EdgeAgentCheckinInterval: portaineree.DefaultEdgeAgentCheckinIntervalInSeconds,
+			TemplatesURL:             portaineree.DefaultTemplatesURL,
+			HelmRepositoryURL:        portaineree.DefaultHelmRepositoryURL,
+			UserSessionTimeout:       portaineree.DefaultUserSessionTimeout,
+			KubeconfigExpiry:         portaineree.DefaultKubeconfigExpiry,
+			KubectlShellImage:        portaineree.DefaultKubectlShellImage,
 		}
 
 		err = store.SettingsService.UpdateSettings(defaultSettings)
@@ -71,7 +71,7 @@ func (store *Store) Init() error {
 			return err
 		}
 
-		defaultSSLSettings := &portainer.SSLSettings{
+		defaultSSLSettings := &portaineree.SSLSettings{
 			HTTPEnabled: true,
 		}
 
@@ -87,13 +87,13 @@ func (store *Store) Init() error {
 	}
 
 	if len(groups) == 0 {
-		unassignedGroup := &portainer.EndpointGroup{
+		unassignedGroup := &portaineree.EndpointGroup{
 			Name:               "Unassigned",
 			Description:        "Unassigned environments",
-			Labels:             []portainer.Pair{},
-			UserAccessPolicies: portainer.UserAccessPolicies{},
-			TeamAccessPolicies: portainer.TeamAccessPolicies{},
-			TagIDs:             []portainer.TagID{},
+			Labels:             []portaineree.Pair{},
+			UserAccessPolicies: portaineree.UserAccessPolicies{},
+			TeamAccessPolicies: portaineree.TeamAccessPolicies{},
+			TagIDs:             []portaineree.TagID{},
 		}
 
 		err = store.EndpointGroupService.CreateEndpointGroup(unassignedGroup)

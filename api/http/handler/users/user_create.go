@@ -8,11 +8,11 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/authorization"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 type userCreatePayload struct {
@@ -45,7 +45,7 @@ func (payload *userCreatePayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param body body userCreatePayload true "User details"
-// @success 200 {object} portainer.User "Success"
+// @success 200 {object} portaineree.User "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 409 "User already exists"
@@ -79,9 +79,9 @@ func (handler *Handler) userCreate(w http.ResponseWriter, r *http.Request) *http
 		return &httperror.HandlerError{http.StatusConflict, "Another user with the same username already exists", errUserAlreadyExists}
 	}
 
-	user = &portainer.User{
+	user = &portaineree.User{
 		Username:                payload.Username,
-		Role:                    portainer.UserRole(payload.Role),
+		Role:                    portaineree.UserRole(payload.Role),
 		PortainerAuthorizations: authorization.DefaultPortainerAuthorizations(),
 	}
 
@@ -90,7 +90,7 @@ func (handler *Handler) userCreate(w http.ResponseWriter, r *http.Request) *http
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve settings from the database", err}
 	}
 
-	if settings.AuthenticationMethod == portainer.AuthenticationInternal {
+	if settings.AuthenticationMethod == portaineree.AuthenticationInternal {
 		user.Password, err = handler.CryptoService.Hash(payload.Password)
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to hash user password", errCryptoHashFailure}

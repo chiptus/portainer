@@ -8,14 +8,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/portainer/portainer/api/http/proxy/factory/kubernetes"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 
 	"github.com/gorilla/websocket"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @summary Execute a websocket on pod
@@ -64,7 +64,7 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: command", err}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find the environment associated to the stack inside the database", err}
 	} else if err != nil {
@@ -82,22 +82,22 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 		return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
 	}
 
-	if tokenData.Role != portainer.AdministratorRole {
+	if tokenData.Role != portaineree.AdministratorRole {
 		// check if the user has console RW access in the environment(endpoint)
 		endpointRole, err := handler.authorizationService.GetUserEndpointRole(int(tokenData.ID), int(endpoint.ID))
 		if err != nil {
 			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
-		} else if !endpointRole.Authorizations[portainer.OperationK8sApplicationConsoleRW] {
+		} else if !endpointRole.Authorizations[portaineree.OperationK8sApplicationConsoleRW] {
 			err = errors.New(permissionDeniedErr)
 			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
 		}
 		// will skip if user can access all namespaces
-		if !endpointRole.Authorizations[portainer.OperationK8sAccessAllNamespaces] {
+		if !endpointRole.Authorizations[portaineree.OperationK8sAccessAllNamespaces] {
 			// check if the user has RW access to the namespace
 			namespaceAuthorizations, err := handler.authorizationService.GetNamespaceAuthorizations(int(tokenData.ID), *endpoint, cli)
 			if err != nil {
 				return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
-			} else if auth, ok := namespaceAuthorizations[namespace]; !ok || !auth[portainer.OperationK8sAccessNamespaceWrite] {
+			} else if auth, ok := namespaceAuthorizations[namespace]; !ok || !auth[portaineree.OperationK8sAccessNamespaceWrite] {
 				err = errors.New(permissionDeniedErr)
 				return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
 			}
@@ -116,7 +116,7 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 
 	r.Header.Del("Origin")
 
-	if endpoint.Type == portainer.AgentOnKubernetesEnvironment {
+	if endpoint.Type == portaineree.AgentOnKubernetesEnvironment {
 		err := handler.proxyAgentWebsocketRequest(w, r, params)
 
 		if err != nil {
@@ -124,7 +124,7 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 		}
 
 		return nil
-	} else if endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment {
+	} else if endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
 
 		err := handler.proxyEdgeAgentWebsocketRequest(w, r, params)
 		if err != nil {
@@ -145,10 +145,10 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 func (handler *Handler) hijackPodExecStartOperation(
 	w http.ResponseWriter,
 	r *http.Request,
-	cli portainer.KubeClient,
+	cli portaineree.KubeClient,
 	serviceAccountToken string,
 	isAdminToken bool,
-	endpoint *portainer.Endpoint,
+	endpoint *portaineree.Endpoint,
 	namespace, podName, containerName, command string,
 ) *httperror.HandlerError {
 	commandArray := strings.Split(command, " ")
@@ -185,7 +185,7 @@ func (handler *Handler) hijackPodExecStartOperation(
 	return &httperror.HandlerError{http.StatusInternalServerError, "Unable to start exec process inside container", err}
 }
 
-func (handler *Handler) getToken(request *http.Request, endpoint *portainer.Endpoint, setLocalAdminToken bool) (string, bool, error) {
+func (handler *Handler) getToken(request *http.Request, endpoint *portaineree.Endpoint, setLocalAdminToken bool) (string, bool, error) {
 	tokenData, err := security.RetrieveTokenData(request)
 	if err != nil {
 		return "", false, err
@@ -203,7 +203,7 @@ func (handler *Handler) getToken(request *http.Request, endpoint *portainer.Endp
 		return "", false, err
 	}
 
-	if tokenData.Role == portainer.AdministratorRole {
+	if tokenData.Role == portaineree.AdministratorRole {
 		return tokenManager.GetAdminServiceAccountToken(), true, nil
 	}
 

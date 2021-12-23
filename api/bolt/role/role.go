@@ -1,10 +1,9 @@
 package role
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
-
 	"github.com/boltdb/bolt"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 )
 
 const (
@@ -30,8 +29,8 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // Role returns a Role by ID
-func (service *Service) Role(ID portainer.RoleID) (*portainer.Role, error) {
-	var set portainer.Role
+func (service *Service) Role(ID portaineree.RoleID) (*portaineree.Role, error) {
+	var set portaineree.Role
 	identifier := internal.Itob(int(ID))
 
 	err := internal.GetObject(service.connection, BucketName, identifier, &set)
@@ -43,15 +42,15 @@ func (service *Service) Role(ID portainer.RoleID) (*portainer.Role, error) {
 }
 
 // Roles return an array containing all the sets.
-func (service *Service) Roles() ([]portainer.Role, error) {
-	var sets = make([]portainer.Role, 0)
+func (service *Service) Roles() ([]portaineree.Role, error) {
+	var sets = make([]portaineree.Role, 0)
 
 	err := service.connection.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var set portainer.Role
+			var set portaineree.Role
 			err := internal.UnmarshalObject(v, &set)
 			if err != nil {
 				return err
@@ -66,13 +65,13 @@ func (service *Service) Roles() ([]portainer.Role, error) {
 }
 
 // CreateRole creates a new Role.
-func (service *Service) CreateRole(role *portainer.Role) error {
+func (service *Service) CreateRole(role *portaineree.Role) error {
 	return service.connection.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		id, _ := bucket.NextSequence()
 		if role.ID == 0 {
-			role.ID = portainer.RoleID(id)
+			role.ID = portaineree.RoleID(id)
 		}
 
 		data, err := internal.MarshalObject(role)
@@ -85,7 +84,7 @@ func (service *Service) CreateRole(role *portainer.Role) error {
 }
 
 // UpdateRole updates a role.
-func (service *Service) UpdateRole(ID portainer.RoleID, role *portainer.Role) error {
+func (service *Service) UpdateRole(ID portaineree.RoleID, role *portaineree.Role) error {
 	identifier := internal.Itob(int(ID))
 	return internal.UpdateObject(service.connection, BucketName, identifier, role)
 }

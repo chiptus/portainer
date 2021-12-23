@@ -5,7 +5,7 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
-	"github.com/portainer/portainer/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id Logout

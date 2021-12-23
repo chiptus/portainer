@@ -1,6 +1,6 @@
 package migrator
 
-import "github.com/portainer/portainer/api"
+import portaineree "github.com/portainer/portainer-ee/api"
 
 func (m *Migrator) updateEndpointsToVersion10() error {
 	legacyEndpoints, err := m.endpointService.Endpoints()
@@ -9,7 +9,7 @@ func (m *Migrator) updateEndpointsToVersion10() error {
 	}
 
 	for _, endpoint := range legacyEndpoints {
-		endpoint.Type = portainer.DockerEnvironment
+		endpoint.Type = portaineree.DockerEnvironment
 		err = m.endpointService.UpdateEndpoint(endpoint.ID, &endpoint)
 		if err != nil {
 			return err

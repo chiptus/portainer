@@ -8,11 +8,11 @@ import (
 	"github.com/portainer/libhelm"
 	"github.com/portainer/libhelm/options"
 	httperror "github.com/portainer/libhttp/error"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/middlewares"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
-	"github.com/portainer/portainer/api/kubernetes"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
+	"github.com/portainer/portainer-ee/api/kubernetes"
 )
 
 const (
@@ -27,16 +27,16 @@ type requestBouncer interface {
 type Handler struct {
 	*mux.Router
 	requestBouncer      requestBouncer
-	dataStore           portainer.DataStore
-	jwtService          portainer.JWTService
+	dataStore           portaineree.DataStore
+	jwtService          portaineree.JWTService
 	kubeConfigService   kubernetes.KubeConfigService
-	kubernetesDeployer  portainer.KubernetesDeployer
+	kubernetesDeployer  portaineree.KubernetesDeployer
 	helmPackageManager  libhelm.HelmPackageManager
-	userActivityService portainer.UserActivityService
+	userActivityService portaineree.UserActivityService
 }
 
 // NewHandler creates a handler to manage endpoint group operations.
-func NewHandler(bouncer requestBouncer, dataStore portainer.DataStore, jwtService portainer.JWTService, kubernetesDeployer portainer.KubernetesDeployer, helmPackageManager libhelm.HelmPackageManager, kubeConfigService kubernetes.KubeConfigService, userActivityService portainer.UserActivityService) *Handler {
+func NewHandler(bouncer requestBouncer, dataStore portaineree.DataStore, jwtService portaineree.JWTService, kubernetesDeployer portaineree.KubernetesDeployer, helmPackageManager libhelm.HelmPackageManager, kubeConfigService kubernetes.KubeConfigService, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		requestBouncer:      bouncer,
@@ -118,13 +118,13 @@ func (handler *Handler) getHelmClusterAccess(r *http.Request) (*options.Kubernet
 }
 
 // authoriseChartOperation verified whether the calling user can perform underlying helm operations based on authorization.
-func (handler *Handler) authoriseHelmOperation(r *http.Request, authorization portainer.Authorization) *httperror.HandlerError {
+func (handler *Handler) authoriseHelmOperation(r *http.Request, authorization portaineree.Authorization) *httperror.HandlerError {
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}
 	}
 
-	if tokenData.Role == portainer.AdministratorRole {
+	if tokenData.Role == portaineree.AdministratorRole {
 		return nil
 	}
 

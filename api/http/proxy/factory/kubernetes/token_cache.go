@@ -15,7 +15,7 @@ type (
 
 	tokenCache struct {
 		userTokenCache cmap.ConcurrentMap
-		mutex       sync.Mutex
+		mutex          sync.Mutex
 	}
 )
 
@@ -79,7 +79,7 @@ func (manager *TokenCacheManager) HandleUserAuthDelete(userID int) {
 func newTokenCache() *tokenCache {
 	return &tokenCache{
 		userTokenCache: cmap.New(),
-		mutex:       sync.Mutex{},
+		mutex:          sync.Mutex{},
 	}
 }
 

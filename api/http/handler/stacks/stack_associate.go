@@ -8,11 +8,11 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/middlewares"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/stackutils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/stackutils"
 )
 
 // @id StackAssociate
@@ -26,7 +26,7 @@ import (
 // @param endpointId query int true "Stacks created before version 1.18.0 might not have an associated environment(endpoint) identifier. Use this optional parameter to set the environment(endpoint) identifier used by the stack."
 // @param swarmId query int true "Swarm identifier"
 // @param orphanedRunning query boolean true "Indicates whether the stack is orphaned"
-// @success 200 {object} portainer.Stack "Success"
+// @success 200 {object} portaineree.Stack "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 404 "Stack not found"
@@ -43,7 +43,7 @@ func (handler *Handler) stackAssociate(w http.ResponseWriter, r *http.Request) *
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: endpointId", err}
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -71,14 +71,14 @@ func (handler *Handler) stackAssociate(w http.ResponseWriter, r *http.Request) *
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to load user information from the database", err}
 	}
 
-	stack, err := handler.DataStore.Stack().Stack(portainer.StackID(stackID))
+	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(stackID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a stack with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a stack with the specified identifier inside the database", err}
 	}
 
-	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portainer.StackResourceControl)
+	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portaineree.StackResourceControl)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve a resource control associated to the stack", err}
 	}
@@ -92,13 +92,13 @@ func (handler *Handler) stackAssociate(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
-	stack.EndpointID = portainer.EndpointID(endpointID)
+	stack.EndpointID = portaineree.EndpointID(endpointID)
 	stack.SwarmID = swarmId
 
 	if orphanedRunning {
-		stack.Status = portainer.StackStatusActive
+		stack.Status = portaineree.StackStatusActive
 	} else {
-		stack.Status = portainer.StackStatusInactive
+		stack.Status = portaineree.StackStatusInactive
 	}
 
 	stack.CreationDate = time.Now().Unix()

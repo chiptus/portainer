@@ -7,8 +7,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // @id EdgeGroupDelete
@@ -28,7 +28,7 @@ func (handler *Handler) edgeGroupDelete(w http.ResponseWriter, r *http.Request) 
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid Edge group identifier route variable", err}
 	}
 
-	_, err = handler.DataStore.EdgeGroup().EdgeGroup(portainer.EdgeGroupID(edgeGroupID))
+	_, err = handler.DataStore.EdgeGroup().EdgeGroup(portaineree.EdgeGroupID(edgeGroupID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an Edge group with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -42,13 +42,13 @@ func (handler *Handler) edgeGroupDelete(w http.ResponseWriter, r *http.Request) 
 
 	for _, edgeStack := range edgeStacks {
 		for _, groupID := range edgeStack.EdgeGroups {
-			if groupID == portainer.EdgeGroupID(edgeGroupID) {
+			if groupID == portaineree.EdgeGroupID(edgeGroupID) {
 				return &httperror.HandlerError{http.StatusForbidden, "Edge group is used by an Edge stack", errors.New("Edge group is used by an Edge stack")}
 			}
 		}
 	}
 
-	err = handler.DataStore.EdgeGroup().DeleteEdgeGroup(portainer.EdgeGroupID(edgeGroupID))
+	err = handler.DataStore.EdgeGroup().DeleteEdgeGroup(portaineree.EdgeGroupID(edgeGroupID))
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove the Edge group from the database", err}
 	}

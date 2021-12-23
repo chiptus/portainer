@@ -15,7 +15,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @success 200 {array} portainer.Role "Success"
+// @success 200 {array} portaineree.Role "Success"
 // @failure 500 "Server error"
 // @router /roles [get]
 func (handler *Handler) roleList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {

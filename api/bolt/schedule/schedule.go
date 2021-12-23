@@ -1,8 +1,8 @@
 package schedule
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 
 	"github.com/boltdb/bolt"
 )
@@ -30,8 +30,8 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // Schedule returns a schedule by ID.
-func (service *Service) Schedule(ID portainer.ScheduleID) (*portainer.Schedule, error) {
-	var schedule portainer.Schedule
+func (service *Service) Schedule(ID portaineree.ScheduleID) (*portaineree.Schedule, error) {
+	var schedule portaineree.Schedule
 	identifier := internal.Itob(int(ID))
 
 	err := internal.GetObject(service.connection, BucketName, identifier, &schedule)
@@ -43,27 +43,27 @@ func (service *Service) Schedule(ID portainer.ScheduleID) (*portainer.Schedule, 
 }
 
 // UpdateSchedule updates a schedule.
-func (service *Service) UpdateSchedule(ID portainer.ScheduleID, schedule *portainer.Schedule) error {
+func (service *Service) UpdateSchedule(ID portaineree.ScheduleID, schedule *portaineree.Schedule) error {
 	identifier := internal.Itob(int(ID))
 	return internal.UpdateObject(service.connection, BucketName, identifier, schedule)
 }
 
 // DeleteSchedule deletes a schedule.
-func (service *Service) DeleteSchedule(ID portainer.ScheduleID) error {
+func (service *Service) DeleteSchedule(ID portaineree.ScheduleID) error {
 	identifier := internal.Itob(int(ID))
 	return internal.DeleteObject(service.connection, BucketName, identifier)
 }
 
 // Schedules return a array containing all the schedules.
-func (service *Service) Schedules() ([]portainer.Schedule, error) {
-	var schedules = make([]portainer.Schedule, 0)
+func (service *Service) Schedules() ([]portaineree.Schedule, error) {
+	var schedules = make([]portaineree.Schedule, 0)
 
 	err := service.connection.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var schedule portainer.Schedule
+			var schedule portaineree.Schedule
 			err := internal.UnmarshalObject(v, &schedule)
 			if err != nil {
 				return err
@@ -79,15 +79,15 @@ func (service *Service) Schedules() ([]portainer.Schedule, error) {
 
 // SchedulesByJobType return a array containing all the schedules
 // with the specified JobType.
-func (service *Service) SchedulesByJobType(jobType portainer.JobType) ([]portainer.Schedule, error) {
-	var schedules = make([]portainer.Schedule, 0)
+func (service *Service) SchedulesByJobType(jobType portaineree.JobType) ([]portaineree.Schedule, error) {
+	var schedules = make([]portaineree.Schedule, 0)
 
 	err := service.connection.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var schedule portainer.Schedule
+			var schedule portaineree.Schedule
 			err := internal.UnmarshalObject(v, &schedule)
 			if err != nil {
 				return err
@@ -104,7 +104,7 @@ func (service *Service) SchedulesByJobType(jobType portainer.JobType) ([]portain
 }
 
 // CreateSchedule assign an ID to a new schedule and saves it.
-func (service *Service) CreateSchedule(schedule *portainer.Schedule) error {
+func (service *Service) CreateSchedule(schedule *portaineree.Schedule) error {
 	return service.connection.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 

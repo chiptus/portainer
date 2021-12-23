@@ -3,8 +3,8 @@ package auth
 import (
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/internal/testhelpers"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,7 +12,7 @@ func TestIsLDAPAdmin_Match(t *testing.T) {
 
 	ldapService := testhelpers.NewLDAPService()
 
-	mockLDAPSettings := &portainer.LDAPSettings{
+	mockLDAPSettings := &portaineree.LDAPSettings{
 		AdminGroups: []string{"manager", "stuff"},
 	}
 
@@ -24,7 +24,7 @@ func TestIsLDAPAdmin_Match(t *testing.T) {
 func TestIsLDAPAdmin_NotMatch(t *testing.T) {
 	ldapService := testhelpers.NewLDAPService()
 
-	mockLDAPSettings := &portainer.LDAPSettings{
+	mockLDAPSettings := &portaineree.LDAPSettings{
 		AdminGroups: []string{"admin", "manager"},
 	}
 

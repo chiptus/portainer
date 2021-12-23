@@ -5,18 +5,18 @@ import (
 	"io/ioutil"
 
 	"github.com/pkg/errors"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
+	k "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer/api/filesystem"
-	k "github.com/portainer/portainer/api/kubernetes"
 )
 
 // ResourceControlID returns the stack resource control id
-func ResourceControlID(endpointID portainer.EndpointID, name string) string {
+func ResourceControlID(endpointID portaineree.EndpointID, name string) string {
 	return fmt.Sprintf("%d_%s", endpointID, name)
 }
 
 // GetStackFilePaths returns a list of file paths based on stack project path
-func GetStackFilePaths(stack *portainer.Stack) []string {
+func GetStackFilePaths(stack *portaineree.Stack) []string {
 	var filePaths []string
 	for _, file := range append([]string{stack.EntryPoint}, stack.AdditionalFiles...) {
 		filePaths = append(filePaths, filesystem.JoinPaths(stack.ProjectPath, file))
@@ -27,7 +27,7 @@ func GetStackFilePaths(stack *portainer.Stack) []string {
 // CreateTempK8SDeploymentFiles reads manifest files from original stack project path
 // then add app labels into the file contents and create temp files for deployment
 // return temp file paths and temp dir
-func CreateTempK8SDeploymentFiles(stack *portainer.Stack, kubeDeployer portainer.KubernetesDeployer, appLabels k.KubeAppLabels) ([]string, string, error) {
+func CreateTempK8SDeploymentFiles(stack *portaineree.Stack, kubeDeployer portaineree.KubernetesDeployer, appLabels k.KubeAppLabels) ([]string, string, error) {
 	fileNames := append([]string{stack.EntryPoint}, stack.AdditionalFiles...)
 	var manifestFilePaths []string
 	tmpDir, err := ioutil.TempDir("", "kub_deployment")

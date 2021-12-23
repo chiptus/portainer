@@ -1,6 +1,6 @@
 package migrator
 
-import "github.com/portainer/portainer/api"
+import portaineree "github.com/portainer/portainer-ee/api"
 
 func (m *Migrator) updateEndpointsToVersion8() error {
 	legacyEndpoints, err := m.endpointService.Endpoints()
@@ -9,7 +9,7 @@ func (m *Migrator) updateEndpointsToVersion8() error {
 	}
 
 	for _, endpoint := range legacyEndpoints {
-		endpoint.Extensions = []portainer.EndpointExtension{}
+		endpoint.Extensions = []portaineree.EndpointExtension{}
 		err = m.endpointService.UpdateEndpoint(endpoint.ID, &endpoint)
 		if err != nil {
 			return err

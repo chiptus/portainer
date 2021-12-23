@@ -2,7 +2,7 @@ package testhelpers
 
 type gitService struct{}
 
-// NewGitService creates new mock for portainer.GitService.
+// NewGitService creates new mock for portaineree.GitService.
 func NewGitService() *gitService {
 	return &gitService{}
 }

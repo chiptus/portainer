@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/portainer/portainer/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // Handler is the HTTP handler used to handle MOTD operations.

@@ -3,30 +3,30 @@ package testhelpers
 import (
 	"io"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type store struct{}
 
-func NewUserActivityStore() portainer.UserActivityStore {
+func NewUserActivityStore() portaineree.UserActivityStore {
 	return &store{}
 }
 
 func (s *store) Close() error               { return nil }
 func (s *store) BackupTo(w io.Writer) error { return nil }
 
-func (s *store) GetAuthLogs(opts portainer.AuthLogsQuery) ([]*portainer.AuthActivityLog, int, error) {
+func (s *store) GetAuthLogs(opts portaineree.AuthLogsQuery) ([]*portaineree.AuthActivityLog, int, error) {
 	return nil, 0, nil
 }
 
-func (s *store) GetUserActivityLogs(opts portainer.UserActivityLogBaseQuery) ([]*portainer.UserActivityLog, int, error) {
+func (s *store) GetUserActivityLogs(opts portaineree.UserActivityLogBaseQuery) ([]*portaineree.UserActivityLog, int, error) {
 	return nil, 0, nil
 }
 
-func (s *store) StoreAuthLog(authLog *portainer.AuthActivityLog) error {
+func (s *store) StoreAuthLog(authLog *portaineree.AuthActivityLog) error {
 	return nil
 }
 
-func (s *store) StoreUserActivityLog(userLog *portainer.UserActivityLog) error {
+func (s *store) StoreUserActivityLog(userLog *portaineree.UserActivityLog) error {
 	return nil
 }

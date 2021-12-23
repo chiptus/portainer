@@ -7,11 +7,11 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type adminGroupsPayload struct {
-	LDAPSettings portainer.LDAPSettings
+	LDAPSettings portaineree.LDAPSettings
 }
 
 func (payload *adminGroupsPayload) Validate(r *http.Request) error {

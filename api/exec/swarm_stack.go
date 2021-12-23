@@ -11,29 +11,30 @@ import (
 	"runtime"
 	"strings"
 
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/registryutils"
+	"github.com/portainer/portainer-ee/api/internal/stackutils"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/internal/registryutils"
-	"github.com/portainer/portainer/api/internal/stackutils"
 )
 
 // SwarmStackManager represents a service for managing stacks.
 type SwarmStackManager struct {
 	binaryPath           string
 	configPath           string
-	signatureService     portainer.DigitalSignatureService
+	signatureService     portaineree.DigitalSignatureService
 	fileService          portainer.FileService
-	reverseTunnelService portainer.ReverseTunnelService
-	dataStore            portainer.DataStore
+	reverseTunnelService portaineree.ReverseTunnelService
+	dataStore            portaineree.DataStore
 }
 
 // NewSwarmStackManager initializes a new SwarmStackManager service.
 // It also updates the configuration of the Docker CLI binary.
 func NewSwarmStackManager(
 	binaryPath, configPath string,
-	signatureService portainer.DigitalSignatureService,
+	signatureService portaineree.DigitalSignatureService,
 	fileService portainer.FileService,
-	reverseTunnelService portainer.ReverseTunnelService,
-	datastore portainer.DataStore,
+	reverseTunnelService portaineree.ReverseTunnelService,
+	datastore portaineree.DataStore,
 ) (*SwarmStackManager, error) {
 	manager := &SwarmStackManager{
 		binaryPath:           binaryPath,
@@ -53,7 +54,7 @@ func NewSwarmStackManager(
 }
 
 // Login executes the docker login command against a list of registries (including DockerHub).
-func (manager *SwarmStackManager) Login(registries []portainer.Registry, endpoint *portainer.Endpoint) error {
+func (manager *SwarmStackManager) Login(registries []portaineree.Registry, endpoint *portaineree.Endpoint) error {
 	command, args, err := manager.prepareDockerCommandAndArgs(manager.binaryPath, manager.configPath, endpoint)
 	if err != nil {
 		return err
@@ -78,7 +79,7 @@ func (manager *SwarmStackManager) Login(registries []portainer.Registry, endpoin
 }
 
 // Logout executes the docker logout command.
-func (manager *SwarmStackManager) Logout(endpoint *portainer.Endpoint) error {
+func (manager *SwarmStackManager) Logout(endpoint *portaineree.Endpoint) error {
 	command, args, err := manager.prepareDockerCommandAndArgs(manager.binaryPath, manager.configPath, endpoint)
 	if err != nil {
 		return err
@@ -88,7 +89,7 @@ func (manager *SwarmStackManager) Logout(endpoint *portainer.Endpoint) error {
 }
 
 // Deploy executes the docker stack deploy command.
-func (manager *SwarmStackManager) Deploy(stack *portainer.Stack, prune bool, endpoint *portainer.Endpoint) error {
+func (manager *SwarmStackManager) Deploy(stack *portaineree.Stack, prune bool, endpoint *portaineree.Endpoint) error {
 	filePaths := stackutils.GetStackFilePaths(stack)
 	command, args, err := manager.prepareDockerCommandAndArgs(manager.binaryPath, manager.configPath, endpoint)
 	if err != nil {
@@ -112,7 +113,7 @@ func (manager *SwarmStackManager) Deploy(stack *portainer.Stack, prune bool, end
 }
 
 // Remove executes the docker stack rm command.
-func (manager *SwarmStackManager) Remove(stack *portainer.Stack, endpoint *portainer.Endpoint) error {
+func (manager *SwarmStackManager) Remove(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
 	command, args, err := manager.prepareDockerCommandAndArgs(manager.binaryPath, manager.configPath, endpoint)
 	if err != nil {
 		return err
@@ -140,7 +141,7 @@ func runCommandAndCaptureStdErr(command string, args []string, env []string, wor
 	return nil
 }
 
-func (manager *SwarmStackManager) prepareDockerCommandAndArgs(binaryPath, configPath string, endpoint *portainer.Endpoint) (string, []string, error) {
+func (manager *SwarmStackManager) prepareDockerCommandAndArgs(binaryPath, configPath string, endpoint *portaineree.Endpoint) (string, []string, error) {
 	// Assume Linux as a default
 	command := path.Join(binaryPath, "docker")
 
@@ -152,7 +153,7 @@ func (manager *SwarmStackManager) prepareDockerCommandAndArgs(binaryPath, config
 	args = append(args, "--config", configPath)
 
 	endpointURL := endpoint.URL
-	if endpoint.Type == portainer.EdgeAgentOnDockerEnvironment {
+	if endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment {
 		tunnel, err := manager.reverseTunnelService.GetActiveTunnel(endpoint)
 		if err != nil {
 			return "", nil, err
@@ -186,7 +187,7 @@ func (manager *SwarmStackManager) updateDockerCLIConfiguration(configPath string
 		return err
 	}
 
-	signature, err := manager.signatureService.CreateSignature(portainer.PortainerAgentSignatureMessage)
+	signature, err := manager.signatureService.CreateSignature(portaineree.PortainerAgentSignatureMessage)
 	if err != nil {
 		return err
 	}

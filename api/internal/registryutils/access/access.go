@@ -3,22 +3,22 @@ package access
 import (
 	"fmt"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 func hasPermission(
-	dataStore portainer.DataStore,
-	userID portainer.UserID,
-	endpointID portainer.EndpointID,
-	registry *portainer.Registry,
+	dataStore portaineree.DataStore,
+	userID portaineree.UserID,
+	endpointID portaineree.EndpointID,
+	registry *portaineree.Registry,
 ) (hasPermission bool, err error) {
 	user, err := dataStore.User().User(userID)
 	if err != nil {
 		return
 	}
 
-	if user.Role == portainer.AdministratorRole {
+	if user.Role == portaineree.AdministratorRole {
 		return true, err
 	}
 
@@ -34,11 +34,11 @@ func hasPermission(
 
 // GetAccessibleRegistry get the registry if the user has permission
 func GetAccessibleRegistry(
-	dataStore portainer.DataStore,
-	userID portainer.UserID,
-	endpointID portainer.EndpointID,
-	registryID portainer.RegistryID,
-) (registry *portainer.Registry, err error) {
+	dataStore portaineree.DataStore,
+	userID portaineree.UserID,
+	endpointID portaineree.EndpointID,
+	registryID portaineree.RegistryID,
+) (registry *portaineree.Registry, err error) {
 
 	registry, err = dataStore.Registry().Registry(registryID)
 	if err != nil {

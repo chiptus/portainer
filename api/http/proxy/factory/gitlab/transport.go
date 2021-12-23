@@ -4,19 +4,19 @@ import (
 	"errors"
 	"net/http"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/useractivity"
-	ru "github.com/portainer/portainer/api/http/utils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
+	ru "github.com/portainer/portainer-ee/api/http/utils"
 )
 
 type Transport struct {
 	httpTransport       *http.Transport
-	userActivityService portainer.UserActivityService
+	userActivityService portaineree.UserActivityService
 }
 
 // NewTransport returns a pointer to a new instance of Transport that implements the HTTP Transport
 // interface for proxying requests to the Gitlab API.
-func NewTransport(userActivityService portainer.UserActivityService) *Transport {
+func NewTransport(userActivityService portaineree.UserActivityService) *Transport {
 	return &Transport{
 		userActivityService: userActivityService,
 		httpTransport:       &http.Transport{},

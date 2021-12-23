@@ -2,18 +2,18 @@ package migrator
 
 import (
 	"github.com/boltdb/bolt"
-	"github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/bolt/user"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/bolt/user"
 )
 
 func (m *Migrator) updateAdminUserToDBVersion1() error {
 	u, err := m.userService.UserByUsername("admin")
 	if err == nil {
-		admin := &portainer.User{
+		admin := &portaineree.User{
 			Username: "admin",
 			Password: u.Password,
-			Role:     portainer.AdministratorRole,
+			Role:     portaineree.AdministratorRole,
 		}
 		err = m.userService.CreateUser(admin)
 		if err != nil {

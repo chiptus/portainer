@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"github.com/portainer/portainer/api/cli"
-
-	werrors "github.com/pkg/errors"
-	portainer "github.com/portainer/portainer/api"
-	errors "github.com/portainer/portainer/api/bolt/errors"
-	plog "github.com/portainer/portainer/api/bolt/log"
-	"github.com/portainer/portainer/api/bolt/migrator"
-	"github.com/portainer/portainer/api/internal/authorization"
+	"github.com/pkg/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	plog "github.com/portainer/portainer-ee/api/bolt/log"
+	"github.com/portainer/portainer-ee/api/bolt/migrator"
+	"github.com/portainer/portainer-ee/api/cli"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 const (
@@ -42,12 +41,12 @@ func (store *Store) FailSafeMigrate(migrator *migrator.Migrator, version int) (e
 func (store *Store) MigrateData(force bool) error {
 	// 0 – if DB is new then we don't need to migrate any data and just set version and edition to latest EE
 	if store.isNew && !force {
-		err := store.VersionService.StoreDBVersion(portainer.DBVersionEE)
+		err := store.VersionService.StoreDBVersion(portaineree.DBVersionEE)
 		if err != nil {
 			return err
 		}
 
-		err = store.VersionService.StoreEdition(portainer.PortainerEE)
+		err = store.VersionService.StoreEdition(portaineree.PortainerEE)
 		if err != nil {
 			return err
 		}
@@ -62,31 +61,31 @@ func (store *Store) MigrateData(force bool) error {
 
 	// backup db file before upgrading DB to support rollback
 	isUpdating, err := store.VersionService.IsUpdating()
-	if err != nil && err != errors.ErrObjectNotFound {
+	if err != nil && err != bolterrors.ErrObjectNotFound {
 		return err
 	}
 
-	if !isUpdating && migrator.Version() != portainer.DBVersion {
+	if !isUpdating && migrator.Version() != portaineree.DBVersion {
 		err = store.backupVersion(migrator)
 		if err != nil {
-			return werrors.Wrapf(err, "failed to backup database")
+			return errors.Wrapf(err, "failed to backup database")
 		}
 	}
 
-	if migrator.Edition() == portainer.PortainerCE {
+	if migrator.Edition() == portaineree.PortainerCE {
 		// backup before migrating
 		store.BackupWithOptions(&BackupOptions{
 			BackupFileName: beforePortainerUpgradeToEEBackup,
-			Edition:        portainer.PortainerCE,
+			Edition:        portaineree.PortainerCE,
 		})
 
 		store.VersionService.StorePreviousDBVersion(migrator.Version())
 
 		// 1 – We need to migrate DB to latest CE version
 
-		if migrator.Version() < portainer.DBVersion {
+		if migrator.Version() < portaineree.DBVersion {
 			store.Backup()
-			err = store.FailSafeMigrate(migrator, portainer.DBVersion)
+			err = store.FailSafeMigrate(migrator, portaineree.DBVersion)
 			if err != nil {
 				store.Restore()
 				migrateLog.Error("An error occurred while migrating CE database to latest version", err)
@@ -96,9 +95,9 @@ func (store *Store) MigrateData(force bool) error {
 
 	}
 
-	if portainer.Edition == portainer.PortainerEE {
+	if portaineree.Edition == portaineree.PortainerEE {
 		// 2 – if DB is CE Edition we need to upgrade settings to EE
-		if migrator.Edition() < portainer.PortainerEE {
+		if migrator.Edition() < portaineree.PortainerEE {
 			err = migrator.UpgradeToEE()
 			if err != nil {
 				migrateLog.Error("An error occurred while upgrading database to EE", err)
@@ -108,9 +107,9 @@ func (store *Store) MigrateData(force bool) error {
 		}
 
 		// 3 – if DB is EE Edition we need to migrate to latest version of EE
-		if migrator.Edition() == portainer.PortainerEE && migrator.Version() < portainer.DBVersionEE {
+		if migrator.Edition() == portaineree.PortainerEE && migrator.Version() < portaineree.DBVersionEE {
 			store.Backup()
-			err = store.FailSafeMigrate(migrator, portainer.DBVersionEE)
+			err = store.FailSafeMigrate(migrator, portaineree.DBVersionEE)
 			if err != nil {
 				migrateLog.Error("An error occurred while migrating EE database to latest version", err)
 				store.Restore()
@@ -126,7 +125,7 @@ func (store *Store) MigrateData(force bool) error {
 func (store *Store) RollbackFailedUpgradeToEE() error {
 	return store.RestoreWithOptions(&BackupOptions{
 		BackupFileName: beforePortainerUpgradeToEEBackup,
-		Edition:        portainer.PortainerCE,
+		Edition:        portaineree.PortainerCE,
 	})
 }
 
@@ -145,8 +144,8 @@ func (store *Store) rollbackToCE(forceUpdate bool) error {
 	migrateLog.Info(fmt.Sprintf("Current Software Edition: %s", migrator.Edition().GetEditionLabel()))
 	migrateLog.Info(fmt.Sprintf("Current DB Version: %d", migrator.Version()))
 
-	if migrator.Edition() == portainer.PortainerCE {
-		return errors.ErrMigrationToCE
+	if migrator.Edition() == portaineree.PortainerCE {
+		return bolterrors.ErrMigrationToCE
 	}
 
 	previousVersion, err := store.VersionService.PreviousDBVersion()
@@ -172,7 +171,7 @@ func (store *Store) rollbackToCE(forceUpdate bool) error {
 		return err
 	}
 
-	err = store.VersionService.StoreEdition(portainer.PortainerCE)
+	err = store.VersionService.StoreEdition(portaineree.PortainerCE)
 	if err != nil {
 		migrateLog.Error(fmt.Sprintf("An Error occurred with rolling back to CE Edition, DB Version %d", previousVersion), err)
 		return err
@@ -244,7 +243,7 @@ func (store *Store) backupVersion(migrator *migrator.Migrator) error {
 	return nil
 }
 
-// Rollback to a pre-upgrade backup copy/snapshot of portainer.db
+// Rollback to a pre-upgrade backup copy/snapshot of portaineree.db
 func (store *Store) Rollback(force bool) error {
 
 	if !force {

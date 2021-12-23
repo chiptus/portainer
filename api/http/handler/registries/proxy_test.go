@@ -3,12 +3,12 @@ package registries
 import (
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 func Test_getRegistryManagementUrl(t *testing.T) {
 	type args struct {
-		registry *portainer.Registry
+		registry *portaineree.Registry
 	}
 
 	customRegistryUrl := "https://example.com"
@@ -22,8 +22,8 @@ func Test_getRegistryManagementUrl(t *testing.T) {
 		{
 			name: "ProGet registry without baseUrl",
 			args: args{
-				registry: &portainer.Registry{
-					Type: portainer.ProGetRegistry,
+				registry: &portaineree.Registry{
+					Type: portaineree.ProGetRegistry,
 					URL:  registryWithFeedUrl,
 				},
 			},
@@ -32,8 +32,8 @@ func Test_getRegistryManagementUrl(t *testing.T) {
 		{
 			name: "ProGet registry with baseUrl",
 			args: args{
-				registry: &portainer.Registry{
-					Type:    portainer.ProGetRegistry,
+				registry: &portaineree.Registry{
+					Type:    portaineree.ProGetRegistry,
 					URL:     registryWithFeedUrl,
 					BaseURL: baseUrl,
 				},
@@ -43,8 +43,8 @@ func Test_getRegistryManagementUrl(t *testing.T) {
 		{
 			name: "Custom registry - no baseUrl",
 			args: args{
-				registry: &portainer.Registry{
-					Type: portainer.CustomRegistry,
+				registry: &portaineree.Registry{
+					Type: portaineree.CustomRegistry,
 					URL:  customRegistryUrl,
 				},
 			},

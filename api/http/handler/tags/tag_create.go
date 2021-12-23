@@ -8,7 +8,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type tagCreatePayload struct {
@@ -33,7 +33,7 @@ func (payload *tagCreatePayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param body body tagCreatePayload true "Tag details"
-// @success 200 {object} portainer.Tag "Success"
+// @success 200 {object} portaineree.Tag "Success"
 // @failure 409 "Tag name exists"
 // @failure 500 "Server error"
 // @router /tags [post]
@@ -55,10 +55,10 @@ func (handler *Handler) tagCreate(w http.ResponseWriter, r *http.Request) *httpe
 		}
 	}
 
-	tag := &portainer.Tag{
+	tag := &portaineree.Tag{
 		Name:           payload.Name,
-		EndpointGroups: map[portainer.EndpointGroupID]bool{},
-		Endpoints:      map[portainer.EndpointID]bool{},
+		EndpointGroups: map[portaineree.EndpointGroupID]bool{},
+		Endpoints:      map[portaineree.EndpointID]bool{},
 	}
 
 	err = handler.DataStore.Tag().CreateTag(tag)

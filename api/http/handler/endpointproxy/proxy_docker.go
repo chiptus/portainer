@@ -2,14 +2,14 @@ package endpointproxy
 
 import (
 	"errors"
-	httperror "github.com/portainer/libhttp/error"
-	"github.com/portainer/libhttp/request"
-	"github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	"net/http"
 	"strconv"
 	"strings"
 
-	"net/http"
+	httperror "github.com/portainer/libhttp/error"
+	"github.com/portainer/libhttp/request"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 func (handler *Handler) proxyRequestsToDockerAPI(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
@@ -18,7 +18,7 @@ func (handler *Handler) proxyRequestsToDockerAPI(w http.ResponseWriter, r *http.
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -30,7 +30,7 @@ func (handler *Handler) proxyRequestsToDockerAPI(w http.ResponseWriter, r *http.
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access environment", err}
 	}
 
-	if endpoint.Type == portainer.EdgeAgentOnDockerEnvironment {
+	if endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment {
 		if endpoint.EdgeID == "" {
 			return &httperror.HandlerError{http.StatusInternalServerError, "No Edge agent registered with the environment", errors.New("No agent available")}
 		}

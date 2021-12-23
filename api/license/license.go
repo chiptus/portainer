@@ -8,18 +8,18 @@ import (
 
 	"github.com/portainer/liblicense"
 	"github.com/portainer/liblicense/master"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 // Service represents a service for managing portainer licenses
 type Service struct {
-	repository  portainer.LicenseRepository
-	info        *portainer.LicenseInfo
+	repository  portaineree.LicenseRepository
+	info        *portaineree.LicenseInfo
 	shutdownCtx context.Context
 }
 
 // NewService creates a new instance of Service
-func NewService(repository portainer.LicenseRepository, shutdownCtx context.Context) *Service {
+func NewService(repository portaineree.LicenseRepository, shutdownCtx context.Context) *Service {
 	return &Service{
 		repository:  repository,
 		info:        nil,
@@ -44,7 +44,7 @@ func (service *Service) Init() error {
 }
 
 // Info returns aggregation of the information about the existing licenses
-func (service *Service) Info() *portainer.LicenseInfo {
+func (service *Service) Info() *portaineree.LicenseInfo {
 	return service.info
 }
 
@@ -176,7 +176,7 @@ func (service *Service) revokeLicense(licenseKey string) error {
 	return nil
 }
 
-func aggregate(licenses []liblicense.PortainerLicense) *portainer.LicenseInfo {
+func aggregate(licenses []liblicense.PortainerLicense) *portaineree.LicenseInfo {
 	nodes := 0
 	var expiresAt time.Time
 	company := ""
@@ -184,7 +184,7 @@ func aggregate(licenses []liblicense.PortainerLicense) *portainer.LicenseInfo {
 	licenseType := liblicense.PortainerLicenseSubscription
 
 	if len(licenses) == 0 {
-		return &portainer.LicenseInfo{Valid: false}
+		return &portaineree.LicenseInfo{Valid: false}
 	}
 
 	hasValidLicenses := false
@@ -223,7 +223,7 @@ func aggregate(licenses []liblicense.PortainerLicense) *portainer.LicenseInfo {
 		expiresAtUnix = 0
 	}
 
-	return &portainer.LicenseInfo{
+	return &portaineree.LicenseInfo{
 		Company:        company,
 		ProductEdition: edition,
 		Nodes:          nodes,

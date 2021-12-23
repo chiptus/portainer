@@ -6,13 +6,13 @@ import (
 	"testing"
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/apikey"
-	bolt "github.com/portainer/portainer/api/bolt/bolttest"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/authorization"
-	"github.com/portainer/portainer/api/internal/testhelpers"
-	"github.com/portainer/portainer/api/jwt"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/apikey"
+	bolt "github.com/portainer/portainer-ee/api/bolt/bolttest"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/internal/testhelpers"
+	"github.com/portainer/portainer-ee/api/jwt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +23,7 @@ func Test_deleteUserRemovesAccessTokens(t *testing.T) {
 	defer teardown()
 
 	// create standard user
-	user := &portainer.User{ID: 2, Username: "standard", Role: portainer.StandardUserRole}
+	user := &portaineree.User{ID: 2, Username: "standard", Role: portaineree.StandardUserRole}
 	err := store.User().CreateUser(user)
 	is.NoError(err, "error creating user")
 

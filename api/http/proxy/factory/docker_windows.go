@@ -1,3 +1,4 @@
+//go:build windows
 // +build windows
 
 package factory
@@ -7,11 +8,11 @@ import (
 	"net/http"
 
 	"github.com/Microsoft/go-winio"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/proxy/factory/docker"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/docker"
 )
 
-func (factory ProxyFactory) newOSBasedLocalProxy(path string, endpoint *portainer.Endpoint) (http.Handler, error) {
+func (factory ProxyFactory) newOSBasedLocalProxy(path string, endpoint *portaineree.Endpoint) (http.Handler, error) {
 	transportParameters := &docker.TransportParameters{
 		Endpoint:             endpoint,
 		DataStore:            factory.dataStore,

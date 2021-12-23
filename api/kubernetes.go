@@ -1,4 +1,4 @@
-package portainer
+package portaineree
 
 func KubernetesDefault() KubernetesData {
 	return KubernetesData{

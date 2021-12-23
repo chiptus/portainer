@@ -7,8 +7,8 @@ import (
 	"path"
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
-	plog "github.com/portainer/portainer/api/bolt/log"
+	portaineree "github.com/portainer/portainer-ee/api"
+	plog "github.com/portainer/portainer-ee/api/bolt/log"
 )
 
 var backupDefaults = struct {
@@ -59,7 +59,7 @@ func (store *Store) commonBackupDir() string {
 	return path.Join(store.path, backupDefaults.backupDir, backupDefaults.commonDir)
 }
 
-func (store *Store) editionBackupDir(edition portainer.SoftwareEdition) string {
+func (store *Store) editionBackupDir(edition portaineree.SoftwareEdition) string {
 	return path.Join(store.path, backupDefaults.backupDir, edition.GetEditionLabel())
 }
 
@@ -74,7 +74,7 @@ func (store *Store) copyDBFile(from string, to string) error {
 
 // BackupOptions provide a helper to inject backup options
 type BackupOptions struct {
-	Edition        portainer.SoftwareEdition
+	Edition        portaineree.SoftwareEdition
 	Version        int
 	BackupDir      string
 	BackupFileName string
@@ -103,7 +103,7 @@ func (store *Store) setupOptions(options *BackupOptions) *BackupOptions {
 	return options
 }
 
-func (store *Store) listEditionBackups(edition portainer.SoftwareEdition) ([]string, error) {
+func (store *Store) listEditionBackups(edition portaineree.SoftwareEdition) ([]string, error) {
 	var fileNames = []string{}
 
 	files, err := ioutil.ReadDir(store.editionBackupDir(edition))

@@ -3,19 +3,18 @@ package webhooks
 import (
 	"net/http"
 
-	"github.com/portainer/portainer/api/http/middlewares"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/registryutils/access"
-
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/registryutils/access"
 )
 
 type webhookUpdatePayload struct {
-	RegistryID portainer.RegistryID
+	RegistryID portaineree.RegistryID
 }
 
 func (payload *webhookUpdatePayload) Validate(r *http.Request) error {
@@ -30,7 +29,7 @@ func (payload *webhookUpdatePayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param body body webhookUpdatePayload true "Webhook data"
-// @success 200 {object} portainer.Webhook
+// @success 200 {object} portaineree.Webhook
 // @failure 400
 // @failure 409
 // @failure 500
@@ -40,7 +39,7 @@ func (handler *Handler) webhookUpdate(w http.ResponseWriter, r *http.Request) *h
 	if err != nil {
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid webhook id", err}
 	}
-	webhookID := portainer.WebhookID(id)
+	webhookID := portaineree.WebhookID(id)
 
 	var payload webhookUpdatePayload
 	err = request.DecodeAndValidateJSONPayload(r, &payload)
@@ -79,7 +78,7 @@ func (handler *Handler) webhookUpdate(w http.ResponseWriter, r *http.Request) *h
 
 	webhook.RegistryID = payload.RegistryID
 
-	err = handler.dataStore.Webhook().UpdateWebhook(portainer.WebhookID(id), webhook)
+	err = handler.dataStore.Webhook().UpdateWebhook(portaineree.WebhookID(id), webhook)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the webhook inside the database", err}
 	}

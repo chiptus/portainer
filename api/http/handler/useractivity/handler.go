@@ -5,14 +5,14 @@ import (
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // Handler is the HTTP handler used to handle user activity operations
 type Handler struct {
 	*mux.Router
-	UserActivityStore portainer.UserActivityStore
+	UserActivityStore portaineree.UserActivityStore
 }
 
 // NewHandler creates a handler.

@@ -2,14 +2,15 @@ package cli
 
 import (
 	"fmt"
-	cmap "github.com/orcaman/concurrent-map"
 	"net/http"
 	"strconv"
 	"sync"
 
+	cmap "github.com/orcaman/concurrent-map"
+
 	"github.com/pkg/errors"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -18,9 +19,9 @@ import (
 type (
 	// ClientFactory is used to create Kubernetes clients
 	ClientFactory struct {
-		dataStore            portainer.DataStore
-		reverseTunnelService portainer.ReverseTunnelService
-		signatureService     portainer.DigitalSignatureService
+		dataStore            portaineree.DataStore
+		reverseTunnelService portaineree.ReverseTunnelService
+		signatureService     portaineree.DigitalSignatureService
 		instanceID           string
 		endpointClients      cmap.ConcurrentMap
 	}
@@ -34,7 +35,7 @@ type (
 )
 
 // NewClientFactory returns a new instance of a ClientFactory
-func NewClientFactory(signatureService portainer.DigitalSignatureService, reverseTunnelService portainer.ReverseTunnelService, dataStore portainer.DataStore, instanceID string) *ClientFactory {
+func NewClientFactory(signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, dataStore portaineree.DataStore, instanceID string) *ClientFactory {
 	return &ClientFactory{
 		dataStore:            dataStore,
 		signatureService:     signatureService,
@@ -49,13 +50,13 @@ func (factory *ClientFactory) GetInstanceID() (instanceID string) {
 }
 
 // Remove the cached kube client so a new one can be created
- func (factory *ClientFactory) RemoveKubeClient(endpointID portainer.EndpointID) {
+func (factory *ClientFactory) RemoveKubeClient(endpointID portaineree.EndpointID) {
 	factory.endpointClients.Remove(strconv.Itoa(int(endpointID)))
 }
 
 // GetKubeClient checks if an existing client is already registered for the environment(endpoint) and returns it if one is found.
 // If no client is registered, it will create a new client, register it, and returns it.
-func (factory *ClientFactory) GetKubeClient(endpoint *portainer.Endpoint) (portainer.KubeClient, error) {
+func (factory *ClientFactory) GetKubeClient(endpoint *portaineree.Endpoint) (portaineree.KubeClient, error) {
 	key := strconv.Itoa(int(endpoint.ID))
 	client, ok := factory.endpointClients.Get(key)
 	if !ok {
@@ -68,10 +69,10 @@ func (factory *ClientFactory) GetKubeClient(endpoint *portainer.Endpoint) (porta
 		return client, nil
 	}
 
-	return client.(portainer.KubeClient), nil
+	return client.(portaineree.KubeClient), nil
 }
 
-func (factory *ClientFactory) createKubeClient(endpoint *portainer.Endpoint) (portainer.KubeClient, error) {
+func (factory *ClientFactory) createKubeClient(endpoint *portaineree.Endpoint) (portaineree.KubeClient, error) {
 	cli, err := factory.CreateClient(endpoint)
 	if err != nil {
 		return nil, err
@@ -87,13 +88,13 @@ func (factory *ClientFactory) createKubeClient(endpoint *portainer.Endpoint) (po
 }
 
 // CreateClient returns a pointer to a new Clientset instance
-func (factory *ClientFactory) CreateClient(endpoint *portainer.Endpoint) (*kubernetes.Clientset, error) {
+func (factory *ClientFactory) CreateClient(endpoint *portaineree.Endpoint) (*kubernetes.Clientset, error) {
 	switch endpoint.Type {
-	case portainer.KubernetesLocalEnvironment:
+	case portaineree.KubernetesLocalEnvironment:
 		return buildLocalClient()
-	case portainer.AgentOnKubernetesEnvironment:
+	case portaineree.AgentOnKubernetesEnvironment:
 		return factory.buildAgentClient(endpoint)
-	case portainer.EdgeAgentOnKubernetesEnvironment:
+	case portaineree.EdgeAgentOnKubernetesEnvironment:
 		return factory.buildEdgeClient(endpoint)
 	}
 
@@ -110,19 +111,19 @@ type agentHeaderRoundTripper struct {
 // RoundTrip is the implementation of the http.RoundTripper interface.
 // It decorates the request with specific agent headers
 func (rt *agentHeaderRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Add(portainer.PortainerAgentPublicKeyHeader, rt.publicKeyHeader)
-	req.Header.Add(portainer.PortainerAgentSignatureHeader, rt.signatureHeader)
+	req.Header.Add(portaineree.PortainerAgentPublicKeyHeader, rt.publicKeyHeader)
+	req.Header.Add(portaineree.PortainerAgentSignatureHeader, rt.signatureHeader)
 
 	return rt.roundTripper.RoundTrip(req)
 }
 
-func (factory *ClientFactory) buildAgentClient(endpoint *portainer.Endpoint) (*kubernetes.Clientset, error) {
+func (factory *ClientFactory) buildAgentClient(endpoint *portaineree.Endpoint) (*kubernetes.Clientset, error) {
 	endpointURL := fmt.Sprintf("https://%s/kubernetes", endpoint.URL)
 
 	return factory.createRemoteClient(endpointURL)
 }
 
-func (factory *ClientFactory) buildEdgeClient(endpoint *portainer.Endpoint) (*kubernetes.Clientset, error) {
+func (factory *ClientFactory) buildEdgeClient(endpoint *portaineree.Endpoint) (*kubernetes.Clientset, error) {
 	tunnel, err := factory.reverseTunnelService.GetActiveTunnel(endpoint)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed activating tunnel")
@@ -133,7 +134,7 @@ func (factory *ClientFactory) buildEdgeClient(endpoint *portainer.Endpoint) (*ku
 }
 
 func (factory *ClientFactory) createRemoteClient(endpointURL string) (*kubernetes.Clientset, error) {
-	signature, err := factory.signatureService.CreateSignature(portainer.PortainerAgentSignatureMessage)
+	signature, err := factory.signatureService.CreateSignature(portaineree.PortainerAgentSignatureMessage)
 	if err != nil {
 		return nil, err
 	}

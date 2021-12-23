@@ -8,17 +8,17 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer/api/filesystem"
-	"github.com/portainer/portainer/api/internal/edge"
 )
 
 type updateEdgeStackPayload struct {
 	StackFileContent string
 	Version          *int
-	EdgeGroups       []portainer.EdgeGroupID
-	DeploymentType   portainer.EdgeStackDeploymentType
+	EdgeGroups       []portaineree.EdgeGroupID
+	DeploymentType   portaineree.EdgeStackDeploymentType
 }
 
 func (payload *updateEdgeStackPayload) Validate(r *http.Request) error {
@@ -41,7 +41,7 @@ func (payload *updateEdgeStackPayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path string true "EdgeStack Id"
 // @param body body updateEdgeStackPayload true "EdgeStack data"
-// @success 200 {object} portainer.EdgeStack
+// @success 200 {object} portaineree.EdgeStack
 // @failure 500
 // @failure 400
 // @failure 503 "Edge compute features are disabled"
@@ -52,7 +52,7 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid stack identifier route variable", err}
 	}
 
-	stack, err := handler.DataStore.EdgeStack().EdgeStack(portainer.EdgeStackID(stackID))
+	stack, err := handler.DataStore.EdgeStack().EdgeStack(portaineree.EdgeStackID(stackID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a stack with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -84,7 +84,7 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 		oldRelatedSet := EndpointSet(relatedEndpointIds)
 		newRelatedSet := EndpointSet(newRelated)
 
-		endpointsToRemove := map[portainer.EndpointID]bool{}
+		endpointsToRemove := map[portaineree.EndpointID]bool{}
 		for endpointID := range oldRelatedSet {
 			if !newRelatedSet[endpointID] {
 				endpointsToRemove[endpointID] = true
@@ -105,7 +105,7 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 			}
 		}
 
-		endpointsToAdd := map[portainer.EndpointID]bool{}
+		endpointsToAdd := map[portaineree.EndpointID]bool{}
 		for endpointID := range newRelatedSet {
 			if !oldRelatedSet[endpointID] {
 				endpointsToAdd[endpointID] = true
@@ -143,7 +143,7 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 	}
 
 	stackFolder := strconv.Itoa(int(stack.ID))
-	if payload.DeploymentType == portainer.EdgeStackDeploymentCompose {
+	if payload.DeploymentType == portaineree.EdgeStackDeploymentCompose {
 		if stack.EntryPoint == "" {
 			stack.EntryPoint = filesystem.ComposeFileDefaultName
 		}
@@ -180,7 +180,7 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 
 	if payload.Version != nil && *payload.Version != stack.Version {
 		stack.Version = *payload.Version
-		stack.Status = map[portainer.EndpointID]portainer.EdgeStackStatus{}
+		stack.Status = map[portaineree.EndpointID]portaineree.EdgeStackStatus{}
 	}
 
 	err = handler.DataStore.EdgeStack().UpdateEdgeStack(stack.ID, stack)
@@ -191,8 +191,8 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 	return response.JSON(w, stack)
 }
 
-func EndpointSet(endpointIDs []portainer.EndpointID) map[portainer.EndpointID]bool {
-	set := map[portainer.EndpointID]bool{}
+func EndpointSet(endpointIDs []portaineree.EndpointID) map[portaineree.EndpointID]bool {
+	set := map[portaineree.EndpointID]bool{}
 
 	for _, endpointID := range endpointIDs {
 		set[endpointID] = true

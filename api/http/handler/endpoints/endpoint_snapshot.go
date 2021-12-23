@@ -6,9 +6,9 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/internal/snapshot"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/internal/snapshot"
 )
 
 // @id EndpointSnapshot
@@ -30,7 +30,7 @@ func (handler *Handler) endpointSnapshot(w http.ResponseWriter, r *http.Request)
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == errors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -48,9 +48,9 @@ func (handler *Handler) endpointSnapshot(w http.ResponseWriter, r *http.Request)
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	}
 
-	latestEndpointReference.Status = portainer.EndpointStatusUp
+	latestEndpointReference.Status = portaineree.EndpointStatusUp
 	if snapshotError != nil {
-		latestEndpointReference.Status = portainer.EndpointStatusDown
+		latestEndpointReference.Status = portaineree.EndpointStatusDown
 	}
 
 	latestEndpointReference.Snapshots = endpoint.Snapshots

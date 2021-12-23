@@ -11,16 +11,16 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/middlewares"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/authorization"
-	"github.com/portainer/portainer/api/internal/endpointutils"
-	"github.com/portainer/portainer/api/internal/stackutils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	"github.com/portainer/portainer-ee/api/internal/stackutils"
 )
 
-func (handler *Handler) cleanUp(stack *portainer.Stack, doCleanUp *bool) error {
+func (handler *Handler) cleanUp(stack *portaineree.Stack, doCleanUp *bool) error {
 	if !*doCleanUp {
 		return nil
 	}
@@ -52,7 +52,7 @@ func (handler *Handler) cleanUp(stack *portainer.Stack, doCleanUp *bool) error {
 // @param SwarmID formData string false "Swarm cluster identifier. Required when method equals file and type equals 1. required when method is file"
 // @param Env formData string false "Environment(Endpoint) variables passed during deployment, represented as a JSON array [{'name': 'name', 'value': 'value'}]. Optional, used when method equals file and type equals 1."
 // @param file formData file false "Stack file. required when method is file"
-// @success 200 {object} portainer.CustomTemplate
+// @success 200 {object} portaineree.Stack
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /stacks [post]
@@ -72,7 +72,7 @@ func (handler *Handler) stackCreate(w http.ResponseWriter, r *http.Request) *htt
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: endpointId", err}
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -86,7 +86,7 @@ func (handler *Handler) stackCreate(w http.ResponseWriter, r *http.Request) *htt
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user info from request context", err}
 		}
 
-		canCreate, err := handler.userCanCreateStack(securityContext, portainer.EndpointID(endpointID))
+		canCreate, err := handler.userCanCreateStack(securityContext, portaineree.EndpointID(endpointID))
 
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to verify user authorizations to validate stack creation", err}
@@ -108,19 +108,19 @@ func (handler *Handler) stackCreate(w http.ResponseWriter, r *http.Request) *htt
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user details from authentication token", err}
 	}
 
-	switch portainer.StackType(stackType) {
-	case portainer.DockerSwarmStack:
+	switch portaineree.StackType(stackType) {
+	case portaineree.DockerSwarmStack:
 		return handler.createSwarmStack(w, r, method, endpoint, tokenData.ID)
-	case portainer.DockerComposeStack:
+	case portaineree.DockerComposeStack:
 		return handler.createComposeStack(w, r, method, endpoint, tokenData.ID)
-	case portainer.KubernetesStack:
+	case portaineree.KubernetesStack:
 		return handler.createKubernetesStack(w, r, method, endpoint)
 	}
 
 	return &httperror.HandlerError{http.StatusBadRequest, "Invalid value for query parameter: type. Value must be one of: 1 (Swarm stack) or 2 (Compose stack)", errors.New(request.ErrInvalidQueryParameter)}
 }
 
-func (handler *Handler) createComposeStack(w http.ResponseWriter, r *http.Request, method string, endpoint *portainer.Endpoint, userID portainer.UserID) *httperror.HandlerError {
+func (handler *Handler) createComposeStack(w http.ResponseWriter, r *http.Request, method string, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
 
 	switch method {
 	case "string":
@@ -134,7 +134,7 @@ func (handler *Handler) createComposeStack(w http.ResponseWriter, r *http.Reques
 	return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid value for query parameter: method. Value must be one of: string, repository or file", Err: errors.New(request.ErrInvalidQueryParameter)}
 }
 
-func (handler *Handler) createSwarmStack(w http.ResponseWriter, r *http.Request, method string, endpoint *portainer.Endpoint, userID portainer.UserID) *httperror.HandlerError {
+func (handler *Handler) createSwarmStack(w http.ResponseWriter, r *http.Request, method string, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
 	switch method {
 	case "string":
 		return handler.createSwarmStackFromFileContent(w, r, endpoint, userID)
@@ -147,7 +147,7 @@ func (handler *Handler) createSwarmStack(w http.ResponseWriter, r *http.Request,
 	return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid value for query parameter: method. Value must be one of: string, repository or file", Err: errors.New(request.ErrInvalidQueryParameter)}
 }
 
-func (handler *Handler) createKubernetesStack(w http.ResponseWriter, r *http.Request, method string, endpoint *portainer.Endpoint) *httperror.HandlerError {
+func (handler *Handler) createKubernetesStack(w http.ResponseWriter, r *http.Request, method string, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 	switch method {
 	case "string":
 		return handler.createKubernetesStackFromFileContent(w, r, endpoint)
@@ -159,7 +159,7 @@ func (handler *Handler) createKubernetesStack(w http.ResponseWriter, r *http.Req
 	return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid value for query parameter: method. Value must be one of: string or repository", Err: errors.New(request.ErrInvalidQueryParameter)}
 }
 
-func (handler *Handler) isValidStackFile(stackFileContent []byte, securitySettings *portainer.EndpointSecuritySettings) error {
+func (handler *Handler) isValidStackFile(stackFileContent []byte, securitySettings *portaineree.EndpointSecuritySettings) error {
 	composeConfigYAML, err := loader.ParseYAML(stackFileContent)
 	if err != nil {
 		return err
@@ -216,8 +216,8 @@ func (handler *Handler) isValidStackFile(stackFileContent []byte, securitySettin
 	return nil
 }
 
-func (handler *Handler) decorateStackResponse(w http.ResponseWriter, stack *portainer.Stack, userID portainer.UserID) *httperror.HandlerError {
-	var resourceControl *portainer.ResourceControl
+func (handler *Handler) decorateStackResponse(w http.ResponseWriter, stack *portaineree.Stack, userID portaineree.UserID) *httperror.HandlerError {
+	var resourceControl *portaineree.ResourceControl
 
 	isAdmin, err := handler.userIsAdmin(userID)
 	if err != nil {
@@ -225,9 +225,9 @@ func (handler *Handler) decorateStackResponse(w http.ResponseWriter, stack *port
 	}
 
 	if isAdmin {
-		resourceControl = authorization.NewAdministratorsOnlyResourceControl(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portainer.StackResourceControl)
+		resourceControl = authorization.NewAdministratorsOnlyResourceControl(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portaineree.StackResourceControl)
 	} else {
-		resourceControl = authorization.NewPrivateResourceControl(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portainer.StackResourceControl, userID)
+		resourceControl = authorization.NewPrivateResourceControl(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portaineree.StackResourceControl, userID)
 	}
 
 	err = handler.DataStore.ResourceControl().CreateResourceControl(resourceControl)

@@ -7,10 +7,10 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id CustomTemplateDelete
@@ -38,14 +38,14 @@ func (handler *Handler) customTemplateDelete(w http.ResponseWriter, r *http.Requ
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
 	}
 
-	customTemplate, err := handler.DataStore.CustomTemplate().CustomTemplate(portainer.CustomTemplateID(customTemplateID))
+	customTemplate, err := handler.DataStore.CustomTemplate().CustomTemplate(portaineree.CustomTemplateID(customTemplateID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a custom template with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a custom template with the specified identifier inside the database", err}
 	}
 
-	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(strconv.Itoa(customTemplateID), portainer.CustomTemplateResourceControl)
+	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(strconv.Itoa(customTemplateID), portaineree.CustomTemplateResourceControl)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve a resource control associated to the custom template", err}
 	}
@@ -55,7 +55,7 @@ func (handler *Handler) customTemplateDelete(w http.ResponseWriter, r *http.Requ
 		return &httperror.HandlerError{http.StatusForbidden, "Access denied to resource", httperrors.ErrResourceAccessDenied}
 	}
 
-	err = handler.DataStore.CustomTemplate().DeleteCustomTemplate(portainer.CustomTemplateID(customTemplateID))
+	err = handler.DataStore.CustomTemplate().DeleteCustomTemplate(portaineree.CustomTemplateID(customTemplateID))
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove the custom template from the database", err}
 	}

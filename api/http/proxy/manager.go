@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/portainer/portainer/api/http/proxy/factory/kubernetes"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 
 	cmap "github.com/orcaman/concurrent-map"
-	"github.com/portainer/portainer/api/kubernetes/cli"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/docker"
-	"github.com/portainer/portainer/api/http/proxy/factory"
-	"github.com/portainer/portainer/api/internal/authorization"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/docker"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 // TODO: contain code related to legacy extension management
@@ -29,14 +29,14 @@ type (
 
 // NewManager initializes a new proxy Service
 func NewManager(
-	dataStore portainer.DataStore,
-	signatureService portainer.DigitalSignatureService,
-	tunnelService portainer.ReverseTunnelService,
+	dataStore portaineree.DataStore,
+	signatureService portaineree.DigitalSignatureService,
+	tunnelService portaineree.ReverseTunnelService,
 	clientFactory *docker.ClientFactory,
 	kubernetesClientFactory *cli.ClientFactory,
 	kubernetesTokenCacheManager *kubernetes.TokenCacheManager,
 	authService *authorization.Service,
-	userActivityService portainer.UserActivityService,
+	userActivityService portaineree.UserActivityService,
 ) *Manager {
 	return &Manager{
 		endpointProxies:        cmap.New(),
@@ -57,7 +57,7 @@ func NewManager(
 
 // CreateAndRegisterEndpointProxy creates a new HTTP reverse proxy based on environment(endpoint) properties and and adds it to the registered proxies.
 // It can also be used to create a new HTTP reverse proxy and replace an already registered proxy.
-func (manager *Manager) CreateAndRegisterEndpointProxy(endpoint *portainer.Endpoint) (http.Handler, error) {
+func (manager *Manager) CreateAndRegisterEndpointProxy(endpoint *portaineree.Endpoint) (http.Handler, error) {
 	proxy, err := manager.proxyFactory.NewEndpointProxy(endpoint)
 	if err != nil {
 		return nil, err
@@ -69,12 +69,12 @@ func (manager *Manager) CreateAndRegisterEndpointProxy(endpoint *portainer.Endpo
 
 // CreateAgentProxyServer creates a new HTTP reverse proxy based on environment(endpoint) properties and and adds it to the registered proxies.
 // It can also be used to create a new HTTP reverse proxy and replace an already registered proxy.
-func (manager *Manager) CreateAgentProxyServer(endpoint *portainer.Endpoint) (*factory.ProxyServer, error) {
+func (manager *Manager) CreateAgentProxyServer(endpoint *portaineree.Endpoint) (*factory.ProxyServer, error) {
 	return manager.proxyFactory.NewAgentProxy(endpoint)
 }
 
 // GetEndpointProxy returns the proxy associated to a key
-func (manager *Manager) GetEndpointProxy(endpoint *portainer.Endpoint) http.Handler {
+func (manager *Manager) GetEndpointProxy(endpoint *portaineree.Endpoint) http.Handler {
 	proxy, ok := manager.endpointProxies.Get(fmt.Sprint(endpoint.ID))
 	if !ok {
 		return nil
@@ -86,7 +86,7 @@ func (manager *Manager) GetEndpointProxy(endpoint *portainer.Endpoint) http.Hand
 // DeleteEndpointProxy deletes the proxy associated to a key
 // and cleans the k8s environment(endpoint) client cache. DeleteEndpointProxy
 // is currently only called for edge connection clean up.
-func (manager *Manager) DeleteEndpointProxy(endpointID portainer.EndpointID) {
+func (manager *Manager) DeleteEndpointProxy(endpointID portaineree.EndpointID) {
 	manager.endpointProxies.Remove(fmt.Sprint(endpointID))
 	manager.k8sClientFactory.RemoveKubeClient(endpointID)
 }

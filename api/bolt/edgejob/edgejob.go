@@ -2,8 +2,8 @@ package edgejob
 
 import (
 	"github.com/boltdb/bolt"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 )
 
 const (
@@ -29,15 +29,15 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // EdgeJobs returns a list of Edge jobs
-func (service *Service) EdgeJobs() ([]portainer.EdgeJob, error) {
-	var edgeJobs = make([]portainer.EdgeJob, 0)
+func (service *Service) EdgeJobs() ([]portaineree.EdgeJob, error) {
+	var edgeJobs = make([]portaineree.EdgeJob, 0)
 
 	err := service.connection.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var edgeJob portainer.EdgeJob
+			var edgeJob portaineree.EdgeJob
 			err := internal.UnmarshalObject(v, &edgeJob)
 			if err != nil {
 				return err
@@ -52,8 +52,8 @@ func (service *Service) EdgeJobs() ([]portainer.EdgeJob, error) {
 }
 
 // EdgeJob returns an Edge job by ID
-func (service *Service) EdgeJob(ID portainer.EdgeJobID) (*portainer.EdgeJob, error) {
-	var edgeJob portainer.EdgeJob
+func (service *Service) EdgeJob(ID portaineree.EdgeJobID) (*portaineree.EdgeJob, error) {
+	var edgeJob portaineree.EdgeJob
 	identifier := internal.Itob(int(ID))
 
 	err := internal.GetObject(service.connection, BucketName, identifier, &edgeJob)
@@ -65,13 +65,13 @@ func (service *Service) EdgeJob(ID portainer.EdgeJobID) (*portainer.EdgeJob, err
 }
 
 // CreateEdgeJob creates a new Edge job
-func (service *Service) CreateEdgeJob(edgeJob *portainer.EdgeJob) error {
+func (service *Service) CreateEdgeJob(edgeJob *portaineree.EdgeJob) error {
 	return service.connection.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		if edgeJob.ID == 0 {
 			id, _ := bucket.NextSequence()
-			edgeJob.ID = portainer.EdgeJobID(id)
+			edgeJob.ID = portaineree.EdgeJobID(id)
 		}
 
 		data, err := internal.MarshalObject(edgeJob)
@@ -84,13 +84,13 @@ func (service *Service) CreateEdgeJob(edgeJob *portainer.EdgeJob) error {
 }
 
 // UpdateEdgeJob updates an Edge job by ID
-func (service *Service) UpdateEdgeJob(ID portainer.EdgeJobID, edgeJob *portainer.EdgeJob) error {
+func (service *Service) UpdateEdgeJob(ID portaineree.EdgeJobID, edgeJob *portaineree.EdgeJob) error {
 	identifier := internal.Itob(int(ID))
 	return internal.UpdateObject(service.connection, BucketName, identifier, edgeJob)
 }
 
 // DeleteEdgeJob deletes an Edge job
-func (service *Service) DeleteEdgeJob(ID portainer.EdgeJobID) error {
+func (service *Service) DeleteEdgeJob(ID portaineree.EdgeJobID) error {
 	identifier := internal.Itob(int(ID))
 	return internal.DeleteObject(service.connection, BucketName, identifier)
 }

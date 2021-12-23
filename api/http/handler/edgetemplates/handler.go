@@ -4,17 +4,17 @@ import (
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
+	portaineree "github.com/portainer/portainer-ee/api"
 
 	"github.com/gorilla/mux"
-	"github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // Handler is the HTTP handler used to handle edge environment(endpoint) operations.
 type Handler struct {
 	*mux.Router
 	requestBouncer *security.RequestBouncer
-	DataStore      portainer.DataStore
+	DataStore      portaineree.DataStore
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.

@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/apikey"
-	bolt "github.com/portainer/portainer/api/bolt/bolttest"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/authorization"
-	"github.com/portainer/portainer/api/internal/testhelpers"
-	"github.com/portainer/portainer/api/jwt"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/apikey"
+	bolt "github.com/portainer/portainer-ee/api/bolt/bolttest"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/internal/testhelpers"
+	"github.com/portainer/portainer-ee/api/jwt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,11 +24,11 @@ func Test_userRemoveAccessToken(t *testing.T) {
 	defer teardown()
 
 	// create admin and standard user(s)
-	adminUser := &portainer.User{ID: 1, Username: "admin", Role: portainer.AdministratorRole}
+	adminUser := &portaineree.User{ID: 1, Username: "admin", Role: portaineree.AdministratorRole}
 	err := store.User().CreateUser(adminUser)
 	is.NoError(err, "error creating admin user")
 
-	user := &portainer.User{ID: 2, Username: "standard", Role: portainer.StandardUserRole, PortainerAuthorizations: authorization.DefaultPortainerAuthorizations()}
+	user := &portaineree.User{ID: 2, Username: "standard", Role: portaineree.StandardUserRole, PortainerAuthorizations: authorization.DefaultPortainerAuthorizations()}
 	err = store.User().CreateUser(user)
 	is.NoError(err, "error creating user")
 
@@ -43,8 +43,8 @@ func Test_userRemoveAccessToken(t *testing.T) {
 	h.DataStore = store
 
 	// generate standard and admin user tokens
-	adminJWT, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
-	jwt, _ := jwtService.GenerateToken(&portainer.TokenData{ID: user.ID, Username: user.Username, Role: user.Role})
+	adminJWT, _ := jwtService.GenerateToken(&portaineree.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
+	jwt, _ := jwtService.GenerateToken(&portaineree.TokenData{ID: user.ID, Username: user.Username, Role: user.Role})
 
 	t.Run("standard user can successfully delete API key", func(t *testing.T) {
 		_, apiKey, err := apiKeyService.GenerateApiKey(*user, "test-delete-token")

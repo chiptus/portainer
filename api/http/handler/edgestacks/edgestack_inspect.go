@@ -6,8 +6,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // @id EdgeStackInspect
@@ -18,7 +18,7 @@ import (
 // @security jwt
 // @produce json
 // @param id path string true "EdgeStack Id"
-// @success 200 {object} portainer.EdgeStack
+// @success 200 {object} portaineree.EdgeStack
 // @failure 500
 // @failure 400
 // @failure 503 "Edge compute features are disabled"
@@ -29,7 +29,7 @@ func (handler *Handler) edgeStackInspect(w http.ResponseWriter, r *http.Request)
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid edge stack identifier route variable", err}
 	}
 
-	edgeStack, err := handler.DataStore.EdgeStack().EdgeStack(portainer.EdgeStackID(edgeStackID))
+	edgeStack, err := handler.DataStore.EdgeStack().EdgeStack(portaineree.EdgeStackID(edgeStackID))
 	if err == errors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an edge stack with the specified identifier inside the database", err}
 	} else if err != nil {

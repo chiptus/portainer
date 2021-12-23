@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	"github.com/portainer/portainer/api/bolt/internal"
-	"github.com/portainer/portainer/api/bolt/settings"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
+	"github.com/portainer/portainer-ee/api/bolt/settings"
 )
 
 var (

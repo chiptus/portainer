@@ -1,6 +1,6 @@
 package migrator
 
-import portainer "github.com/portainer/portainer/api"
+import portaineree "github.com/portainer/portainer-ee/api"
 
 func (m *Migrator) updateSettingsToDBVersion19() error {
 	legacySettings, err := m.settingsService.Settings()
@@ -9,7 +9,7 @@ func (m *Migrator) updateSettingsToDBVersion19() error {
 	}
 
 	if legacySettings.EdgeAgentCheckinInterval == 0 {
-		legacySettings.EdgeAgentCheckinInterval = portainer.DefaultEdgeAgentCheckinIntervalInSeconds
+		legacySettings.EdgeAgentCheckinInterval = portaineree.DefaultEdgeAgentCheckinIntervalInSeconds
 	}
 
 	return m.settingsService.UpdateSettings(legacySettings)

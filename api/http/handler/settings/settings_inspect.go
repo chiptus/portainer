@@ -15,7 +15,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @success 200 {object} portainer.Settings "Success"
+// @success 200 {object} portaineree.Settings "Success"
 // @failure 500 "Server error"
 // @router /settings [get]
 func (handler *Handler) settingsInspect(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {

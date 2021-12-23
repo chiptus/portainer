@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 
 	"github.com/boltdb/bolt"
-	"github.com/portainer/portainer/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 type DbConnection struct {

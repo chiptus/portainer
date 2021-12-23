@@ -6,13 +6,13 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/client"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/client"
 )
 
 type templateFileFormat struct {
-	Version   string               `json:"version"`
-	Templates []portainer.Template `json:"templates"`
+	Version   string                 `json:"version"`
+	Templates []portaineree.Template `json:"templates"`
 }
 
 // @id EdgeTemplateList
@@ -23,7 +23,7 @@ type templateFileFormat struct {
 // @security jwt
 // @accept json
 // @produce json
-// @success 200 {array} portainer.Template
+// @success 200 {array} portaineree.Template
 // @failure 500
 // @router /edge_templates [get]
 func (handler *Handler) edgeTemplateList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
@@ -32,7 +32,7 @@ func (handler *Handler) edgeTemplateList(w http.ResponseWriter, r *http.Request)
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve settings from the database", err}
 	}
 
-	url := portainer.DefaultTemplatesURL
+	url := portaineree.DefaultTemplatesURL
 	if settings.TemplatesURL != "" {
 		url = settings.TemplatesURL
 	}
@@ -50,10 +50,10 @@ func (handler *Handler) edgeTemplateList(w http.ResponseWriter, r *http.Request)
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to parse template file", err}
 	}
 
-	filteredTemplates := make([]portainer.Template, 0)
+	filteredTemplates := make([]portaineree.Template, 0)
 
 	for _, template := range templateFile.Templates {
-		if template.Type == portainer.EdgeStackTemplate {
+		if template.Type == portaineree.EdgeStackTemplate {
 			filteredTemplates = append(filteredTemplates, template)
 		}
 	}

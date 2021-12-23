@@ -5,8 +5,8 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/useractivity"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/useractivity"
 )
 
 // @id LogsCSV
@@ -34,7 +34,7 @@ func (handler *Handler) logsCSV(w http.ResponseWriter, r *http.Request) *httperr
 	sortDesc, _ := request.RetrieveBooleanQueryParameter(r, "sortDesc", true)
 	keyword, _ := request.RetrieveQueryParameter(r, "keyword", true)
 
-	opts := portainer.UserActivityLogBaseQuery{
+	opts := portaineree.UserActivityLogBaseQuery{
 		BeforeTimestamp: int64(before),
 		AfterTimestamp:  int64(after),
 		SortBy:          sortBy,

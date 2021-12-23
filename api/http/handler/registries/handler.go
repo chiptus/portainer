@@ -5,14 +5,15 @@ import (
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/proxy"
+	"github.com/portainer/portainer-ee/api/http/registryproxy"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/proxy"
-	"github.com/portainer/portainer/api/http/registryproxy"
-	"github.com/portainer/portainer/api/http/useractivity"
-	"github.com/portainer/portainer/api/kubernetes/cli"
 )
 
-func hideFields(registry *portainer.Registry, hideAccesses bool) {
+func hideFields(registry *portaineree.Registry, hideAccesses bool) {
 	registry.Password = ""
 	registry.ManagementConfiguration = nil
 	if hideAccesses {
@@ -26,22 +27,22 @@ type Handler struct {
 	requestBouncer       accessGuard
 	registryProxyService *registryproxy.Service
 
-	DataStore           portainer.DataStore
+	DataStore           portaineree.DataStore
 	FileService         portainer.FileService
 	ProxyManager        *proxy.Manager
-	userActivityService portainer.UserActivityService
+	userActivityService portaineree.UserActivityService
 	K8sClientFactory    *cli.ClientFactory
 }
 
 // NewHandler creates a handler to manage registry operations.
-func NewHandler(bouncer accessGuard, userActivityService portainer.UserActivityService) *Handler {
+func NewHandler(bouncer accessGuard, userActivityService portaineree.UserActivityService) *Handler {
 	h := newHandler(bouncer, userActivityService)
 	h.initRouter(bouncer)
 
 	return h
 }
 
-func newHandler(bouncer accessGuard, userActivityService portainer.UserActivityService) *Handler {
+func newHandler(bouncer accessGuard, userActivityService portaineree.UserActivityService) *Handler {
 	return &Handler{
 		Router:               mux.NewRouter(),
 		requestBouncer:       bouncer,
@@ -70,11 +71,11 @@ type accessGuard interface {
 	AdminAccess(h http.Handler) http.Handler
 }
 
-func (handler *Handler) registriesHaveSameURLAndCredentials(r1, r2 *portainer.Registry) bool {
+func (handler *Handler) registriesHaveSameURLAndCredentials(r1, r2 *portaineree.Registry) bool {
 	hasSameUrl := r1.URL == r2.URL
 	hasSameCredentials := r1.Authentication == r2.Authentication && (!r1.Authentication || (r1.Authentication && r1.Username == r2.Username))
 
-	if r1.Type != portainer.GitlabRegistry || r2.Type != portainer.GitlabRegistry {
+	if r1.Type != portaineree.GitlabRegistry || r2.Type != portaineree.GitlabRegistry {
 		return hasSameUrl && hasSameCredentials
 	}
 

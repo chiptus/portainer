@@ -5,7 +5,7 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
-	"github.com/portainer/portainer/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id UserList
@@ -18,7 +18,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @success 200 {array} portainer.User "Success"
+// @success 200 {array} portaineree.User "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /users [get]

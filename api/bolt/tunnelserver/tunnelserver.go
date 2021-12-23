@@ -1,8 +1,8 @@
 package tunnelserver
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 )
 
 const (
@@ -29,8 +29,8 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // Info retrieve the TunnelServerInfo object.
-func (service *Service) Info() (*portainer.TunnelServerInfo, error) {
-	var info portainer.TunnelServerInfo
+func (service *Service) Info() (*portaineree.TunnelServerInfo, error) {
+	var info portaineree.TunnelServerInfo
 
 	err := internal.GetObject(service.connection, BucketName, []byte(infoKey), &info)
 	if err != nil {
@@ -41,6 +41,6 @@ func (service *Service) Info() (*portainer.TunnelServerInfo, error) {
 }
 
 // UpdateInfo persists a TunnelServerInfo object.
-func (service *Service) UpdateInfo(settings *portainer.TunnelServerInfo) error {
+func (service *Service) UpdateInfo(settings *portaineree.TunnelServerInfo) error {
 	return internal.UpdateObject(service.connection, BucketName, []byte(infoKey), settings)
 }

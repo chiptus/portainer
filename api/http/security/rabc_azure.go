@@ -1,13 +1,13 @@
 package security
 
 import (
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"net/http"
 	"path"
 	"strings"
 )
 
-func getAzureOperationAuthorization(url, method string) portainer.Authorization {
+func getAzureOperationAuthorization(url, method string) portaineree.Authorization {
 	url = strings.Split(url, "?")[0]
 	if matched, _ := path.Match("/subscriptions", url); matched {
 		return azureSubscriptionsOperationAuthorization(url, method)
@@ -25,79 +25,79 @@ func getAzureOperationAuthorization(url, method string) portainer.Authorization 
 		return azureContainerGroupOperationAuthorization(url, method)
 	}
 
-	return portainer.OperationAzureUndefined
+	return portaineree.OperationAzureUndefined
 }
 
 // /subscriptions
-func azureSubscriptionsOperationAuthorization(url, method string) portainer.Authorization {
+func azureSubscriptionsOperationAuthorization(url, method string) portaineree.Authorization {
 	switch method {
 	case http.MethodGet:
-		return portainer.OperationAzureSubscriptionsList
+		return portaineree.OperationAzureSubscriptionsList
 	default:
-		return portainer.OperationAzureUndefined
+		return portaineree.OperationAzureUndefined
 	}
 }
 
 // /subscriptions/*
-func azureSubscriptionOperationAuthorization(url, method string) portainer.Authorization {
+func azureSubscriptionOperationAuthorization(url, method string) portaineree.Authorization {
 	switch method {
 	case http.MethodGet:
-		return portainer.OperationAzureSubscriptionGet
+		return portaineree.OperationAzureSubscriptionGet
 	default:
-		return portainer.OperationAzureUndefined
+		return portaineree.OperationAzureUndefined
 	}
 }
 
 // /subscriptions/*/resourcegroups
-func azureResourceGroupsOperationAuthorization(url, method string) portainer.Authorization {
+func azureResourceGroupsOperationAuthorization(url, method string) portaineree.Authorization {
 	switch method {
 	case http.MethodGet:
-		return portainer.OperationAzureResourceGroupsList
+		return portaineree.OperationAzureResourceGroupsList
 	default:
-		return portainer.OperationAzureUndefined
+		return portaineree.OperationAzureUndefined
 	}
 }
 
 // /subscriptions/*/resourcegroups/*
-func azureResourceGroupOperationAuthorization(url, method string) portainer.Authorization {
+func azureResourceGroupOperationAuthorization(url, method string) portaineree.Authorization {
 	switch method {
 	case http.MethodGet:
-		return portainer.OperationAzureResourceGroupGet
+		return portaineree.OperationAzureResourceGroupGet
 	default:
-		return portainer.OperationAzureUndefined
+		return portaineree.OperationAzureUndefined
 	}
 }
 
 // /subscriptions/*/providers/*
-func azureProviderOperationAuthorization(url, method string) portainer.Authorization {
+func azureProviderOperationAuthorization(url, method string) portaineree.Authorization {
 	switch method {
 	case http.MethodGet:
-		return portainer.OperationAzureProviderGet
+		return portaineree.OperationAzureProviderGet
 	default:
-		return portainer.OperationAzureUndefined
+		return portaineree.OperationAzureUndefined
 	}
 }
 
 // /subscriptions/*/providers/Microsoft.ContainerInstance/containerGroups
-func azureContainerGroupsOperationAuthorization(url, method string) portainer.Authorization {
+func azureContainerGroupsOperationAuthorization(url, method string) portaineree.Authorization {
 	switch method {
 	case http.MethodGet:
-		return portainer.OperationAzureContainerGroupsList
+		return portaineree.OperationAzureContainerGroupsList
 	default:
-		return portainer.OperationAzureUndefined
+		return portaineree.OperationAzureUndefined
 	}
 }
 
 // /subscriptions/*/resourceGroups/*/providers/Microsoft.ContainerInstance/containerGroups/*
-func azureContainerGroupOperationAuthorization(url, method string) portainer.Authorization {
+func azureContainerGroupOperationAuthorization(url, method string) portaineree.Authorization {
 	switch method {
 	case http.MethodPut:
-		return portainer.OperationAzureContainerGroupCreate
+		return portaineree.OperationAzureContainerGroupCreate
 	case http.MethodGet:
-		return portainer.OperationAzureContainerGroupGet
+		return portaineree.OperationAzureContainerGroupGet
 	case http.MethodDelete:
-		return portainer.OperationAzureContainerGroupDelete
+		return portaineree.OperationAzureContainerGroupDelete
 	default:
-		return portainer.OperationAzureUndefined
+		return portaineree.OperationAzureUndefined
 	}
 }

@@ -6,22 +6,22 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/offlinegate"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/offlinegate"
 	"github.com/robfig/cron/v3"
 )
 
 // BackupScheduler orchestrates S3 settings and active backup cron jobs
 type BackupScheduler struct {
 	cronmanager       *cron.Cron
-	s3backupService   portainer.S3BackupService
+	s3backupService   portaineree.S3BackupService
 	gate              *offlinegate.OfflineGate
-	datastore         portainer.DataStore
-	userActivityStore portainer.UserActivityStore
+	datastore         portaineree.DataStore
+	userActivityStore portaineree.UserActivityStore
 	filestorePath     string
 }
 
-func NewBackupScheduler(offlineGate *offlinegate.OfflineGate, datastore portainer.DataStore, userActivityStore portainer.UserActivityStore, filestorePath string) *BackupScheduler {
+func NewBackupScheduler(offlineGate *offlinegate.OfflineGate, datastore portaineree.DataStore, userActivityStore portaineree.UserActivityStore, filestorePath string) *BackupScheduler {
 	crontab := cron.New(cron.WithChain(cron.Recover(cron.DefaultLogger)))
 	s3backupService := datastore.S3Backup()
 
@@ -66,7 +66,7 @@ func (s *BackupScheduler) Stop() context.Context {
 // When scheduler has an active cron job, then it shuts it down.
 // When a provided settings has a cron, then starts a new cron job.
 // When ever current cron is being shut down, last cron error going to be dropped.
-func (s *BackupScheduler) Update(settings portainer.S3BackupSettings) error {
+func (s *BackupScheduler) Update(settings portaineree.S3BackupSettings) error {
 
 	if err := s.s3backupService.UpdateSettings(settings); err != nil {
 		return errors.Wrap(err, "failed to update settings")
@@ -93,7 +93,7 @@ func (s *BackupScheduler) stopJobs() error {
 	return s.s3backupService.DropStatus()
 }
 
-func (s *BackupScheduler) startJob(settings portainer.S3BackupSettings) error {
+func (s *BackupScheduler) startJob(settings portaineree.S3BackupSettings) error {
 	_, err := s.cronmanager.AddFunc(settings.CronRule, s.backup(settings))
 	if err != nil {
 		return errors.Wrap(err, "failed to start a new backup cron job")
@@ -102,14 +102,14 @@ func (s *BackupScheduler) startJob(settings portainer.S3BackupSettings) error {
 	return nil
 }
 
-func canBeScheduled(s portainer.S3BackupSettings) bool {
+func canBeScheduled(s portaineree.S3BackupSettings) bool {
 	return s.AccessKeyID != "" && s.SecretAccessKey != "" && s.Region != "" && s.BucketName != "" && s.CronRule != ""
 }
 
-func (s *BackupScheduler) backup(settings portainer.S3BackupSettings) func() {
+func (s *BackupScheduler) backup(settings portaineree.S3BackupSettings) func() {
 	return func() {
 		err := BackupToS3(settings, s.gate, s.datastore, s.userActivityStore, s.filestorePath)
-		status := portainer.S3BackupStatus{
+		status := portaineree.S3BackupStatus{
 			Failed:    err != nil,
 			Timestamp: time.Now(),
 		}

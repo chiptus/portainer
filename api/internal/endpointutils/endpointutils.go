@@ -3,43 +3,43 @@ package endpointutils
 import (
 	"strings"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 // IsLocalEndpoint returns true if this is a local environment(endpoint)
-func IsLocalEndpoint(endpoint *portainer.Endpoint) bool {
+func IsLocalEndpoint(endpoint *portaineree.Endpoint) bool {
 	return strings.HasPrefix(endpoint.URL, "unix://") || strings.HasPrefix(endpoint.URL, "npipe://") || endpoint.Type == 5
 }
 
 // IsKubernetesEndpoint returns true if this is a kubernetes environment(endpoint)
-func IsKubernetesEndpoint(endpoint *portainer.Endpoint) bool {
-	return endpoint.Type == portainer.KubernetesLocalEnvironment ||
-		endpoint.Type == portainer.AgentOnKubernetesEnvironment ||
-		endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment
+func IsKubernetesEndpoint(endpoint *portaineree.Endpoint) bool {
+	return endpoint.Type == portaineree.KubernetesLocalEnvironment ||
+		endpoint.Type == portaineree.AgentOnKubernetesEnvironment ||
+		endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment
 }
 
 // IsDockerEndpoint returns true if this is a docker environment(endpoint)
-func IsDockerEndpoint(endpoint *portainer.Endpoint) bool {
-	return endpoint.Type == portainer.DockerEnvironment ||
-		endpoint.Type == portainer.AgentOnDockerEnvironment ||
-		endpoint.Type == portainer.EdgeAgentOnDockerEnvironment
+func IsDockerEndpoint(endpoint *portaineree.Endpoint) bool {
+	return endpoint.Type == portaineree.DockerEnvironment ||
+		endpoint.Type == portaineree.AgentOnDockerEnvironment ||
+		endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment
 }
 
 // IsEdgeEndpoint returns true if endpoint is an Edge Endpoint
-func IsEdgeEndpoint(endpoint *portainer.Endpoint) bool {
-	return endpoint.Type == portainer.EdgeAgentOnDockerEnvironment ||
-		endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment
+func IsEdgeEndpoint(endpoint *portaineree.Endpoint) bool {
+	return endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment ||
+		endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment
 }
 
 // FilterByExcludeIDs receives an environment(endpoint) array and returns a filtered array using an excludeIds param
-func FilterByExcludeIDs(endpoints []portainer.Endpoint, excludeIds []portainer.EndpointID) []portainer.Endpoint {
+func FilterByExcludeIDs(endpoints []portaineree.Endpoint, excludeIds []portaineree.EndpointID) []portaineree.Endpoint {
 	if len(excludeIds) == 0 {
 		return endpoints
 	}
 
-	filteredEndpoints := make([]portainer.Endpoint, 0)
+	filteredEndpoints := make([]portaineree.Endpoint, 0)
 
-	idsSet := make(map[portainer.EndpointID]bool)
+	idsSet := make(map[portaineree.EndpointID]bool)
 	for _, id := range excludeIds {
 		idsSet[id] = true
 	}

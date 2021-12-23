@@ -16,7 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/pkg/errors"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -61,13 +61,13 @@ func Test_upload_shouldFail_whenBucketExists(t *testing.T) {
 
 func Test_download_shouldFail_whenBucketIsMissing(t *testing.T) {
 	buf := aws.NewWriteAtBuffer([]byte{})
-	err := Download(s3session, buf, portainer.S3Location{BucketName: "missing", Filename: key})
+	err := Download(s3session, buf, portaineree.S3Location{BucketName: "missing", Filename: key})
 	assert.Error(t, err, "should fail downloading from a missing bucket")
 }
 
 func Test_download_shouldFail_whenFileIsMissing(t *testing.T) {
 	buf := aws.NewWriteAtBuffer([]byte{})
-	err := Download(s3session, buf, portainer.S3Location{BucketName: existingBucket, Filename: "missing-file"})
+	err := Download(s3session, buf, portaineree.S3Location{BucketName: existingBucket, Filename: "missing-file"})
 	assert.Error(t, err, "should fail downloading because file is missing")
 }
 
@@ -75,7 +75,7 @@ func Test_download_shouldSucceed_whenFileExists(t *testing.T) {
 	Upload(s3session, strings.NewReader("test"), existingBucket, key)
 
 	buf := aws.NewWriteAtBuffer([]byte{})
-	err := Download(s3session, buf, portainer.S3Location{BucketName: existingBucket, Filename: key})
+	err := Download(s3session, buf, portaineree.S3Location{BucketName: existingBucket, Filename: key})
 	assert.Nil(t, err, "should succeed when file exists")
 }
 

@@ -6,9 +6,9 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id TeamMemberships
@@ -20,7 +20,7 @@ import (
 // @security jwt
 // @produce json
 // @param id path string true "Team Id"
-// @success 200 {array} portainer.TeamMembership "Success"
+// @success 200 {array} portaineree.TeamMembership "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 500 "Server error"
@@ -36,11 +36,11 @@ func (handler *Handler) teamMemberships(w http.ResponseWriter, r *http.Request) 
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
 	}
 
-	if !security.AuthorizedTeamManagement(portainer.TeamID(teamID), securityContext) {
+	if !security.AuthorizedTeamManagement(portaineree.TeamID(teamID), securityContext) {
 		return &httperror.HandlerError{http.StatusForbidden, "Access denied to team", errors.ErrResourceAccessDenied}
 	}
 
-	memberships, err := handler.DataStore.TeamMembership().TeamMembershipsByTeamID(portainer.TeamID(teamID))
+	memberships, err := handler.DataStore.TeamMembership().TeamMembershipsByTeamID(portaineree.TeamID(teamID))
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve associated team memberships from the database", err}
 	}

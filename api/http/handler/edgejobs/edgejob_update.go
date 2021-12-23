@@ -9,15 +9,15 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 type edgeJobUpdatePayload struct {
 	Name           *string
 	CronExpression *string
 	Recurring      *bool
-	Endpoints      []portainer.EndpointID
+	Endpoints      []portaineree.EndpointID
 	FileContent    *string
 }
 
@@ -38,7 +38,7 @@ func (payload *edgeJobUpdatePayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path string true "EdgeJob Id"
 // @param body body edgeJobUpdatePayload true "EdgeGroup data"
-// @success 200 {object} portainer.EdgeJob
+// @success 200 {object} portaineree.EdgeJob
 // @failure 500
 // @failure 400
 // @failure 503 "Edge compute features are disabled"
@@ -55,7 +55,7 @@ func (handler *Handler) edgeJobUpdate(w http.ResponseWriter, r *http.Request) *h
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	edgeJob, err := handler.DataStore.EdgeJob().EdgeJob(portainer.EdgeJobID(edgeJobID))
+	edgeJob, err := handler.DataStore.EdgeJob().EdgeJob(portaineree.EdgeJobID(edgeJobID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an Edge job with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -75,13 +75,13 @@ func (handler *Handler) edgeJobUpdate(w http.ResponseWriter, r *http.Request) *h
 	return response.JSON(w, edgeJob)
 }
 
-func (handler *Handler) updateEdgeSchedule(edgeJob *portainer.EdgeJob, payload *edgeJobUpdatePayload) error {
+func (handler *Handler) updateEdgeSchedule(edgeJob *portaineree.EdgeJob, payload *edgeJobUpdatePayload) error {
 	if payload.Name != nil {
 		edgeJob.Name = *payload.Name
 	}
 
 	if payload.Endpoints != nil {
-		endpointsMap := map[portainer.EndpointID]portainer.EdgeJobEndpointMeta{}
+		endpointsMap := map[portaineree.EndpointID]portaineree.EdgeJobEndpointMeta{}
 
 		for _, endpointID := range payload.Endpoints {
 			endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
@@ -89,14 +89,14 @@ func (handler *Handler) updateEdgeSchedule(edgeJob *portainer.EdgeJob, payload *
 				return err
 			}
 
-			if endpoint.Type != portainer.EdgeAgentOnDockerEnvironment && endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment {
+			if endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment && endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment {
 				continue
 			}
 
 			if meta, ok := edgeJob.Endpoints[endpointID]; ok {
 				endpointsMap[endpointID] = meta
 			} else {
-				endpointsMap[endpointID] = portainer.EdgeJobEndpointMeta{}
+				endpointsMap[endpointID] = portaineree.EdgeJobEndpointMeta{}
 			}
 		}
 

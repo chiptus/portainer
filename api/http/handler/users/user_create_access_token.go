@@ -8,9 +8,9 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 type userAccessTokenCreatePayload struct {
@@ -31,8 +31,8 @@ func (payload *userAccessTokenCreatePayload) Validate(r *http.Request) error {
 }
 
 type accessTokenResponse struct {
-	RawAPIKey string           `json:"rawAPIKey"`
-	APIKey    portainer.APIKey `json:"apiKey"`
+	RawAPIKey string             `json:"rawAPIKey"`
+	APIKey    portaineree.APIKey `json:"apiKey"`
 }
 
 // @id UserGenerateAPIKey
@@ -75,11 +75,11 @@ func (handler *Handler) userCreateAccessToken(w http.ResponseWriter, r *http.Req
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}
 	}
 
-	if tokenData.ID != portainer.UserID(userID) {
+	if tokenData.ID != portaineree.UserID(userID) {
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to create user access token", httperrors.ErrUnauthorized}
 	}
 
-	user, err := handler.DataStore.User().User(portainer.UserID(userID))
+	user, err := handler.DataStore.User().User(portaineree.UserID(userID))
 	if err != nil {
 		return &httperror.HandlerError{http.StatusBadRequest, "Unable to find a user", err}
 	}

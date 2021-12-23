@@ -1,14 +1,15 @@
 package cli
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"k8s.io/api/core/v1"
+	"reflect"
+	"testing"
+
+	portaineree "github.com/portainer/portainer-ee/api"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	kfake "k8s.io/client-go/kubernetes/fake"
-	"reflect"
-	"testing"
 )
 
 func newNodes() *v1.NodeList {
@@ -99,18 +100,18 @@ func TestKubeClient_GetNodesLimits(t *testing.T) {
 	tests := []struct {
 		name    string
 		fields  fields
-		want    portainer.K8sNodesLimits
+		want    portaineree.K8sNodesLimits
 		wantErr bool
 	}{
 		{
 			name:   "2 nodes 2 pods",
 			fields: fieldsInstance,
-			want: portainer.K8sNodesLimits{
-				"test-node-0": &portainer.K8sNodeLimits{
+			want: portaineree.K8sNodesLimits{
+				"test-node-0": &portaineree.K8sNodeLimits{
 					CPU:    1000,
 					Memory: 2000000,
 				},
-				"test-node-1": &portainer.K8sNodeLimits{
+				"test-node-1": &portaineree.K8sNodeLimits{
 					CPU:    1000,
 					Memory: 3000000,
 				},

@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
-	"github.com/portainer/portainer/api/bolt/settings"
-	"github.com/portainer/portainer/api/bolt/stack"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
+	"github.com/portainer/portainer-ee/api/bolt/settings"
+	"github.com/portainer/portainer-ee/api/bolt/stack"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,7 +23,7 @@ func TestMigrateAdminGroupSearchSettingsToDB33(t *testing.T) {
 	internalDBConn := &internal.DbConnection{DB: dbConn}
 	settingsService, err := settings.NewService(internalDBConn)
 	assert.NoError(t, err, "failed to init settings service")
-	settingsService.UpdateSettings(&portainer.Settings{})
+	settingsService.UpdateSettings(&portaineree.Settings{})
 
 	m := &Migrator{
 		db:              dbConn,
@@ -45,7 +45,7 @@ func TestMigrateStackEntryPoint(t *testing.T) {
 	stackService, err := stack.NewService(&internal.DbConnection{DB: dbConn})
 	assert.NoError(t, err, "failed to init testing Stack service")
 
-	stacks := []*portainer.Stack{
+	stacks := []*portaineree.Stack{
 		{
 			ID:         1,
 			EntryPoint: "dir/sub/compose.yml",

@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 var errInvalidResponseStatus = errors.New("Invalid response status (expecting 200)")
@@ -43,7 +43,7 @@ type AzureAuthenticationResponse struct {
 
 // ExecuteAzureAuthenticationRequest is used to execute an authentication request
 // against the Azure API. It re-uses the same http.Client.
-func (client *HTTPClient) ExecuteAzureAuthenticationRequest(credentials *portainer.AzureCredentials) (*AzureAuthenticationResponse, error) {
+func (client *HTTPClient) ExecuteAzureAuthenticationRequest(credentials *portaineree.AzureCredentials) (*AzureAuthenticationResponse, error) {
 	loginURL := fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/token", credentials.TenantID)
 	params := url.Values{
 		"grant_type":    {"client_credentials"},
@@ -132,7 +132,7 @@ func pingOperation(client *http.Client, target string) (bool, error) {
 	}
 
 	agentOnDockerEnvironment := false
-	if response.Header.Get(portainer.PortainerAgentHeader) != "" {
+	if response.Header.Get(portaineree.PortainerAgentHeader) != "" {
 		agentOnDockerEnvironment = true
 	}
 

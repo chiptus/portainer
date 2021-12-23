@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 const (
@@ -25,8 +25,8 @@ type Service struct {
 }
 
 // NewService initializes a new service.
-func NewService(dataStore portainer.DataStore) *Service {
-	if !dataStore.Settings().IsFeatureFlagEnabled(portainer.FeatOpenAMT) {
+func NewService(dataStore portaineree.DataStore) *Service {
+	if !dataStore.Settings().IsFeatureFlagEnabled(portaineree.FeatOpenAMT) {
 		return nil
 	}
 	return &Service{
@@ -62,7 +62,7 @@ func parseError(responseBody []byte) error {
 	return nil
 }
 
-func (service *Service) ConfigureDefault(configuration portainer.OpenAMTConfiguration) error {
+func (service *Service) ConfigureDefault(configuration portaineree.OpenAMTConfiguration) error {
 	token, err := service.executeAuthenticationRequest(configuration)
 	if err != nil {
 		return err

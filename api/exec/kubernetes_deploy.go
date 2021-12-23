@@ -9,21 +9,20 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/portainer/portainer/api/http/proxy"
-	"github.com/portainer/portainer/api/http/proxy/factory"
-	"github.com/portainer/portainer/api/http/proxy/factory/kubernetes"
-	"github.com/portainer/portainer/api/internal/authorization"
-	"github.com/portainer/portainer/api/kubernetes/cli"
-
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/proxy"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 )
 
 // KubernetesDeployer represents a service to deploy resources inside a Kubernetes environment(endpoint).
 type KubernetesDeployer struct {
 	binaryPath                  string
-	dataStore                   portainer.DataStore
-	reverseTunnelService        portainer.ReverseTunnelService
-	signatureService            portainer.DigitalSignatureService
+	dataStore                   portaineree.DataStore
+	reverseTunnelService        portaineree.ReverseTunnelService
+	signatureService            portaineree.DigitalSignatureService
 	kubernetesClientFactory     *cli.ClientFactory
 	kubernetesTokenCacheManager *kubernetes.TokenCacheManager
 	authService                 *authorization.Service
@@ -31,7 +30,7 @@ type KubernetesDeployer struct {
 }
 
 // NewKubernetesDeployer initializes a new KubernetesDeployer service.
-func NewKubernetesDeployer(authService *authorization.Service, kubernetesTokenCacheManager *kubernetes.TokenCacheManager, kubernetesClientFactory *cli.ClientFactory, datastore portainer.DataStore, reverseTunnelService portainer.ReverseTunnelService, signatureService portainer.DigitalSignatureService, proxyManager *proxy.Manager, binaryPath string) *KubernetesDeployer {
+func NewKubernetesDeployer(authService *authorization.Service, kubernetesTokenCacheManager *kubernetes.TokenCacheManager, kubernetesClientFactory *cli.ClientFactory, datastore portaineree.DataStore, reverseTunnelService portaineree.ReverseTunnelService, signatureService portaineree.DigitalSignatureService, proxyManager *proxy.Manager, binaryPath string) *KubernetesDeployer {
 	return &KubernetesDeployer{
 		binaryPath:                  binaryPath,
 		dataStore:                   datastore,
@@ -44,7 +43,7 @@ func NewKubernetesDeployer(authService *authorization.Service, kubernetesTokenCa
 	}
 }
 
-func (deployer *KubernetesDeployer) getToken(userID portainer.UserID, endpoint *portainer.Endpoint, setLocalAdminToken bool) (string, error) {
+func (deployer *KubernetesDeployer) getToken(userID portaineree.UserID, endpoint *portaineree.Endpoint, setLocalAdminToken bool) (string, error) {
 	kubeCLI, err := deployer.kubernetesClientFactory.GetKubeClient(endpoint)
 	if err != nil {
 		return "", err
@@ -62,7 +61,7 @@ func (deployer *KubernetesDeployer) getToken(userID portainer.UserID, endpoint *
 		return "", errors.Wrap(err, "failed to fetch the user")
 	}
 
-	if user.Role == portainer.AdministratorRole {
+	if user.Role == portaineree.AdministratorRole {
 		return tokenManager.GetAdminServiceAccountToken(), nil
 	}
 
@@ -79,17 +78,17 @@ func (deployer *KubernetesDeployer) getToken(userID portainer.UserID, endpoint *
 }
 
 // Deploy upserts Kubernetes resources defined in manifest(s)
-func (deployer *KubernetesDeployer) Deploy(userID portainer.UserID, endpoint *portainer.Endpoint, manifestFiles []string, namespace string) (string, error) {
+func (deployer *KubernetesDeployer) Deploy(userID portaineree.UserID, endpoint *portaineree.Endpoint, manifestFiles []string, namespace string) (string, error) {
 	return deployer.command("apply", userID, endpoint, manifestFiles, namespace)
 }
 
 // Remove deletes Kubernetes resources defined in manifest(s)
-func (deployer *KubernetesDeployer) Remove(userID portainer.UserID, endpoint *portainer.Endpoint, manifestFiles []string, namespace string) (string, error) {
+func (deployer *KubernetesDeployer) Remove(userID portaineree.UserID, endpoint *portaineree.Endpoint, manifestFiles []string, namespace string) (string, error) {
 	return deployer.command("delete", userID, endpoint, manifestFiles, namespace)
 }
 
-func (deployer *KubernetesDeployer) command(operation string, userID portainer.UserID, endpoint *portainer.Endpoint, manifestFiles []string, namespace string) (string, error) {
-	token, err := deployer.getToken(userID, endpoint, endpoint.Type == portainer.KubernetesLocalEnvironment)
+func (deployer *KubernetesDeployer) command(operation string, userID portaineree.UserID, endpoint *portaineree.Endpoint, manifestFiles []string, namespace string) (string, error) {
+	token, err := deployer.getToken(userID, endpoint, endpoint.Type == portaineree.KubernetesLocalEnvironment)
 	if err != nil {
 		return "", errors.Wrap(err, "failed generating a user token")
 	}
@@ -104,7 +103,7 @@ func (deployer *KubernetesDeployer) command(operation string, userID portainer.U
 		args = append(args, "--namespace", namespace)
 	}
 
-	if endpoint.Type == portainer.AgentOnKubernetesEnvironment || endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment {
+	if endpoint.Type == portaineree.AgentOnKubernetesEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
 		url, proxy, err := deployer.getAgentURL(endpoint)
 		if err != nil {
 			return "", errors.WithMessage(err, "failed generating endpoint URL")
@@ -159,7 +158,7 @@ func (deployer *KubernetesDeployer) ConvertCompose(data []byte) ([]byte, error) 
 	return output, nil
 }
 
-func (deployer *KubernetesDeployer) getAgentURL(endpoint *portainer.Endpoint) (string, *factory.ProxyServer, error) {
+func (deployer *KubernetesDeployer) getAgentURL(endpoint *portaineree.Endpoint) (string, *factory.ProxyServer, error) {
 	proxy, err := deployer.proxyManager.CreateAgentProxyServer(endpoint)
 	if err != nil {
 		return "", nil, err

@@ -8,19 +8,19 @@ import (
 	"time"
 
 	httperror "github.com/portainer/libhttp/error"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/apikey"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	httperrors "github.com/portainer/portainer/api/http/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/apikey"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 )
 
 type (
 	// RequestBouncer represents an entity that manages API request accesses
 	RequestBouncer struct {
-		dataStore      portainer.DataStore
-		jwtService     portainer.JWTService
+		dataStore      portaineree.DataStore
+		jwtService     portaineree.JWTService
 		apiKeyService  apikey.APIKeyService
-		licenseService portainer.LicenseService
+		licenseService portaineree.LicenseService
 	}
 
 	// RestrictedRequestContext is a data structure containing information
@@ -28,18 +28,18 @@ type (
 	RestrictedRequestContext struct {
 		IsAdmin         bool
 		IsTeamLeader    bool
-		UserID          portainer.UserID
-		UserMemberships []portainer.TeamMembership
+		UserID          portaineree.UserID
+		UserMemberships []portaineree.TeamMembership
 	}
 
 	// tokenLookup looks up a token in the request
-	tokenLookup func(*http.Request) *portainer.TokenData
+	tokenLookup func(*http.Request) *portaineree.TokenData
 )
 
 const apiKeyHeader = "X-API-KEY"
 
 // NewRequestBouncer initializes a new RequestBouncer
-func NewRequestBouncer(dataStore portainer.DataStore, licenseService portainer.LicenseService, jwtService portainer.JWTService, apiKeyService apikey.APIKeyService) *RequestBouncer {
+func NewRequestBouncer(dataStore portaineree.DataStore, licenseService portaineree.LicenseService, jwtService portaineree.JWTService, apiKeyService apikey.APIKeyService) *RequestBouncer {
 	return &RequestBouncer{
 		dataStore:      dataStore,
 		jwtService:     jwtService,
@@ -100,13 +100,13 @@ func (bouncer *RequestBouncer) AuthenticatedAccess(h http.Handler) http.Handler 
 // If the authorizationCheck flag is set, it will also validate that the user can execute the specified operation.
 // An error is returned when access to the environment(endpoint) is denied or if the user do not have the required
 // authorization to execute the operation.
-func (bouncer *RequestBouncer) AuthorizedEndpointOperation(r *http.Request, endpoint *portainer.Endpoint, authorizationCheck bool) error {
+func (bouncer *RequestBouncer) AuthorizedEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint, authorizationCheck bool) error {
 	tokenData, err := RetrieveTokenData(r)
 	if err != nil {
 		return err
 	}
 
-	if tokenData.Role == portainer.AdministratorRole {
+	if tokenData.Role == portaineree.AdministratorRole {
 		return nil
 	}
 
@@ -135,12 +135,12 @@ func (bouncer *RequestBouncer) AuthorizedEndpointOperation(r *http.Request, endp
 }
 
 // AuthorizedEdgeEndpointOperation verifies that the request was received from a valid Edge environment(endpoint)
-func (bouncer *RequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portainer.Endpoint) error {
-	if endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment && endpoint.Type != portainer.EdgeAgentOnDockerEnvironment {
+func (bouncer *RequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint) error {
+	if endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment && endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment {
 		return errors.New("Invalid environment type")
 	}
 
-	edgeIdentifier := r.Header.Get(portainer.PortainerAgentEdgeIDHeader)
+	edgeIdentifier := r.Header.Get(portaineree.PortainerAgentEdgeIDHeader)
 	if edgeIdentifier == "" {
 		return errors.New("missing Edge identifier")
 	}
@@ -152,13 +152,13 @@ func (bouncer *RequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, 
 	return nil
 }
 
-func (bouncer *RequestBouncer) checkEndpointOperationAuthorization(r *http.Request, endpoint *portainer.Endpoint) error {
+func (bouncer *RequestBouncer) checkEndpointOperationAuthorization(r *http.Request, endpoint *portaineree.Endpoint) error {
 	tokenData, err := RetrieveTokenData(r)
 	if err != nil {
 		return err
 	}
 
-	if tokenData.Role == portainer.AdministratorRole {
+	if tokenData.Role == portaineree.AdministratorRole {
 		return nil
 	}
 
@@ -167,7 +167,7 @@ func (bouncer *RequestBouncer) checkEndpointOperationAuthorization(r *http.Reque
 		return err
 	}
 
-	apiOperation := &portainer.APIOperationAuthorizationRequest{
+	apiOperation := &portaineree.APIOperationAuthorizationRequest{
 		Path:           r.URL.String(),
 		Method:         r.Method,
 		Authorizations: user.EndpointAuthorizations[endpoint.ID],
@@ -201,7 +201,7 @@ func (bouncer *RequestBouncer) mwCheckLicense(next http.Handler) http.Handler {
 			return
 		}
 
-		if tokenData.Role == portainer.AdministratorRole {
+		if tokenData.Role == portaineree.AdministratorRole {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -228,7 +228,7 @@ func (bouncer *RequestBouncer) mwCheckPortainerAuthorizations(next http.Handler)
 			return
 		}
 
-		if tokenData.Role == portainer.AdministratorRole {
+		if tokenData.Role == portaineree.AdministratorRole {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -242,7 +242,7 @@ func (bouncer *RequestBouncer) mwCheckPortainerAuthorizations(next http.Handler)
 			return
 		}
 
-		apiOperation := &portainer.APIOperationAuthorizationRequest{
+		apiOperation := &portaineree.APIOperationAuthorizationRequest{
 			Path:           r.URL.String(),
 			Method:         r.Method,
 			Authorizations: user.PortainerAuthorizations,
@@ -282,7 +282,7 @@ func (bouncer *RequestBouncer) mwUpgradeToRestrictedRequest(next http.Handler) h
 // A result of a first succeded token lookup would be used for the authentication.
 func (bouncer *RequestBouncer) mwAuthenticateFirst(tokenLookups []tokenLookup, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var token *portainer.TokenData
+		var token *portaineree.TokenData
 
 		for _, lookup := range tokenLookups {
 			token = lookup(r)
@@ -309,7 +309,7 @@ func (bouncer *RequestBouncer) mwAuthenticateFirst(tokenLookups []tokenLookup, n
 }
 
 // JWTAuthLookup looks up a valid bearer in the request.
-func (bouncer *RequestBouncer) JWTAuthLookup(r *http.Request) *portainer.TokenData {
+func (bouncer *RequestBouncer) JWTAuthLookup(r *http.Request) *portaineree.TokenData {
 	// get token from the Authorization header or query parameter
 	token, err := extractBearerToken(r)
 	if err != nil {
@@ -331,7 +331,7 @@ func (bouncer *RequestBouncer) JWTAuthLookup(r *http.Request) *portainer.TokenDa
 // If the key is valid/verified, the last updated time of the key is updated.
 // Successful verification of the key will return a TokenData object - since the downstream handlers
 // utilise the token injected in the request context.
-func (bouncer *RequestBouncer) apiKeyLookup(r *http.Request) *portainer.TokenData {
+func (bouncer *RequestBouncer) apiKeyLookup(r *http.Request) *portaineree.TokenData {
 	rawAPIKey, ok := extractAPIKey(r)
 	if !ok {
 		return nil
@@ -344,7 +344,7 @@ func (bouncer *RequestBouncer) apiKeyLookup(r *http.Request) *portainer.TokenDat
 		return nil
 	}
 
-	tokenData := &portainer.TokenData{
+	tokenData := &portaineree.TokenData{
 		ID:       user.ID,
 		Username: user.Username,
 		Role:     user.Role,
@@ -412,8 +412,8 @@ func mwSecureHeaders(next http.Handler) http.Handler {
 	})
 }
 
-func (bouncer *RequestBouncer) newRestrictedContextRequest(userID portainer.UserID, userRole portainer.UserRole) (*RestrictedRequestContext, error) {
-	if userRole == portainer.AdministratorRole {
+func (bouncer *RequestBouncer) newRestrictedContextRequest(userID portaineree.UserID, userRole portaineree.UserRole) (*RestrictedRequestContext, error) {
+	if userRole == portaineree.AdministratorRole {
 		return &RestrictedRequestContext{
 			IsAdmin: true,
 			UserID:  userID,
@@ -427,7 +427,7 @@ func (bouncer *RequestBouncer) newRestrictedContextRequest(userID portainer.User
 
 	isTeamLeader := false
 	for _, membership := range memberships {
-		if membership.Role == portainer.TeamLeader {
+		if membership.Role == portaineree.TeamLeader {
 			isTeamLeader = true
 		}
 	}

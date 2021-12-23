@@ -8,8 +8,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // @id endpointExtensionRemove
@@ -25,7 +25,7 @@ func (handler *Handler) endpointExtensionRemove(w http.ResponseWriter, r *http.R
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == errors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -38,7 +38,7 @@ func (handler *Handler) endpointExtensionRemove(w http.ResponseWriter, r *http.R
 	}
 
 	for idx, ext := range endpoint.Extensions {
-		if ext.Type == portainer.EndpointExtensionType(extensionType) {
+		if ext.Type == portaineree.EndpointExtensionType(extensionType) {
 			endpoint.Extensions = append(endpoint.Extensions[:idx], endpoint.Extensions[idx+1:]...)
 		}
 	}

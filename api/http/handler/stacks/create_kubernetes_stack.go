@@ -13,14 +13,14 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/client"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	"github.com/portainer/portainer-ee/api/internal/stackutils"
+	k "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
-	"github.com/portainer/portainer/api/http/client"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/endpointutils"
-	"github.com/portainer/portainer/api/internal/stackutils"
-	k "github.com/portainer/portainer/api/kubernetes"
 )
 
 type kubernetesStringDeploymentPayload struct {
@@ -41,7 +41,7 @@ type kubernetesGitDeploymentPayload struct {
 	RepositoryPassword       string
 	ManifestFile             string
 	AdditionalFiles          []string
-	AutoUpdate               *portainer.StackAutoUpdate
+	AutoUpdate               *portaineree.StackAutoUpdate
 }
 
 type kubernetesManifestURLDeploymentPayload struct {
@@ -97,7 +97,7 @@ type createKubernetesStackResponse struct {
 	Output string `json:"Output"`
 }
 
-func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWriter, r *http.Request, endpoint *portainer.Endpoint) *httperror.HandlerError {
+func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 	if !endpointutils.IsKubernetesEndpoint(endpoint) {
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Environment type does not match", Err: errors.New("Environment type does not match")}
 	}
@@ -121,14 +121,14 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 	}
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
-	stack := &portainer.Stack{
-		ID:              portainer.StackID(stackID),
-		Type:            portainer.KubernetesStack,
+	stack := &portaineree.Stack{
+		ID:              portaineree.StackID(stackID),
+		Type:            portaineree.KubernetesStack,
 		EndpointID:      endpoint.ID,
 		EntryPoint:      filesystem.ManifestFileDefaultName,
 		Name:            payload.StackName,
 		Namespace:       payload.Namespace,
-		Status:          portainer.StackStatusActive,
+		Status:          portaineree.StackStatusActive,
 		CreationDate:    time.Now().Unix(),
 		CreatedBy:       tokenData.Username,
 		IsComposeFormat: payload.ComposeFormat,
@@ -173,7 +173,7 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 	return response.JSON(w, resp)
 }
 
-func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWriter, r *http.Request, endpoint *portainer.Endpoint) *httperror.HandlerError {
+func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 	if !endpointutils.IsKubernetesEndpoint(endpoint) {
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Environment type does not match", Err: errors.New("Environment type does not match")}
 	}
@@ -208,9 +208,9 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 	}
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
-	stack := &portainer.Stack{
-		ID:         portainer.StackID(stackID),
-		Type:       portainer.KubernetesStack,
+	stack := &portaineree.Stack{
+		ID:         portaineree.StackID(stackID),
+		Type:       portaineree.KubernetesStack,
 		EndpointID: endpoint.ID,
 		EntryPoint: payload.ManifestFile,
 		GitConfig: &gittypes.RepoConfig{
@@ -220,7 +220,7 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 		},
 		Namespace:       payload.Namespace,
 		Name:            payload.StackName,
-		Status:          portainer.StackStatusActive,
+		Status:          portaineree.StackStatusActive,
 		CreationDate:    time.Now().Unix(),
 		CreatedBy:       tokenData.Username,
 		IsComposeFormat: payload.ComposeFormat,
@@ -291,7 +291,7 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 	return response.JSON(w, resp)
 }
 
-func (handler *Handler) createKubernetesStackFromManifestURL(w http.ResponseWriter, r *http.Request, endpoint *portainer.Endpoint) *httperror.HandlerError {
+func (handler *Handler) createKubernetesStackFromManifestURL(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 	var payload kubernetesManifestURLDeploymentPayload
 	if err := request.DecodeAndValidateJSONPayload(r, &payload); err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
@@ -311,14 +311,14 @@ func (handler *Handler) createKubernetesStackFromManifestURL(w http.ResponseWrit
 	}
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
-	stack := &portainer.Stack{
-		ID:              portainer.StackID(stackID),
-		Type:            portainer.KubernetesStack,
+	stack := &portaineree.Stack{
+		ID:              portaineree.StackID(stackID),
+		Type:            portaineree.KubernetesStack,
 		EndpointID:      endpoint.ID,
 		EntryPoint:      filesystem.ManifestFileDefaultName,
 		Namespace:       payload.Namespace,
 		Name:            payload.StackName,
-		Status:          portainer.StackStatusActive,
+		Status:          portaineree.StackStatusActive,
 		CreationDate:    time.Now().Unix(),
 		CreatedBy:       tokenData.Username,
 		IsComposeFormat: payload.ComposeFormat,
@@ -363,7 +363,7 @@ func (handler *Handler) createKubernetesStackFromManifestURL(w http.ResponseWrit
 	return response.JSON(w, resp)
 }
 
-func (handler *Handler) deployKubernetesStack(userID portainer.UserID, endpoint *portainer.Endpoint, stack *portainer.Stack, appLabels k.KubeAppLabels) (string, error) {
+func (handler *Handler) deployKubernetesStack(userID portaineree.UserID, endpoint *portaineree.Endpoint, stack *portaineree.Stack, appLabels k.KubeAppLabels) (string, error) {
 	handler.stackCreationMutex.Lock()
 	defer handler.stackCreationMutex.Unlock()
 
@@ -375,14 +375,14 @@ func (handler *Handler) deployKubernetesStack(userID portainer.UserID, endpoint 
 	return handler.KubernetesDeployer.Deploy(userID, endpoint, manifestFilePaths, stack.Namespace)
 }
 
-func (handler *Handler) checkEndpointPermission(r *http.Request, namespace string, endpoint *portainer.Endpoint) (*portainer.TokenData, *httperror.HandlerError) {
+func (handler *Handler) checkEndpointPermission(r *http.Request, namespace string, endpoint *portaineree.Endpoint) (*portaineree.TokenData, *httperror.HandlerError) {
 	permissionDeniedErr := errors.New("Permission denied to access environment")
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
 		return nil, &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: permissionDeniedErr.Error(), Err: err}
 	}
 
-	if tokenData.Role == portainer.AdministratorRole {
+	if tokenData.Role == portaineree.AdministratorRole {
 		return tokenData, nil
 	}
 
@@ -391,12 +391,12 @@ func (handler *Handler) checkEndpointPermission(r *http.Request, namespace strin
 	if err != nil {
 		return nil, &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: permissionDeniedErr.Error(), Err: err}
 	}
-	if !endpointRole.Authorizations[portainer.OperationK8sApplicationsAdvancedDeploymentRW] {
+	if !endpointRole.Authorizations[portaineree.OperationK8sApplicationsAdvancedDeploymentRW] {
 		return nil, &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: permissionDeniedErr.Error(), Err: permissionDeniedErr}
 	}
 
 	// will skip if user can access all namespaces
-	if !endpointRole.Authorizations[portainer.OperationK8sAccessAllNamespaces] {
+	if !endpointRole.Authorizations[portaineree.OperationK8sAccessAllNamespaces] {
 		cli, err := handler.KubernetesClientFactory.GetKubeClient(endpoint)
 		if err != nil {
 			return nil, &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "Unable to create Kubernetes client", Err: err}
@@ -406,7 +406,7 @@ func (handler *Handler) checkEndpointPermission(r *http.Request, namespace strin
 		if err != nil {
 			return nil, &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: permissionDeniedErr.Error(), Err: err}
 		}
-		if auth, ok := namespaceAuthorizations[namespace]; !ok || !auth[portainer.OperationK8sAccessNamespaceWrite] {
+		if auth, ok := namespaceAuthorizations[namespace]; !ok || !auth[portaineree.OperationK8sAccessNamespaceWrite] {
 			return nil, &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: permissionDeniedErr.Error(), Err: permissionDeniedErr}
 		}
 	}

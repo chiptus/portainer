@@ -10,10 +10,10 @@ import (
 	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
-	"github.com/portainer/portainer/api/http/security"
 )
 
 type swarmStackFromFileContentPayload struct {
@@ -24,7 +24,7 @@ type swarmStackFromFileContentPayload struct {
 	// Content of the Stack file
 	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx" validate:"required"`
 	// A list of environment(endpoint) variables used during stack deployment
-	Env []portainer.Pair
+	Env []portaineree.Pair
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
 }
@@ -42,7 +42,7 @@ func (payload *swarmStackFromFileContentPayload) Validate(r *http.Request) error
 	return nil
 }
 
-func (handler *Handler) createSwarmStackFromFileContent(w http.ResponseWriter, r *http.Request, endpoint *portainer.Endpoint, userID portainer.UserID) *httperror.HandlerError {
+func (handler *Handler) createSwarmStackFromFileContent(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
 	var payload swarmStackFromFileContentPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
@@ -61,15 +61,15 @@ func (handler *Handler) createSwarmStackFromFileContent(w http.ResponseWriter, r
 	}
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
-	stack := &portainer.Stack{
-		ID:              portainer.StackID(stackID),
+	stack := &portaineree.Stack{
+		ID:              portaineree.StackID(stackID),
 		Name:            payload.Name,
-		Type:            portainer.DockerSwarmStack,
+		Type:            portaineree.DockerSwarmStack,
 		SwarmID:         payload.SwarmID,
 		EndpointID:      endpoint.ID,
 		EntryPoint:      filesystem.ComposeFileDefaultName,
 		Env:             payload.Env,
-		Status:          portainer.StackStatusActive,
+		Status:          portaineree.StackStatusActive,
 		CreationDate:    time.Now().Unix(),
 		FromAppTemplate: payload.FromAppTemplate,
 	}
@@ -111,7 +111,7 @@ type swarmStackFromGitRepositoryPayload struct {
 	// Swarm cluster identifier
 	SwarmID string `example:"jpofkc0i9uo9wtx1zesuk649w" validate:"required"`
 	// A list of environment(endpoint) variables used during stack deployment
-	Env []portainer.Pair
+	Env []portaineree.Pair
 
 	// URL of a Git repository hosting the Stack file
 	RepositoryURL string `example:"https://github.com/openfaas/faas" validate:"required"`
@@ -128,7 +128,7 @@ type swarmStackFromGitRepositoryPayload struct {
 	// Applicable when deploying with multiple stack files
 	AdditionalFiles []string `example:"[nz.compose.yml, uat.compose.yml]"`
 	// Optional auto update configuration
-	AutoUpdate *portainer.StackAutoUpdate
+	AutoUpdate *portaineree.StackAutoUpdate
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
 }
@@ -155,7 +155,7 @@ func (payload *swarmStackFromGitRepositoryPayload) Validate(r *http.Request) err
 	return nil
 }
 
-func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter, r *http.Request, endpoint *portainer.Endpoint, userID portainer.UserID) *httperror.HandlerError {
+func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
 	var payload swarmStackFromGitRepositoryPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
@@ -184,10 +184,10 @@ func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter,
 	}
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
-	stack := &portainer.Stack{
-		ID:              portainer.StackID(stackID),
+	stack := &portaineree.Stack{
+		ID:              portaineree.StackID(stackID),
 		Name:            payload.Name,
-		Type:            portainer.DockerSwarmStack,
+		Type:            portaineree.DockerSwarmStack,
 		SwarmID:         payload.SwarmID,
 		EndpointID:      endpoint.ID,
 		EntryPoint:      payload.ComposeFile,
@@ -200,7 +200,7 @@ func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter,
 		},
 		FromAppTemplate: payload.FromAppTemplate,
 		Env:             payload.Env,
-		Status:          portainer.StackStatusActive,
+		Status:          portaineree.StackStatusActive,
 		CreationDate:    time.Now().Unix(),
 	}
 
@@ -262,7 +262,7 @@ type swarmStackFromFileUploadPayload struct {
 	Name             string
 	SwarmID          string
 	StackFileContent []byte
-	Env              []portainer.Pair
+	Env              []portaineree.Pair
 }
 
 func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error {
@@ -284,7 +284,7 @@ func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error 
 	}
 	payload.StackFileContent = composeFileContent
 
-	var env []portainer.Pair
+	var env []portaineree.Pair
 	err = request.RetrieveMultiPartFormJSONValue(r, "Env", &env, true)
 	if err != nil {
 		return errors.New("Invalid Env parameter")
@@ -293,7 +293,7 @@ func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error 
 	return nil
 }
 
-func (handler *Handler) createSwarmStackFromFileUpload(w http.ResponseWriter, r *http.Request, endpoint *portainer.Endpoint, userID portainer.UserID) *httperror.HandlerError {
+func (handler *Handler) createSwarmStackFromFileUpload(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
 	payload := &swarmStackFromFileUploadPayload{}
 	err := payload.Validate(r)
 	if err != nil {
@@ -312,15 +312,15 @@ func (handler *Handler) createSwarmStackFromFileUpload(w http.ResponseWriter, r 
 	}
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
-	stack := &portainer.Stack{
-		ID:           portainer.StackID(stackID),
+	stack := &portaineree.Stack{
+		ID:           portaineree.StackID(stackID),
 		Name:         payload.Name,
-		Type:         portainer.DockerSwarmStack,
+		Type:         portaineree.DockerSwarmStack,
 		SwarmID:      payload.SwarmID,
 		EndpointID:   endpoint.ID,
 		EntryPoint:   filesystem.ComposeFileDefaultName,
 		Env:          payload.Env,
-		Status:       portainer.StackStatusActive,
+		Status:       portaineree.StackStatusActive,
 		CreationDate: time.Now().Unix(),
 	}
 
@@ -356,15 +356,15 @@ func (handler *Handler) createSwarmStackFromFileUpload(w http.ResponseWriter, r 
 }
 
 type swarmStackDeploymentConfig struct {
-	stack      *portainer.Stack
-	endpoint   *portainer.Endpoint
-	registries []portainer.Registry
+	stack      *portaineree.Stack
+	endpoint   *portaineree.Endpoint
+	registries []portaineree.Registry
 	prune      bool
 	isAdmin    bool
-	user       *portainer.User
+	user       *portaineree.User
 }
 
-func (handler *Handler) createSwarmDeployConfig(r *http.Request, stack *portainer.Stack, endpoint *portainer.Endpoint, prune bool) (*swarmStackDeploymentConfig, *httperror.HandlerError) {
+func (handler *Handler) createSwarmDeployConfig(r *http.Request, stack *portaineree.Stack, endpoint *portaineree.Endpoint, prune bool) (*swarmStackDeploymentConfig, *httperror.HandlerError) {
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
 		return nil, &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}

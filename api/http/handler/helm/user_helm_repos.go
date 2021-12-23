@@ -11,13 +11,13 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 type helmUserRepositoryResponse struct {
-	GlobalRepository string                         `json:"GlobalRepository"`
-	UserRepositories []portainer.HelmUserRepository `json:"UserRepositories"`
+	GlobalRepository string                           `json:"GlobalRepository"`
+	UserRepositories []portaineree.HelmUserRepository `json:"UserRepositories"`
 }
 
 type addHelmRepoUrlPayload struct {
@@ -39,7 +39,7 @@ func (p *addHelmRepoUrlPayload) Validate(_ *http.Request) error {
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param payload body addHelmRepoUrlPayload true "Helm Repository"
-// @success 200 {object} portainer.HelmUserRepository "Success"
+// @success 200 {object} portaineree.HelmUserRepository "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 500 "Server error"
@@ -49,9 +49,9 @@ func (handler *Handler) userCreateHelmRepo(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}
 	}
-	userID := portainer.UserID(tokenData.ID)
+	userID := portaineree.UserID(tokenData.ID)
 
-	httperr := handler.authoriseHelmOperation(r, portainer.OperationHelmRepoCreate)
+	httperr := handler.authoriseHelmOperation(r, portaineree.OperationHelmRepoCreate)
 	if httperr != nil {
 		return httperr
 	}
@@ -81,7 +81,7 @@ func (handler *Handler) userCreateHelmRepo(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	record := portainer.HelmUserRepository{
+	record := portaineree.HelmUserRepository{
 		UserID: userID,
 		URL:    p.URL,
 	}
@@ -113,9 +113,9 @@ func (handler *Handler) userGetHelmRepos(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}
 	}
-	userID := portainer.UserID(tokenData.ID)
+	userID := portaineree.UserID(tokenData.ID)
 
-	httperr := handler.authoriseHelmOperation(r, portainer.OperationHelmRepoList)
+	httperr := handler.authoriseHelmOperation(r, portaineree.OperationHelmRepoList)
 	if httperr != nil {
 		return httperr
 	}

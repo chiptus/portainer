@@ -2,9 +2,10 @@ package upload
 
 import (
 	httperror "github.com/portainer/libhttp/error"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
 
 	"net/http"
 
@@ -15,11 +16,11 @@ import (
 type Handler struct {
 	*mux.Router
 	FileService         portainer.FileService
-	userActivityService portainer.UserActivityService
+	userActivityService portaineree.UserActivityService
 }
 
 // NewHandler creates a handler to manage upload operations.
-func NewHandler(bouncer *security.RequestBouncer, userActivityService portainer.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		userActivityService: userActivityService,

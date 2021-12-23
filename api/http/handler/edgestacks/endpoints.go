@@ -3,19 +3,19 @@ package edgestacks
 import (
 	"fmt"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/internal/endpointutils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 )
 
-func hasKubeEndpoint(endpointService portainer.EndpointService, endpointIDs []portainer.EndpointID) (bool, error) {
+func hasKubeEndpoint(endpointService portaineree.EndpointService, endpointIDs []portaineree.EndpointID) (bool, error) {
 	return hasEndpointPredicate(endpointService, endpointIDs, endpointutils.IsKubernetesEndpoint)
 }
 
-func hasDockerEndpoint(endpointService portainer.EndpointService, endpointIDs []portainer.EndpointID) (bool, error) {
+func hasDockerEndpoint(endpointService portaineree.EndpointService, endpointIDs []portaineree.EndpointID) (bool, error) {
 	return hasEndpointPredicate(endpointService, endpointIDs, endpointutils.IsDockerEndpoint)
 }
 
-func hasEndpointPredicate(endpointService portainer.EndpointService, endpointIDs []portainer.EndpointID, predicate func(*portainer.Endpoint) bool) (bool, error) {
+func hasEndpointPredicate(endpointService portaineree.EndpointService, endpointIDs []portaineree.EndpointID, predicate func(*portaineree.Endpoint) bool) (bool, error) {
 	for _, endpointID := range endpointIDs {
 		endpoint, err := endpointService.Endpoint(endpointID)
 		if err != nil {
@@ -31,12 +31,12 @@ func hasEndpointPredicate(endpointService portainer.EndpointService, endpointIDs
 }
 
 type endpointRelationsConfig struct {
-	endpoints      []portainer.Endpoint
-	endpointGroups []portainer.EndpointGroup
-	edgeGroups     []portainer.EdgeGroup
+	endpoints      []portaineree.Endpoint
+	endpointGroups []portaineree.EndpointGroup
+	edgeGroups     []portaineree.EdgeGroup
 }
 
-func fetchEndpointRelationsConfig(dataStore portainer.DataStore) (*endpointRelationsConfig, error) {
+func fetchEndpointRelationsConfig(dataStore portaineree.DataStore) (*endpointRelationsConfig, error) {
 	endpoints, err := dataStore.Endpoint().Endpoints()
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve environments from database: %w", err)

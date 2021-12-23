@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type (
@@ -18,18 +18,18 @@ const (
 )
 
 // StoreTokenData stores a TokenData object inside the request context and returns the enhanced context.
-func StoreTokenData(request *http.Request, tokenData *portainer.TokenData) context.Context {
+func StoreTokenData(request *http.Request, tokenData *portaineree.TokenData) context.Context {
 	return context.WithValue(request.Context(), contextAuthenticationKey, tokenData)
 }
 
 // RetrieveTokenData returns the TokenData object stored in the request context.
-func RetrieveTokenData(request *http.Request) (*portainer.TokenData, error) {
+func RetrieveTokenData(request *http.Request) (*portaineree.TokenData, error) {
 	contextData := request.Context().Value(contextAuthenticationKey)
 	if contextData == nil {
 		return nil, errors.New("Unable to find JWT data in request context")
 	}
 
-	tokenData := contextData.(*portainer.TokenData)
+	tokenData := contextData.(*portaineree.TokenData)
 	return tokenData, nil
 }
 

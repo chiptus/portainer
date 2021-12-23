@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"net/url"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/proxy/factory/gitlab"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/gitlab"
 )
 
-func newGitlabProxy(uri string, userActivityService portainer.UserActivityService) (http.Handler, error) {
+func newGitlabProxy(uri string, userActivityService portaineree.UserActivityService) (http.Handler, error) {
 	url, err := url.Parse(uri)
 	if err != nil {
 		return nil, err

@@ -6,20 +6,20 @@ import (
 	"github.com/gorilla/mux"
 
 	httperror "github.com/portainer/libhttp/error"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // Handler is the HTTP handler used to handle OpenAMT operations.
 type Handler struct {
 	*mux.Router
-	OpenAMTService portainer.OpenAMTService
-	DataStore      portainer.DataStore
+	OpenAMTService portaineree.OpenAMTService
+	DataStore      portaineree.DataStore
 }
 
 // NewHandler returns a new Handler
-func NewHandler(bouncer *security.RequestBouncer, dataStore portainer.DataStore) (*Handler, error) {
-	if !dataStore.Settings().IsFeatureFlagEnabled(portainer.FeatOpenAMT) {
+func NewHandler(bouncer *security.RequestBouncer, dataStore portaineree.DataStore) (*Handler, error) {
+	if !dataStore.Settings().IsFeatureFlagEnabled(portaineree.FeatOpenAMT) {
 		return nil, nil
 	}
 

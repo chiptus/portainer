@@ -6,11 +6,11 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/stackutils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/stackutils"
 )
 
 // @id StackInspect
@@ -22,7 +22,7 @@ import (
 // @security jwt
 // @produce json
 // @param id path int true "Stack identifier"
-// @success 200 {object} portainer.Stack "Success"
+// @success 200 {object} portaineree.Stack "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 404 "Stack not found"
@@ -34,7 +34,7 @@ func (handler *Handler) stackInspect(w http.ResponseWriter, r *http.Request) *ht
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid stack identifier route variable", err}
 	}
 
-	stack, err := handler.DataStore.Stack().Stack(portainer.StackID(stackID))
+	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(stackID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a stack with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -61,8 +61,8 @@ func (handler *Handler) stackInspect(w http.ResponseWriter, r *http.Request) *ht
 			return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access environment", err}
 		}
 
-		if stack.Type == portainer.DockerSwarmStack || stack.Type == portainer.DockerComposeStack {
-			resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portainer.StackResourceControl)
+		if stack.Type == portaineree.DockerSwarmStack || stack.Type == portaineree.DockerComposeStack {
+			resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portaineree.StackResourceControl)
 			if err != nil {
 				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve a resource control associated to the stack", err}
 			}

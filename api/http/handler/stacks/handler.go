@@ -11,15 +11,16 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
+	portaineree "github.com/portainer/portainer-ee/api"
+	dberrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/docker"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	"github.com/portainer/portainer-ee/api/scheduler"
+	"github.com/portainer/portainer-ee/api/stacks"
 	portainer "github.com/portainer/portainer/api"
-	dberrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/docker"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
-	"github.com/portainer/portainer/api/internal/authorization"
-	"github.com/portainer/portainer/api/kubernetes/cli"
-	"github.com/portainer/portainer/api/scheduler"
-	"github.com/portainer/portainer/api/stacks"
 )
 
 const defaultGitReferenceName = "refs/heads/master"
@@ -35,14 +36,14 @@ type Handler struct {
 	stackCreationMutex      *sync.Mutex
 	stackDeletionMutex      *sync.Mutex
 	requestBouncer          *security.RequestBouncer
-	userActivityService     portainer.UserActivityService
-	DataStore               portainer.DataStore
+	userActivityService     portaineree.UserActivityService
+	DataStore               portaineree.DataStore
 	DockerClientFactory     *docker.ClientFactory
 	FileService             portainer.FileService
-	GitService              portainer.GitService
-	SwarmStackManager       portainer.SwarmStackManager
-	ComposeStackManager     portainer.ComposeStackManager
-	KubernetesDeployer      portainer.KubernetesDeployer
+	GitService              portaineree.GitService
+	SwarmStackManager       portaineree.SwarmStackManager
+	ComposeStackManager     portaineree.ComposeStackManager
+	KubernetesDeployer      portaineree.KubernetesDeployer
 	KubernetesClientFactory *cli.ClientFactory
 	AuthorizationService    *authorization.Service
 	Scheduler               *scheduler.Scheduler
@@ -56,7 +57,7 @@ func stackExistsError(name string) *httperror.HandlerError {
 }
 
 // NewHandler creates a handler to manage stack operations.
-func NewHandler(bouncer *security.RequestBouncer, dataStore portainer.DataStore, userActivityService portainer.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore portaineree.DataStore, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		DataStore:           dataStore,
@@ -94,13 +95,13 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore portainer.DataStore,
 	return h
 }
 
-func (handler *Handler) userCanAccessStack(securityContext *security.RestrictedRequestContext, endpointID portainer.EndpointID, resourceControl *portainer.ResourceControl) (bool, error) {
+func (handler *Handler) userCanAccessStack(securityContext *security.RestrictedRequestContext, endpointID portaineree.EndpointID, resourceControl *portaineree.ResourceControl) (bool, error) {
 	user, err := handler.DataStore.User().User(securityContext.UserID)
 	if err != nil {
 		return false, err
 	}
 
-	userTeamIDs := make([]portainer.TeamID, 0)
+	userTeamIDs := make([]portaineree.TeamID, 0)
 	for _, membership := range securityContext.UserMemberships {
 		userTeamIDs = append(userTeamIDs, membership.TeamID)
 	}
@@ -112,26 +113,26 @@ func (handler *Handler) userCanAccessStack(securityContext *security.RestrictedR
 	return handler.userIsAdminOrEndpointAdmin(user, endpointID)
 }
 
-func (handler *Handler) userIsAdmin(userID portainer.UserID) (bool, error) {
+func (handler *Handler) userIsAdmin(userID portaineree.UserID) (bool, error) {
 	user, err := handler.DataStore.User().User(userID)
 	if err != nil {
 		return false, err
 	}
 
-	isAdmin := user.Role == portainer.AdministratorRole
+	isAdmin := user.Role == portaineree.AdministratorRole
 
 	return isAdmin, nil
 }
 
-func (handler *Handler) userIsAdminOrEndpointAdmin(user *portainer.User, endpointID portainer.EndpointID) (bool, error) {
-	isAdmin := user.Role == portainer.AdministratorRole
+func (handler *Handler) userIsAdminOrEndpointAdmin(user *portaineree.User, endpointID portaineree.EndpointID) (bool, error) {
+	isAdmin := user.Role == portaineree.AdministratorRole
 
-	_, endpointResourceAccess := user.EndpointAuthorizations[portainer.EndpointID(endpointID)][portainer.EndpointResourcesAccess]
+	_, endpointResourceAccess := user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.EndpointResourcesAccess]
 
 	return isAdmin || endpointResourceAccess, nil
 }
 
-func (handler *Handler) userCanCreateStack(securityContext *security.RestrictedRequestContext, endpointID portainer.EndpointID) (bool, error) {
+func (handler *Handler) userCanCreateStack(securityContext *security.RestrictedRequestContext, endpointID portaineree.EndpointID) (bool, error) {
 	user, err := handler.DataStore.User().User(securityContext.UserID)
 	if err != nil {
 		return false, err
@@ -140,7 +141,7 @@ func (handler *Handler) userCanCreateStack(securityContext *security.RestrictedR
 	return handler.userIsAdminOrEndpointAdmin(user, endpointID)
 }
 
-func (handler *Handler) checkUniqueStackName(endpoint *portainer.Endpoint, name string, stackID portainer.StackID) (bool, error) {
+func (handler *Handler) checkUniqueStackName(endpoint *portaineree.Endpoint, name string, stackID portaineree.StackID) (bool, error) {
 	stacks, err := handler.DataStore.Stack().Stacks()
 	if err != nil {
 		return false, err
@@ -155,7 +156,7 @@ func (handler *Handler) checkUniqueStackName(endpoint *portainer.Endpoint, name 
 	return true, nil
 }
 
-func (handler *Handler) checkUniqueStackNameInDocker(endpoint *portainer.Endpoint, name string, stackID portainer.StackID, swarmMode bool) (bool, error) {
+func (handler *Handler) checkUniqueStackNameInDocker(endpoint *portaineree.Endpoint, name string, stackID portaineree.StackID, swarmMode bool) (bool, error) {
 	isUniqueStackName, err := handler.checkUniqueStackName(endpoint, name, stackID)
 	if err != nil {
 		return false, err

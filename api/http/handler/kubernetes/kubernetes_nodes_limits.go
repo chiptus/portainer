@@ -6,8 +6,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // @id getKubernetesNodesLimits
@@ -20,7 +20,7 @@ import (
 // @accept json
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
-// @success 200 {object} portainer.K8sNodesLimits "Success"
+// @success 200 {object} portaineree.K8sNodesLimits "Success"
 // @failure 400 "Invalid request"
 // @failure 401 "Unauthorized"
 // @failure 403 "Permission denied"
@@ -33,7 +33,7 @@ func (handler *Handler) getKubernetesNodesLimits(w http.ResponseWriter, r *http.
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {

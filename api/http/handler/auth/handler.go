@@ -7,26 +7,26 @@ import (
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/proxy"
-	"github.com/portainer/portainer/api/http/proxy/factory/kubernetes"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/authorization"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/proxy"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 // Handler is the HTTP handler used to handle authentication operations.
 type Handler struct {
 	*mux.Router
-	DataStore                   portainer.DataStore
-	CryptoService               portainer.CryptoService
-	JWTService                  portainer.JWTService
-	LDAPService                 portainer.LDAPService
-	LicenseService              portainer.LicenseService
-	OAuthService                portainer.OAuthService
+	DataStore                   portaineree.DataStore
+	CryptoService               portaineree.CryptoService
+	JWTService                  portaineree.JWTService
+	LDAPService                 portaineree.LDAPService
+	LicenseService              portaineree.LicenseService
+	OAuthService                portaineree.OAuthService
 	ProxyManager                *proxy.Manager
 	KubernetesTokenCacheManager *kubernetes.TokenCacheManager
 	AuthorizationService        *authorization.Service
-	UserActivityService         portainer.UserActivityService
+	UserActivityService         portaineree.UserActivityService
 }
 
 // NewHandler creates a handler to manage authentication operations.
@@ -36,11 +36,11 @@ func NewHandler(bouncer *security.RequestBouncer, rateLimiter *security.RateLimi
 	}
 
 	h.Handle("/auth/oauth/validate",
-		rateLimiter.LimitAccess(bouncer.PublicAccess(httperror.LoggerHandler(h.authActivityMiddleware(h.validateOAuth, portainer.AuthenticationActivitySuccess))))).Methods(http.MethodPost)
+		rateLimiter.LimitAccess(bouncer.PublicAccess(httperror.LoggerHandler(h.authActivityMiddleware(h.validateOAuth, portaineree.AuthenticationActivitySuccess))))).Methods(http.MethodPost)
 	h.Handle("/auth",
-		rateLimiter.LimitAccess(bouncer.PublicAccess(httperror.LoggerHandler(h.authActivityMiddleware(h.authenticate, portainer.AuthenticationActivitySuccess))))).Methods(http.MethodPost)
+		rateLimiter.LimitAccess(bouncer.PublicAccess(httperror.LoggerHandler(h.authActivityMiddleware(h.authenticate, portaineree.AuthenticationActivitySuccess))))).Methods(http.MethodPost)
 	h.Handle("/auth/logout",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.authActivityMiddleware(h.logout, portainer.AuthenticationActivityLogOut)))).Methods(http.MethodPost)
+		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.authActivityMiddleware(h.logout, portaineree.AuthenticationActivityLogOut)))).Methods(http.MethodPost)
 
 	return h
 }
@@ -49,21 +49,21 @@ type authMiddlewareHandler func(http.ResponseWriter, *http.Request) (*authMiddle
 
 type authMiddlewareResponse struct {
 	Username string
-	Method   portainer.AuthenticationMethod
+	Method   portaineree.AuthenticationMethod
 }
 
-func (handler *Handler) authActivityMiddleware(prev authMiddlewareHandler, defaultActivityType portainer.AuthenticationActivityType) httperror.LoggerHandler {
+func (handler *Handler) authActivityMiddleware(prev authMiddlewareHandler, defaultActivityType portaineree.AuthenticationActivityType) httperror.LoggerHandler {
 	return func(rw http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 		resp, respErr := prev(rw, r)
 
 		method := resp.Method
 		if int(method) == 0 {
-			method = portainer.AuthenticationInternal
+			method = portaineree.AuthenticationInternal
 		}
 
 		activityType := defaultActivityType
-		if respErr != nil && activityType == portainer.AuthenticationActivitySuccess {
-			activityType = portainer.AuthenticationActivityFailure
+		if respErr != nil && activityType == portaineree.AuthenticationActivitySuccess {
+			activityType = portaineree.AuthenticationActivityFailure
 		}
 
 		origin := getOrigin(r.RemoteAddr)

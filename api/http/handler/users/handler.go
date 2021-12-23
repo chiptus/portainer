@@ -7,12 +7,12 @@ import (
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/apikey"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
-	"github.com/portainer/portainer/api/internal/authorization"
-	"github.com/portainer/portainer/api/kubernetes/cli"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/apikey"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 )
 
 var (
@@ -23,7 +23,7 @@ var (
 	errCryptoHashFailure          = errors.New("Unable to hash data")
 )
 
-func hideFields(user *portainer.User) {
+func hideFields(user *portaineree.User) {
 	user.Password = ""
 }
 
@@ -33,14 +33,14 @@ type Handler struct {
 	bouncer              *security.RequestBouncer
 	apiKeyService        apikey.APIKeyService
 	AuthorizationService *authorization.Service
-	CryptoService        portainer.CryptoService
-	DataStore            portainer.DataStore
+	CryptoService        portaineree.CryptoService
+	DataStore            portaineree.DataStore
 	K8sClientFactory     *cli.ClientFactory
-	userActivityService  portainer.UserActivityService
+	userActivityService  portaineree.UserActivityService
 }
 
 // NewHandler creates a handler to manage user operations.
-func NewHandler(bouncer *security.RequestBouncer, rateLimiter *security.RateLimiter, apiKeyService apikey.APIKeyService, userActivityService portainer.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, rateLimiter *security.RateLimiter, apiKeyService apikey.APIKeyService, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		bouncer:             bouncer,

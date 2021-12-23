@@ -6,10 +6,10 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id UserInspect
@@ -22,7 +22,7 @@ import (
 // @security jwt
 // @produce json
 // @param id path int true "User identifier"
-// @success 200 {object} portainer.User "Success"
+// @success 200 {object} portaineree.User "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 404 "User not found"
@@ -39,11 +39,11 @@ func (handler *Handler) userInspect(w http.ResponseWriter, r *http.Request) *htt
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
 	}
 
-	if !securityContext.IsAdmin && securityContext.UserID != portainer.UserID(userID) {
+	if !securityContext.IsAdmin && securityContext.UserID != portaineree.UserID(userID) {
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied inspect user", errors.ErrResourceAccessDenied}
 	}
 
-	user, err := handler.DataStore.User().User(portainer.UserID(userID))
+	user, err := handler.DataStore.User().User(portaineree.UserID(userID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a user with the specified identifier inside the database", err}
 	} else if err != nil {

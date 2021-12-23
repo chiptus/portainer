@@ -3,17 +3,17 @@ package registryproxy
 import (
 	"net/http"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/useractivity"
-	ru "github.com/portainer/portainer/api/http/utils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
+	ru "github.com/portainer/portainer-ee/api/http/utils"
 )
 
 type loggingTransport struct {
 	transport           http.RoundTripper
-	userActivityService portainer.UserActivityService
+	userActivityService portaineree.UserActivityService
 }
 
-func NewLoggingTransport(userActivityService portainer.UserActivityService, transport http.RoundTripper) *loggingTransport {
+func NewLoggingTransport(userActivityService portaineree.UserActivityService, transport http.RoundTripper) *loggingTransport {
 	return &loggingTransport{
 		transport:           transport,
 		userActivityService: userActivityService,

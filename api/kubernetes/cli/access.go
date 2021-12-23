@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -26,7 +26,7 @@ func (kcl *KubeClient) NamespaceAccessPoliciesDeleteNamespace(ns string) error {
 
 // GetNamespaceAccessPolicies gets the namespace access policies
 // from config maps in the portainer namespace
-func (kcl *KubeClient) GetNamespaceAccessPolicies() (map[string]portainer.K8sNamespaceAccessPolicy, error) {
+func (kcl *KubeClient) GetNamespaceAccessPolicies() (map[string]portaineree.K8sNamespaceAccessPolicy, error) {
 	configMap, err := kcl.cli.CoreV1().ConfigMaps(portainerNamespace).Get(context.TODO(), portainerConfigMapName, metav1.GetOptions{})
 	if k8serrors.IsNotFound(err) {
 		return nil, nil
@@ -38,7 +38,7 @@ func (kcl *KubeClient) GetNamespaceAccessPolicies() (map[string]portainer.K8sNam
 
 	accessData := configMap.Data[portainerConfigMapAccessPoliciesKey]
 
-	var policies map[string]portainer.K8sNamespaceAccessPolicy
+	var policies map[string]portaineree.K8sNamespaceAccessPolicy
 	err = json.Unmarshal([]byte(accessData), &policies)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (kcl *KubeClient) GetNamespaceAccessPolicies() (map[string]portainer.K8sNam
 }
 
 // UpdateNamespaceAccessPolicies updates the namespace access policies
-func (kcl *KubeClient) UpdateNamespaceAccessPolicies(accessPolicies map[string]portainer.K8sNamespaceAccessPolicy) error {
+func (kcl *KubeClient) UpdateNamespaceAccessPolicies(accessPolicies map[string]portaineree.K8sNamespaceAccessPolicy) error {
 	data, err := json.Marshal(accessPolicies)
 	if err != nil {
 		return err

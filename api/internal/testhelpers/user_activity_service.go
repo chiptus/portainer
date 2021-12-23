@@ -1,16 +1,14 @@
 package testhelpers
 
-import (
-	portainer "github.com/portainer/portainer/api"
-)
+import portaineree "github.com/portainer/portainer-ee/api"
 
 type userActivityService struct{}
 
-func NewUserActivityService() portainer.UserActivityService {
+func NewUserActivityService() portaineree.UserActivityService {
 	return &userActivityService{}
 }
 
-func (service *userActivityService) LogAuthActivity(username string, origin string, context portainer.AuthenticationMethod, activityType portainer.AuthenticationActivityType) error {
+func (service *userActivityService) LogAuthActivity(username string, origin string, context portaineree.AuthenticationMethod, activityType portaineree.AuthenticationActivityType) error {
 	return nil
 }
 

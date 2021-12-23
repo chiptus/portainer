@@ -7,10 +7,10 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id CustomTemplateInspect
@@ -22,7 +22,7 @@ import (
 // @security jwt
 // @produce json
 // @param id path int true "Template identifier"
-// @success 200 {object} portainer.CustomTemplate "Success"
+// @success 200 {object} portaineree.CustomTemplate "Success"
 // @failure 400 "Invalid request"
 // @failure 404 "Template not found"
 // @failure 500 "Server error"
@@ -33,7 +33,7 @@ func (handler *Handler) customTemplateInspect(w http.ResponseWriter, r *http.Req
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid Custom template identifier route variable", err}
 	}
 
-	customTemplate, err := handler.DataStore.CustomTemplate().CustomTemplate(portainer.CustomTemplateID(customTemplateID))
+	customTemplate, err := handler.DataStore.CustomTemplate().CustomTemplate(portaineree.CustomTemplateID(customTemplateID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a custom template with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -45,7 +45,7 @@ func (handler *Handler) customTemplateInspect(w http.ResponseWriter, r *http.Req
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user info from request context", err}
 	}
 
-	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(strconv.Itoa(customTemplateID), portainer.CustomTemplateResourceControl)
+	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(strconv.Itoa(customTemplateID), portaineree.CustomTemplateResourceControl)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve a resource control associated to the custom template", err}
 	}

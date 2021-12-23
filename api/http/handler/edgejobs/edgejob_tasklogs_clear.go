@@ -7,8 +7,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // @id EdgeJobTasksClear
@@ -36,18 +36,18 @@ func (handler *Handler) edgeJobTasksClear(w http.ResponseWriter, r *http.Request
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid Task identifier route variable", err}
 	}
 
-	edgeJob, err := handler.DataStore.EdgeJob().EdgeJob(portainer.EdgeJobID(edgeJobID))
+	edgeJob, err := handler.DataStore.EdgeJob().EdgeJob(portaineree.EdgeJobID(edgeJobID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an Edge job with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an Edge job with the specified identifier inside the database", err}
 	}
 
-	endpointID := portainer.EndpointID(taskID)
+	endpointID := portaineree.EndpointID(taskID)
 
 	meta := edgeJob.Endpoints[endpointID]
 	meta.CollectLogs = false
-	meta.LogsStatus = portainer.EdgeJobLogsStatusIdle
+	meta.LogsStatus = portaineree.EdgeJobLogsStatusIdle
 	edgeJob.Endpoints[endpointID] = meta
 
 	err = handler.FileService.ClearEdgeJobTaskLogs(strconv.Itoa(edgeJobID), strconv.Itoa(taskID))

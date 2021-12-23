@@ -7,9 +7,9 @@ import (
 
 	ldap "github.com/go-ldap/ldap/v3"
 	"github.com/pkg/errors"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer/api/crypto"
-	httperrors "github.com/portainer/portainer/api/http/errors"
 )
 
 var (
@@ -21,7 +21,7 @@ var (
 // Service represents a service used to authenticate users against a LDAP/AD.
 type Service struct{}
 
-func createConnection(settings *portainer.LDAPSettings) (*ldap.Conn, error) {
+func createConnection(settings *portaineree.LDAPSettings) (*ldap.Conn, error) {
 	for _, url := range settings.URLs {
 		conn, err := createConnectionForURL(url, settings)
 		if err != nil {
@@ -34,7 +34,7 @@ func createConnection(settings *portainer.LDAPSettings) (*ldap.Conn, error) {
 	return nil, errors.New("No valid connection")
 }
 
-func createConnectionForURL(url string, settings *portainer.LDAPSettings) (*ldap.Conn, error) {
+func createConnectionForURL(url string, settings *portaineree.LDAPSettings) (*ldap.Conn, error) {
 	if settings.TLSConfig.TLS || settings.StartTLS {
 		config, err := crypto.CreateTLSConfigurationFromDisk(settings.TLSConfig.TLSCACertPath, settings.TLSConfig.TLSCertPath, settings.TLSConfig.TLSKeyPath, settings.TLSConfig.TLSSkipVerify)
 		if err != nil {
@@ -63,7 +63,7 @@ func createConnectionForURL(url string, settings *portainer.LDAPSettings) (*ldap
 }
 
 // AuthenticateUser is used to authenticate a user against a LDAP/AD.
-func (*Service) AuthenticateUser(username, password string, settings *portainer.LDAPSettings) error {
+func (*Service) AuthenticateUser(username, password string, settings *portaineree.LDAPSettings) error {
 
 	connection, err := createConnection(settings)
 	if err != nil {
@@ -92,7 +92,7 @@ func (*Service) AuthenticateUser(username, password string, settings *portainer.
 }
 
 // GetUserGroups is used to retrieve user groups from LDAP/AD.
-func (*Service) GetUserGroups(username string, settings *portainer.LDAPSettings, useAutoAdminSearchSettings bool) ([]string, error) {
+func (*Service) GetUserGroups(username string, settings *portaineree.LDAPSettings, useAutoAdminSearchSettings bool) ([]string, error) {
 	connection, err := createConnection(settings)
 	if err != nil {
 		return nil, err
@@ -122,7 +122,7 @@ func (*Service) GetUserGroups(username string, settings *portainer.LDAPSettings,
 }
 
 // SearchUsers searches for users with the specified settings
-func (*Service) SearchUsers(settings *portainer.LDAPSettings) ([]string, error) {
+func (*Service) SearchUsers(settings *portaineree.LDAPSettings) ([]string, error) {
 	connection, err := createConnection(settings)
 	if err != nil {
 		return nil, err
@@ -169,16 +169,16 @@ func (*Service) SearchUsers(settings *portainer.LDAPSettings) ([]string, error) 
 }
 
 // SearchGroups searches for groups with the GroupSearchSettings
-func (*Service) SearchGroups(settings *portainer.LDAPSettings) ([]portainer.LDAPUser, error) {
+func (*Service) SearchGroups(settings *portaineree.LDAPSettings) ([]portaineree.LDAPUser, error) {
 	userGroups, err := searchUserGroups(settings, false)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed searching user groups")
 	}
 
-	users := []portainer.LDAPUser{}
+	users := []portaineree.LDAPUser{}
 
 	for username, groups := range userGroups {
-		user := portainer.LDAPUser{
+		user := portaineree.LDAPUser{
 			Name:   username,
 			Groups: groups,
 		}
@@ -189,7 +189,7 @@ func (*Service) SearchGroups(settings *portainer.LDAPSettings) ([]portainer.LDAP
 }
 
 // SearchAdminGroups searches for groups with the AdminGroupSearchSettings
-func (*Service) SearchAdminGroups(settings *portainer.LDAPSettings) ([]string, error) {
+func (*Service) SearchAdminGroups(settings *portaineree.LDAPSettings) ([]string, error) {
 	userGroups, err := searchUserGroups(settings, true)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed searching user groups")
@@ -209,7 +209,7 @@ func (*Service) SearchAdminGroups(settings *portainer.LDAPSettings) ([]string, e
 	return groups, nil
 }
 
-func searchUser(username string, conn *ldap.Conn, settings []portainer.LDAPSearchSettings) (string, error) {
+func searchUser(username string, conn *ldap.Conn, settings []portaineree.LDAPSearchSettings) (string, error) {
 	var userDN string
 	found := false
 	usernameEscaped := ldap.EscapeFilter(username)
@@ -244,7 +244,7 @@ func searchUser(username string, conn *ldap.Conn, settings []portainer.LDAPSearc
 	return userDN, nil
 }
 
-func searchUserGroups(settings *portainer.LDAPSettings, useAutoAdminSearchSettings bool) (map[string][]string, error) {
+func searchUserGroups(settings *portaineree.LDAPSettings, useAutoAdminSearchSettings bool) (map[string][]string, error) {
 	connection, err := createConnection(settings)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to esteblish an LDAP connection")
@@ -290,7 +290,7 @@ func searchUserGroups(settings *portainer.LDAPSettings, useAutoAdminSearchSettin
 }
 
 // Get a list of group names for specified user from LDAP/AD
-func getGroupsByUser(userDN string, conn *ldap.Conn, settings []portainer.LDAPGroupSearchSettings) []string {
+func getGroupsByUser(userDN string, conn *ldap.Conn, settings []portaineree.LDAPGroupSearchSettings) []string {
 	groups := make([]string, 0)
 	userDNEscaped := ldap.EscapeFilter(userDN)
 
@@ -322,7 +322,7 @@ func getGroupsByUser(userDN string, conn *ldap.Conn, settings []portainer.LDAPGr
 
 // TestConnectivity is used to test a connection against the LDAP server using the credentials
 // specified in the LDAPSettings.
-func (*Service) TestConnectivity(settings *portainer.LDAPSettings) error {
+func (*Service) TestConnectivity(settings *portaineree.LDAPSettings) error {
 
 	connection, err := createConnection(settings)
 	if err != nil {

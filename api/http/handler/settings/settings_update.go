@@ -12,6 +12,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
+	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 )
@@ -20,11 +21,11 @@ type settingsUpdatePayload struct {
 	// URL to a logo that will be displayed on the login page as well as on top of the sidebar. Will use default Portainer logo when value is empty string
 	LogoURL *string `example:"https://mycompany.mydomain.tld/logo.png"`
 	// A list of label name & value that will be used to hide containers when querying containers
-	BlackListedLabels []portainer.Pair
+	BlackListedLabels []portaineree.Pair
 	// Active authentication method for the Portainer instance. Valid values are: 1 for internal, 2 for LDAP, or 3 for oauth
 	AuthenticationMethod *int `example:"1"`
-	LDAPSettings         *portainer.LDAPSettings
-	OAuthSettings        *portainer.OAuthSettings
+	LDAPSettings         *portaineree.LDAPSettings
+	OAuthSettings        *portaineree.OAuthSettings
 	// The interval in which environment(endpoint) snapshots are created
 	SnapshotInterval *string `example:"5m"`
 	// URL to the templates that will be displayed in the UI when navigating to App Templates
@@ -99,7 +100,7 @@ func (payload *settingsUpdatePayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param body body settingsUpdatePayload true "New settings"
-// @success 200 {object} portainer.Settings "Success"
+// @success 200 {object} portaineree.Settings "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /settings [put]
@@ -116,7 +117,7 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 	}
 
 	if payload.AuthenticationMethod != nil {
-		settings.AuthenticationMethod = portainer.AuthenticationMethod(*payload.AuthenticationMethod)
+		settings.AuthenticationMethod = portaineree.AuthenticationMethod(*payload.AuthenticationMethod)
 	}
 
 	if payload.LogoURL != nil {
@@ -130,7 +131,7 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 	if payload.HelmRepositoryURL != nil {
 		newHelmRepo := strings.TrimSuffix(strings.ToLower(*payload.HelmRepositoryURL), "/")
 
-		if newHelmRepo != settings.HelmRepositoryURL && newHelmRepo != portainer.DefaultHelmRepositoryURL {
+		if newHelmRepo != settings.HelmRepositoryURL && newHelmRepo != portaineree.DefaultHelmRepositoryURL {
 			err := libhelm.ValidateHelmRepositoryURL(*payload.HelmRepositoryURL)
 			if err != nil {
 				return &httperror.HandlerError{http.StatusBadRequest, "Invalid Helm repository URL. Must correspond to a valid URL format", err}
@@ -186,7 +187,7 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		settings.OAuthSettings.KubeSecretKey = kubeSecret
 
 		if !payload.OAuthSettings.OAuthAutoMapTeamMemberships || payload.OAuthSettings.TeamMemberships.OAuthClaimName == "" {
-			settings.OAuthSettings.TeamMemberships.OAuthClaimMappings = []portainer.OAuthClaimMappings{}
+			settings.OAuthSettings.TeamMemberships.OAuthClaimMappings = []portaineree.OAuthClaimMappings{}
 		}
 
 		if payload.OAuthSettings.OAuthAutoMapTeamMemberships {
@@ -211,7 +212,7 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		} else {
 			// clear out redundant values
 			settings.OAuthSettings.TeamMemberships.OAuthClaimName = ""
-			settings.OAuthSettings.TeamMemberships.OAuthClaimMappings = []portainer.OAuthClaimMappings{}
+			settings.OAuthSettings.TeamMemberships.OAuthClaimMappings = []portaineree.OAuthClaimMappings{}
 		}
 
 		if !payload.OAuthSettings.TeamMemberships.AdminAutoPopulate {
@@ -267,13 +268,13 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 	return response.JSON(w, settings)
 }
 
-func (handler *Handler) updateSnapshotInterval(settings *portainer.Settings, snapshotInterval string) error {
+func (handler *Handler) updateSnapshotInterval(settings *portaineree.Settings, snapshotInterval string) error {
 	settings.SnapshotInterval = snapshotInterval
 
 	return handler.SnapshotService.SetSnapshotInterval(snapshotInterval)
 }
 
-func (handler *Handler) updateTLS(settings *portainer.Settings) *httperror.HandlerError {
+func (handler *Handler) updateTLS(settings *portaineree.Settings) *httperror.HandlerError {
 	if (settings.LDAPSettings.TLSConfig.TLS || settings.LDAPSettings.StartTLS) && !settings.LDAPSettings.TLSConfig.TLSSkipVerify {
 		caCertPath, _ := handler.FileService.GetPathForTLSFile(filesystem.LDAPStorePath, portainer.TLSFileCA)
 		settings.LDAPSettings.TLSConfig.TLSCACertPath = caCertPath

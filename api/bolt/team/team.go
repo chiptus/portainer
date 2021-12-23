@@ -3,11 +3,10 @@ package team
 import (
 	"strings"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/bolt/internal"
-
 	"github.com/boltdb/bolt"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 )
 
 const (
@@ -33,8 +32,8 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // Team returns a Team by ID
-func (service *Service) Team(ID portainer.TeamID) (*portainer.Team, error) {
-	var team portainer.Team
+func (service *Service) Team(ID portaineree.TeamID) (*portaineree.Team, error) {
+	var team portaineree.Team
 	identifier := internal.Itob(int(ID))
 
 	err := internal.GetObject(service.connection, BucketName, identifier, &team)
@@ -46,15 +45,15 @@ func (service *Service) Team(ID portainer.TeamID) (*portainer.Team, error) {
 }
 
 // TeamByName returns a team by name.
-func (service *Service) TeamByName(name string) (*portainer.Team, error) {
-	var team *portainer.Team
+func (service *Service) TeamByName(name string) (*portaineree.Team, error) {
+	var team *portaineree.Team
 
 	err := service.connection.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var t portainer.Team
+			var t portaineree.Team
 			err := internal.UnmarshalObject(v, &t)
 			if err != nil {
 				return err
@@ -77,15 +76,15 @@ func (service *Service) TeamByName(name string) (*portainer.Team, error) {
 }
 
 // Teams return an array containing all the teams.
-func (service *Service) Teams() ([]portainer.Team, error) {
-	var teams = make([]portainer.Team, 0)
+func (service *Service) Teams() ([]portaineree.Team, error) {
+	var teams = make([]portaineree.Team, 0)
 
 	err := service.connection.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var team portainer.Team
+			var team portaineree.Team
 			err := internal.UnmarshalObject(v, &team)
 			if err != nil {
 				return err
@@ -100,18 +99,18 @@ func (service *Service) Teams() ([]portainer.Team, error) {
 }
 
 // UpdateTeam saves a Team.
-func (service *Service) UpdateTeam(ID portainer.TeamID, team *portainer.Team) error {
+func (service *Service) UpdateTeam(ID portaineree.TeamID, team *portaineree.Team) error {
 	identifier := internal.Itob(int(ID))
 	return internal.UpdateObject(service.connection, BucketName, identifier, team)
 }
 
 // CreateTeam creates a new Team.
-func (service *Service) CreateTeam(team *portainer.Team) error {
+func (service *Service) CreateTeam(team *portaineree.Team) error {
 	return service.connection.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		id, _ := bucket.NextSequence()
-		team.ID = portainer.TeamID(id)
+		team.ID = portaineree.TeamID(id)
 
 		data, err := internal.MarshalObject(team)
 		if err != nil {
@@ -123,7 +122,7 @@ func (service *Service) CreateTeam(team *portainer.Team) error {
 }
 
 // DeleteTeam deletes a Team.
-func (service *Service) DeleteTeam(ID portainer.TeamID) error {
+func (service *Service) DeleteTeam(ID portaineree.TeamID) error {
 	identifier := internal.Itob(int(ID))
 	return internal.DeleteObject(service.connection, BucketName, identifier)
 }

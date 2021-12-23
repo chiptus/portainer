@@ -10,10 +10,10 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/middlewares"
-	"github.com/portainer/portainer/api/http/security"
-	i "github.com/portainer/portainer/api/internal/testhelpers"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/http/security"
+	i "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -165,7 +165,7 @@ binary data
 func Test_PicksUsernameFromRequestSecurityToken(t *testing.T) {
 	payload := []byte(``)
 	r := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(payload))
-	r = r.WithContext(security.StoreTokenData(r, &portainer.TokenData{Username: "superuser"}))
+	r = r.WithContext(security.StoreTokenData(r, &portaineree.TokenData{Username: "superuser"}))
 
 	uas := userActivityService{}
 
@@ -192,7 +192,7 @@ func Test_PicksEnpointFromRequestContext(t *testing.T) {
 	r = mux.SetURLVars(r, map[string]string{"endpointId": "1"})
 
 	uas := userActivityService{}
-	ds := i.NewDatastore(i.WithEndpoints([]portainer.Endpoint{{ID: portainer.EndpointID(1), Name: "MyEndpoint"}}))
+	ds := i.NewDatastore(i.WithEndpoints([]portaineree.Endpoint{{ID: portaineree.EndpointID(1), Name: "MyEndpoint"}}))
 
 	var passedThroughBody []byte
 	middlewares.WithEndpoint(ds.Endpoint(), "endpointId")(
@@ -220,7 +220,7 @@ type userActivityService struct {
 	called         bool
 }
 
-func (service *userActivityService) LogAuthActivity(username string, origin string, context portainer.AuthenticationMethod, activityType portainer.AuthenticationActivityType) error {
+func (service *userActivityService) LogAuthActivity(username string, origin string, context portaineree.AuthenticationMethod, activityType portaineree.AuthenticationActivityType) error {
 	return nil
 }
 

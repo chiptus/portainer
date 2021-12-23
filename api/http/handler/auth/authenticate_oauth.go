@@ -8,10 +8,10 @@ import (
 	"github.com/asaskevich/govalidator"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/internal/authorization"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 type oauthPayload struct {
@@ -26,7 +26,7 @@ func (payload *oauthPayload) Validate(r *http.Request) error {
 	return nil
 }
 
-func (handler *Handler) authenticateOAuth(code string, settings *portainer.OAuthSettings) (*portainer.OAuthInfo, error) {
+func (handler *Handler) authenticateOAuth(code string, settings *portaineree.OAuthSettings) (*portaineree.OAuthInfo, error) {
 	if code == "" {
 		return nil, errors.New("Invalid OAuth authorization code")
 	}
@@ -57,7 +57,7 @@ func (handler *Handler) authenticateOAuth(code string, settings *portainer.OAuth
 // @router /auth/oauth/validate [post]
 func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*authMiddlewareResponse, *httperror.HandlerError) {
 	resp := &authMiddlewareResponse{
-		Method: portainer.AuthenticationOAuth,
+		Method: portaineree.AuthenticationOAuth,
 	}
 
 	var payload oauthPayload
@@ -79,7 +79,7 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 		}
 	}
 
-	if settings.AuthenticationMethod != portainer.AuthenticationOAuth {
+	if settings.AuthenticationMethod != portaineree.AuthenticationOAuth {
 		return resp, &httperror.HandlerError{
 			StatusCode: http.StatusForbidden,
 			Message:    "OAuth authentication is not enabled",
@@ -137,9 +137,9 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 		}
 	} else {
 		//if user not exists, create a new user with the correct role (according to AdminAutoPopulate settings)
-		user = &portainer.User{
+		user = &portaineree.User{
 			Username:                authInfo.Username,
-			Role:                    portainer.StandardUserRole,
+			Role:                    portaineree.StandardUserRole,
 			PortainerAuthorizations: authorization.DefaultPortainerAuthorizations(),
 		}
 		if err := handler.createUserAndDefaultTeamMembership(user, settings.OAuthSettings, isValidAdminClaims); err != nil {
@@ -181,7 +181,7 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 
 	info := handler.LicenseService.Info()
 
-	if user.Role != portainer.AdministratorRole && !info.Valid {
+	if user.Role != portaineree.AdministratorRole && !info.Valid {
 		return resp, &httperror.HandlerError{
 			StatusCode: http.StatusForbidden,
 			Message:    "License is not valid",
@@ -189,19 +189,19 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 		}
 	}
 
-	return handler.writeToken(w, user, portainer.AuthenticationOAuth)
+	return handler.writeToken(w, user, portaineree.AuthenticationOAuth)
 }
 
-func (handler *Handler) updateUser(user *portainer.User, oauthSettings portainer.OAuthSettings, validAdminClaim bool) error {
+func (handler *Handler) updateUser(user *portaineree.User, oauthSettings portaineree.OAuthSettings, validAdminClaim bool) error {
 	//if AdminAutoPopulate is switched off, no need to update user
 	if !oauthSettings.TeamMemberships.AdminAutoPopulate {
 		return nil
 	}
 
 	if validAdminClaim {
-		user.Role = portainer.AdministratorRole
+		user.Role = portaineree.AdministratorRole
 	} else {
-		user.Role = portainer.StandardUserRole
+		user.Role = portaineree.StandardUserRole
 	}
 
 	if err := handler.DataStore.User().UpdateUser(user.ID, user); err != nil {
@@ -215,11 +215,11 @@ func (handler *Handler) updateUser(user *portainer.User, oauthSettings portainer
 	return nil
 }
 
-func (handler *Handler) createUserAndDefaultTeamMembership(user *portainer.User, oauthSettings portainer.OAuthSettings, validAdminClaim bool) error {
+func (handler *Handler) createUserAndDefaultTeamMembership(user *portaineree.User, oauthSettings portaineree.OAuthSettings, validAdminClaim bool) error {
 	//if AdminAutoPopulate is switched on and valid OAuth group is identified
 	//set user role as admin
 	if oauthSettings.TeamMemberships.AdminAutoPopulate && validAdminClaim {
-		user.Role = portainer.AdministratorRole
+		user.Role = portaineree.AdministratorRole
 	}
 
 	err := handler.DataStore.User().CreateUser(user)
@@ -228,10 +228,10 @@ func (handler *Handler) createUserAndDefaultTeamMembership(user *portainer.User,
 	}
 
 	if oauthSettings.DefaultTeamID != 0 {
-		membership := &portainer.TeamMembership{
+		membership := &portaineree.TeamMembership{
 			UserID: user.ID,
 			TeamID: oauthSettings.DefaultTeamID,
-			Role:   portainer.TeamMember,
+			Role:   portaineree.TeamMember,
 		}
 
 		err = handler.DataStore.TeamMembership().CreateTeamMembership(membership)

@@ -11,16 +11,16 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/proxy/factory/utils"
-	"github.com/portainer/portainer/api/internal/authorization"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 const (
 	serviceObjectIdentifier = "ID"
 )
 
-func getInheritedResourceControlFromServiceLabels(dockerClient *client.Client, endpointID portainer.EndpointID, serviceID string, resourceControls []portainer.ResourceControl) (*portainer.ResourceControl, error) {
+func getInheritedResourceControlFromServiceLabels(dockerClient *client.Client, endpointID portaineree.EndpointID, serviceID string, resourceControls []portaineree.ResourceControl) (*portaineree.ResourceControl, error) {
 	service, _, err := dockerClient.ServiceInspectWithRaw(context.Background(), serviceID, types.ServiceInspectOptions{})
 	if err != nil {
 		return nil, err
@@ -28,7 +28,7 @@ func getInheritedResourceControlFromServiceLabels(dockerClient *client.Client, e
 
 	stackResourceID := getStackResourceIDFromLabels(service.Spec.Labels, endpointID)
 	if stackResourceID != "" {
-		return authorization.GetResourceControlByResourceIDAndType(stackResourceID, portainer.StackResourceControl, resourceControls), nil
+		return authorization.GetResourceControlByResourceIDAndType(stackResourceID, portaineree.StackResourceControl, resourceControls), nil
 	}
 
 	return nil, nil
@@ -46,7 +46,7 @@ func (transport *Transport) serviceListOperation(response *http.Response, execut
 
 	resourceOperationParameters := &resourceOperationParameters{
 		resourceIdentifierAttribute: serviceObjectIdentifier,
-		resourceType:                portainer.ServiceResourceControl,
+		resourceType:                portaineree.ServiceResourceControl,
 		labelsObjectSelector:        selectorServiceLabels,
 	}
 
@@ -70,7 +70,7 @@ func (transport *Transport) serviceInspectOperation(response *http.Response, exe
 
 	resourceOperationParameters := &resourceOperationParameters{
 		resourceIdentifierAttribute: serviceObjectIdentifier,
-		resourceType:                portainer.ServiceResourceControl,
+		resourceType:                portaineree.ServiceResourceControl,
 		labelsObjectSelector:        selectorServiceLabels,
 	}
 

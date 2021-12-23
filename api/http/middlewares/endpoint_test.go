@@ -8,13 +8,13 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
-	portainer "github.com/portainer/portainer/api"
-	i "github.com/portainer/portainer/api/internal/testhelpers"
+	portaineree "github.com/portainer/portainer-ee/api"
+	i "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_FindInQuery(t *testing.T) {
-	endpointService := i.NewDatastore(i.WithEndpoints([]portainer.Endpoint{{ID: 1, Name: "EP"}})).Endpoint()
+	endpointService := i.NewDatastore(i.WithEndpoints([]portaineree.Endpoint{{ID: 1, Name: "EP"}})).Endpoint()
 
 	cases := []struct {
 		title    string
@@ -54,7 +54,7 @@ func Test_FindInQuery(t *testing.T) {
 }
 
 func Test_FindInPath(t *testing.T) {
-	endpointService := i.NewDatastore(i.WithEndpoints([]portainer.Endpoint{{ID: 1, Name: "EP"}})).Endpoint()
+	endpointService := i.NewDatastore(i.WithEndpoints([]portaineree.Endpoint{{ID: 1, Name: "EP"}})).Endpoint()
 
 	cases := []struct {
 		title    string
@@ -95,7 +95,7 @@ func Test_FindInPath(t *testing.T) {
 }
 
 func Test_FindInJsonBodyField(t *testing.T) {
-	endpointService := i.NewDatastore(i.WithEndpoints([]portainer.Endpoint{{ID: 1, Name: "EP"}})).Endpoint()
+	endpointService := i.NewDatastore(i.WithEndpoints([]portaineree.Endpoint{{ID: 1, Name: "EP"}})).Endpoint()
 
 	cases := []struct {
 		title     string

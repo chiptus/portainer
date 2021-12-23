@@ -9,9 +9,9 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 type resourcePoolUpdatePayload struct {
@@ -53,7 +53,7 @@ func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid namespace identifier route variable", err}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -66,17 +66,17 @@ func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http
 		return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
 	}
 
-	if tokenData.Role != portainer.AdministratorRole {
+	if tokenData.Role != portaineree.AdministratorRole {
 		// check if the user has Configuration RW access in the environment(endpoint)
 		endpointRole, err := handler.AuthorizationService.GetUserEndpointRole(int(tokenData.ID), int(endpoint.ID))
 		if err != nil {
 			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
-		} else if !endpointRole.Authorizations[portainer.OperationK8sConfigurationsW] {
+		} else if !endpointRole.Authorizations[portaineree.OperationK8sConfigurationsW] {
 			err = errors.New(permissionDeniedErr)
 			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
 		}
 		// will deny if user cannot access all namespaces
-		if !endpointRole.Authorizations[portainer.OperationK8sAccessAllNamespaces] {
+		if !endpointRole.Authorizations[portaineree.OperationK8sAccessAllNamespaces] {
 			err = errors.New(permissionDeniedErr)
 			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
 		}

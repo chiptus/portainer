@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	v1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // GetServiceAccount returns the portainer ServiceAccount associated to the specified user.
-func (kcl *KubeClient) GetServiceAccount(tokenData *portainer.TokenData) (*v1.ServiceAccount, error) {
+func (kcl *KubeClient) GetServiceAccount(tokenData *portaineree.TokenData) (*v1.ServiceAccount, error) {
 	var portainerServiceAccountName string
-	if tokenData.Role == portainer.AdministratorRole {
+	if tokenData.Role == portaineree.AdministratorRole {
 		portainerServiceAccountName = portainerClusterAdminServiceAccountName
 	} else {
 		portainerServiceAccountName = UserServiceAccountName(int(tokenData.ID), kcl.instanceID)
@@ -39,10 +39,10 @@ func (kcl *KubeClient) GetServiceAccountBearerToken(userID int) (string, error) 
 // cluster before creating a ServiceAccount and a ServiceAccountToken for the specified Portainer user.
 //It will also create required default RoleBinding and ClusterRoleBinding rules.
 func (kcl *KubeClient) SetupUserServiceAccount(
-	user portainer.User,
-	endpointRoleID portainer.RoleID,
-	namespaces map[string]portainer.K8sNamespaceInfo,
-	namespaceRoles map[string]portainer.Role,
+	user portaineree.User,
+	endpointRoleID portaineree.RoleID,
+	namespaces map[string]portaineree.K8sNamespaceInfo,
+	namespaceRoles map[string]portaineree.Role,
 ) error {
 	serviceAccountName := UserServiceAccountName(int(user.ID), kcl.instanceID)
 
@@ -131,8 +131,8 @@ func (kcl *KubeClient) removeUserServiceAccount(namespace, serviceAccountName st
 // setup cluster role binding for a service account
 func (kcl *KubeClient) ensureServiceAccountHasPortainerClusterRoles(
 	serviceAccountName string,
-	user portainer.User,
-	endpointRoleID portainer.RoleID,
+	user portaineree.User,
+	endpointRoleID portaineree.RoleID,
 ) error {
 
 	roleSet, ok := getPortainerK8sRoleMapping()[endpointRoleID]
@@ -155,8 +155,8 @@ func (kcl *KubeClient) ensureServiceAccountHasPortainerClusterRoles(
 // setup role binding for a service account
 func (kcl *KubeClient) ensureServiceAccountHasPortainerRoles(
 	serviceAccountName string,
-	namespaces map[string]portainer.K8sNamespaceInfo,
-	namespaceRoles map[string]portainer.Role,
+	namespaces map[string]portaineree.K8sNamespaceInfo,
+	namespaceRoles map[string]portaineree.Role,
 ) error {
 	rolesMapping := getPortainerK8sRoleMapping()
 

@@ -1,14 +1,14 @@
 package authorization
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // CleanNAPWithOverridePolicies Clean Namespace Access Policies with override policies
 func (service *Service) CleanNAPWithOverridePolicies(
-	endpoint *portainer.Endpoint,
-	endpointGroup *portainer.EndpointGroup,
+	endpoint *portaineree.Endpoint,
+	endpointGroup *portaineree.EndpointGroup,
 ) error {
 	kubecli, err := service.K8sClientFactory.GetKubeClient(endpoint)
 	if err != nil {
@@ -62,11 +62,11 @@ func (service *Service) CleanNAPWithOverridePolicies(
 }
 
 func (service *Service) GetUserEndpointRoleWithOverridePolicies(
-	userID portainer.UserID,
-	endpoint *portainer.Endpoint,
-	endpointGroup *portainer.EndpointGroup,
-) (*portainer.Role, error) {
-	user, err := service.dataStore.User().User(portainer.UserID(userID))
+	userID portaineree.UserID,
+	endpoint *portaineree.Endpoint,
+	endpointGroup *portaineree.EndpointGroup,
+) (*portaineree.Role, error) {
+	user, err := service.dataStore.User().User(portaineree.UserID(userID))
 	if err != nil {
 		return nil, err
 	}
@@ -97,10 +97,10 @@ func (service *Service) GetUserEndpointRoleWithOverridePolicies(
 }
 
 func (service *Service) GetTeamEndpointRoleWithOverridePolicies(
-	teamID portainer.TeamID,
-	endpoint *portainer.Endpoint,
-	endpointGroup *portainer.EndpointGroup,
-) (*portainer.Role, error) {
+	teamID portaineree.TeamID,
+	endpoint *portaineree.Endpoint,
+	endpointGroup *portaineree.EndpointGroup,
+) (*portaineree.Role, error) {
 
 	memberships, err := service.dataStore.TeamMembership().TeamMembershipsByTeamID(teamID)
 	if err != nil {

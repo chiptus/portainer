@@ -12,7 +12,7 @@ import (
 
 	_ "github.com/joho/godotenv/autoload"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 const composeFile = `version: "3.9"
@@ -22,19 +22,19 @@ services:
     container_name: "compose_wrapper_test"`
 const composedContainerName = "compose_wrapper_test"
 
-func setup(t *testing.T) (*portainer.Stack, *portainer.Endpoint) {
+func setup(t *testing.T) (*portaineree.Stack, *portaineree.Endpoint) {
 	dir := t.TempDir()
 	composeFileName := "compose_wrapper_test.yml"
 	f, _ := os.Create(filepath.Join(dir, composeFileName))
 	f.WriteString(composeFile)
 
-	stack := &portainer.Stack{
+	stack := &portaineree.Stack{
 		ProjectPath: dir,
 		EntryPoint:  composeFileName,
 		Name:        "project-name",
 	}
 
-	endpoint := &portainer.Endpoint{
+	endpoint := &portaineree.Endpoint{
 		URL: "unix://",
 	}
 

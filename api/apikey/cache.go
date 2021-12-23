@@ -2,15 +2,15 @@ package apikey
 
 import (
 	lru "github.com/hashicorp/golang-lru"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 const defaultAPIKeyCacheSize = 1024
 
 // entry is a tuple containing the user and API key associated to an API key digest
 type entry struct {
-	user   portainer.User
-	apiKey portainer.APIKey
+	user   portaineree.User
+	apiKey portaineree.APIKey
 }
 
 // apiKeyCache is a concurrency-safe, in-memory cache which primarily exists for to reduce database roundtrips.
@@ -33,10 +33,10 @@ func NewAPIKeyCache(cacheSize int) *apiKeyCache {
 // Get returns the user/key associated to an api-key's digest
 // This is required because HTTP requests will contain the digest of the API key in header,
 // the digest value must be mapped to a portainer user.
-func (c *apiKeyCache) Get(digest []byte) (portainer.User, portainer.APIKey, bool) {
+func (c *apiKeyCache) Get(digest []byte) (portaineree.User, portaineree.APIKey, bool) {
 	val, ok := c.cache.Get(string(digest))
 	if !ok {
-		return portainer.User{}, portainer.APIKey{}, false
+		return portaineree.User{}, portaineree.APIKey{}, false
 	}
 	tuple := val.(entry)
 
@@ -44,7 +44,7 @@ func (c *apiKeyCache) Get(digest []byte) (portainer.User, portainer.APIKey, bool
 }
 
 // Set persists a user/key entry to the cache
-func (c *apiKeyCache) Set(digest []byte, user portainer.User, apiKey portainer.APIKey) {
+func (c *apiKeyCache) Set(digest []byte, user portaineree.User, apiKey portaineree.APIKey) {
 	c.cache.Add(string(digest), entry{
 		user:   user,
 		apiKey: apiKey,
@@ -57,7 +57,7 @@ func (c *apiKeyCache) Delete(digest []byte) {
 }
 
 // InvalidateUserKeyCache loops through all the api-keys associated to a user and removes them from the cache
-func (c *apiKeyCache) InvalidateUserKeyCache(userId portainer.UserID) bool {
+func (c *apiKeyCache) InvalidateUserKeyCache(userId portaineree.UserID) bool {
 	present := false
 	for _, k := range c.cache.Keys() {
 		user, _, _ := c.Get([]byte(k.(string)))

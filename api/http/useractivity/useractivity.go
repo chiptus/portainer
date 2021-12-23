@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"strings"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/middlewares"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/utils"
-	"github.com/portainer/portainer/api/useractivity"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/utils"
+	"github.com/portainer/portainer-ee/api/useractivity"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/negroni"
 )
@@ -18,14 +18,14 @@ import (
 // LogUserActivity a user activity logging middleware
 // It relies on the endpoint being supplies throug the middleware.WithEndpoint.
 // The endpoint will be used as a logging context, alternatively Portainer would be used as a context
-func LogUserActivity(service portainer.UserActivityService) func(http.Handler) http.Handler {
+func LogUserActivity(service portaineree.UserActivityService) func(http.Handler) http.Handler {
 	return LogUserActivityWithContext(service, middlewares.FetchEndpoint)
 }
 
 // LogUserActivityWithContext a user activity logging middleware
 // It relies on the middlewares.ContextFetcher to fetch a logging context (i.e. endpoint).
 // Alternatively Portainer would be used as a context
-func LogUserActivityWithContext(service portainer.UserActivityService, context middlewares.ContextFetcher) func(http.Handler) http.Handler {
+func LogUserActivityWithContext(service portaineree.UserActivityService, context middlewares.ContextFetcher) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// need a copy of the request because after calling next.ServeHTTP(w, r) request body will be empty and closed
@@ -46,7 +46,7 @@ func LogUserActivityWithContext(service portainer.UserActivityService, context m
 // It relies on the middlewares.ContextFetcher to fetch a logging context (i.e. endpoint).
 // Alternatively Portainer would be used as a context.
 // requestStatus represents the http status code of the proxied request.
-func LogProxiedActivity(service portainer.UserActivityService, endpoint *portainer.Endpoint, responseStatus int, body []byte, r *http.Request) {
+func LogProxiedActivity(service portaineree.UserActivityService, endpoint *portaineree.Endpoint, responseStatus int, body []byte, r *http.Request) {
 	if isGoodToLog(r.Method, responseStatus) {
 		LogActivity(service, middlewares.StaticEndpoint(endpoint), body, r)
 	}
@@ -59,7 +59,7 @@ func isGoodToLog(requestMethod string, responseStatus int) bool {
 	return isModifyRequest && requestSucceeded
 }
 
-func LogActivity(service portainer.UserActivityService, contextFetcher middlewares.ContextFetcher, body []byte, r *http.Request) {
+func LogActivity(service portaineree.UserActivityService, contextFetcher middlewares.ContextFetcher, body []byte, r *http.Request) {
 	var err error
 
 	contentType := r.Header.Get("Content-Type")

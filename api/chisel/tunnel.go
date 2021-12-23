@@ -11,7 +11,7 @@ import (
 	"github.com/portainer/libcrypto"
 
 	"github.com/dchest/uniuri"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 const (
@@ -25,7 +25,7 @@ func (service *Service) getUnusedPort() int {
 	port := randomInt(minAvailablePort, maxAvailablePort)
 
 	for item := range service.tunnelDetailsMap.IterBuffered() {
-		tunnel := item.Val.(*portainer.TunnelDetails)
+		tunnel := item.Val.(*portaineree.TunnelDetails)
 		if tunnel.Port == port {
 			return service.getUnusedPort()
 		}
@@ -39,17 +39,17 @@ func randomInt(min, max int) int {
 }
 
 // GetTunnelDetails returns information about the tunnel associated to an environment(endpoint).
-func (service *Service) GetTunnelDetails(endpointID portainer.EndpointID) *portainer.TunnelDetails {
+func (service *Service) GetTunnelDetails(endpointID portaineree.EndpointID) *portaineree.TunnelDetails {
 	key := strconv.Itoa(int(endpointID))
 
 	if item, ok := service.tunnelDetailsMap.Get(key); ok {
-		tunnelDetails := item.(*portainer.TunnelDetails)
+		tunnelDetails := item.(*portaineree.TunnelDetails)
 		return tunnelDetails
 	}
 
-	jobs := make([]portainer.EdgeJob, 0)
-	return &portainer.TunnelDetails{
-		Status:      portainer.EdgeAgentIdle,
+	jobs := make([]portaineree.EdgeJob, 0)
+	return &portaineree.TunnelDetails{
+		Status:      portaineree.EdgeAgentIdle,
 		Port:        0,
 		Jobs:        jobs,
 		Credentials: "",
@@ -57,15 +57,15 @@ func (service *Service) GetTunnelDetails(endpointID portainer.EndpointID) *porta
 }
 
 // GetActiveTunnel retrieves an active tunnel which allows communicating with edge agent
-func (service *Service) GetActiveTunnel(endpoint *portainer.Endpoint) (*portainer.TunnelDetails, error) {
+func (service *Service) GetActiveTunnel(endpoint *portaineree.Endpoint) (*portaineree.TunnelDetails, error) {
 	tunnel := service.GetTunnelDetails(endpoint.ID)
 
-	if tunnel.Status == portainer.EdgeAgentActive {
+	if tunnel.Status == portaineree.EdgeAgentActive {
 		// update the LastActivity
 		service.SetTunnelStatusToActive(endpoint.ID)
 	}
 
-	if tunnel.Status == portainer.EdgeAgentIdle || tunnel.Status == portainer.EdgeAgentManagementRequired {
+	if tunnel.Status == portaineree.EdgeAgentIdle || tunnel.Status == portaineree.EdgeAgentManagementRequired {
 		err := service.SetTunnelStatusToRequired(endpoint.ID)
 		if err != nil {
 			return nil, fmt.Errorf("failed opening tunnel to endpoint: %w", err)
@@ -90,9 +90,9 @@ func (service *Service) GetActiveTunnel(endpoint *portainer.Endpoint) (*portaine
 
 // SetTunnelStatusToActive update the status of the tunnel associated to the specified environment(endpoint).
 // It sets the status to ACTIVE.
-func (service *Service) SetTunnelStatusToActive(endpointID portainer.EndpointID) {
+func (service *Service) SetTunnelStatusToActive(endpointID portaineree.EndpointID) {
 	tunnel := service.GetTunnelDetails(endpointID)
-	tunnel.Status = portainer.EdgeAgentActive
+	tunnel.Status = portaineree.EdgeAgentActive
 	tunnel.Credentials = ""
 	tunnel.LastActivity = time.Now()
 
@@ -103,10 +103,10 @@ func (service *Service) SetTunnelStatusToActive(endpointID portainer.EndpointID)
 // SetTunnelStatusToIdle update the status of the tunnel associated to the specified environment(endpoint).
 // It sets the status to IDLE.
 // It removes any existing credentials associated to the tunnel.
-func (service *Service) SetTunnelStatusToIdle(endpointID portainer.EndpointID) {
+func (service *Service) SetTunnelStatusToIdle(endpointID portaineree.EndpointID) {
 	tunnel := service.GetTunnelDetails(endpointID)
 
-	tunnel.Status = portainer.EdgeAgentIdle
+	tunnel.Status = portaineree.EdgeAgentIdle
 	tunnel.Port = 0
 	tunnel.LastActivity = time.Now()
 
@@ -127,7 +127,7 @@ func (service *Service) SetTunnelStatusToIdle(endpointID portainer.EndpointID) {
 // If no port is currently associated to the tunnel, it will associate a random unused port to the tunnel
 // and generate temporary credentials that can be used to establish a reverse tunnel on that port.
 // Credentials are encrypted using the Edge ID associated to the environment(endpoint).
-func (service *Service) SetTunnelStatusToRequired(endpointID portainer.EndpointID) error {
+func (service *Service) SetTunnelStatusToRequired(endpointID portaineree.EndpointID) error {
 	tunnel := service.GetTunnelDetails(endpointID)
 
 	if tunnel.Port == 0 {
@@ -136,7 +136,7 @@ func (service *Service) SetTunnelStatusToRequired(endpointID portainer.EndpointI
 			return err
 		}
 
-		tunnel.Status = portainer.EdgeAgentManagementRequired
+		tunnel.Status = portaineree.EdgeAgentManagementRequired
 		tunnel.Port = service.getUnusedPort()
 		tunnel.LastActivity = time.Now()
 

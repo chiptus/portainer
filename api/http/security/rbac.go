@@ -6,17 +6,17 @@ import (
 	"regexp"
 	"strings"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 // IsAdminOrEndpointAdmin checks if current request is for an admin or an environment(endpoint) admin
-func IsAdminOrEndpointAdmin(request *http.Request, dataStore portainer.DataStore, endpointID portainer.EndpointID) (bool, error) {
+func IsAdminOrEndpointAdmin(request *http.Request, dataStore portaineree.DataStore, endpointID portaineree.EndpointID) (bool, error) {
 	tokenData, err := RetrieveTokenData(request)
 	if err != nil {
 		return false, err
 	}
 
-	if tokenData.Role == portainer.AdministratorRole {
+	if tokenData.Role == portaineree.AdministratorRole {
 		return true, nil
 	}
 
@@ -25,13 +25,13 @@ func IsAdminOrEndpointAdmin(request *http.Request, dataStore portainer.DataStore
 		return false, err
 	}
 
-	_, endpointResourceAccess := user.EndpointAuthorizations[endpointID][portainer.EndpointResourcesAccess]
+	_, endpointResourceAccess := user.EndpointAuthorizations[endpointID][portaineree.EndpointResourcesAccess]
 
 	return endpointResourceAccess, nil
 }
 
 // AuthorizedOperation checks if operations is authorized
-func authorizedOperation(operation *portainer.APIOperationAuthorizationRequest) bool {
+func authorizedOperation(operation *portaineree.APIOperationAuthorizationRequest) bool {
 	operationAuthorization := getOperationAuthorization(operation.Path, operation.Method)
 	return operation.Authorizations[operationAuthorization]
 }
@@ -62,17 +62,17 @@ func extractResourceAndActionFromURL(routeResource, url string) (string, string)
 	return urlComponents["resource"], urlComponents["action"]
 }
 
-func getOperationAuthorization(url, method string) portainer.Authorization {
+func getOperationAuthorization(url, method string) portaineree.Authorization {
 	if dockerRule.MatchString(url) {
 		match := dockerRule.FindStringSubmatch(url)
 		return getDockerOperationAuthorization(strings.TrimPrefix(url, "/"+match[1]+"/docker"), method)
 	} else if storidgeRule.MatchString(url) {
-		return portainer.OperationIntegrationStoridgeAdmin
+		return portaineree.OperationIntegrationStoridgeAdmin
 	} else if k8sProxyRule.MatchString(url) {
 		// if the k8sProxyRule is matched, only tests if the user can access
 		// the current environment(endpoint). The namespace + resource authorization
 		// is done in the k8s level.
-		return portainer.OperationK8sResourcePoolsR
+		return portaineree.OperationK8sResourcePoolsR
 	} else if azureRule.MatchString(url) {
 		match := azureRule.FindStringSubmatch(url)
 		return getAzureOperationAuthorization(strings.TrimPrefix(url, "/"+match[1]+"/azure"), method)
@@ -84,15 +84,15 @@ func getOperationAuthorization(url, method string) portainer.Authorization {
 	return getPortainerOperationAuthorization(url, method)
 }
 
-func getKubernetesOperationAuthorization(url, method string) portainer.Authorization {
+func getKubernetesOperationAuthorization(url, method string) portaineree.Authorization {
 	urlParts := strings.Split(url, "/")
 	baseResource := strings.Split(urlParts[1], "?")[0]
 	_, action := extractResourceAndActionFromURL(baseResource, url)
 
-	authorizationsBindings := map[string]map[string]map[string]portainer.Authorization{
+	authorizationsBindings := map[string]map[string]map[string]portaineree.Authorization{
 		"namespaces": {
 			"system": {
-				http.MethodPut: portainer.OperationK8sResourcePoolDetailsW,
+				http.MethodPut: portaineree.OperationK8sResourcePoolDetailsW,
 			},
 		},
 	}
@@ -100,10 +100,10 @@ func getKubernetesOperationAuthorization(url, method string) portainer.Authoriza
 	if authorization, ok := authorizationsBindings[baseResource][action][method]; ok {
 		return authorization
 	}
-	return portainer.OperationK8sUndefined
+	return portaineree.OperationK8sUndefined
 }
 
-func getPortainerOperationAuthorization(url, method string) portainer.Authorization {
+func getPortainerOperationAuthorization(url, method string) portaineree.Authorization {
 	urlParts := strings.Split(url, "/")
 	baseResource := strings.Split(urlParts[1], "?")[0]
 
@@ -115,7 +115,7 @@ func getPortainerOperationAuthorization(url, method string) portainer.Authorizat
 	case "endpoints":
 		return portainerEndpointOperationAuthorization(url, method)
 	case "motd":
-		return portainer.OperationPortainerMOTD
+		return portaineree.OperationPortainerMOTD
 	case "extensions":
 		return portainerExtensionOperationAuthorization(url, method)
 	case "registries":
@@ -148,10 +148,10 @@ func getPortainerOperationAuthorization(url, method string) portainer.Authorizat
 		return portainerWebhookOperationAuthorization(url, method)
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func getDockerOperationAuthorization(url, method string) portainer.Authorization {
+func getDockerOperationAuthorization(url, method string) portaineree.Authorization {
 	urlParts := strings.Split(url, "/")
 	baseResource := strings.Split(urlParts[1], "?")[0]
 
@@ -159,7 +159,7 @@ func getDockerOperationAuthorization(url, method string) portainer.Authorization
 	case "v2":
 		return getDockerOperationAuthorization(strings.TrimPrefix(url, "/"+baseResource), method)
 	case "ping":
-		return portainer.OperationDockerAgentPing
+		return portaineree.OperationDockerAgentPing
 	case "agents":
 		return agentAgentsOperationAuthorization(url, method)
 	case "browse":
@@ -191,15 +191,15 @@ func getDockerOperationAuthorization(url, method string) portainer.Authorization
 	case "plugins":
 		return dockerPluginOperationAuthorization(url, method)
 	case "info":
-		return portainer.OperationDockerInfo
+		return portaineree.OperationDockerInfo
 	case "_ping":
-		return portainer.OperationDockerPing
+		return portaineree.OperationDockerPing
 	case "version":
-		return portainer.OperationDockerVersion
+		return portaineree.OperationDockerVersion
 	case "events":
-		return portainer.OperationDockerEvents
+		return portaineree.OperationDockerEvents
 	case "system/df": // TODO: this just cannot happen after strings.Split(url, "/"), can we use system instead?
-		return portainer.OperationDockerSystem
+		return portaineree.OperationDockerSystem
 	case "session":
 		return dockerSessionOperationAuthorization(url, method)
 	case "distribution":
@@ -209,57 +209,57 @@ func getDockerOperationAuthorization(url, method string) portainer.Authorization
 	case "build":
 		return dockerBuildOperationAuthorization(url, method)
 	default:
-		return portainer.OperationDockerUndefined
+		return portaineree.OperationDockerUndefined
 	}
 }
 
-func portainerDockerhubOperationAuthorization(url, method string) portainer.Authorization {
+func portainerDockerhubOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("dockerhub", url)
 
 	switch method {
 	case http.MethodGet:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerDockerHubInspect
+			return portaineree.OperationPortainerDockerHubInspect
 		}
 	case http.MethodPut:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerDockerHubUpdate
+			return portaineree.OperationPortainerDockerHubUpdate
 		}
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerEndpointGroupOperationAuthorization(url, method string) portainer.Authorization {
+func portainerEndpointGroupOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("endpoint_groups", url)
 
 	switch method {
 	case http.MethodGet:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerEndpointGroupList
+			return portaineree.OperationPortainerEndpointGroupList
 		} else if resource != "" && action == "" {
-			return portainer.OperationPortainerEndpointGroupInspect
+			return portaineree.OperationPortainerEndpointGroupInspect
 		}
 	case http.MethodPost:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerEndpointGroupCreate
+			return portaineree.OperationPortainerEndpointGroupCreate
 		}
 	case http.MethodPut:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerEndpointGroupUpdate
+			return portaineree.OperationPortainerEndpointGroupUpdate
 		} else if action == "access" {
-			return portainer.OperationPortainerEndpointGroupAccess
+			return portaineree.OperationPortainerEndpointGroupAccess
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerEndpointGroupDelete
+			return portaineree.OperationPortainerEndpointGroupDelete
 		}
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerEndpointOperationAuthorization(url, method string) portainer.Authorization {
+func portainerEndpointOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("endpoints", url)
 	urlParts := strings.Split(url, "/")
 	baseResource := strings.Split(urlParts[1], "?")[0]
@@ -267,9 +267,9 @@ func portainerEndpointOperationAuthorization(url, method string) portainer.Autho
 	switch method {
 	case http.MethodGet:
 		if resource == "" && action == "" { // GET /endpoints
-			return portainer.OperationPortainerEndpointList
+			return portaineree.OperationPortainerEndpointList
 		} else if resource != "" && action == "" { // GET /endpoints/:id
-			return portainer.OperationPortainerEndpointInspect
+			return portaineree.OperationPortainerEndpointInspect
 		}
 		if action == "dockerhub" {
 			return portainerDockerhubOperationAuthorization(strings.TrimPrefix(url, "/"+baseResource), method)
@@ -277,153 +277,153 @@ func portainerEndpointOperationAuthorization(url, method string) portainer.Autho
 
 		path, base := path.Split(action)
 		if path == "" && base == "registries" { // GET /endpoints/:id/registries
-			return portainer.OperationPortainerRegistryList
+			return portaineree.OperationPortainerRegistryList
 		} else if path == "registries/" && base != "" { // GET /endpoints/:id/registries/:id
-			return portainer.OperationPortainerRegistryInspect
+			return portaineree.OperationPortainerRegistryInspect
 		}
 
 	case http.MethodPost:
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationPortainerEndpointCreate
+				return portaineree.OperationPortainerEndpointCreate
 			} else if resource == "snapshot" {
-				return portainer.OperationPortainerEndpointSnapshots
+				return portaineree.OperationPortainerEndpointSnapshots
 			}
 		case "extensions":
-			return portainer.OperationPortainerEndpointExtensionAdd
+			return portaineree.OperationPortainerEndpointExtensionAdd
 		case "job":
-			return portainer.OperationPortainerEndpointJob
+			return portaineree.OperationPortainerEndpointJob
 		case "snapshot":
 			if resource != "" {
-				return portainer.OperationPortainerEndpointSnapshot
+				return portaineree.OperationPortainerEndpointSnapshot
 			}
 		}
 	case http.MethodPut:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerEndpointUpdate
+			return portaineree.OperationPortainerEndpointUpdate
 		} else if action == "access" {
-			return portainer.OperationPortainerEndpointUpdateAccess
+			return portaineree.OperationPortainerEndpointUpdateAccess
 		} else if action == "settings" {
-			return portainer.OperationPortainerEndpointUpdateSettings
+			return portaineree.OperationPortainerEndpointUpdateSettings
 		} else if action == "forceupdateservice" {
-			return portainer.OperationDockerServiceForceUpdateService
+			return portaineree.OperationDockerServiceForceUpdateService
 		} else if strings.HasPrefix(action, "registries/") {
-			return portainer.OperationPortainerRegistryUpdateAccess
+			return portaineree.OperationPortainerRegistryUpdateAccess
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerEndpointDelete
+			return portaineree.OperationPortainerEndpointDelete
 		} else if strings.HasPrefix(action, "extensions/") {
-			return portainer.OperationPortainerEndpointExtensionRemove
+			return portaineree.OperationPortainerEndpointExtensionRemove
 		}
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerExtensionOperationAuthorization(url, method string) portainer.Authorization {
+func portainerExtensionOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("extensions", url)
 
 	switch method {
 	case http.MethodGet:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerExtensionList
+			return portaineree.OperationPortainerExtensionList
 		} else if resource != "" && action == "" {
-			return portainer.OperationPortainerExtensionInspect
+			return portaineree.OperationPortainerExtensionInspect
 		}
 	case http.MethodPost:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerExtensionCreate
+			return portaineree.OperationPortainerExtensionCreate
 		} else if action == "update" {
-			return portainer.OperationPortainerExtensionUpdate
+			return portaineree.OperationPortainerExtensionUpdate
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerExtensionDelete
+			return portaineree.OperationPortainerExtensionDelete
 		}
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerRegistryOperationAuthorization(url, method string) portainer.Authorization {
+func portainerRegistryOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("registries", url)
 
 	switch method {
 	case http.MethodGet:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerRegistryList
+			return portaineree.OperationPortainerRegistryList
 		} else if resource != "" && action == "" {
-			return portainer.OperationPortainerRegistryInspect
+			return portaineree.OperationPortainerRegistryInspect
 		}
 	case http.MethodPost:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerRegistryCreate
+			return portaineree.OperationPortainerRegistryCreate
 		} else if action == "configure" {
-			return portainer.OperationPortainerRegistryConfigure
+			return portaineree.OperationPortainerRegistryConfigure
 		}
 	case http.MethodPut:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerRegistryUpdate
+			return portaineree.OperationPortainerRegistryUpdate
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerRegistryDelete
+			return portaineree.OperationPortainerRegistryDelete
 		}
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerResourceControlOperationAuthorization(url, method string) portainer.Authorization {
+func portainerResourceControlOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("resource_controls", url)
 
 	switch method {
 	case http.MethodPost:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerResourceControlCreate
+			return portaineree.OperationPortainerResourceControlCreate
 		}
 	case http.MethodPut:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerResourceControlUpdate
+			return portaineree.OperationPortainerResourceControlUpdate
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerResourceControlDelete
+			return portaineree.OperationPortainerResourceControlDelete
 		}
 	}
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerRoleOperationAuthorization(url, method string) portainer.Authorization {
+func portainerRoleOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("roles", url)
 
 	switch method {
 	case http.MethodGet:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerRoleList
+			return portaineree.OperationPortainerRoleList
 		} else if resource != "" && action == "" {
-			return portainer.OperationPortainerRoleInspect
+			return portaineree.OperationPortainerRoleInspect
 		}
 	case http.MethodPost:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerRoleCreate
+			return portaineree.OperationPortainerRoleCreate
 		}
 	case http.MethodPut:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerRoleUpdate
+			return portaineree.OperationPortainerRoleUpdate
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerRoleDelete
+			return portaineree.OperationPortainerRoleDelete
 		}
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerScheduleOperationAuthorization(url, method string) portainer.Authorization {
+func portainerScheduleOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("schedules", url)
 
 	switch method {
@@ -431,56 +431,56 @@ func portainerScheduleOperationAuthorization(url, method string) portainer.Autho
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationPortainerScheduleList
+				return portaineree.OperationPortainerScheduleList
 			} else {
-				return portainer.OperationPortainerScheduleInspect
+				return portaineree.OperationPortainerScheduleInspect
 			}
 		case "file":
-			return portainer.OperationPortainerScheduleFile
+			return portaineree.OperationPortainerScheduleFile
 		case "tasks":
-			return portainer.OperationPortainerScheduleTasks
+			return portaineree.OperationPortainerScheduleTasks
 		}
 
 	case http.MethodPost:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerScheduleCreate
+			return portaineree.OperationPortainerScheduleCreate
 		}
 	case http.MethodPut:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerScheduleUpdate
+			return portaineree.OperationPortainerScheduleUpdate
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerScheduleDelete
+			return portaineree.OperationPortainerScheduleDelete
 		}
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerSettingsOperationAuthorization(url, method string) portainer.Authorization {
+func portainerSettingsOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("settings", url)
 
 	switch method {
 	case http.MethodGet:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerSettingsInspect
+			return portaineree.OperationPortainerSettingsInspect
 		}
 	case http.MethodPut:
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationPortainerSettingsUpdate
+				return portaineree.OperationPortainerSettingsUpdate
 			}
 		case "checkLDAP":
-			return portainer.OperationPortainerSettingsLDAPCheck
+			return portaineree.OperationPortainerSettingsLDAPCheck
 		}
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerStackOperationAuthorization(url, method string) portainer.Authorization {
+func portainerStackOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("stacks", url)
 
 	switch method {
@@ -488,86 +488,86 @@ func portainerStackOperationAuthorization(url, method string) portainer.Authoriz
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationPortainerStackList
+				return portaineree.OperationPortainerStackList
 			} else {
-				return portainer.OperationPortainerStackInspect
+				return portaineree.OperationPortainerStackInspect
 			}
 		case "file":
-			return portainer.OperationPortainerStackFile
+			return portaineree.OperationPortainerStackFile
 		}
 
 	case http.MethodPost:
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationPortainerStackCreate
+				return portaineree.OperationPortainerStackCreate
 			}
 		case "git":
-			return portainer.OperationPortainerStackUpdate
+			return portaineree.OperationPortainerStackUpdate
 		case "migrate":
-			return portainer.OperationPortainerStackMigrate
+			return portaineree.OperationPortainerStackMigrate
 		}
 
 	case http.MethodPut:
 		if resource != "" && (action == "" || action == "git" || action == `git/redeploy`) {
-			return portainer.OperationPortainerStackUpdate
+			return portaineree.OperationPortainerStackUpdate
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerStackDelete
+			return portaineree.OperationPortainerStackDelete
 		}
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerTagOperationAuthorization(url, method string) portainer.Authorization {
+func portainerTagOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("tags", url)
 
 	switch method {
 	case http.MethodGet:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerTagList
+			return portaineree.OperationPortainerTagList
 		}
 	case http.MethodPost:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerTagCreate
+			return portaineree.OperationPortainerTagCreate
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerTagDelete
+			return portaineree.OperationPortainerTagDelete
 		}
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerTeamMembershipOperationAuthorization(url, method string) portainer.Authorization {
+func portainerTeamMembershipOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("team_memberships", url)
 
 	switch method {
 	case http.MethodGet:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerTeamMembershipList
+			return portaineree.OperationPortainerTeamMembershipList
 		}
 	case http.MethodPost:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerTeamMembershipCreate
+			return portaineree.OperationPortainerTeamMembershipCreate
 		}
 	case http.MethodPut:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerTeamMembershipUpdate
+			return portaineree.OperationPortainerTeamMembershipUpdate
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerTeamMembershipDelete
+			return portaineree.OperationPortainerTeamMembershipDelete
 		}
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerTeamOperationAuthorization(url, method string) portainer.Authorization {
+func portainerTeamOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("teams", url)
 
 	switch method {
@@ -575,75 +575,75 @@ func portainerTeamOperationAuthorization(url, method string) portainer.Authoriza
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationPortainerTeamList
+				return portaineree.OperationPortainerTeamList
 			} else {
-				return portainer.OperationPortainerTeamInspect
+				return portaineree.OperationPortainerTeamInspect
 			}
 		case "memberships":
-			return portainer.OperationPortainerTeamMemberships
+			return portaineree.OperationPortainerTeamMemberships
 		}
 
 	case http.MethodPost:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerTeamCreate
+			return portaineree.OperationPortainerTeamCreate
 		}
 	case http.MethodPut:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerTeamUpdate
+			return portaineree.OperationPortainerTeamUpdate
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerTeamDelete
+			return portaineree.OperationPortainerTeamDelete
 		}
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerTemplatesOperationAuthorization(url, method string) portainer.Authorization {
+func portainerTemplatesOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("templates", url)
 
 	switch method {
 	case http.MethodGet:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerTemplateList
+			return portaineree.OperationPortainerTemplateList
 		} else if resource != "" && action == "" {
-			return portainer.OperationPortainerTemplateInspect
+			return portaineree.OperationPortainerTemplateInspect
 		}
 	case http.MethodPost:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerTemplateCreate
+			return portaineree.OperationPortainerTemplateCreate
 		}
 		if resource == "file" && action == "" {
-			return portainer.OperationPortainerTemplateInspect
+			return portaineree.OperationPortainerTemplateInspect
 		}
 	case http.MethodPut:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerTemplateUpdate
+			return portaineree.OperationPortainerTemplateUpdate
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerTemplateDelete
+			return portaineree.OperationPortainerTemplateDelete
 		}
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerUploadOperationAuthorization(url, method string) portainer.Authorization {
+func portainerUploadOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, _ := extractResourceAndActionFromURL("upload", url)
 
 	switch method {
 	case http.MethodPost:
 		if resource == "tls" {
-			return portainer.OperationPortainerUploadTLS
+			return portaineree.OperationPortainerUploadTLS
 		}
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerUserOperationAuthorization(url, method string) portainer.Authorization {
+func portainerUserOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("users", url)
 
 	switch method {
@@ -651,73 +651,73 @@ func portainerUserOperationAuthorization(url, method string) portainer.Authoriza
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationPortainerUserList
+				return portaineree.OperationPortainerUserList
 			} else {
-				return portainer.OperationPortainerUserInspect
+				return portaineree.OperationPortainerUserInspect
 			}
 		case "memberships":
-			return portainer.OperationPortainerUserMemberships
+			return portaineree.OperationPortainerUserMemberships
 		case "tokens":
-			return portainer.OperationPortainerUserListToken
+			return portaineree.OperationPortainerUserListToken
 		}
 
 	case http.MethodPost:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerUserCreate
+			return portaineree.OperationPortainerUserCreate
 		} else if action == "tokens" {
-			return portainer.OperationPortainerUserCreateToken
+			return portaineree.OperationPortainerUserCreateToken
 		}
 	case http.MethodPut:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerUserUpdate
+			return portaineree.OperationPortainerUserUpdate
 		} else if resource != "" && action == "passwd" {
-			return portainer.OperationPortainerUserUpdatePassword
+			return portaineree.OperationPortainerUserUpdatePassword
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerUserDelete
+			return portaineree.OperationPortainerUserDelete
 		} else if strings.HasPrefix(action, "tokens") {
-			return portainer.OperationPortainerUserRevokeToken
+			return portaineree.OperationPortainerUserRevokeToken
 		}
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerWebsocketOperationAuthorization(url, method string) portainer.Authorization {
+func portainerWebsocketOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, _ := extractResourceAndActionFromURL("websocket", url)
 
 	if resource == "exec" || resource == "attach" {
-		return portainer.OperationPortainerWebsocketExec
+		return portaineree.OperationPortainerWebsocketExec
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
-func portainerWebhookOperationAuthorization(url, method string) portainer.Authorization {
+func portainerWebhookOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("webhooks", url)
 
 	switch method {
 	case http.MethodGet:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerWebhookList
+			return portaineree.OperationPortainerWebhookList
 		}
 	case http.MethodPost:
 		if resource == "" && action == "" {
-			return portainer.OperationPortainerWebhookCreate
+			return portaineree.OperationPortainerWebhookCreate
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
-			return portainer.OperationPortainerWebhookDelete
+			return portaineree.OperationPortainerWebhookDelete
 		}
 	}
 
-	return portainer.OperationPortainerUndefined
+	return portaineree.OperationPortainerUndefined
 }
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/network/network.go#L29
-func dockerNetworkOperationAuthorization(url, method string) portainer.Authorization {
+func dockerNetworkOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("networks", url)
 
 	switch method {
@@ -729,9 +729,9 @@ func dockerNetworkOperationAuthorization(url, method string) portainer.Authoriza
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationDockerNetworkList
+				return portaineree.OperationDockerNetworkList
 			} else {
-				return portainer.OperationDockerNetworkInspect
+				return portaineree.OperationDockerNetworkInspect
 			}
 		}
 	case http.MethodPost:
@@ -742,29 +742,29 @@ func dockerNetworkOperationAuthorization(url, method string) portainer.Authoriza
 		switch action {
 		case "":
 			if resource == "create" {
-				return portainer.OperationDockerNetworkCreate
+				return portaineree.OperationDockerNetworkCreate
 			} else if resource == "prune" {
-				return portainer.OperationDockerNetworkPrune
+				return portaineree.OperationDockerNetworkPrune
 			}
 		case "connect":
-			return portainer.OperationDockerNetworkConnect
+			return portaineree.OperationDockerNetworkConnect
 		case "disconnect":
-			return portainer.OperationDockerNetworkDisconnect
+			return portaineree.OperationDockerNetworkDisconnect
 		}
 	case http.MethodDelete:
 		// DELETE
 		// 	router.NewDeleteRoute("/networks/{id:.*}", r.deleteNetwork),
 		if resource != "" && action == "" {
-			return portainer.OperationDockerNetworkDelete
+			return portaineree.OperationDockerNetworkDelete
 		}
 	}
 
-	return portainer.OperationDockerUndefined
+	return portaineree.OperationDockerUndefined
 }
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/volume/volume.go#L25
-func dockerVolumeOperationAuthorization(url, method string) portainer.Authorization {
+func dockerVolumeOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("volumes", url)
 
 	switch method {
@@ -775,9 +775,9 @@ func dockerVolumeOperationAuthorization(url, method string) portainer.Authorizat
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationDockerVolumeList
+				return portaineree.OperationDockerVolumeList
 			} else {
-				return portainer.OperationDockerVolumeInspect
+				return portaineree.OperationDockerVolumeInspect
 			}
 		}
 	case http.MethodPost:
@@ -786,25 +786,25 @@ func dockerVolumeOperationAuthorization(url, method string) portainer.Authorizat
 		switch action {
 		case "":
 			if resource == "create" {
-				return portainer.OperationDockerVolumeCreate
+				return portaineree.OperationDockerVolumeCreate
 			} else if resource == "prune" {
-				return portainer.OperationDockerVolumePrune
+				return portaineree.OperationDockerVolumePrune
 			}
 		}
 	case http.MethodDelete:
 		// DELETE
 		//router.NewDeleteRoute("/volumes/{name:.*}", r.deleteVolumes),
 		if resource != "" && action == "" {
-			return portainer.OperationDockerVolumeDelete
+			return portaineree.OperationDockerVolumeDelete
 		}
 	}
 
-	return portainer.OperationDockerUndefined
+	return portaineree.OperationDockerUndefined
 }
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/container/container.go#L31
-func dockerExecOperationAuthorization(url, method string) portainer.Authorization {
+func dockerExecOperationAuthorization(url, method string) portaineree.Authorization {
 	_, action := extractResourceAndActionFromURL("exec", url)
 
 	switch method {
@@ -812,25 +812,25 @@ func dockerExecOperationAuthorization(url, method string) portainer.Authorizatio
 		// GET
 		// 		router.NewGetRoute("/exec/{id:.*}/json", r.getExecByID),
 		if action == "json" {
-			return portainer.OperationDockerExecInspect
+			return portaineree.OperationDockerExecInspect
 		}
 	case http.MethodPost:
 		// POST
 		//router.NewPostRoute("/exec/{name:.*}/start", r.postContainerExecStart),
 		//	router.NewPostRoute("/exec/{name:.*}/resize", r.postContainerExecResize),
 		if action == "start" {
-			return portainer.OperationDockerExecStart
+			return portaineree.OperationDockerExecStart
 		} else if action == "resize" {
-			return portainer.OperationDockerExecResize
+			return portaineree.OperationDockerExecResize
 		}
 	}
 
-	return portainer.OperationDockerUndefined
+	return portaineree.OperationDockerUndefined
 }
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/swarm/cluster.go#L25
-func dockerSwarmOperationAuthorization(url, method string) portainer.Authorization {
+func dockerSwarmOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("swarm", url)
 
 	switch method {
@@ -841,9 +841,9 @@ func dockerSwarmOperationAuthorization(url, method string) portainer.Authorizati
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationDockerSwarmInspect
+				return portaineree.OperationDockerSwarmInspect
 			} else {
-				return portainer.OperationDockerSwarmUnlockKey
+				return portaineree.OperationDockerSwarmUnlockKey
 			}
 		}
 	case http.MethodPost:
@@ -857,25 +857,25 @@ func dockerSwarmOperationAuthorization(url, method string) portainer.Authorizati
 		case "":
 			switch resource {
 			case "init":
-				return portainer.OperationDockerSwarmInit
+				return portaineree.OperationDockerSwarmInit
 			case "join":
-				return portainer.OperationDockerSwarmJoin
+				return portaineree.OperationDockerSwarmJoin
 			case "leave":
-				return portainer.OperationDockerSwarmLeave
+				return portaineree.OperationDockerSwarmLeave
 			case "update":
-				return portainer.OperationDockerSwarmUpdate
+				return portaineree.OperationDockerSwarmUpdate
 			case "unlock":
-				return portainer.OperationDockerSwarmUnlock
+				return portaineree.OperationDockerSwarmUnlock
 			}
 		}
 	}
 
-	return portainer.OperationDockerUndefined
+	return portaineree.OperationDockerUndefined
 }
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/swarm/cluster.go#L25
-func dockerNodeOperationAuthorization(url, method string) portainer.Authorization {
+func dockerNodeOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("nodes", url)
 
 	switch method {
@@ -886,32 +886,32 @@ func dockerNodeOperationAuthorization(url, method string) portainer.Authorizatio
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationDockerNodeList
+				return portaineree.OperationDockerNodeList
 			} else {
-				return portainer.OperationDockerNodeInspect
+				return portaineree.OperationDockerNodeInspect
 			}
 		}
 	case http.MethodPost:
 		// POST
 		//	router.NewPostRoute("/nodes/{id}/update", sr.updateNode)
 		if action == "update" {
-			return portainer.OperationDockerNodeUpdate
+			return portaineree.OperationDockerNodeUpdate
 		}
 	case http.MethodDelete:
 		// DELETE
 		//	router.NewDeleteRoute("/nodes/{id}", sr.removeNode),
 		if resource != "" {
-			return portainer.OperationDockerNodeDelete
+			return portaineree.OperationDockerNodeDelete
 		}
 
 	}
 
-	return portainer.OperationDockerUndefined
+	return portaineree.OperationDockerUndefined
 }
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/swarm/cluster.go#L25
-func dockerServiceOperationAuthorization(url, method string) portainer.Authorization {
+func dockerServiceOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("services", url)
 
 	switch method {
@@ -923,12 +923,12 @@ func dockerServiceOperationAuthorization(url, method string) portainer.Authoriza
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationDockerServiceList
+				return portaineree.OperationDockerServiceList
 			} else {
-				return portainer.OperationDockerServiceInspect
+				return portaineree.OperationDockerServiceInspect
 			}
 		case "logs":
-			return portainer.OperationDockerServiceLogs
+			return portaineree.OperationDockerServiceLogs
 		}
 	case http.MethodPost:
 		//// POST
@@ -937,25 +937,25 @@ func dockerServiceOperationAuthorization(url, method string) portainer.Authoriza
 		switch action {
 		case "":
 			if resource == "create" {
-				return portainer.OperationDockerServiceCreate
+				return portaineree.OperationDockerServiceCreate
 			}
 		case "update":
-			return portainer.OperationDockerServiceUpdate
+			return portaineree.OperationDockerServiceUpdate
 		}
 	case http.MethodDelete:
 		//// DELETE
 		//	router.NewDeleteRoute("/services/{id}", sr.removeService),
 		if resource != "" && action == "" {
-			return portainer.OperationDockerServiceDelete
+			return portaineree.OperationDockerServiceDelete
 		}
 	}
 
-	return portainer.OperationDockerUndefined
+	return portaineree.OperationDockerUndefined
 }
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/swarm/cluster.go#L25
-func dockerSecretOperationAuthorization(url, method string) portainer.Authorization {
+func dockerSecretOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("secrets", url)
 
 	switch method {
@@ -966,9 +966,9 @@ func dockerSecretOperationAuthorization(url, method string) portainer.Authorizat
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationDockerSecretList
+				return portaineree.OperationDockerSecretList
 			} else {
-				return portainer.OperationDockerSecretInspect
+				return portaineree.OperationDockerSecretInspect
 			}
 		}
 	case http.MethodPost:
@@ -978,25 +978,25 @@ func dockerSecretOperationAuthorization(url, method string) portainer.Authorizat
 		switch action {
 		case "":
 			if resource == "create" {
-				return portainer.OperationDockerSecretCreate
+				return portaineree.OperationDockerSecretCreate
 			}
 		case "update":
-			return portainer.OperationDockerSecretUpdate
+			return portaineree.OperationDockerSecretUpdate
 		}
 	case http.MethodDelete:
 		//// DELETE
 		//	router.NewDeleteRoute("/secrets/{id}", sr.removeSecret),
 		if resource != "" && action == "" {
-			return portainer.OperationDockerSecretDelete
+			return portaineree.OperationDockerSecretDelete
 		}
 	}
 
-	return portainer.OperationDockerUndefined
+	return portaineree.OperationDockerUndefined
 }
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/swarm/cluster.go#L25
-func dockerConfigOperationAuthorization(url, method string) portainer.Authorization {
+func dockerConfigOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("configs", url)
 
 	switch method {
@@ -1007,9 +1007,9 @@ func dockerConfigOperationAuthorization(url, method string) portainer.Authorizat
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationDockerConfigList
+				return portaineree.OperationDockerConfigList
 			} else {
-				return portainer.OperationDockerConfigInspect
+				return portaineree.OperationDockerConfigInspect
 			}
 		}
 	case http.MethodPost:
@@ -1019,25 +1019,25 @@ func dockerConfigOperationAuthorization(url, method string) portainer.Authorizat
 		switch action {
 		case "":
 			if resource == "create" {
-				return portainer.OperationDockerConfigCreate
+				return portaineree.OperationDockerConfigCreate
 			}
 		case "update":
-			return portainer.OperationDockerConfigUpdate
+			return portaineree.OperationDockerConfigUpdate
 		}
 	case http.MethodDelete:
 		//// DELETE
 		//	router.NewDeleteRoute("/configs/{id}", sr.removeConfig),
 		if resource != "" && action == "" {
-			return portainer.OperationDockerConfigDelete
+			return portaineree.OperationDockerConfigDelete
 		}
 	}
 
-	return portainer.OperationDockerUndefined
+	return portaineree.OperationDockerUndefined
 }
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/swarm/cluster.go#L25
-func dockerTaskOperationAuthorization(url, method string) portainer.Authorization {
+func dockerTaskOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("tasks", url)
 
 	switch method {
@@ -1049,21 +1049,21 @@ func dockerTaskOperationAuthorization(url, method string) portainer.Authorizatio
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationDockerTaskList
+				return portaineree.OperationDockerTaskList
 			} else {
-				return portainer.OperationDockerTaskInspect
+				return portaineree.OperationDockerTaskInspect
 			}
 		case "logs":
-			return portainer.OperationDockerTaskLogs
+			return portaineree.OperationDockerTaskLogs
 		}
 	}
 
-	return portainer.OperationDockerUndefined
+	return portaineree.OperationDockerUndefined
 }
 
 // Based on the routes available at
 //https://github.com/moby/moby/blob/c12f09bf99/api/server/router/plugin/plugin.go#L25
-func dockerPluginOperationAuthorization(url, method string) portainer.Authorization {
+func dockerPluginOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("plugins", url)
 
 	switch method {
@@ -1075,12 +1075,12 @@ func dockerPluginOperationAuthorization(url, method string) portainer.Authorizat
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationDockerPluginList
+				return portaineree.OperationDockerPluginList
 			} else if resource == "privileges" {
-				return portainer.OperationDockerPluginPrivileges
+				return portaineree.OperationDockerPluginPrivileges
 			}
 		case "json":
-			return portainer.OperationDockerPluginInspect
+			return portaineree.OperationDockerPluginInspect
 		}
 	case http.MethodPost:
 		//// POST
@@ -1094,35 +1094,35 @@ func dockerPluginOperationAuthorization(url, method string) portainer.Authorizat
 		switch action {
 		case "":
 			if resource == "pull" {
-				return portainer.OperationDockerPluginPull
+				return portaineree.OperationDockerPluginPull
 			} else if resource == "create" {
-				return portainer.OperationDockerPluginCreate
+				return portaineree.OperationDockerPluginCreate
 			}
 		case "enable":
-			return portainer.OperationDockerPluginEnable
+			return portaineree.OperationDockerPluginEnable
 		case "disable":
-			return portainer.OperationDockerPluginDisable
+			return portaineree.OperationDockerPluginDisable
 		case "push":
-			return portainer.OperationDockerPluginPush
+			return portaineree.OperationDockerPluginPush
 		case "upgrade":
-			return portainer.OperationDockerPluginUpgrade
+			return portaineree.OperationDockerPluginUpgrade
 		case "set":
-			return portainer.OperationDockerPluginSet
+			return portaineree.OperationDockerPluginSet
 		}
 	case http.MethodDelete:
 		//// DELETE
 		//	router.NewDeleteRoute("/plugins/{name:.*}", r.removePlugin),
 		if resource != "" && action == "" {
-			return portainer.OperationDockerPluginDelete
+			return portaineree.OperationDockerPluginDelete
 		}
 	}
 
-	return portainer.OperationDockerUndefined
+	return portaineree.OperationDockerUndefined
 }
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/session/session.go
-func dockerSessionOperationAuthorization(url, method string) portainer.Authorization {
+func dockerSessionOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("session", url)
 
 	switch method {
@@ -1130,16 +1130,16 @@ func dockerSessionOperationAuthorization(url, method string) portainer.Authoriza
 		//// POST
 		//router.NewPostRoute("/session", r.startSession),
 		if action == "" && resource == "" {
-			return portainer.OperationDockerSessionStart
+			return portaineree.OperationDockerSessionStart
 		}
 	}
 
-	return portainer.OperationDockerUndefined
+	return portaineree.OperationDockerUndefined
 }
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/distribution/distribution.go#L26
-func dockerDistributionOperationAuthorization(url, method string) portainer.Authorization {
+func dockerDistributionOperationAuthorization(url, method string) portaineree.Authorization {
 	_, action := extractResourceAndActionFromURL("distribution", url)
 
 	switch method {
@@ -1147,16 +1147,16 @@ func dockerDistributionOperationAuthorization(url, method string) portainer.Auth
 		//// GET
 		//router.NewGetRoute("/distribution/{name:.*}/json", r.getDistributionInfo),
 		if action == "json" {
-			return portainer.OperationDockerDistributionInspect
+			return portaineree.OperationDockerDistributionInspect
 		}
 	}
 
-	return portainer.OperationDockerUndefined
+	return portaineree.OperationDockerUndefined
 }
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/container/container.go#L31
-func dockerCommitOperationAuthorization(url, method string) portainer.Authorization {
+func dockerCommitOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("commit", url)
 
 	switch method {
@@ -1164,16 +1164,16 @@ func dockerCommitOperationAuthorization(url, method string) portainer.Authorizat
 		//// POST
 		// router.NewPostRoute("/commit", r.postCommit),
 		if resource == "" && action == "" {
-			return portainer.OperationDockerImageCommit
+			return portaineree.OperationDockerImageCommit
 		}
 	}
 
-	return portainer.OperationDockerUndefined
+	return portaineree.OperationDockerUndefined
 }
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/build/build.go#L32
-func dockerBuildOperationAuthorization(url, method string) portainer.Authorization {
+func dockerBuildOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("build", url)
 
 	switch method {
@@ -1185,21 +1185,21 @@ func dockerBuildOperationAuthorization(url, method string) portainer.Authorizati
 		switch action {
 		case "":
 			if resource == "" {
-				return portainer.OperationDockerImageBuild
+				return portaineree.OperationDockerImageBuild
 			} else if resource == "prune" {
-				return portainer.OperationDockerBuildPrune
+				return portaineree.OperationDockerBuildPrune
 			} else if resource == "cancel" {
-				return portainer.OperationDockerBuildCancel
+				return portaineree.OperationDockerBuildCancel
 			}
 		}
 	}
 
-	return portainer.OperationDockerUndefined
+	return portaineree.OperationDockerUndefined
 }
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/image/image.go#L26
-func dockerImageOperationAuthorization(url, method string) portainer.Authorization {
+func dockerImageOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("images", url)
 
 	switch method {
@@ -1214,18 +1214,18 @@ func dockerImageOperationAuthorization(url, method string) portainer.Authorizati
 		switch action {
 		case "":
 			if resource == "json" {
-				return portainer.OperationDockerImageList
+				return portaineree.OperationDockerImageList
 			} else if resource == "search" {
-				return portainer.OperationDockerImageSearch
+				return portaineree.OperationDockerImageSearch
 			} else if resource == "get" {
-				return portainer.OperationDockerImageGetAll
+				return portaineree.OperationDockerImageGetAll
 			}
 		case "get":
-			return portainer.OperationDockerImageGet
+			return portaineree.OperationDockerImageGet
 		case "history":
-			return portainer.OperationDockerImageHistory
+			return portaineree.OperationDockerImageHistory
 		case "json":
-			return portainer.OperationDockerImageInspect
+			return portaineree.OperationDockerImageInspect
 		}
 	case http.MethodPost:
 		//// POST
@@ -1237,84 +1237,84 @@ func dockerImageOperationAuthorization(url, method string) portainer.Authorizati
 		switch action {
 		case "":
 			if resource == "load" {
-				return portainer.OperationDockerImageLoad
+				return portaineree.OperationDockerImageLoad
 			} else if resource == "create" {
-				return portainer.OperationDockerImageCreate
+				return portaineree.OperationDockerImageCreate
 			} else if resource == "prune" {
-				return portainer.OperationDockerImagePrune
+				return portaineree.OperationDockerImagePrune
 			}
 		case "push":
-			return portainer.OperationDockerImagePush
+			return portaineree.OperationDockerImagePush
 		case "tag":
-			return portainer.OperationDockerImageTag
+			return portaineree.OperationDockerImageTag
 		}
 	case http.MethodDelete:
 		//// DELETE
 		//	router.NewDeleteRoute("/images/{name:.*}", r.deleteImages)
-		return portainer.OperationDockerImageDelete
+		return portaineree.OperationDockerImageDelete
 	}
 
-	return portainer.OperationDockerUndefined
+	return portaineree.OperationDockerUndefined
 }
 
-func agentAgentsOperationAuthorization(url, method string) portainer.Authorization {
+func agentAgentsOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("agents", url)
 
 	switch method {
 	case http.MethodGet:
 		if action == "" && resource == "" {
-			return portainer.OperationDockerAgentList
+			return portaineree.OperationDockerAgentList
 		}
 	}
 
-	return portainer.OperationDockerAgentUndefined
+	return portaineree.OperationDockerAgentUndefined
 }
 
-func agentBrowseOperationAuthorization(url, method string) portainer.Authorization {
+func agentBrowseOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, _ := extractResourceAndActionFromURL("browse", url)
 
 	switch method {
 	case http.MethodGet:
 		switch resource {
 		case "ls":
-			return portainer.OperationDockerAgentBrowseList
+			return portaineree.OperationDockerAgentBrowseList
 		case "get":
-			return portainer.OperationDockerAgentBrowseGet
+			return portaineree.OperationDockerAgentBrowseGet
 		}
 	case http.MethodDelete:
 		if resource == "delete" {
-			return portainer.OperationDockerAgentBrowseDelete
+			return portaineree.OperationDockerAgentBrowseDelete
 		}
 	case http.MethodPut:
 		if resource == "rename" {
-			return portainer.OperationDockerAgentBrowseRename
+			return portaineree.OperationDockerAgentBrowseRename
 		}
 	case http.MethodPost:
 		if resource == "put" {
-			return portainer.OperationDockerAgentBrowsePut
+			return portaineree.OperationDockerAgentBrowsePut
 		}
 
 	}
 
-	return portainer.OperationDockerAgentUndefined
+	return portaineree.OperationDockerAgentUndefined
 }
 
-func agentHostOperationAuthorization(url, method string) portainer.Authorization {
+func agentHostOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("host", url)
 
 	switch method {
 	case http.MethodGet:
 		if action == "" && resource == "info" {
-			return portainer.OperationDockerAgentHostInfo
+			return portaineree.OperationDockerAgentHostInfo
 		}
 	}
 
-	return portainer.OperationDockerAgentUndefined
+	return portaineree.OperationDockerAgentUndefined
 }
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/container/container.go#L31
-func dockerContainerOperationAuthorization(url, method string) portainer.Authorization {
+func dockerContainerOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("containers", url)
 
 	switch method {
@@ -1322,7 +1322,7 @@ func dockerContainerOperationAuthorization(url, method string) portainer.Authori
 		//// HEAD
 		//router.NewHeadRoute("/containers/{name:.*}/archive", r.headContainersArchive),
 		if action == "archive" {
-			return portainer.OperationDockerContainerArchiveInfo
+			return portaineree.OperationDockerContainerArchiveInfo
 		}
 	case http.MethodGet:
 		//// GET
@@ -1339,24 +1339,24 @@ func dockerContainerOperationAuthorization(url, method string) portainer.Authori
 		switch action {
 		case "":
 			if resource == "json" {
-				return portainer.OperationDockerContainerList
+				return portaineree.OperationDockerContainerList
 			}
 		case "export":
-			return portainer.OperationDockerContainerExport
+			return portaineree.OperationDockerContainerExport
 		case "changes":
-			return portainer.OperationDockerContainerChanges
+			return portaineree.OperationDockerContainerChanges
 		case "json":
-			return portainer.OperationDockerContainerInspect
+			return portaineree.OperationDockerContainerInspect
 		case "top":
-			return portainer.OperationDockerContainerTop
+			return portaineree.OperationDockerContainerTop
 		case "logs":
-			return portainer.OperationDockerContainerLogs
+			return portaineree.OperationDockerContainerLogs
 		case "stats":
-			return portainer.OperationDockerContainerStats
+			return portaineree.OperationDockerContainerStats
 		case "attach/ws":
-			return portainer.OperationDockerContainerAttachWebsocket
+			return portaineree.OperationDockerContainerAttachWebsocket
 		case "archive":
-			return portainer.OperationDockerContainerArchive
+			return portaineree.OperationDockerContainerArchive
 		}
 	case http.MethodPost:
 		//// POST
@@ -1381,48 +1381,48 @@ func dockerContainerOperationAuthorization(url, method string) portainer.Authori
 		switch action {
 		case "":
 			if resource == "create" {
-				return portainer.OperationDockerContainerCreate
+				return portaineree.OperationDockerContainerCreate
 			} else if resource == "prune" {
-				return portainer.OperationDockerContainerPrune
+				return portaineree.OperationDockerContainerPrune
 			}
 		case "kill":
-			return portainer.OperationDockerContainerKill
+			return portaineree.OperationDockerContainerKill
 		case "pause":
-			return portainer.OperationDockerContainerPause
+			return portaineree.OperationDockerContainerPause
 		case "unpause":
-			return portainer.OperationDockerContainerUnpause
+			return portaineree.OperationDockerContainerUnpause
 		case "restart":
-			return portainer.OperationDockerContainerRestart
+			return portaineree.OperationDockerContainerRestart
 		case "start":
-			return portainer.OperationDockerContainerStart
+			return portaineree.OperationDockerContainerStart
 		case "stop":
-			return portainer.OperationDockerContainerStop
+			return portaineree.OperationDockerContainerStop
 		case "wait":
-			return portainer.OperationDockerContainerWait
+			return portaineree.OperationDockerContainerWait
 		case "resize":
-			return portainer.OperationDockerContainerResize
+			return portaineree.OperationDockerContainerResize
 		case "attach":
-			return portainer.OperationDockerContainerAttach
+			return portaineree.OperationDockerContainerAttach
 		case "exec":
-			return portainer.OperationDockerContainerExec
+			return portaineree.OperationDockerContainerExec
 		case "rename":
-			return portainer.OperationDockerContainerRename
+			return portaineree.OperationDockerContainerRename
 		case "update":
-			return portainer.OperationDockerContainerUpdate
+			return portaineree.OperationDockerContainerUpdate
 		}
 	case http.MethodPut:
 		//// PUT
 		//	router.NewPutRoute("/containers/{name:.*}/archive", r.putContainersArchive),
 		if action == "archive" {
-			return portainer.OperationDockerContainerPutContainerArchive
+			return portaineree.OperationDockerContainerPutContainerArchive
 		}
 	case http.MethodDelete:
 		//// DELETE
 		//	router.NewDeleteRoute("/containers/{name:.*}", r.deleteContainers),
 		if resource != "" && action == "" {
-			return portainer.OperationDockerContainerDelete
+			return portaineree.OperationDockerContainerDelete
 		}
 	}
 
-	return portainer.OperationDockerUndefined
+	return portaineree.OperationDockerUndefined
 }

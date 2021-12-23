@@ -1,8 +1,8 @@
 package ssl
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 )
 
 const (
@@ -29,8 +29,8 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // Settings retrieve the ssl settings object.
-func (service *Service) Settings() (*portainer.SSLSettings, error) {
-	var settings portainer.SSLSettings
+func (service *Service) Settings() (*portaineree.SSLSettings, error) {
+	var settings portaineree.SSLSettings
 
 	err := internal.GetObject(service.connection, BucketName, []byte(key), &settings)
 	if err != nil {
@@ -41,6 +41,6 @@ func (service *Service) Settings() (*portainer.SSLSettings, error) {
 }
 
 // UpdateSettings persists a SSLSettings object.
-func (service *Service) UpdateSettings(settings *portainer.SSLSettings) error {
+func (service *Service) UpdateSettings(settings *portaineree.SSLSettings) error {
 	return internal.UpdateObject(service.connection, BucketName, []byte(key), settings)
 }

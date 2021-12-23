@@ -9,8 +9,8 @@ import (
 	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	portainer "github.com/portainer/portainer/api"
-	operations "github.com/portainer/portainer/api/backup"
+	portaineree "github.com/portainer/portainer-ee/api"
+	operations "github.com/portainer/portainer-ee/api/backup"
 )
 
 type (
@@ -18,7 +18,7 @@ type (
 		Password string
 	}
 	s3BackupPayload struct {
-		portainer.S3BackupSettings
+		portaineree.S3BackupSettings
 	}
 )
 

@@ -6,13 +6,13 @@ import (
 	"sort"
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_getTeams(t *testing.T) {
 	t.Run("returns empty string if OAuthAutoMapTeamMemberships is disabled", func(t *testing.T) {
-		oauthSettings := &portainer.OAuthSettings{
+		oauthSettings := &portaineree.OAuthSettings{
 			OAuthAutoMapTeamMemberships: false,
 		}
 		datamap := map[string]interface{}{}
@@ -28,9 +28,9 @@ func Test_getTeams(t *testing.T) {
 	})
 
 	t.Run("returns empty list for non-existent oauth claim name", func(t *testing.T) {
-		oauthSettings := &portainer.OAuthSettings{
+		oauthSettings := &portaineree.OAuthSettings{
 			OAuthAutoMapTeamMemberships: true,
-			TeamMemberships: portainer.TeamMemberships{
+			TeamMemberships: portaineree.TeamMemberships{
 				OAuthClaimName: "none",
 			},
 		}
@@ -42,9 +42,9 @@ func Test_getTeams(t *testing.T) {
 	})
 
 	t.Run("successfully extracts claim value", func(t *testing.T) {
-		oauthSettings := &portainer.OAuthSettings{
+		oauthSettings := &portaineree.OAuthSettings{
 			OAuthAutoMapTeamMemberships: true,
-			TeamMemberships: portainer.TeamMemberships{
+			TeamMemberships: portaineree.TeamMemberships{
 				OAuthClaimName: "group",
 			},
 		}
@@ -62,9 +62,9 @@ func Test_getTeams(t *testing.T) {
 	})
 
 	t.Run("successfully extracts multiple claim values", func(t *testing.T) {
-		oauthSettings := &portainer.OAuthSettings{
+		oauthSettings := &portaineree.OAuthSettings{
 			OAuthAutoMapTeamMemberships: true,
-			TeamMemberships: portainer.TeamMemberships{
+			TeamMemberships: portaineree.TeamMemberships{
 				OAuthClaimName: "group",
 			},
 		}
@@ -188,7 +188,7 @@ func Test_getNestedClaimValues(t *testing.T) {
 
 func Test_getUsername(t *testing.T) {
 	t.Run("fails for non-matching user identifier", func(t *testing.T) {
-		oauthSettings := &portainer.OAuthSettings{UserIdentifier: "username"}
+		oauthSettings := &portaineree.OAuthSettings{UserIdentifier: "username"}
 		datamap := map[string]interface{}{"name": "john"}
 
 		_, err := getUsername(datamap, oauthSettings)
@@ -198,7 +198,7 @@ func Test_getUsername(t *testing.T) {
 	})
 
 	t.Run("fails if username is empty string", func(t *testing.T) {
-		oauthSettings := &portainer.OAuthSettings{UserIdentifier: "username"}
+		oauthSettings := &portaineree.OAuthSettings{UserIdentifier: "username"}
 		datamap := map[string]interface{}{"username": ""}
 
 		_, err := getUsername(datamap, oauthSettings)
@@ -208,7 +208,7 @@ func Test_getUsername(t *testing.T) {
 	})
 
 	t.Run("fails if username is 0 int", func(t *testing.T) {
-		oauthSettings := &portainer.OAuthSettings{UserIdentifier: "username"}
+		oauthSettings := &portaineree.OAuthSettings{UserIdentifier: "username"}
 		datamap := map[string]interface{}{"username": 0}
 
 		_, err := getUsername(datamap, oauthSettings)
@@ -218,7 +218,7 @@ func Test_getUsername(t *testing.T) {
 	})
 
 	t.Run("fails if username is negative int", func(t *testing.T) {
-		oauthSettings := &portainer.OAuthSettings{UserIdentifier: "username"}
+		oauthSettings := &portaineree.OAuthSettings{UserIdentifier: "username"}
 		datamap := map[string]interface{}{"username": -1}
 
 		_, err := getUsername(datamap, oauthSettings)
@@ -228,7 +228,7 @@ func Test_getUsername(t *testing.T) {
 	})
 
 	t.Run("succeeds if username is matched and is not empty", func(t *testing.T) {
-		oauthSettings := &portainer.OAuthSettings{UserIdentifier: "username"}
+		oauthSettings := &portaineree.OAuthSettings{UserIdentifier: "username"}
 		datamap := map[string]interface{}{"username": "john"}
 
 		_, err := getUsername(datamap, oauthSettings)
@@ -239,7 +239,7 @@ func Test_getUsername(t *testing.T) {
 
 	// looks like a bug!?
 	t.Run("fails if username is matched and is positive int", func(t *testing.T) {
-		oauthSettings := &portainer.OAuthSettings{UserIdentifier: "username"}
+		oauthSettings := &portaineree.OAuthSettings{UserIdentifier: "username"}
 		datamap := map[string]interface{}{"username": 1}
 
 		_, err := getUsername(datamap, oauthSettings)
@@ -249,7 +249,7 @@ func Test_getUsername(t *testing.T) {
 	})
 
 	t.Run("succeeds if username is matched and is non-zero (or negative) float", func(t *testing.T) {
-		oauthSettings := &portainer.OAuthSettings{UserIdentifier: "username"}
+		oauthSettings := &portaineree.OAuthSettings{UserIdentifier: "username"}
 		datamap := map[string]interface{}{"username": 1.1}
 
 		_, err := getUsername(datamap, oauthSettings)

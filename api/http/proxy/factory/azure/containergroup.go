@@ -4,11 +4,11 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/portainer/portainer/api/http/proxy/factory/utils"
-	"github.com/portainer/portainer/api/http/useractivity"
-	ru "github.com/portainer/portainer/api/http/utils"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
+	ru "github.com/portainer/portainer-ee/api/http/utils"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 // proxy for /subscriptions/*/resourceGroups/*/providers/Microsoft.ContainerInstance/containerGroups/*
@@ -81,7 +81,7 @@ func (transport *Transport) proxyContainerGroupPutRequest(request *http.Request)
 		return response, err
 	}
 
-	resourceControl, err := transport.createPrivateResourceControl(containerGroupID, portainer.ContainerGroupResourceControl, context.userID)
+	resourceControl, err := transport.createPrivateResourceControl(containerGroupID, portaineree.ContainerGroupResourceControl, context.userID)
 	if err != nil {
 		return response, err
 	}

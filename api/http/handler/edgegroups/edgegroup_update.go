@@ -8,16 +8,16 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/internal/edge"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/internal/edge"
 )
 
 type edgeGroupUpdatePayload struct {
 	Name         string
 	Dynamic      bool
-	TagIDs       []portainer.TagID
-	Endpoints    []portainer.EndpointID
+	TagIDs       []portaineree.TagID
+	Endpoints    []portaineree.EndpointID
 	PartialMatch *bool
 }
 
@@ -44,7 +44,7 @@ func (payload *edgeGroupUpdatePayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path int true "EdgeGroup Id"
 // @param body body edgeGroupUpdatePayload true "EdgeGroup data"
-// @success 200 {object} portainer.EdgeGroup
+// @success 200 {object} portaineree.EdgeGroup
 // @failure 503 "Edge compute features are disabled"
 // @failure 500
 // @router /edge_groups/{id} [put]
@@ -60,7 +60,7 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	edgeGroup, err := handler.DataStore.EdgeGroup().EdgeGroup(portainer.EdgeGroupID(edgeGroupID))
+	edgeGroup, err := handler.DataStore.EdgeGroup().EdgeGroup(portaineree.EdgeGroupID(edgeGroupID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an Edge group with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -73,7 +73,7 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve Edge groups from the database", err}
 		}
 		for _, edgeGroup := range edgeGroups {
-			if edgeGroup.Name == payload.Name && edgeGroup.ID != portainer.EdgeGroupID(edgeGroupID) {
+			if edgeGroup.Name == payload.Name && edgeGroup.ID != portaineree.EdgeGroupID(edgeGroupID) {
 				return &httperror.HandlerError{http.StatusBadRequest, "Edge group name must be unique", errors.New("Edge group name must be unique")}
 			}
 		}
@@ -96,14 +96,14 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 	if edgeGroup.Dynamic {
 		edgeGroup.TagIDs = payload.TagIDs
 	} else {
-		endpointIDs := []portainer.EndpointID{}
+		endpointIDs := []portaineree.EndpointID{}
 		for _, endpointID := range payload.Endpoints {
 			endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
 			if err != nil {
 				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve environment from the database", err}
 			}
 
-			if endpoint.Type == portainer.EdgeAgentOnDockerEnvironment || endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment {
+			if endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
 				endpointIDs = append(endpointIDs, endpoint.ID)
 			}
 		}
@@ -132,7 +132,7 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 	return response.JSON(w, edgeGroup)
 }
 
-func (handler *Handler) updateEndpoint(endpointID portainer.EndpointID) error {
+func (handler *Handler) updateEndpoint(endpointID portaineree.EndpointID) error {
 	relation, err := handler.DataStore.EndpointRelation().EndpointRelation(endpointID)
 	if err != nil {
 		return err
@@ -158,7 +158,7 @@ func (handler *Handler) updateEndpoint(endpointID portainer.EndpointID) error {
 		return err
 	}
 
-	edgeStackSet := map[portainer.EdgeStackID]bool{}
+	edgeStackSet := map[portaineree.EdgeStackID]bool{}
 
 	endpointEdgeStacks := edge.EndpointRelatedEdgeStacks(endpoint, endpointGroup, edgeGroups, edgeStacks)
 	for _, edgeStackID := range endpointEdgeStacks {

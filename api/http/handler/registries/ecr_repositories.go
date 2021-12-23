@@ -6,10 +6,10 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	ecr "github.com/portainer/portainer/api/aws/ecr"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/internal/registryutils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	ecr "github.com/portainer/portainer-ee/api/aws/ecr"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/internal/registryutils"
 )
 
 // @id ecrDeleteRepository
@@ -38,7 +38,7 @@ func (handler *Handler) ecrDeleteRepository(w http.ResponseWriter, r *http.Reque
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid repository name route variable", err}
 	}
 
-	registry, err := handler.DataStore.Registry().Registry(portainer.RegistryID(registryID))
+	registry, err := handler.DataStore.Registry().Registry(portaineree.RegistryID(registryID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a registry with the specified identifier inside the database", err}
 	} else if err != nil {

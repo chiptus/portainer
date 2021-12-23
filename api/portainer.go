@@ -1,4 +1,4 @@
-package portainer
+package portaineree
 
 import (
 	"context"
@@ -1197,10 +1197,6 @@ type (
 		TLSKeyPath string `json:"TLSKey,omitempty" example:"/data/tls/key.pem"`
 	}
 
-	// TLSFileType represents a type of TLS file required to connect to a Docker environment(endpoint).
-	// It can be either a TLS CA file, a TLS certificate file or a TLS key file
-	TLSFileType int
-
 	// TokenData represents the data embedded in a JWT token
 	TokenData struct {
 		ID       UserID
@@ -1440,42 +1436,6 @@ type (
 		CreateEndpointRelation(endpointRelation *EndpointRelation) error
 		UpdateEndpointRelation(EndpointID EndpointID, endpointRelation *EndpointRelation) error
 		DeleteEndpointRelation(EndpointID EndpointID) error
-	}
-
-	// FileService represents a service for managing files
-	FileService interface {
-		GetDockerConfigPath() string
-		GetFileContent(trustedRootPath, filePath string) ([]byte, error)
-		Copy(fromFilePath string, toFilePath string, deleteIfExists bool) error
-		Rename(oldPath, newPath string) error
-		RemoveDirectory(directoryPath string) error
-		StoreTLSFileFromBytes(folder string, fileType TLSFileType, data []byte) (string, error)
-		GetPathForTLSFile(folder string, fileType TLSFileType) (string, error)
-		DeleteTLSFile(folder string, fileType TLSFileType) error
-		DeleteTLSFiles(folder string) error
-		GetStackProjectPath(stackIdentifier string) string
-		StoreStackFileFromBytes(stackIdentifier, fileName string, data []byte) (string, error)
-		GetEdgeStackProjectPath(edgeStackIdentifier string) string
-		StoreEdgeStackFileFromBytes(edgeStackIdentifier, fileName string, data []byte) (string, error)
-		StoreRegistryManagementFileFromBytes(folder, fileName string, data []byte) (string, error)
-		KeyPairFilesExist() (bool, error)
-		StoreKeyPair(private, public []byte, privatePEMHeader, publicPEMHeader string) error
-		LoadKeyPair() ([]byte, []byte, error)
-		WriteJSONToFile(path string, content interface{}) error
-		FileExists(path string) (bool, error)
-		StoreEdgeJobFileFromBytes(identifier string, data []byte) (string, error)
-		GetEdgeJobFolder(identifier string) string
-		ClearEdgeJobTaskLogs(edgeJobID, taskID string) error
-		GetEdgeJobTaskLogFileContent(edgeJobID, taskID string) (string, error)
-		StoreEdgeJobTaskLogFileFromBytes(edgeJobID, taskID string, data []byte) error
-		GetBinaryFolder() string
-		StoreCustomTemplateFileFromBytes(identifier, fileName string, data []byte) (string, error)
-		GetCustomTemplateProjectPath(identifier string) string
-		GetTemporaryPath() (string, error)
-		GetDatastorePath() string
-		GetDefaultSSLCertsPath() (string, string)
-		StoreSSLCertPair(cert, key []byte) (string, string, error)
-		CopySSLCertPair(certPath, keyPath string) (string, string, error)
 	}
 
 	// GitService represents a service for managing Git
@@ -2037,15 +1997,6 @@ const (
 	ComposeStackTemplate
 	// EdgeStackTemplate represents a template used to deploy an Edge stack
 	EdgeStackTemplate
-)
-
-const (
-	// TLSFileCA represents a TLS CA certificate file
-	TLSFileCA TLSFileType = iota
-	// TLSFileCert represents a TLS certificate file
-	TLSFileCert
-	// TLSFileKey represents a TLS key file
-	TLSFileKey
 )
 
 const (

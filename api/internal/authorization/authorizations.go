@@ -1,229 +1,229 @@
 package authorization
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/kubernetes/cli"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 )
 
 // Service represents a service used to
 // update authorizations associated to a user or team.
 type (
 	Service struct {
-		dataStore         portainer.DataStore
-		authEventHandlers map[string]portainer.AuthEventHandler
+		dataStore         portaineree.DataStore
+		authEventHandlers map[string]portaineree.AuthEventHandler
 		K8sClientFactory  *cli.ClientFactory
 	}
 )
 
 // NewService returns a point to a new Service instance.
-func NewService(dataStore portainer.DataStore) *Service {
+func NewService(dataStore portaineree.DataStore) *Service {
 	return &Service{
 		dataStore:         dataStore,
-		authEventHandlers: make(map[string]portainer.AuthEventHandler),
+		authEventHandlers: make(map[string]portaineree.AuthEventHandler),
 	}
 }
 
 // DefaultEndpointAuthorizationsForEndpointAdministratorRole returns the default environment(endpoint) authorizations
 // associated to the environment(endpoint) administrator role.
-func DefaultEndpointAuthorizationsForEndpointAdministratorRole() portainer.Authorizations {
-	return unionAuthorizations(map[portainer.Authorization]bool{
-		portainer.OperationDockerContainerArchiveInfo:         true,
-		portainer.OperationDockerContainerList:                true,
-		portainer.OperationDockerContainerExport:              true,
-		portainer.OperationDockerContainerChanges:             true,
-		portainer.OperationDockerContainerInspect:             true,
-		portainer.OperationDockerContainerTop:                 true,
-		portainer.OperationDockerContainerLogs:                true,
-		portainer.OperationDockerContainerStats:               true,
-		portainer.OperationDockerContainerAttachWebsocket:     true,
-		portainer.OperationDockerContainerArchive:             true,
-		portainer.OperationDockerContainerCreate:              true,
-		portainer.OperationDockerContainerPrune:               true,
-		portainer.OperationDockerContainerKill:                true,
-		portainer.OperationDockerContainerPause:               true,
-		portainer.OperationDockerContainerUnpause:             true,
-		portainer.OperationDockerContainerRestart:             true,
-		portainer.OperationDockerContainerStart:               true,
-		portainer.OperationDockerContainerStop:                true,
-		portainer.OperationDockerContainerWait:                true,
-		portainer.OperationDockerContainerResize:              true,
-		portainer.OperationDockerContainerAttach:              true,
-		portainer.OperationDockerContainerExec:                true,
-		portainer.OperationDockerContainerRename:              true,
-		portainer.OperationDockerContainerUpdate:              true,
-		portainer.OperationDockerContainerPutContainerArchive: true,
-		portainer.OperationDockerContainerDelete:              true,
-		portainer.OperationDockerImageList:                    true,
-		portainer.OperationDockerImageSearch:                  true,
-		portainer.OperationDockerImageGetAll:                  true,
-		portainer.OperationDockerImageGet:                     true,
-		portainer.OperationDockerImageHistory:                 true,
-		portainer.OperationDockerImageInspect:                 true,
-		portainer.OperationDockerImageLoad:                    true,
-		portainer.OperationDockerImageCreate:                  true,
-		portainer.OperationDockerImagePrune:                   true,
-		portainer.OperationDockerImagePush:                    true,
-		portainer.OperationDockerImageTag:                     true,
-		portainer.OperationDockerImageDelete:                  true,
-		portainer.OperationDockerImageCommit:                  true,
-		portainer.OperationDockerImageBuild:                   true,
-		portainer.OperationDockerNetworkList:                  true,
-		portainer.OperationDockerNetworkInspect:               true,
-		portainer.OperationDockerNetworkCreate:                true,
-		portainer.OperationDockerNetworkConnect:               true,
-		portainer.OperationDockerNetworkDisconnect:            true,
-		portainer.OperationDockerNetworkPrune:                 true,
-		portainer.OperationDockerNetworkDelete:                true,
-		portainer.OperationDockerVolumeList:                   true,
-		portainer.OperationDockerVolumeInspect:                true,
-		portainer.OperationDockerVolumeCreate:                 true,
-		portainer.OperationDockerVolumePrune:                  true,
-		portainer.OperationDockerVolumeDelete:                 true,
-		portainer.OperationDockerExecInspect:                  true,
-		portainer.OperationDockerExecStart:                    true,
-		portainer.OperationDockerExecResize:                   true,
-		portainer.OperationDockerSwarmInspect:                 true,
-		portainer.OperationDockerSwarmUnlockKey:               true,
-		portainer.OperationDockerSwarmInit:                    true,
-		portainer.OperationDockerSwarmJoin:                    true,
-		portainer.OperationDockerSwarmLeave:                   true,
-		portainer.OperationDockerSwarmUpdate:                  true,
-		portainer.OperationDockerSwarmUnlock:                  true,
-		portainer.OperationDockerNodeList:                     true,
-		portainer.OperationDockerNodeInspect:                  true,
-		portainer.OperationDockerNodeUpdate:                   true,
-		portainer.OperationDockerNodeDelete:                   true,
-		portainer.OperationDockerServiceList:                  true,
-		portainer.OperationDockerServiceInspect:               true,
-		portainer.OperationDockerServiceLogs:                  true,
-		portainer.OperationDockerServiceCreate:                true,
-		portainer.OperationDockerServiceUpdate:                true,
-		portainer.OperationDockerServiceForceUpdateService:    true,
-		portainer.OperationDockerServiceDelete:                true,
-		portainer.OperationDockerSecretList:                   true,
-		portainer.OperationDockerSecretInspect:                true,
-		portainer.OperationDockerSecretCreate:                 true,
-		portainer.OperationDockerSecretUpdate:                 true,
-		portainer.OperationDockerSecretDelete:                 true,
-		portainer.OperationDockerConfigList:                   true,
-		portainer.OperationDockerConfigInspect:                true,
-		portainer.OperationDockerConfigCreate:                 true,
-		portainer.OperationDockerConfigUpdate:                 true,
-		portainer.OperationDockerConfigDelete:                 true,
-		portainer.OperationDockerTaskList:                     true,
-		portainer.OperationDockerTaskInspect:                  true,
-		portainer.OperationDockerTaskLogs:                     true,
-		portainer.OperationDockerPluginList:                   true,
-		portainer.OperationDockerPluginPrivileges:             true,
-		portainer.OperationDockerPluginInspect:                true,
-		portainer.OperationDockerPluginPull:                   true,
-		portainer.OperationDockerPluginCreate:                 true,
-		portainer.OperationDockerPluginEnable:                 true,
-		portainer.OperationDockerPluginDisable:                true,
-		portainer.OperationDockerPluginPush:                   true,
-		portainer.OperationDockerPluginUpgrade:                true,
-		portainer.OperationDockerPluginSet:                    true,
-		portainer.OperationDockerPluginDelete:                 true,
-		portainer.OperationDockerSessionStart:                 true,
-		portainer.OperationDockerDistributionInspect:          true,
-		portainer.OperationDockerBuildPrune:                   true,
-		portainer.OperationDockerBuildCancel:                  true,
-		portainer.OperationDockerPing:                         true,
-		portainer.OperationDockerInfo:                         true,
-		portainer.OperationDockerVersion:                      true,
-		portainer.OperationDockerEvents:                       true,
-		portainer.OperationDockerSystem:                       true,
-		portainer.OperationDockerUndefined:                    true,
-		portainer.OperationDockerAgentPing:                    true,
-		portainer.OperationDockerAgentList:                    true,
-		portainer.OperationDockerAgentHostInfo:                true,
-		portainer.OperationDockerAgentBrowseDelete:            true,
-		portainer.OperationDockerAgentBrowseGet:               true,
-		portainer.OperationDockerAgentBrowseList:              true,
-		portainer.OperationDockerAgentBrowsePut:               true,
-		portainer.OperationDockerAgentBrowseRename:            true,
-		portainer.OperationDockerAgentUndefined:               true,
-		portainer.OperationPortainerResourceControlCreate:     true,
-		portainer.OperationPortainerResourceControlUpdate:     true,
-		portainer.OperationPortainerRegistryList:              true,
-		portainer.OperationPortainerRegistryInspect:           true,
-		portainer.OperationPortainerRegistryUpdateAccess:      true,
-		portainer.OperationPortainerStackList:                 true,
-		portainer.OperationPortainerStackInspect:              true,
-		portainer.OperationPortainerStackFile:                 true,
-		portainer.OperationPortainerStackCreate:               true,
-		portainer.OperationPortainerStackMigrate:              true,
-		portainer.OperationPortainerStackUpdate:               true,
-		portainer.OperationPortainerStackDelete:               true,
-		portainer.OperationPortainerWebsocketExec:             true,
-		portainer.OperationPortainerWebhookList:               true,
-		portainer.OperationPortainerWebhookCreate:             true,
-		portainer.OperationPortainerWebhookDelete:             true,
-		portainer.OperationPortainerEndpointUpdateSettings:    true,
-		portainer.OperationIntegrationStoridgeAdmin:           true,
-		portainer.EndpointResourcesAccess:                     true,
-		portainer.OperationHelmRepoList:                       true,
-		portainer.OperationHelmRepoCreate:                     true,
-		portainer.OperationHelmInstallChart:                   true,
-		portainer.OperationHelmUninstallChart:                 true,
+func DefaultEndpointAuthorizationsForEndpointAdministratorRole() portaineree.Authorizations {
+	return unionAuthorizations(map[portaineree.Authorization]bool{
+		portaineree.OperationDockerContainerArchiveInfo:         true,
+		portaineree.OperationDockerContainerList:                true,
+		portaineree.OperationDockerContainerExport:              true,
+		portaineree.OperationDockerContainerChanges:             true,
+		portaineree.OperationDockerContainerInspect:             true,
+		portaineree.OperationDockerContainerTop:                 true,
+		portaineree.OperationDockerContainerLogs:                true,
+		portaineree.OperationDockerContainerStats:               true,
+		portaineree.OperationDockerContainerAttachWebsocket:     true,
+		portaineree.OperationDockerContainerArchive:             true,
+		portaineree.OperationDockerContainerCreate:              true,
+		portaineree.OperationDockerContainerPrune:               true,
+		portaineree.OperationDockerContainerKill:                true,
+		portaineree.OperationDockerContainerPause:               true,
+		portaineree.OperationDockerContainerUnpause:             true,
+		portaineree.OperationDockerContainerRestart:             true,
+		portaineree.OperationDockerContainerStart:               true,
+		portaineree.OperationDockerContainerStop:                true,
+		portaineree.OperationDockerContainerWait:                true,
+		portaineree.OperationDockerContainerResize:              true,
+		portaineree.OperationDockerContainerAttach:              true,
+		portaineree.OperationDockerContainerExec:                true,
+		portaineree.OperationDockerContainerRename:              true,
+		portaineree.OperationDockerContainerUpdate:              true,
+		portaineree.OperationDockerContainerPutContainerArchive: true,
+		portaineree.OperationDockerContainerDelete:              true,
+		portaineree.OperationDockerImageList:                    true,
+		portaineree.OperationDockerImageSearch:                  true,
+		portaineree.OperationDockerImageGetAll:                  true,
+		portaineree.OperationDockerImageGet:                     true,
+		portaineree.OperationDockerImageHistory:                 true,
+		portaineree.OperationDockerImageInspect:                 true,
+		portaineree.OperationDockerImageLoad:                    true,
+		portaineree.OperationDockerImageCreate:                  true,
+		portaineree.OperationDockerImagePrune:                   true,
+		portaineree.OperationDockerImagePush:                    true,
+		portaineree.OperationDockerImageTag:                     true,
+		portaineree.OperationDockerImageDelete:                  true,
+		portaineree.OperationDockerImageCommit:                  true,
+		portaineree.OperationDockerImageBuild:                   true,
+		portaineree.OperationDockerNetworkList:                  true,
+		portaineree.OperationDockerNetworkInspect:               true,
+		portaineree.OperationDockerNetworkCreate:                true,
+		portaineree.OperationDockerNetworkConnect:               true,
+		portaineree.OperationDockerNetworkDisconnect:            true,
+		portaineree.OperationDockerNetworkPrune:                 true,
+		portaineree.OperationDockerNetworkDelete:                true,
+		portaineree.OperationDockerVolumeList:                   true,
+		portaineree.OperationDockerVolumeInspect:                true,
+		portaineree.OperationDockerVolumeCreate:                 true,
+		portaineree.OperationDockerVolumePrune:                  true,
+		portaineree.OperationDockerVolumeDelete:                 true,
+		portaineree.OperationDockerExecInspect:                  true,
+		portaineree.OperationDockerExecStart:                    true,
+		portaineree.OperationDockerExecResize:                   true,
+		portaineree.OperationDockerSwarmInspect:                 true,
+		portaineree.OperationDockerSwarmUnlockKey:               true,
+		portaineree.OperationDockerSwarmInit:                    true,
+		portaineree.OperationDockerSwarmJoin:                    true,
+		portaineree.OperationDockerSwarmLeave:                   true,
+		portaineree.OperationDockerSwarmUpdate:                  true,
+		portaineree.OperationDockerSwarmUnlock:                  true,
+		portaineree.OperationDockerNodeList:                     true,
+		portaineree.OperationDockerNodeInspect:                  true,
+		portaineree.OperationDockerNodeUpdate:                   true,
+		portaineree.OperationDockerNodeDelete:                   true,
+		portaineree.OperationDockerServiceList:                  true,
+		portaineree.OperationDockerServiceInspect:               true,
+		portaineree.OperationDockerServiceLogs:                  true,
+		portaineree.OperationDockerServiceCreate:                true,
+		portaineree.OperationDockerServiceUpdate:                true,
+		portaineree.OperationDockerServiceForceUpdateService:    true,
+		portaineree.OperationDockerServiceDelete:                true,
+		portaineree.OperationDockerSecretList:                   true,
+		portaineree.OperationDockerSecretInspect:                true,
+		portaineree.OperationDockerSecretCreate:                 true,
+		portaineree.OperationDockerSecretUpdate:                 true,
+		portaineree.OperationDockerSecretDelete:                 true,
+		portaineree.OperationDockerConfigList:                   true,
+		portaineree.OperationDockerConfigInspect:                true,
+		portaineree.OperationDockerConfigCreate:                 true,
+		portaineree.OperationDockerConfigUpdate:                 true,
+		portaineree.OperationDockerConfigDelete:                 true,
+		portaineree.OperationDockerTaskList:                     true,
+		portaineree.OperationDockerTaskInspect:                  true,
+		portaineree.OperationDockerTaskLogs:                     true,
+		portaineree.OperationDockerPluginList:                   true,
+		portaineree.OperationDockerPluginPrivileges:             true,
+		portaineree.OperationDockerPluginInspect:                true,
+		portaineree.OperationDockerPluginPull:                   true,
+		portaineree.OperationDockerPluginCreate:                 true,
+		portaineree.OperationDockerPluginEnable:                 true,
+		portaineree.OperationDockerPluginDisable:                true,
+		portaineree.OperationDockerPluginPush:                   true,
+		portaineree.OperationDockerPluginUpgrade:                true,
+		portaineree.OperationDockerPluginSet:                    true,
+		portaineree.OperationDockerPluginDelete:                 true,
+		portaineree.OperationDockerSessionStart:                 true,
+		portaineree.OperationDockerDistributionInspect:          true,
+		portaineree.OperationDockerBuildPrune:                   true,
+		portaineree.OperationDockerBuildCancel:                  true,
+		portaineree.OperationDockerPing:                         true,
+		portaineree.OperationDockerInfo:                         true,
+		portaineree.OperationDockerVersion:                      true,
+		portaineree.OperationDockerEvents:                       true,
+		portaineree.OperationDockerSystem:                       true,
+		portaineree.OperationDockerUndefined:                    true,
+		portaineree.OperationDockerAgentPing:                    true,
+		portaineree.OperationDockerAgentList:                    true,
+		portaineree.OperationDockerAgentHostInfo:                true,
+		portaineree.OperationDockerAgentBrowseDelete:            true,
+		portaineree.OperationDockerAgentBrowseGet:               true,
+		portaineree.OperationDockerAgentBrowseList:              true,
+		portaineree.OperationDockerAgentBrowsePut:               true,
+		portaineree.OperationDockerAgentBrowseRename:            true,
+		portaineree.OperationDockerAgentUndefined:               true,
+		portaineree.OperationPortainerResourceControlCreate:     true,
+		portaineree.OperationPortainerResourceControlUpdate:     true,
+		portaineree.OperationPortainerRegistryList:              true,
+		portaineree.OperationPortainerRegistryInspect:           true,
+		portaineree.OperationPortainerRegistryUpdateAccess:      true,
+		portaineree.OperationPortainerStackList:                 true,
+		portaineree.OperationPortainerStackInspect:              true,
+		portaineree.OperationPortainerStackFile:                 true,
+		portaineree.OperationPortainerStackCreate:               true,
+		portaineree.OperationPortainerStackMigrate:              true,
+		portaineree.OperationPortainerStackUpdate:               true,
+		portaineree.OperationPortainerStackDelete:               true,
+		portaineree.OperationPortainerWebsocketExec:             true,
+		portaineree.OperationPortainerWebhookList:               true,
+		portaineree.OperationPortainerWebhookCreate:             true,
+		portaineree.OperationPortainerWebhookDelete:             true,
+		portaineree.OperationPortainerEndpointUpdateSettings:    true,
+		portaineree.OperationIntegrationStoridgeAdmin:           true,
+		portaineree.EndpointResourcesAccess:                     true,
+		portaineree.OperationHelmRepoList:                       true,
+		portaineree.OperationHelmRepoCreate:                     true,
+		portaineree.OperationHelmInstallChart:                   true,
+		portaineree.OperationHelmUninstallChart:                 true,
 	},
-		DefaultK8sClusterAuthorizations()[portainer.RoleIDEndpointAdmin],
-		DefaultAzureAuthorizations()[portainer.RoleIDEndpointAdmin],
+		DefaultK8sClusterAuthorizations()[portaineree.RoleIDEndpointAdmin],
+		DefaultAzureAuthorizations()[portaineree.RoleIDEndpointAdmin],
 	)
 }
 
 // DefaultEndpointAuthorizationsForHelpDeskRole returns the default environment(endpoint) authorizations
 // associated to the helpdesk role.
-func DefaultEndpointAuthorizationsForHelpDeskRole() portainer.Authorizations {
-	authorizations := unionAuthorizations(map[portainer.Authorization]bool{
-		portainer.OperationDockerContainerArchiveInfo: true,
-		portainer.OperationDockerContainerList:        true,
-		portainer.OperationDockerContainerChanges:     true,
-		portainer.OperationDockerContainerInspect:     true,
-		portainer.OperationDockerContainerTop:         true,
-		portainer.OperationDockerContainerLogs:        true,
-		portainer.OperationDockerContainerStats:       true,
-		portainer.OperationDockerImageList:            true,
-		portainer.OperationDockerImageSearch:          true,
-		portainer.OperationDockerImageGetAll:          true,
-		portainer.OperationDockerImageGet:             true,
-		portainer.OperationDockerImageHistory:         true,
-		portainer.OperationDockerImageInspect:         true,
-		portainer.OperationDockerNetworkList:          true,
-		portainer.OperationDockerNetworkInspect:       true,
-		portainer.OperationDockerVolumeList:           true,
-		portainer.OperationDockerVolumeInspect:        true,
-		portainer.OperationDockerSwarmInspect:         true,
-		portainer.OperationDockerNodeList:             true,
-		portainer.OperationDockerNodeInspect:          true,
-		portainer.OperationDockerServiceList:          true,
-		portainer.OperationDockerServiceInspect:       true,
-		portainer.OperationDockerServiceLogs:          true,
-		portainer.OperationDockerSecretList:           true,
-		portainer.OperationDockerSecretInspect:        true,
-		portainer.OperationDockerConfigList:           true,
-		portainer.OperationDockerConfigInspect:        true,
-		portainer.OperationDockerTaskList:             true,
-		portainer.OperationDockerTaskInspect:          true,
-		portainer.OperationDockerTaskLogs:             true,
-		portainer.OperationDockerPluginList:           true,
-		portainer.OperationDockerDistributionInspect:  true,
-		portainer.OperationDockerPing:                 true,
-		portainer.OperationDockerInfo:                 true,
-		portainer.OperationDockerVersion:              true,
-		portainer.OperationDockerEvents:               true,
-		portainer.OperationDockerSystem:               true,
-		portainer.OperationDockerAgentPing:            true,
-		portainer.OperationDockerAgentList:            true,
-		portainer.OperationDockerAgentHostInfo:        true,
-		portainer.OperationPortainerStackList:         true,
-		portainer.OperationPortainerStackInspect:      true,
-		portainer.OperationPortainerStackFile:         true,
-		portainer.OperationPortainerWebhookList:       true,
-		portainer.EndpointResourcesAccess:             true,
+func DefaultEndpointAuthorizationsForHelpDeskRole() portaineree.Authorizations {
+	authorizations := unionAuthorizations(map[portaineree.Authorization]bool{
+		portaineree.OperationDockerContainerArchiveInfo: true,
+		portaineree.OperationDockerContainerList:        true,
+		portaineree.OperationDockerContainerChanges:     true,
+		portaineree.OperationDockerContainerInspect:     true,
+		portaineree.OperationDockerContainerTop:         true,
+		portaineree.OperationDockerContainerLogs:        true,
+		portaineree.OperationDockerContainerStats:       true,
+		portaineree.OperationDockerImageList:            true,
+		portaineree.OperationDockerImageSearch:          true,
+		portaineree.OperationDockerImageGetAll:          true,
+		portaineree.OperationDockerImageGet:             true,
+		portaineree.OperationDockerImageHistory:         true,
+		portaineree.OperationDockerImageInspect:         true,
+		portaineree.OperationDockerNetworkList:          true,
+		portaineree.OperationDockerNetworkInspect:       true,
+		portaineree.OperationDockerVolumeList:           true,
+		portaineree.OperationDockerVolumeInspect:        true,
+		portaineree.OperationDockerSwarmInspect:         true,
+		portaineree.OperationDockerNodeList:             true,
+		portaineree.OperationDockerNodeInspect:          true,
+		portaineree.OperationDockerServiceList:          true,
+		portaineree.OperationDockerServiceInspect:       true,
+		portaineree.OperationDockerServiceLogs:          true,
+		portaineree.OperationDockerSecretList:           true,
+		portaineree.OperationDockerSecretInspect:        true,
+		portaineree.OperationDockerConfigList:           true,
+		portaineree.OperationDockerConfigInspect:        true,
+		portaineree.OperationDockerTaskList:             true,
+		portaineree.OperationDockerTaskInspect:          true,
+		portaineree.OperationDockerTaskLogs:             true,
+		portaineree.OperationDockerPluginList:           true,
+		portaineree.OperationDockerDistributionInspect:  true,
+		portaineree.OperationDockerPing:                 true,
+		portaineree.OperationDockerInfo:                 true,
+		portaineree.OperationDockerVersion:              true,
+		portaineree.OperationDockerEvents:               true,
+		portaineree.OperationDockerSystem:               true,
+		portaineree.OperationDockerAgentPing:            true,
+		portaineree.OperationDockerAgentList:            true,
+		portaineree.OperationDockerAgentHostInfo:        true,
+		portaineree.OperationPortainerStackList:         true,
+		portaineree.OperationPortainerStackInspect:      true,
+		portaineree.OperationPortainerStackFile:         true,
+		portaineree.OperationPortainerWebhookList:       true,
+		portaineree.EndpointResourcesAccess:             true,
 	},
-		DefaultK8sClusterAuthorizations()[portainer.RoleIDHelpdesk],
-		DefaultAzureAuthorizations()[portainer.RoleIDHelpdesk],
+		DefaultK8sClusterAuthorizations()[portaineree.RoleIDHelpdesk],
+		DefaultAzureAuthorizations()[portaineree.RoleIDHelpdesk],
 	)
 
 	return authorizations
@@ -231,69 +231,69 @@ func DefaultEndpointAuthorizationsForHelpDeskRole() portainer.Authorizations {
 
 // DefaultEndpointAuthorizationsForOperatorRole returns the default environment(endpoint) authorizations
 // associated to the Operator role.
-func DefaultEndpointAuthorizationsForOperatorRole() portainer.Authorizations {
-	authorizations := unionAuthorizations(map[portainer.Authorization]bool{
-		portainer.OperationDockerContainerArchiveInfo:      true,
-		portainer.OperationDockerContainerList:             true,
-		portainer.OperationDockerContainerChanges:          true,
-		portainer.OperationDockerContainerInspect:          true,
-		portainer.OperationDockerContainerTop:              true,
-		portainer.OperationDockerContainerLogs:             true,
-		portainer.OperationDockerContainerStats:            true,
-		portainer.OperationDockerContainerKill:             true,
-		portainer.OperationDockerContainerPause:            true,
-		portainer.OperationDockerContainerUnpause:          true,
-		portainer.OperationDockerContainerRestart:          true,
-		portainer.OperationDockerContainerStart:            true,
-		portainer.OperationDockerContainerStop:             true,
-		portainer.OperationDockerContainerAttach:           true,
-		portainer.OperationDockerContainerExec:             true,
-		portainer.OperationDockerContainerResize:           true,
-		portainer.OperationDockerImageList:                 true,
-		portainer.OperationDockerImageSearch:               true,
-		portainer.OperationDockerImageGetAll:               true,
-		portainer.OperationDockerImageGet:                  true,
-		portainer.OperationDockerImageHistory:              true,
-		portainer.OperationDockerImageInspect:              true,
-		portainer.OperationDockerNetworkList:               true,
-		portainer.OperationDockerNetworkInspect:            true,
-		portainer.OperationDockerVolumeList:                true,
-		portainer.OperationDockerVolumeInspect:             true,
-		portainer.OperationDockerExecStart:                 true,
-		portainer.OperationDockerExecResize:                true,
-		portainer.OperationDockerSwarmInspect:              true,
-		portainer.OperationDockerNodeList:                  true,
-		portainer.OperationDockerNodeInspect:               true,
-		portainer.OperationDockerServiceList:               true,
-		portainer.OperationDockerServiceInspect:            true,
-		portainer.OperationDockerServiceLogs:               true,
-		portainer.OperationDockerServiceForceUpdateService: true,
-		portainer.OperationDockerSecretList:                true,
-		portainer.OperationDockerSecretInspect:             true,
-		portainer.OperationDockerConfigList:                true,
-		portainer.OperationDockerConfigInspect:             true,
-		portainer.OperationDockerTaskList:                  true,
-		portainer.OperationDockerTaskInspect:               true,
-		portainer.OperationDockerTaskLogs:                  true,
-		portainer.OperationDockerPluginList:                true,
-		portainer.OperationDockerDistributionInspect:       true,
-		portainer.OperationDockerPing:                      true,
-		portainer.OperationDockerInfo:                      true,
-		portainer.OperationDockerVersion:                   true,
-		portainer.OperationDockerEvents:                    true,
-		portainer.OperationDockerSystem:                    true,
-		portainer.OperationDockerAgentPing:                 true,
-		portainer.OperationDockerAgentList:                 true,
-		portainer.OperationDockerAgentHostInfo:             true,
-		portainer.OperationPortainerStackList:              true,
-		portainer.OperationPortainerStackInspect:           true,
-		portainer.OperationPortainerStackFile:              true,
-		portainer.OperationPortainerWebsocketExec:          true,
-		portainer.OperationPortainerWebhookList:            true,
-		portainer.EndpointResourcesAccess:                  true,
+func DefaultEndpointAuthorizationsForOperatorRole() portaineree.Authorizations {
+	authorizations := unionAuthorizations(map[portaineree.Authorization]bool{
+		portaineree.OperationDockerContainerArchiveInfo:      true,
+		portaineree.OperationDockerContainerList:             true,
+		portaineree.OperationDockerContainerChanges:          true,
+		portaineree.OperationDockerContainerInspect:          true,
+		portaineree.OperationDockerContainerTop:              true,
+		portaineree.OperationDockerContainerLogs:             true,
+		portaineree.OperationDockerContainerStats:            true,
+		portaineree.OperationDockerContainerKill:             true,
+		portaineree.OperationDockerContainerPause:            true,
+		portaineree.OperationDockerContainerUnpause:          true,
+		portaineree.OperationDockerContainerRestart:          true,
+		portaineree.OperationDockerContainerStart:            true,
+		portaineree.OperationDockerContainerStop:             true,
+		portaineree.OperationDockerContainerAttach:           true,
+		portaineree.OperationDockerContainerExec:             true,
+		portaineree.OperationDockerContainerResize:           true,
+		portaineree.OperationDockerImageList:                 true,
+		portaineree.OperationDockerImageSearch:               true,
+		portaineree.OperationDockerImageGetAll:               true,
+		portaineree.OperationDockerImageGet:                  true,
+		portaineree.OperationDockerImageHistory:              true,
+		portaineree.OperationDockerImageInspect:              true,
+		portaineree.OperationDockerNetworkList:               true,
+		portaineree.OperationDockerNetworkInspect:            true,
+		portaineree.OperationDockerVolumeList:                true,
+		portaineree.OperationDockerVolumeInspect:             true,
+		portaineree.OperationDockerExecStart:                 true,
+		portaineree.OperationDockerExecResize:                true,
+		portaineree.OperationDockerSwarmInspect:              true,
+		portaineree.OperationDockerNodeList:                  true,
+		portaineree.OperationDockerNodeInspect:               true,
+		portaineree.OperationDockerServiceList:               true,
+		portaineree.OperationDockerServiceInspect:            true,
+		portaineree.OperationDockerServiceLogs:               true,
+		portaineree.OperationDockerServiceForceUpdateService: true,
+		portaineree.OperationDockerSecretList:                true,
+		portaineree.OperationDockerSecretInspect:             true,
+		portaineree.OperationDockerConfigList:                true,
+		portaineree.OperationDockerConfigInspect:             true,
+		portaineree.OperationDockerTaskList:                  true,
+		portaineree.OperationDockerTaskInspect:               true,
+		portaineree.OperationDockerTaskLogs:                  true,
+		portaineree.OperationDockerPluginList:                true,
+		portaineree.OperationDockerDistributionInspect:       true,
+		portaineree.OperationDockerPing:                      true,
+		portaineree.OperationDockerInfo:                      true,
+		portaineree.OperationDockerVersion:                   true,
+		portaineree.OperationDockerEvents:                    true,
+		portaineree.OperationDockerSystem:                    true,
+		portaineree.OperationDockerAgentPing:                 true,
+		portaineree.OperationDockerAgentList:                 true,
+		portaineree.OperationDockerAgentHostInfo:             true,
+		portaineree.OperationPortainerStackList:              true,
+		portaineree.OperationPortainerStackInspect:           true,
+		portaineree.OperationPortainerStackFile:              true,
+		portaineree.OperationPortainerWebsocketExec:          true,
+		portaineree.OperationPortainerWebhookList:            true,
+		portaineree.EndpointResourcesAccess:                  true,
 	},
-		DefaultK8sClusterAuthorizations()[portainer.RoleIDOperator],
-		DefaultAzureAuthorizations()[portainer.RoleIDOperator],
+		DefaultK8sClusterAuthorizations()[portaineree.RoleIDOperator],
+		DefaultAzureAuthorizations()[portaineree.RoleIDOperator],
 	)
 
 	return authorizations
@@ -301,134 +301,134 @@ func DefaultEndpointAuthorizationsForOperatorRole() portainer.Authorizations {
 
 // DefaultEndpointAuthorizationsForStandardUserRole returns the default environment(endpoint) authorizations
 // associated to the standard user role.
-func DefaultEndpointAuthorizationsForStandardUserRole() portainer.Authorizations {
-	authorizations := unionAuthorizations(map[portainer.Authorization]bool{
-		portainer.OperationDockerContainerArchiveInfo:         true,
-		portainer.OperationDockerContainerList:                true,
-		portainer.OperationDockerContainerExport:              true,
-		portainer.OperationDockerContainerChanges:             true,
-		portainer.OperationDockerContainerInspect:             true,
-		portainer.OperationDockerContainerTop:                 true,
-		portainer.OperationDockerContainerLogs:                true,
-		portainer.OperationDockerContainerStats:               true,
-		portainer.OperationDockerContainerAttachWebsocket:     true,
-		portainer.OperationDockerContainerArchive:             true,
-		portainer.OperationDockerContainerCreate:              true,
-		portainer.OperationDockerContainerKill:                true,
-		portainer.OperationDockerContainerPause:               true,
-		portainer.OperationDockerContainerUnpause:             true,
-		portainer.OperationDockerContainerRestart:             true,
-		portainer.OperationDockerContainerStart:               true,
-		portainer.OperationDockerContainerStop:                true,
-		portainer.OperationDockerContainerWait:                true,
-		portainer.OperationDockerContainerResize:              true,
-		portainer.OperationDockerContainerAttach:              true,
-		portainer.OperationDockerContainerExec:                true,
-		portainer.OperationDockerContainerRename:              true,
-		portainer.OperationDockerContainerUpdate:              true,
-		portainer.OperationDockerContainerPutContainerArchive: true,
-		portainer.OperationDockerContainerDelete:              true,
-		portainer.OperationDockerImageList:                    true,
-		portainer.OperationDockerImageSearch:                  true,
-		portainer.OperationDockerImageGetAll:                  true,
-		portainer.OperationDockerImageGet:                     true,
-		portainer.OperationDockerImageHistory:                 true,
-		portainer.OperationDockerImageInspect:                 true,
-		portainer.OperationDockerImageLoad:                    true,
-		portainer.OperationDockerImageCreate:                  true,
-		portainer.OperationDockerImagePush:                    true,
-		portainer.OperationDockerImageTag:                     true,
-		portainer.OperationDockerImageDelete:                  true,
-		portainer.OperationDockerImageCommit:                  true,
-		portainer.OperationDockerImageBuild:                   true,
-		portainer.OperationDockerNetworkList:                  true,
-		portainer.OperationDockerNetworkInspect:               true,
-		portainer.OperationDockerNetworkCreate:                true,
-		portainer.OperationDockerNetworkConnect:               true,
-		portainer.OperationDockerNetworkDisconnect:            true,
-		portainer.OperationDockerNetworkDelete:                true,
-		portainer.OperationDockerVolumeList:                   true,
-		portainer.OperationDockerVolumeInspect:                true,
-		portainer.OperationDockerVolumeCreate:                 true,
-		portainer.OperationDockerVolumeDelete:                 true,
-		portainer.OperationDockerExecInspect:                  true,
-		portainer.OperationDockerExecStart:                    true,
-		portainer.OperationDockerExecResize:                   true,
-		portainer.OperationDockerSwarmInspect:                 true,
-		portainer.OperationDockerSwarmUnlockKey:               true,
-		portainer.OperationDockerSwarmInit:                    true,
-		portainer.OperationDockerSwarmJoin:                    true,
-		portainer.OperationDockerSwarmLeave:                   true,
-		portainer.OperationDockerSwarmUpdate:                  true,
-		portainer.OperationDockerSwarmUnlock:                  true,
-		portainer.OperationDockerNodeList:                     true,
-		portainer.OperationDockerNodeInspect:                  true,
-		portainer.OperationDockerNodeUpdate:                   true,
-		portainer.OperationDockerNodeDelete:                   true,
-		portainer.OperationDockerServiceList:                  true,
-		portainer.OperationDockerServiceInspect:               true,
-		portainer.OperationDockerServiceLogs:                  true,
-		portainer.OperationDockerServiceCreate:                true,
-		portainer.OperationDockerServiceUpdate:                true,
-		portainer.OperationDockerServiceForceUpdateService:    true,
-		portainer.OperationDockerServiceDelete:                true,
-		portainer.OperationDockerSecretList:                   true,
-		portainer.OperationDockerSecretInspect:                true,
-		portainer.OperationDockerSecretCreate:                 true,
-		portainer.OperationDockerSecretUpdate:                 true,
-		portainer.OperationDockerSecretDelete:                 true,
-		portainer.OperationDockerConfigList:                   true,
-		portainer.OperationDockerConfigInspect:                true,
-		portainer.OperationDockerConfigCreate:                 true,
-		portainer.OperationDockerConfigUpdate:                 true,
-		portainer.OperationDockerConfigDelete:                 true,
-		portainer.OperationDockerTaskList:                     true,
-		portainer.OperationDockerTaskInspect:                  true,
-		portainer.OperationDockerTaskLogs:                     true,
-		portainer.OperationDockerPluginList:                   true,
-		portainer.OperationDockerPluginPrivileges:             true,
-		portainer.OperationDockerPluginInspect:                true,
-		portainer.OperationDockerPluginPull:                   true,
-		portainer.OperationDockerPluginCreate:                 true,
-		portainer.OperationDockerPluginEnable:                 true,
-		portainer.OperationDockerPluginDisable:                true,
-		portainer.OperationDockerPluginPush:                   true,
-		portainer.OperationDockerPluginUpgrade:                true,
-		portainer.OperationDockerPluginSet:                    true,
-		portainer.OperationDockerPluginDelete:                 true,
-		portainer.OperationDockerSessionStart:                 true,
-		portainer.OperationDockerDistributionInspect:          true,
-		portainer.OperationDockerBuildPrune:                   true,
-		portainer.OperationDockerBuildCancel:                  true,
-		portainer.OperationDockerPing:                         true,
-		portainer.OperationDockerInfo:                         true,
-		portainer.OperationDockerVersion:                      true,
-		portainer.OperationDockerEvents:                       true,
-		portainer.OperationDockerSystem:                       true,
-		portainer.OperationDockerUndefined:                    true,
-		portainer.OperationDockerAgentPing:                    true,
-		portainer.OperationDockerAgentList:                    true,
-		portainer.OperationDockerAgentHostInfo:                true,
-		portainer.OperationDockerAgentUndefined:               true,
-		portainer.OperationPortainerDockerHubInspect:          true,
-		portainer.OperationPortainerResourceControlUpdate:     true,
-		portainer.OperationPortainerStackList:                 true,
-		portainer.OperationPortainerStackInspect:              true,
-		portainer.OperationPortainerStackFile:                 true,
-		portainer.OperationPortainerStackCreate:               true,
-		portainer.OperationPortainerStackMigrate:              true,
-		portainer.OperationPortainerStackUpdate:               true,
-		portainer.OperationPortainerStackDelete:               true,
-		portainer.OperationPortainerWebsocketExec:             true,
-		portainer.OperationPortainerWebhookList:               true,
-		portainer.OperationPortainerWebhookCreate:             true,
-		portainer.OperationHelmRepoList:                       true,
-		portainer.OperationHelmRepoCreate:                     true,
-		portainer.OperationHelmInstallChart:                   true,
-		portainer.OperationHelmUninstallChart:                 true,
+func DefaultEndpointAuthorizationsForStandardUserRole() portaineree.Authorizations {
+	authorizations := unionAuthorizations(map[portaineree.Authorization]bool{
+		portaineree.OperationDockerContainerArchiveInfo:         true,
+		portaineree.OperationDockerContainerList:                true,
+		portaineree.OperationDockerContainerExport:              true,
+		portaineree.OperationDockerContainerChanges:             true,
+		portaineree.OperationDockerContainerInspect:             true,
+		portaineree.OperationDockerContainerTop:                 true,
+		portaineree.OperationDockerContainerLogs:                true,
+		portaineree.OperationDockerContainerStats:               true,
+		portaineree.OperationDockerContainerAttachWebsocket:     true,
+		portaineree.OperationDockerContainerArchive:             true,
+		portaineree.OperationDockerContainerCreate:              true,
+		portaineree.OperationDockerContainerKill:                true,
+		portaineree.OperationDockerContainerPause:               true,
+		portaineree.OperationDockerContainerUnpause:             true,
+		portaineree.OperationDockerContainerRestart:             true,
+		portaineree.OperationDockerContainerStart:               true,
+		portaineree.OperationDockerContainerStop:                true,
+		portaineree.OperationDockerContainerWait:                true,
+		portaineree.OperationDockerContainerResize:              true,
+		portaineree.OperationDockerContainerAttach:              true,
+		portaineree.OperationDockerContainerExec:                true,
+		portaineree.OperationDockerContainerRename:              true,
+		portaineree.OperationDockerContainerUpdate:              true,
+		portaineree.OperationDockerContainerPutContainerArchive: true,
+		portaineree.OperationDockerContainerDelete:              true,
+		portaineree.OperationDockerImageList:                    true,
+		portaineree.OperationDockerImageSearch:                  true,
+		portaineree.OperationDockerImageGetAll:                  true,
+		portaineree.OperationDockerImageGet:                     true,
+		portaineree.OperationDockerImageHistory:                 true,
+		portaineree.OperationDockerImageInspect:                 true,
+		portaineree.OperationDockerImageLoad:                    true,
+		portaineree.OperationDockerImageCreate:                  true,
+		portaineree.OperationDockerImagePush:                    true,
+		portaineree.OperationDockerImageTag:                     true,
+		portaineree.OperationDockerImageDelete:                  true,
+		portaineree.OperationDockerImageCommit:                  true,
+		portaineree.OperationDockerImageBuild:                   true,
+		portaineree.OperationDockerNetworkList:                  true,
+		portaineree.OperationDockerNetworkInspect:               true,
+		portaineree.OperationDockerNetworkCreate:                true,
+		portaineree.OperationDockerNetworkConnect:               true,
+		portaineree.OperationDockerNetworkDisconnect:            true,
+		portaineree.OperationDockerNetworkDelete:                true,
+		portaineree.OperationDockerVolumeList:                   true,
+		portaineree.OperationDockerVolumeInspect:                true,
+		portaineree.OperationDockerVolumeCreate:                 true,
+		portaineree.OperationDockerVolumeDelete:                 true,
+		portaineree.OperationDockerExecInspect:                  true,
+		portaineree.OperationDockerExecStart:                    true,
+		portaineree.OperationDockerExecResize:                   true,
+		portaineree.OperationDockerSwarmInspect:                 true,
+		portaineree.OperationDockerSwarmUnlockKey:               true,
+		portaineree.OperationDockerSwarmInit:                    true,
+		portaineree.OperationDockerSwarmJoin:                    true,
+		portaineree.OperationDockerSwarmLeave:                   true,
+		portaineree.OperationDockerSwarmUpdate:                  true,
+		portaineree.OperationDockerSwarmUnlock:                  true,
+		portaineree.OperationDockerNodeList:                     true,
+		portaineree.OperationDockerNodeInspect:                  true,
+		portaineree.OperationDockerNodeUpdate:                   true,
+		portaineree.OperationDockerNodeDelete:                   true,
+		portaineree.OperationDockerServiceList:                  true,
+		portaineree.OperationDockerServiceInspect:               true,
+		portaineree.OperationDockerServiceLogs:                  true,
+		portaineree.OperationDockerServiceCreate:                true,
+		portaineree.OperationDockerServiceUpdate:                true,
+		portaineree.OperationDockerServiceForceUpdateService:    true,
+		portaineree.OperationDockerServiceDelete:                true,
+		portaineree.OperationDockerSecretList:                   true,
+		portaineree.OperationDockerSecretInspect:                true,
+		portaineree.OperationDockerSecretCreate:                 true,
+		portaineree.OperationDockerSecretUpdate:                 true,
+		portaineree.OperationDockerSecretDelete:                 true,
+		portaineree.OperationDockerConfigList:                   true,
+		portaineree.OperationDockerConfigInspect:                true,
+		portaineree.OperationDockerConfigCreate:                 true,
+		portaineree.OperationDockerConfigUpdate:                 true,
+		portaineree.OperationDockerConfigDelete:                 true,
+		portaineree.OperationDockerTaskList:                     true,
+		portaineree.OperationDockerTaskInspect:                  true,
+		portaineree.OperationDockerTaskLogs:                     true,
+		portaineree.OperationDockerPluginList:                   true,
+		portaineree.OperationDockerPluginPrivileges:             true,
+		portaineree.OperationDockerPluginInspect:                true,
+		portaineree.OperationDockerPluginPull:                   true,
+		portaineree.OperationDockerPluginCreate:                 true,
+		portaineree.OperationDockerPluginEnable:                 true,
+		portaineree.OperationDockerPluginDisable:                true,
+		portaineree.OperationDockerPluginPush:                   true,
+		portaineree.OperationDockerPluginUpgrade:                true,
+		portaineree.OperationDockerPluginSet:                    true,
+		portaineree.OperationDockerPluginDelete:                 true,
+		portaineree.OperationDockerSessionStart:                 true,
+		portaineree.OperationDockerDistributionInspect:          true,
+		portaineree.OperationDockerBuildPrune:                   true,
+		portaineree.OperationDockerBuildCancel:                  true,
+		portaineree.OperationDockerPing:                         true,
+		portaineree.OperationDockerInfo:                         true,
+		portaineree.OperationDockerVersion:                      true,
+		portaineree.OperationDockerEvents:                       true,
+		portaineree.OperationDockerSystem:                       true,
+		portaineree.OperationDockerUndefined:                    true,
+		portaineree.OperationDockerAgentPing:                    true,
+		portaineree.OperationDockerAgentList:                    true,
+		portaineree.OperationDockerAgentHostInfo:                true,
+		portaineree.OperationDockerAgentUndefined:               true,
+		portaineree.OperationPortainerDockerHubInspect:          true,
+		portaineree.OperationPortainerResourceControlUpdate:     true,
+		portaineree.OperationPortainerStackList:                 true,
+		portaineree.OperationPortainerStackInspect:              true,
+		portaineree.OperationPortainerStackFile:                 true,
+		portaineree.OperationPortainerStackCreate:               true,
+		portaineree.OperationPortainerStackMigrate:              true,
+		portaineree.OperationPortainerStackUpdate:               true,
+		portaineree.OperationPortainerStackDelete:               true,
+		portaineree.OperationPortainerWebsocketExec:             true,
+		portaineree.OperationPortainerWebhookList:               true,
+		portaineree.OperationPortainerWebhookCreate:             true,
+		portaineree.OperationHelmRepoList:                       true,
+		portaineree.OperationHelmRepoCreate:                     true,
+		portaineree.OperationHelmInstallChart:                   true,
+		portaineree.OperationHelmUninstallChart:                 true,
 	},
-		DefaultK8sClusterAuthorizations()[portainer.RoleIDStandardUser],
-		DefaultAzureAuthorizations()[portainer.RoleIDStandardUser],
+		DefaultK8sClusterAuthorizations()[portaineree.RoleIDStandardUser],
+		DefaultAzureAuthorizations()[portaineree.RoleIDStandardUser],
 	)
 
 	return authorizations
@@ -436,86 +436,86 @@ func DefaultEndpointAuthorizationsForStandardUserRole() portainer.Authorizations
 
 // DefaultEndpointAuthorizationsForReadOnlyUserRole returns the default environment(endpoint) authorizations
 // associated to the readonly user role.
-func DefaultEndpointAuthorizationsForReadOnlyUserRole() portainer.Authorizations {
-	authorizations := unionAuthorizations(map[portainer.Authorization]bool{
-		portainer.OperationDockerContainerArchiveInfo: true,
-		portainer.OperationDockerContainerList:        true,
-		portainer.OperationDockerContainerChanges:     true,
-		portainer.OperationDockerContainerInspect:     true,
-		portainer.OperationDockerContainerTop:         true,
-		portainer.OperationDockerContainerLogs:        true,
-		portainer.OperationDockerContainerStats:       true,
-		portainer.OperationDockerImageList:            true,
-		portainer.OperationDockerImageSearch:          true,
-		portainer.OperationDockerImageGetAll:          true,
-		portainer.OperationDockerImageGet:             true,
-		portainer.OperationDockerImageHistory:         true,
-		portainer.OperationDockerImageInspect:         true,
-		portainer.OperationDockerNetworkList:          true,
-		portainer.OperationDockerNetworkInspect:       true,
-		portainer.OperationDockerVolumeList:           true,
-		portainer.OperationDockerVolumeInspect:        true,
-		portainer.OperationDockerSwarmInspect:         true,
-		portainer.OperationDockerNodeList:             true,
-		portainer.OperationDockerNodeInspect:          true,
-		portainer.OperationDockerServiceList:          true,
-		portainer.OperationDockerServiceInspect:       true,
-		portainer.OperationDockerServiceLogs:          true,
-		portainer.OperationDockerSecretList:           true,
-		portainer.OperationDockerSecretInspect:        true,
-		portainer.OperationDockerConfigList:           true,
-		portainer.OperationDockerConfigInspect:        true,
-		portainer.OperationDockerTaskList:             true,
-		portainer.OperationDockerTaskInspect:          true,
-		portainer.OperationDockerTaskLogs:             true,
-		portainer.OperationDockerPluginList:           true,
-		portainer.OperationDockerDistributionInspect:  true,
-		portainer.OperationDockerPing:                 true,
-		portainer.OperationDockerInfo:                 true,
-		portainer.OperationDockerVersion:              true,
-		portainer.OperationDockerEvents:               true,
-		portainer.OperationDockerSystem:               true,
-		portainer.OperationDockerAgentPing:            true,
-		portainer.OperationDockerAgentList:            true,
-		portainer.OperationDockerAgentHostInfo:        true,
-		portainer.OperationPortainerStackList:         true,
-		portainer.OperationPortainerStackInspect:      true,
-		portainer.OperationPortainerStackFile:         true,
-		portainer.OperationPortainerWebhookList:       true,
+func DefaultEndpointAuthorizationsForReadOnlyUserRole() portaineree.Authorizations {
+	authorizations := unionAuthorizations(map[portaineree.Authorization]bool{
+		portaineree.OperationDockerContainerArchiveInfo: true,
+		portaineree.OperationDockerContainerList:        true,
+		portaineree.OperationDockerContainerChanges:     true,
+		portaineree.OperationDockerContainerInspect:     true,
+		portaineree.OperationDockerContainerTop:         true,
+		portaineree.OperationDockerContainerLogs:        true,
+		portaineree.OperationDockerContainerStats:       true,
+		portaineree.OperationDockerImageList:            true,
+		portaineree.OperationDockerImageSearch:          true,
+		portaineree.OperationDockerImageGetAll:          true,
+		portaineree.OperationDockerImageGet:             true,
+		portaineree.OperationDockerImageHistory:         true,
+		portaineree.OperationDockerImageInspect:         true,
+		portaineree.OperationDockerNetworkList:          true,
+		portaineree.OperationDockerNetworkInspect:       true,
+		portaineree.OperationDockerVolumeList:           true,
+		portaineree.OperationDockerVolumeInspect:        true,
+		portaineree.OperationDockerSwarmInspect:         true,
+		portaineree.OperationDockerNodeList:             true,
+		portaineree.OperationDockerNodeInspect:          true,
+		portaineree.OperationDockerServiceList:          true,
+		portaineree.OperationDockerServiceInspect:       true,
+		portaineree.OperationDockerServiceLogs:          true,
+		portaineree.OperationDockerSecretList:           true,
+		portaineree.OperationDockerSecretInspect:        true,
+		portaineree.OperationDockerConfigList:           true,
+		portaineree.OperationDockerConfigInspect:        true,
+		portaineree.OperationDockerTaskList:             true,
+		portaineree.OperationDockerTaskInspect:          true,
+		portaineree.OperationDockerTaskLogs:             true,
+		portaineree.OperationDockerPluginList:           true,
+		portaineree.OperationDockerDistributionInspect:  true,
+		portaineree.OperationDockerPing:                 true,
+		portaineree.OperationDockerInfo:                 true,
+		portaineree.OperationDockerVersion:              true,
+		portaineree.OperationDockerEvents:               true,
+		portaineree.OperationDockerSystem:               true,
+		portaineree.OperationDockerAgentPing:            true,
+		portaineree.OperationDockerAgentList:            true,
+		portaineree.OperationDockerAgentHostInfo:        true,
+		portaineree.OperationPortainerStackList:         true,
+		portaineree.OperationPortainerStackInspect:      true,
+		portaineree.OperationPortainerStackFile:         true,
+		portaineree.OperationPortainerWebhookList:       true,
 	},
-		DefaultK8sClusterAuthorizations()[portainer.RoleIDReadonly],
-		DefaultAzureAuthorizations()[portainer.RoleIDReadonly],
+		DefaultK8sClusterAuthorizations()[portaineree.RoleIDReadonly],
+		DefaultAzureAuthorizations()[portaineree.RoleIDReadonly],
 	)
 
 	return authorizations
 }
 
 // DefaultPortainerAuthorizations returns the default Portainer authorizations used by non-admin users.
-func DefaultPortainerAuthorizations() portainer.Authorizations {
-	return map[portainer.Authorization]bool{
-		portainer.OperationPortainerEndpointGroupInspect:    true,
-		portainer.OperationPortainerEndpointGroupList:       true,
-		portainer.OperationPortainerDockerHubInspect:        true,
-		portainer.OperationPortainerEndpointList:            true,
-		portainer.OperationPortainerEndpointInspect:         true,
-		portainer.OperationPortainerEndpointExtensionAdd:    true,
-		portainer.OperationPortainerEndpointExtensionRemove: true,
-		portainer.OperationPortainerMOTD:                    true,
-		portainer.OperationPortainerRoleList:                true,
-		portainer.OperationPortainerTeamList:                true,
-		portainer.OperationPortainerTemplateList:            true,
-		portainer.OperationPortainerTemplateInspect:         true,
-		portainer.OperationPortainerUserList:                true,
-		portainer.OperationPortainerUserInspect:             true,
-		portainer.OperationPortainerUserMemberships:         true,
-		portainer.OperationPortainerUserListToken:           true,
-		portainer.OperationPortainerUserCreateToken:         true,
-		portainer.OperationPortainerUserRevokeToken:         true,
+func DefaultPortainerAuthorizations() portaineree.Authorizations {
+	return map[portaineree.Authorization]bool{
+		portaineree.OperationPortainerEndpointGroupInspect:    true,
+		portaineree.OperationPortainerEndpointGroupList:       true,
+		portaineree.OperationPortainerDockerHubInspect:        true,
+		portaineree.OperationPortainerEndpointList:            true,
+		portaineree.OperationPortainerEndpointInspect:         true,
+		portaineree.OperationPortainerEndpointExtensionAdd:    true,
+		portaineree.OperationPortainerEndpointExtensionRemove: true,
+		portaineree.OperationPortainerMOTD:                    true,
+		portaineree.OperationPortainerRoleList:                true,
+		portaineree.OperationPortainerTeamList:                true,
+		portaineree.OperationPortainerTemplateList:            true,
+		portaineree.OperationPortainerTemplateInspect:         true,
+		portaineree.OperationPortainerUserList:                true,
+		portaineree.OperationPortainerUserInspect:             true,
+		portaineree.OperationPortainerUserMemberships:         true,
+		portaineree.OperationPortainerUserListToken:           true,
+		portaineree.OperationPortainerUserCreateToken:         true,
+		portaineree.OperationPortainerUserRevokeToken:         true,
 	}
 }
 
 // RegisterEventHandler upserts event handler by id
-func (service *Service) RegisterEventHandler(id string, handler portainer.AuthEventHandler) {
+func (service *Service) RegisterEventHandler(id string, handler portaineree.AuthEventHandler) {
 	service.authEventHandlers[id] = handler
 }
 
@@ -543,23 +543,23 @@ func (service *Service) TriggerUserAuthUpdate(userID int) {
 	}
 }
 
-func populateVolumeBrowsingAuthorizations(rolePointer *portainer.Role) portainer.Role {
+func populateVolumeBrowsingAuthorizations(rolePointer *portaineree.Role) portaineree.Role {
 	role := *rolePointer
 
-	role.Authorizations[portainer.OperationDockerAgentBrowseGet] = true
-	role.Authorizations[portainer.OperationDockerAgentBrowseList] = true
+	role.Authorizations[portaineree.OperationDockerAgentBrowseGet] = true
+	role.Authorizations[portaineree.OperationDockerAgentBrowseList] = true
 
-	if role.ID == portainer.RoleIDStandardUser {
-		role.Authorizations[portainer.OperationDockerAgentBrowseDelete] = true
-		role.Authorizations[portainer.OperationDockerAgentBrowsePut] = true
-		role.Authorizations[portainer.OperationDockerAgentBrowseRename] = true
+	if role.ID == portaineree.RoleIDStandardUser {
+		role.Authorizations[portaineree.OperationDockerAgentBrowseDelete] = true
+		role.Authorizations[portaineree.OperationDockerAgentBrowsePut] = true
+		role.Authorizations[portaineree.OperationDockerAgentBrowseRename] = true
 	}
 
 	return role
 }
 
 // RemoveTeamAccessPolicies will remove all existing access policies associated to the specified team
-func (service *Service) RemoveTeamAccessPolicies(teamID portainer.TeamID) error {
+func (service *Service) RemoveTeamAccessPolicies(teamID portaineree.TeamID) error {
 	endpoints, err := service.dataStore.Endpoint().Endpoints()
 	if err != nil {
 		return err
@@ -624,7 +624,7 @@ func (service *Service) RemoveTeamAccessPolicies(teamID portainer.TeamID) error 
 }
 
 // RemoveUserAccessPolicies will remove all existing access policies associated to the specified user
-func (service *Service) RemoveUserAccessPolicies(userID portainer.UserID) error {
+func (service *Service) RemoveUserAccessPolicies(userID portaineree.UserID) error {
 	endpoints, err := service.dataStore.Endpoint().Endpoints()
 	if err != nil {
 		return err
@@ -709,7 +709,7 @@ func (service *Service) UpdateUsersAuthorizations() error {
 	return nil
 }
 
-func (service *Service) updateUserAuthorizations(userID portainer.UserID) error {
+func (service *Service) updateUserAuthorizations(userID portaineree.UserID) error {
 	user, err := service.dataStore.User().User(userID)
 	if err != nil {
 		return err
@@ -725,9 +725,9 @@ func (service *Service) updateUserAuthorizations(userID portainer.UserID) error 
 	return service.dataStore.User().UpdateUser(userID, user)
 }
 
-func (service *Service) getAuthorizations(user *portainer.User) (portainer.EndpointAuthorizations, error) {
-	endpointAuthorizations := portainer.EndpointAuthorizations{}
-	if user.Role == portainer.AdministratorRole {
+func (service *Service) getAuthorizations(user *portaineree.User) (portaineree.EndpointAuthorizations, error) {
+	endpointAuthorizations := portaineree.EndpointAuthorizations{}
+	if user.Role == portaineree.AdministratorRole {
 		return endpointAuthorizations, nil
 	}
 
@@ -756,11 +756,11 @@ func (service *Service) getAuthorizations(user *portainer.User) (portainer.Endpo
 	return endpointAuthorizations, nil
 }
 
-func getUserEndpointAuthorizations(user *portainer.User, endpoints []portainer.Endpoint,
-	endpointGroups []portainer.EndpointGroup, roles []portainer.Role,
-	userMemberships []portainer.TeamMembership) portainer.EndpointAuthorizations {
+func getUserEndpointAuthorizations(user *portaineree.User, endpoints []portaineree.Endpoint,
+	endpointGroups []portaineree.EndpointGroup, roles []portaineree.Role,
+	userMemberships []portaineree.TeamMembership) portaineree.EndpointAuthorizations {
 
-	endpointAuthorizations := make(portainer.EndpointAuthorizations)
+	endpointAuthorizations := make(portaineree.EndpointAuthorizations)
 	for endpointID, role := range getUserEndpointRoles(user, endpoints,
 		endpointGroups, roles, userMemberships) {
 		endpointAuthorizations[endpointID] = role.Authorizations
@@ -770,12 +770,12 @@ func getUserEndpointAuthorizations(user *portainer.User, endpoints []portainer.E
 }
 
 // get the user and team policies from the environment(endpoint) group definitions
-func getGroupPolicies(endpointGroups []portainer.EndpointGroup) (
-	map[portainer.EndpointGroupID]portainer.UserAccessPolicies,
-	map[portainer.EndpointGroupID]portainer.TeamAccessPolicies,
+func getGroupPolicies(endpointGroups []portaineree.EndpointGroup) (
+	map[portaineree.EndpointGroupID]portaineree.UserAccessPolicies,
+	map[portaineree.EndpointGroupID]portaineree.TeamAccessPolicies,
 ) {
-	groupUserAccessPolicies := map[portainer.EndpointGroupID]portainer.UserAccessPolicies{}
-	groupTeamAccessPolicies := map[portainer.EndpointGroupID]portainer.TeamAccessPolicies{}
+	groupUserAccessPolicies := map[portaineree.EndpointGroupID]portaineree.UserAccessPolicies{}
+	groupTeamAccessPolicies := map[portaineree.EndpointGroupID]portaineree.TeamAccessPolicies{}
 	for _, endpointGroup := range endpointGroups {
 		groupUserAccessPolicies[endpointGroup.ID] = endpointGroup.UserAccessPolicies
 		groupTeamAccessPolicies[endpointGroup.ID] = endpointGroup.TeamAccessPolicies
@@ -787,9 +787,9 @@ func getGroupPolicies(endpointGroups []portainer.EndpointGroup) (
 // and updates it with the user and his team's environment(endpoint) roles.
 // Returns the updated policies and whether there is any update.
 func (service *Service) UpdateUserNamespaceAccessPolicies(
-	userID int, endpoint *portainer.Endpoint,
-	policiesToUpdate map[string]portainer.K8sNamespaceAccessPolicy,
-) (map[string]portainer.K8sNamespaceAccessPolicy, bool, error) {
+	userID int, endpoint *portaineree.Endpoint,
+	policiesToUpdate map[string]portaineree.K8sNamespaceAccessPolicy,
+) (map[string]portaineree.K8sNamespaceAccessPolicy, bool, error) {
 	endpointID := int(endpoint.ID)
 	restrictDefaultNamespace := endpoint.Kubernetes.Configuration.RestrictDefaultNamespace
 
@@ -806,7 +806,7 @@ func (service *Service) UpdateUserNamespaceAccessPolicies(
 	}
 
 	userMemberships, err := service.dataStore.TeamMembership().
-		TeamMembershipsByUserID(portainer.UserID(userID))
+		TeamMembershipsByUserID(portaineree.UserID(userID))
 	if err != nil {
 		return nil, false, err
 	}
@@ -830,9 +830,9 @@ func (service *Service) UpdateUserNamespaceAccessPolicies(
 func (service *Service) updateNamespaceAccessPolicies(
 	selectedUserID int, selectedTeamIDs []int,
 	usersEndpointRole map[int]int, teamsEndpointRole map[int]int,
-	policiesToUpdate map[string]portainer.K8sNamespaceAccessPolicy,
+	policiesToUpdate map[string]portaineree.K8sNamespaceAccessPolicy,
 	restrictDefaultNamespace bool,
-) (map[string]portainer.K8sNamespaceAccessPolicy, bool, error) {
+) (map[string]portaineree.K8sNamespaceAccessPolicy, bool, error) {
 	hasChange := false
 	if !restrictDefaultNamespace {
 		delete(policiesToUpdate, "default")
@@ -846,8 +846,8 @@ func (service *Service) updateNamespaceAccessPolicies(
 					delete(nsPolicies.UserAccessPolicies, userID)
 					hasChange = true
 				} else if int(policy.RoleID) != iRoleID {
-					nsPolicies.UserAccessPolicies[userID] = portainer.AccessPolicy{
-						RoleID: portainer.RoleID(iRoleID),
+					nsPolicies.UserAccessPolicies[userID] = portaineree.AccessPolicy{
+						RoleID: portaineree.RoleID(iRoleID),
 					}
 					hasChange = true
 				}
@@ -861,8 +861,8 @@ func (service *Service) updateNamespaceAccessPolicies(
 						delete(nsPolicies.TeamAccessPolicies, teamID)
 						hasChange = true
 					} else if int(policy.RoleID) != iRoleID {
-						nsPolicies.TeamAccessPolicies[teamID] = portainer.AccessPolicy{
-							RoleID: portainer.RoleID(iRoleID),
+						nsPolicies.TeamAccessPolicies[teamID] = portaineree.AccessPolicy{
+							RoleID: portaineree.RoleID(iRoleID),
 						}
 						hasChange = true
 					}
@@ -879,8 +879,8 @@ func (service *Service) updateNamespaceAccessPolicies(
 // Returns the updated policies and whether there is any update.
 func (service *Service) RemoveUserNamespaceAccessPolicies(
 	userID int, endpointID int,
-	policiesToUpdate map[string]portainer.K8sNamespaceAccessPolicy,
-) (map[string]portainer.K8sNamespaceAccessPolicy, bool, error) {
+	policiesToUpdate map[string]portaineree.K8sNamespaceAccessPolicy,
+) (map[string]portaineree.K8sNamespaceAccessPolicy, bool, error) {
 	userRole, err := service.GetUserEndpointRole(userID, endpointID)
 	if err != nil {
 		return nil, false, err
@@ -896,8 +896,8 @@ func (service *Service) RemoveUserNamespaceAccessPolicies(
 // and remove users/teams in it.
 func (service *Service) removeUserInNamespaceAccessPolicies(
 	usersEndpointRole map[int]int,
-	policiesToUpdate map[string]portainer.K8sNamespaceAccessPolicy,
-) (map[string]portainer.K8sNamespaceAccessPolicy, bool, error) {
+	policiesToUpdate map[string]portaineree.K8sNamespaceAccessPolicy,
+) (map[string]portaineree.K8sNamespaceAccessPolicy, bool, error) {
 	hasChange := false
 	for ns, nsPolicies := range policiesToUpdate {
 		for userID := range nsPolicies.UserAccessPolicies {
@@ -921,8 +921,8 @@ func (service *Service) removeUserInNamespaceAccessPolicies(
 // Returns the updated policies and whether there is any update.
 func (service *Service) RemoveTeamNamespaceAccessPolicies(
 	teamID int, endpointID int,
-	policiesToUpdate map[string]portainer.K8sNamespaceAccessPolicy,
-) (map[string]portainer.K8sNamespaceAccessPolicy, bool, error) {
+	policiesToUpdate map[string]portaineree.K8sNamespaceAccessPolicy,
+) (map[string]portaineree.K8sNamespaceAccessPolicy, bool, error) {
 	teamRole, err := service.GetTeamEndpointRole(teamID, endpointID)
 	if err != nil {
 		return nil, false, err
@@ -956,8 +956,8 @@ func (service *Service) RemoveTeamNamespaceAccessPolicies(
 func (service *Service) GetUserEndpointRole(
 	userID int,
 	endpointID int,
-) (*portainer.Role, error) {
-	user, err := service.dataStore.User().User(portainer.UserID(userID))
+) (*portaineree.Role, error) {
+	user, err := service.dataStore.User().User(portaineree.UserID(userID))
 	if err != nil {
 		return nil, err
 	}
@@ -967,7 +967,7 @@ func (service *Service) GetUserEndpointRole(
 		return nil, err
 	}
 
-	endpoint, err := service.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := service.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err != nil {
 		return nil, err
 	}
@@ -990,15 +990,15 @@ func (service *Service) GetUserEndpointRole(
 
 func (service *Service) GetNamespaceAuthorizations(
 	userID int,
-	endpoint portainer.Endpoint,
-	kcl portainer.KubeClient,
-) (map[string]portainer.Authorizations, error) {
-	namespaceAuthorizations := make(map[string]portainer.Authorizations)
+	endpoint portaineree.Endpoint,
+	kcl portaineree.KubeClient,
+) (map[string]portaineree.Authorizations, error) {
+	namespaceAuthorizations := make(map[string]portaineree.Authorizations)
 
 	// skip non k8s environments(endpoints)
-	if endpoint.Type != portainer.KubernetesLocalEnvironment &&
-		endpoint.Type != portainer.AgentOnKubernetesEnvironment &&
-		endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment {
+	if endpoint.Type != portaineree.KubernetesLocalEnvironment &&
+		endpoint.Type != portaineree.AgentOnKubernetesEnvironment &&
+		endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment {
 		return namespaceAuthorizations, nil
 	}
 
@@ -1048,11 +1048,11 @@ func (service *Service) GetUserNamespaceAuthorizations(
 	userID int,
 	userEndpointRoleID int,
 	endpointID int,
-	accessPolicies map[string]portainer.K8sNamespaceAccessPolicy,
-	namespaces map[string]portainer.K8sNamespaceInfo,
-	endpointAuthorizations portainer.Authorizations,
-	endpointConfiguration portainer.KubernetesConfiguration,
-) (map[string]portainer.Authorizations, error) {
+	accessPolicies map[string]portaineree.K8sNamespaceAccessPolicy,
+	namespaces map[string]portaineree.K8sNamespaceInfo,
+	endpointAuthorizations portaineree.Authorizations,
+	endpointConfiguration portaineree.KubernetesConfiguration,
+) (map[string]portaineree.Authorizations, error) {
 	namespaceRoles, err := service.GetUserNamespaceRoles(userID, userEndpointRoleID, endpointID,
 		accessPolicies, namespaces, endpointAuthorizations, endpointConfiguration)
 	if err != nil {
@@ -1061,7 +1061,7 @@ func (service *Service) GetUserNamespaceAuthorizations(
 
 	defaultAuthorizations := DefaultK8sNamespaceAuthorizations()
 
-	namespaceAuthorizations := make(map[string]portainer.Authorizations)
+	namespaceAuthorizations := make(map[string]portaineree.Authorizations)
 	for namespace, role := range namespaceRoles {
 		namespaceAuthorizations[namespace] = defaultAuthorizations[role.ID]
 	}
@@ -1074,19 +1074,19 @@ func (service *Service) GetUserNamespaceRoles(
 	userID int,
 	userEndpointRoleID int,
 	endpointID int,
-	accessPolicies map[string]portainer.K8sNamespaceAccessPolicy,
-	namespaces map[string]portainer.K8sNamespaceInfo,
-	endpointAuthorizations portainer.Authorizations,
-	endpointConfiguration portainer.KubernetesConfiguration,
-) (map[string]portainer.Role, error) {
+	accessPolicies map[string]portaineree.K8sNamespaceAccessPolicy,
+	namespaces map[string]portaineree.K8sNamespaceInfo,
+	endpointAuthorizations portaineree.Authorizations,
+	endpointConfiguration portaineree.KubernetesConfiguration,
+) (map[string]portaineree.Role, error) {
 
 	// does an early check if user can access all namespaces to skip db calls
-	accessAllNamespaces := endpointAuthorizations[portainer.OperationK8sAccessAllNamespaces]
+	accessAllNamespaces := endpointAuthorizations[portaineree.OperationK8sAccessAllNamespaces]
 	if accessAllNamespaces {
-		return make(map[string]portainer.Role), nil
+		return make(map[string]portaineree.Role), nil
 	}
 
-	user, err := service.dataStore.User().User(portainer.UserID(userID))
+	user, err := service.dataStore.User().User(portaineree.UserID(userID))
 	if err != nil {
 		return nil, err
 	}
@@ -1101,8 +1101,8 @@ func (service *Service) GetUserNamespaceRoles(
 		return nil, err
 	}
 
-	accessSystemNamespaces := endpointAuthorizations[portainer.OperationK8sAccessSystemNamespaces]
-	accessUserNamespaces := endpointAuthorizations[portainer.OperationK8sAccessUserNamespaces]
+	accessSystemNamespaces := endpointAuthorizations[portaineree.OperationK8sAccessSystemNamespaces]
+	accessUserNamespaces := endpointAuthorizations[portaineree.OperationK8sAccessUserNamespaces]
 
 	return getUserNamespaceRoles(user, userEndpointRoleID, roles, userMemberships,
 		accessPolicies, namespaces, accessAllNamespaces, accessSystemNamespaces,
@@ -1110,22 +1110,22 @@ func (service *Service) GetUserNamespaceRoles(
 }
 
 func getUserNamespaceRoles(
-	user *portainer.User,
+	user *portaineree.User,
 	userEndpointRoleID int,
-	roles []portainer.Role,
-	userMemberships []portainer.TeamMembership,
-	accessPolicies map[string]portainer.K8sNamespaceAccessPolicy,
-	namespaces map[string]portainer.K8sNamespaceInfo,
+	roles []portaineree.Role,
+	userMemberships []portaineree.TeamMembership,
+	accessPolicies map[string]portaineree.K8sNamespaceAccessPolicy,
+	namespaces map[string]portaineree.K8sNamespaceInfo,
 	accessAllNamespaces bool,
 	accessSystemNamespaces bool,
 	accessUserNamespaces bool,
 	restrictDefaultNamespace bool,
-) (map[string]portainer.Role, error) {
-	rolesMap := make(map[int]portainer.Role)
+) (map[string]portaineree.Role, error) {
+	rolesMap := make(map[int]portaineree.Role)
 	for _, role := range roles {
 		rolesMap[int(role.ID)] = role
 	}
-	results := make(map[string]portainer.Role)
+	results := make(map[string]portaineree.Role)
 
 	for namespace, info := range namespaces {
 		// user can access everything
@@ -1175,12 +1175,12 @@ func getUserNamespaceRoles(
 // If roles are found in any of the step, the search stops.
 // Then the role with the hightest priority is returned.
 func getUserNamespaceRole(
-	user *portainer.User,
-	userAccessPolicies portainer.UserAccessPolicies,
-	teamAccessPolicies portainer.TeamAccessPolicies,
-	roles []portainer.Role,
-	userMemberships []portainer.TeamMembership,
-) *portainer.Role {
+	user *portaineree.User,
+	userAccessPolicies portaineree.UserAccessPolicies,
+	teamAccessPolicies portaineree.TeamAccessPolicies,
+	roles []portaineree.Role,
+	userMemberships []portaineree.TeamMembership,
+) *portaineree.Role {
 
 	role := getRoleFromUserAccessPolicies(user, userAccessPolicies, roles)
 	if role != nil {
@@ -1200,14 +1200,14 @@ func getUserNamespaceRole(
 // Then the role with the hightest priority is returned.
 func (service *Service) GetTeamEndpointRole(
 	teamID int, endpointID int,
-) (*portainer.Role, error) {
+) (*portaineree.Role, error) {
 
-	memberships, err := service.dataStore.TeamMembership().TeamMembershipsByTeamID(portainer.TeamID(teamID))
+	memberships, err := service.dataStore.TeamMembership().TeamMembershipsByTeamID(portaineree.TeamID(teamID))
 	if err != nil {
 		return nil, err
 	}
 
-	endpoint, err := service.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := service.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err != nil {
 		return nil, err
 	}
@@ -1244,12 +1244,12 @@ func (service *Service) GetTeamEndpointRole(
 //
 // If roles are found in any of the step, the search stops.
 // Then the role with the hightest priority is returned.
-func getUserEndpointRole(user *portainer.User, endpoint portainer.Endpoint,
-	groupUserAccessPolicies map[portainer.EndpointGroupID]portainer.UserAccessPolicies,
-	groupTeamAccessPolicies map[portainer.EndpointGroupID]portainer.TeamAccessPolicies,
-	roles []portainer.Role,
-	userMemberships []portainer.TeamMembership,
-) *portainer.Role {
+func getUserEndpointRole(user *portaineree.User, endpoint portaineree.Endpoint,
+	groupUserAccessPolicies map[portaineree.EndpointGroupID]portaineree.UserAccessPolicies,
+	groupTeamAccessPolicies map[portaineree.EndpointGroupID]portaineree.TeamAccessPolicies,
+	roles []portaineree.Role,
+	userMemberships []portaineree.TeamMembership,
+) *portaineree.Role {
 
 	role := getRoleFromUserAccessPolicies(user, endpoint.UserAccessPolicies, roles)
 	if role == nil {
@@ -1270,10 +1270,10 @@ func getUserEndpointRole(user *portainer.User, endpoint portainer.Endpoint,
 	return role
 }
 
-func getUserEndpointRoles(user *portainer.User, endpoints []portainer.Endpoint,
-	endpointGroups []portainer.EndpointGroup, roles []portainer.Role,
-	userMemberships []portainer.TeamMembership) map[portainer.EndpointID]portainer.Role {
-	results := make(map[portainer.EndpointID]portainer.Role)
+func getUserEndpointRoles(user *portaineree.User, endpoints []portaineree.Endpoint,
+	endpointGroups []portaineree.EndpointGroup, roles []portaineree.Role,
+	userMemberships []portaineree.TeamMembership) map[portaineree.EndpointID]portaineree.Role {
+	results := make(map[portaineree.EndpointID]portaineree.Role)
 
 	groupUserAccessPolicies, groupTeamAccessPolicies := getGroupPolicies(endpointGroups)
 
@@ -1291,11 +1291,11 @@ func getUserEndpointRoles(user *portainer.User, endpoints []portainer.Endpoint,
 
 // A user may have 1 role in each assigned environments(endpoints).
 func getRoleFromUserAccessPolicies(
-	user *portainer.User,
-	userAccessPolicies portainer.UserAccessPolicies,
-	roles []portainer.Role,
-) *portainer.Role {
-	policyRoles := make([]portainer.RoleID, 0)
+	user *portaineree.User,
+	userAccessPolicies portaineree.UserAccessPolicies,
+	roles []portaineree.Role,
+) *portaineree.Role {
+	policyRoles := make([]portaineree.RoleID, 0)
 
 	policy, ok := userAccessPolicies[user.ID]
 	if ok {
@@ -1311,10 +1311,10 @@ func getRoleFromUserAccessPolicies(
 // An environment(endpoint) can only have 1 EndpointGroup.
 //
 // A user may have 1 role in each assigned EndpointGroups.
-func getRoleFromUserEndpointGroupPolicy(user *portainer.User,
-	endpoint *portainer.Endpoint, roles []portainer.Role,
-	groupAccessPolicies map[portainer.EndpointGroupID]portainer.UserAccessPolicies) *portainer.Role {
-	policyRoles := make([]portainer.RoleID, 0)
+func getRoleFromUserEndpointGroupPolicy(user *portaineree.User,
+	endpoint *portaineree.Endpoint, roles []portaineree.Role,
+	groupAccessPolicies map[portaineree.EndpointGroupID]portaineree.UserAccessPolicies) *portaineree.Role {
+	policyRoles := make([]portaineree.RoleID, 0)
 
 	policy, ok := groupAccessPolicies[endpoint.GroupID][user.ID]
 	if ok {
@@ -1329,11 +1329,11 @@ func getRoleFromUserEndpointGroupPolicy(user *portainer.User,
 
 // A team may have 1 role in each assigned environments(endpoints)
 func getRoleFromTeamAccessPolicies(
-	memberships []portainer.TeamMembership,
-	teamAccessPolicies portainer.TeamAccessPolicies,
-	roles []portainer.Role,
-) *portainer.Role {
-	policyRoles := make([]portainer.RoleID, 0)
+	memberships []portaineree.TeamMembership,
+	teamAccessPolicies portaineree.TeamAccessPolicies,
+	roles []portaineree.Role,
+) *portaineree.Role {
+	policyRoles := make([]portaineree.RoleID, 0)
 
 	for _, membership := range memberships {
 		policy, ok := teamAccessPolicies[membership.TeamID]
@@ -1351,10 +1351,10 @@ func getRoleFromTeamAccessPolicies(
 // An environment(endpoint) can only have 1 EndpointGroup.
 //
 // A team may have 1 role in each assigned EndpointGroups.
-func getRoleFromTeamEndpointGroupPolicies(memberships []portainer.TeamMembership,
-	endpoint *portainer.Endpoint, roles []portainer.Role,
-	groupTeamAccessPolicies map[portainer.EndpointGroupID]portainer.TeamAccessPolicies) *portainer.Role {
-	policyRoles := make([]portainer.RoleID, 0)
+func getRoleFromTeamEndpointGroupPolicies(memberships []portaineree.TeamMembership,
+	endpoint *portaineree.Endpoint, roles []portaineree.Role,
+	groupTeamAccessPolicies map[portaineree.EndpointGroupID]portaineree.TeamAccessPolicies) *portaineree.Role {
+	policyRoles := make([]portaineree.RoleID, 0)
 
 	for _, membership := range memberships {
 		policy, ok := groupTeamAccessPolicies[endpoint.GroupID][membership.TeamID]
@@ -1371,11 +1371,11 @@ func getRoleFromTeamEndpointGroupPolicies(memberships []portainer.TeamMembership
 
 // for each role in the roleIdentifiers,
 // find the highest priority role and returns its authorizations
-func getAuthorizationsFromRoles(roleIdentifiers []portainer.RoleID, roles []portainer.Role) portainer.Authorizations {
+func getAuthorizationsFromRoles(roleIdentifiers []portaineree.RoleID, roles []portaineree.Role) portaineree.Authorizations {
 	keyRole := getKeyRole(roleIdentifiers, roles)
 
 	if keyRole == nil {
-		return portainer.Authorizations{}
+		return portaineree.Authorizations{}
 	}
 
 	return keyRole.Authorizations
@@ -1383,8 +1383,8 @@ func getAuthorizationsFromRoles(roleIdentifiers []portainer.RoleID, roles []port
 
 // for each role in the roleIdentifiers,
 // find the highest priority role
-func getKeyRole(roleIdentifiers []portainer.RoleID, roles []portainer.Role) *portainer.Role {
-	var associatedRoles []portainer.Role
+func getKeyRole(roleIdentifiers []portaineree.RoleID, roles []portaineree.Role) *portaineree.Role {
+	var associatedRoles []portaineree.Role
 
 	for _, id := range roleIdentifiers {
 		for _, role := range roles {
@@ -1395,7 +1395,7 @@ func getKeyRole(roleIdentifiers []portainer.RoleID, roles []portainer.Role) *por
 		}
 	}
 
-	var result portainer.Role
+	var result portaineree.Role
 	for _, role := range associatedRoles {
 		if role.Priority > result.Priority {
 			result = role
@@ -1407,8 +1407,8 @@ func getKeyRole(roleIdentifiers []portainer.RoleID, roles []portainer.Role) *por
 
 // unionAuthorizations returns a union of all the input authorizations
 // using the "or" operator.
-func unionAuthorizations(auths ...portainer.Authorizations) portainer.Authorizations {
-	authorizations := make(portainer.Authorizations)
+func unionAuthorizations(auths ...portaineree.Authorizations) portaineree.Authorizations {
+	authorizations := make(portaineree.Authorizations)
 
 	for _, auth := range auths {
 		for authKey, authVal := range auth {

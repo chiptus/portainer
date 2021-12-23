@@ -6,10 +6,10 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/authorization"
+	portaineree "github.com/portainer/portainer-ee/api"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 type stackListOperationFilters struct {
@@ -28,7 +28,7 @@ type stackListOperationFilters struct {
 // @security ApiKeyAuth
 // @security jwt
 // @param filters query string false "Filters to process on the stack list. Encoded as JSON (a map[string]string). For example, {'SwarmID': 'jpofkc0i9uo9wtx1zesuk649w'} will only return stacks that are part of the specified Swarm cluster. Available filters: EndpointID, SwarmID."
-// @success 200 {array} portainer.Stack "Success"
+// @success 200 {array} portaineree.Stack "Success"
 // @success 204 "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
@@ -68,14 +68,14 @@ func (handler *Handler) stackList(w http.ResponseWriter, r *http.Request) *httpe
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user information from the database", err}
 	}
 
-	_, hasEndpointResourcesAccess := user.EndpointAuthorizations[portainer.EndpointID(filters.EndpointID)][portainer.EndpointResourcesAccess]
+	_, hasEndpointResourcesAccess := user.EndpointAuthorizations[portaineree.EndpointID(filters.EndpointID)][portaineree.EndpointResourcesAccess]
 
 	if !securityContext.IsAdmin && !hasEndpointResourcesAccess {
 		if filters.IncludeOrphanedStacks {
 			return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access orphaned stacks", httperrors.ErrUnauthorized}
 		}
 
-		userTeamIDs := make([]portainer.TeamID, 0)
+		userTeamIDs := make([]portaineree.TeamID, 0)
 		for _, membership := range securityContext.UserMemberships {
 			userTeamIDs = append(userTeamIDs, membership.TeamID)
 		}
@@ -93,24 +93,24 @@ func (handler *Handler) stackList(w http.ResponseWriter, r *http.Request) *httpe
 	return response.JSON(w, stacks)
 }
 
-func filterStacks(stacks []portainer.Stack, filters *stackListOperationFilters, endpoints []portainer.Endpoint) []portainer.Stack {
+func filterStacks(stacks []portaineree.Stack, filters *stackListOperationFilters, endpoints []portaineree.Endpoint) []portaineree.Stack {
 	if filters.EndpointID == 0 && filters.SwarmID == "" {
 		return stacks
 	}
 
-	filteredStacks := make([]portainer.Stack, 0, len(stacks))
+	filteredStacks := make([]portaineree.Stack, 0, len(stacks))
 	for _, stack := range stacks {
 		if filters.IncludeOrphanedStacks && isOrphanedStack(stack, endpoints) {
-			if (stack.Type == portainer.DockerComposeStack && filters.SwarmID == "") || (stack.Type == portainer.DockerSwarmStack && filters.SwarmID != "") {
+			if (stack.Type == portaineree.DockerComposeStack && filters.SwarmID == "") || (stack.Type == portaineree.DockerSwarmStack && filters.SwarmID != "") {
 				filteredStacks = append(filteredStacks, stack)
 			}
 			continue
 		}
 
-		if stack.Type == portainer.DockerComposeStack && stack.EndpointID == portainer.EndpointID(filters.EndpointID) {
+		if stack.Type == portaineree.DockerComposeStack && stack.EndpointID == portaineree.EndpointID(filters.EndpointID) {
 			filteredStacks = append(filteredStacks, stack)
 		}
-		if stack.Type == portainer.DockerSwarmStack && stack.SwarmID == filters.SwarmID {
+		if stack.Type == portaineree.DockerSwarmStack && stack.SwarmID == filters.SwarmID {
 			filteredStacks = append(filteredStacks, stack)
 		}
 	}
@@ -118,7 +118,7 @@ func filterStacks(stacks []portainer.Stack, filters *stackListOperationFilters, 
 	return filteredStacks
 }
 
-func isOrphanedStack(stack portainer.Stack, endpoints []portainer.Endpoint) bool {
+func isOrphanedStack(stack portaineree.Stack, endpoints []portaineree.Endpoint) bool {
 	for _, endpoint := range endpoints {
 		if stack.EndpointID == endpoint.ID {
 			return false

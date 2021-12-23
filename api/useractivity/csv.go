@@ -6,11 +6,11 @@ import (
 	"io"
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 // MarshalAuthLogsToCSV converts a list of logs to a CSV string
-func MarshalAuthLogsToCSV(w io.Writer, logs []*portainer.AuthActivityLog) error {
+func MarshalAuthLogsToCSV(w io.Writer, logs []*portaineree.AuthActivityLog) error {
 	var headers = []string{
 		"Time",
 		"Origin",
@@ -29,21 +29,21 @@ func MarshalAuthLogsToCSV(w io.Writer, logs []*portainer.AuthActivityLog) error 
 	for _, log := range logs {
 		result := ""
 		switch log.Type {
-		case portainer.AuthenticationActivityFailure:
+		case portaineree.AuthenticationActivityFailure:
 			result = "Authentication failure"
-		case portainer.AuthenticationActivitySuccess:
+		case portaineree.AuthenticationActivitySuccess:
 			result = "Authentication success"
-		case portainer.AuthenticationActivityLogOut:
+		case portaineree.AuthenticationActivityLogOut:
 			result = "Logout"
 		}
 
 		context := ""
 		switch log.Context {
-		case portainer.AuthenticationInternal:
+		case portaineree.AuthenticationInternal:
 			context = "Internal"
-		case portainer.AuthenticationLDAP:
+		case portaineree.AuthenticationLDAP:
 			context = "LDAP"
-		case portainer.AuthenticationOAuth:
+		case portaineree.AuthenticationOAuth:
 			context = "OAuth"
 		}
 
@@ -70,7 +70,7 @@ func MarshalAuthLogsToCSV(w io.Writer, logs []*portainer.AuthActivityLog) error 
 }
 
 // MarshalLogsToCSV converts a list of logs to a CSV string
-func MarshalLogsToCSV(w io.Writer, logs []*portainer.UserActivityLog) error {
+func MarshalLogsToCSV(w io.Writer, logs []*portaineree.UserActivityLog) error {
 	var headers = []string{
 		"Time",
 		"Username",

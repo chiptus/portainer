@@ -8,10 +8,10 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 type userUpdatePayload struct {
@@ -44,7 +44,7 @@ func (payload *userUpdatePayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path int true "User identifier"
 // @param body body userUpdatePayload true "User details"
-// @success 200 {object} portainer.User "Success"
+// @success 200 {object} portaineree.User "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 404 "User not found"
@@ -62,7 +62,7 @@ func (handler *Handler) userUpdate(w http.ResponseWriter, r *http.Request) *http
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}
 	}
 
-	if tokenData.Role != portainer.AdministratorRole && tokenData.ID != portainer.UserID(userID) {
+	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portaineree.UserID(userID) {
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to update user", httperrors.ErrUnauthorized}
 	}
 
@@ -72,11 +72,11 @@ func (handler *Handler) userUpdate(w http.ResponseWriter, r *http.Request) *http
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	if tokenData.Role != portainer.AdministratorRole && payload.Role != 0 {
+	if tokenData.Role != portaineree.AdministratorRole && payload.Role != 0 {
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to update user to administrator role", httperrors.ErrResourceAccessDenied}
 	}
 
-	user, err := handler.DataStore.User().User(portainer.UserID(userID))
+	user, err := handler.DataStore.User().User(portaineree.UserID(userID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a user with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -88,7 +88,7 @@ func (handler *Handler) userUpdate(w http.ResponseWriter, r *http.Request) *http
 		if err != nil && err != bolterrors.ErrObjectNotFound {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve users from the database", err}
 		}
-		if sameNameUser != nil && sameNameUser.ID != portainer.UserID(userID) {
+		if sameNameUser != nil && sameNameUser.ID != portaineree.UserID(userID) {
 			return &httperror.HandlerError{http.StatusConflict, "Another user with the same username already exists", errUserAlreadyExists}
 		}
 
@@ -103,7 +103,7 @@ func (handler *Handler) userUpdate(w http.ResponseWriter, r *http.Request) *http
 	}
 
 	if payload.Role != 0 {
-		user.Role = portainer.UserRole(payload.Role)
+		user.Role = portaineree.UserRole(payload.Role)
 	}
 
 	if payload.UserTheme != "" {

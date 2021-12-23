@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type (
@@ -18,7 +18,7 @@ type (
 	}
 )
 
-func (service *Service) createOrUpdateDomain(configuration portainer.OpenAMTConfiguration) (*Domain, error) {
+func (service *Service) createOrUpdateDomain(configuration portaineree.OpenAMTConfiguration) (*Domain, error) {
 	domain, err := service.getDomain(configuration)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (service *Service) createOrUpdateDomain(configuration portainer.OpenAMTConf
 	return domain, nil
 }
 
-func (service *Service) getDomain(configuration portainer.OpenAMTConfiguration) (*Domain, error) {
+func (service *Service) getDomain(configuration portaineree.OpenAMTConfiguration) (*Domain, error) {
 	url := fmt.Sprintf("https://%s/rps/api/v1/admin/domains/%s", configuration.MPSServer, configuration.DomainConfiguration.DomainName)
 
 	responseBody, err := service.executeGetRequest(url, configuration.Credentials.MPSToken)
@@ -55,7 +55,7 @@ func (service *Service) getDomain(configuration portainer.OpenAMTConfiguration) 
 	return &result, nil
 }
 
-func (service *Service) saveDomain(method string, configuration portainer.OpenAMTConfiguration) (*Domain, error) {
+func (service *Service) saveDomain(method string, configuration portaineree.OpenAMTConfiguration) (*Domain, error) {
 	url := fmt.Sprintf("https://%s/rps/api/v1/admin/domains", configuration.MPSServer)
 
 	profile := Domain{

@@ -3,7 +3,7 @@ package cli
 import (
 	"context"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -11,8 +11,8 @@ import (
 
 type (
 	k8sRoleSet struct {
-		k8sClusterRoles []portainer.K8sRole
-		k8sRoles        []portainer.K8sRole
+		k8sClusterRoles []portaineree.K8sRole
+		k8sRoles        []portaineree.K8sRole
 	}
 
 	k8sRoleConfig struct {
@@ -21,56 +21,56 @@ type (
 	}
 )
 
-func getPortainerK8sRoleMapping() map[portainer.RoleID]k8sRoleSet {
-	return map[portainer.RoleID]k8sRoleSet{
-		portainer.RoleIDEndpointAdmin: k8sRoleSet{
-			k8sClusterRoles: []portainer.K8sRole{
-				portainer.K8sRoleClusterAdmin,
+func getPortainerK8sRoleMapping() map[portaineree.RoleID]k8sRoleSet {
+	return map[portaineree.RoleID]k8sRoleSet{
+		portaineree.RoleIDEndpointAdmin: k8sRoleSet{
+			k8sClusterRoles: []portaineree.K8sRole{
+				portaineree.K8sRoleClusterAdmin,
 			},
 		},
-		portainer.RoleIDHelpdesk: k8sRoleSet{
-			k8sClusterRoles: []portainer.K8sRole{
-				portainer.K8sRolePortainerHelpdesk,
+		portaineree.RoleIDHelpdesk: k8sRoleSet{
+			k8sClusterRoles: []portaineree.K8sRole{
+				portaineree.K8sRolePortainerHelpdesk,
 			},
-			k8sRoles: []portainer.K8sRole{
-				portainer.K8sRolePortainerView,
-			},
-		},
-		portainer.RoleIDOperator: k8sRoleSet{
-			k8sClusterRoles: []portainer.K8sRole{
-				portainer.K8sRolePortainerHelpdesk,
-				portainer.K8sRolePortainerOperator,
-			},
-			k8sRoles: []portainer.K8sRole{
-				portainer.K8sRolePortainerView,
+			k8sRoles: []portaineree.K8sRole{
+				portaineree.K8sRolePortainerView,
 			},
 		},
-		portainer.RoleIDStandardUser: k8sRoleSet{
-			k8sClusterRoles: []portainer.K8sRole{
-				portainer.K8sRolePortainerBasic,
+		portaineree.RoleIDOperator: k8sRoleSet{
+			k8sClusterRoles: []portaineree.K8sRole{
+				portaineree.K8sRolePortainerHelpdesk,
+				portaineree.K8sRolePortainerOperator,
 			},
-			k8sRoles: []portainer.K8sRole{
-				portainer.K8sRolePortainerEdit,
-				portainer.K8sRolePortainerView,
+			k8sRoles: []portaineree.K8sRole{
+				portaineree.K8sRolePortainerView,
 			},
 		},
-		portainer.RoleIDReadonly: k8sRoleSet{
-			k8sClusterRoles: []portainer.K8sRole{
-				portainer.K8sRolePortainerBasic,
+		portaineree.RoleIDStandardUser: k8sRoleSet{
+			k8sClusterRoles: []portaineree.K8sRole{
+				portaineree.K8sRolePortainerBasic,
 			},
-			k8sRoles: []portainer.K8sRole{
-				portainer.K8sRolePortainerView,
+			k8sRoles: []portaineree.K8sRole{
+				portaineree.K8sRolePortainerEdit,
+				portaineree.K8sRolePortainerView,
+			},
+		},
+		portaineree.RoleIDReadonly: k8sRoleSet{
+			k8sClusterRoles: []portaineree.K8sRole{
+				portaineree.K8sRolePortainerBasic,
+			},
+			k8sRoles: []portaineree.K8sRole{
+				portaineree.K8sRolePortainerView,
 			},
 		},
 	}
 }
 
-func getPortainerDefaultK8sRoles() map[portainer.K8sRole]k8sRoleConfig {
-	return map[portainer.K8sRole]k8sRoleConfig{
-		portainer.K8sRoleClusterAdmin: k8sRoleConfig{
+func getPortainerDefaultK8sRoles() map[portaineree.K8sRole]k8sRoleConfig {
+	return map[portaineree.K8sRole]k8sRoleConfig{
+		portaineree.K8sRoleClusterAdmin: k8sRoleConfig{
 			isSystem: true,
 		},
-		portainer.K8sRolePortainerBasic: k8sRoleConfig{
+		portaineree.K8sRolePortainerBasic: k8sRoleConfig{
 			isSystem: false,
 			rules: []rbacv1.PolicyRule{
 				{
@@ -90,7 +90,7 @@ func getPortainerDefaultK8sRoles() map[portainer.K8sRole]k8sRoleConfig {
 				},
 			},
 		},
-		portainer.K8sRolePortainerHelpdesk: k8sRoleConfig{
+		portaineree.K8sRolePortainerHelpdesk: k8sRoleConfig{
 			isSystem: false,
 			rules: []rbacv1.PolicyRule{
 				{
@@ -115,7 +115,7 @@ func getPortainerDefaultK8sRoles() map[portainer.K8sRole]k8sRoleConfig {
 				},
 			},
 		},
-		portainer.K8sRolePortainerOperator: k8sRoleConfig{
+		portaineree.K8sRolePortainerOperator: k8sRoleConfig{
 			isSystem: false,
 			rules: []rbacv1.PolicyRule{
 				{
@@ -141,7 +141,7 @@ func getPortainerDefaultK8sRoles() map[portainer.K8sRole]k8sRoleConfig {
 			},
 		},
 		// namespaced role
-		portainer.K8sRolePortainerEdit: k8sRoleConfig{
+		portaineree.K8sRolePortainerEdit: k8sRoleConfig{
 			isSystem: false,
 			rules: []rbacv1.PolicyRule{
 				{
@@ -186,8 +186,7 @@ func getPortainerDefaultK8sRoles() map[portainer.K8sRole]k8sRoleConfig {
 				},
 			},
 		},
-		// namespaced role
-		portainer.K8sRolePortainerView: k8sRoleConfig{
+		portaineree.K8sRolePortainerView: k8sRoleConfig{
 			isSystem: false,
 			rules: []rbacv1.PolicyRule{
 				{

@@ -8,13 +8,13 @@ import (
 	"net/http/httputil"
 	"time"
 
-	"github.com/portainer/portainer/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/websocket"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type execStartOperationPayload struct {
@@ -54,7 +54,7 @@ func (handler *Handler) websocketExec(w http.ResponseWriter, r *http.Request) *h
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: endpointId", err}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == errors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find the environment associated to the stack inside the database", err}
 	} else if err != nil {
@@ -83,9 +83,9 @@ func (handler *Handler) websocketExec(w http.ResponseWriter, r *http.Request) *h
 func (handler *Handler) handleExecRequest(w http.ResponseWriter, r *http.Request, params *webSocketRequestParams) error {
 	r.Header.Del("Origin")
 
-	if params.endpoint.Type == portainer.AgentOnDockerEnvironment {
+	if params.endpoint.Type == portaineree.AgentOnDockerEnvironment {
 		return handler.proxyAgentWebsocketRequest(w, r, params)
-	} else if params.endpoint.Type == portainer.EdgeAgentOnDockerEnvironment {
+	} else if params.endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment {
 		return handler.proxyEdgeAgentWebsocketRequest(w, r, params)
 	}
 
@@ -98,7 +98,7 @@ func (handler *Handler) handleExecRequest(w http.ResponseWriter, r *http.Request
 	return hijackExecStartOperation(websocketConn, params.endpoint, params.ID)
 }
 
-func hijackExecStartOperation(websocketConn *websocket.Conn, endpoint *portainer.Endpoint, execID string) error {
+func hijackExecStartOperation(websocketConn *websocket.Conn, endpoint *portaineree.Endpoint, execID string) error {
 	dial, err := initDial(endpoint)
 	if err != nil {
 		return err

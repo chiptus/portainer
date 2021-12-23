@@ -7,8 +7,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 type logsPayload struct {
@@ -37,7 +37,7 @@ func (handler *Handler) endpointEdgeJobsLogs(w http.ResponseWriter, r *http.Requ
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -60,7 +60,7 @@ func (handler *Handler) endpointEdgeJobsLogs(w http.ResponseWriter, r *http.Requ
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	edgeJob, err := handler.DataStore.EdgeJob().EdgeJob(portainer.EdgeJobID(edgeJobID))
+	edgeJob, err := handler.DataStore.EdgeJob().EdgeJob(portaineree.EdgeJobID(edgeJobID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an edge job with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -74,7 +74,7 @@ func (handler *Handler) endpointEdgeJobsLogs(w http.ResponseWriter, r *http.Requ
 
 	meta := edgeJob.Endpoints[endpoint.ID]
 	meta.CollectLogs = false
-	meta.LogsStatus = portainer.EdgeJobLogsStatusCollected
+	meta.LogsStatus = portaineree.EdgeJobLogsStatusCollected
 	edgeJob.Endpoints[endpoint.ID] = meta
 
 	err = handler.DataStore.EdgeJob().UpdateEdgeJob(edgeJob.ID, edgeJob)

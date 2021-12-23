@@ -7,8 +7,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // @id TeamDelete
@@ -31,7 +31,7 @@ func (handler *Handler) teamDelete(w http.ResponseWriter, r *http.Request) *http
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid team identifier route variable", err}
 	}
 
-	_, err = handler.DataStore.Team().Team(portainer.TeamID(teamID))
+	_, err = handler.DataStore.Team().Team(portaineree.TeamID(teamID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a team with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -44,9 +44,9 @@ func (handler *Handler) teamDelete(w http.ResponseWriter, r *http.Request) *http
 	}
 
 	for _, endpoint := range endpoints {
-		if endpoint.Type != portainer.KubernetesLocalEnvironment &&
-			endpoint.Type != portainer.AgentOnKubernetesEnvironment &&
-			endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment {
+		if endpoint.Type != portaineree.KubernetesLocalEnvironment &&
+			endpoint.Type != portaineree.AgentOnKubernetesEnvironment &&
+			endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment {
 			continue
 		}
 
@@ -71,23 +71,23 @@ func (handler *Handler) teamDelete(w http.ResponseWriter, r *http.Request) *http
 		}
 	}
 
-	err = handler.DataStore.Team().DeleteTeam(portainer.TeamID(teamID))
+	err = handler.DataStore.Team().DeleteTeam(portaineree.TeamID(teamID))
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to delete the team from the database", err}
 	}
 
-	err = handler.DataStore.TeamMembership().DeleteTeamMembershipByTeamID(portainer.TeamID(teamID))
+	err = handler.DataStore.TeamMembership().DeleteTeamMembershipByTeamID(portaineree.TeamID(teamID))
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to delete associated team memberships from the database", err}
 	}
 
-	err = handler.AuthorizationService.RemoveTeamAccessPolicies(portainer.TeamID(teamID))
+	err = handler.AuthorizationService.RemoveTeamAccessPolicies(portaineree.TeamID(teamID))
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to clean-up team access policies", err}
 	}
 
 	// update default team if deleted team was default
-	err = handler.updateDefaultTeamIfDeleted(portainer.TeamID(teamID))
+	err = handler.updateDefaultTeamIfDeleted(portaineree.TeamID(teamID))
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to reset default team", err}
 	}
@@ -98,7 +98,7 @@ func (handler *Handler) teamDelete(w http.ResponseWriter, r *http.Request) *http
 }
 
 // updateDefaultTeamIfDeleted resets the default team to nil if default team was the deleted team
-func (handler *Handler) updateDefaultTeamIfDeleted(teamID portainer.TeamID) error {
+func (handler *Handler) updateDefaultTeamIfDeleted(teamID portaineree.TeamID) error {
 	settings, err := handler.DataStore.Settings().Settings()
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch settings")

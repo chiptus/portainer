@@ -1,3 +1,4 @@
+//go:build aix || darwin || dragonfly || freebsd || linux || netbsd || openbsd || solaris
 // +build aix darwin dragonfly freebsd linux netbsd openbsd solaris
 
 package factory
@@ -6,11 +7,11 @@ import (
 	"net"
 	"net/http"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/proxy/factory/docker"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/docker"
 )
 
-func (factory ProxyFactory) newOSBasedLocalProxy(path string, endpoint *portainer.Endpoint) (http.Handler, error) {
+func (factory ProxyFactory) newOSBasedLocalProxy(path string, endpoint *portaineree.Endpoint) (http.Handler, error) {
 	transportParameters := &docker.TransportParameters{
 		Endpoint:             endpoint,
 		DataStore:            factory.dataStore,

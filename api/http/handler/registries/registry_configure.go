@@ -8,10 +8,10 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 type registryConfigurePayload struct {
@@ -22,7 +22,7 @@ type registryConfigurePayload struct {
 	// Password used to authenticate against this registry. required when Authentication is true
 	Password string `example:"registry_password"`
 	// ECR region
-	Region  string
+	Region string
 	// Use TLS
 	TLS bool `example:"true"`
 	// Skip the verification of the server TLS certificate
@@ -119,14 +119,14 @@ func (handler *Handler) registryConfigure(w http.ResponseWriter, r *http.Request
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid registry identifier route variable", err}
 	}
 
-	registry, err := handler.DataStore.Registry().Registry(portainer.RegistryID(registryID))
+	registry, err := handler.DataStore.Registry().Registry(portaineree.RegistryID(registryID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a registry with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a registry with the specified identifier inside the database", err}
 	}
 
-	registry.ManagementConfiguration = &portainer.RegistryManagementConfiguration{
+	registry.ManagementConfiguration = &portaineree.RegistryManagementConfiguration{
 		Type: registry.Type,
 	}
 
@@ -145,7 +145,7 @@ func (handler *Handler) registryConfigure(w http.ResponseWriter, r *http.Request
 	}
 
 	if payload.TLS {
-		registry.ManagementConfiguration.TLSConfig = portainer.TLSConfiguration{
+		registry.ManagementConfiguration.TLSConfig = portaineree.TLSConfiguration{
 			TLS:           true,
 			TLSSkipVerify: payload.TLSSkipVerify,
 		}

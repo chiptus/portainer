@@ -1,8 +1,8 @@
 package settings
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 )
 
 const (
@@ -29,8 +29,8 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // Settings retrieve the settings object.
-func (service *Service) Settings() (*portainer.Settings, error) {
-	var settings portainer.Settings
+func (service *Service) Settings() (*portaineree.Settings, error) {
+	var settings portaineree.Settings
 
 	err := internal.GetObject(service.connection, BucketName, []byte(settingsKey), &settings)
 	if err != nil {
@@ -41,11 +41,11 @@ func (service *Service) Settings() (*portainer.Settings, error) {
 }
 
 // UpdateSettings persists a Settings object.
-func (service *Service) UpdateSettings(settings *portainer.Settings) error {
+func (service *Service) UpdateSettings(settings *portaineree.Settings) error {
 	return internal.UpdateObject(service.connection, BucketName, []byte(settingsKey), settings)
 }
 
-func (service *Service) IsFeatureFlagEnabled(feature portainer.Feature) bool {
+func (service *Service) IsFeatureFlagEnabled(feature portaineree.Feature) bool {
 	settings, err := service.Settings()
 	if err != nil {
 		return false

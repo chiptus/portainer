@@ -7,7 +7,7 @@ import (
 
 	storm "github.com/asdine/storm/v3"
 	"github.com/asdine/storm/v3/q"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"go.etcd.io/bbolt"
 )
 
@@ -38,12 +38,12 @@ func NewStore(dataPath string) (*Store, error) {
 		return nil, err
 	}
 
-	err = db.Init(&portainer.UserActivityLog{})
+	err = db.Init(&portaineree.UserActivityLog{})
 	if err != nil {
 		return nil, err
 	}
 
-	err = db.Init(&portainer.AuthActivityLog{})
+	err = db.Init(&portaineree.AuthActivityLog{})
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (store *Store) Close() error {
 	return store.db.Close()
 }
 
-func (store *Store) getLogs(activities interface{}, activityLogType interface{}, opts portainer.UserActivityLogBaseQuery, matchers []q.Matcher) (int, error) {
+func (store *Store) getLogs(activities interface{}, activityLogType interface{}, opts portaineree.UserActivityLogBaseQuery, matchers []q.Matcher) (int, error) {
 	if opts.Limit == 0 {
 		opts.Limit = 50
 	}

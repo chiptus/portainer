@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/asdine/storm/v3/q"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 // StoreAuthLog stores a new authLog in the store
-func (store *Store) StoreAuthLog(authLog *portainer.AuthActivityLog) error {
+func (store *Store) StoreAuthLog(authLog *portaineree.AuthActivityLog) error {
 	err := store.db.Save(authLog)
 	if err != nil {
 		return fmt.Errorf("failed saving activity to db: %w", err)
@@ -19,7 +19,7 @@ func (store *Store) StoreAuthLog(authLog *portainer.AuthActivityLog) error {
 
 // GetAuthLogs queries the db for authentication activity logs
 // it returns the logs in this page (offset/limit) and the amount of logs in total for this query
-func (store *Store) GetAuthLogs(opts portainer.AuthLogsQuery) ([]*portainer.AuthActivityLog, int, error) {
+func (store *Store) GetAuthLogs(opts portaineree.AuthLogsQuery) ([]*portaineree.AuthActivityLog, int, error) {
 	matchers := []q.Matcher{}
 
 	if len(opts.ContextTypes) > 0 {
@@ -34,8 +34,8 @@ func (store *Store) GetAuthLogs(opts portainer.AuthLogsQuery) ([]*portainer.Auth
 		matchers = append(matchers, q.Or(q.Re("Origin", opts.Keyword), q.Re("Username", opts.Keyword)))
 	}
 
-	activities := []*portainer.AuthActivityLog{}
-	count, err := store.getLogs(&activities, &portainer.AuthActivityLog{}, opts.UserActivityLogBaseQuery, matchers)
+	activities := []*portaineree.AuthActivityLog{}
+	count, err := store.getLogs(&activities, &portaineree.AuthActivityLog{}, opts.UserActivityLogBaseQuery, matchers)
 	if err != nil {
 		return nil, 0, err
 	}

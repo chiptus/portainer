@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/koding/websocketproxy"
-	"github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 func (handler *Handler) proxyEdgeAgentWebsocketRequest(w http.ResponseWriter, r *http.Request, params *webSocketRequestParams) error {
@@ -25,21 +25,21 @@ func (handler *Handler) proxyEdgeAgentWebsocketRequest(w http.ResponseWriter, r 
 	endpointURL.Scheme = "ws"
 	proxy := websocketproxy.NewProxy(endpointURL)
 
-	signature, err := handler.SignatureService.CreateSignature(portainer.PortainerAgentSignatureMessage)
+	signature, err := handler.SignatureService.CreateSignature(portaineree.PortainerAgentSignatureMessage)
 	if err != nil {
 		return err
 	}
 
 	proxy.Director = func(incoming *http.Request, out http.Header) {
-		out.Set(portainer.PortainerAgentPublicKeyHeader, handler.SignatureService.EncodedPublicKey())
-		out.Set(portainer.PortainerAgentSignatureHeader, signature)
-		out.Set(portainer.PortainerAgentTargetHeader, params.nodeName)
-		out.Set(portainer.PortainerAgentKubernetesSATokenHeader, params.token)
+		out.Set(portaineree.PortainerAgentPublicKeyHeader, handler.SignatureService.EncodedPublicKey())
+		out.Set(portaineree.PortainerAgentSignatureHeader, signature)
+		out.Set(portaineree.PortainerAgentTargetHeader, params.nodeName)
+		out.Set(portaineree.PortainerAgentKubernetesSATokenHeader, params.token)
 	}
 
 	handler.ReverseTunnelService.SetTunnelStatusToActive(params.endpoint.ID)
 
-	handler.ReverseTunnelService.KeepTunnelAlive(params.endpoint.ID, r.Context(), portainer.WebSocketKeepAlive)
+	handler.ReverseTunnelService.KeepTunnelAlive(params.endpoint.ID, r.Context(), portaineree.WebSocketKeepAlive)
 
 	proxy.ServeHTTP(w, r)
 
@@ -48,7 +48,7 @@ func (handler *Handler) proxyEdgeAgentWebsocketRequest(w http.ResponseWriter, r 
 
 func (handler *Handler) proxyAgentWebsocketRequest(w http.ResponseWriter, r *http.Request, params *webSocketRequestParams) error {
 	endpointURL := params.endpoint.URL
-	if params.endpoint.Type == portainer.AgentOnKubernetesEnvironment {
+	if params.endpoint.Type == portaineree.AgentOnKubernetesEnvironment {
 		endpointURL = fmt.Sprintf("http://%s", params.endpoint.URL)
 	}
 
@@ -69,16 +69,16 @@ func (handler *Handler) proxyAgentWebsocketRequest(w http.ResponseWriter, r *htt
 		}
 	}
 
-	signature, err := handler.SignatureService.CreateSignature(portainer.PortainerAgentSignatureMessage)
+	signature, err := handler.SignatureService.CreateSignature(portaineree.PortainerAgentSignatureMessage)
 	if err != nil {
 		return err
 	}
 
 	proxy.Director = func(incoming *http.Request, out http.Header) {
-		out.Set(portainer.PortainerAgentPublicKeyHeader, handler.SignatureService.EncodedPublicKey())
-		out.Set(portainer.PortainerAgentSignatureHeader, signature)
-		out.Set(portainer.PortainerAgentTargetHeader, params.nodeName)
-		out.Set(portainer.PortainerAgentKubernetesSATokenHeader, params.token)
+		out.Set(portaineree.PortainerAgentPublicKeyHeader, handler.SignatureService.EncodedPublicKey())
+		out.Set(portaineree.PortainerAgentSignatureHeader, signature)
+		out.Set(portaineree.PortainerAgentTargetHeader, params.nodeName)
+		out.Set(portaineree.PortainerAgentKubernetesSATokenHeader, params.token)
 	}
 
 	proxy.ServeHTTP(w, r)

@@ -9,9 +9,9 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 type registryCreatePayload struct {
@@ -25,7 +25,7 @@ type registryCreatePayload struct {
 	//	5 (ProGet registry),
 	//	6 (DockerHub)
 	//	7 (ECR)
-	Type portainer.RegistryType `example:"1" validate:"required" enums:"1,2,3,4,5,6,7"`
+	Type portaineree.RegistryType `example:"1" validate:"required" enums:"1,2,3,4,5,6,7"`
 	// URL or IP address of the Docker registry
 	URL string `example:"registry.mydomain.tld:2375/feed" validate:"required"`
 	// BaseURL required for ProGet registry
@@ -37,11 +37,11 @@ type registryCreatePayload struct {
 	// Password used to authenticate against this registry. required when Authentication is true
 	Password string `example:"registry_password"`
 	// Gitlab specific details, required when type = 4
-	Gitlab portainer.GitlabRegistryData
+	Gitlab portaineree.GitlabRegistryData
 	// Quay specific details, required when type = 1
-	Quay portainer.QuayRegistryData
+	Quay portaineree.QuayRegistryData
 	// ECR specific details, required when type = 7
-	Ecr portainer.EcrData
+	Ecr portaineree.EcrData
 }
 
 func (payload *registryCreatePayload) Validate(_ *http.Request) error {
@@ -56,7 +56,7 @@ func (payload *registryCreatePayload) Validate(_ *http.Request) error {
 		if govalidator.IsNull(payload.Username) || govalidator.IsNull(payload.Password) {
 			return errors.New("Invalid credentials. Username and password must be specified when authentication is enabled")
 		}
-		if payload.Type == portainer.EcrRegistry {
+		if payload.Type == portaineree.EcrRegistry {
 			if govalidator.IsNull(payload.Ecr.Region) {
 				return errors.New("invalid credentials: access key ID, secret access key and region must be specified when authentication is enabled")
 			}
@@ -64,13 +64,13 @@ func (payload *registryCreatePayload) Validate(_ *http.Request) error {
 	}
 
 	switch payload.Type {
-	case portainer.QuayRegistry, portainer.AzureRegistry, portainer.CustomRegistry, portainer.GitlabRegistry, portainer.ProGetRegistry, portainer.DockerHubRegistry, portainer.EcrRegistry:
+	case portaineree.QuayRegistry, portaineree.AzureRegistry, portaineree.CustomRegistry, portaineree.GitlabRegistry, portaineree.ProGetRegistry, portaineree.DockerHubRegistry, portaineree.EcrRegistry:
 	default:
 		return errors.New("invalid registry type. Valid values are: 1 (Quay.io), 2 (Azure container registry), 3 (custom registry), 4 (Gitlab registry), 5 (ProGet registry), 6 (DockerHub), 7 (ECR)")
 	}
 
-	if payload.Type == portainer.ProGetRegistry && payload.BaseURL == "" {
-		return fmt.Errorf("BaseURL is required for registry type %d (ProGet)", portainer.ProGetRegistry)
+	if payload.Type == portaineree.ProGetRegistry && payload.BaseURL == "" {
+		return fmt.Errorf("BaseURL is required for registry type %d (ProGet)", portaineree.ProGetRegistry)
 	}
 
 	return nil
@@ -86,7 +86,7 @@ func (payload *registryCreatePayload) Validate(_ *http.Request) error {
 // @accept json
 // @produce json
 // @param body body registryCreatePayload true "Registry details"
-// @success 200 {object} portainer.Registry "Success"
+// @success 200 {object} portaineree.Registry "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /registries [post]
@@ -105,8 +105,8 @@ func (handler *Handler) registryCreate(w http.ResponseWriter, r *http.Request) *
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	registry := &portainer.Registry{
-		Type:             portainer.RegistryType(payload.Type),
+	registry := &portaineree.Registry{
+		Type:             portaineree.RegistryType(payload.Type),
 		Name:             payload.Name,
 		URL:              payload.URL,
 		BaseURL:          payload.BaseURL,
@@ -115,7 +115,7 @@ func (handler *Handler) registryCreate(w http.ResponseWriter, r *http.Request) *
 		Password:         payload.Password,
 		Gitlab:           payload.Gitlab,
 		Quay:             payload.Quay,
-		RegistryAccesses: portainer.RegistryAccesses{},
+		RegistryAccesses: portaineree.RegistryAccesses{},
 		Ecr:              payload.Ecr,
 	}
 

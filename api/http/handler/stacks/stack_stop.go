@@ -5,17 +5,15 @@ import (
 	"errors"
 	"net/http"
 
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/middlewares"
-	"github.com/portainer/portainer/api/internal/stackutils"
-
-	"github.com/portainer/portainer/api/http/security"
-
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/stackutils"
 )
 
 // @id StackStop
@@ -26,7 +24,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @param id path int true "Stack identifier"
-// @success 200 {object} portainer.Stack "Success"
+// @success 200 {object} portaineree.Stack "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 404 "Not found"
@@ -43,14 +41,14 @@ func (handler *Handler) stackStop(w http.ResponseWriter, r *http.Request) *httpe
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
 	}
 
-	stack, err := handler.DataStore.Stack().Stack(portainer.StackID(stackID))
+	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(stackID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a stack with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a stack with the specified identifier inside the database", err}
 	}
 
-	if stack.Type == portainer.KubernetesStack {
+	if stack.Type == portaineree.KubernetesStack {
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Stopping a kubernetes stack is not supported", Err: err}
 	}
 
@@ -59,7 +57,7 @@ func (handler *Handler) stackStop(w http.ResponseWriter, r *http.Request) *httpe
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: endpointId", err}
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -72,7 +70,7 @@ func (handler *Handler) stackStop(w http.ResponseWriter, r *http.Request) *httpe
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access environment", err}
 	}
 
-	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portainer.StackResourceControl)
+	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portaineree.StackResourceControl)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve a resource control associated to the stack", err}
 	}
@@ -85,7 +83,7 @@ func (handler *Handler) stackStop(w http.ResponseWriter, r *http.Request) *httpe
 		return &httperror.HandlerError{http.StatusForbidden, "Access denied to resource", httperrors.ErrResourceAccessDenied}
 	}
 
-	if stack.Status == portainer.StackStatusInactive {
+	if stack.Status == portaineree.StackStatusInactive {
 		return &httperror.HandlerError{http.StatusBadRequest, "Stack is already inactive", errors.New("Stack is already inactive")}
 	}
 
@@ -100,7 +98,7 @@ func (handler *Handler) stackStop(w http.ResponseWriter, r *http.Request) *httpe
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to stop stack", err}
 	}
 
-	stack.Status = portainer.StackStatusInactive
+	stack.Status = portaineree.StackStatusInactive
 	err = handler.DataStore.Stack().UpdateStack(stack.ID, stack)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to update stack status", err}
@@ -114,11 +112,11 @@ func (handler *Handler) stackStop(w http.ResponseWriter, r *http.Request) *httpe
 	return response.JSON(w, stack)
 }
 
-func (handler *Handler) stopStack(stack *portainer.Stack, endpoint *portainer.Endpoint) error {
+func (handler *Handler) stopStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
 	switch stack.Type {
-	case portainer.DockerComposeStack:
+	case portaineree.DockerComposeStack:
 		return handler.ComposeStackManager.Down(context.TODO(), stack, endpoint)
-	case portainer.DockerSwarmStack:
+	case portaineree.DockerSwarmStack:
 		return handler.SwarmStackManager.Remove(stack, endpoint)
 	}
 	return nil

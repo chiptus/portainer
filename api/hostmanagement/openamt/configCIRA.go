@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"strings"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type CIRAConfig struct {
@@ -26,7 +26,7 @@ type CIRAConfig struct {
 	AuthMethod          int    `json:"authMethod"`
 }
 
-func (service *Service) createOrUpdateCIRAConfig(configuration portainer.OpenAMTConfiguration, configName string) (*CIRAConfig, error) {
+func (service *Service) createOrUpdateCIRAConfig(configuration portaineree.OpenAMTConfiguration, configName string) (*CIRAConfig, error) {
 	ciraConfig, err := service.getCIRAConfig(configuration, configName)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (service *Service) createOrUpdateCIRAConfig(configuration portainer.OpenAMT
 	return ciraConfig, nil
 }
 
-func (service *Service) getCIRAConfig(configuration portainer.OpenAMTConfiguration, configName string) (*CIRAConfig, error) {
+func (service *Service) getCIRAConfig(configuration portaineree.OpenAMTConfiguration, configName string) (*CIRAConfig, error) {
 	url := fmt.Sprintf("https://%s/rps/api/v1/admin/ciraconfigs/%s", configuration.MPSServer, configName)
 
 	responseBody, err := service.executeGetRequest(url, configuration.Credentials.MPSToken)
@@ -63,7 +63,7 @@ func (service *Service) getCIRAConfig(configuration portainer.OpenAMTConfigurati
 	return &result, nil
 }
 
-func (service *Service) saveCIRAConfig(method string, configuration portainer.OpenAMTConfiguration, configName string) (*CIRAConfig, error) {
+func (service *Service) saveCIRAConfig(method string, configuration portaineree.OpenAMTConfiguration, configName string) (*CIRAConfig, error) {
 	url := fmt.Sprintf("https://%s/rps/api/v1/admin/ciraconfigs", configuration.MPSServer)
 
 	certificate, err := service.getCIRACertificate(configuration)
@@ -116,7 +116,7 @@ func addressFormat(url string) (int, error) {
 	return 0, fmt.Errorf("could not determine server address format for %s", url)
 }
 
-func (service *Service) getCIRACertificate(configuration portainer.OpenAMTConfiguration) (string, error) {
+func (service *Service) getCIRACertificate(configuration portaineree.OpenAMTConfiguration) (string, error) {
 	loginURL := fmt.Sprintf("https://%s/mps/api/v1/ciracert", configuration.MPSServer)
 
 	req, err := http.NewRequest(http.MethodGet, loginURL, nil)

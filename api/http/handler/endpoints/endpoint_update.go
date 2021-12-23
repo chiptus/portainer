@@ -10,12 +10,13 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/client"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/tag"
 	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/client"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/edge"
-	"github.com/portainer/portainer/api/internal/tag"
 )
 
 type endpointUpdatePayload struct {
@@ -43,15 +44,15 @@ type endpointUpdatePayload struct {
 	// Azure authentication key
 	AzureAuthenticationKey *string `example:"cOrXoK/1D35w8YQ8nH1/8ZGwzz45JIYD5jxHKXEQknk="`
 	// List of tag identifiers to which this environment(endpoint) is associated
-	TagIDs             []portainer.TagID `example:"1,2"`
-	UserAccessPolicies portainer.UserAccessPolicies
-	TeamAccessPolicies portainer.TeamAccessPolicies
+	TagIDs             []portaineree.TagID `example:"1,2"`
+	UserAccessPolicies portaineree.UserAccessPolicies
+	TeamAccessPolicies portaineree.TeamAccessPolicies
 	// The check in interval for edge agent (in seconds)
 	EdgeCheckinInterval *int `example:"5"`
 	// Associated Kubernetes data
-	Kubernetes *portainer.KubernetesData
+	Kubernetes *portaineree.KubernetesData
 	// Whether automatic update time restrictions are enabled
-	ChangeWindow *portainer.EndpointChangeWindow
+	ChangeWindow *portaineree.EndpointChangeWindow
 }
 
 func (payload *endpointUpdatePayload) Validate(r *http.Request) error {
@@ -75,7 +76,7 @@ func (payload *endpointUpdatePayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param body body endpointUpdatePayload true "Environment(Endpoint) details"
-// @success 200 {object} portainer.Endpoint "Success"
+// @success 200 {object} portaineree.Endpoint "Success"
 // @failure 400 "Invalid request"
 // @failure 404 "Environment(Endpoint) not found"
 // @failure 500 "Server error"
@@ -99,14 +100,14 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
 	}
 
-	isAdmin := tokenData.Role == portainer.AdministratorRole
+	isAdmin := tokenData.Role == portaineree.AdministratorRole
 	canK8sClusterSetup := isAdmin || false
 	// if user is not a portainer admin, we might allow update k8s cluster config
 	if !isAdmin {
@@ -114,12 +115,12 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		endpointRole, err := handler.AuthorizationService.GetUserEndpointRole(int(tokenData.ID), int(endpoint.ID))
 		if err != nil {
 			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
-		} else if !endpointRole.Authorizations[portainer.OperationK8sClusterSetupRW] {
+		} else if !endpointRole.Authorizations[portaineree.OperationK8sClusterSetupRW] {
 			err = errors.New(permissionDeniedErr)
 			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
 		}
 		// deny access if user can not access all namespaces
-		if !endpointRole.Authorizations[portainer.OperationK8sAccessAllNamespaces] {
+		if !endpointRole.Authorizations[portaineree.OperationK8sAccessAllNamespaces] {
 			err = errors.New(permissionDeniedErr)
 			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
 		} else {
@@ -157,7 +158,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		}
 
 		if payload.GroupID != nil {
-			groupID := portainer.EndpointGroupID(*payload.GroupID)
+			groupID := portaineree.EndpointGroupID(*payload.GroupID)
 			groupIDChanged = groupID != endpoint.GroupID
 			endpoint.GroupID = groupID
 		}
@@ -215,17 +216,17 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		if payload.Status != nil {
 			switch *payload.Status {
 			case 1:
-				endpoint.Status = portainer.EndpointStatusUp
+				endpoint.Status = portaineree.EndpointStatusUp
 				break
 			case 2:
-				endpoint.Status = portainer.EndpointStatusDown
+				endpoint.Status = portaineree.EndpointStatusDown
 				break
 			default:
 				break
 			}
 		}
 
-		if endpoint.Type == portainer.AzureEnvironment {
+		if endpoint.Type == portaineree.AzureEnvironment {
 			credentials := endpoint.AzureCredentials
 			if payload.AzureApplicationID != nil {
 				credentials.ApplicationID = *payload.AzureApplicationID
@@ -288,13 +289,13 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 				}
 			}
 
-			if endpoint.Type == portainer.AgentOnKubernetesEnvironment || endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment {
+			if endpoint.Type == portaineree.AgentOnKubernetesEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
 				endpoint.TLSConfig.TLS = true
 				endpoint.TLSConfig.TLSSkipVerify = true
 			}
 		}
 
-		if payload.URL != nil || payload.TLS != nil || endpoint.Type == portainer.AzureEnvironment {
+		if payload.URL != nil || payload.TLS != nil || endpoint.Type == portaineree.AzureEnvironment {
 			_, err = handler.ProxyManager.CreateAndRegisterEndpointProxy(endpoint)
 			if err != nil {
 				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to register HTTP proxy for the environment", err}
@@ -303,7 +304,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 	}
 
 	if updateAuthorizations {
-		if endpoint.Type == portainer.KubernetesLocalEnvironment || endpoint.Type == portainer.AgentOnKubernetesEnvironment || endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment {
+		if endpoint.Type == portaineree.KubernetesLocalEnvironment || endpoint.Type == portaineree.AgentOnKubernetesEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
 			err = handler.AuthorizationService.CleanNAPWithOverridePolicies(endpoint, nil)
 			if err != nil {
 				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to update user authorizations", err}
@@ -327,7 +328,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
-	if (endpoint.Type == portainer.EdgeAgentOnDockerEnvironment || endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment) && (groupIDChanged || tagsChanged) {
+	if (endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment) && (groupIDChanged || tagsChanged) {
 		relation, err := handler.dataStore.EndpointRelation().EndpointRelation(endpoint.ID)
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find environment relation inside the database", err}
@@ -348,7 +349,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge stacks from the database", err}
 		}
 
-		edgeStackSet := map[portainer.EdgeStackID]bool{}
+		edgeStackSet := map[portaineree.EdgeStackID]bool{}
 
 		endpointEdgeStacks := edge.EndpointRelatedEdgeStacks(endpoint, endpointGroup, edgeGroups, edgeStacks)
 		for _, edgeStackID := range endpointEdgeStacks {

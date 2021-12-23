@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
-	"github.com/portainer/portainer/api/bolt"
+	"github.com/portainer/portainer-ee/api/bolt"
 	"github.com/portainer/portainer/api/filesystem"
 )
 

@@ -7,12 +7,12 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	httperrors "github.com/portainer/portainer/api/http/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 )
 
 type testLoginPayload struct {
-	LDAPSettings portainer.LDAPSettings
+	LDAPSettings portaineree.LDAPSettings
 	Username     string
 	Password     string
 }

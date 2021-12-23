@@ -1,12 +1,10 @@
 package websocket
 
-import (
-	"github.com/portainer/portainer/api"
-)
+import portaineree "github.com/portainer/portainer-ee/api"
 
 type webSocketRequestParams struct {
 	ID       string
 	nodeName string
-	endpoint *portainer.Endpoint
+	endpoint *portaineree.Endpoint
 	token    string
 }

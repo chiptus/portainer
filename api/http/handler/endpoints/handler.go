@@ -5,22 +5,23 @@ import (
 	"time"
 
 	werrors "github.com/pkg/errors"
-	"github.com/portainer/portainer/api/docker"
+	"github.com/portainer/portainer-ee/api/docker"
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/http/proxy"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/middlewares"
-	"github.com/portainer/portainer/api/http/proxy"
-	"github.com/portainer/portainer/api/http/useractivity"
-	"github.com/portainer/portainer/api/internal/authorization"
-	"github.com/portainer/portainer/api/kubernetes/cli"
 )
 
-func hideFields(endpoint *portainer.Endpoint) {
-	endpoint.AzureCredentials = portainer.AzureCredentials{}
+func hideFields(endpoint *portaineree.Endpoint) {
+	endpoint.AzureCredentials = portaineree.AzureCredentials{}
 	if len(endpoint.Snapshots) > 0 {
-		endpoint.Snapshots[0].SnapshotRaw = portainer.DockerSnapshotRaw{}
+		endpoint.Snapshots[0].SnapshotRaw = portaineree.DockerSnapshotRaw{}
 	}
 }
 
@@ -30,8 +31,8 @@ type requestBouncer interface {
 	AuthenticatedAccess(h http.Handler) http.Handler
 	AdminAccess(h http.Handler) http.Handler
 	PublicAccess(h http.Handler) http.Handler
-	AuthorizedEndpointOperation(r *http.Request, endpoint *portainer.Endpoint, authorizationCheck bool) error
-	AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portainer.Endpoint) error
+	AuthorizedEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint, authorizationCheck bool) error
+	AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint) error
 }
 
 // Handler is the HTTP handler used to handle environment(endpoint) operations.
@@ -39,21 +40,21 @@ type Handler struct {
 	*mux.Router
 	requestBouncer       requestBouncer
 	AuthorizationService *authorization.Service
-	dataStore            portainer.DataStore
+	dataStore            portaineree.DataStore
 	FileService          portainer.FileService
 	ProxyManager         *proxy.Manager
-	ReverseTunnelService portainer.ReverseTunnelService
-	SnapshotService      portainer.SnapshotService
+	ReverseTunnelService portaineree.ReverseTunnelService
+	SnapshotService      portaineree.SnapshotService
 	K8sClientFactory     *cli.ClientFactory
-	ComposeStackManager  portainer.ComposeStackManager
+	ComposeStackManager  portaineree.ComposeStackManager
 	DockerClientFactory  *docker.ClientFactory
 	BindAddress          string
 	BindAddressHTTPS     string
-	userActivityService  portainer.UserActivityService
+	userActivityService  portaineree.UserActivityService
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.
-func NewHandler(bouncer requestBouncer, userActivityService portainer.UserActivityService, dataStore portainer.DataStore) *Handler {
+func NewHandler(bouncer requestBouncer, userActivityService portaineree.UserActivityService, dataStore portaineree.DataStore) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		requestBouncer:      bouncer,
@@ -96,7 +97,7 @@ func NewHandler(bouncer requestBouncer, userActivityService portainer.UserActivi
 	return h
 }
 
-func validateAutoUpdateSettings(autoUpdateWindow portainer.EndpointChangeWindow) error {
+func validateAutoUpdateSettings(autoUpdateWindow portaineree.EndpointChangeWindow) error {
 	if !autoUpdateWindow.Enabled {
 		return nil
 	}
@@ -114,6 +115,6 @@ func validateAutoUpdateSettings(autoUpdateWindow portainer.EndpointChangeWindow)
 
 // Return true if the time string specified is a valid 24hr time. e.g. 22:30
 func validTime24(ts string) bool {
-	_, err := time.Parse(portainer.TimeFormat24, ts)
+	_, err := time.Parse(portaineree.TimeFormat24, ts)
 	return err == nil
 }

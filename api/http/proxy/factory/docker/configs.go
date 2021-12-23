@@ -6,16 +6,16 @@ import (
 
 	"github.com/docker/docker/client"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/proxy/factory/utils"
-	"github.com/portainer/portainer/api/internal/authorization"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 const (
 	configObjectIdentifier = "ID"
 )
 
-func getInheritedResourceControlFromConfigLabels(dockerClient *client.Client, endpointID portainer.EndpointID, configID string, resourceControls []portainer.ResourceControl) (*portainer.ResourceControl, error) {
+func getInheritedResourceControlFromConfigLabels(dockerClient *client.Client, endpointID portaineree.EndpointID, configID string, resourceControls []portaineree.ResourceControl) (*portaineree.ResourceControl, error) {
 	config, _, err := dockerClient.ConfigInspectWithRaw(context.Background(), configID)
 	if err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func getInheritedResourceControlFromConfigLabels(dockerClient *client.Client, en
 
 	stackResourceID := getStackResourceIDFromLabels(config.Spec.Labels, endpointID)
 	if stackResourceID != "" {
-		return authorization.GetResourceControlByResourceIDAndType(stackResourceID, portainer.StackResourceControl, resourceControls), nil
+		return authorization.GetResourceControlByResourceIDAndType(stackResourceID, portaineree.StackResourceControl, resourceControls), nil
 	}
 
 	return nil, nil
@@ -41,7 +41,7 @@ func (transport *Transport) configListOperation(response *http.Response, executo
 
 	resourceOperationParameters := &resourceOperationParameters{
 		resourceIdentifierAttribute: configObjectIdentifier,
-		resourceType:                portainer.ConfigResourceControl,
+		resourceType:                portaineree.ConfigResourceControl,
 		labelsObjectSelector:        selectorConfigLabels,
 	}
 
@@ -65,7 +65,7 @@ func (transport *Transport) configInspectOperation(response *http.Response, exec
 
 	resourceOperationParameters := &resourceOperationParameters{
 		resourceIdentifierAttribute: configObjectIdentifier,
-		resourceType:                portainer.ConfigResourceControl,
+		resourceType:                portaineree.ConfigResourceControl,
 		labelsObjectSelector:        selectorConfigLabels,
 	}
 

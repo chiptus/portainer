@@ -5,16 +5,16 @@ import (
 	"net/http"
 	"net/url"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type gitlabTransport struct {
-	config              *portainer.RegistryManagementConfiguration
+	config              *portaineree.RegistryManagementConfiguration
 	httpTransport       http.RoundTripper
-	userActivityService portainer.UserActivityService
+	userActivityService portaineree.UserActivityService
 }
 
-func newGitlabRegistryProxy(uri string, config *portainer.RegistryManagementConfiguration, httpTransport http.RoundTripper) (http.Handler, error) {
+func newGitlabRegistryProxy(uri string, config *portaineree.RegistryManagementConfiguration, httpTransport http.RoundTripper) (http.Handler, error) {
 	url, err := url.Parse(uri)
 	if err != nil {
 		return nil, err

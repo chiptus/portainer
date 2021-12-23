@@ -5,7 +5,7 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type nodesCountResponse struct {
@@ -36,19 +36,19 @@ func (handler *Handler) statusNodesCount(w http.ResponseWriter, r *http.Request)
 	return response.JSON(w, &nodesCountResponse{Nodes: nodes})
 }
 
-func countNodes(endpoint *portainer.Endpoint) int {
+func countNodes(endpoint *portaineree.Endpoint) int {
 	switch endpoint.Type {
-	case portainer.EdgeAgentOnDockerEnvironment, portainer.DockerEnvironment, portainer.AgentOnDockerEnvironment:
+	case portaineree.EdgeAgentOnDockerEnvironment, portaineree.DockerEnvironment, portaineree.AgentOnDockerEnvironment:
 		return countDockerNodes(endpoint)
-	case portainer.EdgeAgentOnKubernetesEnvironment, portainer.KubernetesLocalEnvironment, portainer.AgentOnKubernetesEnvironment:
+	case portaineree.EdgeAgentOnKubernetesEnvironment, portaineree.KubernetesLocalEnvironment, portaineree.AgentOnKubernetesEnvironment:
 		return countKubernetesNodes(endpoint)
-	case portainer.AzureEnvironment:
+	case portaineree.AzureEnvironment:
 		return 1
 	}
 	return 1
 }
 
-func countDockerNodes(endpoint *portainer.Endpoint) int {
+func countDockerNodes(endpoint *portaineree.Endpoint) int {
 	snapshots := endpoint.Snapshots
 	if len(snapshots) == 0 {
 		return 1
@@ -58,7 +58,7 @@ func countDockerNodes(endpoint *portainer.Endpoint) int {
 	return max(snapshot.NodeCount, 1)
 }
 
-func countKubernetesNodes(endpoint *portainer.Endpoint) int {
+func countKubernetesNodes(endpoint *portaineree.Endpoint) int {
 	snapshots := endpoint.Kubernetes.Snapshots
 	if len(snapshots) == 0 {
 		return 1

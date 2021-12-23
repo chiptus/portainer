@@ -5,15 +5,16 @@ import (
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
-	"github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // Handler represents an HTTP API handler for managing templates.
 type Handler struct {
 	*mux.Router
-	DataStore   portainer.DataStore
-	GitService  portainer.GitService
+	DataStore   portaineree.DataStore
+	GitService  portaineree.GitService
 	FileService portainer.FileService
 }
 

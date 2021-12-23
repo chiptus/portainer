@@ -15,7 +15,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @success 200 {object} portainer.SSLSettings "Success"
+// @success 200 {object} portaineree.SSLSettings "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied to access settings"
 // @failure 500 "Server error"

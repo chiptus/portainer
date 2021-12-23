@@ -3,7 +3,7 @@ package testhelpers
 import (
 	"net/http"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type testRequestBouncer struct {
@@ -34,11 +34,11 @@ func (testRequestBouncer) AdminAccess(h http.Handler) http.Handler {
 	return h
 }
 
-func (testRequestBouncer) AuthorizedEndpointOperation(r *http.Request, endpoint *portainer.Endpoint, authorizationCheck bool) error {
+func (testRequestBouncer) AuthorizedEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint, authorizationCheck bool) error {
 	return nil
 }
 
 // AuthorizedEdgeEndpointOperation verifies that the request was received from a valid Edge environment(endpoint)
-func (testRequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portainer.Endpoint) error {
+func (testRequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint) error {
 	return nil
 }

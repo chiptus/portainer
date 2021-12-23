@@ -9,18 +9,18 @@ import (
 
 	"github.com/docker/docker/client"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/proxy/factory/utils"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/authorization"
-	"github.com/portainer/portainer/api/internal/snapshot"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/internal/snapshot"
 )
 
 const (
 	volumeObjectIdentifier = "ResourceID"
 )
 
-func getInheritedResourceControlFromVolumeLabels(dockerClient *client.Client, endpointID portainer.EndpointID, volumeID string, resourceControls []portainer.ResourceControl) (*portainer.ResourceControl, error) {
+func getInheritedResourceControlFromVolumeLabels(dockerClient *client.Client, endpointID portaineree.EndpointID, volumeID string, resourceControls []portaineree.ResourceControl) (*portaineree.ResourceControl, error) {
 	volume, err := dockerClient.VolumeInspect(context.Background(), volumeID)
 	if err != nil {
 		return nil, err
@@ -28,7 +28,7 @@ func getInheritedResourceControlFromVolumeLabels(dockerClient *client.Client, en
 
 	stackResourceID := getStackResourceIDFromLabels(volume.Labels, endpointID)
 	if stackResourceID != "" {
-		return authorization.GetResourceControlByResourceIDAndType(stackResourceID, portainer.StackResourceControl, resourceControls), nil
+		return authorization.GetResourceControlByResourceIDAndType(stackResourceID, portaineree.StackResourceControl, resourceControls), nil
 	}
 
 	return nil, nil
@@ -60,7 +60,7 @@ func (transport *Transport) volumeListOperation(response *http.Response, executo
 
 		resourceOperationParameters := &resourceOperationParameters{
 			resourceIdentifierAttribute: volumeObjectIdentifier,
-			resourceType:                portainer.VolumeResourceControl,
+			resourceType:                portaineree.VolumeResourceControl,
 			labelsObjectSelector:        selectorVolumeLabels,
 		}
 
@@ -92,7 +92,7 @@ func (transport *Transport) volumeInspectOperation(response *http.Response, exec
 
 	resourceOperationParameters := &resourceOperationParameters{
 		resourceIdentifierAttribute: volumeObjectIdentifier,
-		resourceType:                portainer.VolumeResourceControl,
+		resourceType:                portaineree.VolumeResourceControl,
 		labelsObjectSelector:        selectorVolumeLabels,
 	}
 
@@ -123,7 +123,7 @@ func selectorVolumeLabels(responseObject map[string]interface{}) map[string]inte
 	return utils.GetJSONObject(responseObject, "Labels")
 }
 
-func (transport *Transport) decorateVolumeResourceCreationOperation(request *http.Request, resourceType portainer.ResourceControlType) (*http.Response, error) {
+func (transport *Transport) decorateVolumeResourceCreationOperation(request *http.Request, resourceType portaineree.ResourceControlType) (*http.Response, error) {
 	tokenData, err := security.RetrieveTokenData(request)
 	if err != nil {
 		return nil, err
@@ -132,7 +132,7 @@ func (transport *Transport) decorateVolumeResourceCreationOperation(request *htt
 	volumeID := request.Header.Get("X-Portainer-VolumeName")
 
 	if volumeID != "" {
-		agentTargetHeader := request.Header.Get(portainer.PortainerAgentTargetHeader)
+		agentTargetHeader := request.Header.Get(portaineree.PortainerAgentTargetHeader)
 		cli, err := transport.dockerClientFactory.CreateClient(transport.endpoint, agentTargetHeader)
 		if err != nil {
 			return nil, err
@@ -156,7 +156,7 @@ func (transport *Transport) decorateVolumeResourceCreationOperation(request *htt
 	return response, err
 }
 
-func (transport *Transport) decorateVolumeCreationResponse(response *http.Response, resourceType portainer.ResourceControlType, userID portainer.UserID) error {
+func (transport *Transport) decorateVolumeCreationResponse(response *http.Response, resourceType portaineree.ResourceControlType, userID portaineree.UserID) error {
 	responseObject, err := utils.GetResponseAsJSONObject(response)
 	if err != nil {
 		return err
@@ -197,9 +197,9 @@ func (transport *Transport) restrictedVolumeOperation(requestPath string, reques
 	}
 
 	if request.Method == http.MethodDelete {
-		return transport.executeGenericResourceDeletionOperation(request, resourceID, volumeName, portainer.VolumeResourceControl)
+		return transport.executeGenericResourceDeletionOperation(request, resourceID, volumeName, portaineree.VolumeResourceControl)
 	}
-	return transport.restrictedResourceOperation(request, resourceID, volumeName, portainer.VolumeResourceControl, false)
+	return transport.restrictedResourceOperation(request, resourceID, volumeName, portaineree.VolumeResourceControl, false)
 }
 
 func (transport *Transport) getVolumeResourceID(volumeName string) (string, error) {

@@ -6,11 +6,11 @@ import (
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/adminmonitor"
-	operations "github.com/portainer/portainer/api/backup"
-	"github.com/portainer/portainer/api/http/offlinegate"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/adminmonitor"
+	operations "github.com/portainer/portainer-ee/api/backup"
+	"github.com/portainer/portainer-ee/api/http/offlinegate"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // Handler is an http handler responsible for backup and restore portainer state
@@ -18,8 +18,8 @@ type Handler struct {
 	*mux.Router
 	backupScheduler   *operations.BackupScheduler
 	bouncer           *security.RequestBouncer
-	dataStore         portainer.DataStore
-	userActivityStore portainer.UserActivityStore
+	dataStore         portaineree.DataStore
+	userActivityStore portaineree.UserActivityStore
 	gate              *offlinegate.OfflineGate
 	filestorePath     string
 	shutdownTrigger   context.CancelFunc
@@ -27,7 +27,7 @@ type Handler struct {
 }
 
 // NewHandler creates an new instance of backup handler
-func NewHandler(bouncer *security.RequestBouncer, dataStore portainer.DataStore, userActivityStore portainer.UserActivityStore, gate *offlinegate.OfflineGate, filestorePath string, backupScheduler *operations.BackupScheduler, shutdownTrigger context.CancelFunc, adminMonitor *adminmonitor.Monitor) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore portaineree.DataStore, userActivityStore portaineree.UserActivityStore, gate *offlinegate.OfflineGate, filestorePath string, backupScheduler *operations.BackupScheduler, shutdownTrigger context.CancelFunc, adminMonitor *adminmonitor.Monitor) *Handler {
 	h := &Handler{
 		Router:            mux.NewRouter(),
 		bouncer:           bouncer,

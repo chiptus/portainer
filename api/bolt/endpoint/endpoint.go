@@ -2,8 +2,8 @@ package endpoint
 
 import (
 	"github.com/boltdb/bolt"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 )
 
 const (
@@ -29,8 +29,8 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // Endpoint returns an environment(endpoint) by ID.
-func (service *Service) Endpoint(ID portainer.EndpointID) (*portainer.Endpoint, error) {
-	var endpoint portainer.Endpoint
+func (service *Service) Endpoint(ID portaineree.EndpointID) (*portaineree.Endpoint, error) {
+	var endpoint portaineree.Endpoint
 	identifier := internal.Itob(int(ID))
 
 	err := internal.GetObject(service.connection, BucketName, identifier, &endpoint)
@@ -42,27 +42,27 @@ func (service *Service) Endpoint(ID portainer.EndpointID) (*portainer.Endpoint, 
 }
 
 // UpdateEndpoint updates an environment(endpoint).
-func (service *Service) UpdateEndpoint(ID portainer.EndpointID, endpoint *portainer.Endpoint) error {
+func (service *Service) UpdateEndpoint(ID portaineree.EndpointID, endpoint *portaineree.Endpoint) error {
 	identifier := internal.Itob(int(ID))
 	return internal.UpdateObject(service.connection, BucketName, identifier, endpoint)
 }
 
 // DeleteEndpoint deletes an environment(endpoint).
-func (service *Service) DeleteEndpoint(ID portainer.EndpointID) error {
+func (service *Service) DeleteEndpoint(ID portaineree.EndpointID) error {
 	identifier := internal.Itob(int(ID))
 	return internal.DeleteObject(service.connection, BucketName, identifier)
 }
 
 // Endpoints return an array containing all the environments(endpoints).
-func (service *Service) Endpoints() ([]portainer.Endpoint, error) {
-	var endpoints = make([]portainer.Endpoint, 0)
+func (service *Service) Endpoints() ([]portaineree.Endpoint, error) {
+	var endpoints = make([]portaineree.Endpoint, 0)
 
 	err := service.connection.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var endpoint portainer.Endpoint
+			var endpoint portaineree.Endpoint
 			err := internal.UnmarshalObjectWithJsoniter(v, &endpoint)
 			if err != nil {
 				return err
@@ -77,7 +77,7 @@ func (service *Service) Endpoints() ([]portainer.Endpoint, error) {
 }
 
 // CreateEndpoint assign an ID to a new environment(endpoint) and saves it.
-func (service *Service) CreateEndpoint(endpoint *portainer.Endpoint) error {
+func (service *Service) CreateEndpoint(endpoint *portaineree.Endpoint) error {
 	return service.connection.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
@@ -102,13 +102,13 @@ func (service *Service) GetNextIdentifier() int {
 }
 
 // Synchronize creates, updates and deletes environments(endpoints) inside a single transaction.
-func (service *Service) Synchronize(toCreate, toUpdate, toDelete []*portainer.Endpoint) error {
+func (service *Service) Synchronize(toCreate, toUpdate, toDelete []*portaineree.Endpoint) error {
 	return service.connection.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		for _, endpoint := range toCreate {
 			id, _ := bucket.NextSequence()
-			endpoint.ID = portainer.EndpointID(id)
+			endpoint.ID = portaineree.EndpointID(id)
 
 			data, err := internal.MarshalObject(endpoint)
 			if err != nil {

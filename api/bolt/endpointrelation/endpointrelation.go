@@ -2,8 +2,8 @@ package endpointrelation
 
 import (
 	"github.com/boltdb/bolt"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 )
 
 const (
@@ -29,8 +29,8 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // EndpointRelation returns a Environment(Endpoint) relation object by EndpointID
-func (service *Service) EndpointRelation(endpointID portainer.EndpointID) (*portainer.EndpointRelation, error) {
-	var endpointRelation portainer.EndpointRelation
+func (service *Service) EndpointRelation(endpointID portaineree.EndpointID) (*portaineree.EndpointRelation, error) {
+	var endpointRelation portaineree.EndpointRelation
 	identifier := internal.Itob(int(endpointID))
 
 	err := internal.GetObject(service.connection, BucketName, identifier, &endpointRelation)
@@ -42,7 +42,7 @@ func (service *Service) EndpointRelation(endpointID portainer.EndpointID) (*port
 }
 
 // CreateEndpointRelation saves endpointRelation
-func (service *Service) CreateEndpointRelation(endpointRelation *portainer.EndpointRelation) error {
+func (service *Service) CreateEndpointRelation(endpointRelation *portaineree.EndpointRelation) error {
 	return service.connection.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
@@ -56,13 +56,13 @@ func (service *Service) CreateEndpointRelation(endpointRelation *portainer.Endpo
 }
 
 // UpdateEndpointRelation updates an Environment(Endpoint) relation object
-func (service *Service) UpdateEndpointRelation(EndpointID portainer.EndpointID, endpointRelation *portainer.EndpointRelation) error {
+func (service *Service) UpdateEndpointRelation(EndpointID portaineree.EndpointID, endpointRelation *portaineree.EndpointRelation) error {
 	identifier := internal.Itob(int(EndpointID))
 	return internal.UpdateObject(service.connection, BucketName, identifier, endpointRelation)
 }
 
 // DeleteEndpointRelation deletes an Environment(Endpoint) relation object
-func (service *Service) DeleteEndpointRelation(EndpointID portainer.EndpointID) error {
+func (service *Service) DeleteEndpointRelation(EndpointID portaineree.EndpointID) error {
 	identifier := internal.Itob(int(EndpointID))
 	return internal.DeleteObject(service.connection, BucketName, identifier)
 }

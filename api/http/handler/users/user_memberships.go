@@ -6,9 +6,9 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id UserMembershipsInspect
@@ -20,7 +20,7 @@ import (
 // @security jwt
 // @produce json
 // @param id path int true "User identifier"
-// @success 200 {object} portainer.TeamMembership "Success"
+// @success 200 {object} portaineree.TeamMembership "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 500 "Server error"
@@ -36,11 +36,11 @@ func (handler *Handler) userMemberships(w http.ResponseWriter, r *http.Request) 
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}
 	}
 
-	if tokenData.Role != portainer.AdministratorRole && tokenData.ID != portainer.UserID(userID) {
+	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portaineree.UserID(userID) {
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to update user memberships", errors.ErrUnauthorized}
 	}
 
-	memberships, err := handler.DataStore.TeamMembership().TeamMembershipsByUserID(portainer.UserID(userID))
+	memberships, err := handler.DataStore.TeamMembership().TeamMembershipsByUserID(portaineree.UserID(userID))
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist membership changes inside the database", err}
 	}

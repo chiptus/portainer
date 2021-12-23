@@ -1,12 +1,13 @@
 package git
 
 import (
-	"github.com/portainer/portainer/api/archive"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/portainer/portainer/api/archive"
+	"github.com/stretchr/testify/assert"
 )
 
 /*

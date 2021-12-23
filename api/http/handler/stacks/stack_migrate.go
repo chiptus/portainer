@@ -8,12 +8,12 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/middlewares"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/stackutils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/stackutils"
 )
 
 type stackMigratePayload struct {
@@ -40,7 +40,7 @@ func (payload *stackMigratePayload) Validate(r *http.Request) error {
 // @param id path int true "Stack identifier"
 // @param endpointId query int false "Stacks created before version 1.18.0 might not have an associated environment(endpoint) identifier. Use this optional parameter to set the environment(endpoint) identifier used by the stack."
 // @param body body stackMigratePayload true "Stack migration details"
-// @success 200 {object} portainer.Stack "Success"
+// @success 200 {object} portaineree.Stack "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 404 "Stack not found"
@@ -58,14 +58,14 @@ func (handler *Handler) stackMigrate(w http.ResponseWriter, r *http.Request) *ht
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
 	}
 
-	stack, err := handler.DataStore.Stack().Stack(portainer.StackID(stackID))
+	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(stackID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find a stack with the specified identifier inside the database", Err: err}
 	} else if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find a stack with the specified identifier inside the database", Err: err}
 	}
 
-	if stack.Type == portainer.KubernetesStack {
+	if stack.Type == portaineree.KubernetesStack {
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Migrating a kubernetes stack is not supported", Err: err}
 	}
 
@@ -87,7 +87,7 @@ func (handler *Handler) stackMigrate(w http.ResponseWriter, r *http.Request) *ht
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve info from request context", Err: err}
 	}
 
-	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portainer.StackResourceControl)
+	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portaineree.StackResourceControl)
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve a resource control associated to the stack", Err: err}
 	}
@@ -108,17 +108,17 @@ func (handler *Handler) stackMigrate(w http.ResponseWriter, r *http.Request) *ht
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: endpointId", Err: err}
 	}
 	if endpointID != int(stack.EndpointID) {
-		stack.EndpointID = portainer.EndpointID(endpointID)
+		stack.EndpointID = portaineree.EndpointID(endpointID)
 	}
 
-	targetEndpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(payload.EndpointID))
+	targetEndpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(payload.EndpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find an endpoint with the specified identifier inside the database", Err: err}
 	} else if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find an endpoint with the specified identifier inside the database", Err: err}
 	}
 
-	stack.EndpointID = portainer.EndpointID(payload.EndpointID)
+	stack.EndpointID = portaineree.EndpointID(payload.EndpointID)
 	if payload.SwarmID != "" {
 		stack.SwarmID = payload.SwarmID
 	}
@@ -163,14 +163,14 @@ func (handler *Handler) stackMigrate(w http.ResponseWriter, r *http.Request) *ht
 	return response.JSON(w, stack)
 }
 
-func (handler *Handler) migrateStack(r *http.Request, stack *portainer.Stack, next *portainer.Endpoint) *httperror.HandlerError {
-	if stack.Type == portainer.DockerSwarmStack {
+func (handler *Handler) migrateStack(r *http.Request, stack *portaineree.Stack, next *portaineree.Endpoint) *httperror.HandlerError {
+	if stack.Type == portaineree.DockerSwarmStack {
 		return handler.migrateSwarmStack(r, stack, next)
 	}
 	return handler.migrateComposeStack(r, stack, next)
 }
 
-func (handler *Handler) migrateComposeStack(r *http.Request, stack *portainer.Stack, next *portainer.Endpoint) *httperror.HandlerError {
+func (handler *Handler) migrateComposeStack(r *http.Request, stack *portaineree.Stack, next *portaineree.Endpoint) *httperror.HandlerError {
 	config, configErr := handler.createComposeDeployConfig(r, stack, next)
 	if configErr != nil {
 		return configErr
@@ -184,7 +184,7 @@ func (handler *Handler) migrateComposeStack(r *http.Request, stack *portainer.St
 	return nil
 }
 
-func (handler *Handler) migrateSwarmStack(r *http.Request, stack *portainer.Stack, next *portainer.Endpoint) *httperror.HandlerError {
+func (handler *Handler) migrateSwarmStack(r *http.Request, stack *portaineree.Stack, next *portaineree.Endpoint) *httperror.HandlerError {
 	config, configErr := handler.createSwarmDeployConfig(r, stack, next, true)
 	if configErr != nil {
 		return configErr

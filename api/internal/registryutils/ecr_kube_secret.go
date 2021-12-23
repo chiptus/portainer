@@ -1,10 +1,8 @@
 package registryutils
 
-import (
-	portainer "github.com/portainer/portainer/api"
-)
+import portaineree "github.com/portainer/portainer-ee/api"
 
-func isRegistryAssignedToNamespace(registry portainer.Registry, endpointID portainer.EndpointID, namespace string) (in bool){
+func isRegistryAssignedToNamespace(registry portaineree.Registry, endpointID portaineree.EndpointID, namespace string) (in bool) {
 	for _, ns := range registry.RegistryAccesses[endpointID].Namespaces {
 		if ns == namespace {
 			return true
@@ -14,14 +12,14 @@ func isRegistryAssignedToNamespace(registry portainer.Registry, endpointID porta
 	return
 }
 
-func RefreshEcrSecret(cli portainer.KubeClient, endpoint *portainer.Endpoint, dataStore portainer.DataStore, namespace string) (err error) {
+func RefreshEcrSecret(cli portaineree.KubeClient, endpoint *portaineree.Endpoint, dataStore portaineree.DataStore, namespace string) (err error) {
 	registries, err := dataStore.Registry().Registries()
 	if err != nil {
 		return
 	}
 
 	for _, registry := range registries {
-		if registry.Type != portainer.EcrRegistry {
+		if registry.Type != portaineree.EcrRegistry {
 			continue
 		}
 

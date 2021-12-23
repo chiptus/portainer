@@ -11,13 +11,13 @@ import (
 	"github.com/portainer/libhelm/binary/test"
 	"github.com/portainer/libhelm/options"
 	"github.com/portainer/libhelm/release"
-	portainer "github.com/portainer/portainer/api"
-	bolt "github.com/portainer/portainer/api/bolt/bolttest"
-	"github.com/portainer/portainer/api/exec/exectest"
-	"github.com/portainer/portainer/api/http/security"
-	helper "github.com/portainer/portainer/api/internal/testhelpers"
-	"github.com/portainer/portainer/api/jwt"
-	"github.com/portainer/portainer/api/kubernetes"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolt "github.com/portainer/portainer-ee/api/bolt/bolttest"
+	"github.com/portainer/portainer-ee/api/exec/exectest"
+	"github.com/portainer/portainer-ee/api/http/security"
+	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
+	"github.com/portainer/portainer-ee/api/jwt"
+	"github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,10 +27,10 @@ func Test_helmInstall(t *testing.T) {
 	store, teardown := bolt.MustNewTestStore(true)
 	defer teardown()
 
-	err := store.Endpoint().CreateEndpoint(&portainer.Endpoint{ID: 1})
+	err := store.Endpoint().CreateEndpoint(&portaineree.Endpoint{ID: 1})
 	is.NoError(err, "error creating environment")
 
-	err = store.User().CreateUser(&portainer.User{Username: "admin", Role: portainer.AdministratorRole})
+	err = store.User().CreateUser(&portaineree.User{Username: "admin", Role: portaineree.AdministratorRole})
 	is.NoError(err, "error creating a user")
 
 	jwtService, err := jwt.NewService("1h", store)
@@ -50,7 +50,7 @@ func Test_helmInstall(t *testing.T) {
 
 	t.Run("helmInstall fails for unauthorized user", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/1/kubernetes/helm", bytes.NewBuffer(optdata))
-		ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "non-admin", Role: 2})
+		ctx := security.StoreTokenData(req, &portaineree.TokenData{ID: 1, Username: "non-admin", Role: 2})
 		req = req.WithContext(ctx)
 		req.Header.Add("Authorization", "Bearer dummytoken")
 
@@ -62,7 +62,7 @@ func Test_helmInstall(t *testing.T) {
 
 	t.Run("helmInstall succeeds with admin user", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/1/kubernetes/helm", bytes.NewBuffer(optdata))
-		ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "admin", Role: 1})
+		ctx := security.StoreTokenData(req, &portaineree.TokenData{ID: 1, Username: "admin", Role: 1})
 		req = req.WithContext(ctx)
 		req.Header.Add("Authorization", "Bearer dummytoken")
 

@@ -1,21 +1,21 @@
 package migrator
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/internal/authorization"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 // refreshRBACRoles updates roles to current defaults
 // running it after changing one of `authorization.DefaultEndpointAuthorizations`
 // will update the role
 func (m *Migrator) refreshRBACRoles() error {
-	defaultAuthorizationsOfRoles := map[portainer.RoleID]portainer.Authorizations{
-		portainer.RoleIDEndpointAdmin: authorization.DefaultEndpointAuthorizationsForEndpointAdministratorRole(),
-		portainer.RoleIDHelpdesk:      authorization.DefaultEndpointAuthorizationsForHelpDeskRole(),
-		portainer.RoleIDOperator:      authorization.DefaultEndpointAuthorizationsForOperatorRole(),
-		portainer.RoleIDStandardUser:  authorization.DefaultEndpointAuthorizationsForStandardUserRole(),
-		portainer.RoleIDReadonly:      authorization.DefaultEndpointAuthorizationsForReadOnlyUserRole(),
+	defaultAuthorizationsOfRoles := map[portaineree.RoleID]portaineree.Authorizations{
+		portaineree.RoleIDEndpointAdmin: authorization.DefaultEndpointAuthorizationsForEndpointAdministratorRole(),
+		portaineree.RoleIDHelpdesk:      authorization.DefaultEndpointAuthorizationsForHelpDeskRole(),
+		portaineree.RoleIDOperator:      authorization.DefaultEndpointAuthorizationsForOperatorRole(),
+		portaineree.RoleIDStandardUser:  authorization.DefaultEndpointAuthorizationsForStandardUserRole(),
+		portaineree.RoleIDReadonly:      authorization.DefaultEndpointAuthorizationsForReadOnlyUserRole(),
 	}
 
 	for roleID, defaultAuthorizations := range defaultAuthorizationsOfRoles {

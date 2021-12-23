@@ -3,7 +3,6 @@ package kubernetes
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -13,24 +12,26 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
-	ru "github.com/portainer/portainer/api/http/utils"
-	"github.com/portainer/portainer/api/kubernetes/cli"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
+	ru "github.com/portainer/portainer-ee/api/http/utils"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
+
+	"github.com/pkg/errors"
 )
 
 type baseTransport struct {
 	httpTransport       *http.Transport
 	tokenManager        *tokenManager
-	endpoint            *portainer.Endpoint
-	userActivityService portainer.UserActivityService
+	endpoint            *portaineree.Endpoint
+	userActivityService portaineree.UserActivityService
 	k8sClientFactory    *cli.ClientFactory
-	dataStore           portainer.DataStore
+	dataStore           portaineree.DataStore
 }
 
-func newBaseTransport(httpTransport *http.Transport, tokenManager *tokenManager, endpoint *portainer.Endpoint, userActivityService portainer.UserActivityService, k8sClientFactory *cli.ClientFactory, dataStore portainer.DataStore) *baseTransport {
+func newBaseTransport(httpTransport *http.Transport, tokenManager *tokenManager, endpoint *portaineree.Endpoint, userActivityService portaineree.UserActivityService, k8sClientFactory *cli.ClientFactory, dataStore portaineree.DataStore) *baseTransport {
 	return &baseTransport{
 		httpTransport:       httpTransport,
 		tokenManager:        tokenManager,
@@ -122,14 +123,14 @@ func (transport *baseTransport) RoundTrip(request *http.Request) (*http.Response
 	return transport.proxyKubernetesRequest(request)
 }
 
-func getRoundTripToken(request *http.Request, tokenManager *tokenManager, endpointID portainer.EndpointID) (string, error) {
+func getRoundTripToken(request *http.Request, tokenManager *tokenManager, endpointID portaineree.EndpointID) (string, error) {
 	tokenData, err := security.RetrieveTokenData(request)
 	if err != nil {
 		return "", err
 	}
 
 	var token string
-	if tokenData.Role == portainer.AdministratorRole {
+	if tokenData.Role == portaineree.AdministratorRole {
 		token = tokenManager.GetAdminServiceAccountToken()
 	} else {
 		token, err = tokenManager.GetUserServiceAccountToken(int(tokenData.ID), int(endpointID))
@@ -142,7 +143,7 @@ func getRoundTripToken(request *http.Request, tokenManager *tokenManager, endpoi
 	return token, nil
 }
 
-func decorateAgentRequest(r *http.Request, dataStore portainer.DataStore) error {
+func decorateAgentRequest(r *http.Request, dataStore portaineree.DataStore) error {
 	requestPath := strings.TrimPrefix(r.URL.Path, "/v2")
 
 	switch {
@@ -153,7 +154,7 @@ func decorateAgentRequest(r *http.Request, dataStore portainer.DataStore) error 
 	return nil
 }
 
-func decorateAgentDockerHubRequest(r *http.Request, dataStore portainer.DataStore) error {
+func decorateAgentDockerHubRequest(r *http.Request, dataStore portaineree.DataStore) error {
 	requestPath, registryIdString := path.Split(r.URL.Path)
 
 	registryID, err := strconv.Atoi(registryIdString)
@@ -163,18 +164,18 @@ func decorateAgentDockerHubRequest(r *http.Request, dataStore portainer.DataStor
 
 	r.URL.Path = strings.TrimSuffix(requestPath, "/")
 
-	registry := &portainer.Registry{
-		Type: portainer.DockerHubRegistry,
+	registry := &portaineree.Registry{
+		Type: portaineree.DockerHubRegistry,
 	}
 
 	if registryID != 0 {
-		registry, err = dataStore.Registry().Registry(portainer.RegistryID(registryID))
+		registry, err = dataStore.Registry().Registry(portaineree.RegistryID(registryID))
 		if err != nil {
 			return fmt.Errorf("failed fetching registry: %w", err)
 		}
 	}
 
-	if registry.Type != portainer.DockerHubRegistry {
+	if registry.Type != portaineree.DockerHubRegistry {
 		return errors.New("invalid registry type")
 	}
 

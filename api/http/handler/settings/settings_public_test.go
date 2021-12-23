@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 const (
@@ -17,7 +17,7 @@ const (
 
 var (
 	dummyOAuthLoginURI string
-	mockAppSettings    *portainer.Settings
+	mockAppSettings    *portaineree.Settings
 )
 
 func setup() {
@@ -26,9 +26,9 @@ func setup() {
 		dummyOAuthClientID,
 		dummyOAuthRedirectURI,
 		dummyOAuthScopes)
-	mockAppSettings = &portainer.Settings{
-		AuthenticationMethod: portainer.AuthenticationOAuth,
-		OAuthSettings: portainer.OAuthSettings{
+	mockAppSettings = &portaineree.Settings{
+		AuthenticationMethod: portaineree.AuthenticationOAuth,
+		OAuthSettings: portaineree.OAuthSettings{
 			AuthorizationURI: dummyOAuthAuthenticationURI,
 			ClientID:         dummyOAuthClientID,
 			Scopes:           dummyOAuthScopes,
@@ -42,8 +42,8 @@ func TestGeneratePublicSettingsWithSSO(t *testing.T) {
 	setup()
 	mockAppSettings.OAuthSettings.SSO = true
 	publicSettings := generatePublicSettings(mockAppSettings)
-	if publicSettings.AuthenticationMethod != portainer.AuthenticationOAuth {
-		t.Errorf("wrong AuthenticationMethod, want: %d, got: %d", portainer.AuthenticationOAuth, publicSettings.AuthenticationMethod)
+	if publicSettings.AuthenticationMethod != portaineree.AuthenticationOAuth {
+		t.Errorf("wrong AuthenticationMethod, want: %d, got: %d", portaineree.AuthenticationOAuth, publicSettings.AuthenticationMethod)
 	}
 	if publicSettings.OAuthHideInternalAuth {
 		t.Errorf("wrong OAuthHideInternalAuth, should be switched off by default, but got: %t", publicSettings.OAuthHideInternalAuth)
@@ -60,8 +60,8 @@ func TestGeneratePublicSettingsWithoutSSO(t *testing.T) {
 	setup()
 	mockAppSettings.OAuthSettings.SSO = false
 	publicSettings := generatePublicSettings(mockAppSettings)
-	if publicSettings.AuthenticationMethod != portainer.AuthenticationOAuth {
-		t.Errorf("wrong AuthenticationMethod, want: %d, got: %d", portainer.AuthenticationOAuth, publicSettings.AuthenticationMethod)
+	if publicSettings.AuthenticationMethod != portaineree.AuthenticationOAuth {
+		t.Errorf("wrong AuthenticationMethod, want: %d, got: %d", portaineree.AuthenticationOAuth, publicSettings.AuthenticationMethod)
 	}
 	if publicSettings.OAuthHideInternalAuth {
 		t.Errorf("wrong OAuthHideInternalAuth, should be switched off by default, but got: %t", publicSettings.OAuthHideInternalAuth)
@@ -79,8 +79,8 @@ func TestGeneratePublicSettingsWithHideInternalAuth(t *testing.T) {
 	setup()
 	mockAppSettings.OAuthSettings.HideInternalAuth = true
 	publicSettings := generatePublicSettings(mockAppSettings)
-	if publicSettings.AuthenticationMethod != portainer.AuthenticationOAuth {
-		t.Errorf("wrong AuthenticationMethod, want: %d, got: %d", portainer.AuthenticationOAuth, publicSettings.AuthenticationMethod)
+	if publicSettings.AuthenticationMethod != portaineree.AuthenticationOAuth {
+		t.Errorf("wrong AuthenticationMethod, want: %d, got: %d", portaineree.AuthenticationOAuth, publicSettings.AuthenticationMethod)
 	}
 	if !publicSettings.OAuthHideInternalAuth {
 		t.Errorf("wrong OAuthHideInternalAuth, should be switched on, but got: %t", publicSettings.OAuthHideInternalAuth)

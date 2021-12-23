@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
-	bolt "github.com/portainer/portainer/api/bolt/bolttest"
-	"github.com/portainer/portainer/api/cli"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolt "github.com/portainer/portainer-ee/api/bolt/bolttest"
+	"github.com/portainer/portainer-ee/api/cli"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -37,7 +37,7 @@ func Test_enableFeaturesFromFlags(t *testing.T) {
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%s succeeds:%v", test.featureFlag, test.isSupported), func(t *testing.T) {
 			mockKingpinSetting := mockKingpinSetting(test.featureFlag)
-			flags := &portainer.CLIFlags{FeatureFlags: cli.BoolPairs(mockKingpinSetting)}
+			flags := &portaineree.CLIFlags{FeatureFlags: cli.BoolPairs(mockKingpinSetting)}
 			err := enableFeaturesFromFlags(store, flags)
 			if test.isSupported {
 				is.NoError(err)
@@ -48,18 +48,18 @@ func Test_enableFeaturesFromFlags(t *testing.T) {
 	}
 
 	t.Run("passes for all supported feature flags", func(t *testing.T) {
-		for _, flag := range portainer.SupportedFeatureFlags {
+		for _, flag := range portaineree.SupportedFeatureFlags {
 			mockKingpinSetting := mockKingpinSetting(flag)
-			flags := &portainer.CLIFlags{FeatureFlags: cli.BoolPairs(mockKingpinSetting)}
+			flags := &portaineree.CLIFlags{FeatureFlags: cli.BoolPairs(mockKingpinSetting)}
 			err := enableFeaturesFromFlags(store, flags)
 			is.NoError(err)
 		}
 	})
 }
 
-const FeatTest portainer.Feature = "optional-test"
+const FeatTest portaineree.Feature = "optional-test"
 
-func optionalFunc(dataStore portainer.DataStore) string {
+func optionalFunc(dataStore portaineree.DataStore) string {
 
 	// TODO: this is a code smell - finding out if a feature flag is enabled should not require having access to the store, and asking for a settings obj.
 	//       ideally, the `if` should look more like:
@@ -76,7 +76,7 @@ func optionalFunc(dataStore portainer.DataStore) string {
 }
 
 func Test_optionalFeature(t *testing.T) {
-	portainer.SupportedFeatureFlags = append(portainer.SupportedFeatureFlags, FeatTest)
+	portaineree.SupportedFeatureFlags = append(portaineree.SupportedFeatureFlags, FeatTest)
 
 	is := assert.New(t)
 
@@ -86,7 +86,7 @@ func Test_optionalFeature(t *testing.T) {
 	// Enable the test feature
 	t.Run(fmt.Sprintf("%s succeeds:%v", FeatTest, true), func(t *testing.T) {
 		mockKingpinSetting := mockKingpinSetting(FeatTest)
-		flags := &portainer.CLIFlags{FeatureFlags: cli.BoolPairs(mockKingpinSetting)}
+		flags := &portaineree.CLIFlags{FeatureFlags: cli.BoolPairs(mockKingpinSetting)}
 		err := enableFeaturesFromFlags(store, flags)
 		is.NoError(err)
 		is.Equal("enabled", optionalFunc(store))
@@ -100,7 +100,7 @@ func Test_optionalFeature(t *testing.T) {
 	// disable the test feature
 	t.Run(fmt.Sprintf("%s succeeds:%v", FeatTest, true), func(t *testing.T) {
 		mockKingpinSetting := mockKingpinSetting(FeatTest + "=false")
-		flags := &portainer.CLIFlags{FeatureFlags: cli.BoolPairs(mockKingpinSetting)}
+		flags := &portaineree.CLIFlags{FeatureFlags: cli.BoolPairs(mockKingpinSetting)}
 		err := enableFeaturesFromFlags(store, flags)
 		is.NoError(err)
 		is.Equal("disabled", optionalFunc(store))

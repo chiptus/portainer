@@ -5,8 +5,8 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // @id UserAdminCheck
@@ -18,7 +18,7 @@ import (
 // @failure 404 "User not found"
 // @router /users/admin/check [get]
 func (handler *Handler) adminCheck(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	users, err := handler.DataStore.User().UsersByRole(portainer.AdministratorRole)
+	users, err := handler.DataStore.User().UsersByRole(portaineree.AdministratorRole)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve users from the database", err}
 	}

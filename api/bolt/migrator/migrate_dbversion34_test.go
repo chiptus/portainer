@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/dockerhub"
-	"github.com/portainer/portainer/api/bolt/endpoint"
-	"github.com/portainer/portainer/api/bolt/internal"
-	"github.com/portainer/portainer/api/bolt/registry"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/dockerhub"
+	"github.com/portainer/portainer-ee/api/bolt/endpoint"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
+	"github.com/portainer/portainer-ee/api/bolt/registry"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,7 +29,7 @@ func setupDB35Test(t *testing.T) *Migrator {
 	// Create an old style dockerhub authenticated account
 	dockerhubService, err := dockerhub.NewService(&internal.DbConnection{DB: dbConn})
 	is.NoError(err, "failed to init testing registry service")
-	err = dockerhubService.UpdateDockerHub(&portainer.DockerHub{true, username, password})
+	err = dockerhubService.UpdateDockerHub(&portaineree.DockerHub{true, username, password})
 	is.NoError(err, "failed to create dockerhub account")
 
 	registryService, err := registry.NewService(&internal.DbConnection{DB: dbConn})
@@ -74,14 +74,14 @@ func TestUpdateDockerhubToDB32_with_duplicate_migrations(t *testing.T) {
 	defer os.Remove(db35TestFile)
 
 	// Create lots of duplicate entries...
-	registry := &portainer.Registry{
-		Type:             portainer.DockerHubRegistry,
+	registry := &portaineree.Registry{
+		Type:             portaineree.DockerHubRegistry,
 		Name:             "Dockerhub (authenticated - migrated)",
 		URL:              "docker.io",
 		Authentication:   true,
 		Username:         "portainer",
 		Password:         "password",
-		RegistryAccesses: portainer.RegistryAccesses{},
+		RegistryAccesses: portaineree.RegistryAccesses{},
 	}
 
 	for i := 1; i < 150; i++ {

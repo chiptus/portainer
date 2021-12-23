@@ -7,11 +7,11 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/endpointutils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 )
 
 type registryUpdatePayload struct {
@@ -21,9 +21,9 @@ type registryUpdatePayload struct {
 	Authentication   *bool   `json:",omitempty" example:"false" validate:"required"`
 	Username         *string `json:",omitempty" example:"registry_user"`
 	Password         *string `json:",omitempty" example:"registry_password"`
-	Quay             *portainer.QuayRegistryData
-	RegistryAccesses *portainer.RegistryAccesses `json:",omitempty"`
-	Ecr              *portainer.EcrData          `json:",omitempty" example:"\{\"Region\": \"ap-southeast-2\"\}"`
+	Quay             *portaineree.QuayRegistryData
+	RegistryAccesses *portaineree.RegistryAccesses `json:",omitempty"`
+	Ecr              *portaineree.EcrData          `json:",omitempty" example:"\{\"Region\": \"ap-southeast-2\"\}"`
 }
 
 func (payload *registryUpdatePayload) Validate(r *http.Request) error {
@@ -41,7 +41,7 @@ func (payload *registryUpdatePayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path int true "Registry identifier"
 // @param body body registryUpdatePayload true "Registry details"
-// @success 200 {object} portainer.Registry "Success"
+// @success 200 {object} portaineree.Registry "Success"
 // @failure 400 "Invalid request"
 // @failure 404 "Registry not found"
 // @failure 409 "Another registry with the same URL already exists"
@@ -62,7 +62,7 @@ func (handler *Handler) registryUpdate(w http.ResponseWriter, r *http.Request) *
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid registry identifier route variable", err}
 	}
 
-	registry, err := handler.DataStore.Registry().Registry(portainer.RegistryID(registryID))
+	registry, err := handler.DataStore.Registry().Registry(portaineree.RegistryID(registryID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a registry with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -79,7 +79,7 @@ func (handler *Handler) registryUpdate(w http.ResponseWriter, r *http.Request) *
 		registry.Name = *payload.Name
 	}
 
-	if registry.Type == portainer.ProGetRegistry && payload.BaseURL != nil {
+	if registry.Type == portaineree.ProGetRegistry && payload.BaseURL != nil {
 		registry.BaseURL = *payload.BaseURL
 	}
 
@@ -101,7 +101,7 @@ func (handler *Handler) registryUpdate(w http.ResponseWriter, r *http.Request) *
 				registry.Password = *payload.Password
 			}
 
-			if registry.Type == portainer.EcrRegistry && payload.Ecr != nil && payload.Ecr.Region != "" {
+			if registry.Type == portaineree.EcrRegistry && payload.Ecr != nil && payload.Ecr.Region != "" {
 				shouldUpdateSecrets = shouldUpdateSecrets || (registry.Ecr.Region != payload.Ecr.Region)
 				registry.Ecr.Region = payload.Ecr.Region
 			}
@@ -164,7 +164,7 @@ func (handler *Handler) registryUpdate(w http.ResponseWriter, r *http.Request) *
 	return response.JSON(w, registry)
 }
 
-func (handler *Handler) updateEndpointRegistryAccess(endpoint *portainer.Endpoint, registry *portainer.Registry, endpointAccess portainer.RegistryAccessPolicies) error {
+func (handler *Handler) updateEndpointRegistryAccess(endpoint *portaineree.Endpoint, registry *portaineree.Registry, endpointAccess portaineree.RegistryAccessPolicies) error {
 
 	cli, err := handler.K8sClientFactory.GetKubeClient(endpoint)
 	if err != nil {

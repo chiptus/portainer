@@ -7,8 +7,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 type endpointSettingsUpdatePayload struct {
@@ -34,7 +34,7 @@ type endpointSettingsUpdatePayload struct {
 		EnableHostManagementFeatures *bool `json:"enableHostManagementFeatures" example:"true"`
 	} `json:"securitySettings"`
 	// Whether automatic update time restrictions are enabled
-	ChangeWindow *portainer.EndpointChangeWindow `json:"changeWindow"`
+	ChangeWindow *portaineree.EndpointChangeWindow `json:"changeWindow"`
 }
 
 func (payload *endpointSettingsUpdatePayload) Validate(_ *http.Request) error {
@@ -59,7 +59,7 @@ func (payload *endpointSettingsUpdatePayload) Validate(_ *http.Request) error {
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param body body endpointSettingsUpdatePayload true "Environment(Endpoint) details"
-// @success 200 {object} portainer.Endpoint "Success"
+// @success 200 {object} portaineree.Endpoint "Success"
 // @failure 400 "Invalid request"
 // @failure 404 "Environment(Endpoint) not found"
 // @failure 500 "Server error"
@@ -76,7 +76,7 @@ func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Re
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == errors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -134,7 +134,7 @@ func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Re
 		endpoint.ChangeWindow = *payload.ChangeWindow
 	}
 
-	err = handler.dataStore.Endpoint().UpdateEndpoint(portainer.EndpointID(endpointID), endpoint)
+	err = handler.dataStore.Endpoint().UpdateEndpoint(portaineree.EndpointID(endpointID), endpoint)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Failed persisting environment in database", err}
 	}

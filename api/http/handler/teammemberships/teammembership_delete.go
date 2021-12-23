@@ -6,10 +6,10 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id TeamMembershipDelete
@@ -32,7 +32,7 @@ func (handler *Handler) teamMembershipDelete(w http.ResponseWriter, r *http.Requ
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid membership identifier route variable", err}
 	}
 
-	membership, err := handler.DataStore.TeamMembership().TeamMembership(portainer.TeamMembershipID(membershipID))
+	membership, err := handler.DataStore.TeamMembership().TeamMembership(portaineree.TeamMembershipID(membershipID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a team membership with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -48,7 +48,7 @@ func (handler *Handler) teamMembershipDelete(w http.ResponseWriter, r *http.Requ
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to delete the membership", errors.ErrResourceAccessDenied}
 	}
 
-	err = handler.DataStore.TeamMembership().DeleteTeamMembership(portainer.TeamMembershipID(membershipID))
+	err = handler.DataStore.TeamMembership().DeleteTeamMembership(portaineree.TeamMembershipID(membershipID))
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove the team membership from the database", err}
 	}

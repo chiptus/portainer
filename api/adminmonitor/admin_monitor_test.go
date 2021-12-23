@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
-	i "github.com/portainer/portainer/api/internal/testhelpers"
+	portaineree "github.com/portainer/portainer-ee/api"
+	i "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,7 +33,7 @@ func Test_canStopStartedMonitor(t *testing.T) {
 func Test_start_shouldFatalAfterTimeout_ifNotInitialized(t *testing.T) {
 	timeout := 10 * time.Millisecond
 
-	datastore := i.NewDatastore(i.WithUsers([]portainer.User{}))
+	datastore := i.NewDatastore(i.WithUsers([]portaineree.User{}))
 
 	var fataled bool
 	origLogFatalf := logFatalf

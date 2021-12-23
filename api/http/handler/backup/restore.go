@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	operations "github.com/portainer/portainer/api/backup"
+	operations "github.com/portainer/portainer-ee/api/backup"
 )
 
 type restorePayload struct {

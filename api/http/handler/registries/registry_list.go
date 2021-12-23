@@ -17,7 +17,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @success 200 {array} portainer.Registry "Success"
+// @success 200 {array} portaineree.Registry "Success"
 // @failure 500 "Server error"
 // @router /registries [get]
 func (handler *Handler) registryList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {

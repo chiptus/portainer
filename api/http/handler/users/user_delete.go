@@ -9,9 +9,9 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id UserDelete
@@ -44,18 +44,18 @@ func (handler *Handler) userDelete(w http.ResponseWriter, r *http.Request) *http
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}
 	}
 
-	if tokenData.ID == portainer.UserID(userID) {
+	if tokenData.ID == portaineree.UserID(userID) {
 		return &httperror.HandlerError{http.StatusForbidden, "Cannot remove your own user account. Contact another administrator", errAdminCannotRemoveSelf}
 	}
 
-	user, err := handler.DataStore.User().User(portainer.UserID(userID))
+	user, err := handler.DataStore.User().User(portaineree.UserID(userID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a user with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a user with the specified identifier inside the database", err}
 	}
 
-	if user.Role == portainer.AdministratorRole {
+	if user.Role == portaineree.AdministratorRole {
 		responseErr := handler.deleteAdminUser(w, user)
 		if responseErr != nil {
 			return responseErr
@@ -74,7 +74,7 @@ func (handler *Handler) userDelete(w http.ResponseWriter, r *http.Request) *http
 	return nil
 }
 
-func (handler *Handler) deleteAdminUser(w http.ResponseWriter, user *portainer.User) *httperror.HandlerError {
+func (handler *Handler) deleteAdminUser(w http.ResponseWriter, user *portaineree.User) *httperror.HandlerError {
 	if user.Password == "" {
 		return handler.deleteUser(w, user)
 	}
@@ -86,7 +86,7 @@ func (handler *Handler) deleteAdminUser(w http.ResponseWriter, user *portainer.U
 
 	localAdminCount := 0
 	for _, u := range users {
-		if u.Role == portainer.AdministratorRole && u.Password != "" {
+		if u.Role == portaineree.AdministratorRole && u.Password != "" {
 			localAdminCount++
 		}
 	}
@@ -98,7 +98,7 @@ func (handler *Handler) deleteAdminUser(w http.ResponseWriter, user *portainer.U
 	return handler.deleteUser(w, user)
 }
 
-func (handler *Handler) deleteUser(w http.ResponseWriter, user *portainer.User) *httperror.HandlerError {
+func (handler *Handler) deleteUser(w http.ResponseWriter, user *portaineree.User) *httperror.HandlerError {
 	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to get user environment access", err}
@@ -107,9 +107,9 @@ func (handler *Handler) deleteUser(w http.ResponseWriter, user *portainer.User) 
 	errs := []string{}
 	// removes user's k8s service account and all related resources
 	for _, endpoint := range endpoints {
-		if endpoint.Type != portainer.KubernetesLocalEnvironment &&
-			endpoint.Type != portainer.AgentOnKubernetesEnvironment &&
-			endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment {
+		if endpoint.Type != portaineree.KubernetesLocalEnvironment &&
+			endpoint.Type != portaineree.AgentOnKubernetesEnvironment &&
+			endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment {
 			continue
 		}
 		kcl, err := handler.K8sClientFactory.GetKubeClient(&endpoint)

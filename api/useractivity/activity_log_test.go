@@ -4,13 +4,13 @@ import (
 	"testing"
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/stretchr/testify/assert"
 )
 
-func createActivityLog(username, context, action string, payload []byte) *portainer.UserActivityLog {
-	return &portainer.UserActivityLog{
-		UserActivityLogBase: portainer.UserActivityLogBase{
+func createActivityLog(username, context, action string, payload []byte) *portaineree.UserActivityLog {
+	return &portaineree.UserActivityLog{
+		UserActivityLogBase: portaineree.UserActivityLogBase{
 			Timestamp: time.Now().Unix(),
 			Username:  username,
 		},
@@ -37,7 +37,7 @@ func TestAddUserActivity(t *testing.T) {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	var logs []*portainer.UserActivityLog
+	var logs []*portaineree.UserActivityLog
 
 	err = store.db.All(&logs)
 	if err != nil {
@@ -74,12 +74,12 @@ func TestGetUserActivityLogs(t *testing.T) {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	logs, _, err := store.GetUserActivityLogs(portainer.UserActivityLogBaseQuery{})
+	logs, _, err := store.GetUserActivityLogs(portaineree.UserActivityLogBaseQuery{})
 	if err != nil {
 		t.Fatalf("failed fetching logs: %s", err)
 	}
 
-	assert.Equal(t, []*portainer.UserActivityLog{log1, log2, log3}, logs)
+	assert.Equal(t, []*portaineree.UserActivityLog{log1, log2, log3}, logs)
 }
 
 func TestGetUserActivityLogsByTimestamp(t *testing.T) {
@@ -112,7 +112,7 @@ func TestGetUserActivityLogsByTimestamp(t *testing.T) {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	logs, _, err := store.GetUserActivityLogs(portainer.UserActivityLogBaseQuery{
+	logs, _, err := store.GetUserActivityLogs(portaineree.UserActivityLogBaseQuery{
 		BeforeTimestamp: log3.Timestamp - 1,
 		AfterTimestamp:  log1.Timestamp + 1,
 	})
@@ -151,7 +151,7 @@ func TestGetUserActivityLogsByKeyword(t *testing.T) {
 	}
 
 	// like
-	shouldHaveAllLogs, _, err := store.GetUserActivityLogs(portainer.UserActivityLogBaseQuery{
+	shouldHaveAllLogs, _, err := store.GetUserActivityLogs(portaineree.UserActivityLogBaseQuery{
 		Keyword: "username",
 	})
 
@@ -159,10 +159,10 @@ func TestGetUserActivityLogsByKeyword(t *testing.T) {
 		t.Fatalf("failed fetching logs: %s", err)
 	}
 
-	assert.Equal(t, []*portainer.UserActivityLog{log1, log2, log3}, shouldHaveAllLogs)
+	assert.Equal(t, []*portaineree.UserActivityLog{log1, log2, log3}, shouldHaveAllLogs)
 
 	// username
-	shouldHaveOnlyLog1, _, err := store.GetUserActivityLogs(portainer.UserActivityLogBaseQuery{
+	shouldHaveOnlyLog1, _, err := store.GetUserActivityLogs(portaineree.UserActivityLogBaseQuery{
 		Keyword: "username1",
 	})
 
@@ -173,7 +173,7 @@ func TestGetUserActivityLogsByKeyword(t *testing.T) {
 	assert.Equal(t, log1, shouldHaveOnlyLog1[0])
 
 	// action
-	shouldHaveOnlyLog3, _, err := store.GetUserActivityLogs(portainer.UserActivityLogBaseQuery{
+	shouldHaveOnlyLog3, _, err := store.GetUserActivityLogs(portaineree.UserActivityLogBaseQuery{
 		Keyword: "action3",
 	})
 
@@ -217,7 +217,7 @@ func TestGetUserActivityLogsSortOrderAndPaginate(t *testing.T) {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	shouldBeLog4AndLog3, _, err := store.GetUserActivityLogs(portainer.UserActivityLogBaseQuery{
+	shouldBeLog4AndLog3, _, err := store.GetUserActivityLogs(portaineree.UserActivityLogBaseQuery{
 		SortDesc: true,
 		SortBy:   "Username",
 		Offset:   0,
@@ -228,9 +228,9 @@ func TestGetUserActivityLogsSortOrderAndPaginate(t *testing.T) {
 		t.Fatalf("failed fetching logs: %s", err)
 	}
 
-	assert.Equal(t, []*portainer.UserActivityLog{log4, log3}, shouldBeLog4AndLog3)
+	assert.Equal(t, []*portaineree.UserActivityLog{log4, log3}, shouldBeLog4AndLog3)
 
-	shouldBeLog2AndLog1, _, err := store.GetUserActivityLogs(portainer.UserActivityLogBaseQuery{
+	shouldBeLog2AndLog1, _, err := store.GetUserActivityLogs(portaineree.UserActivityLogBaseQuery{
 		SortDesc: true,
 		SortBy:   "Username",
 		Offset:   2,
@@ -241,7 +241,7 @@ func TestGetUserActivityLogsSortOrderAndPaginate(t *testing.T) {
 		t.Fatalf("failed fetching logs: %s", err)
 	}
 
-	assert.Equal(t, []*portainer.UserActivityLog{log2, log1}, shouldBeLog2AndLog1)
+	assert.Equal(t, []*portaineree.UserActivityLog{log2, log1}, shouldBeLog2AndLog1)
 }
 
 func TestGetUserActivityLogsDesc(t *testing.T) {
@@ -270,7 +270,7 @@ func TestGetUserActivityLogsDesc(t *testing.T) {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
 
-	logs, _, err := store.GetUserActivityLogs(portainer.UserActivityLogBaseQuery{
+	logs, _, err := store.GetUserActivityLogs(portaineree.UserActivityLogBaseQuery{
 		SortDesc: true,
 	})
 
@@ -278,5 +278,5 @@ func TestGetUserActivityLogsDesc(t *testing.T) {
 		t.Fatalf("failed fetching logs: %s", err)
 	}
 
-	assert.Equal(t, []*portainer.UserActivityLog{log3, log2, log1}, logs)
+	assert.Equal(t, []*portaineree.UserActivityLog{log3, log2, log1}, logs)
 }

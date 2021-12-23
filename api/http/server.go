@@ -11,85 +11,86 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/portainer/libhelm"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/adminmonitor"
+	"github.com/portainer/portainer-ee/api/apikey"
+	backupOps "github.com/portainer/portainer-ee/api/backup"
+	"github.com/portainer/portainer-ee/api/docker"
+	"github.com/portainer/portainer-ee/api/http/handler"
+	"github.com/portainer/portainer-ee/api/http/handler/auth"
+	"github.com/portainer/portainer-ee/api/http/handler/backup"
+	"github.com/portainer/portainer-ee/api/http/handler/customtemplates"
+	"github.com/portainer/portainer-ee/api/http/handler/edgegroups"
+	"github.com/portainer/portainer-ee/api/http/handler/edgejobs"
+	"github.com/portainer/portainer-ee/api/http/handler/edgestacks"
+	"github.com/portainer/portainer-ee/api/http/handler/edgetemplates"
+	"github.com/portainer/portainer-ee/api/http/handler/endpointedge"
+	"github.com/portainer/portainer-ee/api/http/handler/endpointgroups"
+	"github.com/portainer/portainer-ee/api/http/handler/endpointproxy"
+	"github.com/portainer/portainer-ee/api/http/handler/endpoints"
+	"github.com/portainer/portainer-ee/api/http/handler/file"
+	"github.com/portainer/portainer-ee/api/http/handler/helm"
+	"github.com/portainer/portainer-ee/api/http/handler/hostmanagement/openamt"
+	kubehandler "github.com/portainer/portainer-ee/api/http/handler/kubernetes"
+	"github.com/portainer/portainer-ee/api/http/handler/ldap"
+	"github.com/portainer/portainer-ee/api/http/handler/licenses"
+	"github.com/portainer/portainer-ee/api/http/handler/motd"
+	"github.com/portainer/portainer-ee/api/http/handler/registries"
+	"github.com/portainer/portainer-ee/api/http/handler/resourcecontrols"
+	"github.com/portainer/portainer-ee/api/http/handler/roles"
+	"github.com/portainer/portainer-ee/api/http/handler/settings"
+	sslhandler "github.com/portainer/portainer-ee/api/http/handler/ssl"
+	"github.com/portainer/portainer-ee/api/http/handler/stacks"
+	"github.com/portainer/portainer-ee/api/http/handler/status"
+	"github.com/portainer/portainer-ee/api/http/handler/storybook"
+	"github.com/portainer/portainer-ee/api/http/handler/tags"
+	"github.com/portainer/portainer-ee/api/http/handler/teammemberships"
+	"github.com/portainer/portainer-ee/api/http/handler/teams"
+	"github.com/portainer/portainer-ee/api/http/handler/templates"
+	"github.com/portainer/portainer-ee/api/http/handler/upload"
+	"github.com/portainer/portainer-ee/api/http/handler/useractivity"
+	"github.com/portainer/portainer-ee/api/http/handler/users"
+	"github.com/portainer/portainer-ee/api/http/handler/webhooks"
+	"github.com/portainer/portainer-ee/api/http/handler/websocket"
+	"github.com/portainer/portainer-ee/api/http/offlinegate"
+	"github.com/portainer/portainer-ee/api/http/proxy"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/internal/ssl"
+	k8s "github.com/portainer/portainer-ee/api/kubernetes"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	"github.com/portainer/portainer-ee/api/scheduler"
+	stackdeloyer "github.com/portainer/portainer-ee/api/stacks"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/adminmonitor"
-	"github.com/portainer/portainer/api/apikey"
-	backupOps "github.com/portainer/portainer/api/backup"
 	"github.com/portainer/portainer/api/crypto"
-	"github.com/portainer/portainer/api/docker"
-	"github.com/portainer/portainer/api/http/handler"
-	"github.com/portainer/portainer/api/http/handler/auth"
-	"github.com/portainer/portainer/api/http/handler/backup"
-	"github.com/portainer/portainer/api/http/handler/customtemplates"
-	"github.com/portainer/portainer/api/http/handler/edgegroups"
-	"github.com/portainer/portainer/api/http/handler/edgejobs"
-	"github.com/portainer/portainer/api/http/handler/edgestacks"
-	"github.com/portainer/portainer/api/http/handler/edgetemplates"
-	"github.com/portainer/portainer/api/http/handler/endpointedge"
-	"github.com/portainer/portainer/api/http/handler/endpointgroups"
-	"github.com/portainer/portainer/api/http/handler/endpointproxy"
-	"github.com/portainer/portainer/api/http/handler/endpoints"
-	"github.com/portainer/portainer/api/http/handler/file"
-	"github.com/portainer/portainer/api/http/handler/helm"
-	"github.com/portainer/portainer/api/http/handler/hostmanagement/openamt"
-	kubehandler "github.com/portainer/portainer/api/http/handler/kubernetes"
-	"github.com/portainer/portainer/api/http/handler/ldap"
-	"github.com/portainer/portainer/api/http/handler/licenses"
-	"github.com/portainer/portainer/api/http/handler/motd"
-	"github.com/portainer/portainer/api/http/handler/registries"
-	"github.com/portainer/portainer/api/http/handler/resourcecontrols"
-	"github.com/portainer/portainer/api/http/handler/roles"
-	"github.com/portainer/portainer/api/http/handler/settings"
-	sslhandler "github.com/portainer/portainer/api/http/handler/ssl"
-	"github.com/portainer/portainer/api/http/handler/stacks"
-	"github.com/portainer/portainer/api/http/handler/status"
-	"github.com/portainer/portainer/api/http/handler/storybook"
-	"github.com/portainer/portainer/api/http/handler/tags"
-	"github.com/portainer/portainer/api/http/handler/teammemberships"
-	"github.com/portainer/portainer/api/http/handler/teams"
-	"github.com/portainer/portainer/api/http/handler/templates"
-	"github.com/portainer/portainer/api/http/handler/upload"
-	"github.com/portainer/portainer/api/http/handler/useractivity"
-	"github.com/portainer/portainer/api/http/handler/users"
-	"github.com/portainer/portainer/api/http/handler/webhooks"
-	"github.com/portainer/portainer/api/http/handler/websocket"
-	"github.com/portainer/portainer/api/http/offlinegate"
-	"github.com/portainer/portainer/api/http/proxy"
-	"github.com/portainer/portainer/api/http/proxy/factory/kubernetes"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/authorization"
-	"github.com/portainer/portainer/api/internal/ssl"
-	k8s "github.com/portainer/portainer/api/kubernetes"
-	"github.com/portainer/portainer/api/kubernetes/cli"
-	"github.com/portainer/portainer/api/scheduler"
-	stackdeloyer "github.com/portainer/portainer/api/stacks"
 )
 
-// Server implements the portainer.Server interface
+// Server implements the portaineree.Server interface
 type Server struct {
 	AuthorizationService        *authorization.Service
 	BindAddress                 string
 	BindAddressHTTPS            string
 	HTTPEnabled                 bool
 	AssetsPath                  string
-	Status                      *portainer.Status
-	ReverseTunnelService        portainer.ReverseTunnelService
-	ComposeStackManager         portainer.ComposeStackManager
-	CryptoService               portainer.CryptoService
-	LicenseService              portainer.LicenseService
-	SignatureService            portainer.DigitalSignatureService
-	SnapshotService             portainer.SnapshotService
+	Status                      *portaineree.Status
+	ReverseTunnelService        portaineree.ReverseTunnelService
+	ComposeStackManager         portaineree.ComposeStackManager
+	CryptoService               portaineree.CryptoService
+	LicenseService              portaineree.LicenseService
+	SignatureService            portaineree.DigitalSignatureService
+	SnapshotService             portaineree.SnapshotService
 	FileService                 portainer.FileService
-	DataStore                   portainer.DataStore
-	GitService                  portainer.GitService
+	DataStore                   portaineree.DataStore
+	GitService                  portaineree.GitService
 	APIKeyService               apikey.APIKeyService
-	OpenAMTService              portainer.OpenAMTService
-	JWTService                  portainer.JWTService
-	LDAPService                 portainer.LDAPService
-	OAuthService                portainer.OAuthService
-	SwarmStackManager           portainer.SwarmStackManager
-	UserActivityStore           portainer.UserActivityStore
-	UserActivityService         portainer.UserActivityService
+	OpenAMTService              portaineree.OpenAMTService
+	JWTService                  portaineree.JWTService
+	LDAPService                 portaineree.LDAPService
+	OAuthService                portaineree.OAuthService
+	SwarmStackManager           portaineree.SwarmStackManager
+	UserActivityStore           portaineree.UserActivityStore
+	UserActivityService         portaineree.UserActivityService
 	ProxyManager                *proxy.Manager
 	KubernetesTokenCacheManager *kubernetes.TokenCacheManager
 	KubeConfigService           k8s.KubeConfigService
@@ -97,7 +98,7 @@ type Server struct {
 	SSLService                  *ssl.Service
 	DockerClientFactory         *docker.ClientFactory
 	KubernetesClientFactory     *cli.ClientFactory
-	KubernetesDeployer          portainer.KubernetesDeployer
+	KubernetesDeployer          portaineree.KubernetesDeployer
 	HelmPackageManager          libhelm.HelmPackageManager
 	Scheduler                   *scheduler.Scheduler
 	ShutdownCtx                 context.Context

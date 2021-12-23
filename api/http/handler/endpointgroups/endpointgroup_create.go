@@ -8,7 +8,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type endpointGroupCreatePayload struct {
@@ -17,9 +17,9 @@ type endpointGroupCreatePayload struct {
 	// Environment(Endpoint) group description
 	Description string `example:"description"`
 	// List of environment(endpoint) identifiers that will be part of this group
-	AssociatedEndpoints []portainer.EndpointID `example:"1,3"`
+	AssociatedEndpoints []portaineree.EndpointID `example:"1,3"`
 	// List of tag identifiers to which this environment(endpoint) group is associated
-	TagIDs []portainer.TagID `example:"1,2"`
+	TagIDs []portaineree.TagID `example:"1,2"`
 }
 
 func (payload *endpointGroupCreatePayload) Validate(r *http.Request) error {
@@ -27,7 +27,7 @@ func (payload *endpointGroupCreatePayload) Validate(r *http.Request) error {
 		return errors.New("Invalid environment group name")
 	}
 	if payload.TagIDs == nil {
-		payload.TagIDs = []portainer.TagID{}
+		payload.TagIDs = []portaineree.TagID{}
 	}
 	return nil
 }
@@ -40,8 +40,8 @@ func (payload *endpointGroupCreatePayload) Validate(r *http.Request) error {
 // @security jwt
 // @accept json
 // @produce json
-// @param body body endpointGroupCreatePayload true "EnvirEnvironment(Endpoint)onment Group details"
-// @success 200 {object} portainer.EndpointGroup "Success"
+// @param body body endpointGroupCreatePayload true "Environment(Endpoint) Group details"
+// @success 200 {object} portaineree.EndpointGroup "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /endpoint_groups [post]
@@ -52,11 +52,11 @@ func (handler *Handler) endpointGroupCreate(w http.ResponseWriter, r *http.Reque
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	endpointGroup := &portainer.EndpointGroup{
+	endpointGroup := &portaineree.EndpointGroup{
 		Name:               payload.Name,
 		Description:        payload.Description,
-		UserAccessPolicies: portainer.UserAccessPolicies{},
-		TeamAccessPolicies: portainer.TeamAccessPolicies{},
+		UserAccessPolicies: portaineree.UserAccessPolicies{},
+		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
 		TagIDs:             payload.TagIDs,
 	}
 

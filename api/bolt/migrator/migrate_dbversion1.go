@@ -2,8 +2,8 @@ package migrator
 
 import (
 	"github.com/boltdb/bolt"
-	"github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 )
 
 func (m *Migrator) updateResourceControlsToDBVersion2() error {
@@ -14,23 +14,23 @@ func (m *Migrator) updateResourceControlsToDBVersion2() error {
 
 	for _, resourceControl := range legacyResourceControls {
 		resourceControl.SubResourceIDs = []string{}
-		resourceControl.TeamAccesses = []portainer.TeamResourceAccess{}
+		resourceControl.TeamAccesses = []portaineree.TeamResourceAccess{}
 
 		owner, err := m.userService.User(resourceControl.OwnerID)
 		if err != nil {
 			return err
 		}
 
-		if owner.Role == portainer.AdministratorRole {
+		if owner.Role == portaineree.AdministratorRole {
 			resourceControl.AdministratorsOnly = true
-			resourceControl.UserAccesses = []portainer.UserResourceAccess{}
+			resourceControl.UserAccesses = []portaineree.UserResourceAccess{}
 		} else {
 			resourceControl.AdministratorsOnly = false
-			userAccess := portainer.UserResourceAccess{
+			userAccess := portaineree.UserResourceAccess{
 				UserID:      resourceControl.OwnerID,
-				AccessLevel: portainer.ReadWriteAccessLevel,
+				AccessLevel: portaineree.ReadWriteAccessLevel,
 			}
-			resourceControl.UserAccesses = []portainer.UserResourceAccess{userAccess}
+			resourceControl.UserAccesses = []portaineree.UserResourceAccess{userAccess}
 		}
 
 		err = m.resourceControlService.CreateResourceControl(&resourceControl)
@@ -49,7 +49,7 @@ func (m *Migrator) updateEndpointsToDBVersion2() error {
 	}
 
 	for _, endpoint := range legacyEndpoints {
-		endpoint.AuthorizedTeams = []portainer.TeamID{}
+		endpoint.AuthorizedTeams = []portaineree.TeamID{}
 		err = m.endpointService.UpdateEndpoint(endpoint.ID, &endpoint)
 		if err != nil {
 			return err
@@ -59,42 +59,42 @@ func (m *Migrator) updateEndpointsToDBVersion2() error {
 	return nil
 }
 
-func (m *Migrator) retrieveLegacyResourceControls() ([]portainer.ResourceControl, error) {
-	legacyResourceControls := make([]portainer.ResourceControl, 0)
+func (m *Migrator) retrieveLegacyResourceControls() ([]portaineree.ResourceControl, error) {
+	legacyResourceControls := make([]portaineree.ResourceControl, 0)
 	err := m.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("containerResourceControl"))
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var resourceControl portainer.ResourceControl
+			var resourceControl portaineree.ResourceControl
 			err := internal.UnmarshalObject(v, &resourceControl)
 			if err != nil {
 				return err
 			}
-			resourceControl.Type = portainer.ContainerResourceControl
+			resourceControl.Type = portaineree.ContainerResourceControl
 			legacyResourceControls = append(legacyResourceControls, resourceControl)
 		}
 
 		bucket = tx.Bucket([]byte("serviceResourceControl"))
 		cursor = bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var resourceControl portainer.ResourceControl
+			var resourceControl portaineree.ResourceControl
 			err := internal.UnmarshalObject(v, &resourceControl)
 			if err != nil {
 				return err
 			}
-			resourceControl.Type = portainer.ServiceResourceControl
+			resourceControl.Type = portaineree.ServiceResourceControl
 			legacyResourceControls = append(legacyResourceControls, resourceControl)
 		}
 
 		bucket = tx.Bucket([]byte("volumeResourceControl"))
 		cursor = bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var resourceControl portainer.ResourceControl
+			var resourceControl portaineree.ResourceControl
 			err := internal.UnmarshalObject(v, &resourceControl)
 			if err != nil {
 				return err
 			}
-			resourceControl.Type = portainer.VolumeResourceControl
+			resourceControl.Type = portaineree.VolumeResourceControl
 			legacyResourceControls = append(legacyResourceControls, resourceControl)
 		}
 		return nil

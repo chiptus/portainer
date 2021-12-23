@@ -1,18 +1,18 @@
 package docker
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/registryutils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/registryutils"
 )
 
 type (
 	registryAccessContext struct {
 		isAdmin         bool
-		user            *portainer.User
-		endpointID      portainer.EndpointID
-		teamMemberships []portainer.TeamMembership
-		registries      []portainer.Registry
+		user            *portaineree.User
+		endpointID      portaineree.EndpointID
+		teamMemberships []portaineree.TeamMembership
+		registries      []portaineree.Registry
 	}
 
 	registryAuthenticationHeader struct {
@@ -22,19 +22,19 @@ type (
 	}
 
 	portainerRegistryAuthenticationHeader struct {
-		RegistryId portainer.RegistryID `json:"registryId"`
+		RegistryId portaineree.RegistryID `json:"registryId"`
 	}
 )
 
 func createRegistryAuthenticationHeader(
-	dataStore portainer.DataStore,
-	registryId portainer.RegistryID,
+	dataStore portaineree.DataStore,
+	registryId portaineree.RegistryID,
 	accessContext *registryAccessContext,
 ) (authenticationHeader registryAuthenticationHeader, err error) {
 	if registryId == 0 { // dockerhub (anonymous)
 		authenticationHeader.Serveraddress = "docker.io"
 	} else { // any "custom" registry
-		var matchingRegistry *portainer.Registry
+		var matchingRegistry *portaineree.Registry
 		for _, registry := range accessContext.registries {
 			if registry.ID == registryId &&
 				(accessContext.isAdmin ||
@@ -46,7 +46,7 @@ func createRegistryAuthenticationHeader(
 
 		if matchingRegistry != nil {
 			err = registryutils.EnsureRegTokenValid(dataStore, matchingRegistry)
-			if (err != nil) {
+			if err != nil {
 				return
 			}
 			authenticationHeader.Serveraddress = matchingRegistry.URL

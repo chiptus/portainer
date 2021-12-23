@@ -8,10 +8,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
-	bolt "github.com/portainer/portainer/api/bolt/bolttest"
-	"github.com/portainer/portainer/api/http/security"
-	helper "github.com/portainer/portainer/api/internal/testhelpers"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolt "github.com/portainer/portainer-ee/api/bolt/bolttest"
+	"github.com/portainer/portainer-ee/api/http/security"
+	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,10 +21,10 @@ func Test_endpointUpdate(t *testing.T) {
 	store, teardown := bolt.MustNewTestStore(true)
 	defer teardown()
 
-	err := store.Endpoint().CreateEndpoint(&portainer.Endpoint{ID: 1})
+	err := store.Endpoint().CreateEndpoint(&portaineree.Endpoint{ID: 1})
 	is.NoError(err, "error creating environment")
 
-	err = store.User().CreateUser(&portainer.User{Username: "admin", Role: portainer.AdministratorRole})
+	err = store.User().CreateUser(&portaineree.User{Username: "admin", Role: portaineree.AdministratorRole})
 	is.NoError(err, "error creating a user")
 
 	bouncer := helper.NewTestRequestBouncer()
@@ -34,8 +34,8 @@ func Test_endpointUpdate(t *testing.T) {
 		start := "00:00"
 		end := "23:59"
 
-		endpointSettings := portainer.Endpoint{
-			ChangeWindow: portainer.EndpointChangeWindow{
+		endpointSettings := portaineree.Endpoint{
+			ChangeWindow: portaineree.EndpointChangeWindow{
 				Enabled:   true,
 				StartTime: start,
 				EndTime:   end,
@@ -46,7 +46,7 @@ func Test_endpointUpdate(t *testing.T) {
 		is.NoError(err)
 
 		req := httptest.NewRequest(http.MethodPut, "/endpoints/1/settings", bytes.NewBuffer(data))
-		ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "admin", Role: 1})
+		ctx := security.StoreTokenData(req, &portaineree.TokenData{ID: 1, Username: "admin", Role: 1})
 		req = req.WithContext(ctx)
 		req.Header.Add("Authorization", "Bearer dummytoken")
 
@@ -58,7 +58,7 @@ func Test_endpointUpdate(t *testing.T) {
 		body, err := io.ReadAll(rr.Body)
 		is.NoError(err, "ReadAll should not return error")
 
-		resp := portainer.Endpoint{}
+		resp := portaineree.Endpoint{}
 		err = json.Unmarshal(body, &resp)
 		is.NoError(err, "response should be json")
 		is.EqualValues(true, resp.ChangeWindow.Enabled, "Enabled doesn't match")
@@ -67,8 +67,8 @@ func Test_endpointUpdate(t *testing.T) {
 	})
 
 	t.Run("Test invalid autoUpdate time range", func(t *testing.T) {
-		endpointSettings := portainer.Endpoint{
-			ChangeWindow: portainer.EndpointChangeWindow{
+		endpointSettings := portaineree.Endpoint{
+			ChangeWindow: portaineree.EndpointChangeWindow{
 				Enabled:   true,
 				StartTime: "99:00",
 				EndTime:   "23:59",
@@ -79,7 +79,7 @@ func Test_endpointUpdate(t *testing.T) {
 		is.NoError(err)
 
 		req := httptest.NewRequest(http.MethodPut, "/endpoints/1/settings", bytes.NewBuffer(data))
-		ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "admin", Role: 1})
+		ctx := security.StoreTokenData(req, &portaineree.TokenData{ID: 1, Username: "admin", Role: 1})
 		req = req.WithContext(ctx)
 		req.Header.Add("Authorization", "Bearer dummytoken")
 

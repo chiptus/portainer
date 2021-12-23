@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/portainer/portainer/api/http/proxy/factory/utils"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
 )
 
 // proxy for /subscriptions/*/providers/Microsoft.ContainerInstance/containerGroups

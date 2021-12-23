@@ -6,14 +6,14 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 type registryAccessPayload struct {
-	UserAccessPolicies portainer.UserAccessPolicies
-	TeamAccessPolicies portainer.TeamAccessPolicies
+	UserAccessPolicies portaineree.UserAccessPolicies
+	TeamAccessPolicies portaineree.TeamAccessPolicies
 	Namespaces         []string
 }
 
@@ -49,7 +49,7 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid registry identifier route variable", Err: err}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
 	} else if err != nil {
@@ -61,7 +61,7 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access environment", err}
 	}
 
-	isAdminOrEndpointAdmin, err := security.IsAdminOrEndpointAdmin(r, handler.dataStore, portainer.EndpointID(endpointID))
+	isAdminOrEndpointAdmin, err := security.IsAdminOrEndpointAdmin(r, handler.dataStore, portaineree.EndpointID(endpointID))
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to check user role", Err: err}
 	}
@@ -69,7 +69,7 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 		return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "User is not authorized", Err: err}
 	}
 
-	registry, err := handler.dataStore.Registry().Registry(portainer.RegistryID(registryID))
+	registry, err := handler.dataStore.Registry().Registry(portaineree.RegistryID(registryID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
 	} else if err != nil {
@@ -83,16 +83,16 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 	}
 
 	if registry.RegistryAccesses == nil {
-		registry.RegistryAccesses = portainer.RegistryAccesses{}
+		registry.RegistryAccesses = portaineree.RegistryAccesses{}
 	}
 
 	if _, ok := registry.RegistryAccesses[endpoint.ID]; !ok {
-		registry.RegistryAccesses[endpoint.ID] = portainer.RegistryAccessPolicies{}
+		registry.RegistryAccesses[endpoint.ID] = portaineree.RegistryAccessPolicies{}
 	}
 
 	registryAccess := registry.RegistryAccesses[endpoint.ID]
 
-	if endpoint.Type == portainer.KubernetesLocalEnvironment || endpoint.Type == portainer.AgentOnKubernetesEnvironment || endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment {
+	if endpoint.Type == portaineree.KubernetesLocalEnvironment || endpoint.Type == portaineree.AgentOnKubernetesEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
 		err := handler.updateKubeAccess(endpoint, registry, registryAccess.Namespaces, payload.Namespaces)
 		if err != nil {
 			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to update kube access policies", Err: err}
@@ -104,14 +104,14 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 		registryAccess.TeamAccessPolicies = payload.TeamAccessPolicies
 	}
 
-	registry.RegistryAccesses[portainer.EndpointID(endpointID)] = registryAccess
+	registry.RegistryAccesses[portaineree.EndpointID(endpointID)] = registryAccess
 
 	handler.dataStore.Registry().UpdateRegistry(registry.ID, registry)
 
 	return response.Empty(w)
 }
 
-func (handler *Handler) updateKubeAccess(endpoint *portainer.Endpoint, registry *portainer.Registry, oldNamespaces, newNamespaces []string) error {
+func (handler *Handler) updateKubeAccess(endpoint *portaineree.Endpoint, registry *portaineree.Registry, oldNamespaces, newNamespaces []string) error {
 	oldNamespacesSet := toSet(oldNamespaces)
 	newNamespacesSet := toSet(newNamespaces)
 

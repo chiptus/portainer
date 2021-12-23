@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/gofrs/uuid"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/bolttest"
-	helper "github.com/portainer/portainer/api/internal/testhelpers"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/bolttest"
+	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,8 +17,8 @@ func TestHandler_webhookInvoke(t *testing.T) {
 	defer teardown()
 
 	webhookID := newGuidString(t)
-	store.StackService.CreateStack(&portainer.Stack{
-		AutoUpdate: &portainer.StackAutoUpdate{
+	store.StackService.CreateStack(&portaineree.Stack{
+		AutoUpdate: &portaineree.StackAutoUpdate{
 			Webhook: webhookID,
 		},
 	})

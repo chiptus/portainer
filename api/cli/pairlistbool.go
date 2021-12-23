@@ -1,18 +1,17 @@
 package cli
 
 import (
-	portainer "github.com/portainer/portainer/api"
-
 	"strings"
 
+	portaineree "github.com/portainer/portainer-ee/api"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-type pairListBool []portainer.Pair
+type pairListBool []portaineree.Pair
 
-// Set implementation for a list of portainer.Pair
+// Set implementation for a list of portaineree.Pair
 func (l *pairListBool) Set(value string) error {
-	p := new(portainer.Pair)
+	p := new(portaineree.Pair)
 
 	// default to true.  example setting=true is equivalent to setting
 	parts := strings.SplitN(value, "=", 2)
@@ -38,8 +37,8 @@ func (l *pairListBool) IsCumulative() bool {
 	return true
 }
 
-func BoolPairs(s kingpin.Settings) (target *[]portainer.Pair) {
-	target = new([]portainer.Pair)
+func BoolPairs(s kingpin.Settings) (target *[]portaineree.Pair) {
+	target = new([]portaineree.Pair)
 	s.SetValue((*pairListBool)(target))
 	return
 }

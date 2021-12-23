@@ -6,16 +6,16 @@ import (
 
 	"github.com/docker/docker/client"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/proxy/factory/utils"
-	"github.com/portainer/portainer/api/internal/authorization"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 const (
 	secretObjectIdentifier = "ID"
 )
 
-func getInheritedResourceControlFromSecretLabels(dockerClient *client.Client, endpointID portainer.EndpointID, secretID string, resourceControls []portainer.ResourceControl) (*portainer.ResourceControl, error) {
+func getInheritedResourceControlFromSecretLabels(dockerClient *client.Client, endpointID portaineree.EndpointID, secretID string, resourceControls []portaineree.ResourceControl) (*portaineree.ResourceControl, error) {
 	secret, _, err := dockerClient.SecretInspectWithRaw(context.Background(), secretID)
 	if err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func getInheritedResourceControlFromSecretLabels(dockerClient *client.Client, en
 
 	stackResourceID := getStackResourceIDFromLabels(secret.Spec.Labels, endpointID)
 	if stackResourceID != "" {
-		return authorization.GetResourceControlByResourceIDAndType(stackResourceID, portainer.StackResourceControl, resourceControls), nil
+		return authorization.GetResourceControlByResourceIDAndType(stackResourceID, portaineree.StackResourceControl, resourceControls), nil
 	}
 
 	return nil, nil
@@ -41,7 +41,7 @@ func (transport *Transport) secretListOperation(response *http.Response, executo
 
 	resourceOperationParameters := &resourceOperationParameters{
 		resourceIdentifierAttribute: secretObjectIdentifier,
-		resourceType:                portainer.SecretResourceControl,
+		resourceType:                portaineree.SecretResourceControl,
 		labelsObjectSelector:        selectorSecretLabels,
 	}
 
@@ -65,7 +65,7 @@ func (transport *Transport) secretInspectOperation(response *http.Response, exec
 
 	resourceOperationParameters := &resourceOperationParameters{
 		resourceIdentifierAttribute: secretObjectIdentifier,
-		resourceType:                portainer.SecretResourceControl,
+		resourceType:                portaineree.SecretResourceControl,
 		labelsObjectSelector:        selectorSecretLabels,
 	}
 

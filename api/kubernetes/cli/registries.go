@@ -7,8 +7,8 @@ import (
 	"strconv"
 
 	"github.com/pkg/errors"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/internal/registryutils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	v1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,8 +16,8 @@ import (
 
 const (
 	secretDockerConfigKey = ".dockerconfigjson"
-	labelRegistryType = "io.portainer.kubernetes.registry.type"
-	annotationRegistryID = "portainer.io/registry.id"
+	labelRegistryType     = "io.portainer.kubernetes.registry.type"
+	annotationRegistryID  = "portainer.io/registry.id"
 )
 
 type (
@@ -32,7 +32,7 @@ type (
 	}
 )
 
-func (kcl *KubeClient) DeleteRegistrySecret(registry *portainer.Registry, namespace string) error {
+func (kcl *KubeClient) DeleteRegistrySecret(registry *portaineree.Registry, namespace string) error {
 	err := kcl.cli.CoreV1().Secrets(namespace).Delete(context.TODO(), registrySecretName(registry), metav1.DeleteOptions{})
 	if err != nil && !k8serrors.IsNotFound(err) {
 		return errors.Wrap(err, "failed removing secret")
@@ -41,7 +41,7 @@ func (kcl *KubeClient) DeleteRegistrySecret(registry *portainer.Registry, namesp
 	return nil
 }
 
-func (kcl *KubeClient) CreateRegistrySecret(registry *portainer.Registry, namespace string) (err error) {
+func (kcl *KubeClient) CreateRegistrySecret(registry *portaineree.Registry, namespace string) (err error) {
 	username, password, err := registryutils.GetRegEffectiveCredential(registry)
 	if err != nil {
 		return
@@ -103,6 +103,6 @@ func (cli *KubeClient) IsRegistrySecret(namespace, secretName string) (bool, err
 
 }
 
-func registrySecretName(registry *portainer.Registry) string {
+func registrySecretName(registry *portaineree.Registry) string {
 	return fmt.Sprintf("registry-%d", registry.ID)
 }

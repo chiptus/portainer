@@ -3,16 +3,15 @@ package migrator
 import (
 	"fmt"
 
-	portainer "github.com/portainer/portainer/api"
-
-	"github.com/portainer/portainer/api/internal/authorization"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 // UpgradeToEE will migrate the db from latest ce version to latest ee version
 // Latest version is v25 on 06/11/2020
 func (m *Migrator) UpgradeToEE() error {
 
-	migrateLog.Info(fmt.Sprintf("Migrating CE database version %d to EE database version %d.", m.Version(), portainer.DBVersion))
+	migrateLog.Info(fmt.Sprintf("Migrating CE database version %d to EE database version %d.", m.Version(), portaineree.DBVersion))
 
 	migrateLog.Info("Updating LDAP settings to EE")
 	err := m.updateSettingsToEE()
@@ -36,20 +35,20 @@ func (m *Migrator) UpgradeToEE() error {
 		return err
 	}
 
-	migrateLog.Info(fmt.Sprintf("Setting db version to %d", portainer.DBVersionEE))
-	err = m.versionService.StoreDBVersion(portainer.DBVersionEE)
+	migrateLog.Info(fmt.Sprintf("Setting db version to %d", portaineree.DBVersionEE))
+	err = m.versionService.StoreDBVersion(portaineree.DBVersionEE)
 	if err != nil {
 		return err
 	}
 
-	migrateLog.Info(fmt.Sprintf("Setting edition to %s", portainer.PortainerEE.GetEditionLabel()))
-	err = m.versionService.StoreEdition(portainer.PortainerEE)
+	migrateLog.Info(fmt.Sprintf("Setting edition to %s", portaineree.PortainerEE.GetEditionLabel()))
+	err = m.versionService.StoreEdition(portaineree.PortainerEE)
 	if err != nil {
 		return err
 	}
 
-	m.currentDBVersion = portainer.DBVersionEE
-	m.currentEdition = portainer.PortainerEE
+	m.currentDBVersion = portaineree.DBVersionEE
+	m.currentEdition = portaineree.PortainerEE
 
 	return nil
 }
@@ -66,7 +65,7 @@ func (m *Migrator) updateSettingsToEE() error {
 		legacySettings.LDAPSettings.URLs = append(legacySettings.LDAPSettings.URLs, url)
 	}
 
-	legacySettings.LDAPSettings.ServerType = portainer.LDAPServerCustom
+	legacySettings.LDAPSettings.ServerType = portaineree.LDAPServerCustom
 
 	return m.settingsService.UpdateSettings(legacySettings)
 }
@@ -76,7 +75,7 @@ func (m *Migrator) updateRoleAuthorizationsToEE() error {
 	migrateLog.Debug("Retriving settings")
 
 	migrateLog.Debug("Updating Environment Admin Role")
-	endpointAdministratorRole, err := m.roleService.Role(portainer.RoleID(1))
+	endpointAdministratorRole, err := m.roleService.Role(portaineree.RoleID(1))
 	if err != nil {
 		return err
 	}
@@ -86,7 +85,7 @@ func (m *Migrator) updateRoleAuthorizationsToEE() error {
 	err = m.roleService.UpdateRole(endpointAdministratorRole.ID, endpointAdministratorRole)
 
 	migrateLog.Debug("Updating Help Desk Role")
-	helpDeskRole, err := m.roleService.Role(portainer.RoleID(2))
+	helpDeskRole, err := m.roleService.Role(portaineree.RoleID(2))
 	if err != nil {
 		return err
 	}
@@ -96,7 +95,7 @@ func (m *Migrator) updateRoleAuthorizationsToEE() error {
 	err = m.roleService.UpdateRole(helpDeskRole.ID, helpDeskRole)
 
 	migrateLog.Debug("Updating Standard User Role")
-	standardUserRole, err := m.roleService.Role(portainer.RoleID(3))
+	standardUserRole, err := m.roleService.Role(portaineree.RoleID(3))
 	if err != nil {
 		return err
 	}
@@ -106,7 +105,7 @@ func (m *Migrator) updateRoleAuthorizationsToEE() error {
 	err = m.roleService.UpdateRole(standardUserRole.ID, standardUserRole)
 
 	migrateLog.Debug("Updating Read Only User Role")
-	readOnlyUserRole, err := m.roleService.Role(portainer.RoleID(4))
+	readOnlyUserRole, err := m.roleService.Role(portaineree.RoleID(4))
 	if err != nil {
 		return err
 	}
@@ -203,25 +202,25 @@ func (m *Migrator) updateUserAuthorizationToEE() error {
 	return nil
 }
 
-func updateUserAccessPolicyToNoRole(policies portainer.UserAccessPolicies, key portainer.UserID) {
+func updateUserAccessPolicyToNoRole(policies portaineree.UserAccessPolicies, key portaineree.UserID) {
 	tmp := policies[key]
 	tmp.RoleID = 0
 	policies[key] = tmp
 }
 
-func updateTeamAccessPolicyToNoRole(policies portainer.TeamAccessPolicies, key portainer.TeamID) {
+func updateTeamAccessPolicyToNoRole(policies portaineree.TeamAccessPolicies, key portaineree.TeamID) {
 	tmp := policies[key]
 	tmp.RoleID = 0
 	policies[key] = tmp
 }
 
-func updateUserAccessPolicyToReadOnlyRole(policies portainer.UserAccessPolicies, key portainer.UserID) {
+func updateUserAccessPolicyToReadOnlyRole(policies portaineree.UserAccessPolicies, key portaineree.UserID) {
 	tmp := policies[key]
 	tmp.RoleID = 4
 	policies[key] = tmp
 }
 
-func updateTeamAccessPolicyToReadOnlyRole(policies portainer.TeamAccessPolicies, key portainer.TeamID) {
+func updateTeamAccessPolicyToReadOnlyRole(policies portaineree.TeamAccessPolicies, key portaineree.TeamID) {
 	tmp := policies[key]
 	tmp.RoleID = 4
 	policies[key] = tmp

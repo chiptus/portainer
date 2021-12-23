@@ -11,8 +11,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // @id EndpointAssociationDelete
@@ -24,7 +24,7 @@ import (
 // @tags endpoints
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
-// @success 200 {object} portainer.Endpoint "Success"
+// @success 200 {object} portaineree.Endpoint "Success"
 // @failure 400 "Invalid request"
 // @failure 404 "Environment(Endpoint) not found"
 // @failure 500 "Server error"
@@ -35,27 +35,27 @@ func (handler *Handler) endpointAssociationDelete(w http.ResponseWriter, r *http
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
 	}
 
-	if endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment && endpoint.Type != portainer.EdgeAgentOnDockerEnvironment {
+	if endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment && endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment {
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment type", errors.New("Invalid environment type")}
 	}
 
 	endpoint.EdgeID = ""
-	endpoint.Snapshots = []portainer.DockerSnapshot{}
-	endpoint.Kubernetes.Snapshots = []portainer.KubernetesSnapshot{}
+	endpoint.Snapshots = []portaineree.DockerSnapshot{}
+	endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{}
 
 	endpoint.EdgeKey, err = handler.updateEdgeKey(endpoint.EdgeKey)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Invalid EdgeKey", err}
 	}
 
-	err = handler.dataStore.Endpoint().UpdateEndpoint(portainer.EndpointID(endpointID), endpoint)
+	err = handler.dataStore.Endpoint().UpdateEndpoint(portaineree.EndpointID(endpointID), endpoint)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Failed persisting environment in database", err}
 	}

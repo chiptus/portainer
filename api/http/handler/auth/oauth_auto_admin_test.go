@@ -3,13 +3,13 @@ package auth
 import (
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 func Test_validateClaimWithRegex(t *testing.T) {
 	t.Run("returns false if no regex match occurs", func(t *testing.T) {
-		oAuthSettings := portainer.OAuthSettings{
-			TeamMemberships: portainer.TeamMemberships{
+		oAuthSettings := portaineree.OAuthSettings{
+			TeamMemberships: portaineree.TeamMemberships{
 				AdminGroupClaimsRegexList: []string{"@"},
 			},
 		}
@@ -25,8 +25,8 @@ func Test_validateClaimWithRegex(t *testing.T) {
 	})
 
 	t.Run("returns true if regex match - single element in AdminGroupClaimsRegexList", func(t *testing.T) {
-		oAuthSettings := portainer.OAuthSettings{
-			TeamMemberships: portainer.TeamMemberships{
+		oAuthSettings := portaineree.OAuthSettings{
+			TeamMemberships: portaineree.TeamMemberships{
 				AdminGroupClaimsRegexList: []string{"@"},
 			},
 		}
@@ -42,8 +42,8 @@ func Test_validateClaimWithRegex(t *testing.T) {
 	})
 
 	t.Run("returns true if regex match - multiple elements in AdminGroupClaimsRegexList and oAuthTeams", func(t *testing.T) {
-		oAuthSettings := portainer.OAuthSettings{
-			TeamMemberships: portainer.TeamMemberships{
+		oAuthSettings := portaineree.OAuthSettings{
+			TeamMemberships: portaineree.TeamMemberships{
 				AdminGroupClaimsRegexList: []string{"@", "#"},
 			},
 		}

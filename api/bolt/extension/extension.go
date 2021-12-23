@@ -1,8 +1,8 @@
 package extension
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 
 	"github.com/boltdb/bolt"
 )
@@ -30,8 +30,8 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // Extension returns a extension by ID
-func (service *Service) Extension(ID portainer.ExtensionID) (*portainer.Extension, error) {
-	var extension portainer.Extension
+func (service *Service) Extension(ID portaineree.ExtensionID) (*portaineree.Extension, error) {
+	var extension portaineree.Extension
 	identifier := internal.Itob(int(ID))
 
 	err := internal.GetObject(service.connection, BucketName, identifier, &extension)
@@ -43,15 +43,15 @@ func (service *Service) Extension(ID portainer.ExtensionID) (*portainer.Extensio
 }
 
 // Extensions return an array containing all the extensions.
-func (service *Service) Extensions() ([]portainer.Extension, error) {
-	var extensions = make([]portainer.Extension, 0)
+func (service *Service) Extensions() ([]portaineree.Extension, error) {
+	var extensions = make([]portaineree.Extension, 0)
 
 	err := service.connection.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var extension portainer.Extension
+			var extension portaineree.Extension
 			err := internal.UnmarshalObject(v, &extension)
 			if err != nil {
 				return err
@@ -66,7 +66,7 @@ func (service *Service) Extensions() ([]portainer.Extension, error) {
 }
 
 // Persist persists a extension inside the database.
-func (service *Service) Persist(extension *portainer.Extension) error {
+func (service *Service) Persist(extension *portaineree.Extension) error {
 	return service.connection.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
@@ -80,7 +80,7 @@ func (service *Service) Persist(extension *portainer.Extension) error {
 }
 
 // DeleteExtension deletes a Extension.
-func (service *Service) DeleteExtension(ID portainer.ExtensionID) error {
+func (service *Service) DeleteExtension(ID portaineree.ExtensionID) error {
 	identifier := internal.Itob(int(ID))
 	return internal.DeleteObject(service.connection, BucketName, identifier)
 }

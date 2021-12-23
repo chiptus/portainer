@@ -5,13 +5,14 @@ import (
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
-	"github.com/portainer/portainer/api/internal/authorization"
 )
 
-func hideFields(settings *portainer.Settings) {
+func hideFields(settings *portaineree.Settings) {
 	settings.LDAPSettings.Password = ""
 	settings.OAuthSettings.ClientSecret = ""
 	settings.OAuthSettings.KubeSecretKey = nil
@@ -21,16 +22,16 @@ func hideFields(settings *portainer.Settings) {
 type Handler struct {
 	*mux.Router
 	AuthorizationService *authorization.Service
-	DataStore            portainer.DataStore
+	DataStore            portaineree.DataStore
 	FileService          portainer.FileService
-	JWTService           portainer.JWTService
-	LDAPService          portainer.LDAPService
-	SnapshotService      portainer.SnapshotService
-	userActivityService  portainer.UserActivityService
+	JWTService           portaineree.JWTService
+	LDAPService          portaineree.LDAPService
+	SnapshotService      portaineree.SnapshotService
+	userActivityService  portaineree.UserActivityService
 }
 
 // NewHandler creates a handler to manage settings operations.
-func NewHandler(bouncer *security.RequestBouncer, userActivityService portainer.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		userActivityService: userActivityService,

@@ -7,10 +7,10 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/endpointutils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 )
 
 // @id endpointRegistriesList
@@ -23,7 +23,7 @@ import (
 // @security jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
-// @success 200 {array} portainer.Registry "Success"
+// @success 200 {array} portaineree.Registry "Success"
 // @failure 500 "Server error"
 // @router /endpoints/{id}/registries [get]
 func (handler *Handler) endpointRegistriesList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
@@ -42,7 +42,7 @@ func (handler *Handler) endpointRegistriesList(w http.ResponseWriter, r *http.Re
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid environment identifier route variable", Err: err}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
 	} else if err != nil {
@@ -90,7 +90,7 @@ func (handler *Handler) endpointRegistriesList(w http.ResponseWriter, r *http.Re
 	return response.JSON(w, registries)
 }
 
-func (handler *Handler) isNamespaceAuthorized(endpoint *portainer.Endpoint, namespace string, userId portainer.UserID, memberships []portainer.TeamMembership, isAdminOrEndpointAdmin bool) (bool, error) {
+func (handler *Handler) isNamespaceAuthorized(endpoint *portaineree.Endpoint, namespace string, userId portaineree.UserID, memberships []portaineree.TeamMembership, isAdminOrEndpointAdmin bool) (bool, error) {
 	if isAdminOrEndpointAdmin || namespace == "" {
 		return true, nil
 	}
@@ -117,12 +117,12 @@ func (handler *Handler) isNamespaceAuthorized(endpoint *portainer.Endpoint, name
 	return security.AuthorizedAccess(userId, memberships, namespacePolicy.UserAccessPolicies, namespacePolicy.TeamAccessPolicies), nil
 }
 
-func filterRegistriesByNamespace(registries []portainer.Registry, endpointId portainer.EndpointID, namespace string) []portainer.Registry {
+func filterRegistriesByNamespace(registries []portaineree.Registry, endpointId portaineree.EndpointID, namespace string) []portaineree.Registry {
 	if namespace == "" {
 		return registries
 	}
 
-	filteredRegistries := []portainer.Registry{}
+	filteredRegistries := []portaineree.Registry{}
 
 	for _, registry := range registries {
 		for _, authorizedNamespace := range registry.RegistryAccesses[endpointId].Namespaces {
@@ -135,7 +135,7 @@ func filterRegistriesByNamespace(registries []portainer.Registry, endpointId por
 	return filteredRegistries
 }
 
-func hideRegistryFields(registry *portainer.Registry, hideAccesses bool) {
+func hideRegistryFields(registry *portaineree.Registry, hideAccesses bool) {
 	registry.Password = ""
 	registry.ManagementConfiguration = nil
 	if hideAccesses {

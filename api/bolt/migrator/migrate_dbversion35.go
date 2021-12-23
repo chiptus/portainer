@@ -1,8 +1,8 @@
 package migrator
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/internal/authorization"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 func (m *Migrator) migrateDBVersionToDB36() error {
@@ -22,9 +22,9 @@ func (m *Migrator) migrateUsersToDB36() error {
 
 	for _, user := range users {
 		currentAuthorizations := authorization.DefaultPortainerAuthorizations()
-		currentAuthorizations[portainer.OperationPortainerUserListToken] = true
-		currentAuthorizations[portainer.OperationPortainerUserCreateToken] = true
-		currentAuthorizations[portainer.OperationPortainerUserRevokeToken] = true
+		currentAuthorizations[portaineree.OperationPortainerUserListToken] = true
+		currentAuthorizations[portaineree.OperationPortainerUserCreateToken] = true
+		currentAuthorizations[portaineree.OperationPortainerUserRevokeToken] = true
 		user.PortainerAuthorizations = currentAuthorizations
 		err = m.userService.UpdateUser(user.ID, &user)
 		if err != nil {

@@ -7,25 +7,26 @@ import (
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
 )
 
 // Handler is the HTTP handler used to handle environment(endpoint) group operations.
 type Handler struct {
 	*mux.Router
 	requestBouncer      *security.RequestBouncer
-	DataStore           portainer.DataStore
+	DataStore           portaineree.DataStore
 	FileService         portainer.FileService
-	GitService          portainer.GitService
-	userActivityService portainer.UserActivityService
-	KubernetesDeployer  portainer.KubernetesDeployer
+	GitService          portaineree.GitService
+	userActivityService portaineree.UserActivityService
+	KubernetesDeployer  portaineree.KubernetesDeployer
 }
 
 // NewHandler creates a handler to manage environment(endpoint) group operations.
-func NewHandler(bouncer *security.RequestBouncer, userActivityService portainer.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		requestBouncer:      bouncer,
@@ -49,7 +50,7 @@ func NewHandler(bouncer *security.RequestBouncer, userActivityService portainer.
 	return h
 }
 
-func (handler *Handler) convertAndStoreKubeManifestIfNeeded(edgeStack *portainer.EdgeStack, relatedEndpointIds []portainer.EndpointID) error {
+func (handler *Handler) convertAndStoreKubeManifestIfNeeded(edgeStack *portaineree.EdgeStack, relatedEndpointIds []portaineree.EndpointID) error {
 	hasKubeEndpoint, err := hasKubeEndpoint(handler.DataStore.Endpoint(), relatedEndpointIds)
 	if err != nil {
 		return fmt.Errorf("unable to check if edge stack has kube environments: %w", err)

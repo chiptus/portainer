@@ -9,16 +9,14 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/docker/cli/cli/compose/loader"
 	"github.com/pkg/errors"
-
 	libstack "github.com/portainer/docker-compose-wrapper"
 	"github.com/portainer/docker-compose-wrapper/compose"
-
-	"github.com/docker/cli/cli/compose/loader"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/proxy"
-	"github.com/portainer/portainer/api/http/proxy/factory"
-	"github.com/portainer/portainer/api/internal/stackutils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/proxy"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory"
+	"github.com/portainer/portainer-ee/api/internal/stackutils"
 )
 
 // ComposeStackManager is a wrapper for docker-compose binary
@@ -42,11 +40,11 @@ func NewComposeStackManager(binaryPath string, configPath string, proxyManager *
 
 // ComposeSyntaxMaxVersion returns the maximum supported version of the docker compose syntax
 func (manager *ComposeStackManager) ComposeSyntaxMaxVersion() string {
-	return portainer.ComposeSyntaxMaxVersion
+	return portaineree.ComposeSyntaxMaxVersion
 }
 
 // Up builds, (re)creates and starts containers in the background. Wraps `docker-compose up -d` command
-func (manager *ComposeStackManager) Up(ctx context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint) error {
+func (manager *ComposeStackManager) Up(ctx context.Context, stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
 	url, proxy, err := manager.fetchEndpointProxy(endpoint)
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch environment proxy")
@@ -67,7 +65,7 @@ func (manager *ComposeStackManager) Up(ctx context.Context, stack *portainer.Sta
 }
 
 // Down stops and removes containers, networks, images, and volumes. Wraps `docker-compose down --remove-orphans` command
-func (manager *ComposeStackManager) Down(ctx context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint) error {
+func (manager *ComposeStackManager) Down(ctx context.Context, stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
 	url, proxy, err := manager.fetchEndpointProxy(endpoint)
 	if err != nil {
 		return err
@@ -90,7 +88,7 @@ func (manager *ComposeStackManager) NormalizeStackName(name string) string {
 	return stackNameNormalizeRegex.ReplaceAllString(strings.ToLower(name), "")
 }
 
-func (manager *ComposeStackManager) fetchEndpointProxy(endpoint *portainer.Endpoint) (string, *factory.ProxyServer, error) {
+func (manager *ComposeStackManager) fetchEndpointProxy(endpoint *portaineree.Endpoint) (string, *factory.ProxyServer, error) {
 	if strings.HasPrefix(endpoint.URL, "unix://") || strings.HasPrefix(endpoint.URL, "npipe://") {
 		return "", nil, nil
 	}
@@ -103,7 +101,7 @@ func (manager *ComposeStackManager) fetchEndpointProxy(endpoint *portainer.Endpo
 	return fmt.Sprintf("tcp://127.0.0.1:%d", proxy.Port), proxy, nil
 }
 
-func createEnvFile(stack *portainer.Stack) (string, error) {
+func createEnvFile(stack *portaineree.Stack) (string, error) {
 	// workaround for EE-1862. It will have to be removed when
 	// docker/compose upgraded to v2.x.
 	if err := createNetworkEnvFile(stack); err != nil {
@@ -129,7 +127,7 @@ func createEnvFile(stack *portainer.Stack) (string, error) {
 	return "stack.env", nil
 }
 
-func createNetworkEnvFile(stack *portainer.Stack) error {
+func createNetworkEnvFile(stack *portaineree.Stack) error {
 	networkNameSet := NewStringSet()
 
 	for _, filePath := range stackutils.GetStackFilePaths(stack) {
@@ -177,7 +175,7 @@ func createNetworkEnvFile(stack *portainer.Stack) error {
 
 	for _, s := range networkNameSet.List() {
 		if _, ok := scanEnvSettingFunc(s); !ok {
-			stack.Env = append(stack.Env, portainer.Pair{
+			stack.Env = append(stack.Env, portaineree.Pair{
 				Name:  s,
 				Value: "None",
 			})
@@ -271,7 +269,7 @@ func fileNotExist(filePath string) bool {
 	return false
 }
 
-func updateNetworkEnvFile(stack *portainer.Stack) error {
+func updateNetworkEnvFile(stack *portaineree.Stack) error {
 	envFilePath := path.Join(stack.ProjectPath, ".env")
 	stackFilePath := path.Join(stack.ProjectPath, "stack.env")
 	if fileNotExist(envFilePath) {

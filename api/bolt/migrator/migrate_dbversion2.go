@@ -1,6 +1,6 @@
 package migrator
 
-import "github.com/portainer/portainer/api"
+import portaineree "github.com/portainer/portainer-ee/api"
 
 func (m *Migrator) updateSettingsToDBVersion3() error {
 	legacySettings, err := m.settingsService.Settings()
@@ -8,11 +8,11 @@ func (m *Migrator) updateSettingsToDBVersion3() error {
 		return err
 	}
 
-	legacySettings.AuthenticationMethod = portainer.AuthenticationInternal
-	legacySettings.LDAPSettings = portainer.LDAPSettings{
-		TLSConfig: portainer.TLSConfiguration{},
-		SearchSettings: []portainer.LDAPSearchSettings{
-			portainer.LDAPSearchSettings{},
+	legacySettings.AuthenticationMethod = portaineree.AuthenticationInternal
+	legacySettings.LDAPSettings = portaineree.LDAPSettings{
+		TLSConfig: portaineree.TLSConfiguration{},
+		SearchSettings: []portaineree.LDAPSearchSettings{
+			portaineree.LDAPSearchSettings{},
 		},
 	}
 

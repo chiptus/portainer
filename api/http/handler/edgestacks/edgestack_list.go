@@ -14,7 +14,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @success 200 {array} portainer.EdgeStack
+// @success 200 {array} portaineree.EdgeStack
 // @failure 500
 // @failure 400
 // @failure 503 "Edge compute features are disabled"

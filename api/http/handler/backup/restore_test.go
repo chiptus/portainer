@@ -12,10 +12,10 @@ import (
 	"testing"
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/adminmonitor"
-	"github.com/portainer/portainer/api/http/offlinegate"
-	i "github.com/portainer/portainer/api/internal/testhelpers"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/adminmonitor"
+	"github.com/portainer/portainer-ee/api/http/offlinegate"
+	i "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -48,7 +48,7 @@ func Test_restoreArchive_usingCombinationOfPasswords(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			datastore := i.NewDatastore(i.WithUsers([]portainer.User{}), i.WithEdgeJobs([]portainer.EdgeJob{}))
+			datastore := i.NewDatastore(i.WithUsers([]portaineree.User{}), i.WithEdgeJobs([]portaineree.EdgeJob{}))
 			adminMonitor := adminmonitor.New(time.Hour, datastore, context.Background())
 
 			h := NewHandler(nil, datastore, i.NewUserActivityStore(), offlinegate.NewOfflineGate(), "./test_assets/handler_test", nil, func() {}, adminMonitor)
@@ -68,10 +68,10 @@ func Test_restoreArchive_usingCombinationOfPasswords(t *testing.T) {
 }
 
 func Test_restoreArchive_shouldFailIfSystemWasAlreadyInitialized(t *testing.T) {
-	admin := portainer.User{
-		Role: portainer.AdministratorRole,
+	admin := portaineree.User{
+		Role: portaineree.AdministratorRole,
 	}
-	datastore := i.NewDatastore(i.WithUsers([]portainer.User{admin}), i.WithEdgeJobs([]portainer.EdgeJob{}))
+	datastore := i.NewDatastore(i.WithUsers([]portaineree.User{admin}), i.WithEdgeJobs([]portaineree.EdgeJob{}))
 	adminMonitor := adminmonitor.New(time.Hour, datastore, context.Background())
 
 	h := NewHandler(nil, datastore, i.NewUserActivityStore(), offlinegate.NewOfflineGate(), "./test_assets/handler_test", nil, func() {}, adminMonitor)

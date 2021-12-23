@@ -12,9 +12,9 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer/api/filesystem"
-	"github.com/portainer/portainer/api/internal/edge"
 )
 
 // @id EdgeStackCreate
@@ -28,7 +28,7 @@ import (
 // @param body_string body swarmStackFromFileContentPayload true "Required when using method=string"
 // @param body_file body swarmStackFromFileUploadPayload true "Required when using method=file"
 // @param body_repository body swarmStackFromGitRepositoryPayload true "Required when using method=repository"
-// @success 200 {object} portainer.EdgeStack
+// @success 200 {object} portaineree.EdgeStack
 // @failure 500
 // @failure 503 "Edge compute features are disabled"
 // @router /edge_stacks [post]
@@ -46,7 +46,7 @@ func (handler *Handler) edgeStackCreate(w http.ResponseWriter, r *http.Request) 
 	return response.JSON(w, edgeStack)
 }
 
-func (handler *Handler) createSwarmStack(method string, r *http.Request) (*portainer.EdgeStack, error) {
+func (handler *Handler) createSwarmStack(method string, r *http.Request) (*portaineree.EdgeStack, error) {
 	switch method {
 	case "string":
 		return handler.createSwarmStackFromFileContent(r)
@@ -64,12 +64,12 @@ type swarmStackFromFileContentPayload struct {
 	// Content of the Stack file
 	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx" validate:"required"`
 	// List of identifiers of EdgeGroups
-	EdgeGroups []portainer.EdgeGroupID `example:"1"`
+	EdgeGroups []portaineree.EdgeGroupID `example:"1"`
 	// Deployment type to deploy this stack
 	// Valid values are: 0 - 'compose', 1 - 'kubernetes'
 	// for compose stacks will use kompose to convert to kubernetes manifest for kubernetes environments(endpoints)
 	// kubernetes deploytype is enabled only for kubernetes environments(endpoints)
-	DeploymentType portainer.EdgeStackDeploymentType `example:"0" enums:"0,1"`
+	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1"`
 }
 
 func (payload *swarmStackFromFileContentPayload) Validate(r *http.Request) error {
@@ -85,7 +85,7 @@ func (payload *swarmStackFromFileContentPayload) Validate(r *http.Request) error
 	return nil
 }
 
-func (handler *Handler) createSwarmStackFromFileContent(r *http.Request) (*portainer.EdgeStack, error) {
+func (handler *Handler) createSwarmStackFromFileContent(r *http.Request) (*portaineree.EdgeStack, error) {
 	var payload swarmStackFromFileContentPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
@@ -98,13 +98,13 @@ func (handler *Handler) createSwarmStackFromFileContent(r *http.Request) (*porta
 	}
 
 	stackID := handler.DataStore.EdgeStack().GetNextIdentifier()
-	stack := &portainer.EdgeStack{
-		ID:             portainer.EdgeStackID(stackID),
+	stack := &portaineree.EdgeStack{
+		ID:             portaineree.EdgeStackID(stackID),
 		Name:           payload.Name,
 		DeploymentType: payload.DeploymentType,
 		CreationDate:   time.Now().Unix(),
 		EdgeGroups:     payload.EdgeGroups,
-		Status:         make(map[portainer.EndpointID]portainer.EdgeStackStatus),
+		Status:         make(map[portaineree.EndpointID]portaineree.EdgeStackStatus),
 		Version:        1,
 	}
 
@@ -119,7 +119,7 @@ func (handler *Handler) createSwarmStackFromFileContent(r *http.Request) (*porta
 	}
 
 	stackFolder := strconv.Itoa(int(stack.ID))
-	if stack.DeploymentType == portainer.EdgeStackDeploymentCompose {
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentCompose {
 		stack.EntryPoint = filesystem.ComposeFileDefaultName
 
 		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
@@ -182,12 +182,12 @@ type swarmStackFromGitRepositoryPayload struct {
 	// Path to the Stack file inside the Git repository
 	FilePathInRepository string `example:"docker-compose.yml" default:"docker-compose.yml"`
 	// List of identifiers of EdgeGroups
-	EdgeGroups []portainer.EdgeGroupID `example:"1"`
+	EdgeGroups []portaineree.EdgeGroupID `example:"1"`
 	// Deployment type to deploy this stack
 	// Valid values are: 0 - 'compose', 1 - 'kubernetes'
 	// for compose stacks will use kompose to convert to kubernetes manifest for kubernetes environments(endpoints)
 	// kubernetes deploytype is enabled only for kubernetes environments(endpoints)
-	DeploymentType portainer.EdgeStackDeploymentType `example:"0" enums:"0,1"`
+	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1"`
 }
 
 func (payload *swarmStackFromGitRepositoryPayload) Validate(r *http.Request) error {
@@ -209,7 +209,7 @@ func (payload *swarmStackFromGitRepositoryPayload) Validate(r *http.Request) err
 	return nil
 }
 
-func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request) (*portainer.EdgeStack, error) {
+func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request) (*portaineree.EdgeStack, error) {
 	var payload swarmStackFromGitRepositoryPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
@@ -222,12 +222,12 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request) (*por
 	}
 
 	stackID := handler.DataStore.EdgeStack().GetNextIdentifier()
-	stack := &portainer.EdgeStack{
-		ID:             portainer.EdgeStackID(stackID),
+	stack := &portaineree.EdgeStack{
+		ID:             portaineree.EdgeStackID(stackID),
 		Name:           payload.Name,
 		CreationDate:   time.Now().Unix(),
 		EdgeGroups:     payload.EdgeGroups,
-		Status:         make(map[portainer.EndpointID]portainer.EdgeStackStatus),
+		Status:         make(map[portaineree.EndpointID]portaineree.EdgeStackStatus),
 		DeploymentType: payload.DeploymentType,
 		Version:        1,
 	}
@@ -257,7 +257,7 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request) (*por
 		return nil, err
 	}
 
-	if stack.DeploymentType == portainer.EdgeStackDeploymentCompose {
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentCompose {
 		stack.EntryPoint = payload.FilePathInRepository
 
 		err = handler.convertAndStoreKubeManifestIfNeeded(stack, relatedEndpointIds)
@@ -284,8 +284,8 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request) (*por
 type swarmStackFromFileUploadPayload struct {
 	Name             string
 	StackFileContent []byte
-	EdgeGroups       []portainer.EdgeGroupID
-	DeploymentType   portainer.EdgeStackDeploymentType
+	EdgeGroups       []portaineree.EdgeGroupID
+	DeploymentType   portaineree.EdgeStackDeploymentType
 }
 
 func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error {
@@ -301,7 +301,7 @@ func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error 
 	}
 	payload.StackFileContent = composeFileContent
 
-	var edgeGroups []portainer.EdgeGroupID
+	var edgeGroups []portaineree.EdgeGroupID
 	err = request.RetrieveMultiPartFormJSONValue(r, "EdgeGroups", &edgeGroups, false)
 	if err != nil || len(edgeGroups) == 0 {
 		return errors.New("Edge Groups are mandatory for an Edge stack")
@@ -312,12 +312,12 @@ func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error 
 	if err != nil {
 		return errors.New("Invalid deployment type")
 	}
-	payload.DeploymentType = portainer.EdgeStackDeploymentType(deploymentType)
+	payload.DeploymentType = portaineree.EdgeStackDeploymentType(deploymentType)
 
 	return nil
 }
 
-func (handler *Handler) createSwarmStackFromFileUpload(r *http.Request) (*portainer.EdgeStack, error) {
+func (handler *Handler) createSwarmStackFromFileUpload(r *http.Request) (*portaineree.EdgeStack, error) {
 	payload := &swarmStackFromFileUploadPayload{}
 	err := payload.Validate(r)
 	if err != nil {
@@ -330,13 +330,13 @@ func (handler *Handler) createSwarmStackFromFileUpload(r *http.Request) (*portai
 	}
 
 	stackID := handler.DataStore.EdgeStack().GetNextIdentifier()
-	stack := &portainer.EdgeStack{
-		ID:             portainer.EdgeStackID(stackID),
+	stack := &portaineree.EdgeStack{
+		ID:             portaineree.EdgeStackID(stackID),
 		Name:           payload.Name,
 		DeploymentType: payload.DeploymentType,
 		CreationDate:   time.Now().Unix(),
 		EdgeGroups:     payload.EdgeGroups,
-		Status:         make(map[portainer.EndpointID]portainer.EdgeStackStatus),
+		Status:         make(map[portaineree.EndpointID]portaineree.EdgeStackStatus),
 		Version:        1,
 	}
 
@@ -351,7 +351,7 @@ func (handler *Handler) createSwarmStackFromFileUpload(r *http.Request) (*portai
 	}
 
 	stackFolder := strconv.Itoa(int(stack.ID))
-	if stack.DeploymentType == portainer.EdgeStackDeploymentCompose {
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentCompose {
 		stack.EntryPoint = filesystem.ComposeFileDefaultName
 
 		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
@@ -403,7 +403,7 @@ func (handler *Handler) validateUniqueName(name string) error {
 }
 
 // updateEndpointRelations adds a relation between the Edge Stack to the related environments(endpoints)
-func updateEndpointRelations(endpointRelationService portainer.EndpointRelationService, edgeStackID portainer.EdgeStackID, relatedEndpointIds []portainer.EndpointID) error {
+func updateEndpointRelations(endpointRelationService portaineree.EndpointRelationService, edgeStackID portaineree.EdgeStackID, relatedEndpointIds []portaineree.EndpointID) error {
 	for _, endpointID := range relatedEndpointIds {
 		relation, err := endpointRelationService.EndpointRelation(endpointID)
 		if err != nil {

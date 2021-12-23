@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 const (
@@ -16,7 +16,7 @@ const (
 )
 
 // OAuthRoutes is an OAuth 2.0 compliant handler
-func OAuthRoutes(code string, config *portainer.OAuthSettings) http.Handler {
+func OAuthRoutes(code string, config *portaineree.OAuthSettings) http.Handler {
 	router := mux.NewRouter()
 
 	router.HandleFunc(
@@ -79,7 +79,7 @@ func OAuthRoutes(code string, config *portainer.OAuthSettings) http.Handler {
 }
 
 // RunOAuthServer is a barebones OAuth 2.0 compliant test server which can be used to test OAuth 2 functionality
-func RunOAuthServer(code string, config *portainer.OAuthSettings) (*httptest.Server, *portainer.OAuthSettings) {
+func RunOAuthServer(code string, config *portaineree.OAuthSettings) (*httptest.Server, *portaineree.OAuthSettings) {
 	srv := httptest.NewUnstartedServer(http.DefaultServeMux)
 
 	addr := srv.Listener.Addr()

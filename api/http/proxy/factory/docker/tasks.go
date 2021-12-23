@@ -3,8 +3,8 @@ package docker
 import (
 	"net/http"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/proxy/factory/utils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
 )
 
 const (
@@ -23,7 +23,7 @@ func (transport *Transport) taskListOperation(response *http.Response, executor 
 
 	resourceOperationParameters := &resourceOperationParameters{
 		resourceIdentifierAttribute: taskServiceObjectIdentifier,
-		resourceType:                portainer.ServiceResourceControl,
+		resourceType:                portaineree.ServiceResourceControl,
 		labelsObjectSelector:        selectorTaskLabels,
 	}
 

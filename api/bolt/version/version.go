@@ -4,9 +4,9 @@ import (
 	"strconv"
 
 	"github.com/boltdb/bolt"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/bolt/internal"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 )
 
 const (
@@ -37,7 +37,7 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // Edition retrieves the stored portainer edition.
-func (service *Service) Edition() (portainer.SoftwareEdition, error) {
+func (service *Service) Edition() (portaineree.SoftwareEdition, error) {
 	editionData, err := service.getKey(editionKey)
 	if err != nil {
 		return 0, err
@@ -48,11 +48,11 @@ func (service *Service) Edition() (portainer.SoftwareEdition, error) {
 		return 0, err
 	}
 
-	return portainer.SoftwareEdition(edition), nil
+	return portaineree.SoftwareEdition(edition), nil
 }
 
 // StoreEdition store the portainer edition.
-func (service *Service) StoreEdition(edition portainer.SoftwareEdition) error {
+func (service *Service) StoreEdition(edition portaineree.SoftwareEdition) error {
 	return service.setKey(editionKey, strconv.Itoa(int(edition)))
 }
 

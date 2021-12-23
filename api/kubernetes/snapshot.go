@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/kubernetes/cli"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -23,7 +23,7 @@ func NewSnapshotter(clientFactory *cli.ClientFactory) *Snapshotter {
 }
 
 // CreateSnapshot creates a snapshot of a specific Kubernetes environment(endpoint)
-func (snapshotter *Snapshotter) CreateSnapshot(endpoint *portainer.Endpoint) (*portainer.KubernetesSnapshot, error) {
+func (snapshotter *Snapshotter) CreateSnapshot(endpoint *portaineree.Endpoint) (*portaineree.KubernetesSnapshot, error) {
 	client, err := snapshotter.clientFactory.CreateClient(endpoint)
 	if err != nil {
 		return nil, err
@@ -32,13 +32,13 @@ func (snapshotter *Snapshotter) CreateSnapshot(endpoint *portainer.Endpoint) (*p
 	return snapshot(client, endpoint)
 }
 
-func snapshot(cli *kubernetes.Clientset, endpoint *portainer.Endpoint) (*portainer.KubernetesSnapshot, error) {
+func snapshot(cli *kubernetes.Clientset, endpoint *portaineree.Endpoint) (*portaineree.KubernetesSnapshot, error) {
 	res := cli.RESTClient().Get().AbsPath("/healthz").Do(context.TODO())
 	if res.Error() != nil {
 		return nil, res.Error()
 	}
 
-	snapshot := &portainer.KubernetesSnapshot{}
+	snapshot := &portaineree.KubernetesSnapshot{}
 
 	err := snapshotVersion(snapshot, cli)
 	if err != nil {
@@ -54,7 +54,7 @@ func snapshot(cli *kubernetes.Clientset, endpoint *portainer.Endpoint) (*portain
 	return snapshot, nil
 }
 
-func snapshotVersion(snapshot *portainer.KubernetesSnapshot, cli *kubernetes.Clientset) error {
+func snapshotVersion(snapshot *portaineree.KubernetesSnapshot, cli *kubernetes.Clientset) error {
 	versionInfo, err := cli.ServerVersion()
 	if err != nil {
 		return err
@@ -64,7 +64,7 @@ func snapshotVersion(snapshot *portainer.KubernetesSnapshot, cli *kubernetes.Cli
 	return nil
 }
 
-func snapshotNodes(snapshot *portainer.KubernetesSnapshot, cli *kubernetes.Clientset) error {
+func snapshotNodes(snapshot *portaineree.KubernetesSnapshot, cli *kubernetes.Clientset) error {
 	nodeList, err := cli.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return err

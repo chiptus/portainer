@@ -3,11 +3,10 @@ package user
 import (
 	"strings"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/bolt/internal"
-
 	"github.com/boltdb/bolt"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 )
 
 const (
@@ -33,8 +32,8 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // User returns a user by ID
-func (service *Service) User(ID portainer.UserID) (*portainer.User, error) {
-	var user portainer.User
+func (service *Service) User(ID portaineree.UserID) (*portaineree.User, error) {
+	var user portaineree.User
 	identifier := internal.Itob(int(ID))
 
 	err := internal.GetObject(service.connection, BucketName, identifier, &user)
@@ -46,8 +45,8 @@ func (service *Service) User(ID portainer.UserID) (*portainer.User, error) {
 }
 
 // UserByUsername returns a user by username.
-func (service *Service) UserByUsername(username string) (*portainer.User, error) {
-	var user *portainer.User
+func (service *Service) UserByUsername(username string) (*portaineree.User, error) {
+	var user *portaineree.User
 
 	username = strings.ToLower(username)
 
@@ -56,7 +55,7 @@ func (service *Service) UserByUsername(username string) (*portainer.User, error)
 		cursor := bucket.Cursor()
 
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var u portainer.User
+			var u portaineree.User
 			err := internal.UnmarshalObject(v, &u)
 			if err != nil {
 				return err
@@ -78,15 +77,15 @@ func (service *Service) UserByUsername(username string) (*portainer.User, error)
 }
 
 // Users return an array containing all the users.
-func (service *Service) Users() ([]portainer.User, error) {
-	var users = make([]portainer.User, 0)
+func (service *Service) Users() ([]portaineree.User, error) {
+	var users = make([]portaineree.User, 0)
 
 	err := service.connection.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var user portainer.User
+			var user portaineree.User
 			err := internal.UnmarshalObject(v, &user)
 			if err != nil {
 				return err
@@ -101,14 +100,14 @@ func (service *Service) Users() ([]portainer.User, error) {
 }
 
 // UsersByRole return an array containing all the users with the specified role.
-func (service *Service) UsersByRole(role portainer.UserRole) ([]portainer.User, error) {
-	var users = make([]portainer.User, 0)
+func (service *Service) UsersByRole(role portaineree.UserRole) ([]portaineree.User, error) {
+	var users = make([]portaineree.User, 0)
 	err := service.connection.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var user portainer.User
+			var user portaineree.User
 			err := internal.UnmarshalObject(v, &user)
 			if err != nil {
 				return err
@@ -125,19 +124,19 @@ func (service *Service) UsersByRole(role portainer.UserRole) ([]portainer.User, 
 }
 
 // UpdateUser saves a user.
-func (service *Service) UpdateUser(ID portainer.UserID, user *portainer.User) error {
+func (service *Service) UpdateUser(ID portaineree.UserID, user *portaineree.User) error {
 	identifier := internal.Itob(int(ID))
 	user.Username = strings.ToLower(user.Username)
 	return internal.UpdateObject(service.connection, BucketName, identifier, user)
 }
 
 // CreateUser creates a new user.
-func (service *Service) CreateUser(user *portainer.User) error {
+func (service *Service) CreateUser(user *portaineree.User) error {
 	return service.connection.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		id, _ := bucket.NextSequence()
-		user.ID = portainer.UserID(id)
+		user.ID = portaineree.UserID(id)
 		user.Username = strings.ToLower(user.Username)
 
 		data, err := internal.MarshalObject(user)
@@ -150,7 +149,7 @@ func (service *Service) CreateUser(user *portainer.User) error {
 }
 
 // DeleteUser deletes a user.
-func (service *Service) DeleteUser(ID portainer.UserID) error {
+func (service *Service) DeleteUser(ID portaineree.UserID) error {
 	identifier := internal.Itob(int(ID))
 	return internal.DeleteObject(service.connection, BucketName, identifier)
 }

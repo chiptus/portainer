@@ -3,8 +3,8 @@ package migrator
 import (
 	"fmt"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 func (m *Migrator) updateStackResourceControlToDB27() error {
@@ -15,7 +15,7 @@ func (m *Migrator) updateStackResourceControlToDB27() error {
 	}
 
 	for _, resource := range resourceControls {
-		if resource.Type != portainer.StackResourceControl {
+		if resource.Type != portaineree.StackResourceControl {
 			continue
 		}
 

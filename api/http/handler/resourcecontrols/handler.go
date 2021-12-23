@@ -6,20 +6,20 @@ import (
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
 )
 
 // Handler is the HTTP handler used to handle resource control operations.
 type Handler struct {
 	*mux.Router
-	dataStore           portainer.DataStore
-	userActivityService portainer.UserActivityService
+	dataStore           portaineree.DataStore
+	userActivityService portaineree.UserActivityService
 }
 
 // NewHandler creates a handler to manage resource control operations.
-func NewHandler(bouncer *security.RequestBouncer, dataStore portainer.DataStore, userActivityService portainer.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore portaineree.DataStore, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		dataStore:           dataStore,

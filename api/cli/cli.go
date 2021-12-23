@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 
 	"os"
 	"path/filepath"
@@ -24,11 +24,11 @@ var (
 	errAdminPassExcludeAdminPassFile = errors.New("Cannot use --admin-password with --admin-password-file")
 )
 
-// ParseFlags parse the CLI flags and return a portainer.Flags struct
-func (*Service) ParseFlags(version string) (*portainer.CLIFlags, error) {
+// ParseFlags parse the CLI flags and return a portaineree.Flags struct
+func (*Service) ParseFlags(version string) (*portaineree.CLIFlags, error) {
 	kingpin.Version(version)
 
-	flags := &portainer.CLIFlags{
+	flags := &portaineree.CLIFlags{
 		Addr:                      kingpin.Flag("bind", "Address and port to serve Portainer").Default(defaultBindAddress).Short('p').String(),
 		AddrHTTPS:                 kingpin.Flag("bind-https", "Address and port to serve Portainer via https").Default(defaultHTTPSBindAddress).String(),
 		TunnelAddr:                kingpin.Flag("tunnel-addr", "Address to serve the tunnel server").Default(defaultTunnelServerAddress).String(),
@@ -74,7 +74,7 @@ func (*Service) ParseFlags(version string) (*portainer.CLIFlags, error) {
 }
 
 // ValidateFlags validates the values of the flags.
-func (*Service) ValidateFlags(flags *portainer.CLIFlags) error {
+func (*Service) ValidateFlags(flags *portaineree.CLIFlags) error {
 
 	displayDeprecationWarnings(flags)
 
@@ -95,7 +95,7 @@ func (*Service) ValidateFlags(flags *portainer.CLIFlags) error {
 	return nil
 }
 
-func displayDeprecationWarnings(flags *portainer.CLIFlags) {
+func displayDeprecationWarnings(flags *portaineree.CLIFlags) {
 	if *flags.NoAnalytics {
 		log.Println("Warning: The --no-analytics flag has been kept to allow migration of instances running a previous version of Portainer with this flag enabled, to version 2.0 where enabling this flag will have no effect.")
 	}

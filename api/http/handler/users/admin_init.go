@@ -8,8 +8,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/internal/authorization"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 type adminInitPayload struct {
@@ -37,7 +37,7 @@ func (payload *adminInitPayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param body body adminInitPayload true "User details"
-// @success 200 {object} portainer.User "Success"
+// @success 200 {object} portaineree.User "Success"
 // @failure 400 "Invalid request"
 // @failure 409 "Admin user already initialized"
 // @failure 500 "Server error"
@@ -49,7 +49,7 @@ func (handler *Handler) adminInit(w http.ResponseWriter, r *http.Request) *httpe
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	users, err := handler.DataStore.User().UsersByRole(portainer.AdministratorRole)
+	users, err := handler.DataStore.User().UsersByRole(portaineree.AdministratorRole)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve users from the database", err}
 	}
@@ -58,9 +58,9 @@ func (handler *Handler) adminInit(w http.ResponseWriter, r *http.Request) *httpe
 		return &httperror.HandlerError{http.StatusConflict, "Unable to create administrator user", errAdminAlreadyInitialized}
 	}
 
-	user := &portainer.User{
+	user := &portaineree.User{
 		Username:                payload.Username,
-		Role:                    portainer.AdministratorRole,
+		Role:                    portaineree.AdministratorRole,
 		PortainerAuthorizations: authorization.DefaultPortainerAuthorizations(),
 	}
 

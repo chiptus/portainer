@@ -6,8 +6,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // @id EdgeGroupInspect
@@ -18,7 +18,7 @@ import (
 // @security jwt
 // @produce json
 // @param id path int true "EdgeGroup Id"
-// @success 200 {object} portainer.EdgeGroup
+// @success 200 {object} portaineree.EdgeGroup
 // @failure 503 "Edge compute features are disabled"
 // @failure 500
 // @router /edge_groups/{id} [get]
@@ -28,7 +28,7 @@ func (handler *Handler) edgeGroupInspect(w http.ResponseWriter, r *http.Request)
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid Edge group identifier route variable", err}
 	}
 
-	edgeGroup, err := handler.DataStore.EdgeGroup().EdgeGroup(portainer.EdgeGroupID(edgeGroupID))
+	edgeGroup, err := handler.DataStore.EdgeGroup().EdgeGroup(portaineree.EdgeGroupID(edgeGroupID))
 	if err == errors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an Edge group with the specified identifier inside the database", err}
 	} else if err != nil {

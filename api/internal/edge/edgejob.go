@@ -1,9 +1,9 @@
 package edge
 
-import portainer "github.com/portainer/portainer/api"
+import portaineree "github.com/portainer/portainer-ee/api"
 
 // LoadEdgeJobs registers all edge jobs inside corresponding environment(endpoint) tunnel
-func LoadEdgeJobs(dataStore portainer.DataStore, reverseTunnelService portainer.ReverseTunnelService) error {
+func LoadEdgeJobs(dataStore portaineree.DataStore, reverseTunnelService portaineree.ReverseTunnelService) error {
 	edgeJobs, err := dataStore.EdgeJob().EdgeJobs()
 	if err != nil {
 		return err

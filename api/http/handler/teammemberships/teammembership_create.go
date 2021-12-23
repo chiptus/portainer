@@ -7,9 +7,9 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 type teamMembershipCreatePayload struct {
@@ -44,7 +44,7 @@ func (payload *teamMembershipCreatePayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param body body teamMembershipCreatePayload true "Team membership details"
-// @success 200 {object} portainer.TeamMembership "Success"
+// @success 200 {object} portaineree.TeamMembership "Success"
 // @success 204 "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied to manage memberships"
@@ -63,27 +63,27 @@ func (handler *Handler) teamMembershipCreate(w http.ResponseWriter, r *http.Requ
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
 	}
 
-	if !security.AuthorizedTeamManagement(portainer.TeamID(payload.TeamID), securityContext) {
+	if !security.AuthorizedTeamManagement(portaineree.TeamID(payload.TeamID), securityContext) {
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to manage team memberships", httperrors.ErrResourceAccessDenied}
 	}
 
-	memberships, err := handler.DataStore.TeamMembership().TeamMembershipsByUserID(portainer.UserID(payload.UserID))
+	memberships, err := handler.DataStore.TeamMembership().TeamMembershipsByUserID(portaineree.UserID(payload.UserID))
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve team memberships from the database", err}
 	}
 
 	if len(memberships) > 0 {
 		for _, membership := range memberships {
-			if membership.UserID == portainer.UserID(payload.UserID) && membership.TeamID == portainer.TeamID(payload.TeamID) {
+			if membership.UserID == portaineree.UserID(payload.UserID) && membership.TeamID == portaineree.TeamID(payload.TeamID) {
 				return &httperror.HandlerError{http.StatusConflict, "Team membership already registered", errors.New("Team membership already exists for this user and team")}
 			}
 		}
 	}
 
-	membership := &portainer.TeamMembership{
-		UserID: portainer.UserID(payload.UserID),
-		TeamID: portainer.TeamID(payload.TeamID),
-		Role:   portainer.MembershipRole(payload.Role),
+	membership := &portaineree.TeamMembership{
+		UserID: portaineree.UserID(payload.UserID),
+		TeamID: portaineree.TeamID(payload.TeamID),
+		Role:   portaineree.MembershipRole(payload.Role),
 	}
 
 	err = handler.DataStore.TeamMembership().CreateTeamMembership(membership)

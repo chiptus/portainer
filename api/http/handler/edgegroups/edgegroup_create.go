@@ -8,14 +8,14 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type edgeGroupCreatePayload struct {
 	Name         string
 	Dynamic      bool
-	TagIDs       []portainer.TagID
-	Endpoints    []portainer.EndpointID
+	TagIDs       []portaineree.TagID
+	Endpoints    []portaineree.EndpointID
 	PartialMatch bool
 }
 
@@ -41,7 +41,7 @@ func (payload *edgeGroupCreatePayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param body body edgeGroupCreatePayload true "EdgeGroup data"
-// @success 200 {object} portainer.EdgeGroup
+// @success 200 {object} portaineree.EdgeGroup
 // @failure 503 "Edge compute features are disabled"
 // @failure 500
 // @router /edge_groups [post]
@@ -63,25 +63,25 @@ func (handler *Handler) edgeGroupCreate(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	edgeGroup := &portainer.EdgeGroup{
+	edgeGroup := &portaineree.EdgeGroup{
 		Name:         payload.Name,
 		Dynamic:      payload.Dynamic,
-		TagIDs:       []portainer.TagID{},
-		Endpoints:    []portainer.EndpointID{},
+		TagIDs:       []portaineree.TagID{},
+		Endpoints:    []portaineree.EndpointID{},
 		PartialMatch: payload.PartialMatch,
 	}
 
 	if edgeGroup.Dynamic {
 		edgeGroup.TagIDs = payload.TagIDs
 	} else {
-		endpointIDs := []portainer.EndpointID{}
+		endpointIDs := []portaineree.EndpointID{}
 		for _, endpointID := range payload.Endpoints {
 			endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
 			if err != nil {
 				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve environment from the database", err}
 			}
 
-			if endpoint.Type == portainer.EdgeAgentOnDockerEnvironment || endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment {
+			if endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
 				endpointIDs = append(endpointIDs, endpoint.ID)
 			}
 		}

@@ -5,13 +5,13 @@ import (
 	"strconv"
 
 	"github.com/pkg/errors"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
-	systemNamespaceLabel = "io.portainer.kubernetes.namespace.system"
+	systemNamespaceLabel = "io.portaineree.kubernetes.namespace.system"
 )
 
 func defaultSystemNamespaces() map[string]struct{} {
@@ -24,16 +24,16 @@ func defaultSystemNamespaces() map[string]struct{} {
 }
 
 // GetNamespaces gets the namespaces in the current k8s environment(endpoint) connection
-func (kcl *KubeClient) GetNamespaces() (map[string]portainer.K8sNamespaceInfo, error) {
+func (kcl *KubeClient) GetNamespaces() (map[string]portaineree.K8sNamespaceInfo, error) {
 	namespaces, err := kcl.cli.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	results := make(map[string]portainer.K8sNamespaceInfo)
+	results := make(map[string]portaineree.K8sNamespaceInfo)
 
 	for _, ns := range namespaces.Items {
-		results[ns.Name] = portainer.K8sNamespaceInfo{
+		results[ns.Name] = portaineree.K8sNamespaceInfo{
 			IsSystem:  isSystemNamespace(ns),
 			IsDefault: ns.Name == defaultNamespace,
 		}

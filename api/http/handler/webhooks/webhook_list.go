@@ -6,7 +6,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type webhookListOperationFilters struct {
@@ -22,7 +22,7 @@ type webhookListOperationFilters struct {
 // @accept json
 // @produce json
 // @param filters query webhookListOperationFilters false "Filters"
-// @success 200 {array} portainer.Webhook
+// @success 200 {array} portaineree.Webhook
 // @failure 400
 // @failure 500
 // @router /webhooks [get]
@@ -42,14 +42,14 @@ func (handler *Handler) webhookList(w http.ResponseWriter, r *http.Request) *htt
 	return response.JSON(w, webhooks)
 }
 
-func filterWebhooks(webhooks []portainer.Webhook, filters *webhookListOperationFilters) []portainer.Webhook {
+func filterWebhooks(webhooks []portaineree.Webhook, filters *webhookListOperationFilters) []portaineree.Webhook {
 	if filters.EndpointID == 0 && filters.ResourceID == "" {
 		return webhooks
 	}
 
-	filteredWebhooks := make([]portainer.Webhook, 0, len(webhooks))
+	filteredWebhooks := make([]portaineree.Webhook, 0, len(webhooks))
 	for _, webhook := range webhooks {
-		if webhook.EndpointID == portainer.EndpointID(filters.EndpointID) && webhook.ResourceID == string(filters.ResourceID) {
+		if webhook.EndpointID == portaineree.EndpointID(filters.EndpointID) && webhook.ResourceID == string(filters.ResourceID) {
 			filteredWebhooks = append(filteredWebhooks, webhook)
 		}
 	}

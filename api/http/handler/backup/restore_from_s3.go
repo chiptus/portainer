@@ -12,13 +12,13 @@ import (
 	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	portainer "github.com/portainer/portainer/api"
-	operations "github.com/portainer/portainer/api/backup"
-	s3client "github.com/portainer/portainer/api/s3"
+	portaineree "github.com/portainer/portainer-ee/api"
+	operations "github.com/portainer/portainer-ee/api/backup"
+	s3client "github.com/portainer/portainer-ee/api/s3"
 )
 
 type restoreS3Settings struct {
-	portainer.S3Location
+	portaineree.S3Location
 	Password string
 }
 

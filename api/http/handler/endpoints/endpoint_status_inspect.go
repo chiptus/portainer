@@ -10,20 +10,20 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 type stackStatusResponse struct {
 	// EdgeStack Identifier
-	ID portainer.EdgeStackID `example:"1"`
+	ID portaineree.EdgeStackID `example:"1"`
 	// Version of this stack
 	Version int `example:"3"`
 }
 
 type edgeJobResponse struct {
 	// EdgeJob Identifier
-	ID portainer.EdgeJobID `json:"Id" example:"2"`
+	ID portaineree.EdgeJobID `json:"Id" example:"2"`
 	// Whether to collect logs
 	CollectLogs bool `json:"CollectLogs" example:"true"`
 	// A cron expression to schedule this job
@@ -69,7 +69,7 @@ func (handler *Handler) endpointStatusInspect(w http.ResponseWriter, r *http.Req
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -82,10 +82,10 @@ func (handler *Handler) endpointStatusInspect(w http.ResponseWriter, r *http.Req
 	}
 
 	if endpoint.EdgeID == "" {
-		edgeIdentifier := r.Header.Get(portainer.PortainerAgentEdgeIDHeader)
+		edgeIdentifier := r.Header.Get(portaineree.PortainerAgentEdgeIDHeader)
 		endpoint.EdgeID = edgeIdentifier
 
-		agentPlatformHeader := r.Header.Get(portainer.HTTPResponseAgentPlatform)
+		agentPlatformHeader := r.Header.Get(portaineree.HTTPResponseAgentPlatform)
 		if agentPlatformHeader == "" {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Agent Platform Header is missing", errors.New("Agent Platform Header is missing")}
 		}
@@ -95,12 +95,12 @@ func (handler *Handler) endpointStatusInspect(w http.ResponseWriter, r *http.Req
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to parse agent platform header", err}
 		}
 
-		agentPlatform := portainer.AgentPlatform(agentPlatformNumber)
+		agentPlatform := portaineree.AgentPlatform(agentPlatformNumber)
 
-		if agentPlatform == portainer.AgentPlatformDocker {
-			endpoint.Type = portainer.EdgeAgentOnDockerEnvironment
-		} else if agentPlatform == portainer.AgentPlatformKubernetes {
-			endpoint.Type = portainer.EdgeAgentOnKubernetesEnvironment
+		if agentPlatform == portaineree.AgentPlatformDocker {
+			endpoint.Type = portaineree.EdgeAgentOnDockerEnvironment
+		} else if agentPlatform == portaineree.AgentPlatformKubernetes {
+			endpoint.Type = portaineree.EdgeAgentOnKubernetesEnvironment
 		}
 	}
 
@@ -151,7 +151,7 @@ func (handler *Handler) endpointStatusInspect(w http.ResponseWriter, r *http.Req
 		Credentials:     tunnel.Credentials,
 	}
 
-	if tunnel.Status == portainer.EdgeAgentManagementRequired {
+	if tunnel.Status == portaineree.EdgeAgentManagementRequired {
 		handler.ReverseTunnelService.SetTunnelStatusToActive(endpoint.ID)
 	}
 

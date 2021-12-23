@@ -7,11 +7,11 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type usersPayload struct {
-	LDAPSettings portainer.LDAPSettings
+	LDAPSettings portaineree.LDAPSettings
 }
 
 func (payload *usersPayload) Validate(r *http.Request) error {
@@ -31,7 +31,7 @@ func (payload *usersPayload) Validate(r *http.Request) error {
 // @security jwt
 // @accept json
 // @param body body usersPayload true "details"
-// @success 200 {array} portainer.LDAPUser "Success"
+// @success 200 {array} portaineree.LDAPUser "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /ldap/users [post]

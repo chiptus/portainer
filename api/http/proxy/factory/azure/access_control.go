@@ -1,9 +1,9 @@
 package azure
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/authorization"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"log"
 	"net/http"
 )
@@ -28,7 +28,7 @@ func (transport *Transport) createAzureRequestContext(request *http.Request) (*a
 		endpointResourceAccess: false,
 	}
 
-	if tokenData.Role != portainer.AdministratorRole {
+	if tokenData.Role != portaineree.AdministratorRole {
 		context.isAdmin = false
 
 		user, err := transport.dataStore.User().User(context.userID)
@@ -36,14 +36,14 @@ func (transport *Transport) createAzureRequestContext(request *http.Request) (*a
 			return nil, err
 		}
 
-		_, context.endpointResourceAccess = user.EndpointAuthorizations[transport.endpoint.ID][portainer.EndpointResourcesAccess]
+		_, context.endpointResourceAccess = user.EndpointAuthorizations[transport.endpoint.ID][portaineree.EndpointResourcesAccess]
 
 		teamMemberships, err := transport.dataStore.TeamMembership().TeamMembershipsByUserID(tokenData.ID)
 		if err != nil {
 			return nil, err
 		}
 
-		userTeamIDs := make([]portainer.TeamID, 0)
+		userTeamIDs := make([]portaineree.TeamID, 0)
 		for _, membership := range teamMemberships {
 			userTeamIDs = append(userTeamIDs, membership.TeamID)
 		}
@@ -53,7 +53,7 @@ func (transport *Transport) createAzureRequestContext(request *http.Request) (*a
 	return context, nil
 }
 
-func decorateObject(object map[string]interface{}, resourceControl *portainer.ResourceControl) map[string]interface{} {
+func decorateObject(object map[string]interface{}, resourceControl *portaineree.ResourceControl) map[string]interface{} {
 	if object["Portainer"] == nil {
 		object["Portainer"] = make(map[string]interface{})
 	}
@@ -65,8 +65,8 @@ func decorateObject(object map[string]interface{}, resourceControl *portainer.Re
 
 func (transport *Transport) createPrivateResourceControl(
 	resourceIdentifier string,
-	resourceType portainer.ResourceControlType,
-	userID portainer.UserID) (*portainer.ResourceControl, error) {
+	resourceType portaineree.ResourceControlType,
+	userID portaineree.UserID) (*portaineree.ResourceControl, error) {
 
 	resourceControl := authorization.NewPrivateResourceControl(resourceIdentifier, resourceType, userID)
 
@@ -121,7 +121,7 @@ func (transport *Transport) filterContainerGroups(containerGroups []interface{},
 		containerGroup := containerGroup.(map[string]interface{})
 		portainerObject, ok := containerGroup["Portainer"].(map[string]interface{})
 		if ok {
-			resourceControl, ok := portainerObject["ResourceControl"].(*portainer.ResourceControl)
+			resourceControl, ok := portainerObject["ResourceControl"].(*portaineree.ResourceControl)
 			if ok {
 				userCanAccessResource = authorization.UserCanAccessResource(context.userID, context.userTeamIDs, resourceControl)
 			}
@@ -150,7 +150,7 @@ func (transport *Transport) removeResourceControl(containerGroup map[string]inte
 	return nil
 }
 
-func (transport *Transport) findResourceControl(containerGroupId string, context *azureRequestContext) *portainer.ResourceControl {
-	resourceControl := authorization.GetResourceControlByResourceIDAndType(containerGroupId, portainer.ContainerGroupResourceControl, context.resourceControls)
+func (transport *Transport) findResourceControl(containerGroupId string, context *azureRequestContext) *portaineree.ResourceControl {
+	resourceControl := authorization.GetResourceControlByResourceIDAndType(containerGroupId, portaineree.ContainerGroupResourceControl, context.resourceControls)
 	return resourceControl
 }

@@ -7,9 +7,9 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/internal/tag"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/internal/tag"
 )
 
 type endpointGroupUpdatePayload struct {
@@ -18,9 +18,9 @@ type endpointGroupUpdatePayload struct {
 	// Environment(Endpoint) group description
 	Description string `example:"description"`
 	// List of tag identifiers associated to the environment(endpoint) group
-	TagIDs             []portainer.TagID `example:"3,4"`
-	UserAccessPolicies portainer.UserAccessPolicies
-	TeamAccessPolicies portainer.TeamAccessPolicies
+	TagIDs             []portaineree.TagID `example:"3,4"`
+	UserAccessPolicies portaineree.UserAccessPolicies
+	TeamAccessPolicies portaineree.TeamAccessPolicies
 }
 
 func (payload *endpointGroupUpdatePayload) Validate(r *http.Request) error {
@@ -38,7 +38,7 @@ func (payload *endpointGroupUpdatePayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path int true "EndpointGroup identifier"
 // @param body body endpointGroupUpdatePayload true "EndpointGroup details"
-// @success 200 {object} portainer.EndpointGroup "Success"
+// @success 200 {object} portaineree.EndpointGroup "Success"
 // @failure 400 "Invalid request"
 // @failure 404 "EndpointGroup not found"
 // @failure 500 "Server error"
@@ -55,7 +55,7 @@ func (handler *Handler) endpointGroupUpdate(w http.ResponseWriter, r *http.Reque
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	endpointGroup, err := handler.DataStore.EndpointGroup().EndpointGroup(portainer.EndpointGroupID(endpointGroupID))
+	endpointGroup, err := handler.DataStore.EndpointGroup().EndpointGroup(portaineree.EndpointGroupID(endpointGroupID))
 	if err == errors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment group with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -129,7 +129,7 @@ func (handler *Handler) endpointGroupUpdate(w http.ResponseWriter, r *http.Reque
 
 		for _, endpoint := range endpoints {
 			if endpoint.GroupID == endpointGroup.ID {
-				if endpoint.Type == portainer.KubernetesLocalEnvironment || endpoint.Type == portainer.AgentOnKubernetesEnvironment || endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment {
+				if endpoint.Type == portaineree.KubernetesLocalEnvironment || endpoint.Type == portaineree.AgentOnKubernetesEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
 					err = handler.AuthorizationService.CleanNAPWithOverridePolicies(&endpoint, endpointGroup)
 					if err != nil {
 						return &httperror.HandlerError{http.StatusInternalServerError, "Unable to update user authorizations", err}

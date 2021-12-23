@@ -4,19 +4,19 @@ import (
 	"crypto/rand"
 	"io"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 // APIKeyService represents a service for managing API keys.
 type APIKeyService interface {
 	HashRaw(rawKey string) []byte
-	GenerateApiKey(user portainer.User, description string) (string, *portainer.APIKey, error)
-	GetAPIKey(apiKeyID portainer.APIKeyID) (*portainer.APIKey, error)
-	GetAPIKeys(userID portainer.UserID) ([]portainer.APIKey, error)
-	GetDigestUserAndKey(digest []byte) (portainer.User, portainer.APIKey, error)
-	UpdateAPIKey(apiKey *portainer.APIKey) error
-	DeleteAPIKey(apiKeyID portainer.APIKeyID) error
-	InvalidateUserKeyCache(userId portainer.UserID) bool
+	GenerateApiKey(user portaineree.User, description string) (string, *portaineree.APIKey, error)
+	GetAPIKey(apiKeyID portaineree.APIKeyID) (*portaineree.APIKey, error)
+	GetAPIKeys(userID portaineree.UserID) ([]portaineree.APIKey, error)
+	GetDigestUserAndKey(digest []byte) (portaineree.User, portaineree.APIKey, error)
+	UpdateAPIKey(apiKey *portaineree.APIKey) error
+	DeleteAPIKey(apiKeyID portaineree.APIKeyID) error
+	InvalidateUserKeyCache(userId portaineree.UserID) bool
 }
 
 // generateRandomKey generates a random key of specified length

@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer/api/filesystem"
 )
 
@@ -34,7 +34,7 @@ func init() {
 	teardown()
 }
 
-func NewTestStore(edition portainer.SoftwareEdition, version int, init bool) *Store {
+func NewTestStore(edition portaineree.SoftwareEdition, version int, init bool) *Store {
 	fileService, err := filesystem.NewService(dataStorePath, "")
 	if err != nil {
 		log.Fatal(err)
@@ -104,7 +104,7 @@ func testVersion(store *Store, versionWant int, t *testing.T) {
 	}
 }
 
-func testEdition(store *Store, editionWant portainer.SoftwareEdition, t *testing.T) {
+func testEdition(store *Store, editionWant portaineree.SoftwareEdition, t *testing.T) {
 	if e := store.edition(); e != editionWant {
 		t.Errorf("Expect store edition to be %s but was %s", editionWant.GetEditionLabel(), e.GetEditionLabel())
 	}

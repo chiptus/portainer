@@ -1,60 +1,60 @@
 package authorization
 
 import (
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 // DefaultAzureAuthorizations returns a set of default azure authorizations based on user's role.
-func DefaultAzureAuthorizations() map[portainer.RoleID]portainer.Authorizations {
-	return map[portainer.RoleID]portainer.Authorizations{
-		portainer.RoleIDEndpointAdmin: {
-			portainer.OperationAzureSubscriptionsList:    true,
-			portainer.OperationAzureSubscriptionGet:      true,
-			portainer.OperationAzureProviderGet:          true,
-			portainer.OperationAzureResourceGroupsList:   true,
-			portainer.OperationAzureResourceGroupGet:     true,
-			portainer.OperationAzureContainerGroupsList:  true,
-			portainer.OperationAzureContainerGroupGet:    true,
-			portainer.OperationAzureContainerGroupCreate: true,
-			portainer.OperationAzureContainerGroupDelete: true,
+func DefaultAzureAuthorizations() map[portaineree.RoleID]portaineree.Authorizations {
+	return map[portaineree.RoleID]portaineree.Authorizations{
+		portaineree.RoleIDEndpointAdmin: {
+			portaineree.OperationAzureSubscriptionsList:    true,
+			portaineree.OperationAzureSubscriptionGet:      true,
+			portaineree.OperationAzureProviderGet:          true,
+			portaineree.OperationAzureResourceGroupsList:   true,
+			portaineree.OperationAzureResourceGroupGet:     true,
+			portaineree.OperationAzureContainerGroupsList:  true,
+			portaineree.OperationAzureContainerGroupGet:    true,
+			portaineree.OperationAzureContainerGroupCreate: true,
+			portaineree.OperationAzureContainerGroupDelete: true,
 		},
-		portainer.RoleIDOperator: {
-			portainer.OperationAzureSubscriptionsList:   true,
-			portainer.OperationAzureSubscriptionGet:     true,
-			portainer.OperationAzureProviderGet:         true,
-			portainer.OperationAzureResourceGroupsList:  true,
-			portainer.OperationAzureResourceGroupGet:    true,
-			portainer.OperationAzureContainerGroupsList: true,
-			portainer.OperationAzureContainerGroupGet:   true,
+		portaineree.RoleIDOperator: {
+			portaineree.OperationAzureSubscriptionsList:   true,
+			portaineree.OperationAzureSubscriptionGet:     true,
+			portaineree.OperationAzureProviderGet:         true,
+			portaineree.OperationAzureResourceGroupsList:  true,
+			portaineree.OperationAzureResourceGroupGet:    true,
+			portaineree.OperationAzureContainerGroupsList: true,
+			portaineree.OperationAzureContainerGroupGet:   true,
 		},
-		portainer.RoleIDHelpdesk: {
-			portainer.OperationAzureSubscriptionsList:   true,
-			portainer.OperationAzureSubscriptionGet:     true,
-			portainer.OperationAzureProviderGet:         true,
-			portainer.OperationAzureResourceGroupsList:  true,
-			portainer.OperationAzureResourceGroupGet:    true,
-			portainer.OperationAzureContainerGroupsList: true,
-			portainer.OperationAzureContainerGroupGet:   true,
+		portaineree.RoleIDHelpdesk: {
+			portaineree.OperationAzureSubscriptionsList:   true,
+			portaineree.OperationAzureSubscriptionGet:     true,
+			portaineree.OperationAzureProviderGet:         true,
+			portaineree.OperationAzureResourceGroupsList:  true,
+			portaineree.OperationAzureResourceGroupGet:    true,
+			portaineree.OperationAzureContainerGroupsList: true,
+			portaineree.OperationAzureContainerGroupGet:   true,
 		},
-		portainer.RoleIDStandardUser: {
-			portainer.OperationAzureSubscriptionsList:    true,
-			portainer.OperationAzureSubscriptionGet:      true,
-			portainer.OperationAzureProviderGet:          true,
-			portainer.OperationAzureResourceGroupsList:   true,
-			portainer.OperationAzureResourceGroupGet:     true,
-			portainer.OperationAzureContainerGroupsList:  true,
-			portainer.OperationAzureContainerGroupGet:    true,
-			portainer.OperationAzureContainerGroupCreate: true,
-			portainer.OperationAzureContainerGroupDelete: true,
+		portaineree.RoleIDStandardUser: {
+			portaineree.OperationAzureSubscriptionsList:    true,
+			portaineree.OperationAzureSubscriptionGet:      true,
+			portaineree.OperationAzureProviderGet:          true,
+			portaineree.OperationAzureResourceGroupsList:   true,
+			portaineree.OperationAzureResourceGroupGet:     true,
+			portaineree.OperationAzureContainerGroupsList:  true,
+			portaineree.OperationAzureContainerGroupGet:    true,
+			portaineree.OperationAzureContainerGroupCreate: true,
+			portaineree.OperationAzureContainerGroupDelete: true,
 		},
-		portainer.RoleIDReadonly: {
-			portainer.OperationAzureSubscriptionsList:   true,
-			portainer.OperationAzureSubscriptionGet:     true,
-			portainer.OperationAzureProviderGet:         true,
-			portainer.OperationAzureResourceGroupsList:  true,
-			portainer.OperationAzureResourceGroupGet:    true,
-			portainer.OperationAzureContainerGroupsList: true,
-			portainer.OperationAzureContainerGroupGet:   true,
+		portaineree.RoleIDReadonly: {
+			portaineree.OperationAzureSubscriptionsList:   true,
+			portaineree.OperationAzureSubscriptionGet:     true,
+			portaineree.OperationAzureProviderGet:         true,
+			portaineree.OperationAzureResourceGroupsList:  true,
+			portaineree.OperationAzureResourceGroupGet:    true,
+			portaineree.OperationAzureContainerGroupsList: true,
+			portaineree.OperationAzureContainerGroupGet:   true,
 		},
 	}
 }

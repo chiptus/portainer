@@ -15,10 +15,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/portainer/portainer/api/adminmonitor"
+	"github.com/portainer/portainer-ee/api/adminmonitor"
+	"github.com/portainer/portainer-ee/api/http/offlinegate"
+	i "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer/api/crypto"
-	"github.com/portainer/portainer/api/http/offlinegate"
-	i "github.com/portainer/portainer/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 

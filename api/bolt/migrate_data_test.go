@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/boltdb/bolt"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer/api/filesystem"
 )
 
@@ -37,8 +37,8 @@ func TestMigrateData(t *testing.T) {
 
 		store.MigrateData(false)
 
-		testVersion(store, portainer.DBVersionEE, t)
-		testEdition(store, portainer.PortainerEE, t)
+		testVersion(store, portaineree.DBVersionEE, t)
+		testEdition(store, portaineree.PortainerEE, t)
 
 		store.Close()
 
@@ -55,12 +55,12 @@ func TestMigrateData(t *testing.T) {
 	})
 
 	tests := []struct {
-		edition         portainer.SoftwareEdition
+		edition         portaineree.SoftwareEdition
 		version         int
 		expectedVersion int
 	}{
-		{edition: portainer.PortainerCE, version: 5, expectedVersion: portainer.DBVersionEE},
-		{edition: portainer.PortainerCE, version: 21, expectedVersion: portainer.DBVersionEE},
+		{edition: portaineree.PortainerCE, version: 5, expectedVersion: portaineree.DBVersionEE},
+		{edition: portaineree.PortainerCE, version: 21, expectedVersion: portaineree.DBVersionEE},
 	}
 
 	for _, tc := range tests {
@@ -68,7 +68,7 @@ func TestMigrateData(t *testing.T) {
 		t.Run(fmt.Sprintf("MigrateData for %s version %d", tc.edition.GetEditionLabel(), tc.version), func(t *testing.T) {
 			store.MigrateData(false)
 			testVersion(store, tc.expectedVersion, t)
-			testEdition(store, portainer.PortainerEE, t)
+			testEdition(store, portaineree.PortainerEE, t)
 		})
 
 		t.Run(fmt.Sprintf("Restoring DB after migrateData for %s version %d", tc.edition.GetEditionLabel(), tc.version), func(t *testing.T) {
@@ -82,20 +82,20 @@ func TestMigrateData(t *testing.T) {
 
 	t.Run("Error in MigrateData should restore backup before MigrateData", func(t *testing.T) {
 		version := 21
-		store = NewTestStore(portainer.PortainerCE, version, true)
+		store = NewTestStore(portaineree.PortainerCE, version, true)
 
 		deleteBucket(store.connection.DB, "settings")
 		store.MigrateData(false)
 
 		testVersion(store, version, t)
-		testEdition(store, portainer.PortainerCE, t)
+		testEdition(store, portaineree.PortainerCE, t)
 
 		store.Close()
 	})
 
 	t.Run("MigrateData should create backup file upon update", func(t *testing.T) {
 		version := 21
-		store = NewTestStore(portainer.PortainerCE, version, true)
+		store = NewTestStore(portaineree.PortainerCE, version, true)
 
 		store.MigrateData(true)
 
@@ -112,7 +112,7 @@ func TestMigrateData(t *testing.T) {
 
 	t.Run("MigrateData should fail to create backup if database file is set to updating", func(t *testing.T) {
 		version := 21
-		store = NewTestStore(portainer.PortainerCE, version, true)
+		store = NewTestStore(portaineree.PortainerCE, version, true)
 		store.VersionService.StoreIsUpdating(true)
 
 		store.MigrateData(true)
@@ -128,7 +128,7 @@ func TestMigrateData(t *testing.T) {
 	})
 
 	t.Run("MigrateData should not create backup on startup if portainer version matches db", func(t *testing.T) {
-		store = NewTestStore(portainer.PortainerCE, portainer.DBVersion, true)
+		store = NewTestStore(portaineree.PortainerCE, portaineree.DBVersion, true)
 
 		store.MigrateData(true)
 
@@ -146,7 +146,7 @@ func TestMigrateData(t *testing.T) {
 }
 
 func Test_getBackupRestoreOptions(t *testing.T) {
-	store := NewTestStore(portainer.PortainerCE, portainer.DBVersion, true)
+	store := NewTestStore(portaineree.PortainerCE, portaineree.DBVersion, true)
 	defer store.Close()
 
 	options := getBackupRestoreOptions(store)
@@ -179,7 +179,7 @@ func TestRollback(t *testing.T) {
 
 	t.Run("Rollback should restore upgrade after backup", func(t *testing.T) {
 		version := 21
-		store := NewTestStore(portainer.PortainerEE, version, true)
+		store := NewTestStore(portaineree.PortainerEE, version, true)
 
 		_, err := store.BackupWithOptions(getBackupRestoreOptions(store))
 		if err != nil {

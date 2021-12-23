@@ -4,18 +4,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/portainer/portainer/api/bolt"
-
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-
-	"github.com/portainer/portainer/api/bolt/bolttest"
-
 	"github.com/gofrs/uuid"
-
-	"github.com/stretchr/testify/assert"
-
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt"
+	"github.com/portainer/portainer-ee/api/bolt/bolttest"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 	"github.com/portainer/portainer/api/filesystem"
+	"github.com/stretchr/testify/assert"
 )
 
 func newGuidString(t *testing.T) string {
@@ -57,16 +52,16 @@ func TestService_StackByWebhookID(t *testing.T) {
 	assert.ErrorIs(t, err, bolterrors.ErrObjectNotFound)
 }
 
-func (b *stackBuilder) createNewStack(webhookID string) portainer.Stack {
+func (b *stackBuilder) createNewStack(webhookID string) portaineree.Stack {
 	b.count++
-	stack := portainer.Stack{
-		ID:           portainer.StackID(b.count),
+	stack := portaineree.Stack{
+		ID:           portaineree.StackID(b.count),
 		Name:         "Name",
-		Type:         portainer.DockerComposeStack,
+		Type:         portaineree.DockerComposeStack,
 		EndpointID:   2,
 		EntryPoint:   filesystem.ComposeFileDefaultName,
-		Env:          []portainer.Pair{{"Name1", "Value1"}},
-		Status:       portainer.StackStatusActive,
+		Env:          []portaineree.Pair{{"Name1", "Value1"}},
+		Status:       portaineree.StackStatusActive,
 		CreationDate: time.Now().Unix(),
 		ProjectPath:  "/tmp/project",
 		CreatedBy:    "test",
@@ -74,13 +69,13 @@ func (b *stackBuilder) createNewStack(webhookID string) portainer.Stack {
 
 	if webhookID == "" {
 		if b.count%2 == 0 {
-			stack.AutoUpdate = &portainer.StackAutoUpdate{
+			stack.AutoUpdate = &portaineree.StackAutoUpdate{
 				Interval: "",
 				Webhook:  "",
 			}
 		} // else keep AutoUpdate nil
 	} else {
-		stack.AutoUpdate = &portainer.StackAutoUpdate{Webhook: webhookID}
+		stack.AutoUpdate = &portaineree.StackAutoUpdate{Webhook: webhookID}
 	}
 
 	err := b.store.StackService.CreateStack(&stack)
@@ -96,16 +91,16 @@ func Test_RefreshableStacks(t *testing.T) {
 	store, teardown := bolttest.MustNewTestStore(true)
 	defer teardown()
 
-	staticStack := portainer.Stack{ID: 1}
-	stackWithWebhook := portainer.Stack{ID: 2, AutoUpdate: &portainer.StackAutoUpdate{Webhook: "webhook"}}
-	refreshableStack := portainer.Stack{ID: 3, AutoUpdate: &portainer.StackAutoUpdate{Interval: "1m"}}
+	staticStack := portaineree.Stack{ID: 1}
+	stackWithWebhook := portaineree.Stack{ID: 2, AutoUpdate: &portaineree.StackAutoUpdate{Webhook: "webhook"}}
+	refreshableStack := portaineree.Stack{ID: 3, AutoUpdate: &portaineree.StackAutoUpdate{Interval: "1m"}}
 
-	for _, stack := range []*portainer.Stack{&staticStack, &stackWithWebhook, &refreshableStack} {
+	for _, stack := range []*portaineree.Stack{&staticStack, &stackWithWebhook, &refreshableStack} {
 		err := store.Stack().CreateStack(stack)
 		assert.NoError(t, err)
 	}
 
 	stacks, err := store.Stack().RefreshableStacks()
 	assert.NoError(t, err)
-	assert.ElementsMatch(t, []portainer.Stack{refreshableStack}, stacks)
+	assert.ElementsMatch(t, []portaineree.Stack{refreshableStack}, stacks)
 }

@@ -3,9 +3,9 @@ package kubernetes
 import (
 	"net/http"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	"github.com/portainer/portainer/api/crypto"
-	"github.com/portainer/portainer/api/kubernetes/cli"
 )
 
 type localTransport struct {
@@ -13,7 +13,7 @@ type localTransport struct {
 }
 
 // NewLocalTransport returns a new transport that can be used to send requests to the local Kubernetes API
-func NewLocalTransport(tokenManager *tokenManager, endpoint *portainer.Endpoint, userActivityService portainer.UserActivityService, k8sClientFactory *cli.ClientFactory, dataStore portainer.DataStore) (*localTransport, error) {
+func NewLocalTransport(tokenManager *tokenManager, endpoint *portaineree.Endpoint, userActivityService portaineree.UserActivityService, k8sClientFactory *cli.ClientFactory, dataStore portaineree.DataStore) (*localTransport, error) {
 	config, err := crypto.CreateTLSConfigurationFromBytes(nil, nil, nil, true, true)
 	if err != nil {
 		return nil, err

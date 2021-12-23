@@ -6,8 +6,8 @@ import (
 
 	"github.com/coreos/go-semver/semver"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/client"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/client"
 
 	"github.com/portainer/libhttp/response"
 )
@@ -34,7 +34,7 @@ type githubData struct {
 // @success 200 {object} inspectVersionResponse "Success"
 // @router /status/version [get]
 func (handler *Handler) statusInspectVersion(w http.ResponseWriter, r *http.Request) {
-	motd, err := client.Get(portainer.VersionCheckURL, 5)
+	motd, err := client.Get(portaineree.VersionCheckURL, 5)
 	if err != nil {
 		response.JSON(w, &inspectVersionResponse{UpdateAvailable: false})
 		return
@@ -51,7 +51,7 @@ func (handler *Handler) statusInspectVersion(w http.ResponseWriter, r *http.Requ
 		UpdateAvailable: false,
 	}
 
-	currentVersion := semver.New(portainer.APIVersion)
+	currentVersion := semver.New(portaineree.APIVersion)
 	latestVersion := semver.New(data.TagName)
 	if currentVersion.LessThan(*latestVersion) {
 		// disable update version available for EE

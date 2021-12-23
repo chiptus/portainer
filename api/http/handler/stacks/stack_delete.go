@@ -12,13 +12,13 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/stackutils"
 	"github.com/portainer/portainer/api/filesystem"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/middlewares"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/stackutils"
 )
 
 // @id StackDelete
@@ -58,7 +58,7 @@ func (handler *Handler) stackDelete(w http.ResponseWriter, r *http.Request) *htt
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid stack identifier route variable", Err: err}
 	}
 
-	stack, err := handler.DataStore.Stack().Stack(portainer.StackID(id))
+	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(id))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find a stack with the specified identifier inside the database", Err: err}
 	} else if err != nil {
@@ -69,13 +69,13 @@ func (handler *Handler) stackDelete(w http.ResponseWriter, r *http.Request) *htt
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: endpointId", Err: err}
 	}
-	isOrphaned := portainer.EndpointID(endpointID) != stack.EndpointID
+	isOrphaned := portaineree.EndpointID(endpointID) != stack.EndpointID
 
 	if isOrphaned && !securityContext.IsAdmin {
 		return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "Permission denied to remove orphaned stack", Err: errors.New("Permission denied to remove orphaned stack")}
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find the endpoint associated to the stack inside the database", Err: err}
 	} else if err != nil {
@@ -83,7 +83,7 @@ func (handler *Handler) stackDelete(w http.ResponseWriter, r *http.Request) *htt
 	}
 	middlewares.SetEndpoint(endpoint, r)
 
-	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portainer.StackResourceControl)
+	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portaineree.StackResourceControl)
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve a resource control associated to the stack", Err: err}
 	}
@@ -94,7 +94,7 @@ func (handler *Handler) stackDelete(w http.ResponseWriter, r *http.Request) *htt
 			return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "Permission denied to access endpoint", Err: err}
 		}
 
-		if stack.Type == portainer.DockerSwarmStack || stack.Type == portainer.DockerComposeStack {
+		if stack.Type == portaineree.DockerSwarmStack || stack.Type == portaineree.DockerComposeStack {
 			access, err := handler.userCanAccessStack(securityContext, endpoint.ID, resourceControl)
 			if err != nil {
 				return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to verify user authorizations to validate stack access", Err: err}
@@ -115,7 +115,7 @@ func (handler *Handler) stackDelete(w http.ResponseWriter, r *http.Request) *htt
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: err.Error(), Err: err}
 	}
 
-	err = handler.DataStore.Stack().DeleteStack(portainer.StackID(id))
+	err = handler.DataStore.Stack().DeleteStack(portaineree.StackID(id))
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to remove the stack from the database", Err: err}
 	}
@@ -146,7 +146,7 @@ func (handler *Handler) deleteExternalStack(r *http.Request, w http.ResponseWrit
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to load user information from the database", Err: err}
 	}
 
-	_, endpointResourceAccess := user.EndpointAuthorizations[portainer.EndpointID(endpointID)][portainer.EndpointResourcesAccess]
+	_, endpointResourceAccess := user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.EndpointResourcesAccess]
 
 	if !securityContext.IsAdmin && !endpointResourceAccess {
 		return &httperror.HandlerError{StatusCode: http.StatusUnauthorized, Message: "Permission denied to delete the stack", Err: httperrors.ErrUnauthorized}
@@ -160,7 +160,7 @@ func (handler *Handler) deleteExternalStack(r *http.Request, w http.ResponseWrit
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "A stack with this name exists inside the database. Cannot use external delete method", Err: errors.New("A tag already exists with this name")}
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find the endpoint associated to the stack inside the database", Err: err}
 	} else if err != nil {
@@ -172,9 +172,9 @@ func (handler *Handler) deleteExternalStack(r *http.Request, w http.ResponseWrit
 		return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "Permission denied to access endpoint", Err: err}
 	}
 
-	stack = &portainer.Stack{
+	stack = &portaineree.Stack{
 		Name: stackName,
-		Type: portainer.DockerSwarmStack,
+		Type: portaineree.DockerSwarmStack,
 	}
 
 	err = handler.deleteStack(securityContext.UserID, stack, endpoint)
@@ -185,14 +185,14 @@ func (handler *Handler) deleteExternalStack(r *http.Request, w http.ResponseWrit
 	return response.Empty(w)
 }
 
-func (handler *Handler) deleteStack(userID portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint) error {
-	if stack.Type == portainer.DockerSwarmStack {
+func (handler *Handler) deleteStack(userID portaineree.UserID, stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
+	if stack.Type == portaineree.DockerSwarmStack {
 		return handler.SwarmStackManager.Remove(stack, endpoint)
 	}
-	if stack.Type == portainer.DockerComposeStack {
+	if stack.Type == portaineree.DockerComposeStack {
 		return handler.ComposeStackManager.Down(context.TODO(), stack, endpoint)
 	}
-	if stack.Type == portainer.KubernetesStack {
+	if stack.Type == portaineree.KubernetesStack {
 		var manifestFiles []string
 
 		// use manifest files to remove kube resources;

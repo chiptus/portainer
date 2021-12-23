@@ -3,7 +3,6 @@ package chisel
 import (
 	"context"
 	"fmt"
-	"github.com/portainer/portainer/api/http/proxy"
 	"log"
 	"net/http"
 	"strconv"
@@ -12,8 +11,9 @@ import (
 	"github.com/dchest/uniuri"
 	chserver "github.com/jpillora/chisel/server"
 	cmap "github.com/orcaman/concurrent-map"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/proxy"
 )
 
 const (
@@ -29,15 +29,15 @@ type Service struct {
 	serverFingerprint string
 	serverPort        string
 	tunnelDetailsMap  cmap.ConcurrentMap
-	dataStore         portainer.DataStore
-	snapshotService   portainer.SnapshotService
+	dataStore         portaineree.DataStore
+	snapshotService   portaineree.SnapshotService
 	chiselServer      *chserver.Server
 	shutdownCtx       context.Context
 	ProxyManager      *proxy.Manager
 }
 
 // NewService returns a pointer to a new instance of Service
-func NewService(dataStore portainer.DataStore, shutdownCtx context.Context) *Service {
+func NewService(dataStore portaineree.DataStore, shutdownCtx context.Context) *Service {
 	return &Service{
 		tunnelDetailsMap: cmap.New(),
 		dataStore:        dataStore,
@@ -46,7 +46,7 @@ func NewService(dataStore portainer.DataStore, shutdownCtx context.Context) *Ser
 }
 
 // pingAgent ping the given agent so that the agent can keep the tunnel alive
-func (service *Service) pingAgent(endpointID portainer.EndpointID) error{
+func (service *Service) pingAgent(endpointID portaineree.EndpointID) error {
 	tunnel := service.GetTunnelDetails(endpointID)
 	requestURL := fmt.Sprintf("http://127.0.0.1:%d/ping", tunnel.Port)
 	req, err := http.NewRequest(http.MethodHead, requestURL, nil)
@@ -66,7 +66,7 @@ func (service *Service) pingAgent(endpointID portainer.EndpointID) error{
 }
 
 // KeepTunnelAlive keeps the tunnel of the given environment for maxAlive duration, or until ctx is done
-func (service *Service) KeepTunnelAlive(endpointID portainer.EndpointID, ctx context.Context, maxAlive time.Duration) {
+func (service *Service) KeepTunnelAlive(endpointID portaineree.EndpointID, ctx context.Context, maxAlive time.Duration) {
 	go func() {
 		log.Printf("[DEBUG] [chisel,KeepTunnelAlive] [endpoint_id: %d] [message: start for %.0f minutes]\n", endpointID, maxAlive.Minutes())
 		maxAliveTicker := time.NewTicker(maxAlive)
@@ -99,7 +99,7 @@ func (service *Service) KeepTunnelAlive(endpointID portainer.EndpointID, ctx con
 // be found inside the database, it will generate a new one randomly and persist it.
 // It starts the tunnel status verification process in the background.
 // The snapshotter is used in the tunnel status verification process.
-func (service *Service) StartTunnelServer(addr, port string, snapshotService portainer.SnapshotService) error {
+func (service *Service) StartTunnelServer(addr, port string, snapshotService portaineree.SnapshotService) error {
 	keySeed, err := service.retrievePrivateKeySeed()
 	if err != nil {
 		return err
@@ -144,13 +144,13 @@ func (service *Service) StopTunnelServer() error {
 }
 
 func (service *Service) retrievePrivateKeySeed() (string, error) {
-	var serverInfo *portainer.TunnelServerInfo
+	var serverInfo *portaineree.TunnelServerInfo
 
 	serverInfo, err := service.dataStore.TunnelServer().Info()
 	if err == errors.ErrObjectNotFound {
 		keySeed := uniuri.NewLen(16)
 
-		serverInfo = &portainer.TunnelServerInfo{
+		serverInfo = &portaineree.TunnelServerInfo{
 			PrivateKeySeed: keySeed,
 		}
 
@@ -186,24 +186,24 @@ func (service *Service) startTunnelVerificationLoop() {
 
 func (service *Service) checkTunnels() {
 	for item := range service.tunnelDetailsMap.IterBuffered() {
-		tunnel := item.Val.(*portainer.TunnelDetails)
+		tunnel := item.Val.(*portaineree.TunnelDetails)
 
-		if tunnel.LastActivity.IsZero() || tunnel.Status == portainer.EdgeAgentIdle {
+		if tunnel.LastActivity.IsZero() || tunnel.Status == portaineree.EdgeAgentIdle {
 			continue
 		}
 
 		elapsed := time.Since(tunnel.LastActivity)
 		log.Printf("[DEBUG] [chisel,monitoring] [endpoint_id: %s] [status: %s] [status_time_seconds: %f] [message: environment tunnel monitoring]", item.Key, tunnel.Status, elapsed.Seconds())
 
-		if tunnel.Status == portainer.EdgeAgentManagementRequired && elapsed.Seconds() < requiredTimeout.Seconds() {
+		if tunnel.Status == portaineree.EdgeAgentManagementRequired && elapsed.Seconds() < requiredTimeout.Seconds() {
 			continue
-		} else if tunnel.Status == portainer.EdgeAgentManagementRequired && elapsed.Seconds() > requiredTimeout.Seconds() {
+		} else if tunnel.Status == portaineree.EdgeAgentManagementRequired && elapsed.Seconds() > requiredTimeout.Seconds() {
 			log.Printf("[DEBUG] [chisel,monitoring] [endpoint_id: %s] [status: %s] [status_time_seconds: %f] [timeout_seconds: %f] [message: REQUIRED state timeout exceeded]", item.Key, tunnel.Status, elapsed.Seconds(), requiredTimeout.Seconds())
 		}
 
-		if tunnel.Status == portainer.EdgeAgentActive && elapsed.Seconds() < activeTimeout.Seconds() {
+		if tunnel.Status == portaineree.EdgeAgentActive && elapsed.Seconds() < activeTimeout.Seconds() {
 			continue
-		} else if tunnel.Status == portainer.EdgeAgentActive && elapsed.Seconds() > activeTimeout.Seconds() {
+		} else if tunnel.Status == portaineree.EdgeAgentActive && elapsed.Seconds() > activeTimeout.Seconds() {
 			log.Printf("[DEBUG] [chisel,monitoring] [endpoint_id: %s] [status: %s] [status_time_seconds: %f] [timeout_seconds: %f] [message: ACTIVE state timeout exceeded]", item.Key, tunnel.Status, elapsed.Seconds(), activeTimeout.Seconds())
 
 			endpointID, err := strconv.Atoi(item.Key)
@@ -211,7 +211,7 @@ func (service *Service) checkTunnels() {
 				log.Printf("[ERROR] [chisel,snapshot,conversion] Invalid environment identifier (id: %s): %s", item.Key, err)
 			}
 
-			err = service.snapshotEnvironment(portainer.EndpointID(endpointID), tunnel.Port)
+			err = service.snapshotEnvironment(portaineree.EndpointID(endpointID), tunnel.Port)
 			if err != nil {
 				log.Printf("[ERROR] [snapshot] Unable to snapshot Edge environment (id: %s): %s", item.Key, err)
 			}
@@ -223,11 +223,11 @@ func (service *Service) checkTunnels() {
 			continue
 		}
 
-		service.SetTunnelStatusToIdle(portainer.EndpointID(endpointID))
+		service.SetTunnelStatusToIdle(portaineree.EndpointID(endpointID))
 	}
 }
 
-func (service *Service) snapshotEnvironment(endpointID portainer.EndpointID, tunnelPort int) error {
+func (service *Service) snapshotEnvironment(endpointID portaineree.EndpointID, tunnelPort int) error {
 	endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
 	if err != nil {
 		return err

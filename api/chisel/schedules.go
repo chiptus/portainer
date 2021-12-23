@@ -3,11 +3,11 @@ package chisel
 import (
 	"strconv"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 // AddEdgeJob register an EdgeJob inside the tunnel details associated to an environment(endpoint).
-func (service *Service) AddEdgeJob(endpointID portainer.EndpointID, edgeJob *portainer.EdgeJob) {
+func (service *Service) AddEdgeJob(endpointID portaineree.EndpointID, edgeJob *portaineree.EdgeJob) {
 	tunnel := service.GetTunnelDetails(endpointID)
 
 	existingJobIndex := -1
@@ -29,11 +29,11 @@ func (service *Service) AddEdgeJob(endpointID portainer.EndpointID, edgeJob *por
 }
 
 // RemoveEdgeJob will remove the specified Edge job from each tunnel it was registered with.
-func (service *Service) RemoveEdgeJob(edgeJobID portainer.EdgeJobID) {
+func (service *Service) RemoveEdgeJob(edgeJobID portaineree.EdgeJobID) {
 	for item := range service.tunnelDetailsMap.IterBuffered() {
-		tunnelDetails := item.Val.(*portainer.TunnelDetails)
+		tunnelDetails := item.Val.(*portaineree.TunnelDetails)
 
-		updatedJobs := make([]portainer.EdgeJob, 0)
+		updatedJobs := make([]portaineree.EdgeJob, 0)
 		for _, edgeJob := range tunnelDetails.Jobs {
 			if edgeJob.ID == edgeJobID {
 				continue

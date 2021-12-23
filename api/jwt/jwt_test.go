@@ -5,17 +5,17 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	portainer "github.com/portainer/portainer/api"
-	i "github.com/portainer/portainer/api/internal/testhelpers"
+	portaineree "github.com/portainer/portainer-ee/api"
+	i "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateSignedToken(t *testing.T) {
-	dataStore := i.NewDatastore(i.WithSettingsService(&portainer.Settings{}))
+	dataStore := i.NewDatastore(i.WithSettingsService(&portaineree.Settings{}))
 	svc, err := NewService("24h", dataStore)
 	assert.NoError(t, err, "failed to create a copy of service")
 
-	token := &portainer.TokenData{
+	token := &portaineree.TokenData{
 		Username: "Joe",
 		ID:       1,
 		Role:     1,
@@ -40,11 +40,11 @@ func TestGenerateSignedToken(t *testing.T) {
 }
 
 func TestGenerateSignedToken_InvalidScope(t *testing.T) {
-	dataStore := i.NewDatastore(i.WithSettingsService(&portainer.Settings{}))
+	dataStore := i.NewDatastore(i.WithSettingsService(&portaineree.Settings{}))
 	svc, err := NewService("24h", dataStore)
 	assert.NoError(t, err, "failed to create a copy of service")
 
-	token := &portainer.TokenData{
+	token := &portaineree.TokenData{
 		Username: "Joe",
 		ID:       1,
 		Role:     1,

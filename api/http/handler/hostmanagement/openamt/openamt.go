@@ -13,7 +13,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type openAMTConfigureDefaultPayload struct {
@@ -144,14 +144,14 @@ func isValidIssuer(issuer string) bool {
 }
 
 func (handler *Handler) enableOpenAMT(configurationPayload openAMTConfigureDefaultPayload) error {
-	configuration := portainer.OpenAMTConfiguration{
+	configuration := portaineree.OpenAMTConfiguration{
 		Enabled:   true,
 		MPSServer: configurationPayload.MPSServer,
-		Credentials: portainer.MPSCredentials{
+		Credentials: portaineree.MPSCredentials{
 			MPSUser:     configurationPayload.MPSUser,
 			MPSPassword: configurationPayload.MPSPassword,
 		},
-		DomainConfiguration: portainer.DomainConfiguration{
+		DomainConfiguration: portaineree.DomainConfiguration{
 			CertFileText: configurationPayload.CertFileText,
 			CertPassword: configurationPayload.CertPassword,
 			DomainName:   configurationPayload.DomainName,
@@ -159,7 +159,7 @@ func (handler *Handler) enableOpenAMT(configurationPayload openAMTConfigureDefau
 	}
 
 	if configurationPayload.UseWirelessConfig {
-		configuration.WirelessConfiguration = &portainer.WirelessConfiguration{
+		configuration.WirelessConfiguration = &portaineree.WirelessConfiguration{
 			AuthenticationMethod: configurationPayload.WifiAuthenticationMethod,
 			EncryptionMethod:     configurationPayload.WifiEncryptionMethod,
 			SSID:                 configurationPayload.WifiSSID,
@@ -183,7 +183,7 @@ func (handler *Handler) enableOpenAMT(configurationPayload openAMTConfigureDefau
 	return nil
 }
 
-func (handler *Handler) saveConfiguration(configuration portainer.OpenAMTConfiguration) error {
+func (handler *Handler) saveConfiguration(configuration portaineree.OpenAMTConfiguration) error {
 	settings, err := handler.DataStore.Settings().Settings()
 	if err != nil {
 		return err

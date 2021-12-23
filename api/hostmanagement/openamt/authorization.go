@@ -7,14 +7,14 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type authenticationResponse struct {
 	Token string `json:"token"`
 }
 
-func (service *Service) executeAuthenticationRequest(configuration portainer.OpenAMTConfiguration) (*authenticationResponse, error) {
+func (service *Service) executeAuthenticationRequest(configuration portaineree.OpenAMTConfiguration) (*authenticationResponse, error) {
 	loginURL := fmt.Sprintf("https://%s/mps/login/api/v1/authorize", configuration.MPSServer)
 
 	payload := map[string]string{

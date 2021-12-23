@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/stretchr/testify/assert"
 	ktypes "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,21 +16,21 @@ func Test_NamespaceAccessPoliciesDeleteNamespace_updatesPortainerConfig_whenConf
 	testcases := []struct {
 		name              string
 		namespaceToDelete string
-		expectedConfig    map[string]portainer.K8sNamespaceAccessPolicy
+		expectedConfig    map[string]portaineree.K8sNamespaceAccessPolicy
 	}{
 		{
 			name:              "doesn't change config, when designated namespace absent",
 			namespaceToDelete: "missing-namespace",
-			expectedConfig: map[string]portainer.K8sNamespaceAccessPolicy{
-				"ns1": {UserAccessPolicies: portainer.UserAccessPolicies{2: {RoleID: 0}}},
-				"ns2": {UserAccessPolicies: portainer.UserAccessPolicies{2: {RoleID: 0}}},
+			expectedConfig: map[string]portaineree.K8sNamespaceAccessPolicy{
+				"ns1": {UserAccessPolicies: portaineree.UserAccessPolicies{2: {RoleID: 0}}},
+				"ns2": {UserAccessPolicies: portaineree.UserAccessPolicies{2: {RoleID: 0}}},
 			},
 		},
 		{
 			name:              "removes designated namespace from config, when namespace is present",
 			namespaceToDelete: "ns2",
-			expectedConfig: map[string]portainer.K8sNamespaceAccessPolicy{
-				"ns1": {UserAccessPolicies: portainer.UserAccessPolicies{2: {RoleID: 0}}},
+			expectedConfig: map[string]portaineree.K8sNamespaceAccessPolicy{
+				"ns1": {UserAccessPolicies: portaineree.UserAccessPolicies{2: {RoleID: 0}}},
 			},
 		},
 	}

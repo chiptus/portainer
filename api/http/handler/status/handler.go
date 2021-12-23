@@ -5,19 +5,19 @@ import (
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
-	"github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // Handler is the HTTP handler used to handle status operations.
 type Handler struct {
 	*mux.Router
-	Status    *portainer.Status
-	DataStore portainer.DataStore
+	Status    *portaineree.Status
+	DataStore portaineree.DataStore
 }
 
 // NewHandler creates a handler to manage status operations.
-func NewHandler(bouncer *security.RequestBouncer, status *portainer.Status) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, status *portaineree.Status) *Handler {
 	h := &Handler{
 		Router: mux.NewRouter(),
 		Status: status,

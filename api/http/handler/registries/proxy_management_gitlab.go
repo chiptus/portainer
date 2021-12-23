@@ -6,10 +6,10 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // request on /api/registries/{id}/proxies/gitlab
@@ -29,15 +29,15 @@ func (handler *Handler) proxyRequestsToGitlabAPIWithRegistry(w http.ResponseWrit
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid registry identifier route variable", err}
 	}
 
-	registry, err := handler.DataStore.Registry().Registry(portainer.RegistryID(registryID))
+	registry, err := handler.DataStore.Registry().Registry(portaineree.RegistryID(registryID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a registry with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a registry with the specified identifier inside the database", err}
 	}
 
-	config := &portainer.RegistryManagementConfiguration{
-		Type:     portainer.GitlabRegistry,
+	config := &portaineree.RegistryManagementConfiguration{
+		Type:     portaineree.GitlabRegistry,
 		Password: registry.Password,
 	}
 

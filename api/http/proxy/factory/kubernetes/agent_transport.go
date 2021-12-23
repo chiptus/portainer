@@ -5,17 +5,17 @@ import (
 	"net/http"
 	"strings"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/kubernetes/cli"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 )
 
 type agentTransport struct {
 	*baseTransport
-	signatureService portainer.DigitalSignatureService
+	signatureService portaineree.DigitalSignatureService
 }
 
 // NewAgentTransport returns a new transport that can be used to send signed requests to a Portainer agent
-func NewAgentTransport(dataStore portainer.DataStore, signatureService portainer.DigitalSignatureService, tlsConfig *tls.Config, tokenManager *tokenManager, endpoint *portainer.Endpoint, userActivityService portainer.UserActivityService, k8sClientFactory *cli.ClientFactory) *agentTransport {
+func NewAgentTransport(dataStore portaineree.DataStore, signatureService portaineree.DigitalSignatureService, tlsConfig *tls.Config, tokenManager *tokenManager, endpoint *portaineree.Endpoint, userActivityService portaineree.UserActivityService, k8sClientFactory *cli.ClientFactory) *agentTransport {
 	transport := &agentTransport{
 		signatureService: signatureService,
 		baseTransport: newBaseTransport(
@@ -40,19 +40,19 @@ func (transport *agentTransport) RoundTrip(request *http.Request) (*http.Respons
 		return nil, err
 	}
 
-	request.Header.Set(portainer.PortainerAgentKubernetesSATokenHeader, token)
+	request.Header.Set(portaineree.PortainerAgentKubernetesSATokenHeader, token)
 
 	if strings.HasPrefix(request.URL.Path, "/v2") {
 		decorateAgentRequest(request, transport.dataStore)
 	}
 
-	signature, err := transport.signatureService.CreateSignature(portainer.PortainerAgentSignatureMessage)
+	signature, err := transport.signatureService.CreateSignature(portaineree.PortainerAgentSignatureMessage)
 	if err != nil {
 		return nil, err
 	}
 
-	request.Header.Set(portainer.PortainerAgentPublicKeyHeader, transport.signatureService.EncodedPublicKey())
-	request.Header.Set(portainer.PortainerAgentSignatureHeader, signature)
+	request.Header.Set(portaineree.PortainerAgentPublicKeyHeader, transport.signatureService.EncodedPublicKey())
+	request.Header.Set(portaineree.PortainerAgentSignatureHeader, signature)
 
 	return transport.baseTransport.RoundTrip(request)
 }

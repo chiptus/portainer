@@ -1,23 +1,23 @@
 package edge
 
 import (
-	"github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/internal/tag"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/tag"
 )
 
 // EdgeGroupRelatedEndpoints returns a list of environments(endpoints) related to this Edge group
-func EdgeGroupRelatedEndpoints(edgeGroup *portainer.EdgeGroup, endpoints []portainer.Endpoint, endpointGroups []portainer.EndpointGroup) []portainer.EndpointID {
+func EdgeGroupRelatedEndpoints(edgeGroup *portaineree.EdgeGroup, endpoints []portaineree.Endpoint, endpointGroups []portaineree.EndpointGroup) []portaineree.EndpointID {
 	if !edgeGroup.Dynamic {
 		return edgeGroup.Endpoints
 	}
 
-	endpointIDs := []portainer.EndpointID{}
+	endpointIDs := []portaineree.EndpointID{}
 	for _, endpoint := range endpoints {
-		if endpoint.Type != portainer.EdgeAgentOnDockerEnvironment && endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment {
+		if endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment && endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment {
 			continue
 		}
 
-		var endpointGroup portainer.EndpointGroup
+		var endpointGroup portaineree.EndpointGroup
 		for _, group := range endpointGroups {
 			if endpoint.GroupID == group.ID {
 				endpointGroup = group
@@ -34,7 +34,7 @@ func EdgeGroupRelatedEndpoints(edgeGroup *portainer.EdgeGroup, endpoints []porta
 }
 
 // edgeGroupRelatedToEndpoint returns true is edgeGroup is associated with environment(endpoint)
-func edgeGroupRelatedToEndpoint(edgeGroup *portainer.EdgeGroup, endpoint *portainer.Endpoint, endpointGroup *portainer.EndpointGroup) bool {
+func edgeGroupRelatedToEndpoint(edgeGroup *portaineree.EdgeGroup, endpoint *portaineree.Endpoint, endpointGroup *portaineree.EndpointGroup) bool {
 	if !edgeGroup.Dynamic {
 		for _, endpointID := range edgeGroup.Endpoints {
 			if endpoint.ID == endpointID {

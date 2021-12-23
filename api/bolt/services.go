@@ -1,34 +1,34 @@
 package bolt
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/apikeyrepository"
-	"github.com/portainer/portainer/api/bolt/customtemplate"
-	"github.com/portainer/portainer/api/bolt/dockerhub"
-	"github.com/portainer/portainer/api/bolt/edgegroup"
-	"github.com/portainer/portainer/api/bolt/edgejob"
-	"github.com/portainer/portainer/api/bolt/edgestack"
-	"github.com/portainer/portainer/api/bolt/endpoint"
-	"github.com/portainer/portainer/api/bolt/endpointgroup"
-	"github.com/portainer/portainer/api/bolt/endpointrelation"
-	"github.com/portainer/portainer/api/bolt/extension"
-	"github.com/portainer/portainer/api/bolt/helmuserrepository"
-	"github.com/portainer/portainer/api/bolt/license"
-	"github.com/portainer/portainer/api/bolt/registry"
-	"github.com/portainer/portainer/api/bolt/resourcecontrol"
-	"github.com/portainer/portainer/api/bolt/role"
-	"github.com/portainer/portainer/api/bolt/s3backup"
-	"github.com/portainer/portainer/api/bolt/schedule"
-	"github.com/portainer/portainer/api/bolt/settings"
-	"github.com/portainer/portainer/api/bolt/ssl"
-	"github.com/portainer/portainer/api/bolt/stack"
-	"github.com/portainer/portainer/api/bolt/tag"
-	"github.com/portainer/portainer/api/bolt/team"
-	"github.com/portainer/portainer/api/bolt/teammembership"
-	"github.com/portainer/portainer/api/bolt/tunnelserver"
-	"github.com/portainer/portainer/api/bolt/user"
-	"github.com/portainer/portainer/api/bolt/version"
-	"github.com/portainer/portainer/api/bolt/webhook"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/apikeyrepository"
+	"github.com/portainer/portainer-ee/api/bolt/customtemplate"
+	"github.com/portainer/portainer-ee/api/bolt/dockerhub"
+	"github.com/portainer/portainer-ee/api/bolt/edgegroup"
+	"github.com/portainer/portainer-ee/api/bolt/edgejob"
+	"github.com/portainer/portainer-ee/api/bolt/edgestack"
+	"github.com/portainer/portainer-ee/api/bolt/endpoint"
+	"github.com/portainer/portainer-ee/api/bolt/endpointgroup"
+	"github.com/portainer/portainer-ee/api/bolt/endpointrelation"
+	"github.com/portainer/portainer-ee/api/bolt/extension"
+	"github.com/portainer/portainer-ee/api/bolt/helmuserrepository"
+	"github.com/portainer/portainer-ee/api/bolt/license"
+	"github.com/portainer/portainer-ee/api/bolt/registry"
+	"github.com/portainer/portainer-ee/api/bolt/resourcecontrol"
+	"github.com/portainer/portainer-ee/api/bolt/role"
+	"github.com/portainer/portainer-ee/api/bolt/s3backup"
+	"github.com/portainer/portainer-ee/api/bolt/schedule"
+	"github.com/portainer/portainer-ee/api/bolt/settings"
+	"github.com/portainer/portainer-ee/api/bolt/ssl"
+	"github.com/portainer/portainer-ee/api/bolt/stack"
+	"github.com/portainer/portainer-ee/api/bolt/tag"
+	"github.com/portainer/portainer-ee/api/bolt/team"
+	"github.com/portainer/portainer-ee/api/bolt/teammembership"
+	"github.com/portainer/portainer-ee/api/bolt/tunnelserver"
+	"github.com/portainer/portainer-ee/api/bolt/user"
+	"github.com/portainer/portainer-ee/api/bolt/version"
+	"github.com/portainer/portainer-ee/api/bolt/webhook"
 )
 
 func (store *Store) initServices() error {
@@ -198,120 +198,120 @@ func (store *Store) initServices() error {
 }
 
 // CustomTemplate gives access to the CustomTemplate data management layer
-func (store *Store) CustomTemplate() portainer.CustomTemplateService {
+func (store *Store) CustomTemplate() portaineree.CustomTemplateService {
 	return store.CustomTemplateService
 }
 
 // EdgeGroup gives access to the EdgeGroup data management layer
-func (store *Store) EdgeGroup() portainer.EdgeGroupService {
+func (store *Store) EdgeGroup() portaineree.EdgeGroupService {
 	return store.EdgeGroupService
 }
 
 // EdgeJob gives access to the EdgeJob data management layer
-func (store *Store) EdgeJob() portainer.EdgeJobService {
+func (store *Store) EdgeJob() portaineree.EdgeJobService {
 	return store.EdgeJobService
 }
 
 // EdgeStack gives access to the EdgeStack data management layer
-func (store *Store) EdgeStack() portainer.EdgeStackService {
+func (store *Store) EdgeStack() portaineree.EdgeStackService {
 	return store.EdgeStackService
 }
 
 // Environment(Endpoint) gives access to the Environment(Endpoint) data management layer
-func (store *Store) Endpoint() portainer.EndpointService {
+func (store *Store) Endpoint() portaineree.EndpointService {
 	return store.EndpointService
 }
 
 // EndpointGroup gives access to the EndpointGroup data management layer
-func (store *Store) EndpointGroup() portainer.EndpointGroupService {
+func (store *Store) EndpointGroup() portaineree.EndpointGroupService {
 	return store.EndpointGroupService
 }
 
 // EndpointRelation gives access to the EndpointRelation data management layer
-func (store *Store) EndpointRelation() portainer.EndpointRelationService {
+func (store *Store) EndpointRelation() portaineree.EndpointRelationService {
 	return store.EndpointRelationService
 }
 
-func (store *Store) HelmUserRepository() portainer.HelmUserRepositoryService {
+func (store *Store) HelmUserRepository() portaineree.HelmUserRepositoryService {
 	return store.HelmUserRepositoryService
 }
 
 // License provides access to the License data management layer
-func (store *Store) License() portainer.LicenseRepository {
+func (store *Store) License() portaineree.LicenseRepository {
 	return store.LicenseService
 }
 
 // Registry gives access to the Registry data management layer
-func (store *Store) Registry() portainer.RegistryService {
+func (store *Store) Registry() portaineree.RegistryService {
 	return store.RegistryService
 }
 
 // ResourceControl gives access to the ResourceControl data management layer
-func (store *Store) ResourceControl() portainer.ResourceControlService {
+func (store *Store) ResourceControl() portaineree.ResourceControlService {
 	return store.ResourceControlService
 }
 
 // Role gives access to the Role data management layer
-func (store *Store) Role() portainer.RoleService {
+func (store *Store) Role() portaineree.RoleService {
 	return store.RoleService
 }
 
 // APIKeyRepository gives access to the api-key data management layer
-func (store *Store) APIKeyRepository() portainer.APIKeyRepository {
+func (store *Store) APIKeyRepository() portaineree.APIKeyRepository {
 	return store.APIKeyRepositoryService
 }
 
 // S3Backup gives access to S3 backup settings and status
-func (store *Store) S3Backup() portainer.S3BackupService {
+func (store *Store) S3Backup() portaineree.S3BackupService {
 	return store.S3BackupService
 }
 
 // Settings gives access to the Settings data management layer
-func (store *Store) Settings() portainer.SettingsService {
+func (store *Store) Settings() portaineree.SettingsService {
 	return store.SettingsService
 }
 
 // SSLSettings gives access to the SSL Settings data management layer
-func (store *Store) SSLSettings() portainer.SSLSettingsService {
+func (store *Store) SSLSettings() portaineree.SSLSettingsService {
 	return store.SSLSettingsService
 }
 
 // Stack gives access to the Stack data management layer
-func (store *Store) Stack() portainer.StackService {
+func (store *Store) Stack() portaineree.StackService {
 	return store.StackService
 }
 
 // Tag gives access to the Tag data management layer
-func (store *Store) Tag() portainer.TagService {
+func (store *Store) Tag() portaineree.TagService {
 	return store.TagService
 }
 
 // TeamMembership gives access to the TeamMembership data management layer
-func (store *Store) TeamMembership() portainer.TeamMembershipService {
+func (store *Store) TeamMembership() portaineree.TeamMembershipService {
 	return store.TeamMembershipService
 }
 
 // Team gives access to the Team data management layer
-func (store *Store) Team() portainer.TeamService {
+func (store *Store) Team() portaineree.TeamService {
 	return store.TeamService
 }
 
 // TunnelServer gives access to the TunnelServer data management layer
-func (store *Store) TunnelServer() portainer.TunnelServerService {
+func (store *Store) TunnelServer() portaineree.TunnelServerService {
 	return store.TunnelServerService
 }
 
 // User gives access to the User data management layer
-func (store *Store) User() portainer.UserService {
+func (store *Store) User() portaineree.UserService {
 	return store.UserService
 }
 
 // Version gives access to the Version data management layer
-func (store *Store) Version() portainer.VersionService {
+func (store *Store) Version() portaineree.VersionService {
 	return store.VersionService
 }
 
 // Webhook gives access to the Webhook data management layer
-func (store *Store) Webhook() portainer.WebhookService {
+func (store *Store) Webhook() portaineree.WebhookService {
 	return store.WebhookService
 }

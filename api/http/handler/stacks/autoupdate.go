@@ -6,12 +6,12 @@ import (
 	"time"
 
 	httperror "github.com/portainer/libhttp/error"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/scheduler"
-	"github.com/portainer/portainer/api/stacks"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/scheduler"
+	"github.com/portainer/portainer-ee/api/stacks"
 )
 
-func startAutoupdate(stackID portainer.StackID, interval string, scheduler *scheduler.Scheduler, stackDeployer stacks.StackDeployer, datastore portainer.DataStore, gitService portainer.GitService, activityService portainer.UserActivityService) (jobID string, e *httperror.HandlerError) {
+func startAutoupdate(stackID portaineree.StackID, interval string, scheduler *scheduler.Scheduler, stackDeployer stacks.StackDeployer, datastore portaineree.DataStore, gitService portaineree.GitService, activityService portaineree.UserActivityService) (jobID string, e *httperror.HandlerError) {
 	d, err := time.ParseDuration(interval)
 	if err != nil {
 		return "", &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Unable to parse stack's auto update interval", Err: err}
@@ -24,7 +24,7 @@ func startAutoupdate(stackID portainer.StackID, interval string, scheduler *sche
 	return jobID, nil
 }
 
-func stopAutoupdate(stackID portainer.StackID, jobID string, scheduler scheduler.Scheduler) {
+func stopAutoupdate(stackID portaineree.StackID, jobID string, scheduler scheduler.Scheduler) {
 	if jobID == "" {
 		return
 	}

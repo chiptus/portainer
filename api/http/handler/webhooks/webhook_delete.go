@@ -6,9 +6,9 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/middlewares"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
 )
 
 // @summary Delete a webhook
@@ -27,7 +27,7 @@ func (handler *Handler) webhookDelete(w http.ResponseWriter, r *http.Request) *h
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid webhook id", err}
 	}
 
-	webhook, err := handler.dataStore.Webhook().Webhook(portainer.WebhookID(id))
+	webhook, err := handler.dataStore.Webhook().Webhook(portaineree.WebhookID(id))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a webhook with this token", err}
 	} else if err != nil {
@@ -41,7 +41,7 @@ func (handler *Handler) webhookDelete(w http.ResponseWriter, r *http.Request) *h
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
 	}
 
-	err = handler.dataStore.Webhook().DeleteWebhook(portainer.WebhookID(id))
+	err = handler.dataStore.Webhook().DeleteWebhook(portaineree.WebhookID(id))
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove the webhook from the database", err}
 	}

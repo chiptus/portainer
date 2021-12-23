@@ -10,8 +10,8 @@ import (
 	"github.com/gorilla/websocket"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // @summary Attach a websocket
@@ -47,7 +47,7 @@ func (handler *Handler) websocketAttach(w http.ResponseWriter, r *http.Request) 
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: endpointId", err}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == errors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find the environment associated to the stack inside the database", err}
 	} else if err != nil {
@@ -77,9 +77,9 @@ func (handler *Handler) handleAttachRequest(w http.ResponseWriter, r *http.Reque
 
 	r.Header.Del("Origin")
 
-	if params.endpoint.Type == portainer.AgentOnDockerEnvironment {
+	if params.endpoint.Type == portaineree.AgentOnDockerEnvironment {
 		return handler.proxyAgentWebsocketRequest(w, r, params)
-	} else if params.endpoint.Type == portainer.EdgeAgentOnDockerEnvironment {
+	} else if params.endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment {
 		return handler.proxyEdgeAgentWebsocketRequest(w, r, params)
 	}
 
@@ -92,7 +92,7 @@ func (handler *Handler) handleAttachRequest(w http.ResponseWriter, r *http.Reque
 	return hijackAttachStartOperation(websocketConn, params.endpoint, params.ID)
 }
 
-func hijackAttachStartOperation(websocketConn *websocket.Conn, endpoint *portainer.Endpoint, attachID string) error {
+func hijackAttachStartOperation(websocketConn *websocket.Conn, endpoint *portaineree.Endpoint, attachID string) error {
 	dial, err := initDial(endpoint)
 	if err != nil {
 		return err

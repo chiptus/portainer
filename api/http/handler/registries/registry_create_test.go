@@ -7,9 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
-	helper "github.com/portainer/portainer/api/internal/testhelpers"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
+	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,33 +17,33 @@ func Test_registryCreatePayload_Validate(t *testing.T) {
 	basePayload := registryCreatePayload{Name: "Test registry", URL: "http://example.com"}
 	t.Run("Can't create a ProGet registry if BaseURL is empty", func(t *testing.T) {
 		payload := basePayload
-		payload.Type = portainer.ProGetRegistry
+		payload.Type = portaineree.ProGetRegistry
 		err := payload.Validate(nil)
 		assert.Error(t, err)
 	})
 	t.Run("Can create a GitLab registry if BaseURL is empty", func(t *testing.T) {
 		payload := basePayload
-		payload.Type = portainer.GitlabRegistry
+		payload.Type = portaineree.GitlabRegistry
 		err := payload.Validate(nil)
 		assert.NoError(t, err)
 	})
 	t.Run("Can create a ProGet registry if BaseURL is not empty", func(t *testing.T) {
 		payload := basePayload
-		payload.Type = portainer.ProGetRegistry
+		payload.Type = portaineree.ProGetRegistry
 		payload.BaseURL = "http://example.com"
 		err := payload.Validate(nil)
 		assert.NoError(t, err)
 	})
 	t.Run("Can't create a AWS ECR registry if authentication required, but access key ID, secret access key or region is empty", func(t *testing.T) {
 		payload := basePayload
-		payload.Type = portainer.EcrRegistry
+		payload.Type = portaineree.EcrRegistry
 		payload.Authentication = true
 		err := payload.Validate(nil)
 		assert.Error(t, err)
 	})
 	t.Run("Do not require access key ID, secret access key, region for public AWS ECR registry", func(t *testing.T) {
 		payload := basePayload
-		payload.Type = portainer.EcrRegistry
+		payload.Type = portaineree.EcrRegistry
 		payload.Authentication = false
 		err := payload.Validate(nil)
 		assert.NoError(t, err)
@@ -51,47 +51,47 @@ func Test_registryCreatePayload_Validate(t *testing.T) {
 }
 
 type testRegistryService struct {
-	portainer.RegistryService
-	createRegistry func(r *portainer.Registry) error
-	updateRegistry func(ID portainer.RegistryID, r *portainer.Registry) error
-	getRegistry    func(ID portainer.RegistryID) (*portainer.Registry, error)
+	portaineree.RegistryService
+	createRegistry func(r *portaineree.Registry) error
+	updateRegistry func(ID portaineree.RegistryID, r *portaineree.Registry) error
+	getRegistry    func(ID portaineree.RegistryID) (*portaineree.Registry, error)
 }
 
 type testDataStore struct {
-	portainer.DataStore
+	portaineree.DataStore
 	registry *testRegistryService
 }
 
-func (t testDataStore) Registry() portainer.RegistryService {
+func (t testDataStore) Registry() portaineree.RegistryService {
 	return t.registry
 }
 
-func (t testRegistryService) CreateRegistry(r *portainer.Registry) error {
+func (t testRegistryService) CreateRegistry(r *portaineree.Registry) error {
 	return t.createRegistry(r)
 }
 
-func (t testRegistryService) UpdateRegistry(ID portainer.RegistryID, r *portainer.Registry) error {
+func (t testRegistryService) UpdateRegistry(ID portaineree.RegistryID, r *portaineree.Registry) error {
 	return t.updateRegistry(ID, r)
 }
 
-func (t testRegistryService) Registry(ID portainer.RegistryID) (*portainer.Registry, error) {
+func (t testRegistryService) Registry(ID portaineree.RegistryID) (*portaineree.Registry, error) {
 	return t.getRegistry(ID)
 }
 
-func (t testRegistryService) Registries() ([]portainer.Registry, error) {
+func (t testRegistryService) Registries() ([]portaineree.Registry, error) {
 	return nil, nil
 }
 
 func TestHandler_registryCreate(t *testing.T) {
 	payload := registryCreatePayload{
 		Name:           "Test registry",
-		Type:           portainer.ProGetRegistry,
+		Type:           portaineree.ProGetRegistry,
 		URL:            "http://example.com",
 		BaseURL:        "http://example.com",
 		Authentication: false,
 		Username:       "username",
 		Password:       "password",
-		Gitlab:         portainer.GitlabRegistryData{},
+		Gitlab:         portaineree.GitlabRegistryData{},
 	}
 	payloadBytes, err := json.Marshal(payload)
 	assert.NoError(t, err)
@@ -100,17 +100,17 @@ func TestHandler_registryCreate(t *testing.T) {
 
 	restrictedContext := &security.RestrictedRequestContext{
 		IsAdmin: true,
-		UserID:  portainer.UserID(1),
+		UserID:  portaineree.UserID(1),
 	}
 
 	ctx := security.StoreRestrictedRequestContext(r, restrictedContext)
 	r = r.WithContext(ctx)
 
-	registry := portainer.Registry{}
+	registry := portaineree.Registry{}
 	handler := NewHandler(helper.NewTestRequestBouncer(), helper.NewUserActivityService())
 	handler.DataStore = testDataStore{
 		registry: &testRegistryService{
-			createRegistry: func(r *portainer.Registry) error {
+			createRegistry: func(r *portaineree.Registry) error {
 				registry = *r
 				return nil
 			},

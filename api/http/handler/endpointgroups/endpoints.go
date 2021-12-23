@@ -1,17 +1,17 @@
 package endpointgroups
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/internal/edge"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/edge"
 )
 
-func (handler *Handler) updateEndpointRelations(endpoint *portainer.Endpoint, endpointGroup *portainer.EndpointGroup) error {
-	if endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment && endpoint.Type != portainer.EdgeAgentOnDockerEnvironment {
+func (handler *Handler) updateEndpointRelations(endpoint *portaineree.Endpoint, endpointGroup *portaineree.EndpointGroup) error {
+	if endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment && endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment {
 		return nil
 	}
 
 	if endpointGroup == nil {
-		unassignedGroup, err := handler.DataStore.EndpointGroup().EndpointGroup(portainer.EndpointGroupID(1))
+		unassignedGroup, err := handler.DataStore.EndpointGroup().EndpointGroup(portaineree.EndpointGroupID(1))
 		if err != nil {
 			return err
 		}
@@ -35,7 +35,7 @@ func (handler *Handler) updateEndpointRelations(endpoint *portainer.Endpoint, en
 	}
 
 	endpointStacks := edge.EndpointRelatedEdgeStacks(endpoint, endpointGroup, edgeGroups, edgeStacks)
-	stacksSet := map[portainer.EdgeStackID]bool{}
+	stacksSet := map[portaineree.EdgeStackID]bool{}
 	for _, edgeStackID := range endpointStacks {
 		stacksSet[edgeStackID] = true
 	}

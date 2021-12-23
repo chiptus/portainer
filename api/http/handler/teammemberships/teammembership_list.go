@@ -5,8 +5,8 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
-	"github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id TeamMembershipList
@@ -17,7 +17,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @success 200 {array} portainer.TeamMembership "Success"
+// @success 200 {array} portaineree.TeamMembership "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 500 "Server error"

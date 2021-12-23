@@ -6,12 +6,12 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type logsListResponse struct {
-	Logs       []*portainer.UserActivityLog `json:"logs"`
-	TotalCount int                          `json:"totalCount"`
+	Logs       []*portaineree.UserActivityLog `json:"logs"`
+	TotalCount int                            `json:"totalCount"`
 }
 
 // @id LogsList
@@ -41,7 +41,7 @@ func (handler *Handler) logsList(w http.ResponseWriter, r *http.Request) *httper
 	sortDesc, _ := request.RetrieveBooleanQueryParameter(r, "sortDesc", true)
 	keyword, _ := request.RetrieveQueryParameter(r, "keyword", true)
 
-	opts := portainer.UserActivityLogBaseQuery{
+	opts := portaineree.UserActivityLogBaseQuery{
 		Offset:          offset,
 		Limit:           limit,
 		BeforeTimestamp: int64(before),

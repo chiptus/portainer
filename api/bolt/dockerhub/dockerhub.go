@@ -1,8 +1,8 @@
 package dockerhub
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 )
 
 const (
@@ -29,8 +29,8 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // DockerHub returns the DockerHub object.
-func (service *Service) DockerHub() (*portainer.DockerHub, error) {
-	var dockerhub portainer.DockerHub
+func (service *Service) DockerHub() (*portaineree.DockerHub, error) {
+	var dockerhub portaineree.DockerHub
 
 	err := internal.GetObject(service.connection, BucketName, []byte(dockerHubKey), &dockerhub)
 	if err != nil {
@@ -41,6 +41,6 @@ func (service *Service) DockerHub() (*portainer.DockerHub, error) {
 }
 
 // UpdateDockerHub updates a DockerHub object.
-func (service *Service) UpdateDockerHub(dockerhub *portainer.DockerHub) error {
+func (service *Service) UpdateDockerHub(dockerhub *portaineree.DockerHub) error {
 	return internal.UpdateObject(service.connection, BucketName, []byte(dockerHubKey), dockerhub)
 }

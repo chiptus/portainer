@@ -8,7 +8,7 @@ import (
 
 	storm "github.com/asdine/storm/v3"
 	"github.com/asdine/storm/v3/q"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 func (store *Store) startCleanupLoop() error {
@@ -58,13 +58,13 @@ func (store *Store) stopCleanupLoop() {
 }
 
 func (store *Store) cleanLogs() error {
-	count, err := store.cleanLogsByType(&portainer.AuthActivityLog{})
+	count, err := store.cleanLogsByType(&portaineree.AuthActivityLog{})
 	if err != nil {
 		return fmt.Errorf("failed cleaning auth logs: %w", err)
 	}
 	log.Printf("[DEBUG] [message: removed %d old auth logs]", count)
 
-	count, err = store.cleanLogsByType(&portainer.UserActivityLog{})
+	count, err = store.cleanLogsByType(&portaineree.UserActivityLog{})
 	if err != nil {
 		return fmt.Errorf("failed cleaning user activity logs: %w", err)
 	}

@@ -5,7 +5,7 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
-	"github.com/portainer/portainer/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id TeamList
@@ -16,7 +16,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @success 200 {array} portainer.Team "Success"
+// @success 200 {array} portaineree.Team "Success"
 // @failure 500 "Server error"
 // @router /teams [get]
 func (handler *Handler) teamList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {

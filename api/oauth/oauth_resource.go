@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
-func getUsername(datamap map[string]interface{}, configuration *portainer.OAuthSettings) (string, error) {
+func getUsername(datamap map[string]interface{}, configuration *portaineree.OAuthSettings) (string, error) {
 	username, ok := datamap[configuration.UserIdentifier].(string)
 	if ok && username != "" {
 		return username, nil
@@ -57,7 +57,7 @@ func getNestedClaimValues(claimVal interface{}) ([]string, error) {
 	}
 }
 
-func getTeams(datamap map[string]interface{}, configuration *portainer.OAuthSettings) ([]string, error) {
+func getTeams(datamap map[string]interface{}, configuration *portaineree.OAuthSettings) ([]string, error) {
 	if configuration.OAuthAutoMapTeamMemberships && configuration.TeamMemberships.OAuthClaimName != "" {
 		teamClaimValues, ok := datamap[configuration.TeamMemberships.OAuthClaimName]
 		if !ok {

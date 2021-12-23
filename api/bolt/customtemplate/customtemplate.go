@@ -2,8 +2,8 @@ package customtemplate
 
 import (
 	"github.com/boltdb/bolt"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 )
 
 const (
@@ -29,15 +29,15 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // CustomTemplates return an array containing all the custom templates.
-func (service *Service) CustomTemplates() ([]portainer.CustomTemplate, error) {
-	var customTemplates = make([]portainer.CustomTemplate, 0)
+func (service *Service) CustomTemplates() ([]portaineree.CustomTemplate, error) {
+	var customTemplates = make([]portaineree.CustomTemplate, 0)
 
 	err := service.connection.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var customTemplate portainer.CustomTemplate
+			var customTemplate portaineree.CustomTemplate
 			err := internal.UnmarshalObjectWithJsoniter(v, &customTemplate)
 			if err != nil {
 				return err
@@ -52,8 +52,8 @@ func (service *Service) CustomTemplates() ([]portainer.CustomTemplate, error) {
 }
 
 // CustomTemplate returns an custom template by ID.
-func (service *Service) CustomTemplate(ID portainer.CustomTemplateID) (*portainer.CustomTemplate, error) {
-	var customTemplate portainer.CustomTemplate
+func (service *Service) CustomTemplate(ID portaineree.CustomTemplateID) (*portaineree.CustomTemplate, error) {
+	var customTemplate portaineree.CustomTemplate
 	identifier := internal.Itob(int(ID))
 
 	err := internal.GetObject(service.connection, BucketName, identifier, &customTemplate)
@@ -65,19 +65,19 @@ func (service *Service) CustomTemplate(ID portainer.CustomTemplateID) (*portaine
 }
 
 // UpdateCustomTemplate updates an custom template.
-func (service *Service) UpdateCustomTemplate(ID portainer.CustomTemplateID, customTemplate *portainer.CustomTemplate) error {
+func (service *Service) UpdateCustomTemplate(ID portaineree.CustomTemplateID, customTemplate *portaineree.CustomTemplate) error {
 	identifier := internal.Itob(int(ID))
 	return internal.UpdateObject(service.connection, BucketName, identifier, customTemplate)
 }
 
 // DeleteCustomTemplate deletes an custom template.
-func (service *Service) DeleteCustomTemplate(ID portainer.CustomTemplateID) error {
+func (service *Service) DeleteCustomTemplate(ID portaineree.CustomTemplateID) error {
 	identifier := internal.Itob(int(ID))
 	return internal.DeleteObject(service.connection, BucketName, identifier)
 }
 
 // CreateCustomTemplate assign an ID to a new custom template and saves it.
-func (service *Service) CreateCustomTemplate(customTemplate *portainer.CustomTemplate) error {
+func (service *Service) CreateCustomTemplate(customTemplate *portaineree.CustomTemplate) error {
 	return service.connection.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 

@@ -2,14 +2,15 @@ package registryutils
 
 import (
 	"fmt"
-	portainer "github.com/portainer/portainer/api"
 	"regexp"
+
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 var registryIdRule = regexp.MustCompile(`^(?P<registryid>[0-9]{12}).*`)
 
-func GetRegistryId(registry *portainer.Registry) (registryId string, err error) {
-	if registry.Type != portainer.EcrRegistry {
+func GetRegistryId(registry *portaineree.Registry) (registryId string, err error) {
+	if registry.Type != portaineree.EcrRegistry {
 		err = fmt.Errorf("invalid registry type to get ECR registry ID")
 		return
 	}

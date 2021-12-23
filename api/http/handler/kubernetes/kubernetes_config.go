@@ -9,10 +9,10 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/endpointutils"
-	kcli "github.com/portainer/portainer/api/kubernetes/cli"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	kcli "github.com/portainer/portainer-ee/api/kubernetes/cli"
 	clientV1 "k8s.io/client-go/tools/clientcmd/api/v1"
 )
 
@@ -60,11 +60,11 @@ func (handler *Handler) getKubernetesConfig(w http.ResponseWriter, r *http.Reque
 	return writeFileContent(w, r, endpoints, tokenData, config)
 }
 
-func (handler *Handler) filterUserKubeEndpoints(r *http.Request) ([]portainer.Endpoint, *httperror.HandlerError) {
-	var endpointIDs []portainer.EndpointID
+func (handler *Handler) filterUserKubeEndpoints(r *http.Request) ([]portaineree.Endpoint, *httperror.HandlerError) {
+	var endpointIDs []portaineree.EndpointID
 	_ = request.RetrieveJSONQueryParameter(r, "ids", &endpointIDs, true)
 
-	var excludeEndpointIDs []portainer.EndpointID
+	var excludeEndpointIDs []portaineree.EndpointID
 	_ = request.RetrieveJSONQueryParameter(r, "excludeIds", &excludeEndpointIDs, true)
 
 	if len(endpointIDs) > 0 && len(excludeEndpointIDs) > 0 {
@@ -82,7 +82,7 @@ func (handler *Handler) filterUserKubeEndpoints(r *http.Request) ([]portainer.En
 	}
 
 	if len(endpointIDs) > 0 {
-		var endpoints []portainer.Endpoint
+		var endpoints []portaineree.Endpoint
 		for _, endpointID := range endpointIDs {
 			endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
 			if err != nil {
@@ -97,7 +97,7 @@ func (handler *Handler) filterUserKubeEndpoints(r *http.Request) ([]portainer.En
 		return filteredEndpoints, nil
 	}
 
-	var kubeEndpoints []portainer.Endpoint
+	var kubeEndpoints []portaineree.Endpoint
 	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
 		return nil, &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve environments from the database", err}
@@ -116,7 +116,7 @@ func (handler *Handler) filterUserKubeEndpoints(r *http.Request) ([]portainer.En
 	return filteredEndpoints, nil
 }
 
-func (handler *Handler) buildConfig(r *http.Request, tokenData *portainer.TokenData, bearerToken string, endpoints []portainer.Endpoint) (*clientV1.Config, *httperror.HandlerError) {
+func (handler *Handler) buildConfig(r *http.Request, tokenData *portaineree.TokenData, bearerToken string, endpoints []portaineree.Endpoint) (*clientV1.Config, *httperror.HandlerError) {
 	configClusters := make([]clientV1.NamedCluster, len(endpoints))
 	configContexts := make([]clientV1.NamedContext, len(endpoints))
 	var configAuthInfos []clientV1.NamedAuthInfo
@@ -144,7 +144,7 @@ func (handler *Handler) buildConfig(r *http.Request, tokenData *portainer.TokenD
 	}, nil
 }
 
-func buildCluster(r *http.Request, baseURL string, endpoint portainer.Endpoint) clientV1.NamedCluster {
+func buildCluster(r *http.Request, baseURL string, endpoint portaineree.Endpoint) clientV1.NamedCluster {
 	if baseURL != "/" {
 		baseURL = fmt.Sprintf("/%s/", strings.Trim(baseURL, "/"))
 	}
@@ -162,7 +162,7 @@ func buildClusterName(endpointName string) string {
 	return fmt.Sprintf("portainer-cluster-%s", endpointName)
 }
 
-func buildContext(serviceAccountName string, endpoint portainer.Endpoint) clientV1.NamedContext {
+func buildContext(serviceAccountName string, endpoint portaineree.Endpoint) clientV1.NamedContext {
 	contextName := fmt.Sprintf("portainer-ctx-%s", endpoint.Name)
 	return clientV1.NamedContext{
 		Name: contextName,
@@ -182,7 +182,7 @@ func buildAuthInfo(serviceAccountName string, bearerToken string) clientV1.Named
 	}
 }
 
-func writeFileContent(w http.ResponseWriter, r *http.Request, endpoints []portainer.Endpoint, tokenData *portainer.TokenData, config *clientV1.Config) *httperror.HandlerError {
+func writeFileContent(w http.ResponseWriter, r *http.Request, endpoints []portaineree.Endpoint, tokenData *portaineree.TokenData, config *clientV1.Config) *httperror.HandlerError {
 	filenameSuffix := "kubeconfig"
 	if len(endpoints) == 1 {
 		filenameSuffix = endpoints[0].Name

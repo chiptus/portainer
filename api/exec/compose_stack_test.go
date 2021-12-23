@@ -6,7 +6,7 @@ import (
 	"path"
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,30 +15,30 @@ func Test_createEnvFile(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		stack        *portainer.Stack
+		stack        *portaineree.Stack
 		expected     string
 		expectedFile bool
 	}{
 		{
 			name: "should not add env file option if stack doesn't have env variables",
-			stack: &portainer.Stack{
+			stack: &portaineree.Stack{
 				ProjectPath: dir,
 			},
 			expected: "",
 		},
 		{
 			name: "should not add env file option if stack's env variables are empty",
-			stack: &portainer.Stack{
+			stack: &portaineree.Stack{
 				ProjectPath: dir,
-				Env:         []portainer.Pair{},
+				Env:         []portaineree.Pair{},
 			},
 			expected: "",
 		},
 		{
 			name: "should add env file option if stack has env variables",
-			stack: &portainer.Stack{
+			stack: &portaineree.Stack{
 				ProjectPath: dir,
-				Env: []portainer.Pair{
+				Env: []portaineree.Pair{
 					{Name: "var1", Value: "value1"},
 					{Name: "var2", Value: "value2"},
 				},
@@ -82,10 +82,10 @@ networks:
 		t.Fatalf("Failed to create yaml file: %s", err)
 	}
 
-	stackWithoutEnv := &portainer.Stack{
+	stackWithoutEnv := &portaineree.Stack{
 		ProjectPath: dir,
 		EntryPoint:  "docker-compose.yml",
-		Env:         []portainer.Pair{},
+		Env:         []portaineree.Pair{},
 	}
 
 	if err := createNetworkEnvFile(stackWithoutEnv); err != nil {
@@ -99,10 +99,10 @@ networks:
 
 	assert.Equal(t, "test=None\n", string(content))
 
-	stackWithEnv := &portainer.Stack{
+	stackWithEnv := &portaineree.Stack{
 		ProjectPath: dir,
 		EntryPoint:  "docker-compose.yml",
-		Env: []portainer.Pair{
+		Env: []portaineree.Pair{
 			{Name: "test", Value: "test-value"},
 		},
 	}

@@ -7,11 +7,11 @@ import (
 	"path"
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 func TestCreateBackupFolders(t *testing.T) {
-	store := NewTestStore(portainer.PortainerEE, portainer.DBVersionEE, false)
+	store := NewTestStore(portaineree.PortainerEE, portaineree.DBVersionEE, false)
 	if exists, _ := store.fileService.FileExists("tmp/backups"); exists {
 		t.Error("Expect backups folder to not exist")
 	}
@@ -25,12 +25,12 @@ func TestCreateBackupFolders(t *testing.T) {
 }
 
 func TestStoreCreation(t *testing.T) {
-	store := NewTestStore(portainer.PortainerEE, portainer.DBVersionEE, false)
+	store := NewTestStore(portaineree.PortainerEE, portaineree.DBVersionEE, false)
 	if store == nil {
 		t.Error("Expect to create a store")
 	}
 
-	if store.edition() != portainer.PortainerEE {
+	if store.edition() != portaineree.PortainerEE {
 		t.Error("Expect to get EE Edition")
 	}
 
@@ -39,7 +39,7 @@ func TestStoreCreation(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	if version != portainer.DBVersionEE {
+	if version != portaineree.DBVersionEE {
 		t.Error("Expect to get EE DBVersion")
 	}
 
@@ -50,11 +50,11 @@ func TestStoreCreation(t *testing.T) {
 func TestBackup(t *testing.T) {
 
 	tests := []struct {
-		edition portainer.SoftwareEdition
+		edition portaineree.SoftwareEdition
 		version int
 	}{
-		{edition: portainer.PortainerCE, version: portainer.DBVersion},
-		{edition: portainer.PortainerEE, version: portainer.DBVersionEE},
+		{edition: portaineree.PortainerCE, version: portaineree.DBVersion},
+		{edition: portaineree.PortainerEE, version: portaineree.DBVersionEE},
 	}
 
 	for _, tc := range tests {
@@ -70,12 +70,12 @@ func TestBackup(t *testing.T) {
 		})
 	}
 	t.Run("BackupWithOption should create a name specific backup", func(t *testing.T) {
-		edition := portainer.PortainerCE
-		version := portainer.DBVersion
+		edition := portaineree.PortainerCE
+		version := portaineree.DBVersion
 		store := NewTestStore(edition, version, false)
 		store.BackupWithOptions(&BackupOptions{
 			BackupFileName: beforePortainerUpgradeToEEBackup,
-			Edition:        portainer.PortainerCE,
+			Edition:        portaineree.PortainerCE,
 		})
 		backupFileName := fmt.Sprintf("tmp/backups/%s/%s", edition.GetEditionLabel(), beforePortainerUpgradeToEEBackup)
 		if !isFileExist(backupFileName) {
@@ -84,7 +84,7 @@ func TestBackup(t *testing.T) {
 		store.Close()
 	})
 	t.Run("BackupWithOption should create a name specific backup at common path", func(t *testing.T) {
-		store := NewTestStore(portainer.PortainerCE, portainer.DBVersion, false)
+		store := NewTestStore(portaineree.PortainerCE, portaineree.DBVersion, false)
 		store.BackupWithOptions(&BackupOptions{
 			BackupFileName: beforePortainerVersionUpgradeBackup,
 			BackupDir:      store.commonBackupDir(),
@@ -102,7 +102,7 @@ func TestBackup(t *testing.T) {
 // TODO restore / backup failed test cases
 func TestRestore(t *testing.T) {
 
-	editions := []portainer.SoftwareEdition{portainer.PortainerCE, portainer.PortainerEE}
+	editions := []portaineree.SoftwareEdition{portaineree.PortainerCE, portaineree.PortainerEE}
 	var currentVersion = 0
 
 	for i, e := range editions {
@@ -132,7 +132,7 @@ func TestRestore(t *testing.T) {
 }
 
 func TestRemoveWithOptions(t *testing.T) {
-	store := NewTestStore(portainer.PortainerCE, portainer.DBVersion, false)
+	store := NewTestStore(portaineree.PortainerCE, portaineree.DBVersion, false)
 
 	t.Run("successfully removes file if existent", func(t *testing.T) {
 		store.createBackupFolders()

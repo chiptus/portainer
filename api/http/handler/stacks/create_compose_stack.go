@@ -11,11 +11,11 @@ import (
 	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/stackutils"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/stackutils"
 )
 
 type composeStackFromFileContentPayload struct {
@@ -24,7 +24,7 @@ type composeStackFromFileContentPayload struct {
 	// Content of the Stack file
 	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx" validate:"required"`
 	// A list of environment(endpoint) variables used during stack deployment
-	Env []portainer.Pair
+	Env []portaineree.Pair
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
 }
@@ -39,8 +39,8 @@ func (payload *composeStackFromFileContentPayload) Validate(r *http.Request) err
 	}
 	return nil
 }
-func (handler *Handler) checkAndCleanStackDupFromSwarm(w http.ResponseWriter, r *http.Request, endpoint *portainer.Endpoint, userID portainer.UserID, stack *portainer.Stack) error {
-	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portainer.StackResourceControl)
+func (handler *Handler) checkAndCleanStackDupFromSwarm(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portaineree.UserID, stack *portaineree.Stack) error {
+	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portaineree.StackResourceControl)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (handler *Handler) checkAndCleanStackDupFromSwarm(w http.ResponseWriter, r 
 	return nil
 }
 
-func (handler *Handler) createComposeStackFromFileContent(w http.ResponseWriter, r *http.Request, endpoint *portainer.Endpoint, userID portainer.UserID) *httperror.HandlerError {
+func (handler *Handler) createComposeStackFromFileContent(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
 	var payload composeStackFromFileContentPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
@@ -89,7 +89,7 @@ func (handler *Handler) createComposeStackFromFileContent(w http.ResponseWriter,
 			return stackExistsError(payload.Name)
 		}
 		for _, stack := range stacks {
-			if stack.Type != portainer.DockerComposeStack && stack.EndpointID == endpoint.ID {
+			if stack.Type != portaineree.DockerComposeStack && stack.EndpointID == endpoint.ID {
 				err := handler.checkAndCleanStackDupFromSwarm(w, r, endpoint, userID, &stack)
 				if err != nil {
 					return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
@@ -101,14 +101,14 @@ func (handler *Handler) createComposeStackFromFileContent(w http.ResponseWriter,
 	}
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
-	stack := &portainer.Stack{
-		ID:              portainer.StackID(stackID),
+	stack := &portaineree.Stack{
+		ID:              portaineree.StackID(stackID),
 		Name:            payload.Name,
-		Type:            portainer.DockerComposeStack,
+		Type:            portaineree.DockerComposeStack,
 		EndpointID:      endpoint.ID,
 		EntryPoint:      filesystem.ComposeFileDefaultName,
 		Env:             payload.Env,
-		Status:          portainer.StackStatusActive,
+		Status:          portaineree.StackStatusActive,
 		CreationDate:    time.Now().Unix(),
 		FromAppTemplate: payload.FromAppTemplate,
 	}
@@ -162,9 +162,9 @@ type composeStackFromGitRepositoryPayload struct {
 	// Applicable when deploying with multiple stack files
 	AdditionalFiles []string `example:"[nz.compose.yml, uat.compose.yml]"`
 	// Optional auto update configuration
-	AutoUpdate *portainer.StackAutoUpdate
+	AutoUpdate *portaineree.StackAutoUpdate
 	// A list of environment(endpoint) variables used during stack deployment
-	Env []portainer.Pair
+	Env []portaineree.Pair
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
 }
@@ -188,7 +188,7 @@ func (payload *composeStackFromGitRepositoryPayload) Validate(r *http.Request) e
 	return nil
 }
 
-func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWriter, r *http.Request, endpoint *portainer.Endpoint, userID portainer.UserID) *httperror.HandlerError {
+func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
 	var payload composeStackFromGitRepositoryPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
@@ -210,7 +210,7 @@ func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWrite
 			return stackExistsError(payload.Name)
 		}
 		for _, stack := range stacks {
-			if stack.Type != portainer.DockerComposeStack && stack.EndpointID == endpoint.ID {
+			if stack.Type != portaineree.DockerComposeStack && stack.EndpointID == endpoint.ID {
 				err := handler.checkAndCleanStackDupFromSwarm(w, r, endpoint, userID, &stack)
 				if err != nil {
 					return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
@@ -233,10 +233,10 @@ func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWrite
 	}
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
-	stack := &portainer.Stack{
-		ID:              portainer.StackID(stackID),
+	stack := &portaineree.Stack{
+		ID:              portaineree.StackID(stackID),
 		Name:            payload.Name,
-		Type:            portainer.DockerComposeStack,
+		Type:            portaineree.DockerComposeStack,
 		EndpointID:      endpoint.ID,
 		EntryPoint:      payload.ComposeFile,
 		AdditionalFiles: payload.AdditionalFiles,
@@ -248,7 +248,7 @@ func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWrite
 			ReferenceName:  payload.RepositoryReferenceName,
 			ConfigFilePath: payload.ComposeFile,
 		},
-		Status:       portainer.StackStatusActive,
+		Status:       portaineree.StackStatusActive,
 		CreationDate: time.Now().Unix(),
 	}
 
@@ -308,7 +308,7 @@ func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWrite
 type composeStackFromFileUploadPayload struct {
 	Name             string
 	StackFileContent []byte
-	Env              []portainer.Pair
+	Env              []portaineree.Pair
 }
 
 func decodeRequestForm(r *http.Request) (*composeStackFromFileUploadPayload, error) {
@@ -325,7 +325,7 @@ func decodeRequestForm(r *http.Request) (*composeStackFromFileUploadPayload, err
 	}
 	payload.StackFileContent = composeFileContent
 
-	var env []portainer.Pair
+	var env []portaineree.Pair
 	err = request.RetrieveMultiPartFormJSONValue(r, "Env", &env, true)
 	if err != nil {
 		return nil, errors.New("Invalid Env parameter")
@@ -334,7 +334,7 @@ func decodeRequestForm(r *http.Request) (*composeStackFromFileUploadPayload, err
 	return payload, nil
 }
 
-func (handler *Handler) createComposeStackFromFileUpload(w http.ResponseWriter, r *http.Request, endpoint *portainer.Endpoint, userID portainer.UserID) *httperror.HandlerError {
+func (handler *Handler) createComposeStackFromFileUpload(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
 	payload, err := decodeRequestForm(r)
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
@@ -352,7 +352,7 @@ func (handler *Handler) createComposeStackFromFileUpload(w http.ResponseWriter, 
 			return stackExistsError(payload.Name)
 		}
 		for _, stack := range stacks {
-			if stack.Type != portainer.DockerComposeStack && stack.EndpointID == endpoint.ID {
+			if stack.Type != portaineree.DockerComposeStack && stack.EndpointID == endpoint.ID {
 				err := handler.checkAndCleanStackDupFromSwarm(w, r, endpoint, userID, &stack)
 				if err != nil {
 					return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
@@ -364,14 +364,14 @@ func (handler *Handler) createComposeStackFromFileUpload(w http.ResponseWriter, 
 	}
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
-	stack := &portainer.Stack{
-		ID:           portainer.StackID(stackID),
+	stack := &portaineree.Stack{
+		ID:           portaineree.StackID(stackID),
 		Name:         payload.Name,
-		Type:         portainer.DockerComposeStack,
+		Type:         portaineree.DockerComposeStack,
 		EndpointID:   endpoint.ID,
 		EntryPoint:   filesystem.ComposeFileDefaultName,
 		Env:          payload.Env,
-		Status:       portainer.StackStatusActive,
+		Status:       portaineree.StackStatusActive,
 		CreationDate: time.Now().Unix(),
 	}
 
@@ -407,14 +407,14 @@ func (handler *Handler) createComposeStackFromFileUpload(w http.ResponseWriter, 
 }
 
 type composeStackDeploymentConfig struct {
-	stack      *portainer.Stack
-	endpoint   *portainer.Endpoint
-	registries []portainer.Registry
+	stack      *portaineree.Stack
+	endpoint   *portaineree.Endpoint
+	registries []portaineree.Registry
 	isAdmin    bool
-	user       *portainer.User
+	user       *portaineree.User
 }
 
-func (handler *Handler) createComposeDeployConfig(r *http.Request, stack *portainer.Stack, endpoint *portainer.Endpoint) (*composeStackDeploymentConfig, *httperror.HandlerError) {
+func (handler *Handler) createComposeDeployConfig(r *http.Request, stack *portaineree.Stack, endpoint *portaineree.Endpoint) (*composeStackDeploymentConfig, *httperror.HandlerError) {
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
 		return nil, &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve info from request context", Err: err}

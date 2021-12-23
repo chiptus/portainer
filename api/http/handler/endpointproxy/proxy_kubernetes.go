@@ -3,11 +3,12 @@ package endpointproxy
 import (
 	"errors"
 	"fmt"
+	"strings"
+
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"strings"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 
 	"net/http"
 )
@@ -18,7 +19,7 @@ func (handler *Handler) proxyRequestsToKubernetesAPI(w http.ResponseWriter, r *h
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -30,7 +31,7 @@ func (handler *Handler) proxyRequestsToKubernetesAPI(w http.ResponseWriter, r *h
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access environment", err}
 	}
 
-	if endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment {
+	if endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
 		if endpoint.EdgeID == "" {
 			return &httperror.HandlerError{http.StatusInternalServerError, "No Edge agent registered with the environment", errors.New("No agent available")}
 		}
@@ -53,7 +54,7 @@ func (handler *Handler) proxyRequestsToKubernetesAPI(w http.ResponseWriter, r *h
 	//  For KubernetesLocalEnvironment
 	requestPrefix := fmt.Sprintf("/%d/kubernetes", endpointID)
 
-	if endpoint.Type == portainer.AgentOnKubernetesEnvironment || endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment {
+	if endpoint.Type == portaineree.AgentOnKubernetesEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
 		requestPrefix = fmt.Sprintf("/%d", endpointID)
 
 		agentPrefix := fmt.Sprintf("/%d/agent/kubernetes", endpointID)

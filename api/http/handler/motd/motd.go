@@ -7,8 +7,8 @@ import (
 
 	"github.com/portainer/libcrypto"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/client"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/client"
 )
 
 type motdResponse struct {
@@ -36,7 +36,7 @@ type motdData struct {
 // @success 200 {object} motdResponse
 // @router /motd [get]
 func (handler *Handler) motd(w http.ResponseWriter, r *http.Request) {
-	motd, err := client.Get(portainer.MessageOfTheDayURL, 0)
+	motd, err := client.Get(portaineree.MessageOfTheDayURL, 0)
 	if err != nil {
 		response.JSON(w, &motdResponse{Message: ""})
 		return

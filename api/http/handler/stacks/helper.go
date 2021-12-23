@@ -5,10 +5,10 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/pkg/errors"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
-func validateStackAutoUpdate(autoUpdate *portainer.StackAutoUpdate) error {
+func validateStackAutoUpdate(autoUpdate *portaineree.StackAutoUpdate) error {
 	if autoUpdate == nil {
 		return nil
 	}

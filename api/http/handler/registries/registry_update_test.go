@@ -7,9 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
-	helper "github.com/portainer/portainer/api/internal/testhelpers"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
+	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,26 +32,26 @@ func TestHandler_registryUpdate(t *testing.T) {
 	}
 	payloadBytes, err := json.Marshal(payload)
 	assert.NoError(t, err)
-	registry := portainer.Registry{Type: portainer.ProGetRegistry, ID: 5}
+	registry := portaineree.Registry{Type: portaineree.ProGetRegistry, ID: 5}
 	r := httptest.NewRequest(http.MethodPut, "/registries/5", bytes.NewReader(payloadBytes))
 	w := httptest.NewRecorder()
 
 	restrictedContext := &security.RestrictedRequestContext{
 		IsAdmin: true,
-		UserID:  portainer.UserID(1),
+		UserID:  portaineree.UserID(1),
 	}
 
 	ctx := security.StoreRestrictedRequestContext(r, restrictedContext)
 	r = r.WithContext(ctx)
 
-	updatedRegistry := portainer.Registry{}
+	updatedRegistry := portaineree.Registry{}
 	handler := NewHandler(helper.NewTestRequestBouncer(), helper.NewUserActivityService())
 	handler.DataStore = testDataStore{
 		registry: &testRegistryService{
-			getRegistry: func(_ portainer.RegistryID) (*portainer.Registry, error) {
+			getRegistry: func(_ portaineree.RegistryID) (*portaineree.Registry, error) {
 				return &registry, nil
 			},
-			updateRegistry: func(ID portainer.RegistryID, r *portainer.Registry) error {
+			updateRegistry: func(ID portaineree.RegistryID, r *portaineree.Registry) error {
 				assert.Equal(t, ID, r.ID)
 				updatedRegistry = *r
 				return nil

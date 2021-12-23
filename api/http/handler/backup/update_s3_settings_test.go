@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,7 +38,7 @@ func Test_ValidateCronRules(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			s := &backupSettings{
-				S3BackupSettings: portainer.S3BackupSettings{
+				S3BackupSettings: portaineree.S3BackupSettings{
 					CronRule:        test.rule,
 					AccessKeyID:     "keyID",
 					SecretAccessKey: "secret",

@@ -11,19 +11,19 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/middlewares"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/stackutils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/stackutils"
 )
 
 type updateComposeStackPayload struct {
 	// New content of the Stack file
 	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx"`
 	// A list of environment(endpoint) variables used during stack deployment
-	Env []portainer.Pair
+	Env []portaineree.Pair
 }
 
 func (payload *updateComposeStackPayload) Validate(r *http.Request) error {
@@ -37,7 +37,7 @@ type updateSwarmStackPayload struct {
 	// New content of the Stack file
 	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx"`
 	// A list of environment(endpoint) variables used during stack deployment
-	Env []portainer.Pair
+	Env []portaineree.Pair
 	// Prune services that are no longer referenced (only available for Swarm stacks)
 	Prune bool `example:"true"`
 }
@@ -61,7 +61,7 @@ func (payload *updateSwarmStackPayload) Validate(r *http.Request) error {
 // @param id path int true "Stack identifier"
 // @param endpointId query int false "Stacks created before version 1.18.0 might not have an associated environment(endpoint) identifier. Use this optional parameter to set the environment(endpoint) identifier used by the stack."
 // @param body body updateSwarmStackPayload true "Stack details"
-// @success 200 {object} portainer.Stack "Success"
+// @success 200 {object} portaineree.Stack "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 404 "Not found"
@@ -73,7 +73,7 @@ func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *htt
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid stack identifier route variable", Err: err}
 	}
 
-	stack, err := handler.DataStore.Stack().Stack(portainer.StackID(stackID))
+	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(stackID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find a stack with the specified identifier inside the database", Err: err}
 	} else if err != nil {
@@ -88,7 +88,7 @@ func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *htt
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: endpointId", Err: err}
 	}
 	if endpointID != int(stack.EndpointID) {
-		stack.EndpointID = portainer.EndpointID(endpointID)
+		stack.EndpointID = portaineree.EndpointID(endpointID)
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(stack.EndpointID)
@@ -110,8 +110,8 @@ func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *htt
 	}
 
 	//only check resource control when it is a DockerSwarmStack or a DockerComposeStack
-	if stack.Type == portainer.DockerSwarmStack || stack.Type == portainer.DockerComposeStack {
-		resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portainer.StackResourceControl)
+	if stack.Type == portaineree.DockerSwarmStack || stack.Type == portaineree.DockerComposeStack {
+		resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portaineree.StackResourceControl)
 		if err != nil {
 			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve a resource control associated to the stack", Err: err}
 		}
@@ -136,7 +136,7 @@ func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *htt
 	}
 	stack.UpdatedBy = user.Username
 	stack.UpdateDate = time.Now().Unix()
-	stack.Status = portainer.StackStatusActive
+	stack.Status = portaineree.StackStatusActive
 
 	err = handler.DataStore.Stack().UpdateStack(stack.ID, stack)
 	if err != nil {
@@ -156,19 +156,19 @@ func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *htt
 	return response.JSON(w, stack)
 }
 
-func (handler *Handler) updateAndDeployStack(r *http.Request, stack *portainer.Stack, endpoint *portainer.Endpoint) *httperror.HandlerError {
-	if stack.Type == portainer.DockerSwarmStack {
+func (handler *Handler) updateAndDeployStack(r *http.Request, stack *portaineree.Stack, endpoint *portaineree.Endpoint) *httperror.HandlerError {
+	if stack.Type == portaineree.DockerSwarmStack {
 		return handler.updateSwarmStack(r, stack, endpoint)
-	} else if stack.Type == portainer.DockerComposeStack {
+	} else if stack.Type == portaineree.DockerComposeStack {
 		return handler.updateComposeStack(r, stack, endpoint)
-	} else if stack.Type == portainer.KubernetesStack {
+	} else if stack.Type == portaineree.KubernetesStack {
 		return handler.updateKubernetesStack(r, stack, endpoint)
 	} else {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unsupported stack", Err: errors.Errorf("unsupported stack type: %v", stack.Type)}
 	}
 }
 
-func (handler *Handler) updateComposeStack(r *http.Request, stack *portainer.Stack, endpoint *portainer.Endpoint) *httperror.HandlerError {
+func (handler *Handler) updateComposeStack(r *http.Request, stack *portaineree.Stack, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 	var payload updateComposeStackPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
@@ -196,7 +196,7 @@ func (handler *Handler) updateComposeStack(r *http.Request, stack *portainer.Sta
 	return nil
 }
 
-func (handler *Handler) updateSwarmStack(r *http.Request, stack *portainer.Stack, endpoint *portainer.Endpoint) *httperror.HandlerError {
+func (handler *Handler) updateSwarmStack(r *http.Request, stack *portaineree.Stack, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 	var payload updateSwarmStackPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {

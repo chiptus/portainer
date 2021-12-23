@@ -1,68 +1,69 @@
 package authorization
 
 import (
-	portainer "github.com/portainer/portainer/api"
 	"reflect"
 	"testing"
+
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 func Test_getKeyRole(t *testing.T) {
 	type args struct {
-		roleIdentifiers []portainer.RoleID
-		roles           []portainer.Role
+		roleIdentifiers []portaineree.RoleID
+		roles           []portaineree.Role
 	}
 
-	roleAdmin := portainer.Role{
+	roleAdmin := portaineree.Role{
 		Name:           "Environment administrator",
 		Description:    "Full control of all resources in an environment",
-		ID:             portainer.RoleIDEndpointAdmin,
+		ID:             portaineree.RoleIDEndpointAdmin,
 		Priority:       1,
 		Authorizations: DefaultEndpointAuthorizationsForEndpointAdministratorRole(),
 	}
 
-	roleOperator := portainer.Role{
+	roleOperator := portaineree.Role{
 		Name:           "Operator",
 		Description:    "Operational control of all existing resources in an environment",
-		ID:             portainer.RoleIDOperator,
+		ID:             portaineree.RoleIDOperator,
 		Priority:       2,
 		Authorizations: DefaultEndpointAuthorizationsForOperatorRole(),
 	}
 
-	roleHelpdesk := portainer.Role{
+	roleHelpdesk := portaineree.Role{
 		Name:           "Helpdesk",
 		Description:    "Read-only access of all resources in an environment",
-		ID:             portainer.RoleIDHelpdesk,
+		ID:             portaineree.RoleIDHelpdesk,
 		Priority:       3,
 		Authorizations: DefaultEndpointAuthorizationsForHelpDeskRole(),
 	}
 
-	roleStandard := portainer.Role{
+	roleStandard := portaineree.Role{
 		Name:           "Standard user",
 		Description:    "Full control of assigned resources in an environment",
-		ID:             portainer.RoleIDStandardUser,
+		ID:             portaineree.RoleIDStandardUser,
 		Priority:       4,
 		Authorizations: DefaultEndpointAuthorizationsForStandardUserRole(),
 	}
 
-	roleReadonly := portainer.Role{
+	roleReadonly := portaineree.Role{
 		Name:           "Read-only user",
 		Description:    "Read-only access of assigned resources in an environment",
-		ID:             portainer.RoleIDReadonly,
+		ID:             portaineree.RoleIDReadonly,
 		Priority:       5,
 		Authorizations: DefaultEndpointAuthorizationsForReadOnlyUserRole(),
 	}
 
-	roles := []portainer.Role{roleAdmin, roleOperator, roleHelpdesk, roleReadonly, roleStandard}
+	roles := []portaineree.Role{roleAdmin, roleOperator, roleHelpdesk, roleReadonly, roleStandard}
 
 	tests := []struct {
 		name string
 		args args
-		want *portainer.Role
+		want *portaineree.Role
 	}{
 		{
 			name: "it should return Operator when Operator is before EndpointAdmin in the argument roleIdentifiers",
 			args: args{
-				roleIdentifiers: []portainer.RoleID{portainer.RoleIDOperator, portainer.RoleIDEndpointAdmin},
+				roleIdentifiers: []portaineree.RoleID{portaineree.RoleIDOperator, portaineree.RoleIDEndpointAdmin},
 				roles:           roles,
 			},
 			want: &roleOperator,

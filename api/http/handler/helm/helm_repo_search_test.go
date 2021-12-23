@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/portainer/libhelm/binary/test"
-	helper "github.com/portainer/portainer/api/internal/testhelpers"
+	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,7 +21,7 @@ func Test_helmRepoSearch(t *testing.T) {
 
 	assert.NotNil(t, h, "Handler should not fail")
 
-	repos := []string{"https://charts.bitnami.com/bitnami", "https://portainer.github.io/k8s"}
+	repos := []string{"https://charts.bitnami.com/bitnami", "https://portaineree.github.io/k8s"}
 
 	for _, repo := range repos {
 		t.Run(repo, func(t *testing.T) {

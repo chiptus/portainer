@@ -13,11 +13,11 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/middlewares"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/kubernetes"
-	"github.com/portainer/portainer/api/kubernetes/validation"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/kubernetes"
+	"github.com/portainer/portainer-ee/api/kubernetes/validation"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -52,7 +52,7 @@ var errChartNameInvalid = errors.New("invalid chart name. " +
 // @router /endpoints/{id}/kubernetes/helm [post]
 func (handler *Handler) helmInstall(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
-	httperr := handler.authoriseHelmOperation(r, portainer.OperationHelmInstallChart)
+	httperr := handler.authoriseHelmOperation(r, portaineree.OperationHelmInstallChart)
 	if httperr != nil {
 		return httperr
 	}

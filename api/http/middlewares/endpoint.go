@@ -12,15 +12,15 @@ import (
 	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	requesthelpers "github.com/portainer/libhttp/request"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 const (
 	contextEndpoint = "endpoint"
 )
 
-func WithEndpoint(endpointService portainer.EndpointService, endpointIDParam string) mux.MiddlewareFunc {
+func WithEndpoint(endpointService portaineree.EndpointService, endpointIDParam string) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, request *http.Request) {
 			if endpointIDParam == "" {
@@ -33,7 +33,7 @@ func WithEndpoint(endpointService portainer.EndpointService, endpointIDParam str
 				return
 			}
 
-			endpoint, err := endpointService.Endpoint(portainer.EndpointID(endpointID))
+			endpoint, err := endpointService.Endpoint(portaineree.EndpointID(endpointID))
 			if err != nil {
 				statusCode := http.StatusInternalServerError
 
@@ -52,51 +52,51 @@ func WithEndpoint(endpointService portainer.EndpointService, endpointIDParam str
 	}
 }
 
-func SetEndpoint(endpoint *portainer.Endpoint, request *http.Request) {
+func SetEndpoint(endpoint *portaineree.Endpoint, request *http.Request) {
 	ctx := context.WithValue(request.Context(), contextEndpoint, endpoint)
 	*request = *request.WithContext(ctx)
 }
 
-type ContextFetcher func(request *http.Request) (*portainer.Endpoint, error)
+type ContextFetcher func(request *http.Request) (*portaineree.Endpoint, error)
 
-func StaticEndpoint(endpoint *portainer.Endpoint) ContextFetcher {
-	return func(request *http.Request) (*portainer.Endpoint, error) {
+func StaticEndpoint(endpoint *portaineree.Endpoint) ContextFetcher {
+	return func(request *http.Request) (*portaineree.Endpoint, error) {
 		return endpoint, nil
 	}
 }
 
-func FetchEndpoint(request *http.Request) (*portainer.Endpoint, error) {
+func FetchEndpoint(request *http.Request) (*portaineree.Endpoint, error) {
 	contextData := request.Context().Value(contextEndpoint)
 	if contextData == nil {
 		return nil, errors.New("Unable to find environment data in request context")
 	}
 
-	return contextData.(*portainer.Endpoint), nil
+	return contextData.(*portaineree.Endpoint), nil
 }
 
 // FindInQuery returns a func that finds a query param by name and returns a corresponding Endpoint.
 // If either param or endpoint are missing, it returns an error
-func FindInQuery(endpointService portainer.EndpointService, param string) ContextFetcher {
+func FindInQuery(endpointService portaineree.EndpointService, param string) ContextFetcher {
 	return findInRequest(endpointService, getIntQueryParam(param))
 }
 
 // FindInPath returns a func that finds a url param by name and returns a corresponding Endpoint.
 // If either param or endpoint are missing, it returns an error
-func FindInPath(endpointService portainer.EndpointService, param string) ContextFetcher {
+func FindInPath(endpointService portaineree.EndpointService, param string) ContextFetcher {
 	return findInRequest(endpointService, getIntRouteParam(param))
 }
 
 // FindInJsonBodyField returns a func that finds a field by its path and returns a corresponding Endpoint.
 // If request body is missing a requested field or endpoint is missing, it returns an error.
 // FieldPath should represent a field hierarchy with the field holding the endpoint id being the last.
-func FindInJsonBodyField(endpointService portainer.EndpointService, fieldPath []string) ContextFetcher {
+func FindInJsonBodyField(endpointService portaineree.EndpointService, fieldPath []string) ContextFetcher {
 	return findInRequest(endpointService, getIntJsonBodyField(fieldPath))
 }
 
 // findInRequest returns a func that looksup an endpoint Id in the request and returns a corresponding Endpoint.
 // If either param or endpoint are missing, it returns an error
-func findInRequest(endpointService portainer.EndpointService, lookup endpointIdLookup) ContextFetcher {
-	return func(request *http.Request) (*portainer.Endpoint, error) {
+func findInRequest(endpointService portaineree.EndpointService, lookup endpointIdLookup) ContextFetcher {
+	return func(request *http.Request) (*portaineree.Endpoint, error) {
 		endpointID, err := lookup(request)
 		if err != nil {
 			return nil, err
@@ -111,19 +111,19 @@ func findInRequest(endpointService portainer.EndpointService, lookup endpointIdL
 	}
 }
 
-type endpointIdLookup func(*http.Request) (portainer.EndpointID, error)
+type endpointIdLookup func(*http.Request) (portaineree.EndpointID, error)
 
-func asPortainerID(v string) (portainer.EndpointID, error) {
+func asPortainerID(v string) (portaineree.EndpointID, error) {
 	i, err := strconv.Atoi(v)
 	if err != nil {
 		return 0, err
 	}
 
-	return portainer.EndpointID(i), nil
+	return portaineree.EndpointID(i), nil
 }
 
 func getIntQueryParam(param string) endpointIdLookup {
-	return func(r *http.Request) (portainer.EndpointID, error) {
+	return func(r *http.Request) (portaineree.EndpointID, error) {
 		queryParameter := r.FormValue(param)
 		if queryParameter == "" {
 			return 0, errors.Errorf("cannot find a query param %s", param)
@@ -134,7 +134,7 @@ func getIntQueryParam(param string) endpointIdLookup {
 }
 
 func getIntRouteParam(param string) endpointIdLookup {
-	return func(r *http.Request) (portainer.EndpointID, error) {
+	return func(r *http.Request) (portaineree.EndpointID, error) {
 		routeVariables := mux.Vars(r)
 		if routeVariables != nil {
 			if routeVar, ok := routeVariables[param]; ok {
@@ -147,7 +147,7 @@ func getIntRouteParam(param string) endpointIdLookup {
 }
 
 func getIntJsonBodyField(fieldPath []string) endpointIdLookup {
-	return func(r *http.Request) (portainer.EndpointID, error) {
+	return func(r *http.Request) (portaineree.EndpointID, error) {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			return 0, errors.Wrap(err, "cannot read request body")
@@ -173,7 +173,7 @@ func getIntJsonBodyField(fieldPath []string) endpointIdLookup {
 				if !ok {
 					return 0, errors.Errorf("body part %s doesn't seem to hold an id", part)
 				}
-				return portainer.EndpointID(value), nil
+				return portaineree.EndpointID(value), nil
 			}
 
 			b, ok = val.(map[string]interface{})

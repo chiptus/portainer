@@ -11,14 +11,14 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/stackutils"
+	k "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer/api/filesystem"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/middlewares"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/stackutils"
-	k "github.com/portainer/portainer/api/kubernetes"
 )
 
 type stackGitRedployPayload struct {
@@ -26,7 +26,7 @@ type stackGitRedployPayload struct {
 	RepositoryAuthentication bool
 	RepositoryUsername       string
 	RepositoryPassword       string
-	Env                      []portainer.Pair
+	Env                      []portaineree.Pair
 }
 
 func (payload *stackGitRedployPayload) Validate(r *http.Request) error {
@@ -49,7 +49,7 @@ func (payload *stackGitRedployPayload) Validate(r *http.Request) error {
 // @param id path int true "Stack identifier"
 // @param endpointId query int false "Stacks created before version 1.18.0 might not have an associated environment(endpoint) identifier. Use this optional parameter to set the environment(endpoint) identifier used by the stack."
 // @param body body stackGitRedployPayload true "Git configs for pull and redeploy a stack"
-// @success 200 {object} portainer.Stack "Success"
+// @success 200 {object} portaineree.Stack "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 404 "Not found"
@@ -61,7 +61,7 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid stack identifier route variable", Err: err}
 	}
 
-	stack, err := handler.DataStore.Stack().Stack(portainer.StackID(stackID))
+	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(stackID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find a stack with the specified identifier inside the database", Err: err}
 	} else if err != nil {
@@ -80,7 +80,7 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: endpointId", Err: err}
 	}
 	if endpointID != int(stack.EndpointID) {
-		stack.EndpointID = portainer.EndpointID(endpointID)
+		stack.EndpointID = portaineree.EndpointID(endpointID)
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(stack.EndpointID)
@@ -102,9 +102,9 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 	}
 
 	//only check resource control when it is a DockerSwarmStack or a DockerComposeStack
-	if stack.Type == portainer.DockerSwarmStack || stack.Type == portainer.DockerComposeStack {
+	if stack.Type == portaineree.DockerSwarmStack || stack.Type == portaineree.DockerComposeStack {
 
-		resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portainer.StackResourceControl)
+		resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portaineree.StackResourceControl)
 		if err != nil {
 			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve a resource control associated to the stack", Err: err}
 		}
@@ -177,7 +177,7 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 	}
 	stack.UpdatedBy = user.Username
 	stack.UpdateDate = time.Now().Unix()
-	stack.Status = portainer.StackStatusActive
+	stack.Status = portaineree.StackStatusActive
 
 	err = handler.DataStore.Stack().UpdateStack(stack.ID, stack)
 	if err != nil {
@@ -192,9 +192,9 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 	return response.JSON(w, stack)
 }
 
-func (handler *Handler) deployStack(r *http.Request, stack *portainer.Stack, endpoint *portainer.Endpoint) *httperror.HandlerError {
+func (handler *Handler) deployStack(r *http.Request, stack *portaineree.Stack, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 	switch stack.Type {
-	case portainer.DockerSwarmStack:
+	case portaineree.DockerSwarmStack:
 		config, httpErr := handler.createSwarmDeployConfig(r, stack, endpoint, false)
 		if httpErr != nil {
 			return httpErr
@@ -204,7 +204,7 @@ func (handler *Handler) deployStack(r *http.Request, stack *portainer.Stack, end
 			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: err.Error(), Err: err}
 		}
 
-	case portainer.DockerComposeStack:
+	case portaineree.DockerComposeStack:
 		config, httpErr := handler.createComposeDeployConfig(r, stack, endpoint)
 		if httpErr != nil {
 			return httpErr
@@ -214,7 +214,7 @@ func (handler *Handler) deployStack(r *http.Request, stack *portainer.Stack, end
 			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: err.Error(), Err: err}
 		}
 
-	case portainer.KubernetesStack:
+	case portaineree.KubernetesStack:
 		if stack.Namespace == "" {
 			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Invalid namespace", Err: errors.New("Namespace must not be empty when redeploying kubernetes stacks")}
 		}

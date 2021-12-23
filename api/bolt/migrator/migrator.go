@@ -4,24 +4,25 @@ import (
 	"fmt"
 
 	"github.com/boltdb/bolt"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/dockerhub"
+	"github.com/portainer/portainer-ee/api/bolt/endpoint"
+	"github.com/portainer/portainer-ee/api/bolt/endpointgroup"
+	"github.com/portainer/portainer-ee/api/bolt/endpointrelation"
+	"github.com/portainer/portainer-ee/api/bolt/extension"
+	plog "github.com/portainer/portainer-ee/api/bolt/log"
+	"github.com/portainer/portainer-ee/api/bolt/registry"
+	"github.com/portainer/portainer-ee/api/bolt/resourcecontrol"
+	"github.com/portainer/portainer-ee/api/bolt/role"
+	"github.com/portainer/portainer-ee/api/bolt/schedule"
+	"github.com/portainer/portainer-ee/api/bolt/settings"
+	"github.com/portainer/portainer-ee/api/bolt/stack"
+	"github.com/portainer/portainer-ee/api/bolt/tag"
+	"github.com/portainer/portainer-ee/api/bolt/teammembership"
+	"github.com/portainer/portainer-ee/api/bolt/user"
+	"github.com/portainer/portainer-ee/api/bolt/version"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/dockerhub"
-	"github.com/portainer/portainer/api/bolt/endpoint"
-	"github.com/portainer/portainer/api/bolt/endpointgroup"
-	"github.com/portainer/portainer/api/bolt/endpointrelation"
-	"github.com/portainer/portainer/api/bolt/extension"
-	plog "github.com/portainer/portainer/api/bolt/log"
-	"github.com/portainer/portainer/api/bolt/registry"
-	"github.com/portainer/portainer/api/bolt/resourcecontrol"
-	"github.com/portainer/portainer/api/bolt/role"
-	"github.com/portainer/portainer/api/bolt/schedule"
-	"github.com/portainer/portainer/api/bolt/settings"
-	"github.com/portainer/portainer/api/bolt/stack"
-	"github.com/portainer/portainer/api/bolt/tag"
-	"github.com/portainer/portainer/api/bolt/teammembership"
-	"github.com/portainer/portainer/api/bolt/user"
-	"github.com/portainer/portainer/api/bolt/version"
-	"github.com/portainer/portainer/api/internal/authorization"
 )
 
 var migrateLog = plog.NewScopedLog("bolt, migrate")
@@ -31,7 +32,7 @@ type (
 	Migrator struct {
 		db               *bolt.DB
 		currentDBVersion int
-		currentEdition   portainer.SoftwareEdition
+		currentEdition   portaineree.SoftwareEdition
 
 		endpointGroupService    *endpointgroup.Service
 		endpointService         *endpoint.Service
@@ -56,7 +57,7 @@ type (
 	Parameters struct {
 		DB              *bolt.DB
 		DatabaseVersion int
-		CurrentEdition  portainer.SoftwareEdition
+		CurrentEdition  portaineree.SoftwareEdition
 
 		EndpointGroupService    *endpointgroup.Service
 		EndpointService         *endpoint.Service
@@ -110,7 +111,7 @@ func (migrator *Migrator) Version() int {
 }
 
 // Edition exposes edition of portainer
-func (migrator *Migrator) Edition() portainer.SoftwareEdition {
+func (migrator *Migrator) Edition() portaineree.SoftwareEdition {
 	return migrator.currentEdition
 }
 

@@ -5,9 +5,9 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @summary Execute a websocket on kubectl shell pod
@@ -31,7 +31,7 @@ func (handler *Handler) websocketShellPodExec(w http.ResponseWriter, r *http.Req
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: endpointId", err}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find the environment associated to the stack inside the database", err}
 	} else if err != nil {
@@ -85,13 +85,13 @@ func (handler *Handler) websocketShellPodExec(w http.ResponseWriter, r *http.Req
 
 	r.Header.Del("Origin")
 
-	if endpoint.Type == portainer.AgentOnKubernetesEnvironment {
+	if endpoint.Type == portaineree.AgentOnKubernetesEnvironment {
 		err := handler.proxyAgentWebsocketRequest(w, r, params)
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to proxy websocket request to agent", err}
 		}
 		return nil
-	} else if endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment {
+	} else if endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
 		err := handler.proxyEdgeAgentWebsocketRequest(w, r, params)
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to proxy websocket request to Edge agent", err}

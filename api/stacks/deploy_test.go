@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
-	bolt "github.com/portainer/portainer/api/bolt/bolttest"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolt "github.com/portainer/portainer-ee/api/bolt/bolttest"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -32,17 +32,17 @@ type noopDeployer struct {
 	KubernetesStackDeployed bool
 }
 
-func (s *noopDeployer) DeploySwarmStack(stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune bool) error {
+func (s *noopDeployer) DeploySwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, prune bool) error {
 	s.SwarmStackDeployed = true
 	return nil
 }
 
-func (s *noopDeployer) DeployComposeStack(stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry) error {
+func (s *noopDeployer) DeployComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry) error {
 	s.ComposeStackDeployed = true
 	return nil
 }
 
-func (s *noopDeployer) DeployKubernetesStack(stack *portainer.Stack, endpoint *portainer.Endpoint, user *portainer.User) error {
+func (s *noopDeployer) DeployKubernetesStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, user *portaineree.User) error {
 	s.KubernetesStackDeployed = true
 	return nil
 }
@@ -60,11 +60,11 @@ func Test_redeployWhenChanged_DoesNothingWhenNotAGitBasedStack(t *testing.T) {
 	store, teardown := bolt.MustNewTestStore(true)
 	defer teardown()
 
-	admin := &portainer.User{ID: 1, Username: "admin"}
+	admin := &portaineree.User{ID: 1, Username: "admin"}
 	err := store.User().CreateUser(admin)
 	assert.NoError(t, err, "error creating an admin")
 
-	err = store.Stack().CreateStack(&portainer.Stack{ID: 1, CreatedBy: "admin"})
+	err = store.Stack().CreateStack(&portaineree.Stack{ID: 1, CreatedBy: "admin"})
 	assert.NoError(t, err, "failed to create a test stack")
 
 	err = RedeployWhenChanged(1, nil, store, &gitService{nil, ""}, nil)
@@ -76,19 +76,19 @@ func Test_redeployWhenChanged_FailsWhenCannotClone(t *testing.T) {
 	store, teardown := bolt.MustNewTestStore(true)
 	defer teardown()
 
-	admin := &portainer.User{ID: 1, Username: "admin"}
+	admin := &portaineree.User{ID: 1, Username: "admin"}
 	err := store.User().CreateUser(admin)
 	assert.NoError(t, err, "error creating an admin")
 
-	err = store.Endpoint().CreateEndpoint(&portainer.Endpoint{
+	err = store.Endpoint().CreateEndpoint(&portaineree.Endpoint{
 		ID: 0,
-		ChangeWindow: portainer.EndpointChangeWindow{
+		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
 		},
 	})
 	assert.NoError(t, err, "error creating environment")
 
-	err = store.Stack().CreateStack(&portainer.Stack{
+	err = store.Stack().CreateStack(&portaineree.Stack{
 		ID:        1,
 		CreatedBy: "admin",
 		GitConfig: &gittypes.RepoConfig{
@@ -109,14 +109,14 @@ func Test_redeployWhenChanged_ForceUpdateOn(t *testing.T) {
 
 	tmpDir, _ := ioutil.TempDir("", "stack")
 
-	err := store.Endpoint().CreateEndpoint(&portainer.Endpoint{ID: 1})
+	err := store.Endpoint().CreateEndpoint(&portaineree.Endpoint{ID: 1})
 	assert.NoError(t, err, "error creating environment")
 
 	username := "user"
-	err = store.User().CreateUser(&portainer.User{Username: username, Role: portainer.AdministratorRole})
+	err = store.User().CreateUser(&portaineree.User{Username: username, Role: portaineree.AdministratorRole})
 	assert.NoError(t, err, "error creating a user")
 
-	stack := portainer.Stack{
+	stack := portaineree.Stack{
 		ID:          1,
 		EndpointID:  1,
 		ProjectPath: tmpDir,
@@ -126,7 +126,7 @@ func Test_redeployWhenChanged_ForceUpdateOn(t *testing.T) {
 			ReferenceName: "ref",
 			ConfigHash:    "oldHash",
 		},
-		AutoUpdate: &portainer.StackAutoUpdate{
+		AutoUpdate: &portaineree.StackAutoUpdate{
 			ForceUpdate: true,
 		},
 	}
@@ -136,7 +136,7 @@ func Test_redeployWhenChanged_ForceUpdateOn(t *testing.T) {
 	noopDeployer := &noopDeployer{}
 
 	t.Run("can deploy docker compose stack", func(t *testing.T) {
-		stack.Type = portainer.DockerComposeStack
+		stack.Type = portaineree.DockerComposeStack
 		store.Stack().UpdateStack(stack.ID, &stack)
 
 		err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "oldHash"}, nil)
@@ -147,7 +147,7 @@ func Test_redeployWhenChanged_ForceUpdateOn(t *testing.T) {
 	})
 
 	t.Run("can deploy docker swarm stack", func(t *testing.T) {
-		stack.Type = portainer.DockerSwarmStack
+		stack.Type = portaineree.DockerSwarmStack
 		store.Stack().UpdateStack(stack.ID, &stack)
 
 		err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "oldHash"}, nil)
@@ -158,7 +158,7 @@ func Test_redeployWhenChanged_ForceUpdateOn(t *testing.T) {
 	})
 
 	t.Run("can deploy kube app", func(t *testing.T) {
-		stack.Type = portainer.KubernetesStack
+		stack.Type = portaineree.KubernetesStack
 		store.Stack().UpdateStack(stack.ID, &stack)
 
 		err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "oldHash"}, nil)
@@ -175,19 +175,19 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff(t *testing.T) {
 
 	tmpDir, _ := ioutil.TempDir("", "stack")
 
-	admin := &portainer.User{ID: 1, Username: "admin"}
+	admin := &portaineree.User{ID: 1, Username: "admin"}
 	err := store.User().CreateUser(admin)
 	assert.NoError(t, err, "error creating an admin")
 
-	err = store.Endpoint().CreateEndpoint(&portainer.Endpoint{
+	err = store.Endpoint().CreateEndpoint(&portaineree.Endpoint{
 		ID: 0,
-		ChangeWindow: portainer.EndpointChangeWindow{
+		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
 		},
 	})
 	assert.NoError(t, err, "error creating environment")
 
-	err = store.Stack().CreateStack(&portainer.Stack{
+	err = store.Stack().CreateStack(&portaineree.Stack{
 		ID:          1,
 		CreatedBy:   "admin",
 		ProjectPath: tmpDir,
@@ -196,7 +196,7 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff(t *testing.T) {
 			ReferenceName: "ref",
 			ConfigHash:    "oldHash",
 		},
-		AutoUpdate: &portainer.StackAutoUpdate{
+		AutoUpdate: &portaineree.StackAutoUpdate{
 			ForceUpdate: false,
 		},
 	})
@@ -216,14 +216,14 @@ func Test_redeployWhenChanged_RepoChanged_ForceUpdateOff(t *testing.T) {
 
 	tmpDir, _ := ioutil.TempDir("", "stack")
 
-	err := store.Endpoint().CreateEndpoint(&portainer.Endpoint{ID: 1})
+	err := store.Endpoint().CreateEndpoint(&portaineree.Endpoint{ID: 1})
 	assert.NoError(t, err, "error creating environment")
 
 	username := "user"
-	err = store.User().CreateUser(&portainer.User{Username: username, Role: portainer.AdministratorRole})
+	err = store.User().CreateUser(&portaineree.User{Username: username, Role: portaineree.AdministratorRole})
 	assert.NoError(t, err, "error creating a user")
 
-	stack := portainer.Stack{
+	stack := portaineree.Stack{
 		ID:          1,
 		EndpointID:  1,
 		ProjectPath: tmpDir,
@@ -233,7 +233,7 @@ func Test_redeployWhenChanged_RepoChanged_ForceUpdateOff(t *testing.T) {
 			ReferenceName: "ref",
 			ConfigHash:    "oldHash",
 		},
-		AutoUpdate: &portainer.StackAutoUpdate{
+		AutoUpdate: &portaineree.StackAutoUpdate{
 			ForceUpdate: false,
 		},
 	}
@@ -243,7 +243,7 @@ func Test_redeployWhenChanged_RepoChanged_ForceUpdateOff(t *testing.T) {
 	noopDeployer := &noopDeployer{}
 
 	t.Run("can deploy docker compose stack", func(t *testing.T) {
-		stack.Type = portainer.DockerComposeStack
+		stack.Type = portaineree.DockerComposeStack
 		store.Stack().UpdateStack(stack.ID, &stack)
 
 		err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "newHash"}, nil)
@@ -254,7 +254,7 @@ func Test_redeployWhenChanged_RepoChanged_ForceUpdateOff(t *testing.T) {
 	})
 
 	t.Run("can deploy docker swarm stack", func(t *testing.T) {
-		stack.Type = portainer.DockerSwarmStack
+		stack.Type = portaineree.DockerSwarmStack
 		store.Stack().UpdateStack(stack.ID, &stack)
 
 		err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "newHash"}, nil)
@@ -265,7 +265,7 @@ func Test_redeployWhenChanged_RepoChanged_ForceUpdateOff(t *testing.T) {
 	})
 
 	t.Run("can deploy kube app", func(t *testing.T) {
-		stack.Type = portainer.KubernetesStack
+		stack.Type = portaineree.KubernetesStack
 		store.Stack().UpdateStack(stack.ID, &stack)
 
 		err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "newHash"}, nil)
@@ -282,29 +282,29 @@ func Test_getUserRegistries(t *testing.T) {
 
 	endpointID := 123
 
-	admin := &portainer.User{ID: 1, Username: "admin", Role: portainer.AdministratorRole}
+	admin := &portaineree.User{ID: 1, Username: "admin", Role: portaineree.AdministratorRole}
 	err := store.User().CreateUser(admin)
 	assert.NoError(t, err, "error creating an admin")
 
-	user := &portainer.User{ID: 2, Username: "user", Role: portainer.StandardUserRole}
+	user := &portaineree.User{ID: 2, Username: "user", Role: portaineree.StandardUserRole}
 	err = store.User().CreateUser(user)
 	assert.NoError(t, err, "error creating a user")
 
-	team := portainer.Team{ID: 1, Name: "team"}
+	team := portaineree.Team{ID: 1, Name: "team"}
 
-	store.TeamMembership().CreateTeamMembership(&portainer.TeamMembership{
+	store.TeamMembership().CreateTeamMembership(&portaineree.TeamMembership{
 		ID:     1,
 		UserID: user.ID,
 		TeamID: team.ID,
-		Role:   portainer.TeamMember,
+		Role:   portaineree.TeamMember,
 	})
 
-	registryReachableByUser := portainer.Registry{
+	registryReachableByUser := portaineree.Registry{
 		ID: 1,
-		RegistryAccesses: portainer.RegistryAccesses{
-			portainer.EndpointID(endpointID): {
-				UserAccessPolicies: map[portainer.UserID]portainer.AccessPolicy{
-					user.ID: {RoleID: portainer.RoleIDStandardUser},
+		RegistryAccesses: portaineree.RegistryAccesses{
+			portaineree.EndpointID(endpointID): {
+				UserAccessPolicies: map[portaineree.UserID]portaineree.AccessPolicy{
+					user.ID: {RoleID: portaineree.RoleIDStandardUser},
 				},
 			},
 		},
@@ -312,12 +312,12 @@ func Test_getUserRegistries(t *testing.T) {
 	err = store.Registry().CreateRegistry(&registryReachableByUser)
 	assert.NoError(t, err, "couldn't create a registry")
 
-	registryReachableByTeam := portainer.Registry{
+	registryReachableByTeam := portaineree.Registry{
 		ID: 2,
-		RegistryAccesses: portainer.RegistryAccesses{
-			portainer.EndpointID(endpointID): {
-				TeamAccessPolicies: map[portainer.TeamID]portainer.AccessPolicy{
-					team.ID: {RoleID: portainer.RoleIDStandardUser},
+		RegistryAccesses: portaineree.RegistryAccesses{
+			portaineree.EndpointID(endpointID): {
+				TeamAccessPolicies: map[portaineree.TeamID]portaineree.AccessPolicy{
+					team.ID: {RoleID: portaineree.RoleIDStandardUser},
 				},
 			},
 		},
@@ -325,12 +325,12 @@ func Test_getUserRegistries(t *testing.T) {
 	err = store.Registry().CreateRegistry(&registryReachableByTeam)
 	assert.NoError(t, err, "couldn't create a registry")
 
-	registryRestricted := portainer.Registry{
+	registryRestricted := portaineree.Registry{
 		ID: 3,
-		RegistryAccesses: portainer.RegistryAccesses{
-			portainer.EndpointID(endpointID): {
-				UserAccessPolicies: map[portainer.UserID]portainer.AccessPolicy{
-					user.ID + 100: {RoleID: portainer.RoleIDStandardUser},
+		RegistryAccesses: portaineree.RegistryAccesses{
+			portaineree.EndpointID(endpointID): {
+				UserAccessPolicies: map[portaineree.UserID]portaineree.AccessPolicy{
+					user.ID + 100: {RoleID: portaineree.RoleIDStandardUser},
 				},
 			},
 		},
@@ -339,21 +339,21 @@ func Test_getUserRegistries(t *testing.T) {
 	assert.NoError(t, err, "couldn't create a registry")
 
 	t.Run("admin should has access to all registries", func(t *testing.T) {
-		registries, err := getUserRegistries(store, admin, portainer.EndpointID(endpointID))
+		registries, err := getUserRegistries(store, admin, portaineree.EndpointID(endpointID))
 		assert.NoError(t, err)
-		assert.ElementsMatch(t, []portainer.Registry{registryReachableByUser, registryReachableByTeam, registryRestricted}, registries)
+		assert.ElementsMatch(t, []portaineree.Registry{registryReachableByUser, registryReachableByTeam, registryRestricted}, registries)
 	})
 
 	t.Run("regular user has access to registries allowed to him and/or his team", func(t *testing.T) {
-		registries, err := getUserRegistries(store, user, portainer.EndpointID(endpointID))
+		registries, err := getUserRegistries(store, user, portaineree.EndpointID(endpointID))
 		assert.NoError(t, err)
-		assert.ElementsMatch(t, []portainer.Registry{registryReachableByUser, registryReachableByTeam}, registries)
+		assert.ElementsMatch(t, []portaineree.Registry{registryReachableByUser, registryReachableByTeam}, registries)
 	})
 }
 
-func newChangeWindow(start, end string) *portainer.Endpoint {
-	return &portainer.Endpoint{
-		ChangeWindow: portainer.EndpointChangeWindow{
+func newChangeWindow(start, end string) *portaineree.Endpoint {
+	return &portaineree.Endpoint{
+		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled:   true,
 			StartTime: start,
 			EndTime:   end,

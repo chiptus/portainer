@@ -6,10 +6,10 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id endpointRegistryInspect
@@ -21,7 +21,7 @@ import (
 // @produce json
 // @param id path int true "identifier"
 // @param registryId path int true "Registry identifier"
-// @success 200 {object} portainer.Registry "Success"
+// @success 200 {object} portaineree.Registry "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 404 "Registry not found"
@@ -38,7 +38,7 @@ func (handler *Handler) endpointRegistryInspect(w http.ResponseWriter, r *http.R
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid registry identifier route variable", Err: err}
 	}
 
-	registry, err := handler.dataStore.Registry().Registry(portainer.RegistryID(registryID))
+	registry, err := handler.dataStore.Registry().Registry(portaineree.RegistryID(registryID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find a registry with the specified identifier inside the database", Err: err}
 	} else if err != nil {
@@ -55,11 +55,11 @@ func (handler *Handler) endpointRegistryInspect(w http.ResponseWriter, r *http.R
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve user from the database", Err: err}
 	}
 
-	if !security.AuthorizedRegistryAccess(registry, user, securityContext.UserMemberships, portainer.EndpointID(endpointID)) {
+	if !security.AuthorizedRegistryAccess(registry, user, securityContext.UserMemberships, portaineree.EndpointID(endpointID)) {
 		return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "Access denied to resource", Err: httperrors.ErrResourceAccessDenied}
 	}
 
-	_, isEndpointAdmin := user.EndpointAuthorizations[portainer.EndpointID(endpointID)][portainer.EndpointResourcesAccess]
+	_, isEndpointAdmin := user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.EndpointResourcesAccess]
 
 	hideRegistryFields(registry, !(securityContext.IsAdmin || isEndpointAdmin))
 	return response.JSON(w, registry)

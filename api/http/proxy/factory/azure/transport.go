@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/client"
-	"github.com/portainer/portainer/api/http/useractivity"
-	ru "github.com/portainer/portainer/api/http/utils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/client"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
+	ru "github.com/portainer/portainer-ee/api/http/utils"
 )
 
 type (
@@ -20,27 +20,27 @@ type (
 	}
 
 	Transport struct {
-		credentials         *portainer.AzureCredentials
+		credentials         *portaineree.AzureCredentials
 		client              *client.HTTPClient
 		token               *azureAPIToken
 		mutex               sync.Mutex
-		dataStore           portainer.DataStore
-		endpoint            *portainer.Endpoint
-		userActivityService portainer.UserActivityService
+		dataStore           portaineree.DataStore
+		endpoint            *portaineree.Endpoint
+		userActivityService portaineree.UserActivityService
 	}
 
 	azureRequestContext struct {
 		isAdmin                bool
 		endpointResourceAccess bool
-		userID                 portainer.UserID
-		userTeamIDs            []portainer.TeamID
-		resourceControls       []portainer.ResourceControl
+		userID                 portaineree.UserID
+		userTeamIDs            []portaineree.TeamID
+		resourceControls       []portaineree.ResourceControl
 	}
 )
 
 // NewTransport returns a pointer to a new instance of Transport that implements the HTTP Transport
 // interface for proxying requests to the Azure API.
-func NewTransport(credentials *portainer.AzureCredentials, userActivityService portainer.UserActivityService, dataStore portainer.DataStore, endpoint *portainer.Endpoint) *Transport {
+func NewTransport(credentials *portaineree.AzureCredentials, userActivityService portaineree.UserActivityService, dataStore portaineree.DataStore, endpoint *portaineree.Endpoint) *Transport {
 	return &Transport{
 		credentials:         credentials,
 		client:              client.NewHTTPClient(),
@@ -65,9 +65,9 @@ func (transport *Transport) proxyAzureRequest(request *http.Request) (*http.Resp
 
 	request.Header.Set("Authorization", "Bearer "+transport.token.value)
 
-	if match, _ := path.Match(portainer.AzurePathContainerGroups, requestPath); match {
+	if match, _ := path.Match(portaineree.AzurePathContainerGroups, requestPath); match {
 		return transport.proxyContainerGroupsRequest(request)
-	} else if match, _ := path.Match(portainer.AzurePathContainerGroup, requestPath); match {
+	} else if match, _ := path.Match(portaineree.AzurePathContainerGroup, requestPath); match {
 		return transport.proxyContainerGroupRequest(request)
 	}
 

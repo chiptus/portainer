@@ -5,23 +5,22 @@ import (
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
-
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/docker"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/http/useractivity"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/docker"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/useractivity"
 )
 
 // Handler is the HTTP handler used to handle webhook operations.
 type Handler struct {
 	*mux.Router
-	dataStore           portainer.DataStore
+	dataStore           portaineree.DataStore
 	DockerClientFactory *docker.ClientFactory
-	userActivityService portainer.UserActivityService
+	userActivityService portaineree.UserActivityService
 }
 
 // NewHandler creates a handler to manage webhooks operations.
-func NewHandler(bouncer *security.RequestBouncer, dataStore portainer.DataStore, userActivityService portainer.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore portaineree.DataStore, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		userActivityService: userActivityService,

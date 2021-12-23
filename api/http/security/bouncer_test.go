@@ -6,11 +6,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/apikey"
-	bolt "github.com/portainer/portainer/api/bolt/bolttest"
-	httperrors "github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/jwt"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/apikey"
+	bolt "github.com/portainer/portainer-ee/api/bolt/bolttest"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/jwt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,16 +19,16 @@ var testHandler200 = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusOK)
 })
 
-func tokenLookupSucceed(dataStore portainer.DataStore, jwtService portainer.JWTService) tokenLookup {
-	return func(r *http.Request) *portainer.TokenData {
-		uid := portainer.UserID(1)
-		dataStore.User().CreateUser(&portainer.User{ID: uid})
-		jwtService.GenerateToken(&portainer.TokenData{ID: uid})
-		return &portainer.TokenData{ID: 1}
+func tokenLookupSucceed(dataStore portaineree.DataStore, jwtService portaineree.JWTService) tokenLookup {
+	return func(r *http.Request) *portaineree.TokenData {
+		uid := portaineree.UserID(1)
+		dataStore.User().CreateUser(&portaineree.User{ID: uid})
+		jwtService.GenerateToken(&portaineree.TokenData{ID: uid})
+		return &portaineree.TokenData{ID: 1}
 	}
 }
 
-func tokenLookupFail(r *http.Request) *portainer.TokenData {
+func tokenLookupFail(r *http.Request) *portaineree.TokenData {
 	return nil
 }
 
@@ -262,7 +262,7 @@ func Test_apiKeyLookup(t *testing.T) {
 	defer teardown()
 
 	// create standard user
-	user := &portainer.User{ID: 2, Username: "standard", Role: portainer.StandardUserRole}
+	user := &portaineree.User{ID: 2, Username: "standard", Role: portaineree.StandardUserRole}
 	err := store.User().CreateUser(user)
 	is.NoError(err, "error creating user")
 
@@ -295,7 +295,7 @@ func Test_apiKeyLookup(t *testing.T) {
 
 		token := bouncer.apiKeyLookup(req)
 
-		expectedToken := &portainer.TokenData{ID: user.ID, Username: user.Username, Role: portainer.StandardUserRole}
+		expectedToken := &portaineree.TokenData{ID: user.ID, Username: user.Username, Role: portaineree.StandardUserRole}
 		is.Equal(expectedToken, token)
 	})
 
@@ -309,7 +309,7 @@ func Test_apiKeyLookup(t *testing.T) {
 
 		token := bouncer.apiKeyLookup(req)
 
-		expectedToken := &portainer.TokenData{ID: user.ID, Username: user.Username, Role: portainer.StandardUserRole}
+		expectedToken := &portaineree.TokenData{ID: user.ID, Username: user.Username, Role: portaineree.StandardUserRole}
 		is.Equal(expectedToken, token)
 	})
 
@@ -323,7 +323,7 @@ func Test_apiKeyLookup(t *testing.T) {
 
 		token := bouncer.apiKeyLookup(req)
 
-		expectedToken := &portainer.TokenData{ID: user.ID, Username: user.Username, Role: portainer.StandardUserRole}
+		expectedToken := &portaineree.TokenData{ID: user.ID, Username: user.Username, Role: portaineree.StandardUserRole}
 		is.Equal(expectedToken, token)
 
 		_, apiKeyUpdated, err := apiKeyService.GetDigestUserAndKey(apiKey.Digest)

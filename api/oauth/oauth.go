@@ -11,7 +11,7 @@ import (
 
 	"golang.org/x/oauth2"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 // Service represents a service used to authenticate users against an authorization server
@@ -26,7 +26,7 @@ func NewService() *Service {
 // On success, it will then return an OAuthInfo struct associated to authenticated user.
 // The OAuthInfo struct contains data associated to the authenticated user.
 // This data is obtained from the OAuth providers resource server and matched with the attributes of the user identifier(s).
-func (*Service) Authenticate(code string, configuration *portainer.OAuthSettings) (*portainer.OAuthInfo, error) {
+func (*Service) Authenticate(code string, configuration *portaineree.OAuthSettings) (*portaineree.OAuthInfo, error) {
 	token, err := getOAuthToken(code, configuration)
 	if err != nil {
 		log.Printf("[DEBUG] [internal,oauth] [message: failed retrieving oauth token: %v]", err)
@@ -51,10 +51,10 @@ func (*Service) Authenticate(code string, configuration *portainer.OAuthSettings
 		return nil, err
 	}
 
-	return &portainer.OAuthInfo{Username: username, Teams: teams}, nil
+	return &portaineree.OAuthInfo{Username: username, Teams: teams}, nil
 }
 
-func getOAuthToken(code string, configuration *portainer.OAuthSettings) (*oauth2.Token, error) {
+func getOAuthToken(code string, configuration *portaineree.OAuthSettings) (*oauth2.Token, error) {
 	unescapedCode, err := url.QueryUnescape(code)
 	if err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func getOAuthToken(code string, configuration *portainer.OAuthSettings) (*oauth2
 	return token, nil
 }
 
-func getResource(token string, configuration *portainer.OAuthSettings) (map[string]interface{}, error) {
+func getResource(token string, configuration *portaineree.OAuthSettings) (map[string]interface{}, error) {
 	req, err := http.NewRequest("GET", configuration.ResourceURI, nil)
 	if err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func getResource(token string, configuration *portainer.OAuthSettings) (map[stri
 	return datamap, nil
 }
 
-func buildConfig(configuration *portainer.OAuthSettings) *oauth2.Config {
+func buildConfig(configuration *portaineree.OAuthSettings) *oauth2.Config {
 	endpoint := oauth2.Endpoint{
 		AuthURL:  configuration.AuthorizationURI,
 		TokenURL: configuration.AccessTokenURI,

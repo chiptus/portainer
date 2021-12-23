@@ -4,13 +4,13 @@ import (
 	"reflect"
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/oauth/oauthtest"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/oauth/oauthtest"
 )
 
 func Test_getOAuthToken(t *testing.T) {
 	validCode := "valid-code"
-	srv, config := oauthtest.RunOAuthServer(validCode, &portainer.OAuthSettings{})
+	srv, config := oauthtest.RunOAuthServer(validCode, &portaineree.OAuthSettings{})
 	defer srv.Close()
 
 	t.Run("getOAuthToken fails upon invalid code", func(t *testing.T) {
@@ -32,7 +32,7 @@ func Test_getOAuthToken(t *testing.T) {
 }
 
 func Test_getResource(t *testing.T) {
-	srv, config := oauthtest.RunOAuthServer("", &portainer.OAuthSettings{})
+	srv, config := oauthtest.RunOAuthServer("", &portaineree.OAuthSettings{})
 	defer srv.Close()
 
 	t.Run("should fail upon missing Authorization Bearer header", func(t *testing.T) {
@@ -62,7 +62,7 @@ func Test_Authenticate(t *testing.T) {
 	authService := NewService()
 
 	t.Run("should fail if user identifier does not get matched in resource", func(t *testing.T) {
-		srv, config := oauthtest.RunOAuthServer(code, &portainer.OAuthSettings{})
+		srv, config := oauthtest.RunOAuthServer(code, &portaineree.OAuthSettings{})
 		defer srv.Close()
 
 		_, err := authService.Authenticate(code, config)
@@ -72,7 +72,7 @@ func Test_Authenticate(t *testing.T) {
 	})
 
 	t.Run("should succeed if user identifier does get matched in resource", func(t *testing.T) {
-		config := &portainer.OAuthSettings{UserIdentifier: "username"}
+		config := &portaineree.OAuthSettings{UserIdentifier: "username"}
 		srv, config := oauthtest.RunOAuthServer(code, config)
 		defer srv.Close()
 
@@ -88,10 +88,10 @@ func Test_Authenticate(t *testing.T) {
 	})
 
 	t.Run("should return team data (claims) upon group name matched in resource", func(t *testing.T) {
-		config := &portainer.OAuthSettings{
+		config := &portaineree.OAuthSettings{
 			UserIdentifier:              "username",
 			OAuthAutoMapTeamMemberships: true,
-			TeamMemberships: portainer.TeamMemberships{
+			TeamMemberships: portaineree.TeamMemberships{
 				OAuthClaimName: "groups",
 			},
 		}

@@ -9,8 +9,8 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id EndpointList
@@ -31,7 +31,7 @@ import (
 // @param tagIds query []int false "search environments(endpoints) with these tags (depends on tagsPartialMatch)"
 // @param tagsPartialMatch query bool false "If true, will return environment(endpoint) which has one of tagIds, if false (or missing) will return only environments(endpoints) that has all the tags"
 // @param endpointIds query []int false "will return only these environments(endpoints)"
-// @success 200 {array} portainer.Endpoint "Endpoints"
+// @success 200 {array} portaineree.Endpoint "Endpoints"
 // @failure 500 "Server error"
 // @router /endpoints [get]
 func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
@@ -51,12 +51,12 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 	var endpointTypes []int
 	request.RetrieveJSONQueryParameter(r, "types", &endpointTypes, true)
 
-	var tagIDs []portainer.TagID
+	var tagIDs []portaineree.TagID
 	request.RetrieveJSONQueryParameter(r, "tagIds", &tagIDs, true)
 
 	tagsPartialMatch, _ := request.RetrieveBooleanQueryParameter(r, "tagsPartialMatch", true)
 
-	var endpointIDs []portainer.EndpointID
+	var endpointIDs []portaineree.EndpointID
 	request.RetrieveJSONQueryParameter(r, "endpointIds", &endpointIDs, true)
 
 	endpointGroups, err := handler.dataStore.EndpointGroup().EndpointGroups()
@@ -86,7 +86,7 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 	}
 
 	if groupID != 0 {
-		filteredEndpoints = filterEndpointsByGroupID(filteredEndpoints, portainer.EndpointGroupID(groupID))
+		filteredEndpoints = filterEndpointsByGroupID(filteredEndpoints, portaineree.EndpointGroupID(groupID))
 	}
 
 	if search != "" {
@@ -94,7 +94,7 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve tags from the database", err}
 		}
-		tagsMap := make(map[portainer.TagID]string)
+		tagsMap := make(map[portaineree.TagID]string)
 		for _, tag := range tags {
 			tagsMap[tag.ID] = tag.Name
 		}
@@ -125,7 +125,7 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 	return response.JSON(w, paginatedEndpoints)
 }
 
-func paginateEndpoints(endpoints []portainer.Endpoint, start, limit int) []portainer.Endpoint {
+func paginateEndpoints(endpoints []portaineree.Endpoint, start, limit int) []portaineree.Endpoint {
 	if limit == 0 {
 		return endpoints
 	}
@@ -144,8 +144,8 @@ func paginateEndpoints(endpoints []portainer.Endpoint, start, limit int) []porta
 	return endpoints[start:end]
 }
 
-func filterEndpointsByGroupID(endpoints []portainer.Endpoint, endpointGroupID portainer.EndpointGroupID) []portainer.Endpoint {
-	filteredEndpoints := make([]portainer.Endpoint, 0)
+func filterEndpointsByGroupID(endpoints []portaineree.Endpoint, endpointGroupID portaineree.EndpointGroupID) []portaineree.Endpoint {
+	filteredEndpoints := make([]portaineree.Endpoint, 0)
 
 	for _, endpoint := range endpoints {
 		if endpoint.GroupID == endpointGroupID {
@@ -156,8 +156,8 @@ func filterEndpointsByGroupID(endpoints []portainer.Endpoint, endpointGroupID po
 	return filteredEndpoints
 }
 
-func filterEndpointsBySearchCriteria(endpoints []portainer.Endpoint, endpointGroups []portainer.EndpointGroup, tagsMap map[portainer.TagID]string, searchCriteria string) []portainer.Endpoint {
-	filteredEndpoints := make([]portainer.Endpoint, 0)
+func filterEndpointsBySearchCriteria(endpoints []portaineree.Endpoint, endpointGroups []portaineree.EndpointGroup, tagsMap map[portaineree.TagID]string, searchCriteria string) []portaineree.Endpoint {
+	filteredEndpoints := make([]portaineree.Endpoint, 0)
 
 	for _, endpoint := range endpoints {
 		endpointTags := convertTagIDsToTags(tagsMap, endpoint.TagIDs)
@@ -174,7 +174,7 @@ func filterEndpointsBySearchCriteria(endpoints []portainer.Endpoint, endpointGro
 	return filteredEndpoints
 }
 
-func endpointMatchSearchCriteria(endpoint *portainer.Endpoint, tags []string, searchCriteria string) bool {
+func endpointMatchSearchCriteria(endpoint *portaineree.Endpoint, tags []string, searchCriteria string) bool {
 	if strings.Contains(strings.ToLower(endpoint.Name), searchCriteria) {
 		return true
 	}
@@ -183,9 +183,9 @@ func endpointMatchSearchCriteria(endpoint *portainer.Endpoint, tags []string, se
 		return true
 	}
 
-	if endpoint.Status == portainer.EndpointStatusUp && searchCriteria == "up" {
+	if endpoint.Status == portaineree.EndpointStatusUp && searchCriteria == "up" {
 		return true
-	} else if endpoint.Status == portainer.EndpointStatusDown && searchCriteria == "down" {
+	} else if endpoint.Status == portaineree.EndpointStatusDown && searchCriteria == "down" {
 		return true
 	}
 	for _, tag := range tags {
@@ -197,7 +197,7 @@ func endpointMatchSearchCriteria(endpoint *portainer.Endpoint, tags []string, se
 	return false
 }
 
-func endpointGroupMatchSearchCriteria(endpoint *portainer.Endpoint, endpointGroups []portainer.EndpointGroup, tagsMap map[portainer.TagID]string, searchCriteria string) bool {
+func endpointGroupMatchSearchCriteria(endpoint *portaineree.Endpoint, endpointGroups []portaineree.EndpointGroup, tagsMap map[portaineree.TagID]string, searchCriteria string) bool {
 	for _, group := range endpointGroups {
 		if group.ID == endpoint.GroupID {
 			if strings.Contains(strings.ToLower(group.Name), searchCriteria) {
@@ -215,12 +215,12 @@ func endpointGroupMatchSearchCriteria(endpoint *portainer.Endpoint, endpointGrou
 	return false
 }
 
-func filterEndpointsByTypes(endpoints []portainer.Endpoint, endpointTypes []int) []portainer.Endpoint {
-	filteredEndpoints := make([]portainer.Endpoint, 0)
+func filterEndpointsByTypes(endpoints []portaineree.Endpoint, endpointTypes []int) []portaineree.Endpoint {
+	filteredEndpoints := make([]portaineree.Endpoint, 0)
 
-	typeSet := map[portainer.EndpointType]bool{}
+	typeSet := map[portaineree.EndpointType]bool{}
 	for _, endpointType := range endpointTypes {
-		typeSet[portainer.EndpointType(endpointType)] = true
+		typeSet[portaineree.EndpointType(endpointType)] = true
 	}
 
 	for _, endpoint := range endpoints {
@@ -231,7 +231,7 @@ func filterEndpointsByTypes(endpoints []portainer.Endpoint, endpointTypes []int)
 	return filteredEndpoints
 }
 
-func convertTagIDsToTags(tagsMap map[portainer.TagID]string, tagIDs []portainer.TagID) []string {
+func convertTagIDsToTags(tagsMap map[portaineree.TagID]string, tagIDs []portaineree.TagID) []string {
 	tags := make([]string, 0)
 	for _, tagID := range tagIDs {
 		tags = append(tags, tagsMap[tagID])
@@ -239,8 +239,8 @@ func convertTagIDsToTags(tagsMap map[portainer.TagID]string, tagIDs []portainer.
 	return tags
 }
 
-func filteredEndpointsByTags(endpoints []portainer.Endpoint, tagIDs []portainer.TagID, endpointGroups []portainer.EndpointGroup, partialMatch bool) []portainer.Endpoint {
-	filteredEndpoints := make([]portainer.Endpoint, 0)
+func filteredEndpointsByTags(endpoints []portaineree.Endpoint, tagIDs []portaineree.TagID, endpointGroups []portaineree.EndpointGroup, partialMatch bool) []portaineree.Endpoint {
+	filteredEndpoints := make([]portaineree.Endpoint, 0)
 
 	for _, endpoint := range endpoints {
 		endpointGroup := getEndpointGroup(endpoint.GroupID, endpointGroups)
@@ -258,8 +258,8 @@ func filteredEndpointsByTags(endpoints []portainer.Endpoint, tagIDs []portainer.
 	return filteredEndpoints
 }
 
-func getEndpointGroup(groupID portainer.EndpointGroupID, groups []portainer.EndpointGroup) portainer.EndpointGroup {
-	var endpointGroup portainer.EndpointGroup
+func getEndpointGroup(groupID portaineree.EndpointGroupID, groups []portaineree.EndpointGroup) portaineree.EndpointGroup {
+	var endpointGroup portaineree.EndpointGroup
 	for _, group := range groups {
 		if group.ID == groupID {
 			endpointGroup = group
@@ -269,8 +269,8 @@ func getEndpointGroup(groupID portainer.EndpointGroupID, groups []portainer.Endp
 	return endpointGroup
 }
 
-func endpointPartialMatchTags(endpoint portainer.Endpoint, endpointGroup portainer.EndpointGroup, tagIDs []portainer.TagID) bool {
-	tagSet := make(map[portainer.TagID]bool)
+func endpointPartialMatchTags(endpoint portaineree.Endpoint, endpointGroup portaineree.EndpointGroup, tagIDs []portaineree.TagID) bool {
+	tagSet := make(map[portaineree.TagID]bool)
 	for _, tagID := range tagIDs {
 		tagSet[tagID] = true
 	}
@@ -287,8 +287,8 @@ func endpointPartialMatchTags(endpoint portainer.Endpoint, endpointGroup portain
 	return false
 }
 
-func endpointFullMatchTags(endpoint portainer.Endpoint, endpointGroup portainer.EndpointGroup, tagIDs []portainer.TagID) bool {
-	missingTags := make(map[portainer.TagID]bool)
+func endpointFullMatchTags(endpoint portaineree.Endpoint, endpointGroup portaineree.EndpointGroup, tagIDs []portaineree.TagID) bool {
+	missingTags := make(map[portaineree.TagID]bool)
 	for _, tagID := range tagIDs {
 		missingTags[tagID] = true
 	}
@@ -305,10 +305,10 @@ func endpointFullMatchTags(endpoint portainer.Endpoint, endpointGroup portainer.
 	return len(missingTags) == 0
 }
 
-func filteredEndpointsByIds(endpoints []portainer.Endpoint, ids []portainer.EndpointID) []portainer.Endpoint {
-	filteredEndpoints := make([]portainer.Endpoint, 0)
+func filteredEndpointsByIds(endpoints []portaineree.Endpoint, ids []portaineree.EndpointID) []portaineree.Endpoint {
+	filteredEndpoints := make([]portaineree.Endpoint, 0)
 
-	idsSet := make(map[portainer.EndpointID]bool)
+	idsSet := make(map[portaineree.EndpointID]bool)
 	for _, id := range ids {
 		idsSet[id] = true
 	}

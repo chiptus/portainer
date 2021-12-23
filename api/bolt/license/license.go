@@ -2,7 +2,7 @@ package license
 
 import (
 	"github.com/portainer/liblicense"
-	"github.com/portainer/portainer/api/bolt/internal"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 
 	"github.com/boltdb/bolt"
 )

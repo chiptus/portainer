@@ -2,8 +2,8 @@ package edgestack
 
 import (
 	"github.com/boltdb/bolt"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 )
 
 const (
@@ -29,15 +29,15 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // EdgeStacks returns an array containing all edge stacks
-func (service *Service) EdgeStacks() ([]portainer.EdgeStack, error) {
-	var stacks = make([]portainer.EdgeStack, 0)
+func (service *Service) EdgeStacks() ([]portaineree.EdgeStack, error) {
+	var stacks = make([]portaineree.EdgeStack, 0)
 
 	err := service.connection.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var stack portainer.EdgeStack
+			var stack portaineree.EdgeStack
 			err := internal.UnmarshalObject(v, &stack)
 			if err != nil {
 				return err
@@ -52,8 +52,8 @@ func (service *Service) EdgeStacks() ([]portainer.EdgeStack, error) {
 }
 
 // EdgeStack returns an Edge stack by ID.
-func (service *Service) EdgeStack(ID portainer.EdgeStackID) (*portainer.EdgeStack, error) {
-	var stack portainer.EdgeStack
+func (service *Service) EdgeStack(ID portaineree.EdgeStackID) (*portaineree.EdgeStack, error) {
+	var stack portaineree.EdgeStack
 	identifier := internal.Itob(int(ID))
 
 	err := internal.GetObject(service.connection, BucketName, identifier, &stack)
@@ -65,13 +65,13 @@ func (service *Service) EdgeStack(ID portainer.EdgeStackID) (*portainer.EdgeStac
 }
 
 // CreateEdgeStack assign an ID to a new Edge stack and saves it.
-func (service *Service) CreateEdgeStack(edgeStack *portainer.EdgeStack) error {
+func (service *Service) CreateEdgeStack(edgeStack *portaineree.EdgeStack) error {
 	return service.connection.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		if edgeStack.ID == 0 {
 			id, _ := bucket.NextSequence()
-			edgeStack.ID = portainer.EdgeStackID(id)
+			edgeStack.ID = portaineree.EdgeStackID(id)
 		}
 
 		data, err := internal.MarshalObject(edgeStack)
@@ -84,13 +84,13 @@ func (service *Service) CreateEdgeStack(edgeStack *portainer.EdgeStack) error {
 }
 
 // UpdateEdgeStack updates an Edge stack.
-func (service *Service) UpdateEdgeStack(ID portainer.EdgeStackID, edgeStack *portainer.EdgeStack) error {
+func (service *Service) UpdateEdgeStack(ID portaineree.EdgeStackID, edgeStack *portaineree.EdgeStack) error {
 	identifier := internal.Itob(int(ID))
 	return internal.UpdateObject(service.connection, BucketName, identifier, edgeStack)
 }
 
 // DeleteEdgeStack deletes an Edge stack.
-func (service *Service) DeleteEdgeStack(ID portainer.EdgeStackID) error {
+func (service *Service) DeleteEdgeStack(ID portaineree.EdgeStackID) error {
 	identifier := internal.Itob(int(ID))
 	return internal.DeleteObject(service.connection, BucketName, identifier)
 }

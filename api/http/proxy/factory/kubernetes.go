@@ -5,24 +5,24 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/portainer/portainer/api/http/proxy/factory/kubernetes"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer/api/crypto"
 )
 
-func (factory *ProxyFactory) newKubernetesProxy(endpoint *portainer.Endpoint) (http.Handler, error) {
+func (factory *ProxyFactory) newKubernetesProxy(endpoint *portaineree.Endpoint) (http.Handler, error) {
 	switch endpoint.Type {
-	case portainer.KubernetesLocalEnvironment:
+	case portaineree.KubernetesLocalEnvironment:
 		return factory.newKubernetesLocalProxy(endpoint)
-	case portainer.EdgeAgentOnKubernetesEnvironment:
+	case portaineree.EdgeAgentOnKubernetesEnvironment:
 		return factory.newKubernetesEdgeHTTPProxy(endpoint)
 	}
 
 	return factory.newKubernetesAgentHTTPSProxy(endpoint)
 }
 
-func (factory *ProxyFactory) newKubernetesLocalProxy(endpoint *portainer.Endpoint) (http.Handler, error) {
+func (factory *ProxyFactory) newKubernetesLocalProxy(endpoint *portaineree.Endpoint) (http.Handler, error) {
 	remoteURL, err := url.Parse(endpoint.URL)
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (factory *ProxyFactory) newKubernetesLocalProxy(endpoint *portainer.Endpoin
 	return proxy, nil
 }
 
-func (factory *ProxyFactory) newKubernetesEdgeHTTPProxy(endpoint *portainer.Endpoint) (http.Handler, error) {
+func (factory *ProxyFactory) newKubernetesEdgeHTTPProxy(endpoint *portaineree.Endpoint) (http.Handler, error) {
 	tunnel := factory.reverseTunnelService.GetTunnelDetails(endpoint.ID)
 	rawURL := fmt.Sprintf("http://127.0.0.1:%d", tunnel.Port)
 
@@ -77,7 +77,7 @@ func (factory *ProxyFactory) newKubernetesEdgeHTTPProxy(endpoint *portainer.Endp
 	return proxy, nil
 }
 
-func (factory *ProxyFactory) newKubernetesAgentHTTPSProxy(endpoint *portainer.Endpoint) (http.Handler, error) {
+func (factory *ProxyFactory) newKubernetesAgentHTTPSProxy(endpoint *portaineree.Endpoint) (http.Handler, error) {
 	endpointURL := fmt.Sprintf("https://%s", endpoint.URL)
 	remoteURL, err := url.Parse(endpointURL)
 	if err != nil {

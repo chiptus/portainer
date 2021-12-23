@@ -7,8 +7,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 const portainerAPIKeyPrefix = "ptr_"
@@ -16,12 +15,12 @@ const portainerAPIKeyPrefix = "ptr_"
 var ErrInvalidAPIKey = errors.New("Invalid API key")
 
 type apiKeyService struct {
-	apiKeyRepository portainer.APIKeyRepository
-	userRepository   portainer.UserService
+	apiKeyRepository portaineree.APIKeyRepository
+	userRepository   portaineree.UserService
 	cache            *apiKeyCache
 }
 
-func NewAPIKeyService(apiKeyRepository portainer.APIKeyRepository, userRepository portainer.UserService) *apiKeyService {
+func NewAPIKeyService(apiKeyRepository portaineree.APIKeyRepository, userRepository portaineree.UserService) *apiKeyService {
 	return &apiKeyService{
 		apiKeyRepository: apiKeyRepository,
 		userRepository:   userRepository,
@@ -37,14 +36,14 @@ func (a *apiKeyService) HashRaw(rawKey string) []byte {
 
 // GenerateApiKey generates a raw API key for a user (for one-time display).
 // The generated API key is stored in the cache and database.
-func (a *apiKeyService) GenerateApiKey(user portainer.User, description string) (string, *portainer.APIKey, error) {
+func (a *apiKeyService) GenerateApiKey(user portaineree.User, description string) (string, *portaineree.APIKey, error) {
 	randKey := generateRandomKey(32)
 	encodedRawAPIKey := base64.StdEncoding.EncodeToString(randKey)
 	prefixedAPIKey := portainerAPIKeyPrefix + encodedRawAPIKey
 
 	hashDigest := a.HashRaw(prefixedAPIKey)
 
-	apiKey := &portainer.APIKey{
+	apiKey := &portaineree.APIKey{
 		UserID:      user.ID,
 		Description: description,
 		Prefix:      prefixedAPIKey[:7],
@@ -64,18 +63,18 @@ func (a *apiKeyService) GenerateApiKey(user portainer.User, description string) 
 }
 
 // GetAPIKey returns an API key by its ID.
-func (a *apiKeyService) GetAPIKey(apiKeyID portainer.APIKeyID) (*portainer.APIKey, error) {
+func (a *apiKeyService) GetAPIKey(apiKeyID portaineree.APIKeyID) (*portaineree.APIKey, error) {
 	return a.apiKeyRepository.GetAPIKey(apiKeyID)
 }
 
 // GetAPIKeys returns all the API keys associated to a user.
-func (a *apiKeyService) GetAPIKeys(userID portainer.UserID) ([]portainer.APIKey, error) {
+func (a *apiKeyService) GetAPIKeys(userID portaineree.UserID) ([]portaineree.APIKey, error) {
 	return a.apiKeyRepository.GetAPIKeysByUserID(userID)
 }
 
 // GetDigestUserAndKey returns the user and api-key associated to a specified hash digest.
 // A cache lookup is performed first; if the user/api-key is not found in the cache, respective database lookups are performed.
-func (a *apiKeyService) GetDigestUserAndKey(digest []byte) (portainer.User, portainer.APIKey, error) {
+func (a *apiKeyService) GetDigestUserAndKey(digest []byte) (portaineree.User, portaineree.APIKey, error) {
 	// get api key from cache if possible
 	cachedUser, cachedKey, ok := a.cache.Get(digest)
 	if ok {
@@ -84,12 +83,12 @@ func (a *apiKeyService) GetDigestUserAndKey(digest []byte) (portainer.User, port
 
 	apiKey, err := a.apiKeyRepository.GetAPIKeyByDigest(digest)
 	if err != nil {
-		return portainer.User{}, portainer.APIKey{}, errors.Wrap(err, "Unable to retrieve API key")
+		return portaineree.User{}, portaineree.APIKey{}, errors.Wrap(err, "Unable to retrieve API key")
 	}
 
 	user, err := a.userRepository.User(apiKey.UserID)
 	if err != nil {
-		return portainer.User{}, portainer.APIKey{}, errors.Wrap(err, "Unable to retrieve digest user")
+		return portaineree.User{}, portaineree.APIKey{}, errors.Wrap(err, "Unable to retrieve digest user")
 	}
 
 	// persist api-key to cache - for quicker future lookups
@@ -99,7 +98,7 @@ func (a *apiKeyService) GetDigestUserAndKey(digest []byte) (portainer.User, port
 }
 
 // UpdateAPIKey updates an API key and in cache and database.
-func (a *apiKeyService) UpdateAPIKey(apiKey *portainer.APIKey) error {
+func (a *apiKeyService) UpdateAPIKey(apiKey *portaineree.APIKey) error {
 	user, _, err := a.GetDigestUserAndKey(apiKey.Digest)
 	if err != nil {
 		return errors.Wrap(err, "Unable to retrieve API key")
@@ -109,7 +108,7 @@ func (a *apiKeyService) UpdateAPIKey(apiKey *portainer.APIKey) error {
 }
 
 // DeleteAPIKey deletes an API key and removes the digest/api-key entry from the cache.
-func (a *apiKeyService) DeleteAPIKey(apiKeyID portainer.APIKeyID) error {
+func (a *apiKeyService) DeleteAPIKey(apiKeyID portaineree.APIKeyID) error {
 	// get api-key digest to remove from cache
 	apiKey, err := a.apiKeyRepository.GetAPIKey(apiKeyID)
 	if err != nil {
@@ -121,6 +120,6 @@ func (a *apiKeyService) DeleteAPIKey(apiKeyID portainer.APIKeyID) error {
 	return a.apiKeyRepository.DeleteAPIKey(apiKeyID)
 }
 
-func (a *apiKeyService) InvalidateUserKeyCache(userId portainer.UserID) bool {
+func (a *apiKeyService) InvalidateUserKeyCache(userId portaineree.UserID) bool {
 	return a.cache.InvalidateUserKeyCache(userId)
 }

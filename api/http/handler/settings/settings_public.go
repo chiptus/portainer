@@ -6,18 +6,18 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type publicSettingsResponse struct {
 	// URL to a logo that will be displayed on the login page as well as on top of the sidebar. Will use default Portainer logo when value is empty string
 	LogoURL string `json:"LogoURL" example:"https://mycompany.mydomain.tld/logo.png"`
 	// Active authentication method for the Portainer instance. Valid values are: 1 for internal, 2 for LDAP, or 3 for oauth
-	AuthenticationMethod portainer.AuthenticationMethod `json:"AuthenticationMethod" example:"1"`
+	AuthenticationMethod portaineree.AuthenticationMethod `json:"AuthenticationMethod" example:"1"`
 	// Whether edge compute features are enabled
 	EnableEdgeComputeFeatures bool `json:"EnableEdgeComputeFeatures" example:"true"`
 	// Supported feature flags
-	Features map[portainer.Feature]bool `json:"Features"`
+	Features map[portaineree.Feature]bool `json:"Features"`
 	// The URL used for oauth login
 	OAuthLoginURI string `json:"OAuthLoginURI" example:"https://gitlab.com/oauth"`
 	// The URL used for oauth logout
@@ -49,7 +49,7 @@ func (handler *Handler) settingsPublic(w http.ResponseWriter, r *http.Request) *
 	return response.JSON(w, publicSettings)
 }
 
-func generatePublicSettings(appSettings *portainer.Settings) *publicSettingsResponse {
+func generatePublicSettings(appSettings *portaineree.Settings) *publicSettingsResponse {
 	publicSettings := &publicSettingsResponse{
 		LogoURL:                   appSettings.LogoURL,
 		AuthenticationMethod:      appSettings.AuthenticationMethod,
@@ -59,7 +59,7 @@ func generatePublicSettings(appSettings *portainer.Settings) *publicSettingsResp
 		Features:                  appSettings.FeatureFlagSettings,
 	}
 	//if OAuth authentication is on, compose the related fields from application settings
-	if publicSettings.AuthenticationMethod == portainer.AuthenticationOAuth {
+	if publicSettings.AuthenticationMethod == portaineree.AuthenticationOAuth {
 		publicSettings.OAuthLogoutURI = appSettings.OAuthSettings.LogoutURI
 		publicSettings.OAuthHideInternalAuth = appSettings.OAuthSettings.HideInternalAuth
 		publicSettings.OAuthLoginURI = fmt.Sprintf("%s?response_type=code&client_id=%s&redirect_uri=%s&scope=%s",

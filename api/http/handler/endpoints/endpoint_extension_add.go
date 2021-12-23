@@ -10,8 +10,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 type endpointExtensionAddPayload struct {
@@ -41,7 +41,7 @@ func (handler *Handler) endpointExtensionAdd(w http.ResponseWriter, r *http.Requ
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -54,9 +54,9 @@ func (handler *Handler) endpointExtensionAdd(w http.ResponseWriter, r *http.Requ
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	extensionType := portainer.EndpointExtensionType(payload.Type)
+	extensionType := portaineree.EndpointExtensionType(payload.Type)
 
-	var extension *portainer.EndpointExtension
+	var extension *portaineree.EndpointExtension
 	for idx := range endpoint.Extensions {
 		if endpoint.Extensions[idx].Type == extensionType {
 			extension = &endpoint.Extensions[idx]
@@ -66,7 +66,7 @@ func (handler *Handler) endpointExtensionAdd(w http.ResponseWriter, r *http.Requ
 	if extension != nil {
 		extension.URL = payload.URL
 	} else {
-		extension = &portainer.EndpointExtension{
+		extension = &portaineree.EndpointExtension{
 			Type: extensionType,
 			URL:  payload.URL,
 		}

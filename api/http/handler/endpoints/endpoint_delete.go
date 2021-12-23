@@ -8,8 +8,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // @id EndpointDelete
@@ -31,7 +31,7 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == errors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -46,7 +46,7 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
-	err = handler.dataStore.Endpoint().DeleteEndpoint(portainer.EndpointID(endpointID))
+	err = handler.dataStore.Endpoint().DeleteEndpoint(portaineree.EndpointID(endpointID))
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove environment from the database", err}
 	}
@@ -138,7 +138,7 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 	return response.Empty(w)
 }
 
-func findEndpointIndex(tags []portainer.EndpointID, searchEndpointID portainer.EndpointID) int {
+func findEndpointIndex(tags []portaineree.EndpointID, searchEndpointID portaineree.EndpointID) int {
 	for idx, tagID := range tags {
 		if searchEndpointID == tagID {
 			return idx
@@ -147,7 +147,7 @@ func findEndpointIndex(tags []portainer.EndpointID, searchEndpointID portainer.E
 	return -1
 }
 
-func removeElement(arr []portainer.EndpointID, index int) []portainer.EndpointID {
+func removeElement(arr []portaineree.EndpointID, index int) []portaineree.EndpointID {
 	if index < 0 {
 		return arr
 	}
@@ -156,10 +156,10 @@ func removeElement(arr []portainer.EndpointID, index int) []portainer.EndpointID
 	return arr[:lastTagIdx]
 }
 
-func (handler *Handler) deleteAccessPolicies(endpoint portainer.Endpoint) error {
-	if endpoint.Type != portainer.KubernetesLocalEnvironment &&
-		endpoint.Type != portainer.AgentOnKubernetesEnvironment &&
-		endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment {
+func (handler *Handler) deleteAccessPolicies(endpoint portaineree.Endpoint) error {
+	if endpoint.Type != portaineree.KubernetesLocalEnvironment &&
+		endpoint.Type != portaineree.AgentOnKubernetesEnvironment &&
+		endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment {
 		return nil
 	}
 
@@ -168,7 +168,7 @@ func (handler *Handler) deleteAccessPolicies(endpoint portainer.Endpoint) error 
 		return fmt.Errorf("Unable to get k8s environment access @ %d: %w", int(endpoint.ID), err)
 	}
 
-	emptyPolicies := make(map[string]portainer.K8sNamespaceAccessPolicy)
+	emptyPolicies := make(map[string]portaineree.K8sNamespaceAccessPolicy)
 	err = kcl.UpdateNamespaceAccessPolicies(emptyPolicies)
 	if err != nil {
 		return fmt.Errorf("Unable to update environment namespace access @ %d: %w", int(endpoint.ID), err)

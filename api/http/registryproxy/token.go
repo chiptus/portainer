@@ -6,13 +6,13 @@ import (
 	"net/url"
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/internal/registryutils"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/registryutils"
 )
 
 type (
 	tokenSecuredTransport struct {
-		config        *portainer.RegistryManagementConfiguration
+		config        *portaineree.RegistryManagementConfiguration
 		client        *http.Client
 		httpTransport http.RoundTripper
 	}
@@ -26,7 +26,7 @@ type (
 	}
 )
 
-func newTokenSecuredRegistryProxy(uri string, config *portainer.RegistryManagementConfiguration, httpTransport http.RoundTripper) (http.Handler, error) {
+func newTokenSecuredRegistryProxy(uri string, config *portaineree.RegistryManagementConfiguration, httpTransport http.RoundTripper) (http.Handler, error) {
 	url, err := url.Parse("https://" + uri)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (transport *tokenSecuredTransport) RoundTrip(request *http.Request) (*http.
 		return nil, err
 	}
 
-	if transport.config.Type == portainer.EcrRegistry {
+	if transport.config.Type == portaineree.EcrRegistry {
 		err = registryutils.EnsureManegeTokenValid(transport.config)
 		if err != nil {
 			return nil, err

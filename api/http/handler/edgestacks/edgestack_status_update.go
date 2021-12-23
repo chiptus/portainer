@@ -8,14 +8,14 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 type updateStatusPayload struct {
 	Error      string
-	Status     *portainer.EdgeStackStatusType
-	EndpointID *portainer.EndpointID
+	Status     *portaineree.EdgeStackStatusType
+	EndpointID *portaineree.EndpointID
 }
 
 func (payload *updateStatusPayload) Validate(r *http.Request) error {
@@ -25,7 +25,7 @@ func (payload *updateStatusPayload) Validate(r *http.Request) error {
 	if payload.EndpointID == nil {
 		return errors.New("Invalid EnvironmentID")
 	}
-	if *payload.Status == portainer.StatusError && govalidator.IsNull(payload.Error) {
+	if *payload.Status == portaineree.StatusError && govalidator.IsNull(payload.Error) {
 		return errors.New("Error message is mandatory when status is error")
 	}
 	return nil
@@ -38,7 +38,7 @@ func (payload *updateStatusPayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param id path string true "EdgeStack Id"
-// @success 200 {object} portainer.EdgeStack
+// @success 200 {object} portaineree.EdgeStack
 // @failure 500
 // @failure 400
 // @failure 404
@@ -50,7 +50,7 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid stack identifier route variable", err}
 	}
 
-	stack, err := handler.DataStore.EdgeStack().EdgeStack(portainer.EdgeStackID(stackID))
+	stack, err := handler.DataStore.EdgeStack().EdgeStack(portaineree.EdgeStackID(stackID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a stack with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -63,7 +63,7 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(*payload.EndpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(*payload.EndpointID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -75,7 +75,7 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access environment", err}
 	}
 
-	stack.Status[*payload.EndpointID] = portainer.EdgeStackStatus{
+	stack.Status[*payload.EndpointID] = portaineree.EdgeStackStatus{
 		Type:       *payload.Status,
 		Error:      payload.Error,
 		EndpointID: *payload.EndpointID,

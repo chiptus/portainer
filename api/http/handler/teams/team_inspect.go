@@ -6,10 +6,10 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id TeamInspect
@@ -21,7 +21,7 @@ import (
 // @security jwt
 // @produce json
 // @param id path int true "Team identifier"
-// @success 200 {object} portainer.Team "Success"
+// @success 200 {object} portaineree.Team "Success"
 // @success 204 "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
@@ -39,11 +39,11 @@ func (handler *Handler) teamInspect(w http.ResponseWriter, r *http.Request) *htt
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
 	}
 
-	if !security.AuthorizedTeamManagement(portainer.TeamID(teamID), securityContext) {
+	if !security.AuthorizedTeamManagement(portaineree.TeamID(teamID), securityContext) {
 		return &httperror.HandlerError{http.StatusForbidden, "Access denied to team", errors.ErrResourceAccessDenied}
 	}
 
-	team, err := handler.DataStore.Team().Team(portainer.TeamID(teamID))
+	team, err := handler.DataStore.Team().Team(portaineree.TeamID(teamID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a team with the specified identifier inside the database", err}
 	} else if err != nil {

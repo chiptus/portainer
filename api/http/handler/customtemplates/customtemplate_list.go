@@ -7,9 +7,9 @@ import (
 	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/authorization"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 // @id CustomTemplateList
@@ -21,7 +21,7 @@ import (
 // @security jwt
 // @produce json
 // @param type query []int true "Template types" Enums(1,2,3)
-// @success 200 {array} portainer.CustomTemplate "Success"
+// @success 200 {array} portaineree.CustomTemplate "Success"
 // @failure 500 "Server error"
 // @router /custom_templates [get]
 func (handler *Handler) customTemplateList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
@@ -53,7 +53,7 @@ func (handler *Handler) customTemplateList(w http.ResponseWriter, r *http.Reques
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user information from the database", err}
 		}
 
-		userTeamIDs := make([]portainer.TeamID, 0)
+		userTeamIDs := make([]portaineree.TeamID, 0)
 		for _, membership := range securityContext.UserMemberships {
 			userTeamIDs = append(userTeamIDs, membership.TeamID)
 		}
@@ -66,7 +66,7 @@ func (handler *Handler) customTemplateList(w http.ResponseWriter, r *http.Reques
 	return response.JSON(w, customTemplates)
 }
 
-func parseTemplateTypes(r *http.Request) ([]portainer.StackType, error) {
+func parseTemplateTypes(r *http.Request) ([]portaineree.StackType, error) {
 	err := r.ParseForm()
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to parse request params")
@@ -74,33 +74,33 @@ func parseTemplateTypes(r *http.Request) ([]portainer.StackType, error) {
 
 	types, exist := r.Form["type"]
 	if !exist {
-		return []portainer.StackType{}, nil
+		return []portaineree.StackType{}, nil
 	}
 
-	res := []portainer.StackType{}
+	res := []portaineree.StackType{}
 	for _, templateTypeStr := range types {
 		templateType, err := strconv.Atoi(templateTypeStr)
 		if err != nil {
 			return nil, errors.WithMessage(err, "failed parsing template type")
 		}
 
-		res = append(res, portainer.StackType(templateType))
+		res = append(res, portaineree.StackType(templateType))
 	}
 
 	return res, nil
 }
 
-func filterByType(customTemplates []portainer.CustomTemplate, templateTypes []portainer.StackType) []portainer.CustomTemplate {
+func filterByType(customTemplates []portaineree.CustomTemplate, templateTypes []portaineree.StackType) []portaineree.CustomTemplate {
 	if len(templateTypes) == 0 {
 		return customTemplates
 	}
 
-	typeSet := map[portainer.StackType]bool{}
+	typeSet := map[portaineree.StackType]bool{}
 	for _, templateType := range templateTypes {
 		typeSet[templateType] = true
 	}
 
-	filtered := []portainer.CustomTemplate{}
+	filtered := []portaineree.CustomTemplate{}
 
 	for _, template := range customTemplates {
 		if typeSet[template.Type] {

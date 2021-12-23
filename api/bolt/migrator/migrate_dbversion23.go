@@ -1,6 +1,6 @@
 package migrator
 
-import portainer "github.com/portainer/portainer/api"
+import portaineree "github.com/portainer/portainer-ee/api"
 
 func (m *Migrator) updateSettingsToDB24() error {
 	migrateLog.Info("Updating settings")
@@ -25,7 +25,7 @@ func (m *Migrator) updateStacksToDB24() error {
 
 	for idx := range stacks {
 		stack := &stacks[idx]
-		stack.Status = portainer.StackStatusActive
+		stack.Status = portaineree.StackStatusActive
 		err := m.stackService.UpdateStack(stack.ID, stack)
 		if err != nil {
 			return err

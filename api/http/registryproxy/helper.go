@@ -3,13 +3,13 @@ package registryproxy
 import (
 	"bytes"
 	"encoding/json"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"io/ioutil"
 	"net/http"
 	"regexp"
 )
 
-func requestToken(response *http.Response, config *portainer.RegistryManagementConfiguration) (*string, error) {
+func requestToken(response *http.Response, config *portaineree.RegistryManagementConfiguration) (*string, error) {
 	client := &http.Client{}
 
 	wwwAuthenticateHeader := response.Header.Get("Www-Authenticate")
@@ -41,9 +41,9 @@ func requestToken(response *http.Response, config *portainer.RegistryManagementC
 	return &token, err
 }
 
-func retrieveToken(response *http.Response, registryType portainer.RegistryType) (string, error) {
+func retrieveToken(response *http.Response, registryType portaineree.RegistryType) (string, error) {
 	token := ""
-	if registryType == portainer.AzureRegistry {
+	if registryType == portaineree.AzureRegistry {
 		var responseData azureAuthenticationResponse
 		err := json.NewDecoder(response.Body).Decode(&responseData)
 		if err != nil {

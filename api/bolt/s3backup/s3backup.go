@@ -1,9 +1,9 @@
 package s3backup
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
-	"github.com/portainer/portainer/api/bolt/internal"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 )
 
 const (
@@ -29,8 +29,8 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // GetStatus returns the status of the last scheduled backup run
-func (s *Service) GetStatus() (portainer.S3BackupStatus, error) {
-	var status portainer.S3BackupStatus
+func (s *Service) GetStatus() (portaineree.S3BackupStatus, error) {
+	var status portaineree.S3BackupStatus
 	err := internal.GetObject(s.connection, bucketName, []byte(statusKey), &status)
 	if err == errors.ErrObjectNotFound {
 		return status, nil
@@ -45,18 +45,18 @@ func (s *Service) DropStatus() error {
 }
 
 // UpdateStatus upserts a status of the last scheduled backup run
-func (s *Service) UpdateStatus(status portainer.S3BackupStatus) error {
+func (s *Service) UpdateStatus(status portaineree.S3BackupStatus) error {
 	return internal.UpdateObject(s.connection, bucketName, []byte(statusKey), status)
 }
 
 // UpdateSettings updates stored s3 backup settings
-func (s *Service) UpdateSettings(settings portainer.S3BackupSettings) error {
+func (s *Service) UpdateSettings(settings portaineree.S3BackupSettings) error {
 	return internal.UpdateObject(s.connection, bucketName, []byte(settingsKey), settings)
 }
 
 // GetSettings returns stored s3 backup settings
-func (s *Service) GetSettings() (portainer.S3BackupSettings, error) {
-	var settings portainer.S3BackupSettings
+func (s *Service) GetSettings() (portaineree.S3BackupSettings, error) {
+	var settings portaineree.S3BackupSettings
 	err := internal.GetObject(s.connection, bucketName, []byte(settingsKey), &settings)
 	if err == errors.ErrObjectNotFound {
 		return settings, nil

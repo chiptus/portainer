@@ -3,12 +3,11 @@ package registries
 import (
 	"net/http"
 
-	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/bolt/errors"
-
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
+	portaineree "github.com/portainer/portainer-ee/api"
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // @id RegistryInspect
@@ -20,7 +19,7 @@ import (
 // @security jwt
 // @produce json
 // @param id path int true "Registry identifier"
-// @success 200 {object} portainer.Registry "Success"
+// @success 200 {object} portaineree.Registry "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied to access registry"
 // @failure 404 "Registry not found"
@@ -32,7 +31,7 @@ func (handler *Handler) registryInspect(w http.ResponseWriter, r *http.Request) 
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid registry identifier route variable", err}
 	}
 
-	registry, err := handler.DataStore.Registry().Registry(portainer.RegistryID(registryID))
+	registry, err := handler.DataStore.Registry().Registry(portaineree.RegistryID(registryID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a registry with the specified identifier inside the database", err}
 	} else if err != nil {

@@ -9,12 +9,12 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type authLogsListResponse struct {
-	Logs       []*portainer.AuthActivityLog `json:"logs"`
-	TotalCount int                          `json:"totalCount"`
+	Logs       []*portaineree.AuthActivityLog `json:"logs"`
+	TotalCount int                            `json:"totalCount"`
 }
 
 // @id AuthLogsList
@@ -32,7 +32,7 @@ type authLogsListResponse struct {
 // @param sortBy query string false "Sort by this column" Enum("Type", "Timestamp", "Origin", "Context", "Username", "Result")
 // @param sortDesc query bool false "Sort order, if true will return results by descending order"
 // @param keyword query string false "Query logs by this keyword"
-// @success 200 {array} portainer.AuthActivityLog "Success"
+// @success 200 {array} portaineree.AuthActivityLog "Success"
 // @failure 500 "Server error"
 // @router /useractivity/authlogs [get]
 func (handler *Handler) authLogsList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
@@ -62,8 +62,8 @@ func (handler *Handler) authLogsList(w http.ResponseWriter, r *http.Request) *ht
 		}
 	}
 
-	opts := portainer.AuthLogsQuery{
-		UserActivityLogBaseQuery: portainer.UserActivityLogBaseQuery{
+	opts := portaineree.AuthLogsQuery{
+		UserActivityLogBaseQuery: portaineree.UserActivityLogBaseQuery{
 			Offset:          offset,
 			Limit:           limit,
 			BeforeTimestamp: int64(before),
@@ -91,31 +91,31 @@ func (handler *Handler) authLogsList(w http.ResponseWriter, r *http.Request) *ht
 	})
 }
 
-func parseActivityTypes(query string) ([]portainer.AuthenticationActivityType, error) {
+func parseActivityTypes(query string) ([]portaineree.AuthenticationActivityType, error) {
 	numbers, err := parseNumberArrayQuery(query, "types")
 	if err != nil {
 		return nil, err
 	}
 
-	types := []portainer.AuthenticationActivityType{}
+	types := []portaineree.AuthenticationActivityType{}
 
 	for _, val := range numbers {
-		types = append(types, portainer.AuthenticationActivityType(val))
+		types = append(types, portaineree.AuthenticationActivityType(val))
 	}
 
 	return types, nil
 }
 
-func parseContextTypes(query string) ([]portainer.AuthenticationMethod, error) {
+func parseContextTypes(query string) ([]portaineree.AuthenticationMethod, error) {
 	numbers, err := parseNumberArrayQuery(query, "contexts")
 	if err != nil {
 		return nil, err
 	}
 
-	types := []portainer.AuthenticationMethod{}
+	types := []portaineree.AuthenticationMethod{}
 
 	for _, val := range numbers {
-		types = append(types, portainer.AuthenticationMethod(val))
+		types = append(types, portaineree.AuthenticationMethod(val))
 	}
 
 	return types, nil

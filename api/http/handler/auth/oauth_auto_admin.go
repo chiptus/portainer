@@ -3,10 +3,10 @@ package auth
 import (
 	"regexp"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
-func validateAdminClaims(oAuthSettings portainer.OAuthSettings, oAuthTeams []string) (bool, error) {
+func validateAdminClaims(oAuthSettings portaineree.OAuthSettings, oAuthTeams []string) (bool, error) {
 	for _, team := range oAuthTeams {
 		for _, regex := range oAuthSettings.TeamMemberships.AdminGroupClaimsRegexList {
 			match, err := regexp.MatchString(regex, team)

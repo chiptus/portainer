@@ -7,7 +7,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 // @id HelmDelete
@@ -27,7 +27,7 @@ import (
 // @failure 500 "Server error or helm error"
 // @router /endpoints/{id}/kubernetes/helm/{release} [delete]
 func (handler *Handler) helmDelete(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	httperr := handler.authoriseHelmOperation(r, portainer.OperationHelmUninstallChart)
+	httperr := handler.authoriseHelmOperation(r, portaineree.OperationHelmUninstallChart)
 	if httperr != nil {
 		return httperr
 	}

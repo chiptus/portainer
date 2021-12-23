@@ -6,8 +6,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 type stackFileResponse struct {
@@ -33,7 +33,7 @@ func (handler *Handler) edgeStackFile(w http.ResponseWriter, r *http.Request) *h
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid edge stack identifier route variable", err}
 	}
 
-	stack, err := handler.DataStore.EdgeStack().EdgeStack(portainer.EdgeStackID(stackID))
+	stack, err := handler.DataStore.EdgeStack().EdgeStack(portaineree.EdgeStackID(stackID))
 	if err == errors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an edge stack with the specified identifier inside the database", err}
 	} else if err != nil {
@@ -41,7 +41,7 @@ func (handler *Handler) edgeStackFile(w http.ResponseWriter, r *http.Request) *h
 	}
 
 	fileName := stack.EntryPoint
-	if stack.DeploymentType == portainer.EdgeStackDeploymentKubernetes {
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentKubernetes {
 		fileName = stack.ManifestPath
 	}
 

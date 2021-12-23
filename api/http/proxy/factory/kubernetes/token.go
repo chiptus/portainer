@@ -1,17 +1,18 @@
 package kubernetes
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/internal/authorization"
 	"io/ioutil"
+
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
 const defaultServiceAccountTokenFile = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 
 type tokenManager struct {
 	tokenCache  *tokenCache
-	kubecli     portainer.KubeClient
-	dataStore   portainer.DataStore
+	kubecli     portaineree.KubeClient
+	dataStore   portaineree.DataStore
 	adminToken  string
 	authService *authorization.Service
 }
@@ -20,8 +21,8 @@ type tokenManager struct {
 // If the useLocalAdminToken parameter is set to true, it will search for the local admin service account
 // and associate it to the manager.
 func NewTokenManager(
-	kubecli portainer.KubeClient,
-	dataStore portainer.DataStore,
+	kubecli portaineree.KubeClient,
+	dataStore portaineree.DataStore,
 	cache *tokenCache,
 	setLocalAdminToken bool,
 	authService *authorization.Service,
@@ -59,7 +60,7 @@ func (manager *tokenManager) GetUserServiceAccountToken(
 
 	token, ok := manager.tokenCache.getToken(userID)
 	if !ok {
-		user, err := manager.dataStore.User().User(portainer.UserID(userID))
+		user, err := manager.dataStore.User().User(portaineree.UserID(userID))
 		if err != nil || user == nil {
 			return "", err
 		}
@@ -69,7 +70,7 @@ func (manager *tokenManager) GetUserServiceAccountToken(
 			return "", err
 		}
 
-		endpoint, err := manager.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+		endpoint, err := manager.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 		if err != nil {
 			return "", err
 		}

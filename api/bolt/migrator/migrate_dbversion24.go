@@ -1,7 +1,7 @@
 package migrator
 
 import (
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 func (m *Migrator) updateSettingsToDB25() error {
@@ -12,10 +12,10 @@ func (m *Migrator) updateSettingsToDB25() error {
 	}
 
 	if legacySettings.TemplatesURL == "" {
-		legacySettings.TemplatesURL = portainer.DefaultTemplatesURL
+		legacySettings.TemplatesURL = portaineree.DefaultTemplatesURL
 	}
 
-	legacySettings.UserSessionTimeout = portainer.DefaultUserSessionTimeout
+	legacySettings.UserSessionTimeout = portaineree.DefaultUserSessionTimeout
 	legacySettings.EnableTelemetry = true
 
 	legacySettings.AllowContainerCapabilitiesForRegularUsers = true

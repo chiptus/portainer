@@ -3,22 +3,22 @@ package useractivity
 import (
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type Service struct {
-	store portainer.UserActivityStore
+	store portaineree.UserActivityStore
 }
 
-func NewService(store portainer.UserActivityStore) portainer.UserActivityService {
+func NewService(store portaineree.UserActivityStore) portaineree.UserActivityService {
 	return &Service{store: store}
 }
 
 // LogAuthActivity logs a new authentication activity log
-func (service *Service) LogAuthActivity(username string, origin string, context portainer.AuthenticationMethod, activityType portainer.AuthenticationActivityType) error {
-	activity := &portainer.AuthActivityLog{
+func (service *Service) LogAuthActivity(username string, origin string, context portaineree.AuthenticationMethod, activityType portaineree.AuthenticationActivityType) error {
+	activity := &portaineree.AuthActivityLog{
 		Type: activityType,
-		UserActivityLogBase: portainer.UserActivityLogBase{
+		UserActivityLogBase: portaineree.UserActivityLogBase{
 			Timestamp: time.Now().Unix(),
 			Username:  username,
 		},
@@ -30,8 +30,8 @@ func (service *Service) LogAuthActivity(username string, origin string, context 
 }
 
 func (service *Service) LogUserActivity(username string, context string, action string, payload []byte) error {
-	activity := &portainer.UserActivityLog{
-		UserActivityLogBase: portainer.UserActivityLogBase{
+	activity := &portaineree.UserActivityLog{
+		UserActivityLogBase: portaineree.UserActivityLogBase{
 			Timestamp: time.Now().Unix(),
 			Username:  username,
 		},

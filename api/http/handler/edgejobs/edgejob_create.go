@@ -11,7 +11,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 // @id EdgeJobCreate
@@ -24,7 +24,7 @@ import (
 // @param method query string true "Creation Method" Enums(file, string)
 // @param body_string body edgeJobCreateFromFileContentPayload true "EdgeGroup data when method is string"
 // @param body_file body edgeJobCreateFromFilePayload true "EdgeGroup data when method is file"
-// @success 200 {object} portainer.EdgeGroup
+// @success 200 {object} portaineree.EdgeGroup
 // @failure 503 "Edge compute features are disabled"
 // @failure 500
 // @router /edge_jobs [post]
@@ -48,7 +48,7 @@ type edgeJobCreateFromFileContentPayload struct {
 	Name           string
 	CronExpression string
 	Recurring      bool
-	Endpoints      []portainer.EndpointID
+	Endpoints      []portaineree.EndpointID
 	FileContent    string
 }
 
@@ -97,7 +97,7 @@ type edgeJobCreateFromFilePayload struct {
 	Name           string
 	CronExpression string
 	Recurring      bool
-	Endpoints      []portainer.EndpointID
+	Endpoints      []portaineree.EndpointID
 	File           []byte
 }
 
@@ -118,7 +118,7 @@ func (payload *edgeJobCreateFromFilePayload) Validate(r *http.Request) error {
 	}
 	payload.CronExpression = cronExpression
 
-	var endpoints []portainer.EndpointID
+	var endpoints []portaineree.EndpointID
 	err = request.RetrieveMultiPartFormJSONValue(r, "Endpoints", &endpoints, false)
 	if err != nil {
 		return errors.New("Invalid environments")
@@ -151,12 +151,12 @@ func (handler *Handler) createEdgeJobFromFile(w http.ResponseWriter, r *http.Req
 	return response.JSON(w, edgeJob)
 }
 
-func (handler *Handler) createEdgeJobObjectFromFilePayload(payload *edgeJobCreateFromFilePayload) *portainer.EdgeJob {
-	edgeJobIdentifier := portainer.EdgeJobID(handler.DataStore.EdgeJob().GetNextIdentifier())
+func (handler *Handler) createEdgeJobObjectFromFilePayload(payload *edgeJobCreateFromFilePayload) *portaineree.EdgeJob {
+	edgeJobIdentifier := portaineree.EdgeJobID(handler.DataStore.EdgeJob().GetNextIdentifier())
 
 	endpoints := convertEndpointsToMetaObject(payload.Endpoints)
 
-	edgeJob := &portainer.EdgeJob{
+	edgeJob := &portaineree.EdgeJob{
 		ID:             edgeJobIdentifier,
 		Name:           payload.Name,
 		CronExpression: payload.CronExpression,
@@ -169,12 +169,12 @@ func (handler *Handler) createEdgeJobObjectFromFilePayload(payload *edgeJobCreat
 	return edgeJob
 }
 
-func (handler *Handler) createEdgeJobObjectFromFileContentPayload(payload *edgeJobCreateFromFileContentPayload) *portainer.EdgeJob {
-	edgeJobIdentifier := portainer.EdgeJobID(handler.DataStore.EdgeJob().GetNextIdentifier())
+func (handler *Handler) createEdgeJobObjectFromFileContentPayload(payload *edgeJobCreateFromFileContentPayload) *portaineree.EdgeJob {
+	edgeJobIdentifier := portaineree.EdgeJobID(handler.DataStore.EdgeJob().GetNextIdentifier())
 
 	endpoints := convertEndpointsToMetaObject(payload.Endpoints)
 
-	edgeJob := &portainer.EdgeJob{
+	edgeJob := &portaineree.EdgeJob{
 		ID:             edgeJobIdentifier,
 		Name:           payload.Name,
 		CronExpression: payload.CronExpression,
@@ -187,7 +187,7 @@ func (handler *Handler) createEdgeJobObjectFromFileContentPayload(payload *edgeJ
 	return edgeJob
 }
 
-func (handler *Handler) addAndPersistEdgeJob(edgeJob *portainer.EdgeJob, file []byte) error {
+func (handler *Handler) addAndPersistEdgeJob(edgeJob *portaineree.EdgeJob, file []byte) error {
 	edgeCronExpression := strings.Split(edgeJob.CronExpression, " ")
 	if len(edgeCronExpression) == 6 {
 		edgeCronExpression = edgeCronExpression[1:]
@@ -200,7 +200,7 @@ func (handler *Handler) addAndPersistEdgeJob(edgeJob *portainer.EdgeJob, file []
 			return err
 		}
 
-		if endpoint.Type != portainer.EdgeAgentOnDockerEnvironment && endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment {
+		if endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment && endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment {
 			delete(edgeJob.Endpoints, ID)
 		}
 	}
@@ -222,11 +222,11 @@ func (handler *Handler) addAndPersistEdgeJob(edgeJob *portainer.EdgeJob, file []
 	return handler.DataStore.EdgeJob().CreateEdgeJob(edgeJob)
 }
 
-func convertEndpointsToMetaObject(endpoints []portainer.EndpointID) map[portainer.EndpointID]portainer.EdgeJobEndpointMeta {
-	endpointsMap := map[portainer.EndpointID]portainer.EdgeJobEndpointMeta{}
+func convertEndpointsToMetaObject(endpoints []portaineree.EndpointID) map[portaineree.EndpointID]portaineree.EdgeJobEndpointMeta {
+	endpointsMap := map[portaineree.EndpointID]portaineree.EdgeJobEndpointMeta{}
 
 	for _, endpointID := range endpoints {
-		endpointsMap[endpointID] = portainer.EdgeJobEndpointMeta{}
+		endpointsMap[endpointID] = portaineree.EdgeJobEndpointMeta{}
 	}
 
 	return endpointsMap

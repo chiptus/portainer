@@ -1,6 +1,6 @@
 package migrator
 
-import "github.com/portainer/portainer/api"
+import portaineree "github.com/portainer/portainer-ee/api"
 
 func (m *Migrator) updateEndpointsToVersion11() error {
 	legacyEndpoints, err := m.endpointService.Endpoints()
@@ -9,7 +9,7 @@ func (m *Migrator) updateEndpointsToVersion11() error {
 	}
 
 	for _, endpoint := range legacyEndpoints {
-		if endpoint.Type == portainer.AgentOnDockerEnvironment {
+		if endpoint.Type == portaineree.AgentOnDockerEnvironment {
 			endpoint.TLSConfig.TLS = true
 			endpoint.TLSConfig.TLSSkipVerify = true
 		} else {

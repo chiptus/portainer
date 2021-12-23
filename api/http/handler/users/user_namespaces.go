@@ -6,13 +6,13 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/errors"
-	"github.com/portainer/portainer/api/http/security"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // namespaceMapping is a struct created only for swagger API generation purposes
-type namespaceMapping map[int]map[string]portainer.Authorizations
+type namespaceMapping map[int]map[string]portaineree.Authorizations
 
 // @id UserNamespaces
 // @summary Retrieves all k8s namespaces for an user
@@ -40,7 +40,7 @@ func (handler *Handler) userNamespaces(w http.ResponseWriter, r *http.Request) *
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}
 	}
 
-	if tokenData.Role != portainer.AdministratorRole && tokenData.ID != portainer.UserID(userID) {
+	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portaineree.UserID(userID) {
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to retrieve user namespaces", errors.ErrUnauthorized}
 	}
 
@@ -50,13 +50,13 @@ func (handler *Handler) userNamespaces(w http.ResponseWriter, r *http.Request) *
 	}
 
 	// key: endpointID, value: a map between namespace and user's role authorizations
-	results := make(map[int]map[string]portainer.Authorizations)
+	results := make(map[int]map[string]portaineree.Authorizations)
 	for _, endpoint := range endpoints {
 
 		// skip non k8s environments(endpoints)
-		if endpoint.Type != portainer.KubernetesLocalEnvironment &&
-			endpoint.Type != portainer.AgentOnKubernetesEnvironment &&
-			endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment {
+		if endpoint.Type != portaineree.KubernetesLocalEnvironment &&
+			endpoint.Type != portaineree.AgentOnKubernetesEnvironment &&
+			endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment {
 			continue
 		}
 

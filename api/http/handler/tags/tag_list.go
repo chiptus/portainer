@@ -15,7 +15,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @success 200 {array} portainer.Tag "Success"
+// @success 200 {array} portaineree.Tag "Success"
 // @failure 500 "Server error"
 // @router /tags [get]
 func (handler *Handler) tagList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {

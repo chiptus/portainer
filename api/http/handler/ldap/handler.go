@@ -5,17 +5,18 @@ import (
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
-	"github.com/portainer/portainer/api/http/security"
 )
 
 // Handler is the HTTP handler used to handle LDAP search Operations
 type Handler struct {
 	*mux.Router
-	DataStore   portainer.DataStore
+	DataStore   portaineree.DataStore
 	FileService portainer.FileService
-	LDAPService portainer.LDAPService
+	LDAPService portaineree.LDAPService
 }
 
 // NewHandler returns a new Handler
@@ -38,7 +39,7 @@ func NewHandler(bouncer *security.RequestBouncer) *Handler {
 	return h
 }
 
-func (handler *Handler) prefillSettings(ldapSettings *portainer.LDAPSettings) error {
+func (handler *Handler) prefillSettings(ldapSettings *portaineree.LDAPSettings) error {
 	if !ldapSettings.AnonymousMode && ldapSettings.Password == "" {
 		settings, err := handler.DataStore.Settings().Settings()
 		if err != nil {

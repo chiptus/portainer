@@ -5,11 +5,11 @@ import (
 	"net/http/httputil"
 	"net/url"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/docker"
-	"github.com/portainer/portainer/api/http/proxy/factory/kubernetes"
-	"github.com/portainer/portainer/api/internal/authorization"
-	"github.com/portainer/portainer/api/kubernetes/cli"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/docker"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 )
 
 const azureAPIBaseURL = "https://management.azure.com"
@@ -17,27 +17,27 @@ const azureAPIBaseURL = "https://management.azure.com"
 type (
 	// ProxyFactory is a factory to create reverse proxies
 	ProxyFactory struct {
-		dataStore                   portainer.DataStore
-		signatureService            portainer.DigitalSignatureService
-		reverseTunnelService        portainer.ReverseTunnelService
+		dataStore                   portaineree.DataStore
+		signatureService            portaineree.DigitalSignatureService
+		reverseTunnelService        portaineree.ReverseTunnelService
 		dockerClientFactory         *docker.ClientFactory
 		kubernetesClientFactory     *cli.ClientFactory
 		kubernetesTokenCacheManager *kubernetes.TokenCacheManager
 		authService                 *authorization.Service
-		userActivityService         portainer.UserActivityService
+		userActivityService         portaineree.UserActivityService
 	}
 )
 
 // NewProxyFactory returns a pointer to a new instance of a ProxyFactory
 func NewProxyFactory(
-	dataStore portainer.DataStore,
-	signatureService portainer.DigitalSignatureService,
-	tunnelService portainer.ReverseTunnelService,
+	dataStore portaineree.DataStore,
+	signatureService portaineree.DigitalSignatureService,
+	tunnelService portaineree.ReverseTunnelService,
 	clientFactory *docker.ClientFactory,
 	kubernetesClientFactory *cli.ClientFactory,
 	kubernetesTokenCacheManager *kubernetes.TokenCacheManager,
 	authService *authorization.Service,
-	userActivityService portainer.UserActivityService,
+	userActivityService portaineree.UserActivityService,
 ) *ProxyFactory {
 	return &ProxyFactory{
 		dataStore:                   dataStore,
@@ -64,11 +64,11 @@ func (factory *ProxyFactory) NewLegacyExtensionProxy(extensionAPIURL string) (ht
 }
 
 // NewEndpointProxy returns a new reverse proxy (filesystem based or HTTP) to an environment(endpoint) API server
-func (factory *ProxyFactory) NewEndpointProxy(endpoint *portainer.Endpoint) (http.Handler, error) {
+func (factory *ProxyFactory) NewEndpointProxy(endpoint *portaineree.Endpoint) (http.Handler, error) {
 	switch endpoint.Type {
-	case portainer.AzureEnvironment:
+	case portaineree.AzureEnvironment:
 		return newAzureProxy(factory.userActivityService, endpoint, factory.dataStore)
-	case portainer.EdgeAgentOnKubernetesEnvironment, portainer.AgentOnKubernetesEnvironment, portainer.KubernetesLocalEnvironment:
+	case portaineree.EdgeAgentOnKubernetesEnvironment, portaineree.AgentOnKubernetesEnvironment, portaineree.KubernetesLocalEnvironment:
 		return factory.newKubernetesProxy(endpoint)
 	}
 

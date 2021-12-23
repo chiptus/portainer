@@ -9,12 +9,12 @@ import (
 	"strings"
 
 	httperror "github.com/portainer/libhttp/error"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/docker"
 	"github.com/portainer/portainer/api/crypto"
-	"github.com/portainer/portainer/api/http/proxy/factory/docker"
 )
 
-func (factory *ProxyFactory) newDockerProxy(endpoint *portainer.Endpoint) (http.Handler, error) {
+func (factory *ProxyFactory) newDockerProxy(endpoint *portaineree.Endpoint) (http.Handler, error) {
 	if strings.HasPrefix(endpoint.URL, "unix://") || strings.HasPrefix(endpoint.URL, "npipe://") {
 		return factory.newDockerLocalProxy(endpoint)
 	}
@@ -22,7 +22,7 @@ func (factory *ProxyFactory) newDockerProxy(endpoint *portainer.Endpoint) (http.
 	return factory.newDockerHTTPProxy(endpoint)
 }
 
-func (factory *ProxyFactory) newDockerLocalProxy(endpoint *portainer.Endpoint) (http.Handler, error) {
+func (factory *ProxyFactory) newDockerLocalProxy(endpoint *portaineree.Endpoint) (http.Handler, error) {
 	endpointURL, err := url.Parse(endpoint.URL)
 	if err != nil {
 		return nil, err
@@ -31,9 +31,9 @@ func (factory *ProxyFactory) newDockerLocalProxy(endpoint *portainer.Endpoint) (
 	return factory.newOSBasedLocalProxy(endpointURL.Path, endpoint)
 }
 
-func (factory *ProxyFactory) newDockerHTTPProxy(endpoint *portainer.Endpoint) (http.Handler, error) {
+func (factory *ProxyFactory) newDockerHTTPProxy(endpoint *portaineree.Endpoint) (http.Handler, error) {
 	rawURL := endpoint.URL
-	if endpoint.Type == portainer.EdgeAgentOnDockerEnvironment {
+	if endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment {
 		tunnel := factory.reverseTunnelService.GetTunnelDetails(endpoint.ID)
 		rawURL = fmt.Sprintf("http://127.0.0.1:%d", tunnel.Port)
 	}

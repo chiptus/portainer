@@ -1,8 +1,8 @@
 package endpointgroup
 
 import (
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt/internal"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt/internal"
 
 	"github.com/boltdb/bolt"
 )
@@ -30,8 +30,8 @@ func NewService(connection *internal.DbConnection) (*Service, error) {
 }
 
 // EndpointGroup returns an environment(endpoint) group by ID.
-func (service *Service) EndpointGroup(ID portainer.EndpointGroupID) (*portainer.EndpointGroup, error) {
-	var endpointGroup portainer.EndpointGroup
+func (service *Service) EndpointGroup(ID portaineree.EndpointGroupID) (*portaineree.EndpointGroup, error) {
+	var endpointGroup portaineree.EndpointGroup
 	identifier := internal.Itob(int(ID))
 
 	err := internal.GetObject(service.connection, BucketName, identifier, &endpointGroup)
@@ -43,27 +43,27 @@ func (service *Service) EndpointGroup(ID portainer.EndpointGroupID) (*portainer.
 }
 
 // UpdateEndpointGroup updates an environment(endpoint) group.
-func (service *Service) UpdateEndpointGroup(ID portainer.EndpointGroupID, endpointGroup *portainer.EndpointGroup) error {
+func (service *Service) UpdateEndpointGroup(ID portaineree.EndpointGroupID, endpointGroup *portaineree.EndpointGroup) error {
 	identifier := internal.Itob(int(ID))
 	return internal.UpdateObject(service.connection, BucketName, identifier, endpointGroup)
 }
 
 // DeleteEndpointGroup deletes an environment(endpoint) group.
-func (service *Service) DeleteEndpointGroup(ID portainer.EndpointGroupID) error {
+func (service *Service) DeleteEndpointGroup(ID portaineree.EndpointGroupID) error {
 	identifier := internal.Itob(int(ID))
 	return internal.DeleteObject(service.connection, BucketName, identifier)
 }
 
 // EndpointGroups return an array containing all the environment(endpoint) groups.
-func (service *Service) EndpointGroups() ([]portainer.EndpointGroup, error) {
-	var endpointGroups = make([]portainer.EndpointGroup, 0)
+func (service *Service) EndpointGroups() ([]portaineree.EndpointGroup, error) {
+	var endpointGroups = make([]portaineree.EndpointGroup, 0)
 
 	err := service.connection.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			var endpointGroup portainer.EndpointGroup
+			var endpointGroup portaineree.EndpointGroup
 			err := internal.UnmarshalObject(v, &endpointGroup)
 			if err != nil {
 				return err
@@ -78,12 +78,12 @@ func (service *Service) EndpointGroups() ([]portainer.EndpointGroup, error) {
 }
 
 // CreateEndpointGroup assign an ID to a new environment(endpoint) group and saves it.
-func (service *Service) CreateEndpointGroup(endpointGroup *portainer.EndpointGroup) error {
+func (service *Service) CreateEndpointGroup(endpointGroup *portaineree.EndpointGroup) error {
 	return service.connection.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
 
 		id, _ := bucket.NextSequence()
-		endpointGroup.ID = portainer.EndpointGroupID(id)
+		endpointGroup.ID = portaineree.EndpointGroupID(id)
 
 		data, err := internal.MarshalObject(endpointGroup)
 		if err != nil {

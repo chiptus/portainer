@@ -5,18 +5,18 @@ import (
 	"strings"
 
 	cmap "github.com/orcaman/concurrent-map"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer/api/crypto"
 )
 
 // Service represents a service used to manage registry proxies.
 type Service struct {
 	proxies             cmap.ConcurrentMap
-	userActivityService portainer.UserActivityService
+	userActivityService portaineree.UserActivityService
 }
 
 // NewService returns a pointer to a Service.
-func NewService(userActivityService portainer.UserActivityService) *Service {
+func NewService(userActivityService portaineree.UserActivityService) *Service {
 	return &Service{
 		proxies:             cmap.New(),
 		userActivityService: userActivityService,
@@ -25,7 +25,7 @@ func NewService(userActivityService portainer.UserActivityService) *Service {
 
 // GetProxy returns the registry proxy associated to a key if it exists.
 // Otherwise, it will create it and return it.
-func (service *Service) GetProxy(key, uri string, config *portainer.RegistryManagementConfiguration, forceCreate bool) (http.Handler, error) {
+func (service *Service) GetProxy(key, uri string, config *portaineree.RegistryManagementConfiguration, forceCreate bool) (http.Handler, error) {
 	proxy, ok := service.proxies.Get(key)
 	if ok && !forceCreate {
 		return proxy.(http.Handler), nil
@@ -34,15 +34,15 @@ func (service *Service) GetProxy(key, uri string, config *portainer.RegistryMana
 	return service.createProxy(key, uri, config)
 }
 
-func (service *Service) createProxy(key, uri string, config *portainer.RegistryManagementConfiguration) (http.Handler, error) {
+func (service *Service) createProxy(key, uri string, config *portaineree.RegistryManagementConfiguration) (http.Handler, error) {
 	var proxy http.Handler
 	var err error
 	transport := &http.Transport{}
 
 	switch config.Type {
-	case portainer.AzureRegistry, portainer.EcrRegistry:
+	case portaineree.AzureRegistry, portaineree.EcrRegistry:
 		proxy, err = newTokenSecuredRegistryProxy(uri, config, NewLoggingTransport(service.userActivityService, transport))
-	case portainer.GitlabRegistry:
+	case portaineree.GitlabRegistry:
 		if strings.Contains(key, "gitlab") {
 			proxy, err = newGitlabRegistryProxy(uri, config, NewLoggingTransport(service.userActivityService, transport))
 		} else {
