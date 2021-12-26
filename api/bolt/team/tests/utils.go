@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/bolt"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/bolt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,10 +14,10 @@ type teamBuilder struct {
 	store *bolt.Store
 }
 
-func (b *teamBuilder) createNew(name string) *portainer.Team {
+func (b *teamBuilder) createNew(name string) *portaineree.Team {
 	b.count++
-	team := &portainer.Team{
-		ID:   portainer.TeamID(b.count),
+	team := &portaineree.Team{
+		ID:   portaineree.TeamID(b.count),
 		Name: name,
 	}
 

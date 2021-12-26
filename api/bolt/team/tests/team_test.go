@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	bolt "github.com/portainer/portainer/api/bolt/bolttest"
-	"github.com/portainer/portainer/api/bolt/errors"
+	bolt "github.com/portainer/portainer-ee/api/bolt/bolttest"
+	"github.com/portainer/portainer-ee/api/bolt/errors"
 	"github.com/stretchr/testify/assert"
 )
 
