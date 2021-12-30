@@ -3930,6 +3930,7 @@ angular-moment-picker@^0.10.2:
   dependencies:
     angular-mocks "1.6.1"
     angular-sanitize "1.6.1"
+    lodash-es "^4.17.15"
 
 angular-resource@1.8.2:
   version "1.8.2"
@@ -11183,7 +11184,7 @@ locate-path@^6.0.0:
   dependencies:
     p-locate "^5.0.0"
 
-lodash-es@^4.17.15, lodash-es@^4.17.21:
+lodash-es@^4.17.21:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.21.tgz#43e626c46e6591b7750beb2b50117390c609e3ee"
   integrity sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==
@@ -11725,7 +11726,7 @@ moment-timezone@^0.5.34:
   dependencies:
     moment ">= 2.9.0"
 
-"moment@>= 2.9.0", moment@^2.10.2, moment@^2.16.0, moment@^2.29.1, moment@^2.9.0:
+"moment@>= 2.9.0", moment@^2.10.2, moment@^2.16.0, moment@^2.21.0, moment@^2.29.1, moment@^2.9.0:
   version "2.29.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.1.tgz#b2be769fa31940be9eeea6469c075e35006fa3d3"
   integrity sha512-kHmoybcPV8Sqy59DwNDY3Jefr64lK/by/da0ViFcuA4DH0vQg5Q6Ze5VimxkfQNSC+Mls/Kx53s7TjP1RhFEDQ==

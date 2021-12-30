@@ -9,7 +9,7 @@ import formComponentsModule from './form-components';
 import widgetModule from './widget';
 import boxSelectorModule from './BoxSelector';
 import dateRangePickerModule from './date-range-picker';
-import headerModule from './Header';
+import headerModule from './PageHeader';
 
 import { ReactExampleAngular } from './ReactExample';
 import { TooltipAngular } from './Tip/Tooltip';
