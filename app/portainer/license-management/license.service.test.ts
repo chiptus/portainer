@@ -1,23 +1,20 @@
-import { AxiosError, AxiosResponse } from 'axios';
-import mockAxios from 'jest-mock-axios';
+import { server, rest } from '@/setup-tests/server';
 
 import { getLicenses } from './license.service';
 import type { License } from './types';
-
-afterEach(() => {
-  mockAxios.reset();
-});
 
 describe('getLicenses', () => {
   it('on success should return the server body', async () => {
     const catchFn = jest.fn();
     const thenFn = jest.fn();
 
+    const data: License[] = [];
+    server.use(
+      rest.get('/api/licenses', (req, res, ctx) => res(ctx.json(data)))
+    );
+
     const promise = getLicenses();
 
-    const data: License[] = [];
-
-    mockAxios.mockResponse({ data });
     await promise.then(thenFn).catch(catchFn);
 
     expect(catchFn).not.toHaveBeenCalled();
@@ -28,27 +25,19 @@ describe('getLicenses', () => {
     const catchFn = jest.fn();
     const thenFn = jest.fn();
 
-    const promise = getLicenses();
-
     const message = 'message';
     const details = 'details';
 
-    mockAxios.mockError(buildAxiosError(message, details));
+    server.use(
+      rest.get('/api/licenses', (req, res, ctx) =>
+        res(ctx.status(400), ctx.json({ message, details }))
+      )
+    );
+
+    const promise = getLicenses();
     await promise.then(thenFn, catchFn);
 
     expect(catchFn).toHaveBeenCalledWith(new Error(message));
     expect(thenFn).not.toHaveBeenCalled();
   });
 });
-
-function buildAxiosError(
-  message: string,
-  details: string
-): Partial<AxiosError> {
-  const data = { message, details };
-  const response: Partial<AxiosResponse> = { data };
-
-  return {
-    response: response as AxiosResponse,
-  };
-}
