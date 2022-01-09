@@ -60,6 +60,7 @@ class CreateRegistryController {
     this.model.Name = '';
     this.model.URL = '';
     this.model.BaseURL = '';
+    this.model.Authentication = true;
   }
 
   selectDockerHub() {
