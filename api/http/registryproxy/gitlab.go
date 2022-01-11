@@ -47,7 +47,7 @@ func (transport *gitlabTransport) RoundTrip(request *http.Request) (*http.Respon
 
 	r.Header.Set("Private-Token", token)
 
-	response, err := transport.httpTransport.RoundTrip(request)
+	response, err := transport.httpTransport.RoundTrip(r)
 
 	return response, err
 }

@@ -30,7 +30,7 @@ func (transport *Transport) RoundTrip(request *http.Request) (*http.Response, er
 		return nil, errors.New("no gitlab token provided")
 	}
 
-	r, err := http.NewRequest(request.Method, request.URL.String(), nil)
+	r, err := http.NewRequest(request.Method, request.URL.String(), request.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -38,11 +38,11 @@ func (transport *Transport) RoundTrip(request *http.Request) (*http.Response, er
 	r.Header.Set("Private-Token", token)
 
 	// need a copy of the request body to preserve the original
-	body := ru.CopyRequestBody(request)
+	body := ru.CopyRequestBody(r)
 
-	response, err := transport.httpTransport.RoundTrip(request)
+	response, err := transport.httpTransport.RoundTrip(r)
 	if err == nil {
-		useractivity.LogProxiedActivity(transport.userActivityService, nil, response.StatusCode, body, request)
+		useractivity.LogProxiedActivity(transport.userActivityService, nil, response.StatusCode, body, r)
 	}
 
 	return response, err
