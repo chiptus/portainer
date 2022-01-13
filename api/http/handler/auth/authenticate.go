@@ -80,7 +80,7 @@ func (handler *Handler) authenticate(rw http.ResponseWriter, r *http.Request) (*
 		}
 	}
 
-	u, err := handler.DataStore.User().UserByUsername(payload.Username)
+	user, err := handler.DataStore.User().UserByUsername(payload.Username)
 	if err != nil && err != bolterrors.ErrObjectNotFound {
 		return resp, &httperror.HandlerError{
 			StatusCode: http.StatusInternalServerError,
@@ -89,43 +89,78 @@ func (handler *Handler) authenticate(rw http.ResponseWriter, r *http.Request) (*
 		}
 	}
 
-	if err == bolterrors.ErrObjectNotFound && (settings.AuthenticationMethod == portaineree.AuthenticationInternal || settings.AuthenticationMethod == portaineree.AuthenticationOAuth) {
+	if err == bolterrors.ErrObjectNotFound &&
+		(settings.AuthenticationMethod == portaineree.AuthenticationInternal ||
+			settings.AuthenticationMethod == portaineree.AuthenticationOAuth ||
+			(settings.AuthenticationMethod == portaineree.AuthenticationLDAP && !settings.LDAPSettings.AutoCreateUsers)) {
 		return resp, &httperror.HandlerError{
 			StatusCode: http.StatusUnprocessableEntity,
 			Message:    "Invalid credentials",
 			Err:        httperrors.ErrUnauthorized,
 		}
+	}
 
+	if user != nil && isUserInitialAdmin(user) || settings.AuthenticationMethod == portaineree.AuthenticationInternal {
+		return handler.authenticateInternal(rw, user, payload.Password)
+	}
+
+	if settings.AuthenticationMethod == portaineree.AuthenticationOAuth {
+		resp.Method = portaineree.AuthenticationOAuth
+		return resp, &httperror.HandlerError{
+			StatusCode: http.StatusUnprocessableEntity,
+			Message:    "Only initial admin is allowed to login without oauth",
+			Err:        httperrors.ErrUnauthorized,
+		}
 	}
 
 	if settings.AuthenticationMethod == portaineree.AuthenticationLDAP {
-		if u == nil {
-			if settings.LDAPSettings.AutoCreateUsers || settings.LDAPSettings.AdminAutoPopulate {
-				return handler.authenticateLDAPAndCreateUser(rw, payload.Username, payload.Password, &settings.LDAPSettings)
-			}
-			return resp,
-				&httperror.HandlerError{
-					StatusCode: http.StatusUnprocessableEntity,
-					Message:    "Invalid credentials",
-					Err:        httperrors.ErrUnauthorized,
-				}
-		}
-
-		return handler.authenticateLDAP(rw, u, payload.Password, &settings.LDAPSettings)
+		return handler.authenticateLDAP(rw, user, payload.Username, payload.Password, &settings.LDAPSettings)
 	}
 
-	return handler.authenticateInternal(rw, u, payload.Password)
+	return resp, &httperror.HandlerError{
+		StatusCode: http.StatusUnprocessableEntity,
+		Message:    "Login method is not supported",
+		Err:        httperrors.ErrUnauthorized,
+	}
 }
 
-func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portaineree.User, password string, ldapSettings *portaineree.LDAPSettings) (*authMiddlewareResponse, *httperror.HandlerError) {
+func isUserInitialAdmin(user *portaineree.User) bool {
+	return int(user.ID) == 1
+}
+
+func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portaineree.User, username, password string, ldapSettings *portaineree.LDAPSettings) (*authMiddlewareResponse, *httperror.HandlerError) {
 	resp := &authMiddlewareResponse{
 		Method:   portaineree.AuthenticationLDAP,
-		Username: user.Username,
+		Username: username,
 	}
 
-	err := handler.LDAPService.AuthenticateUser(user.Username, password, ldapSettings)
+	err := handler.LDAPService.AuthenticateUser(username, password, ldapSettings)
 	if err != nil {
-		return handler.authenticateInternal(w, user, password)
+		return resp,
+			&httperror.HandlerError{
+				StatusCode: http.StatusForbidden,
+				Message:    "Only initial admin is allowed to login without oauth",
+				Err:        err,
+			}
+	}
+
+	if user == nil {
+		user = &portaineree.User{
+			Username:                username,
+			Role:                    portaineree.StandardUserRole,
+			PortainerAuthorizations: authorization.DefaultPortainerAuthorizations(),
+		}
+
+		err = handler.DataStore.User().CreateUser(user)
+		if err != nil {
+			return resp,
+				&httperror.HandlerError{
+					StatusCode: http.StatusInternalServerError,
+					Message:    "Unable to persist user inside the database",
+					Err:        err,
+				}
+
+		}
 	}
 
 	if ldapSettings.AdminAutoPopulate {
@@ -138,22 +173,18 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 					Err:        err,
 				}
 		}
-		if isLDAPAdmin && user.Role != portaineree.AdministratorRole {
-			if err := handler.updateUserRole(user, portaineree.AdministratorRole); err != nil {
-				return resp,
-					&httperror.HandlerError{
-						StatusCode: http.StatusUnprocessableEntity,
-						Message:    "Failed to assign admin role to the user",
-						Err:        err,
-					}
+
+		if isLDAPAdmin != (user.Role == portaineree.AdministratorRole) {
+			userRole := portaineree.StandardUserRole
+			if isLDAPAdmin {
+				userRole = portaineree.AdministratorRole
 			}
-		}
-		if !isLDAPAdmin && user.Role == portaineree.AdministratorRole {
-			if err := handler.updateUserRole(user, portaineree.StandardUserRole); err != nil {
+
+			if err := handler.updateUserRole(user, userRole); err != nil {
 				return resp,
 					&httperror.HandlerError{
 						StatusCode: http.StatusUnprocessableEntity,
-						Message:    "Failed to remove admin role from the user",
+						Message:    "Failed to update user role",
 						Err:        err,
 					}
 			}
@@ -211,88 +242,6 @@ func (handler *Handler) authenticateInternal(w http.ResponseWriter, user *portai
 	info := handler.LicenseService.Info()
 
 	if user.Role != portaineree.AdministratorRole && !info.Valid {
-		return resp,
-			&httperror.HandlerError{
-				StatusCode: http.StatusForbidden,
-				Message:    "License is not valid",
-				Err:        httperrors.ErrNoValidLicense,
-			}
-
-	}
-
-	return handler.writeToken(w, user, resp.Method)
-}
-
-func (handler *Handler) authenticateLDAPAndCreateUser(w http.ResponseWriter, username, password string, ldapSettings *portaineree.LDAPSettings) (*authMiddlewareResponse, *httperror.HandlerError) {
-	resp := &authMiddlewareResponse{
-		Method:   portaineree.AuthenticationLDAP,
-		Username: username,
-	}
-
-	err := handler.LDAPService.AuthenticateUser(username, password, ldapSettings)
-	if err != nil {
-		return resp,
-			&httperror.HandlerError{
-				StatusCode: http.StatusUnprocessableEntity,
-				Message:    "Invalid credentials",
-				Err:        err,
-			}
-
-	}
-
-	user := &portaineree.User{
-		Username:                username,
-		Role:                    portaineree.StandardUserRole,
-		PortainerAuthorizations: authorization.DefaultPortainerAuthorizations(),
-	}
-
-	if ldapSettings.AdminAutoPopulate {
-		//check is the user belongs to any admin group
-		isLDAPAdmin, err := isLDAPAdmin(resp.Username, handler.LDAPService, ldapSettings)
-		if err != nil {
-			return resp,
-				&httperror.HandlerError{
-					StatusCode: http.StatusInternalServerError,
-					Message:    "Failed to search and match LDAP admin groups",
-					Err:        err,
-				}
-		}
-
-		if isLDAPAdmin {
-			user.Role = portaineree.AdministratorRole
-		}
-	}
-
-	err = handler.DataStore.User().CreateUser(user)
-	if err != nil {
-		return resp,
-			&httperror.HandlerError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Unable to persist user inside the database",
-				Err:        err,
-			}
-
-	}
-
-	err = handler.addUserIntoTeams(user, ldapSettings)
-	if err != nil {
-		log.Printf("Warning: unable to automatically add user into teams: %s\n", err.Error())
-	}
-
-	err = handler.AuthorizationService.UpdateUsersAuthorizations()
-	if err != nil {
-		return resp,
-			&httperror.HandlerError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Unable to update user authorizations",
-				Err:        err,
-			}
-
-	}
-
-	info := handler.LicenseService.Info()
-
-	if !info.Valid {
 		return resp,
 			&httperror.HandlerError{
 				StatusCode: http.StatusForbidden,

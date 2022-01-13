@@ -90,6 +90,12 @@ func (handler *Handler) userCreate(w http.ResponseWriter, r *http.Request) *http
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve settings from the database", err}
 	}
 
+	// when ldap/oauth is on, can only add users without password
+	if (settings.AuthenticationMethod == portaineree.AuthenticationLDAP || settings.AuthenticationMethod == portaineree.AuthenticationOAuth) && payload.Password != "" {
+		errMsg := "A user with password can not be created when authentication method is Oauth or LDAP"
+		return &httperror.HandlerError{http.StatusBadRequest, errMsg, errors.New(errMsg)}
+	}
+
 	if settings.AuthenticationMethod == portaineree.AuthenticationInternal {
 		user.Password, err = handler.CryptoService.Hash(payload.Password)
 		if err != nil {
