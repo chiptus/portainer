@@ -4,7 +4,7 @@ angular.module('portainer.app').factory('Stack', StackFactory);
 
 function StackFactory($resource, API_ENDPOINT_STACKS) {
   return $resource(
-    API_ENDPOINT_STACKS + '/:id/:action',
+    API_ENDPOINT_STACKS + '/:id/:action/:subaction',
     {},
     {
       get: { method: 'GET', params: { id: '@id' } },
