@@ -137,6 +137,14 @@ angular.module('portainer.app').controller('StackController', [
         deleteStack();
       });
     };
+    $scope.detachStackFromGit = function () {
+      ModalService.confirmDetachment('Do you want to detach the stack from Git?', function onConfirm(confirmed) {
+        if (!confirmed) {
+          return;
+        }
+        $scope.deployStack();
+      });
+    };
 
     function migrateStack(name, targetEndpointId) {
       const stack = $scope.stack;
