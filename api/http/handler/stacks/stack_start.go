@@ -126,7 +126,7 @@ func (handler *Handler) stackStart(w http.ResponseWriter, r *http.Request) *http
 func (handler *Handler) startStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
 	switch stack.Type {
 	case portaineree.DockerComposeStack:
-		return handler.ComposeStackManager.Up(context.TODO(), stack, endpoint)
+		return handler.ComposeStackManager.Up(context.TODO(), stack, endpoint, false)
 	case portaineree.DockerSwarmStack:
 		return handler.SwarmStackManager.Deploy(stack, true, endpoint)
 	}

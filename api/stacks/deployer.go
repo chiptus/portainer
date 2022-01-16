@@ -14,7 +14,7 @@ import (
 
 type StackDeployer interface {
 	DeploySwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, prune bool) error
-	DeployComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry) error
+	DeployComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, forceRereate bool) error
 	DeployKubernetesStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, user *portaineree.User) error
 }
 
@@ -45,14 +45,14 @@ func (d *stackDeployer) DeploySwarmStack(stack *portaineree.Stack, endpoint *por
 	return d.swarmStackManager.Deploy(stack, prune, endpoint)
 }
 
-func (d *stackDeployer) DeployComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry) error {
+func (d *stackDeployer) DeployComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, forceRereate bool) error {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
 	d.swarmStackManager.Login(registries, endpoint)
 	defer d.swarmStackManager.Logout(endpoint)
 
-	return d.composeStackManager.Up(context.TODO(), stack, endpoint)
+	return d.composeStackManager.Up(context.TODO(), stack, endpoint, forceRereate)
 }
 
 func (d *stackDeployer) DeployKubernetesStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, user *portaineree.User) error {

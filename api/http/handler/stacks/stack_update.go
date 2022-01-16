@@ -197,7 +197,7 @@ func (handler *Handler) updateComposeStack(r *http.Request, stack *portaineree.S
 		return configErr
 	}
 
-	err = handler.deployComposeStack(config)
+	err = handler.deployComposeStack(config, false)
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: err.Error(), Err: err}
 	}

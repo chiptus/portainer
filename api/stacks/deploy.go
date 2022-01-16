@@ -51,7 +51,8 @@ func updateAllowed(endpoint *portaineree.Endpoint, clock Clock) (bool, error) {
 	return tw.Within(clock.Now()), nil
 }
 
-// RedeployWhenChanged pull and redeploy the stack when  git repo changed
+// RedeployWhenChanged pull and redeploy the stack when git repo changed
+// Stack will always be redeployed if force deployment is set to true
 func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, datastore portaineree.DataStore, gitService portaineree.GitService, activityService portaineree.UserActivityService) error {
 	logger := log.WithFields(log.Fields{"stackID": stackID})
 	logger.Debug("redeploying stack")
@@ -131,7 +132,7 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 
 	switch stack.Type {
 	case portaineree.DockerComposeStack:
-		err := deployer.DeployComposeStack(stack, endpoint, registries)
+		err := deployer.DeployComposeStack(stack, endpoint, registries, stack.AutoUpdate != nil && stack.AutoUpdate.ForceUpdate)
 		if err != nil {
 			return errors.WithMessagef(err, "failed to deploy a docker compose stack %v", stackID)
 		}

@@ -210,7 +210,7 @@ func (handler *Handler) deployStack(r *http.Request, stack *portaineree.Stack, e
 			return httpErr
 		}
 
-		if err := handler.deployComposeStack(config); err != nil {
+		if err := handler.deployComposeStack(config, true); err != nil {
 			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: err.Error(), Err: err}
 		}
 
