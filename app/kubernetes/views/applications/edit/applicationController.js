@@ -1,6 +1,7 @@
 import angular from 'angular';
 import _ from 'lodash-es';
 import * as JsonPatch from 'fast-json-patch';
+
 import {
   KubernetesApplicationDataAccessPolicies,
   KubernetesApplicationDeploymentTypes,
@@ -31,12 +32,12 @@ function computeTolerations(nodes, application) {
       const anyKeyAnyValueAnyEffect = _.find(pod.Tolerations, { Key: '', Operator: 'Exists', Effect: '' });
 
       if (!matchKeyMatchValueMatchEffect && !matchKeyAnyValueMatchEffect && !matchKeyMatchValueAnyEffect && !matchKeyAnyValueAnyEffect && !anyKeyAnyValueAnyEffect) {
+        n.AcceptsApplication = false;
         n.UnmetTaints.push(t);
+      } else {
+        n.AcceptsApplication = true;
       }
     });
-    if (n.UnmetTaints.length) {
-      n.AcceptsApplication = false;
-    }
   });
   return nodes;
 }
@@ -132,6 +133,8 @@ class KubernetesApplicationController {
 
     this.KubernetesApplicationDeploymentTypes = KubernetesApplicationDeploymentTypes;
     this.KubernetesApplicationTypes = KubernetesApplicationTypes;
+    this.KubernetesDeploymentTypes = KubernetesDeploymentTypes;
+
     this.ApplicationDataAccessPolicies = KubernetesApplicationDataAccessPolicies;
     this.KubernetesServiceTypes = KubernetesServiceTypes;
     this.KubernetesPodContainerTypes = KubernetesPodContainerTypes;
@@ -317,6 +320,7 @@ class KubernetesApplicationController {
       this.application = application;
       this.allContainers = KubernetesApplicationHelper.associateAllContainersAndApplication(application);
       this.formValues.Note = this.application.Note;
+      this.formValues.Services = this.application.Services;
       if (this.application.Note) {
         this.state.expandedNote = true;
       }
@@ -347,6 +351,12 @@ class KubernetesApplicationController {
   }
 
   async onInit() {
+    const endpointId = this.LocalStorage.getEndpointID();
+    const endpoints = this.LocalStorage.getEndpoints();
+    const endpoint = _.find(endpoints, function (item) {
+      return item.Id === endpointId;
+    });
+
     this.state = {
       activeTab: 0,
       currentName: this.$state.$current.name,
@@ -368,6 +378,7 @@ class KubernetesApplicationController {
       isAuthorized: this.Authentication.hasAuthorizations(['K8sApplicationDetailsW']),
       canAccessNode: this.Authentication.hasAuthorizations(['K8sClusterNodeR']),
       canShowConsole: this.Authentication.hasAuthorizations(['K8sApplicationConsoleRW']),
+      publicUrl: endpoint.PublicURL,
     };
 
     this.state.activeTab = this.LocalStorage.getActiveTab('application');
