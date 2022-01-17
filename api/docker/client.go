@@ -95,7 +95,7 @@ func createEdgeClient(endpoint *portaineree.Endpoint, signatureService portainer
 	if err != nil {
 		return nil, err
 	}
-	
+
 	endpointURL := fmt.Sprintf("http://127.0.0.1:%d", tunnel.Port)
 
 	return client.NewClientWithOpts(

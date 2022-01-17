@@ -30,8 +30,8 @@ import { ColumnVisibilityMenu } from '@/portainer/components/datatables/componen
 import { useRepeater } from '@/portainer/components/datatables/components/useRepeater';
 import { useDebounce } from '@/portainer/hooks/useDebounce';
 import {
-  useSearchBarContext,
   SearchBar,
+  useSearchBarContext,
 } from '@/portainer/components/datatables/components/SearchBar';
 import type {
   ContainersTableSettings,
@@ -52,7 +52,6 @@ export interface ContainerTableProps {
   dataset: DockerContainer[];
   onRefresh?(): Promise<void>;
   isHostColumnVisible: boolean;
-  autoFocusSearch: boolean;
   tableKey?: string;
 }
 
@@ -61,7 +60,6 @@ export function ContainersDatatable({
   dataset,
   onRefresh,
   isHostColumnVisible,
-  autoFocusSearch,
 }: ContainerTableProps) {
   const { settings, setTableSettings } =
     useTableSettings<ContainersTableSettings>();
@@ -164,11 +162,7 @@ export function ContainersDatatable({
         />
       </TableActions>
 
-      <SearchBar
-        value={searchBarValue}
-        onChange={handleSearchBarChange}
-        autoFocus={autoFocusSearch}
-      />
+      <SearchBar value={searchBarValue} onChange={handleSearchBarChange} />
 
       <Table
         className={tableProps.className}

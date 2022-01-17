@@ -1,13 +1,9 @@
-<div class="col-sm-12 form-section-title" style="float: initial;">
-  Auto-populate team admins
-</div>
+<div class="col-sm-12 form-section-title" style="float: initial"> Auto-populate team admins </div>
 
-<rd-widget ng-repeat="config in $ctrl.settings.AdminGroupSearchSettings | limitTo: (1 - $ctrl.settings.AdminGroupSearchSettings)" style="display: block; margin-bottom: 10px;">
+<rd-widget ng-repeat="config in $ctrl.settings.AdminGroupSearchSettings | limitTo: (1 - $ctrl.settings.AdminGroupSearchSettings)" style="display: block; margin-bottom: 10px">
   <rd-widget-body>
-    <div class="form-group" ng-if="$index > 0" style="margin-bottom: 10px;">
-      <span class="col-sm-12 text-muted small">
-        Extra search configuration
-      </span>
+    <div class="form-group" ng-if="$index > 0" style="margin-bottom: 10px">
+      <span class="col-sm-12 text-muted small"> Extra search configuration </span>
     </div>
 
     <div class="form-group">
@@ -74,13 +70,13 @@
   </rd-widget-body>
 </rd-widget>
 
-<div class="form-group" style="margin-top: 10px;">
+<div class="form-group" style="margin-top: 10px">
   <div class="col-sm-12">
-    <button class="label label-default interactive" style="border: 0;" ng-click="$ctrl.onAddClick()">
+    <button class="label label-default interactive" style="border: 0" ng-click="$ctrl.onAddClick()">
       <i class="fa fa-plus-circle" aria-hidden="true"></i> add group search configuration
     </button>
   </div>
-  <div class="col-sm-12" style="margin-top: 10px;">
+  <div class="col-sm-12" style="margin-top: 10px">
     <button
       class="btn btm-sm btn-primary"
       type="button"
@@ -92,7 +88,7 @@
     >
       Fetch Admin Group(s)
     </button>
-    <span ng-if="$ctrl.groups && $ctrl.groups.length === 0" style="margin-left: 30px;">
+    <span ng-if="$ctrl.groups && $ctrl.groups.length === 0" style="margin-left: 30px">
       <i class="fa fa-exclamation-triangle text-warning" aria-hidden="true"></i> No groups found</span
     >
   </div>
@@ -100,10 +96,8 @@
 
 <div class="form-group">
   <div class="col-sm-12">
-    <label for="admin-auto-populate" class="control-label text-left text-muted" ng-class="{ 'text-muted': !$ctrl.enableAssignAdminGroup }">
-      Assign admin rights to group(s)
-    </label>
-    <label class="switch" style="margin-left: 20px;">
+    <label for="admin-auto-populate" class="control-label text-left text-muted" ng-class="{ 'text-muted': !$ctrl.enableAssignAdminGroup }"> Assign admin rights to group(s) </label>
+    <label class="switch" style="margin-left: 20px">
       <input id="admin-auto-populate" ng-disabled="!$ctrl.enableAssignAdminGroup" name="admin-auto-populate" type="checkbox" ng-model="$ctrl.settings.AdminAutoPopulate" /><i></i>
     </label>
   </div>
@@ -111,9 +105,7 @@
 
 <div class="form-group" ng-if="$ctrl.settings.AdminAutoPopulate">
   <div class="col-sm-12">
-    <label for="group-access" class="control-label text-left">
-      Select Group(s)
-    </label>
+    <label for="group-access" class="control-label text-left"> Select Group(s) </label>
     <span
       isteven-multi-select
       ng-if="$ctrl.enableAssignAdminGroup"
@@ -125,7 +117,7 @@
       helper-elements="filter"
       search-property="name"
       translation="{nothingSelected: 'Select one or more groups', search: 'Search...'}"
-      style="margin-left: 20px;"
+      style="margin-left: 20px"
     >
     </span>
   </div>

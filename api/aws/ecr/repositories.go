@@ -7,9 +7,9 @@ import (
 
 func (s *Service) DeleteRepository(registryId, repositoryName *string) (err error) {
 	input := &ecr.DeleteRepositoryInput{
-		RegistryId: registryId,
+		RegistryId:     registryId,
 		RepositoryName: repositoryName,
-		Force: true,
+		Force:          true,
 	}
 
 	_, err = s.client.DeleteRepository(context.TODO(), input)

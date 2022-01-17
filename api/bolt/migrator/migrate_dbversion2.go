@@ -12,7 +12,7 @@ func (m *Migrator) updateSettingsToDBVersion3() error {
 	legacySettings.LDAPSettings = portaineree.LDAPSettings{
 		TLSConfig: portaineree.TLSConfiguration{},
 		SearchSettings: []portaineree.LDAPSearchSettings{
-			portaineree.LDAPSearchSettings{},
+			{},
 		},
 	}
 

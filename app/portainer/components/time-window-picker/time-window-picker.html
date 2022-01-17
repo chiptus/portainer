@@ -29,7 +29,7 @@
     </div>
     <div class="time-window-warning">
       <span><i class="fa fa-exclamation-circle text-warning"></i> Automatic updates to stacks or applications outside the defined change window will not occur.</span>
-      <div style="padding: 8px 0px;" class="text-warning" ng-show="$ctrl.state.timeError">
+      <div style="padding: 8px 0px" class="text-warning" ng-show="$ctrl.state.timeError">
         <i class="fa fa-exclamation-triangle text-warning" aria-hidden="true"></i>
         The chosen time configuration is invalid
       </div>
@@ -39,7 +39,7 @@
 <div class="time-window-warning">
   <span ng-show="!$ctrl.state.changeWindow && $ctrl.state.timeSet"
     ><i class="fa fa-exclamation-circle text-warning"></i> Automatic updates to stacks or applications outside
-    <span style="font-weight: bold; color: var(--black-color);">
+    <span style="font-weight: bold; color: var(--black-color)">
       {{ $ctrl.state.utcStartTime | date: 'shortTime' }} - {{ $ctrl.state.utcEndTime | date: 'shortTime' }} UTC ({{ $ctrl.state.setStartTime | date: 'shortTime' }} -
       {{ $ctrl.state.setEndTime | date: 'shortTime' }} {{ $ctrl.state.dst ? 'DST' : '' }} {{ $ctrl.state.timeZoneSelected }})
     </span>

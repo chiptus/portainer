@@ -19,8 +19,8 @@
         <form class="form-horizontal">
           <div class="form-group">
             <div class="row">
-              <div class="pull-left" ng-repeat="tag in $ctrl.details.RepoTags" style="display: table;">
-                <div class="input-group col-md-1" style="padding: 0 15px;">
+              <div class="pull-left" ng-repeat="tag in $ctrl.details.RepoTags" style="display: table">
+                <div class="input-group col-md-1" style="padding: 0 15px">
                   <span class="input-group-addon">{{ tag }}</span>
                 </div>
               </div>
@@ -128,7 +128,7 @@
       <rd-widget-body classes="no-padding">
         <table id="image-layers" class="table">
           <thead>
-            <th style="white-space: nowrap;">
+            <th style="white-space: nowrap">
               <a ng-click="$ctrl.order('Order')">
                 Order
                 <span ng-show="$ctrl.Sort.Type == 'Order' && !$ctrl.Sort.Reverse" class="glyphicon glyphicon-chevron-down"></span>
@@ -145,17 +145,17 @@
           </thead>
           <tbody>
             <tr ng-repeat="layer in $ctrl.history | orderBy:$ctrl.Sort.Type:$ctrl.Sort.Reverse">
-              <td style="white-space: nowrap;">
+              <td style="white-space: nowrap">
                 {{ layer.Order }}
               </td>
               <td class="expand">
                 <div ng-if="layer.CreatedBy.length > 130">
-                  <span id="layer-command-{{ $index }}-full" style="display: none;">
+                  <span id="layer-command-{{ $index }}-full" style="display: none">
                     {{ layer.CreatedBy }}
                   </span>
                   <span id="layer-command-{{ $index }}-short">
                     {{ layer.CreatedBy | truncate: 130 }}
-                    <span ng-if="layer.CreatedBy.length > 130" style="margin-left: 5px;">
+                    <span ng-if="layer.CreatedBy.length > 130" style="margin-left: 5px">
                       <a id="layer-command-expander{{ $index }}" class="btn" ng-click="$ctrl.toggleLayerCommand($index)">
                         <i class="fa fa-plus-circle" aria-hidden="true"></i>
                       </a>

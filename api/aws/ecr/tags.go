@@ -17,13 +17,12 @@ func (s *Service) DeleteTags(registryId, repositoryName *string, tags []string) 
 	}
 
 	input := &ecr.BatchDeleteImageInput{
-		RegistryId: registryId,
+		RegistryId:     registryId,
 		RepositoryName: repositoryName,
-		ImageIds: imageIds,
+		ImageIds:       imageIds,
 	}
 
 	_, err = s.client.BatchDeleteImage(context.TODO(), input)
 
 	return
 }
-

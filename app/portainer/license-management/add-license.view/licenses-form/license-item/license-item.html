@@ -6,7 +6,7 @@
           <input type="text" name="licenseInput" class="form-control" ng-model="$ctrl.value" required ng-change="$ctrl.onChange({license:$ctrl.value, index:$ctrl.index})" />
           <i class="fa license-validation fa-check green-icon space-left" ng-if="$ctrl.keyValidation && $ctrl.keyValidation.status"></i>
         </div>
-        <div class="small text-warning" style="margin-top: 5px;" ng-if="$ctrl.isInvalid()">
+        <div class="small text-warning" style="margin-top: 5px" ng-if="$ctrl.isInvalid()">
           <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
           <span ng-if="$ctrl.keyValidation && !$ctrl.keyValidation.status"> {{ $ctrl.keyValidation.message }}</span>
 

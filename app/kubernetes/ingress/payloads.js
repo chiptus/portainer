@@ -4,7 +4,7 @@ export function KubernetesIngressCreatePayload() {
   return {
     metadata: new KubernetesCommonMetadataPayload(),
     spec: {
-      ingressClassName:'',
+      ingressClassName: '',
       rules: [],
     },
   };
