@@ -3,6 +3,7 @@ package users
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/asaskevich/govalidator"
 	httperror "github.com/portainer/libhttp/error"
@@ -100,6 +101,7 @@ func (handler *Handler) userUpdate(w http.ResponseWriter, r *http.Request) *http
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to hash user password", errCryptoHashFailure}
 		}
+		user.TokenIssueAt = time.Now().Unix()
 	}
 
 	if payload.Role != 0 {

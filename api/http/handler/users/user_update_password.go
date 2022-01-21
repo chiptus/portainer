@@ -3,6 +3,7 @@ package users
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/asaskevich/govalidator"
 	httperror "github.com/portainer/libhttp/error"
@@ -85,7 +86,7 @@ func (handler *Handler) userUpdatePassword(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to hash user password", errCryptoHashFailure}
 	}
-
+	user.TokenIssueAt = time.Now().Unix()
 	err = handler.DataStore.User().UpdateUser(user.ID, user)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist user changes inside the database", err}
