@@ -15,6 +15,7 @@ type datastore struct {
 	endpoint                portaineree.EndpointService
 	endpointGroup           portaineree.EndpointGroupService
 	endpointRelation        portaineree.EndpointRelationService
+	fdoProfile              portaineree.FDOProfileService
 	helmUserRepository      portaineree.HelmUserRepositoryService
 	license                 portaineree.LicenseRepository
 	registry                portaineree.RegistryService
@@ -34,20 +35,23 @@ type datastore struct {
 	webhook                 portaineree.WebhookService
 }
 
-func (d *datastore) BackupTo(io.Writer) error                              { return nil }
-func (d *datastore) Open() error                                           { return nil }
-func (d *datastore) Init() error                                           { return nil }
-func (d *datastore) Close() error                                          { return nil }
-func (d *datastore) IsNew() bool                                           { return false }
-func (d *datastore) MigrateData(force bool) error                          { return nil }
-func (d *datastore) Rollback(force bool) error                             { return nil }
-func (d *datastore) RollbackToCE() error                                   { return nil }
-func (d *datastore) CustomTemplate() portaineree.CustomTemplateService     { return d.customTemplate }
-func (d *datastore) EdgeGroup() portaineree.EdgeGroupService               { return d.edgeGroup }
-func (d *datastore) EdgeJob() portaineree.EdgeJobService                   { return d.edgeJob }
-func (d *datastore) EdgeStack() portaineree.EdgeStackService               { return d.edgeStack }
-func (d *datastore) Endpoint() portaineree.EndpointService                 { return d.endpoint }
-func (d *datastore) EndpointGroup() portaineree.EndpointGroupService       { return d.endpointGroup }
+func (d *datastore) BackupTo(io.Writer) error                          { return nil }
+func (d *datastore) Open() error                                       { return nil }
+func (d *datastore) Init() error                                       { return nil }
+func (d *datastore) Close() error                                      { return nil }
+func (d *datastore) IsNew() bool                                       { return false }
+func (d *datastore) MigrateData(force bool) error                      { return nil }
+func (d *datastore) Rollback(force bool) error                         { return nil }
+func (d *datastore) RollbackToCE() error                               { return nil }
+func (d *datastore) CustomTemplate() portaineree.CustomTemplateService { return d.customTemplate }
+func (d *datastore) EdgeGroup() portaineree.EdgeGroupService           { return d.edgeGroup }
+func (d *datastore) EdgeJob() portaineree.EdgeJobService               { return d.edgeJob }
+func (d *datastore) EdgeStack() portaineree.EdgeStackService           { return d.edgeStack }
+func (d *datastore) Endpoint() portaineree.EndpointService             { return d.endpoint }
+func (d *datastore) EndpointGroup() portaineree.EndpointGroupService   { return d.endpointGroup }
+func (d *datastore) FDOProfile() portaineree.FDOProfileService {
+	return d.fdoProfile
+}
 func (d *datastore) EndpointRelation() portaineree.EndpointRelationService { return d.endpointRelation }
 func (d *datastore) HelmUserRepository() portaineree.HelmUserRepositoryService {
 	return d.helmUserRepository

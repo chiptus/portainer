@@ -66,7 +66,7 @@ func (handler *Handler) endpointForceUpdateService(w http.ResponseWriter, r *htt
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to force update service", err}
 	}
 
-	dockerClient, err := handler.DockerClientFactory.CreateClient(endpoint, "")
+	dockerClient, err := handler.DockerClientFactory.CreateClient(endpoint, "", nil)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Error creating docker client", err}
 	}

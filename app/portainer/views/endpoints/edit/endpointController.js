@@ -3,6 +3,8 @@ import uuidv4 from 'uuid/v4';
 
 import { PortainerEndpointTypes } from '@/portainer/models/endpoint/models';
 import { EndpointSecurityFormData } from '@/portainer/components/endpointSecurity/porEndpointSecurityModel';
+import EndpointHelper from '@/portainer/helpers/endpointHelper';
+import { getAMTInfo } from 'Portainer/hostmanagement/open-amt/open-amt.service';
 
 angular.module('portainer.app').controller('EndpointController', EndpointController);
 
@@ -65,6 +67,7 @@ function EndpointController(
       { key: '1 day', value: 86400 },
     ],
     allowSelfSignedCerts: true,
+    showAMTInfo: false,
   };
 
   $scope.dockerCommands = {
@@ -88,7 +91,11 @@ function EndpointController(
 
   $scope.copyEdgeAgentDeploymentCommand = copyEdgeAgentDeploymentCommand;
   function copyEdgeAgentDeploymentCommand() {
-    const command = $scope.dockerCommands[$scope.state.deploymentTab][$scope.state.platformType]($scope.randomEdgeID, $scope.endpoint.EdgeKey, $scope.state.allowSelfSignedCerts);
+    const command = $scope.dockerCommands[$scope.state.deploymentTab][$scope.state.platformType](
+      $scope.endpoint.EdgeID,
+      $scope.endpoint.EdgeKey,
+      $scope.state.allowSelfSignedCerts
+    );
     clipboard.copyText(command.trim());
     $('#copyNotificationDeploymentCommand').show().fadeOut(2500);
   }
@@ -263,7 +270,7 @@ function EndpointController(
 
         if (endpoint.Type === PortainerEndpointTypes.EdgeAgentOnDockerEnvironment || endpoint.Type === PortainerEndpointTypes.EdgeAgentOnKubernetesEnvironment) {
           $scope.edgeKeyDetails = decodeEdgeKey(endpoint.EdgeKey);
-          $scope.randomEdgeID = uuidv4();
+          endpoint.EdgeID = endpoint.EdgeID || uuidv4();
 
           $scope.state.availableEdgeAgentCheckinOptions[0].key += ` (${settings.EdgeAgentCheckinInterval} seconds)`;
         }
@@ -273,10 +280,37 @@ function EndpointController(
         $scope.availableTags = tags;
 
         configureState();
+
+        const disconnectedEdge = $scope.state.edgeEndpoint && !endpoint.EdgeID;
+        if (EndpointHelper.isDockerEndpoint(endpoint) && !disconnectedEdge) {
+          $scope.state.showAMTInfo = settings && settings.openAMTConfiguration && settings.openAMTConfiguration.enabled;
+        }
       } catch (err) {
         Notifications.error('Failure', err, 'Unable to retrieve environment details');
       }
+
+      if ($scope.state.showAMTInfo) {
+        try {
+          $scope.endpoint.ManagementInfo = {};
+          const amtInfo = await getAMTInfo($state.params.id);
+          try {
+            $scope.endpoint.ManagementInfo = JSON.parse(amtInfo.RawOutput);
+          } catch (err) {
+            clearAMTManagementInfo(amtInfo.RawOutput);
+          }
+        } catch (err) {
+          clearAMTManagementInfo('Unable to retrieve AMT environment details');
+        }
+      }
     });
+  }
+
+  function clearAMTManagementInfo(versionValue) {
+    $scope.endpoint.ManagementInfo['AMT'] = versionValue;
+    $scope.endpoint.ManagementInfo['UUID'] = '-';
+    $scope.endpoint.ManagementInfo['Control Mode'] = '-';
+    $scope.endpoint.ManagementInfo['Build Number'] = '-';
+    $scope.endpoint.ManagementInfo['DNS Suffix'] = '-';
   }
 
   function buildLinuxStandaloneCommand(edgeId, edgeKey, allowSelfSignedCerts) {

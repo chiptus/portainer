@@ -2,6 +2,7 @@ package portaineree
 
 import (
 	"context"
+	portainer "github.com/portainer/portainer/api"
 	"io"
 	"time"
 
@@ -64,32 +65,34 @@ type (
 		AuthenticationKey string `json:"AuthenticationKey" example:"cOrXoK/1D35w8YQ8nH1/8ZGwzz45JIYD5jxHKXEQknk="`
 	}
 
-	// OpenAMTConfiguration represents the credentials and configurations used to connect to an OpenAMT MPS server
-	OpenAMTConfiguration struct {
-		Enabled               bool                   `json:"Enabled"`
-		MPSServer             string                 `json:"MPSServer"`
-		Credentials           MPSCredentials         `json:"Credentials"`
-		DomainConfiguration   DomainConfiguration    `json:"DomainConfiguration"`
-		WirelessConfiguration *WirelessConfiguration `json:"WirelessConfiguration"`
+	// OpenAMTDeviceInformation represents an AMT managed device information
+	OpenAMTDeviceInformation struct {
+		GUID             string                                  `json:"guid"`
+		HostName         string                                  `json:"hostname"`
+		ConnectionStatus bool                                    `json:"connectionStatus"`
+		PowerState       PowerState                              `json:"powerState"`
+		EnabledFeatures  *portainer.OpenAMTDeviceEnabledFeatures `json:"features"`
 	}
 
-	MPSCredentials struct {
-		MPSUser     string `json:"MPSUser"`
-		MPSPassword string `json:"MPSPassword"`
-		MPSToken    string `json:"MPSToken"` // retrieved from API
+	// PowerState represents an AMT managed device power state
+	PowerState int
+
+	FDOConfiguration struct {
+		Enabled       bool   `json:"enabled"`
+		OwnerURL      string `json:"ownerURL"`
+		OwnerUsername string `json:"ownerUsername"`
+		OwnerPassword string `json:"ownerPassword"`
 	}
 
-	DomainConfiguration struct {
-		CertFileText string `json:"CertFileText"`
-		CertPassword string `json:"CertPassword"`
-		DomainName   string `json:"DomainName"`
-	}
+	// FDOProfileID represents a fdo profile id
+	FDOProfileID int
 
-	WirelessConfiguration struct {
-		AuthenticationMethod string `json:"AuthenticationMethod"`
-		EncryptionMethod     string `json:"EncryptionMethod"`
-		SSID                 string `json:"SSID"`
-		PskPass              string `json:"PskPass"`
+	FDOProfile struct {
+		ID            FDOProfileID `json:"id"`
+		Name          string       `json:"name"`
+		FilePath      string       `json:"filePath"`
+		NumberDevices int          `json:"numberDevices"`
+		DateCreated   int64        `json:"dateCreated"`
 	}
 
 	// CLIFlags represents the available flags on the CLI
@@ -327,7 +330,14 @@ type (
 		ComposeSyntaxMaxVersion string `json:"ComposeSyntaxMaxVersion" example:"3.8"`
 		// Environment(Endpoint) specific security settings
 		SecuritySettings EndpointSecuritySettings
-		LastCheckInDate  int64
+		// The identifier of the AMT Device associated with this environment(endpoint)
+		AMTDeviceGUID string `json:"AMTDeviceGUID,omitempty" example:"4c4c4544-004b-3910-8037-b6c04f504633"`
+		// LastCheckInDate mark last check-in date on checkin
+		LastCheckInDate int64
+		// IsEdgeDevice marks if the environment was created as an EdgeDevice
+		IsEdgeDevice bool
+		// Whether the device has been trusted or not by the user
+		UserTrusted bool
 
 		// Automatic update change window restriction for stacks and apps
 		ChangeWindow EndpointChangeWindow `json:"ChangeWindow"`
@@ -889,11 +899,12 @@ type (
 		// A list of label name & value that will be used to hide containers when querying containers
 		BlackListedLabels []Pair `json:"BlackListedLabels"`
 		// Active authentication method for the Portainer instance. Valid values are: 1 for internal, 2 for LDAP, or 3 for oauth
-		AuthenticationMethod AuthenticationMethod `json:"AuthenticationMethod" example:"1"`
-		LDAPSettings         LDAPSettings         `json:"LDAPSettings"`
-		OAuthSettings        OAuthSettings        `json:"OAuthSettings"`
-		OpenAMTConfiguration OpenAMTConfiguration `json:"OpenAMTConfiguration" example:""`
-		FeatureFlagSettings  map[Feature]bool     `json:"FeatureFlagSettings" example:""`
+		AuthenticationMethod AuthenticationMethod           `json:"AuthenticationMethod" example:"1"`
+		LDAPSettings         LDAPSettings                   `json:"LDAPSettings"`
+		OAuthSettings        OAuthSettings                  `json:"OAuthSettings"`
+		OpenAMTConfiguration portainer.OpenAMTConfiguration `json:"openAMTConfiguration" example:""`
+		FDOConfiguration     FDOConfiguration               `json:"fdoConfiguration" example:""`
+		FeatureFlagSettings  map[Feature]bool               `json:"FeatureFlagSettings" example:""`
 		// The interval in which environment(endpoint) snapshots are created
 		SnapshotInterval string `json:"SnapshotInterval" example:"5m"`
 		// URL to the templates that will be displayed in the UI when navigating to App Templates
@@ -912,6 +923,10 @@ type (
 		HelmRepositoryURL string `json:"HelmRepositoryURL" example:"https://charts.bitnami.com/bitnami"`
 		// KubectlImage, defaults to portainer/kubectl-shell
 		KubectlShellImage string `json:"KubectlShellImage" example:"portainer/kubectl-shell"`
+		// DisableTrustOnFirstConnect makes Portainer require explicit user trust of the edge agent before accepting the connection
+		DisableTrustOnFirstConnect bool `json:"DisableTrustOnFirstConnect" example:"false"`
+		// EnforceEdgeID makes Portainer store the Edge ID instead of accepting anyone
+		EnforceEdgeID bool `json:"EnforceEdgeID" example:"false"`
 
 		// Deprecated fields
 		DisplayDonationHeader       bool
@@ -1348,6 +1363,7 @@ type (
 		Endpoint() EndpointService
 		EndpointGroup() EndpointGroupService
 		EndpointRelation() EndpointRelationService
+		FDOProfile() FDOProfileService
 		HelmUserRepository() HelmUserRepositoryService
 		License() LicenseRepository
 		Registry() RegistryService
@@ -1438,6 +1454,16 @@ type (
 		DeleteEndpointRelation(EndpointID EndpointID) error
 	}
 
+	FDOProfileService interface {
+		FDOProfiles() ([]FDOProfile, error)
+		FDOProfile(ID FDOProfileID) (*FDOProfile, error)
+		Create(FDOProfile *FDOProfile) error
+		Update(ID FDOProfileID, FDOProfile *FDOProfile) error
+		Delete(ID FDOProfileID) error
+		GetNextIdentifier() int
+		BucketName() string
+	}
+
 	// GitService represents a service for managing Git
 	GitService interface {
 		CloneRepository(destination string, repositoryURL, referenceName string, username, password string) error
@@ -1446,7 +1472,10 @@ type (
 
 	// OpenAMTService represents a service for managing OpenAMT
 	OpenAMTService interface {
-		ConfigureDefault(configuration OpenAMTConfiguration) error
+		Configure(configuration portainer.OpenAMTConfiguration) error
+		DeviceInformation(configuration portainer.OpenAMTConfiguration, deviceGUID string) (*OpenAMTDeviceInformation, error)
+		EnableDeviceFeatures(configuration portainer.OpenAMTConfiguration, deviceGUID string, features portainer.OpenAMTDeviceEnabledFeatures) (string, error)
+		ExecuteDeviceAction(configuration portainer.OpenAMTConfiguration, deviceGUID string, action string) error
 	}
 
 	// HelmUserRepositoryService represents a service to manage HelmUserRepositories
@@ -1788,17 +1817,8 @@ const (
 	TimeFormat24 = "15:04"
 )
 
-// Supported feature flags
-const (
-	FeatOpenAMT Feature = "open-amt"
-	FeatFDO     Feature = "fdo"
-)
-
 // List of supported features
-var SupportedFeatureFlags = []Feature{
-	FeatOpenAMT,
-	FeatFDO,
-}
+var SupportedFeatureFlags = []Feature{}
 
 const (
 	_ AuthenticationMethod = iota

@@ -16,7 +16,6 @@ import (
 	"github.com/portainer/portainer-ee/api/cli"
 	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/exec"
-	"github.com/portainer/portainer-ee/api/hostmanagement/openamt"
 	"github.com/portainer/portainer-ee/api/http"
 	"github.com/portainer/portainer-ee/api/http/client"
 	"github.com/portainer/portainer-ee/api/http/proxy"
@@ -38,6 +37,7 @@ import (
 	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/git"
+	"github.com/portainer/portainer/api/hostmanagement/openamt"
 )
 
 func initCLI() *portaineree.CLIFlags {
@@ -532,7 +532,7 @@ func buildServer(flags *portaineree.CLIFlags) portaineree.Server {
 
 	gitService := initGitService()
 
-	openAMTService := openamt.NewService(dataStore)
+	openAMTService := openamt.NewService()
 
 	cryptoService := initCryptoService()
 

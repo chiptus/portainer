@@ -2,6 +2,7 @@ package migrator
 
 import (
 	"fmt"
+	"github.com/portainer/portainer-ee/api/bolt/fdoprofile"
 
 	"github.com/boltdb/bolt"
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -62,6 +63,7 @@ type (
 		EndpointGroupService    *endpointgroup.Service
 		EndpointService         *endpoint.Service
 		EndpointRelationService *endpointrelation.Service
+		FDOProfileService       *fdoprofile.Service
 		ExtensionService        *extension.Service
 		RegistryService         *registry.Service
 		ResourceControlService  *resourcecontrol.Service

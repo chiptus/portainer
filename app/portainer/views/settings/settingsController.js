@@ -20,20 +20,6 @@ angular.module('portainer.app').controller('SettingsController', [
 
     $scope.state = {
       actionInProgress: false,
-      availableEdgeAgentCheckinOptions: [
-        {
-          key: '5 seconds',
-          value: 5,
-        },
-        {
-          key: '10 seconds',
-          value: 10,
-        },
-        {
-          key: '30 seconds',
-          value: 30,
-        },
-      ],
       availableKubeconfigExpiryOptions: [
         {
           key: '1 day',
@@ -66,7 +52,6 @@ angular.module('portainer.app').controller('SettingsController', [
       customLogo: false,
       labelName: '',
       labelValue: '',
-      enableEdgeComputeFeatures: false,
       enableTelemetry: false,
       passwordProtect: false,
       password: '',
@@ -137,7 +122,6 @@ angular.module('portainer.app').controller('SettingsController', [
         settings.LogoURL = '';
       }
 
-      settings.EnableEdgeComputeFeatures = $scope.formValues.enableEdgeComputeFeatures;
       settings.EnableTelemetry = $scope.formValues.enableTelemetry;
 
       $scope.state.actionInProgress = true;
@@ -189,7 +173,6 @@ angular.module('portainer.app').controller('SettingsController', [
           Notifications.success('Settings updated');
           StateManager.updateLogo(settings.LogoURL);
           StateManager.updateSnapshotInterval(settings.SnapshotInterval);
-          StateManager.updateEnableEdgeComputeFeatures(settings.EnableEdgeComputeFeatures);
           StateManager.updateEnableTelemetry(settings.EnableTelemetry);
           $state.reload();
         })
@@ -226,7 +209,6 @@ angular.module('portainer.app').controller('SettingsController', [
           if (settings.LogoURL !== '') {
             $scope.formValues.customLogo = true;
           }
-          $scope.formValues.enableEdgeComputeFeatures = settings.EnableEdgeComputeFeatures;
           $scope.formValues.enableTelemetry = settings.EnableTelemetry;
         })
         .catch(function error(err) {

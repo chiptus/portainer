@@ -53,6 +53,8 @@ type endpointUpdatePayload struct {
 	Kubernetes *portaineree.KubernetesData
 	// Whether automatic update time restrictions are enabled
 	ChangeWindow *portaineree.EndpointChangeWindow
+	// Whether the device has been trusted or not by the user
+	UserTrusted *bool
 }
 
 func (payload *endpointUpdatePayload) Validate(r *http.Request) error {
@@ -314,6 +316,10 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 	if payload.ChangeWindow != nil {
 		endpoint.ChangeWindow = *payload.ChangeWindow
+	}
+
+	if payload.UserTrusted != nil {
+		endpoint.UserTrusted = *payload.UserTrusted
 	}
 
 	err = handler.dataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)

@@ -1,6 +1,7 @@
 package bolt
 
 import (
+	"github.com/portainer/portainer-ee/api/bolt/fdoprofile"
 	"io"
 	"path"
 	"time"
@@ -59,6 +60,7 @@ type Store struct {
 	EndpointService           *endpoint.Service
 	EndpointRelationService   *endpointrelation.Service
 	ExtensionService          *extension.Service
+	FDOProfileService         *fdoprofile.Service
 	HelmUserRepositoryService *helmuserrepository.Service
 	LicenseService            *license.Service
 	RegistryService           *registry.Service

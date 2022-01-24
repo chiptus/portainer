@@ -30,6 +30,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/endpoints"
 	"github.com/portainer/portainer-ee/api/http/handler/file"
 	"github.com/portainer/portainer-ee/api/http/handler/helm"
+	"github.com/portainer/portainer-ee/api/http/handler/hostmanagement/fdo"
 	"github.com/portainer/portainer-ee/api/http/handler/hostmanagement/openamt"
 	kubehandler "github.com/portainer/portainer-ee/api/http/handler/kubernetes"
 	"github.com/portainer/portainer-ee/api/http/handler/ldap"
@@ -84,7 +85,7 @@ type Server struct {
 	DataStore                   portaineree.DataStore
 	GitService                  portaineree.GitService
 	APIKeyService               apikey.APIKeyService
-	OpenAMTService              portaineree.OpenAMTService
+	OpenAMTService              portainer.OpenAMTService
 	JWTService                  portaineree.JWTService
 	LDAPService                 portaineree.LDAPService
 	OAuthService                portaineree.OAuthService
@@ -228,14 +229,12 @@ func (server *Server) Start() error {
 	var sslHandler = sslhandler.NewHandler(requestBouncer)
 	sslHandler.SSLService = server.SSLService
 
-	openAMTHandler, err := openamt.NewHandler(requestBouncer, server.DataStore)
-	if err != nil {
-		return err
-	}
-	if openAMTHandler != nil {
-		openAMTHandler.OpenAMTService = server.OpenAMTService
-		openAMTHandler.DataStore = server.DataStore
-	}
+	openAMTHandler := openamt.NewHandler(requestBouncer)
+	openAMTHandler.OpenAMTService = server.OpenAMTService
+	openAMTHandler.DataStore = server.DataStore
+	openAMTHandler.DockerClientFactory = server.DockerClientFactory
+
+	fdoHandler := fdo.NewHandler(requestBouncer, server.DataStore, server.FileService)
 
 	var stackHandler = stacks.NewHandler(requestBouncer, server.DataStore, server.UserActivityService)
 	stackHandler.DockerClientFactory = server.DockerClientFactory
@@ -312,6 +311,7 @@ func (server *Server) Start() error {
 		LicenseHandler:         licenseHandler,
 		MOTDHandler:            motdHandler,
 		OpenAMTHandler:         openAMTHandler,
+		FDOHandler:             fdoHandler,
 		RegistryHandler:        registryHandler,
 		ResourceControlHandler: resourceControlHandler,
 		SettingsHandler:        settingsHandler,

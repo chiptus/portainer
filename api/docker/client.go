@@ -15,7 +15,7 @@ import (
 var errUnsupportedEnvironmentType = errors.New("Environment not supported")
 
 const (
-	defaultDockerRequestTimeout = 60
+	defaultDockerRequestTimeout = 60 * time.Second
 	dockerClientVersion         = "1.37"
 )
 
@@ -33,22 +33,22 @@ func NewClientFactory(signatureService portaineree.DigitalSignatureService, reve
 	}
 }
 
-// createClient is a generic function to create a Docker client based on
+// CreateClient is a generic function to create a Docker client based on
 // a specific environment(endpoint) configuration. The nodeName parameter can be used
 // with an agent enabled environment(endpoint) to target a specific node in an agent cluster.
-func (factory *ClientFactory) CreateClient(endpoint *portaineree.Endpoint, nodeName string) (*client.Client, error) {
+func (factory *ClientFactory) CreateClient(endpoint *portaineree.Endpoint, nodeName string, timeout *time.Duration) (*client.Client, error) {
 	if endpoint.Type == portaineree.AzureEnvironment {
 		return nil, errUnsupportedEnvironmentType
 	} else if endpoint.Type == portaineree.AgentOnDockerEnvironment {
-		return createAgentClient(endpoint, factory.signatureService, nodeName)
+		return createAgentClient(endpoint, factory.signatureService, nodeName, timeout)
 	} else if endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment {
-		return createEdgeClient(endpoint, factory.signatureService, factory.reverseTunnelService, nodeName)
+		return createEdgeClient(endpoint, factory.signatureService, factory.reverseTunnelService, nodeName, timeout)
 	}
 
 	if strings.HasPrefix(endpoint.URL, "unix://") || strings.HasPrefix(endpoint.URL, "npipe://") {
 		return createLocalClient(endpoint)
 	}
-	return createTCPClient(endpoint)
+	return createTCPClient(endpoint, timeout)
 }
 
 func createLocalClient(endpoint *portaineree.Endpoint) (*client.Client, error) {
@@ -58,8 +58,8 @@ func createLocalClient(endpoint *portaineree.Endpoint) (*client.Client, error) {
 	)
 }
 
-func createTCPClient(endpoint *portaineree.Endpoint) (*client.Client, error) {
-	httpCli, err := httpClient(endpoint)
+func createTCPClient(endpoint *portaineree.Endpoint, timeout *time.Duration) (*client.Client, error) {
+	httpCli, err := httpClient(endpoint, timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +71,8 @@ func createTCPClient(endpoint *portaineree.Endpoint) (*client.Client, error) {
 	)
 }
 
-func createEdgeClient(endpoint *portaineree.Endpoint, signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, nodeName string) (*client.Client, error) {
-	httpCli, err := httpClient(endpoint)
+func createEdgeClient(endpoint *portaineree.Endpoint, signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, nodeName string, timeout *time.Duration) (*client.Client, error) {
+	httpCli, err := httpClient(endpoint, timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -106,8 +106,8 @@ func createEdgeClient(endpoint *portaineree.Endpoint, signatureService portainer
 	)
 }
 
-func createAgentClient(endpoint *portaineree.Endpoint, signatureService portaineree.DigitalSignatureService, nodeName string) (*client.Client, error) {
-	httpCli, err := httpClient(endpoint)
+func createAgentClient(endpoint *portaineree.Endpoint, signatureService portaineree.DigitalSignatureService, nodeName string, timeout *time.Duration) (*client.Client, error) {
+	httpCli, err := httpClient(endpoint, timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func createAgentClient(endpoint *portaineree.Endpoint, signatureService portaine
 	)
 }
 
-func httpClient(endpoint *portaineree.Endpoint) (*http.Client, error) {
+func httpClient(endpoint *portaineree.Endpoint, timeout *time.Duration) (*http.Client, error) {
 	transport := &http.Transport{}
 
 	if endpoint.TLSConfig.TLS {
@@ -145,8 +145,13 @@ func httpClient(endpoint *portaineree.Endpoint) (*http.Client, error) {
 		transport.TLSClientConfig = tlsConfig
 	}
 
+	clientTimeout := defaultDockerRequestTimeout
+	if timeout != nil {
+		clientTimeout = *timeout
+	}
+
 	return &http.Client{
 		Transport: transport,
-		Timeout:   defaultDockerRequestTimeout * time.Second,
+		Timeout:   clientTimeout,
 	}, nil
 }

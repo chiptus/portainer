@@ -46,6 +46,23 @@ func Test_IsKubernetesEndpoint(t *testing.T) {
 	}
 }
 
+func Test_IsAgentEndpoint(t *testing.T) {
+	tests := []isEndpointTypeTest{
+		{endpointType: portaineree.DockerEnvironment, expected: false},
+		{endpointType: portaineree.AgentOnDockerEnvironment, expected: true},
+		{endpointType: portaineree.AzureEnvironment, expected: false},
+		{endpointType: portaineree.EdgeAgentOnDockerEnvironment, expected: true},
+		{endpointType: portaineree.KubernetesLocalEnvironment, expected: false},
+		{endpointType: portaineree.AgentOnKubernetesEnvironment, expected: true},
+		{endpointType: portaineree.EdgeAgentOnKubernetesEnvironment, expected: true},
+	}
+
+	for _, test := range tests {
+		ans := IsAgentEndpoint(&portaineree.Endpoint{Type: test.endpointType})
+		assert.Equal(t, test.expected, ans)
+	}
+}
+
 func Test_FilterByExcludeIDs(t *testing.T) {
 	tests := []struct {
 		name            string

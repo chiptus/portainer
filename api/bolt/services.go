@@ -12,6 +12,7 @@ import (
 	"github.com/portainer/portainer-ee/api/bolt/endpointgroup"
 	"github.com/portainer/portainer-ee/api/bolt/endpointrelation"
 	"github.com/portainer/portainer-ee/api/bolt/extension"
+	"github.com/portainer/portainer-ee/api/bolt/fdoprofile"
 	"github.com/portainer/portainer-ee/api/bolt/helmuserrepository"
 	"github.com/portainer/portainer-ee/api/bolt/license"
 	"github.com/portainer/portainer-ee/api/bolt/registry"
@@ -91,6 +92,12 @@ func (store *Store) initServices() error {
 		return err
 	}
 	store.ExtensionService = extensionService
+
+	fdoProfileService, err := fdoprofile.NewService(store.connection)
+	if err != nil {
+		return err
+	}
+	store.FDOProfileService = fdoProfileService
 
 	helmUserRepositoryService, err := helmuserrepository.NewService(store.connection)
 	if err != nil {
@@ -230,6 +237,11 @@ func (store *Store) EndpointGroup() portaineree.EndpointGroupService {
 // EndpointRelation gives access to the EndpointRelation data management layer
 func (store *Store) EndpointRelation() portaineree.EndpointRelationService {
 	return store.EndpointRelationService
+}
+
+// FDOProfile gives access to the FDOProfile data management layer
+func (store *Store) FDOProfile() portaineree.FDOProfileService {
+	return store.FDOProfileService
 }
 
 func (store *Store) HelmUserRepository() portaineree.HelmUserRepositoryService {

@@ -162,7 +162,7 @@ func (handler *Handler) checkUniqueStackNameInDocker(endpoint *portaineree.Endpo
 		return false, err
 	}
 
-	dockerClient, err := handler.DockerClientFactory.CreateClient(endpoint, "")
+	dockerClient, err := handler.DockerClientFactory.CreateClient(endpoint, "", nil)
 	if err != nil {
 		return false, err
 	}

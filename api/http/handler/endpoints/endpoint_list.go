@@ -89,6 +89,11 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 		filteredEndpoints = filterEndpointsByGroupID(filteredEndpoints, portaineree.EndpointGroupID(groupID))
 	}
 
+	edgeDeviceFilter, edgeDeviceFilterErr := request.RetrieveBooleanQueryParameter(r, "edgeDeviceFilter", false)
+	if edgeDeviceFilterErr == nil {
+		filteredEndpoints = filterEndpointsByEdgeDevice(filteredEndpoints, edgeDeviceFilter)
+	}
+
 	if search != "" {
 		tags, err := handler.dataStore.Tag().Tags()
 		if err != nil {
@@ -225,6 +230,17 @@ func filterEndpointsByTypes(endpoints []portaineree.Endpoint, endpointTypes []in
 
 	for _, endpoint := range endpoints {
 		if typeSet[endpoint.Type] {
+			filteredEndpoints = append(filteredEndpoints, endpoint)
+		}
+	}
+	return filteredEndpoints
+}
+
+func filterEndpointsByEdgeDevice(endpoints []portaineree.Endpoint, edgeDeviceFilter bool) []portaineree.Endpoint {
+	filteredEndpoints := make([]portaineree.Endpoint, 0)
+
+	for _, endpoint := range endpoints {
+		if edgeDeviceFilter == endpoint.IsEdgeDevice {
 			filteredEndpoints = append(filteredEndpoints, endpoint)
 		}
 	}
