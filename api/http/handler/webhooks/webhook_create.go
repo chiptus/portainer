@@ -75,6 +75,13 @@ func (handler *Handler) webhookCreate(w http.ResponseWriter, r *http.Request) *h
 	// endpoint will be used in the user activity logging middleware
 	middlewares.SetEndpoint(endpoint, r)
 
+	authorizations := []portaineree.Authorization{portaineree.OperationPortainerWebhookCreate}
+
+	_, handlerErr := handler.checkAuthorization(r, endpoint, authorizations)
+	if handlerErr != nil {
+		return handlerErr
+	}
+
 	if payload.RegistryID != 0 {
 		tokenData, err := security.RetrieveTokenData(r)
 		if err != nil {

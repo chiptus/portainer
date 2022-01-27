@@ -3,10 +3,10 @@ package webhooks
 import (
 	"context"
 	"errors"
+	"github.com/portainer/portainer-ee/api/internal/registryutils"
+	"io"
 	"net/http"
 	"strings"
-
-	"github.com/portainer/portainer-ee/api/internal/registryutils"
 
 	dockertypes "github.com/docker/docker/api/types"
 	httperror "github.com/portainer/libhttp/error"
@@ -113,7 +113,15 @@ func (handler *Handler) executeServiceWebhook(
 			}
 		}
 	}
-
+	if imageTag != "" {
+		rc, err := dockerClient.ImagePull(context.Background(), service.Spec.TaskTemplate.ContainerSpec.Image, dockertypes.ImagePullOptions{RegistryAuth: serviceUpdateOptions.EncodedRegistryAuth})
+		if err != nil {
+			return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Error pulling image with the specified tag", Err: err}
+		}
+		defer func(rc io.ReadCloser) {
+			_ = rc.Close()
+		}(rc)
+	}
 	_, err = dockerClient.ServiceUpdate(context.Background(), resourceID, service.Version, service.Spec, serviceUpdateOptions)
 
 	if err != nil {

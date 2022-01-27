@@ -1,6 +1,8 @@
 package webhooks
 
 import (
+	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
@@ -33,6 +35,21 @@ func (handler *Handler) webhookList(w http.ResponseWriter, r *http.Request) *htt
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: filters", err}
 	}
 
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(filters.EndpointID))
+	if err == bolterrors.ErrObjectNotFound {
+		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
+	} else if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
+	}
+	// endpoint will be used in the user activity logging middleware
+	middlewares.SetEndpoint(endpoint, r)
+
+	authorizations := []portaineree.Authorization{portaineree.OperationPortainerWebhookList}
+
+	isAuthorized, handlerErr := handler.checkAuthorization(r, endpoint, authorizations)
+	if handlerErr != nil || !isAuthorized {
+		return response.JSON(w, []portaineree.Webhook{})
+	}
 	webhooks, err := handler.dataStore.Webhook().Webhooks()
 	webhooks = filterWebhooks(webhooks, &filters)
 	if err != nil {

@@ -1422,3 +1422,21 @@ func unionAuthorizations(auths ...portaineree.Authorizations) portaineree.Author
 
 	return authorizations
 }
+
+func (service *Service) UserIsAdminOrAuthorized(userID portaineree.UserID, endpointID portaineree.EndpointID, authorizations []portaineree.Authorization) (bool, error) {
+	user, err := service.dataStore.User().User(userID)
+	if err != nil {
+		return false, err
+	}
+	if user.Role == portaineree.AdministratorRole {
+		return true, nil
+	}
+
+	for _, authorization := range authorizations {
+		_, authorized := user.EndpointAuthorizations[endpointID][authorization]
+		if authorized {
+			return true, nil
+		}
+	}
+	return false, nil
+}

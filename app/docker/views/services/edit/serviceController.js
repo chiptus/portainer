@@ -665,6 +665,17 @@ angular.module('portainer.docker').controller('ServiceController', [
       service.StopGracePeriod = service.StopGracePeriod ? ServiceHelper.translateNanosToHumanDuration(service.StopGracePeriod) : '';
     }
 
+    $scope.hasAuthorizations = function (authorizations) {
+      return $scope.isAdmin || Authentication.hasAuthorizations(authorizations);
+    };
+
+    $scope.disabledWebhookButton = function (webhookExists) {
+      if (webhookExists) {
+        return !$scope.hasAuthorizations(['PortainerWebhookDelete']);
+      }
+      return !$scope.hasAuthorizations(['PortainerWebhookCreate']);
+    };
+
     function initView() {
       var apiVersion = $scope.applicationState.endpoint.apiVersion;
       var agentProxy = $scope.applicationState.endpoint.mode.agentProxy;

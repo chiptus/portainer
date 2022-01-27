@@ -41,6 +41,13 @@ func (handler *Handler) webhookDelete(w http.ResponseWriter, r *http.Request) *h
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
 	}
 
+	authorizations := []portaineree.Authorization{portaineree.OperationPortainerWebhookDelete}
+
+	_, handlerErr := handler.checkAuthorization(r, endpoint, authorizations)
+	if handlerErr != nil {
+		return handlerErr
+	}
+
 	err = handler.dataStore.Webhook().DeleteWebhook(portaineree.WebhookID(id))
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove the webhook from the database", err}

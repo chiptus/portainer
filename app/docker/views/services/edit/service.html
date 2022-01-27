@@ -74,7 +74,7 @@
               <td>Image</td>
               <td>{{ service.Image }}</td>
             </tr>
-            <tr ng-if="applicationState.endpoint.type !== 4">
+            <tr ng-if="applicationState.endpoint.type !== 4 && hasAuthorizations(['PortainerWebhookCreate', 'PortainerWebhookList', 'PortainerWebhookDelete'])">
               <td colspan="{{ webhookURL ? '1' : '2' }}">
                 Service webhook
                 <portainer-tooltip
@@ -82,7 +82,13 @@
                   message="Webhook (or callback URI) used to automate the update of this service. Sending a POST request to this callback URI (without requiring any authentication) will pull the most up-to-date version of the associated image and re-deploy this service."
                 ></portainer-tooltip>
                 <label class="switch" style="margin-left: 20px">
-                  <input disable-authorization="DockerServiceUpdate" type="checkbox" ng-model="WebhookExists" ng-click="updateWebhook(service)" /><i></i>
+                  <input
+                    disable-authorization="DockerServiceUpdate"
+                    type="checkbox"
+                    ng-model="WebhookExists"
+                    ng-click="updateWebhook(service)"
+                    ng-disabled="disabledWebhookButton(WebhookExists)"
+                  /><i></i>
                 </label>
               </td>
               <td ng-if="webhookURL">

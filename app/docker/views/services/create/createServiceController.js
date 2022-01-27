@@ -116,6 +116,10 @@ angular.module('portainer.docker').controller('CreateServiceController', [
       $scope.formValues.Env = value;
     }
 
+    $scope.hasAuthorizations = function (authorizations) {
+      return $scope.isAdmin || Authentication.hasAuthorizations(authorizations);
+    };
+
     $scope.refreshSlider = function () {
       $timeout(function () {
         $scope.$broadcast('rzSliderForceRender');
