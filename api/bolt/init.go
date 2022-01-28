@@ -8,7 +8,32 @@ import (
 
 // Init creates the default data set.
 func (store *Store) Init() error {
+	err := store.checkOrCreateInstanceID()
+	if err != nil {
+		return err
+	}
+
+	err = store.checkOrCreateDefaultSettings()
+	if err != nil {
+		return err
+	}
+
+	err = store.checkOrCreateDefaultSSLSettings()
+	if err != nil {
+		return err
+	}
+
+	err = store.checkOrCreateDefaultData()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (store *Store) checkOrCreateInstanceID() error {
 	instanceID, err := store.VersionService.InstanceID()
+
 	if err == errors.ErrObjectNotFound {
 		uid, err := uuid.NewV4()
 		if err != nil {
@@ -16,17 +41,17 @@ func (store *Store) Init() error {
 		}
 
 		instanceID = uid.String()
-		err = store.VersionService.StoreInstanceID(instanceID)
-		if err != nil {
-			return err
-		}
-	} else if err != nil {
-		return err
+		return store.VersionService.StoreInstanceID(instanceID)
 	}
 
-	_, err = store.SettingsService.Settings()
+	return err
+}
+
+func (store *Store) checkOrCreateDefaultSettings() error {
+	_, err := store.SettingsService.Settings()
 	if err == errors.ErrObjectNotFound {
 		defaultSettings := &portaineree.Settings{
+			EnableTelemetry:      true,
 			AuthenticationMethod: portaineree.AuthenticationInternal,
 			BlackListedLabels:    make([]portaineree.Pair, 0),
 			LDAPSettings: portaineree.LDAPSettings{
@@ -48,7 +73,10 @@ func (store *Store) Init() error {
 				TeamMemberships: portaineree.TeamMemberships{
 					OAuthClaimMappings: make([]portaineree.OAuthClaimMappings, 0),
 				},
+				SSO:              true,
+				HideInternalAuth: true,
 			},
+			SnapshotInterval:         portaineree.DefaultSnapshotInterval,
 			EdgeAgentCheckinInterval: portaineree.DefaultEdgeAgentCheckinIntervalInSeconds,
 			TemplatesURL:             portaineree.DefaultTemplatesURL,
 			HelmRepositoryURL:        portaineree.DefaultHelmRepositoryURL,
@@ -57,30 +85,26 @@ func (store *Store) Init() error {
 			KubectlShellImage:        portaineree.DefaultKubectlShellImage,
 		}
 
-		err = store.SettingsService.UpdateSettings(defaultSettings)
-		if err != nil {
-			return err
-		}
-	} else if err != nil {
-		return err
+		return store.SettingsService.UpdateSettings(defaultSettings)
 	}
 
-	_, err = store.SSLSettings().Settings()
-	if err != nil {
-		if err != errors.ErrObjectNotFound {
-			return err
-		}
+	return err
+}
 
+func (store *Store) checkOrCreateDefaultSSLSettings() error {
+	_, err := store.SSLSettings().Settings()
+	if err == errors.ErrObjectNotFound {
 		defaultSSLSettings := &portaineree.SSLSettings{
 			HTTPEnabled: true,
 		}
 
-		err = store.SSLSettings().UpdateSettings(defaultSSLSettings)
-		if err != nil {
-			return err
-		}
+		return store.SSLSettings().UpdateSettings(defaultSSLSettings)
 	}
 
+	return err
+}
+
+func (store *Store) checkOrCreateDefaultData() error {
 	groups, err := store.EndpointGroupService.EndpointGroups()
 	if err != nil {
 		return err

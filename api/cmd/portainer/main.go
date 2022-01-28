@@ -223,11 +223,11 @@ func initKubernetesClientFactory(signatureService portaineree.DigitalSignatureSe
 	return kubecli.NewClientFactory(signatureService, reverseTunnelService, dataStore, instanceID)
 }
 
-func initSnapshotService(snapshotInterval string, dataStore portaineree.DataStore, dockerClientFactory *docker.ClientFactory, kubernetesClientFactory *kubecli.ClientFactory, shutdownCtx context.Context) (portaineree.SnapshotService, error) {
+func initSnapshotService(snapshotIntervalFromFlag string, dataStore portaineree.DataStore, dockerClientFactory *docker.ClientFactory, kubernetesClientFactory *kubecli.ClientFactory, shutdownCtx context.Context) (portaineree.SnapshotService, error) {
 	dockerSnapshotter := docker.NewSnapshotter(dockerClientFactory)
 	kubernetesSnapshotter := kubernetes.NewSnapshotter(kubernetesClientFactory)
 
-	snapshotService, err := snapshot.NewService(snapshotInterval, dataStore, dockerSnapshotter, kubernetesSnapshotter, shutdownCtx)
+	snapshotService, err := snapshot.NewService(snapshotIntervalFromFlag, dataStore, dockerSnapshotter, kubernetesSnapshotter, shutdownCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -248,12 +248,17 @@ func updateSettingsFromFlags(dataStore portaineree.DataStore, flags *portaineree
 		return err
 	}
 
-	settings.LogoURL = *flags.Logo
-	settings.SnapshotInterval = *flags.SnapshotInterval
-	settings.EnableEdgeComputeFeatures = *flags.EnableEdgeComputeFeatures
-	settings.EnableTelemetry = true
-	settings.OAuthSettings.SSO = true
-	settings.OAuthSettings.HideInternalAuth = true
+	if *flags.SnapshotInterval != "" {
+		settings.SnapshotInterval = *flags.SnapshotInterval
+	}
+
+	if *flags.Logo != "" {
+		settings.LogoURL = *flags.Logo
+	}
+
+	if *flags.EnableEdgeComputeFeatures {
+		settings.EnableEdgeComputeFeatures = *flags.EnableEdgeComputeFeatures
+	}
 
 	if *flags.Templates != "" {
 		settings.TemplatesURL = *flags.Templates

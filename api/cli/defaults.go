@@ -20,6 +20,5 @@ const (
 	defaultSSL                 = "false"
 	defaultSSLCertPath         = "/certs/portainer.crt"
 	defaultSSLKeyPath          = "/certs/portainer.key"
-	defaultSnapshotInterval    = "5m"
 	defaultBaseURL             = "/"
 )
