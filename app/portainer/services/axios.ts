@@ -10,7 +10,7 @@ import {
   portainerAgentTargetHeader,
 } from './http-request.helper';
 
-const axios = axiosOrigin.create({ baseURL: '/api' });
+const axios = axiosOrigin.create({ baseURL: 'api' });
 
 export default axios;
 
