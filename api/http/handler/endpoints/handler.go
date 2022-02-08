@@ -79,8 +79,6 @@ func NewHandler(bouncer requestBouncer, userActivityService portaineree.UserActi
 	adminRouter.Handle("/endpoints/{id}", httperror.LoggerHandler(h.endpointInspect)).Methods(http.MethodGet)
 	adminRouter.Handle("/endpoints/{id}", httperror.LoggerHandler(h.endpointDelete)).Methods(http.MethodDelete)
 	adminRouter.Handle("/endpoints/{id}/association", httperror.LoggerHandler(h.endpointAssociationDelete)).Methods(http.MethodDelete)
-	adminRouter.Handle("/endpoints/{id}/extensions", httperror.LoggerHandler(h.endpointExtensionAdd)).Methods(http.MethodPost)
-	adminRouter.Handle("/endpoints/{id}/extensions/{extensionType}", httperror.LoggerHandler(h.endpointExtensionRemove)).Methods(http.MethodDelete)
 	adminRouter.Handle("/endpoints/{id}/snapshot", httperror.LoggerHandler(h.endpointSnapshot)).Methods(http.MethodPost)
 
 	authenticatedRouter.Handle("/endpoints/{id}", httperror.LoggerHandler(h.endpointUpdate)).Methods(http.MethodPut)

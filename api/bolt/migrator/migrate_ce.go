@@ -79,13 +79,6 @@ func (m *Migrator) MigrateCE() error {
 		}
 	}
 
-	if m.currentDBVersion < 8 {
-		err := m.updateEndpointsToVersion8()
-		if err != nil {
-			return migrationError(err, "updateEndpointsToVersion8")
-		}
-	}
-
 	// https: //github.com/portainer/portainer/issues/1396
 	if m.currentDBVersion < 9 {
 		err := m.updateEndpointsToVersion9()

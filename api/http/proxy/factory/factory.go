@@ -2,8 +2,6 @@ package factory
 
 import (
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/docker"
@@ -49,18 +47,6 @@ func NewProxyFactory(
 		authService:                 authService,
 		userActivityService:         userActivityService,
 	}
-}
-
-// NewLegacyExtensionProxy returns a new HTTP proxy to a legacy extension server (Storidge)
-func (factory *ProxyFactory) NewLegacyExtensionProxy(extensionAPIURL string) (http.Handler, error) {
-	extensionURL, err := url.Parse(extensionAPIURL)
-	if err != nil {
-		return nil, err
-	}
-
-	extensionURL.Scheme = "http"
-	proxy := httputil.NewSingleHostReverseProxy(extensionURL)
-	return proxy, nil
 }
 
 // NewEndpointProxy returns a new reverse proxy (filesystem based or HTTP) to an environment(endpoint) API server

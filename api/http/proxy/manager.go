@@ -15,15 +15,12 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
-// TODO: contain code related to legacy extension management
-
 type (
 	// Manager represents a service used to manage proxies to environments(endpoints) and extensions.
 	Manager struct {
-		proxyFactory           *factory.ProxyFactory
-		endpointProxies        cmap.ConcurrentMap
-		legacyExtensionProxies cmap.ConcurrentMap
-		k8sClientFactory       *cli.ClientFactory
+		proxyFactory     *factory.ProxyFactory
+		endpointProxies  cmap.ConcurrentMap
+		k8sClientFactory *cli.ClientFactory
 	}
 )
 
@@ -39,9 +36,8 @@ func NewManager(
 	userActivityService portaineree.UserActivityService,
 ) *Manager {
 	return &Manager{
-		endpointProxies:        cmap.New(),
-		legacyExtensionProxies: cmap.New(),
-		k8sClientFactory:       kubernetesClientFactory,
+		endpointProxies:  cmap.New(),
+		k8sClientFactory: kubernetesClientFactory,
 		proxyFactory: factory.NewProxyFactory(
 			dataStore,
 			signatureService,
@@ -89,26 +85,6 @@ func (manager *Manager) GetEndpointProxy(endpoint *portaineree.Endpoint) http.Ha
 func (manager *Manager) DeleteEndpointProxy(endpointID portaineree.EndpointID) {
 	manager.endpointProxies.Remove(fmt.Sprint(endpointID))
 	manager.k8sClientFactory.RemoveKubeClient(endpointID)
-}
-
-// CreateLegacyExtensionProxy creates a new HTTP reverse proxy for a legacy extension and adds it to the registered proxies
-func (manager *Manager) CreateLegacyExtensionProxy(key, extensionAPIURL string) (http.Handler, error) {
-	proxy, err := manager.proxyFactory.NewLegacyExtensionProxy(extensionAPIURL)
-	if err != nil {
-		return nil, err
-	}
-
-	manager.legacyExtensionProxies.Set(key, proxy)
-	return proxy, nil
-}
-
-// GetLegacyExtensionProxy returns a legacy extension proxy associated to a key
-func (manager *Manager) GetLegacyExtensionProxy(key string) http.Handler {
-	proxy, ok := manager.legacyExtensionProxies.Get(key)
-	if !ok {
-		return nil
-	}
-	return proxy.(http.Handler)
 }
 
 // CreateGitlabProxy creates a new HTTP reverse proxy that can be used to send requests to the Gitlab API

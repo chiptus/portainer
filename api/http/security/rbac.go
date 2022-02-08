@@ -37,7 +37,6 @@ func authorizedOperation(operation *portaineree.APIOperationAuthorizationRequest
 }
 
 var dockerRule = regexp.MustCompile(`/(?P<identifier>\d+)/docker(?P<operation>/.*)`)
-var storidgeRule = regexp.MustCompile(`/(?P<identifier>\d+)/storidge(?P<operation>/.*)`)
 var k8sProxyRule = regexp.MustCompile(`/(?P<identifier>\d+)/kubernetes(?P<operation>/.*)`)
 var k8sRule = regexp.MustCompile(`/kubernetes/(?P<identifier>\d+)(?P<operation>/.*)`)
 var azureRule = regexp.MustCompile(`/(?P<identifier>\d+)/azure(?P<operation>/.*)`)
@@ -66,8 +65,6 @@ func getOperationAuthorization(url, method string) portaineree.Authorization {
 	if dockerRule.MatchString(url) {
 		match := dockerRule.FindStringSubmatch(url)
 		return getDockerOperationAuthorization(strings.TrimPrefix(url, "/"+match[1]+"/docker"), method)
-	} else if storidgeRule.MatchString(url) {
-		return portaineree.OperationIntegrationStoridgeAdmin
 	} else if k8sProxyRule.MatchString(url) {
 		// if the k8sProxyRule is matched, only tests if the user can access
 		// the current environment(endpoint). The namespace + resource authorization
@@ -290,8 +287,6 @@ func portainerEndpointOperationAuthorization(url, method string) portaineree.Aut
 			} else if resource == "snapshot" {
 				return portaineree.OperationPortainerEndpointSnapshots
 			}
-		case "extensions":
-			return portaineree.OperationPortainerEndpointExtensionAdd
 		case "job":
 			return portaineree.OperationPortainerEndpointJob
 		case "snapshot":
@@ -314,8 +309,6 @@ func portainerEndpointOperationAuthorization(url, method string) portaineree.Aut
 	case http.MethodDelete:
 		if resource != "" && action == "" {
 			return portaineree.OperationPortainerEndpointDelete
-		} else if strings.HasPrefix(action, "extensions/") {
-			return portaineree.OperationPortainerEndpointExtensionRemove
 		}
 	}
 
