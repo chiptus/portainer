@@ -495,7 +495,7 @@ func portainerStackOperationAuthorization(url, method string) portaineree.Author
 			if resource == "" {
 				return portaineree.OperationPortainerStackCreate
 			}
-		case "git":
+		case "git", "stop", "start":
 			return portaineree.OperationPortainerStackUpdate
 		case "migrate":
 			return portaineree.OperationPortainerStackMigrate
