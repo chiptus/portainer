@@ -5,6 +5,28 @@ import { genericHandler } from '@/docker/rest/response/handlers';
 
 import { ContainerId, DockerContainer } from './types';
 
+interface Filters {
+  label?: string[];
+}
+
+export async function getContainers(
+  environmentId: EnvironmentId,
+  all: boolean,
+  filters: Filters
+) {
+  try {
+    const response = await axios.get<DockerContainer[]>(
+      urlBuilder(environmentId),
+      {
+        params: { all, filters: JSON.stringify(filters) },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw parseAxiosError(error as Error, 'Unable to retrieve containers');
+  }
+}
+
 export async function startContainer(
   endpointId: EnvironmentId,
   id: ContainerId
