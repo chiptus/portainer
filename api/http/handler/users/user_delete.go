@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/sirupsen/logrus"
+
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
@@ -56,22 +58,12 @@ func (handler *Handler) userDelete(w http.ResponseWriter, r *http.Request) *http
 	}
 
 	if user.Role == portaineree.AdministratorRole {
-		responseErr := handler.deleteAdminUser(w, user)
-		if responseErr != nil {
-			return responseErr
-		}
-
-		return nil
+		return handler.deleteAdminUser(w, user)
 	}
 
 	handler.AuthorizationService.TriggerUserAuthUpdate(int(user.ID))
 
-	responseErr := handler.deleteUser(w, user)
-	if err != nil {
-		return responseErr
-	}
-
-	return nil
+	return handler.deleteUser(w, user)
 }
 
 func (handler *Handler) deleteAdminUser(w http.ResponseWriter, user *portaineree.User) *httperror.HandlerError {
@@ -99,52 +91,14 @@ func (handler *Handler) deleteAdminUser(w http.ResponseWriter, user *portaineree
 }
 
 func (handler *Handler) deleteUser(w http.ResponseWriter, user *portaineree.User) *httperror.HandlerError {
-	endpoints, err := handler.DataStore.Endpoint().Endpoints()
+	err := handler.removeUserKubeResources(user)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to get user environment access", err}
-	}
-
-	errs := []string{}
-	// removes user's k8s service account and all related resources
-	for _, endpoint := range endpoints {
-		if endpoint.Type != portaineree.KubernetesLocalEnvironment &&
-			endpoint.Type != portaineree.AgentOnKubernetesEnvironment &&
-			endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment {
-			continue
-		}
-		kcl, err := handler.K8sClientFactory.GetKubeClient(&endpoint)
-		if err != nil {
-			errs = append(errs, fmt.Errorf("Unable to get k8s environment access @ %d: %w", int(endpoint.ID), err).Error())
-			continue
-		}
-		kcl.RemoveUserServiceAccount(int(user.ID))
-
-		accessPolicies, err := kcl.GetNamespaceAccessPolicies()
-		if err != nil {
-			errs = append(errs, fmt.Errorf("Unable to get environment namespace access @ %d: %w", int(endpoint.ID), err).Error())
-			continue
-		}
-
-		accessPolicies, hasChange, err := handler.AuthorizationService.RemoveUserNamespaceAccessPolicies(
-			int(user.ID), int(endpoint.ID), accessPolicies,
-		)
-		if hasChange {
-			err = kcl.UpdateNamespaceAccessPolicies(accessPolicies)
-			if err != nil {
-				errs = append(errs, fmt.Errorf("Unable to update environment namespace access @ %d: %w", int(endpoint.ID), err).Error())
-				continue
-			}
-		}
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove user k8s resources", err}
 	}
 
 	err = handler.AuthorizationService.RemoveUserAccessPolicies(user.ID)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("Unable to clean-up user access policies: %w", err).Error())
-	}
-
-	if len(errs) > 0 {
-		err = fmt.Errorf(strings.Join(errs, "\n"))
-		return &httperror.HandlerError{http.StatusInternalServerError, "There are 1 or more errors when deleting user", err}
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to clean-up user access policies", err}
 	}
 
 	err = handler.DataStore.User().DeleteUser(user.ID)
@@ -170,4 +124,57 @@ func (handler *Handler) deleteUser(w http.ResponseWriter, user *portaineree.User
 	}
 
 	return response.Empty(w)
+}
+
+func (handler *Handler) removeUserKubeResources(user *portaineree.User) error {
+	endpoints, err := handler.DataStore.Endpoint().Endpoints()
+	if err != nil {
+		return err
+	}
+
+	errs := []string{}
+	// removes user's k8s service account and all related resources
+	for _, endpoint := range endpoints {
+		if endpoint.Type != portaineree.KubernetesLocalEnvironment &&
+			endpoint.Type != portaineree.AgentOnKubernetesEnvironment &&
+			endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment {
+			continue
+		}
+
+		kcl, err := handler.K8sClientFactory.GetKubeClient(&endpoint)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("Unable to get k8s environment access @ %d: %w", int(endpoint.ID), err).Error())
+			continue
+		}
+
+		err = kcl.RemoveUserServiceAccount(int(user.ID))
+		if err != nil {
+			errs = append(errs, fmt.Errorf("Unable to remove user service account @ %d: %w", int(endpoint.ID), err).Error())
+		}
+
+		accessPolicies, err := kcl.GetNamespaceAccessPolicies()
+		if err != nil {
+			errs = append(errs, fmt.Errorf("Unable to get environment namespace access @ %d: %w", int(endpoint.ID), err).Error())
+			continue
+		}
+
+		accessPolicies, hasChange, err := handler.AuthorizationService.RemoveUserNamespaceAccessPolicies(
+			int(user.ID), int(endpoint.ID), accessPolicies,
+		)
+		if hasChange {
+			err = kcl.UpdateNamespaceAccessPolicies(accessPolicies)
+			if err != nil {
+				errs = append(errs, fmt.Errorf("Unable to update environment namespace access @ %d: %w", int(endpoint.ID), err).Error())
+				continue
+			}
+		}
+	}
+
+	if len(errs) > 0 {
+		err = fmt.Errorf(strings.Join(errs, "\n"))
+		logrus.WithError(err).Error("failed to remove user k8s resources")
+		// ignore error
+	}
+
+	return nil
 }
