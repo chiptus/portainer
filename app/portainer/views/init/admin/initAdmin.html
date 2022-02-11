@@ -109,7 +109,7 @@
         <div class="panel-body">
           <!-- toggle -->
           <div style="padding-bottom: 12px">
-            <a ng-click="togglePanel()">
+            <a ng-click="togglePanel()" data-cy="init-installPortainerFromBackup">
               <i ng-class="{ true: 'glyphicon glyphicon-chevron-down', false: 'glyphicon glyphicon-chevron-right' }[state.showRestorePortainer]" aria-hidden="true"></i
               ><span style="padding-left: 10px">Restore Portainer from backup</span>
             </a>
@@ -140,7 +140,7 @@
                 </div>
                 <div>
                   <input type="radio" id="restore_s3" ng-model="formValues.restoreFormType" value="s3" />
-                  <label for="restore_s3" style="padding-bottom: 20px">
+                  <label for="restore_s3" style="padding-bottom: 20px" data-cy="init-backupFromS3">
                     <div class="boxselector_header">
                       <i class="fa fa-download" aria-hidden="true" style="margin-right: 2px"></i>
                       Retrieve from S3
@@ -169,6 +169,7 @@
                     ngf-accept="'application/x-tar,application/x-gzip'"
                     ng-model="formValues.BackupFile"
                     auto-focus
+                    data-cy="init-selectBackupFileButton"
                     >Select file</button
                   >
                   <span style="margin-left: 5px">
@@ -184,7 +185,7 @@
               <div class="form-group">
                 <label for="access_key_id" class="col-sm-3 control-label text-left">Access Key ID</label>
                 <div class="col-sm-9">
-                  <input type="text" class="form-control" id="access_key_id" name="access_key_id" ng-model="formValues.AccessKeyId" required />
+                  <input type="text" class="form-control" id="access_key_id" name="access_key_id" ng-model="formValues.AccessKeyId" required data-cy="init-accessKeyIdInput" />
                 </div>
               </div>
               <!-- !Access key id  -->
@@ -192,7 +193,15 @@
               <div class="form-group">
                 <label for="secret_access_key" class="col-sm-3 control-label text-left">Secret Access Key</label>
                 <div class="col-sm-9">
-                  <input type="password" class="form-control" id="secret_access_key" name="secret_access_key" ng-model="formValues.SecretAccessKey" required />
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="secret_access_key"
+                    name="secret_access_key"
+                    ng-model="formValues.SecretAccessKey"
+                    required
+                    data-cy="init-secretAccessKeyInput"
+                  />
                 </div>
               </div>
               <!-- !Secret access key -->
@@ -200,7 +209,16 @@
               <div class="form-group">
                 <label for="backup-s3-region" class="col-sm-3 control-label text-left">Region</label>
                 <div class="col-sm-9">
-                  <input type="text" class="form-control" placeholder="us-west-1" id="backup-s3-region" name="backup-s3-region" ng-model="formValues.Region" required />
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="us-west-1"
+                    id="backup-s3-region"
+                    name="backup-s3-region"
+                    ng-model="formValues.Region"
+                    required
+                    data-cy="init-s3RegionInput"
+                  />
                 </div>
               </div>
               <!-- !Region -->
@@ -208,7 +226,7 @@
               <div class="form-group">
                 <label for="bucket_name" class="col-sm-3 control-label text-left">Bucket name</label>
                 <div class="col-sm-9">
-                  <input type="text" class="form-control" id="bucket_name" name="bucket_name" ng-model="formValues.BucketName" required />
+                  <input type="text" class="form-control" id="bucket_name" name="bucket_name" ng-model="formValues.BucketName" required data-cy="init-bucketNameInput" />
                 </div>
               </div>
               <!-- !Bucket name -->
@@ -216,7 +234,15 @@
               <div class="form-group">
                 <label for="backup-s3-filename" class="col-sm-3 control-label text-left">Filename</label>
                 <div class="col-sm-9">
-                  <input type="text" class="form-control" id="backup-s3-filename" name="backup-s3-filename" ng-model="formValues.Filename" required />
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="backup-s3-filename"
+                    name="backup-s3-filename"
+                    ng-model="formValues.Filename"
+                    required
+                    data-cy="init-backupFilenameInput"
+                  />
                 </div>
               </div>
               <!-- !Filename -->
@@ -231,7 +257,7 @@
                 ></portainer-tooltip>
               </label>
               <div ng-class="{ 'col-sm-4': formValues.restoreFormType === RESTORE_FORM_TYPES.FILE, 'col-sm-9': formValues.restoreFormType === RESTORE_FORM_TYPES.S3 }">
-                <input type="password" class="form-control" ng-model="formValues.Password" id="password" />
+                <input type="password" class="form-control" ng-model="formValues.Password" id="password" data-cy="init-backupPasswordInput" />
               </div>
             </div>
             <!-- !password-input -->
@@ -255,6 +281,7 @@
                   ng-disabled="!formValues.BackupFile || state.backupInProgress"
                   ng-click="uploadBackup()"
                   button-spinner="state.backupInProgress"
+                  data-cy="init-restorePortainerButton"
                 >
                   <span ng-hide="state.backupInProgress">Restore Portainer</span>
                   <span ng-show="state.backupInProgress">Restoring Portainer...</span>
@@ -266,6 +293,7 @@
                   ng-disabled="restorePortainerForm.$invalid ||state.backupInProgress"
                   ng-click="restoreFromS3()"
                   button-spinner="state.backupInProgress"
+                  data-cy="init-restorePortainerButtonS3"
                 >
                   <span ng-hide="state.backupInProgress">Restore Portainer</span>
                   <span ng-show="state.backupInProgress">Restoring Portainer...</span>
