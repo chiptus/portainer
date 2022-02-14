@@ -15,17 +15,25 @@
             <div class="row">
               <div class="pull-left" ng-repeat="tag in image.RepoTags" style="display: table">
                 <div class="input-group col-md-1" style="padding: 0 15px">
-                  <span class="input-group-addon">{{ tag }}</span>
-                  <span class="input-group-btn" authorization="DockerImagePush, DockerImageCreate, DockerImageDelete">
-                    <a data-toggle="tooltip" class="btn btn-primary interactive" title="Push to registry" ng-click="pushTag(tag)" authorization="DockerImagePush">
-                      <span class="fa fa-upload white-icon" aria-hidden="true"></span>
-                    </a>
-                    <a data-toggle="tooltip" class="btn btn-primary interactive" title="Pull from registry" ng-click="pullTag(tag)" authorization="DockerImageCreate">
-                      <span class="fa fa-download white-icon" aria-hidden="true"></span>
-                    </a>
-                    <a data-toggle="tooltip" class="btn btn-primary interactive" title="Remove tag" ng-click="removeTag(tag)" authorization="DockerImageDelete">
-                      <span class="fa fa-trash-alt white-icon" aria-hidden="true"></span>
-                    </a>
+                  <span class="input-group-addon" style="border-right: 1px solid var(--border-input-group-addon-color); border-radius: 4px">{{ tag }}</span>
+                  <span class="input-group-btn" style="padding: 0px 5px">
+                    <span style="margin: 0px 5px" authorization="DockerImagePush">
+                      <a data-toggle="tooltip" class="btn btn-primary interactive" title="Push to registry" ng-click="pushTag(tag)">
+                        <span class="fa fa-upload white-icon" aria-hidden="true"></span>
+                      </a>
+                    </span>
+
+                    <span style="margin: 0px 5px" authorization="DockerImageCreate">
+                      <a data-toggle="tooltip" class="btn btn-primary interactive" title="Pull from registry" ng-click="pullTag(tag)">
+                        <span class="fa fa-download white-icon" aria-hidden="true"></span>
+                      </a>
+                    </span>
+
+                    <span style="margin: 0px 5px" authorization="DockerImageDelete">
+                      <a data-toggle="tooltip" class="btn btn-primary interactive" title="Remove tag" ng-click="removeTag(tag)">
+                        <span class="fa fa-trash-alt white-icon" aria-hidden="true"></span>
+                      </a>
+                    </span>
                   </span>
                 </div>
               </div>
@@ -33,7 +41,7 @@
           </div>
           <div class="form-group">
             <div class="col-sm-12">
-              <span class="small text-muted">
+              <span class="small text-muted" authorization="DockerImageDelete">
                 Note: you can click on the upload icon <span class="fa fa-upload" aria-hidden="true"></span> to push an image or on the download icon
                 <span class="fa fa-download" aria-hidden="true"></span> to pull an image or on the trash icon <span class="fa fa-trash-alt" aria-hidden="true"></span> to delete a
                 tag.
