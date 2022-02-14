@@ -74,6 +74,10 @@ func (service *Service) AddLicense(licenseKey string) (*liblicense.PortainerLice
 			return nil, errors.New("License was already applied")
 		}
 
+		if existingLicense.Type == liblicense.PortainerLicenseEssentials && license.Type == liblicense.PortainerLicenseEssentials {
+			return nil, errors.New("Multiple free licenses are not allowed")
+		}
+
 		if existingLicense.Type == liblicense.PortainerLicenseTrial {
 			err = service.repository.DeleteLicense(existingLicense.LicenseKey)
 			if err != nil {

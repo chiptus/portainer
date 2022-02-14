@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/portainer/liblicense"
 	"github.com/portainer/liblicense/master"
 )
 
@@ -41,16 +42,27 @@ func (service *Service) syncLicenses() error {
 		return err
 	}
 
-	licensesToRemove := []string{}
+	licensesToRevoke := []string{}
+	hasFreeSubscription := false
 
 	for _, license := range licenses {
 		valid, err := master.ValidateLicense(&license)
 		if err != nil || !valid {
-			licensesToRemove = append(licensesToRemove, license.LicenseKey)
+			licensesToRevoke = append(licensesToRevoke, license.LicenseKey)
+			continue
+		}
+
+		if license.Type == liblicense.PortainerLicenseEssentials {
+			// allow only one single free subscription license, and revoke the rest
+			if !hasFreeSubscription {
+				hasFreeSubscription = true
+				continue
+			}
+			licensesToRevoke = append(licensesToRevoke, license.LicenseKey)
 		}
 	}
 
-	for _, licenseKey := range licensesToRemove {
+	for _, licenseKey := range licensesToRevoke {
 		err := service.revokeLicense(licenseKey)
 		if err != nil {
 			return err

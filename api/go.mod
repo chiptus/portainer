@@ -34,8 +34,8 @@ require (
 	github.com/portainer/docker-compose-wrapper v0.0.0-20220113045708-6569596db840
 	github.com/portainer/libcrypto v0.0.0-20210422035235-c652195c5c3a
 	github.com/portainer/libhelm v0.0.0-20210929000907-825e93d62108
+	github.com/portainer/liblicense v0.0.0-20210617122637-db079d0b7f97
 	github.com/portainer/libhttp v0.0.0-20211208103139-07a5f798eb3f
-	github.com/portainer/liblicense v0.0.0-20210409011001-c758dd044fbb
 	github.com/portainer/portainer/api v0.0.0-20220120145133-eb5b9d93448f
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sirupsen/logrus v1.8.1
