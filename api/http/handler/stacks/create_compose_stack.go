@@ -1,7 +1,6 @@
 package stacks
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -27,6 +26,8 @@ type composeStackFromFileContentPayload struct {
 	Env []portaineree.Pair
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
+	// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
+	Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
 }
 
 func (payload *composeStackFromFileContentPayload) Validate(r *http.Request) error {
@@ -100,6 +101,11 @@ func (handler *Handler) createComposeStackFromFileContent(w http.ResponseWriter,
 		}
 	}
 
+	isUniqueError := handler.checkUniqueWebhookID(payload.Webhook)
+	if isUniqueError != nil {
+		return isUniqueError
+	}
+
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
 	stack := &portaineree.Stack{
 		ID:              portaineree.StackID(stackID),
@@ -111,6 +117,7 @@ func (handler *Handler) createComposeStackFromFileContent(w http.ResponseWriter,
 		Status:          portaineree.StackStatusActive,
 		CreationDate:    time.Now().Unix(),
 		FromAppTemplate: payload.FromAppTemplate,
+		Webhook:         payload.Webhook,
 	}
 
 	stackFolder := strconv.Itoa(int(stack.ID))
@@ -123,7 +130,7 @@ func (handler *Handler) createComposeStackFromFileContent(w http.ResponseWriter,
 	doCleanUp := true
 	defer handler.cleanUp(stack, &doCleanUp)
 
-	config, configErr := handler.createComposeDeployConfig(r, stack, endpoint)
+	config, configErr := handler.createComposeDeployConfig(r, stack, endpoint, false)
 	if configErr != nil {
 		return configErr
 	}
@@ -222,13 +229,10 @@ func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWrite
 	}
 
 	//make sure the webhook ID is unique
-	if payload.AutoUpdate != nil && payload.AutoUpdate.Webhook != "" {
-		isUnique, err := handler.checkUniqueWebhookID(payload.AutoUpdate.Webhook)
+	if payload.AutoUpdate != nil {
+		err := handler.checkUniqueWebhookID(payload.AutoUpdate.Webhook)
 		if err != nil {
-			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to check for webhook ID collision", Err: err}
-		}
-		if !isUnique {
-			return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: fmt.Sprintf("Webhook ID: %s already exists", payload.AutoUpdate.Webhook), Err: errWebhookIDAlreadyExists}
+			return err
 		}
 	}
 
@@ -276,7 +280,7 @@ func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWrite
 	}
 	stack.GitConfig.ConfigHash = commitID
 
-	config, configErr := handler.createComposeDeployConfig(r, stack, endpoint)
+	config, configErr := handler.createComposeDeployConfig(r, stack, endpoint, false)
 	if configErr != nil {
 		return configErr
 	}
@@ -309,6 +313,8 @@ type composeStackFromFileUploadPayload struct {
 	Name             string
 	StackFileContent []byte
 	Env              []portaineree.Pair
+	// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
+	Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
 }
 
 func decodeRequestForm(r *http.Request) (*composeStackFromFileUploadPayload, error) {
@@ -331,6 +337,10 @@ func decodeRequestForm(r *http.Request) (*composeStackFromFileUploadPayload, err
 		return nil, errors.New("Invalid Env parameter")
 	}
 	payload.Env = env
+	webhook, err := request.RetrieveMultiPartFormValue(r, "Webhook", true)
+	if err == nil {
+		payload.Webhook = webhook
+	}
 	return payload, nil
 }
 
@@ -363,6 +373,11 @@ func (handler *Handler) createComposeStackFromFileUpload(w http.ResponseWriter, 
 		}
 	}
 
+	isUniqueError := handler.checkUniqueWebhookID(payload.Webhook)
+	if isUniqueError != nil {
+		return isUniqueError
+	}
+
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
 	stack := &portaineree.Stack{
 		ID:           portaineree.StackID(stackID),
@@ -373,6 +388,7 @@ func (handler *Handler) createComposeStackFromFileUpload(w http.ResponseWriter, 
 		Env:          payload.Env,
 		Status:       portaineree.StackStatusActive,
 		CreationDate: time.Now().Unix(),
+		Webhook:      payload.Webhook,
 	}
 
 	stackFolder := strconv.Itoa(int(stack.ID))
@@ -385,7 +401,7 @@ func (handler *Handler) createComposeStackFromFileUpload(w http.ResponseWriter, 
 	doCleanUp := true
 	defer handler.cleanUp(stack, &doCleanUp)
 
-	config, configErr := handler.createComposeDeployConfig(r, stack, endpoint)
+	config, configErr := handler.createComposeDeployConfig(r, stack, endpoint, false)
 	if configErr != nil {
 		return configErr
 	}
@@ -407,14 +423,15 @@ func (handler *Handler) createComposeStackFromFileUpload(w http.ResponseWriter, 
 }
 
 type composeStackDeploymentConfig struct {
-	stack      *portaineree.Stack
-	endpoint   *portaineree.Endpoint
-	registries []portaineree.Registry
-	isAdmin    bool
-	user       *portaineree.User
+	stack          *portaineree.Stack
+	endpoint       *portaineree.Endpoint
+	registries     []portaineree.Registry
+	isAdmin        bool
+	user           *portaineree.User
+	forcePullImage bool
 }
 
-func (handler *Handler) createComposeDeployConfig(r *http.Request, stack *portaineree.Stack, endpoint *portaineree.Endpoint) (*composeStackDeploymentConfig, *httperror.HandlerError) {
+func (handler *Handler) createComposeDeployConfig(r *http.Request, stack *portaineree.Stack, endpoint *portaineree.Endpoint, forcePullImage bool) (*composeStackDeploymentConfig, *httperror.HandlerError) {
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
 		return nil, &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve info from request context", Err: err}
@@ -433,11 +450,12 @@ func (handler *Handler) createComposeDeployConfig(r *http.Request, stack *portai
 	filteredRegistries := security.FilterRegistries(registries, user, securityContext.UserMemberships, endpoint.ID)
 
 	config := &composeStackDeploymentConfig{
-		stack:      stack,
-		endpoint:   endpoint,
-		registries: filteredRegistries,
-		isAdmin:    securityContext.IsAdmin,
-		user:       user,
+		stack:          stack,
+		endpoint:       endpoint,
+		registries:     filteredRegistries,
+		isAdmin:        securityContext.IsAdmin,
+		user:           user,
+		forcePullImage: forcePullImage,
 	}
 
 	return config, nil
@@ -477,5 +495,5 @@ func (handler *Handler) deployComposeStack(config *composeStackDeploymentConfig,
 		}
 	}
 
-	return handler.StackDeployer.DeployComposeStack(config.stack, config.endpoint, config.registries, forceCreate)
+	return handler.StackDeployer.DeployComposeStack(config.stack, config.endpoint, config.registries, config.forcePullImage, forceCreate)
 }

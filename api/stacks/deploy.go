@@ -62,10 +62,6 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 		return errors.WithMessagef(err, "failed to get the stack %v", stackID)
 	}
 
-	if stack.GitConfig == nil {
-		return nil // do nothing if it isn't a git-based stack
-	}
-
 	endpoint, err := datastore.Endpoint().Endpoint(stack.EndpointID)
 	if err != nil {
 		return errors.WithMessagef(err, "failed to find the environment %v associated to the stack %v", stack.EndpointID, stack.ID)
@@ -94,35 +90,42 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 		return &StackAuthorMissingErr{int(stack.ID), author}
 	}
 
-	username, password := "", ""
-	if stack.GitConfig.Authentication != nil {
-		username, password = stack.GitConfig.Authentication.Username, stack.GitConfig.Authentication.Password
-	}
+	var gitCommitChangedOrForceUpdate bool
+	if stack.GitConfig != nil && !stack.FromAppTemplate {
+		logger.Debugln("The stack has a git config, try to poll from git repository.")
+		username, password := "", ""
+		if stack.GitConfig.Authentication != nil {
+			username, password = stack.GitConfig.Authentication.Username, stack.GitConfig.Authentication.Password
+		}
+		newHash, err := gitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, username, password)
+		if err != nil {
+			return errors.WithMessagef(err, "failed to fetch latest commit id of the stack %v", stack.ID)
+		}
 
-	newHash, err := gitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, username, password)
-	if err != nil {
-		return errors.WithMessagef(err, "failed to fetch latest commit id of the stack %v", stack.ID)
-	}
-	if stack.AutoUpdate != nil && !stack.AutoUpdate.ForceUpdate {
-		if strings.EqualFold(newHash, string(stack.GitConfig.ConfigHash)) {
-			return nil
+		if !strings.EqualFold(newHash, string(stack.GitConfig.ConfigHash)) || (stack.AutoUpdate != nil && stack.AutoUpdate.ForceUpdate) {
+			cloneParams := &cloneRepositoryParameters{
+				url:   stack.GitConfig.URL,
+				ref:   stack.GitConfig.ReferenceName,
+				toDir: stack.ProjectPath,
+			}
+			if stack.GitConfig.Authentication != nil {
+				cloneParams.auth = &gitAuth{
+					username: username,
+					password: password,
+				}
+			}
+
+			if err := cloneGitRepository(gitService, cloneParams); err != nil {
+				return errors.WithMessagef(err, "failed to do a fresh clone of the stack %v", stack.ID)
+			}
+			stack.UpdateDate = time.Now().Unix()
+			stack.GitConfig.ConfigHash = newHash
+			gitCommitChangedOrForceUpdate = true
 		}
 	}
-
-	cloneParams := &cloneRepositoryParameters{
-		url:   stack.GitConfig.URL,
-		ref:   stack.GitConfig.ReferenceName,
-		toDir: stack.ProjectPath,
-	}
-	if stack.GitConfig.Authentication != nil {
-		cloneParams.auth = &gitAuth{
-			username: username,
-			password: password,
-		}
-	}
-
-	if err := cloneGitRepository(gitService, cloneParams); err != nil {
-		return errors.WithMessagef(err, "failed to do a fresh clone of the stack %v", stack.ID)
+	forcePullImage := stack.AutoUpdate == nil || stack.AutoUpdate.ForcePullImage
+	if !forcePullImage && !gitCommitChangedOrForceUpdate {
+		return nil
 	}
 
 	registries, err := getUserRegistries(datastore, user, endpoint.ID)
@@ -132,12 +135,13 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 
 	switch stack.Type {
 	case portaineree.DockerComposeStack:
-		err := deployer.DeployComposeStack(stack, endpoint, registries, stack.AutoUpdate != nil && stack.AutoUpdate.ForceUpdate)
+		logger.Debugf("Compose stack redeploy with pull image flag: %t", forcePullImage)
+		err := deployer.DeployComposeStack(stack, endpoint, registries, forcePullImage, stack.AutoUpdate != nil && stack.AutoUpdate.ForceUpdate)
 		if err != nil {
 			return errors.WithMessagef(err, "failed to deploy a docker compose stack %v", stackID)
 		}
 	case portaineree.DockerSwarmStack:
-		err := deployer.DeploySwarmStack(stack, endpoint, registries, true)
+		err := deployer.DeploySwarmStack(stack, endpoint, registries, true, true)
 		if err != nil {
 			return errors.WithMessagef(err, "failed to deploy a docker compose stack %v", stackID)
 		}
@@ -151,8 +155,6 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 		return errors.Errorf("cannot update stack, type %v is unsupported", stack.Type)
 	}
 
-	stack.UpdateDate = time.Now().Unix()
-	stack.GitConfig.ConfigHash = newHash
 	if err := datastore.Stack().UpdateStack(stack.ID, stack); err != nil {
 		return errors.WithMessagef(err, "failed to update the stack %v", stack.ID)
 	}

@@ -32,12 +32,12 @@ type noopDeployer struct {
 	KubernetesStackDeployed bool
 }
 
-func (s *noopDeployer) DeploySwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, prune bool) error {
+func (s *noopDeployer) DeploySwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, prune bool, pullImage bool) error {
 	s.SwarmStackDeployed = true
 	return nil
 }
 
-func (s *noopDeployer) DeployComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, forceRereate bool) error {
+func (s *noopDeployer) DeployComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, forcePullImage bool, forceRereate bool) error {
 	s.ComposeStackDeployed = true
 	return nil
 }
@@ -56,19 +56,33 @@ func Test_redeployWhenChanged_FailsWhenCannotFindStack(t *testing.T) {
 	assert.Truef(t, strings.HasPrefix(err.Error(), "failed to get the stack"), "it isn't an error we expected: %v", err.Error())
 }
 
-func Test_redeployWhenChanged_DoesNothingWhenNotAGitBasedStack(t *testing.T) {
+func Test_redeployWhenChanged_PullImageAndRedeployWhenNotAGitBasedStack(t *testing.T) {
 	store, teardown := bolt.MustNewTestStore(true)
 	defer teardown()
 
 	admin := &portaineree.User{ID: 1, Username: "admin"}
 	err := store.User().CreateUser(admin)
 	assert.NoError(t, err, "error creating an admin")
-
-	err = store.Stack().CreateStack(&portaineree.Stack{ID: 1, CreatedBy: "admin"})
+	err = store.Endpoint().CreateEndpoint(&portaineree.Endpoint{
+		ID: 0,
+		ChangeWindow: portaineree.EndpointChangeWindow{
+			Enabled: false,
+		},
+	})
+	assert.NoError(t, err, "error creating environment")
+	stack := portaineree.Stack{ID: 1, CreatedBy: "admin"}
+	err = store.Stack().CreateStack(&stack)
 	assert.NoError(t, err, "failed to create a test stack")
 
-	err = RedeployWhenChanged(1, nil, store, &gitService{nil, ""}, nil)
-	assert.NoError(t, err)
+	noopDeployer := &noopDeployer{}
+
+	t.Run("can deploy docker compose stack", func(t *testing.T) {
+		stack.Type = portaineree.DockerComposeStack
+		store.Stack().UpdateStack(stack.ID, &stack)
+		err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "oldHash"}, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, noopDeployer.ComposeStackDeployed, true)
+	})
 }
 
 func Test_redeployWhenChanged_FailsWhenCannotClone(t *testing.T) {
@@ -206,6 +220,49 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff(t *testing.T) {
 	err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "oldHash"}, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, noopDeployer.ComposeStackDeployed, false)
+	assert.Equal(t, noopDeployer.SwarmStackDeployed, false)
+	assert.Equal(t, noopDeployer.KubernetesStackDeployed, false)
+}
+
+func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff_ForePullImageEnable(t *testing.T) {
+	store, teardown := bolt.MustNewTestStore(true)
+	defer teardown()
+
+	tmpDir, _ := ioutil.TempDir("", "stack")
+
+	admin := &portaineree.User{ID: 1, Username: "admin"}
+	err := store.User().CreateUser(admin)
+	assert.NoError(t, err, "error creating an admin")
+
+	err = store.Endpoint().CreateEndpoint(&portaineree.Endpoint{
+		ID: 0,
+		ChangeWindow: portaineree.EndpointChangeWindow{
+			Enabled: false,
+		},
+	})
+	assert.NoError(t, err, "error creating environment")
+
+	err = store.Stack().CreateStack(&portaineree.Stack{
+		ID:          1,
+		CreatedBy:   "admin",
+		ProjectPath: tmpDir,
+		GitConfig: &gittypes.RepoConfig{
+			URL:           "url",
+			ReferenceName: "ref",
+			ConfigHash:    "oldHash",
+		},
+		AutoUpdate: &portaineree.StackAutoUpdate{
+			ForceUpdate:    false,
+			ForcePullImage: true,
+		},
+		Type: portaineree.DockerComposeStack,
+	})
+	assert.NoError(t, err, "failed to create a test stack")
+
+	noopDeployer := &noopDeployer{}
+	err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "oldHash"}, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, noopDeployer.ComposeStackDeployed, true)
 	assert.Equal(t, noopDeployer.SwarmStackDeployed, false)
 	assert.Equal(t, noopDeployer.KubernetesStackDeployed, false)
 }

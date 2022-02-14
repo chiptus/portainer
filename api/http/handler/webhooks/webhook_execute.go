@@ -3,10 +3,11 @@ package webhooks
 import (
 	"context"
 	"errors"
-	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/portainer/portainer-ee/api/internal/registryutils"
 
 	dockertypes "github.com/docker/docker/api/types"
 	httperror "github.com/portainer/libhttp/error"
@@ -58,6 +59,8 @@ func (handler *Handler) webhookExecute(w http.ResponseWriter, r *http.Request) *
 	switch webhookType {
 	case portaineree.ServiceWebhook:
 		return handler.executeServiceWebhook(w, endpoint, resourceID, registryID, imageTag)
+	case portaineree.ContainerWebhook:
+		return handler.executeContainerWebhook(w, endpoint, webhook, imageTag)
 	default:
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unsupported webhook type", errors.New("Webhooks for this resource are not currently supported")}
 	}
@@ -126,6 +129,19 @@ func (handler *Handler) executeServiceWebhook(
 
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Error updating service", err}
+	}
+	return response.Empty(w)
+}
+
+func (handler *Handler) executeContainerWebhook(w http.ResponseWriter, endpoint *portaineree.Endpoint, webhook *portaineree.Webhook, imageTag string) *httperror.HandlerError {
+	newContainer, err := handler.DockerClientFactory.Recreate(context.Background(), endpoint, webhook.ResourceID, true, imageTag)
+	if err != nil {
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Error updating service", Err: err}
+	}
+	webhook.ResourceID = newContainer.ID
+	err = handler.dataStore.Webhook().UpdateWebhook(webhook.ID, webhook)
+	if err != nil {
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Error updating webhook", Err: err}
 	}
 	return response.Empty(w)
 }

@@ -83,6 +83,22 @@ func (manager *ComposeStackManager) Down(ctx context.Context, stack *portaineree
 	return errors.Wrap(err, "failed to remove a stack")
 }
 
+// Pull an image associated with a service defined in a docker-compose.yml or docker-stack.yml file,
+// but does not start containers based on those images.
+func (manager *ComposeStackManager) Pull(ctx context.Context, stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
+	url, proxy, err := manager.fetchEndpointProxy(endpoint)
+	if err != nil {
+		return err
+	}
+	if proxy != nil {
+		defer proxy.Close()
+	}
+
+	filePaths := stackutils.GetStackFilePaths(stack)
+	err = manager.deployer.Pull(ctx, stack.ProjectPath, url, stack.Name, filePaths)
+	return errors.Wrap(err, "failed to pull images of the stack")
+}
+
 // NormalizeStackName returns the passed stack name, for interface implementation only
 func (manager *ComposeStackManager) NormalizeStackName(name string) string {
 	return stackNameNormalizeRegex.ReplaceAllString(strings.ToLower(name), "")

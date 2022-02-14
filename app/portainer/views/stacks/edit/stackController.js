@@ -1,3 +1,4 @@
+import uuidv4 from 'uuid/v4';
 import { AccessControlFormData } from 'Portainer/components/accessControlForm/porAccessControlFormModel';
 
 angular.module('portainer.app').controller('StackController', [
@@ -7,6 +8,7 @@ angular.module('portainer.app').controller('StackController', [
   '$state',
   '$window',
   '$transition$',
+  'clipboard',
   'StackService',
   'NodeService',
   'ServiceService',
@@ -25,6 +27,7 @@ angular.module('portainer.app').controller('StackController', [
   'Authentication',
   'ContainerHelper',
   'ResourceControlService',
+  'WebhookHelper',
   function (
     $async,
     $q,
@@ -32,6 +35,7 @@ angular.module('portainer.app').controller('StackController', [
     $state,
     $window,
     $transition$,
+    clipboard,
     StackService,
     NodeService,
     ServiceService,
@@ -49,9 +53,11 @@ angular.module('portainer.app').controller('StackController', [
     endpoint,
     Authentication,
     ContainerHelper,
-    ResourceControlService
+    ResourceControlService,
+    WebhookHelper
   ) {
     $scope.endpoint = endpoint;
+    $scope.isAdmin = Authentication.isAdmin();
     $scope.state = {
       actionInProgress: false,
       migrationInProgress: false,
@@ -65,6 +71,8 @@ angular.module('portainer.app').controller('StackController', [
       Endpoint: null,
       Env: [],
       AccessControlData: new AccessControlFormData(),
+      WebhookURL: WebhookHelper.returnStackWebhookUrl(uuidv4()),
+      EnableWebhook: false,
     };
 
     $scope.handleEnvVarChange = handleEnvVarChange;
@@ -215,35 +223,59 @@ angular.module('portainer.app').controller('StackController', [
         });
     };
 
-    $scope.deployStack = function () {
-      var stackFile = $scope.stackFileContent;
-      var env = FormHelper.removeInvalidEnvVars($scope.formValues.Env);
-      var prune = $scope.formValues.Prune;
-      var stack = $scope.stack;
-
-      // TODO: this is a work-around for stacks created with Portainer version >= 1.17.1
-      // The EndpointID property is not available for these stacks, we can pass
-      // the current endpoint identifier as a part of the update request. It will be used if
-      // the EndpointID property is not defined on the stack.
-      if (stack.EndpointId === 0) {
-        stack.EndpointId = endpoint.Id;
-      }
-
-      $scope.state.actionInProgress = true;
-      StackService.updateStack(stack, stackFile, env, prune)
-        .then(function success() {
-          Notifications.success('Stack successfully deployed');
-          $scope.state.isEditorDirty = false;
-          $state.reload();
-        })
-        .catch(function error(err) {
-          Notifications.error('Failure', err, 'Unable to create stack');
-        })
-        .finally(function final() {
-          $scope.state.actionInProgress = false;
-        });
+    $scope.hasAuthorizations = function (authorizations) {
+      return $scope.isAdmin || Authentication.hasAuthorizations(authorizations);
     };
 
+    $scope.disabledWebhookButton = function (webhookExists) {
+      if (webhookExists) {
+        return !$scope.hasAuthorizations(['PortainerWebhookDelete']);
+      }
+      return !$scope.hasAuthorizations(['PortainerWebhookCreate']);
+    };
+
+    $scope.deployStack = function () {
+      const stack = $scope.stack;
+      const isSwarmStack = stack.Type === 1;
+      ModalService.confirmStackUpdate('Do you want to force an update of the stack?', isSwarmStack, null, function (result) {
+        if (!result) {
+          return;
+        }
+
+        var stackFile = $scope.stackFileContent;
+        var env = FormHelper.removeInvalidEnvVars($scope.formValues.Env);
+        var prune = $scope.formValues.Prune;
+
+        const webhook = $scope.formValues.EnableWebhook ? $scope.formValues.WebhookURL.split('/').reverse()[0] : null;
+        // TODO: this is a work-around for stacks created with Portainer version >= 1.17.1
+        // The EndpointID property is not available for these stacks, we can pass
+        // the current endpoint identifier as a part of the update request. It will be used if
+        // the EndpointID property is not defined on the stack.
+        if (stack.EndpointId === 0) {
+          stack.EndpointId = endpoint.Id;
+        }
+
+        $scope.state.actionInProgress = true;
+        StackService.updateStack(stack, stackFile, env, prune, webhook, !!result[0])
+          .then(function success() {
+            Notifications.success('Stack successfully deployed');
+            $scope.state.isEditorDirty = false;
+            $state.reload();
+          })
+          .catch(function error(err) {
+            Notifications.error('Failure', err, 'Unable to create stack');
+          })
+          .finally(function final() {
+            $scope.state.actionInProgress = false;
+          });
+      });
+    };
+
+    $scope.copyWebhook = function () {
+      clipboard.copyText($scope.formValues.WebhookURL);
+      $('#copyNotification').show();
+      $('#copyNotification').fadeOut(2000);
+    };
     $scope.editorUpdate = function (cm) {
       if ($scope.stackFileContent.replace(/(\r\n|\n|\r)/gm, '') !== cm.getValue().replace(/(\r\n|\n|\r)/gm, '')) {
         $scope.state.isEditorDirty = true;
@@ -316,6 +348,10 @@ angular.module('portainer.app').controller('StackController', [
           $scope.containerNames = ContainerHelper.getContainerNames(data.containers);
 
           $scope.formValues.Env = $scope.stack.Env;
+          $scope.formValues.EnableWebhook = !!$scope.stack.Webhook;
+          if ($scope.formValues.EnableWebhook) {
+            $scope.formValues.WebhookURL = WebhookHelper.returnStackWebhookUrl($scope.stack.Webhook);
+          }
 
           let resourcesPromise = Promise.resolve({});
           if (!stack.Status || stack.Status === 1) {

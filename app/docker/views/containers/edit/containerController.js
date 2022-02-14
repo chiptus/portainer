@@ -24,6 +24,9 @@ angular.module('portainer.docker').controller('ContainerController', [
   'Authentication',
   'StateManager',
   'endpoint',
+  'WebhookService',
+  'WebhookHelper',
+  'clipboard',
   function (
     $q,
     $scope,
@@ -44,13 +47,21 @@ angular.module('portainer.docker').controller('ContainerController', [
     HttpRequestHelper,
     Authentication,
     StateManager,
-    endpoint
+    endpoint,
+    WebhookService,
+    WebhookHelper,
+    clipboard
   ) {
     $scope.endpoint = endpoint;
     $scope.isAdmin = Authentication.isAdmin();
     $scope.activityTime = 0;
     $scope.portBindings = [];
     $scope.displayRecreateButton = false;
+    $scope.displayWebhookButton = false;
+    $scope.WebhookExists = false;
+    $scope.WebhookURL = null;
+    $scope.WebhookID = null;
+    $scope.container = null;
 
     $scope.config = {
       RegistryModel: new PorImageRegistryModel(),
@@ -64,12 +75,61 @@ angular.module('portainer.docker').controller('ContainerController', [
       pullImageValidity: false,
     };
 
+    $scope.hasAuthorizations = function (authorizations) {
+      return $scope.isAdmin || Authentication.hasAuthorizations(authorizations);
+    };
+
+    $scope.disabledWebhookButton = function (webhookExists) {
+      if (webhookExists) {
+        return !$scope.hasAuthorizations(['PortainerWebhookDelete']);
+      }
+      return !$scope.hasAuthorizations(['PortainerWebhookCreate']);
+    };
+
     $scope.setPullImageValidity = setPullImageValidity;
     function setPullImageValidity(validity) {
       $scope.state.pullImageValidity = validity;
     }
 
     $scope.updateRestartPolicy = updateRestartPolicy;
+    $scope.updateWebhook = function updateWebhook(container, recreate) {
+      if ($scope.WebhookExists) {
+        WebhookService.deleteWebhook($scope.WebhookID)
+          .then(function success() {
+            $scope.WebhookURL = null;
+            $scope.WebhookID = null;
+            $scope.WebhookExists = false;
+          })
+          .catch(function error(err) {
+            Notifications.error('Failure', err, 'Unable to delete webhook');
+          });
+      } else if (!recreate) {
+        createWebhook(container);
+      }
+      if (recreate) {
+        createWebhook(container);
+      }
+    };
+
+    $scope.copyWebhook = function copyWebhook() {
+      clipboard.copyText($scope.WebhookURL);
+      $('#copyNotification').show();
+      $('#copyNotification').fadeOut(2000);
+    };
+
+    const createWebhook = function (container) {
+      // Create Container Webhook
+      const registryID = _.get($scope.config.RegistryModel, 'Registry.Id', 0);
+      WebhookService.createWebhook(container.Id, endpoint.Id, registryID, 2)
+        .then(function success(data) {
+          $scope.WebhookExists = true;
+          $scope.WebhookID = data.Id;
+          $scope.WebhookURL = WebhookHelper.returnWebhookUrl(data.Token);
+        })
+        .catch(function error(err) {
+          Notifications.error('Failure', err, 'Unable to create webhook');
+        });
+    };
 
     var update = function () {
       var nodeName = $transition$.params().nodeName;
@@ -127,6 +187,18 @@ angular.module('portainer.docker').controller('ContainerController', [
             !allowPrivilegedModeForRegularUsers;
 
           $scope.displayRecreateButton = !inSwarm && !autoRemove && (admin || !settingRestrictsRegularUsers);
+          $scope.displayWebhookButton = $scope.displayRecreateButton;
+          return $q.all({
+            webhooks: WebhookService.webhooks(container.Id, endpoint.Id),
+          });
+        })
+        .then(function success(data) {
+          if (data.webhooks.length > 0) {
+            const webhook = data.webhooks[0];
+            $scope.WebhookExists = true;
+            $scope.WebhookID = webhook.Id;
+            $scope.WebhookURL = WebhookHelper.returnWebhookUrl(webhook.Token);
+          }
         })
         .catch(function error(err) {
           Notifications.error('Failure', err, 'Unable to retrieve container info');
@@ -265,6 +337,9 @@ angular.module('portainer.docker').controller('ContainerController', [
     function removeContainer(cleanAssociatedVolumes) {
       ContainerService.remove($scope.container, cleanAssociatedVolumes)
         .then(function success() {
+          return $q.when($scope.WebhookID && WebhookService.deleteWebhook($scope.WebhookID));
+        })
+        .then(function success() {
           Notifications.success('Container successfully removed');
           $state.go('docker.containers', {}, { reload: true });
         })
@@ -284,6 +359,7 @@ angular.module('portainer.docker').controller('ContainerController', [
         .then(renameContainer)
         .then(setMainNetworkAndCreateContainer)
         .then(connectContainerToOtherNetworks)
+        .then(recreateWebhook)
         .then(startContainerIfNeeded)
         .then(createResourceControl)
         .then(deleteOldContainer)
@@ -299,6 +375,10 @@ angular.module('portainer.docker').controller('ContainerController', [
 
       function renameContainer() {
         return ContainerService.renameContainer(container.Id, container.Name + '-old');
+      }
+      function recreateWebhook(container) {
+        $scope.updateWebhook(container, true);
+        return container;
       }
 
       function pullImageIfNeeded() {

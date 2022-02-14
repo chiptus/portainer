@@ -197,10 +197,25 @@ func (handler *Handler) checkUniqueStackNameInDocker(endpoint *portaineree.Endpo
 	return isUniqueStackName, nil
 }
 
-func (handler *Handler) checkUniqueWebhookID(webhookID string) (bool, error) {
+func (handler *Handler) isUniqueWebhookID(webhookID string) (bool, error) {
 	_, err := handler.DataStore.Stack().StackByWebhookID(webhookID)
 	if err == dberrors.ErrObjectNotFound {
 		return true, nil
 	}
 	return false, err
+}
+
+func (handler *Handler) checkUniqueWebhookID(webhookID string) *httperror.HandlerError {
+	if webhookID == "" {
+		return nil
+	}
+	isUnique, err := handler.isUniqueWebhookID(webhookID)
+	if err != nil {
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to check for webhook ID collision", Err: err}
+	}
+	if !isUnique {
+		return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: fmt.Sprintf("Webhook ID: %s already exists", webhookID), Err: errWebhookIDAlreadyExists}
+	}
+	return nil
+
 }

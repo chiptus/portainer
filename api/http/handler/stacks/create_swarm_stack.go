@@ -1,7 +1,6 @@
 package stacks
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -27,6 +26,8 @@ type swarmStackFromFileContentPayload struct {
 	Env []portaineree.Pair
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
+	// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
+	Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
 }
 
 func (payload *swarmStackFromFileContentPayload) Validate(r *http.Request) error {
@@ -60,6 +61,11 @@ func (handler *Handler) createSwarmStackFromFileContent(w http.ResponseWriter, r
 		return stackExistsError(payload.Name)
 	}
 
+	isUniqueError := handler.checkUniqueWebhookID(payload.Webhook)
+	if isUniqueError != nil {
+		return isUniqueError
+	}
+
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
 	stack := &portaineree.Stack{
 		ID:              portaineree.StackID(stackID),
@@ -72,6 +78,7 @@ func (handler *Handler) createSwarmStackFromFileContent(w http.ResponseWriter, r
 		Status:          portaineree.StackStatusActive,
 		CreationDate:    time.Now().Unix(),
 		FromAppTemplate: payload.FromAppTemplate,
+		Webhook:         payload.Webhook,
 	}
 
 	stackFolder := strconv.Itoa(int(stack.ID))
@@ -84,7 +91,7 @@ func (handler *Handler) createSwarmStackFromFileContent(w http.ResponseWriter, r
 	doCleanUp := true
 	defer handler.cleanUp(stack, &doCleanUp)
 
-	config, configErr := handler.createSwarmDeployConfig(r, stack, endpoint, false)
+	config, configErr := handler.createSwarmDeployConfig(r, stack, endpoint, false, true)
 	if configErr != nil {
 		return configErr
 	}
@@ -173,13 +180,10 @@ func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter,
 	}
 
 	//make sure the webhook ID is unique
-	if payload.AutoUpdate != nil && payload.AutoUpdate.Webhook != "" {
-		isUnique, err := handler.checkUniqueWebhookID(payload.AutoUpdate.Webhook)
-		if err != nil {
-			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to check for webhook ID collision", Err: err}
-		}
-		if !isUnique {
-			return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: fmt.Sprintf("Webhook ID: %s already exists", payload.AutoUpdate.Webhook), Err: errWebhookIDAlreadyExists}
+	if payload.AutoUpdate != nil {
+		isUniqueError := handler.checkUniqueWebhookID(payload.AutoUpdate.Webhook)
+		if isUniqueError != nil {
+			return isUniqueError
 		}
 	}
 
@@ -228,7 +232,7 @@ func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter,
 	}
 	stack.GitConfig.ConfigHash = commitID
 
-	config, configErr := handler.createSwarmDeployConfig(r, stack, endpoint, false)
+	config, configErr := handler.createSwarmDeployConfig(r, stack, endpoint, false, true)
 	if configErr != nil {
 		return configErr
 	}
@@ -263,6 +267,8 @@ type swarmStackFromFileUploadPayload struct {
 	SwarmID          string
 	StackFileContent []byte
 	Env              []portaineree.Pair
+	// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
+	Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
 }
 
 func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error {
@@ -290,6 +296,10 @@ func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error 
 		return errors.New("Invalid Env parameter")
 	}
 	payload.Env = env
+	webhook, err := request.RetrieveMultiPartFormValue(r, "Webhook", true)
+	if err == nil {
+		payload.Webhook = webhook
+	}
 	return nil
 }
 
@@ -311,6 +321,11 @@ func (handler *Handler) createSwarmStackFromFileUpload(w http.ResponseWriter, r 
 		return stackExistsError(payload.Name)
 	}
 
+	isUniqueError := handler.checkUniqueWebhookID(payload.Webhook)
+	if isUniqueError != nil {
+		return isUniqueError
+	}
+
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
 	stack := &portaineree.Stack{
 		ID:           portaineree.StackID(stackID),
@@ -322,6 +337,7 @@ func (handler *Handler) createSwarmStackFromFileUpload(w http.ResponseWriter, r 
 		Env:          payload.Env,
 		Status:       portaineree.StackStatusActive,
 		CreationDate: time.Now().Unix(),
+		Webhook:      payload.Webhook,
 	}
 
 	stackFolder := strconv.Itoa(int(stack.ID))
@@ -334,7 +350,7 @@ func (handler *Handler) createSwarmStackFromFileUpload(w http.ResponseWriter, r 
 	doCleanUp := true
 	defer handler.cleanUp(stack, &doCleanUp)
 
-	config, configErr := handler.createSwarmDeployConfig(r, stack, endpoint, false)
+	config, configErr := handler.createSwarmDeployConfig(r, stack, endpoint, false, true)
 	if configErr != nil {
 		return configErr
 	}
@@ -362,9 +378,10 @@ type swarmStackDeploymentConfig struct {
 	prune      bool
 	isAdmin    bool
 	user       *portaineree.User
+	pullImage  bool
 }
 
-func (handler *Handler) createSwarmDeployConfig(r *http.Request, stack *portaineree.Stack, endpoint *portaineree.Endpoint, prune bool) (*swarmStackDeploymentConfig, *httperror.HandlerError) {
+func (handler *Handler) createSwarmDeployConfig(r *http.Request, stack *portaineree.Stack, endpoint *portaineree.Endpoint, prune bool, pullImage bool) (*swarmStackDeploymentConfig, *httperror.HandlerError) {
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
 		return nil, &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
@@ -389,6 +406,7 @@ func (handler *Handler) createSwarmDeployConfig(r *http.Request, stack *portaine
 		prune:      prune,
 		isAdmin:    securityContext.IsAdmin,
 		user:       user,
+		pullImage:  pullImage,
 	}
 
 	return config, nil
@@ -416,5 +434,5 @@ func (handler *Handler) deploySwarmStack(config *swarmStackDeploymentConfig) err
 		}
 	}
 
-	return handler.StackDeployer.DeploySwarmStack(config.stack, config.endpoint, config.registries, config.prune)
+	return handler.StackDeployer.DeploySwarmStack(config.stack, config.endpoint, config.registries, config.prune, config.pullImage)
 }

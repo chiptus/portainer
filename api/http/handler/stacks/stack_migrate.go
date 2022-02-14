@@ -179,7 +179,7 @@ func (handler *Handler) migrateStack(r *http.Request, stack *portaineree.Stack, 
 }
 
 func (handler *Handler) migrateComposeStack(r *http.Request, stack *portaineree.Stack, next *portaineree.Endpoint) *httperror.HandlerError {
-	config, configErr := handler.createComposeDeployConfig(r, stack, next)
+	config, configErr := handler.createComposeDeployConfig(r, stack, next, false)
 	if configErr != nil {
 		return configErr
 	}
@@ -193,7 +193,7 @@ func (handler *Handler) migrateComposeStack(r *http.Request, stack *portaineree.
 }
 
 func (handler *Handler) migrateSwarmStack(r *http.Request, stack *portaineree.Stack, next *portaineree.Endpoint) *httperror.HandlerError {
-	config, configErr := handler.createSwarmDeployConfig(r, stack, next, true)
+	config, configErr := handler.createSwarmDeployConfig(r, stack, next, true, true)
 	if configErr != nil {
 		return configErr
 	}

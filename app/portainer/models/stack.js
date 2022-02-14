@@ -25,6 +25,7 @@ export function StackViewModel(data) {
   this.FromAppTemplate = data.FromAppTemplate;
   this.AdditionalFiles = data.AdditionalFiles;
   this.AutoUpdate = data.AutoUpdate;
+  this.Webhook = data.Webhook;
 }
 
 export function ExternalStackViewModel(name, type, creationDate) {

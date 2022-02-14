@@ -30,7 +30,7 @@ func (payload *webhookCreatePayload) Validate(r *http.Request) error {
 	if payload.EndpointID == 0 {
 		return errors.New("Invalid EndpointID")
 	}
-	if payload.WebhookType != 1 {
+	if payload.WebhookType != 1 && payload.WebhookType != 2 {
 		return errors.New("Invalid WebhookType")
 	}
 	return nil

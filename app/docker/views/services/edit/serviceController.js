@@ -337,7 +337,7 @@ angular.module('portainer.docker').controller('ServiceController', [
             Notifications.error('Failure', err, 'Unable to delete webhook');
           });
       } else {
-        WebhookService.createServiceWebhook(service.Id, endpoint.Id, $scope.initialRegistryID)
+        WebhookService.createWebhook(service.Id, endpoint.Id, $scope.initialRegistryID, 1)
           .then(function success(data) {
             $scope.WebhookExists = true;
             $scope.webhookID = data.Id;

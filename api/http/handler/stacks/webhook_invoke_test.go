@@ -15,12 +15,23 @@ import (
 func TestHandler_webhookInvoke(t *testing.T) {
 	store, teardown := bolttest.MustNewTestStore(true)
 	defer teardown()
-
+	admin := &portaineree.User{ID: 1, Username: "admin"}
+	err := store.User().CreateUser(admin)
+	err = store.Endpoint().CreateEndpoint(&portaineree.Endpoint{
+		ID: 0,
+		ChangeWindow: portaineree.EndpointChangeWindow{
+			Enabled: false,
+		},
+	})
+	assert.NoError(t, err, "error creating environment")
 	webhookID := newGuidString(t)
 	store.StackService.CreateStack(&portaineree.Stack{
+		ID: 1,
 		AutoUpdate: &portaineree.StackAutoUpdate{
 			Webhook: webhookID,
 		},
+		CreatedBy: "admin",
+		Type:      portaineree.DockerComposeStack,
 	})
 
 	h := NewHandler(nil, store, helper.NewUserActivityService())

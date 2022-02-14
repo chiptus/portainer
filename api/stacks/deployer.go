@@ -13,8 +13,8 @@ import (
 )
 
 type StackDeployer interface {
-	DeploySwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, prune bool) error
-	DeployComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, forceRereate bool) error
+	DeploySwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, prune bool, pullImage bool) error
+	DeployComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, forcePullImage bool, forceRereate bool) error
 	DeployKubernetesStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, user *portaineree.User) error
 }
 
@@ -35,23 +35,29 @@ func NewStackDeployer(swarmStackManager portaineree.SwarmStackManager, composeSt
 	}
 }
 
-func (d *stackDeployer) DeploySwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, prune bool) error {
+func (d *stackDeployer) DeploySwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, prune bool, pullImage bool) error {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
 	d.swarmStackManager.Login(registries, endpoint)
 	defer d.swarmStackManager.Logout(endpoint)
 
-	return d.swarmStackManager.Deploy(stack, prune, endpoint)
+	return d.swarmStackManager.Deploy(stack, prune, pullImage, endpoint)
 }
 
-func (d *stackDeployer) DeployComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, forceRereate bool) error {
+func (d *stackDeployer) DeployComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, forcePullImage bool, forceRereate bool) error {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
 	d.swarmStackManager.Login(registries, endpoint)
 	defer d.swarmStackManager.Logout(endpoint)
-
+	// --force-recreate doesn't pull updated images
+	if forcePullImage {
+		err := d.composeStackManager.Pull(context.TODO(), stack, endpoint)
+		if err != nil {
+			return err
+		}
+	}
 	return d.composeStackManager.Up(context.TODO(), stack, endpoint, forceRereate)
 }
 

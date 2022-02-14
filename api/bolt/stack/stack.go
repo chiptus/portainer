@@ -180,11 +180,20 @@ func (service *Service) StackByWebhookID(id string) (*portaineree.Stack, error) 
 				AutoUpdate *struct {
 					WebhookID string `json:"Webhook"`
 				} `json:"AutoUpdate"`
+				Webhook string
 			}
 
 			err := internal.UnmarshalObject(v, &t)
 			if err != nil {
 				return err
+			}
+			if t.Webhook != "" && strings.EqualFold(t.Webhook, id) {
+				found = true
+				err := internal.UnmarshalObject(v, &stack)
+				if err != nil {
+					return err
+				}
+				break
 			}
 
 			if t.AutoUpdate != nil && strings.EqualFold(t.AutoUpdate.WebhookID, id) {

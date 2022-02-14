@@ -128,7 +128,7 @@ func (handler *Handler) startStack(stack *portaineree.Stack, endpoint *portainer
 	case portaineree.DockerComposeStack:
 		return handler.ComposeStackManager.Up(context.TODO(), stack, endpoint, false)
 	case portaineree.DockerSwarmStack:
-		return handler.SwarmStackManager.Deploy(stack, true, endpoint)
+		return handler.SwarmStackManager.Deploy(stack, true, true, endpoint)
 	}
 	return nil
 }

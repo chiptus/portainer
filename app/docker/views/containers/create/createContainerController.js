@@ -34,6 +34,7 @@ angular.module('portainer.docker').controller('CreateContainerController', [
   'PluginService',
   'HttpRequestHelper',
   'endpoint',
+  'WebhookService',
   function (
     $q,
     $scope,
@@ -58,7 +59,8 @@ angular.module('portainer.docker').controller('CreateContainerController', [
     SystemService,
     PluginService,
     HttpRequestHelper,
-    endpoint
+    endpoint,
+    WebhookService
   ) {
     $scope.create = create;
     $scope.update = update;
@@ -89,6 +91,7 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       LogDriverName: '',
       LogDriverOpts: [],
       RegistryModel: new PorImageRegistryModel(),
+      EnableWebhook: false,
     };
 
     $scope.extraNetworks = {};
@@ -115,6 +118,10 @@ angular.module('portainer.docker').controller('CreateContainerController', [
     $scope.onImageNameChange = function () {
       $scope.formValues.CmdMode = 'default';
       $scope.formValues.EntrypointMode = 'default';
+    };
+
+    $scope.hasAuthorizations = function (authorizations) {
+      return $scope.isAdmin || Authentication.hasAuthorizations(authorizations);
     };
 
     $scope.setPullImageValidity = setPullImageValidity;
@@ -822,6 +829,17 @@ angular.module('portainer.docker').controller('CreateContainerController', [
         }
       }
 
+      function createContainerWebhook(data) {
+        const isNotEdgeAgentOnDockerEnvironment = endpoint.Type !== 4;
+        if (isNotEdgeAgentOnDockerEnvironment && $scope.formValues.EnableWebhook) {
+          const registryID = _.get($scope.formValues.RegistryModel, 'Registry.Id', 0);
+          WebhookService.createWebhook(data.Id, endpoint.Id, registryID, 2).then(function success() {
+            return data;
+          });
+        }
+        return data;
+      }
+
       function startCreationProcess(confirmed) {
         if (!confirmed) {
           return $q.when();
@@ -833,6 +851,7 @@ angular.module('portainer.docker').controller('CreateContainerController', [
         return pullImageIfNeeded()
           .then(stopAndRenameContainer)
           .then(createNewContainer)
+          .then(createContainerWebhook)
           .then(applyResourceControl)
           .then(connectToExtraNetworks)
           .then(removeOldContainer)

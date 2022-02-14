@@ -25,6 +25,7 @@ class StackRedeployGitFormController {
       RepositoryUsername: '',
       RepositoryPassword: '',
       Env: [],
+      PullImage: false,
       // auto update
       AutoUpdate: {
         RepositoryAutomaticUpdates: false,
@@ -32,6 +33,7 @@ class StackRedeployGitFormController {
         RepositoryMechanism: RepositoryMechanismTypes.INTERVAL,
         RepositoryFetchInterval: '5m',
         RepositoryWebhookURL: '',
+        ForcePullImage: false,
       },
     };
 
@@ -87,33 +89,28 @@ class StackRedeployGitFormController {
   }
 
   async submit() {
-    return this.$async(async () => {
-      try {
-        const confirmed = await this.ModalService.confirmAsync({
-          title: 'Are you sure?',
-          message: 'Any changes to this stack or application made locally in Portainer will be overridden, which may cause service interruption. Do you wish to continue',
-          buttons: {
-            confirm: {
-              label: 'Update',
-              className: 'btn-warning',
-            },
-          },
-        });
-        if (!confirmed) {
+    const isSwarmStack = this.stack.Type === 1;
+    const that = this;
+    this.ModalService.confirmStackUpdate(
+      'Any changes to this stack or application made locally in Portainer will be overridden, which may cause service interruption. Do you wish to continue',
+      isSwarmStack,
+      'btn-warning',
+      function (result) {
+        if (!result) {
           return;
         }
-
-        this.state.redeployInProgress = true;
-
-        await this.StackService.updateGit(this.stack.Id, this.stack.EndpointId, this.FormHelper.removeInvalidEnvVars(this.formValues.Env), false, this.formValues);
-        this.Notifications.success('Pulled and redeployed stack successfully');
-        await this.$state.reload();
-      } catch (err) {
-        this.Notifications.error('Failure', err, 'Failed redeploying stack');
-      } finally {
-        this.state.redeployInProgress = false;
+        try {
+          that.state.redeployInProgress = true;
+          that.StackService.updateGit(that.stack.Id, that.stack.EndpointId, that.FormHelper.removeInvalidEnvVars(that.formValues.Env), false, that.formValues, !!result[0]);
+          that.Notifications.success('Pulled and redeployed stack successfully');
+          that.$state.reload();
+        } catch (err) {
+          that.Notifications.error('Failure', err, 'Failed redeploying stack');
+        } finally {
+          that.state.redeployInProgress = false;
+        }
       }
-    });
+    );
   }
 
   async saveGitSettings() {
@@ -156,6 +153,7 @@ class StackRedeployGitFormController {
     if (this.stack.AutoUpdate && (this.stack.AutoUpdate.Interval || this.stack.AutoUpdate.Webhook)) {
       this.formValues.AutoUpdate.RepositoryAutomaticUpdates = true;
       this.formValues.AutoUpdate.RepositoryAutomaticUpdatesForce = this.stack.AutoUpdate.ForceUpdate;
+      this.formValues.AutoUpdate.ForcePullImage = this.stack.AutoUpdate.ForcePullImage;
 
       if (this.stack.AutoUpdate.Interval) {
         this.formValues.AutoUpdate.RepositoryMechanism = RepositoryMechanismTypes.INTERVAL;

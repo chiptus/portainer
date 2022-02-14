@@ -19,6 +19,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/stackutils"
 	k "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer/api/filesystem"
+	logger "github.com/sirupsen/logrus"
 )
 
 type stackGitRedployPayload struct {
@@ -27,6 +28,8 @@ type stackGitRedployPayload struct {
 	RepositoryUsername       string
 	RepositoryPassword       string
 	Env                      []portaineree.Pair
+	// Force a pulling to current image with the original tag though the image is already the latest
+	PullImage bool `example:"false"`
 }
 
 func (payload *stackGitRedployPayload) Validate(r *http.Request) error {
@@ -160,7 +163,8 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 		}
 	}()
 
-	httpErr := handler.deployStack(r, stack, endpoint)
+	logger.Debugf("Pull image flag is %t", payload.PullImage)
+	httpErr := handler.deployStack(r, stack, payload.PullImage, endpoint)
 	if httpErr != nil {
 		return httpErr
 	}
@@ -192,10 +196,10 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 	return response.JSON(w, stack)
 }
 
-func (handler *Handler) deployStack(r *http.Request, stack *portaineree.Stack, endpoint *portaineree.Endpoint) *httperror.HandlerError {
+func (handler *Handler) deployStack(r *http.Request, stack *portaineree.Stack, pullImage bool, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 	switch stack.Type {
 	case portaineree.DockerSwarmStack:
-		config, httpErr := handler.createSwarmDeployConfig(r, stack, endpoint, false)
+		config, httpErr := handler.createSwarmDeployConfig(r, stack, endpoint, false, pullImage)
 		if httpErr != nil {
 			return httpErr
 		}
@@ -205,7 +209,7 @@ func (handler *Handler) deployStack(r *http.Request, stack *portaineree.Stack, e
 		}
 
 	case portaineree.DockerComposeStack:
-		config, httpErr := handler.createComposeDeployConfig(r, stack, endpoint)
+		config, httpErr := handler.createComposeDeployConfig(r, stack, endpoint, pullImage)
 		if httpErr != nil {
 			return httpErr
 		}

@@ -33,6 +33,7 @@ angular
       $scope.buildAnalyticsProperties = buildAnalyticsProperties;
 
       $scope.STACK_NAME_VALIDATION_REGEX = STACK_NAME_VALIDATION_REGEX;
+      $scope.isAdmin = Authentication.isAdmin();
 
       $scope.formValues = {
         Name: '',
@@ -52,6 +53,8 @@ angular
         RepositoryMechanism: RepositoryMechanismTypes.INTERVAL,
         RepositoryFetchInterval: '5m',
         RepositoryWebhookURL: WebhookHelper.returnStackWebhookUrl(uuidv4()),
+        ForcePullImage: false,
+        EnableWebhook: false,
       };
 
       $scope.state = {
@@ -84,6 +87,10 @@ angular
 
       $scope.removeAdditionalFiles = function (index) {
         $scope.formValues.AdditionalFiles.splice(index, 1);
+      };
+
+      $scope.hasAuthorizations = function (authorizations) {
+        return $scope.isAdmin || Authentication.hasAuthorizations(authorizations);
       };
 
       function buildAnalyticsProperties() {
@@ -142,15 +149,15 @@ angular
       function createSwarmStack(name, method) {
         var env = FormHelper.removeInvalidEnvVars($scope.formValues.Env);
         const endpointId = +$state.params.endpointId;
-
+        const webhook = $scope.formValues.EnableWebhook ? $scope.formValues.RepositoryWebhookURL.split('/').reverse()[0] : '';
         if (method === 'template' || method === 'editor') {
           var stackFileContent = $scope.formValues.StackFileContent;
-          return StackService.createSwarmStackFromFileContent(name, stackFileContent, env, endpointId);
+          return StackService.createSwarmStackFromFileContent(name, stackFileContent, env, endpointId, webhook);
         }
 
         if (method === 'upload') {
           var stackFile = $scope.formValues.StackFile;
-          return StackService.createSwarmStackFromFileUpload(name, stackFile, env, endpointId);
+          return StackService.createSwarmStackFromFileUpload(name, stackFile, env, endpointId, webhook);
         }
 
         if (method === 'repository') {
@@ -162,6 +169,7 @@ angular
             RepositoryAuthentication: $scope.formValues.RepositoryAuthentication,
             RepositoryUsername: $scope.formValues.RepositoryUsername,
             RepositoryPassword: $scope.formValues.RepositoryPassword,
+            ForcePullImage: $scope.formValues.ForcePullImage,
           };
 
           getAutoUpdatesProperty(repositoryOptions);
@@ -174,6 +182,7 @@ angular
         if ($scope.formValues.RepositoryAutomaticUpdates) {
           repositoryOptions.AutoUpdate = {
             ForceUpdate: $scope.formValues.RepositoryAutomaticUpdatesForce,
+            ForcePullImage: $scope.formValues.ForcePullImage,
           };
           if ($scope.formValues.RepositoryMechanism === RepositoryMechanismTypes.INTERVAL) {
             repositoryOptions.AutoUpdate.Interval = $scope.formValues.RepositoryFetchInterval;
@@ -186,13 +195,14 @@ angular
       function createComposeStack(name, method) {
         var env = FormHelper.removeInvalidEnvVars($scope.formValues.Env);
         const endpointId = +$state.params.endpointId;
+        const webhook = $scope.formValues.EnableWebhook ? $scope.formValues.RepositoryWebhookURL.split('/').reverse()[0] : '';
 
         if (method === 'editor' || method === 'template') {
           var stackFileContent = $scope.formValues.StackFileContent;
-          return StackService.createComposeStackFromFileContent(name, stackFileContent, env, endpointId);
+          return StackService.createComposeStackFromFileContent(name, stackFileContent, env, endpointId, webhook);
         } else if (method === 'upload') {
           var stackFile = $scope.formValues.StackFile;
-          return StackService.createComposeStackFromFileUpload(name, stackFile, env, endpointId);
+          return StackService.createComposeStackFromFileUpload(name, stackFile, env, endpointId, webhook);
         } else if (method === 'repository') {
           var repositoryOptions = {
             AdditionalFiles: $scope.formValues.AdditionalFiles,
@@ -202,6 +212,7 @@ angular
             RepositoryAuthentication: $scope.formValues.RepositoryAuthentication,
             RepositoryUsername: $scope.formValues.RepositoryUsername,
             RepositoryPassword: $scope.formValues.RepositoryPassword,
+            ForcePullImage: $scope.formValues.ForcePullImage,
           };
 
           getAutoUpdatesProperty(repositoryOptions);

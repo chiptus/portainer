@@ -988,6 +988,8 @@ type (
 		Namespace string `example:"default"`
 		// IsComposeFormat indicates if the Kubernetes stack is created from a Docker Compose file
 		IsComposeFormat bool `example:"false"`
+		// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
+		Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
 	}
 
 	//StackAutoUpdate represents the git auto sync config for stack deployment
@@ -1000,6 +1002,8 @@ type (
 		JobID string `example:"15"`
 		// Force update ignores repo changes
 		ForceUpdate bool `example:"false"`
+		// Pull latest image
+		ForcePullImage bool `example:"false"`
 	}
 
 	// StackID represents a stack identifier (it must be composed of Name + "_" + SwarmID to create a unique identifier)
@@ -1316,6 +1320,7 @@ type (
 		NormalizeStackName(name string) string
 		Up(ctx context.Context, stack *Stack, endpoint *Endpoint, forceRereate bool) error
 		Down(ctx context.Context, stack *Stack, endpoint *Endpoint) error
+		Pull(ctx context.Context, stack *Stack, endpoint *Endpoint) error
 	}
 
 	// CryptoService represents a service for encrypting/hashing data
@@ -1661,7 +1666,7 @@ type (
 	SwarmStackManager interface {
 		Login(registries []Registry, endpoint *Endpoint) error
 		Logout(endpoint *Endpoint) error
-		Deploy(stack *Stack, prune bool, endpoint *Endpoint) error
+		Deploy(stack *Stack, prune bool, pullImage bool, endpoint *Endpoint) error
 		Remove(stack *Stack, endpoint *Endpoint) error
 		NormalizeStackName(name string) string
 	}
@@ -2030,6 +2035,8 @@ const (
 	_ WebhookType = iota
 	// ServiceWebhook is a webhook for restarting a docker service
 	ServiceWebhook
+	// ContainerWebhook is a webhook for recreating a docker container
+	ContainerWebhook
 )
 
 const (

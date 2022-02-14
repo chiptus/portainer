@@ -136,6 +136,35 @@ export function confirmServiceForceUpdate(
   customizeCheckboxPrompt(box, sanitizedMessage);
 }
 
+export function confirmStackUpdate(
+  message: string,
+  defaultToggle: boolean,
+  confirmButtonClass: string | undefined,
+  callback: PromptCallback
+) {
+  const sanitizedMessage = sanitize(message);
+
+  const box = prompt({
+    title: 'Are you sure?',
+    inputType: 'checkbox',
+    inputOptions: [
+      {
+        text: 'Pull latest image version<i></i>',
+        value: '1',
+      },
+    ],
+    buttons: {
+      confirm: {
+        label: 'Update',
+        className: 'btn-primary',
+      },
+    },
+    callback,
+  });
+
+  customizeCheckboxPrompt(box, sanitizedMessage, defaultToggle);
+}
+
 export function confirmKubeconfigSelection(
   options: InputOption[],
   expiryMessage: string,

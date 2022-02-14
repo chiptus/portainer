@@ -165,6 +165,40 @@
                   ></code-editor>
                 </div>
               </div>
+
+              <div ng-if="applicationState.endpoint.type !== 4 && hasAuthorizations(['PortainerWebhookCreate', 'PortainerWebhookList', 'PortainerWebhookDelete'])">
+                <div class="col-sm-12 form-section-title"> Webhooks </div>
+                <div class="form-group">
+                  <div class="col-sm-12">
+                    <label class="control-label text-left">
+                      Create a Stack webhook
+                      <portainer-tooltip
+                        position="top"
+                        message="Create a webhook (or callback URI) to automate the update of this stack. Sending a POST request to this callback URI (without requiring any authentication) will pull the most up-to-date version of the associated image and re-deploy this stack."
+                      ></portainer-tooltip>
+                    </label>
+                    <label class="switch" style="margin-left: 20px">
+                      <input type="checkbox" ng-model="formValues.EnableWebhook" ng-disabled="disabledWebhookButton(formValues.EnableWebhook)" /><i></i>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="form-group"
+                ng-if="formValues.EnableWebhook && endpoint.type !== 4 && hasAuthorizations(['PortainerWebhookCreate', 'PortainerWebhookList', 'PortainerWebhookDelete'])"
+              >
+                <label class="col-sm-1 control-label text-left"> Webhook </label>
+                <div class="col-sm-11">
+                  <span class="text-muted"> {{ formValues.WebhookURL | truncatelr }} </span>
+                  <button type="button" class="btn btn-sm btn-primary btn-sm space-left" ng-if="formValues.WebhookURL" ng-click="copyWebhook()">
+                    <span><i class="fa fa-copy space-right" aria-hidden="true"></i>Copy link</span>
+                  </button>
+                  <span>
+                    <i id="copyNotification" class="fa fa-check green-icon" aria-hidden="true" style="margin-left: 7px; display: none"></i>
+                  </span>
+                </div>
+              </div>
+
               <!-- environment-variables -->
               <div ng-if="stack">
                 <environment-variables-panel
