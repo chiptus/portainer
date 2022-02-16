@@ -160,7 +160,7 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to deploy Kubernetes stack", Err: err}
 	}
 
-	err = handler.DataStore.Stack().CreateStack(stack)
+	err = handler.DataStore.Stack().Create(stack)
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist the Kubernetes stack inside the database", Err: err}
 	}
@@ -278,7 +278,7 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 		stack.AutoUpdate.JobID = jobID
 	}
 
-	err = handler.DataStore.Stack().CreateStack(stack)
+	err = handler.DataStore.Stack().Create(stack)
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist the Kubernetes stack inside the database", Err: err}
 	}
@@ -350,7 +350,7 @@ func (handler *Handler) createKubernetesStackFromManifestURL(w http.ResponseWrit
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to deploy Kubernetes stack", Err: err}
 	}
 
-	err = handler.DataStore.Stack().CreateStack(stack)
+	err = handler.DataStore.Stack().Create(stack)
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist the Kubernetes stack inside the database", Err: err}
 	}

@@ -8,7 +8,7 @@ import (
 	"net/http/httputil"
 	"time"
 
-	"github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/websocket"

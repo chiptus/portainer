@@ -1,9 +1,10 @@
 package webhooks
 
 import (
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
-	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"net/http"
+
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -36,7 +37,7 @@ func (handler *Handler) webhookList(w http.ResponseWriter, r *http.Request) *htt
 	}
 
 	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(filters.EndpointID))
-	if err == bolterrors.ErrObjectNotFound {
+	if err == portainerDsErrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}

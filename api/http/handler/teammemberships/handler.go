@@ -7,6 +7,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
@@ -16,7 +17,7 @@ import (
 type Handler struct {
 	*mux.Router
 	AuthorizationService *authorization.Service
-	DataStore            portaineree.DataStore
+	DataStore            dataservices.DataStore
 	userActivityService  portaineree.UserActivityService
 }
 

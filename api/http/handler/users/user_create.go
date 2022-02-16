@@ -9,10 +9,10 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type userCreatePayload struct {
@@ -103,7 +103,7 @@ func (handler *Handler) userCreate(w http.ResponseWriter, r *http.Request) *http
 		}
 	}
 
-	err = handler.DataStore.User().CreateUser(user)
+	err = handler.DataStore.User().Create(user)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist user inside the database", err}
 	}

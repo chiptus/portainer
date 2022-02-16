@@ -8,6 +8,7 @@ import (
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/client"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	ru "github.com/portainer/portainer-ee/api/http/utils"
@@ -24,7 +25,7 @@ type (
 		client              *client.HTTPClient
 		token               *azureAPIToken
 		mutex               sync.Mutex
-		dataStore           portaineree.DataStore
+		dataStore           dataservices.DataStore
 		endpoint            *portaineree.Endpoint
 		userActivityService portaineree.UserActivityService
 	}
@@ -40,7 +41,7 @@ type (
 
 // NewTransport returns a pointer to a new instance of Transport that implements the HTTP Transport
 // interface for proxying requests to the Azure API.
-func NewTransport(credentials *portaineree.AzureCredentials, userActivityService portaineree.UserActivityService, dataStore portaineree.DataStore, endpoint *portaineree.Endpoint) *Transport {
+func NewTransport(credentials *portaineree.AzureCredentials, userActivityService portaineree.UserActivityService, dataStore dataservices.DataStore, endpoint *portaineree.Endpoint) *Transport {
 	return &Transport{
 		credentials:         credentials,
 		client:              client.NewHTTPClient(),

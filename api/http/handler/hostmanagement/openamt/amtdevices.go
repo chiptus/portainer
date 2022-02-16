@@ -2,9 +2,10 @@ package openamt
 
 import (
 	"errors"
+	"net/http"
+
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
-	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -40,7 +41,7 @@ func (handler *Handler) openAMTDevices(w http.ResponseWriter, r *http.Request) *
 	}
 
 	if endpoint.AMTDeviceGUID == "" {
-		return response.JSON(w, []portaineree.OpenAMTDeviceInformation{})
+		return response.JSON(w, []portainer.OpenAMTDeviceInformation{})
 	}
 
 	settings, err := handler.DataStore.Settings().Settings()

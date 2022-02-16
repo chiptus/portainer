@@ -10,19 +10,20 @@ import (
 	"github.com/pkg/errors"
 	"github.com/portainer/libcrypto"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 )
 
 // Service represents a service to manage SSL certificates
 type Service struct {
 	fileService     portainer.FileService
-	dataStore       portaineree.DataStore
+	dataStore       dataservices.DataStore
 	rawCert         *tls.Certificate
 	shutdownTrigger context.CancelFunc
 }
 
 // NewService returns a pointer to a new Service
-func NewService(fileService portainer.FileService, dataStore portaineree.DataStore, shutdownTrigger context.CancelFunc) *Service {
+func NewService(fileService portainer.FileService, dataStore dataservices.DataStore, shutdownTrigger context.CancelFunc) *Service {
 	return &Service{
 		fileService:     fileService,
 		dataStore:       dataStore,

@@ -11,7 +11,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // @id duplicate
@@ -32,7 +32,7 @@ func (handler *Handler) duplicateProfile(w http.ResponseWriter, r *http.Request)
 	}
 
 	originalProfile, err := handler.DataStore.FDOProfile().FDOProfile(portaineree.FDOProfileID(id))
-	if err == bolterrors.ErrObjectNotFound {
+	if err == portainerDsErrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a FDO Profile with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a FDO Profile with the specified identifier inside the database", err}

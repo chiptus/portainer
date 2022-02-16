@@ -4,6 +4,7 @@ import (
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/proxy"
 	"github.com/portainer/portainer-ee/api/http/security"
 )
@@ -11,7 +12,7 @@ import (
 // Handler is the HTTP handler used to proxy requests to external APIs.
 type Handler struct {
 	*mux.Router
-	DataStore            portaineree.DataStore
+	DataStore            dataservices.DataStore
 	requestBouncer       *security.RequestBouncer
 	ProxyManager         *proxy.Manager
 	ReverseTunnelService portaineree.ReverseTunnelService

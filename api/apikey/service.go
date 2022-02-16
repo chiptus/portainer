@@ -8,6 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 )
 
 const portainerAPIKeyPrefix = "ptr_"
@@ -15,12 +16,12 @@ const portainerAPIKeyPrefix = "ptr_"
 var ErrInvalidAPIKey = errors.New("Invalid API key")
 
 type apiKeyService struct {
-	apiKeyRepository portaineree.APIKeyRepository
-	userRepository   portaineree.UserService
+	apiKeyRepository dataservices.APIKeyRepository
+	userRepository   dataservices.UserService
 	cache            *apiKeyCache
 }
 
-func NewAPIKeyService(apiKeyRepository portaineree.APIKeyRepository, userRepository portaineree.UserService) *apiKeyService {
+func NewAPIKeyService(apiKeyRepository dataservices.APIKeyRepository, userRepository dataservices.UserService) *apiKeyService {
 	return &apiKeyService{
 		apiKeyRepository: apiKeyRepository,
 		userRepository:   userRepository,
@@ -51,7 +52,7 @@ func (a *apiKeyService) GenerateApiKey(user portaineree.User, description string
 		Digest:      hashDigest,
 	}
 
-	err := a.apiKeyRepository.CreateAPIKey(apiKey)
+	err := a.apiKeyRepository.Create(apiKey)
 	if err != nil {
 		return "", nil, errors.Wrap(err, "Unable to create API key")
 	}

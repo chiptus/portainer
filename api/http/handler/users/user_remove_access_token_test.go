@@ -9,7 +9,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/apikey"
-	bolt "github.com/portainer/portainer-ee/api/bolt/bolttest"
+	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
@@ -20,16 +20,16 @@ import (
 func Test_userRemoveAccessToken(t *testing.T) {
 	is := assert.New(t)
 
-	store, teardown := bolt.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true)
 	defer teardown()
 
 	// create admin and standard user(s)
 	adminUser := &portaineree.User{ID: 1, Username: "admin", Role: portaineree.AdministratorRole}
-	err := store.User().CreateUser(adminUser)
+	err := store.User().Create(adminUser)
 	is.NoError(err, "error creating admin user")
 
 	user := &portaineree.User{ID: 2, Username: "standard", Role: portaineree.StandardUserRole, PortainerAuthorizations: authorization.DefaultPortainerAuthorizations()}
-	err = store.User().CreateUser(user)
+	err = store.User().Create(user)
 	is.NoError(err, "error creating user")
 
 	// setup services

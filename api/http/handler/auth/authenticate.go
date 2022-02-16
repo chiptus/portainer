@@ -12,9 +12,9 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type authenticatePayload struct {
@@ -151,7 +151,7 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 			PortainerAuthorizations: authorization.DefaultPortainerAuthorizations(),
 		}
 
-		err = handler.DataStore.User().CreateUser(user)
+		err = handler.DataStore.User().Create(user)
 		if err != nil {
 			return resp,
 				&httperror.HandlerError{
@@ -325,7 +325,7 @@ func (handler *Handler) addUserIntoTeams(user *portaineree.User, settings *porta
 				Role:   portaineree.TeamMember,
 			}
 
-			err := handler.DataStore.TeamMembership().CreateTeamMembership(membership)
+			err := handler.DataStore.TeamMembership().Create(membership)
 			if err != nil {
 
 				return err

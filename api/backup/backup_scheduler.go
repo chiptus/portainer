@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/offlinegate"
 	"github.com/robfig/cron/v3"
 )
@@ -16,12 +17,12 @@ type BackupScheduler struct {
 	cronmanager       *cron.Cron
 	s3backupService   portaineree.S3BackupService
 	gate              *offlinegate.OfflineGate
-	datastore         portaineree.DataStore
+	datastore         dataservices.DataStore
 	userActivityStore portaineree.UserActivityStore
 	filestorePath     string
 }
 
-func NewBackupScheduler(offlineGate *offlinegate.OfflineGate, datastore portaineree.DataStore, userActivityStore portaineree.UserActivityStore, filestorePath string) *BackupScheduler {
+func NewBackupScheduler(offlineGate *offlinegate.OfflineGate, datastore dataservices.DataStore, userActivityStore portaineree.UserActivityStore, filestorePath string) *BackupScheduler {
 	crontab := cron.New(cron.WithChain(cron.Recover(cron.DefaultLogger)))
 	s3backupService := datastore.S3Backup()
 

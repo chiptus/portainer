@@ -9,8 +9,8 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type edgeGroupUpdatePayload struct {
@@ -61,7 +61,7 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 	}
 
 	edgeGroup, err := handler.DataStore.EdgeGroup().EdgeGroup(portaineree.EdgeGroupID(edgeGroupID))
-	if err == bolterrors.ErrObjectNotFound {
+	if err == portainerDsErrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an Edge group with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an Edge group with the specified identifier inside the database", err}

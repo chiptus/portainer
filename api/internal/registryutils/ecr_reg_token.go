@@ -7,13 +7,14 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/aws/ecr"
+	"github.com/portainer/portainer-ee/api/dataservices"
 )
 
 func isRegTokenValid(registry *portaineree.Registry) (valid bool) {
 	return registry.AccessToken != "" && registry.AccessTokenExpiry > time.Now().Unix()
 }
 
-func doGetRegToken(dataStore portaineree.DataStore, registry *portaineree.Registry) (err error) {
+func doGetRegToken(dataStore dataservices.DataStore, registry *portaineree.Registry) (err error) {
 	ecrClient := ecr.NewService(registry.Username, registry.Password, registry.Ecr.Region)
 	accessToken, expiryAt, err := ecrClient.GetAuthorizationToken()
 	if err != nil {
@@ -33,7 +34,7 @@ func parseRegToken(registry *portaineree.Registry) (username, password string, e
 	return ecrClient.ParseAuthorizationToken(registry.AccessToken)
 }
 
-func EnsureRegTokenValid(dataStore portaineree.DataStore, registry *portaineree.Registry) (err error) {
+func EnsureRegTokenValid(dataStore dataservices.DataStore, registry *portaineree.Registry) (err error) {
 	if registry.Type == portaineree.EcrRegistry {
 		if isRegTokenValid(registry) {
 			log.Println("[DEBUG] [registry, GetEcrAccessToken] [message: curretn ECR token is still valid]")

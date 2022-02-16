@@ -8,8 +8,8 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	ecr "github.com/portainer/portainer-ee/api/aws/ecr"
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
+	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // @id ecrDeleteRepository

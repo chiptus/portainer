@@ -1,11 +1,12 @@
 package azure
 
 import (
+	"log"
+	"net/http"
+
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
-	"log"
-	"net/http"
 )
 
 func (transport *Transport) createAzureRequestContext(request *http.Request) (*azureRequestContext, error) {
@@ -70,7 +71,7 @@ func (transport *Transport) createPrivateResourceControl(
 
 	resourceControl := authorization.NewPrivateResourceControl(resourceIdentifier, resourceType, userID)
 
-	err := transport.dataStore.ResourceControl().CreateResourceControl(resourceControl)
+	err := transport.dataStore.ResourceControl().Create(resourceControl)
 	if err != nil {
 		log.Printf("[ERROR] [http,proxy,azure,transport] [message: unable to persist resource control] [resource: %s] [err: %s]", resourceIdentifier, err)
 		return nil, err

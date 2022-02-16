@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 )
 
@@ -13,7 +14,7 @@ import (
 type Handler struct {
 	*mux.Router
 	Status    *portaineree.Status
-	DataStore portaineree.DataStore
+	DataStore dataservices.DataStore
 }
 
 // NewHandler creates a handler to manage status operations.

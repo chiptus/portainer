@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
@@ -14,7 +15,7 @@ import (
 // Handler is the HTTP handler used to handle LDAP search Operations
 type Handler struct {
 	*mux.Router
-	DataStore   portaineree.DataStore
+	DataStore   dataservices.DataStore
 	FileService portainer.FileService
 	LDAPService portaineree.LDAPService
 }

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/asaskevich/govalidator"
 	httperror "github.com/portainer/libhttp/error"

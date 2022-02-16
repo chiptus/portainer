@@ -15,13 +15,14 @@ import (
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	dataerrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	ru "github.com/portainer/portainer-ee/api/http/utils"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainerErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 var apiVersionRe = regexp.MustCompile(`(/v[0-9]\.[0-9]*)?`)
@@ -32,7 +33,7 @@ type (
 	Transport struct {
 		HTTPTransport        *http.Transport
 		endpoint             *portaineree.Endpoint
-		dataStore            portaineree.DataStore
+		dataStore            dataservices.DataStore
 		signatureService     portaineree.DigitalSignatureService
 		reverseTunnelService portaineree.ReverseTunnelService
 		dockerClientFactory  *docker.ClientFactory
@@ -42,7 +43,7 @@ type (
 	// TransportParameters is used to create a new Transport
 	TransportParameters struct {
 		Endpoint             *portaineree.Endpoint
-		DataStore            portaineree.DataStore
+		DataStore            dataservices.DataStore
 		SignatureService     portaineree.DigitalSignatureService
 		ReverseTunnelService portaineree.ReverseTunnelService
 		DockerClientFactory  *docker.ClientFactory
@@ -629,7 +630,7 @@ func (transport *Transport) executeGenericResourceDeletionOperation(request *htt
 	if response.StatusCode == http.StatusNoContent || response.StatusCode == http.StatusOK {
 		resourceControl, err := transport.dataStore.ResourceControl().ResourceControlByResourceIDAndType(resourceIdentifierAttribute, resourceType)
 		if err != nil {
-			if err == dataerrors.ErrObjectNotFound {
+			if err == portainerErrors.ErrObjectNotFound {
 				return response, nil
 			}
 

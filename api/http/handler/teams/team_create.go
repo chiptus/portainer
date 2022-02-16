@@ -9,7 +9,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type teamCreatePayload struct {
@@ -58,7 +58,7 @@ func (handler *Handler) teamCreate(w http.ResponseWriter, r *http.Request) *http
 		Name: payload.Name,
 	}
 
-	err = handler.DataStore.Team().CreateTeam(team)
+	err = handler.DataStore.Team().Create(team)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the team inside the database", err}
 	}

@@ -2,6 +2,7 @@ package authorization
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 )
 
@@ -9,14 +10,14 @@ import (
 // update authorizations associated to a user or team.
 type (
 	Service struct {
-		dataStore         portaineree.DataStore
+		dataStore         dataservices.DataStore
 		authEventHandlers map[string]portaineree.AuthEventHandler
 		K8sClientFactory  *cli.ClientFactory
 	}
 )
 
 // NewService returns a point to a new Service instance.
-func NewService(dataStore portaineree.DataStore) *Service {
+func NewService(dataStore dataservices.DataStore) *Service {
 	return &Service{
 		dataStore:         dataStore,
 		authEventHandlers: make(map[string]portaineree.AuthEventHandler),

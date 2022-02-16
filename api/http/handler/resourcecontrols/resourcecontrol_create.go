@@ -133,7 +133,7 @@ func (handler *Handler) resourceControlCreate(w http.ResponseWriter, r *http.Req
 		TeamAccesses:       teamAccesses,
 	}
 
-	err = handler.dataStore.ResourceControl().CreateResourceControl(&resourceControl)
+	err = handler.dataStore.ResourceControl().Create(&resourceControl)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the resource control inside the database", err}
 	}

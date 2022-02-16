@@ -10,10 +10,10 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/registryutils/access"
+	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type webhookCreatePayload struct {
@@ -107,7 +107,7 @@ func (handler *Handler) webhookCreate(w http.ResponseWriter, r *http.Request) *h
 		WebhookType: portaineree.WebhookType(payload.WebhookType),
 	}
 
-	err = handler.dataStore.Webhook().CreateWebhook(webhook)
+	err = handler.dataStore.Webhook().Create(webhook)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the webhook inside the database", err}
 	}

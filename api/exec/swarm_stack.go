@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	"github.com/portainer/portainer-ee/api/internal/stackutils"
 	portainer "github.com/portainer/portainer/api"
@@ -24,7 +25,7 @@ type SwarmStackManager struct {
 	signatureService     portaineree.DigitalSignatureService
 	fileService          portainer.FileService
 	reverseTunnelService portaineree.ReverseTunnelService
-	dataStore            portaineree.DataStore
+	dataStore            dataservices.DataStore
 }
 
 // NewSwarmStackManager initializes a new SwarmStackManager service.
@@ -34,7 +35,7 @@ func NewSwarmStackManager(
 	signatureService portaineree.DigitalSignatureService,
 	fileService portainer.FileService,
 	reverseTunnelService portaineree.ReverseTunnelService,
-	datastore portaineree.DataStore,
+	datastore dataservices.DataStore,
 ) (*SwarmStackManager, error) {
 	manager := &SwarmStackManager{
 		binaryPath:           binaryPath,

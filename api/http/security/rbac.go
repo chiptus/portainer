@@ -7,10 +7,11 @@ import (
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 )
 
 // IsAdminOrEndpointAdmin checks if current request is for an admin or an environment(endpoint) admin
-func IsAdminOrEndpointAdmin(request *http.Request, dataStore portaineree.DataStore, endpointID portaineree.EndpointID) (bool, error) {
+func IsAdminOrEndpointAdmin(request *http.Request, dataStore dataservices.DataStore, endpointID portaineree.EndpointID) (bool, error) {
 	tokenData, err := RetrieveTokenData(request)
 	if err != nil {
 		return false, err

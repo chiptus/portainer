@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
@@ -19,7 +20,7 @@ import (
 type Handler struct {
 	*mux.Router
 	requestBouncer          *security.RequestBouncer
-	DataStore               portaineree.DataStore
+	DataStore               dataservices.DataStore
 	KubernetesClientFactory *cli.ClientFactory
 	AuthorizationService    *authorization.Service
 	userActivityService     portaineree.UserActivityService
@@ -28,7 +29,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to process pre-proxied requests to external APIs.
-func NewHandler(bouncer *security.RequestBouncer, dataStore portaineree.DataStore, baseURL string, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, baseURL string, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		requestBouncer:      bouncer,

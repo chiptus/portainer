@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 )
 
@@ -12,7 +13,7 @@ const defaultServiceAccountTokenFile = "/var/run/secrets/kubernetes.io/serviceac
 type tokenManager struct {
 	tokenCache  *tokenCache
 	kubecli     portaineree.KubeClient
-	dataStore   portaineree.DataStore
+	dataStore   dataservices.DataStore
 	adminToken  string
 	authService *authorization.Service
 }
@@ -22,7 +23,7 @@ type tokenManager struct {
 // and associate it to the manager.
 func NewTokenManager(
 	kubecli portaineree.KubeClient,
-	dataStore portaineree.DataStore,
+	dataStore dataservices.DataStore,
 	cache *tokenCache,
 	setLocalAdminToken bool,
 	authService *authorization.Service,

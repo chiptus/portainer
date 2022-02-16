@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
@@ -15,7 +16,7 @@ const azureAPIBaseURL = "https://management.azure.com"
 type (
 	// ProxyFactory is a factory to create reverse proxies
 	ProxyFactory struct {
-		dataStore                   portaineree.DataStore
+		dataStore                   dataservices.DataStore
 		signatureService            portaineree.DigitalSignatureService
 		reverseTunnelService        portaineree.ReverseTunnelService
 		dockerClientFactory         *docker.ClientFactory
@@ -28,7 +29,7 @@ type (
 
 // NewProxyFactory returns a pointer to a new instance of a ProxyFactory
 func NewProxyFactory(
-	dataStore portaineree.DataStore,
+	dataStore dataservices.DataStore,
 	signatureService portaineree.DigitalSignatureService,
 	tunnelService portaineree.ReverseTunnelService,
 	clientFactory *docker.ClientFactory,

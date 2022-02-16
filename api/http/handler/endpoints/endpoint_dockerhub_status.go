@@ -12,9 +12,9 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 	"github.com/portainer/portainer-ee/api/http/client"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type dockerhubStatusResponse struct {
@@ -56,7 +56,7 @@ func (handler *Handler) endpointDockerhubStatus(w http.ResponseWriter, r *http.R
 	}
 	if registryID != 0 {
 		registry, err = handler.dataStore.Registry().Registry(portaineree.RegistryID(registryID))
-		if err == bolterrors.ErrObjectNotFound {
+		if err == portainerDsErrors.ErrObjectNotFound {
 			return &httperror.HandlerError{http.StatusNotFound, "Unable to find a registry with the specified identifier inside the database", err}
 		} else if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a registry with the specified identifier inside the database", err}
@@ -68,7 +68,7 @@ func (handler *Handler) endpointDockerhubStatus(w http.ResponseWriter, r *http.R
 	}
 
 	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == bolterrors.ErrObjectNotFound {
+	if err == portainerDsErrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	werrors "github.com/pkg/errors"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/docker"
 
 	"github.com/gorilla/mux"
@@ -40,7 +41,7 @@ type Handler struct {
 	*mux.Router
 	requestBouncer       requestBouncer
 	AuthorizationService *authorization.Service
-	dataStore            portaineree.DataStore
+	dataStore            dataservices.DataStore
 	FileService          portainer.FileService
 	ProxyManager         *proxy.Manager
 	ReverseTunnelService portaineree.ReverseTunnelService
@@ -54,7 +55,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.
-func NewHandler(bouncer requestBouncer, userActivityService portaineree.UserActivityService, dataStore portaineree.DataStore) *Handler {
+func NewHandler(bouncer requestBouncer, userActivityService portaineree.UserActivityService, dataStore dataservices.DataStore) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		requestBouncer:      bouncer,

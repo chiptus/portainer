@@ -7,6 +7,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 )
@@ -14,12 +15,12 @@ import (
 // Handler is the HTTP handler used to handle resource control operations.
 type Handler struct {
 	*mux.Router
-	dataStore           portaineree.DataStore
+	dataStore           dataservices.DataStore
 	userActivityService portaineree.UserActivityService
 }
 
 // NewHandler creates a handler to manage resource control operations.
-func NewHandler(bouncer *security.RequestBouncer, dataStore portaineree.DataStore, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		dataStore:           dataStore,

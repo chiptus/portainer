@@ -11,14 +11,15 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/apikey"
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type (
 	// RequestBouncer represents an entity that manages API request accesses
 	RequestBouncer struct {
-		dataStore      portaineree.DataStore
+		dataStore      dataservices.DataStore
 		jwtService     portaineree.JWTService
 		apiKeyService  apikey.APIKeyService
 		licenseService portaineree.LicenseService
@@ -40,7 +41,7 @@ type (
 const apiKeyHeader = "X-API-KEY"
 
 // NewRequestBouncer initializes a new RequestBouncer
-func NewRequestBouncer(dataStore portaineree.DataStore, licenseService portaineree.LicenseService, jwtService portaineree.JWTService, apiKeyService apikey.APIKeyService) *RequestBouncer {
+func NewRequestBouncer(dataStore dataservices.DataStore, licenseService portaineree.LicenseService, jwtService portaineree.JWTService, apiKeyService apikey.APIKeyService) *RequestBouncer {
 	return &RequestBouncer{
 		dataStore:      dataStore,
 		jwtService:     jwtService,

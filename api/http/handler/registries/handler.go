@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/proxy"
 	"github.com/portainer/portainer-ee/api/http/registryproxy"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
@@ -27,7 +28,7 @@ type Handler struct {
 	requestBouncer       accessGuard
 	registryProxyService *registryproxy.Service
 
-	DataStore           portaineree.DataStore
+	DataStore           dataservices.DataStore
 	FileService         portainer.FileService
 	ProxyManager        *proxy.Manager
 	userActivityService portaineree.UserActivityService

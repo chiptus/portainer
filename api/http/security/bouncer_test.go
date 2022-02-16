@@ -8,7 +8,8 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/apikey"
-	bolt "github.com/portainer/portainer-ee/api/bolt/bolttest"
+	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/datastore"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/jwt"
 	"github.com/stretchr/testify/assert"
@@ -19,10 +20,10 @@ var testHandler200 = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusOK)
 })
 
-func tokenLookupSucceed(dataStore portaineree.DataStore, jwtService portaineree.JWTService) tokenLookup {
+func tokenLookupSucceed(dataStore dataservices.DataStore, jwtService portaineree.JWTService) tokenLookup {
 	return func(r *http.Request) *portaineree.TokenData {
 		uid := portaineree.UserID(1)
-		dataStore.User().CreateUser(&portaineree.User{ID: uid})
+		dataStore.User().Create(&portaineree.User{ID: uid})
 		jwtService.GenerateToken(&portaineree.TokenData{ID: uid})
 		return &portaineree.TokenData{ID: 1}
 	}
@@ -35,7 +36,7 @@ func tokenLookupFail(r *http.Request) *portaineree.TokenData {
 func Test_mwAuthenticateFirst(t *testing.T) {
 	is := assert.New(t)
 
-	store, teardown := bolt.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true)
 	defer teardown()
 
 	jwtService, err := jwt.NewService("1h", store)
@@ -258,12 +259,12 @@ func Test_extractAPIKeyQueryParam(t *testing.T) {
 func Test_apiKeyLookup(t *testing.T) {
 	is := assert.New(t)
 
-	store, teardown := bolt.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true)
 	defer teardown()
 
 	// create standard user
 	user := &portaineree.User{ID: 2, Username: "standard", Role: portaineree.StandardUserRole}
-	err := store.User().CreateUser(user)
+	err := store.User().Create(user)
 	is.NoError(err, "error creating user")
 
 	// setup services

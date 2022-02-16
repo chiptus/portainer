@@ -8,7 +8,7 @@ import (
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	bolt "github.com/portainer/portainer-ee/api/bolt/bolttest"
+	"github.com/portainer/portainer-ee/api/datastore"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -48,7 +48,7 @@ func (s *noopDeployer) DeployKubernetesStack(stack *portaineree.Stack, endpoint 
 }
 
 func Test_redeployWhenChanged_FailsWhenCannotFindStack(t *testing.T) {
-	store, teardown := bolt.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true)
 	defer teardown()
 
 	err := RedeployWhenChanged(1, nil, store, nil, nil)
@@ -56,14 +56,14 @@ func Test_redeployWhenChanged_FailsWhenCannotFindStack(t *testing.T) {
 	assert.Truef(t, strings.HasPrefix(err.Error(), "failed to get the stack"), "it isn't an error we expected: %v", err.Error())
 }
 
-func Test_redeployWhenChanged_PullImageAndRedeployWhenNotAGitBasedStack(t *testing.T) {
-	store, teardown := bolt.MustNewTestStore(true)
+func Test_redeployWhenChanged_DoesNothingWhenNotAGitBasedStack(t *testing.T) {
+	_, store, teardown := datastore.MustNewTestStore(true)
 	defer teardown()
 
 	admin := &portaineree.User{ID: 1, Username: "admin"}
-	err := store.User().CreateUser(admin)
+	err := store.User().Create(admin)
 	assert.NoError(t, err, "error creating an admin")
-	err = store.Endpoint().CreateEndpoint(&portaineree.Endpoint{
+	err = store.Endpoint().Create(&portaineree.Endpoint{
 		ID: 0,
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
@@ -71,7 +71,7 @@ func Test_redeployWhenChanged_PullImageAndRedeployWhenNotAGitBasedStack(t *testi
 	})
 	assert.NoError(t, err, "error creating environment")
 	stack := portaineree.Stack{ID: 1, CreatedBy: "admin"}
-	err = store.Stack().CreateStack(&stack)
+	err = store.Stack().Create(&stack)
 	assert.NoError(t, err, "failed to create a test stack")
 
 	noopDeployer := &noopDeployer{}
@@ -87,14 +87,14 @@ func Test_redeployWhenChanged_PullImageAndRedeployWhenNotAGitBasedStack(t *testi
 
 func Test_redeployWhenChanged_FailsWhenCannotClone(t *testing.T) {
 	cloneErr := errors.New("failed to clone")
-	store, teardown := bolt.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true)
 	defer teardown()
 
 	admin := &portaineree.User{ID: 1, Username: "admin"}
-	err := store.User().CreateUser(admin)
+	err := store.User().Create(admin)
 	assert.NoError(t, err, "error creating an admin")
 
-	err = store.Endpoint().CreateEndpoint(&portaineree.Endpoint{
+	err = store.Endpoint().Create(&portaineree.Endpoint{
 		ID: 0,
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
@@ -102,7 +102,7 @@ func Test_redeployWhenChanged_FailsWhenCannotClone(t *testing.T) {
 	})
 	assert.NoError(t, err, "error creating environment")
 
-	err = store.Stack().CreateStack(&portaineree.Stack{
+	err = store.Stack().Create(&portaineree.Stack{
 		ID:        1,
 		CreatedBy: "admin",
 		GitConfig: &gittypes.RepoConfig{
@@ -118,16 +118,16 @@ func Test_redeployWhenChanged_FailsWhenCannotClone(t *testing.T) {
 }
 
 func Test_redeployWhenChanged_ForceUpdateOn(t *testing.T) {
-	store, teardown := bolt.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true)
 	defer teardown()
 
 	tmpDir, _ := ioutil.TempDir("", "stack")
 
-	err := store.Endpoint().CreateEndpoint(&portaineree.Endpoint{ID: 1})
+	err := store.Endpoint().Create(&portaineree.Endpoint{ID: 1})
 	assert.NoError(t, err, "error creating environment")
 
 	username := "user"
-	err = store.User().CreateUser(&portaineree.User{Username: username, Role: portaineree.AdministratorRole})
+	err = store.User().Create(&portaineree.User{Username: username, Role: portaineree.AdministratorRole})
 	assert.NoError(t, err, "error creating a user")
 
 	stack := portaineree.Stack{
@@ -144,7 +144,7 @@ func Test_redeployWhenChanged_ForceUpdateOn(t *testing.T) {
 			ForceUpdate: true,
 		},
 	}
-	err = store.Stack().CreateStack(&stack)
+	err = store.Stack().Create(&stack)
 	assert.NoError(t, err, "failed to create a test stack")
 
 	noopDeployer := &noopDeployer{}
@@ -184,16 +184,16 @@ func Test_redeployWhenChanged_ForceUpdateOn(t *testing.T) {
 }
 
 func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff(t *testing.T) {
-	store, teardown := bolt.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true)
 	defer teardown()
 
 	tmpDir, _ := ioutil.TempDir("", "stack")
 
 	admin := &portaineree.User{ID: 1, Username: "admin"}
-	err := store.User().CreateUser(admin)
+	err := store.User().Create(admin)
 	assert.NoError(t, err, "error creating an admin")
 
-	err = store.Endpoint().CreateEndpoint(&portaineree.Endpoint{
+	err = store.Endpoint().Create(&portaineree.Endpoint{
 		ID: 0,
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
@@ -201,7 +201,7 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff(t *testing.T) {
 	})
 	assert.NoError(t, err, "error creating environment")
 
-	err = store.Stack().CreateStack(&portaineree.Stack{
+	err = store.Stack().Create(&portaineree.Stack{
 		ID:          1,
 		CreatedBy:   "admin",
 		ProjectPath: tmpDir,
@@ -225,16 +225,16 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff(t *testing.T) {
 }
 
 func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff_ForePullImageEnable(t *testing.T) {
-	store, teardown := bolt.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true)
 	defer teardown()
 
 	tmpDir, _ := ioutil.TempDir("", "stack")
 
 	admin := &portaineree.User{ID: 1, Username: "admin"}
-	err := store.User().CreateUser(admin)
+	err := store.User().Create(admin)
 	assert.NoError(t, err, "error creating an admin")
 
-	err = store.Endpoint().CreateEndpoint(&portaineree.Endpoint{
+	err = store.Endpoint().Create(&portaineree.Endpoint{
 		ID: 0,
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
@@ -242,7 +242,7 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff_ForePullImageEnable(
 	})
 	assert.NoError(t, err, "error creating environment")
 
-	err = store.Stack().CreateStack(&portaineree.Stack{
+	err = store.Stack().Create(&portaineree.Stack{
 		ID:          1,
 		CreatedBy:   "admin",
 		ProjectPath: tmpDir,
@@ -268,16 +268,16 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff_ForePullImageEnable(
 }
 
 func Test_redeployWhenChanged_RepoChanged_ForceUpdateOff(t *testing.T) {
-	store, teardown := bolt.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true)
 	defer teardown()
 
 	tmpDir, _ := ioutil.TempDir("", "stack")
 
-	err := store.Endpoint().CreateEndpoint(&portaineree.Endpoint{ID: 1})
+	err := store.Endpoint().Create(&portaineree.Endpoint{ID: 1})
 	assert.NoError(t, err, "error creating environment")
 
 	username := "user"
-	err = store.User().CreateUser(&portaineree.User{Username: username, Role: portaineree.AdministratorRole})
+	err = store.User().Create(&portaineree.User{Username: username, Role: portaineree.AdministratorRole})
 	assert.NoError(t, err, "error creating a user")
 
 	stack := portaineree.Stack{
@@ -294,7 +294,7 @@ func Test_redeployWhenChanged_RepoChanged_ForceUpdateOff(t *testing.T) {
 			ForceUpdate: false,
 		},
 	}
-	err = store.Stack().CreateStack(&stack)
+	err = store.Stack().Create(&stack)
 	assert.NoError(t, err, "failed to create a test stack")
 
 	noopDeployer := &noopDeployer{}
@@ -334,22 +334,22 @@ func Test_redeployWhenChanged_RepoChanged_ForceUpdateOff(t *testing.T) {
 }
 
 func Test_getUserRegistries(t *testing.T) {
-	store, teardown := bolt.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true)
 	defer teardown()
 
 	endpointID := 123
 
 	admin := &portaineree.User{ID: 1, Username: "admin", Role: portaineree.AdministratorRole}
-	err := store.User().CreateUser(admin)
+	err := store.User().Create(admin)
 	assert.NoError(t, err, "error creating an admin")
 
 	user := &portaineree.User{ID: 2, Username: "user", Role: portaineree.StandardUserRole}
-	err = store.User().CreateUser(user)
+	err = store.User().Create(user)
 	assert.NoError(t, err, "error creating a user")
 
 	team := portaineree.Team{ID: 1, Name: "team"}
 
-	store.TeamMembership().CreateTeamMembership(&portaineree.TeamMembership{
+	store.TeamMembership().Create(&portaineree.TeamMembership{
 		ID:     1,
 		UserID: user.ID,
 		TeamID: team.ID,
@@ -366,7 +366,7 @@ func Test_getUserRegistries(t *testing.T) {
 			},
 		},
 	}
-	err = store.Registry().CreateRegistry(&registryReachableByUser)
+	err = store.Registry().Create(&registryReachableByUser)
 	assert.NoError(t, err, "couldn't create a registry")
 
 	registryReachableByTeam := portaineree.Registry{
@@ -379,7 +379,7 @@ func Test_getUserRegistries(t *testing.T) {
 			},
 		},
 	}
-	err = store.Registry().CreateRegistry(&registryReachableByTeam)
+	err = store.Registry().Create(&registryReachableByTeam)
 	assert.NoError(t, err, "couldn't create a registry")
 
 	registryRestricted := portaineree.Registry{
@@ -392,7 +392,7 @@ func Test_getUserRegistries(t *testing.T) {
 			},
 		},
 	}
-	err = store.Registry().CreateRegistry(&registryRestricted)
+	err = store.Registry().Create(&registryRestricted)
 	assert.NoError(t, err, "couldn't create a registry")
 
 	t.Run("admin should has access to all registries", func(t *testing.T) {

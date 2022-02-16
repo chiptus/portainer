@@ -6,6 +6,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/http/security"
@@ -17,7 +18,7 @@ import (
 // Handler is the HTTP handler used to handle websocket operations.
 type Handler struct {
 	*mux.Router
-	dataStore                   portaineree.DataStore
+	dataStore                   dataservices.DataStore
 	SignatureService            portaineree.DigitalSignatureService
 	ReverseTunnelService        portaineree.ReverseTunnelService
 	KubernetesClientFactory     *cli.ClientFactory
@@ -29,7 +30,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage websocket operations.
-func NewHandler(kubernetesTokenCacheManager *kubernetes.TokenCacheManager, bouncer *security.RequestBouncer, authorizationService *authorization.Service, dataStore portaineree.DataStore, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(kubernetesTokenCacheManager *kubernetes.TokenCacheManager, bouncer *security.RequestBouncer, authorizationService *authorization.Service, dataStore dataservices.DataStore, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:                      mux.NewRouter(),
 		connectionUpgrader:          websocket.Upgrader{},

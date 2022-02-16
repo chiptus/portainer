@@ -118,15 +118,19 @@ type (
 		TLSCacert                 *string
 		TLSCert                   *string
 		TLSKey                    *string
-		Rollback                  *bool
-		RollbackToCE              *bool
 		HTTPDisabled              *bool
 		HTTPEnabled               *bool
 		SSL                       *bool
 		SSLCert                   *string
 		SSLKey                    *string
+		Rollback                  *bool
+		RollbackToCE              *bool
 		SnapshotInterval          *string
 		BaseURL                   *string
+		InitialMmapSize           *int
+		MaxBatchSize              *int
+		MaxBatchDelay             *time.Duration
+		SecretKeyName             *string
 	}
 
 	// CustomTemplate represents a custom template
@@ -215,7 +219,7 @@ type (
 	// EdgeGroupID represents an Edge group identifier
 	EdgeGroupID int
 
-	// EdgeJob represents a job that can run on Edge environment(endpoint).
+	// EdgeJob represents a job that can run on Edge environments(endpoints).
 	EdgeJob struct {
 		// EdgeJob Identifier
 		ID             EdgeJobID                          `json:"Id" example:"1"`
@@ -228,7 +232,7 @@ type (
 		Version        int                                `json:"Version"`
 	}
 
-	// EdgeJobEndpointMeta represents a meta data object for an Edge job and environment(endpoint) relation
+	// EdgeJobEndpointMeta represents a meta data object for an Edge job and Environment(Endpoint) relation
 	EdgeJobEndpointMeta struct {
 		LogsStatus  EdgeJobLogsStatus
 		CollectLogs bool
@@ -240,7 +244,7 @@ type (
 	// EdgeJobLogsStatus represent status of logs collection job
 	EdgeJobLogsStatus int
 
-	// EdgeSchedule represents a scheduled job that can run on Edge environment(endpoint).
+	// EdgeSchedule represents a scheduled job that can run on Edge environments(endpoints).
 	// Deprecated in favor of EdgeJob
 	EdgeSchedule struct {
 		// EdgeSchedule Identifier
@@ -298,7 +302,7 @@ type (
 		ID EndpointID `json:"Id" example:"1"`
 		// Environment(Endpoint) name
 		Name string `json:"Name" example:"my-environment"`
-		// Environment(Endpoint) environment(endpoint) type. 1 for a Docker environment, 2 for an agent on Docker environment or 3 for an Azure environment.
+		// Environment(Endpoint) environment(endpoint) type. 1 for a Docker environment(endpoint), 2 for an agent on Docker environment(endpoint) or 3 for an Azure environment(endpoint).
 		Type EndpointType `json:"Type" example:"1"`
 		// URL or IP address of the Docker host associated to this environment(endpoint)
 		URL string `json:"URL" example:"docker.mydomain.tld:2375"`
@@ -313,19 +317,19 @@ type (
 		// The status of the environment(endpoint) (1 - up, 2 - down)
 		Status EndpointStatus `json:"Status" example:"1"`
 		// List of snapshots
-		Snapshots []DockerSnapshot `json:"Snapshots"`
+		Snapshots []DockerSnapshot `json:"Snapshots" example:""`
 		// List of user identifiers authorized to connect to this environment(endpoint)
 		UserAccessPolicies UserAccessPolicies `json:"UserAccessPolicies"`
 		// List of team identifiers authorized to connect to this environment(endpoint)
-		TeamAccessPolicies TeamAccessPolicies `json:"TeamAccessPolicies"`
+		TeamAccessPolicies TeamAccessPolicies `json:"TeamAccessPolicies" example:""`
 		// The identifier of the edge agent associated with this environment(endpoint)
-		EdgeID string `json:"EdgeID,omitempty"`
+		EdgeID string `json:"EdgeID,omitempty" example:""`
 		// The key which is used to map the agent to Portainer
-		EdgeKey string `json:"EdgeKey"`
+		EdgeKey string `json:"EdgeKey" example:""`
 		// The check in interval for edge agent (in seconds)
 		EdgeCheckinInterval int `json:"EdgeCheckinInterval" example:"5"`
 		// Associated Kubernetes data
-		Kubernetes KubernetesData `json:"Kubernetes"`
+		Kubernetes KubernetesData `json:"Kubernetes" example:""`
 		// Maximum version of docker-compose
 		ComposeSyntaxMaxVersion string `json:"ComposeSyntaxMaxVersion" example:"3.8"`
 		// Environment(Endpoint) specific security settings
@@ -369,9 +373,9 @@ type (
 		// Environment(Endpoint) group name
 		Name string `json:"Name" example:"my-environment-group"`
 		// Description associated to the environment(endpoint) group
-		Description        string             `json:"Description" example:"Environment group description"`
-		UserAccessPolicies UserAccessPolicies `json:"UserAccessPolicies"`
-		TeamAccessPolicies TeamAccessPolicies `json:"TeamAccessPolicies"`
+		Description        string             `json:"Description" example:"Environment(Endpoint) group description"`
+		UserAccessPolicies UserAccessPolicies `json:"UserAccessPolicies" example:""`
+		TeamAccessPolicies TeamAccessPolicies `json:"TeamAccessPolicies" example:""`
 		// List of tags associated to this environment(endpoint) group
 		TagIDs []TagID `json:"TagIds"`
 
@@ -432,7 +436,8 @@ type (
 
 	// Extension represents a deprecated Portainer extension
 	Extension struct {
-		ID               ExtensionID                 `json:"Id"`
+		// Extension Identifier
+		ID               ExtensionID                 `json:"Id" example:"1"`
 		Enabled          bool                        `json:"Enabled"`
 		Name             string                      `json:"Name,omitempty"`
 		ShortDescription string                      `json:"ShortDescription,omitempty"`
@@ -491,7 +496,7 @@ type (
 
 	// EcrData represents data required for ECR registry
 	EcrData struct {
-		Region string
+		Region string `json:"Region" example:"ap-southeast-2"`
 	}
 
 	// JobType represents a job type
@@ -1329,54 +1334,6 @@ type (
 		CompareHashAndData(hash string, data string) error
 	}
 
-	// CustomTemplateService represents a service to manage custom templates
-	CustomTemplateService interface {
-		GetNextIdentifier() int
-		CustomTemplates() ([]CustomTemplate, error)
-		CustomTemplate(ID CustomTemplateID) (*CustomTemplate, error)
-		CreateCustomTemplate(customTemplate *CustomTemplate) error
-		UpdateCustomTemplate(ID CustomTemplateID, customTemplate *CustomTemplate) error
-		DeleteCustomTemplate(ID CustomTemplateID) error
-	}
-
-	// DataStore defines the interface to manage the data
-	DataStore interface {
-		Open() error
-		Init() error
-		Close() error
-		IsNew() bool
-		MigrateData(force bool) error
-		Rollback(force bool) error
-		RollbackToCE() error
-		BackupTo(w io.Writer) error
-
-		CustomTemplate() CustomTemplateService
-		EdgeGroup() EdgeGroupService
-		EdgeJob() EdgeJobService
-		EdgeStack() EdgeStackService
-		Endpoint() EndpointService
-		EndpointGroup() EndpointGroupService
-		EndpointRelation() EndpointRelationService
-		FDOProfile() FDOProfileService
-		HelmUserRepository() HelmUserRepositoryService
-		License() LicenseRepository
-		Registry() RegistryService
-		ResourceControl() ResourceControlService
-		Role() RoleService
-		APIKeyRepository() APIKeyRepository
-		S3Backup() S3BackupService
-		SSLSettings() SSLSettingsService
-		Settings() SettingsService
-		Stack() StackService
-		Tag() TagService
-		TeamMembership() TeamMembershipService
-		Team() TeamService
-		TunnelServer() TunnelServerService
-		User() UserService
-		Version() VersionService
-		Webhook() WebhookService
-	}
-
 	// DigitalSignatureService represents a service to manage digital signatures
 	DigitalSignatureService interface {
 		ParseKeyPair(private, public []byte) error
@@ -1391,73 +1348,6 @@ type (
 		CreateSnapshot(endpoint *Endpoint) (*DockerSnapshot, error)
 	}
 
-	// EdgeGroupService represents a service to manage Edge groups
-	EdgeGroupService interface {
-		EdgeGroups() ([]EdgeGroup, error)
-		EdgeGroup(ID EdgeGroupID) (*EdgeGroup, error)
-		CreateEdgeGroup(group *EdgeGroup) error
-		UpdateEdgeGroup(ID EdgeGroupID, group *EdgeGroup) error
-		DeleteEdgeGroup(ID EdgeGroupID) error
-	}
-
-	// EdgeJobService represents a service to manage Edge jobs
-	EdgeJobService interface {
-		EdgeJobs() ([]EdgeJob, error)
-		EdgeJob(ID EdgeJobID) (*EdgeJob, error)
-		CreateEdgeJob(edgeJob *EdgeJob) error
-		UpdateEdgeJob(ID EdgeJobID, edgeJob *EdgeJob) error
-		DeleteEdgeJob(ID EdgeJobID) error
-		GetNextIdentifier() int
-	}
-
-	// EdgeStackService represents a service to manage Edge stacks
-	EdgeStackService interface {
-		EdgeStacks() ([]EdgeStack, error)
-		EdgeStack(ID EdgeStackID) (*EdgeStack, error)
-		CreateEdgeStack(edgeStack *EdgeStack) error
-		UpdateEdgeStack(ID EdgeStackID, edgeStack *EdgeStack) error
-		DeleteEdgeStack(ID EdgeStackID) error
-		GetNextIdentifier() int
-	}
-
-	// EndpointService represents a service for managing environment(endpoint) data
-	EndpointService interface {
-		Endpoint(ID EndpointID) (*Endpoint, error)
-		Endpoints() ([]Endpoint, error)
-		CreateEndpoint(endpoint *Endpoint) error
-		UpdateEndpoint(ID EndpointID, endpoint *Endpoint) error
-		DeleteEndpoint(ID EndpointID) error
-		Synchronize(toCreate, toUpdate, toDelete []*Endpoint) error
-		GetNextIdentifier() int
-	}
-
-	// EndpointGroupService represents a service for managing environment(endpoint) group data
-	EndpointGroupService interface {
-		EndpointGroup(ID EndpointGroupID) (*EndpointGroup, error)
-		EndpointGroups() ([]EndpointGroup, error)
-		CreateEndpointGroup(group *EndpointGroup) error
-		UpdateEndpointGroup(ID EndpointGroupID, group *EndpointGroup) error
-		DeleteEndpointGroup(ID EndpointGroupID) error
-	}
-
-	// EndpointRelationService represents a service for managing environment(endpoint) relations data
-	EndpointRelationService interface {
-		EndpointRelation(EndpointID EndpointID) (*EndpointRelation, error)
-		CreateEndpointRelation(endpointRelation *EndpointRelation) error
-		UpdateEndpointRelation(EndpointID EndpointID, endpointRelation *EndpointRelation) error
-		DeleteEndpointRelation(EndpointID EndpointID) error
-	}
-
-	FDOProfileService interface {
-		FDOProfiles() ([]FDOProfile, error)
-		FDOProfile(ID FDOProfileID) (*FDOProfile, error)
-		Create(FDOProfile *FDOProfile) error
-		Update(ID FDOProfileID, FDOProfile *FDOProfile) error
-		Delete(ID FDOProfileID) error
-		GetNextIdentifier() int
-		BucketName() string
-	}
-
 	// GitService represents a service for managing Git
 	GitService interface {
 		CloneRepository(destination string, repositoryURL, referenceName string, username, password string) error
@@ -1470,12 +1360,6 @@ type (
 		DeviceInformation(configuration portainer.OpenAMTConfiguration, deviceGUID string) (*OpenAMTDeviceInformation, error)
 		EnableDeviceFeatures(configuration portainer.OpenAMTConfiguration, deviceGUID string, features portainer.OpenAMTDeviceEnabledFeatures) (string, error)
 		ExecuteDeviceAction(configuration portainer.OpenAMTConfiguration, deviceGUID string, action string) error
-	}
-
-	// HelmUserRepositoryService represents a service to manage HelmUserRepositories
-	HelmUserRepositoryService interface {
-		HelmUserRepositoryByUserID(userID UserID) ([]HelmUserRepository, error)
-		CreateHelmUserRepository(record *HelmUserRepository) error
 	}
 
 	// JWTService represents a service for managing JWT tokens
@@ -1561,25 +1445,6 @@ type (
 		Authenticate(code string, configuration *OAuthSettings) (*OAuthInfo, error)
 	}
 
-	// RegistryService represents a service for managing registry data
-	RegistryService interface {
-		Registry(ID RegistryID) (*Registry, error)
-		Registries() ([]Registry, error)
-		CreateRegistry(registry *Registry) error
-		UpdateRegistry(ID RegistryID, registry *Registry) error
-		DeleteRegistry(ID RegistryID) error
-	}
-
-	// ResourceControlService represents a service for managing resource control data
-	ResourceControlService interface {
-		ResourceControl(ID ResourceControlID) (*ResourceControl, error)
-		ResourceControlByResourceIDAndType(resourceID string, resourceType ResourceControlType) (*ResourceControl, error)
-		ResourceControls() ([]ResourceControl, error)
-		CreateResourceControl(rc *ResourceControl) error
-		UpdateResourceControl(ID ResourceControlID, resourceControl *ResourceControl) error
-		DeleteResourceControl(ID ResourceControlID) error
-	}
-
 	// ReverseTunnelService represents a service used to manage reverse tunnel connections.
 	ReverseTunnelService interface {
 		StartTunnelServer(addr, port string, snapshotService SnapshotService) error
@@ -1595,24 +1460,6 @@ type (
 		RemoveEdgeJob(edgeJobID EdgeJobID)
 	}
 
-	// RoleService represents a service for managing user roles
-	RoleService interface {
-		Role(ID RoleID) (*Role, error)
-		Roles() ([]Role, error)
-		CreateRole(role *Role) error
-		UpdateRole(ID RoleID, role *Role) error
-	}
-
-	// APIKeyRepositoryService
-	APIKeyRepository interface {
-		CreateAPIKey(key *APIKey) error
-		GetAPIKey(keyID APIKeyID) (*APIKey, error)
-		UpdateAPIKey(key *APIKey) error
-		DeleteAPIKey(ID APIKeyID) error
-		GetAPIKeysByUserID(userID UserID) ([]APIKey, error)
-		GetAPIKeyByDigest(digest []byte) (*APIKey, error)
-	}
-
 	// S3BackupService represents a storage service for managing S3 backup settings and status
 	S3BackupService interface {
 		GetStatus() (S3BackupStatus, error)
@@ -1622,36 +1469,9 @@ type (
 		GetSettings() (S3BackupSettings, error)
 	}
 
-	// SettingsService represents a service for managing application settings
-	SettingsService interface {
-		Settings() (*Settings, error)
-		UpdateSettings(settings *Settings) error
-		IsFeatureFlagEnabled(feature Feature) bool
-	}
-
 	// Server defines the interface to serve the API
 	Server interface {
 		Start() error
-	}
-
-	// SSLSettingsService represents a service for managing application settings
-	SSLSettingsService interface {
-		Settings() (*SSLSettings, error)
-		UpdateSettings(settings *SSLSettings) error
-	}
-
-	// StackService represents a service for managing stack data
-	StackService interface {
-		Stack(ID StackID) (*Stack, error)
-		StackByName(name string) (*Stack, error)
-		StacksByName(name string) ([]Stack, error)
-		Stacks() ([]Stack, error)
-		CreateStack(stack *Stack) error
-		UpdateStack(ID StackID, stack *Stack) error
-		DeleteStack(ID StackID) error
-		GetNextIdentifier() int
-		StackByWebhookID(ID string) (*Stack, error)
-		RefreshableStacks() ([]Stack, error)
 	}
 
 	// SnapshotService represents a service for managing environment(endpoint) snapshots
@@ -1671,44 +1491,6 @@ type (
 		NormalizeStackName(name string) string
 	}
 
-	// TagService represents a service for managing tag data
-	TagService interface {
-		Tags() ([]Tag, error)
-		Tag(ID TagID) (*Tag, error)
-		CreateTag(tag *Tag) error
-		UpdateTag(ID TagID, tag *Tag) error
-		DeleteTag(ID TagID) error
-	}
-
-	// TeamService represents a service for managing user data
-	TeamService interface {
-		Team(ID TeamID) (*Team, error)
-		TeamByName(name string) (*Team, error)
-		Teams() ([]Team, error)
-		CreateTeam(team *Team) error
-		UpdateTeam(ID TeamID, team *Team) error
-		DeleteTeam(ID TeamID) error
-	}
-
-	// TeamMembershipService represents a service for managing team membership data
-	TeamMembershipService interface {
-		TeamMembership(ID TeamMembershipID) (*TeamMembership, error)
-		TeamMemberships() ([]TeamMembership, error)
-		TeamMembershipsByUserID(userID UserID) ([]TeamMembership, error)
-		TeamMembershipsByTeamID(teamID TeamID) ([]TeamMembership, error)
-		CreateTeamMembership(membership *TeamMembership) error
-		UpdateTeamMembership(ID TeamMembershipID, membership *TeamMembership) error
-		DeleteTeamMembership(ID TeamMembershipID) error
-		DeleteTeamMembershipByUserID(userID UserID) error
-		DeleteTeamMembershipByTeamID(teamID TeamID) error
-	}
-
-	// TunnelServerService represents a service for managing data associated to the tunnel server
-	TunnelServerService interface {
-		Info() (*TunnelServerInfo, error)
-		UpdateInfo(info *TunnelServerInfo) error
-	}
-
 	UserActivityService interface {
 		LogAuthActivity(username, origin string, context AuthenticationMethod, activityType AuthenticationActivityType) error
 		LogUserActivity(username, context, action string, payload []byte) error
@@ -1724,38 +1506,6 @@ type (
 
 		GetUserActivityLogs(opts UserActivityLogBaseQuery) ([]*UserActivityLog, int, error)
 		StoreUserActivityLog(userLog *UserActivityLog) error
-	}
-
-	// UserService represents a service for managing user data
-	UserService interface {
-		User(ID UserID) (*User, error)
-		UserByUsername(username string) (*User, error)
-		Users() ([]User, error)
-		UsersByRole(role UserRole) ([]User, error)
-		CreateUser(user *User) error
-		UpdateUser(ID UserID, user *User) error
-		DeleteUser(ID UserID) error
-	}
-
-	// VersionService represents a service for managing version data
-	VersionService interface {
-		DBVersion() (int, error)
-		StoreDBVersion(version int) error
-		InstanceID() (string, error)
-		StoreInstanceID(ID string) error
-		Edition() (SoftwareEdition, error)
-		StoreEdition(SoftwareEdition) error
-	}
-
-	// WebhookService represents a service for managing webhook data.
-	WebhookService interface {
-		Webhooks() ([]Webhook, error)
-		Webhook(ID WebhookID) (*Webhook, error)
-		CreateWebhook(portainer *Webhook) error
-		UpdateWebhook(ID WebhookID, webhook *Webhook) error
-		WebhookByResourceID(resourceID string) (*Webhook, error)
-		WebhookByToken(token string) (*Webhook, error)
-		DeleteWebhook(serviceID WebhookID) error
 	}
 )
 

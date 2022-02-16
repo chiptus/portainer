@@ -14,8 +14,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // @summary Execute a websocket on pod

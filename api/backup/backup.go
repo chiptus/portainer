@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/offlinegate"
 	"github.com/portainer/portainer-ee/api/s3"
 	"github.com/portainer/portainer/api/archive"
@@ -32,7 +33,7 @@ var filesToBackup = []string{
 	"tls",
 }
 
-func BackupToS3(settings portaineree.S3BackupSettings, gate *offlinegate.OfflineGate, datastore portaineree.DataStore, userActivityStore portaineree.UserActivityStore, filestorePath string) error {
+func BackupToS3(settings portaineree.S3BackupSettings, gate *offlinegate.OfflineGate, datastore dataservices.DataStore, userActivityStore portaineree.UserActivityStore, filestorePath string) error {
 	archivePath, err := CreateBackupArchive(settings.Password, gate, datastore, userActivityStore, filestorePath)
 	if err != nil {
 		log.Printf("[ERROR] failed to backup: %s \n", err)
@@ -60,7 +61,7 @@ func BackupToS3(settings portaineree.S3BackupSettings, gate *offlinegate.Offline
 }
 
 // Creates a tar.gz system archive and encrypts it if password is not empty. Returns a path to the archive file.
-func CreateBackupArchive(password string, gate *offlinegate.OfflineGate, datastore portaineree.DataStore, userActivityStore portaineree.UserActivityStore, filestorePath string) (string, error) {
+func CreateBackupArchive(password string, gate *offlinegate.OfflineGate, datastore dataservices.DataStore, userActivityStore portaineree.UserActivityStore, filestorePath string) (string, error) {
 	unlock := gate.Lock()
 	defer unlock()
 
@@ -99,8 +100,9 @@ func CreateBackupArchive(password string, gate *offlinegate.OfflineGate, datasto
 	return archivePath, nil
 }
 
-func backupDb(backupDirPath string, datastore portaineree.DataStore) error {
-	backupWriter, err := os.Create(filepath.Join(backupDirPath, "portainer.db"))
+func backupDb(backupDirPath string, datastore dataservices.DataStore) error {
+	dbFileName := datastore.Connection().GetDatabaseFileName()
+	backupWriter, err := os.Create(filepath.Join(backupDirPath, dbFileName))
 	if err != nil {
 		return err
 	}

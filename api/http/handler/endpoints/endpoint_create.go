@@ -221,7 +221,7 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
-	err = handler.dataStore.EndpointRelation().CreateEndpointRelation(relationObject)
+	err = handler.dataStore.EndpointRelation().Create(relationObject)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the relation object inside the database", err}
 	}
@@ -520,7 +520,7 @@ func (handler *Handler) saveEndpointAndUpdateAuthorizations(endpoint *portainere
 		AllowStackManagementForRegularUsers:       true,
 	}
 
-	err := handler.dataStore.Endpoint().CreateEndpoint(endpoint)
+	err := handler.dataStore.Endpoint().Create(endpoint)
 	if err != nil {
 		return err
 	}

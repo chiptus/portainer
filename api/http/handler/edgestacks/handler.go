@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	portainer "github.com/portainer/portainer/api"
@@ -18,7 +19,7 @@ import (
 type Handler struct {
 	*mux.Router
 	requestBouncer      *security.RequestBouncer
-	DataStore           portaineree.DataStore
+	DataStore           dataservices.DataStore
 	FileService         portainer.FileService
 	GitService          portaineree.GitService
 	userActivityService portaineree.UserActivityService

@@ -11,7 +11,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // @summary Attach a websocket

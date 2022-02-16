@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/proxy"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/http/security"
@@ -17,7 +18,7 @@ import (
 // Handler is the HTTP handler used to handle authentication operations.
 type Handler struct {
 	*mux.Router
-	DataStore                   portaineree.DataStore
+	DataStore                   dataservices.DataStore
 	CryptoService               portaineree.CryptoService
 	JWTService                  portaineree.JWTService
 	LDAPService                 portaineree.LDAPService

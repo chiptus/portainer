@@ -7,17 +7,16 @@ import (
 
 	"github.com/gofrs/uuid"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/bolt/bolttest"
-	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
+	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHandler_webhookInvoke(t *testing.T) {
-	store, teardown := bolttest.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true)
 	defer teardown()
 	admin := &portaineree.User{ID: 1, Username: "admin"}
-	err := store.User().CreateUser(admin)
-	err = store.Endpoint().CreateEndpoint(&portaineree.Endpoint{
+	err := store.User().Create(admin)
+	err = store.Endpoint().Create(&portaineree.Endpoint{
 		ID: 0,
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
@@ -25,7 +24,7 @@ func TestHandler_webhookInvoke(t *testing.T) {
 	})
 	assert.NoError(t, err, "error creating environment")
 	webhookID := newGuidString(t)
-	store.StackService.CreateStack(&portaineree.Stack{
+	store.StackService.Create(&portaineree.Stack{
 		ID: 1,
 		AutoUpdate: &portaineree.StackAutoUpdate{
 			Webhook: webhookID,
@@ -34,24 +33,24 @@ func TestHandler_webhookInvoke(t *testing.T) {
 		Type:      portaineree.DockerComposeStack,
 	})
 
-	h := NewHandler(nil, store, helper.NewUserActivityService())
+	h := NewHandler(nil, store, nil)
 
 	t.Run("invalid uuid results in http.StatusBadRequest", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		req := newRequest("notuuid")
-		h.ServeHTTP(w, req)
+		h.Router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 	t.Run("registered webhook ID in http.StatusNoContent", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		req := newRequest(webhookID)
-		h.ServeHTTP(w, req)
+		h.Router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusNoContent, w.Code)
 	})
 	t.Run("unregistered webhook ID in http.StatusNotFound", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		req := newRequest(newGuidString(t))
-		h.ServeHTTP(w, req)
+		h.Router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusNotFound, w.Code)
 	})
 }

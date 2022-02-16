@@ -9,6 +9,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/apikey"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
@@ -34,7 +35,7 @@ type Handler struct {
 	apiKeyService        apikey.APIKeyService
 	AuthorizationService *authorization.Service
 	CryptoService        portaineree.CryptoService
-	DataStore            portaineree.DataStore
+	DataStore            dataservices.DataStore
 	K8sClientFactory     *cli.ClientFactory
 	userActivityService  portaineree.UserActivityService
 }

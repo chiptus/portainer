@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
@@ -22,7 +23,7 @@ func hideFields(settings *portaineree.Settings) {
 type Handler struct {
 	*mux.Router
 	AuthorizationService *authorization.Service
-	DataStore            portaineree.DataStore
+	DataStore            dataservices.DataStore
 	FileService          portainer.FileService
 	JWTService           portaineree.JWTService
 	LDAPService          portaineree.LDAPService

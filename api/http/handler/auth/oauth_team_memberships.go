@@ -7,10 +7,11 @@ import (
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 )
 
 // removeMemberships removes a user's team membership(s) if user does not belong to it/them anymore
-func removeMemberships(tms portaineree.TeamMembershipService, user portaineree.User, teams []portaineree.Team) error {
+func removeMemberships(tms dataservices.TeamMembershipService, user portaineree.User, teams []portaineree.Team) error {
 	log.Println("[DEBUG] [internal,oauth] [message: removing user team memberships which no longer exist]")
 	memberships, err := tms.TeamMembershipsByUserID(user.ID)
 	if err != nil {
@@ -38,7 +39,7 @@ func removeMemberships(tms portaineree.TeamMembershipService, user portaineree.U
 }
 
 // createOrUpdateMembership creates a membership if it does not exist or updates a memberships role (if already existent)
-func createOrUpdateMembership(tms portaineree.TeamMembershipService, user portaineree.User, team portaineree.Team) error {
+func createOrUpdateMembership(tms dataservices.TeamMembershipService, user portaineree.User, team portaineree.Team) error {
 	memberships, err := tms.TeamMembershipsByTeamID(team.ID)
 	if err != nil {
 		return err
@@ -60,7 +61,7 @@ func createOrUpdateMembership(tms portaineree.TeamMembershipService, user portai
 			Role:   portaineree.MembershipRole(user.Role),
 		}
 		log.Printf("[DEBUG] [internal,oauth] [message: creating oauth user team membership: %v]", membership)
-		err = tms.CreateTeamMembership(membership)
+		err = tms.Create(membership)
 		if err != nil {
 			return err
 		}
@@ -80,7 +81,7 @@ func createOrUpdateMembership(tms portaineree.TeamMembershipService, user portai
 
 // mapAllClaimValuesToTeams maps claim values to teams if no explicit mapping exists.
 // Mapping oauth teams (claim values) to portainer teams by case-insensitive team name
-func mapAllClaimValuesToTeams(ts portaineree.TeamService, user portaineree.User, oAuthTeams []string) ([]portaineree.Team, error) {
+func mapAllClaimValuesToTeams(ts dataservices.TeamService, user portaineree.User, oAuthTeams []string) ([]portaineree.Team, error) {
 	teams := make([]portaineree.Team, 0)
 
 	log.Println("[DEBUG] [internal,oauth] [message: mapping oauth claim values automatically to existing portainer teams]")
@@ -103,7 +104,7 @@ func mapAllClaimValuesToTeams(ts portaineree.TeamService, user portaineree.User,
 // mapClaimValRegexToTeams maps oauth ClaimValRegex values (stored in settings) to oauth provider teams.
 // The `ClaimValRegex` is a regexp string that is matched against the oauth team value(s) extracted from oauth user response.
 // A successful match entails extraction of the respective portainer team (for the mapping).
-func mapClaimValRegexToTeams(ts portaineree.TeamService, claimMappings []portaineree.OAuthClaimMappings, oAuthTeams []string) ([]portaineree.Team, error) {
+func mapClaimValRegexToTeams(ts dataservices.TeamService, claimMappings []portaineree.OAuthClaimMappings, oAuthTeams []string) ([]portaineree.Team, error) {
 	teams := make([]portaineree.Team, 0)
 
 	log.Println("[DEBUG] [internal,oauth] [message: using oauth claim mappings to map groups to portainer teams]")
@@ -133,7 +134,7 @@ func mapClaimValRegexToTeams(ts portaineree.TeamService, claimMappings []portain
 // updateOAuthTeamMemberships will create, update and delete an oauth user's team memberships.
 // The mappings of oauth groups to portainer teams is based on the length of `OAuthClaimMappings`; use them if they exist (len > 0),
 // otherwise map the **values** of the oauth `Claim name` (`OAuthClaimName`) to already existent portainer teams (case-insensitive).
-func updateOAuthTeamMemberships(dataStore portaineree.DataStore, oAuthSettings portaineree.OAuthSettings, user portaineree.User, oAuthTeams []string) error {
+func updateOAuthTeamMemberships(dataStore dataservices.DataStore, oAuthSettings portaineree.OAuthSettings, user portaineree.User, oAuthTeams []string) error {
 	var teams []portaineree.Team
 	var err error
 	oAuthClaimMappings := oAuthSettings.TeamMemberships.OAuthClaimMappings

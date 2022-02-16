@@ -9,9 +9,9 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type oauthPayload struct {
@@ -222,7 +222,7 @@ func (handler *Handler) createUserAndDefaultTeamMembership(user *portaineree.Use
 		user.Role = portaineree.AdministratorRole
 	}
 
-	err := handler.DataStore.User().CreateUser(user)
+	err := handler.DataStore.User().Create(user)
 	if err != nil {
 		return errors.New("Unable to persist user inside the database")
 	}
@@ -234,7 +234,7 @@ func (handler *Handler) createUserAndDefaultTeamMembership(user *portaineree.Use
 			Role:   portaineree.TeamMember,
 		}
 
-		err = handler.DataStore.TeamMembership().CreateTeamMembership(membership)
+		err = handler.DataStore.TeamMembership().Create(membership)
 		if err != nil {
 			return errors.New("Unable to persist team membership inside the database")
 		}

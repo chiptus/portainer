@@ -7,6 +7,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 )
 
 type decoratedEdgeGroup struct {
@@ -75,7 +76,7 @@ func (handler *Handler) edgeGroupList(w http.ResponseWriter, r *http.Request) *h
 	return response.JSON(w, decoratedEdgeGroups)
 }
 
-func getEndpointTypes(endpointService portaineree.EndpointService, endpointIds []portaineree.EndpointID) ([]portaineree.EndpointType, error) {
+func getEndpointTypes(endpointService dataservices.EndpointService, endpointIds []portaineree.EndpointID) ([]portaineree.EndpointType, error) {
 	typeSet := map[portaineree.EndpointType]bool{}
 	for _, endpointID := range endpointIds {
 		endpoint, err := endpointService.Endpoint(endpointID)

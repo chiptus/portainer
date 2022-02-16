@@ -6,19 +6,20 @@ import (
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 )
 
 var logFatalf = log.Fatalf
 
 type Monitor struct {
 	timeout          time.Duration
-	datastore        portaineree.DataStore
+	datastore        dataservices.DataStore
 	shutdownCtx      context.Context
 	cancellationFunc context.CancelFunc
 }
 
 // New creates a monitor that when started will wait for the timeout duration and then shutdown the application unless it has been initialized.
-func New(timeout time.Duration, datastore portaineree.DataStore, shutdownCtx context.Context) *Monitor {
+func New(timeout time.Duration, datastore dataservices.DataStore, shutdownCtx context.Context) *Monitor {
 	return &Monitor{
 		timeout:     timeout,
 		datastore:   datastore,

@@ -12,12 +12,12 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/stackutils"
+	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 func (handler *Handler) cleanUp(stack *portaineree.Stack, doCleanUp *bool) error {
@@ -230,7 +230,7 @@ func (handler *Handler) decorateStackResponse(w http.ResponseWriter, stack *port
 		resourceControl = authorization.NewPrivateResourceControl(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portaineree.StackResourceControl, userID)
 	}
 
-	err = handler.DataStore.ResourceControl().CreateResourceControl(resourceControl)
+	err = handler.DataStore.ResourceControl().Create(resourceControl)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist resource control inside the database", err}
 	}

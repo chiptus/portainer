@@ -8,6 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	consts "github.com/portainer/portainer-ee/api/useractivity"
 	log "github.com/sirupsen/logrus"
@@ -51,9 +52,8 @@ func updateAllowed(endpoint *portaineree.Endpoint, clock Clock) (bool, error) {
 	return tw.Within(clock.Now()), nil
 }
 
-// RedeployWhenChanged pull and redeploy the stack when git repo changed
-// Stack will always be redeployed if force deployment is set to true
-func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, datastore portaineree.DataStore, gitService portaineree.GitService, activityService portaineree.UserActivityService) error {
+// RedeployWhenChanged pull and redeploy the stack when  git repo changed
+func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, datastore dataservices.DataStore, gitService portaineree.GitService, activityService portaineree.UserActivityService) error {
 	logger := log.WithFields(log.Fields{"stackID": stackID})
 	logger.Debug("redeploying stack")
 
@@ -171,7 +171,7 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 	return nil
 }
 
-func getUserRegistries(datastore portaineree.DataStore, user *portaineree.User, endpointID portaineree.EndpointID) ([]portaineree.Registry, error) {
+func getUserRegistries(datastore dataservices.DataStore, user *portaineree.User, endpointID portaineree.EndpointID) ([]portaineree.Registry, error) {
 	registries, err := datastore.Registry().Registries()
 	if err != nil {
 		return nil, errors.WithMessage(err, "unable to retrieve registries from the database")

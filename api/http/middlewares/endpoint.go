@@ -13,14 +13,15 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	requesthelpers "github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/dataservices"
+	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 const (
 	contextEndpoint = "endpoint"
 )
 
-func WithEndpoint(endpointService portaineree.EndpointService, endpointIDParam string) mux.MiddlewareFunc {
+func WithEndpoint(endpointService dataservices.EndpointService, endpointIDParam string) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, request *http.Request) {
 			if endpointIDParam == "" {
@@ -76,26 +77,26 @@ func FetchEndpoint(request *http.Request) (*portaineree.Endpoint, error) {
 
 // FindInQuery returns a func that finds a query param by name and returns a corresponding Endpoint.
 // If either param or endpoint are missing, it returns an error
-func FindInQuery(endpointService portaineree.EndpointService, param string) ContextFetcher {
+func FindInQuery(endpointService dataservices.EndpointService, param string) ContextFetcher {
 	return findInRequest(endpointService, getIntQueryParam(param))
 }
 
 // FindInPath returns a func that finds a url param by name and returns a corresponding Endpoint.
 // If either param or endpoint are missing, it returns an error
-func FindInPath(endpointService portaineree.EndpointService, param string) ContextFetcher {
+func FindInPath(endpointService dataservices.EndpointService, param string) ContextFetcher {
 	return findInRequest(endpointService, getIntRouteParam(param))
 }
 
 // FindInJsonBodyField returns a func that finds a field by its path and returns a corresponding Endpoint.
 // If request body is missing a requested field or endpoint is missing, it returns an error.
 // FieldPath should represent a field hierarchy with the field holding the endpoint id being the last.
-func FindInJsonBodyField(endpointService portaineree.EndpointService, fieldPath []string) ContextFetcher {
+func FindInJsonBodyField(endpointService dataservices.EndpointService, fieldPath []string) ContextFetcher {
 	return findInRequest(endpointService, getIntJsonBodyField(fieldPath))
 }
 
 // findInRequest returns a func that looksup an endpoint Id in the request and returns a corresponding Endpoint.
 // If either param or endpoint are missing, it returns an error
-func findInRequest(endpointService portaineree.EndpointService, lookup endpointIdLookup) ContextFetcher {
+func findInRequest(endpointService dataservices.EndpointService, lookup endpointIdLookup) ContextFetcher {
 	return func(request *http.Request) (*portaineree.Endpoint, error) {
 		endpointID, err := lookup(request)
 		if err != nil {

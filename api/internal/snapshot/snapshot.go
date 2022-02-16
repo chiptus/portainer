@@ -7,13 +7,14 @@ import (
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 )
 
 // Service represents a service to manage environment(endpoint) snapshots.
 // It provides an interface to start background snapshots as well as
 // specific Docker/Kubernetes environment(endpoint) snapshot methods.
 type Service struct {
-	dataStore                 portaineree.DataStore
+	dataStore                 dataservices.DataStore
 	refreshSignal             chan struct{}
 	snapshotIntervalInSeconds float64
 	dockerSnapshotter         portaineree.DockerSnapshotter
@@ -22,7 +23,7 @@ type Service struct {
 }
 
 // NewService creates a new instance of a service
-func NewService(snapshotIntervalFromFlag string, dataStore portaineree.DataStore, dockerSnapshotter portaineree.DockerSnapshotter, kubernetesSnapshotter portaineree.KubernetesSnapshotter, shutdownCtx context.Context) (*Service, error) {
+func NewService(snapshotIntervalFromFlag string, dataStore dataservices.DataStore, dockerSnapshotter portaineree.DockerSnapshotter, kubernetesSnapshotter portaineree.KubernetesSnapshotter, shutdownCtx context.Context) (*Service, error) {
 	snapshotFrequency, err := parseSnapshotFrequency(snapshotIntervalFromFlag, dataStore)
 	if err != nil {
 		return nil, err
@@ -37,7 +38,7 @@ func NewService(snapshotIntervalFromFlag string, dataStore portaineree.DataStore
 	}, nil
 }
 
-func parseSnapshotFrequency(snapshotInterval string, dataStore portaineree.DataStore) (float64, error) {
+func parseSnapshotFrequency(snapshotInterval string, dataStore dataservices.DataStore) (float64, error) {
 	if snapshotInterval == "" {
 		settings, err := dataStore.Settings().Settings()
 		if err != nil {

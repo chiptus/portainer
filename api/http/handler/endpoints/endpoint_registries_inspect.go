@@ -7,9 +7,9 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // @id endpointRegistryInspect
@@ -39,7 +39,7 @@ func (handler *Handler) endpointRegistryInspect(w http.ResponseWriter, r *http.R
 	}
 
 	registry, err := handler.dataStore.Registry().Registry(portaineree.RegistryID(registryID))
-	if err == bolterrors.ErrObjectNotFound {
+	if err == portainerDsErrors.ErrObjectNotFound {
 		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find a registry with the specified identifier inside the database", Err: err}
 	} else if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find a registry with the specified identifier inside the database", Err: err}

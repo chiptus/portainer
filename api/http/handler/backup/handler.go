@@ -9,6 +9,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/adminmonitor"
 	operations "github.com/portainer/portainer-ee/api/backup"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/offlinegate"
 	"github.com/portainer/portainer-ee/api/http/security"
 )
@@ -18,7 +19,7 @@ type Handler struct {
 	*mux.Router
 	backupScheduler   *operations.BackupScheduler
 	bouncer           *security.RequestBouncer
-	dataStore         portaineree.DataStore
+	dataStore         dataservices.DataStore
 	userActivityStore portaineree.UserActivityStore
 	gate              *offlinegate.OfflineGate
 	filestorePath     string
@@ -27,7 +28,7 @@ type Handler struct {
 }
 
 // NewHandler creates an new instance of backup handler
-func NewHandler(bouncer *security.RequestBouncer, dataStore portaineree.DataStore, userActivityStore portaineree.UserActivityStore, gate *offlinegate.OfflineGate, filestorePath string, backupScheduler *operations.BackupScheduler, shutdownTrigger context.CancelFunc, adminMonitor *adminmonitor.Monitor) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, userActivityStore portaineree.UserActivityStore, gate *offlinegate.OfflineGate, filestorePath string, backupScheduler *operations.BackupScheduler, shutdownTrigger context.CancelFunc, adminMonitor *adminmonitor.Monitor) *Handler {
 	h := &Handler{
 		Router:            mux.NewRouter(),
 		bouncer:           bouncer,

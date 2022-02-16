@@ -2,7 +2,6 @@ package authorization
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/bolt/errors"
 )
 
 // CleanNAPWithOverridePolicies Clean Namespace Access Policies with override policies
@@ -36,7 +35,7 @@ func (service *Service) CleanNAPWithOverridePolicies(
 
 		for userID := range policy.UserAccessPolicies {
 			_, err := service.dataStore.User().User(userID)
-			if err == errors.ErrObjectNotFound {
+			if service.dataStore.IsErrObjectNotFound(err) {
 				continue
 			}
 

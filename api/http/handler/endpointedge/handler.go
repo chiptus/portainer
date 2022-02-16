@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 )
 
@@ -15,7 +16,7 @@ import (
 type Handler struct {
 	*mux.Router
 	requestBouncer       *security.RequestBouncer
-	DataStore            portaineree.DataStore
+	DataStore            dataservices.DataStore
 	FileService          portainer.FileService
 	ReverseTunnelService portaineree.ReverseTunnelService
 }

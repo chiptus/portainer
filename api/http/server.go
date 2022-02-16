@@ -15,6 +15,7 @@ import (
 	"github.com/portainer/portainer-ee/api/adminmonitor"
 	"github.com/portainer/portainer-ee/api/apikey"
 	backupOps "github.com/portainer/portainer-ee/api/backup"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/http/handler"
 	"github.com/portainer/portainer-ee/api/http/handler/auth"
@@ -82,7 +83,7 @@ type Server struct {
 	SignatureService            portaineree.DigitalSignatureService
 	SnapshotService             portaineree.SnapshotService
 	FileService                 portainer.FileService
-	DataStore                   portaineree.DataStore
+	DataStore                   dataservices.DataStore
 	GitService                  portaineree.GitService
 	APIKeyService               apikey.APIKeyService
 	OpenAMTService              portainer.OpenAMTService
@@ -229,7 +230,7 @@ func (server *Server) Start() error {
 	var sslHandler = sslhandler.NewHandler(requestBouncer)
 	sslHandler.SSLService = server.SSLService
 
-	openAMTHandler := openamt.NewHandler(requestBouncer)
+	openAMTHandler := openamt.NewHandler(requestBouncer, server.DataStore)
 	openAMTHandler.OpenAMTService = server.OpenAMTService
 	openAMTHandler.DataStore = server.DataStore
 	openAMTHandler.DockerClientFactory = server.DockerClientFactory

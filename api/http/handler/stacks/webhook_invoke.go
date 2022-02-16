@@ -8,8 +8,8 @@ import (
 
 	"github.com/portainer/libhttp/response"
 
-	bolterrors "github.com/portainer/portainer-ee/api/bolt/errors"
 	"github.com/portainer/portainer-ee/api/stacks"
+	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"

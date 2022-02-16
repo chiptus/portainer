@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
-	dberrors "github.com/portainer/portainer-ee/api/bolt/errors"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
@@ -21,6 +21,7 @@ import (
 	"github.com/portainer/portainer-ee/api/scheduler"
 	"github.com/portainer/portainer-ee/api/stacks"
 	portainer "github.com/portainer/portainer/api"
+	dberrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 const defaultGitReferenceName = "refs/heads/master"
@@ -37,7 +38,7 @@ type Handler struct {
 	stackDeletionMutex      *sync.Mutex
 	requestBouncer          *security.RequestBouncer
 	userActivityService     portaineree.UserActivityService
-	DataStore               portaineree.DataStore
+	DataStore               dataservices.DataStore
 	DockerClientFactory     *docker.ClientFactory
 	FileService             portainer.FileService
 	GitService              portaineree.GitService
@@ -57,7 +58,7 @@ func stackExistsError(name string) *httperror.HandlerError {
 }
 
 // NewHandler creates a handler to manage stack operations.
-func NewHandler(bouncer *security.RequestBouncer, dataStore portaineree.DataStore, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		DataStore:           dataStore,
