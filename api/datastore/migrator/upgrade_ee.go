@@ -24,8 +24,9 @@ func (m *Migrator) UpgradeToEE() error {
 	if err != nil {
 		return err
 	}
+
 	migrateLog.Info("Updating role authorizations to EE")
-	err = m.updateRoleAuthorizationsToEE()
+	err = m.roleService.CreateOrUpdatePredefinedRoles()
 	if err != nil {
 		return err
 	}
@@ -70,56 +71,6 @@ func (m *Migrator) updateSettingsToEE() error {
 	return m.settingsService.UpdateSettings(legacySettings)
 }
 
-// Updating role authorizations because of the new policies in Kube RBAC
-func (m *Migrator) updateRoleAuthorizationsToEE() error {
-	migrateLog.Debug("Retriving settings")
-
-	migrateLog.Debug("Updating Environment Admin Role")
-	endpointAdministratorRole, err := m.roleService.Role(portaineree.RoleID(1))
-	if err != nil {
-		return err
-	}
-	endpointAdministratorRole.Priority = 1
-	endpointAdministratorRole.Authorizations = authorization.DefaultEndpointAuthorizationsForEndpointAdministratorRole()
-
-	err = m.roleService.UpdateRole(endpointAdministratorRole.ID, endpointAdministratorRole)
-
-	migrateLog.Debug("Updating Help Desk Role")
-	helpDeskRole, err := m.roleService.Role(portaineree.RoleID(2))
-	if err != nil {
-		return err
-	}
-	helpDeskRole.Priority = 2
-	helpDeskRole.Authorizations = authorization.DefaultEndpointAuthorizationsForHelpDeskRole()
-
-	err = m.roleService.UpdateRole(helpDeskRole.ID, helpDeskRole)
-
-	migrateLog.Debug("Updating Standard User Role")
-	standardUserRole, err := m.roleService.Role(portaineree.RoleID(3))
-	if err != nil {
-		return err
-	}
-	standardUserRole.Priority = 3
-	standardUserRole.Authorizations = authorization.DefaultEndpointAuthorizationsForStandardUserRole()
-
-	err = m.roleService.UpdateRole(standardUserRole.ID, standardUserRole)
-
-	migrateLog.Debug("Updating Read Only User Role")
-	readOnlyUserRole, err := m.roleService.Role(portaineree.RoleID(4))
-	if err != nil {
-		return err
-	}
-	readOnlyUserRole.Priority = 4
-	readOnlyUserRole.Authorizations = authorization.DefaultEndpointAuthorizationsForReadOnlyUserRole()
-
-	err = m.roleService.UpdateRole(readOnlyUserRole.ID, readOnlyUserRole)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // If RBAC extension wasn't installed before, update all users in environments(endpoints) and
 // environment(endpoint) groups to have read only access.
 func (m *Migrator) updateUserRolesToEE() error {
@@ -128,7 +79,7 @@ func (m *Migrator) updateUserRolesToEE() error {
 		return err
 	}
 
-	migrateLog.Debug("Retriving extension info")
+	migrateLog.Debug("Retrieving extension info")
 	extensions, err := m.extensionService.Extensions()
 	for _, extension := range extensions {
 		if extension.ID == 3 && extension.Enabled {
@@ -137,7 +88,7 @@ func (m *Migrator) updateUserRolesToEE() error {
 		}
 	}
 
-	migrateLog.Debug("Retriving environment groups")
+	migrateLog.Debug("Retrieving environment groups")
 	endpointGroups, err := m.endpointGroupService.EndpointGroups()
 	if err != nil {
 		return err
@@ -159,7 +110,7 @@ func (m *Migrator) updateUserRolesToEE() error {
 		}
 	}
 
-	migrateLog.Debug("Retriving environments")
+	migrateLog.Debug("Retrieving environments")
 	endpoints, err := m.endpointService.Endpoints()
 	if err != nil {
 		return err
