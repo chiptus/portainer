@@ -30,13 +30,17 @@ type dbWrapper struct {
 const databaseFileName = "useractivity.db"
 
 // NewStore Creates a new store
-func NewStore(dataPath string) (*Store, error) {
+func NewStore(dataPath string, maxBatchSize int, maxBatchDelay time.Duration, initialMmapSize int) (*Store, error) {
 	databasePath := path.Join(dataPath, databaseFileName)
 
-	db, err := storm.Open(databasePath)
+	db, err := storm.Open(databasePath, storm.Batch(),
+		storm.BoltOptions(0600, &bbolt.Options{InitialMmapSize: initialMmapSize}))
 	if err != nil {
 		return nil, err
 	}
+
+	db.Bolt.MaxBatchSize = maxBatchSize
+	db.Bolt.MaxBatchDelay = maxBatchDelay
 
 	err = db.Init(&portaineree.UserActivityLog{})
 	if err != nil {

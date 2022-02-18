@@ -8,6 +8,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/portainer/libhelm"
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -60,8 +61,8 @@ func initCLI() *portaineree.CLIFlags {
 	return flags
 }
 
-func initUserActivity(dataStorePath string, shutdownCtx context.Context) (portaineree.UserActivityService, portaineree.UserActivityStore) {
-	store, err := useractivity.NewStore(dataStorePath)
+func initUserActivity(dataStorePath string, maxBatchSize int, maxBatchDelay time.Duration, initialMmapSize int, shutdownCtx context.Context) (portaineree.UserActivityService, portaineree.UserActivityStore) {
+	store, err := useractivity.NewStore(dataStorePath, maxBatchSize, maxBatchDelay, initialMmapSize)
 	if err != nil {
 		logrus.Fatalf("Failed initalizing user activity store: %v", err)
 	}
@@ -649,7 +650,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 
 	kubeConfigService := kubernetes.NewKubeConfigCAService(*flags.AddrHTTPS, sslSettings.CertPath)
 
-	userActivityService, userActivityStore := initUserActivity(*flags.Data, shutdownCtx)
+	userActivityService, userActivityStore := initUserActivity(*flags.Data, *flags.MaxBatchSize, *flags.MaxBatchDelay, *flags.InitialMmapSize, shutdownCtx)
 
 	proxyManager := proxy.NewManager(dataStore, digitalSignatureService, reverseTunnelService, dockerClientFactory, kubernetesClientFactory, kubernetesTokenCacheManager, authorizationService, userActivityService)
 
