@@ -219,9 +219,6 @@ func (handler *Handler) deployStack(r *http.Request, stack *portaineree.Stack, p
 		}
 
 	case portaineree.KubernetesStack:
-		if stack.Namespace == "" {
-			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Invalid namespace", Err: errors.New("Namespace must not be empty when redeploying kubernetes stacks")}
-		}
 		tokenData, err := security.RetrieveTokenData(r)
 		if err != nil {
 			return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Failed to retrieve user token data", Err: err}
