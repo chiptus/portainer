@@ -1,6 +1,8 @@
 package role
 
 import (
+	"sort"
+
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer/api/dataservices/errors"
@@ -15,13 +17,6 @@ func (service *Service) CreateOrUpdatePredefinedRoles() error {
 			ID:             portaineree.RoleIDEndpointAdmin,
 			Priority:       1,
 			Authorizations: authorization.DefaultEndpointAuthorizationsForEndpointAdministratorRole(),
-		},
-		portaineree.RoleIDOperator: {
-			Name:           "Operator",
-			Description:    "Operational control of all existing resources in an environment",
-			ID:             portaineree.RoleIDOperator,
-			Priority:       2,
-			Authorizations: authorization.DefaultEndpointAuthorizationsForOperatorRole(),
 		},
 		portaineree.RoleIDHelpdesk: {
 			Name:           "Helpdesk",
@@ -44,11 +39,28 @@ func (service *Service) CreateOrUpdatePredefinedRoles() error {
 			Priority:       5,
 			Authorizations: authorization.DefaultEndpointAuthorizationsForReadOnlyUserRole(),
 		},
+		portaineree.RoleIDOperator: {
+			Name:           "Operator",
+			Description:    "Operational control of all existing resources in an environment",
+			ID:             portaineree.RoleIDOperator,
+			Priority:       2,
+			Authorizations: authorization.DefaultEndpointAuthorizationsForOperatorRole(),
+		},
 	}
 
-	for roleID, predefinedRole := range predefinedRoles {
-		_, err := service.Role(roleID)
+	// The order of iteration over map is undefined and may vary between program to program so
+	// to insert in the right order, creating a roles []int and sorting it.
+	roles := []int{}
+	for roleID := range predefinedRoles {
+		roles = append(roles, int(roleID))
+	}
+	sort.Ints(roles)
 
+	for _, roleid := range roles {
+		roleID := portaineree.RoleID(roleid)
+		predefinedRole := predefinedRoles[roleID]
+
+		_, err := service.Role(roleID)
 		if err == errors.ErrObjectNotFound {
 			err := service.Create(predefinedRole)
 			if err != nil {
