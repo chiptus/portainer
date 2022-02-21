@@ -34,6 +34,7 @@ class StackRedeployGitFormController {
         RepositoryFetchInterval: '5m',
         RepositoryWebhookURL: '',
         ForcePullImage: false,
+        ShowForcePullImage: false,
       },
     };
 
@@ -154,6 +155,7 @@ class StackRedeployGitFormController {
       this.formValues.AutoUpdate.RepositoryAutomaticUpdates = true;
       this.formValues.AutoUpdate.RepositoryAutomaticUpdatesForce = this.stack.AutoUpdate.ForceUpdate;
       this.formValues.AutoUpdate.ForcePullImage = this.stack.AutoUpdate.ForcePullImage;
+      this.formValues.AutoUpdate.ShowForcePullImage = this.stack.Type !== 3;
 
       if (this.stack.AutoUpdate.Interval) {
         this.formValues.AutoUpdate.RepositoryMechanism = RepositoryMechanismTypes.INTERVAL;
