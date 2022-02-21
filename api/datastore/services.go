@@ -400,6 +400,7 @@ type storeExport struct {
 	User               []portaineree.User               `json:"users,omitempty"`
 	Version            map[string]string                `json:"version,omitempty"`
 	Webhook            []portaineree.Webhook            `json:"webhooks,omitempty"`
+	Metadata           map[string]interface{}           `json:"metadata,omitempty"`
 }
 
 func (store *Store) Export(filename string) (err error) {
@@ -616,6 +617,11 @@ func (store *Store) Export(filename string) (err error) {
 		"INSTANCE_ID": instance,
 	}
 
+	backup.Metadata, err = store.connection.BackupMetadata()
+	if err != nil {
+		logrus.WithError(err).Errorf("Exporting Metadata")
+	}
+
 	b, err := json.MarshalIndent(backup, "", "  ")
 	if err != nil {
 		return err
@@ -733,5 +739,5 @@ func (store *Store) Import(filename string) (err error) {
 		store.Webhook().UpdateWebhook(v.ID, &v)
 	}
 
-	return nil
+	return store.connection.RestoreMetadata(backup.Metadata)
 }
