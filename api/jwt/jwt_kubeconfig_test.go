@@ -3,7 +3,7 @@ package jwt
 import (
 	"testing"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	i "github.com/portainer/portainer-ee/api/internal/testhelpers"
