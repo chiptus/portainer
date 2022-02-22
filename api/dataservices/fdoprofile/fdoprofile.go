@@ -44,11 +44,11 @@ func (service *Service) FDOProfiles() ([]portaineree.FDOProfile, error) {
 		func(obj interface{}) (interface{}, error) {
 			fdoProfile, ok := obj.(*portaineree.FDOProfile)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to Registry object")
-				return nil, fmt.Errorf("Failed to convert to Registry object: %s", obj)
+				logrus.WithField("obj", obj).Errorf("Failed to convert to FDOProfile object")
+				return nil, fmt.Errorf("Failed to convert to FDOProfile object: %s", obj)
 			}
 			fdoProfiles = append(fdoProfiles, *fdoProfile)
-			return &portaineree.Registry{}, nil
+			return &portaineree.FDOProfile{}, nil
 		})
 
 	return fdoProfiles, err
