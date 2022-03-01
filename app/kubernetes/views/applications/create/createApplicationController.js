@@ -89,6 +89,12 @@ class KubernetesCreateApplicationController {
       actionInProgress: false,
       useLoadBalancer: false,
       useServerMetrics: false,
+      storages: {
+        quotasComputed: false,
+        allRestricted: false,
+        availabilities: {},
+        quotaExceeded: false,
+      },
       sliders: {
         cpu: {
           min: 0,
@@ -107,6 +113,8 @@ class KubernetesCreateApplicationController {
         memory: 0,
         cpu: 0,
       },
+      maxLoadBalancers: null,
+      maxLoadBalancersQuota: null,
       resourcePoolHasQuota: false,
       viewReady: false,
       availableSizeUnits: ['MB', 'GB', 'TB'],
@@ -124,12 +132,15 @@ class KubernetesCreateApplicationController {
         },
         placements: new KubernetesFormValidationReferences(),
       },
-      isEdit: this.$state.params.namespace && this.$state.params.name,
+      exceeded: {
+        persistedFolders: new KubernetesFormValidationReferences(),
+      },
+      isEdit: false,
       persistedFoldersUseExistingVolumes: false,
       pullImageValidity: false,
     };
 
-    this.isAdmin = this.Authentication.isAdmin();
+    this.isAdmin = false;
 
     this.editChanges = [];
 
@@ -305,6 +316,9 @@ class KubernetesCreateApplicationController {
     }
 
     const newPf = new KubernetesApplicationPersistedFolderFormValue(storageClass);
+    if (this.allQuotasExhaustedAndVolumesAvailable()) {
+      newPf.UseNewVolume = false;
+    }
     this.formValues.PersistedFolders.push(newPf);
     this.resetDeploymentType();
   }
@@ -315,11 +329,15 @@ class KubernetesCreateApplicationController {
   }
 
   resetPersistedFolders() {
-    this.formValues.PersistedFolders = _.forEach(this.formValues.PersistedFolders, (persistedFolder) => {
-      persistedFolder.ExistingVolume = null;
-      persistedFolder.UseNewVolume = true;
-    });
-    this.validatePersistedFolders();
+    if (this.allQuotasExhaustedAndNoVolumesAvailable()) {
+      this.formValues.PersistedFolders = [];
+    } else {
+      _.forEach(this.formValues.PersistedFolders, (persistedFolder) => {
+        persistedFolder.ExistingVolume = null;
+        persistedFolder.UseNewVolume = this.allQuotasExhaustedAndVolumesAvailable() ? false : true;
+      });
+      this.validatePersistedFolders();
+    }
   }
 
   removePersistedFolder(index) {
@@ -352,6 +370,7 @@ class KubernetesCreateApplicationController {
   /* #region  PERSISTENT FOLDERS ON CHANGE VALIDATION */
   validatePersistedFolders() {
     this.onChangePersistedFolderPath();
+    this.onChangeVolumeRequestedSize();
     this.onChangeExistingVolumeSelection();
   }
 
@@ -365,6 +384,35 @@ class KubernetesCreateApplicationController {
       })
     );
     this.state.duplicates.persistedFolders.hasRefs = Object.keys(this.state.duplicates.persistedFolders.refs).length > 0;
+  }
+
+  onChangeVolumeRequestedSize() {
+    const quota = this.formValues.ResourcePool.Quota;
+    this.state.storages.quotaExceeded = false;
+    if (quota) {
+      const pfs = this.formValues.PersistedFolders;
+      const groups = _.groupBy(pfs, 'StorageClass.Name');
+      const res = {};
+      _.forOwn(groups, (storagePfs, storageClassName) => {
+        const newPfs = _.filter(storagePfs, { PersistentVolumeClaimName: '' });
+        const requestedSize = _.reduce(newPfs, (sum, pf) => (pf.UseNewVolume && pf.Size ? sum + filesizeParser(`${pf.Size}${pf.SizeUnit}`, { base: 10 }) : sum), 0);
+        if (this.state.storages.availabilities[storageClassName] < requestedSize) {
+          _.forEach(pfs, (pf, idx) => {
+            if (_.includes(newPfs, pf) && pf.UseNewVolume && pf.Size) {
+              res[idx] = true;
+            }
+          });
+        }
+        if (
+          this.formValues.DataAccessPolicy === this.ApplicationDataAccessPolicies.ISOLATED &&
+          this.state.storages.availabilities[storageClassName] < requestedSize * this.formValues.ReplicaCount
+        ) {
+          this.state.storages.quotaExceeded = true;
+        }
+      });
+      this.state.exceeded.persistedFolders.refs = res;
+      this.state.exceeded.persistedFolders.hasRefs = Object.keys(this.state.exceeded.persistedFolders.refs).length > 0;
+    }
   }
 
   onChangeExistingVolumeSelection() {
@@ -557,14 +605,13 @@ class KubernetesCreateApplicationController {
   }
 
   onChangePortProtocol(index) {
+    this.onChangePortMappingContainerPort();
     if (this.formValues.PublishingType === KubernetesApplicationPublishingTypes.LOAD_BALANCER) {
       const newPorts = _.filter(this.formValues.PublishedPorts, { IsNew: true });
       _.forEach(newPorts, (port) => {
         port.Protocol = index ? this.formValues.PublishedPorts[index].Protocol : newPorts[0].Protocol;
       });
-      this.onChangePortMappingLoadBalancer();
     }
-    this.onChangePortMappingContainerPort();
   }
   /* #endregion */
 
@@ -579,12 +626,18 @@ class KubernetesCreateApplicationController {
       !this.state.duplicates.publishedPorts.containerPorts.hasRefs &&
       !this.state.duplicates.publishedPorts.nodePorts.hasRefs &&
       !this.state.duplicates.publishedPorts.ingressRoutes.hasRefs &&
-      !this.state.duplicates.publishedPorts.loadBalancerPorts.hasRefs
+      !this.state.duplicates.publishedPorts.loadBalancerPorts.hasRefs &&
+      !this.state.exceeded.persistedFolders.hasRefs
     );
   }
 
   storageClassAvailable() {
-    return this.storageClasses && this.storageClasses.length > 0;
+    return (
+      this.storageClasses &&
+      this.storageClasses.length > 0 &&
+      this.state.storages.quotasComputed &&
+      (!this.state.storages.allRestricted || (this.state.storages.allRestricted && this.formValues.PersistedFolders.length !== 0))
+    );
   }
 
   hasMultipleStorageClassesAvailable() {
@@ -593,6 +646,7 @@ class KubernetesCreateApplicationController {
 
   resetDeploymentType() {
     this.formValues.DeploymentType = this.ApplicationDeploymentTypes.REPLICATED;
+    this.onChangeVolumeRequestedSize();
   }
 
   // The data access policy panel is not shown when:
@@ -643,8 +697,10 @@ class KubernetesCreateApplicationController {
     for (let i = 0; i < this.formValues.PersistedFolders.length; i++) {
       const folder = this.formValues.PersistedFolders[i];
 
-      if (folder.StorageClass && _.isEqual(folder.StorageClass.AccessModes, ['RWO'])) {
-        storageOptions.push(folder.StorageClass.Name);
+      if (folder.StorageClass) {
+        if (_.isEqual(folder.StorageClass.AccessModes, ['RWO'])) {
+          storageOptions.push(folder.StorageClass.Name);
+        }
       } else {
         storageOptions.push('<no storage option available>');
       }
@@ -741,13 +797,36 @@ class KubernetesCreateApplicationController {
   }
 
   isNewVolumeButtonDisabled(index) {
-    return this.isEditAndExistingPersistedFolder(index);
+    return this.isEditAndExistingPersistedFolder(index) || this.allQuotasExhaustedAndVolumesAvailable();
   }
 
   isExistingVolumeButtonDisabled() {
     return !this.hasAvailableVolumes() || (this.isEdit && this.application.ApplicationType === this.ApplicationTypes.STATEFULSET);
   }
   /* #endregion */
+
+  allQuotasExhausted() {
+    if (!this.storageClassAvailable() || !this.state.storages.quotasComputed) {
+      return true;
+    }
+    const total = _.reduce(
+      _.map(this.storageClasses, 'Name'),
+      (sum, key) => {
+        const availableSize = this.state.storages.availabilities[key];
+        return availableSize ? sum + availableSize : sum;
+      },
+      0
+    );
+    return this.storageClasses.length === _.keys(this.state.storages.availabilities).length && total <= 0;
+  }
+
+  allQuotasExhaustedAndNoVolumesAvailable() {
+    return this.allQuotasExhausted() && !this.hasAvailableVolumes();
+  }
+
+  allQuotasExhaustedAndVolumesAvailable() {
+    return this.allQuotasExhausted() && this.hasAvailableVolumes();
+  }
 
   hasAvailableVolumes() {
     return this.availableVolumes.length > 0;
@@ -788,6 +867,16 @@ class KubernetesCreateApplicationController {
     return res;
   }
 
+  isMaxLoadBalancerOverflow() {
+    if (!this.state.useLoadBalancer || this.formValues.PublishingType !== this.ApplicationPublishingTypes.LOAD_BALANCER) {
+      return false;
+    }
+    if (this.state.maxLoadBalancers <= 0 && this.state.maxLoadBalancers !== null) {
+      return true;
+    }
+    return false;
+  }
+
   isDeployUpdateButtonDisabled() {
     const overflow = this.resourceReservationsOverflow();
     const autoScalerOverflow = this.autoScalerOverflow();
@@ -796,7 +885,9 @@ class KubernetesCreateApplicationController {
     const hasNoChanges = this.isEditAndNoChangesMade();
     const nonScalable = this.isNonScalable();
     const isPublishingWithoutPorts = this.formValues.IsPublishingService && this.hasNoPublishedPorts();
-    return overflow || autoScalerOverflow || inProgress || invalid || hasNoChanges || nonScalable || isPublishingWithoutPorts;
+    const noResourcePool = !this.formValues.ResourcePool;
+    const maxLoadBalancersOverflow = this.isMaxLoadBalancerOverflow();
+    return overflow || autoScalerOverflow || inProgress || invalid || hasNoChanges || nonScalable || isPublishingWithoutPorts || noResourcePool || maxLoadBalancersOverflow;
   }
 
   isExternalApplication() {
@@ -923,6 +1014,21 @@ class KubernetesCreateApplicationController {
     return this.$async(async () => {
       try {
         this.applications = await this.KubernetesApplicationService.get(namespace);
+        this.state.maxLoadBalancers = null;
+        this.state.maxLoadBalancersQuota = null;
+        if (this.formValues.ResourcePool.Quota) {
+          this.state.maxLoadBalancersQuota = this.formValues.ResourcePool.Quota.LoadBalancers;
+          if (this.state.maxLoadBalancersQuota !== null) {
+            let appsUsingLoadBalancers = _.filter(this.applications, { ServiceType: 'LoadBalancer' });
+            if (this.state.isEdit) {
+              appsUsingLoadBalancers = _.filter(appsUsingLoadBalancers, (app) => {
+                return app.Name !== this.formValues.Name;
+              });
+            }
+            const appsUsingLoadBalancersLength = appsUsingLoadBalancers.length;
+            this.state.maxLoadBalancers = this.state.maxLoadBalancersQuota - appsUsingLoadBalancersLength;
+          }
+        }
       } catch (err) {
         this.Notifications.error('Failure', err, 'Unable to retrieve applications');
       }
@@ -947,6 +1053,35 @@ class KubernetesCreateApplicationController {
         this.Notifications.error('Failure', err, 'Unable to retrieve volumes');
       }
     });
+  }
+
+  refreshStorageAvailabilities() {
+    const quota = this.formValues.ResourcePool.Quota;
+    this.state.storages.availabilities = {};
+    this.state.storages.quotasComputed = false;
+    this.state.storages.allRestricted = false;
+    if (quota && quota.StorageRequests.length) {
+      const availabilities = {};
+      _.forEach(quota.StorageRequests, (sr) => {
+        if (sr.Selected) {
+          availabilities[sr.Name] = filesizeParser(`${sr.Size}${sr.SizeUnit}`, { base: 10 });
+        }
+      });
+
+      const groups = _.groupBy(this.volumes, 'PersistentVolumeClaim.StorageClass.Name');
+      _.forOwn(groups, (volumes, key) => {
+        if (availabilities[key]) {
+          const used = _.reduce(volumes, (sum, v) => sum + filesizeParser(v.PersistentVolumeClaim.Storage, { base: 10 }), 0);
+          const available = availabilities[key] - used;
+          availabilities[key] = available < 0 ? 0 : available;
+        }
+      });
+      this.state.storages.availabilities = availabilities;
+
+      const restricted = _.filter(quota.StorageRequests, { Selected: true, Size: 0 });
+      this.state.storages.allRestricted = restricted.length === quota.StorageRequests.length;
+    }
+    this.state.storages.quotasComputed = true;
   }
 
   refreshIngresses(namespace) {
@@ -993,6 +1128,7 @@ class KubernetesCreateApplicationController {
       this.updateNamespaceLimits();
       this.updateSliders();
       await this.refreshNamespaceData(namespace);
+      this.refreshStorageAvailabilities();
       this.resetFormValues();
     });
   }
@@ -1071,6 +1207,12 @@ class KubernetesCreateApplicationController {
   $onInit() {
     return this.$async(async () => {
       try {
+        this.Authentication.redirectIfUnauthorized(['K8sApplicationDetailsW']);
+
+        this.isAdmin = this.Authentication.isAdmin();
+
+        this.state.isEdit = this.$state.params.namespace && this.$state.params.name;
+
         this.storageClasses = this.endpoint.Kubernetes.Configuration.StorageClasses;
         this.state.useLoadBalancer = this.endpoint.Kubernetes.Configuration.UseLoadBalancer;
         this.state.useServerMetrics = this.endpoint.Kubernetes.Configuration.UseServerMetrics;
@@ -1153,6 +1295,7 @@ class KubernetesCreateApplicationController {
 
         this.updateNamespaceLimits();
         this.updateSliders();
+        this.refreshStorageAvailabilities();
       } catch (err) {
         this.Notifications.error('Failure', err, 'Unable to load view data');
       } finally {
