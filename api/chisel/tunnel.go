@@ -24,8 +24,7 @@ const (
 func (service *Service) getUnusedPort() int {
 	port := randomInt(minAvailablePort, maxAvailablePort)
 
-	for item := range service.tunnelDetailsMap.IterBuffered() {
-		tunnel := item.Val.(*portaineree.TunnelDetails)
+	for _, tunnel := range service.tunnelDetailsMap {
 		if tunnel.Port == port {
 			return service.getUnusedPort()
 		}
@@ -38,26 +37,33 @@ func randomInt(min, max int) int {
 	return min + rand.Intn(max-min)
 }
 
-// GetTunnelDetails returns information about the tunnel associated to an environment(endpoint).
-func (service *Service) GetTunnelDetails(endpointID portaineree.EndpointID) *portaineree.TunnelDetails {
+// NOTE: it needs to be called with the lock acquired
+func (service *Service) getTunnelDetails(endpointID portaineree.EndpointID) *portaineree.TunnelDetails {
 	key := strconv.Itoa(int(endpointID))
 
-	if item, ok := service.tunnelDetailsMap.Get(key); ok {
-		tunnelDetails := item.(*portaineree.TunnelDetails)
-		return tunnelDetails
+	if tunnel, ok := service.tunnelDetailsMap[key]; ok {
+		return tunnel
 	}
 
-	jobs := make([]portaineree.EdgeJob, 0)
-	return &portaineree.TunnelDetails{
-		Status:      portaineree.EdgeAgentIdle,
-		Port:        0,
-		Jobs:        jobs,
-		Credentials: "",
+	tunnel := &portaineree.TunnelDetails{
+		Status: portaineree.EdgeAgentIdle,
 	}
+
+	service.tunnelDetailsMap[key] = tunnel
+
+	return tunnel
+}
+
+// GetTunnelDetails returns information about the tunnel associated to an environment(endpoint).
+func (service *Service) GetTunnelDetails(endpointID portaineree.EndpointID) portaineree.TunnelDetails {
+	service.mu.Lock()
+	defer service.mu.Unlock()
+
+	return *service.getTunnelDetails(endpointID)
 }
 
 // GetActiveTunnel retrieves an active tunnel which allows communicating with edge agent
-func (service *Service) GetActiveTunnel(endpoint *portaineree.Endpoint) (*portaineree.TunnelDetails, error) {
+func (service *Service) GetActiveTunnel(endpoint *portaineree.Endpoint) (portaineree.TunnelDetails, error) {
 	tunnel := service.GetTunnelDetails(endpoint.ID)
 
 	if tunnel.Status == portaineree.EdgeAgentActive {
@@ -68,13 +74,13 @@ func (service *Service) GetActiveTunnel(endpoint *portaineree.Endpoint) (*portai
 	if tunnel.Status == portaineree.EdgeAgentIdle || tunnel.Status == portaineree.EdgeAgentManagementRequired {
 		err := service.SetTunnelStatusToRequired(endpoint.ID)
 		if err != nil {
-			return nil, fmt.Errorf("failed opening tunnel to endpoint: %w", err)
+			return portaineree.TunnelDetails{}, fmt.Errorf("failed opening tunnel to endpoint: %w", err)
 		}
 
 		if endpoint.EdgeCheckinInterval == 0 {
 			settings, err := service.dataStore.Settings().Settings()
 			if err != nil {
-				return nil, fmt.Errorf("failed fetching settings from db: %w", err)
+				return portaineree.TunnelDetails{}, fmt.Errorf("failed fetching settings from db: %w", err)
 			}
 
 			endpoint.EdgeCheckinInterval = settings.EdgeAgentCheckinInterval
@@ -83,29 +89,23 @@ func (service *Service) GetActiveTunnel(endpoint *portaineree.Endpoint) (*portai
 		time.Sleep(2 * time.Duration(endpoint.EdgeCheckinInterval) * time.Second)
 	}
 
-	tunnel = service.GetTunnelDetails(endpoint.ID)
-
-	return tunnel, nil
+	return service.GetTunnelDetails(endpoint.ID), nil
 }
 
 // SetTunnelStatusToActive update the status of the tunnel associated to the specified environment(endpoint).
 // It sets the status to ACTIVE.
 func (service *Service) SetTunnelStatusToActive(endpointID portaineree.EndpointID) {
-	tunnel := service.GetTunnelDetails(endpointID)
+	service.mu.Lock()
+	tunnel := service.getTunnelDetails(endpointID)
 	tunnel.Status = portaineree.EdgeAgentActive
 	tunnel.Credentials = ""
 	tunnel.LastActivity = time.Now()
-
-	key := strconv.Itoa(int(endpointID))
-	service.tunnelDetailsMap.Set(key, tunnel)
+	service.mu.Unlock()
 }
 
-// SetTunnelStatusToIdle update the status of the tunnel associated to the specified environment(endpoint).
-// It sets the status to IDLE.
-// It removes any existing credentials associated to the tunnel.
-func (service *Service) SetTunnelStatusToIdle(endpointID portaineree.EndpointID) {
-	tunnel := service.GetTunnelDetails(endpointID)
-
+// NOTE: it needs to be called with the lock acquired
+func (service *Service) setTunnelStatusToIdle(endpointID portaineree.EndpointID) {
+	tunnel := service.getTunnelDetails(endpointID)
 	tunnel.Status = portaineree.EdgeAgentIdle
 	tunnel.Port = 0
 	tunnel.LastActivity = time.Now()
@@ -116,10 +116,16 @@ func (service *Service) SetTunnelStatusToIdle(endpointID portaineree.EndpointID)
 		service.chiselServer.DeleteUser(strings.Split(credentials, ":")[0])
 	}
 
-	key := strconv.Itoa(int(endpointID))
-	service.tunnelDetailsMap.Set(key, tunnel)
-
 	service.ProxyManager.DeleteEndpointProxy(endpointID)
+}
+
+// SetTunnelStatusToIdle update the status of the tunnel associated to the specified environment(endpoint).
+// It sets the status to IDLE.
+// It removes any existing credentials associated to the tunnel.
+func (service *Service) SetTunnelStatusToIdle(endpointID portaineree.EndpointID) {
+	service.mu.Lock()
+	service.setTunnelStatusToIdle(endpointID)
+	service.mu.Unlock()
 }
 
 // SetTunnelStatusToRequired update the status of the tunnel associated to the specified environment(endpoint).
@@ -128,7 +134,10 @@ func (service *Service) SetTunnelStatusToIdle(endpointID portaineree.EndpointID)
 // and generate temporary credentials that can be used to establish a reverse tunnel on that port.
 // Credentials are encrypted using the Edge ID associated to the environment(endpoint).
 func (service *Service) SetTunnelStatusToRequired(endpointID portaineree.EndpointID) error {
-	tunnel := service.GetTunnelDetails(endpointID)
+	tunnel := service.getTunnelDetails(endpointID)
+
+	service.mu.Lock()
+	defer service.mu.Unlock()
 
 	if tunnel.Port == 0 {
 		endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
@@ -152,9 +161,6 @@ func (service *Service) SetTunnelStatusToRequired(endpointID portaineree.Endpoin
 			return err
 		}
 		tunnel.Credentials = credentials
-
-		key := strconv.Itoa(int(endpointID))
-		service.tunnelDetailsMap.Set(key, tunnel)
 	}
 
 	return nil

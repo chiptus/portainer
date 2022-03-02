@@ -1,14 +1,13 @@
 package chisel
 
 import (
-	"strconv"
-
 	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 // AddEdgeJob register an EdgeJob inside the tunnel details associated to an environment(endpoint).
 func (service *Service) AddEdgeJob(endpointID portaineree.EndpointID, edgeJob *portaineree.EdgeJob) {
-	tunnel := service.GetTunnelDetails(endpointID)
+	service.mu.Lock()
+	tunnel := service.getTunnelDetails(endpointID)
 
 	existingJobIndex := -1
 	for idx, existingJob := range tunnel.Jobs {
@@ -24,24 +23,25 @@ func (service *Service) AddEdgeJob(endpointID portaineree.EndpointID, edgeJob *p
 		tunnel.Jobs[existingJobIndex] = *edgeJob
 	}
 
-	key := strconv.Itoa(int(endpointID))
-	service.tunnelDetailsMap.Set(key, tunnel)
+	service.mu.Unlock()
 }
 
 // RemoveEdgeJob will remove the specified Edge job from each tunnel it was registered with.
 func (service *Service) RemoveEdgeJob(edgeJobID portaineree.EdgeJobID) {
-	for item := range service.tunnelDetailsMap.IterBuffered() {
-		tunnelDetails := item.Val.(*portaineree.TunnelDetails)
+	service.mu.Lock()
 
-		updatedJobs := make([]portaineree.EdgeJob, 0)
-		for _, edgeJob := range tunnelDetails.Jobs {
-			if edgeJob.ID == edgeJobID {
-				continue
+	for _, tunnel := range service.tunnelDetailsMap {
+		// Filter in-place
+		n := 0
+		for _, edgeJob := range tunnel.Jobs {
+			if edgeJob.ID != edgeJobID {
+				tunnel.Jobs[n] = edgeJob
+				n++
 			}
-			updatedJobs = append(updatedJobs, edgeJob)
 		}
 
-		tunnelDetails.Jobs = updatedJobs
-		service.tunnelDetailsMap.Set(item.Key, tunnelDetails)
+		tunnel.Jobs = tunnel.Jobs[:n]
 	}
+
+	service.mu.Unlock()
 }
