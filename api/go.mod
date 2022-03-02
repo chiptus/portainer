@@ -36,7 +36,7 @@ require (
 	github.com/portainer/libhelm v0.0.0-20210929000907-825e93d62108
 	github.com/portainer/libhttp v0.0.0-20211208103139-07a5f798eb3f
 	github.com/portainer/liblicense v0.0.0-20210617122637-db079d0b7f97
-	github.com/portainer/portainer/api v0.0.0-20220217232958-5db03d0da0ff
+	github.com/portainer/portainer/api v0.0.0-20220301150628-24c88a5d5cee
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0

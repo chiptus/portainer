@@ -2,8 +2,6 @@ package license
 
 import (
 	"fmt"
-	"strconv"
-
 	"github.com/portainer/liblicense"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/sirupsen/logrus"
@@ -66,9 +64,7 @@ func (service *Service) Licenses() ([]liblicense.PortainerLicense, error) {
 
 // AddLicense saves a licence
 func (service *Service) AddLicense(licenseKey string, license *liblicense.PortainerLicense) error {
-	// TODO: CHECK IF LICENCE KEY IS INTEGER
-	l, _ := strconv.Atoi(licenseKey)
-	return service.connection.CreateObjectWithId(BucketName, l, license)
+	return service.connection.CreateObjectWithStringId(BucketName, []byte(licenseKey), license)
 }
 
 // UpdateLicense updates a license.
