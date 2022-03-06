@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	systemNamespaceLabel = "io.portaineree.kubernetes.namespace.system"
+	systemNamespaceLabel = "io.portainer.kubernetes.namespace.system"
 )
 
 func defaultSystemNamespaces() map[string]struct{} {
