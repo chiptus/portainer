@@ -115,15 +115,14 @@ func (handler *Handler) updateKubernetesStack(r *http.Request, stack *portainere
 	//so if the deployment failed, the original file won't be over-written
 	stack.ProjectPath = tempFileDir
 
-	_, err = handler.deployKubernetesStack(tokenData.ID, endpoint, stack, k.KubeAppLabels{
+	_, deployError := handler.deployKubernetesStack(tokenData, endpoint, stack, k.KubeAppLabels{
 		StackID:   int(stack.ID),
 		StackName: stack.Name,
 		Owner:     stack.CreatedBy,
 		Kind:      "content",
 	})
-
-	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to deploy Kubernetes stack via file content", Err: err}
+	if deployError != nil {
+		return deployError
 	}
 
 	stackFolder := strconv.Itoa(int(stack.ID))

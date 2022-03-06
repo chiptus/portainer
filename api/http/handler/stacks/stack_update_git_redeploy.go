@@ -223,14 +223,14 @@ func (handler *Handler) deployStack(r *http.Request, stack *portaineree.Stack, p
 		if err != nil {
 			return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Failed to retrieve user token data", Err: err}
 		}
-		_, err = handler.deployKubernetesStack(tokenData.ID, endpoint, stack, k.KubeAppLabels{
+		_, deployError := handler.deployKubernetesStack(tokenData, endpoint, stack, k.KubeAppLabels{
 			StackID:   int(stack.ID),
 			StackName: stack.Name,
 			Owner:     tokenData.Username,
 			Kind:      "git",
 		})
-		if err != nil {
-			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to redeploy Kubernetes stack", Err: errors.WithMessage(err, "failed to deploy kube application")}
+		if deployError != nil {
+			return deployError
 		}
 
 	default:

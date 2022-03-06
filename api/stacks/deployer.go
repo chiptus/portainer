@@ -2,7 +2,6 @@ package stacks
 
 import (
 	"context"
-	"os"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -77,13 +76,13 @@ func (d *stackDeployer) DeployKubernetesStack(stack *portaineree.Stack, endpoint
 		appLabels.Kind = "git"
 	}
 
-	manifestFilePaths, tempDir, err := stackutils.CreateTempK8SDeploymentFiles(stack, d.kubernetesDeployer, appLabels)
+	deploymentFilesInfo, cleanUp, err := stackutils.CreateTempK8SDeploymentFiles(stack, d.kubernetesDeployer, appLabels)
 	if err != nil {
 		return errors.Wrap(err, "failed to create temp kub deployment files")
 	}
-	defer os.RemoveAll(tempDir)
+	defer cleanUp()
 
-	_, err = d.kubernetesDeployer.Deploy(user.ID, endpoint, manifestFilePaths, stack.Namespace)
+	_, err = d.kubernetesDeployer.Deploy(user.ID, endpoint, deploymentFilesInfo.Namespaces, stack.Namespace)
 	if err != nil {
 		return errors.Wrap(err, "failed to deploy kubernetes application")
 	}

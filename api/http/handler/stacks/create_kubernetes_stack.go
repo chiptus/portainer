@@ -3,7 +3,6 @@ package stacks
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -115,9 +114,9 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 		return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: fmt.Sprintf("A stack with the name '%s' already exists", payload.StackName), Err: errStackAlreadyExists}
 	}
 
-	tokenData, permissionErr := handler.checkEndpointPermission(r, payload.Namespace, endpoint)
-	if permissionErr != nil {
-		return permissionErr
+	tokenData, err := security.RetrieveTokenData(r)
+	if err != nil {
+		return httperror.InternalServerError("unable to retrieve user details from authentication token", err)
 	}
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
@@ -150,14 +149,14 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 	doCleanUp := true
 	defer handler.cleanUp(stack, &doCleanUp)
 
-	output, err := handler.deployKubernetesStack(tokenData.ID, endpoint, stack, k.KubeAppLabels{
+	output, deployError := handler.deployKubernetesStack(tokenData, endpoint, stack, k.KubeAppLabels{
 		StackID:   stackID,
 		StackName: stack.Name,
 		Owner:     stack.CreatedBy,
 		Kind:      "content",
 	})
-	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to deploy Kubernetes stack", Err: err}
+	if deployError != nil {
+		return deployError
 	}
 
 	err = handler.DataStore.Stack().Create(stack)
@@ -191,9 +190,9 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 		return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: fmt.Sprintf("A stack with the name '%s' already exists", payload.StackName), Err: errStackAlreadyExists}
 	}
 
-	tokenData, permissionErr := handler.checkEndpointPermission(r, payload.Namespace, endpoint)
-	if permissionErr != nil {
-		return permissionErr
+	tokenData, err := security.RetrieveTokenData(r)
+	if err != nil {
+		return httperror.InternalServerError("unable to retrieve user details from authentication token", err)
 	}
 
 	//make sure the webhook ID is unique
@@ -259,14 +258,14 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Failed to clone git repository", Err: err}
 	}
 
-	output, err := handler.deployKubernetesStack(tokenData.ID, endpoint, stack, k.KubeAppLabels{
+	output, deployError := handler.deployKubernetesStack(tokenData, endpoint, stack, k.KubeAppLabels{
 		StackID:   stackID,
 		StackName: stack.Name,
 		Owner:     stack.CreatedBy,
 		Kind:      "git",
 	})
-	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to deploy Kubernetes stack", Err: err}
+	if deployError != nil {
+		return deployError
 	}
 
 	if payload.AutoUpdate != nil && payload.AutoUpdate.Interval != "" {
@@ -305,9 +304,9 @@ func (handler *Handler) createKubernetesStackFromManifestURL(w http.ResponseWrit
 		return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: fmt.Sprintf("A stack with the name '%s' already exists", payload.StackName), Err: errStackAlreadyExists}
 	}
 
-	tokenData, permissionErr := handler.checkEndpointPermission(r, payload.Namespace, endpoint)
-	if permissionErr != nil {
-		return permissionErr
+	tokenData, err := security.RetrieveTokenData(r)
+	if err != nil {
+		return httperror.InternalServerError("unable to retrieve user details from authentication token", err)
 	}
 
 	stackID := handler.DataStore.Stack().GetNextIdentifier()
@@ -340,14 +339,14 @@ func (handler *Handler) createKubernetesStackFromManifestURL(w http.ResponseWrit
 	doCleanUp := true
 	defer handler.cleanUp(stack, &doCleanUp)
 
-	output, err := handler.deployKubernetesStack(tokenData.ID, endpoint, stack, k.KubeAppLabels{
+	output, deployError := handler.deployKubernetesStack(tokenData, endpoint, stack, k.KubeAppLabels{
 		StackID:   stackID,
 		StackName: stack.Name,
 		Owner:     stack.CreatedBy,
 		Kind:      "url",
 	})
-	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to deploy Kubernetes stack", Err: err}
+	if deployError != nil {
+		return deployError
 	}
 
 	err = handler.DataStore.Stack().Create(stack)
@@ -363,53 +362,72 @@ func (handler *Handler) createKubernetesStackFromManifestURL(w http.ResponseWrit
 	return response.JSON(w, resp)
 }
 
-func (handler *Handler) deployKubernetesStack(userID portaineree.UserID, endpoint *portaineree.Endpoint, stack *portaineree.Stack, appLabels k.KubeAppLabels) (string, error) {
+func (handler *Handler) deployKubernetesStack(tokenData *portaineree.TokenData, endpoint *portaineree.Endpoint, stack *portaineree.Stack, appLabels k.KubeAppLabels) (string, *httperror.HandlerError) {
 	handler.stackCreationMutex.Lock()
 	defer handler.stackCreationMutex.Unlock()
 
-	manifestFilePaths, tempDir, err := stackutils.CreateTempK8SDeploymentFiles(stack, handler.KubernetesDeployer, appLabels)
+	deploymentFilesInfo, cleanup, err := stackutils.CreateTempK8SDeploymentFiles(stack, handler.KubernetesDeployer, appLabels)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to create temp kub deployment files")
+		return "", httperror.InternalServerError("failed to create temp kub deployment files", err)
 	}
-	defer os.RemoveAll(tempDir)
-	return handler.KubernetesDeployer.Deploy(userID, endpoint, manifestFilePaths, stack.Namespace)
+
+	defer cleanup()
+
+	err = handler.checkEndpointPermission(tokenData, deploymentFilesInfo.Namespaces, endpoint)
+	if err != nil {
+		return "", httperror.Forbidden("user does not have permission to deploy stack", err)
+	}
+
+	output, err := handler.KubernetesDeployer.Deploy(tokenData.ID, endpoint, deploymentFilesInfo.FilePaths, stack.Namespace)
+	if err != nil {
+		return "", httperror.InternalServerError("failed to deploy stack", err)
+	}
+
+	return output, nil
 }
 
-func (handler *Handler) checkEndpointPermission(r *http.Request, namespace string, endpoint *portaineree.Endpoint) (*portaineree.TokenData, *httperror.HandlerError) {
+func (handler *Handler) checkEndpointPermission(tokenData *portaineree.TokenData, namespaces []string, endpoint *portaineree.Endpoint) error {
 	permissionDeniedErr := errors.New("Permission denied to access environment")
-	tokenData, err := security.RetrieveTokenData(r)
-	if err != nil {
-		return nil, &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: permissionDeniedErr.Error(), Err: err}
-	}
 
 	if tokenData.Role == portaineree.AdministratorRole {
-		return tokenData, nil
+		return nil
 	}
 
 	// check if the user has OperationK8sApplicationsAdvancedDeploymentRW access in the environment(endpoint)
 	endpointRole, err := handler.AuthorizationService.GetUserEndpointRole(int(tokenData.ID), int(endpoint.ID))
 	if err != nil {
-		return nil, &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: permissionDeniedErr.Error(), Err: err}
+		return errors.Wrap(err, "failed to retrieve user endpoint role")
 	}
 	if !endpointRole.Authorizations[portaineree.OperationK8sApplicationsAdvancedDeploymentRW] {
-		return nil, &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: permissionDeniedErr.Error(), Err: permissionDeniedErr}
+		return permissionDeniedErr
 	}
 
 	// will skip if user can access all namespaces
-	if !endpointRole.Authorizations[portaineree.OperationK8sAccessAllNamespaces] {
-		cli, err := handler.KubernetesClientFactory.GetKubeClient(endpoint)
-		if err != nil {
-			return nil, &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "Unable to create Kubernetes client", Err: err}
-		}
-		// check if the user has RW access to the namespace
-		namespaceAuthorizations, err := handler.AuthorizationService.GetNamespaceAuthorizations(int(tokenData.ID), *endpoint, cli)
-		if err != nil {
-			return nil, &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: permissionDeniedErr.Error(), Err: err}
-		}
+	if endpointRole.Authorizations[portaineree.OperationK8sAccessAllNamespaces] {
+		return nil
+	}
+
+	cli, err := handler.KubernetesClientFactory.GetKubeClient(endpoint)
+	if err != nil {
+		return errors.Wrap(err, "unable to create Kubernetes client")
+	}
+
+	// check if the user has RW access to the namespace
+	namespaceAuthorizations, err := handler.AuthorizationService.GetNamespaceAuthorizations(int(tokenData.ID), *endpoint, cli)
+	if err != nil {
+		return errors.Wrap(err, "failed to retrieve user namespace authorizations")
+	}
+
+	// if no namespace provided, either by form or by manifest, use the default namespace
+	if len(namespaces) == 0 {
+		namespaces = []string{"default"}
+	}
+
+	for _, namespace := range namespaces {
 		if auth, ok := namespaceAuthorizations[namespace]; !ok || !auth[portaineree.OperationK8sAccessNamespaceWrite] {
-			return nil, &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: permissionDeniedErr.Error(), Err: permissionDeniedErr}
+			return errors.Wrap(permissionDeniedErr, "user does not have permission to access namespace")
 		}
 	}
 
-	return tokenData, nil
+	return nil
 }
