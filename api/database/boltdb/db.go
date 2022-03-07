@@ -197,7 +197,6 @@ func (connection *DbConnection) GetObject(bucketName string, key []byte, object 
 
 		value := bucket.Get(key)
 		if value == nil {
-			logrus.WithFields(logrus.Fields{"bucket": bucketName, "key": string(key)}).Errorf("Object not found in the DB.")
 			return dserrors.ErrObjectNotFound
 		}
 
