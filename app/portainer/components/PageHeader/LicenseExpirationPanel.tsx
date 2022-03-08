@@ -5,7 +5,6 @@ import clsx from 'clsx';
 import { r2a } from '@/react-tools/react2angular';
 import { LicenseInfo } from '@/portainer/license-management/types';
 import { useLicenseInfo } from '@/portainer/license-management/use-license.service';
-import { error as notifyError } from '@/portainer/services/notifications';
 
 import styles from './LicenseExpirationPanel.module.css';
 
@@ -60,13 +59,7 @@ function buildMessage(days: number) {
 }
 
 function useRemainingDays() {
-  const { error, info, isLoading } = useLicenseInfo();
-
-  useEffect(() => {
-    if (error) {
-      notifyError('Failure', error, 'Failed to get license info');
-    }
-  }, [error]);
+  const { info, isLoading } = useLicenseInfo();
 
   const [remainingDays, setRemainingDays] = useState(0);
 
@@ -76,7 +69,7 @@ function useRemainingDays() {
     }
   }, [info]);
 
-  return { remainingDays, isLoading, error };
+  return { remainingDays, isLoading };
 
   function parseInfo(info: LicenseInfo) {
     const expiresAt = moment.unix(info.expiresAt);

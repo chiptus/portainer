@@ -5,8 +5,7 @@ angular.module('portainer.docker').controller('KubernetesResourcePoolsDatatableC
   '$controller',
   'Authentication',
   'DatatableService',
-  'EndpointProvider',
-  function ($scope, $controller, Authentication, DatatableService, EndpointProvider) {
+  function ($scope, $controller, Authentication, DatatableService) {
     angular.extend(this, $controller('GenericDatatableController', { $scope: $scope }));
 
     var ctrl = this;
@@ -58,7 +57,6 @@ angular.module('portainer.docker').controller('KubernetesResourcePoolsDatatableC
     };
 
     this.$onInit = function () {
-      this.endpoint = EndpointProvider.currentEndpoint();
       this.isAdmin = Authentication.isAdmin();
       this.setDefaults();
       this.prepareTableFromDataset();

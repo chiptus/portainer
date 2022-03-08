@@ -351,12 +351,6 @@ class KubernetesApplicationController {
   }
 
   async onInit() {
-    const endpointId = this.LocalStorage.getEndpointID();
-    const endpoints = this.LocalStorage.getEndpoints();
-    const endpoint = _.find(endpoints, function (item) {
-      return item.Id === endpointId;
-    });
-
     this.state = {
       activeTab: 0,
       currentName: this.$state.$current.name,
@@ -378,7 +372,7 @@ class KubernetesApplicationController {
       isAuthorized: this.Authentication.hasAuthorizations(['K8sApplicationDetailsW']),
       canAccessNode: this.Authentication.hasAuthorizations(['K8sClusterNodeR']),
       canShowConsole: this.Authentication.hasAuthorizations(['K8sApplicationConsoleRW']),
-      publicUrl: endpoint.PublicURL,
+      publicUrl: this.endpoint.PublicURL,
     };
 
     this.state.activeTab = this.LocalStorage.getActiveTab('application');

@@ -354,8 +354,9 @@ class KubernetesResourcePoolController {
   getVolumes() {
     return this.$async(async () => {
       try {
+        const storageClasses = this.endpoint.Kubernetes.Configuration.StorageClasses;
         const namespace = this.pool.Namespace.Name;
-        this.volumes = await this.KubernetesVolumeService.get(namespace);
+        this.volumes = await this.KubernetesVolumeService.get(namespace, storageClasses);
       } catch (err) {
         this.Notifications.error('Failure', err, 'Unable to retrieve volumes.');
       }

@@ -1038,7 +1038,8 @@ class KubernetesCreateApplicationController {
   refreshVolumes(namespace) {
     return this.$async(async () => {
       try {
-        const volumes = await this.KubernetesVolumeService.get(namespace);
+        const storageClasses = this.endpoint.Kubernetes.Configuration.StorageClasses;
+        const volumes = await this.KubernetesVolumeService.get(namespace, storageClasses);
         _.forEach(volumes, (volume) => {
           volume.Applications = KubernetesVolumeHelper.getUsingApplications(volume, this.applications);
         });
@@ -1181,9 +1182,11 @@ class KubernetesCreateApplicationController {
     return this.$async(async () => {
       try {
         const namespace = this.$state.params.namespace;
+        const storageClasses = this.endpoint.Kubernetes.Configuration.StorageClasses;
+
         [this.application, this.persistentVolumeClaims] = await Promise.all([
           this.KubernetesApplicationService.get(namespace, this.$state.params.name),
-          this.KubernetesPersistentVolumeClaimService.get(namespace),
+          this.KubernetesPersistentVolumeClaimService.get(namespace, storageClasses),
         ]);
       } catch (err) {
         this.Notifications.error('Failure', err, 'Unable to retrieve application details');

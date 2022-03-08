@@ -4,13 +4,7 @@ import { LicenseService } from './license.service.ts';
 import licensesViewModule from './licenses.view';
 import addLicenseViewModule from './add-license.view';
 
-import { licenseNodePanel } from './license-node-panel.component';
-
-export default angular
-  .module('portainer.app.license-management', [licensesViewModule, addLicenseViewModule])
-  .config(config)
-  .service('LicenseService', LicenseService)
-  .component('licenseNodePanel', licenseNodePanel).name;
+export default angular.module('portainer.app.license-management', [licensesViewModule, addLicenseViewModule]).config(config).service('LicenseService', LicenseService).name;
 
 /* @ngInject */
 function config($stateRegistryProvider) {
