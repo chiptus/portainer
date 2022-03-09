@@ -96,13 +96,13 @@ class StackRedeployGitFormController {
       'Any changes to this stack or application made locally in Portainer will be overridden, which may cause service interruption. Do you wish to continue',
       isSwarmStack,
       'btn-warning',
-      function (result) {
+      async function (result) {
         if (!result) {
           return;
         }
         try {
           that.state.redeployInProgress = true;
-          that.StackService.updateGit(that.stack.Id, that.stack.EndpointId, that.FormHelper.removeInvalidEnvVars(that.formValues.Env), false, that.formValues, !!result[0]);
+          await that.StackService.updateGit(that.stack.Id, that.stack.EndpointId, that.FormHelper.removeInvalidEnvVars(that.formValues.Env), false, that.formValues, !!result[0]);
           that.Notifications.success('Pulled and redeployed stack successfully');
           that.$state.reload();
         } catch (err) {
