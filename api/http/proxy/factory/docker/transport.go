@@ -285,6 +285,7 @@ func (transport *Transport) proxyServiceRequest(request *http.Request) (*http.Re
 		if match, _ := path.Match("/services/*/*", requestPath); match {
 			// Handle /services/{id}/{action} requests
 			serviceID := path.Base(path.Dir(requestPath))
+			transport.decorateRegistryAuthenticationHeader(request)
 			return transport.restrictedResourceOperation(request, serviceID, serviceID, portaineree.ServiceResourceControl, false)
 		} else if match, _ := path.Match("/services/*", requestPath); match {
 			// Handle /services/{id} requests
@@ -407,11 +408,10 @@ func (transport *Transport) proxyImageRequest(request *http.Request) (*http.Resp
 		return transport.executeDockerRequest(request)
 	}
 }
-
-func (transport *Transport) replaceRegistryAuthenticationHeader(request *http.Request) (*http.Response, error) {
+func (transport *Transport) decorateRegistryAuthenticationHeader(request *http.Request) error {
 	accessContext, err := transport.createRegistryAccessContext(request)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	originalHeader := request.Header.Get("X-Registry-Auth")
@@ -420,29 +420,34 @@ func (transport *Transport) replaceRegistryAuthenticationHeader(request *http.Re
 
 		decodedHeaderData, err := base64.StdEncoding.DecodeString(originalHeader)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		var originalHeaderData portainerRegistryAuthenticationHeader
 		err = json.Unmarshal(decodedHeaderData, &originalHeaderData)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		authenticationHeader, err := createRegistryAuthenticationHeader(transport.dataStore, originalHeaderData.RegistryId, accessContext)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		headerData, err := json.Marshal(authenticationHeader)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		header := base64.StdEncoding.EncodeToString(headerData)
 
 		request.Header.Set("X-Registry-Auth", header)
 	}
+
+	return nil
+}
+func (transport *Transport) replaceRegistryAuthenticationHeader(request *http.Request) (*http.Response, error) {
+	transport.decorateRegistryAuthenticationHeader(request)
 
 	return transport.decorateGenericResourceCreationOperation(request, serviceObjectIdentifier, portaineree.ServiceResourceControl)
 }
@@ -520,7 +525,6 @@ func (transport *Transport) restrictedResourceOperation(request *http.Request, r
 			return utils.WriteAccessDeniedResponse()
 		}
 	}
-
 	return transport.executeDockerRequest(request)
 }
 
