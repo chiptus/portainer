@@ -18,7 +18,7 @@
       <div ng-if="applicationState.endpoint.mode">
         <kubernetes-sidebar ng-if="applicationState.endpoint.mode.provider === 'KUBERNETES'" is-sidebar-open="toggle" endpoint-id="endpointId"></kubernetes-sidebar>
 
-        <azure-sidebar ng-if="applicationState.endpoint.mode.provider === 'AZURE'" endpoint-id="endpointId"> </azure-sidebar>
+        <azure-sidebar ng-if="applicationState.endpoint.mode.provider === 'AZURE'" environment-id="endpointId"> </azure-sidebar>
 
         <docker-sidebar
           ng-if="applicationState.endpoint.mode.provider !== 'AZURE' && applicationState.endpoint.mode.provider !== 'KUBERNETES'"
