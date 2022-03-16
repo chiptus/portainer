@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
+	chserver "github.com/andres-portainer/chisel/server"
 	"github.com/dchest/uniuri"
-	chserver "github.com/jpillora/chisel/server"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/proxy"
