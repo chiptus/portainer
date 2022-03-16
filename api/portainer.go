@@ -1480,7 +1480,6 @@ type (
 	// SnapshotService represents a service for managing environment(endpoint) snapshots
 	SnapshotService interface {
 		Start()
-		Stop()
 		SetSnapshotInterval(snapshotInterval string) error
 		SnapshotEndpoint(endpoint *Endpoint) error
 	}
