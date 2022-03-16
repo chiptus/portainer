@@ -1,4 +1,5 @@
 import uuidv4 from 'uuid/v4';
+import { ResourceControlType } from '@/portainer/access-control/types';
 import { AccessControlFormData } from 'Portainer/components/accessControlForm/porAccessControlFormModel';
 
 angular.module('portainer.app').controller('StackController', [
@@ -56,6 +57,12 @@ angular.module('portainer.app').controller('StackController', [
     ResourceControlService,
     WebhookHelper
   ) {
+    $scope.resourceType = ResourceControlType.Stack;
+
+    $scope.onUpdateResourceControlSuccess = function () {
+      $state.reload();
+    };
+
     $scope.endpoint = endpoint;
     $scope.isAdmin = Authentication.isAdmin();
     $scope.state = {

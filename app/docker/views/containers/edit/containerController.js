@@ -2,6 +2,7 @@ import moment from 'moment';
 import _ from 'lodash-es';
 import { PorImageRegistryModel } from 'Docker/models/porImageRegistry';
 import { confirmContainerDeletion } from '@/portainer/services/modal.service/prompt';
+import { ResourceControlType } from '@/portainer/access-control/types';
 
 angular.module('portainer.docker').controller('ContainerController', [
   '$q',
@@ -52,6 +53,7 @@ angular.module('portainer.docker').controller('ContainerController', [
     WebhookHelper,
     clipboard
   ) {
+    $scope.resourceType = ResourceControlType.Container;
     $scope.endpoint = endpoint;
     $scope.isAdmin = Authentication.isAdmin();
     $scope.activityTime = 0;
@@ -129,6 +131,10 @@ angular.module('portainer.docker').controller('ContainerController', [
         .catch(function error(err) {
           Notifications.error('Failure', err, 'Unable to create webhook');
         });
+    };
+
+    $scope.onUpdateResourceControlSuccess = function () {
+      $state.reload();
     };
 
     var update = function () {

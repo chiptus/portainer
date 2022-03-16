@@ -124,8 +124,11 @@
     </rd-widget>
   </div>
 
-  <!-- access-control-panel -->
-  <por-access-control-panel ng-if="$ctrl.container" resource-id="$ctrl.container.Id" resource-control="$ctrl.container.ResourceControl" resource-type="'container-group'">
-  </por-access-control-panel>
-  <!-- !access-control-panel -->
+  <access-control-panel
+    ng-if="$ctrl.container"
+    resource-id="$ctrl.container.Id"
+    resource-control="$ctrl.container.ResourceControl"
+    resource-type="$ctrl.resourceType"
+    on-update-success="($ctrl.onUpdateSuccess)"
+  ></access-control-panel>
 </div>

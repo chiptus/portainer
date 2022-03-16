@@ -21,6 +21,7 @@ import _ from 'lodash-es';
 
 import { PorImageRegistryModel } from 'Docker/models/porImageRegistry';
 import * as envVarsUtils from '@/portainer/helpers/env-vars';
+import { ResourceControlType } from '@/portainer/access-control/types';
 
 angular.module('portainer.docker').controller('ServiceController', [
   '$q',
@@ -89,6 +90,12 @@ angular.module('portainer.docker').controller('ServiceController', [
     EndpointService,
     RegistryService
   ) {
+    $scope.resourceType = ResourceControlType.Service;
+
+    $scope.onUpdateResourceControlSuccess = function () {
+      $state.reload();
+    };
+
     $scope.endpoint = endpoint;
     $scope.state = {
       updateInProgress: false,

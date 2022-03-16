@@ -14,9 +14,9 @@ import (
 type resourceControlCreatePayload struct {
 	//
 	ResourceID string `example:"617c5f22bb9b023d6daab7cba43a57576f83492867bc767d1c59416b065e5f08" validate:"required"`
-	// Type of Docker resource. Valid values are: container, volume\
-	// service, secret, config or stack
-	Type string `example:"container" validate:"required"`
+	// Type of Resource. Valid values are: 1 - container, 2 - service
+	// 3 - volume, 4 - network, 5 - secret, 6 - stack, 7 - config, 8 - custom template, 9 - azure-container-group
+	Type portaineree.ResourceControlType `example:"1" validate:"required" enums:"1,2,3,4,5,6,7,8,9"`
 	// Permit access to the associated resource to any user
 	Public bool `example:"true"`
 	// Permit access to resource only to admins
@@ -39,8 +39,8 @@ func (payload *resourceControlCreatePayload) Validate(r *http.Request) error {
 		return errors.New("invalid payload: invalid resource identifier")
 	}
 
-	if govalidator.IsNull(payload.Type) {
-		return errors.New("invalid payload: invalid type")
+	if payload.Type <= 0 || payload.Type >= 10 {
+		return errors.New("invalid payload: Invalid type value. Value must be one of: 1 - container, 2 - service, 3 - volume, 4 - network, 5 - secret, 6 - stack, 7 - config, 8 - custom template, 9 - azure-container-group")
 	}
 
 	if len(payload.Users) == 0 && len(payload.Teams) == 0 && !payload.Public && !payload.AdministratorsOnly {
@@ -75,29 +75,7 @@ func (handler *Handler) resourceControlCreate(w http.ResponseWriter, r *http.Req
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	var resourceControlType portaineree.ResourceControlType
-	switch payload.Type {
-	case "container":
-		resourceControlType = portaineree.ContainerResourceControl
-	case "container-group":
-		resourceControlType = portaineree.ContainerGroupResourceControl
-	case "service":
-		resourceControlType = portaineree.ServiceResourceControl
-	case "volume":
-		resourceControlType = portaineree.VolumeResourceControl
-	case "network":
-		resourceControlType = portaineree.NetworkResourceControl
-	case "secret":
-		resourceControlType = portaineree.SecretResourceControl
-	case "stack":
-		resourceControlType = portaineree.StackResourceControl
-	case "config":
-		resourceControlType = portaineree.ConfigResourceControl
-	default:
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid type value. Value must be one of: container, service, volume, network, secret, stack or config", errInvalidResourceControlType}
-	}
-
-	rc, err := handler.dataStore.ResourceControl().ResourceControlByResourceIDAndType(payload.ResourceID, resourceControlType)
+	rc, err := handler.dataStore.ResourceControl().ResourceControlByResourceIDAndType(payload.ResourceID, payload.Type)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve resource controls from the database", err}
 	}
@@ -126,7 +104,7 @@ func (handler *Handler) resourceControlCreate(w http.ResponseWriter, r *http.Req
 	resourceControl := portaineree.ResourceControl{
 		ResourceID:         payload.ResourceID,
 		SubResourceIDs:     payload.SubResourceIDs,
-		Type:               resourceControlType,
+		Type:               payload.Type,
 		Public:             payload.Public,
 		AdministratorsOnly: payload.AdministratorsOnly,
 		UserAccesses:       userAccesses,
