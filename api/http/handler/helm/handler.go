@@ -2,8 +2,6 @@ package helm
 
 import (
 	"errors"
-	"net/http"
-
 	"github.com/gorilla/mux"
 	"github.com/portainer/libhelm"
 	"github.com/portainer/libhelm/options"
@@ -14,10 +12,8 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/kubernetes"
-)
-
-const (
-	handlerActivityContext = "Kubernetes"
+	"net/http"
+	"strings"
 )
 
 type requestBouncer interface {
@@ -27,26 +23,26 @@ type requestBouncer interface {
 // Handler is the HTTP handler used to handle environment(endpoint) group operations.
 type Handler struct {
 	*mux.Router
-	requestBouncer      requestBouncer
-	dataStore           dataservices.DataStore
-	jwtService          portaineree.JWTService
-	kubeConfigService   kubernetes.KubeConfigService
-	kubernetesDeployer  portaineree.KubernetesDeployer
-	helmPackageManager  libhelm.HelmPackageManager
-	userActivityService portaineree.UserActivityService
+	requestBouncer           requestBouncer
+	dataStore                dataservices.DataStore
+	jwtService               portaineree.JWTService
+	kubeClusterAccessService kubernetes.KubeClusterAccessService
+	kubernetesDeployer       portaineree.KubernetesDeployer
+	helmPackageManager       libhelm.HelmPackageManager
+	userActivityService      portaineree.UserActivityService
 }
 
 // NewHandler creates a handler to manage endpoint group operations.
-func NewHandler(bouncer requestBouncer, dataStore dataservices.DataStore, jwtService portaineree.JWTService, kubernetesDeployer portaineree.KubernetesDeployer, helmPackageManager libhelm.HelmPackageManager, kubeConfigService kubernetes.KubeConfigService, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(bouncer requestBouncer, dataStore dataservices.DataStore, jwtService portaineree.JWTService, kubernetesDeployer portaineree.KubernetesDeployer, helmPackageManager libhelm.HelmPackageManager, kubeClusterAccessService kubernetes.KubeClusterAccessService, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
-		Router:              mux.NewRouter(),
-		requestBouncer:      bouncer,
-		dataStore:           dataStore,
-		jwtService:          jwtService,
-		kubeConfigService:   kubeConfigService,
-		kubernetesDeployer:  kubernetesDeployer,
-		helmPackageManager:  helmPackageManager,
-		userActivityService: userActivityService,
+		Router:                   mux.NewRouter(),
+		requestBouncer:           bouncer,
+		dataStore:                dataStore,
+		jwtService:               jwtService,
+		kubeClusterAccessService: kubeClusterAccessService,
+		kubernetesDeployer:       kubernetesDeployer,
+		helmPackageManager:       helmPackageManager,
+		userActivityService:      userActivityService,
 	}
 
 	h.Use(middlewares.WithEndpoint(dataStore.Endpoint(), "id"),
@@ -110,11 +106,21 @@ func (handler *Handler) getHelmClusterAccess(r *http.Request) (*options.Kubernet
 		return nil, &httperror.HandlerError{http.StatusUnauthorized, "Unauthorized", err}
 	}
 
-	kubeConfigInternal := handler.kubeConfigService.GetKubeConfigInternal(endpoint.ID, bearerToken)
+	sslSettings, err := handler.dataStore.SSLSettings().Settings()
+	if err != nil {
+		return nil, &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve settings from the database", err}
+	}
+
+	hostURL := "localhost"
+	if !sslSettings.SelfSigned {
+		hostURL = strings.Split(r.Host, ":")[0]
+	}
+
+	kubeConfigInternal := handler.kubeClusterAccessService.GetData(hostURL, endpoint.ID)
 	return &options.KubernetesClusterAccess{
 		ClusterServerURL:         kubeConfigInternal.ClusterServerURL,
 		CertificateAuthorityFile: kubeConfigInternal.CertificateAuthorityFile,
-		AuthToken:                kubeConfigInternal.AuthToken,
+		AuthToken:                bearerToken,
 	}, nil
 }
 

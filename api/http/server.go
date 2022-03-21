@@ -95,7 +95,7 @@ type Server struct {
 	UserActivityService         portaineree.UserActivityService
 	ProxyManager                *proxy.Manager
 	KubernetesTokenCacheManager *kubernetes.TokenCacheManager
-	KubeConfigService           k8s.KubeConfigService
+	KubeClusterAccessService    k8s.KubeClusterAccessService
 	Handler                     *handler.Handler
 	SSLService                  *ssl.Service
 	DockerClientFactory         *docker.ClientFactory
@@ -106,7 +106,6 @@ type Server struct {
 	ShutdownCtx                 context.Context
 	ShutdownTrigger             context.CancelFunc
 	StackDeployer               stackdeloyer.StackDeployer
-	BaseURL                     string
 }
 
 // Start starts the HTTP server
@@ -190,17 +189,14 @@ func (server *Server) Start() error {
 	endpointProxyHandler.ProxyManager = server.ProxyManager
 	endpointProxyHandler.ReverseTunnelService = server.ReverseTunnelService
 
-	var kubernetesHandler = kubehandler.NewHandler(requestBouncer, server.DataStore, server.BaseURL, server.UserActivityService)
-	kubernetesHandler.AuthorizationService = server.AuthorizationService
-	kubernetesHandler.KubernetesClientFactory = server.KubernetesClientFactory
-	kubernetesHandler.JwtService = server.JWTService
+	var kubernetesHandler = kubehandler.NewHandler(requestBouncer, server.AuthorizationService, server.DataStore, server.JWTService, server.KubeClusterAccessService, server.KubernetesClientFactory, server.UserActivityService)
 
 	var licenseHandler = licenses.NewHandler(requestBouncer, server.UserActivityService)
 	licenseHandler.LicenseService = server.LicenseService
 
 	var fileHandler = file.NewHandler(filepath.Join(server.AssetsPath, "public"))
 
-	var endpointHelmHandler = helm.NewHandler(requestBouncer, server.DataStore, server.JWTService, server.KubernetesDeployer, server.HelmPackageManager, server.KubeConfigService, server.UserActivityService)
+	var endpointHelmHandler = helm.NewHandler(requestBouncer, server.DataStore, server.JWTService, server.KubernetesDeployer, server.HelmPackageManager, server.KubeClusterAccessService, server.UserActivityService)
 
 	var helmTemplatesHandler = helm.NewTemplateHandler(requestBouncer, server.HelmPackageManager)
 

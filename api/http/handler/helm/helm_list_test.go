@@ -37,8 +37,8 @@ func Test_helmList(t *testing.T) {
 
 	kubernetesDeployer := exectest.NewKubernetesDeployer()
 	helmPackageManager := test.NewMockHelmBinaryPackageManager("")
-	kubeConfigService := kubernetes.NewKubeConfigCAService("", "")
-	h := NewHandler(helper.NewTestRequestBouncer(), store, jwtService, kubernetesDeployer, helmPackageManager, kubeConfigService, helper.NewUserActivityService())
+	kubeClusterAccessService := kubernetes.NewKubeClusterAccessService("", "", "")
+	h := NewHandler(helper.NewTestRequestBouncer(), store, jwtService, kubernetesDeployer, helmPackageManager, kubeClusterAccessService, helper.NewUserActivityService())
 
 	// Install a single chart.  We expect to get these values back
 	options := options.InstallOptions{Name: "nginx-1", Chart: "nginx", Namespace: "default"}

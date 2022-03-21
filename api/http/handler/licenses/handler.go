@@ -11,10 +11,6 @@ import (
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 )
 
-const (
-	handlerActivityContext = "Portainer"
-)
-
 // Handler is the HTTP handler used to handle Edge job operations.
 type Handler struct {
 	*mux.Router
