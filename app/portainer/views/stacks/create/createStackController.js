@@ -54,7 +54,6 @@ angular
         RepositoryFetchInterval: '5m',
         RepositoryWebhookURL: WebhookHelper.returnStackWebhookUrl(uuidv4()),
         ForcePullImage: false,
-        ShowForcePullImage: false,
         EnableWebhook: false,
       };
 
@@ -324,7 +323,6 @@ angular
         }
 
         $scope.composeSyntaxMaxVersion = endpoint.ComposeSyntaxMaxVersion;
-        $scope.formValues.ShowForcePullImage = $scope.state.StackType !== 3;
         try {
           const containers = await ContainerService.containers(true);
           $scope.containerNames = ContainerHelper.getContainerNames(containers);

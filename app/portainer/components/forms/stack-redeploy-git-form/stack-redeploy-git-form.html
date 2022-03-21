@@ -7,7 +7,11 @@
     config-file-path="$ctrl.model.ConfigFilePath"
     additional-files="$ctrl.stack.AdditionalFiles"
   ></git-form-info-panel>
-  <git-form-auto-update-fieldset model="$ctrl.formValues.AutoUpdate" on-change="($ctrl.onChangeAutoUpdate)"></git-form-auto-update-fieldset>
+  <git-form-auto-update-fieldset
+    model="$ctrl.formValues.AutoUpdate"
+    on-change="($ctrl.onChangeAutoUpdate)"
+    show-force-pull-image="$ctrl.stack.Type !== 3"
+  ></git-form-auto-update-fieldset>
   <time-window-display></time-window-display>
 
   <div class="form-group">
