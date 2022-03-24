@@ -3,6 +3,7 @@ package exec
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 	"path"
 	"runtime"
@@ -126,6 +127,8 @@ func (deployer *KubernetesDeployer) command(operation string, userID portaineree
 
 	var stderr bytes.Buffer
 	cmd := exec.Command(command, args...)
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, "POD_NAMESPACE=default")
 	cmd.Stderr = &stderr
 
 	output, err := cmd.Output()
