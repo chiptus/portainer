@@ -77,15 +77,18 @@ func ExtractDocuments(manifestYaml []byte, postProcessYaml func(interface{}) err
 	for {
 		m := make(map[string]interface{})
 		err := yamlDecoder.Decode(&m)
+		// if there are no more documents in the file
+		if errors.Is(err, io.EOF) {
+			break
+		}
+
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to decode yaml manifest")
+		}
 
 		// if decoded document is empty
 		if m == nil {
 			continue
-		}
-
-		// if there are no more documents in the file
-		if errors.Is(err, io.EOF) {
-			break
 		}
 
 		// optionally post-process yaml
