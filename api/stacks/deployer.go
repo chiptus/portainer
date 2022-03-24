@@ -82,7 +82,7 @@ func (d *stackDeployer) DeployKubernetesStack(stack *portaineree.Stack, endpoint
 	}
 	defer cleanUp()
 
-	_, err = d.kubernetesDeployer.Deploy(user.ID, endpoint, deploymentFilesInfo.Namespaces, stack.Namespace)
+	_, err = d.kubernetesDeployer.Deploy(user.ID, endpoint, deploymentFilesInfo.FilePaths, stack.Namespace)
 	if err != nil {
 		return errors.Wrap(err, "failed to deploy kubernetes application")
 	}
