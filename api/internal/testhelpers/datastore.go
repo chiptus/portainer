@@ -165,7 +165,9 @@ func (s *stubEdgeJobService) EdgeJobs() ([]portaineree.EdgeJob, error) { return 
 func (s *stubEdgeJobService) EdgeJob(ID portaineree.EdgeJobID) (*portaineree.EdgeJob, error) {
 	return nil, nil
 }
-func (s *stubEdgeJobService) Create(edgeJob *portaineree.EdgeJob) error { return nil }
+func (s *stubEdgeJobService) Create(ID portaineree.EdgeJobID, edgeJob *portaineree.EdgeJob) error {
+	return nil
+}
 func (s *stubEdgeJobService) UpdateEdgeJob(ID portaineree.EdgeJobID, edgeJob *portaineree.EdgeJob) error {
 	return nil
 }
