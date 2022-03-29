@@ -25,7 +25,8 @@ func (store *Store) version() (int, error) {
 func (store *Store) edition() portaineree.SoftwareEdition {
 	edition, err := store.VersionService.Edition()
 	if store.IsErrObjectNotFound(err) {
-		edition = portaineree.PortainerEE
+		// Portainer CE does not have an edition field, therefore this is CE
+		return portaineree.PortainerCE
 	}
 	return edition
 }

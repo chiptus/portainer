@@ -6,7 +6,6 @@ import (
 
 	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
-	portainer "github.com/portainer/portainer/api"
 )
 
 func migrationError(err error, context string) error {
@@ -237,7 +236,7 @@ func (m *Migrator) MigrateCE() error {
 	if err != nil {
 		return migrationError(err, "StoreDBVersion")
 	}
-	migrateLog.Info(fmt.Sprintf("Updated DB version to %d", portainer.DBVersion))
+	migrateLog.Info(fmt.Sprintf("Updated DB version to %d", portaineree.DBVersion))
 
 	// reset DB updating status
 	return m.versionService.StoreIsUpdating(false)

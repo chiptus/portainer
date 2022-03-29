@@ -138,21 +138,16 @@ func initDataStore(flags *portaineree.CLIFlags, secretKey []byte, fileService po
 	if isNew {
 		// from MigrateData
 		store.VersionService.StoreDBVersion(portainer.DBVersion)
+		store.VersionService.StoreEdition(portaineree.PortainerEE)
 
 		err := updateSettingsFromFlags(store, flags)
 		if err != nil {
 			logrus.Fatalf("Failed updating settings from flags: %v", err)
 		}
 	} else {
-		storedVersion, err := store.VersionService.DBVersion()
+		err = store.MigrateData()
 		if err != nil {
-			logrus.Fatalf("Something Failed during creation of new database: %v", err)
-		}
-		if storedVersion != portainer.DBVersion {
-			err = store.MigrateData()
-			if err != nil {
-				logrus.Fatalf("Failed migration: %v", err)
-			}
+			logrus.Fatalf("Failed migration: %v", err)
 		}
 	}
 
@@ -546,9 +541,9 @@ func loadEncryptionSecretKey(keyfilename string) []byte {
 	content, err := os.ReadFile(path.Join("/run/secrets", keyfilename))
 	if err != nil {
 		if os.IsNotExist(err) {
-			logrus.Printf("Encryption key file `%s` not present", keyfilename)
+			logrus.Printf("[DEBUG] Encryption key file `%s` not present", keyfilename)
 		} else {
-			logrus.Printf("Error reading encryption key file: %v", err)
+			logrus.Printf("[ERROR] Error reading encryption key file: %v", err)
 		}
 
 		return nil
@@ -565,14 +560,11 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	fileService := initFileService(*flags.Data)
 	encryptionKey := loadEncryptionSecretKey(*flags.SecretKeyName)
 	if encryptionKey == nil {
-		logrus.Println("proceeding without encryption key")
+		logrus.Println("[DEBUG] Proceeding without encryption key")
 	}
 
 	dataStore := initDataStore(flags, encryptionKey, fileService, shutdownCtx)
 
-	if err := dataStore.CheckCurrentEdition(); err != nil {
-		logrus.Fatal(err)
-	}
 	instanceID, err := dataStore.Version().InstanceID()
 	if err != nil {
 		logrus.Fatalf("Failed getting instance id: %v", err)
