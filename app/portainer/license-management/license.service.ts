@@ -76,6 +76,11 @@ export async function removeLicense(licenseKeys: string[]) {
   }
 }
 
+export function resetState() {
+  store.invalidated = true;
+  store.data = undefined;
+}
+
 export async function getLicenseInfo() {
   try {
     if (
@@ -117,6 +122,7 @@ export function LicenseService() {
     info: getLicenseInfo,
     subscribe,
     unsubscribe,
+    resetState,
   };
 }
 

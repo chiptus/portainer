@@ -171,6 +171,7 @@ class AuthenticationController {
 
     let path = 'portainer.home';
     if (isAdmin) {
+      this.LicenseService.resetState();
       path = await this.checkForLicensesAsync();
       if (!path) {
         path = await this.checkForEndpointsAsync();

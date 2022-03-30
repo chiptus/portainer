@@ -591,7 +591,7 @@ function isTransitionRequiresAuthentication(transition) {
 }
 
 /* @ngInject */
-function run($transitions, UserService, Authentication, LicenseService, EndpointService, Notifications, $timeout) {
+function run($transitions, UserService, Authentication, LicenseService, EndpointService, Notifications) {
   $transitions.onBefore({ to: 'portainer.init.*' }, async function (transition) {
     const to = transition.to();
     const stateService = transition.router.stateService;
@@ -640,9 +640,7 @@ function run($transitions, UserService, Authentication, LicenseService, Endpoint
       try {
         const licenseInfo = await LicenseService.info();
         if (!licenseInfo.valid) {
-          $timeout(() => {
-            stateService.go('portainer.init.license');
-          }, 100);
+          return stateService.target('portainer.init.license');
         }
       } catch (err) {
         Notifications.error('Failure', err, 'Unable to retrieve license info');
