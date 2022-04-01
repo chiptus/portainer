@@ -232,8 +232,10 @@ class CustomTemplatesViewController {
     }
 
     try {
+      var template = _.find(this.templates, { Id: templateId });
       await this.CustomTemplateService.remove(templateId);
       _.remove(this.templates, { Id: templateId });
+      this.Notifications.success('Template successfully deleted', template && template.Title);
     } catch (err) {
       this.Notifications.error('Failure', err, 'Failed to delete template');
     }
