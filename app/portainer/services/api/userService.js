@@ -159,6 +159,10 @@ export function UserService($q, Users, TeamService, TeamMembershipService) {
         if (err.status === 404) {
           deferred.resolve(false);
         }
+
+        if (err.status === 303) {
+          deferred.resolve(false);
+        }
         deferred.reject({ msg: 'Unable to verify administrator account existence', err: err });
       });
 

@@ -53,12 +53,23 @@ angular.module('portainer.app').controller('InitAdminController', [
           return $state.go('portainer.init.license');
         })
         .catch(function error(err) {
+          handleError(err);
           Notifications.error('Failure', err, 'Unable to create administrator user');
         })
         .finally(function final() {
           $scope.state.actionInProgress = false;
         });
     };
+
+    function handleError(err) {
+      if (err.status === 303) {
+        const headers = err.headers();
+        const REDIRECT_REASON_TIMEOUT = 'AdminInitTimeout';
+        if (headers && headers['redirect-reason'] === REDIRECT_REASON_TIMEOUT) {
+          window.location.href = '/timeout.html';
+        }
+      }
+    }
 
     function createAdministratorFlow() {
       UserService.administratorExists()
@@ -102,6 +113,7 @@ angular.module('portainer.app').controller('InitAdminController', [
       try {
         await restoreAsyncFn();
       } catch (err) {
+        handleError(err);
         Notifications.error('Failure', err, 'Unable to restore the backup');
         $scope.state.backupInProgress = false;
 
@@ -113,6 +125,7 @@ angular.module('portainer.app').controller('InitAdminController', [
         Notifications.success('The backup has successfully been restored');
         $state.go('portainer.auth');
       } catch (err) {
+        handleError(err);
         Notifications.error('Failure', err, 'Unable to check for status');
         await wait(2);
         location.reload();
