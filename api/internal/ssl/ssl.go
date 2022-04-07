@@ -3,12 +3,17 @@ package ssl
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
+	"io/ioutil"
 	"log"
 	"os"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+
 	"github.com/portainer/libcrypto"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 )
@@ -31,15 +36,29 @@ func NewService(fileService portainer.FileService, dataStore dataservices.DataSt
 }
 
 // Init initializes the service
-func (service *Service) Init(host, certPath, keyPath string) error {
-	pathSupplied := certPath != "" && keyPath != ""
-	if pathSupplied {
+func (service *Service) Init(host, certPath, keyPath, caCertPath string) error {
+	certSupplied := certPath != "" && keyPath != ""
+	caCertSupplied := caCertPath != ""
+
+	if caCertSupplied && !certSupplied {
+		return errors.Errorf("supplying a CA cert path (%s) requires an SSL cert and key file", caCertPath)
+	}
+
+	if certSupplied {
 		newCertPath, newKeyPath, err := service.fileService.CopySSLCertPair(certPath, keyPath)
 		if err != nil {
 			return errors.Wrap(err, "failed copying supplied certs")
 		}
 
-		return service.cacheInfo(newCertPath, newKeyPath, false)
+		newCACertPath := ""
+		if caCertSupplied {
+			newCACertPath, err = service.fileService.CopySSLCACert(caCertPath)
+			if err != nil {
+				return errors.Wrap(err, "failed copying supplied CA cert")
+			}
+		}
+
+		return service.cacheInfo(newCertPath, newKeyPath, &newCACertPath, false)
 	}
 
 	settings, err := service.GetSSLSettings()
@@ -60,16 +79,24 @@ func (service *Service) Init(host, certPath, keyPath string) error {
 		}
 	}
 
-	// path not supplied and certificates doesn't exist - generate self signed
+	// path not supplied and certificates doesn't exist - generate self-signed
 	certPath, keyPath = service.fileService.GetDefaultSSLCertsPath()
 
-	err = service.generateSelfSignedCertificates(host, certPath, keyPath)
+	err = generateSelfSignedCertificates(host, certPath, keyPath)
 	if err != nil {
 		return errors.Wrap(err, "failed generating self signed certs")
 	}
 
-	return service.cacheInfo(certPath, keyPath, true)
+	return service.cacheInfo(certPath, keyPath, &caCertPath, true)
+}
 
+func generateSelfSignedCertificates(ip, certPath, keyPath string) error {
+	if ip == "" {
+		return errors.New("host can't be empty")
+	}
+
+	log.Printf("[INFO] [internal,ssl] [message: no cert files found, generating self signed ssl certificates]")
+	return libcrypto.GenerateCertsForHost("localhost", ip, certPath, keyPath, time.Now().AddDate(5, 0, 0))
 }
 
 // GetRawCertificate gets the raw certificate
@@ -78,7 +105,7 @@ func (service *Service) GetRawCertificate() *tls.Certificate {
 }
 
 // GetSSLSettings gets the certificate info
-func (service *Service) GetSSLSettings() (*portainer.SSLSettings, error) {
+func (service *Service) GetSSLSettings() (*portaineree.SSLSettings, error) {
 	return service.dataStore.SSLSettings().Settings()
 }
 
@@ -98,11 +125,31 @@ func (service *Service) SetCertificates(certData, keyData []byte) error {
 		return err
 	}
 
-	service.cacheInfo(certPath, keyPath, false)
+	err = service.cacheInfo(certPath, keyPath, nil, false)
+	if err != nil {
+		return err
+	}
 
 	service.shutdownTrigger()
 
 	return nil
+}
+
+// GetCACertificatePool gets the CA Certificate pem file and returns it as a CertPool
+func (service *Service) GetCACertificatePool() *x509.CertPool {
+	settings, _ := service.GetSSLSettings()
+	if settings.CACertPath == "" {
+		return nil
+	}
+	caCert, err := ioutil.ReadFile(settings.CACertPath)
+	if err != nil {
+		log.Printf("error reading CA cert in path %s: %s", settings.CACertPath, err)
+		return nil
+	}
+
+	certPool := x509.NewCertPool()
+	certPool.AppendCertsFromPEM(caCert)
+	return certPool
 }
 
 func (service *Service) SetHTTPEnabled(httpEnabled bool) error {
@@ -127,6 +174,37 @@ func (service *Service) SetHTTPEnabled(httpEnabled bool) error {
 	return nil
 }
 
+func (service *Service) ValidateCACert(tlsConn *tls.ConnectionState) error {
+	// if a caCert is set, then reject any requests that don't have a client Auth cert signed with it
+	if tlsConn == nil || len(tlsConn.PeerCertificates) == 0 {
+		logrus.Error("No clientAuth Agent certificate offered")
+		return errors.New("no clientAuth Agent certificate offered")
+	}
+
+	serverCACertPool := service.GetCACertificatePool()
+	if serverCACertPool == nil {
+		logrus.Error("CA Certificate not found")
+		return errors.New("no CA Certificate was found")
+	}
+
+	opts := x509.VerifyOptions{
+		Roots:     serverCACertPool,
+		KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+	}
+	agentCert := tlsConn.PeerCertificates[0]
+
+	if _, err := agentCert.Verify(opts); err != nil {
+		logrus.WithError(err).Error("Agent certificate not signed by the CACert")
+		return errors.New("agent certificate wasn't signed by required CA Cert")
+	}
+
+	logrus.
+		WithField("subject", agentCert.Subject.String()).
+		WithField("dns_names", agentCert.DNSNames).
+		Debug("Successfully validated TLS Client Chain")
+	return nil
+}
+
 func (service *Service) cacheCertificate(certPath, keyPath string) error {
 	rawCert, err := tls.LoadX509KeyPair(certPath, keyPath)
 	if err != nil {
@@ -138,7 +216,7 @@ func (service *Service) cacheCertificate(certPath, keyPath string) error {
 	return nil
 }
 
-func (service *Service) cacheInfo(certPath, keyPath string, selfSigned bool) error {
+func (service *Service) cacheInfo(certPath string, keyPath string, caCertPath *string, selfSigned bool) error {
 	err := service.cacheCertificate(certPath, keyPath)
 	if err != nil {
 		return err
@@ -152,6 +230,9 @@ func (service *Service) cacheInfo(certPath, keyPath string, selfSigned bool) err
 	settings.CertPath = certPath
 	settings.KeyPath = keyPath
 	settings.SelfSigned = selfSigned
+	if caCertPath != nil {
+		settings.CACertPath = *caCertPath
+	}
 
 	err = service.dataStore.SSLSettings().UpdateSettings(settings)
 	if err != nil {
@@ -159,13 +240,4 @@ func (service *Service) cacheInfo(certPath, keyPath string, selfSigned bool) err
 	}
 
 	return nil
-}
-
-func (service *Service) generateSelfSignedCertificates(ip, certPath, keyPath string) error {
-	if ip == "" {
-		return errors.New("host can't be empty")
-	}
-
-	log.Printf("[INFO] [internal,ssl] [message: no cert files found, generating self signed ssl certificates]")
-	return libcrypto.GenerateCertsForHost("localhost", ip, certPath, keyPath, time.Now().AddDate(5, 0, 0))
 }

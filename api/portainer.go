@@ -123,6 +123,7 @@ type (
 		SSL                       *bool
 		SSLCert                   *string
 		SSLKey                    *string
+		SSLCACert                 *string
 		Rollback                  *bool
 		RollbackToCE              *bool
 		SnapshotInterval          *string
@@ -904,6 +905,15 @@ type (
 
 	// SoftwareEdition represents an edition of Portainer
 	SoftwareEdition int
+
+	// SSLSettings represents a pair of SSL certificate and key
+	SSLSettings struct {
+		CertPath    string `json:"certPath"`
+		KeyPath     string `json:"keyPath"`
+		CACertPath  string `json:"caCertPath"`
+		SelfSigned  bool   `json:"selfSigned"`
+		HTTPEnabled bool   `json:"httpEnabled"`
+	}
 
 	// Stack represents a Docker stack created via docker stack deploy
 	Stack struct {

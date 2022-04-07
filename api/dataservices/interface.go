@@ -225,8 +225,8 @@ type (
 
 	// SSLSettingsService represents a service for managing application settings
 	SSLSettingsService interface {
-		Settings() (*portainer.SSLSettings, error)
-		UpdateSettings(settings *portainer.SSLSettings) error
+		Settings() (*portaineree.SSLSettings, error)
+		UpdateSettings(settings *portaineree.SSLSettings) error
 		BucketName() string
 	}
 

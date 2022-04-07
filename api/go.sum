@@ -678,8 +678,8 @@ github.com/portainer/libhttp v0.0.0-20211208103139-07a5f798eb3f h1:GMIjRVV2LADpJ
 github.com/portainer/libhttp v0.0.0-20211208103139-07a5f798eb3f/go.mod h1:nyQA6IahOruIvENCcBk54aaUvV2WHFdXkvBjIutg+SY=
 github.com/portainer/liblicense v0.0.0-20210617122637-db079d0b7f97 h1:YBIFkEeOoWW11yJEhY39gYEGY3yT3lUS3jwGY//lXOg=
 github.com/portainer/liblicense v0.0.0-20210617122637-db079d0b7f97/go.mod h1:6OSugUz07QF1WwrMmRNIMhgiq+drVMIZ98UTu5LVZP8=
-github.com/portainer/portainer/api v0.0.0-20220301150628-24c88a5d5cee h1:T2x6uoUYdEzsslSfdTpKUn8rH/klkZpKsgWI48QCepI=
-github.com/portainer/portainer/api v0.0.0-20220301150628-24c88a5d5cee/go.mod h1:mHqgyoxlIeHnR+l3LAyCVvfmGmEM5/b5/xOEHhezx9I=
+github.com/portainer/portainer/api v0.0.0-20220303203420-547d9c2fde15 h1:gUe/VH30JLUrr9cc6wM6ByWB6rZJVBXql/E+A9e25EM=
+github.com/portainer/portainer/api v0.0.0-20220303203420-547d9c2fde15/go.mod h1:mHqgyoxlIeHnR+l3LAyCVvfmGmEM5/b5/xOEHhezx9I=
 github.com/pquerna/cachecontrol v0.0.0-20171018203845-0dec1b30a021/go.mod h1:prYjPmNq4d1NPVmpShWobRqXY3q7Vp+80DqgxxUrUIA=
 github.com/prometheus/client_golang v0.0.0-20180209125602-c332b6f63c06/go.mod h1:7SWBe2y4D6OKWSNQJUaRYU/AaXPKyh/dDVn+NZz0KFw=
 github.com/prometheus/client_golang v0.9.1/go.mod h1:7SWBe2y4D6OKWSNQJUaRYU/AaXPKyh/dDVn+NZz0KFw=

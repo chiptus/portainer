@@ -13,6 +13,7 @@ import (
 	"github.com/portainer/portainer-ee/api/apikey"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/internal/ssl"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
@@ -23,6 +24,7 @@ type (
 		jwtService     portaineree.JWTService
 		apiKeyService  apikey.APIKeyService
 		licenseService portaineree.LicenseService
+		sslService     *ssl.Service
 	}
 
 	// RestrictedRequestContext is a data structure containing information
@@ -41,12 +43,13 @@ type (
 const apiKeyHeader = "X-API-KEY"
 
 // NewRequestBouncer initializes a new RequestBouncer
-func NewRequestBouncer(dataStore dataservices.DataStore, licenseService portaineree.LicenseService, jwtService portaineree.JWTService, apiKeyService apikey.APIKeyService) *RequestBouncer {
+func NewRequestBouncer(dataStore dataservices.DataStore, licenseService portaineree.LicenseService, jwtService portaineree.JWTService, apiKeyService apikey.APIKeyService, sslService *ssl.Service) *RequestBouncer {
 	return &RequestBouncer{
 		dataStore:      dataStore,
 		jwtService:     jwtService,
 		apiKeyService:  apiKeyService,
 		licenseService: licenseService,
+		sslService:     sslService,
 	}
 }
 
@@ -138,6 +141,14 @@ func (bouncer *RequestBouncer) AuthorizedEndpointOperation(r *http.Request, endp
 
 // AuthorizedEdgeEndpointOperation verifies that the request was received from a valid Edge environment(endpoint)
 func (bouncer *RequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint) error {
+	sslSettings, _ := bouncer.dataStore.SSLSettings().Settings()
+	if sslSettings.CACertPath != "" {
+		caCertErr := bouncer.sslService.ValidateCACert(r.TLS)
+		if caCertErr != nil {
+			return caCertErr
+		}
+	}
+
 	if endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment && endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment {
 		return errors.New("Invalid environment type")
 	}

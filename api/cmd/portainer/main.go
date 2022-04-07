@@ -230,7 +230,7 @@ func initGitService() portaineree.GitService {
 	return git.NewService()
 }
 
-func initSSLService(addr, dataPath, certPath, keyPath string, fileService portainer.FileService, dataStore dataservices.DataStore, shutdownTrigger context.CancelFunc) (*ssl.Service, error) {
+func initSSLService(addr, certPath, keyPath, caCertPath string, fileService portainer.FileService, dataStore dataservices.DataStore, shutdownTrigger context.CancelFunc) (*ssl.Service, error) {
 	slices := strings.Split(addr, ":")
 	host := slices[0]
 	if host == "" {
@@ -239,7 +239,7 @@ func initSSLService(addr, dataPath, certPath, keyPath string, fileService portai
 
 	sslService := ssl.NewService(fileService, dataStore, shutdownTrigger)
 
-	err := sslService.Init(host, certPath, keyPath)
+	err := sslService.Init(host, certPath, keyPath, caCertPath)
 	if err != nil {
 		return nil, err
 	}
@@ -604,7 +604,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 
 	digitalSignatureService := initDigitalSignatureService()
 
-	sslService, err := initSSLService(*flags.AddrHTTPS, *flags.Data, *flags.SSLCert, *flags.SSLKey, fileService, dataStore, shutdownTrigger)
+	sslService, err := initSSLService(*flags.AddrHTTPS, *flags.SSLCert, *flags.SSLKey, *flags.SSLCACert, fileService, dataStore, shutdownTrigger)
 	if err != nil {
 		logrus.Fatal(err)
 	}

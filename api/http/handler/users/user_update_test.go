@@ -31,7 +31,7 @@ func Test_updateUserRemovesAccessTokens(t *testing.T) {
 	jwtService, err := jwt.NewService("1h", store)
 	is.NoError(err, "Error initiating jwt service")
 	apiKeyService := apikey.NewAPIKeyService(store.APIKeyRepository(), store.User())
-	requestBouncer := security.NewRequestBouncer(store, nil, jwtService, apiKeyService)
+	requestBouncer := security.NewRequestBouncer(store, nil, jwtService, apiKeyService, nil)
 	rateLimiter := security.NewRateLimiter(10, 1*time.Second, 1*time.Hour)
 	authorizationService := authorization.NewService(store)
 

@@ -1,6 +1,7 @@
 package ssl
 
 import (
+	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -32,8 +33,8 @@ func NewService(connection portainer.Connection) (*Service, error) {
 }
 
 // Settings retrieve the ssl settings object.
-func (service *Service) Settings() (*portainer.SSLSettings, error) {
-	var settings portainer.SSLSettings
+func (service *Service) Settings() (*portaineree.SSLSettings, error) {
+	var settings portaineree.SSLSettings
 
 	err := service.connection.GetObject(BucketName, []byte(key), &settings)
 	if err != nil {
@@ -44,6 +45,6 @@ func (service *Service) Settings() (*portainer.SSLSettings, error) {
 }
 
 // UpdateSettings persists a SSLSettings object.
-func (service *Service) UpdateSettings(settings *portainer.SSLSettings) error {
+func (service *Service) UpdateSettings(settings *portaineree.SSLSettings) error {
 	return service.connection.UpdateObject(BucketName, []byte(key), settings)
 }

@@ -11,6 +11,7 @@ func configureLogger() {
 	log.SetOutput(logger.Writer())
 
 	formatter := &logrus.TextFormatter{DisableTimestamp: true, DisableLevelTruncation: true}
+
 	logger.SetFormatter(formatter)
 	logrus.SetFormatter(formatter)
 
