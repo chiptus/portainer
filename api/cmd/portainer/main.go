@@ -422,7 +422,7 @@ func createTLSSecuredEndpoint(flags *portaineree.CLIFlags, dataStore dataservice
 		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
 		TagIDs:             []portaineree.TagID{},
 		Status:             portaineree.EndpointStatusUp,
-		Snapshots:          []portaineree.DockerSnapshot{},
+		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portaineree.KubernetesDefault(),
 
 		SecuritySettings: portaineree.EndpointSecuritySettings{
@@ -487,7 +487,7 @@ func createUnsecuredEndpoint(endpointURL string, dataStore dataservices.DataStor
 		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
 		TagIDs:             []portaineree.TagID{},
 		Status:             portaineree.EndpointStatusUp,
-		Snapshots:          []portaineree.DockerSnapshot{},
+		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portaineree.KubernetesDefault(),
 
 		SecuritySettings: portaineree.EndpointSecuritySettings{

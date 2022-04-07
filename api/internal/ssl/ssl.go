@@ -9,7 +9,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/portainer/libcrypto"
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 )
@@ -79,7 +78,7 @@ func (service *Service) GetRawCertificate() *tls.Certificate {
 }
 
 // GetSSLSettings gets the certificate info
-func (service *Service) GetSSLSettings() (*portaineree.SSLSettings, error) {
+func (service *Service) GetSSLSettings() (*portainer.SSLSettings, error) {
 	return service.dataStore.SSLSettings().Settings()
 }
 

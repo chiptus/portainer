@@ -10,6 +10,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // Snapshotter represents a service used to create environment(endpoint) snapshots
@@ -25,7 +26,7 @@ func NewSnapshotter(clientFactory *ClientFactory) *Snapshotter {
 }
 
 // CreateSnapshot creates a snapshot of a specific Docker environment(endpoint)
-func (snapshotter *Snapshotter) CreateSnapshot(endpoint *portaineree.Endpoint) (*portaineree.DockerSnapshot, error) {
+func (snapshotter *Snapshotter) CreateSnapshot(endpoint *portaineree.Endpoint) (*portainer.DockerSnapshot, error) {
 	cli, err := snapshotter.clientFactory.CreateClient(endpoint, "", nil)
 	if err != nil {
 		return nil, err
@@ -35,13 +36,13 @@ func (snapshotter *Snapshotter) CreateSnapshot(endpoint *portaineree.Endpoint) (
 	return snapshot(cli, endpoint)
 }
 
-func snapshot(cli *client.Client, endpoint *portaineree.Endpoint) (*portaineree.DockerSnapshot, error) {
+func snapshot(cli *client.Client, endpoint *portaineree.Endpoint) (*portainer.DockerSnapshot, error) {
 	_, err := cli.Ping(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
-	snapshot := &portaineree.DockerSnapshot{
+	snapshot := &portainer.DockerSnapshot{
 		StackCount: 0,
 	}
 
@@ -91,7 +92,7 @@ func snapshot(cli *client.Client, endpoint *portaineree.Endpoint) (*portaineree.
 	return snapshot, nil
 }
 
-func snapshotInfo(snapshot *portaineree.DockerSnapshot, cli *client.Client) error {
+func snapshotInfo(snapshot *portainer.DockerSnapshot, cli *client.Client) error {
 	info, err := cli.Info(context.Background())
 	if err != nil {
 		return err
@@ -105,7 +106,7 @@ func snapshotInfo(snapshot *portaineree.DockerSnapshot, cli *client.Client) erro
 	return nil
 }
 
-func snapshotNodes(snapshot *portaineree.DockerSnapshot, cli *client.Client) error {
+func snapshotNodes(snapshot *portainer.DockerSnapshot, cli *client.Client) error {
 	nodes, err := cli.NodeList(context.Background(), types.NodeListOptions{})
 	if err != nil {
 		return err
@@ -122,7 +123,7 @@ func snapshotNodes(snapshot *portaineree.DockerSnapshot, cli *client.Client) err
 	return nil
 }
 
-func snapshotSwarmServices(snapshot *portaineree.DockerSnapshot, cli *client.Client) error {
+func snapshotSwarmServices(snapshot *portainer.DockerSnapshot, cli *client.Client) error {
 	stacks := make(map[string]struct{})
 
 	services, err := cli.ServiceList(context.Background(), types.ServiceListOptions{})
@@ -143,7 +144,7 @@ func snapshotSwarmServices(snapshot *portaineree.DockerSnapshot, cli *client.Cli
 	return nil
 }
 
-func snapshotContainers(snapshot *portaineree.DockerSnapshot, cli *client.Client) error {
+func snapshotContainers(snapshot *portainer.DockerSnapshot, cli *client.Client) error {
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true})
 	if err != nil {
 		return err
@@ -183,7 +184,7 @@ func snapshotContainers(snapshot *portaineree.DockerSnapshot, cli *client.Client
 	return nil
 }
 
-func snapshotImages(snapshot *portaineree.DockerSnapshot, cli *client.Client) error {
+func snapshotImages(snapshot *portainer.DockerSnapshot, cli *client.Client) error {
 	images, err := cli.ImageList(context.Background(), types.ImageListOptions{})
 	if err != nil {
 		return err
@@ -194,7 +195,7 @@ func snapshotImages(snapshot *portaineree.DockerSnapshot, cli *client.Client) er
 	return nil
 }
 
-func snapshotVolumes(snapshot *portaineree.DockerSnapshot, cli *client.Client) error {
+func snapshotVolumes(snapshot *portainer.DockerSnapshot, cli *client.Client) error {
 	volumes, err := cli.VolumeList(context.Background(), filters.Args{})
 	if err != nil {
 		return err
@@ -205,7 +206,7 @@ func snapshotVolumes(snapshot *portaineree.DockerSnapshot, cli *client.Client) e
 	return nil
 }
 
-func snapshotNetworks(snapshot *portaineree.DockerSnapshot, cli *client.Client) error {
+func snapshotNetworks(snapshot *portainer.DockerSnapshot, cli *client.Client) error {
 	networks, err := cli.NetworkList(context.Background(), types.NetworkListOptions{})
 	if err != nil {
 		return err
@@ -214,7 +215,7 @@ func snapshotNetworks(snapshot *portaineree.DockerSnapshot, cli *client.Client) 
 	return nil
 }
 
-func snapshotVersion(snapshot *portaineree.DockerSnapshot, cli *client.Client) error {
+func snapshotVersion(snapshot *portainer.DockerSnapshot, cli *client.Client) error {
 	version, err := cli.ServerVersion(context.Background())
 	if err != nil {
 		return err

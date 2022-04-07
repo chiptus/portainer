@@ -3,6 +3,7 @@ package datastore
 import (
 	"github.com/gofrs/uuid"
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices/errors"
 )
 
@@ -88,7 +89,7 @@ func (store *Store) checkOrCreateDefaultSettings() error {
 func (store *Store) checkOrCreateDefaultSSLSettings() error {
 	_, err := store.SSLSettings().Settings()
 	if err == errors.ErrObjectNotFound {
-		defaultSSLSettings := &portaineree.SSLSettings{
+		defaultSSLSettings := &portainer.SSLSettings{
 			HTTPEnabled: true,
 		}
 

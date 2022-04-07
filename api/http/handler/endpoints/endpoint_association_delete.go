@@ -12,6 +12,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
@@ -47,7 +48,7 @@ func (handler *Handler) endpointAssociationDelete(w http.ResponseWriter, r *http
 	}
 
 	endpoint.EdgeID = ""
-	endpoint.Snapshots = []portaineree.DockerSnapshot{}
+	endpoint.Snapshots = []portainer.DockerSnapshot{}
 	endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{}
 
 	endpoint.EdgeKey, err = handler.updateEdgeKey(endpoint.EdgeKey)

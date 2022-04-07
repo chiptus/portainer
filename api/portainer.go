@@ -165,46 +165,6 @@ type (
 	// CustomTemplatePlatform represents a custom template platform
 	CustomTemplatePlatform int
 
-	// DockerHub represents all the required information to connect and use the
-	// Docker Hub
-	DockerHub struct {
-		// Is authentication against DockerHub enabled
-		Authentication bool `json:"Authentication" example:"true"`
-		// Username used to authenticate against the DockerHub
-		Username string `json:"Username" example:"user"`
-		// Password used to authenticate against the DockerHub
-		Password string `json:"Password,omitempty" example:"passwd"`
-	}
-
-	// DockerSnapshot represents a snapshot of a specific Docker environment(endpoint) at a specific time
-	DockerSnapshot struct {
-		Time                    int64             `json:"Time"`
-		DockerVersion           string            `json:"DockerVersion"`
-		Swarm                   bool              `json:"Swarm"`
-		TotalCPU                int               `json:"TotalCPU"`
-		TotalMemory             int64             `json:"TotalMemory"`
-		RunningContainerCount   int               `json:"RunningContainerCount"`
-		StoppedContainerCount   int               `json:"StoppedContainerCount"`
-		HealthyContainerCount   int               `json:"HealthyContainerCount"`
-		UnhealthyContainerCount int               `json:"UnhealthyContainerCount"`
-		VolumeCount             int               `json:"VolumeCount"`
-		ImageCount              int               `json:"ImageCount"`
-		ServiceCount            int               `json:"ServiceCount"`
-		StackCount              int               `json:"StackCount"`
-		SnapshotRaw             DockerSnapshotRaw `json:"DockerSnapshotRaw"`
-		NodeCount               int               `json:"NodeCount"`
-	}
-
-	// DockerSnapshotRaw represents all the information related to a snapshot as returned by the Docker API
-	DockerSnapshotRaw struct {
-		Containers interface{} `json:"Containers"`
-		Volumes    interface{} `json:"Volumes"`
-		Networks   interface{} `json:"Networks"`
-		Images     interface{} `json:"Images"`
-		Info       interface{} `json:"Info"`
-		Version    interface{} `json:"Version"`
-	}
-
 	// EdgeGroup represents an Edge group
 	EdgeGroup struct {
 		// EdgeGroup Identifier
@@ -317,7 +277,7 @@ type (
 		// The status of the environment(endpoint) (1 - up, 2 - down)
 		Status EndpointStatus `json:"Status" example:"1"`
 		// List of snapshots
-		Snapshots []DockerSnapshot `json:"Snapshots" example:""`
+		Snapshots []portainer.DockerSnapshot `json:"Snapshots"`
 		// List of user identifiers authorized to connect to this environment(endpoint)
 		UserAccessPolicies UserAccessPolicies `json:"UserAccessPolicies"`
 		// List of team identifiers authorized to connect to this environment(endpoint)
@@ -945,14 +905,6 @@ type (
 	// SoftwareEdition represents an edition of Portainer
 	SoftwareEdition int
 
-	// SSLSettings represents a pair of SSL certificate and key
-	SSLSettings struct {
-		CertPath    string `json:"certPath"`
-		KeyPath     string `json:"keyPath"`
-		SelfSigned  bool   `json:"selfSigned"`
-		HTTPEnabled bool   `json:"httpEnabled"`
-	}
-
 	// Stack represents a Docker stack created via docker stack deploy
 	Stack struct {
 		// Stack Identifier
@@ -1347,7 +1299,7 @@ type (
 
 	// DockerSnapshotter represents a service used to create Docker environment(endpoint) snapshots
 	DockerSnapshotter interface {
-		CreateSnapshot(endpoint *Endpoint) (*DockerSnapshot, error)
+		CreateSnapshot(endpoint *Endpoint) (*portainer.DockerSnapshot, error)
 	}
 
 	// GitService represents a service for managing Git

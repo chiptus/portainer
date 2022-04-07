@@ -391,7 +391,7 @@ type storeExport struct {
 	S3BackupSettings   portaineree.S3BackupSettings     `json:"s3backup,omitempty"`
 	Schedules          []portaineree.Schedule           `json:"schedules,omitempty"`
 	Settings           portaineree.Settings             `json:"settings,omitempty"`
-	SSLSettings        portaineree.SSLSettings          `json:"ssl,omitempty"`
+	SSLSettings        portainer.SSLSettings            `json:"ssl,omitempty"`
 	Stack              []portaineree.Stack              `json:"stacks,omitempty"`
 	Tag                []portaineree.Tag                `json:"tags,omitempty"`
 	TeamMembership     []portaineree.TeamMembership     `json:"team_membership,omitempty"`

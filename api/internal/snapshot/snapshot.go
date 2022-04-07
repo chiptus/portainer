@@ -8,6 +8,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // Service represents a service to manage environment(endpoint) snapshots.
@@ -117,7 +118,7 @@ func (service *Service) snapshotDockerEndpoint(endpoint *portaineree.Endpoint) e
 	}
 
 	if snapshot != nil {
-		endpoint.Snapshots = []portaineree.DockerSnapshot{*snapshot}
+		endpoint.Snapshots = []portainer.DockerSnapshot{*snapshot}
 	}
 
 	return nil
@@ -187,7 +188,7 @@ func (service *Service) snapshotEndpoints() error {
 }
 
 // FetchDockerID fetches info.Swarm.Cluster.ID if environment(endpoint) is swarm and info.ID otherwise
-func FetchDockerID(snapshot portaineree.DockerSnapshot) (string, error) {
+func FetchDockerID(snapshot portainer.DockerSnapshot) (string, error) {
 	info, done := snapshot.SnapshotRaw.Info.(map[string]interface{})
 	if !done {
 		return "", errors.New("failed getting snapshot info")

@@ -290,7 +290,7 @@ func (handler *Handler) createAzureEndpoint(payload *endpointCreatePayload) (*po
 		AzureCredentials:   credentials,
 		TagIDs:             payload.TagIDs,
 		Status:             portaineree.EndpointStatusUp,
-		Snapshots:          []portaineree.DockerSnapshot{},
+		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portaineree.KubernetesDefault(),
 
 		ChangeWindow: portaineree.EndpointChangeWindow{
@@ -340,7 +340,7 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 		TeamAccessPolicies:  portaineree.TeamAccessPolicies{},
 		TagIDs:              payload.TagIDs,
 		Status:              portaineree.EndpointStatusUp,
-		Snapshots:           []portaineree.DockerSnapshot{},
+		Snapshots:           []portainer.DockerSnapshot{},
 		EdgeKey:             edgeKey,
 		EdgeCheckinInterval: payload.EdgeCheckinInterval,
 		Kubernetes:          portaineree.KubernetesDefault(),
@@ -397,7 +397,7 @@ func (handler *Handler) createUnsecuredEndpoint(payload *endpointCreatePayload) 
 		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
 		TagIDs:             payload.TagIDs,
 		Status:             portaineree.EndpointStatusUp,
-		Snapshots:          []portaineree.DockerSnapshot{},
+		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portaineree.KubernetesDefault(),
 		IsEdgeDevice:       payload.IsEdgeDevice,
 		ChangeWindow: portaineree.EndpointChangeWindow{
@@ -435,7 +435,7 @@ func (handler *Handler) createKubernetesEndpoint(payload *endpointCreatePayload)
 		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
 		TagIDs:             payload.TagIDs,
 		Status:             portaineree.EndpointStatusUp,
-		Snapshots:          []portaineree.DockerSnapshot{},
+		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portaineree.KubernetesDefault(),
 
 		ChangeWindow: portaineree.EndpointChangeWindow{
@@ -468,7 +468,7 @@ func (handler *Handler) createTLSSecuredEndpoint(payload *endpointCreatePayload,
 		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
 		TagIDs:             payload.TagIDs,
 		Status:             portaineree.EndpointStatusUp,
-		Snapshots:          []portaineree.DockerSnapshot{},
+		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portaineree.KubernetesDefault(),
 		IsEdgeDevice:       payload.IsEdgeDevice,
 		ChangeWindow: portaineree.EndpointChangeWindow{
