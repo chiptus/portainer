@@ -5,7 +5,20 @@ import { RepositoryShortTag, RepositoryTagViewModel } from '@/portainer/registry
 angular.module('portainer.app').controller('RegistryRepositoryController', RegistryRepositoryController);
 
 /* @ngInject */
-function RegistryRepositoryController($q, $async, $scope, $uibModal, $interval, $state, RegistryServiceSelector, RegistryService, ModalService, Notifications, ImageHelper) {
+function RegistryRepositoryController(
+  $q,
+  $async,
+  $scope,
+  $uibModal,
+  $interval,
+  $state,
+  RegistryServiceSelector,
+  RegistryService,
+  ModalService,
+  Notifications,
+  ImageHelper,
+  Authentication
+) {
   $scope.state = {
     actionInProgress: false,
     loading: false,
@@ -64,7 +77,7 @@ function RegistryRepositoryController($q, $async, $scope, $uibModal, $interval, 
 
   $scope.paginationAction = function (tags) {
     $scope.state.loading = true;
-    RegistryServiceSelector.getTagsDetails($scope.registry, $scope.repository.Name, tags)
+    RegistryServiceSelector.getTagsDetails($scope.registry, $scope.endpointId, $scope.repository.Name, tags)
       .then(function success(data) {
         for (var i = 0; i < data.length; i++) {
           var idx = _.findIndex($scope.tags, { Name: data[i].Name });
@@ -87,7 +100,7 @@ function RegistryRepositoryController($q, $async, $scope, $uibModal, $interval, 
   }
 
   function createRetrieveAsyncGenerator() {
-    $scope.state.tagsRetrieval.asyncGenerator = RegistryServiceSelector.shortTagsWithProgress($scope.registry, $scope.repository.Name, $scope.repository.Tags);
+    $scope.state.tagsRetrieval.asyncGenerator = RegistryServiceSelector.shortTagsWithProgress($scope.registry, $scope.endpointId, $scope.repository.Name, $scope.repository.Tags);
   }
 
   function resetTagsRetrievalState() {
@@ -152,7 +165,7 @@ function RegistryRepositoryController($q, $async, $scope, $uibModal, $interval, 
       }
       const tag = $scope.short.Tags.find((item) => item.ImageId === $scope.formValues.SelectedImage);
       const manifest = tag.ManifestV2;
-      await RegistryServiceSelector.addTag($scope.registry, $scope.repository.Name, $scope.formValues.Tag, manifest);
+      await RegistryServiceSelector.addTag($scope.registry, $scope.endpointId, $scope.repository.Name, $scope.formValues.Tag, manifest);
 
       Notifications.success('Success', 'Tag successfully added');
       $scope.short.Tags.push(new RepositoryShortTag($scope.formValues.Tag, tag.ImageId, tag.ImageDigest, tag.ManifestV2));
@@ -182,7 +195,14 @@ function RegistryRepositoryController($q, $async, $scope, $uibModal, $interval, 
   }
 
   function createRetagAsyncGenerator(modifiedTags, modifiedDigests, impactedTags) {
-    $scope.state.tagsRetag.asyncGenerator = RegistryServiceSelector.retagWithProgress($scope.registry, $scope.repository.Name, modifiedTags, modifiedDigests, impactedTags);
+    $scope.state.tagsRetag.asyncGenerator = RegistryServiceSelector.retagWithProgress(
+      $scope.registry,
+      $scope.endpointId,
+      $scope.repository.Name,
+      modifiedTags,
+      modifiedDigests,
+      impactedTags
+    );
   }
 
   async function retagActionAsync() {
@@ -251,14 +271,20 @@ function RegistryRepositoryController($q, $async, $scope, $uibModal, $interval, 
   }
 
   function createDeleteAsyncGenerator(modifiedDigests, impactedTags) {
-    $scope.state.tagsDelete.asyncGenerator = RegistryServiceSelector.deleteTagsWithProgress($scope.registry, $scope.repository.Name, modifiedDigests, impactedTags);
+    $scope.state.tagsDelete.asyncGenerator = RegistryServiceSelector.deleteTagsWithProgress(
+      $scope.registry,
+      $scope.endpointId,
+      $scope.repository.Name,
+      modifiedDigests,
+      impactedTags
+    );
   }
 
   async function removeEcrTagsAsync(selectedTags) {
     try {
       const tags = selectedTags.map((tag) => tag.Name);
 
-      await RegistryServiceSelector.batchDeleteTags({ id: $scope.registry.Id, repositoryName: $scope.repository.Name }, { Tags: tags });
+      await RegistryServiceSelector.batchDeleteTags({ id: $scope.registry.Id, endpointId: $scope.endpointId, repositoryName: $scope.repository.Name }, { Tags: tags });
 
       await loadRepositoryDetails();
       Notifications.success('Success', 'Tags successfully deleted');
@@ -307,7 +333,7 @@ function RegistryRepositoryController($q, $async, $scope, $uibModal, $interval, 
       Notifications.success('Success', 'Tags successfully deleted');
 
       if ($scope.short.Tags.length === 0) {
-        $state.go('portainer.registries.registry.repositories', { id: $scope.registry.Id }, { reload: true });
+        $state.go('portainer.registries.registry.repositories', { id: $scope.registry.Id, endpointId: $scope.endpointId }, { reload: true });
       }
       await loadRepositoryDetails();
     } catch (err) {
@@ -337,15 +363,15 @@ function RegistryRepositoryController($q, $async, $scope, $uibModal, $interval, 
   async function removeRepositoryAsync() {
     try {
       if ($scope.registry.Type == RegistryTypes.ECR) {
-        await RegistryServiceSelector.deleteRepository($scope.registry, $scope.repository);
+        await RegistryServiceSelector.deleteRepository($scope.registry, $scope.endpointId, $scope.repository);
       } else {
         const digests = _.uniqBy($scope.short.Tags, 'ImageDigest');
         const promises = [];
-        _.map(digests, (item) => promises.push(RegistryServiceSelector.deleteManifest($scope.registry, $scope.repository.Name, item.ImageDigest)));
+        _.map(digests, (item) => promises.push(RegistryServiceSelector.deleteManifest($scope.registry, $scope.endpointId, $scope.repository.Name, item.ImageDigest)));
         await Promise.all(promises);
       }
       Notifications.success('Success', 'Repository successfully removed');
-      $state.go('portainer.registries.registry.repositories', { id: $scope.registry.Id }, { reload: true });
+      $state.go('portainer.registries.registry.repositories', { id: $scope.registry.Id, endpointId: $scope.endpointId }, { reload: true });
     } catch (err) {
       Notifications.error('Failure', err, 'Unable to delete repository');
     }
@@ -373,7 +399,7 @@ function RegistryRepositoryController($q, $async, $scope, $uibModal, $interval, 
     try {
       const registry = $scope.registry;
       const repository = $scope.repository.Name;
-      const tags = await RegistryServiceSelector.tags(registry, repository);
+      const tags = await RegistryServiceSelector.tags(registry, $scope.endpointId, repository);
       $scope.tags = [];
       $scope.repository.Tags = [];
       $scope.repository.Tags = _.sortBy(_.concat($scope.repository.Tags, _.without(tags.tags, null)));
@@ -387,9 +413,12 @@ function RegistryRepositoryController($q, $async, $scope, $uibModal, $interval, 
     try {
       const registryId = $state.params.id;
       $scope.repository.Name = $state.params.repository;
+      $scope.endpointId = $state.params.endpointId;
       $scope.state.loading = true;
 
-      $scope.registry = await RegistryService.registry(registryId);
+      $scope.hasAdvancedFeaturesAuth = Authentication.hasAuthorizations(['PortainerRegistryInternalDelete']);
+
+      $scope.registry = await RegistryService.registry(registryId, $scope.endpointId);
       await loadRepositoryDetails();
       if ($scope.repository.Tags.length > $scope.state.tagsRetrieval.limit) {
         $scope.state.tagsRetrieval.auto = false;

@@ -124,7 +124,6 @@ func AuthorizedRegistryAccess(registry *portaineree.Registry, user *portaineree.
 	}
 
 	registryEndpointAccesses := registry.RegistryAccesses[endpointID]
-
 	return AuthorizedAccess(user.ID, teamMemberships, registryEndpointAccesses.UserAccessPolicies, registryEndpointAccesses.TeamAccessPolicies)
 }
 

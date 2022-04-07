@@ -4,9 +4,15 @@
       <i class="fa fa-sync" aria-hidden="true"></i>
     </a>
   </rd-header-title>
-  <rd-header-content>
-    <a ui-sref="portainer.registries">Registries</a> &gt; <a ui-sref="portainer.registries.registry.repositories()">{{ $ctrl.registry.Name }}</a> &gt;
-    <a ui-sref="portainer.registries.registry.repository()">{{ $ctrl.context.repository }} </a> &gt;
+  <rd-header-content ng-if="!$ctrl.context.endpointId">
+    <a ui-sref="portainer.registries">Registries</a> > <a ui-sref="portainer.registries.registry.repositories">{{ $ctrl.registry.Name }}</a> >
+    <a ui-sref="portainer.registries.registry.repository">{{ $ctrl.context.repository }} </a> &gt;
+    {{ $ctrl.context.tag }}
+  </rd-header-content>
+  <rd-header-content ng-if="$ctrl.context.endpointId">
+    <a ui-sref="docker.registries({endpointId: $ctrl.context.endpointId})">Registries</a> &gt;
+    <a ui-sref="portainer.registries.registry.repositories({endpointId: $ctrl.context.endpointId})">{{ $ctrl.registry.Name }}</a> &gt;
+    <a ui-sref="portainer.registries.registry.repository">{{ $ctrl.context.repository }} </a> &gt;
     {{ $ctrl.context.tag }}
   </rd-header-content>
 </rd-header>

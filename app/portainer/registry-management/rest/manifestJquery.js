@@ -13,7 +13,11 @@ angular.module('portainer.registrymanagement').factory('RegistryManifestsJquery'
     'use strict';
 
     function buildUrl(params) {
-      return API_ENDPOINT_REGISTRIES + '/' + params.id + '/v2/' + params.repository + '/manifests/' + params.tag;
+      let url = API_ENDPOINT_REGISTRIES + '/' + params.id + '/v2/' + params.repository + '/manifests/' + params.tag;
+      if (params.endpointId) {
+        url += '?endpointId=' + params.endpointId;
+      }
+      return url;
     }
 
     function _get(params) {

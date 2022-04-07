@@ -31,13 +31,14 @@ export class RegistryRepositoryTagController {
     this.context.registryId = this.$state.params.id;
     this.context.repository = this.$state.params.repository;
     this.context.tag = this.$state.params.tag;
+    this.context.endpointId = this.$state.params.endpointId;
     this.Sort = {
       Type: 'Order',
       Reverse: false,
     };
     try {
-      this.registry = await this.RegistryService.registry(this.context.registryId);
-      this.tag = await this.RegistryServiceSelector.tag(this.registry, this.context.repository, this.context.tag);
+      this.registry = await this.RegistryService.registry(this.context.registryId, this.context.endpointId);
+      this.tag = await this.RegistryServiceSelector.tag(this.registry, this.context.endpointId, this.context.repository, this.context.tag);
       const length = this.tag.History.length;
       this.history = _.map(this.tag.History, (layer, idx) => new RegistryImageLayerViewModel(length - idx, layer));
       _.forEach(this.history, (item) => (item.CreatedBy = this.imagelayercommandFilter(item.CreatedBy)));

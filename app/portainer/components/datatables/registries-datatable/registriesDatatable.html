@@ -87,7 +87,7 @@
                 <a authorization="PortainerRegistryUpdateAccess" ng-if="$ctrl.canManageAccess(item)" ng-click="$ctrl.redirectToManageAccess(item)">
                   <i class="fa fa-users" aria-hidden="true"></i> Manage access
                 </a>
-                <a ng-if="$ctrl.canBrowse(item)" ui-sref="portainer.registries.registry.repositories({id: item.Id})" class="space-left">
+                <a ng-if="$ctrl.canBrowse(item)" ui-sref="portainer.registries.registry.repositories({id: item.Id, endpointId: $ctrl.endpointId})" class="space-left">
                   <i class="fa fa-search" aria-hidden="true"></i> Browse
                 </a>
                 <span ng-if="!$ctrl.canBrowse(item) && !$ctrl.canManageAccess(item)"> - </span>

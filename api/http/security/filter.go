@@ -65,18 +65,16 @@ func FilterUsers(users []portaineree.User, context *RestrictedRequestContext) []
 // FilterRegistries filters registries based on user role and team memberships.
 // Non administrator users only have access to authorized registries.
 func FilterRegistries(registries []portaineree.Registry, user *portaineree.User, teamMemberships []portaineree.TeamMembership, endpointID portaineree.EndpointID) []portaineree.Registry {
-	if user.Role == portaineree.AdministratorRole || user.EndpointAuthorizations[endpointID][portaineree.EndpointResourcesAccess] {
+	if user.Role == portaineree.AdministratorRole {
 		return registries
 	}
 
 	filteredRegistries := []portaineree.Registry{}
-
 	for _, registry := range registries {
 		if AuthorizedRegistryAccess(&registry, user, teamMemberships, endpointID) {
 			filteredRegistries = append(filteredRegistries, registry)
 		}
 	}
-
 	return filteredRegistries
 }
 

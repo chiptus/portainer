@@ -50,10 +50,11 @@ angular.module('portainer.app').factory('RegistryGitlabService', [
       return repositories;
     }
 
-    async function repositoriesAsync(registry) {
+    async function repositoriesAsync(registry, endpointId) {
       try {
         const params = {
           id: registry.Id,
+          endpointId: endpointId,
           projectId: registry.Gitlab.ProjectId,
           page: 1,
         };
@@ -79,8 +80,8 @@ angular.module('portainer.app').factory('RegistryGitlabService', [
       return $async(projectsAsync, url, token);
     }
 
-    function repositories(registry) {
-      return $async(repositoriesAsync, registry);
+    function repositories(registry, endpointId) {
+      return $async(repositoriesAsync, registry, endpointId);
     }
 
     service.projects = projects;

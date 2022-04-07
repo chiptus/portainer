@@ -27,11 +27,6 @@ angular.module('portainer.app').factory('Endpoints', [
         updatePoolAccess: { url: API_ENDPOINT_ENDPOINTS + '/:id/pools/:rpn/access', method: 'PUT', params: { id: '@id', rpn: '@rpn' } },
         forceUpdateService: { method: 'PUT', params: { id: '@id', action: 'forceupdateservice' } },
         registries: { url: `${API_ENDPOINT_ENDPOINTS}/:id/registries`, method: 'GET', params: { id: '@id', namespace: '@namespace' }, isArray: true },
-        registry: {
-          url: `${API_ENDPOINT_ENDPOINTS}/:id/registries/:registryId`,
-          method: 'GET',
-          params: { id: '@id', namespace: '@namespace', registryId: '@registryId' },
-        },
         updateRegistryAccess: { url: `${API_ENDPOINT_ENDPOINTS}/:id/registries/:registryId`, method: 'PUT', params: { id: '@id', registryId: '@registryId' } },
       }
     );

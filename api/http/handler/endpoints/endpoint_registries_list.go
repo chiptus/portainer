@@ -59,28 +59,9 @@ func (handler *Handler) endpointRegistriesList(w http.ResponseWriter, r *http.Re
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve registries from the database", Err: err}
 	}
 
-	if endpointutils.IsKubernetesEndpoint(endpoint) {
-		namespace, _ := request.RetrieveQueryParameter(r, "namespace", true)
-
-		if namespace == "" && !isAdminOrEndpointAdmin {
-			return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "Missing namespace query parameter", Err: errors.New("missing namespace query parameter")}
-		}
-
-		if namespace != "" {
-			authorized, err := handler.isNamespaceAuthorized(endpoint, namespace, user.ID, securityContext.UserMemberships, isAdminOrEndpointAdmin)
-			if err != nil {
-				return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to check for namespace authorization", Err: err}
-			}
-
-			if !authorized {
-				return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "User is not authorized to use namespace", Err: errors.New("user is not authorized to use namespace")}
-			}
-
-			registries = filterRegistriesByNamespace(registries, endpoint.ID, namespace)
-		}
-
-	} else if !isAdminOrEndpointAdmin {
-		registries = security.FilterRegistries(registries, user, securityContext.UserMemberships, endpoint.ID)
+	registries, handleError := handler.filterRegistriesByAccess(r, registries, endpoint, user, securityContext.UserMemberships)
+	if handleError != nil {
+		return handleError
 	}
 
 	for idx := range registries {
@@ -88,6 +69,40 @@ func (handler *Handler) endpointRegistriesList(w http.ResponseWriter, r *http.Re
 	}
 
 	return response.JSON(w, registries)
+}
+
+func (handler *Handler) filterRegistriesByAccess(r *http.Request, registries []portaineree.Registry, endpoint *portaineree.Endpoint, user *portaineree.User, memberships []portaineree.TeamMembership) ([]portaineree.Registry, *httperror.HandlerError) {
+	if !endpointutils.IsKubernetesEndpoint(endpoint) {
+		return security.FilterRegistries(registries, user, memberships, endpoint.ID), nil
+	}
+
+	return handler.filterKubernetesEndpointRegistries(r, registries, endpoint, user, memberships)
+}
+
+func (handler *Handler) filterKubernetesEndpointRegistries(r *http.Request, registries []portaineree.Registry, endpoint *portaineree.Endpoint, user *portaineree.User, memberships []portaineree.TeamMembership) ([]portaineree.Registry, *httperror.HandlerError) {
+	namespaceParam, _ := request.RetrieveQueryParameter(r, "namespace", true)
+	isAdminOrEndpointAdmin, err := security.IsAdminOrEndpointAdmin(r, handler.dataStore, endpoint.ID)
+	if err != nil {
+		return nil, &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to check user role", Err: err}
+	}
+
+	if namespaceParam != "" {
+		authorized, err := handler.isNamespaceAuthorized(endpoint, namespaceParam, user.ID, memberships, isAdminOrEndpointAdmin)
+		if err != nil {
+			return nil, &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to check for namespace authorization", Err: err}
+		}
+		if !authorized {
+			return nil, &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "User is not authorized to use namespace", Err: errors.New("user is not authorized to use namespace")}
+		}
+
+		return filterRegistriesByNamespaces(registries, endpoint.ID, []string{namespaceParam}), nil
+	}
+
+	if isAdminOrEndpointAdmin {
+		return registries, nil
+	}
+
+	return handler.filterKubernetesRegistriesByUserRole(r, registries, endpoint, user)
 }
 
 func (handler *Handler) isNamespaceAuthorized(endpoint *portaineree.Endpoint, namespace string, userId portaineree.UserID, memberships []portaineree.TeamMembership, isAdminOrEndpointAdmin bool) (bool, error) {
@@ -117,22 +132,61 @@ func (handler *Handler) isNamespaceAuthorized(endpoint *portaineree.Endpoint, na
 	return security.AuthorizedAccess(userId, memberships, namespacePolicy.UserAccessPolicies, namespacePolicy.TeamAccessPolicies), nil
 }
 
-func filterRegistriesByNamespace(registries []portaineree.Registry, endpointId portaineree.EndpointID, namespace string) []portaineree.Registry {
-	if namespace == "" {
-		return registries
-	}
-
+func filterRegistriesByNamespaces(registries []portaineree.Registry, endpointId portaineree.EndpointID, namespaces []string) []portaineree.Registry {
 	filteredRegistries := []portaineree.Registry{}
 
 	for _, registry := range registries {
-		for _, authorizedNamespace := range registry.RegistryAccesses[endpointId].Namespaces {
-			if authorizedNamespace == namespace {
-				filteredRegistries = append(filteredRegistries, registry)
-			}
+		if registryAccessPoliciesContainsNamespace(registry.RegistryAccesses[endpointId], namespaces) {
+			filteredRegistries = append(filteredRegistries, registry)
 		}
 	}
 
 	return filteredRegistries
+}
+
+func registryAccessPoliciesContainsNamespace(registryAccess portaineree.RegistryAccessPolicies, namespaces []string) bool {
+	for _, authorizedNamespace := range registryAccess.Namespaces {
+		for _, namespace := range namespaces {
+			if namespace == authorizedNamespace {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (handler *Handler) filterKubernetesRegistriesByUserRole(r *http.Request, registries []portaineree.Registry, endpoint *portaineree.Endpoint, user *portaineree.User) ([]portaineree.Registry, *httperror.HandlerError) {
+	err := handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
+	if err == security.ErrAuthorizationRequired {
+		return nil, &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "User is not authorized", Err: errors.New("missing namespace query parameter")}
+	}
+	if err != nil {
+		return nil, &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve info from request context", Err: err}
+	}
+
+	userNamespaces, err := handler.userNamespaces(endpoint, user)
+	if err != nil {
+		return nil, &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "unable to retrieve user namespaces", Err: err}
+	}
+
+	return filterRegistriesByNamespaces(registries, endpoint.ID, userNamespaces), nil
+}
+
+func (handler *Handler) userNamespaces(endpoint *portaineree.Endpoint, user *portaineree.User) ([]string, error) {
+	kcl, err := handler.K8sClientFactory.GetKubeClient(endpoint)
+	if err != nil {
+		return nil, err
+	}
+	namespaceAuthorizations, err := handler.AuthorizationService.GetNamespaceAuthorizations(int(user.ID), *endpoint, kcl)
+	if err != nil {
+		return nil, err
+	}
+
+	var userNamespaces []string
+	for userNamespace := range namespaceAuthorizations {
+		userNamespaces = append(userNamespaces, userNamespace)
+	}
+	return userNamespaces, nil
 }
 
 func hideRegistryFields(registry *portaineree.Registry, hideAccesses bool) {

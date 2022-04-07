@@ -2,13 +2,14 @@ import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
 
 export default class KubernetesRegistryAccessController {
   /* @ngInject */
-  constructor($async, $state, Authentication, ModalService, EndpointService, Notifications, KubernetesResourcePoolService) {
+  constructor($async, $state, Authentication, ModalService, EndpointService, Notifications, RegistryService, KubernetesResourcePoolService) {
     this.$async = $async;
     this.$state = $state;
     this.Authentication = Authentication;
     this.ModalService = ModalService;
     this.Notifications = Notifications;
     this.KubernetesResourcePoolService = KubernetesResourcePoolService;
+    this.RegistryService = RegistryService;
     this.EndpointService = EndpointService;
 
     this.state = {
@@ -56,7 +57,7 @@ export default class KubernetesRegistryAccessController {
     return this.$async(async () => {
       this.Authentication.redirectIfUnauthorized(['PortainerRegistryUpdateAccess']);
       try {
-        this.registry = await this.EndpointService.registry(this.endpoint.Id, this.$state.params.id);
+        this.registry = await this.RegistryService.registry(this.$state.params.id, this.endpoint.Id);
         if (this.registry.RegistryAccesses && this.registry.RegistryAccesses[this.endpoint.Id]) {
           this.savedResourcePools = this.registry.RegistryAccesses[this.endpoint.Id].Namespaces.map((value) => ({ value }));
         }

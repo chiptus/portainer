@@ -16,19 +16,20 @@ function RegistryEcrServiceFactory($q, RegistryManifestsJquery, Ecr) {
     return Ecr.batchDeleteTags(params, data).$promise;
   }
 
-  function deleteRepository(registry, repository) {
-    return Ecr.deleteRepository({ id: registry.Id, repositoryName: repository.Name }).$promise;
+  function deleteRepository(registry, endpointId, repository) {
+    return Ecr.deleteRepository({ id: registry.Id, endpointId: endpointId, repositoryName: repository.Name }).$promise;
   }
 
   /**
    * RETAG
    */
-  function _addTag(registry, repository, tag, manifest) {
+  function _addTag(registry, endpointId, repository, tag, manifest) {
     const id = registry.Id;
     delete manifest.digest;
     return RegistryManifestsJquery.put(
       {
         id: id,
+        endpointId: endpointId,
         repository: repository,
         tag: tag,
       },
@@ -36,25 +37,25 @@ function RegistryEcrServiceFactory($q, RegistryManifestsJquery, Ecr) {
     );
   }
 
-  function _addTagFromGenerator(registry, repository, tag) {
-    return _addTag(registry, repository, tag.NewName, tag.ManifestV2);
+  function _addTagFromGenerator(registry, endpointId, repository, tag) {
+    return _addTag(registry, endpointId, repository, tag.NewName, tag.ManifestV2);
   }
 
-  async function* _addTagsWithProgress(registry, repository, modifiedTags) {
-    for await (const partialResult of genericAsyncGenerator($q, modifiedTags, _addTagFromGenerator, [registry, repository])) {
+  async function* _addTagsWithProgress(registry, endpointId, repository, modifiedTags) {
+    for await (const partialResult of genericAsyncGenerator($q, modifiedTags, _addTagFromGenerator, [registry, endpointId, repository])) {
       yield partialResult;
     }
   }
 
-  async function* retagWithProgress(registry, repository, modifiedTags, modifiedDigests, impactedTags) {
-    yield* _addTagsWithProgress(registry, repository, modifiedTags);
+  async function* retagWithProgress(registry, endpointId, repository, modifiedTags, modifiedDigests, impactedTags) {
+    yield* _addTagsWithProgress(registry, endpointId, repository, modifiedTags);
 
     const oldTagNames = modifiedTags.map((tag) => tag.Name);
     const newTagNames = modifiedTags.map((tag) => tag.NewName);
     const toDelTags = _.without(oldTagNames, ...newTagNames);
 
     if (toDelTags.length) {
-      await batchDeleteTags({ id: registry.Id, repositoryName: repository }, { Tags: toDelTags });
+      await batchDeleteTags({ id: registry.Id, endpointId: endpointId, repositoryName: repository }, { Tags: toDelTags });
     }
 
     yield modifiedDigests.length + impactedTags.length;

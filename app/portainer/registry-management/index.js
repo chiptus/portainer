@@ -15,7 +15,7 @@ angular.module('portainer.registrymanagement', []).config([
 
     var registryRepositories = {
       name: 'portainer.registries.registry.repositories',
-      url: '/repositories',
+      url: '/repositories?endpointId',
       views: {
         'content@': {
           component: 'registryRepositoriesView',
@@ -25,7 +25,7 @@ angular.module('portainer.registrymanagement', []).config([
 
     var registryRepositoryTags = {
       name: 'portainer.registries.registry.repository',
-      url: '/:repository',
+      url: '/:repository?endpointId',
       views: {
         'content@': {
           templateUrl: './views/repositories/edit/template.html',

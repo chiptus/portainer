@@ -26,7 +26,7 @@ export class ConfigureRegistryController {
     this.state.testInProgress = true;
     try {
       await this.RegistryService.configureRegistry(this.registry.Id, this.model);
-      await this.RegistryServiceSelector.ping(this.registry, true);
+      await this.RegistryServiceSelector.ping(this.registry, null, true);
 
       this.Notifications.success('Success', 'Valid management configuration');
       this.state.validConfiguration = true;

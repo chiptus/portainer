@@ -5,6 +5,7 @@ angular.module('portainer.registrymanagement').component('registryRepositoriesDa
     titleText: '@',
     titleIcon: '@',
     dataset: '<',
+    endpointId: '<',
     tableKey: '@',
     orderBy: '@',
     reverseOrder: '<',

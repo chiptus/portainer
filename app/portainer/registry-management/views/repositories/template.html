@@ -4,10 +4,12 @@
       <i class="fa fa-sync" aria-hidden="true"></i>
     </a>
   </rd-header-title>
-  <rd-header-content>
+  <rd-header-content ng-if="$ctrl.isAdmin">
     <a ui-sref="portainer.registries">Registries</a> &gt;
-    <a ng-if="$ctrl.isAdmin" ui-sref="portainer.registries.registry({id: $ctrl.registry.Id})" ui-sref-opts="{reload:true}">{{ $ctrl.registry.Name }}</a>
-    <span ng-if="!$ctrl.isAdmin">{{ $ctrl.registry.Name }}</span> &gt; Repositories
+    <a ui-sref="portainer.registries.registry({id: $ctrl.registry.Id})" ui-sref-opts="{reload:true}">{{ $ctrl.registry.Name }}</a> &gt; Repositories
+  </rd-header-content>
+  <rd-header-content ng-if="!$ctrl.isAdmin">
+    <a ui-sref="docker.registries({endpointId: $ctrl.endpointId})">Registries</a> &gt; <span>{{ $ctrl.registry.Name }}</span> &gt; Repositories
   </rd-header-content>
 </rd-header>
 
@@ -22,7 +24,7 @@
         Note: Portainer registry management features are only supported with registries exposing the
         <a href="https://docs.docker.com/registry/spec/api/" target="_blank">v2 registry API</a>.
       </p>
-      <div style="margin-top: 7px">
+      <div ng-if="$ctrl.isAdmin" style="margin-top: 7px">
         <a ui-sref="portainer.registries.registry.configure({id: $ctrl.registry.Id})"> <i class="fa fa-wrench" aria-hidden="true"></i> Configure this registry </a>
       </div>
     </span>
@@ -35,6 +37,7 @@
       title-text="Repositories"
       title-icon="fa-book"
       dataset="$ctrl.repositories"
+      endpoint-id="$ctrl.endpointId"
       table-key="registryRepositories"
       order-by="Name"
       pagination-action="$ctrl.paginationAction"

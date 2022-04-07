@@ -1,6 +1,7 @@
 package registries
 
 import (
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
@@ -56,6 +57,14 @@ func (handler *Handler) ecrDeleteTags(w http.ResponseWriter, r *http.Request) *h
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a registry with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a registry with the specified identifier inside the database", err}
+	}
+
+	hasAccess, _, err := handler.userHasRegistryAccess(r)
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
+	}
+	if !hasAccess {
+		return &httperror.HandlerError{http.StatusForbidden, "Access denied to resource", httperrors.ErrResourceAccessDenied}
 	}
 
 	username, password, region := registryutils.GetManagementCredential(registry)

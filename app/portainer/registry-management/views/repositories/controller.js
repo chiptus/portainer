@@ -26,7 +26,7 @@ export class RegistryRepositoriesController {
     }
     this.state.loading = true;
     try {
-      const data = await this.RegistryServiceSelector.getRepositoriesDetails(this.registry, repositories);
+      const data = await this.RegistryServiceSelector.getRepositoriesDetails(this.registry, this.endpointId, repositories);
       for (let i = 0; i < data.length; i++) {
         const idx = _.findIndex(this.repositories, { Name: data[i].Name });
         if (idx !== -1) {
@@ -47,12 +47,13 @@ export class RegistryRepositoriesController {
     const registryId = this.$state.params.id;
 
     this.isAdmin = this.Authentication.isAdmin();
+    this.endpointId = this.$state.params.endpointId;
 
     try {
-      this.registry = await this.RegistryService.registry(registryId);
+      this.registry = await this.RegistryService.registry(registryId, this.endpointId);
       try {
-        await this.RegistryServiceSelector.ping(this.registry, false);
-        this.repositories = await this.RegistryServiceSelector.repositories(this.registry);
+        await this.RegistryServiceSelector.ping(this.registry, this.endpointId, false);
+        this.repositories = await this.RegistryServiceSelector.repositories(this.registry, this.endpointId);
       } catch (e) {
         this.state.displayInvalidConfigurationMessage = true;
       }

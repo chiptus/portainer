@@ -16,11 +16,11 @@ angular.module('portainer.registrymanagement').factory('RegistryCatalog', [
         },
         ping: {
           method: 'GET',
-          params: { id: '@id' },
+          params: { id: '@id', endpointId: '@endpointId' },
         },
         pingWithForceNew: {
           method: 'GET',
-          params: { id: '@id' },
+          params: { id: '@id', endpointId: '@endpointId' },
           headers: { 'X-RegistryManagement-ForceNew': '1' },
         },
       },

@@ -2,7 +2,7 @@ import { TeamAccessViewModel, UserAccessViewModel } from 'Portainer/models/acces
 
 class DockerRegistryAccessController {
   /* @ngInject */
-  constructor($async, $state, Authentication, Notifications, EndpointService, GroupService, RoleService) {
+  constructor($async, $state, Authentication, Notifications, EndpointService, GroupService, RoleService, RegistryService) {
     this.$async = $async;
     this.$state = $state;
     this.Authentication = Authentication;
@@ -10,6 +10,7 @@ class DockerRegistryAccessController {
     this.EndpointService = EndpointService;
     this.GroupService = GroupService;
     this.RoleService = RoleService;
+    this.RegistryService = RegistryService;
 
     this.updateAccess = this.updateAccess.bind(this);
     this.filterUsers = this.filterUsers.bind(this);
@@ -47,12 +48,13 @@ class DockerRegistryAccessController {
 
       const roleId = entityAccess.RoleId;
       const role = this.roles.find((role) => role.Id === roleId);
-      return this.isStandardRole(role);
+      console.log(role);
+      return this.isStandardOrReadOnlyRole(role);
     });
   }
 
-  isStandardRole(role) {
-    return role && (role.Authorizations['DockerImageCreate'] || role.Authorizations['DockerImagePush']) && !role.Authorizations['EndpointResourcesAccess'];
+  isStandardOrReadOnlyRole(role) {
+    return role && !role.Authorizations['EndpointResourcesAccess'];
   }
 
   $onInit() {
@@ -67,7 +69,7 @@ class DockerRegistryAccessController {
           registryId: this.$state.params.id,
         };
         this.roles = await this.RoleService.roles();
-        this.registry = await this.EndpointService.registry(this.state.endpointId, this.state.registryId);
+        this.registry = await this.RegistryService.registry(this.state.registryId, this.state.endpointId);
         this.registryEndpointAccesses = this.registry.RegistryAccesses[this.state.endpointId] || {};
         this.endpointGroup = await this.GroupService.group(this.endpoint.GroupId);
       } catch (err) {

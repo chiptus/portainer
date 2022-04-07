@@ -344,11 +344,15 @@ func portainerExtensionOperationAuthorization(url, method string) portaineree.Au
 func portainerRegistryOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("registries", url)
 
+	isInternalOperation := strings.HasPrefix(action, "v2/") ||
+		strings.HasPrefix(action, "proxies/gitlab/") ||
+		strings.HasPrefix(action, "ecr/")
+
 	switch method {
 	case http.MethodGet:
 		if resource == "" && action == "" {
 			return portaineree.OperationPortainerRegistryList
-		} else if resource != "" && action == "" {
+		} else if (resource != "" && action == "") || isInternalOperation {
 			return portaineree.OperationPortainerRegistryInspect
 		}
 	case http.MethodPost:
@@ -360,10 +364,14 @@ func portainerRegistryOperationAuthorization(url, method string) portaineree.Aut
 	case http.MethodPut:
 		if resource != "" && action == "" {
 			return portaineree.OperationPortainerRegistryUpdate
+		} else if isInternalOperation {
+			return portaineree.OperationPortainerRegistryInternalUpdate
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
 			return portaineree.OperationPortainerRegistryDelete
+		} else if isInternalOperation {
+			return portaineree.OperationPortainerRegistryInternalDelete
 		}
 	}
 

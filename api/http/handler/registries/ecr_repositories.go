@@ -7,7 +7,8 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	ecr "github.com/portainer/portainer-ee/api/aws/ecr"
+	"github.com/portainer/portainer-ee/api/aws/ecr"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
@@ -43,6 +44,14 @@ func (handler *Handler) ecrDeleteRepository(w http.ResponseWriter, r *http.Reque
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a registry with the specified identifier inside the database", err}
 	} else if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a registry with the specified identifier inside the database", err}
+	}
+
+	hasAccess, _, err := handler.userHasRegistryAccess(r)
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
+	}
+	if !hasAccess {
+		return &httperror.HandlerError{http.StatusForbidden, "Access denied to resource", httperrors.ErrResourceAccessDenied}
 	}
 
 	username, password, region := registryutils.GetManagementCredential(registry)

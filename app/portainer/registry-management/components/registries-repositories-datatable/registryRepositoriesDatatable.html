@@ -37,7 +37,7 @@
               ng-class="{ active: item.Checked }"
             >
               <td>
-                <a ui-sref="portainer.registries.registry.repository({repository: item.Name})" title="{{ item.Name }}">{{ item.Name }}</a>
+                <a ui-sref="portainer.registries.registry.repository({repository: item.Name, endpointId: $ctrl.endpointId})" title="{{ item.Name }}">{{ item.Name }}</a>
               </td>
               <td>{{ item.TagsCount }}</td>
             </tr>

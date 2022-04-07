@@ -9,7 +9,6 @@ angular.module('portainer.app').factory('EndpointService', [
     var service = {
       updateSettings,
       registries,
-      registry,
       updateRegistryAccess,
     };
 
@@ -210,10 +209,6 @@ angular.module('portainer.app').factory('EndpointService', [
 
     function updateSettings(id, settings) {
       return Endpoints.updateSettings({ id }, settings).$promise;
-    }
-
-    function registry(endpointId, registryId) {
-      return Endpoints.registry({ registryId, id: endpointId }).$promise;
     }
   },
 ]);

@@ -1194,10 +1194,8 @@ type (
 		// User Theme
 		UserTheme string `example:"dark"`
 		// User role (1 for administrator account and 2 for regular account)
-		Role         UserRole `json:"Role" example:"1"`
-		TokenIssueAt int64    `json:"TokenIssueAt" example:"1639408208"`
-		// Deprecated fields
-		// Deprecated in DBVersion == 25
+		Role                    UserRole               `json:"Role" example:"1"`
+		TokenIssueAt            int64                  `json:"TokenIssueAt" example:"1639408208"`
 		PortainerAuthorizations Authorizations         `json:"PortainerAuthorizations"`
 		EndpointAuthorizations  EndpointAuthorizations `json:"EndpointAuthorizations"`
 	}
@@ -1467,9 +1465,9 @@ const (
 	// APIVersion is the version number of the Portainer API
 	APIVersion = "2.12.0"
 	// DBVersion is the version number of the Portainer CE database
-	DBVersion = 36
+	DBVersion = 37
 	// DBVersionEE is the version number of the Portainer EE database
-	DBVersionEE = 36
+	DBVersionEE = 37
 	// Edition is the edition of the Portainer API
 	Edition = PortainerEE
 	// ComposeSyntaxMaxVersion is a maximum supported version of the docker compose syntax
@@ -1926,6 +1924,8 @@ const (
 	OperationPortainerRegistryUpdate         Authorization = "PortainerRegistryUpdate"
 	OperationPortainerRegistryUpdateAccess   Authorization = "PortainerRegistryUpdateAccess"
 	OperationPortainerRegistryDelete         Authorization = "PortainerRegistryDelete"
+	OperationPortainerRegistryInternalUpdate Authorization = "PortainerRegistryInternalUpdate"
+	OperationPortainerRegistryInternalDelete Authorization = "PortainerRegistryInternalDelete"
 	OperationPortainerResourceControlCreate  Authorization = "PortainerResourceControlCreate"
 	OperationPortainerResourceControlUpdate  Authorization = "PortainerResourceControlUpdate"
 	OperationPortainerResourceControlDelete  Authorization = "PortainerResourceControlDelete"

@@ -11,19 +11,16 @@ import (
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
-	"github.com/portainer/portainer-ee/api/http/security"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // request on /api/registries/:id/v2
-//
-// Restricted to admins only
 func (handler *Handler) proxyRequestsToRegistryAPI(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	securityContext, err := security.RetrieveRestrictedRequestContext(r)
+	hasAccess, _, err := handler.userHasRegistryAccess(r)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
 	}
-	if !securityContext.IsAdmin {
+	if !hasAccess {
 		return &httperror.HandlerError{http.StatusForbidden, "Access denied to resource", httperrors.ErrResourceAccessDenied}
 	}
 

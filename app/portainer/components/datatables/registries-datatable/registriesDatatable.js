@@ -5,6 +5,7 @@ angular.module('portainer.app').component('registriesDatatable', {
     titleText: '@',
     titleIcon: '@',
     dataset: '<',
+    endpointId: '<',
     tableKey: '@',
     orderBy: '@',
     reverseOrder: '<',

@@ -17,12 +17,12 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
     /**
      * PING
      */
-    function ping(registry, forceNewConfig) {
+    function ping(registry, endpointId, forceNewConfig) {
       const id = registry.Id;
       if (forceNewConfig) {
-        return RegistryCatalog.pingWithForceNew({ id: id }).$promise;
+        return RegistryCatalog.pingWithForceNew({ id: id, endpointId: endpointId }).$promise;
       }
-      return RegistryCatalog.ping({ id: id }).$promise;
+      return RegistryCatalog.ping({ id: id, endpointId: endpointId }).$promise;
     }
 
     /**
@@ -37,26 +37,26 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
       RegistryCatalog.get(params).$promise.then(function (data) {
         repositories = _.concat(repositories, data.repositories);
         if (data.last && data.n) {
-          _getCatalogPage({ id: params.id, n: data.n, last: data.last }, deferred, repositories);
+          _getCatalogPage({ id: params.id, endpointId: params.endpointId, n: data.n, last: data.last }, deferred, repositories);
         } else {
           deferred.resolve(repositories);
         }
       });
     }
 
-    function _getCatalog(id) {
+    function _getCatalog(id, endpointId) {
       var deferred = $q.defer();
       var repositories = [];
 
-      _getCatalogPage({ id: id }, deferred, repositories);
+      _getCatalogPage({ id: id, endpointId: endpointId }, deferred, repositories);
       return deferred.promise;
     }
 
-    function repositories(registry) {
+    function repositories(registry, endpointId) {
       const deferred = $q.defer();
       const id = registry.Id;
 
-      _getCatalog(id)
+      _getCatalog(id, endpointId)
         .then(function success(data) {
           const repositories = _.map(data, (repositoryName) => new RegistryRepositoryViewModel(repositoryName));
           deferred.resolve(repositories);
@@ -71,9 +71,9 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
       return deferred.promise;
     }
 
-    function getRepositoriesDetails(registry, repositories) {
+    function getRepositoriesDetails(registry, endpointId, repositories) {
       const deferred = $q.defer();
-      const promises = _.map(repositories, (repository) => tags(registry, repository.Name));
+      const promises = _.map(repositories, (repository) => tags(registry, endpointId, repository.Name));
 
       Promise.all(promises)
         .then(function success(data) {
@@ -107,7 +107,7 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
           previousTags.name = data.name;
           previousTags.tags = _.concat(previousTags.tags, data.tags);
           if (data.last && data.n) {
-            _getTagsPage({ id: params.id, repository: params.repository, n: data.n, last: data.last }, deferred, previousTags);
+            _getTagsPage({ id: params.id, endpointId: params.endpointId, repository: params.repository, n: data.n, last: data.last }, deferred, previousTags);
           } else {
             deferred.resolve(previousTags);
           }
@@ -125,32 +125,34 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
         });
     }
 
-    function tags(registry, repository) {
+    function tags(registry, endpointId, repository) {
       const deferred = $q.defer();
       const id = registry.Id;
 
-      _getTagsPage({ id: id, repository: repository }, deferred, { name: repository, tags: [] });
+      _getTagsPage({ id: id, endpointId: endpointId, repository: repository }, deferred, { name: repository, tags: [] });
       return deferred.promise;
     }
 
-    function getTagsDetails(registry, repository, tags) {
-      const promises = _.map(tags, (t) => tag(registry, repository, t.Name));
+    function getTagsDetails(registry, endpointId, repository, tags) {
+      const promises = _.map(tags, (t) => tag(registry, endpointId, repository, t.Name));
 
       return $q.all(promises);
     }
 
-    function tag(registry, repository, tag) {
+    function tag(registry, endpointId, repository, tag) {
       const deferred = $q.defer();
       const id = registry.Id;
 
       var promises = {
         v1: RegistryManifestsJquery.get({
           id: id,
+          endpointId: endpointId,
           repository: repository,
           tag: tag,
         }),
         v2: RegistryManifestsJquery.getV2({
           id: id,
+          endpointId: endpointId,
           repository: repository,
           tag: tag,
         }),
@@ -180,16 +182,17 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
      */
 
     // tag: RepositoryAddTagPayload
-    function _addTagFromGenerator(registry, repository, tag) {
-      return addTag(registry, repository, tag.Tag, tag.Manifest);
+    function _addTagFromGenerator(registry, endpointId, repository, tag) {
+      return addTag(registry, endpointId, repository, tag.Tag, tag.Manifest);
     }
 
-    function addTag(registry, repository, tag, manifest) {
+    function addTag(registry, endpointId, repository, tag, manifest) {
       const id = registry.Id;
       delete manifest.digest;
       return RegistryManifestsJquery.put(
         {
           id: id,
+          endpointId: endpointId,
           repository: repository,
           tag: tag,
         },
@@ -197,8 +200,8 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
       );
     }
 
-    async function* _addTagsWithProgress(registry, repository, tagsList, progression = 0) {
-      for await (const partialResult of genericAsyncGenerator($q, tagsList, _addTagFromGenerator, [registry, repository])) {
+    async function* _addTagsWithProgress(registry, endpointId, repository, tagsList, progression = 0) {
+      for await (const partialResult of genericAsyncGenerator($q, tagsList, _addTagFromGenerator, [registry, endpointId, repository])) {
         if (typeof partialResult === 'number') {
           yield progression + partialResult;
         } else {
@@ -215,17 +218,18 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
      * DELETE MANIFEST
      */
 
-    function deleteManifest(registry, repository, imageDigest) {
+    function deleteManifest(registry, endpointId, repository, imageDigest) {
       const id = registry.Id;
       return RegistryManifestsJquery.delete({
         id: id,
+        endpointId: endpointId,
         repository: repository,
         tag: imageDigest,
       });
     }
 
-    async function* _deleteManifestsWithProgress(registry, repository, manifests) {
-      for await (const partialResult of genericAsyncGenerator($q, manifests, deleteManifest, [registry, repository])) {
+    async function* _deleteManifestsWithProgress(registry, endpointId, repository, manifests) {
+      for await (const partialResult of genericAsyncGenerator($q, manifests, deleteManifest, [registry, endpointId, repository])) {
         yield partialResult;
       }
     }
@@ -238,17 +242,17 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
      * SHORT TAG
      */
 
-    function _shortTagFromGenerator(id, repository, tag) {
+    function _shortTagFromGenerator(id, endpointId, repository, tag) {
       return new Promise((resolve, reject) => {
-        RegistryManifestsJquery.getV2({ id: id, repository: repository, tag: tag })
+        RegistryManifestsJquery.getV2({ id: id, endpointId: endpointId, repository: repository, tag: tag })
           .then((data) => resolve(new RepositoryShortTag(tag, data.config.digest, data.digest, data)))
           .catch((err) => reject(err));
       });
     }
 
-    async function* shortTagsWithProgress(registry, repository, tagsList) {
+    async function* shortTagsWithProgress(registry, endpointId, repository, tagsList) {
       const id = registry.Id;
-      yield* genericAsyncGenerator($q, tagsList, _shortTagFromGenerator, [id, repository]);
+      yield* genericAsyncGenerator($q, tagsList, _shortTagFromGenerator, [id, endpointId, repository]);
     }
 
     /**
@@ -258,8 +262,8 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
     /**
      * RETAG
      */
-    async function* retagWithProgress(registry, repository, modifiedTags, modifiedDigests, impactedTags) {
-      yield* _deleteManifestsWithProgress(registry, repository, modifiedDigests);
+    async function* retagWithProgress(registry, endpointId, repository, modifiedTags, modifiedDigests, impactedTags) {
+      yield* _deleteManifestsWithProgress(registry, endpointId, repository, modifiedDigests);
 
       const newTags = _.map(impactedTags, (item) => {
         const tagFromTable = _.find(modifiedTags, { Name: item.Name });
@@ -267,7 +271,7 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
         return new RepositoryAddTagPayload(name, item.ManifestV2);
       });
 
-      yield* _addTagsWithProgress(registry, repository, newTags, modifiedDigests.length);
+      yield* _addTagsWithProgress(registry, endpointId, repository, newTags, modifiedDigests.length);
     }
 
     /**
@@ -278,12 +282,12 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
      * DELETE TAGS
      */
 
-    async function* deleteTagsWithProgress(registry, repository, modifiedDigests, impactedTags) {
-      yield* _deleteManifestsWithProgress(registry, repository, modifiedDigests);
+    async function* deleteTagsWithProgress(registry, endpointId, repository, modifiedDigests, impactedTags) {
+      yield* _deleteManifestsWithProgress(registry, endpointId, repository, modifiedDigests);
 
       const newTags = _.map(impactedTags, (item) => new RepositoryAddTagPayload(item.Name, item.ManifestV2));
 
-      yield* _addTagsWithProgress(registry, repository, newTags, modifiedDigests.length);
+      yield* _addTagsWithProgress(registry, endpointId, repository, newTags, modifiedDigests.length);
     }
 
     /**
