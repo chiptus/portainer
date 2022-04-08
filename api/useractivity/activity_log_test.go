@@ -280,3 +280,13 @@ func TestGetUserActivityLogsDesc(t *testing.T) {
 
 	assert.Equal(t, []*portaineree.UserActivityLog{log3, log2, log1}, logs)
 }
+
+func TestDoubleClose(t *testing.T) {
+	store, err := setup(t.TempDir())
+	if err != nil {
+		t.Fatalf("Failed setup: %s", err)
+	}
+
+	store.Close()
+	store.Close()
+}

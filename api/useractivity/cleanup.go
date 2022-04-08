@@ -1,6 +1,7 @@
 package useractivity
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -12,49 +13,40 @@ import (
 )
 
 func (store *Store) startCleanupLoop() error {
-	if store.isCleanupLoopRunning() {
-		return nil
-	}
-
 	log.Debugf("[useractivity] [check_interval_seconds: %f] [message: starting logs cleanup process]", cleanupInterval.Seconds())
 	err := store.cleanLogs()
 	if err != nil {
 		return fmt.Errorf("failed starting logs cleanup process: %w", err)
 	}
 
-	go func() {
-		ticker := time.NewTicker(cleanupInterval)
-		store.cleanupStopSignal = make(chan struct{})
+	ctx := context.Background()
+	ctx, store.cancelFn = context.WithCancel(ctx)
 
-		for {
-			select {
-			case <-ticker.C:
-				log.Printf("[DEBUG] [useractivity] [message: cleaning logs]")
-				err := store.cleanLogs()
-				if err != nil {
-					log.Printf("[ERROR] [useractivity] [message: failed clearing auth logs] [error: %s]", err)
-				}
-			case <-store.cleanupStopSignal:
-				ticker.Stop()
-			}
-		}
-	}()
+	go store.cleanupLoop(ctx)
 
 	return nil
 }
 
-func (store *Store) isCleanupLoopRunning() bool {
-	return store.cleanupStopSignal != nil
+func (store *Store) cleanupLoop(ctx context.Context) {
+	ticker := time.NewTicker(cleanupInterval)
+
+	for {
+		select {
+		case <-ticker.C:
+			log.Printf("[DEBUG] [useractivity] [message: cleaning logs]")
+			err := store.cleanLogs()
+			if err != nil {
+				log.Printf("[ERROR] [useractivity] [message: failed clearing auth logs] [error: %s]", err)
+			}
+		case <-ctx.Done():
+			ticker.Stop()
+			return
+		}
+	}
 }
 
 func (store *Store) stopCleanupLoop() {
-	if !store.isCleanupLoopRunning() {
-		return
-	}
-
-	close(store.cleanupStopSignal)
-	store.cleanupStopSignal = nil
-
+	store.cancelFn()
 }
 
 func (store *Store) cleanLogs() error {

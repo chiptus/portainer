@@ -1,6 +1,7 @@
 package useractivity
 
 import (
+	"context"
 	"io"
 	"path"
 	"time"
@@ -18,8 +19,8 @@ const (
 
 // Store is a store for user activities
 type Store struct {
-	db                *dbWrapper
-	cleanupStopSignal chan struct{}
+	db       *dbWrapper
+	cancelFn context.CancelFunc
 }
 
 // dbWrapper wraps the storm db type to make it interchangeable
