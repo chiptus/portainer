@@ -217,6 +217,11 @@ func (handler *Handler) addAndPersistEdgeJob(edgeJob *portaineree.EdgeJob, file 
 
 	for endpointID := range edgeJob.Endpoints {
 		handler.ReverseTunnelService.AddEdgeJob(endpointID, edgeJob)
+
+		err = handler.edgeService.AddJobCommand(endpointID, *edgeJob, file)
+		if err != nil {
+			return err
+		}
 	}
 
 	return handler.DataStore.EdgeJob().Create(edgeJob.ID, edgeJob)

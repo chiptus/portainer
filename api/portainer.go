@@ -29,6 +29,21 @@ type (
 		Authorizations Authorizations
 	}
 
+	EdgeAsyncCommandType      string
+	EdgeAsyncCommandOperation string
+
+	// EdgeAsyncCommand represents a command that is executed by an Edge Agent. Follows JSONPatch RFC https://datatracker.ietf.org/doc/html/rfc6902
+	EdgeAsyncCommand struct {
+		ID         int                       `json:"id"`
+		Type       EdgeAsyncCommandType      `json:"type"`
+		EndpointID EndpointID                `json:"endpointID"`
+		Timestamp  int64                     `json:"timestamp"`
+		Executed   bool                      `json:"executed"`
+		Operation  EdgeAsyncCommandOperation `json:"op"`
+		Path       string                    `json:"path"`
+		Value      interface{}               `json:"value"`
+	}
+
 	AuthActivityLog struct {
 		UserActivityLogBase `storm:"inline"`
 		Type                AuthenticationActivityType `json:"type" storm:"index"`
@@ -1758,6 +1773,15 @@ const (
 	EdgeAgentManagementRequired string = "REQUIRED"
 	// EdgeAgentActive represents an active state for a tunnel connected to an Edge environment(endpoint)
 	EdgeAgentActive string = "ACTIVE"
+)
+
+const (
+	EdgeAsyncCommandTypeStack EdgeAsyncCommandType = "edgeStack"
+	EdgeAsyncCommandTypeJob   EdgeAsyncCommandType = "edgeJob"
+
+	EdgeAsyncCommandOpAdd     EdgeAsyncCommandOperation = "add"
+	EdgeAsyncCommandOpRemove  EdgeAsyncCommandOperation = "remove"
+	EdgeAsyncCommandOpReplace EdgeAsyncCommandOperation = "replace"
 )
 
 const (

@@ -27,6 +27,7 @@ type (
 		Connection() portainer.Connection
 
 		CustomTemplate() CustomTemplateService
+		EdgeAsyncCommand() EdgeAsyncCommandService
 		EdgeGroup() EdgeGroupService
 		EdgeJob() EdgeJobService
 		EdgeStack() EdgeStackService
@@ -62,6 +63,14 @@ type (
 		UpdateCustomTemplate(ID portaineree.CustomTemplateID, customTemplate *portaineree.CustomTemplate) error
 		DeleteCustomTemplate(ID portaineree.CustomTemplateID) error
 		BucketName() string
+	}
+
+	// EdgeAsyncCommandService represents a service to manage EdgeAsyncCommands
+	EdgeAsyncCommandService interface {
+		Create(command *portaineree.EdgeAsyncCommand) error
+		Update(id int, command *portaineree.EdgeAsyncCommand) error
+		Delete(id int) error
+		EndpointCommands(endpointID portaineree.EndpointID) ([]portaineree.EdgeAsyncCommand, error)
 	}
 
 	// EdgeGroupService represents a service to manage Edge groups

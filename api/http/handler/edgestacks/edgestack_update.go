@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 	"github.com/portainer/portainer/api/filesystem"
 )
@@ -75,14 +76,16 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge stack related environments from database", err}
 	}
 
+	endpointsToAdd := map[portaineree.EndpointID]bool{}
+
 	if payload.EdgeGroups != nil {
 		newRelated, err := edge.EdgeStackRelatedEndpoints(payload.EdgeGroups, relationConfig.endpoints, relationConfig.endpointGroups, relationConfig.edgeGroups)
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge stack related environments from database", err}
 		}
 
-		oldRelatedSet := EndpointSet(relatedEndpointIds)
-		newRelatedSet := EndpointSet(newRelated)
+		oldRelatedSet := endpointutils.EndpointSet(relatedEndpointIds)
+		newRelatedSet := endpointutils.EndpointSet(newRelated)
 
 		endpointsToRemove := map[portaineree.EndpointID]bool{}
 		for endpointID := range oldRelatedSet {
@@ -103,9 +106,13 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 			if err != nil {
 				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist environment relation in database", err}
 			}
+
+			err = handler.edgeService.RemoveStackCommand(endpointID, stack.ID)
+			if err != nil {
+				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to store edge async command into the database", err}
+			}
 		}
 
-		endpointsToAdd := map[portaineree.EndpointID]bool{}
 		for endpointID := range newRelatedSet {
 			if !oldRelatedSet[endpointID] {
 				endpointsToAdd[endpointID] = true
@@ -123,6 +130,16 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 			err = handler.DataStore.EndpointRelation().UpdateEndpointRelation(endpointID, relation)
 			if err != nil {
 				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist environment relation in database", err}
+			}
+
+			endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
+			if err != nil {
+				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve environment from the database", err}
+			}
+
+			err = handler.edgeService.AddStackCommand(endpoint, stack.ID)
+			if err != nil {
+				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to store edge async command into the database", err}
 			}
 		}
 
@@ -178,7 +195,8 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	if payload.Version != nil && *payload.Version != stack.Version {
+	versionUpdated := payload.Version != nil && *payload.Version != stack.Version
+	if versionUpdated {
 		stack.Version = *payload.Version
 		stack.Status = map[portaineree.EndpointID]portaineree.EdgeStackStatus{}
 	}
@@ -188,15 +206,21 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the stack changes inside the database", err}
 	}
 
-	return response.JSON(w, stack)
-}
+	if versionUpdated {
+		for _, endpointID := range relatedEndpointIds {
+			endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
+			if err != nil {
+				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve environment from the database", err}
+			}
 
-func EndpointSet(endpointIDs []portaineree.EndpointID) map[portaineree.EndpointID]bool {
-	set := map[portaineree.EndpointID]bool{}
-
-	for _, endpointID := range endpointIDs {
-		set[endpointID] = true
+			if !endpointsToAdd[endpoint.ID] {
+				err = handler.edgeService.ReplaceStackCommand(endpoint, stack.ID)
+				if err != nil {
+					return &httperror.HandlerError{http.StatusInternalServerError, "Unable to store edge async command into the database", err}
+				}
+			}
+		}
 	}
 
-	return set
+	return response.JSON(w, stack)
 }

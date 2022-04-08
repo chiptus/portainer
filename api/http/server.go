@@ -61,6 +61,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/ssl"
 	k8s "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
@@ -83,6 +84,7 @@ type Server struct {
 	CryptoService               portaineree.CryptoService
 	LicenseService              portaineree.LicenseService
 	SignatureService            portaineree.DigitalSignatureService
+	EdgeService                 edge.Service
 	SnapshotService             portaineree.SnapshotService
 	FileService                 portainer.FileService
 	DataStore                   dataservices.DataStore
@@ -151,12 +153,12 @@ func (server *Server) Start() error {
 	var edgeGroupsHandler = edgegroups.NewHandler(requestBouncer, server.UserActivityService)
 	edgeGroupsHandler.DataStore = server.DataStore
 
-	var edgeJobsHandler = edgejobs.NewHandler(requestBouncer, server.UserActivityService)
+	var edgeJobsHandler = edgejobs.NewHandler(requestBouncer, server.UserActivityService, &server.EdgeService)
 	edgeJobsHandler.DataStore = server.DataStore
 	edgeJobsHandler.FileService = server.FileService
 	edgeJobsHandler.ReverseTunnelService = server.ReverseTunnelService
 
-	var edgeStacksHandler = edgestacks.NewHandler(requestBouncer, server.UserActivityService)
+	var edgeStacksHandler = edgestacks.NewHandler(requestBouncer, server.UserActivityService, &server.EdgeService)
 	edgeStacksHandler.DataStore = server.DataStore
 	edgeStacksHandler.FileService = server.FileService
 	edgeStacksHandler.GitService = server.GitService
@@ -165,7 +167,7 @@ func (server *Server) Start() error {
 	var edgeTemplatesHandler = edgetemplates.NewHandler(requestBouncer)
 	edgeTemplatesHandler.DataStore = server.DataStore
 
-	var endpointHandler = endpoints.NewHandler(requestBouncer, server.UserActivityService, server.DataStore)
+	var endpointHandler = endpoints.NewHandler(requestBouncer, server.UserActivityService, server.DataStore, &server.EdgeService)
 	endpointHandler.AuthorizationService = server.AuthorizationService
 	endpointHandler.FileService = server.FileService
 	endpointHandler.ProxyManager = server.ProxyManager
@@ -177,10 +179,7 @@ func (server *Server) Start() error {
 	endpointHandler.BindAddress = server.BindAddress
 	endpointHandler.BindAddressHTTPS = server.BindAddressHTTPS
 
-	var endpointEdgeHandler = endpointedge.NewHandler(requestBouncer)
-	endpointEdgeHandler.DataStore = server.DataStore
-	endpointEdgeHandler.FileService = server.FileService
-	endpointEdgeHandler.ReverseTunnelService = server.ReverseTunnelService
+	var endpointEdgeHandler = endpointedge.NewHandler(requestBouncer, server.DataStore, server.FileService, server.ReverseTunnelService)
 
 	var endpointGroupHandler = endpointgroups.NewHandler(requestBouncer, server.UserActivityService)
 	endpointGroupHandler.AuthorizationService = server.AuthorizationService

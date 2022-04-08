@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	werrors "github.com/pkg/errors"
+
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
@@ -355,14 +356,30 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge stacks from the database", err}
 		}
 
-		edgeStackSet := map[portaineree.EdgeStackID]bool{}
+		existingEdgeStacks := relation.EdgeStacks
 
-		endpointEdgeStacks := edge.EndpointRelatedEdgeStacks(endpoint, endpointGroup, edgeGroups, edgeStacks)
-		for _, edgeStackID := range endpointEdgeStacks {
-			edgeStackSet[edgeStackID] = true
+		currentEdgeStackSet := map[portaineree.EdgeStackID]bool{}
+		currentEndpointEdgeStacks := edge.EndpointRelatedEdgeStacks(endpoint, endpointGroup, edgeGroups, edgeStacks)
+		for _, edgeStackID := range currentEndpointEdgeStacks {
+			currentEdgeStackSet[edgeStackID] = true
+			if !existingEdgeStacks[edgeStackID] {
+				err = handler.edgeService.AddStackCommand(endpoint, edgeStackID)
+				if err != nil {
+					return &httperror.HandlerError{http.StatusInternalServerError, "Unable to store edge async command into the database", err}
+				}
+			}
 		}
 
-		relation.EdgeStacks = edgeStackSet
+		for existingEdgeStackID := range existingEdgeStacks {
+			if !currentEdgeStackSet[existingEdgeStackID] {
+				err = handler.edgeService.RemoveStackCommand(endpoint.ID, existingEdgeStackID)
+				if err != nil {
+					return &httperror.HandlerError{http.StatusInternalServerError, "Unable to store edge async command into the database", err}
+				}
+			}
+		}
+
+		relation.EdgeStacks = currentEdgeStackSet
 
 		err = handler.dataStore.EndpointRelation().UpdateEndpointRelation(endpoint.ID, relation)
 		if err != nil {

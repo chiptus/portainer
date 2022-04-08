@@ -63,6 +63,11 @@ func (handler *Handler) edgeStackDelete(w http.ResponseWriter, r *http.Request) 
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist environment relation in database", err}
 		}
+
+		err = handler.edgeService.RemoveStackCommand(endpointID, edgeStack.ID)
+		if err != nil {
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to store edge async command into the database", err}
+		}
 	}
 
 	return response.Empty(w)

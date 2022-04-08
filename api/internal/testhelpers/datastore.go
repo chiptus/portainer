@@ -12,6 +12,7 @@ import (
 
 type testDatastore struct {
 	customTemplate          dataservices.CustomTemplateService
+	edgeAsyncCommand        dataservices.EdgeAsyncCommandService
 	edgeGroup               dataservices.EdgeGroupService
 	edgeJob                 dataservices.EdgeJobService
 	edgeStack               dataservices.EdgeStackService
@@ -48,11 +49,14 @@ func (d *testDatastore) MigrateData() error                                 { re
 func (d *testDatastore) Rollback(force bool) error                          { return nil }
 func (d *testDatastore) RollbackToCE() error                                { return nil }
 func (d *testDatastore) CustomTemplate() dataservices.CustomTemplateService { return d.customTemplate }
-func (d *testDatastore) EdgeGroup() dataservices.EdgeGroupService           { return d.edgeGroup }
-func (d *testDatastore) EdgeJob() dataservices.EdgeJobService               { return d.edgeJob }
-func (d *testDatastore) EdgeStack() dataservices.EdgeStackService           { return d.edgeStack }
-func (d *testDatastore) Endpoint() dataservices.EndpointService             { return d.endpoint }
-func (d *testDatastore) EndpointGroup() dataservices.EndpointGroupService   { return d.endpointGroup }
+func (d *testDatastore) EdgeAsyncCommand() dataservices.EdgeAsyncCommandService {
+	return d.edgeAsyncCommand
+}
+func (d *testDatastore) EdgeGroup() dataservices.EdgeGroupService         { return d.edgeGroup }
+func (d *testDatastore) EdgeJob() dataservices.EdgeJobService             { return d.edgeJob }
+func (d *testDatastore) EdgeStack() dataservices.EdgeStackService         { return d.edgeStack }
+func (d *testDatastore) Endpoint() dataservices.EndpointService           { return d.endpoint }
+func (d *testDatastore) EndpointGroup() dataservices.EndpointGroupService { return d.endpointGroup }
 func (d *testDatastore) FDOProfile() dataservices.FDOProfileService {
 	return d.fdoProfile
 }

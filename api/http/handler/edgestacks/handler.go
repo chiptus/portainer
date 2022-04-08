@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
+	"github.com/portainer/portainer-ee/api/internal/edge"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 )
@@ -23,15 +24,17 @@ type Handler struct {
 	FileService         portainer.FileService
 	GitService          portaineree.GitService
 	userActivityService portaineree.UserActivityService
+	edgeService         *edge.Service
 	KubernetesDeployer  portaineree.KubernetesDeployer
 }
 
 // NewHandler creates a handler to manage environment(endpoint) group operations.
-func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService, edgeService *edge.Service) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		requestBouncer:      bouncer,
 		userActivityService: userActivityService,
+		edgeService:         edgeService,
 	}
 
 	adminRouter := h.NewRoute().Subrouter()

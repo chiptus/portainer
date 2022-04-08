@@ -15,6 +15,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/proxy"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	portainer "github.com/portainer/portainer/api"
 )
@@ -52,15 +53,17 @@ type Handler struct {
 	BindAddress          string
 	BindAddressHTTPS     string
 	userActivityService  portaineree.UserActivityService
+	edgeService          *edge.Service
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.
-func NewHandler(bouncer requestBouncer, userActivityService portaineree.UserActivityService, dataStore dataservices.DataStore) *Handler {
+func NewHandler(bouncer requestBouncer, userActivityService portaineree.UserActivityService, dataStore dataservices.DataStore, edgeService *edge.Service) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		requestBouncer:      bouncer,
 		userActivityService: userActivityService,
 		dataStore:           dataStore,
+		edgeService:         edgeService,
 	}
 
 	logEndpointActivity := useractivity.LogUserActivityWithContext(h.userActivityService, middlewares.FindInPath(dataStore.Endpoint(), "id"))

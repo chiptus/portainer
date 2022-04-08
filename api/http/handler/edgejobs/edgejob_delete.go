@@ -44,6 +44,13 @@ func (handler *Handler) edgeJobDelete(w http.ResponseWriter, r *http.Request) *h
 
 	handler.ReverseTunnelService.RemoveEdgeJob(edgeJob.ID)
 
+	for endpointID := range edgeJob.Endpoints {
+		err = handler.edgeService.RemoveJobCommand(endpointID, edgeJob.ID)
+		if err != nil {
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to store edge async command into the database", err}
+		}
+	}
+
 	err = handler.DataStore.EdgeJob().DeleteEdgeJob(edgeJob.ID)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove the Edge job from the database", err}

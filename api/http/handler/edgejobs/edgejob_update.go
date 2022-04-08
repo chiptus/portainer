@@ -6,10 +6,12 @@ import (
 	"strconv"
 
 	"github.com/asaskevich/govalidator"
+
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
@@ -80,8 +82,18 @@ func (handler *Handler) updateEdgeSchedule(edgeJob *portaineree.EdgeJob, payload
 		edgeJob.Name = *payload.Name
 	}
 
+	endpointsToAdd := map[portaineree.EndpointID]bool{}
+	endpointsToRemove := map[portaineree.EndpointID]bool{}
+
 	if payload.Endpoints != nil {
 		endpointsMap := map[portaineree.EndpointID]portaineree.EdgeJobEndpointMeta{}
+
+		newEndpoints := endpointutils.EndpointSet(payload.Endpoints)
+		for endpointID := range edgeJob.Endpoints {
+			if !newEndpoints[endpointID] {
+				endpointsToRemove[endpointID] = true
+			}
+		}
 
 		for _, endpointID := range payload.Endpoints {
 			endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
@@ -93,10 +105,11 @@ func (handler *Handler) updateEdgeSchedule(edgeJob *portaineree.EdgeJob, payload
 				continue
 			}
 
-			if meta, ok := edgeJob.Endpoints[endpointID]; ok {
+			if meta, exists := edgeJob.Endpoints[endpointID]; exists {
 				endpointsMap[endpointID] = meta
 			} else {
 				endpointsMap[endpointID] = portaineree.EdgeJobEndpointMeta{}
+				endpointsToAdd[endpointID] = true
 			}
 		}
 
@@ -104,13 +117,19 @@ func (handler *Handler) updateEdgeSchedule(edgeJob *portaineree.EdgeJob, payload
 	}
 
 	updateVersion := false
-	if payload.CronExpression != nil {
+	if payload.CronExpression != nil && *payload.CronExpression != edgeJob.CronExpression {
 		edgeJob.CronExpression = *payload.CronExpression
 		updateVersion = true
 	}
 
-	if payload.FileContent != nil {
-		_, err := handler.FileService.StoreEdgeJobFileFromBytes(strconv.Itoa(int(edgeJob.ID)), []byte(*payload.FileContent))
+	fileContent, err := handler.FileService.GetFileContent(edgeJob.ScriptPath, "")
+	if err != nil {
+		return err
+	}
+
+	if payload.FileContent != nil && *payload.FileContent != string(fileContent) {
+		fileContent = []byte(*payload.FileContent)
+		_, err := handler.FileService.StoreEdgeJobFileFromBytes(strconv.Itoa(int(edgeJob.ID)), fileContent)
 		if err != nil {
 			return err
 		}
@@ -118,7 +137,7 @@ func (handler *Handler) updateEdgeSchedule(edgeJob *portaineree.EdgeJob, payload
 		updateVersion = true
 	}
 
-	if payload.Recurring != nil {
+	if payload.Recurring != nil && *payload.Recurring != edgeJob.Recurring {
 		edgeJob.Recurring = *payload.Recurring
 		updateVersion = true
 	}
@@ -129,7 +148,30 @@ func (handler *Handler) updateEdgeSchedule(edgeJob *portaineree.EdgeJob, payload
 
 	for endpointID := range edgeJob.Endpoints {
 		handler.ReverseTunnelService.AddEdgeJob(endpointID, edgeJob)
+
+		needsAddOperation := endpointsToAdd[endpointID]
+		if needsAddOperation || updateVersion {
+			err := handler.storeEdgeAsyncCommand(edgeJob, endpointID, fileContent, needsAddOperation)
+			if err != nil {
+				return err
+			}
+		}
+
+	}
+
+	for endpointID := range endpointsToRemove {
+		err := handler.edgeService.RemoveJobCommand(endpointID, edgeJob.ID)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
+}
+
+func (handler *Handler) storeEdgeAsyncCommand(edgeJob *portaineree.EdgeJob, endpointID portaineree.EndpointID, fileContent []byte, needsAddOperation bool) error {
+	if needsAddOperation {
+		return handler.edgeService.AddJobCommand(endpointID, *edgeJob, fileContent)
+	}
+	return handler.edgeService.ReplaceJobCommand(endpointID, *edgeJob, fileContent)
 }

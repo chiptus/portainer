@@ -3,6 +3,8 @@ package endpointedge
 import (
 	"net/http"
 
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+
 	httperror "github.com/portainer/libhttp/error"
 	portainer "github.com/portainer/portainer/api"
 
@@ -22,17 +24,28 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.
-func NewHandler(bouncer *security.RequestBouncer) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, fileService portainer.FileService, reverseTunnelService portaineree.ReverseTunnelService) *Handler {
 	h := &Handler{
-		Router:         mux.NewRouter(),
-		requestBouncer: bouncer,
+		Router:               mux.NewRouter(),
+		requestBouncer:       bouncer,
+		DataStore:            dataStore,
+		FileService:          fileService,
+		ReverseTunnelService: reverseTunnelService,
 	}
 
-	h.Handle("/{id}/edge/status",
+	endpointRouter := h.PathPrefix("/{id}").Subrouter()
+	endpointRouter.Use(middlewares.WithEndpoint(dataStore.Endpoint(), "id"))
+
+	endpointRouter.PathPrefix("/edge/status").Handler(
 		bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeStatusInspect))).Methods(http.MethodGet)
-	h.Handle("/{id}/edge/stacks/{stackId}",
+
+	endpointRouter.PathPrefix("/edge/stacks/{stackId}").Handler(
 		bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeStackInspect))).Methods(http.MethodGet)
-	h.Handle("/{id}/edge/jobs/{jobID}/logs",
+
+	endpointRouter.PathPrefix("/edge/jobs/{jobID}/logs").Handler(
 		bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeJobsLogs))).Methods(http.MethodPost)
+
+	endpointRouter.PathPrefix("/edge/commands").Handler(
+		bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeAsyncCommands))).Methods(http.MethodGet)
 	return h
 }

@@ -604,6 +604,8 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 
 	digitalSignatureService := initDigitalSignatureService()
 
+	edgeService := edge.NewService(dataStore, fileService)
+
 	sslService, err := initSSLService(*flags.AddrHTTPS, *flags.SSLCert, *flags.SSLKey, *flags.SSLCACert, fileService, dataStore, shutdownTrigger)
 	if err != nil {
 		logrus.Fatal(err)
@@ -746,6 +748,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		HTTPEnabled:                 sslDBSettings.HTTPEnabled,
 		AssetsPath:                  *flags.Assets,
 		DataStore:                   dataStore,
+		EdgeService:                 *edgeService,
 		LicenseService:              licenseService,
 		SwarmStackManager:           swarmStackManager,
 		ComposeStackManager:         composeStackManager,

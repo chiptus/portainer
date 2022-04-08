@@ -218,6 +218,11 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		relatedEdgeStacks := edge.EndpointRelatedEdgeStacks(endpoint, endpointGroup, edgeGroups, edgeStacks)
 		for _, stackID := range relatedEdgeStacks {
 			relationObject.EdgeStacks[stackID] = true
+
+			err = handler.edgeService.AddStackCommand(endpoint, stackID)
+			if err != nil {
+				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to store edge async command into the database", err}
+			}
 		}
 	}
 
