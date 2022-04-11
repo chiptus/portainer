@@ -197,36 +197,41 @@ func (store *Store) rollbackToCE(forceUpdate bool) error {
 		return dserrors.ErrMigrationToCE
 	}
 
-	previousVersion, err := store.VersionService.PreviousDBVersion()
-	if err != nil {
-		migrateLog.Error("An Error occurred with retrieving previous DB version", err)
-		return err
-	}
-
+	rollbackConfirmMessage := "Are you sure you want to rollback Portainer to the community edition?"
 	if !forceUpdate {
-		confirmed, err := cli.Confirm(fmt.Sprintf("Are you sure you want to rollback your database to %d?", previousVersion))
+		confirmed, err := cli.Confirm(rollbackConfirmMessage)
 		if err != nil || !confirmed {
 			return err
 		}
 	}
 
-	if previousVersion < 25 {
-		migrator.DowngradeSettingsFrom25()
-	}
-
-	err = store.VersionService.StoreDBVersion(previousVersion)
-	if err != nil {
-		migrateLog.Error(fmt.Sprintf("An Error occurred with rolling back to CE Edition, DB Version %d", previousVersion), err)
-		return err
-	}
-
 	err = store.VersionService.StoreEdition(portaineree.PortainerCE)
 	if err != nil {
-		migrateLog.Error(fmt.Sprintf("An Error occurred with rolling back to CE Edition, DB Version %d", previousVersion), err)
+		migrateLog.Error("An Error occurred with rolling back to the community edition", err)
 		return err
 	}
 
-	migrateLog.Info(fmt.Sprintf("Rolled back to CE Edition, DB Version %d", previousVersion))
+	err = store.downgradeLDAPSettings()
+	if err != nil {
+		migrateLog.Error("An Error occurred with rolling back LDAP URL setting", err)
+		return err
+	}
+	migrateLog.Info("Rolled back to CE Edition.")
+	return nil
+}
+
+func (store *Store) downgradeLDAPSettings() error {
+	legacySettings, err := store.SettingsService.Settings()
+	if err != nil {
+		return err
+	}
+
+	urls := legacySettings.LDAPSettings.URLs
+	if len(urls) > 0 {
+		legacySettings.LDAPSettings.URL = urls[0] // use the first URL
+		return store.SettingsService.UpdateSettings(legacySettings)
+	}
+
 	return nil
 }
 
