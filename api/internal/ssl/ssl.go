@@ -15,6 +15,7 @@ import (
 	"github.com/portainer/libcrypto"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/internal/ssl/revoke"
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -24,6 +25,7 @@ type Service struct {
 	dataStore       dataservices.DataStore
 	rawCert         *tls.Certificate
 	shutdownTrigger context.CancelFunc
+	crlService      *revoke.Service
 }
 
 // NewService returns a pointer to a new Service
@@ -32,6 +34,7 @@ func NewService(fileService portainer.FileService, dataStore dataservices.DataSt
 		fileService:     fileService,
 		dataStore:       dataStore,
 		shutdownTrigger: shutdownTrigger,
+		crlService:      revoke.NewService(),
 	}
 }
 
@@ -192,6 +195,16 @@ func (service *Service) ValidateCACert(tlsConn *tls.ConnectionState) error {
 		KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 	}
 	agentCert := tlsConn.PeerCertificates[0]
+
+	revoked, err := service.crlService.VerifyCertificate(agentCert)
+	if err != nil {
+		logrus.WithError(err).Error("failed verifying certificate with crl list")
+		return errors.Wrap(err, "failed verifying certificate with crl list")
+	}
+
+	if revoked {
+		return errors.New("client certificate is revoked")
+	}
 
 	if _, err := agentCert.Verify(opts); err != nil {
 		logrus.WithError(err).Error("Agent certificate not signed by the CACert")
