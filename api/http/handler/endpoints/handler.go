@@ -96,6 +96,7 @@ func NewHandler(bouncer requestBouncer, userActivityService portaineree.UserActi
 
 	// DEPRECATED
 	publicRouter.Handle("/endpoints/{id}/status", httperror.LoggerHandler(h.endpointStatusInspect)).Methods(http.MethodGet)
+	publicRouter.Handle("/endpoints/global-key", httperror.LoggerHandler(h.endpointCreateGlobalKey)).Methods(http.MethodPost)
 
 	return h
 }
