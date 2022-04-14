@@ -189,7 +189,7 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 		}
 	}
 
-	return handler.writeToken(w, user, portaineree.AuthenticationOAuth)
+	return handler.writeToken(w, user, portaineree.AuthenticationOAuth, false)
 }
 
 func (handler *Handler) updateUser(user *portaineree.User, oauthSettings portaineree.OAuthSettings, validAdminClaim bool) error {

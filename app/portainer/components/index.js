@@ -15,6 +15,7 @@ import { ReactExampleAngular } from './ReactExample';
 import { TooltipAngular } from './Tip/Tooltip';
 import { beFeatureIndicatorAngular } from './BEFeatureIndicator';
 import { InformationPanelAngular } from './InformationPanel';
+import { ForcePasswordUpdateHintAngular, PasswordCheckHintAngular } from './PasswordCheckHint';
 
 export default angular
   .module('portainer.app.components', [
@@ -31,4 +32,6 @@ export default angular
   .component('portainerTooltip', TooltipAngular)
   .component('reactExample', ReactExampleAngular)
   .component('beFeatureIndicator', beFeatureIndicatorAngular)
+  .component('forcePasswordUpdateHint', ForcePasswordUpdateHintAngular)
+  .component('passwordCheckHint', PasswordCheckHintAngular)
   .component('createAccessToken', CreateAccessTokenAngular).name;

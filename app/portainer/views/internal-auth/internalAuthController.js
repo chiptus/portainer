@@ -117,6 +117,10 @@ class InternalAuthenticationController {
       }
     }
 
+    if (this.Authentication.getUserDetails().forceChangePassword) {
+      path = 'portainer.account';
+    }
+
     this.$state.go(path);
   }
   /**

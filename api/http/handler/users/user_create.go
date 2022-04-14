@@ -12,6 +12,7 @@ import (
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/internal/passwordutils"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
@@ -97,6 +98,10 @@ func (handler *Handler) userCreate(w http.ResponseWriter, r *http.Request) *http
 	}
 
 	if settings.AuthenticationMethod == portaineree.AuthenticationInternal {
+		if !passwordutils.StrengthCheck(payload.Password) {
+			return &httperror.HandlerError{http.StatusBadRequest, "Password does not meet the requirements", nil}
+		}
+
 		user.Password, err = handler.CryptoService.Hash(payload.Password)
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to hash user password", errCryptoHashFailure}

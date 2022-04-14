@@ -14,6 +14,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/internal/passwordutils"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
@@ -219,7 +220,7 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 
 	}
 
-	return handler.writeToken(w, user, resp.Method)
+	return handler.writeToken(w, user, resp.Method, false)
 }
 
 func (handler *Handler) authenticateInternal(w http.ResponseWriter, user *portaineree.User, password string) (*authMiddlewareResponse, *httperror.HandlerError) {
@@ -236,7 +237,6 @@ func (handler *Handler) authenticateInternal(w http.ResponseWriter, user *portai
 				Message:    "Invalid credentials",
 				Err:        httperrors.ErrUnauthorized,
 			}
-
 	}
 
 	info := handler.LicenseService.Info()
@@ -251,11 +251,18 @@ func (handler *Handler) authenticateInternal(w http.ResponseWriter, user *portai
 
 	}
 
-	return handler.writeToken(w, user, resp.Method)
+	forceChangePassword := !passwordutils.StrengthCheck(password)
+
+	return handler.writeToken(w, user, resp.Method, forceChangePassword)
 }
 
-func (handler *Handler) writeToken(w http.ResponseWriter, user *portaineree.User, method portaineree.AuthenticationMethod) (*authMiddlewareResponse, *httperror.HandlerError) {
-	tokenData := composeTokenData(user)
+func (handler *Handler) writeToken(
+	w http.ResponseWriter,
+	user *portaineree.User,
+	method portaineree.AuthenticationMethod,
+	forceChangePassword bool,
+) (*authMiddlewareResponse, *httperror.HandlerError) {
+	tokenData := composeTokenData(user, forceChangePassword)
 
 	return handler.persistAndWriteToken(w, tokenData, nil, method)
 }
@@ -382,10 +389,11 @@ func teamMembershipExists(teamID portaineree.TeamID, memberships []portaineree.T
 	return false
 }
 
-func composeTokenData(user *portaineree.User) *portaineree.TokenData {
+func composeTokenData(user *portaineree.User, forceChangePassword bool) *portaineree.TokenData {
 	return &portaineree.TokenData{
-		ID:       user.ID,
-		Username: user.Username,
-		Role:     user.Role,
+		ID:                  user.ID,
+		Username:            user.Username,
+		Role:                user.Role,
+		ForceChangePassword: forceChangePassword,
 	}
 }
