@@ -12,7 +12,7 @@ import (
 )
 
 func TestHandler_webhookInvoke(t *testing.T) {
-	_, store, teardown := datastore.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true, true)
 	defer teardown()
 	admin := &portaineree.User{ID: 1, Username: "admin"}
 	err := store.User().Create(admin)

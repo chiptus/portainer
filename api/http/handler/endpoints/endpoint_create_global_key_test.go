@@ -18,7 +18,7 @@ import (
 )
 
 func TestGlobalKey(t *testing.T) {
-	_, store, teardown := datastore.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true, true)
 	defer teardown()
 
 	tmpDir, err := os.MkdirTemp(os.TempDir(), "portainer-test-global-key-*")

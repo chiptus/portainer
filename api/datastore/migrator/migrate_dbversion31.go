@@ -5,60 +5,50 @@ import (
 	"log"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	snapshotutils "github.com/portainer/portainer-ee/api/internal/snapshot"
 	"github.com/portainer/portainer/api/dataservices/errors"
 )
 
 func (m *Migrator) migrateDBVersionToDB32() error {
-	migrateLog.Info("Updating registries")
 	err := m.updateRegistriesToDB32()
 	if err != nil {
 		return err
 	}
 
-	migrateLog.Info("Updating dockerhub")
 	err = m.updateDockerhubToDB32()
 	if err != nil {
 		return err
 	}
 
-	migrateLog.Info("Refreshing RBAC roles")
 	err = m.refreshRBACRoles()
 	if err != nil {
 		return err
 	}
 
-	migrateLog.Info("Refreshing user authorizations")
 	err = m.refreshUserAuthorizations()
 	if err != nil {
 		return err
 	}
 
-	migrateLog.Info("Updating resource controls")
 	err = m.updateVolumeResourceControlToDB32()
 	if err != nil {
 		return err
 	}
 
-	migrateLog.Info("Updating admin group search settings")
 	err = m.updateAdminGroupSearchSettingsToDB32()
 	if err != nil {
 		return err
 	}
 
-	migrateLog.Info("Migrating stack entry points")
-	if err := migrateStackEntryPoint(m.stackService); err != nil {
+	if err := m.migrateStackEntryPoint(); err != nil {
 		return err
 	}
 
-	migrateLog.Info("Updating kubeconfig expiry")
 	if err := m.kubeconfigExpiryToDB32(); err != nil {
 		return err
 	}
 
-	migrateLog.Info("Setting default helm repository url")
 	if err := m.helmRepositoryURLToDB32(); err != nil {
 		return err
 	}
@@ -67,6 +57,7 @@ func (m *Migrator) migrateDBVersionToDB32() error {
 }
 
 func (m *Migrator) updateRegistriesToDB32() error {
+	migrateLog.Info("- updating registries")
 	registries, err := m.registryService.Registries()
 	if err != nil {
 		return err
@@ -109,6 +100,7 @@ func (m *Migrator) updateRegistriesToDB32() error {
 }
 
 func (m *Migrator) updateDockerhubToDB32() error {
+	migrateLog.Info("- updating dockerhub")
 	dockerhub, err := m.dockerhubService.DockerHub()
 	if err == errors.ErrObjectNotFound {
 		return nil
@@ -196,8 +188,9 @@ func (m *Migrator) updateDockerhubToDB32() error {
 	return m.registryService.Create(registry)
 }
 
-func migrateStackEntryPoint(stackService dataservices.StackService) error {
-	stacks, err := stackService.Stacks()
+func (m *Migrator) migrateStackEntryPoint() error {
+	migrateLog.Info("- updating stack entry points")
+	stacks, err := m.stackService.Stacks()
 	if err != nil {
 		return err
 	}
@@ -207,7 +200,7 @@ func migrateStackEntryPoint(stackService dataservices.StackService) error {
 			continue
 		}
 		stack.GitConfig.ConfigFilePath = stack.EntryPoint
-		if err := stackService.UpdateStack(stack.ID, stack); err != nil {
+		if err := m.stackService.UpdateStack(stack.ID, stack); err != nil {
 			return err
 		}
 	}
@@ -215,6 +208,7 @@ func migrateStackEntryPoint(stackService dataservices.StackService) error {
 }
 
 func (m *Migrator) updateVolumeResourceControlToDB32() error {
+	migrateLog.Info("- updating resource controls")
 	endpoints, err := m.endpointService.Endpoints()
 	if err != nil {
 		return fmt.Errorf("failed fetching environments: %w", err)
@@ -307,6 +301,7 @@ func findResourcesToUpdateToDB32(dockerID string, volumesData map[string]interfa
 }
 
 func (m *Migrator) updateAdminGroupSearchSettingsToDB32() error {
+	migrateLog.Info("- updating admin group search settings")
 	legacySettings, err := m.settingsService.Settings()
 	if err != nil {
 		return err
@@ -320,6 +315,7 @@ func (m *Migrator) updateAdminGroupSearchSettingsToDB32() error {
 }
 
 func (m *Migrator) kubeconfigExpiryToDB32() error {
+	migrateLog.Info("- updating kubeconfig expiry")
 	settings, err := m.settingsService.Settings()
 	if err != nil {
 		return err
@@ -329,6 +325,7 @@ func (m *Migrator) kubeconfigExpiryToDB32() error {
 }
 
 func (m *Migrator) helmRepositoryURLToDB32() error {
+	migrateLog.Info("- setting default helm repository URL")
 	settings, err := m.settingsService.Settings()
 	if err != nil {
 		return err

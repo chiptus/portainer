@@ -13,7 +13,7 @@ import (
 	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 	"github.com/sirupsen/logrus"
 
-	werrors "github.com/pkg/errors"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -27,6 +27,12 @@ func (store *Store) MigrateData() error {
 	version, err := store.version()
 	if err != nil {
 		return err
+	}
+
+	// Backup Database
+	backupPath, err := store.Backup()
+	if err != nil {
+		return errors.Wrap(err, "while backing up db before migration")
 	}
 
 	edition := store.edition()
@@ -53,7 +59,25 @@ func (store *Store) MigrateData() error {
 		AuthorizationService:    authorization.NewService(store),
 	}
 
-	return store.connectionMigrateData(migratorParams)
+	// restore on error
+	err = store.connectionMigrateData(migratorParams)
+	if err != nil {
+		logrus.Errorf("While DB migration %v. Restoring DB", err)
+		options := BackupOptions{
+			BackupPath: backupPath,
+		}
+		err := store.restoreWithOptions(&options)
+		if err != nil {
+			logrus.Fatalf(
+				"Failed restoring the backup. portainer database file needs to restored manually by "+
+					"replacing %s database file with recent backup %s. Error %v",
+				store.databasePath(),
+				options.BackupPath,
+				err,
+			)
+		}
+	}
+	return err
 }
 
 // FailSafeMigrate backup and restore DB if migration fail
@@ -87,14 +111,14 @@ func (store *Store) connectionMigrateData(migratorParams *migrator.MigratorParam
 	if !isUpdating && ver != portaineree.DBVersion {
 		err = store.backupVersion(migrator)
 		if err != nil {
-			return werrors.Wrapf(err, "failed to backup database")
+			return errors.Wrapf(err, "failed to backup database")
 		}
 	}
 
 	logrus.Infof("migrator.Version() = %v, portaineree.DBVersion = %v", migrator.Version(), portaineree.DBVersion)
 	// Migrate to the latest CE version
 	if migrator.Version() < portaineree.DBVersion {
-		migrateLog.Info(fmt.Sprintf("Migrating database from version %v to %v", migrator.Version(), portaineree.DBVersion))
+		migrateLog.Infof("Migrating database from version %v to %v", migrator.Version(), portaineree.DBVersion)
 		err = store.FailSafeMigrate(migrator, portaineree.DBVersion)
 		if err != nil {
 			migrateLog.Error("An error occurred during database migration", err)
@@ -102,28 +126,33 @@ func (store *Store) connectionMigrateData(migratorParams *migrator.MigratorParam
 		}
 	}
 
-	logrus.Infof("portaineree.Edition = %v, portaineree.PortainerEE = %v, migrator.Edition() = %v", portaineree.Edition, portaineree.PortainerEE, migrator.Edition())
-	if portaineree.Edition == portaineree.PortainerEE {
-		// 2 – if DB is CE Edition we need to upgrade settings to EE
-		if migrator.Edition() < portaineree.PortainerEE {
-			err = migrator.UpgradeToEE()
-			if err != nil {
-				migrateLog.Error("An error occurred while upgrading database to EE", err)
-				store.RollbackFailedUpgradeToEE()
-				return err
-			}
-		}
+	logrus.Infof("Portainer Edition = %s, Migrator Edition = %s, Store edition = %s",
+		portaineree.Edition.GetEditionLabel(), migrator.Edition().GetEditionLabel(), store.edition().GetEditionLabel())
 
-		// 3 – if DB is EE Edition we need to migrate to latest version of EE
-		if migrator.Edition() == portaineree.PortainerEE && migrator.Version() < portaineree.DBVersionEE {
-			store.Backup()
-			err = store.FailSafeMigrate(migrator, portaineree.DBVersionEE)
-			if err != nil {
-				migrateLog.Error("An error occurred while migrating EE database to latest version", err)
-				store.Restore()
-				return err
-			}
+	// If DB is CE Edition we need to upgrade settings to EE
+	if migrator.Edition() < portaineree.PortainerEE {
+		err = migrator.UpgradeToEE()
+		if err != nil {
+			migrateLog.Error("An error occurred while upgrading database to EE", err)
+			store.RollbackFailedUpgradeToEE()
+			return err
 		}
+	}
+
+	// If DB is EE Edition we need to migrate to latest version of EE
+	if migrator.Edition() == portaineree.PortainerEE && migrator.Version() < portaineree.DBVersionEE {
+		err = store.FailSafeMigrate(migrator, portaineree.DBVersionEE)
+		if err != nil {
+			migrateLog.Error("An error occurred while migrating EE database to latest version", err)
+			return err
+		}
+	}
+
+	// Always calling CreateOrUpdatePredefinedRoles as sometimes, it was noticed that
+	// this method was not run and some roles were missing from the database
+	err = store.RoleService.CreateOrUpdatePredefinedRoles()
+	if err != nil {
+		return errors.Wrap(err, "failed refreshing predefined roles")
 	}
 
 	return nil
@@ -190,8 +219,8 @@ func (store *Store) rollbackToCE(forceUpdate bool) error {
 		return err
 	}
 
-	migrateLog.Info(fmt.Sprintf("Current Software Edition: %s", migrator.Edition().GetEditionLabel()))
-	migrateLog.Info(fmt.Sprintf("Current DB Version: %d", migrator.Version()))
+	migrateLog.Infof("Current Software Edition: %s", migrator.Edition().GetEditionLabel())
+	migrateLog.Infof("Current DB Version: %d", migrator.Version())
 
 	if migrator.Edition() == portaineree.PortainerCE {
 		return dserrors.ErrMigrationToCE

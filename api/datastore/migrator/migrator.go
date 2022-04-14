@@ -1,8 +1,6 @@
 package migrator
 
 import (
-	"fmt"
-
 	"github.com/portainer/portainer-ee/api/dataservices/fdoprofile"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -118,7 +116,7 @@ func (migrator *Migrator) Edition() portaineree.SoftwareEdition {
 
 // Migrate helper to upgrade DB
 func (migrator *Migrator) Migrate(version int) error {
-	migrateLog.Info(fmt.Sprintf("Migrating %s database from version %d to %d.", migrator.Edition().GetEditionLabel(), migrator.currentDBVersion, version))
+	migrateLog.Infof("Migrating %s database from version %d to %d.", migrator.Edition().GetEditionLabel(), migrator.currentDBVersion, version)
 	err := migrator.MigrateCE() //CE
 	if err != nil {
 		migrateLog.Error("An error occurred during database migration", err)

@@ -574,13 +574,13 @@ type (
 	// LDAPSettings represents the settings used to connect to a LDAP server
 	LDAPSettings struct {
 		// Enable this option if the server is configured for Anonymous access. When enabled, ReaderDN and Password will not be used
-		AnonymousMode bool `json:"AnonymousMode" example:"true"`
+		AnonymousMode bool `json:"AnonymousMode" example:"true" validate:"validate_bool"`
 		// Account that will be used to search for users
-		ReaderDN string `json:"ReaderDN" example:"cn=readonly-account,dc=ldap,dc=domain,dc=tld"`
+		ReaderDN string `json:"ReaderDN" example:"cn=readonly-account,dc=ldap,dc=domain,dc=tld" validate:"required_if=AnonymousMode false"`
 		// Password of the account that will be used to search users
-		Password string `json:"Password,omitempty" example:"readonly-password"`
+		Password string `json:"Password,omitempty" example:"readonly-password" validate:"required_if=AnonymousMode false"`
 		// URLs or IP addresses of the LDAP server
-		URLs      []string         `json:"URLs"`
+		URLs      []string         `json:"URLs" validate:"validate_urls"`
 		TLSConfig TLSConfiguration `json:"TLSConfig"`
 		// Whether LDAP connection should use StartTLS
 		StartTLS            bool                      `json:"StartTLS" example:"true"`
@@ -595,7 +595,7 @@ type (
 		// Saved admin group list, the user will be populated as an admin role if any user group matches the record in the list
 		AdminGroups []string `json:"AdminGroups" example:"['manager','operator']"`
 		// Deprecated
-		URL string `json:"URL"`
+		URL string `json:"URL" validate:"hostname_port"`
 	}
 
 	// LDAPUser represents a LDAP user
@@ -772,14 +772,14 @@ type (
 	// to a team.
 	Role struct {
 		// Role Identifier
-		ID RoleID `json:"Id" example:"1"`
+		ID RoleID `json:"Id" example:"1" validate:"required"`
 		// Role name
-		Name string `json:"Name" example:"HelpDesk"`
+		Name string `json:"Name" example:"HelpDesk" validate:"required"`
 		// Role description
-		Description string `json:"Description" example:"Read-only access of all resources in an environment(endpoint)"`
+		Description string `json:"Description" example:"Read-only access of all resources in an environment(endpoint)" validate:"required"`
 		// Authorizations associated to a role
-		Authorizations Authorizations `json:"Authorizations"`
-		Priority       int            `json:"Priority"`
+		Authorizations Authorizations `json:"Authorizations" validate:"required"`
+		Priority       int            `json:"Priority" validate:"required"`
 	}
 
 	// RoleID represents a role identifier

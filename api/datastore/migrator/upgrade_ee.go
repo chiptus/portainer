@@ -1,17 +1,18 @@
 package migrator
 
 import (
-	"fmt"
-
+	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+
+	"github.com/portainer/portainer-ee/api/datastore/validate"
 )
 
 // UpgradeToEE will migrate the db from latest ce version to latest ee version
 // Latest version is v25 on 06/11/2020
 func (m *Migrator) UpgradeToEE() error {
 
-	migrateLog.Info(fmt.Sprintf("Migrating CE database version %d to EE database version %d.", m.Version(), portaineree.DBVersion))
+	migrateLog.Infof("Migrating CE database version %d to EE database version %d.", m.Version(), portaineree.DBVersion)
 
 	migrateLog.Info("Updating LDAP settings to EE")
 	err := m.updateSettingsToEE()
@@ -30,19 +31,30 @@ func (m *Migrator) UpgradeToEE() error {
 	if err != nil {
 		return err
 	}
+
 	migrateLog.Info("Updating user authorizations")
 	err = m.authorizationService.UpdateUsersAuthorizations()
 	if err != nil {
 		return err
 	}
 
-	migrateLog.Info(fmt.Sprintf("Setting db version to %d", portaineree.DBVersionEE))
+	// Validate
+	roles, err := m.roleService.Roles()
+	if err != nil {
+		return errors.Wrap(err, "while getting roles")
+	}
+	err = validate.ValidatePredefinedRoles(roles)
+	if err != nil {
+		return errors.Wrap(err, "while validating roles")
+	}
+
+	migrateLog.Infof("Setting db version to %d", portaineree.DBVersionEE)
 	err = m.versionService.StoreDBVersion(portaineree.DBVersionEE)
 	if err != nil {
 		return err
 	}
 
-	migrateLog.Info(fmt.Sprintf("Setting edition to %s", portaineree.PortainerEE.GetEditionLabel()))
+	migrateLog.Infof("Setting edition to %s", portaineree.PortainerEE.GetEditionLabel())
 	err = m.versionService.StoreEdition(portaineree.PortainerEE)
 	if err != nil {
 		return err
@@ -68,7 +80,12 @@ func (m *Migrator) updateSettingsToEE() error {
 
 	legacySettings.LDAPSettings.ServerType = portaineree.LDAPServerCustom
 
-	return m.settingsService.UpdateSettings(legacySettings)
+	err = m.settingsService.UpdateSettings(legacySettings)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // If RBAC extension wasn't installed before, update all users in environments(endpoints) and
@@ -95,7 +112,7 @@ func (m *Migrator) updateUserRolesToEE() error {
 	}
 
 	for _, endpointGroup := range endpointGroups {
-		migrateLog.Debug(fmt.Sprintf("Updating user policies for environment group %v", endpointGroup.ID))
+		migrateLog.Debugf("Updating user policies for environment group %v", endpointGroup.ID)
 		for key := range endpointGroup.UserAccessPolicies {
 			updateUserAccessPolicyToReadOnlyRole(endpointGroup.UserAccessPolicies, key)
 		}
@@ -117,7 +134,7 @@ func (m *Migrator) updateUserRolesToEE() error {
 	}
 
 	for _, endpoint := range endpoints {
-		migrateLog.Debug(fmt.Sprintf("Updating user policies for environment %v", endpoint.ID))
+		migrateLog.Debugf("Updating user policies for environment %v", endpoint.ID)
 		for key := range endpoint.UserAccessPolicies {
 			updateUserAccessPolicyToReadOnlyRole(endpoint.UserAccessPolicies, key)
 		}

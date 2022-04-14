@@ -10,6 +10,7 @@ import (
 // running it after changing one of `authorization.DefaultEndpointAuthorizations`
 // will update the role
 func (m *Migrator) refreshRBACRoles() error {
+	migrateLog.Info("- refreshing RBAC roles")
 	defaultAuthorizationsOfRoles := map[portaineree.RoleID]portaineree.Authorizations{
 		portaineree.RoleIDEndpointAdmin: authorization.DefaultEndpointAuthorizationsForEndpointAdministratorRole(),
 		portaineree.RoleIDHelpdesk:      authorization.DefaultEndpointAuthorizationsForHelpDeskRole(),
@@ -39,6 +40,7 @@ func (m *Migrator) refreshRBACRoles() error {
 }
 
 func (m *Migrator) refreshUserAuthorizations() error {
+	migrateLog.Info("Refreshing user authorizations...")
 	users, err := m.userService.Users()
 	if err != nil {
 		return err

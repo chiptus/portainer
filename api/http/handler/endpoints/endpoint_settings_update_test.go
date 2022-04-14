@@ -18,7 +18,7 @@ import (
 func Test_endpointUpdate(t *testing.T) {
 	is := assert.New(t)
 
-	_, store, teardown := datastore.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true, true)
 	defer teardown()
 
 	err := store.Endpoint().Create(&portaineree.Endpoint{ID: 1})

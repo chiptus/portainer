@@ -5,7 +5,7 @@ import (
 )
 
 func (m *Migrator) updateEndpointSettingsToDB26() error {
-	migrateLog.Info("Updating endpoint settings")
+	migrateLog.Info("- updating endpoint settings")
 	settings, err := m.settingsService.Settings()
 	if err != nil {
 		return err
@@ -52,6 +52,6 @@ func (m *Migrator) updateEndpointSettingsToDB26() error {
 }
 
 func (m *Migrator) updateRbacRolesToDB26() error {
-	migrateLog.Info("Refreshing RBAC roles")
+	migrateLog.Info("Updating RBAC roles...")
 	return m.refreshRBACRoles()
 }

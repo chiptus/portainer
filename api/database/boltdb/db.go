@@ -120,7 +120,7 @@ func (connection *DbConnection) NeedsEncryptionMigration() (bool, error) {
 // Open opens and initializes the BoltDB database.
 func (connection *DbConnection) Open() error {
 
-	logrus.Infof("Loading PortainerDB: %s", connection.GetDatabaseFileName())
+	logrus.Infof("Loading PortainerDB: %s", connection.GetDatabaseFilePath())
 
 	// Now we open the db
 	databasePath := connection.GetDatabaseFilePath()
@@ -161,7 +161,7 @@ func (connection *DbConnection) ExportRaw(filename string) error {
 		return fmt.Errorf("stat on %s failed: %s", databasePath, err)
 	}
 
-	b, err := connection.exportJson(databasePath)
+	b, err := connection.ExportJSON(databasePath, true)
 	if err != nil {
 		return err
 	}

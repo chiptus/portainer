@@ -3,7 +3,7 @@ package migrator
 import portaineree "github.com/portainer/portainer-ee/api"
 
 func (m *Migrator) updateSettingsToDB24() error {
-	migrateLog.Info("Updating settings")
+	migrateLog.Info("- updating settings")
 	legacySettings, err := m.settingsService.Settings()
 	if err != nil {
 		return err
@@ -17,7 +17,7 @@ func (m *Migrator) updateSettingsToDB24() error {
 }
 
 func (m *Migrator) updateStacksToDB24() error {
-	migrateLog.Info("Updating stacks")
+	migrateLog.Info("- updating stacks")
 	stacks, err := m.stackService.Stacks()
 	if err != nil {
 		return err

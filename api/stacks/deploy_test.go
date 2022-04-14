@@ -48,7 +48,7 @@ func (s *noopDeployer) DeployKubernetesStack(stack *portaineree.Stack, endpoint 
 }
 
 func Test_redeployWhenChanged_FailsWhenCannotFindStack(t *testing.T) {
-	_, store, teardown := datastore.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true, true)
 	defer teardown()
 
 	err := RedeployWhenChanged(1, nil, store, nil, nil)
@@ -57,7 +57,7 @@ func Test_redeployWhenChanged_FailsWhenCannotFindStack(t *testing.T) {
 }
 
 func Test_redeployWhenChanged_DoesNothingWhenNotAGitBasedStack(t *testing.T) {
-	_, store, teardown := datastore.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true, true)
 	defer teardown()
 
 	admin := &portaineree.User{ID: 1, Username: "admin"}
@@ -87,7 +87,7 @@ func Test_redeployWhenChanged_DoesNothingWhenNotAGitBasedStack(t *testing.T) {
 
 func Test_redeployWhenChanged_FailsWhenCannotClone(t *testing.T) {
 	cloneErr := errors.New("failed to clone")
-	_, store, teardown := datastore.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true, true)
 	defer teardown()
 
 	admin := &portaineree.User{ID: 1, Username: "admin"}
@@ -118,7 +118,7 @@ func Test_redeployWhenChanged_FailsWhenCannotClone(t *testing.T) {
 }
 
 func Test_redeployWhenChanged_ForceUpdateOn(t *testing.T) {
-	_, store, teardown := datastore.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true, true)
 	defer teardown()
 
 	tmpDir, _ := ioutil.TempDir("", "stack")
@@ -184,7 +184,7 @@ func Test_redeployWhenChanged_ForceUpdateOn(t *testing.T) {
 }
 
 func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff(t *testing.T) {
-	_, store, teardown := datastore.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true, true)
 	defer teardown()
 
 	tmpDir, _ := ioutil.TempDir("", "stack")
@@ -225,7 +225,7 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff(t *testing.T) {
 }
 
 func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff_ForePullImageEnable(t *testing.T) {
-	_, store, teardown := datastore.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true, true)
 	defer teardown()
 
 	tmpDir, _ := ioutil.TempDir("", "stack")
@@ -268,7 +268,7 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff_ForePullImageEnable(
 }
 
 func Test_redeployWhenChanged_RepoChanged_ForceUpdateOff(t *testing.T) {
-	_, store, teardown := datastore.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true, true)
 	defer teardown()
 
 	tmpDir, _ := ioutil.TempDir("", "stack")
@@ -334,7 +334,7 @@ func Test_redeployWhenChanged_RepoChanged_ForceUpdateOff(t *testing.T) {
 }
 
 func Test_getUserRegistries(t *testing.T) {
-	_, store, teardown := datastore.MustNewTestStore(true)
+	_, store, teardown := datastore.MustNewTestStore(true, true)
 	defer teardown()
 
 	endpointID := 123

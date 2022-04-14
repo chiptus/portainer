@@ -11,7 +11,7 @@ import (
 func Test_mapClaimValRegexToTeams(t *testing.T) {
 	t.Run("returns no portainer teams if no oauth teams are present", func(t *testing.T) {
 		t.Parallel()
-		_, store, teardown := datastore.MustNewTestStore(false)
+		_, store, teardown := datastore.MustNewTestStore(false, true)
 		defer teardown()
 
 		mappings := []portaineree.OAuthClaimMappings{}
@@ -24,7 +24,7 @@ func Test_mapClaimValRegexToTeams(t *testing.T) {
 
 	t.Run("returns no portainer teams if no regex match occurs", func(t *testing.T) {
 		t.Parallel()
-		_, store, teardown := datastore.MustNewTestStore(false)
+		_, store, teardown := datastore.MustNewTestStore(false, true)
 		defer teardown()
 
 		store.TeamService.Create(&portaineree.Team{ID: 1, Name: "testing"})
@@ -42,7 +42,7 @@ func Test_mapClaimValRegexToTeams(t *testing.T) {
 
 	t.Run("returns team upon regex match", func(t *testing.T) {
 		t.Parallel()
-		_, store, teardown := datastore.MustNewTestStore(false)
+		_, store, teardown := datastore.MustNewTestStore(false, true)
 		defer teardown()
 
 		store.TeamService.Create(&portaineree.Team{ID: 1, Name: "testing"})
@@ -62,7 +62,7 @@ func Test_mapClaimValRegexToTeams(t *testing.T) {
 
 	t.Run("succcessfully fails to return non-existent team upon regex match", func(t *testing.T) {
 		t.Parallel()
-		_, store, teardown := datastore.MustNewTestStore(false)
+		_, store, teardown := datastore.MustNewTestStore(false, true)
 		defer teardown()
 
 		mappings := []portaineree.OAuthClaimMappings{
@@ -79,7 +79,7 @@ func Test_mapClaimValRegexToTeams(t *testing.T) {
 
 func Test_mapAllClaimValuesToTeams(t *testing.T) {
 	t.Parallel()
-	_, store, teardown := datastore.MustNewTestStore(false)
+	_, store, teardown := datastore.MustNewTestStore(false, true)
 	defer teardown()
 
 	store.TeamService.Create(&portaineree.Team{ID: 1, Name: "team-x"})
@@ -121,7 +121,7 @@ func Test_mapAllClaimValuesToTeams(t *testing.T) {
 func Test_createOrUpdateMembership(t *testing.T) {
 	t.Run("creates membership for new user-team", func(t *testing.T) {
 		t.Parallel()
-		_, store, teardown := datastore.MustNewTestStore(false)
+		_, store, teardown := datastore.MustNewTestStore(false, true)
 		defer teardown()
 
 		user := portaineree.User{ID: 1, Role: 1}
@@ -142,7 +142,7 @@ func Test_createOrUpdateMembership(t *testing.T) {
 
 	t.Run("updates membership for existing user-team", func(t *testing.T) {
 		t.Parallel()
-		_, store, teardown := datastore.MustNewTestStore(false)
+		_, store, teardown := datastore.MustNewTestStore(false, true)
 		defer teardown()
 
 		user := portaineree.User{ID: 1, Role: 3}
@@ -167,7 +167,7 @@ func Test_createOrUpdateMembership(t *testing.T) {
 func Test_removeMemberships(t *testing.T) {
 	t.Run("removes nothing if no user team memberships exist", func(t *testing.T) {
 		t.Parallel()
-		_, store, teardown := datastore.MustNewTestStore(false)
+		_, store, teardown := datastore.MustNewTestStore(false, true)
 		defer teardown()
 
 		user := portaineree.User{ID: 1, Role: 1}
@@ -186,7 +186,7 @@ func Test_removeMemberships(t *testing.T) {
 
 	t.Run("does not remove user team membership if it does belong to team whitelist", func(t *testing.T) {
 		t.Parallel()
-		_, store, teardown := datastore.MustNewTestStore(false)
+		_, store, teardown := datastore.MustNewTestStore(false, true)
 		defer teardown()
 
 		user := portaineree.User{ID: 1, Role: 1}
@@ -206,7 +206,7 @@ func Test_removeMemberships(t *testing.T) {
 
 	t.Run("removes memberships if user team membership does not belong to team whitelist", func(t *testing.T) {
 		t.Parallel()
-		_, store, teardown := datastore.MustNewTestStore(false)
+		_, store, teardown := datastore.MustNewTestStore(false, true)
 		defer teardown()
 
 		user := portaineree.User{ID: 1, Role: 1}
@@ -231,7 +231,7 @@ func Test_removeMemberships(t *testing.T) {
 func Test_updateOAuthTeamMemberships(t *testing.T) {
 	t.Run("creates new team memberships based on claim val regex", func(t *testing.T) {
 		t.Parallel()
-		_, store, teardown := datastore.MustNewTestStore(false)
+		_, store, teardown := datastore.MustNewTestStore(false, true)
 		defer teardown()
 
 		store.Team().Create(&portaineree.Team{ID: 1, Name: "testing"})
@@ -262,7 +262,7 @@ func Test_updateOAuthTeamMemberships(t *testing.T) {
 
 	t.Run("fallsback to creating team memberships by mapping oauth teams directly to portainer teams", func(t *testing.T) {
 		t.Parallel()
-		_, store, teardown := datastore.MustNewTestStore(false)
+		_, store, teardown := datastore.MustNewTestStore(false, true)
 		defer teardown()
 
 		store.TeamService.Create(&portaineree.Team{ID: 1, Name: "testing"})
@@ -290,7 +290,7 @@ func Test_updateOAuthTeamMemberships(t *testing.T) {
 
 	t.Run("updates existing team membership based on claim val regex", func(t *testing.T) {
 		t.Parallel()
-		_, store, teardown := datastore.MustNewTestStore(false)
+		_, store, teardown := datastore.MustNewTestStore(false, true)
 		defer teardown()
 
 		store.Team().Create(&portaineree.Team{ID: 1, Name: "testing"})
@@ -325,7 +325,7 @@ func Test_updateOAuthTeamMemberships(t *testing.T) {
 
 	t.Run("removes an outdated oauth team membership", func(t *testing.T) {
 		t.Parallel()
-		_, store, teardown := datastore.MustNewTestStore(false)
+		_, store, teardown := datastore.MustNewTestStore(false, true)
 		defer teardown()
 
 		store.TeamMembershipService.Create(&portaineree.TeamMembership{
@@ -355,7 +355,7 @@ func Test_updateOAuthTeamMemberships(t *testing.T) {
 
 	t.Run("assigns to default team if no mapping found", func(t *testing.T) {
 		t.Parallel()
-		_, store, teardown := datastore.MustNewTestStore(false)
+		_, store, teardown := datastore.MustNewTestStore(false, true)
 		defer teardown()
 
 		store.Team().Create(&portaineree.Team{ID: 1, Name: "testing"})
@@ -384,7 +384,7 @@ func Test_updateOAuthTeamMemberships(t *testing.T) {
 
 	t.Run("removes to default team membership if no default team is set", func(t *testing.T) {
 		t.Parallel()
-		_, store, teardown := datastore.MustNewTestStore(false)
+		_, store, teardown := datastore.MustNewTestStore(false, true)
 		defer teardown()
 
 		store.TeamMembershipService.Create(&portaineree.TeamMembership{
@@ -415,7 +415,7 @@ func Test_updateOAuthTeamMemberships(t *testing.T) {
 
 	t.Run("removes to default team membership if mapping is found", func(t *testing.T) {
 		t.Parallel()
-		_, store, teardown := datastore.MustNewTestStore(false)
+		_, store, teardown := datastore.MustNewTestStore(false, true)
 		defer teardown()
 
 		store.Team().Create(&portaineree.Team{ID: 1, Name: "test"})

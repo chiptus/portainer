@@ -1,6 +1,8 @@
 package migrator
 
-import portaineree "github.com/portainer/portainer-ee/api"
+import (
+	portaineree "github.com/portainer/portainer-ee/api"
+)
 
 func (m *Migrator) migrateDBVersionToDB33() error {
 	if err := m.migrateSettingsToDB33(); err != nil {
@@ -11,6 +13,7 @@ func (m *Migrator) migrateDBVersionToDB33() error {
 }
 
 func (m *Migrator) migrateSettingsToDB33() error {
+	migrateLog.Info("- setting default kubctl shell")
 	settings, err := m.settingsService.Settings()
 	if err != nil {
 		return err
