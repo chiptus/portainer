@@ -1872,6 +1872,7 @@
     "DisplayDonationHeader": false,
     "DisplayExternalContributors": false,
     "EdgeAgentCheckinInterval": 5,
+    "EdgePortainerUrl": "",
     "EnableEdgeComputeFeatures": false,
     "EnableHostManagementFeatures": false,
     "EnableTelemetry": true,
