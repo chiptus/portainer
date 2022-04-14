@@ -108,6 +108,8 @@ func (m *Migrator) MigrateCE() error {
 
 		// Portainer 2.11.x
 		newMigration(36, m.migrateUsersToDB36),
+
+		newMigration(37, m.migrateDBVersionToDB37),
 	}
 
 	var lastDbVersion int
@@ -125,13 +127,6 @@ func (m *Migrator) MigrateCE() error {
 			}
 		}
 		lastDbVersion = migration.dbversion
-	}
-
-	if m.currentDBVersion < 37 {
-		migrateLog.Info("Migrating to DB 37")
-		if err := m.migrateDBVersionToDB37(); err != nil {
-			return migrationError(err, "migrateDBVersionToDB37")
-		}
 	}
 
 	migrateLog.Infof("Set DB version to %d", portaineree.DBVersion)
