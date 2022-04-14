@@ -47,5 +47,7 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 
 	endpointRouter.PathPrefix("/edge/commands").Handler(
 		bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeAsyncCommands))).Methods(http.MethodGet)
+
+	h.Handle("/edge/generate-key", bouncer.AdminAccess(httperror.LoggerHandler(h.endpointEdgeGenerateKey))).Methods(http.MethodPost)
 	return h
 }
