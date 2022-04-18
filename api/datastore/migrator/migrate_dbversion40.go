@@ -1,6 +1,6 @@
 package migrator
 
-func (m *Migrator) migrateDBVersionToDB37() error {
+func (m *Migrator) migrateDBVersionToDB40() error {
 	migrateLog.Info("- refreshing RBAC roles")
 	if err := m.refreshRBACRoles(); err != nil {
 		return err

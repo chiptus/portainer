@@ -1495,9 +1495,9 @@ const (
 	// APIVersion is the version number of the Portainer API
 	APIVersion = "2.12.0"
 	// DBVersion is the version number of the Portainer CE database
-	DBVersion = 37
+	DBVersion = 40
 	// DBVersionEE is the version number of the Portainer EE database
-	DBVersionEE = 37
+	DBVersionEE = 40
 	// Edition is the edition of the Portainer API
 	Edition = PortainerEE
 	// ComposeSyntaxMaxVersion is a maximum supported version of the docker compose syntax
