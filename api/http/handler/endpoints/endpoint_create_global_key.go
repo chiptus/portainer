@@ -56,7 +56,7 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve the settings from the database", err}
 	}
 
-	endpoint.UserTrusted = !settings.DisableTrustOnFirstConnect
+	endpoint.UserTrusted = settings.TrustOnFirstConnect
 	endpoint.EdgeID = edgeID
 
 	err = handler.dataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)

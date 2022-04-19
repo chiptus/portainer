@@ -340,6 +340,7 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 		EdgeCheckinInterval: payload.EdgeCheckinInterval,
 		Kubernetes:          portaineree.KubernetesDefault(),
 		IsEdgeDevice:        payload.IsEdgeDevice,
+		UserTrusted:         true,
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
 		},
