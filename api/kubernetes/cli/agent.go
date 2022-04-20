@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-const defaultKaasVersion = "2.12.2"
+const defaultKaasVersion = "2.13.0"
 
 // GetPortainerAgentIP checks whether there is an IP address associated to the agent service and returns it.
 func (kcl *KubeClient) GetPortainerAgentIP() (string, error) {

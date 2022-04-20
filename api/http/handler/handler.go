@@ -89,7 +89,7 @@ type Handler struct {
 }
 
 // @title PortainerEE API
-// @version 2.12.0
+// @version 2.13.0
 // @description.markdown api-description.md
 // @termsOfService
 
