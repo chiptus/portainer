@@ -43,7 +43,7 @@ type settingsUpdatePayload struct {
 	EnableTelemetry *bool `example:"false"`
 	// Helm repository URL
 	HelmRepositoryURL *string `example:"https://charts.bitnami.com/bitnami"`
-	// Kubectl Shell Image Name/Tag
+	// Kubec	tl Shell Image Name/Tag
 	KubectlShellImage *string `example:"portainer/kubectl-shell:latest"`
 	// TrustOnFirstConnect makes Portainer accepting edge agent connection by default
 	TrustOnFirstConnect *bool `example:"false"`
@@ -51,6 +51,15 @@ type settingsUpdatePayload struct {
 	EnforceEdgeID *bool `example:"false"`
 	// EdgePortainerURL is the URL that is exposed to edge agents
 	EdgePortainerURL *string `json:"EdgePortainerURL"`
+
+	CloudApiKeys struct {
+		// CivoApiKey represents an authentication key for the Civo API
+		CivoApiKey *string `example:"DgJ33kwIhnHumQFyc8ihGwWJql9cC8UJDiBhN8YImKqiX"`
+		// DigitalOceanToken represents an authentication token for the DigitalOcean API
+		DigitalOceanToken *string `example:"dop_v1_n9rq7dkcbg3zb3bewtk9nnvmfkyfnr94d42n28lym22vhqu23rtkllsldygqm22v"`
+		// LinodeToken represents an authentication token for the Linode API
+		LinodeToken *string `example:"92gsh9r9u5helgs4eibcuvlo403vm45hrmc6mzbslotnrqmkwc1ovqgmolcyq0wc"`
+	}
 }
 
 func (payload *settingsUpdatePayload) Validate(r *http.Request) error {
@@ -288,11 +297,24 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		settings.KubectlShellImage = *payload.KubectlShellImage
 	}
 
+	if payload.CloudApiKeys.CivoApiKey != nil {
+		settings.CloudApiKeys.CivoApiKey = *payload.CloudApiKeys.CivoApiKey
+	}
+
+	if payload.CloudApiKeys.DigitalOceanToken != nil {
+		settings.CloudApiKeys.DigitalOceanToken = *payload.CloudApiKeys.DigitalOceanToken
+	}
+
+	if payload.CloudApiKeys.LinodeToken != nil {
+		settings.CloudApiKeys.LinodeToken = *payload.CloudApiKeys.LinodeToken
+	}
+
 	err = handler.DataStore.Settings().UpdateSettings(settings)
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist settings changes inside the database", Err: err}
 	}
 
+	hideFields(settings)
 	return response.JSON(w, settings)
 }
 

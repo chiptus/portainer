@@ -9,6 +9,7 @@ import componentsModule from './components';
 import featureFlagModule from './feature-flags';
 import servicesModule from './services';
 import teamsModule from './teams';
+import environmentsModule from './environments';
 import homeModule from './home';
 import { accessControlModule } from './access-control';
 
@@ -41,6 +42,7 @@ angular
     teamsModule,
     'portainer.shared.datatable',
     servicesModule,
+    environmentsModule,
     accessControlModule,
   ])
   .config([
@@ -469,6 +471,16 @@ angular
         },
       };
 
+      const settingsCloud = {
+        name: 'portainer.settings.cloud',
+        url: '/cloud',
+        views: {
+          'content@': {
+            component: 'settingsCloudView',
+          },
+        },
+      };
+
       var settingsEdgeCompute = {
         name: 'portainer.settings.edgeCompute',
         url: '/edge',
@@ -569,6 +581,7 @@ angular
       $stateRegistryProvider.register(registryCreation);
       $stateRegistryProvider.register(settings);
       $stateRegistryProvider.register(settingsAuthentication);
+      $stateRegistryProvider.register(settingsCloud);
       $stateRegistryProvider.register(settingsEdgeCompute);
       $stateRegistryProvider.register(tags);
       $stateRegistryProvider.register(users);

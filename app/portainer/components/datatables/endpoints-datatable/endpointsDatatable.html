@@ -78,10 +78,11 @@
             >
               <td>
                 <span class="md-checkbox">
-                  <input id="select_{{ $index }}" type="checkbox" ng-model="item.Checked" ng-click="$ctrl.selectItem(item, $event)" />
+                  <input id="select_{{ $index }}" type="checkbox" ng-model="item.Checked" ng-click="$ctrl.selectItem(item, $event)" ng-disabled="item.Status === 3" />
                   <label for="select_{{ $index }}"></label>
                 </span>
-                <a ui-sref="portainer.endpoints.endpoint({id: item.Id})">{{ item.Name }}</a>
+                <a ng-if="item.Status === 1 || item.Status === 4" ui-sref="portainer.endpoints.endpoint({id: item.Id})">{{ item.Name }}</a>
+                <span ng-if="item.Status !== 1 && item.Status !== 4">{{ item.Name }}</span>
               </td>
               <td>
                 <span>
@@ -90,12 +91,20 @@
                 </span>
               </td>
               <td>
-                <span ng-if="item.Type !== 4">{{ item.URL | stripprotocol }}</span>
+                <span ng-if="item.Type !== 4 && item.Status !== 3">{{ item.URL | stripprotocol }}</span>
                 <span ng-if="item.Type === 4">-</span>
+                <span ng-if="item.Status === 3"><i class="fa fa-cog fa-spin" style="margin-right: 5px"></i>{{ item.StatusMessage.Summary }}</span>
+                <span ng-if="item.Status === 4" style="color: var(--red-5)">
+                  <span class="interactive" tooltip-append-to-body="true" tooltip-placement="top" tooltip-class="portainer-tooltip" uib-tooltip="{{ item.StatusMessage.Detail }}">
+                    <i class="fa fa-exclamation-triangle red-icon" aria-hidden="true"></i>
+                    <span class="small text-danger">{{ item.StatusMessage.Summary }}</span>
+                  </span>
+                </span>
               </td>
               <td>{{ item.GroupName }}</td>
               <td>
-                <a ui-sref="portainer.endpoints.endpoint.access({id: item.Id})"> <i class="fa fa-users" aria-hidden="true"></i> Manage access </a>
+                <a ng-if="item.Status <= 2" ui-sref="portainer.endpoints.endpoint.access({id: item.Id})"> <i class="fa fa-users" aria-hidden="true"></i> Manage access </a>
+                <span ng-if="item.Status > 2">-</span>
               </td>
             </tr>
             <tr ng-if="$ctrl.state.loading">

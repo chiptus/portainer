@@ -16,15 +16,15 @@
 
 .step-name.docker {
   margin-left: -5px;
-  text-transform: capitalize;
 }
 .step-name.kubernetes {
   margin-left: -20px;
-  text-transform: capitalize;
+}
+.kaas {
+  margin-left: -5px;
 }
 .step-name.aci {
   margin-left: 5px;
-  text-transform: uppercase;
 }
 
 .step-name.nomad {

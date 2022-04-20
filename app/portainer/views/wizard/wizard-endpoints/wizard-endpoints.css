@@ -128,7 +128,9 @@
 }
 
 .wizard-section {
-  display: grid;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
   justify-content: left;
   align-content: left;
   gap: 10px;
@@ -152,4 +154,12 @@
 
 .no-margin {
   margin-left: 0px;
+}
+
+.wizard-endpoints .wizard_mask_icon {
+  color: var(--bg-boxselector-color);
+}
+
+.wizard-active .wizard_mask_icon {
+  color: var(--blue-2);
 }

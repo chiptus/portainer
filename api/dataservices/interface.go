@@ -26,6 +26,7 @@ type (
 		IsErrObjectNotFound(err error) bool
 		Connection() portainer.Connection
 
+		CloudProvisioning() CloudProvisioningService
 		CustomTemplate() CustomTemplateService
 		EdgeAsyncCommand() EdgeAsyncCommandService
 		EdgeGroup() EdgeGroupService
@@ -71,6 +72,17 @@ type (
 		Update(id int, command *portaineree.EdgeAsyncCommand) error
 		Delete(id int) error
 		EndpointCommands(endpointID portaineree.EndpointID) ([]portaineree.EdgeAsyncCommand, error)
+	}
+
+	// CloudProvisioningService
+	CloudProvisioningService interface {
+		GetNextIdentifier() int
+		Tasks() ([]portaineree.CloudProvisioningTask, error)
+		Task(ID portaineree.CloudProvisioningTaskID) (*portaineree.CloudProvisioningTask, error)
+		Create(task *portaineree.CloudProvisioningTask) error
+		Update(ID portaineree.CloudProvisioningTaskID, task *portaineree.CloudProvisioningTask) error
+		Delete(ID portaineree.CloudProvisioningTaskID) error
+		BucketName() string
 	}
 
 	// EdgeGroupService represents a service to manage Edge groups

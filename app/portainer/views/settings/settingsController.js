@@ -168,6 +168,11 @@ angular.module('portainer.app').controller('SettingsController', [
     }
 
     function updateSettings(settings) {
+      // ignore CloudApiKeys to avoid overriding them
+      //
+      // it is not ideal solution as API still accepts CloudAPIKeys
+      // which may override the cloud provider API keys
+      settings.CloudApiKeys = undefined;
       SettingsService.update(settings)
         .then(function success() {
           Notifications.success('Settings updated');

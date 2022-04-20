@@ -14,12 +14,13 @@
             <wizard-stepper endpoint-selections="$ctrl.state.selections"></wizard-stepper>
             <!-- Stepper -->
 
-            <div class="form-section-title wizard-main-title"> Connect to your {{ $ctrl.state.section }} environment </div>
+            <div class="col-sm-12 form-section-title wizard-main-title"> Connect to your {{ $ctrl.state.sectionTitle }} environment </div>
 
             <div ng-switch="$ctrl.state.section" class="wizard-endpoint-section">
-              <wizard-docker ng-switch-when="docker" on-update="($ctrl.reloadEndpoints)" on-analytics="($ctrl.addAnalytics)"></wizard-docker>
-              <wizard-aci ng-switch-when="aci" on-update="($ctrl.reloadEndpoints)" on-analytics="($ctrl.addAnalytics)"></wizard-aci>
-              <wizard-kubernetes ng-switch-when="kubernetes" on-update="($ctrl.reloadEndpoints)" on-analytics="($ctrl.addAnalytics)"></wizard-kubernetes>
+              <wizard-docker ng-switch-when="docker" on-update="($ctrl.updateEndpoint)" on-analytics="($ctrl.addAnalytics)"></wizard-docker>
+              <wizard-aci ng-switch-when="aci" on-update="($ctrl.updateEndpoint)" on-analytics="($ctrl.addAnalytics)"></wizard-aci>
+              <wizard-kubernetes ng-switch-when="kubernetes" on-update="($ctrl.updateEndpoint)" on-analytics="($ctrl.addAnalytics)"></wizard-kubernetes>
+              <kaas-create-form ng-switch-when="kaas" on-update="($ctrl.updateEndpoint)" on-analytics="($ctrl.addAnalytics)" view="'wizard'"></kaas-create-form>
               <wizard-nomad ng-switch-when="nomad" on-update="($ctrl.reloadEndpoints)" on-analytics="($ctrl.addAnalytics)" agent-version="$ctrl.agentVersion"></wizard-nomad>
             </div>
 
@@ -72,6 +73,15 @@
               icon="fas fa-dharmachakra"
               active="$ctrl.state.kubernetesActive"
               ng-click="$ctrl.endpointSelect('kubernetes')"
+            ></wizard-endpoint-type>
+
+            <wizard-endpoint-type
+              endpoint-title="KaaS"
+              description="Provision a Kubernetes environment with a cloud provider"
+              icon="fas fa-cloud fa-stack-2x"
+              icon2="fas fa-dharmachakra fa-stack-1x wizard_mask_icon"
+              active="$ctrl.state.kaasActive"
+              ng-click="$ctrl.endpointSelect('kaas')"
             ></wizard-endpoint-type>
 
             <wizard-endpoint-type

@@ -8,6 +8,7 @@ angular.module('portainer.app').component('wizardEndpointType', {
     endpointTitle: '@',
     description: '@',
     icon: '@',
+    icon2: '@?',
     active: '<',
   },
 });

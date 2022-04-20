@@ -19,6 +19,9 @@ var blackList = map[string]struct{}{
 	"tlscacertfile":          {},
 	"tlscertfile":            {},
 	"tlskeyfile":             {},
+	"civoapikey":             {},
+	"digitaloceantoken":      {},
+	"linodetoken":            {},
 }
 
 // Sanitise removes possibly sensitive content from the map.

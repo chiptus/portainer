@@ -3,6 +3,8 @@ package cli
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"sync"
 
@@ -12,6 +14,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer/api/filesystem"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -71,6 +74,36 @@ func (factory *ClientFactory) GetKubeClient(endpoint *portaineree.Endpoint) (por
 	}
 
 	return client.(portaineree.KubeClient), nil
+}
+
+// CreateKubeClientFromKubeConfig creates a KubeClient from a clusterID, and
+// Kubernetes config.
+func (factory *ClientFactory) CreateKubeClientFromKubeConfig(clusterID string, kubeConfig string) (portaineree.KubeClient, error) {
+	// We must store the kubeConfig in a temp file because
+	// clientcmd.BuildConfigFromFlags takes a filepath an input.
+	kubeConfigPath := filepath.Join(os.TempDir(), clusterID)
+	err := filesystem.WriteToFile(kubeConfigPath, []byte(kubeConfig))
+	if err != nil {
+		return nil, err
+	}
+
+	config, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
+	if err != nil {
+		return nil, err
+	}
+
+	cli, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	kubecli := &KubeClient{
+		cli:        cli,
+		instanceID: factory.instanceID,
+		lock:       &sync.Mutex{},
+	}
+
+	return kubecli, nil
 }
 
 func (factory *ClientFactory) createKubeClient(endpoint *portaineree.Endpoint) (portaineree.KubeClient, error) {

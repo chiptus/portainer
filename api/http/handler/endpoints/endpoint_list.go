@@ -56,6 +56,8 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 	groupID, _ := request.RetrieveNumericQueryParameter(r, "groupId", true)
 	limit, _ := request.RetrieveNumericQueryParameter(r, "limit", true)
 
+	provisioned, _ := request.RetrieveBooleanQueryParameter(r, "provisioned", true)
+
 	var endpointTypes []int
 	request.RetrieveJSONQueryParameter(r, "types", &endpointTypes, true)
 
@@ -121,6 +123,10 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 
 	if tagIDs != nil {
 		filteredEndpoints = filteredEndpointsByTags(filteredEndpoints, tagIDs, endpointGroups, tagsPartialMatch)
+	}
+
+	if provisioned {
+		filteredEndpoints = filteredNonProvisionedEndpoints(filteredEndpoints)
 	}
 
 	filteredEndpointCount := len(filteredEndpoints)
@@ -285,6 +291,18 @@ func convertTagIDsToTags(tagsMap map[portaineree.TagID]string, tagIDs []portaine
 		tags = append(tags, tagsMap[tagID])
 	}
 	return tags
+}
+
+func filteredNonProvisionedEndpoints(endpoints []portaineree.Endpoint) []portaineree.Endpoint {
+
+	filteredEndpoints := make([]portaineree.Endpoint, 0)
+
+	for _, endpoint := range endpoints {
+		if endpoint.Status < portaineree.EndpointStatusProvisioning {
+			filteredEndpoints = append(filteredEndpoints, endpoint)
+		}
+	}
+	return filteredEndpoints
 }
 
 func filteredEndpointsByTags(endpoints []portaineree.Endpoint, tagIDs []portaineree.TagID, endpointGroups []portaineree.EndpointGroup, partialMatch bool) []portaineree.Endpoint {

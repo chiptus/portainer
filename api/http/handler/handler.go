@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/portainer/portainer-ee/api/http/handler/hostmanagement/fdo"
+	"github.com/portainer/portainer-ee/api/http/handler/kaas"
 	"github.com/portainer/portainer-ee/api/http/handler/nomad"
 
 	"github.com/portainer/portainer-ee/api/http/handler/auth"
@@ -59,6 +60,7 @@ type Handler struct {
 	EndpointHelmHandler    *helm.Handler
 	EndpointProxyHandler   *endpointproxy.Handler
 	HelmTemplatesHandler   *helm.Handler
+	KaasHandler            *kaas.Handler
 	KubernetesHandler      *kubernetes.Handler
 	FileHandler            *file.Handler
 	LDAPHandler            *ldap.Handler
@@ -181,6 +183,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.EdgeTemplatesHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/endpoint_groups"):
 		http.StripPrefix("/api", h.EndpointGroupHandler).ServeHTTP(w, r)
+	case strings.HasPrefix(r.URL.Path, "/api/cloud"):
+		http.StripPrefix("/api", h.KaasHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/kubernetes"):
 		http.StripPrefix("/api", h.KubernetesHandler).ServeHTTP(w, r)
 

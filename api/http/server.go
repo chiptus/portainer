@@ -17,6 +17,7 @@ import (
 	"github.com/portainer/portainer-ee/api/adminmonitor"
 	"github.com/portainer/portainer-ee/api/apikey"
 	backupOps "github.com/portainer/portainer-ee/api/backup"
+	"github.com/portainer/portainer-ee/api/cloud"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/http/handler"
@@ -35,6 +36,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/helm"
 	"github.com/portainer/portainer-ee/api/http/handler/hostmanagement/fdo"
 	"github.com/portainer/portainer-ee/api/http/handler/hostmanagement/openamt"
+	"github.com/portainer/portainer-ee/api/http/handler/kaas"
 	kubehandler "github.com/portainer/portainer-ee/api/http/handler/kubernetes"
 	"github.com/portainer/portainer-ee/api/http/handler/ldap"
 	"github.com/portainer/portainer-ee/api/http/handler/licenses"
@@ -113,6 +115,8 @@ type Server struct {
 	ShutdownCtx                 context.Context
 	ShutdownTrigger             context.CancelFunc
 	StackDeployer               stackdeloyer.StackDeployer
+	CloudClusterSetupService    *cloud.CloudClusterSetupService
+	CloudClusterInfoService     *cloud.CloudClusterInfoService
 }
 
 // Start starts the HTTP server
@@ -192,6 +196,9 @@ func (server *Server) Start() error {
 	endpointProxyHandler.DataStore = server.DataStore
 	endpointProxyHandler.ProxyManager = server.ProxyManager
 	endpointProxyHandler.ReverseTunnelService = server.ReverseTunnelService
+
+	var kaasHandler = kaas.NewHandler(requestBouncer, server.CloudClusterSetupService, server.CloudClusterInfoService, server.UserActivityService)
+	kaasHandler.DataStore = server.DataStore
 
 	var kubernetesHandler = kubehandler.NewHandler(requestBouncer, server.AuthorizationService, server.DataStore, server.JWTService, server.KubeClusterAccessService, server.KubernetesClientFactory, server.UserActivityService)
 
@@ -310,6 +317,7 @@ func (server *Server) Start() error {
 		EndpointEdgeHandler:    endpointEdgeHandler,
 		EndpointProxyHandler:   endpointProxyHandler,
 		HelmTemplatesHandler:   helmTemplatesHandler,
+		KaasHandler:            kaasHandler,
 		KubernetesHandler:      kubernetesHandler,
 		FileHandler:            fileHandler,
 		LDAPHandler:            ldapHandler,

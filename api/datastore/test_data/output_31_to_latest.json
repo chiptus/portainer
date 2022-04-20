@@ -1,5 +1,6 @@
 {
   "api_key": null,
+  "cloud_provisioning": null,
   "customtemplates": null,
   "dockerhub": [
     {
@@ -1868,6 +1869,11 @@
     "AllowVolumeBrowserForRegularUsers": false,
     "AuthenticationMethod": 1,
     "BlackListedLabels": [],
+    "CloudApiKeys": {
+      "CivoApiKey": "",
+      "DigitalOceanToken": "",
+      "LinodeToken": ""
+    },
     "DisplayDonationHeader": false,
     "DisplayExternalContributors": false,
     "EdgeAgentCheckinInterval": 5,

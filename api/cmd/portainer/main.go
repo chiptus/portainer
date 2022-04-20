@@ -15,6 +15,7 @@ import (
 	"github.com/portainer/portainer-ee/api/apikey"
 	"github.com/portainer/portainer-ee/api/chisel"
 	"github.com/portainer/portainer-ee/api/cli"
+	"github.com/portainer/portainer-ee/api/cloud"
 	"github.com/portainer/portainer-ee/api/database"
 	"github.com/portainer/portainer-ee/api/database/boltdb"
 	"github.com/portainer/portainer-ee/api/dataservices"
@@ -661,6 +662,12 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	authorizationService := authorization.NewService(dataStore)
 	authorizationService.K8sClientFactory = kubernetesClientFactory
 
+	cloudClusterSetupService := cloud.NewCloudClusterSetupService(dataStore, kubernetesClientFactory, snapshotService, authorizationService, shutdownCtx)
+	cloudClusterSetupService.Start()
+
+	cloudClusterInfoService := cloud.NewCloudInfoService(dataStore, shutdownCtx)
+	cloudClusterInfoService.Start()
+
 	kubernetesTokenCacheManager := kubeproxy.NewTokenCacheManager()
 
 	kubeClusterAccessService := kubernetes.NewKubeClusterAccessService(*flags.BaseURL, *flags.AddrHTTPS, sslSettings.CertPath)
@@ -798,6 +805,8 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		ShutdownCtx:                 shutdownCtx,
 		ShutdownTrigger:             shutdownTrigger,
 		StackDeployer:               stackDeployer,
+		CloudClusterSetupService:    cloudClusterSetupService,
+		CloudClusterInfoService:     cloudClusterInfoService,
 	}
 }
 

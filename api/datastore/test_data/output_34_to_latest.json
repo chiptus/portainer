@@ -1,5 +1,6 @@
 {
   "api_key": null,
+  "cloud_provisioning": null,
   "customtemplates": null,
   "dockerhub": null,
   "edge_stack": null,

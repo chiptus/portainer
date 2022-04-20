@@ -9,6 +9,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/dataservices/apikeyrepository"
+	"github.com/portainer/portainer-ee/api/dataservices/cloudprovisioning"
 	"github.com/portainer/portainer-ee/api/dataservices/customtemplate"
 	"github.com/portainer/portainer-ee/api/dataservices/dockerhub"
 	"github.com/portainer/portainer-ee/api/dataservices/edgeasynccommand"
@@ -47,6 +48,7 @@ type Store struct {
 	path                      string
 	connection                portainer.Connection
 	fileService               portainer.FileService
+	CloudProvisioningService  *cloudprovisioning.Service
 	CustomTemplateService     *customtemplate.Service
 	DockerHubService          *dockerhub.Service
 	EdgeAsyncCommandService   *edgeasynccommand.Service
@@ -84,6 +86,12 @@ func (store *Store) initServices() error {
 		return err
 	}
 	store.RoleService = authorizationsetService
+
+	cloudProvisioningService, err := cloudprovisioning.NewService(store.connection)
+	if err != nil {
+		return err
+	}
+	store.CloudProvisioningService = cloudProvisioningService
 
 	customTemplateService, err := customtemplate.NewService(store.connection)
 	if err != nil {
@@ -264,6 +272,10 @@ func (store *Store) CustomTemplate() dataservices.CustomTemplateService {
 // EdgeAsyncCommand gives access to the EdgeAsyncCommand data management layer
 func (store *Store) EdgeAsyncCommand() dataservices.EdgeAsyncCommandService {
 	return store.EdgeAsyncCommandService
+}
+
+func (store *Store) CloudProvisioning() dataservices.CloudProvisioningService {
+	return store.CloudProvisioningService
 }
 
 // EdgeGroup gives access to the EdgeGroup data management layer

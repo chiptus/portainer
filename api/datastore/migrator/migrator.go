@@ -1,6 +1,7 @@
 package migrator
 
 import (
+	"github.com/portainer/portainer-ee/api/dataservices/cloudprovisioning"
 	"github.com/portainer/portainer-ee/api/dataservices/fdoprofile"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -32,6 +33,7 @@ type (
 		currentDBVersion int
 		currentEdition   portaineree.SoftwareEdition
 
+		cloudProvisionService   *cloudprovisioning.Service
 		endpointGroupService    *endpointgroup.Service
 		endpointService         *endpoint.Service
 		endpointRelationService *endpointrelation.Service
@@ -57,24 +59,25 @@ type (
 		DatabaseVersion int
 		CurrentEdition  portaineree.SoftwareEdition
 
-		EndpointGroupService    *endpointgroup.Service
-		EndpointService         *endpoint.Service
-		EndpointRelationService *endpointrelation.Service
-		ExtensionService        *extension.Service
-		FDOProfilesService      *fdoprofile.Service
-		RegistryService         *registry.Service
-		ResourceControlService  *resourcecontrol.Service
-		RoleService             *role.Service
-		ScheduleService         *schedule.Service
-		SettingsService         *settings.Service
-		StackService            *stack.Service
-		TagService              *tag.Service
-		TeamMembershipService   *teammembership.Service
-		UserService             *user.Service
-		VersionService          *version.Service
-		FileService             portainer.FileService
-		AuthorizationService    *authorization.Service
-		DockerhubService        *dockerhub.Service
+		CloudProvisioningService *cloudprovisioning.Service
+		EndpointGroupService     *endpointgroup.Service
+		EndpointService          *endpoint.Service
+		EndpointRelationService  *endpointrelation.Service
+		ExtensionService         *extension.Service
+		FDOProfilesService       *fdoprofile.Service
+		RegistryService          *registry.Service
+		ResourceControlService   *resourcecontrol.Service
+		RoleService              *role.Service
+		ScheduleService          *schedule.Service
+		SettingsService          *settings.Service
+		StackService             *stack.Service
+		TagService               *tag.Service
+		TeamMembershipService    *teammembership.Service
+		UserService              *user.Service
+		VersionService           *version.Service
+		FileService              portainer.FileService
+		AuthorizationService     *authorization.Service
+		DockerhubService         *dockerhub.Service
 	}
 )
 

@@ -3,6 +3,9 @@ import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { PublicSettingsViewModel } from '@/portainer/models/settings';
 
 import axios, { parseAxiosError } from '../services/axios';
+import { CloudApiKeys } from '../environments/components/kaas/kaas.types';
+
+// import { SettingsResponse } from './settings.types';
 
 export async function publicSettings() {
   try {
@@ -42,6 +45,7 @@ export interface Settings {
   EnforceEdgeID: boolean;
   AgentSecret: string;
   EdgePortainerUrl: string;
+  CloudApiKeys: Partial<CloudApiKeys>;
 }
 
 export async function getSettings() {
@@ -56,7 +60,7 @@ export async function getSettings() {
   }
 }
 
-async function updateSettings(settings: Partial<Settings>) {
+export async function updateSettings(settings: Partial<Settings>) {
   try {
     await axios.put(buildUrl(), settings);
   } catch (e) {

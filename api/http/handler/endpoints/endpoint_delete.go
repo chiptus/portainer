@@ -163,6 +163,10 @@ func (handler *Handler) deleteAccessPolicies(endpoint portaineree.Endpoint) erro
 		return nil
 	}
 
+	if endpoint.URL == "" {
+		return nil
+	}
+
 	kcl, err := handler.K8sClientFactory.GetKubeClient(&endpoint)
 	if err != nil {
 		return fmt.Errorf("Unable to get k8s environment access @ %d: %w", int(endpoint.ID), err)
@@ -173,5 +177,6 @@ func (handler *Handler) deleteAccessPolicies(endpoint portaineree.Endpoint) erro
 	if err != nil {
 		return fmt.Errorf("Unable to update environment namespace access @ %d: %w", int(endpoint.ID), err)
 	}
+
 	return nil
 }

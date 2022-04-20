@@ -52,6 +52,7 @@ export default class WizardEndpointsController {
 
     if (this.state.selections.length !== 0) {
       this.state.section = this.state.selections[this.state.currentStep].endpoint;
+      this.state.sectionTitle = this.state.selections[this.state.currentStep].title;
       this.state.selections[this.state.currentStep].stage = 'active';
     }
 
@@ -70,6 +71,7 @@ export default class WizardEndpointsController {
 
   previousStep() {
     this.state.section = this.state.selections[this.state.currentStep - 2].endpoint;
+    this.state.sectionTitle = this.state.selections[this.state.currentStep - 2].title;
     this.state.selections[this.state.currentStep - 2].stage = 'active';
     this.state.selections[this.state.currentStep - 1].stage = '';
     this.state.nextStep = 'Next Step';
@@ -95,6 +97,7 @@ export default class WizardEndpointsController {
           'docker-agent': this.state.counter.dockerAgent,
           'docker-api': this.state.counter.dockerApi,
           'kubernetes-agent': this.state.counter.kubernetesAgent,
+          'kaas-agent': this.state.counter.kaasAgent,
           'aci-api': this.state.counter.aciApi,
           'local-endpoint': this.state.counter.localEndpoint,
         },
@@ -102,6 +105,7 @@ export default class WizardEndpointsController {
       this.$state.go('portainer.home');
     } else {
       this.state.section = this.state.selections[this.state.currentStep].endpoint;
+      this.state.sectionTitle = this.state.selections[this.state.currentStep].title;
       this.state.selections[this.state.currentStep].stage = 'active';
       this.state.selections[this.state.currentStep - 1].stage = 'completed';
       this.state.currentStep++;
@@ -118,6 +122,9 @@ export default class WizardEndpointsController {
         break;
       case 'kubernetes-agent':
         this.state.counter.kubernetesAgent++;
+        break;
+      case 'kaas-agent':
+        this.state.counter.kaasAgent++;
         break;
       case 'aci-api':
         this.state.counter.aciApi++;
@@ -149,13 +156,24 @@ export default class WizardEndpointsController {
           this.state.analytics.kubernetes = 'Kubernetes';
         }
         break;
-      case 'aci':
+      case 'kaas':
         if (this.state.options[2].selected) {
           this.state.options[2].selected = false;
+          this.state.kaasActive = '';
+          this.state.analytics.kaas = '';
+        } else {
+          this.state.options[2].selected = true;
+          this.state.kaasActive = 'wizard-active';
+          this.state.analytics.kaas = 'Kaas/';
+        }
+        break;
+      case 'aci':
+        if (this.state.options[3].selected) {
+          this.state.options[3].selected = false;
           this.state.aciActive = '';
           this.state.analytics.aci = '';
         } else {
-          this.state.options[2].selected = true;
+          this.state.options[3].selected = true;
           this.state.aciActive = 'wizard-active';
           this.state.analytics.aci = 'ACI';
         }
@@ -181,8 +199,10 @@ export default class WizardEndpointsController {
       this.state = {
         currentStep: 0,
         section: '',
+        sectionTitle: '',
         dockerActive: '',
         kubernetesActive: '',
+        kaasActive: '',
         aciActive: '',
         nomadActive: '',
         maxStep: '',
@@ -192,6 +212,7 @@ export default class WizardEndpointsController {
         analytics: {
           docker: '',
           kubernetes: '',
+          kaas: '',
           aci: '',
           nomad: '',
         },
@@ -199,12 +220,14 @@ export default class WizardEndpointsController {
           dockerAgent: 0,
           dockerApi: 0,
           kubernetesAgent: 0,
+          kaasAgent: 0,
           aciApi: 0,
           localEndpoint: 0,
         },
         options: [
           {
             endpoint: 'docker',
+            title: 'Docker',
             selected: false,
             stage: '',
             nameClass: 'docker',
@@ -212,13 +235,23 @@ export default class WizardEndpointsController {
           },
           {
             endpoint: 'kubernetes',
+            title: 'Kubernetes',
             selected: false,
             stage: '',
             nameClass: 'kubernetes',
             icon: 'fas fa-dharmachakra',
           },
           {
+            endpoint: 'kaas',
+            title: 'KaaS',
+            selected: false,
+            stage: '',
+            nameClass: 'kaas',
+            icon: 'fas fa-dharmachakra',
+          },
+          {
             endpoint: 'aci',
+            title: 'ACI',
             selected: false,
             stage: '',
             nameClass: 'aci',

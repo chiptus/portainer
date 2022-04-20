@@ -77,13 +77,61 @@
       </rd-widget>
     </div>
   </div>
-  <information-panel ng-if="state.kubernetesEndpoint && (!state.edgeEndpoint || (state.edgeEndpoint && endpoint.EdgeID))" title-text="Kubernetes features configuration">
+
+  <information-panel
+    ng-if="state.kubernetesEndpoint && (!state.edgeEndpoint || (state.edgeEndpoint && endpoint.EdgeID)) && endpoint.Status !== 4"
+    title-text="Kubernetes features configuration"
+  >
     <span class="small text-muted">
       <i class="fa fa-tools blue-icon" aria-hidden="true" style="margin-right: 2px"></i>
       You should configure the features available in this Kubernetes environment in the
       <a ui-sref="portainer.k8sendpoint.kubernetesConfig({id: endpoint.Id})">Kubernetes configuration</a> view.
     </span>
   </information-panel>
+
+  <div class="col-lg-12 col-md-12 col-xs-12" ng-if="endpoint.CloudProvider">
+    <rd-widget>
+      <div class="widget-header">
+        <div class="row">
+          <span class="pull-left">
+            <span class="fa-stack fa-1x" style="transform: scale(0.7)">
+              <i class="fas fa-cloud fa-stack-2x"></i>
+              <i class="fas fa-dharmachakra fa-stack-1x wizard_mask_icon" style="transform: scale(1.2); color: var(--bg-widget-header-color)"></i>
+            </span>
+            <span>KaaS cluster details</span>
+          </span>
+          <span class="pull-right"></span>
+        </div>
+      </div>
+      <rd-widget-body classes="no-padding">
+        <table class="table">
+          <tbody>
+            <tr>
+              <td>Provider</td>
+              <td>
+                {{ endpoint.CloudProvider.Name }}
+                <a type="button" class="btn btn-xs btn-primary" href="{{ endpoint.CloudProvider.URL }}" target="_blank" style="margin-left: 5px">Go to dashboard</a>
+              </td>
+            </tr>
+            <tr>
+              <td>Region</td>
+              <td>
+                {{ endpoint.CloudProvider.Region }}
+              </td>
+            </tr>
+            <tr>
+              <td> Node Size</td>
+              <td>{{ endpoint.CloudProvider.Size }}</td>
+            </tr>
+            <tr ng-if="endpoint.CloudProvider.NetworkID">
+              <td>Network Id</td>
+              <td>{{ endpoint.CloudProvider.NetworkID }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </rd-widget-body>
+    </rd-widget>
+  </div>
 </div>
 
 <div class="row">
@@ -96,12 +144,19 @@
           <div class="form-group">
             <label for="container_name" class="col-sm-3 col-lg-2 control-label text-left">Name</label>
             <div class="col-sm-9 col-lg-10">
-              <input type="text" class="form-control" id="container_name" ng-model="endpoint.Name" placeholder="e.g. kubernetes-cluster01 / docker-prod01" />
+              <input
+                type="text"
+                class="form-control"
+                id="container_name"
+                ng-model="endpoint.Name"
+                placeholder="e.g. kubernetes-cluster01 / docker-prod01"
+                ng-disabled="endpoint.Status === 4"
+              />
             </div>
           </div>
           <!-- !name-input -->
           <!-- endpoint-url-input -->
-          <div class="form-group" ng-if="!state.edgeEndpoint">
+          <div class="form-group" ng-if="!state.edgeEndpoint && endpoint.Status !== 4">
             <label for="endpoint_url" class="col-sm-3 col-lg-2 control-label text-left">
               Environment URL
               <portainer-tooltip
@@ -123,7 +178,7 @@
           </div>
           <!-- !endpoint-url-input -->
           <!-- endpoint-public-url-input -->
-          <div class="form-group" ng-if="!state.azureEndpoint">
+          <div class="form-group" ng-if="!state.azureEndpoint && endpoint.Status !== 4">
             <label for="endpoint_public_url" class="col-sm-3 col-lg-2 control-label text-left">
               Public IP
               <portainer-tooltip

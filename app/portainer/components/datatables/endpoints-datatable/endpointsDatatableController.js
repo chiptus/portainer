@@ -1,10 +1,11 @@
 angular.module('portainer.app').controller('EndpointsDatatableController', [
   '$scope',
   '$controller',
+  '$interval',
   'DatatableService',
   'PaginationService',
   'Notifications',
-  function ($scope, $controller, DatatableService, PaginationService) {
+  function ($scope, $controller, $interval, DatatableService, PaginationService) {
     angular.extend(this, $controller('GenericDatatableController', { $scope: $scope }));
 
     this.state = Object.assign(this.state, {
@@ -13,6 +14,7 @@ angular.module('portainer.app').controller('EndpointsDatatableController', [
       filteredDataSet: [],
       totalFilteredDataset: 0,
       pageNumber: 1,
+      interval: undefined,
     });
 
     this.paginationChanged = function () {
@@ -51,6 +53,15 @@ angular.module('portainer.app').controller('EndpointsDatatableController', [
       this.paginationChanged();
     };
 
+    this.startPolling = function (interval) {
+      this.state.interval = $interval(this.paginationChanged.bind(this), interval);
+    };
+
+    this.$onDestroy = function () {
+      $interval.cancel(this.state.interval);
+      this.state.interval = undefined;
+    };
+
     /**
      * Overridden
      */
@@ -79,6 +90,7 @@ angular.module('portainer.app').controller('EndpointsDatatableController', [
       }
 
       this.paginationChanged();
+      this.startPolling(30000);
     };
   },
 ]);

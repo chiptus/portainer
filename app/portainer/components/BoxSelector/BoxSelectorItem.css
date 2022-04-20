@@ -90,6 +90,25 @@
   box-shadow: 0 2px 5px -2px rgba(0, 0, 0, 0.25);
 }
 
+.boxselector_wrapper input[type='radio']:checked + label .box_selector_mask_icon {
+  color: var(--selected-item-color);
+}
+
+:root[theme='highcontrast'] .box_selector_mask_icon,
+:root[theme='dark'] .box_selector_mask_icon {
+  color: var(--bg-boxselector-wrapper-disabled-color);
+}
+
+.box_selector_mask_icon {
+  color: var(--bg-boxselector-color);
+}
+
+@media only screen and (max-width: 700px) {
+  .boxselector_wrapper {
+    flex-direction: column;
+  }
+}
+
 .box-selector-item-description {
   height: 1em;
 }

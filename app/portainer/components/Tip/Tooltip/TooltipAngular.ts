@@ -5,6 +5,7 @@ export const TooltipAngular: IComponentOptions = {
   bindings: {
     message: '@',
     position: '@',
+    iconClassName: '@?',
   },
   template: `<span
     class="interactive"
@@ -14,7 +15,7 @@ export const TooltipAngular: IComponentOptions = {
     uib-tooltip="{{$ctrl.message}}"
   >
     <i
-      class="fa fa-question-circle blue-icon tooltip-icon"
+      class="{{$ctrl.iconClassName || 'fa fa-question-circle blue-icon tooltip-icon'}}"
       aria-hidden="true"
     ></i>
   </span>`,

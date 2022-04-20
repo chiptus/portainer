@@ -19,19 +19,21 @@ export function SettingsViewModel(data) {
   this.EnforceEdgeID = data.EnforceEdgeID;
   this.AgentSecret = data.AgentSecret;
   this.EdgePortainerUrl = data.EdgePortainerUrl;
+  this.CloudApiKeys = data.CloudApiKeys;
 }
 
 export function PublicSettingsViewModel(settings) {
   this.AuthenticationMethod = settings.AuthenticationMethod;
   this.EnableEdgeComputeFeatures = settings.EnableEdgeComputeFeatures;
   this.EnforceEdgeID = settings.EnforceEdgeID;
-  this.FeatureFlagSettings = settings.FeatureFlagSettings;
+  this.FeatureFlagSettings = settings.Features;
   this.LogoURL = settings.LogoURL;
   this.OAuthLoginURI = settings.OAuthLoginURI;
   this.EnableTelemetry = settings.EnableTelemetry;
   this.OAuthHideInternalAuth = settings.OAuthHideInternalAuth;
   this.OAuthLogoutURI = settings.OAuthLogoutURI;
   this.KubeconfigExpiry = settings.KubeconfigExpiry;
+  this.Features = settings.Features;
 }
 
 export function LDAPSettingsViewModel(data) {

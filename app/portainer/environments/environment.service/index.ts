@@ -21,6 +21,7 @@ export interface EnvironmentsQueryParams {
   tagsPartialMatch?: boolean;
   groupId?: EnvironmentGroupId;
   edgeDeviceFilter?: 'all' | 'trusted' | 'untrusted';
+  provisioned?: boolean;
 }
 
 export async function getEndpoints(

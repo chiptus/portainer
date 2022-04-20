@@ -10,8 +10,10 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.13.0
 	github.com/aws/aws-sdk-go-v2/credentials v1.8.0
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.14.0
+	github.com/civo/civogo v0.2.67
 	github.com/coreos/go-semver v0.3.0
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
+	github.com/digitalocean/godo v1.75.0
 	github.com/docker/cli v20.10.12+incompatible
 	github.com/docker/docker v20.10.12+incompatible
 	github.com/fxamacker/cbor/v2 v2.4.0
@@ -31,6 +33,7 @@ require (
 	github.com/jpillora/chisel v0.0.0-20190724232113-f3a8df20e389
 	github.com/json-iterator/go v1.1.12
 	github.com/koding/websocketproxy v0.0.0-20181220232114-7ed82d81a28c
+	github.com/linode/linodego v1.3.0
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/portainer/docker-compose-wrapper v0.0.0-20220407011010-3c7408969ad3
@@ -77,11 +80,13 @@ require (
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.1.0 // indirect
 	github.com/go-git/go-git/v5 v5.3.0 // indirect
-	github.com/go-logr/logr v1.2.2 // indirect
+	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
+	github.com/go-resty/resty/v2 v2.7.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect

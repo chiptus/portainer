@@ -111,6 +111,18 @@ type (
 		DateCreated   int64        `json:"dateCreated"`
 	}
 
+	// CloudProvider represents a Kubernetes as a service cloud provider.
+	CloudProvider struct {
+		Name      string `json:"Name"`
+		URL       string `json:"URL"`
+		Region    string `json:"Region"`
+		Size      string `json:"Size"`
+		NodeCount int    `json:"NodeCount"`
+		// Pointer will hide this field for providers other than civo which do
+		// not use this field.
+		NetworkID *string `json:"NetworkID"`
+	}
+
 	// CLIFlags represents the available flags on the CLI
 	CLIFlags struct {
 		Addr                      *string
@@ -290,8 +302,15 @@ type (
 		AzureCredentials AzureCredentials `json:"AzureCredentials,omitempty"`
 		// List of tag identifiers to which this environment(endpoint) is associated
 		TagIDs []TagID `json:"TagIds"`
-		// The status of the environment(endpoint) (1 - up, 2 - down)
+		// The status of the environment(endpoint) (1 - up, 2 - down, 3 -
+		// provisioning, 4 - error)
 		Status EndpointStatus `json:"Status" example:"1"`
+		// A message that describes the status. Should be included for Status 3
+		// or 4.
+		StatusMessage EndpointStatusMessage `json:"StatusMessage"`
+		// A Kubernetes as a service cloud provider. Only included if this
+		// endpoint was created using KaaS provisioning.
+		CloudProvider *CloudProvider `json:"CloudProvider"`
 		// List of snapshots
 		Snapshots []portainer.DockerSnapshot `json:"Snapshots"`
 		// List of user identifiers authorized to connect to this environment(endpoint)
@@ -322,7 +341,6 @@ type (
 		IsEdgeDevice bool
 		// Whether the device has been trusted or not by the user
 		UserTrusted bool
-
 		// Automatic update change window restriction for stacks and apps
 		ChangeWindow EndpointChangeWindow `json:"ChangeWindow"`
 
@@ -378,6 +396,13 @@ type (
 
 	// EndpointStatus represents the status of an environment(endpoint)
 	EndpointStatus int
+
+	// EndpointStatusMessage represents the current status of a provisioning or
+	// failed endpoint.
+	EndpointStatusMessage struct {
+		Summary string `json:"Summary"`
+		Detail  string `json:"Detail"`
+	}
 
 	// EndpointSyncJob represents a scheduled job that synchronize environments(endpoints) based on an external file
 	// Deprecated
@@ -903,6 +928,43 @@ type (
 		RetryInterval int
 	}
 
+	CloudApiKeys struct {
+		CivoApiKey        string `json:"CivoApiKey" example:"DgJ33kwIhnHumQFyc8ihGwWJql9cC8UJDiBhN8YImKqiX"`
+		DigitalOceanToken string `json:"DigitalOceanToken" example:"dop_v1_n9rq7dkcbg3zb3bewtk9nnvmfkyfnr94d42n28lym22vhqu23rtkllsldygqm22v"`
+		LinodeToken       string `json:"LinodeToken" example:"92gsh9r9u5helgs4eibcuvlo403vm45hrmc6mzbslotnrqmkwc1ovqgmolcyq0wc"`
+	}
+
+	// CloudProvisioningRequest represents a requested Cloud Kubernetes Cluster
+	// which should be executed to create a CloudProvisioningTask.
+	CloudProvisioningRequest struct {
+		EndpointID        EndpointID
+		Provider          string
+		Region            string
+		Name              string
+		NodeSize          string
+		NetworkID         string
+		NodeCount         int
+		KubernetesVersion string
+	}
+
+	// CloudProvisioningID represents a cloud provisioning identifier
+	CloudProvisioningTaskID int64
+
+	// CloudProvisioningTask represents an active job queue for KaaS provisioning tasks
+	//   used by portainer when stopping and restarting portainer
+	CloudProvisioningTask struct {
+		ID         CloudProvisioningTaskID
+		Provider   string
+		ClusterID  string
+		Region     string
+		EndpointID EndpointID
+		CreatedAt  time.Time
+
+		State   int   `json:"-"`
+		Retries int   `json:"-"`
+		Err     error `json:"-"`
+	}
+
 	// Settings represents the application settings
 	Settings struct {
 		// URL to a logo that will be displayed on the login page as well as on top of the sidebar. Will use default Portainer logo when value is empty string
@@ -942,6 +1004,8 @@ type (
 		AgentSecret string `json:"AgentSecret"`
 		// EdgePortainerURL is the URL that is exposed to edge agents
 		EdgePortainerURL string `json:"EdgePortainerUrl"`
+		// CloudAPIKeys
+		CloudApiKeys CloudApiKeys `json:"CloudApiKeys"`
 
 		// Deprecated fields
 		DisplayDonationHeader       bool
@@ -1419,6 +1483,8 @@ type (
 		CreateRegistrySecret(registry *Registry, namespace string) error
 		IsRegistrySecret(namespace, secretName string) (bool, error)
 		ToggleSystemState(namespace string, isSystem bool) error
+		DeployPortainerAgent() error
+		GetPortainerAgentIP() (string, error)
 	}
 
 	// NomadClient represents a service used to query a Nomad environment(endpoint)
@@ -1676,6 +1742,12 @@ const (
 	EndpointStatusUp
 	// EndpointStatusDown is used to represent an unavailable environment(endpoint)
 	EndpointStatusDown
+	// EndpointStatusProvisioning is used to represent an environment which is
+	// being provisioned by a cloud provider.
+	EndpointStatusProvisioning
+	// EndpointStatusError represents a fatal error has occured in the endpoint
+	// and it cannot be recovered.
+	EndpointStatusError
 )
 
 const (
@@ -2168,4 +2240,10 @@ func (e SoftwareEdition) GetEditionLabel() string {
 const (
 	AzurePathContainerGroups = "/subscriptions/*/providers/Microsoft.ContainerInstance/containerGroups"
 	AzurePathContainerGroup  = "/subscriptions/*/resourceGroups/*/providers/Microsoft.ContainerInstance/containerGroups/*"
+)
+
+const (
+	CloudProviderCivo         = "civo"
+	CloudProviderDigitalOcean = "digitalocean"
+	CloudProviderLinode       = "linode"
 )
