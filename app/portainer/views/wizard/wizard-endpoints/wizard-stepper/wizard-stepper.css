@@ -14,17 +14,22 @@
   flex: 1;
 }
 
-.docker {
+.step-name.docker {
   margin-left: -5px;
   text-transform: capitalize;
 }
-.kubernetes {
+.step-name.kubernetes {
   margin-left: -20px;
   text-transform: capitalize;
 }
-.aci {
+.step-name.aci {
   margin-left: 5px;
   text-transform: uppercase;
+}
+
+.step-name.nomad {
+  margin-left: -5px;
+  text-transform: capitalize;
 }
 
 .stepper-item::before {

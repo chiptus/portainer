@@ -1,3 +1,5 @@
+import './endpoints-datatable.css';
+
 angular.module('portainer.app').component('endpointsDatatable', {
   templateUrl: './endpointsDatatable.html',
   controller: 'EndpointsDatatableController',

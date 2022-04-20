@@ -12,6 +12,8 @@ export function getPlatformType(envType: EnvironmentType) {
       return PlatformType.Docker;
     case EnvironmentType.Azure:
       return PlatformType.Azure;
+    case EnvironmentType.EdgeAgentOnNomad:
+      return PlatformType.Nomad;
     default:
       throw new Error(`Environment Type ${envType} is not supported`);
   }
@@ -25,14 +27,36 @@ export function isKubernetesEnvironment(envType: EnvironmentType) {
   return getPlatformType(envType) === PlatformType.Kubernetes;
 }
 
+export function getPlatformTypeName(envType: EnvironmentType): string {
+  return PlatformType[getPlatformType(envType)];
+}
+
+export function isNomadEnvironment(envType: EnvironmentType) {
+  return getPlatformType(envType) === PlatformType.Nomad;
+}
+
+export function isAgentEnvironment(envType: EnvironmentType) {
+  return (
+    isEdgeEnvironment(envType) ||
+    [EnvironmentType.AgentOnDocker, EnvironmentType.AgentOnKubernetes].includes(
+      envType
+    )
+  );
+}
+
 export function isEdgeEnvironment(envType: EnvironmentType) {
   return [
     EnvironmentType.EdgeAgentOnDocker,
     EnvironmentType.EdgeAgentOnKubernetes,
+    EnvironmentType.EdgeAgentOnNomad,
   ].includes(envType);
 }
 
-export function getRoute(environment: Environment) {
+export function isUnassociatedEdgeEnvironment(env: Environment) {
+  return isEdgeEnvironment(env.Type) && !env.EdgeID;
+}
+
+export function getDashboardRoute(environment: Environment) {
   if (isEdgeEnvironment(environment.Type) && !environment.EdgeID) {
     return 'portainer.endpoints.endpoint';
   }
@@ -46,7 +70,9 @@ export function getRoute(environment: Environment) {
       return 'docker.dashboard';
     case PlatformType.Kubernetes:
       return 'kubernetes.dashboard';
+    case PlatformType.Nomad:
+      return 'nomad.dashboard';
     default:
-      return '';
+      throw new Error(`Unsupported platform ${platform}`);
   }
 }

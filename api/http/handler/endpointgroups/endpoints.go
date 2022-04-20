@@ -3,10 +3,11 @@ package endpointgroups
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 )
 
 func (handler *Handler) updateEndpointRelations(endpoint *portaineree.Endpoint, endpointGroup *portaineree.EndpointGroup) error {
-	if endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment && endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment {
+	if !endpointutils.IsEdgeEndpoint(endpoint) {
 		return nil
 	}
 

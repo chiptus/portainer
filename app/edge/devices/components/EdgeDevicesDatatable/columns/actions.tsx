@@ -6,7 +6,7 @@ import { Environment } from '@/portainer/environments/types';
 import { ActionsMenu } from '@/portainer/components/datatables/components/ActionsMenu';
 import { snapshotEndpoint } from '@/portainer/environments/environment.service';
 import * as notifications from '@/portainer/services/notifications';
-import { getRoute } from '@/portainer/environments/utils';
+import { getDashboardRoute } from '@/portainer/environments/utils';
 
 export const actions: Column<Environment> = {
   Header: 'Actions',
@@ -26,7 +26,7 @@ export function ActionsCell({
 }: CellProps<Environment>) {
   const router = useRouter();
 
-  const environmentRoute = getRoute(environment);
+  const environmentRoute = getDashboardRoute(environment);
   const browseLinkProps = useSref(environmentRoute, {
     id: environment.Id,
     endpointId: environment.Id,

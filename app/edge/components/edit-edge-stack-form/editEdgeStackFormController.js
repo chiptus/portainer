@@ -1,8 +1,11 @@
 import { PortainerEndpointTypes } from '@/portainer/models/endpoint/models';
+import { getValidEditorTypes } from '@/edge/utils';
 
 export class EditEdgeStackFormController {
   /* @ngInject */
-  constructor() {
+  constructor($scope) {
+    this.$scope = $scope;
+
     this.state = {
       endpointTypes: [],
     };
@@ -10,13 +13,16 @@ export class EditEdgeStackFormController {
     this.fileContents = {
       0: '',
       1: '',
+      2: '',
     };
 
     this.onChangeGroups = this.onChangeGroups.bind(this);
     this.onChangeFileContent = this.onChangeFileContent.bind(this);
     this.onChangeComposeConfig = this.onChangeComposeConfig.bind(this);
+    this.onChangeNomadHcl = this.onChangeNomadHcl.bind(this);
     this.onChangeKubeManifest = this.onChangeKubeManifest.bind(this);
     this.hasDockerEndpoint = this.hasDockerEndpoint.bind(this);
+    this.hasNomadEndpoint = this.hasNomadEndpoint.bind(this);
     this.hasKubeEndpoint = this.hasKubeEndpoint.bind(this);
     this.onChangeDeploymentType = this.onChangeDeploymentType.bind(this);
     this.removeLineBreaks = this.removeLineBreaks.bind(this);
@@ -29,6 +35,10 @@ export class EditEdgeStackFormController {
 
   hasDockerEndpoint() {
     return this.state.endpointTypes.includes(PortainerEndpointTypes.EdgeAgentOnDockerEnvironment);
+  }
+
+  hasNomadEndpoint() {
+    return this.state.endpointTypes.includes(PortainerEndpointTypes.EdgeAgentOnNomadEnvironment);
   }
 
   onChangeGroups(groups) {
@@ -44,6 +54,15 @@ export class EditEdgeStackFormController {
   checkEndpointTypes(groups) {
     const edgeGroups = groups.map((id) => this.edgeGroups.find((e) => e.Id === id));
     this.state.endpointTypes = edgeGroups.flatMap((group) => group.EndpointTypes);
+    this.selectValidDeploymentType();
+  }
+
+  selectValidDeploymentType() {
+    const validTypes = getValidEditorTypes(this.state.endpointTypes);
+
+    if (!validTypes.includes(this.model.DeploymentType)) {
+      this.onChangeDeploymentType(validTypes[0]);
+    }
   }
 
   removeLineBreaks(value) {
@@ -59,6 +78,10 @@ export class EditEdgeStackFormController {
     }
   }
 
+  onChangeNomadHcl(value) {
+    this.onChangeFileContent(2, value);
+  }
+
   onChangeKubeManifest(value) {
     this.onChangeFileContent(1, value);
   }
@@ -68,9 +91,10 @@ export class EditEdgeStackFormController {
   }
 
   onChangeDeploymentType(deploymentType) {
-    this.model.DeploymentType = deploymentType;
-
-    this.model.StackFileContent = this.fileContents[deploymentType];
+    this.$scope.$evalAsync(() => {
+      this.model.DeploymentType = deploymentType;
+      this.model.StackFileContent = this.fileContents[deploymentType];
+    });
   }
 
   validateEndpointsForDeployment() {
@@ -78,6 +102,7 @@ export class EditEdgeStackFormController {
   }
 
   $onInit() {
+    this.fileContents[this.model.DeploymentType] = this.model.StackFileContent;
     this.checkEndpointTypes(this.model.EdgeGroups);
   }
 }

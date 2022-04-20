@@ -2,9 +2,6 @@ package edgestacks
 
 import (
 	"fmt"
-	"net/http"
-	"strconv"
-
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -14,6 +11,8 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
+	"net/http"
+	"strconv"
 )
 
 // Handler is the HTTP handler used to handle environment(endpoint) group operations.

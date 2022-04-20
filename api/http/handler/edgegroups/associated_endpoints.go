@@ -2,6 +2,7 @@ package edgegroups
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 )
 
 type endpointSetType map[portaineree.EndpointID]bool
@@ -38,7 +39,7 @@ func (handler *Handler) getEndpointsByTags(tagIDs []portaineree.TagID, partialMa
 
 	results := []portaineree.EndpointID{}
 	for _, endpoint := range endpoints {
-		if _, ok := endpointSet[endpoint.ID]; ok && (endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment) {
+		if _, ok := endpointSet[endpoint.ID]; ok && endpointutils.IsEdgeEndpoint(&endpoint) {
 			results = append(results, endpoint.ID)
 		}
 	}

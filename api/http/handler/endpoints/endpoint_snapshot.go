@@ -38,7 +38,7 @@ func (handler *Handler) endpointSnapshot(w http.ResponseWriter, r *http.Request)
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
 	}
 
-	if !snapshot.SupportDirectSnapshot(endpoint) {
+	if !snapshot.SupportDirectSnapshot(endpoint) && endpoint.Type != portaineree.EdgeAgentOnNomadEnvironment {
 		return &httperror.HandlerError{http.StatusBadRequest, "Snapshots not supported for this environment", errors.New("Snapshots not supported for this environment")}
 	}
 
@@ -56,6 +56,7 @@ func (handler *Handler) endpointSnapshot(w http.ResponseWriter, r *http.Request)
 
 	latestEndpointReference.Snapshots = endpoint.Snapshots
 	latestEndpointReference.Kubernetes.Snapshots = endpoint.Kubernetes.Snapshots
+	latestEndpointReference.Nomad.Snapshots = endpoint.Nomad.Snapshots
 
 	err = handler.dataStore.Endpoint().UpdateEndpoint(latestEndpointReference.ID, latestEndpointReference)
 	if err != nil {

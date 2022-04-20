@@ -26,14 +26,14 @@ import (
 func (handler *Handler) edgeStackInspect(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	edgeStackID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid edge stack identifier route variable", err}
+		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid edge stack identifier route variable", Err: err}
 	}
 
 	edgeStack, err := handler.DataStore.EdgeStack().EdgeStack(portaineree.EdgeStackID(edgeStackID))
 	if err == portainerDsErrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an edge stack with the specified identifier inside the database", err}
+		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find an edge stack with the specified identifier inside the database", Err: err}
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an edge stack with the specified identifier inside the database", err}
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find an edge stack with the specified identifier inside the database", Err: err}
 	}
 
 	return response.JSON(w, edgeStack)

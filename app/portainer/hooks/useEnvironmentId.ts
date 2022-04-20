@@ -1,6 +1,8 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
-export function useEnvironmentId() {
+import { EnvironmentId } from '../environments/types';
+
+export function useEnvironmentId(): EnvironmentId {
   const {
     params: { endpointId: environmentId },
   } = useCurrentStateAndParams();
@@ -9,5 +11,5 @@ export function useEnvironmentId() {
     throw new Error('endpointId url param is required');
   }
 
-  return environmentId;
+  return parseInt(environmentId, 10);
 }

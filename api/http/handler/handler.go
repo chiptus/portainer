@@ -1,9 +1,11 @@
 package handler
 
 import (
-	"github.com/portainer/portainer-ee/api/http/handler/hostmanagement/fdo"
 	"net/http"
 	"strings"
+
+	"github.com/portainer/portainer-ee/api/http/handler/hostmanagement/fdo"
+	"github.com/portainer/portainer-ee/api/http/handler/nomad"
 
 	"github.com/portainer/portainer-ee/api/http/handler/auth"
 	"github.com/portainer/portainer-ee/api/http/handler/backup"
@@ -81,6 +83,7 @@ type Handler struct {
 	UserActivityHandler    *useractivity.Handler
 	WebSocketHandler       *websocket.Handler
 	WebhookHandler         *webhooks.Handler
+	NomadHandler           *nomad.Handler
 }
 
 // @title PortainerEE API
@@ -246,6 +249,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.WebhookHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/storybook"):
 		http.StripPrefix("/storybook", h.StorybookHandler).ServeHTTP(w, r)
+	case strings.HasPrefix(r.URL.Path, "/api/nomad"):
+		http.StripPrefix("/api", h.NomadHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/"):
 		h.FileHandler.ServeHTTP(w, r)
 	}

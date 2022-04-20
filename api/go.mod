@@ -26,6 +26,7 @@ require (
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/websocket v1.5.0
 	github.com/hashicorp/golang-lru v0.5.4
+	github.com/hashicorp/nomad/api v0.0.0-20220128200432-22bd08912af7
 	github.com/joho/godotenv v1.4.0
 	github.com/jpillora/chisel v0.0.0-20190724232113-f3a8df20e389
 	github.com/json-iterator/go v1.1.12
@@ -84,6 +85,9 @@ require (
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
+	github.com/hashicorp/cronexpr v1.1.1 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
+	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
@@ -93,7 +97,7 @@ require (
 	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/mitchellh/mapstructure v1.1.2 // indirect
+	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/moby/spdystream v0.2.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect

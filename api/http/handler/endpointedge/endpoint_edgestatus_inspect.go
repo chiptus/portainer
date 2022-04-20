@@ -147,6 +147,8 @@ func parseAgentPlatform(r *http.Request) (portaineree.EndpointType, error) {
 		return portaineree.EdgeAgentOnDockerEnvironment, nil
 	case portaineree.AgentPlatformKubernetes:
 		return portaineree.EdgeAgentOnKubernetesEnvironment, nil
+	case portaineree.AgentPlatformNomad:
+		return portaineree.EdgeAgentOnNomadEnvironment, nil
 	default:
 		return 0, fmt.Errorf("agent platform %v is not valid", agentPlatform)
 	}

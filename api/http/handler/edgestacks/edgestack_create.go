@@ -18,6 +18,8 @@ import (
 	"github.com/portainer/portainer/api/filesystem"
 )
 
+const nomadJobFileDefaultName = "nomad-job.hcl"
+
 // @id EdgeStackCreate
 // @summary Create an EdgeStack
 // @description **Access policy**: administrator
@@ -67,10 +69,11 @@ type swarmStackFromFileContentPayload struct {
 	// List of identifiers of EdgeGroups
 	EdgeGroups []portaineree.EdgeGroupID `example:"1"`
 	// Deployment type to deploy this stack
-	// Valid values are: 0 - 'compose', 1 - 'kubernetes'
+	// Valid values are: 0 - 'compose', 1 - 'kubernetes', 2 - 'nomad'
 	// for compose stacks will use kompose to convert to kubernetes manifest for kubernetes environments(endpoints)
 	// kubernetes deploytype is enabled only for kubernetes environments(endpoints)
-	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1"`
+	// nomad deploytype is enabled only for nomad environments(endpoints)
+	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1,2"`
 }
 
 func (payload *swarmStackFromFileContentPayload) Validate(r *http.Request) error {
@@ -134,7 +137,9 @@ func (handler *Handler) createSwarmStackFromFileContent(r *http.Request) (*porta
 			return nil, fmt.Errorf("Failed creating and storing kube manifest: %w", err)
 		}
 
-	} else {
+	}
+
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentKubernetes {
 		hasDockerEndpoint, err := hasDockerEndpoint(handler.DataStore.Endpoint(), relatedEndpointIds)
 		if err != nil {
 			return nil, fmt.Errorf("unable to check for existence of docker environment: %w", err)
@@ -147,6 +152,17 @@ func (handler *Handler) createSwarmStackFromFileContent(r *http.Request) (*porta
 		stack.ManifestPath = filesystem.ManifestFileDefaultName
 
 		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.ManifestPath, []byte(payload.StackFileContent))
+		if err != nil {
+			return nil, err
+		}
+
+		stack.ProjectPath = projectPath
+	}
+
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentNomad {
+		stack.EntryPoint = nomadJobFileDefaultName
+
+		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
 		if err != nil {
 			return nil, err
 		}
@@ -185,10 +201,11 @@ type swarmStackFromGitRepositoryPayload struct {
 	// List of identifiers of EdgeGroups
 	EdgeGroups []portaineree.EdgeGroupID `example:"1"`
 	// Deployment type to deploy this stack
-	// Valid values are: 0 - 'compose', 1 - 'kubernetes'
+	// Valid values are: 0 - 'compose', 1 - 'kubernetes', 2 - 'nomad'
 	// for compose stacks will use kompose to convert to kubernetes manifest for kubernetes environments(endpoints)
 	// kubernetes deploytype is enabled only for kubernetes environments(endpoints)
-	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1"`
+	// nomad deploytype is enabled only for nomad environments(endpoints)
+	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1,2"`
 }
 
 func (payload *swarmStackFromGitRepositoryPayload) Validate(r *http.Request) error {
@@ -202,7 +219,14 @@ func (payload *swarmStackFromGitRepositoryPayload) Validate(r *http.Request) err
 		return errors.New("Invalid repository credentials. Username and password must be specified when authentication is enabled")
 	}
 	if govalidator.IsNull(payload.FilePathInRepository) {
-		payload.FilePathInRepository = filesystem.ComposeFileDefaultName
+		switch payload.DeploymentType {
+		case portaineree.EdgeStackDeploymentCompose:
+			payload.FilePathInRepository = filesystem.ComposeFileDefaultName
+		case portaineree.EdgeStackDeploymentKubernetes:
+			payload.FilePathInRepository = filesystem.ManifestFileDefaultName
+		case portaineree.EdgeStackDeploymentNomad:
+			payload.FilePathInRepository = nomadJobFileDefaultName
+		}
 	}
 	if payload.EdgeGroups == nil || len(payload.EdgeGroups) == 0 {
 		return errors.New("Edge Groups are mandatory for an Edge stack")
@@ -265,8 +289,14 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request) (*por
 		if err != nil {
 			return nil, fmt.Errorf("Failed creating and storing kube manifest: %w", err)
 		}
-	} else {
+	}
+
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentKubernetes {
 		stack.ManifestPath = payload.FilePathInRepository
+	}
+
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentNomad {
+		stack.EntryPoint = payload.FilePathInRepository
 	}
 
 	err = updateEndpointRelations(handler.DataStore.EndpointRelation(), stack.ID, relatedEndpointIds)
@@ -286,7 +316,12 @@ type swarmStackFromFileUploadPayload struct {
 	Name             string
 	StackFileContent []byte
 	EdgeGroups       []portaineree.EdgeGroupID
-	DeploymentType   portaineree.EdgeStackDeploymentType
+	// Deployment type to deploy this stack
+	// Valid values are: 0 - 'compose', 1 - 'kubernetes', 2 - 'nomad'
+	// for compose stacks will use kompose to convert to kubernetes manifest for kubernetes environments(endpoints)
+	// kubernetes deploytype is enabled only for kubernetes environments(endpoints)
+	// nomad deploytype is enabled only for nomad environments(endpoints)
+	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1,2"`
 }
 
 func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error {
@@ -366,13 +401,26 @@ func (handler *Handler) createSwarmStackFromFileUpload(r *http.Request) (*portai
 			return nil, fmt.Errorf("Failed creating and storing kube manifest: %w", err)
 		}
 
-	} else {
+	}
+
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentKubernetes {
 		stack.ManifestPath = filesystem.ManifestFileDefaultName
 
 		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.ManifestPath, []byte(payload.StackFileContent))
 		if err != nil {
 			return nil, err
 		}
+		stack.ProjectPath = projectPath
+	}
+
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentNomad {
+		stack.EntryPoint = nomadJobFileDefaultName
+
+		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
+		if err != nil {
+			return nil, err
+		}
+
 		stack.ProjectPath = projectPath
 	}
 

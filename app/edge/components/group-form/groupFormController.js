@@ -1,4 +1,5 @@
 import _ from 'lodash-es';
+import { EdgeTypes } from '@/portainer/environments/types';
 
 export class EdgeGroupFormController {
   /* @ngInject */
@@ -49,7 +50,7 @@ export class EdgeGroupFormController {
   async getDynamicEndpointsAsync() {
     const { pageNumber, limit, search } = this.endpoints.state;
     const start = (pageNumber - 1) * limit + 1;
-    const query = { search, types: [4, 7], tagIds: this.model.TagIds, tagsPartialMatch: this.model.PartialMatch };
+    const query = { search, types: EdgeTypes, tagIds: this.model.TagIds, tagsPartialMatch: this.model.PartialMatch };
 
     const response = await this.EndpointService.endpoints(start, limit, query);
 

@@ -1,0 +1,8 @@
+<rd-header>
+  <rd-header-title title-text="Task logs"></rd-header-title>
+  <rd-header-content>
+    <a ui-sref="nomad.jobs">Nomad Jobs</a> &gt; <span>{{ jobID }}</span> &gt; <span> {{ taskName }}</span> &gt; Logs
+  </rd-header-content>
+</rd-header>
+
+<nomad-log-viewer stderr-log="stderrLog" stdout-log="stdoutLog" resource-name="taskName" log-collection-change="changeLogCollection"></nomad-log-viewer>

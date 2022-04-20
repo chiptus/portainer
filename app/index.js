@@ -13,6 +13,7 @@ import './azure/_module';
 import './docker/__module';
 import './edge/__module';
 import './portainer/__module';
+import { nomadModule } from './nomad';
 
 import { onStartupAngular } from './app';
 import { configApp } from './config';
@@ -46,6 +47,7 @@ angular
     'portainer.azure',
     'portainer.docker',
     'portainer.kubernetes',
+    nomadModule,
     'portainer.edge',
     'rzModule',
     'moment-picker',

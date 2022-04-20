@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { useRouter } from '@uirouter/react';
 
 import { Button } from '../Button';
@@ -11,12 +12,25 @@ import styles from './PageHeader.module.css';
 
 interface Props {
   reload?: boolean;
+  loading?: boolean;
+  onReload?(): Promise<void>;
   breadcrumbs?: Crumb[];
   title: string;
 }
 
-export function PageHeader({ title, breadcrumbs = [], reload }: Props) {
+export function PageHeader({
+  title,
+  breadcrumbs = [],
+  reload,
+  loading,
+  onReload,
+}: Props) {
   const router = useRouter();
+
+  function onClickedRefresh() {
+    return onReload ? onReload() : router.stateService.reload();
+  }
+
   return (
     <HeaderContainer>
       <HeaderTitle title={title}>
@@ -24,10 +38,11 @@ export function PageHeader({ title, breadcrumbs = [], reload }: Props) {
           <Button
             color="link"
             size="medium"
-            onClick={() => router.stateService.reload()}
+            onClick={onClickedRefresh}
             className={styles.reloadButton}
+            disabled={loading}
           >
-            <i className="fa fa-sync" aria-hidden="true" />
+            <i className={clsx('fa', 'fa-sync', { 'fa-spin': loading })} />
           </Button>
         )}
       </HeaderTitle>

@@ -2,6 +2,7 @@ package edgegroups
 
 import (
 	"errors"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"net/http"
 
 	"github.com/asaskevich/govalidator"
@@ -103,7 +104,7 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve environment from the database", err}
 			}
 
-			if endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
+			if endpointutils.IsEdgeEndpoint(endpoint) {
 				endpointIDs = append(endpointIDs, endpoint.ID)
 			}
 		}

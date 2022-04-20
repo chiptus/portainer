@@ -1,15 +1,5 @@
 import angular from 'angular';
-import controller from './edge-stack-deployment-type-selector.controller.js';
 
-export const edgeStackDeploymentTypeSelector = {
-  templateUrl: './edge-stack-deployment-type-selector.html',
-  controller,
+import { EdgeSTackDeploymentTypeSelectorAngular } from '@/edge/components/edge-stack-deployment-type-selector/edgeStackDeploymentTypeSelector';
 
-  bindings: {
-    value: '<',
-    onChange: '<',
-    hasDockerEndpoint: '<',
-  },
-};
-
-angular.module('portainer.edge').component('edgeStackDeploymentTypeSelector', edgeStackDeploymentTypeSelector);
+angular.module('portainer.edge').component('edgeStackDeploymentTypeSelector', EdgeSTackDeploymentTypeSelectorAngular);

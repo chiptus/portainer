@@ -9,7 +9,7 @@
   padding: 0;
 }
 
-.item {
+a.item {
   display: block;
   text-decoration: none;
   outline: initial;

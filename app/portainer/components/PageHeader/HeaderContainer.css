@@ -88,16 +88,3 @@ body.hamburg .row.header .meta {
   border-left: 6px solid transparent;
   content: '';
 }
-
-/*angular-loading-bar override*/
-#loadingbar-placeholder {
-  margin-bottom: 0;
-  height: 3px;
-}
-
-#loading-bar .bar {
-  position: relative;
-  height: 3px;
-  background: var(--blue-3);
-}
-/*!angular-loading-bar override*/

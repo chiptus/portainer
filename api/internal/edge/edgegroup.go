@@ -2,6 +2,7 @@ package edge
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/tag"
 )
 
@@ -13,7 +14,7 @@ func EdgeGroupRelatedEndpoints(edgeGroup *portaineree.EdgeGroup, endpoints []por
 
 	endpointIDs := []portaineree.EndpointID{}
 	for _, endpoint := range endpoints {
-		if endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment && endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment {
+		if !endpointutils.IsEdgeEndpoint(&endpoint) {
 			continue
 		}
 

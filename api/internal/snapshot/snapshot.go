@@ -20,11 +20,19 @@ type Service struct {
 	snapshotIntervalInSeconds float64
 	dockerSnapshotter         portaineree.DockerSnapshotter
 	kubernetesSnapshotter     portaineree.KubernetesSnapshotter
+	nomadSnapshotter          portaineree.NomadSnapshotter
 	shutdownCtx               context.Context
 }
 
 // NewService creates a new instance of a service
-func NewService(snapshotIntervalFromFlag string, dataStore dataservices.DataStore, dockerSnapshotter portaineree.DockerSnapshotter, kubernetesSnapshotter portaineree.KubernetesSnapshotter, shutdownCtx context.Context) (*Service, error) {
+func NewService(
+	snapshotIntervalFromFlag string,
+	dataStore dataservices.DataStore,
+	dockerSnapshotter portaineree.DockerSnapshotter,
+	kubernetesSnapshotter portaineree.KubernetesSnapshotter,
+	nomadSnapshotter portaineree.NomadSnapshotter,
+	shutdownCtx context.Context,
+) (*Service, error) {
 	interval, err := parseSnapshotFrequency(snapshotIntervalFromFlag, dataStore)
 	if err != nil {
 		return nil, err
@@ -36,6 +44,7 @@ func NewService(snapshotIntervalFromFlag string, dataStore dataservices.DataStor
 		snapshotIntervalInSeconds: interval,
 		dockerSnapshotter:         dockerSnapshotter,
 		kubernetesSnapshotter:     kubernetesSnapshotter,
+		nomadSnapshotter:          nomadSnapshotter,
 		shutdownCtx:               shutdownCtx,
 	}, nil
 }
@@ -79,7 +88,7 @@ func (service *Service) SetSnapshotInterval(snapshotInterval string) error {
 // It is mostly true for all environments(endpoints) except Edge and Azure environments(endpoints).
 func SupportDirectSnapshot(endpoint *portaineree.Endpoint) bool {
 	switch endpoint.Type {
-	case portaineree.EdgeAgentOnDockerEnvironment, portaineree.EdgeAgentOnKubernetesEnvironment, portaineree.AzureEnvironment:
+	case portaineree.EdgeAgentOnDockerEnvironment, portaineree.EdgeAgentOnKubernetesEnvironment, portaineree.AzureEnvironment, portaineree.EdgeAgentOnNomadEnvironment:
 		return false
 	}
 	return true
@@ -93,6 +102,8 @@ func (service *Service) SnapshotEndpoint(endpoint *portaineree.Endpoint) error {
 		return nil
 	case portaineree.KubernetesLocalEnvironment, portaineree.AgentOnKubernetesEnvironment, portaineree.EdgeAgentOnKubernetesEnvironment:
 		return service.snapshotKubernetesEndpoint(endpoint)
+	case portaineree.EdgeAgentOnNomadEnvironment:
+		return service.snapshotNomadEndpoint(endpoint)
 	}
 
 	return service.snapshotDockerEndpoint(endpoint)
@@ -109,6 +120,17 @@ func (service *Service) snapshotKubernetesEndpoint(endpoint *portaineree.Endpoin
 	}
 
 	return nil
+}
+
+func (service *Service) snapshotNomadEndpoint(endpoint *portaineree.Endpoint) (err error) {
+	snapshot, err := service.nomadSnapshotter.CreateSnapshot(endpoint)
+	if err != nil {
+		return
+	}
+
+	endpoint.Nomad.Snapshots = []portaineree.NomadSnapshot{*snapshot}
+
+	return
 }
 
 func (service *Service) snapshotDockerEndpoint(endpoint *portaineree.Endpoint) error {

@@ -1,3 +1,5 @@
+import { FormikErrors } from 'formik';
+
 import { FormControl } from '@/portainer/components/form-components/FormControl';
 import { Input } from '@/portainer/components/form-components/Input';
 import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
@@ -10,19 +12,21 @@ interface Props {
   setFieldValue<T>(key: string, value: T): void;
   values: EdgeProperties;
   hideIdGetter: boolean;
+  errors?: FormikErrors<EdgeProperties>;
 }
 
 export function EdgePropertiesForm({
   setFieldValue,
   values,
   hideIdGetter,
+  errors,
 }: Props) {
   return (
     <form className="form-horizontal">
       <FormSectionTitle>Edge agent deployment script</FormSectionTitle>
 
       <OsSelector
-        value={values.os}
+        value={values.os || 'linux'}
         onChange={(os) => setFieldValue('os', os)}
       />
 
@@ -59,6 +63,7 @@ export function EdgePropertiesForm({
         label="Environment variables"
         tooltip="Comma separated list of environment variables that will be sourced from the host where the agent is deployed."
         inputId="env-vars-input"
+        errors={errors?.envVars}
       >
         <Input
           type="text"
@@ -68,6 +73,35 @@ export function EdgePropertiesForm({
           onChange={(e) => setFieldValue(e.target.name, e.target.value)}
         />
       </FormControl>
+
+      {values.platform === 'nomad' && (
+        <>
+          <div className="my-8">
+            <SwitchField
+              checked={typeof values.nomadToken === 'string'}
+              onChange={(value) => {
+                setFieldValue('nomadToken', value ? '' : undefined);
+              }}
+              label="Nomad Authentication Enabled"
+              tooltip="Nomad authentication is only required if you have ACL enabled"
+            />
+          </div>
+
+          {typeof values.nomadToken === 'string' && (
+            <FormControl
+              label="Nomad Token"
+              inputId="token-input"
+              errors={errors?.nomadToken}
+            >
+              <Input
+                name="nomadToken"
+                id="nomad-token-input"
+                onChange={(e) => setFieldValue(e.target.name, e.target.value)}
+              />
+            </FormControl>
+          )}
+        </>
+      )}
     </form>
   );
 }

@@ -20,8 +20,12 @@
 
         <azure-sidebar ng-if="applicationState.endpoint.mode.provider === 'AZURE'" environment-id="endpointId"> </azure-sidebar>
 
+        <nomad-sidebar ng-if="applicationState.endpoint.mode.provider === 'NOMAD'" environment-id="endpointId"> </nomad-sidebar>
+
         <docker-sidebar
-          ng-if="applicationState.endpoint.mode.provider !== 'AZURE' && applicationState.endpoint.mode.provider !== 'KUBERNETES'"
+          ng-if="
+            applicationState.endpoint.mode.provider !== 'AZURE' && applicationState.endpoint.mode.provider !== 'KUBERNETES' && applicationState.endpoint.mode.provider !== 'NOMAD'
+          "
           current-route-name="$state.current.name"
           is-sidebar-open="toggle"
           show-stacks="showStacks"

@@ -21,6 +21,8 @@ test('loads component', async () => {
     URL: 'url',
     Snapshots: [],
     Kubernetes: { Snapshots: [] },
+    Nomad: { Snapshots: [] },
+    EdgeKey: '',
     Id: 3,
     UserTrusted: false,
   };
@@ -41,7 +43,9 @@ test('shows group name', async () => {
     Status: 1,
     URL: 'url',
     Snapshots: [],
+    Nomad: { Snapshots: [] },
     Kubernetes: { Snapshots: [] },
+    EdgeKey: '',
     Id: 3,
     UserTrusted: false,
   };

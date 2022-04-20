@@ -39,6 +39,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/ldap"
 	"github.com/portainer/portainer-ee/api/http/handler/licenses"
 	"github.com/portainer/portainer-ee/api/http/handler/motd"
+	"github.com/portainer/portainer-ee/api/http/handler/nomad"
 	"github.com/portainer/portainer-ee/api/http/handler/registries"
 	"github.com/portainer/portainer-ee/api/http/handler/resourcecontrols"
 	"github.com/portainer/portainer-ee/api/http/handler/roles"
@@ -65,6 +66,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/ssl"
 	k8s "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	"github.com/portainer/portainer-ee/api/nomad/clientFactory"
 	"github.com/portainer/portainer-ee/api/scheduler"
 	stackdeloyer "github.com/portainer/portainer-ee/api/stacks"
 	portainer "github.com/portainer/portainer/api"
@@ -105,6 +107,7 @@ type Server struct {
 	DockerClientFactory         *docker.ClientFactory
 	KubernetesClientFactory     *cli.ClientFactory
 	KubernetesDeployer          portaineree.KubernetesDeployer
+	NomadClientFactory          *clientFactory.ClientFactory
 	HelmPackageManager          libhelm.HelmPackageManager
 	Scheduler                   *scheduler.Scheduler
 	ShutdownCtx                 context.Context
@@ -288,6 +291,10 @@ func (server *Server) Start() error {
 	var webhookHandler = webhooks.NewHandler(requestBouncer, server.DataStore, server.UserActivityService)
 	webhookHandler.DockerClientFactory = server.DockerClientFactory
 
+	var nomadHandler = nomad.NewHandler(requestBouncer, server.NomadClientFactory)
+	nomadHandler.AuthorizationService = server.AuthorizationService
+	nomadHandler.DataStore = server.DataStore
+
 	server.Handler = &handler.Handler{
 		RoleHandler:            roleHandler,
 		AuthHandler:            authHandler,
@@ -326,6 +333,7 @@ func (server *Server) Start() error {
 		UserActivityHandler:    userActivityHandler,
 		WebSocketHandler:       websocketHandler,
 		WebhookHandler:         webhookHandler,
+		NomadHandler:           nomadHandler,
 	}
 
 	handler := adminMonitor.WithRedirect(offlineGate.WaitingMiddleware(time.Minute, server.Handler))

@@ -1,4 +1,3 @@
-import PortainerError from '@/portainer/error';
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 import { type EnvironmentGroupId } from '@/portainer/environment-groups/types';
 import { type TagId } from '@/portainer/tags/types';
@@ -24,30 +23,23 @@ export async function createLocalEndpoint(
     }
   }
 
-  try {
-    return await createEndpoint(
-      name,
-      EnvironmentCreationTypes.LocalDockerEnvironment,
-      { url: endpointUrl, publicUrl, groupId, tagIds }
-    );
-  } catch (err) {
-    throw new PortainerError('Unable to create environment', err as Error);
-  }
+  return createEndpoint(name, EnvironmentCreationTypes.LocalDockerEnvironment, {
+    url: endpointUrl,
+    publicUrl,
+    groupId,
+    tagIds,
+  });
 }
 
 export async function createLocalKubernetesEndpoint(
   name = 'local',
   tagIds: TagId[] = []
 ) {
-  try {
-    return await createEndpoint(
-      name,
-      EnvironmentCreationTypes.LocalKubernetesEnvironment,
-      { tagIds, groupId: 1, tls: { skipClientVerify: true, skipVerify: true } }
-    );
-  } catch (err) {
-    throw new PortainerError('Unable to create environment', err as Error);
-  }
+  return createEndpoint(
+    name,
+    EnvironmentCreationTypes.LocalKubernetesEnvironment,
+    { tagIds, groupId: 1, tls: { skipClientVerify: true, skipVerify: true } }
+  );
 }
 
 export async function createAzureEndpoint(
@@ -58,15 +50,11 @@ export async function createAzureEndpoint(
   groupId: EnvironmentGroupId,
   tagIds: TagId[]
 ) {
-  try {
-    await createEndpoint(name, EnvironmentCreationTypes.AzureEnvironment, {
-      groupId,
-      tagIds,
-      azure: { applicationId, tenantId, authenticationKey },
-    });
-  } catch (err) {
-    throw new PortainerError('Unable to connect to Azure', err as Error);
-  }
+  return createEndpoint(name, EnvironmentCreationTypes.AzureEnvironment, {
+    groupId,
+    tagIds,
+    azure: { applicationId, tenantId, authenticationKey },
+  });
 }
 
 interface TLSSettings {
@@ -104,14 +92,10 @@ export async function createRemoteEndpoint(
     endpointUrl = `tcp://${endpointUrl}`;
   }
 
-  try {
-    return await createEndpoint(name, creationType, {
-      ...options,
-      url: endpointUrl,
-    });
-  } catch (err) {
-    throw new PortainerError('Unable to create environment', err as Error);
-  }
+  return createEndpoint(name, creationType, {
+    ...options,
+    url: endpointUrl,
+  });
 }
 
 async function createEndpoint(

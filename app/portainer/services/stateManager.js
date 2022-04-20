@@ -168,6 +168,12 @@ function StateManagerFactory(
       LocalStorage.storeEndpointState(state.endpoint);
       deferred.resolve();
       return deferred.promise;
+    } else if (endpoint.Type === 8) {
+      state.endpoint.name = endpoint.Name;
+      state.endpoint.mode = { provider: 'NOMAD' };
+      LocalStorage.storeEndpointState(state.endpoint);
+      deferred.resolve();
+      return deferred.promise;
     }
 
     const reload = endpoint.Status === 1 || !endpoint.Snaphosts || !endpoint.Snaphosts.length || !endpoint.Snapshots[0].SnapshotRaw;

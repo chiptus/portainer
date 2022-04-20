@@ -47,32 +47,32 @@ func (payload *updateStatusPayload) Validate(r *http.Request) error {
 func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	stackID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid stack identifier route variable", err}
+		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid stack identifier route variable", Err: err}
 	}
 
 	stack, err := handler.DataStore.EdgeStack().EdgeStack(portaineree.EdgeStackID(stackID))
 	if err == portainerDsErrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a stack with the specified identifier inside the database", err}
+		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find a stack with the specified identifier inside the database", Err: err}
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a stack with the specified identifier inside the database", err}
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find a stack with the specified identifier inside the database", Err: err}
 	}
 
 	var payload updateStatusPayload
 	err = request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
+		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(*payload.EndpointID))
 	if err == portainerDsErrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
+		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
 	}
 
 	err = handler.requestBouncer.AuthorizedEdgeEndpointOperation(r, endpoint)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access environment", err}
+		return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "Permission denied to access environment", Err: err}
 	}
 
 	stack.Status[*payload.EndpointID] = portaineree.EdgeStackStatus{
@@ -83,7 +83,7 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 
 	err = handler.DataStore.EdgeStack().UpdateEdgeStack(stack.ID, stack)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the stack changes inside the database", err}
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist the stack changes inside the database", Err: err}
 	}
 
 	return response.JSON(w, stack)

@@ -10,7 +10,7 @@ import { BoxSelectorOption } from './types';
 interface Props<T extends number | string> {
   radioName: string;
   option: BoxSelectorOption<T>;
-  onChange(value: T, limitedToBE: boolean): void;
+  onChange?(value: T, limitedToBE: boolean): void;
   selectedValue: T;
   disabled?: boolean;
   tooltip?: string;
@@ -19,7 +19,7 @@ interface Props<T extends number | string> {
 export function BoxSelectorItem<T extends number | string>({
   radioName,
   option,
-  onChange,
+  onChange = () => {},
   selectedValue,
   disabled,
   tooltip,

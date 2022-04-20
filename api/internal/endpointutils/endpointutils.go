@@ -28,7 +28,8 @@ func IsDockerEndpoint(endpoint *portaineree.Endpoint) bool {
 // IsEdgeEndpoint returns true if endpoint is an Edge Endpoint
 func IsEdgeEndpoint(endpoint *portaineree.Endpoint) bool {
 	return endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment ||
-		endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment
+		endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment ||
+		endpoint.Type == portaineree.EdgeAgentOnNomadEnvironment
 }
 
 // IsAgentEndpoint returns true if this is an Agent endpoint
@@ -36,7 +37,8 @@ func IsAgentEndpoint(endpoint *portaineree.Endpoint) bool {
 	return endpoint.Type == portaineree.AgentOnDockerEnvironment ||
 		endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment ||
 		endpoint.Type == portaineree.AgentOnKubernetesEnvironment ||
-		endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment
+		endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment ||
+		endpoint.Type == portaineree.EdgeAgentOnNomadEnvironment
 }
 
 // FilterByExcludeIDs receives an environment(endpoint) array and returns a filtered array using an excludeIds param

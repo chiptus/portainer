@@ -12,6 +12,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 )
 
 // @id EdgeJobCreate
@@ -200,7 +201,7 @@ func (handler *Handler) addAndPersistEdgeJob(edgeJob *portaineree.EdgeJob, file 
 			return err
 		}
 
-		if endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment && endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment {
+		if !endpointutils.IsEdgeEndpoint(endpoint) {
 			delete(edgeJob.Endpoints, ID)
 		}
 	}

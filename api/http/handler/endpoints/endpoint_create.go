@@ -3,6 +3,7 @@ package endpoints
 import (
 	"errors"
 	"fmt"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"net/http"
 	"net/url"
 	"runtime"
@@ -213,7 +214,7 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		EdgeStacks: map[portaineree.EdgeStackID]bool{},
 	}
 
-	if endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
+	if endpointutils.IsEdgeEndpoint(endpoint) {
 		relatedEdgeStacks := edge.EndpointRelatedEdgeStacks(endpoint, endpointGroup, edgeGroups, edgeStacks)
 		for _, stackID := range relatedEdgeStacks {
 			relationObject.EdgeStacks[stackID] = true

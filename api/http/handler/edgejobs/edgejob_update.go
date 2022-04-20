@@ -101,7 +101,7 @@ func (handler *Handler) updateEdgeSchedule(edgeJob *portaineree.EdgeJob, payload
 				return err
 			}
 
-			if endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment && endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment {
+			if !endpointutils.IsEdgeEndpoint(endpoint) {
 				continue
 			}
 

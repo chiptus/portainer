@@ -1,22 +1,48 @@
+import _ from 'lodash';
+import { isUnassociatedEdgeEnvironment } from '@/portainer/environments/utils';
+
 export default class WizardEndpointsController {
   /* @ngInject */
-  constructor($async, $scope, $state, EndpointService, $analytics) {
+  constructor($async, $state, EndpointService, Notifications, $analytics, StateManager) {
     this.$async = $async;
-    this.$scope = $scope;
     this.$state = $state;
     this.EndpointService = EndpointService;
     this.$analytics = $analytics;
+    this.Notifications = Notifications;
 
-    this.updateEndpoint = this.updateEndpoint.bind(this);
+    this.endpoints = [];
+    this.agentVersion = StateManager.getState().application.version;
+
+    this.reloadEndpoints = this.reloadEndpoints.bind(this);
     this.addAnalytics = this.addAnalytics.bind(this);
   }
   /**
    * WIZARD ENDPOINT SECTION
    */
 
-  async updateEndpoint() {
-    const updateEndpoints = await this.EndpointService.endpoints();
-    this.endpoints = updateEndpoints.value;
+  async reloadEndpoints() {
+    // TODO: when converting to react, should use `useEnvironmentsList` hook like in HomeView, and reload if has unassociated edge environment
+    try {
+      const { value } = await this.EndpointService.endpoints();
+      this.endpoints = value;
+
+      if (this.endpoints.some((env) => isUnassociatedEdgeEnvironment(env))) {
+        this.startReloadLoop();
+      }
+    } catch (e) {
+      this.Notifications.error('Failure', e, 'Unable to retrieve endpoints');
+    }
+  }
+
+  startReloadLoop() {
+    this.clearReloadLoop();
+    this.reloadInterval = setTimeout(this.reloadEndpoints, 5000);
+  }
+
+  clearReloadLoop() {
+    if (this.reloadInterval) {
+      clearInterval(this.reloadInterval);
+    }
   }
 
   startWizard() {
@@ -36,7 +62,7 @@ export default class WizardEndpointsController {
     this.$analytics.eventTrack('endpoint-wizard-endpoint-select', {
       category: 'portainer',
       metadata: {
-        environment: this.state.analytics.docker + this.state.analytics.kubernetes + this.state.analytics.aci,
+        environment: _.compact([this.state.analytics.docker, this.state.analytics.kubernetes, this.state.analytics.aci, this.state.analytics.nomad]).join('/'),
       },
     });
     this.state.currentStep++;
@@ -109,7 +135,7 @@ export default class WizardEndpointsController {
         } else {
           this.state.options[0].selected = true;
           this.state.dockerActive = 'wizard-active';
-          this.state.analytics.docker = 'Docker/';
+          this.state.analytics.docker = 'Docker';
         }
         break;
       case 'kubernetes':
@@ -120,7 +146,7 @@ export default class WizardEndpointsController {
         } else {
           this.state.options[1].selected = true;
           this.state.kubernetesActive = 'wizard-active';
-          this.state.analytics.kubernetes = 'Kubernetes/';
+          this.state.analytics.kubernetes = 'Kubernetes';
         }
         break;
       case 'aci':
@@ -134,6 +160,17 @@ export default class WizardEndpointsController {
           this.state.analytics.aci = 'ACI';
         }
         break;
+      case 'nomad':
+        if (this.state.options[3].selected) {
+          this.state.options[3].selected = false;
+          this.state.nomadActive = '';
+          this.state.analytics.nomad = '';
+        } else {
+          this.state.options[3].selected = true;
+          this.state.nomadActive = 'wizard-active';
+          this.state.analytics.nomad = 'Nomad';
+        }
+        break;
     }
     const options = this.state.options;
     this.state.selections = options.filter((item) => item.selected === true);
@@ -141,12 +178,13 @@ export default class WizardEndpointsController {
 
   $onInit() {
     return this.$async(async () => {
-      (this.state = {
+      this.state = {
         currentStep: 0,
         section: '',
         dockerActive: '',
         kubernetesActive: '',
         aciActive: '',
+        nomadActive: '',
         maxStep: '',
         previousStep: 'Previous',
         nextStep: 'Next Step',
@@ -155,6 +193,7 @@ export default class WizardEndpointsController {
           docker: '',
           kubernetes: '',
           aci: '',
+          nomad: '',
         },
         counter: {
           dockerAgent: 0,
@@ -185,13 +224,22 @@ export default class WizardEndpointsController {
             nameClass: 'aci',
             icon: 'fab fa-microsoft',
           },
+          {
+            endpoint: 'nomad',
+            selected: false,
+            stage: '',
+            nameClass: 'nomad',
+            icon: 'nomad-icon',
+          },
         ],
         selectOption: '',
-      }),
-        (this.endpoints = []);
+      };
 
-      const endpoints = await this.EndpointService.endpoints();
-      this.endpoints = endpoints.value;
+      this.reloadEndpoints();
     });
+  }
+
+  $onDestroy() {
+    this.clearReloadLoop();
   }
 }

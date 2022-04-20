@@ -3,6 +3,7 @@ import _ from 'lodash-es';
 import filesize from 'filesize';
 
 import { ResourceControlOwnership as RCO } from '@/portainer/access-control/types';
+import { EnvironmentType } from '../environments/types';
 
 export function truncateLeftRight(text, max, left, right) {
   max = isNaN(max) ? 50 : max;
@@ -78,29 +79,43 @@ export function labelsToStr(arr, separator) {
 }
 
 export function endpointTypeName(type) {
-  if (type === 1) {
-    return 'Docker';
-  } else if (type === 2 || type === 6) {
-    return 'Agent';
-  } else if (type === 3) {
-    return 'Azure ACI';
-  } else if (type === 5) {
-    return 'Kubernetes';
-  } else if (type === 4 || type === 7) {
-    return 'Edge Agent';
+  switch (type) {
+    case EnvironmentType.Docker:
+      return 'Docker';
+    case EnvironmentType.AgentOnDocker:
+    case EnvironmentType.AgentOnKubernetes:
+      return 'Agent';
+    case EnvironmentType.Azure:
+      return 'Azure ACI';
+    case EnvironmentType.KubernetesLocal:
+      return 'Kubernetes';
+    case EnvironmentType.EdgeAgentOnDocker:
+    case EnvironmentType.EdgeAgentOnKubernetes:
+    case EnvironmentType.EdgeAgentOnNomad:
+      return 'Edge Agent';
+    default:
+      throw new Error(`type ${type}-${EnvironmentType[type]} is not supported`);
   }
-  return '';
 }
 
 export function environmentTypeIcon(type) {
-  if (type === 3) {
-    return 'fab fa-microsoft';
-  } else if (type === 4) {
-    return 'fa fa-cloud';
-  } else if (type === 5 || type === 6 || type === 7) {
-    return 'fas fa-dharmachakra';
+  switch (type) {
+    case EnvironmentType.Azure:
+      return 'fab fa-microsoft';
+    case EnvironmentType.EdgeAgentOnDocker:
+      return 'fa fa-cloud';
+    case EnvironmentType.AgentOnKubernetes:
+    case EnvironmentType.EdgeAgentOnKubernetes:
+    case EnvironmentType.KubernetesLocal:
+      return 'fas fa-dharmachakra';
+    case EnvironmentType.AgentOnDocker:
+    case EnvironmentType.Docker:
+      return 'fab fa-docker';
+    case EnvironmentType.EdgeAgentOnNomad:
+      return 'nomad-icon';
+    default:
+      throw new Error(`type ${type}-${EnvironmentType[type]} is not supported`);
   }
-  return 'fab fa-docker';
 }
 
 export function ownershipIcon(ownership) {

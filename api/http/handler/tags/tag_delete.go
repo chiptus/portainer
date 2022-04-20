@@ -1,6 +1,7 @@
 package tags
 
 import (
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
@@ -87,7 +88,7 @@ func (handler *Handler) tagDelete(w http.ResponseWriter, r *http.Request) *httpe
 	}
 
 	for _, endpoint := range endpoints {
-		if (tag.Endpoints[endpoint.ID] || tag.EndpointGroups[endpoint.GroupID]) && (endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment) {
+		if (tag.Endpoints[endpoint.ID] || tag.EndpointGroups[endpoint.GroupID]) && (endpointutils.IsEdgeEndpoint(&endpoint)) {
 			err = handler.updateEndpointRelations(endpoint, edgeGroups, edgeStacks)
 			if err != nil {
 				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to update environment relations in the database", err}

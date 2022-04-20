@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"net/http"
 	"regexp"
 	"strings"
@@ -43,7 +44,7 @@ func (handler *Handler) endpointAssociationDelete(w http.ResponseWriter, r *http
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
 	}
 
-	if endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment && endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment {
+	if !endpointutils.IsEdgeEndpoint(endpoint) {
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment type", errors.New("Invalid environment type")}
 	}
 

@@ -2,6 +2,7 @@ package edgegroups
 
 import (
 	"errors"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"net/http"
 
 	"github.com/asaskevich/govalidator"
@@ -49,17 +50,17 @@ func (handler *Handler) edgeGroupCreate(w http.ResponseWriter, r *http.Request) 
 	var payload edgeGroupCreatePayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
+		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
 	}
 
 	edgeGroups, err := handler.DataStore.EdgeGroup().EdgeGroups()
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve Edge groups from the database", err}
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve Edge groups from the database", Err: err}
 	}
 
 	for _, edgeGroup := range edgeGroups {
 		if edgeGroup.Name == payload.Name {
-			return &httperror.HandlerError{http.StatusBadRequest, "Edge group name must be unique", errors.New("Edge group name must be unique")}
+			return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Edge group name must be unique", Err: errors.New("Edge group name must be unique")}
 		}
 	}
 
@@ -78,10 +79,10 @@ func (handler *Handler) edgeGroupCreate(w http.ResponseWriter, r *http.Request) 
 		for _, endpointID := range payload.Endpoints {
 			endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
 			if err != nil {
-				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve environment from the database", err}
+				return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve environment from the database", Err: err}
 			}
 
-			if endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
+			if endpointutils.IsEdgeEndpoint(endpoint) {
 				endpointIDs = append(endpointIDs, endpoint.ID)
 			}
 		}
@@ -90,7 +91,7 @@ func (handler *Handler) edgeGroupCreate(w http.ResponseWriter, r *http.Request) 
 
 	err = handler.DataStore.EdgeGroup().Create(edgeGroup)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the Edge group inside the database", err}
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist the Edge group inside the database", Err: err}
 	}
 
 	return response.JSON(w, edgeGroup)

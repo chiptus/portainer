@@ -3,3 +3,9 @@
   flex-flow: row wrap;
   margin: 0.5rem;
 }
+
+@media only screen and (max-width: 700px) {
+  .boxselector_wrapper {
+    flex-direction: column;
+  }
+}

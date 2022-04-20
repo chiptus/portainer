@@ -1,12 +1,15 @@
+import { ReactNode } from 'react';
+
 import { Widget, WidgetBody } from '@/portainer/components/widget';
 
 interface Props {
-  value: number;
+  value?: number;
   icon: string;
   type: string;
+  children?: ReactNode;
 }
 
-export function DashboardItem({ value, icon, type }: Props) {
+export function DashboardItem({ value, icon, type, children }: Props) {
   return (
     <div className="col-sm-12 col-md-6" aria-label={type}>
       <Widget>
@@ -14,8 +17,9 @@ export function DashboardItem({ value, icon, type }: Props) {
           <div className="widget-icon blue pull-left">
             <i className={icon} aria-hidden="true" aria-label="icon" />
           </div>
+          <div className="pull-right">{children}</div>
           <div className="title" aria-label="value">
-            {value}
+            {typeof value !== 'undefined' ? value : '-'}
           </div>
           <div className="comment" aria-label="resourceType">
             {type}

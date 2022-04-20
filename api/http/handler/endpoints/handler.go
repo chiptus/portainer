@@ -83,7 +83,6 @@ func NewHandler(bouncer requestBouncer, userActivityService portaineree.UserActi
 	adminRouter.Handle("/endpoints/{id}", httperror.LoggerHandler(h.endpointInspect)).Methods(http.MethodGet)
 	adminRouter.Handle("/endpoints/{id}", httperror.LoggerHandler(h.endpointDelete)).Methods(http.MethodDelete)
 	adminRouter.Handle("/endpoints/{id}/association", httperror.LoggerHandler(h.endpointAssociationDelete)).Methods(http.MethodDelete)
-	adminRouter.Handle("/endpoints/{id}/snapshot", httperror.LoggerHandler(h.endpointSnapshot)).Methods(http.MethodPost)
 
 	authenticatedRouter.Handle("/endpoints/{id}", httperror.LoggerHandler(h.endpointUpdate)).Methods(http.MethodPut)
 	authenticatedRouter.Handle("/endpoints/{id}/settings", httperror.LoggerHandler(h.endpointSettingsUpdate)).Methods(http.MethodPut)
@@ -93,6 +92,7 @@ func NewHandler(bouncer requestBouncer, userActivityService portaineree.UserActi
 
 	authenticatedRouter.Handle("/endpoints/{id}/registries", httperror.LoggerHandler(h.endpointRegistriesList)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/endpoints/{id}/registries/{registryId}", httperror.LoggerHandler(h.endpointRegistryAccess)).Methods(http.MethodPut)
+	authenticatedRouter.Handle("/endpoints/{id}/snapshot", httperror.LoggerHandler(h.endpointSnapshot)).Methods(http.MethodPost)
 
 	// DEPRECATED
 	publicRouter.Handle("/endpoints/{id}/status", httperror.LoggerHandler(h.endpointStatusInspect)).Methods(http.MethodGet)

@@ -39,7 +39,9 @@
 
           <edge-stack-deployment-type-selector
             value="$ctrl.formValues.DeploymentType"
-            has-docker-endpoint="$ctrl.hasDockerEndpoint"
+            has-docker-endpoint="$ctrl.hasDockerEndpoint()"
+            has-kube-endpoint="$ctrl.hasKubeEndpoint()"
+            has-nomad-endpoint="$ctrl.hasNomadEndpoint()"
             on-change="($ctrl.onChangeDeploymentType)"
           ></edge-stack-deployment-type-selector>
 
@@ -56,6 +58,8 @@
           <edge-stacks-docker-compose-form ng-if="$ctrl.formValues.DeploymentType == 0" form-values="$ctrl.formValues" state="$ctrl.state"></edge-stacks-docker-compose-form>
 
           <edge-stacks-kube-manifest-form ng-if="$ctrl.formValues.DeploymentType == 1" form-values="$ctrl.formValues" state="$ctrl.state"></edge-stacks-kube-manifest-form>
+
+          <edge-stacks-nomad-hcl-form ng-if="$ctrl.formValues.DeploymentType == 2" form-values="$ctrl.formValues" state="$ctrl.state"></edge-stacks-nomad-hcl-form>
 
           <!-- actions -->
           <div class="col-sm-12 form-section-title"> Actions </div>

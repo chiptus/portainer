@@ -3,6 +3,7 @@ import { getPlatformType } from '@/portainer/environments/utils';
 
 import { EnvironmentStatsDocker } from './EnvironmentStatsDocker';
 import { EnvironmentStatsKubernetes } from './EnvironmentStatsKubernetes';
+import { EnvironmentStatsNomad } from './EnvironmentStatsNomad';
 
 interface Props {
   environment: Environment;
@@ -23,6 +24,10 @@ export function EnvironmentStats({ environment }: Props) {
           snapshots={environment.Snapshots}
           type={environment.Type}
         />
+      );
+    case PlatformType.Nomad:
+      return (
+        <EnvironmentStatsNomad snapshots={environment.Nomad?.Snapshots || []} />
       );
     default:
       return (

@@ -16,6 +16,8 @@ export const PortainerEndpointTypes = Object.freeze({
   AgentOnKubernetesEnvironment: 6,
   // EdgeAgentOnKubernetesEnvironment represents an endpoint connected to an Edge agent deployed on a Kubernetes environment
   EdgeAgentOnKubernetesEnvironment: 7,
+  // EdgeAgentOnNomadEnvironment represents an endpoint connected to an Edge agent deployed on a Nomad environment
+  EdgeAgentOnNomadEnvironment: 8,
 });
 
 /**

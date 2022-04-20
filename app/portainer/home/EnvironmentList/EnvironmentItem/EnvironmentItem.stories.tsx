@@ -65,6 +65,8 @@ function mockEnvironment(type: EnvironmentType): Environment {
     Status: EnvironmentStatus.Up,
     TagIds: [],
     Type: type,
+    Nomad: { Snapshots: [] },
+    EdgeKey: '',
     Kubernetes: {
       Snapshots: [],
     },

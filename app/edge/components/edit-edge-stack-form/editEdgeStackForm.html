@@ -17,7 +17,9 @@
 
   <edge-stack-deployment-type-selector
     value="$ctrl.model.DeploymentType"
-    has-docker-endpoint="$ctrl.hasDockerEndpoint"
+    has-docker-endpoint="$ctrl.hasDockerEndpoint()"
+    has-kube-endpoint="$ctrl.hasKubeEndpoint()"
+    has-nomad-endpoint="$ctrl.hasNomadEndpoint()"
     on-change="($ctrl.onChangeDeploymentType)"
   ></edge-stack-deployment-type-selector>
 
@@ -60,6 +62,22 @@
       <p>
         You can get more information about Kubernetes file format in the
         <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/" target="_blank">official documentation</a>.
+      </p>
+    </editor-description>
+  </web-editor-form>
+
+  <web-editor-form
+    ng-if="$ctrl.model.DeploymentType === 2"
+    value="$ctrl.model.StackFileContent"
+    yml="true"
+    identifier="kube-manifest-editor"
+    placeholder="# Define or paste the content of your manifest here"
+    on-change="($ctrl.onChangeNomadHcl)"
+  >
+    <editor-description>
+      <p>
+        You can get more information about Nomad file format in the
+        <a href="https://www.nomadproject.io/docs/job-specification" target="_blank">official documentation</a>.
       </p>
     </editor-description>
   </web-editor-form>

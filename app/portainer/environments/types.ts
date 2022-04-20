@@ -1,5 +1,6 @@
 import { TagId } from '@/portainer/tags/types';
 import { EnvironmentGroupId } from '@/portainer/environment-groups/types';
+import { Job } from '@/nomad/types';
 
 export type EnvironmentId = number;
 
@@ -18,7 +19,15 @@ export enum EnvironmentType {
   AgentOnKubernetes,
   // EdgeAgentOnKubernetes represents an environment(endpoint) connected to an Edge agent deployed on a Kubernetes environment(endpoint)
   EdgeAgentOnKubernetes,
+  // EdgeAgentOnNomad represents an environment(endpoint) connected to an Edge agent deployed on a Nomad environment(endpoint)
+  EdgeAgentOnNomad,
 }
+
+export const EdgeTypes = [
+  EnvironmentType.EdgeAgentOnDocker,
+  EnvironmentType.EdgeAgentOnKubernetes,
+  EnvironmentType.EdgeAgentOnNomad,
+] as const;
 
 export enum EnvironmentStatus {
   Up = 1,
@@ -54,12 +63,27 @@ export interface KubernetesSettings {
   Snapshots?: KubernetesSnapshot[] | null;
 }
 
+export interface NomadSnapshot {
+  JobCount: number;
+  GroupCount: number;
+  TaskCount: number;
+  RunningTaskCount: number;
+  NodeCount: number;
+  Time: number;
+  Jobs: Job[];
+}
+
+export interface NomadSettings {
+  Snapshots: NomadSnapshot[];
+}
+
 export type Environment = {
   Id: EnvironmentId;
   Type: EnvironmentType;
   TagIds: TagId[];
   GroupId: EnvironmentGroupId;
   EdgeID?: string;
+  EdgeKey: string;
   EdgeCheckinInterval?: number;
   QueryDate?: number;
   LastCheckInDate?: number;
@@ -68,6 +92,7 @@ export type Environment = {
   URL: string;
   Snapshots: DockerSnapshot[];
   Kubernetes: KubernetesSettings;
+  Nomad: NomadSettings;
   PublicURL?: string;
   IsEdgeDevice?: boolean;
   UserTrusted: boolean;
@@ -89,6 +114,7 @@ export enum PlatformType {
   Docker,
   Kubernetes,
   Azure,
+  Nomad,
 }
 
 export interface EnvironmentSettings {

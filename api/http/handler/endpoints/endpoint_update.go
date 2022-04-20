@@ -2,6 +2,7 @@ package endpoints
 
 import (
 	"errors"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -330,7 +331,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
-	if (endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment) && (groupIDChanged || tagsChanged) {
+	if (endpointutils.IsEdgeEndpoint(endpoint)) && (groupIDChanged || tagsChanged) {
 		relation, err := handler.dataStore.EndpointRelation().EndpointRelation(endpoint.ID)
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find environment relation inside the database", err}

@@ -2,9 +2,13 @@ import { useQuery } from 'react-query';
 
 import {
   EnvironmentsQueryParams,
+  getEndpoint,
   getEndpoints,
 } from '@/portainer/environments/environment.service';
-import { EnvironmentStatus } from '@/portainer/environments/types';
+import {
+  EnvironmentId,
+  EnvironmentStatus,
+} from '@/portainer/environments/types';
 import { error as notifyError } from '@/portainer/services/notifications';
 
 const ENVIRONMENTS_POLLING_INTERVAL = 30000; // in ms
@@ -48,4 +52,13 @@ export function useEnvironmentList(query: Query = {}, refetchOffline = false) {
     totalCount: data ? data.totalCount : 0,
     totalAvailable: data ? data.totalAvailable : 0,
   };
+}
+
+export function useEnvironment(id: EnvironmentId) {
+  return useQuery(['environments', id], () => getEndpoint(id), {
+    onError(err) {
+      notifyError('Failed loading environment', err as Error, '');
+    },
+    staleTime: 50,
+  });
 }

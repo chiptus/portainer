@@ -13,6 +13,7 @@ import (
 	"github.com/portainer/portainer-ee/api/apikey"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/ssl"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
@@ -149,7 +150,7 @@ func (bouncer *RequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, 
 		}
 	}
 
-	if endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment && endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment {
+	if !endpointutils.IsEdgeEndpoint(endpoint) {
 		return errors.New("Invalid environment type")
 	}
 

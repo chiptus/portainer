@@ -8,6 +8,7 @@ import {
 } from '@/portainer/filters/filters';
 import { type Environment, PlatformType } from '@/portainer/environments/types';
 import {
+  getDashboardRoute,
   getPlatformType,
   isDockerEnvironment,
   isEdgeEnvironment,
@@ -37,7 +38,7 @@ export function EnvironmentItem({ environment, onClick, groupName }: Props) {
   const snapshotTime = getSnapshotTime(environment);
 
   const tags = useEnvironmentTagNames(environment.TagIds);
-  const route = getRoute(environment);
+  const route = getDashboardRoute(environment);
 
   return (
     <div className={styles.root}>
@@ -174,24 +175,5 @@ function getSnapshotTime(environment: Environment) {
         : null;
     default:
       return null;
-  }
-}
-
-function getRoute(environment: Environment) {
-  if (isEdgeEnvironment(environment.Type) && !environment.EdgeID) {
-    return 'portainer.endpoints.endpoint';
-  }
-
-  const platform = getPlatformType(environment.Type);
-
-  switch (platform) {
-    case PlatformType.Azure:
-      return 'azure.dashboard';
-    case PlatformType.Docker:
-      return 'docker.dashboard';
-    case PlatformType.Kubernetes:
-      return 'kubernetes.dashboard';
-    default:
-      return '';
   }
 }

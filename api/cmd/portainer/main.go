@@ -36,6 +36,8 @@ import (
 	kubecli "github.com/portainer/portainer-ee/api/kubernetes/cli"
 	"github.com/portainer/portainer-ee/api/ldap"
 	"github.com/portainer/portainer-ee/api/license"
+	"github.com/portainer/portainer-ee/api/nomad/clientFactory"
+	nomadSnapshot "github.com/portainer/portainer-ee/api/nomad/snapshot"
 	"github.com/portainer/portainer-ee/api/oauth"
 	"github.com/portainer/portainer-ee/api/scheduler"
 	"github.com/portainer/portainer-ee/api/stacks"
@@ -255,11 +257,23 @@ func initKubernetesClientFactory(signatureService portaineree.DigitalSignatureSe
 	return kubecli.NewClientFactory(signatureService, reverseTunnelService, dataStore, instanceID)
 }
 
-func initSnapshotService(snapshotInterval string, dataStore dataservices.DataStore, dockerClientFactory *docker.ClientFactory, kubernetesClientFactory *kubecli.ClientFactory, shutdownCtx context.Context) (portaineree.SnapshotService, error) {
+func initNomadClientFactory(signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, dataStore dataservices.DataStore, instanceID string) *clientFactory.ClientFactory {
+	return clientFactory.NewClientFactory(signatureService, reverseTunnelService, dataStore, instanceID)
+}
+
+func initSnapshotService(
+	snapshotInterval string,
+	dataStore dataservices.DataStore,
+	dockerClientFactory *docker.ClientFactory,
+	kubernetesClientFactory *kubecli.ClientFactory,
+	nomadClientFactory *clientFactory.ClientFactory,
+	shutdownCtx context.Context,
+) (portaineree.SnapshotService, error) {
 	dockerSnapshotter := docker.NewSnapshotter(dockerClientFactory)
 	kubernetesSnapshotter := kubernetes.NewSnapshotter(kubernetesClientFactory)
+	nomadSnapshotter := nomadSnapshot.NewSnapshotter(nomadClientFactory)
 
-	snapshotService, err := snapshot.NewService(snapshotInterval, dataStore, dockerSnapshotter, kubernetesSnapshotter, shutdownCtx)
+	snapshotService, err := snapshot.NewService(snapshotInterval, dataStore, dockerSnapshotter, kubernetesSnapshotter, nomadSnapshotter, shutdownCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -636,8 +650,9 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 
 	dockerClientFactory := initDockerClientFactory(digitalSignatureService, reverseTunnelService)
 	kubernetesClientFactory := initKubernetesClientFactory(digitalSignatureService, reverseTunnelService, dataStore, instanceID)
+	nomadClientFactory := initNomadClientFactory(digitalSignatureService, reverseTunnelService, dataStore, instanceID)
 
-	snapshotService, err := initSnapshotService(*flags.SnapshotInterval, dataStore, dockerClientFactory, kubernetesClientFactory, shutdownCtx)
+	snapshotService, err := initSnapshotService(*flags.SnapshotInterval, dataStore, dockerClientFactory, kubernetesClientFactory, nomadClientFactory, shutdownCtx)
 	if err != nil {
 		logrus.Fatalf("failed initializing snapshot service: %s", err)
 	}
@@ -778,6 +793,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		UserActivityService:         userActivityService,
 		UserActivityStore:           userActivityStore,
 		KubernetesClientFactory:     kubernetesClientFactory,
+		NomadClientFactory:          nomadClientFactory,
 		Scheduler:                   scheduler,
 		ShutdownCtx:                 shutdownCtx,
 		ShutdownTrigger:             shutdownTrigger,

@@ -5,9 +5,9 @@ import (
 	"io"
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
-
+	nomad "github.com/hashicorp/nomad/api"
 	"github.com/portainer/liblicense"
+	portainer "github.com/portainer/portainer/api"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	v1 "k8s.io/api/core/v1"
 )
@@ -242,8 +242,8 @@ type (
 		ProjectPath    string                         `json:"ProjectPath"`
 		EntryPoint     string                         `json:"EntryPoint"`
 		Version        int                            `json:"Version"`
-		ManifestPath   string
-		DeploymentType EdgeStackDeploymentType
+		ManifestPath   string                         `json:"ManifestPath"`
+		DeploymentType EdgeStackDeploymentType        `json:"DeploymentType"`
 
 		// Deprecated
 		Prune bool `json:"Prune"`
@@ -306,6 +306,8 @@ type (
 		EdgeCheckinInterval int `json:"EdgeCheckinInterval" example:"5"`
 		// Associated Kubernetes data
 		Kubernetes KubernetesData `json:"Kubernetes" example:""`
+		// Associated Nomad data
+		Nomad NomadData `json:"Nomad"`
 		// Maximum version of docker-compose
 		ComposeSyntaxMaxVersion string `json:"ComposeSyntaxMaxVersion" example:"3.8"`
 		// Environment(Endpoint) specific security settings
@@ -513,6 +515,43 @@ type (
 		NodeCount         int    `json:"NodeCount"`
 		TotalCPU          int64  `json:"TotalCPU"`
 		TotalMemory       int64  `json:"TotalMemory"`
+	}
+
+	// NomadData contains all the Nomad related environment(endpoint) information
+	NomadData struct {
+		Snapshots []NomadSnapshot `json:"Snapshots"`
+	}
+
+	NomadSnapshotTask struct {
+		JobID        string    `json:"JobID"`
+		Namespace    string    `json:"Namespace"`
+		TaskName     string    `json:"TaskName"`
+		State        string    `json:"State"`
+		TaskGroup    string    `json:"TaskGroup"`
+		AllocationID string    `json:"AllocationID"`
+		StartedAt    time.Time `json:"StartedAt"`
+	}
+
+	NomadSnapshotJob struct {
+		ID         string              `json:"ID"`
+		Status     string              `json:"Status"`
+		Namespace  string              `json:"Namespace"`
+		SubmitTime int64               `json:"SubmitTime"`
+		Tasks      []NomadSnapshotTask `json:"Tasks"`
+	}
+
+	// NomadSnapshot represents a snapshot of a specific Nomad environment(endpoint) at a specific time
+	NomadSnapshot struct {
+		Time             int64              `json:"Time"`
+		NomadVersion     string             `json:"NomadVersion"`
+		NodeCount        int                `json:"NodeCount"`
+		JobCount         int                `json:"JobCount"`
+		GroupCount       int                `json:"GroupCount"`
+		TaskCount        int                `json:"TaskCount"`
+		RunningTaskCount int                `json:"RunningTaskCount"`
+		TotalCPU         int64              `json:"TotalCPU"`
+		TotalMemory      int64              `json:"TotalMemory"`
+		Jobs             []NomadSnapshotJob `json:"Jobs"`
 	}
 
 	// KubernetesConfiguration represents the configuration of a Kubernetes environment(endpoint)
@@ -1382,6 +1421,17 @@ type (
 		ToggleSystemState(namespace string, isSystem bool) error
 	}
 
+	// NomadClient represents a service used to query a Nomad environment(endpoint)
+	NomadClient interface {
+		Validate() (valid bool)
+		ListJobs(namespace string) (jobList []*nomad.JobListStub, err error)
+		ListNodes() (nodeList []*nomad.NodeListStub, err error)
+		ListAllocations(jobID, namespace string) (allocationsList []*nomad.AllocationListStub, err error)
+		DeleteJob(jobID, namespace string) error
+		TaskEvents(allocationID, taskName, namespace string) ([]*nomad.TaskEvent, error)
+		TaskLogs(refresh bool, allocationID, taskName, namespace, logType, origin string, offset int64) (<-chan *nomad.StreamFrame, error)
+	}
+
 	// KubernetesDeployer represents a service to deploy a manifest inside a Kubernetes environment(endpoint)
 	KubernetesDeployer interface {
 		Deploy(userID UserID, endpoint *Endpoint, manifestFiles []string, namespace string) (string, error)
@@ -1392,6 +1442,11 @@ type (
 	// KubernetesSnapshotter represents a service used to create Kubernetes environment(endpoint) snapshots
 	KubernetesSnapshotter interface {
 		CreateSnapshot(endpoint *Endpoint) (*KubernetesSnapshot, error)
+	}
+
+	// NomadSnapshotter represents a service used to create Nomad environment(endpoint) snapshots
+	NomadSnapshotter interface {
+		CreateSnapshot(endpoint *Endpoint) (*NomadSnapshot, error)
 	}
 
 	// LDAPService represents a service used to authenticate users against a LDAP/AD
@@ -1572,6 +1627,10 @@ const (
 	AgentPlatformDocker
 	// AgentPlatformKubernetes represent the Kubernetes platform
 	AgentPlatformKubernetes
+	// AgentPlatformPodman represent the Podman platform
+	AgentPlatformPodman
+	// AgentPlatformNomad represent the Nomad platform
+	AgentPlatformNomad
 )
 
 const (
@@ -1597,6 +1656,8 @@ const (
 	EdgeStackDeploymentCompose EdgeStackDeploymentType = iota
 	// EdgeStackDeploymentKubernetes represent an edge stack deployed using a kubernetes manifest file
 	EdgeStackDeploymentKubernetes
+	// EdgeStackDeploymentNomad represent an edge stack deployed using a nomad hcl job file
+	EdgeStackDeploymentNomad
 )
 
 const (
@@ -1633,6 +1694,8 @@ const (
 	AgentOnKubernetesEnvironment
 	// EdgeAgentOnKubernetesEnvironment represents an environment(endpoint) connected to an Edge agent deployed on a Kubernetes environment(endpoint)
 	EdgeAgentOnKubernetesEnvironment
+	// EdgeAgentOnNomadEnvironment represents an environment(endpoint) connected to an Edge agent deployed on a Nomad environment(endpoint)
+	EdgeAgentOnNomadEnvironment
 )
 
 const (
@@ -1720,6 +1783,8 @@ const (
 	DockerComposeStack
 	// KubernetesStack represents a stack managed via kubectl
 	KubernetesStack
+	// NomadStack represents a stack managed via Nomad
+	NomadStack
 )
 
 // StackStatus represents a status for a stack

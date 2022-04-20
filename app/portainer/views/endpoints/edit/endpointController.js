@@ -5,6 +5,7 @@ import { PortainerEndpointTypes } from '@/portainer/models/endpoint/models';
 import { EndpointSecurityFormData } from '@/portainer/components/endpointSecurity/porEndpointSecurityModel';
 import EndpointHelper from '@/portainer/helpers/endpointHelper';
 import { getAMTInfo } from 'Portainer/hostmanagement/open-amt/open-amt.service';
+import { getPlatformTypeName, isAgentEnvironment, isEdgeEnvironment } from '@/portainer/environments/utils';
 
 angular.module('portainer.app').controller('EndpointController', EndpointController);
 
@@ -25,6 +26,7 @@ function EndpointController(
   ModalService
 ) {
   $scope.state = {
+    platformName: '',
     uploadInProgress: false,
     actionInProgress: false,
     azureEndpoint: false,
@@ -53,6 +55,8 @@ function EndpointController(
     ],
     allowSelfSignedCerts: true,
     showAMTInfo: false,
+    nomadToken: '',
+    nomadAuthEnabled: true,
   };
 
   $scope.formValues = {
@@ -180,6 +184,8 @@ function EndpointController(
   }
 
   function configureState() {
+    $scope.state.platformName = getPlatformTypeName($scope.endpoint.Type);
+
     if (
       $scope.endpoint.Type === PortainerEndpointTypes.KubernetesLocalEnvironment ||
       $scope.endpoint.Type === PortainerEndpointTypes.AgentOnKubernetesEnvironment ||
@@ -187,18 +193,13 @@ function EndpointController(
     ) {
       $scope.state.kubernetesEndpoint = true;
     }
-    if ($scope.endpoint.Type === PortainerEndpointTypes.EdgeAgentOnDockerEnvironment || $scope.endpoint.Type === PortainerEndpointTypes.EdgeAgentOnKubernetesEnvironment) {
+    if (isEdgeEnvironment($scope.endpoint.Type)) {
       $scope.state.edgeEndpoint = true;
     }
     if ($scope.endpoint.Type === PortainerEndpointTypes.AzureEnvironment) {
       $scope.state.azureEndpoint = true;
     }
-    if (
-      $scope.endpoint.Type === PortainerEndpointTypes.AgentOnDockerEnvironment ||
-      $scope.endpoint.Type === PortainerEndpointTypes.EdgeAgentOnDockerEnvironment ||
-      $scope.endpoint.Type === PortainerEndpointTypes.AgentOnKubernetesEnvironment ||
-      $scope.endpoint.Type === PortainerEndpointTypes.EdgeAgentOnKubernetesEnvironment
-    ) {
+    if (isAgentEnvironment($scope.endpoint.Type)) {
       $scope.state.agentEndpoint = true;
     }
   }
@@ -221,7 +222,11 @@ function EndpointController(
 
         endpoint.URL = $filter('stripprotocol')(endpoint.URL);
 
-        if (endpoint.Type === PortainerEndpointTypes.EdgeAgentOnDockerEnvironment || endpoint.Type === PortainerEndpointTypes.EdgeAgentOnKubernetesEnvironment) {
+        if (
+          endpoint.Type === PortainerEndpointTypes.EdgeAgentOnDockerEnvironment ||
+          endpoint.Type === PortainerEndpointTypes.EdgeAgentOnKubernetesEnvironment ||
+          endpoint.Type === PortainerEndpointTypes.EdgeAgentOnNomadEnvironment
+        ) {
           $scope.edgeKeyDetails = decodeEdgeKey(endpoint.EdgeKey);
 
           $scope.state.edgeAssociated = !!endpoint.EdgeID;

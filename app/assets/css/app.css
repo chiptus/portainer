@@ -820,6 +820,14 @@ json-tree .branch-preview {
   display: flex;
 }
 
+.justify-center {
+  justify-content: center;
+}
+
+.justify-end {
+  justify-content: end;
+}
+
 .block {
   display: block;
 }
