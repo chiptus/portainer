@@ -24,21 +24,21 @@ angular.module('portainer.edge').factory('EdgeStackService', function EdgeStackS
     }
   };
 
-  service.updateStack = async function updateStack(id, stack) {
-    return EdgeStacks.update({ id }, stack).$promise;
+  service.updateStack = async function updateStack(id, stack, registries) {
+    return EdgeStacks.update({ id }, stack, registries).$promise;
   };
 
-  service.createStackFromFileContent = async function createStackFromFileContent(payload) {
+  service.createStackFromFileContent = async function createStackFromFileContent(payload, dryrun) {
     try {
-      return await EdgeStacks.create({ method: 'string' }, payload).$promise;
+      return await EdgeStacks.create({ method: 'string', dryrun: dryrun ? 'true' : 'false' }, payload).$promise;
     } catch (err) {
       throw { msg: 'Unable to create the stack', err };
     }
   };
 
-  service.createStackFromFileUpload = async function createStackFromFileUpload(payload, file) {
+  service.createStackFromFileUpload = async function createStackFromFileUpload(payload, file, dryrun) {
     try {
-      return await FileUploadService.createEdgeStack(payload, file);
+      return await FileUploadService.createEdgeStack(payload, file, dryrun);
     } catch (err) {
       throw { msg: 'Unable to create the stack', err };
     }

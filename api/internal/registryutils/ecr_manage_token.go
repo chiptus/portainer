@@ -9,11 +9,11 @@ import (
 	"github.com/portainer/portainer-ee/api/aws/ecr"
 )
 
-func isManegeTokenValid(config *portaineree.RegistryManagementConfiguration) (valid bool) {
+func isManageTokenValid(config *portaineree.RegistryManagementConfiguration) (valid bool) {
 	return config.AccessToken != "" && config.AccessTokenExpiry > time.Now().Unix()
 }
 
-func doGetManegeToken(config *portaineree.RegistryManagementConfiguration) (err error) {
+func doGetManageToken(config *portaineree.RegistryManagementConfiguration) (err error) {
 	ecrClient := ecr.NewService(config.Username, config.Password, config.Ecr.Region)
 	accessToken, expiryAt, err := ecrClient.GetAuthorizationToken()
 	if err != nil {
@@ -26,12 +26,12 @@ func doGetManegeToken(config *portaineree.RegistryManagementConfiguration) (err 
 	return
 }
 
-func EnsureManegeTokenValid(config *portaineree.RegistryManagementConfiguration) (err error) {
+func EnsureManageTokenValid(config *portaineree.RegistryManagementConfiguration) (err error) {
 	if config.Type == portaineree.EcrRegistry {
-		if isManegeTokenValid(config) {
+		if isManageTokenValid(config) {
 			log.Println("[DEBUG] [RegistryManagementConfiguration, GetEcrAccessToken] [message: current ECR token is still valid]")
 		} else {
-			err = doGetManegeToken(config)
+			err = doGetManageToken(config)
 			if err != nil {
 				log.Println("[DEBUG] [RegistryManagementConfiguration, GetEcrAccessToken] [message: refresh ECR token]")
 			}

@@ -251,6 +251,7 @@ type (
 		Status         map[EndpointID]EdgeStackStatus `json:"Status"`
 		CreationDate   int64                          `json:"CreationDate"`
 		EdgeGroups     []EdgeGroupID                  `json:"EdgeGroups"`
+		Registries     []RegistryID                   `json:"Registries"`
 		ProjectPath    string                         `json:"ProjectPath"`
 		EntryPoint     string                         `json:"EntryPoint"`
 		Version        int                            `json:"Version"`

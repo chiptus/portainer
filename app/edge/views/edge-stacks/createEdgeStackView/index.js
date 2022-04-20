@@ -5,6 +5,7 @@ import { edgeStacksDockerComposeForm } from './docker-compose-form';
 import { kubeManifestForm } from './kube-manifest-form';
 import { NomadHclForm } from './nomad-hcl-form';
 import { kubeDeployDescription } from './kube-deploy-description';
+import { PrivateRegistryViewAngular } from './private-registry-view';
 
 export default angular
   .module('portainer.edge.stacks.create', [])
@@ -12,4 +13,5 @@ export default angular
   .component('edgeStacksDockerComposeForm', edgeStacksDockerComposeForm)
   .component('edgeStacksKubeManifestForm', kubeManifestForm)
   .component('edgeStacksNomadHclForm', NomadHclForm)
-  .component('kubeDeployDescription', kubeDeployDescription).name;
+  .component('kubeDeployDescription', kubeDeployDescription)
+  .component('privateRegistryView', PrivateRegistryViewAngular).name;

@@ -58,7 +58,7 @@ func (transport *tokenSecuredTransport) RoundTrip(request *http.Request) (*http.
 	}
 
 	if transport.config.Type == portaineree.EcrRegistry {
-		err = registryutils.EnsureManegeTokenValid(transport.config)
+		err = registryutils.EnsureManageTokenValid(transport.config)
 		if err != nil {
 			return nil, err
 		}

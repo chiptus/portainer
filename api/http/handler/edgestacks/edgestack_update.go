@@ -20,6 +20,7 @@ type updateEdgeStackPayload struct {
 	Version          *int
 	EdgeGroups       []portaineree.EdgeGroupID
 	DeploymentType   portaineree.EdgeStackDeploymentType
+	Registries       []portaineree.RegistryID
 }
 
 func (payload *updateEdgeStackPayload) Validate(r *http.Request) error {
@@ -214,6 +215,9 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 		stack.Version = *payload.Version
 		stack.Status = map[portaineree.EndpointID]portaineree.EdgeStackStatus{}
 	}
+
+	// Assign a potentially new registries to the stack
+	stack.Registries = payload.Registries
 
 	err = handler.DataStore.EdgeStack().UpdateEdgeStack(stack.ID, stack)
 	if err != nil {

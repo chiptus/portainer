@@ -3,8 +3,8 @@ import { getValidEditorTypes } from '@/edge/utils';
 
 export class EditEdgeStackFormController {
   /* @ngInject */
-  constructor($scope) {
-    this.$scope = $scope;
+  constructor($async, Notifications, EdgeStackService, RegistryService, $window, $scope) {
+    Object.assign(this, { $async, Notifications, EdgeStackService, RegistryService, $window, $scope });
 
     this.state = {
       endpointTypes: [],
@@ -15,6 +15,18 @@ export class EditEdgeStackFormController {
       1: '',
       2: '',
     };
+
+    this.formValues = {
+      RegistryOptions: [],
+    };
+
+    this.isActive = false;
+
+    this.matchRegistry = this.matchRegistry.bind(this);
+    this.selectedRegistry = this.selectedRegistry.bind(this);
+    this.dryrunFromFileContent = this.dryrunFromFileContent.bind(this);
+    this.clearRegistries = this.clearRegistries.bind(this);
+    this.getRegistriesOptions = this.getRegistriesOptions.bind(this);
 
     this.onChangeGroups = this.onChangeGroups.bind(this);
     this.onChangeFileContent = this.onChangeFileContent.bind(this);
@@ -27,6 +39,68 @@ export class EditEdgeStackFormController {
     this.onChangeDeploymentType = this.onChangeDeploymentType.bind(this);
     this.removeLineBreaks = this.removeLineBreaks.bind(this);
     this.onChangeFileContent = this.onChangeFileContent.bind(this);
+  }
+
+  checkRegistries(registries) {
+    return registries.every((value) => value === registries[0]);
+  }
+
+  selectedRegistry(e) {
+    return this.$async(async () => {
+      const selectedRegistry = e;
+      this.registryID = selectedRegistry.Id;
+      this.model.Registries[0] = this.registryID;
+    });
+  }
+
+  clearRegistries() {
+    this.model.Registries = [];
+    this.registryID = '';
+  }
+
+  matchRegistry() {
+    return this.$async(async () => {
+      this.registryID = '';
+      this.errorMessage = '';
+      this.dryrun = true;
+      let response = '';
+
+      this.dryrunName = this.model.Name + '-' + 'dryrun';
+
+      response = await this.dryrunFromFileContent(this.dryrunName, this.dryrun);
+
+      try {
+        if (response.Registries.length !== 0) {
+          const validRegistry = this.checkRegistries(response.Registries);
+          if (validRegistry) {
+            this.registryID = response.Registries[0];
+            this.model.Registries[0] = this.registryID;
+          } else {
+            this.registryID = '';
+            this.errorMessage = ' Images need to be from a single registry, please edit and reload';
+          }
+        } else {
+          this.registryID = '';
+        }
+      } catch (err) {
+        this.Notifications.error('Failure', err, 'Unable to retrieve registries');
+      } finally {
+        this.dryrun = false;
+      }
+    });
+  }
+
+  dryrunFromFileContent(name, dryrun) {
+    const { StackFileContent, Groups, DeploymentType } = this.formValues;
+    return this.EdgeStackService.createStackFromFileContent(
+      {
+        name,
+        StackFileContent,
+        EdgeGroups: Groups,
+        DeploymentType,
+      },
+      dryrun
+    );
   }
 
   hasKubeEndpoint() {
@@ -84,10 +158,12 @@ export class EditEdgeStackFormController {
 
   onChangeKubeManifest(value) {
     this.onChangeFileContent(1, value);
+    this.formValues.StackFileContent = value;
   }
 
   onChangeComposeConfig(value) {
     this.onChangeFileContent(0, value);
+    this.formValues.StackFileContent = value;
   }
 
   onChangeDeploymentType(deploymentType) {
@@ -101,8 +177,23 @@ export class EditEdgeStackFormController {
     return this.model.DeploymentType == 0 || !this.hasDockerEndpoint();
   }
 
+  getRegistriesOptions() {
+    return this.$async(async () => {
+      this.formValues.RegistryOptions = await this.RegistryService.registries();
+    });
+  }
+
   $onInit() {
     this.fileContents[this.model.DeploymentType] = this.model.StackFileContent;
     this.checkEndpointTypes(this.model.EdgeGroups);
+    this.getRegistriesOptions();
+
+    this.formValues.StackFileContent = this.model.StackFileContent;
+    this.formValues.DeploymentType = this.model.DeploymentType;
+    this.formValues.Groups = this.model.EdgeGroups;
+
+    if (this.model.Registries !== null && this.model.Registries.length !== 0) {
+      this.isActive = true;
+    }
   }
 }

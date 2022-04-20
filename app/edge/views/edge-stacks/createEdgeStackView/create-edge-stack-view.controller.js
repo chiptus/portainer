@@ -4,8 +4,8 @@ import { getValidEditorTypes } from '@/edge/utils';
 
 export default class CreateEdgeStackViewController {
   /* @ngInject */
-  constructor($state, $window, ModalService, EdgeStackService, EdgeGroupService, Notifications, $async, $scope) {
-    Object.assign(this, { $state, $window, ModalService, EdgeStackService, EdgeGroupService, Notifications, $async, $scope });
+  constructor($state, $window, ModalService, EdgeStackService, EdgeGroupService, Notifications, $async, $scope, RegistryService) {
+    Object.assign(this, { $state, $window, ModalService, EdgeStackService, EdgeGroupService, Notifications, $async, RegistryService, $scope });
 
     this.formValues = {
       Name: '',
@@ -20,6 +20,8 @@ export default class CreateEdgeStackViewController {
       ComposeFilePathInRepository: '',
       Groups: [],
       DeploymentType: EditorType.Compose,
+      RegistryOptions: [],
+      Registries: [],
     };
 
     this.state = {
@@ -40,6 +42,9 @@ export default class CreateEdgeStackViewController {
     this.createStackFromFileUpload = this.createStackFromFileUpload.bind(this);
     this.createStackFromGitRepository = this.createStackFromGitRepository.bind(this);
     this.onChangeGroups = this.onChangeGroups.bind(this);
+    this.matchRegistry = this.matchRegistry.bind(this);
+    this.clearRegistries = this.clearRegistries.bind(this);
+    this.selectedRegistry = this.selectedRegistry.bind(this);
     this.hasDockerEndpoint = this.hasDockerEndpoint.bind(this);
     this.hasKubeEndpoint = this.hasKubeEndpoint.bind(this);
     this.hasNomadEndpoint = this.hasNomadEndpoint.bind(this);
@@ -77,6 +82,13 @@ export default class CreateEdgeStackViewController {
   }
 
   async $onInit() {
+    // Initial Registry Options for selector
+    this.formValues.RegistryOptions = await this.RegistryService.registries();
+
+    this.registryID = '';
+    this.errorMessage = '';
+    this.dryrun = false;
+
     try {
       this.edgeGroups = await this.EdgeGroupService.groups();
       this.noGroups = this.edgeGroups.length === 0;
@@ -95,6 +107,72 @@ export default class CreateEdgeStackViewController {
     this.state.isEditorDirty = false;
   }
 
+  checkRegistries(registries) {
+    return registries.every((value) => value === registries[0]);
+  }
+
+  clearRegistries() {
+    this.formValues.Registries = [];
+    this.registryID = '';
+    this.dryrun = false;
+  }
+
+  selectedRegistry(e) {
+    return this.$async(async () => {
+      const selectedRegistry = e;
+      this.registryID = selectedRegistry.Id;
+      this.formValues.Registries = [this.registryID];
+    });
+  }
+
+  matchRegistry() {
+    return this.$async(async () => {
+      const name = this.formValues.Name;
+      this.state.actionInProgress = true;
+      this.errorMessage = '';
+      this.dryrun = true;
+      let response = '';
+      let method = this.state.Method;
+
+      if (method === 'template') {
+        method = 'editor';
+      }
+
+      if (method === 'editor' || method === 'upload') {
+        try {
+          if (method === 'editor') {
+            response = await this.createStackFromFileContent(name, this.dryrun);
+          }
+          if (method === 'upload') {
+            const responseFromUpload = await this.createStackFromFileUpload(name, this.dryrun);
+            response = responseFromUpload.data;
+          }
+          if (response.Registries.length !== 0) {
+            const validRegistry = this.checkRegistries(response.Registries);
+            if (validRegistry) {
+              this.registryID = response.Registries[0];
+              this.formValues.Registries = [this.registryID];
+            } else {
+              this.registryID = '';
+              this.errorMessage = ' Images need to be from a single registry, please edit and reload';
+            }
+          } else {
+            this.registryID = '';
+          }
+        } catch (err) {
+          this.Notifications.error('Failure', err, 'Unable to retrieve registries');
+        } finally {
+          this.dryrun = false;
+          this.state.actionInProgress = false;
+        }
+      } else {
+        // Git Repository does not has dryrun
+        this.dryrun = false;
+        this.state.actionInProgress = false;
+      }
+    });
+  }
+
   createStack() {
     return this.$async(async () => {
       const name = this.formValues.Name;
@@ -110,7 +188,7 @@ export default class CreateEdgeStackViewController {
 
       this.state.actionInProgress = true;
       try {
-        await this.createStackByMethod(name, method);
+        await this.createStackByMethod(name, method, this.dryrun);
 
         this.Notifications.success('Stack successfully deployed');
         this.state.isEditorDirty = false;
@@ -166,42 +244,47 @@ export default class CreateEdgeStackViewController {
     return true;
   }
 
-  createStackByMethod(name, method) {
+  createStackByMethod(name, method, dryrun) {
     switch (method) {
       case 'editor':
-        return this.createStackFromFileContent(name);
+        return this.createStackFromFileContent(name, dryrun);
       case 'upload':
-        return this.createStackFromFileUpload(name);
+        return this.createStackFromFileUpload(name, dryrun);
       case 'repository':
         return this.createStackFromGitRepository(name);
     }
   }
 
-  createStackFromFileContent(name) {
-    const { StackFileContent, Groups, DeploymentType } = this.formValues;
-
-    return this.EdgeStackService.createStackFromFileContent({
-      name,
-      StackFileContent,
-      EdgeGroups: Groups,
-      DeploymentType,
-    });
+  createStackFromFileContent(name, dryrun) {
+    const { StackFileContent, Groups, DeploymentType, Registries } = this.formValues;
+    return this.EdgeStackService.createStackFromFileContent(
+      {
+        name,
+        StackFileContent,
+        EdgeGroups: Groups,
+        DeploymentType,
+        Registries: dryrun ? [] : Registries,
+      },
+      dryrun
+    );
   }
 
-  createStackFromFileUpload(name) {
-    const { StackFile, Groups, DeploymentType } = this.formValues;
+  createStackFromFileUpload(name, dryrun) {
+    const { StackFile, Groups, DeploymentType, Registries } = this.formValues;
     return this.EdgeStackService.createStackFromFileUpload(
       {
         Name: name,
         EdgeGroups: Groups,
         DeploymentType,
+        Registries: dryrun ? [] : Registries,
       },
-      StackFile
+      StackFile,
+      dryrun
     );
   }
 
   createStackFromGitRepository(name) {
-    const { Groups, DeploymentType } = this.formValues;
+    const { Groups, DeploymentType, Registries } = this.formValues;
     const repositoryOptions = {
       RepositoryURL: this.formValues.RepositoryURL,
       RepositoryReferenceName: this.formValues.RepositoryReferenceName,
@@ -210,11 +293,13 @@ export default class CreateEdgeStackViewController {
       RepositoryUsername: this.formValues.RepositoryUsername,
       RepositoryPassword: this.formValues.RepositoryPassword,
     };
+
     return this.EdgeStackService.createStackFromGitRepository(
       {
         name,
         EdgeGroups: Groups,
         DeploymentType,
+        Registries: Registries,
       },
       repositoryOptions
     );

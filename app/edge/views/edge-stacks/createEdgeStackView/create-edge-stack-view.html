@@ -61,6 +61,16 @@
 
           <edge-stacks-nomad-hcl-form ng-if="$ctrl.formValues.DeploymentType == 2" form-values="$ctrl.formValues" state="$ctrl.state"></edge-stacks-nomad-hcl-form>
 
+          <private-registry-view
+            value="$ctrl.registryID"
+            registries="$ctrl.formValues.RegistryOptions"
+            on-change="($ctrl.matchRegistry)"
+            forminvalid="$ctrl.formIsInvalid()"
+            error-message="$ctrl.errorMessage"
+            on-select="($ctrl.selectedRegistry)"
+            clear-registries="($ctrl.clearRegistries)"
+          ></private-registry-view>
+
           <!-- actions -->
           <div class="col-sm-12 form-section-title"> Actions </div>
           <div class="form-group">
