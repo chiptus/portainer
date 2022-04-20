@@ -1,3 +1,5 @@
+import { KubernetesNginxRewriteTargetAnnotations, KubernetesNginxUseregexAnnotations, KubernetesTraefikRewriteTargetAnnotations } from 'Kubernetes/ingress/constants';
+
 export function KubernetesResourcePoolFormValues(defaults) {
   this.Name = '';
   this.MemoryLimit = defaults.MemoryLimit;
@@ -52,4 +54,16 @@ export function KubernetesResourcePoolStorageClassFormValue(name) {
     SizeUnit: 'GB',
     Selected: false,
   };
+}
+
+export function KubernetesResourcePoolNginxRewriteAnnotationFormValue() {
+  return KubernetesNginxRewriteTargetAnnotations;
+}
+
+export function KubernetesResourcePoolNginxUseregexAnnotationFormValue() {
+  return KubernetesNginxUseregexAnnotations;
+}
+
+export function KubernetesResourcePoolTraefikRewriteAnnotationFormValue() {
+  return KubernetesTraefikRewriteTargetAnnotations;
 }
