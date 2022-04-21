@@ -24,6 +24,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/auth"
 	"github.com/portainer/portainer-ee/api/http/handler/backup"
 	"github.com/portainer/portainer-ee/api/http/handler/customtemplates"
+	dockerhandler "github.com/portainer/portainer-ee/api/http/handler/docker"
 	"github.com/portainer/portainer-ee/api/http/handler/edgegroups"
 	"github.com/portainer/portainer-ee/api/http/handler/edgejobs"
 	"github.com/portainer/portainer-ee/api/http/handler/edgestacks"
@@ -202,6 +203,8 @@ func (server *Server) Start() error {
 
 	var kubernetesHandler = kubehandler.NewHandler(requestBouncer, server.AuthorizationService, server.DataStore, server.JWTService, server.KubeClusterAccessService, server.KubernetesClientFactory, server.UserActivityService)
 
+	var dockerHandler = dockerhandler.NewHandler(requestBouncer, server.AuthorizationService, server.DataStore, server.DockerClientFactory)
+
 	var licenseHandler = licenses.NewHandler(requestBouncer, server.UserActivityService)
 	licenseHandler.LicenseService = server.LicenseService
 
@@ -307,6 +310,7 @@ func (server *Server) Start() error {
 		AuthHandler:            authHandler,
 		BackupHandler:          backupHandler,
 		CustomTemplatesHandler: customTemplatesHandler,
+		DockerHandler:          dockerHandler,
 		EdgeGroupsHandler:      edgeGroupsHandler,
 		EdgeJobsHandler:        edgeJobsHandler,
 		EdgeStacksHandler:      edgeStacksHandler,

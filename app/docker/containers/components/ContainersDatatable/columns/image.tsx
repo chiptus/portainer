@@ -1,5 +1,6 @@
 import { Column } from 'react-table';
 import { useSref } from '@uirouter/react';
+import { ImageStatus } from 'Docker/components/ImageStatus';
 
 import { useEnvironment } from '@/portainer/environments/useEnvironment';
 import { EnvironmentStatus } from '@/portainer/environments/types';
@@ -33,6 +34,7 @@ function ImageCell({ value: imageName }: Props) {
 
   return (
     <a href={linkProps.href} onClick={linkProps.onClick}>
+      <ImageStatus imageName={imageName} environmentId={endpoint.Id} />
       {shortImageName}
     </a>
   );

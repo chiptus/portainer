@@ -1,10 +1,11 @@
 package handler
 
 import (
+	"github.com/portainer/portainer-ee/api/http/handler/docker"
+	"github.com/portainer/portainer-ee/api/http/handler/hostmanagement/fdo"
 	"net/http"
 	"strings"
 
-	"github.com/portainer/portainer-ee/api/http/handler/hostmanagement/fdo"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas"
 	"github.com/portainer/portainer-ee/api/http/handler/nomad"
 
@@ -50,6 +51,7 @@ type Handler struct {
 	AuthHandler            *auth.Handler
 	BackupHandler          *backup.Handler
 	CustomTemplatesHandler *customtemplates.Handler
+	DockerHandler          *docker.Handler
 	EdgeGroupsHandler      *edgegroups.Handler
 	EdgeJobsHandler        *edgejobs.Handler
 	EdgeStacksHandler      *edgestacks.Handler
@@ -187,6 +189,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.KaasHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/kubernetes"):
 		http.StripPrefix("/api", h.KubernetesHandler).ServeHTTP(w, r)
+	case strings.HasPrefix(r.URL.Path, "/api/docker"):
+		http.StripPrefix("/api", h.DockerHandler).ServeHTTP(w, r)
 
 	// Helm subpath under kubernetes -> /api/endpoints/{id}/kubernetes/helm
 	case strings.HasPrefix(r.URL.Path, "/api/endpoints/") && strings.Contains(r.URL.Path, "/kubernetes/helm"):

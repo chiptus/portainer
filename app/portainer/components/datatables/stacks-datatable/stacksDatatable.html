@@ -124,6 +124,7 @@
                   <i class="fa fa-sort-alpha-up" aria-hidden="true" ng-if="$ctrl.state.orderBy === 'Type' && $ctrl.state.reverseOrder"></i>
                 </a>
               </th>
+              <th> Images up to date </th>
               <th>Control</th>
               <th>
                 <a ng-click="$ctrl.changeOrderBy('ResourceControl.CreationDate')">
@@ -174,6 +175,9 @@
                 <span ng-if="item.Regular && item.Status == 2" style="margin-left: 10px" class="label label-warning image-tag space-left">Inactive</span>
               </td>
               <td>{{ item.Type === 1 ? 'Swarm' : 'Compose' }}</td>
+              <td>
+                <stack-image-status ng-if="item.Regular" stack-id="item.Id"></stack-image-status>
+              </td>
               <td>
                 <span
                   ng-if="item.Orphaned"

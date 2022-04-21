@@ -8,6 +8,7 @@ import porAccessManagementModule from './accessManagement';
 import formComponentsModule from './form-components';
 import widgetModule from './widget';
 import boxSelectorModule from './BoxSelector';
+import imageStatusModule from './StackImageStatus';
 import dateRangePickerModule from './date-range-picker';
 import headerModule from './PageHeader';
 
@@ -21,6 +22,7 @@ export default angular
   .module('portainer.app.components', [
     headerModule,
     boxSelectorModule,
+    imageStatusModule,
     widgetModule,
     sidebarModule,
     dateRangePickerModule,

@@ -88,6 +88,7 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 	authenticatedRouter.Handle("/stacks/{id}/migrate", httperror.LoggerHandler(h.stackMigrate)).Methods(http.MethodPost)
 	authenticatedRouter.Handle("/stacks/{id}/start", httperror.LoggerHandler(h.stackStart)).Methods(http.MethodPost)
 	authenticatedRouter.Handle("/stacks/{id}/stop", httperror.LoggerHandler(h.stackStop)).Methods(http.MethodPost)
+	authenticatedRouter.Handle("/stacks/{id}/images_status", httperror.LoggerHandler(h.stackImagesStatus)).Methods(http.MethodGet)
 
 	adminRouter.Handle("/stacks/{id}/associate", httperror.LoggerHandler(h.stackAssociate)).Methods(http.MethodPut)
 

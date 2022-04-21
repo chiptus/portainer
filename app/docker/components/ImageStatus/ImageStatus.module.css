@@ -1,0 +1,26 @@
+.round-cycle {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.processing {
+  composes: round-cycle;
+  opacity: 0.2;
+}
+
+.updated {
+  composes: round-cycle;
+  background-color: rgb(92 184 92);
+}
+
+.outdated {
+  composes: round-cycle;
+  background-color: rgb(212 63 58);
+}
+
+.unknown {
+  composes: round-cycle;
+  background-color: rgb(165, 165, 165);
+}
