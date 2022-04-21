@@ -153,13 +153,11 @@ function makeApiKeyPayload(
       provider === 'LinodeToken'
     ) {
       const currentProvider = initialValues[provider] || '';
-      if (currentProvider) {
-        if (
-          apiKeyChanged(newApiKey, currentProvider) &&
-          filteredForm.CloudApiKeys
-        ) {
-          filteredForm.CloudApiKeys[provider] = newApiKey.trim();
-        }
+      if (
+        apiKeyChanged(newApiKey, currentProvider) &&
+        filteredForm.CloudApiKeys
+      ) {
+        filteredForm.CloudApiKeys[provider] = newApiKey.trim();
       }
     }
   });

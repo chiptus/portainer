@@ -121,7 +121,7 @@ export function KaasCreateForm({
   useEffect(() => {
     if (cloudOptionsQuery.data && availableProviders[0]) {
       // only set the initial values once
-      if (!initialValues) {
+      if (!initialValues && cloudOptionsQuery.isSuccess) {
         const defaultRegion = cloudOptionsQuery.data?.regions[0].value;
         setInitialValues({
           name: initialName,

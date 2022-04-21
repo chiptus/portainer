@@ -17,11 +17,7 @@ export function useCloudProviderOptions(
 ) {
   return useQuery(['cloud', provider, 'info'], () => getKaasInfo(provider), {
     onError: (err) => {
-      notifyError(
-        'Failure',
-        err as Error,
-        `Unable to retrieve ${provider} info`
-      );
+      notifyError(`Failed to get ${provider} info`, err as Error, '');
     },
     enabled,
     retry: false,
