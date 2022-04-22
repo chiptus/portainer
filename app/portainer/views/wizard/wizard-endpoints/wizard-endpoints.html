@@ -14,7 +14,7 @@
             <wizard-stepper endpoint-selections="$ctrl.state.selections"></wizard-stepper>
             <!-- Stepper -->
 
-            <div class="col-sm-12 form-section-title wizard-main-title"> Connect to your {{ $ctrl.state.sectionTitle }} environment </div>
+            <div class="form-section-title wizard-main-title"> Connect to your {{ $ctrl.state.sectionTitle }} environment </div>
 
             <div ng-switch="$ctrl.state.section" class="wizard-endpoint-section">
               <wizard-docker ng-switch-when="docker" on-update="($ctrl.updateEndpoint)" on-analytics="($ctrl.addAnalytics)"></wizard-docker>

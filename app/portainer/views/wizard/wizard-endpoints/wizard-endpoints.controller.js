@@ -179,12 +179,12 @@ export default class WizardEndpointsController {
         }
         break;
       case 'nomad':
-        if (this.state.options[3].selected) {
-          this.state.options[3].selected = false;
+        if (this.state.options[4].selected) {
+          this.state.options[4].selected = false;
           this.state.nomadActive = '';
           this.state.analytics.nomad = '';
         } else {
-          this.state.options[3].selected = true;
+          this.state.options[4].selected = true;
           this.state.nomadActive = 'wizard-active';
           this.state.analytics.nomad = 'Nomad';
         }
@@ -259,6 +259,7 @@ export default class WizardEndpointsController {
           },
           {
             endpoint: 'nomad',
+            title: 'Nomad',
             selected: false,
             stage: '',
             nameClass: 'nomad',
