@@ -24,6 +24,10 @@ var (
 	errAdminPassExcludeAdminPassFile = errors.New("Cannot use --admin-password with --admin-password-file")
 )
 
+var (
+	envVarLicenseKey = "PORTAINER_LICENSE_KEY"
+)
+
 // ParseFlags parse the CLI flags and return a portaineree.Flags struct
 func (*Service) ParseFlags(version string) (*portaineree.CLIFlags, error) {
 	kingpin.Version(version)
@@ -63,6 +67,7 @@ func (*Service) ParseFlags(version string) (*portaineree.CLIFlags, error) {
 		MaxBatchSize:              kingpin.Flag("max-batch-size", "Maximum size of a batch").Int(),
 		MaxBatchDelay:             kingpin.Flag("max-batch-delay", "Maximum delay before a batch starts").Duration(),
 		SecretKeyName:             kingpin.Flag("secret-key-name", "Secret key name for encryption and will be used as /run/secrets/<secret-key-name>.").Default(defaultSecretKeyName).String(),
+		LicenseKey:                kingpin.Flag("license-key", "License key for Portainer").Envar(envVarLicenseKey).String(),
 	}
 
 	kingpin.Parse()

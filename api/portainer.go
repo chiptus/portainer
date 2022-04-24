@@ -159,6 +159,7 @@ type (
 		MaxBatchSize              *int
 		MaxBatchDelay             *time.Duration
 		SecretKeyName             *string
+		LicenseKey                *string
 	}
 
 	// CustomTemplate represents a custom template

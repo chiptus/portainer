@@ -11,6 +11,11 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 )
 
+var (
+	// ErrLicenseAlreadyApplied is returned when a license is already applied
+	ErrLicenseAlreadyApplied = errors.New("License was already applied")
+)
+
 // Service represents a service for managing portainer licenses
 type Service struct {
 	repository  portaineree.LicenseRepository
@@ -71,7 +76,7 @@ func (service *Service) AddLicense(licenseKey string) (*liblicense.PortainerLice
 
 	for _, existingLicense := range licenses {
 		if existingLicense.LicenseKey == licenseKey {
-			return nil, errors.New("License was already applied")
+			return nil, ErrLicenseAlreadyApplied
 		}
 
 		if existingLicense.Type == liblicense.PortainerLicenseEssentials && license.Type == liblicense.PortainerLicenseEssentials {

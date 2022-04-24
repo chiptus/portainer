@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/portainer/libhelm"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/apikey"
@@ -558,6 +559,19 @@ func initEndpoint(flags *portaineree.CLIFlags, dataStore dataservices.DataStore,
 	return createUnsecuredEndpoint(*flags.EndpointURL, dataStore, snapshotService)
 }
 
+func updateLicenseKeyFromFlags(licenseService portaineree.LicenseService, licenseKey *string) error {
+	if licenseKey == nil || *licenseKey == "" {
+		return nil
+	}
+
+	_, err := licenseService.AddLicense(*licenseKey)
+	if errors.Is(err, license.ErrLicenseAlreadyApplied) {
+		return nil
+	}
+
+	return errors.WithMessage(err, "failed to add license")
+}
+
 func loadEncryptionSecretKey(keyfilename string) []byte {
 	content, err := os.ReadFile(path.Join("/run/secrets", keyfilename))
 	if err != nil {
@@ -697,6 +711,11 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	err = updateSettingsFromFlags(dataStore, flags)
 	if err != nil {
 		logrus.Fatalf("failed updating settings from flags: %s", err)
+	}
+
+	err = updateLicenseKeyFromFlags(licenseService, flags.LicenseKey)
+	if err != nil {
+		logrus.Fatalf("failed updating license key from flags: %s", err)
 	}
 
 	err = edge.LoadEdgeJobs(dataStore, reverseTunnelService)
