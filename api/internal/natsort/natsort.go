@@ -50,7 +50,7 @@ func (s natsort) Len() int {
 }
 
 func (s natsort) Less(a, b int) bool {
-	return compare(s[a], s[b])
+	return Compare(s[a], s[b])
 }
 
 func (s natsort) Swap(a, b int) {
@@ -74,7 +74,7 @@ func ReverseSort(l []string) {
 }
 
 // compare returns true if the first string < second (natsort order) e.g. 1.1.1 < 1.11
-func compare(a, b string) bool {
+func Compare(a, b string) bool {
 	chunksA := chunkify(a)
 	chunksB := chunkify(b)
 

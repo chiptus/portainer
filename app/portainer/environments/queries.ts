@@ -21,7 +21,14 @@ interface Query extends EnvironmentsQueryParams {
 export function useEnvironmentList(query: Query = {}, refetchOffline = false) {
   const { page = 1, pageLimit = 100 } = query;
   const { isLoading, data } = useQuery(
-    ['environments', { page, pageLimit, ...query }],
+    [
+      'environments',
+      {
+        page,
+        pageLimit,
+        ...query,
+      },
+    ],
     async () => {
       const start = (page - 1) * pageLimit + 1;
       return getEndpoints(start, pageLimit, query);

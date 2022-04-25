@@ -9,6 +9,7 @@ import type {
   EnvironmentId,
   EnvironmentType,
   EnvironmentSettings,
+  EnvironmentStatus,
 } from '../types';
 
 import { arrayToJson, buildUrl } from './utils';
@@ -19,15 +20,25 @@ export interface EnvironmentsQueryParams {
   tagIds?: TagId[];
   endpointIds?: EnvironmentId[];
   tagsPartialMatch?: boolean;
-  groupId?: EnvironmentGroupId;
+  groupIds?: EnvironmentGroupId[];
   edgeDeviceFilter?: 'all' | 'trusted' | 'untrusted';
+  status?: EnvironmentStatus[];
+  sort?: string;
+  order?: 'asc' | 'desc';
   provisioned?: boolean;
 }
 
 export async function getEndpoints(
   start: number,
   limit: number,
-  { types, tagIds, endpointIds, ...query }: EnvironmentsQueryParams = {}
+  {
+    types,
+    tagIds,
+    endpointIds,
+    status,
+    groupIds,
+    ...query
+  }: EnvironmentsQueryParams = {}
 ) {
   if (tagIds && tagIds.length === 0) {
     return { totalCount: 0, value: <Environment[]>[] };
@@ -47,6 +58,14 @@ export async function getEndpoints(
 
   if (endpointIds) {
     params.endpointIds = arrayToJson(endpointIds);
+  }
+
+  if (status) {
+    params.status = arrayToJson(status);
+  }
+
+  if (groupIds) {
+    params.groupIds = arrayToJson(groupIds);
   }
 
   try {
@@ -95,7 +114,7 @@ export async function endpointsByGroup(
   search: string,
   groupId: EnvironmentGroupId
 ) {
-  return getEndpoints(start, limit, { search, groupId });
+  return getEndpoints(start, limit, { search, groupIds: [groupId] });
 }
 
 export async function disassociateEndpoint(id: EnvironmentId) {
