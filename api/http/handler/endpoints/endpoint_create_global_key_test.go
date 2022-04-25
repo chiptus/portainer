@@ -3,6 +3,7 @@ package endpoints
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -17,18 +18,27 @@ import (
 	"github.com/portainer/portainer/api/filesystem"
 )
 
-func TestGlobalKey(t *testing.T) {
-	_, store, teardown := datastore.MustNewTestStore(true, true)
-	defer teardown()
+func setupGlobalKeyHandler() (*Handler, func(), error) {
+	_, store, storeTeardown := datastore.MustNewTestStore(true, true)
+
+	ctx := context.Background()
+	shutdownCtx, cancelFn := context.WithCancel(ctx)
+
+	teardown := func() {
+		cancelFn()
+		storeTeardown()
+	}
 
 	tmpDir, err := os.MkdirTemp(os.TempDir(), "portainer-test-global-key-*")
 	if err != nil {
-		t.Fatal("could not create a tmp dir:", err)
+		teardown()
+		return nil, nil, fmt.Errorf("could not create a tmp dir: %w", err)
 	}
 
 	fs, err := filesystem.NewService(tmpDir, "")
 	if err != nil {
-		t.Fatal("could not start a new filesystem service:", err)
+		teardown()
+		return nil, nil, fmt.Errorf("could not start a new filesystem service: %w", err)
 	}
 
 	handler := NewHandler(
@@ -38,12 +48,19 @@ func TestGlobalKey(t *testing.T) {
 		edge.NewService(store, fs),
 	)
 
-	ctx := context.Background()
-	shutdownCtx, cancelFn := context.WithCancel(ctx)
-	defer cancelFn()
-
 	handler.ReverseTunnelService = chisel.NewService(store, shutdownCtx)
 	handler.AuthorizationService = authorization.NewService(store)
+
+	return handler, teardown, nil
+}
+
+func TestGlobalKey(t *testing.T) {
+	handler, teardown, err := setupGlobalKeyHandler()
+	defer teardown()
+
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	portainerURL := "portainer.io"
 
@@ -74,7 +91,7 @@ func TestGlobalKey(t *testing.T) {
 			t.Fatal("received invalid EndpointID:", p.EndpointID)
 		}
 
-		endpoint, err := store.Endpoint().Endpoint(p.EndpointID)
+		endpoint, err := handler.dataStore.Endpoint().Endpoint(p.EndpointID)
 		if err != nil {
 			t.Fatal("could not retrieve the created endpoint:", err)
 		}
@@ -94,5 +111,28 @@ func TestGlobalKey(t *testing.T) {
 
 	if resp1.EndpointID != resp2.EndpointID {
 		t.Fatalf("expected EndpointID = %d, received: %d", resp1.EndpointID, resp2.EndpointID)
+	}
+}
+
+func TestEmptyGlobalKey(t *testing.T) {
+	handler, teardown, err := setupGlobalKeyHandler()
+	defer teardown()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, "https://portainer.io:9443/endpoints/global-key", nil)
+	if err != nil {
+		t.Fatal("request error:", err)
+	}
+	req.Header.Set(portaineree.PortainerAgentEdgeIDHeader, "")
+
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatal("expected a 400 response, found:", rec.Code)
 	}
 }
