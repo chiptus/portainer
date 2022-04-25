@@ -44,7 +44,7 @@ require (
 	github.com/portainer/libcrypto v0.0.0-20210422035235-c652195c5c3a
 	github.com/portainer/libhelm v0.0.0-20210929000907-825e93d62108
 	github.com/portainer/libhttp v0.0.0-20211208103139-07a5f798eb3f
-	github.com/portainer/liblicense v0.0.0-20210617122637-db079d0b7f97
+	github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91
 	github.com/portainer/portainer/api v0.0.0-20220407143314-9ffaf47741f1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sirupsen/logrus v1.8.1
