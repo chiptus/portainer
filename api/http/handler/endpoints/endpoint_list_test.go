@@ -17,27 +17,36 @@ import (
 )
 
 type endpointListEdgeDeviceTest struct {
+	title    string
 	expected []portaineree.EndpointID
 	filter   string
 }
 
 func Test_endpointList(t *testing.T) {
+	var err error
 	is := assert.New(t)
 
 	_, store, teardown := datastore.MustNewTestStore(true, true)
 	defer teardown()
 
-	trustedEndpoint := portaineree.Endpoint{ID: 1, UserTrusted: true, IsEdgeDevice: true, GroupID: 1}
-	err := store.Endpoint().Create(&trustedEndpoint)
-	is.NoError(err, "error creating environment")
+	trustedEndpoint := portaineree.Endpoint{ID: 1, UserTrusted: true, IsEdgeDevice: true, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	untrustedEndpoint := portaineree.Endpoint{ID: 2, UserTrusted: false, IsEdgeDevice: true, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	regularUntrustedEdgeEndpoint := portaineree.Endpoint{ID: 3, UserTrusted: false, IsEdgeDevice: false, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	regularTrustedEdgeEndpoint := portaineree.Endpoint{ID: 4, UserTrusted: true, IsEdgeDevice: false, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	regularEndpoint := portaineree.Endpoint{ID: 5, UserTrusted: false, IsEdgeDevice: false, GroupID: 1, Type: portaineree.DockerEnvironment}
 
-	untrustedEndpoint := portaineree.Endpoint{ID: 2, UserTrusted: false, IsEdgeDevice: true, GroupID: 1}
-	err = store.Endpoint().Create(&untrustedEndpoint)
-	is.NoError(err, "error creating environment")
+	endpoints := []portaineree.Endpoint{
+		trustedEndpoint,
+		untrustedEndpoint,
+		regularUntrustedEdgeEndpoint,
+		regularTrustedEdgeEndpoint,
+		regularEndpoint,
+	}
 
-	regularEndpoint := portaineree.Endpoint{ID: 3, IsEdgeDevice: false, GroupID: 1}
-	err = store.Endpoint().Create(&regularEndpoint)
-	is.NoError(err, "error creating environment")
+	for _, endpoint := range endpoints {
+		err = store.Endpoint().Create(&endpoint)
+		is.NoError(err, "error creating environment")
+	}
 
 	err = store.User().Create(&portaineree.User{Username: "admin", Role: portaineree.AdministratorRole})
 	is.NoError(err, "error creating a user")
@@ -48,33 +57,45 @@ func Test_endpointList(t *testing.T) {
 
 	tests := []endpointListEdgeDeviceTest{
 		{
-			[]portaineree.EndpointID{trustedEndpoint.ID, untrustedEndpoint.ID},
+			"should show all edge endpoints",
+			[]portaineree.EndpointID{trustedEndpoint.ID, untrustedEndpoint.ID, regularUntrustedEdgeEndpoint.ID, regularTrustedEdgeEndpoint.ID},
 			EdgeDeviceFilterAll,
 		},
 		{
-			[]portaineree.EndpointID{trustedEndpoint.ID},
+			"should show only trusted edge devices",
+			[]portaineree.EndpointID{trustedEndpoint.ID, regularTrustedEdgeEndpoint.ID},
 			EdgeDeviceFilterTrusted,
 		},
 		{
-			[]portaineree.EndpointID{untrustedEndpoint.ID},
+			"should show only untrusted edge devices",
+			[]portaineree.EndpointID{untrustedEndpoint.ID, regularUntrustedEdgeEndpoint.ID},
 			EdgeDeviceFilterUntrusted,
+		},
+		{
+			"should show no edge devices",
+			[]portaineree.EndpointID{regularEndpoint.ID, regularUntrustedEdgeEndpoint.ID, regularTrustedEdgeEndpoint.ID},
+			EdgeDeviceFilterNone,
 		},
 	}
 
 	for _, test := range tests {
-		req := buildEndpointListRequest(test.filter)
-		resp, err := doEndpointListRequest(req, h, is)
-		is.NoError(err)
+		t.Run(test.title, func(t *testing.T) {
+			is := assert.New(t)
 
-		is.Equal(len(test.expected), len(resp))
+			req := buildEndpointListRequest(test.filter)
+			resp, err := doEndpointListRequest(req, h, is)
+			is.NoError(err)
 
-		respIds := []portaineree.EndpointID{}
+			is.Equal(len(test.expected), len(resp))
 
-		for _, endpoint := range resp {
-			respIds = append(respIds, endpoint.ID)
-		}
+			respIds := []portaineree.EndpointID{}
 
-		is.Equal(test.expected, respIds, "response should contain all edge devices")
+			for _, endpoint := range resp {
+				respIds = append(respIds, endpoint.ID)
+			}
+
+			is.ElementsMatch(test.expected, respIds)
+		})
 	}
 }
 

@@ -1,5 +1,4 @@
 import { getEndpoints } from 'Portainer/environments/environment.service';
-import { EnvironmentType } from '@/portainer/environments/types';
 
 angular.module('portainer.edge').controller('EdgeDevicesViewController', EdgeDevicesViewController);
 /* @ngInject */
@@ -14,7 +13,6 @@ export function EdgeDevicesViewController($q, $async, EndpointService, GroupServ
         const [endpointsResponse, groups] = await Promise.all([
           getEndpoints(0, 100, {
             edgeDeviceFilter: 'trusted',
-            types: [EnvironmentType.EdgeAgentOnDocker, EnvironmentType.EdgeAgentOnKubernetes, EnvironmentType.EdgeAgentOnNomad],
           }),
           GroupService.groups(),
         ]);
