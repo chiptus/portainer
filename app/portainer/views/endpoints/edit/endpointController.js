@@ -25,6 +25,9 @@ function EndpointController(
   SettingsService,
   ModalService
 ) {
+  $scope.onChangeCheckInInterval = onChangeCheckInInterval;
+  $scope.setFieldValue = setFieldValue;
+
   $scope.state = {
     platformName: '',
     uploadInProgress: false,
@@ -105,6 +108,19 @@ function EndpointController(
     }
   }
 
+  function onChangeCheckInInterval(value) {
+    setFieldValue('EdgeCheckinInterval', value);
+  }
+
+  function setFieldValue(name, value) {
+    return $scope.$evalAsync(() => {
+      $scope.endpoint = {
+        ...$scope.endpoint,
+        [name]: value,
+      };
+    });
+  }
+
   $scope.updateEndpoint = function () {
     var endpoint = $scope.endpoint;
     var securityData = $scope.formValues.SecurityFormData;
@@ -118,7 +134,6 @@ function EndpointController(
       PublicURL: endpoint.PublicURL,
       GroupID: endpoint.GroupId,
       TagIds: endpoint.TagIds,
-      EdgeCheckinInterval: endpoint.EdgeCheckinInterval,
       TLS: TLS,
       TLSSkipVerify: TLSSkipVerify,
       TLSSkipClientVerify: TLSSkipClientVerify,
@@ -128,6 +143,10 @@ function EndpointController(
       AzureApplicationID: endpoint.AzureCredentials.ApplicationID,
       AzureTenantID: endpoint.AzureCredentials.TenantID,
       AzureAuthenticationKey: endpoint.AzureCredentials.AuthenticationKey,
+      EdgeCheckinInterval: endpoint.EdgeCheckinInterval,
+      EdgePingInterval: endpoint.EdgePingInterval,
+      EdgeSnapshotInterval: endpoint.EdgeSnapshotInterval,
+      EdgeCommandInterval: endpoint.EdgeCommandInterval,
     };
 
     if (!$scope.showSecurity) {

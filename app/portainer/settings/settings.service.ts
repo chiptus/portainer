@@ -34,7 +34,6 @@ export interface Settings {
   AuthenticationMethod: AuthenticationMethod;
   SnapshotInterval: string;
   TemplatesURL: string;
-  EdgeAgentCheckinInterval: number;
   EnableEdgeComputeFeatures: boolean;
   UserSessionTimeout: string;
   KubeconfigExpiry: string;
@@ -46,6 +45,10 @@ export interface Settings {
   AgentSecret: string;
   EdgePortainerUrl: string;
   CloudApiKeys: Partial<CloudApiKeys>;
+  EdgeAgentCheckinInterval: number;
+  EdgePingInterval: string;
+  EdgeSnapshotInterval: string;
+  EdgeCommandInterval: string;
 }
 
 export async function getSettings() {

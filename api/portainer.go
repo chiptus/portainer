@@ -323,8 +323,7 @@ type (
 		EdgeID string `json:"EdgeID,omitempty" example:""`
 		// The key which is used to map the agent to Portainer
 		EdgeKey string `json:"EdgeKey" example:""`
-		// The check in interval for edge agent (in seconds)
-		EdgeCheckinInterval int `json:"EdgeCheckinInterval" example:"5"`
+
 		// Associated Kubernetes data
 		Kubernetes KubernetesData `json:"Kubernetes" example:""`
 		// Associated Nomad data
@@ -343,6 +342,15 @@ type (
 		IsEdgeDevice bool
 		// Whether the device has been trusted or not by the user
 		UserTrusted bool
+		// The check in interval for edge agent (in seconds)
+		EdgeCheckinInterval int `json:"EdgeCheckinInterval" example:"5"`
+		// The command list interval for edge agent - used in edge async mode (in seconds)
+		EdgeCommandInterval int `json:"EdgeCommandInterval" example:"5"`
+		// The ping interval for edge agent - used in edge async mode (in seconds)
+		EdgePingInterval int `json:"EdgePingInterval" example:"5"`
+		// The snapshot interval for edge agent - used in edge async mode (in seconds)
+		EdgeSnapshotInterval int `json:"EdgeSnapshotInterval" example:"5"`
+
 		// Automatic update change window restriction for stacks and apps
 		ChangeWindow EndpointChangeWindow `json:"ChangeWindow"`
 
@@ -984,8 +992,7 @@ type (
 		SnapshotInterval string `json:"SnapshotInterval" example:"5m"`
 		// URL to the templates that will be displayed in the UI when navigating to App Templates
 		TemplatesURL string `json:"TemplatesURL" example:"https://raw.githubusercontent.com/portainer/templates/master/templates.json"`
-		// The default check in interval for edge agent (in seconds)
-		EdgeAgentCheckinInterval int `json:"EdgeAgentCheckinInterval" example:"5"`
+
 		// Whether edge compute features are enabled
 		EnableEdgeComputeFeatures bool `json:"EnableEdgeComputeFeatures"`
 		// The duration of a user session
@@ -1008,6 +1015,14 @@ type (
 		EdgePortainerURL string `json:"EdgePortainerUrl"`
 		// CloudAPIKeys
 		CloudApiKeys CloudApiKeys `json:"CloudApiKeys"`
+		// The default check in interval for edge agent (in seconds)
+		EdgeAgentCheckinInterval int `json:"EdgeAgentCheckinInterval" example:"5"`
+		// The command list interval for edge agent - used in edge async mode (in seconds)
+		EdgeCommandInterval int `json:"EdgeCommandInterval" example:"5"`
+		// The ping interval for edge agent - used in edge async mode (in seconds)
+		EdgePingInterval int `json:"EdgePingInterval" example:"5"`
+		// The snapshot interval for edge agent - used in edge async mode (in seconds)
+		EdgeSnapshotInterval int `json:"EdgeSnapshotInterval" example:"5"`
 
 		// Deprecated fields
 		DisplayDonationHeader       bool

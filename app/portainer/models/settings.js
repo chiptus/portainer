@@ -8,7 +8,6 @@ export function SettingsViewModel(data) {
   this.fdoConfiguration = data.fdoConfiguration;
   this.SnapshotInterval = data.SnapshotInterval;
   this.TemplatesURL = data.TemplatesURL;
-  this.EdgeAgentCheckinInterval = data.EdgeAgentCheckinInterval;
   this.EnableEdgeComputeFeatures = data.EnableEdgeComputeFeatures;
   this.FeatureFlagSettings = data.FeatureFlagSettings;
   this.UserSessionTimeout = data.UserSessionTimeout;
@@ -20,6 +19,10 @@ export function SettingsViewModel(data) {
   this.AgentSecret = data.AgentSecret;
   this.EdgePortainerUrl = data.EdgePortainerUrl;
   this.CloudApiKeys = data.CloudApiKeys;
+  this.EdgeAgentCheckinInterval = data.EdgeAgentCheckinInterval;
+  this.EdgePingInterval = data.EdgePingInterval;
+  this.EdgeSnapshotInterval = data.EdgeSnapshotInterval;
+  this.EdgeCommandInterval = data.EdgeCommandInterval;
 }
 
 export function PublicSettingsViewModel(settings) {

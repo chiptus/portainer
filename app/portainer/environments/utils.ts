@@ -15,7 +15,7 @@ export function getPlatformType(envType: EnvironmentType) {
     case EnvironmentType.EdgeAgentOnNomad:
       return PlatformType.Nomad;
     default:
-      throw new Error(`Environment Type ${envType} is not supported`);
+      return null;
   }
 }
 

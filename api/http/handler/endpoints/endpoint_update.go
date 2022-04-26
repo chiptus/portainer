@@ -1,14 +1,11 @@
 package endpoints
 
 import (
-	"errors"
-	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"net/http"
 	"reflect"
 	"strconv"
 
-	werrors "github.com/pkg/errors"
-
+	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
@@ -16,6 +13,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/client"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/tag"
 	portainer "github.com/portainer/portainer/api"
 	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
@@ -49,21 +47,28 @@ type endpointUpdatePayload struct {
 	TagIDs             []portaineree.TagID `example:"1,2"`
 	UserAccessPolicies portaineree.UserAccessPolicies
 	TeamAccessPolicies portaineree.TeamAccessPolicies
-	// The check in interval for edge agent (in seconds)
-	EdgeCheckinInterval *int `example:"5"`
 	// Associated Kubernetes data
 	Kubernetes *portaineree.KubernetesData
 	// Whether automatic update time restrictions are enabled
 	ChangeWindow *portaineree.EndpointChangeWindow
+	// The check in interval for edge agent (in seconds)
+	EdgeCheckinInterval *int `example:"5"`
+	// The command list interval for edge agent - used in edge async mode (in seconds)
+	EdgeCommandInterval *int `json:"EdgeCommandInterval" example:"5"`
+	// The ping interval for edge agent - used in edge async mode (in seconds)
+	EdgePingInterval *int `json:"EdgePingInterval" example:"5"`
+	// The snapshot interval for edge agent - used in edge async mode (in seconds)
+	EdgeSnapshotInterval *int `json:"EdgeSnapshotInterval" example:"5"`
 }
 
 func (payload *endpointUpdatePayload) Validate(r *http.Request) error {
 	if payload.ChangeWindow != nil {
 		err := validateAutoUpdateSettings(*payload.ChangeWindow)
 		if err != nil {
-			return werrors.WithMessage(err, "Validation failed")
+			return errors.WithMessage(err, "Validation failed")
 		}
 	}
+
 	return nil
 }
 
@@ -157,6 +162,18 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 		if payload.EdgeCheckinInterval != nil {
 			endpoint.EdgeCheckinInterval = *payload.EdgeCheckinInterval
+		}
+
+		if payload.EdgeCommandInterval != nil {
+			endpoint.EdgeCommandInterval = *payload.EdgeCommandInterval
+		}
+
+		if payload.EdgePingInterval != nil {
+			endpoint.EdgePingInterval = *payload.EdgePingInterval
+		}
+
+		if payload.EdgeSnapshotInterval != nil {
+			endpoint.EdgeSnapshotInterval = *payload.EdgeSnapshotInterval
 		}
 
 		if payload.GroupID != nil {

@@ -31,8 +31,6 @@ type settingsUpdatePayload struct {
 	SnapshotInterval *string `example:"5m"`
 	// URL to the templates that will be displayed in the UI when navigating to App Templates
 	TemplatesURL *string `example:"https://raw.githubusercontent.com/portainer/templates/master/templates.json"`
-	// The default check in interval for edge agent (in seconds)
-	EdgeAgentCheckinInterval *int `example:"5"`
 	// Whether edge compute features are enabled
 	EnableEdgeComputeFeatures *bool `example:"true"`
 	// The duration of a user session
@@ -51,6 +49,14 @@ type settingsUpdatePayload struct {
 	EnforceEdgeID *bool `example:"false"`
 	// EdgePortainerURL is the URL that is exposed to edge agents
 	EdgePortainerURL *string `json:"EdgePortainerURL"`
+	// The default check in interval for edge agent (in seconds)
+	EdgeAgentCheckinInterval *int `example:"5"`
+	// The command list interval for edge agent - used in edge async mode (in seconds)
+	EdgeCommandInterval *int `json:"EdgeCommandInterval" example:"5"`
+	// The ping interval for edge agent - used in edge async mode (in seconds)
+	EdgePingInterval *int `json:"EdgePingInterval" example:"5"`
+	// The snapshot interval for edge agent - used in edge async mode (in seconds)
+	EdgeSnapshotInterval *int `json:"EdgeSnapshotInterval" example:"5"`
 
 	CloudApiKeys struct {
 		// CivoApiKey represents an authentication key for the Civo API
@@ -270,6 +276,18 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 
 	if payload.EdgeAgentCheckinInterval != nil {
 		settings.EdgeAgentCheckinInterval = *payload.EdgeAgentCheckinInterval
+	}
+
+	if payload.EdgeCommandInterval != nil {
+		settings.EdgeCommandInterval = *payload.EdgeCommandInterval
+	}
+
+	if payload.EdgePingInterval != nil {
+		settings.EdgePingInterval = *payload.EdgePingInterval
+	}
+
+	if payload.EdgeSnapshotInterval != nil {
+		settings.EdgeSnapshotInterval = *payload.EdgeSnapshotInterval
 	}
 
 	if payload.KubeconfigExpiry != nil {
