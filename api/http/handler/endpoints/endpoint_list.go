@@ -135,7 +135,7 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 	}
 
 	if len(statuses) > 0 {
-		filteredEndpoints = filterEndpointsByStatuses(filteredEndpoints, statuses)
+		filteredEndpoints = filterEndpointsByStatuses(filteredEndpoints, statuses, settings)
 	}
 
 	if search != "" {
@@ -232,15 +232,19 @@ func filterEndpointsBySearchCriteria(endpoints []portaineree.Endpoint, endpointG
 	return filteredEndpoints
 }
 
-func filterEndpointsByStatuses(endpoints []portaineree.Endpoint, statuses []int) []portaineree.Endpoint {
+func filterEndpointsByStatuses(endpoints []portaineree.Endpoint, statuses []int, settings *portaineree.Settings) []portaineree.Endpoint {
 	filteredEndpoints := make([]portaineree.Endpoint, 0)
 
 	for _, endpoint := range endpoints {
 		status := endpoint.Status
 		if endpointutils.IsEdgeEndpoint(&endpoint) {
 			isCheckValid := false
-			if endpoint.EdgeCheckinInterval != 0 && endpoint.LastCheckInDate != 0 {
-				isCheckValid = time.Now().Unix()-endpoint.LastCheckInDate <= int64(endpoint.EdgeCheckinInterval*EdgeDeviceIntervalMultiplier+EdgeDeviceIntervalAdd)
+			edgeCheckinInterval := endpoint.EdgeCheckinInterval
+			if endpoint.EdgeCheckinInterval == 0 {
+				edgeCheckinInterval = settings.EdgeAgentCheckinInterval
+			}
+			if edgeCheckinInterval != 0 && endpoint.LastCheckInDate != 0 {
+				isCheckValid = time.Now().Unix()-endpoint.LastCheckInDate <= int64(edgeCheckinInterval*EdgeDeviceIntervalMultiplier+EdgeDeviceIntervalAdd)
 			}
 			status = portaineree.EndpointStatusDown // Offline
 			if isCheckValid {
