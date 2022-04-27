@@ -260,7 +260,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				}
 			}
 
-			log.Infof("[message: deploying portainer agent] [provider: %s] [clusterId: %s] [endpointId: %d]", task.Provider, task.ClusterID, task.EndpointID)
+			log.Infof("[message: deploying portainer agent version: %s] [provider: %s] [clusterId: %s] [endpointId: %d]", kubecli.DefaultAgentVersion, task.Provider, task.ClusterID, task.EndpointID)
 			err = kubeClient.DeployPortainerAgent()
 			if err != nil {
 				task.Retries++
@@ -343,6 +343,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 
 func (service *CloudClusterSetupService) processRequest(request *portaineree.CloudProvisioningRequest) {
 	log.Info("[cloud] [message: new cluster creation request received]")
+	log.Infof("[cloud] [message: will use agent version: %s]", kubecli.DefaultAgentVersion)
 
 	settings, err := service.dataStore.Settings().Settings()
 	if err != nil {

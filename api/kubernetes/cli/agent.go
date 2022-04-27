@@ -2,8 +2,8 @@ package cli
 
 import (
 	"context"
-	"os"
 
+	portaineree "github.com/portainer/portainer-ee/api"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-const defaultKaasVersion = "2.13.0"
+var DefaultAgentVersion = portaineree.APIVersion
 
 // GetPortainerAgentIP checks whether there is an IP address associated to the agent service and returns it.
 func (kcl *KubeClient) GetPortainerAgentIP() (string, error) {
@@ -41,13 +41,6 @@ func (kcl *KubeClient) GetPortainerAgentIP() (string, error) {
 // and still manage them with portainer even if they have heavily filtered
 // public internet access (or even none at all).
 func (kcl *KubeClient) DeployPortainerAgent() error {
-	// Version of the portainer agent we will deploy. Can be overwritten with
-	// the KAAS_AGENT_VERSION environment variable.
-	version := os.Getenv("KAAS_AGENT_VERSION")
-	if version == "" {
-		version = defaultKaasVersion
-	}
-
 	// NAMESPACE
 	namespaceName := "portainer"
 
@@ -167,7 +160,7 @@ func (kcl *KubeClient) DeployPortainerAgent() error {
 					Containers: []v1.Container{
 						{
 							Name:            "portainer-agent",
-							Image:           "portainer/agent:" + version,
+							Image:           "portainer/agent:" + DefaultAgentVersion,
 							ImagePullPolicy: v1.PullAlways,
 							Env: []v1.EnvVar{
 								{
