@@ -136,6 +136,7 @@ export function EnvironmentList({ onClickItem, onRefresh }: Props) {
         order: sortByDescending ? 'desc' : 'asc',
         provisioned: true,
         edgeDeviceFilter: 'none',
+        tagsPartialMatch: true,
       },
       true
     );
