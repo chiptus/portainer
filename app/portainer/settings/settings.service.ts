@@ -46,9 +46,9 @@ export interface Settings {
   EdgePortainerUrl: string;
   CloudApiKeys: Partial<CloudApiKeys>;
   EdgeAgentCheckinInterval: number;
-  EdgePingInterval: string;
-  EdgeSnapshotInterval: string;
-  EdgeCommandInterval: string;
+  EdgePingInterval: number;
+  EdgeSnapshotInterval: number;
+  EdgeCommandInterval: number;
 }
 
 export async function getSettings() {
