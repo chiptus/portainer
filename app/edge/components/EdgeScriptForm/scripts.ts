@@ -33,7 +33,7 @@ export function buildLinuxStandaloneCommand(
 
   return `${
     edgeIdGenerator ? `PORTAINER_EDGE_ID=$(${edgeIdGenerator}) \n\n` : ''
-  }
+  }\
 docker run -d \\
   -v /var/run/docker.sock:/var/run/docker.sock \\
   -v /var/lib/docker/volumes:/var/lib/docker/volumes \\
@@ -69,7 +69,7 @@ export function buildWindowsStandaloneCommand(
     edgeIdGenerator
       ? `$Env:PORTAINER_EDGE_ID = "@(${edgeIdGenerator})" \n\n`
       : ''
-  }
+  }\
 docker run -d \\
   --mount type=npipe,src=\\\\.\\pipe\\docker_engine,dst=\\\\.\\pipe\\docker_engine \\
   --mount type=bind,src=C:\\ProgramData\\docker\\volumes,dst=C:\\ProgramData\\docker\\volumes \\
@@ -102,7 +102,7 @@ export function buildLinuxSwarmCommand(
 
   return `${
     edgeIdGenerator ? `PORTAINER_EDGE_ID=$(${edgeIdGenerator}) \n\n` : ''
-  }
+  }\
 docker network create \\
   --driver overlay \\
   portainer_agent_network;
@@ -144,7 +144,7 @@ export function buildWindowsSwarmCommand(
     edgeIdGenerator
       ? `$Env:PORTAINER_EDGE_ID = "@(${edgeIdGenerator})" \n\n`
       : ''
-  }
+  }\
 docker network create \\
   --driver overlay \\
   portainer_agent_network;
@@ -172,16 +172,14 @@ export function buildLinuxKubernetesCommand(
   const { allowSelfSignedCertificates, edgeIdGenerator, envVars } = properties;
 
   const agentShortVersion = getAgentShortVersion(agentVersion);
+  const envVarsTrimmed = envVars.trim();
   const idEnvVar = edgeIdGenerator
     ? `PORTAINER_EDGE_ID=$(${edgeIdGenerator}) \n\n`
     : '';
   const edgeIdVar = !edgeIdGenerator && edgeId ? edgeId : '$PORTAINER_EDGE_ID';
   const selfSigned = allowSelfSignedCertificates ? '1' : '0';
 
-  return `${idEnvVar}curl https://downloads.portainer.io/ee${agentShortVersion}/portainer-edge-agent-setup.sh |
-  bash -s -- "${edgeIdVar}" \\
-    "${edgeKey}" \\
-    "${selfSigned}" "${agentSecret}" "${envVars}"`;
+  return `${idEnvVar}curl https://downloads.portainer.io/ee${agentShortVersion}/portainer-edge-agent-setup.sh | bash -s -- "${edgeIdVar}" "${edgeKey}" "${selfSigned}" "${agentSecret}" "${envVarsTrimmed}"`;
 }
 
 export function buildLinuxNomadCommand(
@@ -201,16 +199,12 @@ export function buildLinuxNomadCommand(
   const agentShortVersion = getAgentShortVersion(agentVersion);
   const envVarsTrimmed = envVars.trim();
   const selfSigned = allowSelfSignedCertificates ? '1' : '0';
+  const idEnvVar = edgeIdGenerator
+    ? `PORTAINER_EDGE_ID=$(${edgeIdGenerator}) \n\n`
+    : '';
   const edgeIdVar = !edgeIdGenerator && edgeId ? edgeId : '$PORTAINER_EDGE_ID';
 
-  return `${
-    edgeIdGenerator ? `PORTAINER_EDGE_ID=$(${edgeIdGenerator}) \n\n` : ''
-  }
-  curl https://downloads.portainer.io/ee${agentShortVersion}/portainer-edge-agent-nomad-setup.sh |
-  bash -s -- "${nomadToken}" \\
-    "${edgeIdVar}" \\
-    "${edgeKey}" \\
-    "${selfSigned}" "${envVarsTrimmed}" "${agentSecret}"`;
+  return `${idEnvVar}curl https://downloads.portainer.io/ee${agentShortVersion}/portainer-edge-agent-nomad-setup.sh | bash -s -- "${nomadToken}" "${edgeIdVar}" "${edgeKey}" "${selfSigned}" "${envVarsTrimmed}" "${agentSecret}"`;
 }
 
 function buildDefaultEnvVars(
