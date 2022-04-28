@@ -6,6 +6,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/edge"
@@ -28,9 +29,10 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage environment(endpoint) group operations.
-func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService, edgeService *edge.Service) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService, dataStore dataservices.DataStore, edgeService *edge.Service) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
+		DataStore:           dataStore,
 		requestBouncer:      bouncer,
 		userActivityService: userActivityService,
 		edgeService:         edgeService,
@@ -50,6 +52,11 @@ func NewHandler(bouncer *security.RequestBouncer, userActivityService portainere
 	adminRouter.Handle("/edge_stacks/{id}/file", httperror.LoggerHandler(h.edgeStackFile)).Methods(http.MethodGet)
 
 	publicRouter.Handle("/edge_stacks/{id}/status", httperror.LoggerHandler(h.edgeStackStatusUpdate)).Methods(http.MethodPut)
+
+	edgeStackStatusRouter := publicRouter.NewRoute().Subrouter()
+	edgeStackStatusRouter.Use(middlewares.WithEndpoint(h.DataStore.Endpoint(), "endpoint_id"))
+	edgeStackStatusRouter.PathPrefix("/edge_stacks/{id}/status/{endpoint_id}").Handler(httperror.LoggerHandler(h.edgeStackStatusDelete)).Methods(http.MethodDelete)
+
 	return h
 }
 
