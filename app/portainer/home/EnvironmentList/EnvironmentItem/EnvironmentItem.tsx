@@ -149,7 +149,7 @@ function useEnvironmentTagNames(tagIds?: TagId[]) {
     );
   });
 
-  if (tags) {
+  if (tags && tags.length > 0) {
     return tags.join(', ');
   }
 
