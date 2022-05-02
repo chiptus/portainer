@@ -14,7 +14,7 @@ import (
 
 const (
 	stateWaitTime      = 15 * time.Second
-	maxRequestFailures = 10
+	maxRequestFailures = 60
 )
 
 type ProvisioningState int
