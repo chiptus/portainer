@@ -295,7 +295,7 @@ function InnerKaasForm({
       {showTitle && <FormSectionTitle>Environment details</FormSectionTitle>}
       <FormControl
         label="Name"
-        tooltip="Name of cluster and environement"
+        tooltip="Name of cluster and environment"
         inputId="kaas-name"
         errors={errors.name}
       >
