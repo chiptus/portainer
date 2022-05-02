@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/base64"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/fvbommel/sortorder"
 	"github.com/linode/linodego"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/internal/natsort"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 )
@@ -101,8 +102,7 @@ func (service *CloudClusterInfoService) LinodeFetchInfo(apiKey string) (*LinodeI
 	for _, version := range kubeVersions {
 		kvs = append(kvs, version.ID)
 	}
-
-	natsort.ReverseSort(kvs)
+	sort.Sort(sort.Reverse(sortorder.Natural(kvs)))
 
 	linodeInfo := &LinodeInfo{
 		Regions:            rs,

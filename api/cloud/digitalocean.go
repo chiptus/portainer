@@ -3,12 +3,13 @@ package cloud
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/digitalocean/godo"
+	"github.com/fvbommel/sortorder"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/internal/natsort"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -60,11 +61,12 @@ func (service *CloudClusterInfoService) DigitalOceanFetchInfo(apiKey string) (*D
 		rs = append(rs, r)
 	}
 
-	kvs := []string{"latest"}
+	kvs := []string{}
 	for _, version := range opts.Versions {
 		kvs = append(kvs, version.KubernetesVersion)
 	}
-	natsort.ReverseSort(kvs)
+	sort.Sort(sort.Reverse(sortorder.Natural(kvs)))
+	kvs = append([]string{"latest"}, kvs...)
 
 	nodeSizes, _, err := client.Sizes.List(ctx, &godo.ListOptions{})
 	if err != nil {

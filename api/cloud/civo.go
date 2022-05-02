@@ -3,11 +3,12 @@ package cloud
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/civo/civogo"
+	"github.com/fvbommel/sortorder"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/internal/natsort"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -165,7 +166,7 @@ func (service *CloudClusterInfoService) CivoFetchInfo(apiKey string) (*CivoInfo,
 	for _, version := range kubeVersions {
 		kvs = append(kvs, version.Version)
 	}
-	natsort.ReverseSort(kvs)
+	sort.Sort(sort.Reverse(sortorder.Natural(kvs)))
 
 	civoInfo := &CivoInfo{
 		Regions:            rs,

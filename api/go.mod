@@ -18,6 +18,7 @@ require (
 	github.com/distribution/distribution v2.8.0+incompatible
 	github.com/docker/cli v20.10.12+incompatible
 	github.com/docker/docker v20.10.14+incompatible
+	github.com/fvbommel/sortorder v1.0.2
 	github.com/fxamacker/cbor/v2 v2.4.0
 	github.com/g07cha/defender v0.0.0-20180505193036-5665c627c814
 	github.com/go-ldap/ldap/v3 v3.4.1
