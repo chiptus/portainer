@@ -3,6 +3,7 @@ package cloud
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
@@ -149,9 +150,9 @@ func LinodeGetCluster(apiKey, clusterID string) (*KaasCluster, error) {
 
 	kaasCluster.Ready = true
 
-	kubeConfigData, err := base64.RawStdEncoding.DecodeString(kubeConfig.KubeConfig)
+	kubeConfigData, err := base64.StdEncoding.DecodeString(kubeConfig.KubeConfig)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed reading kubeconfig %v: %v", kubeConfig.KubeConfig, err)
 	}
 
 	kaasCluster.KubeConfig = string(kubeConfigData)
