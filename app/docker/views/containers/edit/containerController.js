@@ -95,7 +95,9 @@ angular.module('portainer.docker').controller('ContainerController', [
 
     $scope.updateRestartPolicy = updateRestartPolicy;
     $scope.updateWebhook = function updateWebhook(container, recreate) {
-      if ($scope.WebhookExists) {
+      if (($scope.WebhookExists && recreate) || (!$scope.WebhookExists && !recreate)) {
+        createWebhook(container);
+      } else if ($scope.WebhookExists) {
         WebhookService.deleteWebhook($scope.WebhookID)
           .then(function success() {
             $scope.WebhookURL = null;
@@ -105,11 +107,6 @@ angular.module('portainer.docker').controller('ContainerController', [
           .catch(function error(err) {
             Notifications.error('Failure', err, 'Unable to delete webhook');
           });
-      } else if (!recreate) {
-        createWebhook(container);
-      }
-      if (recreate) {
-        createWebhook(container);
       }
     };
 
