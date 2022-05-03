@@ -15,17 +15,17 @@ import (
 var DefaultAgentVersion = portaineree.APIVersion
 
 // GetPortainerAgentIP checks whether there is an IP address associated to the agent service and returns it.
-func (kcl *KubeClient) GetPortainerAgentIP() (string, error) {
+func (kcl *KubeClient) GetPortainerAgentIPOrHostname() (string, error) {
 	service, err := kcl.cli.CoreV1().Services("portainer").Get(context.TODO(), "portainer-agent", metav1.GetOptions{})
 	if err != nil {
 		return "", err
 	}
 
 	if len(service.Status.LoadBalancer.Ingress) > 0 {
-		if service.Status.LoadBalancer.Ingress[0].Hostname != "" {
-			return service.Status.LoadBalancer.Ingress[0].Hostname, nil
+		if service.Status.LoadBalancer.Ingress[0].IP != "" {
+			return service.Status.LoadBalancer.Ingress[0].IP, nil
 		}
-		return service.Status.LoadBalancer.Ingress[0].IP, nil
+		return service.Status.LoadBalancer.Ingress[0].Hostname, nil
 	}
 
 	return "", nil

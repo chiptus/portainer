@@ -272,7 +272,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 		case psWaitingForAgent:
 			log.Debugf("[message: waiting for portainer agent] [provider: %s] [clusterId: %s] [endpointId: %d]", task.Provider, task.ClusterID, task.EndpointID)
 
-			serviceIP, err = kubeClient.GetPortainerAgentIP()
+			serviceIP, err = kubeClient.GetPortainerAgentIPOrHostname()
 			if err != nil {
 				task.Retries++
 				break

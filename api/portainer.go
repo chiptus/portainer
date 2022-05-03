@@ -1501,7 +1501,7 @@ type (
 		IsRegistrySecret(namespace, secretName string) (bool, error)
 		ToggleSystemState(namespace string, isSystem bool) error
 		DeployPortainerAgent() error
-		GetPortainerAgentIP() (string, error)
+		GetPortainerAgentIPOrHostname() (string, error)
 	}
 
 	// NomadClient represents a service used to query a Nomad environment(endpoint)
