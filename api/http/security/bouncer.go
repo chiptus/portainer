@@ -142,7 +142,11 @@ func (bouncer *RequestBouncer) AuthorizedEndpointOperation(r *http.Request, endp
 
 // AuthorizedEdgeEndpointOperation verifies that the request was received from a valid Edge environment(endpoint)
 func (bouncer *RequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint) error {
-	sslSettings, _ := bouncer.dataStore.SSLSettings().Settings()
+	sslSettings, err := bouncer.dataStore.SSLSettings().Settings()
+	if err != nil {
+		return fmt.Errorf("could not retrieve the TLS settings: %w", err)
+	}
+
 	if sslSettings.CACertPath != "" {
 		caCertErr := bouncer.sslService.ValidateCACert(r.TLS)
 		if caCertErr != nil {
