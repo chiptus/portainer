@@ -38,6 +38,10 @@ func (testRequestBouncer) AuthorizedEndpointOperation(r *http.Request, endpoint 
 	return nil
 }
 
+func (testRequestBouncer) AuthorizedClientTLSConn(r *http.Request) error {
+	return nil
+}
+
 // AuthorizedEdgeEndpointOperation verifies that the request was received from a valid Edge environment(endpoint)
 func (testRequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint) error {
 	return nil

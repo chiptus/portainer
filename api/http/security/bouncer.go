@@ -140,8 +140,7 @@ func (bouncer *RequestBouncer) AuthorizedEndpointOperation(r *http.Request, endp
 	return nil
 }
 
-// AuthorizedEdgeEndpointOperation verifies that the request was received from a valid Edge environment(endpoint)
-func (bouncer *RequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint) error {
+func (bouncer *RequestBouncer) AuthorizedClientTLSConn(r *http.Request) error {
 	sslSettings, err := bouncer.dataStore.SSLSettings().Settings()
 	if err != nil {
 		return fmt.Errorf("could not retrieve the TLS settings: %w", err)
@@ -154,6 +153,11 @@ func (bouncer *RequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, 
 		}
 	}
 
+	return nil
+}
+
+// AuthorizedEdgeEndpointOperation verifies that the request was received from a valid Edge environment(endpoint)
+func (bouncer *RequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint) error {
 	if !endpointutils.IsEdgeEndpoint(endpoint) {
 		return errors.New("Invalid environment type")
 	}
@@ -165,6 +169,11 @@ func (bouncer *RequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, 
 
 	if endpoint.EdgeID != "" && endpoint.EdgeID != edgeIdentifier {
 		return errors.New("invalid Edge identifier")
+	}
+
+	err := bouncer.AuthorizedClientTLSConn(r)
+	if err != nil {
+		return err
 	}
 
 	if endpoint.LastCheckInDate > 0 || endpoint.UserTrusted {

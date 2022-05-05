@@ -28,13 +28,14 @@ func hideFields(endpoint *portaineree.Endpoint) {
 }
 
 // This requestBouncer exists because security.RequestBounder is a type and not an interface.
-// Therefore we can not swit	 it out with a dummy bouncer for go tests.  This interface works around it
+// Therefore we can not switch it out with a dummy bouncer for go tests.  This interface works around it
 type requestBouncer interface {
 	AuthenticatedAccess(h http.Handler) http.Handler
 	AdminAccess(h http.Handler) http.Handler
 	PublicAccess(h http.Handler) http.Handler
 	AuthorizedEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint, authorizationCheck bool) error
 	AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint) error
+	AuthorizedClientTLSConn(r *http.Request) error
 }
 
 // Handler is the HTTP handler used to handle environment(endpoint) operations.

@@ -26,6 +26,11 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 		return httperror.BadRequest("Invalid Edge ID", errors.New("the Edge ID cannot be empty"))
 	}
 
+	err := handler.requestBouncer.AuthorizedClientTLSConn(r)
+	if err != nil {
+		return httperror.Forbidden("forbidden request", err)
+	}
+
 	// Search for existing endpoints for the given edgeID
 
 	endpoints, err := handler.dataStore.Endpoint().Endpoints()
