@@ -135,7 +135,14 @@ export function KaasCreateForm({
         });
       }
     }
-  }, [cloudOptionsQuery.data, availableProviders]);
+  }, [
+    cloudOptionsQuery.data,
+    cloudOptionsQuery.isSuccess,
+    initialName,
+    initialType,
+    initialValues,
+    availableProviders,
+  ]);
 
   // handle the submit with current form values
   async function onSubmit(formValues: KaasCreateFormValues) {
@@ -234,7 +241,7 @@ function InnerKaasForm({
       setApiKeyField(provider);
     }
     setInitialType(provider);
-  }, [availableProviders, provider]);
+  }, [availableProviders, setApiKeyField, setInitialType, provider]);
 
   // when the options change, set the field values to available options
   useEffect(() => {
@@ -254,7 +261,7 @@ function InnerKaasForm({
         }
       }
     }
-  }, [cloudOptionsQuery.data]);
+  }, [cloudOptionsQuery.data, setFieldValue]);
 
   // handle when a user clicks another provider
   function onProviderChange(provider: KaasProvider) {
@@ -273,7 +280,7 @@ function InnerKaasForm({
     if (name) {
       setInitialName(name);
     }
-  }, [name]);
+  }, [name, setInitialName]);
 
   // when the region changes, update the selected network
   useEffect(() => {
@@ -288,6 +295,7 @@ function InnerKaasForm({
     region,
     cloudOptionsQuery.data?.networks,
     cloudOptionsQuery.data?.regions,
+    setFieldValue,
   ]);
 
   return (

@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 import { Select } from '@/portainer/components/form-components/ReactSelect';
 import { FormControl } from '@/portainer/components/form-components/FormControl';
@@ -28,28 +28,19 @@ export function PrivateRegistryView({
   isActive,
   clearRegistries,
 }: Props) {
-  const [checked, setChecked] = useState(false);
+  const [checked, setChecked] = useState(isActive);
   const [selected, setSelected] = useState(value);
 
   const tooltipMessage =
     'Use this when using a private registry that requires credentials';
 
-  const updateRegistry = useCallback(() => {
-    onChange();
-  }, []);
-
-  useEffect(() => {
-    if (isActive) {
-      setChecked(true);
-    }
-  }, []);
-
   useEffect(() => {
     if (checked) {
-      updateRegistry();
+      onChange();
     } else {
       clearRegistries();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checked]);
 
   useEffect(() => {
@@ -57,7 +48,7 @@ export function PrivateRegistryView({
   }, [value]);
 
   function reload() {
-    updateRegistry();
+    onChange();
     setSelected(value);
   }
 
