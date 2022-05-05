@@ -63,7 +63,7 @@ func (service *CloudClusterInfoService) DigitalOceanFetchInfo(apiKey string) (*D
 
 	kvs := []string{}
 	for _, version := range opts.Versions {
-		kvs = append(kvs, version.KubernetesVersion)
+		kvs = append(kvs, version.Slug)
 	}
 	sort.Sort(sort.Reverse(sortorder.Natural(kvs)))
 	kvs = append([]string{"latest"}, kvs...)
