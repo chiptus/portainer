@@ -11,4 +11,5 @@ export const PrivateRegistryViewAngular = react2angular(PrivateRegistryView, [
   'onSelect',
   'isActive',
   'clearRegistries',
+  'method',
 ]);

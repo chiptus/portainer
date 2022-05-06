@@ -221,6 +221,8 @@ type swarmStackFromGitRepositoryPayload struct {
 	// kubernetes deploytype is enabled only for kubernetes environments(endpoints)
 	// nomad deploytype is enabled only for nomad environments(endpoints)
 	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1,2"`
+	// List of Registries to use for this stack
+	Registries []portaineree.RegistryID
 }
 
 func (payload *swarmStackFromGitRepositoryPayload) Validate(r *http.Request) error {
@@ -270,6 +272,7 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request, dryru
 		Status:         make(map[portaineree.EndpointID]portaineree.EdgeStackStatus),
 		DeploymentType: payload.DeploymentType,
 		Version:        1,
+		Registries:     payload.Registries,
 	}
 
 	if !dryrun {

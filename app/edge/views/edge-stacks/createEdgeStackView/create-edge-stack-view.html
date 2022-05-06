@@ -62,6 +62,7 @@
           <edge-stacks-nomad-hcl-form ng-if="$ctrl.formValues.DeploymentType == 2" form-values="$ctrl.formValues" state="$ctrl.state"></edge-stacks-nomad-hcl-form>
 
           <private-registry-view
+            method="$ctrl.state.Method"
             value="$ctrl.registryID"
             registries="$ctrl.formValues.RegistryOptions"
             on-change="($ctrl.matchRegistry)"

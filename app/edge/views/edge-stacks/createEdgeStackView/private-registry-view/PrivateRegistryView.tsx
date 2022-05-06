@@ -16,6 +16,7 @@ interface Props {
   onSelect: () => void;
   isActive?: boolean;
   clearRegistries: () => void;
+  method: string;
 }
 
 export function PrivateRegistryView({
@@ -27,6 +28,7 @@ export function PrivateRegistryView({
   onSelect,
   isActive,
   clearRegistries,
+  method,
 }: Props) {
   const [checked, setChecked] = useState(isActive);
   const [selected, setSelected] = useState(value);
@@ -80,15 +82,19 @@ export function PrivateRegistryView({
       </div>
       {checked && (
         <>
-          <p className="text-muted small">
-            <i
-              className="fa fa-info-circle blue-icon space-right"
-              aria-hidden="true"
-            />
-            If you make any changes to the image urls in your yaml, please
-            reload or select registry manually
-          </p>
-          <Button onClick={reload}>Reload</Button>
+          {method !== 'repository' && (
+            <>
+              <p className="text-muted small">
+                <i
+                  className="fa fa-info-circle blue-icon space-right"
+                  aria-hidden="true"
+                />
+                If you make any changes to the image urls in your yaml, please
+                reload or select registry manually
+              </p>
+              <Button onClick={reload}>Reload</Button>
+            </>
+          )}
           {!errorMessage && (
             <FormControl label="Registry" inputId="users-selector">
               <Select
