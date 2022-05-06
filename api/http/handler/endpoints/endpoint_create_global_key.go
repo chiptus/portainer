@@ -51,6 +51,7 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 		URL:                  "https://" + r.Host,
 		EndpointCreationType: edgeAgentEnvironment,
 		GroupID:              1,
+		TagIDs:               []portaineree.TagID{},
 		EdgeCheckinInterval:  portaineree.DefaultEdgeAgentCheckinIntervalInSeconds,
 		IsEdgeDevice:         true,
 	}
