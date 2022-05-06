@@ -224,6 +224,7 @@ func CivoProvisionCluster(apiKey, region, clusterName, nodeSize, networkID strin
 		TargetNodesSize:   nodeSize,
 		NetworkID:         networkID,
 		KubernetesVersion: kubernetesVersion,
+		FirewallRule:      "all",
 	}
 
 	cluster, err := client.NewKubernetesClusters(&clusterConfig)
