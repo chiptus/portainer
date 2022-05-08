@@ -2,7 +2,6 @@ package images
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -35,17 +34,20 @@ func (c *DigestClient) Status(ctx context.Context, image string) (Status, error)
 		log.Debugf("image parse failed: %s", image)
 		return Error, err
 	}
+
 	imageString := img.String()
 	s, err := cachedImageStatus(imageString)
 	if err == nil {
 		return s, nil
 	}
+
 	s, err = c.status(img)
 	if err != nil {
 		log.Debugf("error when fetch a certain image status: %v", err)
 		_statusCache.Set(imageString, Error, 0)
 		return Error, err
 	}
+
 	_statusCache.Set(imageString, s, 0)
 	return s, err
 }
@@ -68,6 +70,7 @@ func (c *DigestClient) status(img Image) (Status, error) {
 		log.Errorf("error when fetch remote digest for image: %s, %v", image, err)
 		return Error, err
 	}
+
 	log.Debugf("digest from remote image %s is %s, local is: %s", image, remoteDigest, dg)
 	var imageStatus Status
 	if dg == remoteDigest {
@@ -86,5 +89,6 @@ func cachedImageStatus(imageName string) (Status, error) {
 			return s, nil
 		}
 	}
-	return "", errors.New(fmt.Sprintf("no image status found in cache: %s", imageName))
+
+	return "", errors.Errorf("no image status found in cache: %s", imageName)
 }

@@ -54,12 +54,14 @@ func (c *DigestClient) LocalDigest(img Image) (digest.Digest, error) {
 	if err == nil {
 		return localDigest, nil
 	}
+
 	c.cacheAllLocalDigest()
 	// get from cache again after triggering caching
 	localDigest, err = cachedLocalDigest(img.FullName())
 	if err != nil {
 		return "", err
 	}
+
 	return localDigest, nil
 }
 
@@ -73,10 +75,12 @@ func (c *DigestClient) RemoteDigest(image Image) (digest.Digest, error) {
 			return "", err
 		}
 	}
+
 	rmRef, err := ParseReference(image.String())
 	if err != nil {
 		return "", errors.Wrap(err, "Cannot parse reference")
 	}
+
 	sysCtx := c.sysCtx
 	if c.registryClient != nil {
 		registry, err := c.registryClient.getRegistry(image.Domain)
@@ -105,6 +109,7 @@ func (c *DigestClient) RemoteDigest(image Image) (digest.Digest, error) {
 		log.Debugf("get remote digest err: %v", err)
 		return "", errors.Wrap(err, "Cannot get image digest from HEAD request")
 	}
+
 	return rmDigest, nil
 }
 
@@ -119,6 +124,7 @@ func ParseLocalImage(inspect types.ImageInspect) (*Image, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if IsNoTagImage(inspect) {
 		return &fromRepoDigests, nil
 	}
@@ -128,6 +134,7 @@ func ParseLocalImage(inspect types.ImageInspect) (*Image, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	fromRepoDigests.Tag = fromRepoTags.Tag
 	return &fromRepoDigests, nil
 }
@@ -140,6 +147,7 @@ func (c *DigestClient) cacheAllLocalDigest() {
 		log.Error("run docker images error:", err)
 		return
 	}
+
 	for _, inspect := range inspects {
 		_inspect := types.ImageInspect{
 			ID:          inspect.ID,
@@ -151,6 +159,7 @@ func (c *DigestClient) cacheAllLocalDigest() {
 		if err != nil {
 			continue
 		}
+
 		_imageLocalDigestCache.Set(localImage.FullName(), localImage.Digest, 0)
 	}
 }
@@ -172,5 +181,6 @@ func cachedLocalDigest(imageName string) (digest.Digest, error) {
 			return cachedDigest, nil
 		}
 	}
+
 	return "", errors.Errorf("no local digest found for image: %s", imageName)
 }

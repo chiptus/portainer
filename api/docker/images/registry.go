@@ -1,9 +1,8 @@
 package images
 
 import (
-	"errors"
-	"fmt"
 	"github.com/patrickmn/go-cache"
+	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"time"
@@ -26,10 +25,12 @@ func (c *RegistryClient) getRegistry(domain string) (*portaineree.Registry, erro
 	if err == nil {
 		return registry, nil
 	}
+
 	registries, err := c.registryService.Registries()
 	if err != nil {
 		return nil, err
 	}
+
 	for _, r := range registries {
 		_registriesCache.Set(r.URL, r, 0)
 	}
@@ -45,5 +46,6 @@ func cachedRegistry(domain string) (*portaineree.Registry, error) {
 			return &registry, nil
 		}
 	}
-	return nil, errors.New(fmt.Sprintf("no digest found in cache: %s", domain))
+
+	return nil, errors.Errorf("no registry found in cache: %s", domain)
 }
