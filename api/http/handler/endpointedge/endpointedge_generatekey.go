@@ -19,7 +19,7 @@ type generateKeyResponse struct {
 // @tags edge, endpoints
 // @accept json
 // @produce json
-// @param body body generateKeyPayload true "Generate Key Info"
+// @param body body generateKeyResponse true "Generate Key Info"
 // @success 200
 // @failure 500
 // @failure 400
