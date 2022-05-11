@@ -273,15 +273,17 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			log.Debugf("[message: waiting for portainer agent] [provider: %s] [clusterId: %s] [endpointId: %d]", task.Provider, task.ClusterID, task.EndpointID)
 
 			serviceIP, err = kubeClient.GetPortainerAgentIPOrHostname()
+			if serviceIP == "" {
+				err = fmt.Errorf("have not recieved agent service ip yet")
+			}
+
 			if err != nil {
 				task.Retries++
 				break
 			}
 
-			if serviceIP != "" {
-				log.Debugf("[cloud] [message: portainer agent service is ready] [provider: %s] [clusterId:%s] [serviceIP: %s]\n", task.Provider, task.ClusterID, serviceIP)
-				service.changeState(&task, psUpdatingEndpoint, "Updating environment")
-			}
+			log.Debugf("[cloud] [message: portainer agent service is ready] [provider: %s] [clusterId:%s] [serviceIP: %s]\n", task.Provider, task.ClusterID, serviceIP)
+			service.changeState(&task, psUpdatingEndpoint, "Updating environment")
 
 		case psUpdatingEndpoint:
 			log.Debugf("[message: updating environment] [provider: %s] [clusterId: %s]\n", task.Provider, task.ClusterID)
