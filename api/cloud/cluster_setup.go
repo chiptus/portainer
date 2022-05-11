@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
@@ -195,20 +196,25 @@ func (service *CloudClusterSetupService) setStatus(id portaineree.EndpointID, st
 
 // getKaasCluster gets the kaasCluster object for the task from the associated cloud provider
 func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudProvisioningTask) (cluster *KaasCluster, err error) {
-	settings, err := service.dataStore.Settings().Settings()
+	endpoint, err := service.dataStore.Endpoint().Endpoint(task.EndpointID)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to read settings from the database")
+		return nil, fmt.Errorf("unable to read endpoint from the database")
+	}
+
+	credentials, err := service.dataStore.CloudCredential().GetByID(endpoint.CloudProvider.CredentialID)
+	if err != nil {
+		return nil, errors.Wrap(err, "Unable to read credentials from the database")
 	}
 
 	switch task.Provider {
 	case portaineree.CloudProviderCivo:
-		cluster, err = CivoGetCluster(settings.CloudApiKeys.CivoApiKey, task.ClusterID, task.Region)
+		cluster, err = CivoGetCluster(credentials.Credentials["apiKey"], task.ClusterID, task.Region)
 
 	case portaineree.CloudProviderDigitalOcean:
-		cluster, err = DigitalOceanGetCluster(settings.CloudApiKeys.DigitalOceanToken, task.ClusterID)
+		cluster, err = DigitalOceanGetCluster(credentials.Credentials["apiKey"], task.ClusterID)
 
 	case portaineree.CloudProviderLinode:
-		cluster, err = LinodeGetCluster(settings.CloudApiKeys.LinodeToken, task.ClusterID)
+		cluster, err = LinodeGetCluster(credentials.Credentials["apiKey"], task.ClusterID)
 
 	default:
 		return cluster, fmt.Errorf("%v is not supported", task.Provider)
@@ -347,9 +353,9 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 	log.Info("[cloud] [message: new cluster creation request received]")
 	log.Infof("[cloud] [message: will use agent version: %s]", kubecli.DefaultAgentVersion)
 
-	settings, err := service.dataStore.Settings().Settings()
+	credentials, err := service.dataStore.CloudCredential().GetByID(request.CredentialID)
 	if err != nil {
-		log.Errorf("[cloud] [message: unable to retrieve settings from the database] [error: %v]", err.Error())
+		log.Errorf("[cloud] [message: unable to retrieve credentials from the database] [error: %v]", err.Error())
 		return
 	}
 
@@ -358,19 +364,19 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 
 	switch request.Provider {
 	case portaineree.CloudProviderCivo:
-		clusterID, provErr = CivoProvisionCluster(settings.CloudApiKeys.CivoApiKey, request.Region, request.Name, request.NodeSize, request.NetworkID, request.NodeCount, request.KubernetesVersion)
+		clusterID, provErr = CivoProvisionCluster(credentials.Credentials["apiKey"], request.Region, request.Name, request.NodeSize, request.NetworkID, request.NodeCount, request.KubernetesVersion)
 		if provErr != nil {
 			log.Errorf("[cloud] [message: Civo cluster provisioning failed %v]", provErr)
 		}
 
 	case portaineree.CloudProviderDigitalOcean:
-		clusterID, provErr = DigitalOceanProvisionCluster(settings.CloudApiKeys.DigitalOceanToken, request.Region, request.Name, request.NodeSize, request.NodeCount, request.KubernetesVersion)
+		clusterID, provErr = DigitalOceanProvisionCluster(credentials.Credentials["apiKey"], request.Region, request.Name, request.NodeSize, request.NodeCount, request.KubernetesVersion)
 		if provErr != nil {
 			log.Errorf("[cloud] [message: Digital Ocean cluster provisioning failed %v]", provErr)
 		}
 
 	case portaineree.CloudProviderLinode:
-		clusterID, provErr = LinodeProvisionCluster(settings.CloudApiKeys.LinodeToken, request.Region, request.Name, request.NodeSize, request.NodeCount, request.KubernetesVersion)
+		clusterID, provErr = LinodeProvisionCluster(credentials.Credentials["apiKey"], request.Region, request.Name, request.NodeSize, request.NodeCount, request.KubernetesVersion)
 		if provErr != nil {
 			log.Errorf("[cloud] [message: Linode cluster provisioning failed %v]", provErr)
 		}

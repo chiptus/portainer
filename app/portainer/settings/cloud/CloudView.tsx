@@ -1,14 +1,13 @@
 import { PageHeader } from '@/portainer/components/PageHeader';
 import { react2angular } from '@/react-tools/react2angular';
-import { Widget, WidgetBody, WidgetTitle } from '@/portainer/components/widget';
 
-import { CloudSettingsForm } from './CloudSettingsForm';
+import { CredentialsDatatableContainer } from './CloudCredentialsDatatable/CredentialsDatatableContainer';
 
 export function CloudView() {
   return (
     <>
       <PageHeader
-        title="Cloud settings"
+        title="Cloud Settings"
         breadcrumbs={[
           { label: 'Settings', link: 'portainer.settings' },
           { label: 'Cloud' },
@@ -17,12 +16,7 @@ export function CloudView() {
 
       <div className="row">
         <div className="col-sm-12">
-          <Widget>
-            <WidgetTitle title="API keys" icon="fa-cloud" />
-            <WidgetBody>
-              <CloudSettingsForm reroute showDigitalOcean showLinode showCivo />
-            </WidgetBody>
-          </Widget>
+          <CredentialsDatatableContainer />
         </div>
       </div>
     </>

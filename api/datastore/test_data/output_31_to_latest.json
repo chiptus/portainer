@@ -1,6 +1,7 @@
 {
   "api_key": null,
   "cloud_provisioning": null,
+  "cloudcredentials": null,
   "customtemplates": null,
   "dockerhub": [
     {

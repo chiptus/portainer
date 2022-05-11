@@ -7,6 +7,7 @@ import (
 
 	nomad "github.com/hashicorp/nomad/api"
 	"github.com/portainer/liblicense"
+	"github.com/portainer/portainer-ee/api/database/models"
 	portainer "github.com/portainer/portainer/api"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	v1 "k8s.io/api/core/v1"
@@ -121,6 +122,8 @@ type (
 		// Pointer will hide this field for providers other than civo which do
 		// not use this field.
 		NetworkID *string `json:"NetworkID"`
+		// CredentialID holds an ID of the credential used to create the cluster
+		CredentialID models.CloudCredentialID `json:"CredentialID"`
 	}
 
 	// CLIFlags represents the available flags on the CLI
@@ -955,6 +958,7 @@ type (
 		NetworkID         string
 		NodeCount         int
 		KubernetesVersion string
+		CredentialID      models.CloudCredentialID
 	}
 
 	// CloudProvisioningID represents a cloud provisioning identifier

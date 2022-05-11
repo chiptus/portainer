@@ -9,16 +9,18 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/database/models"
 	portainer "github.com/portainer/portainer/api"
 )
 
 type kaasClusterProvisionPayload struct {
-	Name              string `validate:"required" example:"myDevCluster"`
-	NodeSize          string `validate:"required" example:"g3.small"`
-	NodeCount         int    `validate:"required" example:"3"`
-	Region            string `validate:"required" example:"NYC1"`
-	NetworkID         string `example:"8465fb26-632e-4fa3-bb9b-21c449629026"`
-	KubernetesVersion string `validate:"required" example:"1.23"`
+	Name              string                   `validate:"required" example:"myDevCluster"`
+	NodeSize          string                   `validate:"required" example:"g3.small"`
+	NodeCount         int                      `validate:"required" example:"3"`
+	Region            string                   `validate:"required" example:"NYC1"`
+	NetworkID         string                   `example:"8465fb26-632e-4fa3-bb9b-21c449629026"`
+	KubernetesVersion string                   `validate:"required" example:"1.23"`
+	CredentialID      models.CloudCredentialID `validate:"required" example:"1"`
 }
 
 func (payload *kaasClusterProvisionPayload) Validate(r *http.Request) error {
@@ -36,6 +38,9 @@ func (payload *kaasClusterProvisionPayload) Validate(r *http.Request) error {
 	}
 	if govalidator.IsNull(payload.KubernetesVersion) {
 		return errors.New("Invalid Kubernetes version")
+	}
+	if govalidator.IsNonPositive(float64(payload.CredentialID)) {
+		return errors.New("Invalid Credentials")
 	}
 	return nil
 }
@@ -75,18 +80,8 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 		}
 	}
 
-	var cloudProvider portaineree.CloudProvider
-	switch provider {
-	case portaineree.CloudProviderCivo:
-		cloudProvider.Name = "Civo"
-		cloudProvider.URL = "https://www.civo.com/login"
-	case portaineree.CloudProviderDigitalOcean:
-		cloudProvider.Name = "DigitalOcean"
-		cloudProvider.URL = "https://cloud.digitalocean.com/login"
-	case portaineree.CloudProviderLinode:
-		cloudProvider.Name = "Linode"
-		cloudProvider.URL = "https://login.linode.com/"
-	default:
+	cloudProvider, ok := CloudProvidersMap[CloudProviderShortName(provider)]
+	if !ok {
 		return &httperror.HandlerError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "Unable to provision Kaas cluster",
@@ -98,6 +93,7 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 	cloudProvider.Size = payload.NodeSize
 	cloudProvider.NodeCount = payload.NodeCount
 	cloudProvider.NetworkID = &payload.NetworkID
+	cloudProvider.CredentialID = payload.CredentialID
 
 	endpointID, err := handler.createEndpoint(payload.Name, cloudProvider)
 	if err != nil {
@@ -118,6 +114,7 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 		NetworkID:         payload.NetworkID,
 		NodeCount:         payload.NodeCount,
 		KubernetesVersion: payload.KubernetesVersion,
+		CredentialID:      payload.CredentialID,
 	}
 
 	handler.cloudClusterSetupService.Request(&request)

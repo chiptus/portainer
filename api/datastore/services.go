@@ -7,8 +7,10 @@ import (
 
 	"github.com/portainer/liblicense"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/dataservices/apikeyrepository"
+	"github.com/portainer/portainer-ee/api/dataservices/cloudcredential"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudprovisioning"
 	"github.com/portainer/portainer-ee/api/dataservices/customtemplate"
 	"github.com/portainer/portainer-ee/api/dataservices/dockerhub"
@@ -78,6 +80,7 @@ type Store struct {
 	UserService               *user.Service
 	VersionService            *version.Service
 	WebhookService            *webhook.Service
+	CloudCredentialService    *cloudcredential.Service
 }
 
 func (store *Store) initServices() error {
@@ -261,6 +264,12 @@ func (store *Store) initServices() error {
 	}
 	store.ScheduleService = scheduleService
 
+	cloudCredentialService, err := cloudcredential.NewService(store.connection)
+	if err != nil {
+		return err
+	}
+	store.CloudCredentialService = cloudCredentialService
+
 	return nil
 }
 
@@ -397,6 +406,11 @@ func (store *Store) Webhook() dataservices.WebhookService {
 	return store.WebhookService
 }
 
+// CloudCredential gives access to the Webhook data management layer
+func (store *Store) CloudCredential() dataservices.CloudCredentialService {
+	return store.CloudCredentialService
+}
+
 type storeExport struct {
 	ApiKey             []portaineree.APIKey             `json:"api_key,omitempty"`
 	CustomTemplate     []portaineree.CustomTemplate     `json:"customtemplates,omitempty"`
@@ -426,6 +440,7 @@ type storeExport struct {
 	Version            map[string]string                `json:"version,omitempty"`
 	Webhook            []portaineree.Webhook            `json:"webhooks,omitempty"`
 	Metadata           map[string]interface{}           `json:"metadata,omitempty"`
+	CloudCredential    []models.CloudCredential         `json:"cloudcredential,omitempty"`
 }
 
 func (store *Store) Export(filename string) (err error) {

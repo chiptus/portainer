@@ -1,6 +1,6 @@
 import { object, string, number } from 'yup';
 
-import { KaasProvider } from './kaas.types';
+import { KaasProvider } from '@/portainer/settings/cloud/types';
 
 export function validationSchema(environmentNames: string[]) {
   return object().shape({

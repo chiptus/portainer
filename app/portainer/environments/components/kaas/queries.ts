@@ -4,25 +4,26 @@ import {
   getKaasInfo,
   createKaasEnvironment,
 } from '@/portainer/environments/environment.service/kaas';
-import {
-  error as notifyError,
-  success as notifySuccess,
-} from '@/portainer/services/notifications';
+import { Credential } from '@/portainer/settings/cloud/types';
+import { success as notifySuccess } from '@/portainer/services/notifications';
 
-import { KaasProvider, KaasCreateFormValues } from './kaas.types';
+import { KaasCreateFormValues } from './kaas.types';
 
-export function useCloudProviderOptions(
-  provider: KaasProvider | undefined,
-  enabled: boolean
-) {
-  return useQuery(['cloud', provider, 'info'], () => getKaasInfo(provider), {
-    onError: (err) => {
-      notifyError(`Failed to get ${provider} info`, err as Error, '');
-    },
-    enabled,
-    retry: false,
-    staleTime: 10000,
-  });
+export function useCloudProviderOptions(credential?: Credential) {
+  return useQuery(
+    ['cloud', credential?.provider, 'info', credential?.id],
+    () => getKaasInfo(credential?.provider, credential?.id),
+    {
+      meta: {
+        error: {
+          title: 'Failure',
+          message: `Failed to get ${credential?.provider} info`,
+        },
+      },
+      enabled: !!credential?.provider,
+      staleTime: 10000,
+    }
+  );
 }
 
 export function useCreateKaasCluster() {
@@ -34,12 +35,11 @@ export function useCreateKaasCluster() {
         notifySuccess('Success', 'Environment created');
         return client.invalidateQueries(['environments']);
       },
-      onError: (err) => {
-        notifyError(
-          'Failure',
-          err as Error,
-          'Unable to create KaaS environment'
-        );
+      meta: {
+        error: {
+          title: 'Failure',
+          message: 'Unable to create KaaS environment',
+        },
       },
     }
   );

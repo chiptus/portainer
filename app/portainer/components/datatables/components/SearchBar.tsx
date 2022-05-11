@@ -4,12 +4,14 @@ interface Props {
   value: string;
   placeholder?: string;
   onChange(value: string): void;
+  dataCy?: string;
 }
 
 export function SearchBar({
   value,
   placeholder = 'Search...',
   onChange,
+  dataCy,
 }: Props) {
   return (
     <div className="searchBar">
@@ -20,6 +22,7 @@ export function SearchBar({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        data-cy={dataCy}
       />
     </div>
   );

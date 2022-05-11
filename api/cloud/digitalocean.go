@@ -2,6 +2,7 @@ package cloud
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/fvbommel/sortorder"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/database/models"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -19,13 +21,26 @@ type DigitalOceanInfo struct {
 	KubernetesVersions []string           `json:"KubernetesVersions"`
 }
 
-func (service *CloudClusterInfoService) DigitalOceanGetInfo(apiKey string) (interface{}, error) {
+func (service *CloudClusterInfoService) DigitalOceanGetInfo(credential *models.CloudCredential) (interface{}, error) {
+	apiKey, ok := credential.Credentials["apiKey"]
+	if !ok {
+		return nil, errors.New("missing API key in the credentials")
+	}
+
+	cacheKey := fmt.Sprintf("%s_%d", portaineree.CloudProviderDigitalOcean, credential.ID)
 	service.mu.Lock()
-	info, ok := service.info[portaineree.CloudProviderDigitalOcean]
+	info, ok := service.info[cacheKey]
 	service.mu.Unlock()
 	if !ok {
 		// Live fetch if missing cache.
-		return service.DigitalOceanFetchInfo(apiKey)
+		info, err := service.DigitalOceanFetchInfo(apiKey)
+		if err != nil {
+			return nil, err
+		}
+		// Update the cache
+		service.mu.Lock()
+		service.info[cacheKey] = *info
+		service.mu.Unlock()
 	}
 
 	// Schedule an update to occur after sending back the cached data. This is

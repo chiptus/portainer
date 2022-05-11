@@ -1,10 +1,5 @@
 import { Option } from '@/portainer/components/form-components/Input/Select';
-
-export enum KaasProvider {
-  CIVO = 'civo',
-  LINODE = 'linode',
-  DIGITAL_OCEAN = 'digitalocean',
-}
+import { KaasProvider } from '@/portainer/settings/cloud/types';
 
 export interface CloudApiKeys {
   CivoApiKey: string;
@@ -19,6 +14,7 @@ export interface KaasProvisionAPIPayload {
   KubernetesVersion: string;
   Region: string;
   NetworkID?: string;
+  CredentialID?: number;
 }
 
 export interface KaasCreateFormValues {
@@ -30,6 +26,7 @@ export interface KaasCreateFormValues {
   nodeCount: number;
   region: string;
   networkId?: string;
+  credentialId?: number;
 }
 
 export const KaasCreateFormInitialValues: Pick<
@@ -71,3 +68,5 @@ export interface KaasInfo {
   nodeSizes: Array<Option<string>>;
   regions: Array<Option<string>>;
 }
+
+export type CredentialProviderInfo = Map<string, Array<Option<number>>>;

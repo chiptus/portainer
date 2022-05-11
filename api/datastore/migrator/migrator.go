@@ -1,6 +1,7 @@
 package migrator
 
 import (
+	"github.com/portainer/portainer-ee/api/dataservices/cloudcredential"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudprovisioning"
 	"github.com/portainer/portainer-ee/api/dataservices/fdoprofile"
 
@@ -52,6 +53,7 @@ type (
 		fileService             portainer.FileService
 		authorizationService    *authorization.Service
 		dockerhubService        *dockerhub.Service
+		cloudCredentialService  *cloudcredential.Service
 	}
 
 	// MigratorParameters represents the required parameters to create a new Migrator instance.
@@ -78,6 +80,7 @@ type (
 		FileService              portainer.FileService
 		AuthorizationService     *authorization.Service
 		DockerhubService         *dockerhub.Service
+		CloudCredentialService   *cloudcredential.Service
 	}
 )
 
@@ -104,6 +107,7 @@ func NewMigrator(parameters *MigratorParameters) *Migrator {
 		fileService:             parameters.FileService,
 		authorizationService:    parameters.AuthorizationService,
 		dockerhubService:        parameters.DockerhubService,
+		cloudCredentialService:  parameters.CloudCredentialService,
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/portainer/liblicense"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/database/models"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices/errors"
 )
@@ -53,6 +54,7 @@ type (
 		User() UserService
 		Version() VersionService
 		Webhook() WebhookService
+		CloudCredential() CloudCredentialService
 	}
 
 	// CustomTemplateService represents a service to manage custom templates
@@ -82,6 +84,15 @@ type (
 		Create(task *portaineree.CloudProvisioningTask) error
 		Update(ID portaineree.CloudProvisioningTaskID, task *portaineree.CloudProvisioningTask) error
 		Delete(ID portaineree.CloudProvisioningTaskID) error
+		BucketName() string
+	}
+
+	CloudCredentialService interface {
+		GetAll() ([]models.CloudCredential, error)
+		GetByID(ID models.CloudCredentialID) (*models.CloudCredential, error)
+		Create(cloudcredential *models.CloudCredential) error
+		Update(ID models.CloudCredentialID, cloudcredential *models.CloudCredential) error
+		Delete(ID models.CloudCredentialID) error
 		BucketName() string
 	}
 

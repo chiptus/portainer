@@ -1,6 +1,7 @@
 {
   "api_key": null,
   "cloud_provisioning": null,
+  "cloudcredentials": null,
   "customtemplates": null,
   "dockerhub": null,
   "edge_stack": null,
@@ -1056,6 +1057,7 @@
   "s3backup": null,
   "schedules": null,
   "settings": {
+    "AgentSecret": "",
     "AllowBindMountsForRegularUsers": false,
     "AllowContainerCapabilitiesForRegularUsers": false,
     "AllowDeviceMappingForRegularUsers": false,
@@ -1065,10 +1067,18 @@
     "AllowVolumeBrowserForRegularUsers": false,
     "AuthenticationMethod": 2,
     "BlackListedLabels": [],
-    "DisableTrustOnFirstConnect": false,
+    "CloudApiKeys": {
+      "CivoApiKey": "",
+      "DigitalOceanToken": "",
+      "LinodeToken": ""
+    },
     "DisplayDonationHeader": false,
     "DisplayExternalContributors": false,
     "EdgeAgentCheckinInterval": 5,
+    "EdgeCommandInterval": 0,
+    "EdgePingInterval": 0,
+    "EdgePortainerUrl": "",
+    "EdgeSnapshotInterval": 0,
     "EnableEdgeComputeFeatures": false,
     "EnableHostManagementFeatures": false,
     "EnableTelemetry": false,
@@ -1078,6 +1088,9 @@
     "KubeconfigExpiry": "0",
     "KubectlShellImage": "portainer/kubectl-shell",
     "LDAPSettings": {
+      "AdminAutoPopulate": false,
+      "AdminGroupSearchSettings": null,
+      "AdminGroups": null,
       "AnonymousMode": true,
       "AutoCreateUsers": true,
       "GroupSearchSettings": [
@@ -1095,12 +1108,14 @@
           "UserNameAttribute": ""
         }
       ],
+      "ServerType": 0,
       "StartTLS": false,
       "TLSConfig": {
         "TLS": false,
         "TLSSkipVerify": false
       },
-      "URL": "kota.nz:389"
+      "URL": "kota.nz:389",
+      "URLs": null
     },
     "LogoURL": "",
     "OAuthSettings": {
@@ -1108,17 +1123,26 @@
       "AuthorizationURI": "",
       "ClientID": "",
       "DefaultTeamID": 0,
+      "HideInternalAuth": false,
       "KubeSecretKey": "z7ATMa3QvES4QviuVcxzdvxM5gh6nJuhsY81bBX0OgM=",
       "LogoutURI": "",
       "OAuthAutoCreateUsers": false,
+      "OAuthAutoMapTeamMemberships": false,
       "RedirectURI": "",
       "ResourceURI": "",
       "SSO": true,
       "Scopes": "",
+      "TeamMemberships": {
+        "AdminAutoPopulate": false,
+        "AdminGroupClaimsRegexList": null,
+        "OAuthClaimMappings": null,
+        "OAuthClaimName": ""
+      },
       "UserIdentifier": ""
     },
     "SnapshotInterval": "5m",
     "TemplatesURL": "https://raw.githubusercontent.com/portainer/templates/master/templates-2.0.json",
+    "TrustOnFirstConnect": false,
     "UserSessionTimeout": "8h",
     "fdoConfiguration": {
       "enabled": false,

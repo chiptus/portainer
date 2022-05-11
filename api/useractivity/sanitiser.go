@@ -8,20 +8,20 @@ const (
 )
 
 var blackList = map[string]struct{}{
+	"apikey":                 {},
 	"azureauthenticationkey": {},
 	"binarydata":             {},
 	"clientsecret":           {},
 	"data":                   {},
+	"jsonkeybase64":          {},
 	"newpassword":            {},
 	"password":               {},
 	"repositorypassword":     {},
+	"secretaccesskey":        {},
 	"stringdata":             {},
 	"tlscacertfile":          {},
 	"tlscertfile":            {},
 	"tlskeyfile":             {},
-	"civoapikey":             {},
-	"digitaloceantoken":      {},
-	"linodetoken":            {},
 }
 
 // Sanitise removes possibly sensitive content from the map.

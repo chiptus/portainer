@@ -58,6 +58,7 @@ type settingsUpdatePayload struct {
 	// The snapshot interval for edge agent - used in edge async mode (in seconds)
 	EdgeSnapshotInterval *int `json:"EdgeSnapshotInterval" example:"5"`
 
+	// Depricated
 	CloudApiKeys struct {
 		// CivoApiKey represents an authentication key for the Civo API
 		CivoApiKey *string `example:"DgJ33kwIhnHumQFyc8ihGwWJql9cC8UJDiBhN8YImKqiX"`
@@ -313,18 +314,6 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 
 	if payload.KubectlShellImage != nil {
 		settings.KubectlShellImage = *payload.KubectlShellImage
-	}
-
-	if payload.CloudApiKeys.CivoApiKey != nil {
-		settings.CloudApiKeys.CivoApiKey = *payload.CloudApiKeys.CivoApiKey
-	}
-
-	if payload.CloudApiKeys.DigitalOceanToken != nil {
-		settings.CloudApiKeys.DigitalOceanToken = *payload.CloudApiKeys.DigitalOceanToken
-	}
-
-	if payload.CloudApiKeys.LinodeToken != nil {
-		settings.CloudApiKeys.LinodeToken = *payload.CloudApiKeys.LinodeToken
 	}
 
 	err = handler.DataStore.Settings().UpdateSettings(settings)

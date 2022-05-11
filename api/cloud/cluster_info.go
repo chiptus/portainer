@@ -2,11 +2,14 @@ package cloud
 
 import (
 	"context"
+	"strconv"
 	"sync"
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -42,51 +45,34 @@ func NewCloudInfoService(dataStore dataservices.DataStore, shutdownCtx context.C
 }
 
 func (service *CloudClusterInfoService) tryUpdate() {
-	go func() {
-		err := service.fetch()
-		if err != nil {
-			log.Printf("[ERROR] [cloud] [message: error fetching cloud provider info] [error: %s]", err)
-		}
-	}()
-}
-
-func (service *CloudClusterInfoService) fetch() error {
-	settings, err := service.dataStore.Settings().Settings()
+	credentials, err := service.dataStore.CloudCredential().GetAll()
 	if err != nil {
-		return err
+		logrus.Errorf("while fetching cloud credentials: %v", err)
+		return
 	}
 
-	if key := settings.CloudApiKeys.CivoApiKey; key != "" {
-		civoInfo, err := service.CivoFetchInfo(key)
-		if err != nil {
-			return err
-		}
-		service.mu.Lock()
-		service.info[portaineree.CloudProviderCivo] = *civoInfo
-		service.mu.Unlock()
-	}
+	for _, credential := range credentials {
+		go func(credential models.CloudCredential) {
 
-	if key := settings.CloudApiKeys.LinodeToken; key != "" {
-		linodeInfo, err := service.LinodeFetchInfo(key)
-		if err != nil {
-			return err
-		}
-		service.mu.Lock()
-		service.info[portaineree.CloudProviderLinode] = *linodeInfo
-		service.mu.Unlock()
+			var info interface{}
+			var err error
+			switch expression := credential.Provider; expression {
+			case portaineree.CloudProviderCivo:
+				info, err = service.CivoFetchInfo(credential.Credentials["apiKey"])
+			case portaineree.CloudProviderLinode:
+				info, err = service.LinodeFetchInfo(credential.Credentials["apiKey"])
+			case portaineree.CloudProviderDigitalOcean:
+				info, err = service.DigitalOceanFetchInfo(credential.Credentials["apiKey"])
+			}
+			if err != nil {
+				logrus.Errorf("while fetching info for %s: %v", credential.Provider, err)
+				return
+			}
+			service.mu.Lock()
+			service.info[credential.Provider+"_"+strconv.Itoa(int(credential.ID))] = info
+			service.mu.Unlock()
+		}(credential)
 	}
-
-	if key := settings.CloudApiKeys.DigitalOceanToken; key != "" {
-		digitalOceanInfo, err := service.DigitalOceanFetchInfo(key)
-		if err != nil {
-			return err
-		}
-		service.mu.Lock()
-		service.info[portaineree.CloudProviderDigitalOcean] = *digitalOceanInfo
-		service.mu.Unlock()
-	}
-
-	return nil
 }
 
 // Update schedules an update to the cache.

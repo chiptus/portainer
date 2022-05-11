@@ -13,7 +13,8 @@ import { useSettings } from '@/portainer/settings/queries';
 import { trackEvent } from '@/angulartics.matomo/analytics-services';
 import { Loading } from '@/portainer/components/widget/Loading';
 import { Link } from '@/portainer/components/Link';
-import { CloudSettingsForm } from '@/portainer/settings/cloud/CloudSettingsForm';
+import { useCloudCredentials } from '@/portainer/settings/cloud/cloudSettings.service';
+import { KaasProvider, Credential } from '@/portainer/settings/cloud/types';
 
 import { useEnvironmentList } from '../../queries';
 
@@ -21,8 +22,7 @@ import { useCloudProviderOptions, useCreateKaasCluster } from './queries';
 import {
   KaasCreateFormInitialValues,
   KaasCreateFormValues,
-  KaasProvider,
-  CloudApiKeys,
+  CredentialProviderInfo,
 } from './kaas.types';
 import { validationSchema } from './KaasCreate.form.validation';
 
@@ -64,6 +64,9 @@ const providerTitles = {
   civo: 'Civo',
   linode: 'Linode',
   digitalocean: 'DigitalOcean',
+  googlecloud: 'Google Cloud',
+  aws: 'AWS',
+  azure: 'Azure',
 };
 
 type Props = {
@@ -82,12 +85,12 @@ export function KaasCreateForm({
   const router = useRouter();
 
   const settingsQuery = useSettings();
-  const [availableProviders, setavailableProviders] = useState<KaasProvider[]>(
+  const cloudCredentialsQuery = useCloudCredentials();
+  const [availableProviders, setAvailableProviders] = useState<KaasProvider[]>(
     []
   );
   const cloudOptionsQuery = useCloudProviderOptions(
-    availableProviders[0],
-    !!availableProviders[0]
+    cloudCredentialsQuery?.data?.[0]
   );
 
   const environmentsQuery = useEnvironmentList();
@@ -99,23 +102,18 @@ export function KaasCreateForm({
   const [initialValues, setInitialValues] = useState<
     KaasCreateFormValues | undefined
   >(undefined);
-  const [apiKeyField, setApiKeyField] = useState<string>('');
   // remember some form values
   const [initialName, setinitialName] = useState<string>(
     KaasCreateFormInitialValues.name
   );
-  const [initialType, setInitialType] = useState<KaasProvider>(
-    availableProviders[0] || KaasProvider.CIVO
-  );
+  const initialType = availableProviders[0] || KaasProvider.CIVO;
 
   // when the api keys change, update the available providers
   useEffect(() => {
-    if (settingsQuery.data?.CloudApiKeys) {
-      setavailableProviders(
-        getAvailableProviders(settingsQuery.data.CloudApiKeys)
-      );
+    if (cloudCredentialsQuery?.data?.length) {
+      setAvailableProviders(getAvailableProviders(cloudCredentialsQuery?.data));
     }
-  }, [settingsQuery.data?.CloudApiKeys]);
+  }, [cloudCredentialsQuery?.data]);
 
   // set the initial form values when they are available
   useEffect(() => {
@@ -123,6 +121,9 @@ export function KaasCreateForm({
       // only set the initial values once
       if (!initialValues && cloudOptionsQuery.isSuccess) {
         const defaultRegion = cloudOptionsQuery.data?.regions[0].value;
+        const credential = cloudCredentialsQuery?.data?.find(
+          (credential) => credential.provider === initialType
+        );
         setInitialValues({
           name: initialName,
           nodeCount: KaasCreateFormInitialValues.nodeCount,
@@ -132,6 +133,7 @@ export function KaasCreateForm({
           region: defaultRegion,
           networkId: cloudOptionsQuery.data?.networks?.get(defaultRegion)?.at(0)
             ?.value,
+          credentialId: credential?.id,
         });
       }
     }
@@ -142,6 +144,7 @@ export function KaasCreateForm({
     initialType,
     initialValues,
     availableProviders,
+    cloudCredentialsQuery.data,
   ]);
 
   // handle the submit with current form values
@@ -149,7 +152,11 @@ export function KaasCreateForm({
     if (settingsQuery.data?.EnableTelemetry) {
       sendKaasProvisionAnalytics(formValues);
     }
-    createKaasCluster.mutate(formValues, {
+    const formValuesToSubmit = {
+      ...formValues,
+      credentialId: Number(formValues.credentialId),
+    };
+    createKaasCluster.mutate(formValuesToSubmit, {
       onSuccess: () => {
         if (onUpdate) {
           onUpdate();
@@ -166,38 +173,25 @@ export function KaasCreateForm({
   }
 
   return (
-    <>
-      <Formik<KaasCreateFormValues>
-        initialValues={initialValues || { ...defaultValues, type: initialType }}
-        onSubmit={(values, { resetForm }) =>
-          onSubmit(values).then(() => {
-            resetForm();
-            return null;
-          })
-        }
-        validationSchema={() => validationSchema(environmentNames)}
-        validateOnMount
-        enableReinitialize
-      >
-        <InnerKaasForm
-          showTitle={showTitle}
-          availableProviders={availableProviders}
-          setApiKeyField={(providerName: string) =>
-            setApiKeyField(providerName)
-          }
-          setInitialName={(name: string) => setinitialName(name)}
-          setInitialType={(type: KaasProvider) => setInitialType(type)}
-        />
-      </Formik>
-      {apiKeyField && (
-        <CloudSettingsForm
-          showCivo={apiKeyField === KaasProvider.CIVO}
-          showLinode={apiKeyField === KaasProvider.LINODE}
-          showDigitalOcean={apiKeyField === KaasProvider.DIGITAL_OCEAN}
-          reroute={false}
-        />
-      )}
-    </>
+    <Formik<KaasCreateFormValues>
+      initialValues={initialValues || { ...defaultValues, type: initialType }}
+      onSubmit={(values, { resetForm }) =>
+        onSubmit(values).then(() => {
+          resetForm();
+          return null;
+        })
+      }
+      validationSchema={() => validationSchema(environmentNames)}
+      validateOnMount
+      enableReinitialize
+    >
+      <InnerKaasForm
+        showTitle={showTitle}
+        availableProviders={availableProviders}
+        setInitialName={(name: string) => setinitialName(name)}
+        credentials={cloudCredentialsQuery.data}
+      />
+    </Formik>
   );
 }
 
@@ -207,41 +201,52 @@ export function KaasCreateForm({
 function InnerKaasForm({
   showTitle,
   availableProviders,
-  setApiKeyField,
   setInitialName,
-  setInitialType,
+  credentials,
 }: {
   showTitle?: boolean;
   availableProviders: KaasProvider[];
-  setApiKeyField: (providerName: string) => void;
   setInitialName: (name: string) => void;
-  setInitialType: (type: KaasProvider) => void;
+  credentials?: Credential[];
 }) {
   const { values, setFieldValue, errors, handleSubmit, isSubmitting, isValid } =
     useFormikContext<KaasCreateFormValues>();
-  const { type: provider, region, name } = values;
+  const { type: provider, region, name, credentialId } = values;
+
+  const [defaultCredential, setDefaultCredential] = useState<Credential>();
+  const [providerAvailable, setProviderAvailable] = useState<boolean>(false);
+
+  useEffect(() => {
+    const credential = credentials?.find(
+      (credential) => credential.provider === provider
+    );
+    setDefaultCredential(credential);
+    setProviderAvailable(!!credential);
+    setFieldValue('credentialId', credential?.id);
+  }, [provider, credentials, setFieldValue]);
 
   // cloudOptionsQuery updates then the provider updates
-  const cloudOptionsQuery = useCloudProviderOptions(
-    provider,
-    availableProviders.includes(provider)
+  const cloudOptionsQuery = useCloudProviderOptions(defaultCredential);
+  const [credsDropdown, setCredsDropdown] = useState<CredentialProviderInfo>(
+    new Map()
   );
 
-  const [apiAvailable, setApiAvailable] = useState(
-    availableProviders.includes(provider)
-  );
-
-  // if the available api keys or provider change, update apiAvailable
   useEffect(() => {
-    if (availableProviders.includes(provider)) {
-      setApiAvailable(true);
-      setApiKeyField('');
-    } else {
-      setApiAvailable(false);
-      setApiKeyField(provider);
-    }
-    setInitialType(provider);
-  }, [availableProviders, setApiKeyField, setInitialType, provider]);
+    const credential = credentials?.find(
+      (credential) => credential.id === Number(credentialId)
+    );
+    setDefaultCredential(credential);
+  }, [credentialId, credentials]);
+
+  useEffect(() => {
+    const creds: CredentialProviderInfo = new Map();
+    credentials?.forEach((credential) => {
+      const providerCreds = creds.get(credential.provider) || [];
+      providerCreds.push({ value: credential.id, label: credential.name });
+      creds.set(credential.provider, providerCreds);
+    });
+    setCredsDropdown(creds);
+  }, [credentials]);
 
   // when the options change, set the field values to available options
   useEffect(() => {
@@ -267,11 +272,14 @@ function InnerKaasForm({
   function onProviderChange(provider: KaasProvider) {
     setFieldValue('type', provider);
     if (availableProviders.includes(provider)) {
-      setApiAvailable(true);
-      setApiKeyField('');
+      const credential = credentials?.find(
+        (credential) => credential.provider === provider
+      );
+      setDefaultCredential(credential);
+      setProviderAvailable(true);
     } else {
-      setApiAvailable(false);
-      setApiKeyField(provider);
+      setDefaultCredential(undefined);
+      setProviderAvailable(false);
     }
   }
 
@@ -334,14 +342,14 @@ function InnerKaasForm({
       {/* loading */}
       {cloudOptionsQuery.isLoading && <Loading />}
       {/* helper message if there's no api key */}
-      {!apiAvailable && (
+      {!providerAvailable && (
         <div className="small text-warning" style={{ paddingBottom: '10px' }}>
           <i
             className="fa fa-exclamation-triangle orange-icon"
             aria-hidden="true"
             style={{ marginRight: '5px' }}
           />
-          {`No API key found for ${providerTitles[provider]}. Save your ${providerTitles[provider]} API key below, or in the `}
+          {`No API key found for ${providerTitles[provider]}. Save your ${providerTitles[provider]} API key in the `}
           <Link to="portainer.settings.cloud" title="cloud settings">
             cloud settings
           </Link>
@@ -349,7 +357,7 @@ function InnerKaasForm({
         </div>
       )}
       {/* helper message if the api key is invalid */}
-      {cloudOptionsQuery.isError && apiAvailable && (
+      {cloudOptionsQuery.isError && providerAvailable && (
         <div className="small text-warning" style={{ paddingBottom: '10px' }}>
           <i
             className="fa fa-exclamation-triangle orange-icon"
@@ -364,8 +372,23 @@ function InnerKaasForm({
         </div>
       )}
       {/* create cluster fields */}
-      {apiAvailable && cloudOptionsQuery.data && (
+      {providerAvailable && cloudOptionsQuery.data && (
         <>
+          <FormControl
+            label="Choose Credentials"
+            tooltip="Credentials to create your cluster"
+            inputId="kaas-credential"
+            errors={errors.credentialId}
+          >
+            <Field
+              name="credentialId"
+              as={Select}
+              type="number"
+              id="kaa-credential"
+              data-cy="kaasCreateForm-crdentialSelect"
+              options={credsDropdown?.get(provider) || []}
+            />
+          </FormControl>
           <FormControl
             label="Region"
             tooltip="Region in which to provision the cluster"
@@ -480,20 +503,13 @@ function sendKaasProvisionAnalytics(values: KaasCreateFormValues) {
   });
 }
 
-function getAvailableProviders(CloudApiKeys?: Partial<CloudApiKeys>) {
+function getAvailableProviders(credentials: Credential[]) {
   const providers: KaasProvider[] = [];
-  if (CloudApiKeys) {
-    if (CloudApiKeys.CivoApiKey) {
-      providers.push(KaasProvider.CIVO);
+  credentials.forEach((credential) => {
+    if (providers.indexOf(credential.provider) === -1) {
+      providers.push(credential.provider);
     }
-    if (CloudApiKeys.LinodeToken) {
-      providers.push(KaasProvider.LINODE);
-    }
-    if (CloudApiKeys.DigitalOceanToken) {
-      providers.push(KaasProvider.DIGITAL_OCEAN);
-    }
-    return providers;
-  }
+  });
   return providers;
 }
 

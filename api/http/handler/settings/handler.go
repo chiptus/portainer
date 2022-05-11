@@ -2,7 +2,6 @@ package settings
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
@@ -18,11 +17,6 @@ func hideFields(settings *portaineree.Settings) {
 	settings.LDAPSettings.Password = ""
 	settings.OAuthSettings.ClientSecret = ""
 	settings.OAuthSettings.KubeSecretKey = nil
-
-	cloudKeys := &settings.CloudApiKeys
-	cloudKeys.CivoApiKey = strings.Repeat("*", len(cloudKeys.CivoApiKey))
-	cloudKeys.LinodeToken = strings.Repeat("*", len(cloudKeys.LinodeToken))
-	cloudKeys.DigitalOceanToken = strings.Repeat("*", len(cloudKeys.DigitalOceanToken))
 }
 
 // Handler is the HTTP handler used to handle settings operations.

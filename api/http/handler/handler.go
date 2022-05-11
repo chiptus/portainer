@@ -1,10 +1,12 @@
 package handler
 
 import (
-	"github.com/portainer/portainer-ee/api/http/handler/docker"
-	"github.com/portainer/portainer-ee/api/http/handler/hostmanagement/fdo"
 	"net/http"
 	"strings"
+
+	"github.com/portainer/portainer-ee/api/http/handler/cloudcredentials"
+	"github.com/portainer/portainer-ee/api/http/handler/docker"
+	"github.com/portainer/portainer-ee/api/http/handler/hostmanagement/fdo"
 
 	"github.com/portainer/portainer-ee/api/http/handler/kaas"
 	"github.com/portainer/portainer-ee/api/http/handler/nomad"
@@ -48,46 +50,47 @@ import (
 
 // Handler is a collection of all the service handlers.
 type Handler struct {
-	AuthHandler            *auth.Handler
-	BackupHandler          *backup.Handler
-	CustomTemplatesHandler *customtemplates.Handler
-	DockerHandler          *docker.Handler
-	EdgeGroupsHandler      *edgegroups.Handler
-	EdgeJobsHandler        *edgejobs.Handler
-	EdgeStacksHandler      *edgestacks.Handler
-	EdgeTemplatesHandler   *edgetemplates.Handler
-	EndpointEdgeHandler    *endpointedge.Handler
-	EndpointGroupHandler   *endpointgroups.Handler
-	EndpointHandler        *endpoints.Handler
-	EndpointHelmHandler    *helm.Handler
-	EndpointProxyHandler   *endpointproxy.Handler
-	HelmTemplatesHandler   *helm.Handler
-	KaasHandler            *kaas.Handler
-	KubernetesHandler      *kubernetes.Handler
-	FileHandler            *file.Handler
-	LDAPHandler            *ldap.Handler
-	MOTDHandler            *motd.Handler
-	LicenseHandler         *licenses.Handler
-	OpenAMTHandler         *openamt.Handler
-	FDOHandler             *fdo.Handler
-	RegistryHandler        *registries.Handler
-	ResourceControlHandler *resourcecontrols.Handler
-	RoleHandler            *roles.Handler
-	SettingsHandler        *settings.Handler
-	SSLHandler             *ssl.Handler
-	StackHandler           *stacks.Handler
-	StatusHandler          *status.Handler
-	StorybookHandler       *storybook.Handler
-	TagHandler             *tags.Handler
-	TeamMembershipHandler  *teammemberships.Handler
-	TeamHandler            *teams.Handler
-	TemplatesHandler       *templates.Handler
-	UploadHandler          *upload.Handler
-	UserHandler            *users.Handler
-	UserActivityHandler    *useractivity.Handler
-	WebSocketHandler       *websocket.Handler
-	WebhookHandler         *webhooks.Handler
-	NomadHandler           *nomad.Handler
+	AuthHandler             *auth.Handler
+	BackupHandler           *backup.Handler
+	CustomTemplatesHandler  *customtemplates.Handler
+	DockerHandler           *docker.Handler
+	EdgeGroupsHandler       *edgegroups.Handler
+	EdgeJobsHandler         *edgejobs.Handler
+	EdgeStacksHandler       *edgestacks.Handler
+	EdgeTemplatesHandler    *edgetemplates.Handler
+	EndpointEdgeHandler     *endpointedge.Handler
+	EndpointGroupHandler    *endpointgroups.Handler
+	EndpointHandler         *endpoints.Handler
+	EndpointHelmHandler     *helm.Handler
+	EndpointProxyHandler    *endpointproxy.Handler
+	HelmTemplatesHandler    *helm.Handler
+	KaasHandler             *kaas.Handler
+	KubernetesHandler       *kubernetes.Handler
+	FileHandler             *file.Handler
+	LDAPHandler             *ldap.Handler
+	MOTDHandler             *motd.Handler
+	LicenseHandler          *licenses.Handler
+	OpenAMTHandler          *openamt.Handler
+	FDOHandler              *fdo.Handler
+	RegistryHandler         *registries.Handler
+	ResourceControlHandler  *resourcecontrols.Handler
+	RoleHandler             *roles.Handler
+	SettingsHandler         *settings.Handler
+	SSLHandler              *ssl.Handler
+	StackHandler            *stacks.Handler
+	StatusHandler           *status.Handler
+	StorybookHandler        *storybook.Handler
+	TagHandler              *tags.Handler
+	TeamMembershipHandler   *teammemberships.Handler
+	TeamHandler             *teams.Handler
+	TemplatesHandler        *templates.Handler
+	UploadHandler           *upload.Handler
+	UserHandler             *users.Handler
+	UserActivityHandler     *useractivity.Handler
+	WebSocketHandler        *websocket.Handler
+	WebhookHandler          *webhooks.Handler
+	NomadHandler            *nomad.Handler
+	CloudCredentialsHandler *cloudcredentials.Handler
 }
 
 // @title PortainerEE API
@@ -185,6 +188,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.EdgeTemplatesHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/endpoint_groups"):
 		http.StripPrefix("/api", h.EndpointGroupHandler).ServeHTTP(w, r)
+	case strings.HasPrefix(r.URL.Path, "/api/cloudcredentials"):
+		http.StripPrefix("/api", h.CloudCredentialsHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/cloud"):
 		http.StripPrefix("/api", h.KaasHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/kubernetes"):

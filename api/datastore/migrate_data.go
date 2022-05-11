@@ -57,6 +57,7 @@ func (store *Store) MigrateData() error {
 		VersionService:           store.VersionService,
 		FileService:              store.fileService,
 		DockerhubService:         store.DockerHubService,
+		CloudCredentialService:   store.CloudCredentialService,
 		AuthorizationService:     authorization.NewService(store),
 	}
 
@@ -198,6 +199,7 @@ func (store *Store) rollbackToCE(forceUpdate bool) error {
 		CurrentEdition:           edition,
 		DatabaseVersion:          version,
 		CloudProvisioningService: store.CloudProvisioningService,
+		CloudCredentialService:   store.CloudCredentialService,
 		EndpointGroupService:     store.EndpointGroupService,
 		EndpointService:          store.EndpointService,
 		EndpointRelationService:  store.EndpointRelationService,

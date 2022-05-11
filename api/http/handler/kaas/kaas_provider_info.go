@@ -2,12 +2,14 @@ package kaas
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/database/models"
 )
 
 // @id kaasProviderInfo
@@ -29,18 +31,19 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid user identifier route variable", err}
 	}
 
-	settings, err := handler.DataStore.Settings().Settings()
+	credentialId, _ := request.RetrieveNumericQueryParameter(r, "credentialId", true)
+	if credentialId == 0 {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Missing credential id in the query parameter", err}
+	}
+
+	credential, err := handler.DataStore.CloudCredential().GetByID(models.CloudCredentialID(credentialId))
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve settings from the database", err}
+		return &httperror.HandlerError{http.StatusInternalServerError, fmt.Sprintf("Unable to retrieve %s information", provider), err}
 	}
 
 	switch provider {
 	case portaineree.CloudProviderCivo:
-		if settings.CloudApiKeys.CivoApiKey == "" {
-			return &httperror.HandlerError{http.StatusServiceUnavailable, "Missing Civo API key in cloud settings", errors.New("Missing Civo API key in cloud settings")}
-		}
-
-		civoInfo, err := handler.cloudClusterInfoService.CivoGetInfo(settings.CloudApiKeys.CivoApiKey)
+		civoInfo, err := handler.cloudClusterInfoService.CivoGetInfo(credential)
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve Civo information", err}
 		}
@@ -48,11 +51,8 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 		return response.JSON(w, civoInfo)
 
 	case portaineree.CloudProviderDigitalOcean:
-		if settings.CloudApiKeys.DigitalOceanToken == "" {
-			return &httperror.HandlerError{http.StatusServiceUnavailable, "Missing DigitalOcean API token in cloud settings", errors.New("Missing DigitalOcean API token in cloud settings")}
-		}
 
-		digitalOceanInfo, err := handler.cloudClusterInfoService.DigitalOceanGetInfo(settings.CloudApiKeys.DigitalOceanToken)
+		digitalOceanInfo, err := handler.cloudClusterInfoService.DigitalOceanGetInfo(credential)
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve DigitalOcean information", err}
 		}
@@ -60,11 +60,8 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 		return response.JSON(w, digitalOceanInfo)
 
 	case portaineree.CloudProviderLinode:
-		if settings.CloudApiKeys.LinodeToken == "" {
-			return &httperror.HandlerError{http.StatusServiceUnavailable, "Missing Linode API token in cloud settings", errors.New("Missing Linode API token in cloud settings")}
-		}
 
-		linodeInfo, err := handler.cloudClusterInfoService.LinodeGetInfo(settings.CloudApiKeys.LinodeToken)
+		linodeInfo, err := handler.cloudClusterInfoService.LinodeGetInfo(credential)
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve Linode information", err}
 		}

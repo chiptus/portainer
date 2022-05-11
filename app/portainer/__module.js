@@ -481,6 +481,26 @@ angular
         },
       };
 
+      const addCloudCredential = {
+        name: 'portainer.settings.cloud.addCredential',
+        url: '/credentials/new',
+        views: {
+          'content@': {
+            component: 'addCloudCredentialView',
+          },
+        },
+      };
+
+      const editCloudCredential = {
+        name: 'portainer.settings.cloud.credential',
+        url: '/credentials/:id',
+        views: {
+          'content@': {
+            component: 'editCloudCredentialView',
+          },
+        },
+      };
+
       var settingsEdgeCompute = {
         name: 'portainer.settings.edgeCompute',
         url: '/edge',
@@ -582,6 +602,8 @@ angular
       $stateRegistryProvider.register(settings);
       $stateRegistryProvider.register(settingsAuthentication);
       $stateRegistryProvider.register(settingsCloud);
+      $stateRegistryProvider.register(addCloudCredential);
+      $stateRegistryProvider.register(editCloudCredential);
       $stateRegistryProvider.register(settingsEdgeCompute);
       $stateRegistryProvider.register(tags);
       $stateRegistryProvider.register(users);
