@@ -1,4 +1,4 @@
-import _ from 'lodash-es';
+import _ from 'lodash';
 import clsx from 'clsx';
 import { CellProps, Column } from 'react-table';
 
