@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"fmt"
+	portainer "github.com/portainer/portainer/api"
 	"net/http"
 
 	"github.com/portainer/portainer-ee/api/dataservices"
@@ -35,6 +36,7 @@ func NewManager(
 	kubernetesTokenCacheManager *kubernetes.TokenCacheManager,
 	authService *authorization.Service,
 	userActivityService portaineree.UserActivityService,
+	gitService portainer.GitService,
 ) *Manager {
 	return &Manager{
 		endpointProxies:  cmap.New(),
@@ -48,6 +50,7 @@ func NewManager(
 			kubernetesTokenCacheManager,
 			authService,
 			userActivityService,
+			gitService,
 		),
 	}
 }

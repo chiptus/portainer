@@ -962,8 +962,8 @@ github.com/portainer/libhttp v0.0.0-20211208103139-07a5f798eb3f h1:GMIjRVV2LADpJ
 github.com/portainer/libhttp v0.0.0-20211208103139-07a5f798eb3f/go.mod h1:nyQA6IahOruIvENCcBk54aaUvV2WHFdXkvBjIutg+SY=
 github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91 h1:mtz7L81z05+CfJdB8Cgh9r8k3tSgLXZR++BgA/Y0PpQ=
 github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91/go.mod h1:6OSugUz07QF1WwrMmRNIMhgiq+drVMIZ98UTu5LVZP8=
-github.com/portainer/portainer/api v0.0.0-20220510235811-d9d1d6bfaa93 h1:Rr55lR4vXswC7RsI1xC6HjgkjtxWaoCXMYi6V+43c+I=
-github.com/portainer/portainer/api v0.0.0-20220510235811-d9d1d6bfaa93/go.mod h1:r1NyQuHaO5kXZp7dZACJivjHZILix+/rOhDsSRLEnQ4=
+github.com/portainer/portainer/api v0.0.0-20220510015005-c40446577004 h1:ueyoqIXAGnU98bcGwcumOU/J7becXBcmubvO0qODCMc=
+github.com/portainer/portainer/api v0.0.0-20220510015005-c40446577004/go.mod h1:r1NyQuHaO5kXZp7dZACJivjHZILix+/rOhDsSRLEnQ4=
 github.com/posener/complete v1.1.1/go.mod h1:em0nMJCgc9GFtwrmVmEMR/ZL6WyhyjMBndrE9hABlRI=
 github.com/pquerna/cachecontrol v0.0.0-20171018203845-0dec1b30a021/go.mod h1:prYjPmNq4d1NPVmpShWobRqXY3q7Vp+80DqgxxUrUIA=
 github.com/proglottis/gpgme v0.1.1/go.mod h1:fPbW/EZ0LvwQtH8Hy7eixhp1eF3G39dtx7GUN+0Gmy0=

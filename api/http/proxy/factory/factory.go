@@ -1,6 +1,7 @@
 package factory
 
 import (
+	portainer "github.com/portainer/portainer/api"
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -24,6 +25,7 @@ type (
 		kubernetesTokenCacheManager *kubernetes.TokenCacheManager
 		authService                 *authorization.Service
 		userActivityService         portaineree.UserActivityService
+		gitService                  portainer.GitService
 	}
 )
 
@@ -37,6 +39,7 @@ func NewProxyFactory(
 	kubernetesTokenCacheManager *kubernetes.TokenCacheManager,
 	authService *authorization.Service,
 	userActivityService portaineree.UserActivityService,
+	gitService portainer.GitService,
 ) *ProxyFactory {
 	return &ProxyFactory{
 		dataStore:                   dataStore,
@@ -47,6 +50,7 @@ func NewProxyFactory(
 		kubernetesTokenCacheManager: kubernetesTokenCacheManager,
 		authService:                 authService,
 		userActivityService:         userActivityService,
+		gitService:                  gitService,
 	}
 }
 

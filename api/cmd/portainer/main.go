@@ -688,7 +688,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 
 	userActivityService, userActivityStore := initUserActivity(*flags.Data, *flags.MaxBatchSize, *flags.MaxBatchDelay, *flags.InitialMmapSize, shutdownCtx)
 
-	proxyManager := proxy.NewManager(dataStore, digitalSignatureService, reverseTunnelService, dockerClientFactory, kubernetesClientFactory, kubernetesTokenCacheManager, authorizationService, userActivityService)
+	proxyManager := proxy.NewManager(dataStore, digitalSignatureService, reverseTunnelService, dockerClientFactory, kubernetesClientFactory, kubernetesTokenCacheManager, authorizationService, userActivityService, gitService)
 
 	reverseTunnelService.ProxyManager = proxyManager
 
