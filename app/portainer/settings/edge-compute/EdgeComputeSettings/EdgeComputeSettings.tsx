@@ -9,7 +9,6 @@ import { EdgeAsyncIntervalsForm } from '@/edge/components/EdgeAsyncIntervalsForm
 import { EdgeCheckinIntervalField } from '@/edge/components/EdgeCheckInIntervalField';
 import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
 
-import styles from './EdgeComputeSettings.module.css';
 import { validationSchema } from './EdgeComputeSettings.validation';
 
 export interface FormValues {
@@ -114,12 +113,11 @@ export function EdgeComputeSettings({ settings, onSubmit }: Props) {
                   setFieldValue={setFieldValue}
                 />
 
-                <div className="form-group">
+                <div className="form-group mt-5">
                   <div className="col-sm-12">
                     <LoadingButton
                       disabled={!isValid || !dirty}
                       dataCy="settings-edgeComputeButton"
-                      className={styles.saveButton}
                       isLoading={isSubmitting}
                       loadingText="Saving settings..."
                     >
