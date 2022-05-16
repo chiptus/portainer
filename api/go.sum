@@ -964,6 +964,8 @@ github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91 h1:mtz7L81z05
 github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91/go.mod h1:6OSugUz07QF1WwrMmRNIMhgiq+drVMIZ98UTu5LVZP8=
 github.com/portainer/portainer/api v0.0.0-20220510015005-c40446577004 h1:ueyoqIXAGnU98bcGwcumOU/J7becXBcmubvO0qODCMc=
 github.com/portainer/portainer/api v0.0.0-20220510015005-c40446577004/go.mod h1:r1NyQuHaO5kXZp7dZACJivjHZILix+/rOhDsSRLEnQ4=
+github.com/portainer/portainer/api v0.0.0-20220516072413-0e257c200fe4 h1:UvKwhrHsI3oZA9KwoWkiIItuBkZs7CiEyDfk/hzvnMg=
+github.com/portainer/portainer/api v0.0.0-20220516072413-0e257c200fe4/go.mod h1:r1NyQuHaO5kXZp7dZACJivjHZILix+/rOhDsSRLEnQ4=
 github.com/posener/complete v1.1.1/go.mod h1:em0nMJCgc9GFtwrmVmEMR/ZL6WyhyjMBndrE9hABlRI=
 github.com/pquerna/cachecontrol v0.0.0-20171018203845-0dec1b30a021/go.mod h1:prYjPmNq4d1NPVmpShWobRqXY3q7Vp+80DqgxxUrUIA=
 github.com/proglottis/gpgme v0.1.1/go.mod h1:fPbW/EZ0LvwQtH8Hy7eixhp1eF3G39dtx7GUN+0Gmy0=
