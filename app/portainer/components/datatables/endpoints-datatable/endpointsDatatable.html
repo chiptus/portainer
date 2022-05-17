@@ -81,8 +81,9 @@
                   <input id="select_{{ $index }}" type="checkbox" ng-model="item.Checked" ng-click="$ctrl.selectItem(item, $event)" ng-disabled="item.Status === 3" />
                   <label for="select_{{ $index }}"></label>
                 </span>
-                <a ng-if="item.Status === 1 || item.Status === 4" ui-sref="portainer.endpoints.endpoint({id: item.Id})">{{ item.Name }}</a>
-                <span ng-if="item.Status !== 1 && item.Status !== 4">{{ item.Name }}</span>
+                <!-- show link if not in EndpointStatusProvisioning state -->
+                <a ng-if="item.Status !== 3" ui-sref="portainer.endpoints.endpoint({id: item.Id})">{{ item.Name }}</a>
+                <span ng-if="item.Status === 3">{{ item.Name }}</span>
               </td>
               <td>
                 <span>
