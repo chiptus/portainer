@@ -41,7 +41,7 @@ import { JobsDatatableSettings } from './JobsDatatableSettings';
 
 export interface JobsDatatableProps {
   jobs: Job[];
-  refreshData: () => Promise<void>;
+  refreshData: () => Promise<void> | void;
   isLoading?: boolean;
 }
 

@@ -2,16 +2,12 @@ import { react2angular } from '@/react-tools/react2angular';
 import { DashboardItem } from '@/portainer/components/Dashboard/DashboardItem';
 import { Widget, WidgetTitle, WidgetBody } from '@/portainer/components/widget';
 import { PageHeader } from '@/portainer/components/PageHeader';
-import { useEnvironmentId } from '@/portainer/hooks/useEnvironmentId';
-import { useSnapshot } from '@/nomad/hooks/useSnapshot';
+import { useCurrentEnvironmentSnapshot } from '@/portainer/hooks/useCurrentEnvironmentSnapshot';
 
 import { RunningStatus } from './RunningStatus';
 
 export function DashboardView() {
-  const environmentId = useEnvironmentId();
-  const { query } = useSnapshot(environmentId);
-
-  const snapshot = query.data;
+  const { snapshot, isLoading } = useCurrentEnvironmentSnapshot();
 
   return (
     <>
@@ -19,17 +15,16 @@ export function DashboardView() {
         title="Dashboard"
         breadcrumbs={[{ label: 'Environment summary' }]}
       />
-      {query.isLoading && (
+
+      {isLoading ? (
         <div className="text-center" style={{ marginTop: '30%' }}>
           Connecting to the Edge environment...
           <i className="fa fa-cog fa-spin space-left" />
         </div>
-      )}
-
-      {!query.isLoading && (
+      ) : (
         <div className="row">
           <div className="col-sm-12">
-            {/* title */}
+            {/* cluster info */}
             <Widget>
               <WidgetTitle
                 icon="fa-tachometer-alt"
@@ -54,12 +49,14 @@ export function DashboardView() {
               icon="fa fa-th-list"
               type="Nomad Jobs"
             />
+
             {/* groups */}
             <DashboardItem
               value={snapshot?.GroupCount}
               icon="fa fa-list-alt"
               type="Groups"
             />
+
             {/* tasks */}
             <DashboardItem
               value={snapshot?.TaskCount}
@@ -67,10 +64,12 @@ export function DashboardView() {
               type="Tasks"
             >
               {/* running status of tasks */}
-              <RunningStatus
-                running={snapshot.RunningTaskCount}
-                stopped={snapshot.TaskCount - snapshot.RunningTaskCount}
-              />
+              {snapshot && (
+                <RunningStatus
+                  running={snapshot.RunningTaskCount}
+                  stopped={snapshot.TaskCount - snapshot.RunningTaskCount}
+                />
+              )}
             </DashboardItem>
           </div>
         </div>

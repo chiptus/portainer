@@ -13,7 +13,7 @@ import styles from './PageHeader.module.css';
 interface Props {
   reload?: boolean;
   loading?: boolean;
-  onReload?(): Promise<void>;
+  onReload?(): Promise<void> | void;
   breadcrumbs?: Crumb[];
   title: string;
 }

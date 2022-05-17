@@ -9,7 +9,7 @@ import { deleteJobs } from './delete';
 
 interface Props {
   selectedItems: Job[];
-  refreshData: () => Promise<void>;
+  refreshData: () => Promise<void> | void;
 }
 
 export function JobActions({ selectedItems, refreshData }: Props) {

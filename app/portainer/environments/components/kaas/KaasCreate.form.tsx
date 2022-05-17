@@ -15,8 +15,7 @@ import { Loading } from '@/portainer/components/widget/Loading';
 import { Link } from '@/portainer/components/Link';
 import { useCloudCredentials } from '@/portainer/settings/cloud/cloudSettings.service';
 import { KaasProvider, Credential } from '@/portainer/settings/cloud/types';
-
-import { useEnvironmentList } from '../../queries';
+import { useEnvironmentList } from '@/portainer/environments/queries/useEnvironment';
 
 import { useCloudProviderOptions, useCreateKaasCluster } from './queries';
 import {
