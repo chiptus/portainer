@@ -3,6 +3,7 @@ import { NomadDashboardAngular } from './Dashboard';
 import { JobsViewAngular } from './Jobs';
 import { NomadSidebarAngular } from './NomadSidebar';
 import { NomadEventsAngular } from './Events/Events';
+import { reactModule } from './react';
 
 function config($stateRegistryProvider) {
   'use strict';
@@ -79,7 +80,7 @@ function config($stateRegistryProvider) {
 }
 
 export const nomadModule = angular
-  .module('portainer.nomad', ['portainer.app'])
+  .module('portainer.nomad', ['portainer.app', reactModule])
   .config(['$stateRegistryProvider', config])
   .component('nomadDashboard', NomadDashboardAngular)
   .component('nomadSidebar', NomadSidebarAngular)

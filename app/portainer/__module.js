@@ -12,6 +12,7 @@ import teamsModule from './teams';
 import environmentsModule from './environments';
 import homeModule from './home';
 import { accessControlModule } from './access-control';
+import { reactModule } from './react';
 
 async function initAuthentication(authManager, Authentication, $rootScope, $state) {
   authManager.checkAuthOnRefresh();
@@ -44,6 +45,7 @@ angular
     servicesModule,
     environmentsModule,
     accessControlModule,
+    reactModule,
   ])
   .config([
     '$stateRegistryProvider',
