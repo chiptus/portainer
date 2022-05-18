@@ -94,8 +94,13 @@ func (manager *ComposeStackManager) Pull(ctx context.Context, stack *portaineree
 		defer proxy.Close()
 	}
 
+	envFilePath, err := createEnvFile(stack)
+	if err != nil {
+		return errors.Wrap(err, "failed to create env file")
+	}
+
 	filePaths := stackutils.GetStackFilePaths(stack)
-	err = manager.deployer.Pull(ctx, stack.ProjectPath, url, stack.Name, filePaths)
+	err = manager.deployer.Pull(ctx, stack.ProjectPath, url, stack.Name, filePaths, envFilePath)
 	return errors.Wrap(err, "failed to pull images of the stack")
 }
 

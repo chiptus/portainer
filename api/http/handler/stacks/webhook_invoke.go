@@ -8,6 +8,7 @@ import (
 
 	"github.com/portainer/libhttp/response"
 
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/stacks"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 
@@ -32,6 +33,7 @@ func (handler *Handler) webhookInvoke(w http.ResponseWriter, r *http.Request) *h
 	}
 
 	stack, err := handler.DataStore.Stack().StackByWebhookID(webhookID.String())
+
 	if err != nil {
 		statusCode := http.StatusInternalServerError
 		if err == bolterrors.ErrObjectNotFound {
@@ -40,7 +42,15 @@ func (handler *Handler) webhookInvoke(w http.ResponseWriter, r *http.Request) *h
 		return &httperror.HandlerError{StatusCode: statusCode, Message: "Unable to find the stack by webhook ID", Err: err}
 	}
 
-	if err = stacks.RedeployWhenChanged(stack.ID, handler.StackDeployer, handler.DataStore, handler.GitService, handler.userActivityService); err != nil {
+	envs := []portaineree.Pair{}
+	for key, value := range r.URL.Query() {
+		envs = append(envs, portaineree.Pair{
+			Name:  key,
+			Value: value[len(value)-1],
+		})
+	}
+
+	if err = stacks.RedeployWhenChanged(stack.ID, handler.StackDeployer, handler.DataStore, handler.GitService, handler.userActivityService, envs); err != nil {
 		if _, ok := err.(*stacks.StackAuthorMissingErr); ok {
 			return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: "Autoupdate for the stack isn't available", Err: err}
 		}

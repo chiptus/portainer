@@ -53,13 +53,38 @@ func updateAllowed(endpoint *portaineree.Endpoint, clock Clock) (bool, error) {
 }
 
 // RedeployWhenChanged pull and redeploy the stack when  git repo changed
-func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, datastore dataservices.DataStore, gitService portaineree.GitService, activityService portaineree.UserActivityService) error {
+func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, datastore dataservices.DataStore, gitService portaineree.GitService, activityService portaineree.UserActivityService, additionalEnv []portaineree.Pair) error {
 	logger := log.WithFields(log.Fields{"stackID": stackID})
 	logger.Debug("redeploying stack")
 
 	stack, err := datastore.Stack().Stack(stackID)
+
 	if err != nil {
 		return errors.WithMessagef(err, "failed to get the stack %v", stackID)
+	}
+
+	additionalEnvUpserted := false
+	for _, env := range additionalEnv {
+		exist := false
+		for index, stackEnv := range stack.Env {
+			if env.Name == stackEnv.Name {
+				stack.Env[index] = portaineree.Pair{
+					Name:  env.Name,
+					Value: env.Value,
+				}
+				exist = true
+				additionalEnvUpserted = true
+				break
+			}
+		}
+
+		if !exist {
+			stack.Env = append(stack.Env, portaineree.Pair{
+				Name:  env.Name,
+				Value: env.Value,
+			})
+			additionalEnvUpserted = true
+		}
 	}
 
 	endpoint, err := datastore.Endpoint().Endpoint(stack.EndpointID)
@@ -124,7 +149,7 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 		}
 	}
 	forcePullImage := stack.AutoUpdate == nil || stack.AutoUpdate.ForcePullImage
-	if !forcePullImage && !gitCommitChangedOrForceUpdate {
+	if !forcePullImage && !gitCommitChangedOrForceUpdate && !additionalEnvUpserted {
 		return nil
 	}
 
