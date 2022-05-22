@@ -58,6 +58,10 @@ func (handler *Handler) userUpdate(w http.ResponseWriter, r *http.Request) *http
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid user identifier route variable", err}
 	}
 
+	if handler.demoService.IsDemoUser(portaineree.UserID(userID)) {
+		return &httperror.HandlerError{http.StatusForbidden, httperrors.ErrNotAvailableInDemo.Error(), httperrors.ErrNotAvailableInDemo}
+	}
+
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}

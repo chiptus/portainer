@@ -23,5 +23,11 @@ func (handler *Handler) licensesList(w http.ResponseWriter, r *http.Request) *ht
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve Licenses from the database", err}
 	}
 
+	if handler.demoService.IsDemo() {
+		for i := range licenses {
+			licenses[i].LicenseKey = "This feature is not available in the demo version of Portainer"
+		}
+	}
+
 	return response.JSON(w, licenses)
 }

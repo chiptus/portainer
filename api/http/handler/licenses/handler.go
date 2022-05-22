@@ -7,6 +7,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 )
@@ -16,13 +17,15 @@ type Handler struct {
 	*mux.Router
 	LicenseService      portaineree.LicenseService
 	userActivityService portaineree.UserActivityService
+	demoService         *demo.Service
 }
 
 // NewHandler creates a handler to manage Edge job operations.
-func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService, demoService *demo.Service) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		userActivityService: userActivityService,
+		demoService:         demoService,
 	}
 
 	adminRouter := h.Router.NewRoute().Subrouter()

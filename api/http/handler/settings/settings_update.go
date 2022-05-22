@@ -58,7 +58,7 @@ type settingsUpdatePayload struct {
 	// The snapshot interval for edge agent - used in edge async mode (in seconds)
 	EdgeSnapshotInterval *int `json:"EdgeSnapshotInterval" example:"5"`
 
-	// Depricated
+	// Deprecated
 	CloudApiKeys struct {
 		// CivoApiKey represents an authentication key for the Civo API
 		CivoApiKey *string `example:"DgJ33kwIhnHumQFyc8ihGwWJql9cC8UJDiBhN8YImKqiX"`
@@ -144,6 +144,11 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 	settings, err := handler.DataStore.Settings().Settings()
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve the settings from the database", Err: err}
+	}
+
+	if handler.demoService.IsDemo() {
+		payload.EnableTelemetry = nil
+		payload.LogoURL = nil
 	}
 
 	if payload.AuthenticationMethod != nil {

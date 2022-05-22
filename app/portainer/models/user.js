@@ -12,7 +12,6 @@ export function UserViewModel(data) {
   }
   this.AuthenticationMethod = data.AuthenticationMethod;
   this.Checked = false;
-  this.EndpointAuthorizations = data.EndpointAuthorizations;
 }
 
 export function UserTokenModel(data) {

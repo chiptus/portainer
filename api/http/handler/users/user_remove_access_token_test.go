@@ -10,6 +10,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/apikey"
 	"github.com/portainer/portainer-ee/api/datastore"
+	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
@@ -39,7 +40,7 @@ func Test_userRemoveAccessToken(t *testing.T) {
 	requestBouncer := security.NewRequestBouncer(store, testhelpers.Licenseservice{}, jwtService, apiKeyService, nil)
 	rateLimiter := security.NewRateLimiter(10, 1*time.Second, 1*time.Hour)
 
-	h := NewHandler(requestBouncer, rateLimiter, apiKeyService, testhelpers.NewUserActivityService())
+	h := NewHandler(requestBouncer, rateLimiter, apiKeyService, testhelpers.NewUserActivityService(), &demo.Service{})
 	h.DataStore = store
 
 	// generate standard and admin user tokens

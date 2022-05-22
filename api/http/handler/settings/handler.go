@@ -7,6 +7,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
@@ -29,13 +30,15 @@ type Handler struct {
 	LDAPService          portaineree.LDAPService
 	SnapshotService      portaineree.SnapshotService
 	userActivityService  portaineree.UserActivityService
+	demoService          *demo.Service
 }
 
 // NewHandler creates a handler to manage settings operations.
-func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService, demoService *demo.Service) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		userActivityService: userActivityService,
+		demoService:         demoService,
 	}
 
 	adminRouter := h.NewRoute().Subrouter()

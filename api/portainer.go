@@ -137,6 +137,7 @@ type (
 		Assets                    *string
 		Data                      *string
 		FeatureFlags              *[]Pair
+		DemoEnvironment           *bool
 		EnableEdgeComputeFeatures *bool
 		EndpointURL               *string
 		Labels                    *[]Pair

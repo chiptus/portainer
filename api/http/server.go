@@ -20,6 +20,7 @@ import (
 	"github.com/portainer/portainer-ee/api/cloud"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudcredential"
+	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/http/handler"
 	"github.com/portainer/portainer-ee/api/http/handler/auth"
@@ -73,7 +74,7 @@ import (
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	"github.com/portainer/portainer-ee/api/nomad/clientFactory"
 	"github.com/portainer/portainer-ee/api/scheduler"
-	stackdeloyer "github.com/portainer/portainer-ee/api/stacks"
+	stackdeployer "github.com/portainer/portainer-ee/api/stacks"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
 )
@@ -117,10 +118,11 @@ type Server struct {
 	Scheduler                   *scheduler.Scheduler
 	ShutdownCtx                 context.Context
 	ShutdownTrigger             context.CancelFunc
-	StackDeployer               stackdeloyer.StackDeployer
 	CloudClusterSetupService    *cloud.CloudClusterSetupService
 	CloudClusterInfoService     *cloud.CloudClusterInfoService
 	CloudCredentialService      *cloudcredential.Service
+	StackDeployer               stackdeployer.StackDeployer
+	DemoService                 *demo.Service
 }
 
 // Start starts the HTTP server
@@ -151,7 +153,17 @@ func (server *Server) Start() error {
 	if err := backupScheduler.Start(); err != nil {
 		return errors.Wrap(err, "failed to start backup scheduler")
 	}
-	var backupHandler = backup.NewHandler(requestBouncer, server.DataStore, server.UserActivityStore, offlineGate, server.FileService.GetDatastorePath(), backupScheduler, server.ShutdownTrigger, adminMonitor)
+	var backupHandler = backup.NewHandler(
+		requestBouncer,
+		server.DataStore,
+		server.UserActivityStore,
+		offlineGate,
+		server.FileService.GetDatastorePath(),
+		backupScheduler,
+		server.ShutdownTrigger,
+		adminMonitor,
+		server.DemoService,
+	)
 
 	var roleHandler = roles.NewHandler(requestBouncer)
 	roleHandler.DataStore = server.DataStore
@@ -177,7 +189,7 @@ func (server *Server) Start() error {
 	var edgeTemplatesHandler = edgetemplates.NewHandler(requestBouncer)
 	edgeTemplatesHandler.DataStore = server.DataStore
 
-	var endpointHandler = endpoints.NewHandler(requestBouncer, server.UserActivityService, server.DataStore, &server.EdgeService)
+	var endpointHandler = endpoints.NewHandler(requestBouncer, server.UserActivityService, server.DataStore, &server.EdgeService, server.DemoService)
 	endpointHandler.AuthorizationService = server.AuthorizationService
 	endpointHandler.FileService = server.FileService
 	endpointHandler.ProxyManager = server.ProxyManager
@@ -207,7 +219,7 @@ func (server *Server) Start() error {
 
 	var dockerHandler = dockerhandler.NewHandler(requestBouncer, server.AuthorizationService, server.DataStore, server.DockerClientFactory)
 
-	var licenseHandler = licenses.NewHandler(requestBouncer, server.UserActivityService)
+	var licenseHandler = licenses.NewHandler(requestBouncer, server.UserActivityService, server.DemoService)
 	licenseHandler.LicenseService = server.LicenseService
 
 	var fileHandler = file.NewHandler(filepath.Join(server.AssetsPath, "public"), adminMonitor.WasInstanceDisabled)
@@ -231,7 +243,7 @@ func (server *Server) Start() error {
 
 	var resourceControlHandler = resourcecontrols.NewHandler(requestBouncer, server.DataStore, server.UserActivityService)
 
-	var settingsHandler = settings.NewHandler(requestBouncer, server.UserActivityService)
+	var settingsHandler = settings.NewHandler(requestBouncer, server.UserActivityService, server.DemoService)
 	settingsHandler.AuthorizationService = server.AuthorizationService
 	settingsHandler.DataStore = server.DataStore
 	settingsHandler.FileService = server.FileService
@@ -261,7 +273,7 @@ func (server *Server) Start() error {
 	stackHandler.ComposeStackManager = server.ComposeStackManager
 	stackHandler.StackDeployer = server.StackDeployer
 
-	var statusHandler = status.NewHandler(requestBouncer, server.Status)
+	var statusHandler = status.NewHandler(requestBouncer, server.Status, server.DemoService)
 	statusHandler.DataStore = server.DataStore
 
 	var storybookHandler = storybook.NewHandler(server.AssetsPath)
@@ -286,7 +298,7 @@ func (server *Server) Start() error {
 	var uploadHandler = upload.NewHandler(requestBouncer, server.UserActivityService)
 	uploadHandler.FileService = server.FileService
 
-	var userHandler = users.NewHandler(requestBouncer, rateLimiter, server.APIKeyService, server.UserActivityService)
+	var userHandler = users.NewHandler(requestBouncer, rateLimiter, server.APIKeyService, server.UserActivityService, server.DemoService)
 	userHandler.AuthorizationService = server.AuthorizationService
 	userHandler.DataStore = server.DataStore
 	userHandler.CryptoService = server.CryptoService

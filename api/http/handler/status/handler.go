@@ -7,21 +7,24 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // Handler is the HTTP handler used to handle status operations.
 type Handler struct {
 	*mux.Router
-	Status    *portaineree.Status
-	DataStore dataservices.DataStore
+	Status      *portaineree.Status
+	DataStore   dataservices.DataStore
+	demoService *demo.Service
 }
 
 // NewHandler creates a handler to manage status operations.
-func NewHandler(bouncer *security.RequestBouncer, status *portaineree.Status) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, status *portaineree.Status, demoService *demo.Service) *Handler {
 	h := &Handler{
-		Router: mux.NewRouter(),
-		Status: status,
+		Router:      mux.NewRouter(),
+		Status:      status,
+		demoService: demoService,
 	}
 	h.Handle("/status",
 		bouncer.PublicAccess(httperror.LoggerHandler(h.statusInspect))).Methods(http.MethodGet)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"strconv"
@@ -21,14 +22,13 @@ import (
 	"github.com/portainer/portainer-ee/api/database/boltdb"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/datastore"
+	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/exec"
 	"github.com/portainer/portainer-ee/api/http"
 	"github.com/portainer/portainer-ee/api/http/client"
 	"github.com/portainer/portainer-ee/api/http/proxy"
 	kubeproxy "github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
-	"github.com/sirupsen/logrus"
-
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/snapshot"
@@ -49,6 +49,7 @@ import (
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/git"
 	"github.com/portainer/portainer/api/hostmanagement/openamt"
+	"github.com/sirupsen/logrus"
 )
 
 func initCLI() *portaineree.CLIFlags {
@@ -725,6 +726,14 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 
 	applicationStatus := initStatus(instanceID)
 
+	demoService := demo.NewService()
+	if *flags.DemoEnvironment {
+		err := demoService.Init(dataStore, cryptoService)
+		if err != nil {
+			log.Fatalf("failed initializing demo environment: %v", err)
+		}
+	}
+
 	err = initEndpoint(flags, dataStore, snapshotService)
 	if err != nil {
 		logrus.Fatalf("failed initializing environment: %s", err)
@@ -772,9 +781,11 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		logrus.Fatalf("failed starting tunnel server: %s", err)
 	}
 
-	err = licenseService.Start()
-	if err != nil {
-		logrus.Fatalf("failed starting license service: %s", err)
+	if !*flags.DemoEnvironment {
+		err = licenseService.Start()
+		if err != nil {
+			logrus.Fatalf("failed starting license service: %s", err)
+		}
 	}
 
 	scheduler := scheduler.NewScheduler(shutdownCtx)
@@ -826,6 +837,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		StackDeployer:               stackDeployer,
 		CloudClusterSetupService:    cloudClusterSetupService,
 		CloudClusterInfoService:     cloudClusterInfoService,
+		DemoService:                 demoService,
 	}
 }
 

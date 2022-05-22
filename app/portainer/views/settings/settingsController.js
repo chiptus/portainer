@@ -19,6 +19,7 @@ angular.module('portainer.app').controller('SettingsController', [
     ];
 
     $scope.state = {
+      isDemo: false,
       actionInProgress: false,
       availableKubeconfigExpiryOptions: [
         {
@@ -62,6 +63,18 @@ angular.module('portainer.app').controller('SettingsController', [
       region: '',
       bucketName: '',
       backupFormType: $scope.BACKUP_FORM_TYPES.FILE,
+    };
+
+    $scope.onToggleEnableTelemetry = function onToggleEnableTelemetry(checked) {
+      $scope.$evalAsync(() => {
+        $scope.formValues.enableTelemetry = checked;
+      });
+    };
+
+    $scope.onToggleCustomLogo = function onToggleCustomLogo(checked) {
+      $scope.$evalAsync(() => {
+        $scope.formValues.customLogo = checked;
+      });
     };
 
     $scope.onToggleAutoBackups = function onToggleAutoBackups(checked) {
@@ -190,6 +203,9 @@ angular.module('portainer.app').controller('SettingsController', [
     }
 
     function initView() {
+      const state = StateManager.getState();
+      $scope.state.isDemo = state.application.demoEnvironment.enabled;
+
       BackupService.getS3Settings()
         .then(function success(data) {
           $scope.formValues.passwordS3 = data.Password;

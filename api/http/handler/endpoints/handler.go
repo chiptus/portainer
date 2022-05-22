@@ -4,13 +4,13 @@ import (
 	"net/http"
 	"time"
 
-	werrors "github.com/pkg/errors"
-	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/portainer/portainer-ee/api/docker"
-
 	"github.com/gorilla/mux"
+	werrors "github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/demo"
+	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/proxy"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
@@ -44,6 +44,7 @@ type Handler struct {
 	requestBouncer       requestBouncer
 	AuthorizationService *authorization.Service
 	dataStore            dataservices.DataStore
+	demoService          *demo.Service
 	FileService          portainer.FileService
 	ProxyManager         *proxy.Manager
 	ReverseTunnelService portaineree.ReverseTunnelService
@@ -58,13 +59,14 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.
-func NewHandler(bouncer requestBouncer, userActivityService portaineree.UserActivityService, dataStore dataservices.DataStore, edgeService *edge.Service) *Handler {
+func NewHandler(bouncer requestBouncer, userActivityService portaineree.UserActivityService, dataStore dataservices.DataStore, edgeService *edge.Service, demoService *demo.Service) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		requestBouncer:      bouncer,
 		userActivityService: userActivityService,
 		dataStore:           dataStore,
 		edgeService:         edgeService,
+		demoService:         demoService,
 	}
 
 	logEndpointActivity := useractivity.LogUserActivityWithContext(h.userActivityService, middlewares.FindInPath(dataStore.Endpoint(), "id"))

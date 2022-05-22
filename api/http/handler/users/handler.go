@@ -10,6 +10,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/apikey"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
@@ -38,15 +39,17 @@ type Handler struct {
 	DataStore            dataservices.DataStore
 	K8sClientFactory     *cli.ClientFactory
 	userActivityService  portaineree.UserActivityService
+	demoService          *demo.Service
 }
 
 // NewHandler creates a handler to manage user operations.
-func NewHandler(bouncer *security.RequestBouncer, rateLimiter *security.RateLimiter, apiKeyService apikey.APIKeyService, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, rateLimiter *security.RateLimiter, apiKeyService apikey.APIKeyService, userActivityService portaineree.UserActivityService, demoService *demo.Service) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		bouncer:             bouncer,
 		apiKeyService:       apiKeyService,
 		userActivityService: userActivityService,
+		demoService:         demoService,
 	}
 
 	adminRouter := h.NewRoute().Subrouter()

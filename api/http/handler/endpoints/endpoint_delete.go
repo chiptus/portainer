@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer/api/dataservices/errors"
 )
 
@@ -29,6 +30,10 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
+	}
+
+	if handler.demoService.IsDemoEnvironment(portaineree.EndpointID(endpointID)) {
+		return &httperror.HandlerError{http.StatusForbidden, httperrors.ErrNotAvailableInDemo.Error(), httperrors.ErrNotAvailableInDemo}
 	}
 
 	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))

@@ -10,6 +10,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
+	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/http/security"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
@@ -28,7 +29,7 @@ func Test_endpointUpdate(t *testing.T) {
 	is.NoError(err, "error creating a user")
 
 	bouncer := helper.NewTestRequestBouncer()
-	h := NewHandler(bouncer, helper.NewUserActivityService(), store, nil)
+	h := NewHandler(bouncer, helper.NewUserActivityService(), store, nil, &demo.Service{})
 
 	t.Run("Test valid autoUpdate settings", func(t *testing.T) {
 		start := "00:00"

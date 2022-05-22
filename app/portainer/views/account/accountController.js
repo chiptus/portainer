@@ -8,7 +8,8 @@ angular.module('portainer.app').controller('AccountController', [
   'Notifications',
   'SettingsService',
   'ModalService',
-  function ($scope, $state, Authentication, UserService, Notifications, SettingsService, ModalService) {
+  'StateManager',
+  function ($scope, $state, Authentication, UserService, Notifications, SettingsService, ModalService, StateManager) {
     $scope.formValues = {
       currentPassword: '',
       newPassword: '',
@@ -76,8 +77,15 @@ angular.module('portainer.app').controller('AccountController', [
     };
 
     function initView() {
-      $scope.userID = Authentication.getUserDetails().ID;
-      $scope.forceChangePassword = Authentication.getUserDetails().forceChangePassword;
+      const state = StateManager.getState();
+      const userDetails = Authentication.getUserDetails();
+      $scope.userID = userDetails.ID;
+      $scope.forceChangePassword = userDetails.forceChangePassword;
+
+      if (state.application.demoEnvironment.enabled) {
+        $scope.isDemoUser = state.application.demoEnvironment.users.includes($scope.userID);
+      }
+
       SettingsService.publicSettings()
         .then(function success(data) {
           $scope.AuthenticationMethod = data.AuthenticationMethod;

@@ -39,6 +39,7 @@ func (*Service) ParseFlags(version string) (*portaineree.CLIFlags, error) {
 		TunnelPort:                kingpin.Flag("tunnel-port", "Port to serve the tunnel server").Default(defaultTunnelServerPort).String(),
 		Assets:                    kingpin.Flag("assets", "Path to the assets").Default(defaultAssetsDirectory).Short('a').String(),
 		Data:                      kingpin.Flag("data", "Path to the folder where the data is stored").Default(defaultDataDirectory).Short('d').String(),
+		DemoEnvironment:           kingpin.Flag("demo", "Demo environment").Bool(),
 		EndpointURL:               kingpin.Flag("host", "Environment URL").Short('H').String(),
 		FeatureFlags:              BoolPairs(kingpin.Flag("feat", "List of feature flags").Hidden()),
 		EnableEdgeComputeFeatures: kingpin.Flag("edge-compute", "Enable Edge Compute features").Bool(),

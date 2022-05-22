@@ -10,6 +10,8 @@ import (
 	"github.com/portainer/portainer-ee/api/adminmonitor"
 	operations "github.com/portainer/portainer-ee/api/backup"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/demo"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/offlinegate"
 	"github.com/portainer/portainer-ee/api/http/security"
 )
@@ -28,7 +30,17 @@ type Handler struct {
 }
 
 // NewHandler creates an new instance of backup handler
-func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, userActivityStore portaineree.UserActivityStore, gate *offlinegate.OfflineGate, filestorePath string, backupScheduler *operations.BackupScheduler, shutdownTrigger context.CancelFunc, adminMonitor *adminmonitor.Monitor) *Handler {
+func NewHandler(
+	bouncer *security.RequestBouncer,
+	dataStore dataservices.DataStore,
+	userActivityStore portaineree.UserActivityStore,
+	gate *offlinegate.OfflineGate,
+	filestorePath string,
+	backupScheduler *operations.BackupScheduler,
+	shutdownTrigger context.CancelFunc,
+	adminMonitor *adminmonitor.Monitor,
+	demoService *demo.Service,
+) *Handler {
 	h := &Handler{
 		Router:            mux.NewRouter(),
 		bouncer:           bouncer,
@@ -41,13 +53,16 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 		adminMonitor:      adminMonitor,
 	}
 
+	demoRestrictedRouter := h.NewRoute().Subrouter()
+	demoRestrictedRouter.Use(middlewares.RestrictDemoEnv(demoService.IsDemo))
+
 	h.Handle("/backup/s3/settings", bouncer.RestrictedAccess(adminAccess(httperror.LoggerHandler(h.backupSettingsFetch)))).Methods(http.MethodGet)
-	h.Handle("/backup/s3/settings", bouncer.RestrictedAccess(adminAccess(httperror.LoggerHandler(h.updateSettings)))).Methods(http.MethodPost)
+	demoRestrictedRouter.Handle("/backup/s3/settings", bouncer.RestrictedAccess(adminAccess(httperror.LoggerHandler(h.updateSettings)))).Methods(http.MethodPost)
 	h.Handle("/backup/s3/status", bouncer.PublicAccess(httperror.LoggerHandler(h.backupStatusFetch))).Methods(http.MethodGet)
-	h.Handle("/backup/s3/execute", bouncer.RestrictedAccess(adminAccess(httperror.LoggerHandler(h.backupToS3)))).Methods(http.MethodPost)
-	h.Handle("/backup/s3/restore", bouncer.PublicAccess(httperror.LoggerHandler(h.restoreFromS3))).Methods(http.MethodPost)
-	h.Handle("/backup", bouncer.RestrictedAccess(adminAccess(httperror.LoggerHandler(h.backup)))).Methods(http.MethodPost)
-	h.Handle("/restore", bouncer.PublicAccess(httperror.LoggerHandler(h.restore))).Methods(http.MethodPost)
+	demoRestrictedRouter.Handle("/backup/s3/execute", bouncer.RestrictedAccess(adminAccess(httperror.LoggerHandler(h.backupToS3)))).Methods(http.MethodPost)
+	demoRestrictedRouter.Handle("/backup/s3/restore", bouncer.PublicAccess(httperror.LoggerHandler(h.restoreFromS3))).Methods(http.MethodPost)
+	demoRestrictedRouter.Handle("/backup", bouncer.RestrictedAccess(adminAccess(httperror.LoggerHandler(h.backup)))).Methods(http.MethodPost)
+	demoRestrictedRouter.Handle("/restore", bouncer.PublicAccess(httperror.LoggerHandler(h.restore))).Methods(http.MethodPost)
 
 	return h
 }
@@ -60,7 +75,7 @@ func adminAccess(next http.Handler) http.Handler {
 		}
 
 		if !securityContext.IsAdmin {
-			httperror.WriteError(w, http.StatusUnauthorized, "User is not authorized to perfom the action", nil)
+			httperror.WriteError(w, http.StatusUnauthorized, "User is not authorized to perform the action", nil)
 		}
 
 		next.ServeHTTP(w, r)
