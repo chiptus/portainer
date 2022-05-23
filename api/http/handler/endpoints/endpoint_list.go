@@ -50,6 +50,7 @@ var endpointGroupNames map[portaineree.EndpointGroupID]string
 // @param tagsPartialMatch query bool false "If true, will return environment(endpoint) which has one of tagIds, if false (or missing) will return only environments(endpoints) that has all the tags"
 // @param endpointIds query []int false "will return only these environments(endpoints)"
 // @param edgeDeviceFilter query string false "will return only these edge environments, none will return only regular edge environments" Enum("all", "trusted", "untrusted", "none")
+// @param name query string false "will return only environments(endpoints) with this name"
 // @success 200 {array} portaineree.Endpoint "Endpoints"
 // @failure 500 "Server error"
 // @router /endpoints [get]
@@ -127,6 +128,11 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 
 	if len(groupIDs) > 0 {
 		filteredEndpoints = filterEndpointsByGroupIDs(filteredEndpoints, groupIDs)
+	}
+
+	name, _ := request.RetrieveQueryParameter(r, "name", true)
+	if name != "" {
+		filteredEndpoints = filterEndpointsByName(filteredEndpoints, name)
 	}
 
 	edgeDeviceFilter, _ := request.RetrieveQueryParameter(r, "edgeDeviceFilter", false)
@@ -482,4 +488,19 @@ func filteredEndpointsByIds(endpoints []portaineree.Endpoint, ids []portaineree.
 
 	return filteredEndpoints
 
+}
+
+func filterEndpointsByName(endpoints []portaineree.Endpoint, name string) []portaineree.Endpoint {
+	if name == "" {
+		return endpoints
+	}
+
+	filteredEndpoints := make([]portaineree.Endpoint, 0)
+
+	for _, endpoint := range endpoints {
+		if endpoint.Name == name {
+			filteredEndpoints = append(filteredEndpoints, endpoint)
+		}
+	}
+	return filteredEndpoints
 }

@@ -1,5 +1,4 @@
 import { Field, Form, Formik, useFormikContext } from 'formik';
-import { useRouter } from '@uirouter/react';
 import { useEffect, useState } from 'react';
 
 import { react2angular } from '@/react-tools/react2angular';
@@ -15,7 +14,9 @@ import { Loading } from '@/portainer/components/widget/Loading';
 import { Link } from '@/portainer/components/Link';
 import { useCloudCredentials } from '@/portainer/settings/cloud/cloudSettings.service';
 import { KaasProvider, Credential } from '@/portainer/settings/cloud/types';
-import { useEnvironmentList } from '@/portainer/environments/queries/useEnvironment';
+import { Environment } from '@/portainer/environments/types';
+import { AnalyticsStateKey } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/types';
+import { MetadataFieldset } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MetadataFieldset';
 
 import { useCloudProviderOptions, useCreateKaasCluster } from './queries';
 import {
@@ -53,6 +54,10 @@ const defaultValues = {
   region: '',
   nodeSize: '',
   kubernetesVersion: '',
+  meta: {
+    groupId: 1,
+    tags: [],
+  },
 };
 
 const boxSelectorOptions: BoxSelectorOption<
@@ -69,20 +74,11 @@ const providerTitles = {
 };
 
 type Props = {
-  view?: 'addEnvironment' | 'wizard';
+  onCreate(environment: Environment, analytics: AnalyticsStateKey): void;
   showTitle?: boolean;
-  onUpdate?: () => void;
-  onAnalytics?: (eventName: string) => void;
 };
 
-export function KaasCreateForm({
-  view = 'addEnvironment',
-  showTitle,
-  onUpdate,
-  onAnalytics,
-}: Props) {
-  const router = useRouter();
-
+export function KaasCreateForm({ onCreate, showTitle }: Props) {
   const settingsQuery = useSettings();
   const cloudCredentialsQuery = useCloudCredentials();
   const [availableProviders, setAvailableProviders] = useState<KaasProvider[]>(
@@ -92,17 +88,13 @@ export function KaasCreateForm({
     cloudCredentialsQuery?.data?.[0]
   );
 
-  const environmentsQuery = useEnvironmentList();
-  const environmentNames = environmentsQuery.environments?.map(
-    (env) => env.Name
-  );
   const createKaasCluster = useCreateKaasCluster();
 
   const [initialValues, setInitialValues] = useState<
     KaasCreateFormValues | undefined
   >(undefined);
   // remember some form values
-  const [initialName, setinitialName] = useState<string>(
+  const [initialName, setInitialName] = useState<string>(
     KaasCreateFormInitialValues.name
   );
   const initialType = availableProviders[0] || KaasProvider.CIVO;
@@ -133,6 +125,7 @@ export function KaasCreateForm({
           networkId: cloudOptionsQuery.data?.networks?.get(defaultRegion)?.at(0)
             ?.value,
           credentialId: credential?.id,
+          meta: { tagIds: [], groupId: 1 },
         });
       }
     }
@@ -156,17 +149,10 @@ export function KaasCreateForm({
       credentialId: Number(formValues.credentialId),
     };
     createKaasCluster.mutate(formValuesToSubmit, {
-      onSuccess: () => {
-        if (onUpdate) {
-          onUpdate();
-        }
-        if (view === 'addEnvironment') {
-          router.stateService.go('portainer.endpoints');
-        }
-        if (onAnalytics) {
-          onAnalytics('kaas-agent');
-        }
-        setinitialName('');
+      onSuccess: (environment) => {
+        onCreate(environment, 'kaasAgent');
+
+        setInitialName('');
       },
     });
   }
@@ -180,14 +166,14 @@ export function KaasCreateForm({
           return null;
         })
       }
-      validationSchema={() => validationSchema(environmentNames)}
+      validationSchema={() => validationSchema()}
       validateOnMount
       enableReinitialize
     >
       <InnerKaasForm
         showTitle={showTitle}
         availableProviders={availableProviders}
-        setInitialName={(name: string) => setinitialName(name)}
+        setInitialName={(name: string) => setInitialName(name)}
         credentials={cloudCredentialsQuery.data}
       />
     </Formik>
@@ -322,6 +308,7 @@ function InnerKaasForm({
           placeholder="e.g. MyClusterName"
         />
       </FormControl>
+
       <FormSectionTitle>Provision details</FormSectionTitle>
       <div className="form-group">
         <div className="col-sm-12">
@@ -356,130 +343,140 @@ function InnerKaasForm({
         </div>
       )}
       {/* helper message if the api key is invalid */}
-      {cloudOptionsQuery.isError && providerAvailable && (
-        <div className="small text-warning" style={{ paddingBottom: '10px' }}>
-          <i
-            className="fa fa-exclamation-triangle orange-icon"
-            aria-hidden="true"
-            style={{ marginRight: '5px' }}
-          />
-          {`Error getting ${providerTitles[provider]} info. Go to `}
-          <Link to="portainer.settings.cloud" title="cloud settings">
-            cloud settings
-          </Link>
-          &nbsp;to ensure the API key is valid.
-        </div>
-      )}
-      {/* create cluster fields */}
-      {providerAvailable && cloudOptionsQuery.data && (
+      {providerAvailable && (
         <>
-          <FormControl
-            label="Choose Credentials"
-            tooltip="Credentials to create your cluster"
-            inputId="kaas-credential"
-            errors={errors.credentialId}
-          >
-            <Field
-              name="credentialId"
-              as={Select}
-              type="number"
-              id="kaa-credential"
-              data-cy="kaasCreateForm-crdentialSelect"
-              options={credsDropdown?.get(provider) || []}
-            />
-          </FormControl>
-          <FormControl
-            label="Region"
-            tooltip="Region in which to provision the cluster"
-            inputId="kaas-region"
-            errors={errors.region}
-          >
-            <Field
-              name="region"
-              as={Select}
-              id="kaa-region"
-              data-cy="kaasCreateForm-regionSelect"
-              options={cloudOptionsQuery.data.regions}
-            />
-          </FormControl>
-          <FormControl
-            label="Node size"
-            tooltip="Size of each node deployed in the cluster"
-            inputId="kaas-nodeSize"
-            errors={errors.nodeSize}
-          >
-            <Field
-              name="nodeSize"
-              as={Select}
-              id="kaa-nodeSize"
-              data-cy="kaasCreateForm-nodeSizeSelect"
-              options={cloudOptionsQuery.data?.nodeSizes}
-            />
-          </FormControl>
-          <FormControl
-            label="Node count"
-            tooltip="Number of nodes to provision in the cluster."
-            inputId="kaas-nodeCount"
-            errors={errors.nodeCount}
-          >
-            <Field
-              name="nodeCount"
-              as={Input}
-              type="number"
-              data-cy="kaasCreateForm-nodeCountInput"
-              min="1"
-              id="kaas-nodeCount"
-              placeholder="3"
-            />
-          </FormControl>
-          {region && cloudOptionsQuery.data?.networks?.get(region) && (
-            <FormControl
-              label="Network ID"
-              tooltip="ID of network attached to the cluster"
-              inputId="kaas-networkId"
-              errors={errors.networkId}
+          {cloudOptionsQuery.isError && providerAvailable && (
+            <div
+              className="small text-warning"
+              style={{ paddingBottom: '10px' }}
             >
-              <Field
-                name="networkId"
-                as={Select}
-                id="kaas-networkId"
-                data-cy="kaasCreateForm-networkIdSelect"
-                options={cloudOptionsQuery.data?.networks.get(region)}
+              <i
+                className="fa fa-exclamation-triangle orange-icon"
+                aria-hidden="true"
+                style={{ marginRight: '5px' }}
               />
-            </FormControl>
-          )}
-          <FormControl
-            label="Kubernetes version"
-            tooltip="Kubernetes version running on the cluster"
-            inputId="kaas-kubernetesVersion"
-            errors={errors.kubernetesVersion}
-          >
-            <Field
-              name="kubernetesVersion"
-              as={Select}
-              id="kaas-kubernetesVersion"
-              data-cy="kaasCreateForm-kubernetesVersionSelect"
-              options={cloudOptionsQuery.data?.kubernetesVersions.map(
-                (version) => ({
-                  label: version,
-                  value: version,
-                })
-              )}
-            />
-          </FormControl>
-          <FormSectionTitle>Actions</FormSectionTitle>
-          <div className="form-group">
-            <div className="col-sm-12">
-              <LoadingButton
-                disabled={!isValid}
-                isLoading={isSubmitting}
-                loadingText="Provision in progress..."
-              >
-                <i className="fa fa-plus space-right" aria-hidden="true" />
-                Provision environment
-              </LoadingButton>
+              {`Error getting ${providerTitles[provider]} info. Go to `}
+              <Link to="portainer.settings.cloud" title="cloud settings">
+                cloud settings
+              </Link>
+              &nbsp;to ensure the API key is valid.
             </div>
-          </div>
+          )}
+          {/* create cluster fields */}
+          {cloudOptionsQuery.data && (
+            <>
+              <FormControl
+                label="Choose Credentials"
+                tooltip="Credentials to create your cluster"
+                inputId="kaas-credential"
+                errors={errors.credentialId}
+              >
+                <Field
+                  name="credentialId"
+                  as={Select}
+                  type="number"
+                  id="kaa-credential"
+                  data-cy="kaasCreateForm-crdentialSelect"
+                  options={credsDropdown?.get(provider) || []}
+                />
+              </FormControl>
+              <FormControl
+                label="Region"
+                tooltip="Region in which to provision the cluster"
+                inputId="kaas-region"
+                errors={errors.region}
+              >
+                <Field
+                  name="region"
+                  as={Select}
+                  id="kaa-region"
+                  data-cy="kaasCreateForm-regionSelect"
+                  options={cloudOptionsQuery.data.regions}
+                />
+              </FormControl>
+              <FormControl
+                label="Node size"
+                tooltip="Size of each node deployed in the cluster"
+                inputId="kaas-nodeSize"
+                errors={errors.nodeSize}
+              >
+                <Field
+                  name="nodeSize"
+                  as={Select}
+                  id="kaa-nodeSize"
+                  data-cy="kaasCreateForm-nodeSizeSelect"
+                  options={cloudOptionsQuery.data?.nodeSizes}
+                />
+              </FormControl>
+              <FormControl
+                label="Node count"
+                tooltip="Number of nodes to provision in the cluster."
+                inputId="kaas-nodeCount"
+                errors={errors.nodeCount}
+              >
+                <Field
+                  name="nodeCount"
+                  as={Input}
+                  type="number"
+                  data-cy="kaasCreateForm-nodeCountInput"
+                  min="1"
+                  id="kaas-nodeCount"
+                  placeholder="3"
+                />
+              </FormControl>
+              {region && cloudOptionsQuery.data?.networks?.get(region) && (
+                <FormControl
+                  label="Network ID"
+                  tooltip="ID of network attached to the cluster"
+                  inputId="kaas-networkId"
+                  errors={errors.networkId}
+                >
+                  <Field
+                    name="networkId"
+                    as={Select}
+                    id="kaas-networkId"
+                    data-cy="kaasCreateForm-networkIdSelect"
+                    options={cloudOptionsQuery.data?.networks.get(region)}
+                  />
+                </FormControl>
+              )}
+              <FormControl
+                label="Kubernetes version"
+                tooltip="Kubernetes version running on the cluster"
+                inputId="kaas-kubernetesVersion"
+                errors={errors.kubernetesVersion}
+              >
+                <Field
+                  name="kubernetesVersion"
+                  as={Select}
+                  id="kaas-kubernetesVersion"
+                  data-cy="kaasCreateForm-kubernetesVersionSelect"
+                  options={cloudOptionsQuery.data?.kubernetesVersions.map(
+                    (version) => ({
+                      label: version,
+                      value: version,
+                    })
+                  )}
+                />
+              </FormControl>
+
+              <MetadataFieldset />
+
+              <FormSectionTitle>Actions</FormSectionTitle>
+              <div className="form-group">
+                <div className="col-sm-12">
+                  <LoadingButton
+                    disabled={!isValid}
+                    isLoading={isSubmitting}
+                    loadingText="Provision in progress..."
+                  >
+                    <i className="fa fa-plus space-right" aria-hidden="true" />
+                    Provision environment
+                  </LoadingButton>
+                </div>
+              </div>
+            </>
+          )}
         </>
       )}
     </Form>
@@ -513,8 +510,6 @@ function getAvailableProviders(credentials: Credential[]) {
 }
 
 export const KaasCreateFormAngular = react2angular(KaasCreateForm, [
-  'view',
+  'onCreate',
   'showTitle',
-  'onUpdate',
-  'onAnalytics',
 ]);

@@ -13,6 +13,11 @@ import (
 	portainer "github.com/portainer/portainer/api"
 )
 
+type EnvironmentMetadata struct {
+	GroupId portaineree.EndpointGroupID
+	TagIds  []portaineree.TagID
+}
+
 type kaasClusterProvisionPayload struct {
 	Name              string                   `validate:"required" example:"myDevCluster"`
 	NodeSize          string                   `validate:"required" example:"g3.small"`
@@ -21,6 +26,7 @@ type kaasClusterProvisionPayload struct {
 	NetworkID         string                   `example:"8465fb26-632e-4fa3-bb9b-21c449629026"`
 	KubernetesVersion string                   `validate:"required" example:"1.23"`
 	CredentialID      models.CloudCredentialID `validate:"required" example:"1"`
+	Meta              EnvironmentMetadata
 }
 
 func (payload *kaasClusterProvisionPayload) Validate(r *http.Request) error {
@@ -95,7 +101,7 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 	cloudProvider.NetworkID = &payload.NetworkID
 	cloudProvider.CredentialID = payload.CredentialID
 
-	endpointID, err := handler.createEndpoint(payload.Name, cloudProvider)
+	endpoint, err := handler.createEndpoint(payload.Name, cloudProvider, payload.Meta)
 	if err != nil {
 		return &httperror.HandlerError{
 			StatusCode: http.StatusInternalServerError,
@@ -106,7 +112,7 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 
 	// Prepare a new CloudProvisioningRequest
 	request := portaineree.CloudProvisioningRequest{
-		EndpointID:        endpointID,
+		EndpointID:        endpoint.ID,
 		Provider:          provider,
 		Region:            payload.Region,
 		Name:              payload.Name,
@@ -118,24 +124,24 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 	}
 
 	handler.cloudClusterSetupService.Request(&request)
-	return response.Empty(w)
+	return response.JSON(w, endpoint)
 }
 
-func (handler *Handler) createEndpoint(name string, provider portaineree.CloudProvider) (portaineree.EndpointID, error) {
+func (handler *Handler) createEndpoint(name string, provider portaineree.CloudProvider, metadata EnvironmentMetadata) (*portaineree.Endpoint, error) {
 	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
 
 	endpoint := &portaineree.Endpoint{
 		ID:      portaineree.EndpointID(endpointID),
 		Name:    name,
 		Type:    portaineree.AgentOnKubernetesEnvironment,
-		GroupID: portaineree.EndpointGroupID(1),
+		GroupID: metadata.GroupId,
 		TLSConfig: portaineree.TLSConfiguration{
 			TLS:           true,
 			TLSSkipVerify: true,
 		},
 		UserAccessPolicies: portaineree.UserAccessPolicies{},
 		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
-		TagIDs:             []portaineree.TagID{},
+		TagIDs:             metadata.TagIds,
 		Status:             portaineree.EndpointStatusProvisioning,
 		StatusMessage: portaineree.EndpointStatusMessage{
 			Summary: "Waiting for cloud provider",
@@ -151,8 +157,8 @@ func (handler *Handler) createEndpoint(name string, provider portaineree.CloudPr
 
 	err := handler.DataStore.Endpoint().Create(endpoint)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return endpoint.ID, nil
+	return endpoint, nil
 }

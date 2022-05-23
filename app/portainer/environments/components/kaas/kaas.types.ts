@@ -1,5 +1,6 @@
 import { Option } from '@/portainer/components/form-components/Input/Select';
 import { KaasProvider } from '@/portainer/settings/cloud/types';
+import { EnvironmentMetadata } from '@/portainer/environments/environment.service/create';
 
 export interface CloudApiKeys {
   CivoApiKey: string;
@@ -15,11 +16,11 @@ export interface KaasProvisionAPIPayload {
   Region: string;
   NetworkID?: string;
   CredentialID?: number;
+  Meta: EnvironmentMetadata;
 }
 
 export interface KaasCreateFormValues {
   type: KaasProvider;
-  portainerTags?: string[];
   name: string;
   kubernetesVersion: string;
   nodeSize: string;
@@ -27,6 +28,7 @@ export interface KaasCreateFormValues {
   region: string;
   networkId?: string;
   credentialId?: number;
+  meta: EnvironmentMetadata;
 }
 
 export const KaasCreateFormInitialValues: Pick<

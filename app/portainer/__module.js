@@ -378,26 +378,6 @@ angular
         },
       };
 
-      const wizard = {
-        name: 'portainer.wizard',
-        url: '/wizard',
-        views: {
-          'content@': {
-            component: 'wizardView',
-          },
-        },
-      };
-
-      const wizardEndpoints = {
-        name: 'portainer.wizard.endpoints',
-        url: '/endpoints',
-        views: {
-          'content@': {
-            component: 'wizardEndpoints',
-          },
-        },
-      };
-
       const initLicense = {
         name: 'portainer.init.license',
         url: '/license',
@@ -502,7 +482,6 @@ angular
           },
         },
       };
-
       var settingsEdgeCompute = {
         name: 'portainer.settings.edgeCompute',
         url: '/edge',
@@ -595,8 +574,6 @@ angular
       $stateRegistryProvider.register(init);
       $stateRegistryProvider.register(initEndpoint);
       $stateRegistryProvider.register(initAdmin);
-      $stateRegistryProvider.register(wizard);
-      $stateRegistryProvider.register(wizardEndpoints);
       $stateRegistryProvider.register(initLicense);
       $stateRegistryProvider.register(registries);
       $stateRegistryProvider.register(registry);

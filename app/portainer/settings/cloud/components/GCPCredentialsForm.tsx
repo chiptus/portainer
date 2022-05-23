@@ -80,6 +80,7 @@ export function GCPCredentialsForm({
             errors={errors.credentials?.jsonKeyBase64}
           >
             <FileUploadField
+              inputId="credentials.jsonKeyBase64"
               title="Upload file"
               accept=".json"
               value={serviceKeyFile}

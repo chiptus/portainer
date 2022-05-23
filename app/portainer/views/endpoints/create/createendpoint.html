@@ -196,7 +196,7 @@
             </div>
           </div>
           <div ng-if="state.EnvironmentType === 'kaas'">
-            <kaas-create-form show-title="true"></kaas-create-form>
+            <kaas-create-form show-title="true" on-create="(onCreateKaaSEnvironment)"></kaas-create-form>
           </div>
           <!-- PURE ANGULARJS FORM -->
           <div ng-if="state.EnvironmentType !== 'kaas'">

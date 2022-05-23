@@ -10,7 +10,7 @@ import styles from './FormControl.module.css';
 type Size = 'small' | 'medium' | 'large';
 
 export interface Props {
-  inputId: string;
+  inputId?: string;
   label: string | ReactNode;
   size?: Size;
   tooltip?: string;
@@ -29,23 +29,25 @@ export function FormControl({
   required = false,
 }: PropsWithChildren<Props>) {
   return (
-    <div>
-      <div className={clsx('form-group', styles.container)}>
-        <label
-          htmlFor={inputId}
-          className={`${sizeClassLabel(size)} control-label text-left`}
-        >
-          {label}
+    <div className={clsx('form-group', styles.container)}>
+      <label
+        htmlFor={inputId}
+        className={clsx(sizeClassLabel(size), 'control-label', 'text-left')}
+      >
+        {label}
 
-          {required && <span className="text-danger">*</span>}
+        {required && <span className="text-danger">*</span>}
 
-          {tooltip && <Tooltip message={tooltip} />}
-        </label>
+        {tooltip && <Tooltip message={tooltip} />}
+      </label>
 
-        <div className={`${sizeClassChildren(size)}`}>{children}</div>
-      </div>
+      <div className={sizeClassChildren(size)}>{children}</div>
 
-      {errors && <FormError>{errors}</FormError>}
+      {errors && (
+        <div className="col-md-12">
+          <FormError>{errors}</FormError>
+        </div>
+      )}
     </div>
   );
 }

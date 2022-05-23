@@ -7,6 +7,7 @@ import {
   KaasProvisionAPIPayload,
 } from '../components/kaas/kaas.types';
 import { parseKaasInfoResponse } from '../kaas.converter';
+import { Environment } from '../types';
 
 function buildUrl(
   provider: KaasProvider,
@@ -30,9 +31,14 @@ export async function createKaasEnvironment(values: KaasCreateFormValues) {
       NetworkID:
         values.type === KaasProvider.CIVO ? values.networkId : undefined,
       CredentialID: values.credentialId,
+      Meta: values.meta,
     };
 
-    await axios.post(buildUrl(values.type, 'cluster'), payload);
+    const { data } = await axios.post<Environment>(
+      buildUrl(values.type, 'cluster'),
+      payload
+    );
+    return data;
   } catch (e) {
     throw parseAxiosError(e as Error);
   }

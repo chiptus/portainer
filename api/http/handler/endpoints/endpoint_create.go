@@ -3,13 +3,14 @@ package endpoints
 import (
 	"errors"
 	"fmt"
-	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"net/http"
 	"net/url"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 
 	"github.com/gofrs/uuid"
 	httperror "github.com/portainer/libhttp/error"
@@ -187,6 +188,15 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 	err := payload.Validate(r)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
+	}
+
+	isUnique, err := handler.isNameUnique(payload.Name, 0)
+	if err != nil {
+		return httperror.InternalServerError("Unable to check if name is unique", err)
+	}
+
+	if !isUnique {
+		return httperror.NewError(http.StatusConflict, "Name is not unique", nil)
 	}
 
 	endpoint, endpointCreationError := handler.createEndpoint(payload)

@@ -108,6 +108,10 @@ angular
         });
       }
 
+      $scope.onCreateKaaSEnvironment = function onCreateKaaSEnvironment() {
+        $state.go('portainer.endpoints');
+      };
+
       $scope.addDockerEndpoint = function () {
         var name = $scope.formValues.Name;
         var URL = $filter('stripprotocol')($scope.formValues.URL);
