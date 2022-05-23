@@ -8,11 +8,11 @@ import {
 } from '@/portainer/components/datatables/components';
 import { InnerDatatable } from '@/portainer/components/datatables/components/InnerDatatable';
 import { Device } from '@/portainer/hostmanagement/open-amt/model';
-import { useAMTDevices } from '@/edge/devices/components/AMTDevicesDatatable/useAMTDevices';
-import { RowProvider } from '@/edge/devices/components/AMTDevicesDatatable/columns/RowContext';
 import { EnvironmentId } from '@/portainer/environments/types';
 import PortainerError from '@/portainer/error';
 
+import { useAMTDevices } from './useAMTDevices';
+import { RowProvider } from './columns/RowContext';
 import { useColumns } from './columns';
 
 export interface AMTDevicesTableProps {

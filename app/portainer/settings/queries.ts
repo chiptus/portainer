@@ -1,18 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 
-import {
-  error as notifyError,
-  success as notifySuccess,
-} from '@/portainer/services/notifications';
-// import { SettingsResponse } from '@/portainer/settings/settings.types';
+import { notifyError } from '@/portainer/services/notifications';
 
 import {
   publicSettings,
   updateSettings,
   getSettings,
-  Settings,
 } from './settings.service';
-import { CloudSettingsAPIPayload } from './cloud/cloud.types';
+import { Settings } from './types';
 
 export function usePublicSettings() {
   return useQuery(['settings', 'public'], () => publicSettings(), {
@@ -25,27 +20,29 @@ export function usePublicSettings() {
 export function useSettings<T = Settings>(select?: (settings: Settings) => T) {
   return useQuery(['settings'], getSettings, {
     select,
-    onError: (err) => {
-      notifyError('Failure', err as Error, 'Unable to retrieve settings');
+    meta: {
+      error: {
+        title: 'Failure',
+        message: 'Unable to retrieve settings',
+      },
     },
   });
 }
 
-export function useUpdateSettings() {
+export function useUpdateSettingsMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation(
-    (payload: CloudSettingsAPIPayload) => updateSettings(payload),
-    {
-      onSuccess: () => {
-        notifySuccess('Success', 'Settings updated successfully');
-        queryClient.invalidateQueries(['settings']);
-        // invalidate the cloud info too, incase the cloud api keys changed
-        return queryClient.invalidateQueries(['cloud']);
+  return useMutation((payload: Partial<Settings>) => updateSettings(payload), {
+    onSuccess: async () => {
+      await queryClient.invalidateQueries(['settings']);
+      // invalidate the cloud info too, incase the cloud api keys changed
+      return queryClient.invalidateQueries(['cloud']);
+    },
+    meta: {
+      error: {
+        title: 'Failure',
+        message: 'Unable to update settings',
       },
-      onError: (err) => {
-        notifyError('Failure', err as Error, 'Unable to update settings');
-      },
-    }
-  );
+    },
+  });
 }

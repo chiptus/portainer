@@ -10,17 +10,18 @@ import widgetModule from './widget';
 import boxSelectorModule from './BoxSelector';
 import imageStatusModule from './StackImageStatus';
 import dateRangePickerModule from './date-range-picker';
-import headerModule from './PageHeader';
+import { pageHeaderModule } from './PageHeader';
 
 import { ReactExampleAngular } from './ReactExample';
 import { TooltipAngular } from './Tip/Tooltip';
 import { beFeatureIndicatorAngular } from './BEFeatureIndicator';
 import { InformationPanelAngular } from './InformationPanel';
 import { ForcePasswordUpdateHintAngular, PasswordCheckHintAngular } from './PasswordCheckHint';
+import { ViewLoadingAngular } from './ViewLoading';
 
 export default angular
   .module('portainer.app.components', [
-    headerModule,
+    pageHeaderModule,
     boxSelectorModule,
     imageStatusModule,
     widgetModule,
@@ -31,6 +32,7 @@ export default angular
     formComponentsModule,
   ])
   .component('informationPanel', InformationPanelAngular)
+  .component('viewLoading', ViewLoadingAngular)
   .component('portainerTooltip', TooltipAngular)
   .component('reactExample', ReactExampleAngular)
   .component('beFeatureIndicator', beFeatureIndicatorAngular)
