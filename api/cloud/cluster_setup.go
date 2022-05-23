@@ -221,7 +221,7 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 	}
 
 	if err != nil {
-		log.Errorf("[cloud] [message: failed to get kaasCluster: %v", err)
+		log.Errorf("[cloud] [message: failed to get kaasCluster: %v]", err)
 		err = fmt.Errorf("%v is not responding", task.Provider)
 	}
 	return cluster, err
@@ -250,7 +250,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			}
 
 			if cluster.Ready {
-				service.changeState(&task, psAgentSetup, "Deploying portainer agent")
+				service.changeState(&task, psAgentSetup, "Deploying Portainer agent")
 			}
 
 			log.Debugf("[message: waiting for cluster] [provider: %s] [clusterId: %s]", task.Provider, task.ClusterID)
@@ -266,7 +266,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				}
 			}
 
-			log.Infof("[message: deploying portainer agent version: %s] [provider: %s] [clusterId: %s] [endpointId: %d]", kubecli.DefaultAgentVersion, task.Provider, task.ClusterID, task.EndpointID)
+			log.Infof("[message: deploying Portainer agent version: %s] [provider: %s] [clusterId: %s] [endpointId: %d]", kubecli.DefaultAgentVersion, task.Provider, task.ClusterID, task.EndpointID)
 			err = kubeClient.DeployPortainerAgent()
 			if err != nil {
 				task.Retries++
