@@ -2,6 +2,7 @@ import angular from 'angular';
 import _ from 'lodash';
 
 import { isOfflineEndpoint } from '@/portainer/helpers/endpointHelper';
+import { PortainerEndpointTypes } from 'Portainer/models/endpoint/models';
 
 angular.module('portainer.docker').controller('DashboardController', [
   '$scope',
@@ -40,6 +41,7 @@ angular.module('portainer.docker').controller('DashboardController', [
 
     $scope.offlineMode = false;
     $scope.showStacks = false;
+    $scope.showEnvUrl = endpoint.Type !== PortainerEndpointTypes.EdgeAgentOnDockerEnvironment && endpoint.Type !== PortainerEndpointTypes.EdgeAgentOnKubernetesEnvironment;
 
     async function initView() {
       const endpointMode = $scope.applicationState.endpoint.mode;
