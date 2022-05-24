@@ -15,6 +15,7 @@ import (
 	"github.com/portainer/portainer-ee/api/chisel"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/jwt"
 	"github.com/portainer/portainer/api/filesystem"
 
@@ -116,11 +117,14 @@ func setupHandler() (*Handler, func(), error) {
 		return nil, nil, fmt.Errorf("could not update settings: %w", err)
 	}
 
+	edgeService := edge.NewService(store, fs)
+
 	handler := NewHandler(
 		security.NewRequestBouncer(store, nil, jwtService, apiKeyService, nil),
 		store,
 		fs,
 		chisel.NewService(store, shutdownCtx),
+		*edgeService,
 	)
 
 	handler.ReverseTunnelService = chisel.NewService(store, shutdownCtx)

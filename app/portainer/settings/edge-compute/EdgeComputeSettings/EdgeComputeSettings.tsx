@@ -15,9 +15,11 @@ export interface FormValues {
   EnableEdgeComputeFeatures: boolean;
   EnforceEdgeID: boolean;
   EdgeAgentCheckinInterval: number;
-  EdgePingInterval: number;
-  EdgeSnapshotInterval: number;
-  EdgeCommandInterval: number;
+  Edge: {
+    PingInterval: number;
+    SnapshotInterval: number;
+    CommandInterval: number;
+  };
 }
 
 interface Props {

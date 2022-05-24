@@ -115,10 +115,15 @@ function EndpointController(
 
   function setFieldValue(name, value) {
     return $scope.$evalAsync(() => {
-      $scope.endpoint = {
-        ...$scope.endpoint,
-        [name]: value,
-      };
+      if (name.startsWith('Edge.')) {
+        $scope.endpoint = { ...$scope.endpoint };
+        _.set($scope.endpoint, name, value);
+      } else {
+        $scope.endpoint = {
+          ...$scope.endpoint,
+          [name]: value,
+        };
+      }
     });
   }
 
@@ -166,9 +171,11 @@ function EndpointController(
       AzureTenantID: endpoint.AzureCredentials.TenantID,
       AzureAuthenticationKey: endpoint.AzureCredentials.AuthenticationKey,
       EdgeCheckinInterval: endpoint.EdgeCheckinInterval,
-      EdgePingInterval: endpoint.EdgePingInterval,
-      EdgeSnapshotInterval: endpoint.EdgeSnapshotInterval,
-      EdgeCommandInterval: endpoint.EdgeCommandInterval,
+      Edge: {
+        PingInterval: endpoint.Edge.PingInterval,
+        SnapshotInterval: endpoint.Edge.SnapshotInterval,
+        CommandInterval: endpoint.Edge.CommandInterval,
+      },
     };
 
     if (!$scope.showSecurity) {

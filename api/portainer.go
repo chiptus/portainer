@@ -5,11 +5,12 @@ import (
 	"io"
 	"time"
 
-	nomad "github.com/hashicorp/nomad/api"
 	"github.com/portainer/liblicense"
 	"github.com/portainer/portainer-ee/api/database/models"
 	portainer "github.com/portainer/portainer/api"
 	gittypes "github.com/portainer/portainer/api/git/types"
+
+	nomad "github.com/hashicorp/nomad/api"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -38,7 +39,7 @@ type (
 		ID         int                       `json:"id"`
 		Type       EdgeAsyncCommandType      `json:"type"`
 		EndpointID EndpointID                `json:"endpointID"`
-		Timestamp  int64                     `json:"timestamp"`
+		Timestamp  time.Time                 `json:"timestamp"`
 		Executed   bool                      `json:"executed"`
 		Operation  EdgeAsyncCommandOperation `json:"op"`
 		Path       string                    `json:"path"`
@@ -225,6 +226,12 @@ type (
 		Version        int                                `json:"Version"`
 	}
 
+	// EdgeJobStatus represents an Edge job status
+	EdgeJobStatus struct {
+		JobID          int    `json:"JobID"`
+		LogFileContent string `json:"LogFileContent"`
+	}
+
 	// EdgeJobEndpointMeta represents a meta data object for an Edge job and Environment(Endpoint) relation
 	EdgeJobEndpointMeta struct {
 		LogsStatus  EdgeJobLogsStatus
@@ -346,14 +353,20 @@ type (
 		IsEdgeDevice bool
 		// Whether the device has been trusted or not by the user
 		UserTrusted bool
+
 		// The check in interval for edge agent (in seconds)
 		EdgeCheckinInterval int `json:"EdgeCheckinInterval" example:"5"`
-		// The command list interval for edge agent - used in edge async mode (in seconds)
-		EdgeCommandInterval int `json:"EdgeCommandInterval" example:"5"`
-		// The ping interval for edge agent - used in edge async mode (in seconds)
-		EdgePingInterval int `json:"EdgePingInterval" example:"5"`
-		// The snapshot interval for edge agent - used in edge async mode (in seconds)
-		EdgeSnapshotInterval int `json:"EdgeSnapshotInterval" example:"5"`
+
+		Edge struct {
+			// Whether the device has been started in edge async mode
+			AsyncMode bool
+			// The ping interval for edge agent - used in edge async mode [seconds]
+			PingInterval int `json:"PingInterval" example:"60"`
+			// The snapshot interval for edge agent - used in edge async mode [seconds]
+			SnapshotInterval int `json:"SnapshotInterval" example:"60"`
+			// The command list interval for edge agent - used in edge async mode [seconds]
+			CommandInterval int `json:"CommandInterval" example:"60"`
+		}
 
 		// Automatic update change window restriction for stacks and apps
 		ChangeWindow EndpointChangeWindow `json:"ChangeWindow"`
@@ -1022,12 +1035,15 @@ type (
 		CloudApiKeys CloudApiKeys `json:"CloudApiKeys"`
 		// The default check in interval for edge agent (in seconds)
 		EdgeAgentCheckinInterval int `json:"EdgeAgentCheckinInterval" example:"5"`
-		// The command list interval for edge agent - used in edge async mode (in seconds)
-		EdgeCommandInterval int `json:"EdgeCommandInterval" example:"5"`
-		// The ping interval for edge agent - used in edge async mode (in seconds)
-		EdgePingInterval int `json:"EdgePingInterval" example:"5"`
-		// The snapshot interval for edge agent - used in edge async mode (in seconds)
-		EdgeSnapshotInterval int `json:"EdgeSnapshotInterval" example:"5"`
+
+		Edge struct {
+			// The command list interval for edge agent - used in edge async mode (in seconds)
+			CommandInterval int `json:"CommandInterval" example:"5"`
+			// The ping interval for edge agent - used in edge async mode (in seconds)
+			PingInterval int `json:"PingInterval" example:"5"`
+			// The snapshot interval for edge agent - used in edge async mode (in seconds)
+			SnapshotInterval int `json:"SnapshotInterval" example:"5"`
+		}
 
 		// Deprecated fields
 		DisplayDonationHeader       bool
@@ -1756,6 +1772,8 @@ const (
 	StatusError
 	//StatusAcknowledged represents an acknowledged edge stack
 	StatusAcknowledged
+	//EdgeStackStatusRemove represents a removed edge stack (status isn't persisted)
+	EdgeStackStatusRemove
 )
 
 const (

@@ -36,9 +36,11 @@ export function ActionsCell({
 
   return (
     <ActionsMenu>
-      <MenuLink href={browseLinkProps.href} onClick={browseLinkProps.onClick}>
-        Browse
-      </MenuLink>
+      {!environment.Edge.AsyncMode && (
+        <MenuLink href={browseLinkProps.href} onClick={browseLinkProps.onClick}>
+          Browse
+        </MenuLink>
+      )}
       {showRefreshSnapshot && (
         <MenuItem hidden onSelect={() => handleRefreshSnapshotClick()}>
           Refresh Snapshot

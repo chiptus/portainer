@@ -1,6 +1,7 @@
 package edge
 
 import (
+	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -22,6 +23,7 @@ type edgeStackData struct {
 type edgeJobData struct {
 	ID                portaineree.EdgeJobID
 	CollectLogs       bool
+	LogsStatus        portaineree.EdgeJobLogsStatus
 	CronExpression    string
 	ScriptFileContent string
 	Version           int
@@ -50,6 +52,10 @@ func (service *Service) ReplaceStackCommand(endpoint *portaineree.Endpoint, edge
 }
 
 func (service *Service) storeUpdateStackCommand(endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, commandOperation portaineree.EdgeAsyncCommandOperation) error {
+	if !endpoint.Edge.AsyncMode {
+		return nil
+	}
+
 	edgeStack, err := service.dataStore.EdgeStack().EdgeStack(edgeStackID)
 	if err != nil {
 		return err
@@ -86,7 +92,7 @@ func (service *Service) storeUpdateStackCommand(endpoint *portaineree.Endpoint, 
 	asyncCommand := &portaineree.EdgeAsyncCommand{
 		Type:       portaineree.EdgeAsyncCommandTypeStack,
 		EndpointID: endpoint.ID,
-		Timestamp:  time.Now().Unix(),
+		Timestamp:  time.Now(),
 		Operation:  commandOperation,
 		Path:       fmt.Sprintf("/edgestack/%d", edgeStackID),
 		Value:      stackStatus,
@@ -95,12 +101,33 @@ func (service *Service) storeUpdateStackCommand(endpoint *portaineree.Endpoint, 
 }
 
 func (service *Service) RemoveStackCommand(endpointID portaineree.EndpointID, edgeStackID portaineree.EdgeStackID) error {
+	endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
+	if err != nil {
+		return err
+	}
+
+	if !endpoint.Edge.AsyncMode {
+		return nil
+	}
+
+	edgeStack, err := service.dataStore.EdgeStack().EdgeStack(edgeStackID)
+	if err != nil {
+		return err
+	}
+
+	stackStatus := edgeStackData{
+		Name:    edgeStack.Name,
+		ID:      edgeStackID,
+		Version: edgeStack.Version,
+	}
+
 	asyncCommand := &portaineree.EdgeAsyncCommand{
 		Type:       portaineree.EdgeAsyncCommandTypeStack,
 		EndpointID: endpointID,
-		Timestamp:  time.Now().Unix(),
+		Timestamp:  time.Now(),
 		Operation:  portaineree.EdgeAsyncCommandOpRemove,
 		Path:       fmt.Sprintf("/edgestack/%d", edgeStackID),
+		Value:      stackStatus,
 	}
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
 }
@@ -114,18 +141,28 @@ func (service *Service) ReplaceJobCommand(endpointID portaineree.EndpointID, edg
 }
 
 func (service *Service) storeUpdateJobCommand(endpointID portaineree.EndpointID, edgeJob portaineree.EdgeJob, fileContent []byte, commandOperation portaineree.EdgeAsyncCommandOperation) error {
+	endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
+	if err != nil {
+		return err
+	}
+
+	if !endpoint.Edge.AsyncMode {
+		return nil
+	}
+
 	edgeJobData := &edgeJobData{
 		ID:                edgeJob.ID,
 		CronExpression:    edgeJob.CronExpression,
 		CollectLogs:       edgeJob.Endpoints[endpointID].CollectLogs,
+		LogsStatus:        edgeJob.Endpoints[endpointID].LogsStatus,
 		Version:           edgeJob.Version,
-		ScriptFileContent: string(fileContent),
+		ScriptFileContent: base64.RawStdEncoding.EncodeToString(fileContent),
 	}
 
 	asyncCommand := &portaineree.EdgeAsyncCommand{
 		Type:       portaineree.EdgeAsyncCommandTypeJob,
 		EndpointID: endpointID,
-		Timestamp:  time.Now().Unix(),
+		Timestamp:  time.Now(),
 		Operation:  commandOperation,
 		Path:       fmt.Sprintf("/edgejob/%d", edgeJob.ID),
 		Value:      edgeJobData,
@@ -134,10 +171,19 @@ func (service *Service) storeUpdateJobCommand(endpointID portaineree.EndpointID,
 }
 
 func (service *Service) RemoveJobCommand(endpointID portaineree.EndpointID, edgeJobID portaineree.EdgeJobID) error {
+	endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
+	if err != nil {
+		return err
+	}
+
+	if !endpoint.Edge.AsyncMode {
+		return nil
+	}
+
 	asyncCommand := &portaineree.EdgeAsyncCommand{
 		Type:       portaineree.EdgeAsyncCommandTypeJob,
 		EndpointID: endpointID,
-		Timestamp:  time.Now().Unix(),
+		Timestamp:  time.Now(),
 		Operation:  portaineree.EdgeAsyncCommandOpRemove,
 		Path:       fmt.Sprintf("/edgejob/%d", edgeJobID),
 	}

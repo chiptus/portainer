@@ -10,14 +10,16 @@ export function validationSchema() {
     EnforceEdgeID: boolean().required('This field is required.'),
 
     EdgeAgentCheckinInterval: number().required('This field is required.'),
-    EdgePingInterval: number()
-      .required('This field is required.')
-      .oneOf(intervals),
-    EdgeSnapshotInterval: number()
-      .required('This field is required.')
-      .oneOf(intervals),
-    EdgeCommandInterval: number()
-      .required('This field is required.')
-      .oneOf(intervals),
+    Edge: object({
+      PingInterval: number()
+        .required('This field is required.')
+        .oneOf(intervals),
+      SnapshotInterval: number()
+        .required('This field is required.')
+        .oneOf(intervals),
+      CommandInterval: number()
+        .required('This field is required.')
+        .oneOf(intervals),
+    }),
   });
 }

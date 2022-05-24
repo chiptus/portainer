@@ -351,11 +351,11 @@
               <div>
                 <div class="col-sm-12 form-section-title"> Check-in Intervals </div>
                 <edge-checkin-interval-field
-                  ng-if="!formValues.EdgeAsyncMode"
+                  ng-if="!formValues.Edge.AsyncMode"
                   value="formValues.EdgeCheckinInterval"
                   on-change="(onChangeCheckInInterval)"
                 ></edge-checkin-interval-field>
-                <div ng-if="endpoint.EdgeAsyncMode">
+                <div ng-if="endpoint.Edge.AsyncMode">
                   <edge-async-intervals-form values="formValues" set-field-value="setFieldValue"></edge-async-intervals-form>
                 </div>
               </div>

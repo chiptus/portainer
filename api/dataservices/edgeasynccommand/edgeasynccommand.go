@@ -11,7 +11,7 @@ import (
 
 const (
 	// BucketName represents the name of the bucket where this service stores data.
-	BucketName = "edgeasynccommand"
+	BucketName = "edge_async_command"
 )
 
 // Service represents a service for managing Edge Async Commands data.

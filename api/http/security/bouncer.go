@@ -146,14 +146,11 @@ func (bouncer *RequestBouncer) AuthorizedClientTLSConn(r *http.Request) error {
 		return fmt.Errorf("could not retrieve the TLS settings: %w", err)
 	}
 
-	if sslSettings.CACertPath != "" {
-		caCertErr := bouncer.sslService.ValidateCACert(r.TLS)
-		if caCertErr != nil {
-			return caCertErr
-		}
+	if sslSettings.CACertPath == "" {
+		return nil
 	}
 
-	return nil
+	return bouncer.sslService.ValidateCACert(r.TLS)
 }
 
 // AuthorizedEdgeEndpointOperation verifies that the request was received from a valid Edge environment(endpoint)

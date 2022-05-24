@@ -4,9 +4,11 @@ import { r2a } from '@/react-tools/react2angular';
 
 interface Values {
   EdgeAgentCheckinInterval: number;
-  EdgePingInterval: number;
-  EdgeSnapshotInterval: number;
-  EdgeCommandInterval: number;
+  Edge: {
+    PingInterval: number;
+    SnapshotInterval: number;
+    CommandInterval: number;
+  };
 }
 
 interface Props {
@@ -47,8 +49,8 @@ export function EdgeAsyncIntervalsForm({ setFieldValue, values }: Props) {
         tooltip="Interval used by default by each Edge agent to ping the Portainer instance. Affects Edge environment management and Edge compute features."
       >
         <Select
-          value={values.EdgePingInterval}
-          name="EdgePingInterval"
+          value={values.Edge.PingInterval}
+          name="Edge.PingInterval"
           onChange={handleChange}
           options={options}
         />
@@ -60,8 +62,8 @@ export function EdgeAsyncIntervalsForm({ setFieldValue, values }: Props) {
         tooltip="Interval used by default by each Edge agent to snapshot the agent state."
       >
         <Select
-          value={values.EdgeSnapshotInterval}
-          name="EdgeSnapshotInterval"
+          value={values.Edge.SnapshotInterval}
+          name="Edge.SnapshotInterval"
           onChange={handleChange}
           options={options}
         />
@@ -73,8 +75,8 @@ export function EdgeAsyncIntervalsForm({ setFieldValue, values }: Props) {
         tooltip="Interval used by default by each Edge agent to fetch commands from the Portainer instance"
       >
         <Select
-          value={values.EdgeCommandInterval}
-          name="EdgeCommandInterval"
+          value={values.Edge.CommandInterval}
+          name="Edge.CommandInterval"
           onChange={handleChange}
           options={options}
         />

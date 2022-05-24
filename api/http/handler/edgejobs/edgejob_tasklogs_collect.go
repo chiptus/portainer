@@ -49,11 +49,27 @@ func (handler *Handler) edgeJobTasksCollect(w http.ResponseWriter, r *http.Reque
 	meta.LogsStatus = portaineree.EdgeJobLogsStatusPending
 	edgeJob.Endpoints[endpointID] = meta
 
-	handler.ReverseTunnelService.AddEdgeJob(endpointID, edgeJob)
-
 	err = handler.DataStore.EdgeJob().UpdateEdgeJob(edgeJob.ID, edgeJob)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist Edge job changes in the database", err}
+	}
+
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve environment from the database", err}
+	}
+
+	if endpoint.Edge.AsyncMode {
+		edgeJobFileContent, err := handler.FileService.GetFileContent(edgeJob.ScriptPath, "")
+		if err != nil {
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve Edge job script file from disk", err}
+		}
+		err = handler.edgeService.ReplaceJobCommand(endpoint.ID, *edgeJob, edgeJobFileContent)
+		if err != nil {
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist edge job changes to the database", err}
+		}
+	} else {
+		handler.ReverseTunnelService.AddEdgeJob(endpointID, edgeJob)
 	}
 
 	return response.Empty(w)

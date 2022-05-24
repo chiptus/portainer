@@ -213,7 +213,6 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 	versionUpdated := payload.Version != nil && *payload.Version != stack.Version
 	if versionUpdated {
 		stack.Version = *payload.Version
-		stack.Status = map[portaineree.EndpointID]portaineree.EdgeStackStatus{}
 	}
 
 	// Assign a potentially new registries to the stack

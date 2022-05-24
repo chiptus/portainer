@@ -53,12 +53,15 @@ type endpointUpdatePayload struct {
 	ChangeWindow *portaineree.EndpointChangeWindow
 	// The check in interval for edge agent (in seconds)
 	EdgeCheckinInterval *int `example:"5"`
-	// The command list interval for edge agent - used in edge async mode (in seconds)
-	EdgeCommandInterval *int `json:"EdgeCommandInterval" example:"5"`
-	// The ping interval for edge agent - used in edge async mode (in seconds)
-	EdgePingInterval *int `json:"EdgePingInterval" example:"5"`
-	// The snapshot interval for edge agent - used in edge async mode (in seconds)
-	EdgeSnapshotInterval *int `json:"EdgeSnapshotInterval" example:"5"`
+
+	Edge struct {
+		// The ping interval for edge agent - used in edge async mode (in seconds)
+		PingInterval *int `json:"PingInterval" example:"5"`
+		// The snapshot interval for edge agent - used in edge async mode (in seconds)
+		SnapshotInterval *int `json:"SnapshotInterval" example:"5"`
+		// The command list interval for edge agent - used in edge async mode (in seconds)
+		CommandInterval *int `json:"CommandInterval" example:"5"`
+	}
 }
 
 func (payload *endpointUpdatePayload) Validate(r *http.Request) error {
@@ -174,16 +177,16 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 			endpoint.EdgeCheckinInterval = *payload.EdgeCheckinInterval
 		}
 
-		if payload.EdgeCommandInterval != nil {
-			endpoint.EdgeCommandInterval = *payload.EdgeCommandInterval
+		if payload.Edge.PingInterval != nil {
+			endpoint.Edge.PingInterval = *payload.Edge.PingInterval
 		}
 
-		if payload.EdgePingInterval != nil {
-			endpoint.EdgePingInterval = *payload.EdgePingInterval
+		if payload.Edge.SnapshotInterval != nil {
+			endpoint.Edge.SnapshotInterval = *payload.Edge.SnapshotInterval
 		}
 
-		if payload.EdgeSnapshotInterval != nil {
-			endpoint.EdgeSnapshotInterval = *payload.EdgeSnapshotInterval
+		if payload.Edge.CommandInterval != nil {
+			endpoint.Edge.CommandInterval = *payload.Edge.CommandInterval
 		}
 
 		if payload.GroupID != nil {

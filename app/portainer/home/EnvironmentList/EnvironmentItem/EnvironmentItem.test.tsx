@@ -25,6 +25,12 @@ test('loads component', async () => {
     EdgeKey: '',
     Id: 3,
     UserTrusted: false,
+    Edge: {
+      AsyncMode: false,
+      PingInterval: 0,
+      CommandInterval: 0,
+      SnapshotInterval: 0,
+    },
   };
   const { getByText } = renderComponent(env);
 
@@ -48,6 +54,12 @@ test('shows group name', async () => {
     EdgeKey: '',
     Id: 3,
     UserTrusted: false,
+    Edge: {
+      AsyncMode: false,
+      PingInterval: 0,
+      CommandInterval: 0,
+      SnapshotInterval: 0,
+    },
   };
 
   const { findByText } = renderComponent(env, { Name: groupName });

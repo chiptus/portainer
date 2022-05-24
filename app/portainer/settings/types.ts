@@ -113,9 +113,6 @@ export interface Settings {
   EdgePortainerUrl: string;
   CloudApiKeys: CloudApiKeys;
   EdgeAgentCheckinInterval: number;
-  EdgeCommandInterval: number;
-  EdgePingInterval: number;
-  EdgeSnapshotInterval: number;
   DisplayDonationHeader: boolean;
   DisplayExternalContributors: boolean;
   EnableHostManagementFeatures: boolean;
@@ -126,4 +123,9 @@ export interface Settings {
   AllowStackManagementForRegularUsers: boolean;
   AllowDeviceMappingForRegularUsers: boolean;
   AllowContainerCapabilitiesForRegularUsers: boolean;
+  Edge: {
+    PingInterval: number;
+    SnapshotInterval: number;
+    CommandInterval: number;
+  };
 }

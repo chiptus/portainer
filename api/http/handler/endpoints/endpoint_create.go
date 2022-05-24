@@ -10,15 +10,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/portainer/portainer-ee/api/internal/endpointutils"
-
 	"github.com/gofrs/uuid"
+
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/client"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
 )
@@ -204,16 +204,6 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		return endpointCreationError
 	}
 
-	endpointGroup, err := handler.dataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
-	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment group inside the database", err}
-	}
-
-	edgeGroups, err := handler.dataStore.EdgeGroup().EdgeGroups()
-	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge groups from the database", err}
-	}
-
 	edgeStacks, err := handler.dataStore.EdgeStack().EdgeStacks()
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge stacks from the database", err}
@@ -225,6 +215,16 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 	}
 
 	if endpointutils.IsEdgeEndpoint(endpoint) {
+		endpointGroup, err := handler.dataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
+		if err != nil {
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment group inside the database", err}
+		}
+
+		edgeGroups, err := handler.dataStore.EdgeGroup().EdgeGroups()
+		if err != nil {
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge groups from the database", err}
+		}
+
 		relatedEdgeStacks := edge.EndpointRelatedEdgeStacks(endpoint, endpointGroup, edgeGroups, edgeStacks)
 		for _, stackID := range relatedEdgeStacks {
 			relationObject.EdgeStacks[stackID] = true
@@ -373,7 +373,7 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 
 	err = handler.saveEndpointAndUpdateAuthorizations(endpoint)
 	if err != nil {
-		return nil, &httperror.HandlerError{http.StatusInternalServerError, "An error occured while trying to create the environment", err}
+		return nil, &httperror.HandlerError{http.StatusInternalServerError, "An error occurred while trying to create the environment", err}
 	}
 
 	return endpoint, nil

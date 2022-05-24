@@ -14,7 +14,6 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer/api/filesystem"
 )
@@ -123,76 +122,83 @@ func (handler *Handler) createSwarmStackFromFileContent(r *http.Request, dryrun 
 		}
 	}
 
-	if !dryrun {
-		stack.ID = portaineree.EdgeStackID(handler.DataStore.EdgeStack().GetNextIdentifier())
+	if dryrun {
+		return stack, nil
+	}
 
-		relationConfig, err := fetchEndpointRelationsConfig(handler.DataStore)
-		if err != nil {
-			return nil, fmt.Errorf("unable to find environment relations in database: %w", err)
-		}
+	stack.ID = portaineree.EdgeStackID(handler.DataStore.EdgeStack().GetNextIdentifier())
 
-		relatedEndpointIds, err := edge.EdgeStackRelatedEndpoints(stack.EdgeGroups, relationConfig.endpoints, relationConfig.endpointGroups, relationConfig.edgeGroups)
-		if err != nil {
-			return nil, fmt.Errorf("unable to persist environment relation in database: %w", err)
-		}
+	relationConfig, err := fetchEndpointRelationsConfig(handler.DataStore)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find environment relations in database: %w", err)
+	}
 
-		stackFolder := strconv.Itoa(int(stack.ID))
-		if stack.DeploymentType == portaineree.EdgeStackDeploymentCompose {
-			stack.EntryPoint = filesystem.ComposeFileDefaultName
+	relatedEndpointIds, err := edge.EdgeStackRelatedEndpoints(stack.EdgeGroups, relationConfig.endpoints, relationConfig.endpointGroups, relationConfig.edgeGroups)
+	if err != nil {
+		return nil, fmt.Errorf("unable to persist environment relation in database: %w", err)
+	}
 
-			projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
-			if err != nil {
-				return nil, err
-			}
-			stack.ProjectPath = projectPath
+	stackFolder := strconv.Itoa(int(stack.ID))
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentCompose {
+		stack.EntryPoint = filesystem.ComposeFileDefaultName
 
-			err = handler.convertAndStoreKubeManifestIfNeeded(stack, relatedEndpointIds)
-			if err != nil {
-				return nil, fmt.Errorf("Failed creating and storing kube manifest: %w", err)
-			}
-
-		}
-
-		if stack.DeploymentType == portaineree.EdgeStackDeploymentKubernetes {
-			hasDockerEndpoint, err := hasDockerEndpoint(handler.DataStore.Endpoint(), relatedEndpointIds)
-			if err != nil {
-				return nil, fmt.Errorf("unable to check for existence of docker environment: %w", err)
-			}
-
-			if hasDockerEndpoint {
-				return nil, fmt.Errorf("edge stack with docker environment cannot be deployed with kubernetes config")
-			}
-
-			stack.ManifestPath = filesystem.ManifestFileDefaultName
-
-			projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.ManifestPath, []byte(payload.StackFileContent))
-			if err != nil {
-				return nil, err
-			}
-
-			stack.ProjectPath = projectPath
-		}
-
-		if stack.DeploymentType == portaineree.EdgeStackDeploymentNomad {
-			stack.EntryPoint = nomadJobFileDefaultName
-
-			projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
-			if err != nil {
-				return nil, err
-			}
-
-			stack.ProjectPath = projectPath
-		}
-
-		err = updateEndpointRelations(handler.DataStore.EndpointRelation(), stack.ID, relatedEndpointIds)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to update environment relations: %w", err)
-		}
-
-		err = handler.DataStore.EdgeStack().Create(stack.ID, stack)
+		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
 		if err != nil {
 			return nil, err
 		}
+		stack.ProjectPath = projectPath
+
+		err = handler.convertAndStoreKubeManifestIfNeeded(stack, relatedEndpointIds)
+		if err != nil {
+			return nil, fmt.Errorf("Failed creating and storing kube manifest: %w", err)
+		}
+
+	}
+
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentKubernetes {
+		hasDockerEndpoint, err := hasDockerEndpoint(handler.DataStore.Endpoint(), relatedEndpointIds)
+		if err != nil {
+			return nil, fmt.Errorf("unable to check for existence of docker environment: %w", err)
+		}
+
+		if hasDockerEndpoint {
+			return nil, fmt.Errorf("edge stack with docker environment cannot be deployed with kubernetes config")
+		}
+
+		stack.ManifestPath = filesystem.ManifestFileDefaultName
+
+		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.ManifestPath, []byte(payload.StackFileContent))
+		if err != nil {
+			return nil, err
+		}
+
+		stack.ProjectPath = projectPath
+	}
+
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentNomad {
+		stack.EntryPoint = nomadJobFileDefaultName
+
+		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
+		if err != nil {
+			return nil, err
+		}
+
+		stack.ProjectPath = projectPath
+	}
+
+	err = handler.updateEndpointRelations(stack.ID, relatedEndpointIds)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to update environment relations: %w", err)
+	}
+
+	err = handler.DataStore.EdgeStack().Create(stack.ID, stack)
+	if err != nil {
+		return nil, err
+	}
+
+	err = handler.createEdgeCommands(stack.ID, relatedEndpointIds)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to update environment relations: %w", err)
 	}
 
 	return stack, nil
@@ -275,59 +281,66 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request, dryru
 		Registries:     payload.Registries,
 	}
 
-	if !dryrun {
-		stack.ID = portaineree.EdgeStackID(handler.DataStore.EdgeStack().GetNextIdentifier())
-		projectPath := handler.FileService.GetEdgeStackProjectPath(strconv.Itoa(int(stack.ID)))
-		stack.ProjectPath = projectPath
+	if dryrun {
+		return stack, nil
+	}
 
-		repositoryUsername := payload.RepositoryUsername
-		repositoryPassword := payload.RepositoryPassword
-		if !payload.RepositoryAuthentication {
-			repositoryUsername = ""
-			repositoryPassword = ""
-		}
+	stack.ID = portaineree.EdgeStackID(handler.DataStore.EdgeStack().GetNextIdentifier())
+	projectPath := handler.FileService.GetEdgeStackProjectPath(strconv.Itoa(int(stack.ID)))
+	stack.ProjectPath = projectPath
 
-		relationConfig, err := fetchEndpointRelationsConfig(handler.DataStore)
+	repositoryUsername := payload.RepositoryUsername
+	repositoryPassword := payload.RepositoryPassword
+	if !payload.RepositoryAuthentication {
+		repositoryUsername = ""
+		repositoryPassword = ""
+	}
+
+	relationConfig, err := fetchEndpointRelationsConfig(handler.DataStore)
+	if err != nil {
+		return nil, fmt.Errorf("failed fetching relations config: %w", err)
+	}
+
+	relatedEndpointIds, err := edge.EdgeStackRelatedEndpoints(stack.EdgeGroups, relationConfig.endpoints, relationConfig.endpointGroups, relationConfig.edgeGroups)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve related environment: %w", err)
+	}
+
+	err = handler.GitService.CloneRepository(projectPath, payload.RepositoryURL, payload.RepositoryReferenceName, repositoryUsername, repositoryPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentCompose {
+		stack.EntryPoint = payload.FilePathInRepository
+
+		err = handler.convertAndStoreKubeManifestIfNeeded(stack, relatedEndpointIds)
 		if err != nil {
-			return nil, fmt.Errorf("failed fetching relations config: %w", err)
+			return nil, fmt.Errorf("Failed creating and storing kube manifest: %w", err)
 		}
+	}
 
-		relatedEndpointIds, err := edge.EdgeStackRelatedEndpoints(stack.EdgeGroups, relationConfig.endpoints, relationConfig.endpointGroups, relationConfig.edgeGroups)
-		if err != nil {
-			return nil, fmt.Errorf("unable to retrieve related environment: %w", err)
-		}
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentKubernetes {
+		stack.ManifestPath = payload.FilePathInRepository
+	}
 
-		err = handler.GitService.CloneRepository(projectPath, payload.RepositoryURL, payload.RepositoryReferenceName, repositoryUsername, repositoryPassword)
-		if err != nil {
-			return nil, err
-		}
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentNomad {
+		stack.EntryPoint = payload.FilePathInRepository
+	}
 
-		if stack.DeploymentType == portaineree.EdgeStackDeploymentCompose {
-			stack.EntryPoint = payload.FilePathInRepository
+	err = handler.updateEndpointRelations(stack.ID, relatedEndpointIds)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to update environment relations: %w", err)
+	}
 
-			err = handler.convertAndStoreKubeManifestIfNeeded(stack, relatedEndpointIds)
-			if err != nil {
-				return nil, fmt.Errorf("Failed creating and storing kube manifest: %w", err)
-			}
-		}
+	err = handler.DataStore.EdgeStack().Create(stack.ID, stack)
+	if err != nil {
+		return nil, err
+	}
 
-		if stack.DeploymentType == portaineree.EdgeStackDeploymentKubernetes {
-			stack.ManifestPath = payload.FilePathInRepository
-		}
-
-		if stack.DeploymentType == portaineree.EdgeStackDeploymentNomad {
-			stack.EntryPoint = payload.FilePathInRepository
-		}
-
-		err = updateEndpointRelations(handler.DataStore.EndpointRelation(), stack.ID, relatedEndpointIds)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to update environment relations: %w", err)
-		}
-
-		err = handler.DataStore.EdgeStack().Create(stack.ID, stack)
-		if err != nil {
-			return nil, err
-		}
+	err = handler.createEdgeCommands(stack.ID, relatedEndpointIds)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to update environment relations: %w", err)
 	}
 
 	return stack, nil
@@ -411,66 +424,73 @@ func (handler *Handler) createSwarmStackFromFileUpload(r *http.Request, dryrun b
 		}
 	}
 
-	if !dryrun {
-		stack.ID = portaineree.EdgeStackID(handler.DataStore.EdgeStack().GetNextIdentifier())
+	if dryrun {
+		return stack, nil
+	}
 
-		relationConfig, err := fetchEndpointRelationsConfig(handler.DataStore)
-		if err != nil {
-			return nil, fmt.Errorf("failed fetching relations config: %w", err)
-		}
+	stack.ID = portaineree.EdgeStackID(handler.DataStore.EdgeStack().GetNextIdentifier())
 
-		relatedEndpointIds, err := edge.EdgeStackRelatedEndpoints(stack.EdgeGroups, relationConfig.endpoints, relationConfig.endpointGroups, relationConfig.edgeGroups)
-		if err != nil {
-			return nil, fmt.Errorf("unable to retrieve related environment: %w", err)
-		}
+	relationConfig, err := fetchEndpointRelationsConfig(handler.DataStore)
+	if err != nil {
+		return nil, fmt.Errorf("failed fetching relations config: %w", err)
+	}
 
-		stackFolder := strconv.Itoa(int(stack.ID))
-		if stack.DeploymentType == portaineree.EdgeStackDeploymentCompose {
-			stack.EntryPoint = filesystem.ComposeFileDefaultName
+	relatedEndpointIds, err := edge.EdgeStackRelatedEndpoints(stack.EdgeGroups, relationConfig.endpoints, relationConfig.endpointGroups, relationConfig.edgeGroups)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve related environment: %w", err)
+	}
 
-			projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
-			if err != nil {
-				return nil, err
-			}
-			stack.ProjectPath = projectPath
+	stackFolder := strconv.Itoa(int(stack.ID))
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentCompose {
+		stack.EntryPoint = filesystem.ComposeFileDefaultName
 
-			err = handler.convertAndStoreKubeManifestIfNeeded(stack, relatedEndpointIds)
-			if err != nil {
-				return nil, fmt.Errorf("Failed creating and storing kube manifest: %w", err)
-			}
-
-		}
-
-		if stack.DeploymentType == portaineree.EdgeStackDeploymentKubernetes {
-			stack.ManifestPath = filesystem.ManifestFileDefaultName
-
-			projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.ManifestPath, []byte(payload.StackFileContent))
-			if err != nil {
-				return nil, err
-			}
-			stack.ProjectPath = projectPath
-		}
-
-		if stack.DeploymentType == portaineree.EdgeStackDeploymentNomad {
-			stack.EntryPoint = nomadJobFileDefaultName
-
-			projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
-			if err != nil {
-				return nil, err
-			}
-
-			stack.ProjectPath = projectPath
-		}
-
-		err = updateEndpointRelations(handler.DataStore.EndpointRelation(), stack.ID, relatedEndpointIds)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to update environment relations: %w", err)
-		}
-
-		err = handler.DataStore.EdgeStack().Create(stack.ID, stack)
+		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
 		if err != nil {
 			return nil, err
 		}
+		stack.ProjectPath = projectPath
+
+		err = handler.convertAndStoreKubeManifestIfNeeded(stack, relatedEndpointIds)
+		if err != nil {
+			return nil, fmt.Errorf("Failed creating and storing kube manifest: %w", err)
+		}
+
+	}
+
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentKubernetes {
+		stack.ManifestPath = filesystem.ManifestFileDefaultName
+
+		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.ManifestPath, []byte(payload.StackFileContent))
+		if err != nil {
+			return nil, err
+		}
+		stack.ProjectPath = projectPath
+	}
+
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentNomad {
+		stack.EntryPoint = nomadJobFileDefaultName
+
+		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
+		if err != nil {
+			return nil, err
+		}
+
+		stack.ProjectPath = projectPath
+	}
+
+	err = handler.updateEndpointRelations(stack.ID, relatedEndpointIds)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to update environment relations: %w", err)
+	}
+
+	err = handler.DataStore.EdgeStack().Create(stack.ID, stack)
+	if err != nil {
+		return nil, err
+	}
+
+	err = handler.createEdgeCommands(stack.ID, relatedEndpointIds)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to update environment relations: %w", err)
 	}
 
 	return stack, nil
@@ -491,18 +511,34 @@ func (handler *Handler) validateUniqueName(name string) error {
 }
 
 // updateEndpointRelations adds a relation between the Edge Stack to the related environments(endpoints)
-func updateEndpointRelations(endpointRelationService dataservices.EndpointRelationService, edgeStackID portaineree.EdgeStackID, relatedEndpointIds []portaineree.EndpointID) error {
+func (handler *Handler) updateEndpointRelations(edgeStackID portaineree.EdgeStackID, relatedEndpointIds []portaineree.EndpointID) error {
 	for _, endpointID := range relatedEndpointIds {
-		relation, err := endpointRelationService.EndpointRelation(endpointID)
+		relation, err := handler.DataStore.EndpointRelation().EndpointRelation(endpointID)
 		if err != nil {
 			return fmt.Errorf("unable to find environment relation in database: %w", err)
 		}
 
 		relation.EdgeStacks[edgeStackID] = true
 
-		err = endpointRelationService.UpdateEndpointRelation(endpointID, relation)
+		err = handler.DataStore.EndpointRelation().UpdateEndpointRelation(endpointID, relation)
 		if err != nil {
 			return fmt.Errorf("unable to persist environment relation in database: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (handler *Handler) createEdgeCommands(edgeStackID portaineree.EdgeStackID, relatedEndpointIds []portaineree.EndpointID) error {
+	for _, endpointID := range relatedEndpointIds {
+		endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
+		if err != nil {
+			return err
+		}
+
+		err = handler.edgeService.AddStackCommand(endpoint, edgeStackID)
+		if err != nil {
+			return err
 		}
 	}
 

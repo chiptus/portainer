@@ -20,9 +20,7 @@ export function SettingsViewModel(data) {
   this.EdgePortainerUrl = data.EdgePortainerUrl;
   this.CloudApiKeys = data.CloudApiKeys;
   this.EdgeAgentCheckinInterval = data.EdgeAgentCheckinInterval;
-  this.EdgePingInterval = data.EdgePingInterval;
-  this.EdgeSnapshotInterval = data.EdgeSnapshotInterval;
-  this.EdgeCommandInterval = data.EdgeCommandInterval;
+  this.Edge = new EdgeSettingsViewModel(data.Edge);
 }
 
 export function PublicSettingsViewModel(settings) {
@@ -77,4 +75,10 @@ export function OAuthSettingsViewModel(data) {
   this.SSO = data.SSO;
   this.HideInternalAuth = data.HideInternalAuth;
   this.LogoutURI = data.LogoutURI;
+}
+
+export function EdgeSettingsViewModel(data) {
+  this.PingInterval = data.PingInterval;
+  this.SnapshotInterval = data.SnapshotInterval;
+  this.CommandInterval = data.CommandInterval;
 }

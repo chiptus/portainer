@@ -36,11 +36,6 @@ func (handler *Handler) edgeStackDelete(w http.ResponseWriter, r *http.Request) 
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find an edge stack with the specified identifier inside the database", Err: err}
 	}
 
-	err = handler.DataStore.EdgeStack().DeleteEdgeStack(portaineree.EdgeStackID(edgeStackID))
-	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to remove the edge stack from the database", Err: err}
-	}
-
 	relationConfig, err := fetchEndpointRelationsConfig(handler.DataStore)
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find environment relations in database", Err: err}
@@ -68,6 +63,11 @@ func (handler *Handler) edgeStackDelete(w http.ResponseWriter, r *http.Request) 
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to store edge async command into the database", err}
 		}
+	}
+
+	err = handler.DataStore.EdgeStack().DeleteEdgeStack(portaineree.EdgeStackID(edgeStackID))
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove the edge stack from the database", err}
 	}
 
 	return response.Empty(w)

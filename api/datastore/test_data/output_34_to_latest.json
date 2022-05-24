@@ -4,8 +4,8 @@
   "cloudcredentials": null,
   "customtemplates": null,
   "dockerhub": null,
+  "edge_async_command": null,
   "edge_stack": null,
-  "edgeasynccommand": null,
   "edgegroups": null,
   "edgejobs": null,
   "endpoint_groups": [
@@ -1074,11 +1074,13 @@
     },
     "DisplayDonationHeader": false,
     "DisplayExternalContributors": false,
+    "Edge": {
+      "CommandInterval": 0,
+      "PingInterval": 0,
+      "SnapshotInterval": 0
+    },
     "EdgeAgentCheckinInterval": 5,
-    "EdgeCommandInterval": 0,
-    "EdgePingInterval": 0,
     "EdgePortainerUrl": "",
-    "EdgeSnapshotInterval": 0,
     "EnableEdgeComputeFeatures": false,
     "EnableHostManagementFeatures": false,
     "EnableTelemetry": false,

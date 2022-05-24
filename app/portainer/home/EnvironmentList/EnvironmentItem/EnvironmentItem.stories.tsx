@@ -72,5 +72,11 @@ function mockEnvironment(type: EnvironmentType): Environment {
     },
     URL: 'url',
     UserTrusted: false,
+    Edge: {
+      AsyncMode: false,
+      PingInterval: 0,
+      CommandInterval: 0,
+      SnapshotInterval: 0,
+    },
   };
 }

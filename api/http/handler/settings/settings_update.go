@@ -51,12 +51,15 @@ type settingsUpdatePayload struct {
 	EdgePortainerURL *string `json:"EdgePortainerURL"`
 	// The default check in interval for edge agent (in seconds)
 	EdgeAgentCheckinInterval *int `example:"5"`
-	// The command list interval for edge agent - used in edge async mode (in seconds)
-	EdgeCommandInterval *int `json:"EdgeCommandInterval" example:"5"`
-	// The ping interval for edge agent - used in edge async mode (in seconds)
-	EdgePingInterval *int `json:"EdgePingInterval" example:"5"`
-	// The snapshot interval for edge agent - used in edge async mode (in seconds)
-	EdgeSnapshotInterval *int `json:"EdgeSnapshotInterval" example:"5"`
+
+	Edge struct {
+		// The ping interval for edge agent - used in edge async mode (in seconds)
+		PingInterval *int `json:"PingInterval" example:"5"`
+		// The snapshot interval for edge agent - used in edge async mode (in seconds)
+		SnapshotInterval *int `json:"SnapshotInterval" example:"5"`
+		// The command list interval for edge agent - used in edge async mode (in seconds)
+		CommandInterval *int `json:"CommandInterval" example:"5"`
+	}
 
 	// Deprecated
 	CloudApiKeys struct {
@@ -284,16 +287,16 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		settings.EdgeAgentCheckinInterval = *payload.EdgeAgentCheckinInterval
 	}
 
-	if payload.EdgeCommandInterval != nil {
-		settings.EdgeCommandInterval = *payload.EdgeCommandInterval
+	if payload.Edge.PingInterval != nil {
+		settings.Edge.PingInterval = *payload.Edge.PingInterval
 	}
 
-	if payload.EdgePingInterval != nil {
-		settings.EdgePingInterval = *payload.EdgePingInterval
+	if payload.Edge.SnapshotInterval != nil {
+		settings.Edge.SnapshotInterval = *payload.Edge.SnapshotInterval
 	}
 
-	if payload.EdgeSnapshotInterval != nil {
-		settings.EdgeSnapshotInterval = *payload.EdgeSnapshotInterval
+	if payload.Edge.CommandInterval != nil {
+		settings.Edge.CommandInterval = *payload.Edge.CommandInterval
 	}
 
 	if payload.KubeconfigExpiry != nil {
