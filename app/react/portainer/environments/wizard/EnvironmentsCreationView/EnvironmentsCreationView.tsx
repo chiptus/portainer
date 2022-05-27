@@ -7,7 +7,7 @@ import { Stepper } from '@/react/components/Stepper';
 import { Widget, WidgetBody, WidgetTitle } from '@/portainer/components/widget';
 import { notifyError } from '@/portainer/services/notifications';
 import { PageHeader } from '@/portainer/components/PageHeader';
-import { KaasCreateForm } from '@/portainer/environments/components/kaas/KaasCreate.form';
+import { KaasFormGroup } from '@/portainer/environments/kaas/KaasFormGroup';
 import { Button } from '@/portainer/components/Button';
 import { Environment, EnvironmentId } from '@/portainer/environments/types';
 import { useAnalytics } from '@/angulartics.matomo/analytics-services';
@@ -180,7 +180,7 @@ function useStepper(
       case 'kubernetes':
         return WizardKubernetes;
       case 'kaas':
-        return KaasCreateForm;
+        return KaasFormGroup;
       case 'nomad':
         return WizardNomad;
       default:

@@ -67,7 +67,16 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 		}
 
 		return response.JSON(w, linodeInfo)
+
+	case portaineree.CloudProviderGKE:
+		gkeInfo, err := handler.cloudClusterInfoService.GKEGetInfo(credential)
+		if err != nil {
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve GKE information", err}
+		}
+
+		return response.JSON(w, gkeInfo)
+
 	}
 
-	return &httperror.HandlerError{http.StatusInternalServerError, "Unable to provision Kaas cluster", errors.New("invalid provider route parameter. Valid values: civo, digitalocean, linode")}
+	return &httperror.HandlerError{http.StatusInternalServerError, "Unable to fetch provider infomation", errors.New("Invalid provider route parameter. Valid values: civo, digitalocean, linode, gke")}
 }

@@ -115,11 +115,14 @@ type (
 
 	// CloudProvider represents a Kubernetes as a service cloud provider.
 	CloudProvider struct {
-		Name      string `json:"Name"`
-		URL       string `json:"URL"`
-		Region    string `json:"Region"`
-		Size      string `json:"Size"`
-		NodeCount int    `json:"NodeCount"`
+		Name      string   `json:"Name"`
+		URL       string   `json:"URL"`
+		Region    string   `json:"Region"`
+		Size      *string  `json:"Size"`
+		NodeCount int      `json:"NodeCount"`
+		CPU       *int     `json:"CPU"`
+		RAM       *float64 `json:"RAM"`
+		HDD       *int     `json:"HDD"`
 		// Pointer will hide this field for providers other than civo which do
 		// not use this field.
 		NetworkID *string `json:"NetworkID"`
@@ -959,6 +962,7 @@ type (
 		CivoApiKey        string `json:"CivoApiKey" example:"DgJ33kwIhnHumQFyc8ihGwWJql9cC8UJDiBhN8YImKqiX"`
 		DigitalOceanToken string `json:"DigitalOceanToken" example:"dop_v1_n9rq7dkcbg3zb3bewtk9nnvmfkyfnr94d42n28lym22vhqu23rtkllsldygqm22v"`
 		LinodeToken       string `json:"LinodeToken" example:"92gsh9r9u5helgs4eibcuvlo403vm45hrmc6mzbslotnrqmkwc1ovqgmolcyq0wc"`
+		GKEApiKey         string `json:"GKEApiKey" example:"an entire base64ed key file"`
 	}
 
 	// CloudProvisioningRequest represents a requested Cloud Kubernetes Cluster
@@ -971,6 +975,9 @@ type (
 		NodeSize          string
 		NetworkID         string
 		NodeCount         int
+		CPU               int
+		RAM               float64
+		HDD               int
 		KubernetesVersion string
 		CredentialID      models.CloudCredentialID
 	}
@@ -2286,4 +2293,5 @@ const (
 	CloudProviderCivo         = "civo"
 	CloudProviderDigitalOcean = "digitalocean"
 	CloudProviderLinode       = "linode"
+	CloudProviderGKE          = "gke"
 )

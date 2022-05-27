@@ -4,8 +4,8 @@ import { FormControl } from '@/portainer/components/form-components/FormControl'
 import { Input } from '@/portainer/components/form-components/Input';
 import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
 
-import { APIFormValues, KaasProvider } from '../types';
-import { getProviderTitle, isMeaningfulChange } from '../utils';
+import { APIFormValues, KaasProvider, providerTitles } from '../types';
+import { isMeaningfulChange } from '../utils';
 
 import { validationSchema } from './APICredentialsForm.validation';
 
@@ -58,7 +58,7 @@ export function APICredentialsForm({
                 name="provider"
                 autoComplete="off"
                 id="provider"
-                value={getProviderTitle(selectedProvider)}
+                value={providerTitles[selectedProvider]}
                 data-cy="cloudSettings-provider"
               />
             </FormControl>
@@ -69,7 +69,7 @@ export function APICredentialsForm({
               name="name"
               id="name"
               value={values.name}
-              placeholder={`e.g. ${getProviderTitle(selectedProvider)} Staging`}
+              placeholder={`e.g. ${providerTitles[selectedProvider]} Staging`}
               data-cy="cloudSettings-apiKeyName"
             />
           </FormControl>
@@ -91,7 +91,7 @@ export function APICredentialsForm({
           </FormControl>
 
           <div className="form-group">
-            <div className="col-sm-12 mt-20">
+            <div className="col-sm-12 mt-3">
               <LoadingButton
                 disabled={
                   !isValid ||

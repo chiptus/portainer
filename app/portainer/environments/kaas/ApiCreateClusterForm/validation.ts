@@ -1,23 +1,18 @@
 import { object, string, number } from 'yup';
 
-import { KaasProvider } from '@/portainer/settings/cloud/types';
 import { metadataValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MetadataFieldset/validation';
-import { nameValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/NameField';
+import { KaasProvider } from '@/portainer/settings/cloud/types';
 
 export function validationSchema() {
   return object().shape({
-    name: nameValidation()
-      .matches(
-        /^[a-z0-9-]+$/,
-        'Name must only contain lowercase alphanumeric characters and hyphens.'
-      )
-      .max(32, 'Name must be 32 characters or less.'),
     networkId: string().when('type', {
       is: KaasProvider.CIVO,
       then: string().required('Network ID is required.'),
     }),
     nodeCount: number()
+      .integer('Node count must be an integer.')
       .min(1, 'Node count must be greater than or equal to 1.')
+      .max(1000, 'Node count must be less than or equal to 1000.')
       .required('Node count is required.'),
     meta: metadataValidation(),
   });

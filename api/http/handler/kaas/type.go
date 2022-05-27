@@ -21,4 +21,8 @@ var CloudProvidersMap CloudProviders = CloudProviders{
 		Name: "DigitalOcean",
 		URL:  "https://cloud.digitalocean.com/login",
 	},
+	portaineree.CloudProviderGKE: {
+		Name: "Google Cloud Platform",
+		URL:  "https://console.cloud.google.com/kubernetes/",
+	},
 }

@@ -1,6 +1,5 @@
 import angular from 'angular';
 
-import componentsModule from './components';
+import kaasModule from './kaas';
 
-export default angular.module('portainer.environments', [componentsModule])
-  .name;
+export default angular.module('portainer.environments', [kaasModule]).name;

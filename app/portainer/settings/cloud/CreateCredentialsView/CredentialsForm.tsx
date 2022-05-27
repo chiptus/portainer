@@ -37,7 +37,7 @@ export function CredentialsForm({ selectedProvider, routeOnSuccess }: Props) {
 
   return (
     <>
-      <FormSectionTitle>Credential Details</FormSectionTitle>
+      <FormSectionTitle>Credential details</FormSectionTitle>
       <TextTip color="blue">
         Credentials that you set here will be usable by any admin user (although
         the actual credential values themselves cannot be viewed).

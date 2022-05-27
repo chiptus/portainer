@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/cloud/gke"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	kubecli "github.com/portainer/portainer-ee/api/kubernetes/cli"
@@ -216,6 +217,9 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 	case portaineree.CloudProviderLinode:
 		cluster, err = LinodeGetCluster(credentials.Credentials["apiKey"], task.ClusterID)
 
+	case portaineree.CloudProviderGKE:
+		cluster, err = GKEGetCluster(credentials.Credentials["jsonKeyBase64"], task.ClusterID, task.Region)
+
 	default:
 		return cluster, fmt.Errorf("%v is not supported", task.Provider)
 	}
@@ -380,6 +384,25 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 		if provErr != nil {
 			log.Errorf("[cloud] [message: Linode cluster provisioning failed %v]", provErr)
 		}
+
+	case portaineree.CloudProviderGKE:
+		req := gke.ProvisionRequest{
+			APIKey:            credentials.Credentials["jsonKeyBase64"],
+			Zone:              request.Region,
+			ClusterName:       request.Name,
+			Subnet:            request.NetworkID,
+			NodeSize:          request.NodeSize,
+			CPU:               request.CPU,
+			RAM:               request.RAM,
+			HDD:               request.HDD,
+			NodeCount:         request.NodeCount,
+			KubernetesVersion: request.KubernetesVersion,
+		}
+		clusterID, provErr = GKEProvisionCluster(req)
+		if provErr != nil {
+			log.Errorf("[cloud] [message: GKE cluster provisioning failed %v]", provErr)
+		}
+
 	}
 
 	task, err := service.createClusterSetupTask(request, clusterID)

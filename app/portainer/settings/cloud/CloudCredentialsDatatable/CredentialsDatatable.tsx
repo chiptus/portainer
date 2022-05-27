@@ -148,7 +148,18 @@ export function CredentialsDatatable({
               </td>
             </tr>
           )}
-          {page.length > 0 && !isLoading ? (
+          {page.length === 0 && !isLoading && (
+            <tr>
+              <td
+                colSpan={columns.length + 1}
+                className="text-center text-muted"
+                data-cy="credentials-noneAvailable"
+              >
+                No credential available.
+              </td>
+            </tr>
+          )}
+          {page.length >= 1 &&
             page.map((row) => {
               prepareRow(row);
               const { key, className, role, style } = row.getRowProps();
@@ -161,18 +172,7 @@ export function CredentialsDatatable({
                   style={style}
                 />
               );
-            })
-          ) : (
-            <tr>
-              <td
-                colSpan={columns.length + 1}
-                className="text-center text-muted"
-                data-cy="credentials-noneAvailable"
-              >
-                No credential available.
-              </td>
-            </tr>
-          )}
+            })}
         </tbody>
       </Table>
 

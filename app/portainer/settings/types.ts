@@ -1,4 +1,3 @@
-import { CloudApiKeys } from '../environments/components/kaas/kaas.types';
 import { TeamId } from '../teams/types';
 
 export interface FDOConfiguration {
@@ -111,7 +110,6 @@ export interface Settings {
   EnforceEdgeID: boolean;
   AgentSecret: string;
   EdgePortainerUrl: string;
-  CloudApiKeys: CloudApiKeys;
   EdgeAgentCheckinInterval: number;
   DisplayDonationHeader: boolean;
   DisplayExternalContributors: boolean;

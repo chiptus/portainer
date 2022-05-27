@@ -16,20 +16,20 @@ import (
 
 type (
 	CivoInfo struct {
-		Regions            []portaineree.Pair `json:"Regions"`
-		NodeSizes          []portaineree.Pair `json:"NodeSizes"`
-		Networks           []CivoNetwork      `json:"Networks"`
-		KubernetesVersions []string           `json:"KubernetesVersions"`
+		Regions            []portaineree.Pair `json:"regions"`
+		NodeSizes          []portaineree.Pair `json:"nodeSizes"`
+		Networks           []CivoNetwork      `json:"networks"`
+		KubernetesVersions []portaineree.Pair `json:"kubernetesVersions"`
 	}
 
 	CivoNetwork struct {
-		Region   string               `json:"Region"`
-		Networks []CivoNetworkDetails `json:"Networks"`
+		Region   string               `json:"region"`
+		Networks []CivoNetworkDetails `json:"networks"`
 	}
 
 	CivoNetworkDetails struct {
-		Id   string `json:"Id"`
-		Name string `json:"Name"`
+		Id   string `json:"id"`
+		Name string `json:"name"`
 	}
 )
 
@@ -183,11 +183,20 @@ func (service *CloudClusterInfoService) CivoFetchInfo(apiKey string) (*CivoInfo,
 	}
 	sort.Sort(sort.Reverse(sortorder.Natural(kvs)))
 
+	versionPairs := make([]portaineree.Pair, 0)
+	for _, v := range kvs {
+		pair := portaineree.Pair{
+			Name:  v,
+			Value: v,
+		}
+		versionPairs = append(versionPairs, pair)
+	}
+
 	civoInfo := &CivoInfo{
 		Regions:            rs,
 		NodeSizes:          ns,
 		Networks:           nets,
-		KubernetesVersions: kvs,
+		KubernetesVersions: versionPairs,
 	}
 
 	return civoInfo, nil

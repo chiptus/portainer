@@ -1,15 +1,6 @@
 import { CellProps, Column } from 'react-table';
 
-import { Credential } from '../../types';
-
-const providerTitles = {
-  civo: 'Civo',
-  linode: 'Linode',
-  digitalocean: 'DigitalOcean',
-  googlecloud: 'Google Cloud',
-  aws: 'AWS',
-  azure: 'Azure',
-};
+import { Credential, providerTitles } from '../../types';
 
 export const provider: Column<Credential> = {
   Header: 'Cloud Provider',

@@ -1,19 +1,6 @@
 import _ from 'lodash';
 
-import { KaasProvider, GenericFormValues, CredentialDetails } from './types';
-
-const providerTitles = {
-  civo: 'Civo',
-  linode: 'Linode',
-  digitalocean: 'DigitalOcean',
-  googlecloud: 'Google Cloud',
-  aws: 'AWS',
-  azure: 'Azure',
-};
-
-export function getProviderTitle(provider: KaasProvider) {
-  return providerTitles[provider];
-}
+import { GenericFormValues, CredentialDetails } from './types';
 
 // trimObject trims the string values in an object (shallow) and returns the trimmed object
 export function trimObject<T extends Record<string, unknown>>(obj: T) {

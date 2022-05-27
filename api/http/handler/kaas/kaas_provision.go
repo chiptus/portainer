@@ -20,8 +20,11 @@ type EnvironmentMetadata struct {
 
 type kaasClusterProvisionPayload struct {
 	Name              string                   `validate:"required" example:"myDevCluster"`
-	NodeSize          string                   `validate:"required" example:"g3.small"`
+	NodeSize          string                   `example:"g3.small"`
 	NodeCount         int                      `validate:"required" example:"3"`
+	CPU               int                      `example:"2"`
+	RAM               float64                  `example:"4"`
+	HDD               int                      `example:"100"`
 	Region            string                   `validate:"required" example:"NYC1"`
 	NetworkID         string                   `example:"8465fb26-632e-4fa3-bb9b-21c449629026"`
 	KubernetesVersion string                   `validate:"required" example:"1.23"`
@@ -32,9 +35,6 @@ type kaasClusterProvisionPayload struct {
 func (payload *kaasClusterProvisionPayload) Validate(r *http.Request) error {
 	if govalidator.IsNull(payload.Name) {
 		return errors.New("Invalid cluster name")
-	}
-	if govalidator.IsNull(payload.NodeSize) {
-		return errors.New("Invalid node size")
 	}
 	if payload.NodeCount <= 0 {
 		return errors.New("Invalid node count")
@@ -91,13 +91,16 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 		return &httperror.HandlerError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "Unable to provision Kaas cluster",
-			Err:        errors.New("invalid provider route parameter. Valid values: civo, digitalocean, linode"),
+			Err:        errors.New("invalid provider route parameter. Valid values: civo, digitalocean, linode, gke"),
 		}
 	}
 
 	cloudProvider.Region = payload.Region
-	cloudProvider.Size = payload.NodeSize
+	cloudProvider.Size = &payload.NodeSize
 	cloudProvider.NodeCount = payload.NodeCount
+	cloudProvider.CPU = &payload.CPU
+	cloudProvider.RAM = &payload.RAM
+	cloudProvider.HDD = &payload.HDD
 	cloudProvider.NetworkID = &payload.NetworkID
 	cloudProvider.CredentialID = payload.CredentialID
 
@@ -119,6 +122,9 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 		NodeSize:          payload.NodeSize,
 		NetworkID:         payload.NetworkID,
 		NodeCount:         payload.NodeCount,
+		CPU:               payload.CPU,
+		RAM:               payload.RAM,
+		HDD:               payload.HDD,
 		KubernetesVersion: payload.KubernetesVersion,
 		CredentialID:      payload.CredentialID,
 	}

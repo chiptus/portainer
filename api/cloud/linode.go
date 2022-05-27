@@ -19,9 +19,9 @@ import (
 )
 
 type LinodeInfo struct {
-	Regions            []portaineree.Pair `json:"Regions"`
-	NodeSizes          []portaineree.Pair `json:"NodeSizes"`
-	KubernetesVersions []string           `json:"KubernetesVersions"`
+	Regions            []portaineree.Pair `json:"regions"`
+	NodeSizes          []portaineree.Pair `json:"nodeSizes"`
+	KubernetesVersions []portaineree.Pair `json:"kubernetesVersions"`
 }
 
 func (service *CloudClusterInfoService) LinodeGetInfo(credential *models.CloudCredential) (interface{}, error) {
@@ -120,10 +120,19 @@ func (service *CloudClusterInfoService) LinodeFetchInfo(apiKey string) (*LinodeI
 	}
 	sort.Sort(sort.Reverse(sortorder.Natural(kvs)))
 
+	versionPairs := make([]portaineree.Pair, 0)
+	for _, v := range kvs {
+		pair := portaineree.Pair{
+			Name:  v,
+			Value: v,
+		}
+		versionPairs = append(versionPairs, pair)
+	}
+
 	linodeInfo := &LinodeInfo{
 		Regions:            rs,
 		NodeSizes:          ns,
-		KubernetesVersions: kvs,
+		KubernetesVersions: versionPairs,
 	}
 
 	// Update the cache also.

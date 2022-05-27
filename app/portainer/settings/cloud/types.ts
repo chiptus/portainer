@@ -11,10 +11,19 @@ export enum KaasProvider {
   CIVO = 'civo',
   LINODE = 'linode',
   DIGITAL_OCEAN = 'digitalocean',
-  GOOGLE_CLOUD = 'googlecloud',
-  AWS = 'aws',
+  GOOGLE_CLOUD = 'gke',
+  AWS = 'amazon',
   AZURE = 'azure',
 }
+
+export const providerTitles: Record<KaasProvider, string> = {
+  civo: 'Civo',
+  linode: 'Linode',
+  digitalocean: 'DigitalOcean',
+  gke: 'Google Cloud',
+  amazon: 'AWS',
+  azure: 'Azure',
+};
 
 export type APICredentials = {
   apiKey: string;

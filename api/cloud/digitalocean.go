@@ -16,9 +16,9 @@ import (
 )
 
 type DigitalOceanInfo struct {
-	Regions            []portaineree.Pair `json:"Regions"`
-	NodeSizes          []portaineree.Pair `json:"NodeSizes"`
-	KubernetesVersions []string           `json:"KubernetesVersions"`
+	Regions            []portaineree.Pair `json:"regions"`
+	NodeSizes          []portaineree.Pair `json:"nodeSizes"`
+	KubernetesVersions []portaineree.Pair `json:"kubernetesVersions"`
 }
 
 func (service *CloudClusterInfoService) DigitalOceanGetInfo(credential *models.CloudCredential) (interface{}, error) {
@@ -116,10 +116,19 @@ func (service *CloudClusterInfoService) DigitalOceanFetchInfo(apiKey string) (*D
 		ns = append(ns, s)
 	}
 
+	versionPairs := make([]portaineree.Pair, 0)
+	for _, v := range kvs {
+		pair := portaineree.Pair{
+			Name:  v,
+			Value: v,
+		}
+		versionPairs = append(versionPairs, pair)
+	}
+
 	digitalOceanInfo := &DigitalOceanInfo{
 		Regions:            rs,
 		NodeSizes:          ns,
-		KubernetesVersions: kvs,
+		KubernetesVersions: versionPairs,
 	}
 
 	// Update the cache also.

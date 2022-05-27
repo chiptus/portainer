@@ -8,8 +8,12 @@ import { FileUploadField } from '@/portainer/components/form-components/FileUplo
 import { error as notifyError } from '@/portainer/services/notifications';
 import { readFileAsArrayBuffer } from '@/portainer/services/fileUploadReact';
 
-import { ServiceAccountFormValues, KaasProvider } from '../types';
-import { getProviderTitle, isMeaningfulChange } from '../utils';
+import {
+  ServiceAccountFormValues,
+  KaasProvider,
+  providerTitles,
+} from '../types';
+import { isMeaningfulChange } from '../utils';
 
 import { validationSchema } from './GCPCredentialsForm.validation';
 
@@ -57,7 +61,7 @@ export function GCPCredentialsForm({
                 name="provider"
                 autoComplete="off"
                 id="provider"
-                value={getProviderTitle(selectedProvider)}
+                value={providerTitles[selectedProvider]}
                 data-cy="cloudSettings-provider"
               />
             </FormControl>
@@ -68,7 +72,7 @@ export function GCPCredentialsForm({
               name="name"
               id="name"
               value={values.name}
-              placeholder={`e.g. ${getProviderTitle(selectedProvider)} Staging`}
+              placeholder={`e.g. ${providerTitles[selectedProvider]} Staging`}
               data-cy="cloudSettings-apiKeyName"
             />
           </FormControl>
@@ -89,7 +93,7 @@ export function GCPCredentialsForm({
           </FormControl>
 
           <div className="form-group">
-            <div className="col-sm-12 mt-20">
+            <div className="col-sm-12 mt-3">
               <LoadingButton
                 disabled={
                   !isValid ||

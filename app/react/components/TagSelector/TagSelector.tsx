@@ -26,7 +26,7 @@ interface Option {
 export function TagSelector({ value, allowCreate = false, onChange }: Props) {
   // change the struct because react-select has a bug with Creatable (https://github.com/JedWatson/react-select/issues/3417#issuecomment-461868989)
   const tagsQuery = useTags((tags) =>
-    tags.map((opt) => ({ label: opt.Name, value: opt.ID }))
+    tags?.map((opt) => ({ label: opt.Name, value: opt.ID }))
   );
 
   const createTagMutation = useCreateTagMutation();
@@ -38,7 +38,7 @@ export function TagSelector({ value, allowCreate = false, onChange }: Props) {
   const { tags } = tagsQuery;
 
   const selectedTags = _.compact(
-    value.map((id) => tags.find((tag) => tag.value === id))
+    value?.map((id) => tags.find((tag) => tag.value === id))
   );
 
   const SelectComponent = allowCreate ? Creatable : Select;

@@ -9,7 +9,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -47,7 +46,7 @@ func NewCloudInfoService(dataStore dataservices.DataStore, shutdownCtx context.C
 func (service *CloudClusterInfoService) tryUpdate() {
 	credentials, err := service.dataStore.CloudCredential().GetAll()
 	if err != nil {
-		logrus.Errorf("while fetching cloud credentials: %v", err)
+		log.Errorf("while fetching cloud credentials: %v", err)
 		return
 	}
 
@@ -63,9 +62,11 @@ func (service *CloudClusterInfoService) tryUpdate() {
 				info, err = service.LinodeFetchInfo(credential.Credentials["apiKey"])
 			case portaineree.CloudProviderDigitalOcean:
 				info, err = service.DigitalOceanFetchInfo(credential.Credentials["apiKey"])
+			case portaineree.CloudProviderGKE:
+				info, err = service.GKEFetchInfo(credential.Credentials["jsonKeyBase64"])
 			}
 			if err != nil {
-				logrus.Errorf("while fetching info for %s: %v", credential.Provider, err)
+				log.Errorf("while fetching info for %s: %v", credential.Provider, err)
 				return
 			}
 			service.mu.Lock()

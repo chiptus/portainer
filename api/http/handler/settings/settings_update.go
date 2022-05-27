@@ -69,6 +69,8 @@ type settingsUpdatePayload struct {
 		DigitalOceanToken *string `example:"dop_v1_n9rq7dkcbg3zb3bewtk9nnvmfkyfnr94d42n28lym22vhqu23rtkllsldygqm22v"`
 		// LinodeToken represents an authentication token for the Linode API
 		LinodeToken *string `example:"92gsh9r9u5helgs4eibcuvlo403vm45hrmc6mzbslotnrqmkwc1ovqgmolcyq0wc"`
+		// GKEApiKey represents an entire base64ed key file for the GKE API
+		GKEApiKey *string `json:"GKEApiKey" example:"an entire base64ed key file"`
 	}
 }
 

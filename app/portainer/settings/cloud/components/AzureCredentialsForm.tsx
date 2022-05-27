@@ -4,8 +4,8 @@ import { FormControl } from '@/portainer/components/form-components/FormControl'
 import { Input } from '@/portainer/components/form-components/Input';
 import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
 
-import { AzureFormValues, KaasProvider } from '../types';
-import { getProviderTitle, isMeaningfulChange } from '../utils';
+import { AzureFormValues, KaasProvider, providerTitles } from '../types';
+import { isMeaningfulChange } from '../utils';
 
 import { validationSchema } from './AzureCredentialsForm.validation';
 
@@ -54,7 +54,7 @@ export function AzureCredentialsForm({
                 name="provider"
                 autoComplete="off"
                 id="provider"
-                value={getProviderTitle(selectedProvider)}
+                value={providerTitles[selectedProvider]}
                 data-cy="cloudSettings-provider"
               />
             </FormControl>
@@ -65,7 +65,7 @@ export function AzureCredentialsForm({
               name="name"
               id="name"
               value={values.name}
-              placeholder={`e.g. ${getProviderTitle(selectedProvider)} Staging`}
+              placeholder={`e.g. ${providerTitles[selectedProvider]} Staging`}
               data-cy="cloudSettings-apiKeyName"
             />
           </FormControl>
@@ -131,7 +131,7 @@ export function AzureCredentialsForm({
           </FormControl>
 
           <div className="form-group">
-            <div className="col-sm-12 mt-20">
+            <div className="col-sm-12 mt-3">
               <LoadingButton
                 disabled={
                   !isValid ||
