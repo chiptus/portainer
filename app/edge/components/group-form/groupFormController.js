@@ -7,6 +7,7 @@ export class EdgeGroupFormController {
   constructor(EndpointService, $async, $scope) {
     this.EndpointService = EndpointService;
     this.$async = $async;
+    this.$scope = $scope;
 
     this.endpoints = {
       state: {
@@ -23,6 +24,7 @@ export class EdgeGroupFormController {
     this.dissociateEndpoint = this.dissociateEndpoint.bind(this);
     this.getDynamicEndpointsAsync = this.getDynamicEndpointsAsync.bind(this);
     this.getDynamicEndpoints = this.getDynamicEndpoints.bind(this);
+    this.onChangeTags = this.onChangeTags.bind(this);
 
     $scope.$watch(
       () => this.model,
@@ -33,6 +35,12 @@ export class EdgeGroupFormController {
       },
       true
     );
+  }
+
+  onChangeTags(value) {
+    return this.$scope.$evalAsync(() => {
+      this.model.TagIds = value;
+    });
   }
 
   associateEndpoint(endpoint) {
