@@ -29,8 +29,6 @@ const (
 	EdgeDeviceIntervalAdd        = 20
 )
 
-var endpointGroupNames map[portaineree.EndpointGroupID]string
-
 // @id EndpointList
 // @summary List environments(endpoints)
 // @description List all environments(endpoints) based on the current user authorizations. Will
@@ -92,12 +90,6 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 	endpointGroups, err := handler.dataStore.EndpointGroup().EndpointGroups()
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve environment groups from the database", err}
-	}
-
-	// create endpoint groups as a map for more convenient access
-	endpointGroupNames = make(map[portaineree.EndpointGroupID]string, 0)
-	for _, group := range endpointGroups {
-		endpointGroupNames[group.ID] = group.Name
 	}
 
 	endpoints, err := handler.dataStore.Endpoint().Endpoints()
@@ -169,7 +161,7 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 	}
 
 	// Sort endpoints by field
-	sortEndpointsByField(filteredEndpoints, sortField, sortOrder == "desc")
+	sortEndpointsByField(filteredEndpoints, endpointGroups, sortField, sortOrder == "desc")
 
 	filteredEndpointCount := len(filteredEndpoints)
 
@@ -266,7 +258,7 @@ func filterEndpointsByStatuses(endpoints []portaineree.Endpoint, statuses []int,
 	return filteredEndpoints
 }
 
-func sortEndpointsByField(endpoints []portaineree.Endpoint, sortField string, isSortDesc bool) {
+func sortEndpointsByField(endpoints []portaineree.Endpoint, endpointGroups []portaineree.EndpointGroup, sortField string, isSortDesc bool) {
 
 	switch sortField {
 	case "Name":
@@ -277,10 +269,20 @@ func sortEndpointsByField(endpoints []portaineree.Endpoint, sortField string, is
 		}
 
 	case "Group":
+		endpointGroupNames := make(map[portaineree.EndpointGroupID]string, 0)
+		for _, group := range endpointGroups {
+			endpointGroupNames[group.ID] = group.Name
+		}
+
+		endpointsByGroup := EndpointsByGroup{
+			endpointGroupNames: endpointGroupNames,
+			endpoints:          endpoints,
+		}
+
 		if isSortDesc {
-			sort.Stable(sort.Reverse(EndpointsByGroup(endpoints)))
+			sort.Stable(sort.Reverse(endpointsByGroup))
 		} else {
-			sort.Stable(EndpointsByGroup(endpoints))
+			sort.Stable(EndpointsByGroup(endpointsByGroup))
 		}
 
 	case "Status":
