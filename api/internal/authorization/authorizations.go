@@ -1308,7 +1308,7 @@ func getRoleFromUserAccessPolicies(
 	policyRoles := make([]portaineree.RoleID, 0)
 
 	policy, ok := userAccessPolicies[user.ID]
-	if ok {
+	if ok && policy.RoleID != 0 {
 		policyRoles = append(policyRoles, policy.RoleID)
 	}
 	if len(policyRoles) == 0 {
@@ -1327,7 +1327,7 @@ func getRoleFromUserEndpointGroupPolicy(user *portaineree.User,
 	policyRoles := make([]portaineree.RoleID, 0)
 
 	policy, ok := groupAccessPolicies[endpoint.GroupID][user.ID]
-	if ok {
+	if ok && policy.RoleID != 0 {
 		policyRoles = append(policyRoles, policy.RoleID)
 	}
 	if len(policyRoles) == 0 {
@@ -1347,7 +1347,7 @@ func getRoleFromTeamAccessPolicies(
 
 	for _, membership := range memberships {
 		policy, ok := teamAccessPolicies[membership.TeamID]
-		if ok {
+		if ok && policy.RoleID != 0 {
 			policyRoles = append(policyRoles, policy.RoleID)
 		}
 	}
@@ -1368,7 +1368,7 @@ func getRoleFromTeamEndpointGroupPolicies(memberships []portaineree.TeamMembersh
 
 	for _, membership := range memberships {
 		policy, ok := groupTeamAccessPolicies[endpoint.GroupID][membership.TeamID]
-		if ok {
+		if ok && policy.RoleID != 0 {
 			policyRoles = append(policyRoles, policy.RoleID)
 		}
 	}
