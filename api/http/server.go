@@ -312,7 +312,8 @@ func (server *Server) Start() error {
 	websocketHandler.ReverseTunnelService = server.ReverseTunnelService
 	websocketHandler.KubernetesClientFactory = server.KubernetesClientFactory
 
-	var webhookHandler = webhooks.NewHandler(requestBouncer, server.DataStore, server.UserActivityService)
+	containerService := docker.NewContainerService(server.DockerClientFactory, server.DataStore)
+	var webhookHandler = webhooks.NewHandler(requestBouncer, server.DataStore, server.UserActivityService, containerService)
 	webhookHandler.DockerClientFactory = server.DockerClientFactory
 
 	var nomadHandler = nomad.NewHandler(requestBouncer, server.NomadClientFactory)

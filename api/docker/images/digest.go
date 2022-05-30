@@ -11,7 +11,6 @@ import (
 	"github.com/opencontainers/go-digest"
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
-	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -70,7 +69,7 @@ func (c *DigestClient) RemoteDigest(image Image) (digest.Digest, error) {
 	defer cancel()
 	// Docker references with both a tag and digest are currently not supported
 	if image.Tag != "" && image.Digest != "" {
-		err := image.RemoveDigest()
+		err := image.trimDigest()
 		if err != nil {
 			return "", err
 		}
@@ -83,19 +82,19 @@ func (c *DigestClient) RemoteDigest(image Image) (digest.Digest, error) {
 
 	sysCtx := c.sysCtx
 	if c.registryClient != nil {
-		registry, err := c.registryClient.getRegistry(image.Domain)
-		if err == nil && registry != nil && registry.Authentication {
-			username, password, err := registryutils.GetRegEffectiveCredential(registry)
-			if err == nil {
-				sysCtx = &imagetypes.SystemContext{
-					DockerAuthConfig: &imagetypes.DockerAuthConfig{
-						Username: username,
-						Password: password,
-					},
-				}
+		username, password, err := c.registryClient.RegistryAuth(image)
+		if err != nil {
+			log.Warnf("Can not find registry auth for image %s", image)
+		} else {
+			sysCtx = &imagetypes.SystemContext{
+				DockerAuthConfig: &imagetypes.DockerAuthConfig{
+					Username: username,
+					Password: password,
+				},
 			}
 		}
 	}
+
 	// Retrieve remote digest through HEAD request
 	rmDigest, err := docker.GetDigest(ctx, sysCtx, rmRef)
 	if err != nil {

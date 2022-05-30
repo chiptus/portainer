@@ -114,8 +114,7 @@ func (handler *Handler) imageStatus(ctx context.Context, stack *portaineree.Stac
 		log.Debugf("No containers or services under this stack: %s", stack.Name)
 		return images.Skipped, nil
 	}
-	registryService := handler.DataStore.Registry()
-	statusClient := images.NewClientWithRegistry(images.NewRegistryClient(registryService), cli)
+	statusClient := images.NewClientWithRegistry(images.NewRegistryClient(handler.DataStore), cli)
 	statuses := make([]images.Status, len(imageList))
 	for i, resourceImage := range imageList {
 		s, err := statusClient.Status(ctx, resourceImage)

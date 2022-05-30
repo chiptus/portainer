@@ -56,11 +56,13 @@ func (handler *Handler) webhookExecute(w http.ResponseWriter, r *http.Request) *
 
 	imageTag, _ := request.RetrieveQueryParameter(r, "tag", true)
 
+	agentTargetHeader := r.Header.Get(portaineree.PortainerAgentTargetHeader)
+
 	switch webhookType {
 	case portaineree.ServiceWebhook:
 		return handler.executeServiceWebhook(w, endpoint, resourceID, registryID, imageTag)
 	case portaineree.ContainerWebhook:
-		return handler.executeContainerWebhook(w, endpoint, webhook, imageTag)
+		return handler.executeContainerWebhook(w, endpoint, webhook, imageTag, agentTargetHeader)
 	default:
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unsupported webhook type", errors.New("Webhooks for this resource are not currently supported")}
 	}
@@ -133,8 +135,8 @@ func (handler *Handler) executeServiceWebhook(
 	return response.Empty(w)
 }
 
-func (handler *Handler) executeContainerWebhook(w http.ResponseWriter, endpoint *portaineree.Endpoint, webhook *portaineree.Webhook, imageTag string) *httperror.HandlerError {
-	newContainer, err := handler.DockerClientFactory.Recreate(context.Background(), endpoint, webhook.ResourceID, true, imageTag)
+func (handler *Handler) executeContainerWebhook(w http.ResponseWriter, endpoint *portaineree.Endpoint, webhook *portaineree.Webhook, imageTag, nodeName string) *httperror.HandlerError {
+	newContainer, err := handler.containerService.Recreate(context.Background(), endpoint, webhook.ResourceID, true, imageTag, nodeName)
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Error updating service", Err: err}
 	}

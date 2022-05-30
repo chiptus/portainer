@@ -35,8 +35,7 @@ func (handler *Handler) imageStatus(w http.ResponseWriter, r *http.Request) *htt
 		return httperror.InternalServerError("Unable to connect to the Docker daemon", err)
 	}
 
-	registryService := handler.DataStore.Registry()
-	digestCli := images.NewClientWithRegistry(images.NewRegistryClient(registryService), cli)
+	digestCli := images.NewClientWithRegistry(images.NewRegistryClient(handler.DataStore), cli)
 
 	s, err := digestCli.Status(r.Context(), payload.ImageName)
 	if err != nil {

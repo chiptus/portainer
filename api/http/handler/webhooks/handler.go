@@ -21,15 +21,18 @@ type Handler struct {
 	dataStore           dataservices.DataStore
 	DockerClientFactory *docker.ClientFactory
 	userActivityService portaineree.UserActivityService
+	containerService    *docker.ContainerService
 }
 
 // NewHandler creates a handler to manage webhooks operations.
-func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, userActivityService portaineree.UserActivityService,
+	containerService *docker.ContainerService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		userActivityService: userActivityService,
 		dataStore:           dataStore,
 		requestBouncer:      bouncer,
+		containerService:    containerService,
 	}
 
 	authenticatedRouter := h.NewRoute().Subrouter()

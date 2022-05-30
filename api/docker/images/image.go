@@ -15,7 +15,9 @@ import (
 
 // Image holds information about an image.
 type Image struct {
-	Domain  string
+	// Domain is the registry host of this image
+	Domain string
+	// Path may include username like portainer/portainer-ee, no Tag or Digest
 	Path    string
 	Tag     string
 	Digest  digest.Digest
@@ -30,12 +32,12 @@ type ParseImageOptions struct {
 	HubTpl string
 }
 
-// Name returns the full name representation of an image.
+// Name returns the full name representation of an image but no Tag or Digest.
 func (i Image) Name() string {
 	return i.named.Name()
 }
 
-// FullName return the real full name may include the tag or digest of an image
+// FullName return the real full name may include Tag or Digest of the image, Tag first.
 func (i Image) FullName() string {
 	if i.Tag == "" {
 		return fmt.Sprintf("%s@%s", i.Name(), i.Digest)
@@ -43,7 +45,7 @@ func (i Image) FullName() string {
 	return fmt.Sprintf("%s:%s", i.Name(), i.Tag)
 }
 
-// String returns the string representation of an image.
+// String returns the string representation of an image, including Tag and Digest if existed.
 func (i Image) String() string {
 	return i.named.String()
 }
@@ -64,7 +66,13 @@ func (i *Image) WithDigest(digest digest.Digest) (err error) {
 	return err
 }
 
-func (i *Image) RemoveDigest() error {
+func (i *Image) WithTag(tag string) (err error) {
+	i.Tag = tag
+	i.named, err = reference.WithTag(i.named, tag)
+	return err
+}
+
+func (i *Image) trimDigest() error {
 	i.Digest = ""
 	named, err := ParseImage(ParseImageOptions{Name: i.FullName()})
 	if err != nil {
