@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/docker/docker/api/types/volume"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	snapshotutils "github.com/portainer/portainer-ee/api/internal/snapshot"
@@ -248,14 +249,14 @@ func (m *Migrator) updateVolumeResourceControlToDB32() error {
 			continue
 		}
 
-		if volumesData, done := snapshot.SnapshotRaw.Volumes.(map[string]interface{}); done {
-			if volumesData["Volumes"] == nil {
-				log.Println("[DEBUG] [volume migration] [message: no volume data found]")
-				continue
-			}
-
-			findResourcesToUpdateToDB32(endpointDockerID, volumesData, toUpdate, volumeResourceControls)
+		volumesData := snapshot.SnapshotRaw.Volumes
+		if volumesData.Volumes == nil {
+			log.Println("[DEBUG] [volume migration] [message: no volume data found]")
+			continue
 		}
+
+		findResourcesToUpdateToDB32(endpointDockerID, volumesData, toUpdate, volumeResourceControls)
+
 	}
 
 	for _, resourceControl := range volumeResourceControls {
@@ -278,18 +279,11 @@ func (m *Migrator) updateVolumeResourceControlToDB32() error {
 	return nil
 }
 
-func findResourcesToUpdateToDB32(dockerID string, volumesData map[string]interface{}, toUpdate map[portaineree.ResourceControlID]string, volumeResourceControls map[string]*portaineree.ResourceControl) {
-	volumes := volumesData["Volumes"].([]interface{})
-	for _, volumeMeta := range volumes {
-		volume := volumeMeta.(map[string]interface{})
-		volumeName, nameExist := volume["Name"].(string)
-		if !nameExist {
-			continue
-		}
-		createTime, createTimeExist := volume["CreatedAt"].(string)
-		if !createTimeExist {
-			continue
-		}
+func findResourcesToUpdateToDB32(dockerID string, volumesData volume.VolumeListOKBody, toUpdate map[portaineree.ResourceControlID]string, volumeResourceControls map[string]*portaineree.ResourceControl) {
+	volumes := volumesData.Volumes
+	for _, volume := range volumes {
+		volumeName := volume.Name
+		createTime := volume.CreatedAt
 
 		oldResourceID := fmt.Sprintf("%s%s", volumeName, createTime)
 		resourceControl, ok := volumeResourceControls[oldResourceID]
