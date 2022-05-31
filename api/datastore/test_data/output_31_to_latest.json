@@ -1879,6 +1879,7 @@
     "DisplayDonationHeader": false,
     "DisplayExternalContributors": false,
     "Edge": {
+      "AsyncMode": false,
       "CommandInterval": 0,
       "PingInterval": 0,
       "SnapshotInterval": 0

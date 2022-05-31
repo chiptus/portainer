@@ -57,6 +57,7 @@ interface Props {
   agentVersion: string;
   edgeId?: string;
   agentSecret?: string;
+  useAsyncMode: boolean;
   onPlatformChange(platform: Platform): void;
 }
 
@@ -66,6 +67,7 @@ export function ScriptTabs({
   edgeKey,
   edgeId,
   agentSecret,
+  useAsyncMode,
   onPlatformChange,
 }: Props) {
   const { os, platform } = values;
@@ -81,7 +83,14 @@ export function ScriptTabs({
   }
 
   const options = commandsByOs[os].map((c) => {
-    const cmd = c.command(agentVersion, edgeKey, values, edgeId, agentSecret);
+    const cmd = c.command(
+      agentVersion,
+      edgeKey,
+      values,
+      useAsyncMode,
+      edgeId,
+      agentSecret
+    );
 
     return {
       id: c.id,

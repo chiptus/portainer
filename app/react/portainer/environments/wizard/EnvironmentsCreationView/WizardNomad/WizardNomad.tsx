@@ -27,6 +27,7 @@ export function WizardNomad({ onCreate }: Props) {
     allowSelfSignedCertificates: true,
     authEnabled: true,
     envVars: '',
+    useAsyncMode: false,
     meta: {
       groupId: 1,
       tagIds: [],

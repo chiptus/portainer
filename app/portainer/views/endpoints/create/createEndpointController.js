@@ -1,6 +1,7 @@
 import { PortainerEndpointCreationTypes, PortainerEndpointTypes } from 'Portainer/models/endpoint/models';
 import { getAgentShortVersion } from 'Portainer/views/endpoints/helpers';
 import { baseHref } from '@/portainer/helpers/pathHelper';
+import { EDGE_ASYNC_INTERVAL_USE_DEFAULT } from '@/edge/components/EdgeAsyncIntervalsForm';
 import { EndpointSecurityFormData } from '../../../components/endpointSecurity/porEndpointSecurityModel';
 
 angular
@@ -24,6 +25,7 @@ angular
     ) {
       $scope.onChangeCheckInInterval = onChangeCheckInInterval;
       $scope.setFieldValue = setFieldValue;
+      $scope.onChangeEdgeSettings = onChangeEdgeSettings;
 
       $scope.state = {
         EnvironmentType: $state.params.isEdgeDevice ? 'edge_agent' : 'agent',
@@ -32,6 +34,7 @@ angular
         deploymentTab: 0,
         allowCreateTag: Authentication.isAdmin(),
         isEdgeDevice: $state.params.isEdgeDevice,
+        edgeAsyncMode: false,
       };
 
       $scope.agentVersion = StateManager.getState().application.version;
@@ -49,6 +52,11 @@ angular
         AzureAuthenticationKey: '',
         TagIds: [],
         CheckinInterval: 0,
+        Edge: {
+          PingInterval: EDGE_ASYNC_INTERVAL_USE_DEFAULT,
+          SnapshotInterval: EDGE_ASYNC_INTERVAL_USE_DEFAULT,
+          CommandInterval: EDGE_ASYNC_INTERVAL_USE_DEFAULT,
+        },
       };
 
       $scope.deployCommands = {
@@ -88,6 +96,10 @@ angular
 
       function onChangeCheckInInterval(value) {
         setFieldValue('EdgeCheckinInterval', value);
+      }
+
+      function onChangeEdgeSettings(value) {
+        setFieldValue('Edge', value);
       }
 
       function setFieldValue(name, value) {
@@ -302,6 +314,7 @@ angular
             const settings = data.settings;
 
             $scope.agentSecret = settings.AgentSecret;
+            $scope.state.edgeAsyncMode = settings.Edge.AsyncMode;
           })
           .catch(function error(err) {
             Notifications.error('Failure', err, 'Unable to load groups');

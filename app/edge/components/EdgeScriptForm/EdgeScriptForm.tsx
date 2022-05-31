@@ -22,16 +22,17 @@ export function EdgeScriptForm({ edgeKey, edgeId }: Props) {
     platform: 'k8s',
   });
 
-  const settingsQuery = useSettings((settings) => settings.AgentSecret);
+  const settingsQuery = useSettings();
 
   const versionQuery = useStatus((status) => status.Version);
 
-  if (!versionQuery.data) {
+  if (!versionQuery.isSuccess || !settingsQuery.isSuccess) {
     return null;
   }
 
   const agentVersion = versionQuery.data;
-  const agentSecret = settingsQuery.data;
+  const agentSecret = settingsQuery.data.AgentSecret;
+  const useAsyncMode = settingsQuery.data.Edge.AsyncMode;
 
   return (
     <>
@@ -52,6 +53,7 @@ export function EdgeScriptForm({ edgeKey, edgeId }: Props) {
         }
         edgeId={edgeId}
         agentSecret={agentSecret}
+        useAsyncMode={useAsyncMode}
       />
     </>
   );

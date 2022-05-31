@@ -10,17 +10,7 @@ import { EdgeCheckinIntervalField } from '@/edge/components/EdgeCheckInIntervalF
 import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
 
 import { validationSchema } from './EdgeComputeSettings.validation';
-
-export interface FormValues {
-  EnableEdgeComputeFeatures: boolean;
-  EnforceEdgeID: boolean;
-  EdgeAgentCheckinInterval: number;
-  Edge: {
-    PingInterval: number;
-    SnapshotInterval: number;
-    CommandInterval: number;
-  };
-}
+import { FormValues } from './types';
 
 interface Props {
   settings?: FormValues;
@@ -98,6 +88,25 @@ export function EdgeComputeSettings({ settings, onSubmit }: Props) {
                   />
                 </FormControl>
 
+                {process.env.PORTAINER_EDITION === 'BE' && (
+                  <FormControl
+                    inputId="edge_async_mode"
+                    label="Use Async mode by default"
+                    size="medium"
+                    errors={errors?.Edge?.AsyncMode}
+                  >
+                    <Switch
+                      id="edge_async_mode"
+                      name="edge_async_mode"
+                      className="space-right"
+                      checked={values.Edge.AsyncMode}
+                      onChange={(e) =>
+                        setFieldValue('Edge.AsyncMode', e.valueOf())
+                      }
+                    />
+                  </FormControl>
+                )}
+
                 <FormSectionTitle>Check-in Intervals</FormSectionTitle>
 
                 <EdgeCheckinIntervalField
@@ -111,8 +120,9 @@ export function EdgeComputeSettings({ settings, onSubmit }: Props) {
                 />
 
                 <EdgeAsyncIntervalsForm
-                  values={values}
-                  setFieldValue={setFieldValue}
+                  values={values.Edge}
+                  onChange={(value) => setFieldValue('Edge', value)}
+                  isDefaultHidden
                 />
 
                 <div className="form-group mt-5">

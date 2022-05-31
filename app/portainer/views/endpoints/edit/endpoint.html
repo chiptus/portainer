@@ -199,7 +199,7 @@
             <div class="col-sm-12 form-section-title"> Check-in Intervals </div>
             <edge-checkin-interval-field ng-if="!endpoint.Edge.AsyncMode" value="endpoint.EdgeCheckinInterval" on-change="(onChangeCheckInInterval)"></edge-checkin-interval-field>
             <div ng-if="endpoint.Edge.AsyncMode">
-              <edge-async-intervals-form values="endpoint" set-field-value="setFieldValue"></edge-async-intervals-form>
+              <edge-async-intervals-form values="endpoint.Edge" on-change="(onChangeEdgeSettings)"></edge-async-intervals-form>
             </div>
           </div>
 

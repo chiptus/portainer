@@ -173,6 +173,7 @@ export function NomadForm({ isSubmitting, edgeInfo }: FormProps) {
                     }
                     token={values.token}
                     envVars={values.envVars}
+                    useAsyncMode={values.useAsyncMode}
                   />
                 ),
               },
@@ -217,6 +218,7 @@ interface LinuxTabProps {
   edgeInfo?: EdgeInfo;
   agentVersion: string;
   envVars: string;
+  useAsyncMode: boolean;
 }
 
 function LinuxTab({
@@ -225,6 +227,7 @@ function LinuxTab({
   edgeInfo,
   agentVersion,
   envVars,
+  useAsyncMode,
 }: LinuxTabProps) {
   if (!edgeInfo || !edgeInfo.key) {
     return (
@@ -244,6 +247,7 @@ function LinuxTab({
       allowSelfSignedCertificates,
       envVars,
     },
+    useAsyncMode,
     edgeInfo.id,
     ''
   );

@@ -15,5 +15,6 @@ export function validationSchema(): SchemaOf<FormValues> {
     authEnabled: boolean().default(true),
     envVars: string().default(''),
     meta: metadataValidation(),
+    useAsyncMode: boolean().default(false),
   });
 }

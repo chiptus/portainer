@@ -14,4 +14,5 @@ export interface FormValues {
   authEnabled: boolean;
   envVars: string;
   meta: EnvironmentMetadata;
+  useAsyncMode: boolean;
 }

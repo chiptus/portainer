@@ -27,6 +27,10 @@ type EdgeAsyncRequest struct {
 	Snapshot         *snapshot  `json:"snapshot"`
 }
 
+const (
+	edgeIntervalUseDefault = -1
+)
+
 type snapshot struct {
 	Docker          *portainer.DockerSnapshot                               `json:"docker,omitempty"`
 	DockerPatch     jsonpatch.Patch                                         `json:"dockerPatch,omitempty"`
@@ -135,11 +139,31 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 		return httperror.InternalServerError("Unable to Unable to persist environment changes inside the database", err)
 	}
 
+	settings, err := handler.DataStore.Settings().Settings()
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve settings from the database", err)
+	}
+
+	pingInterval := endpoint.Edge.PingInterval
+	if pingInterval == edgeIntervalUseDefault {
+		pingInterval = settings.Edge.PingInterval
+	}
+
+	snapshotInterval := endpoint.Edge.SnapshotInterval
+	if snapshotInterval == edgeIntervalUseDefault {
+		snapshotInterval = settings.Edge.SnapshotInterval
+	}
+
+	commandInterval := endpoint.Edge.CommandInterval
+	if commandInterval == edgeIntervalUseDefault {
+		commandInterval = settings.Edge.CommandInterval
+	}
+
 	asyncResponse := EdgeAsyncResponse{
 		EndpointID:       endpoint.ID,
-		PingInterval:     time.Duration(endpoint.Edge.PingInterval) * time.Second,
-		SnapshotInterval: time.Duration(endpoint.Edge.SnapshotInterval) * time.Second,
-		CommandInterval:  time.Duration(endpoint.Edge.CommandInterval) * time.Second,
+		PingInterval:     time.Duration(pingInterval) * time.Second,
+		SnapshotInterval: time.Duration(snapshotInterval) * time.Second,
+		CommandInterval:  time.Duration(commandInterval) * time.Second,
 	}
 
 	if payload.CommandTimestamp != nil {

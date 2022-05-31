@@ -125,5 +125,6 @@ export interface Settings {
     PingInterval: number;
     SnapshotInterval: number;
     CommandInterval: number;
+    AsyncMode: boolean;
   };
 }

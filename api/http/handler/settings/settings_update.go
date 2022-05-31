@@ -59,18 +59,8 @@ type settingsUpdatePayload struct {
 		SnapshotInterval *int `json:"SnapshotInterval" example:"5"`
 		// The command list interval for edge agent - used in edge async mode (in seconds)
 		CommandInterval *int `json:"CommandInterval" example:"5"`
-	}
-
-	// Deprecated
-	CloudApiKeys struct {
-		// CivoApiKey represents an authentication key for the Civo API
-		CivoApiKey *string `example:"DgJ33kwIhnHumQFyc8ihGwWJql9cC8UJDiBhN8YImKqiX"`
-		// DigitalOceanToken represents an authentication token for the DigitalOcean API
-		DigitalOceanToken *string `example:"dop_v1_n9rq7dkcbg3zb3bewtk9nnvmfkyfnr94d42n28lym22vhqu23rtkllsldygqm22v"`
-		// LinodeToken represents an authentication token for the Linode API
-		LinodeToken *string `example:"92gsh9r9u5helgs4eibcuvlo403vm45hrmc6mzbslotnrqmkwc1ovqgmolcyq0wc"`
-		// GKEApiKey represents an entire base64ed key file for the GKE API
-		GKEApiKey *string `json:"GKEApiKey" example:"an entire base64ed key file"`
+		// AsyncMode enables edge agent to run in async mode by default
+		AsyncMode *bool
 	}
 }
 
@@ -299,6 +289,10 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 
 	if payload.Edge.CommandInterval != nil {
 		settings.Edge.CommandInterval = *payload.Edge.CommandInterval
+	}
+
+	if payload.Edge.AsyncMode != nil {
+		settings.Edge.AsyncMode = *payload.Edge.AsyncMode
 	}
 
 	if payload.KubeconfigExpiry != nil {

@@ -1,10 +1,12 @@
-import { boolean, number, object } from 'yup';
+import { boolean, number, object, SchemaOf } from 'yup';
 
 import { options as asyncIntervalOptions } from '@/edge/components/EdgeAsyncIntervalsForm';
 
+import { FormValues } from './types';
+
 const intervals = asyncIntervalOptions.map((option) => option.value);
 
-export function validationSchema() {
+export function validationSchema(): SchemaOf<FormValues> {
   return object().shape({
     EnableEdgeComputeFeatures: boolean().required('This field is required.'),
     EnforceEdgeID: boolean().required('This field is required.'),
@@ -20,6 +22,7 @@ export function validationSchema() {
       CommandInterval: number()
         .required('This field is required.')
         .oneOf(intervals),
+      AsyncMode: boolean().default(false),
     }),
   });
 }

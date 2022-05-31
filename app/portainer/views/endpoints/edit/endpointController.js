@@ -15,6 +15,7 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
   $scope.onChangeCheckInInterval = onChangeCheckInInterval;
   $scope.setFieldValue = setFieldValue;
   $scope.onChangeTags = onChangeTags;
+  $scope.onChangeEdgeSettings = onChangeEdgeSettings;
 
   $scope.state = {
     platformName: '',
@@ -54,6 +55,10 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
     SecurityFormData: new EndpointSecurityFormData(),
   };
 
+  function onChangeEdgeSettings(value) {
+    setFieldValue('Edge', value);
+  }
+
   $scope.copyEdgeAgentKey = function () {
     clipboard.copyText($scope.endpoint.EdgeKey);
     $('#copyNotificationEdgeKey').show().fadeOut(2500);
@@ -92,15 +97,10 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
 
   function setFieldValue(name, value) {
     return $scope.$evalAsync(() => {
-      if (name.startsWith('Edge.')) {
-        $scope.endpoint = { ...$scope.endpoint };
-        _.set($scope.endpoint, name, value);
-      } else {
-        $scope.endpoint = {
-          ...$scope.endpoint,
-          [name]: value,
-        };
-      }
+      $scope.endpoint = {
+        ...$scope.endpoint,
+        [name]: value,
+      };
     });
   }
 

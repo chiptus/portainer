@@ -2,22 +2,24 @@ import { FormControl } from '@/portainer/components/form-components/FormControl'
 import { Select } from '@/portainer/components/form-components/Input';
 import { r2a } from '@/react-tools/react2angular';
 
+import { Options, useIntervalOptions } from './useIntervalOptions';
+
+export const EDGE_ASYNC_INTERVAL_USE_DEFAULT = -1;
+
 interface Values {
-  EdgeAgentCheckinInterval: number;
-  Edge: {
-    PingInterval: number;
-    SnapshotInterval: number;
-    CommandInterval: number;
-  };
+  PingInterval: number;
+  SnapshotInterval: number;
+  CommandInterval: number;
 }
 
 interface Props {
   values: Values;
-
-  setFieldValue<T>(field: string, value: T): void;
+  isDefaultHidden?: boolean;
+  onChange(value: Values): void;
 }
 
-export const options = [
+export const options: Options = [
+  { label: 'Use default interval', value: -1, isDefault: true },
   {
     value: 0,
     label: 'disabled',
@@ -40,7 +42,29 @@ export const options = [
   },
 ];
 
-export function EdgeAsyncIntervalsForm({ setFieldValue, values }: Props) {
+export function EdgeAsyncIntervalsForm({
+  onChange,
+  values,
+  isDefaultHidden = false,
+}: Props) {
+  const pingIntervalOptions = useIntervalOptions(
+    'Edge.PingInterval',
+    options,
+    isDefaultHidden
+  );
+
+  const snapshotIntervalOptions = useIntervalOptions(
+    'Edge.SnapshotInterval',
+    options,
+    isDefaultHidden
+  );
+
+  const commandIntervalOptions = useIntervalOptions(
+    'Edge.CommandInterval',
+    options,
+    isDefaultHidden
+  );
+
   return (
     <>
       <FormControl
@@ -49,10 +73,10 @@ export function EdgeAsyncIntervalsForm({ setFieldValue, values }: Props) {
         tooltip="Interval used by default by each Edge agent to ping the Portainer instance. Affects Edge environment management and Edge compute features."
       >
         <Select
-          value={values.Edge.PingInterval}
-          name="Edge.PingInterval"
+          value={values.PingInterval}
+          name="PingInterval"
           onChange={handleChange}
-          options={options}
+          options={pingIntervalOptions}
         />
       </FormControl>
 
@@ -62,10 +86,10 @@ export function EdgeAsyncIntervalsForm({ setFieldValue, values }: Props) {
         tooltip="Interval used by default by each Edge agent to snapshot the agent state."
       >
         <Select
-          value={values.Edge.SnapshotInterval}
-          name="Edge.SnapshotInterval"
+          value={values.SnapshotInterval}
+          name="SnapshotInterval"
           onChange={handleChange}
-          options={options}
+          options={snapshotIntervalOptions}
         />
       </FormControl>
 
@@ -75,21 +99,22 @@ export function EdgeAsyncIntervalsForm({ setFieldValue, values }: Props) {
         tooltip="Interval used by default by each Edge agent to fetch commands from the Portainer instance"
       >
         <Select
-          value={values.Edge.CommandInterval}
-          name="Edge.CommandInterval"
+          value={values.CommandInterval}
+          name="CommandInterval"
           onChange={handleChange}
-          options={options}
+          options={commandIntervalOptions}
         />
       </FormControl>
     </>
   );
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    setFieldValue(e.target.name, parseInt(e.target.value, 10));
+    onChange({ ...values, [e.target.name]: parseInt(e.target.value, 10) });
   }
 }
 
 export const EdgeAsyncIntervalsFormAngular = r2a(EdgeAsyncIntervalsForm, [
   'values',
-  'setFieldValue',
+  'onChange',
+  'isDefaultHidden',
 ]);

@@ -18,7 +18,7 @@ export function SettingsViewModel(data) {
   this.EnforceEdgeID = data.EnforceEdgeID;
   this.AgentSecret = data.AgentSecret;
   this.EdgePortainerUrl = data.EdgePortainerUrl;
-  this.CloudApiKeys = data.CloudApiKeys;
+
   this.EdgeAgentCheckinInterval = data.EdgeAgentCheckinInterval;
   this.Edge = new EdgeSettingsViewModel(data.Edge);
 }
@@ -81,4 +81,5 @@ export function EdgeSettingsViewModel(data) {
   this.PingInterval = data.PingInterval;
   this.SnapshotInterval = data.SnapshotInterval;
   this.CommandInterval = data.CommandInterval;
+  this.AsyncMode = data.AsyncMode;
 }

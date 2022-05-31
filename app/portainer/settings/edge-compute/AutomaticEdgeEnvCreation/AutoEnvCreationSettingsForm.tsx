@@ -9,8 +9,7 @@ import { Input } from '@/portainer/components/form-components/Input';
 import { baseHref } from '@/portainer/helpers/pathHelper';
 import { notifySuccess } from '@/portainer/services/notifications';
 import { useUpdateSettingsMutation } from '@/portainer/settings/queries';
-
-import { Settings } from '../types';
+import { Settings } from '@/portainer/settings/types';
 
 import { EnabledWaitingRoomSwitch } from './EnableWaitingRoomSwitch';
 
