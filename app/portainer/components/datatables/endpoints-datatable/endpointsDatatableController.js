@@ -9,6 +9,7 @@ angular.module('portainer.app').controller('EndpointsDatatableController', [
     angular.extend(this, $controller('GenericDatatableController', { $scope: $scope }));
 
     this.state = Object.assign(this.state, {
+      allowSelection: this.allowSelection,
       orderBy: this.orderBy,
       loading: true,
       filteredDataSet: [],
@@ -60,6 +61,16 @@ angular.module('portainer.app').controller('EndpointsDatatableController', [
     this.$onDestroy = function () {
       $interval.cancel(this.state.interval);
       this.state.interval = undefined;
+    };
+
+    /**
+     * Do not allow selecting provisioning items
+     */
+    this.allowSelection = function (item) {
+      if (item.Status === 3) {
+        return false;
+      }
+      return true;
     };
 
     /**
