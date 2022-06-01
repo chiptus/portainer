@@ -14,7 +14,7 @@ import {
 import { Option } from '@/portainer/components/form-components/Input/Select';
 import { WarningAlert } from '@/portainer/components/Alert/WarningAlert';
 import { Link } from '@/portainer/components/Link';
-import { MetadataFieldset } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MetadataFieldset';
+import { MoreSettingsSection } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MoreSettingsSection';
 
 import { useCloudProviderOptions } from '../queries';
 import { CreateApiClusterFormValues, isAPIKaasInfo } from '../types';
@@ -194,7 +194,7 @@ export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
         </>
       )}
 
-      <MetadataFieldset />
+      <MoreSettingsSection />
 
       <FormSectionTitle>Actions</FormSectionTitle>
       <div className="form-group">

@@ -1,3 +1,5 @@
+import { number, object, SchemaOf } from 'yup';
+
 import { FormControl } from '@/portainer/components/form-components/FormControl';
 import { Select } from '@/portainer/components/form-components/Input';
 import { r2a } from '@/react-tools/react2angular';
@@ -6,16 +8,10 @@ import { Options, useIntervalOptions } from './useIntervalOptions';
 
 export const EDGE_ASYNC_INTERVAL_USE_DEFAULT = -1;
 
-interface Values {
+export interface EdgeAsyncIntervalsValues {
   PingInterval: number;
   SnapshotInterval: number;
   CommandInterval: number;
-}
-
-interface Props {
-  values: Values;
-  isDefaultHidden?: boolean;
-  onChange(value: Values): void;
 }
 
 export const options: Options = [
@@ -42,10 +38,37 @@ export const options: Options = [
   },
 ];
 
+const defaultFieldSettings = {
+  ping: {
+    label: 'Ping interval',
+    tooltip:
+      'Interval used by this Edge agent to check in with the Portainer instance',
+  },
+  snapshot: {
+    label: 'Snapshot interval',
+    tooltip: 'Interval used by this Edge agent to snapshot the agent state',
+  },
+  command: {
+    label: 'Command interval',
+    tooltip:
+      'Interval used by this Edge agent to fetch commands from the Portainer instance',
+  },
+};
+
+interface Props {
+  values: EdgeAsyncIntervalsValues;
+  isDefaultHidden?: boolean;
+  readonly?: boolean;
+  fieldSettings?: typeof defaultFieldSettings;
+  onChange(value: EdgeAsyncIntervalsValues): void;
+}
+
 export function EdgeAsyncIntervalsForm({
   onChange,
   values,
   isDefaultHidden = false,
+  readonly = false,
+  fieldSettings = defaultFieldSettings,
 }: Props) {
   const pingIntervalOptions = useIntervalOptions(
     'Edge.PingInterval',
@@ -69,40 +92,43 @@ export function EdgeAsyncIntervalsForm({
     <>
       <FormControl
         inputId="edge_checkin_ping"
-        label="Edge agent default ping frequency"
-        tooltip="Interval used by default by each Edge agent to ping the Portainer instance. Affects Edge environment management and Edge compute features."
+        label={fieldSettings.ping.label}
+        tooltip={fieldSettings.ping.tooltip}
       >
         <Select
           value={values.PingInterval}
           name="PingInterval"
           onChange={handleChange}
           options={pingIntervalOptions}
+          disabled={readonly}
         />
       </FormControl>
 
       <FormControl
         inputId="edge_checkin_snapshot"
-        label="Edge agent default snapshot frequency"
-        tooltip="Interval used by default by each Edge agent to snapshot the agent state."
+        label={fieldSettings.snapshot.label}
+        tooltip={fieldSettings.snapshot.tooltip}
       >
         <Select
           value={values.SnapshotInterval}
           name="SnapshotInterval"
           onChange={handleChange}
           options={snapshotIntervalOptions}
+          disabled={readonly}
         />
       </FormControl>
 
       <FormControl
         inputId="edge_checkin_command"
-        label="Edge agent default command frequency"
-        tooltip="Interval used by default by each Edge agent to fetch commands from the Portainer instance"
+        label={fieldSettings.command.label}
+        tooltip={fieldSettings.command.tooltip}
       >
         <Select
           value={values.CommandInterval}
           name="CommandInterval"
           onChange={handleChange}
           options={commandIntervalOptions}
+          disabled={readonly}
         />
       </FormControl>
     </>
@@ -113,8 +139,24 @@ export function EdgeAsyncIntervalsForm({
   }
 }
 
+const intervals = options.map((option) => option.value);
+
+export function edgeAsyncIntervalsValidation(): SchemaOf<EdgeAsyncIntervalsValues> {
+  return object({
+    PingInterval: number().required('This field is required.').oneOf(intervals),
+    SnapshotInterval: number()
+      .required('This field is required.')
+      .oneOf(intervals),
+    CommandInterval: number()
+      .required('This field is required.')
+      .oneOf(intervals),
+  });
+}
+
 export const EdgeAsyncIntervalsFormAngular = r2a(EdgeAsyncIntervalsForm, [
   'values',
   'onChange',
   'isDefaultHidden',
+  'readonly',
+  'fieldSettings',
 ]);

@@ -2,7 +2,55 @@ import _ from 'lodash';
 
 import { getAgentShortVersion } from '@/portainer/views/endpoints/helpers';
 
-import { EdgeProperties } from './types';
+import { ScriptFormValues, Platform } from './types';
+
+type CommandGenerator = (
+  agentVersion: string,
+  edgeKey: string,
+  properties: ScriptFormValues,
+  useAsyncMode: boolean,
+  edgeId?: string,
+  agentSecret?: string
+) => string;
+
+export type CommandTab = {
+  id: Platform;
+  label: string;
+  command: CommandGenerator;
+};
+
+export const commandsTabs: Record<string, CommandTab> = {
+  k8sLinux: {
+    id: 'k8s',
+    label: 'Kubernetes',
+    command: buildLinuxKubernetesCommand,
+  },
+  swarmLinux: {
+    id: 'swarm',
+    label: 'Docker Swarm',
+    command: buildLinuxSwarmCommand,
+  },
+  standaloneLinux: {
+    id: 'standalone',
+    label: 'Docker Standalone',
+    command: buildLinuxStandaloneCommand,
+  },
+  nomadLinux: {
+    id: 'nomad',
+    label: 'Nomad',
+    command: buildLinuxNomadCommand,
+  },
+  swarmWindows: {
+    id: 'swarm',
+    label: 'Docker Swarm',
+    command: buildWindowsSwarmCommand,
+  },
+  standaloneWindow: {
+    id: 'standalone',
+    label: 'Docker Standalone',
+    command: buildWindowsStandaloneCommand,
+  },
+} as const;
 
 function buildDockerEnvVars(envVars: string, defaultVars: string[]) {
   const vars = defaultVars.concat(
@@ -15,7 +63,7 @@ function buildDockerEnvVars(envVars: string, defaultVars: string[]) {
 export function buildLinuxStandaloneCommand(
   agentVersion: string,
   edgeKey: string,
-  properties: EdgeProperties,
+  properties: ScriptFormValues,
   useAsyncMode: boolean,
   edgeId?: string,
   agentSecret?: string
@@ -51,7 +99,7 @@ docker run -d \\
 export function buildWindowsStandaloneCommand(
   agentVersion: string,
   edgeKey: string,
-  properties: EdgeProperties,
+  properties: ScriptFormValues,
   useAsyncMode: boolean,
   edgeId?: string,
   agentSecret?: string
@@ -88,7 +136,7 @@ docker run -d \\
 export function buildLinuxSwarmCommand(
   agentVersion: string,
   edgeKey: string,
-  properties: EdgeProperties,
+  properties: ScriptFormValues,
   useAsyncMode: boolean,
   edgeId?: string,
   agentSecret?: string
@@ -130,7 +178,7 @@ docker service create \\
 export function buildWindowsSwarmCommand(
   agentVersion: string,
   edgeKey: string,
-  properties: EdgeProperties,
+  properties: ScriptFormValues,
   useAsyncMode: boolean,
   edgeId?: string,
   agentSecret?: string
@@ -173,7 +221,7 @@ docker service create \\
 export function buildLinuxKubernetesCommand(
   agentVersion: string,
   edgeKey: string,
-  properties: EdgeProperties,
+  properties: ScriptFormValues,
   useAsyncMode: boolean,
   edgeId?: string,
   agentSecret?: string
@@ -197,7 +245,7 @@ export function buildLinuxKubernetesCommand(
 export function buildLinuxNomadCommand(
   agentVersion: string,
   edgeKey: string,
-  properties: EdgeProperties,
+  properties: ScriptFormValues,
   useAsyncMode: boolean,
   edgeId?: string,
   agentSecret?: string

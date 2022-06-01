@@ -7,6 +7,7 @@ import EndpointHelper from '@/portainer/helpers/endpointHelper';
 import { getAMTInfo } from 'Portainer/hostmanagement/open-amt/open-amt.service';
 import { confirmAsync } from '@/portainer/services/modal.service/confirm';
 import { getPlatformTypeName, isAgentEnvironment, isEdgeEnvironment } from '@/portainer/environments/utils';
+import { commandsTabs } from '@/react/edge/components/EdgeScriptForm/scripts';
 
 angular.module('portainer.app').controller('EndpointController', EndpointController);
 
@@ -16,6 +17,8 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
   $scope.setFieldValue = setFieldValue;
   $scope.onChangeTags = onChangeTags;
   $scope.onChangeEdgeSettings = onChangeEdgeSettings;
+
+  const isBE = process.env.PORTAINER_EDITION === 'BE';
 
   $scope.state = {
     platformName: '',
@@ -47,8 +50,11 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
     ],
     allowSelfSignedCerts: true,
     showAMTInfo: false,
-    nomadToken: '',
-    nomadAuthEnabled: true,
+    showNomad: isBE,
+    edgeScriptCommands: {
+      linux: _.compact([commandsTabs.k8sLinux, commandsTabs.swarmLinux, commandsTabs.standaloneLinux, isBE && commandsTabs.nomadLinux]),
+      win: [commandsTabs.swarmWindows, commandsTabs.standaloneWindow],
+    },
   };
 
   $scope.formValues = {

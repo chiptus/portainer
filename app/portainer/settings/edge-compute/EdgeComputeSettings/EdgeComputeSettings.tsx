@@ -17,6 +17,23 @@ interface Props {
   onSubmit(values: FormValues): void;
 }
 
+const asyncIntervalFieldSettings = {
+  ping: {
+    label: 'Edge agent default ping frequency',
+    tooltip:
+      'Interval used by default by each Edge agent to ping the Portainer instance. Affects Edge environment management and Edge compute features.',
+  },
+  snapshot: {
+    label: 'Edge agent default snapshot frequency',
+    tooltip:
+      'Interval used by default by each Edge agent to snapshot the agent state.',
+  },
+  command: {
+    label: 'Edge agent default command frequency',
+    tooltip: 'Interval used by default by each Edge agent to execute commands.',
+  },
+};
+
 export function EdgeComputeSettings({ settings, onSubmit }: Props) {
   if (!settings) {
     return null;
@@ -123,6 +140,7 @@ export function EdgeComputeSettings({ settings, onSubmit }: Props) {
                   values={values.Edge}
                   onChange={(value) => setFieldValue('Edge', value)}
                   isDefaultHidden
+                  fieldSettings={asyncIntervalFieldSettings}
                 />
 
                 <div className="form-group mt-5">

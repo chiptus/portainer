@@ -1,11 +1,20 @@
 export type Platform = 'standalone' | 'swarm' | 'k8s' | 'nomad';
 export type OS = 'win' | 'linux';
 
-export interface EdgeProperties {
-  os?: OS;
+export interface ScriptFormValues {
+  nomadToken: string;
+  authEnabled: boolean;
+
   allowSelfSignedCertificates: boolean;
   envVars: string;
+
+  os: OS;
+  platform: Platform;
+
   edgeIdGenerator?: string;
-  platform?: Platform;
-  nomadToken?: string;
+}
+
+export interface EdgeInfo {
+  id?: string;
+  key: string;
 }

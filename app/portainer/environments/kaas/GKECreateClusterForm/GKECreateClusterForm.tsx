@@ -13,7 +13,7 @@ import {
 } from '@/portainer/settings/cloud/types';
 import { WarningAlert } from '@/portainer/components/Alert/WarningAlert';
 import { Link } from '@/portainer/components/Link';
-import { MetadataFieldset } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MetadataFieldset';
+import { MoreSettingsSection } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MoreSettingsSection';
 
 import { useCloudProviderOptions } from '../queries';
 import { useSetAvailableOption } from '../useSetAvailableOption';
@@ -301,7 +301,7 @@ export function GKECreateClusterForm({
           </FormControl>
         </>
       )}
-      <MetadataFieldset />
+      <MoreSettingsSection />
       <FormSectionTitle>Actions</FormSectionTitle>
       <div className="form-group">
         <div className="col-sm-12">
