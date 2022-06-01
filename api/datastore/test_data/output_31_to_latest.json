@@ -2061,7 +2061,7 @@
   ],
   "version": {
     "DB_UPDATING": "false",
-    "DB_VERSION": "40",
+    "DB_VERSION": "50",
     "EDITION": "3",
     "INSTANCE_ID": "9abe1e4e-9e83-48a4-b3f5-91495f1e9c90"
   },
