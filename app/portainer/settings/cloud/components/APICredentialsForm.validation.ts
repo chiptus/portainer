@@ -8,7 +8,17 @@ export function noDuplicateNamesSchema(names: string[]) {
     );
 }
 
-export function validationSchema(names: string[]) {
+export function validationSchema(names: string[], isEditing = false) {
+  if (isEditing) {
+    return object().shape({
+      name: noDuplicateNamesSchema(names),
+      credentials: object()
+        .shape({
+          apiKey: string(),
+        })
+        .required(),
+    });
+  }
   return object().shape({
     name: noDuplicateNamesSchema(names),
     credentials: object()

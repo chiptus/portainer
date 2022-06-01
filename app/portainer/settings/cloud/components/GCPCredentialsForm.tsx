@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Field, Form, Formik } from 'formik';
+import { useRouter } from '@uirouter/react';
 
 import { FormControl } from '@/portainer/components/form-components/FormControl';
 import { Input } from '@/portainer/components/form-components/Input';
@@ -7,19 +8,19 @@ import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
 import { FileUploadField } from '@/portainer/components/form-components/FileUpload';
 import { error as notifyError } from '@/portainer/services/notifications';
 import { readFileAsArrayBuffer } from '@/portainer/services/fileUploadReact';
+import { Button } from '@/portainer/components/Button';
 
 import {
   ServiceAccountFormValues,
   KaasProvider,
   providerTitles,
 } from '../types';
-import { isMeaningfulChange } from '../utils';
 
 import { validationSchema } from './GCPCredentialsForm.validation';
 
 type Props = {
   selectedProvider: KaasProvider;
-  showProviderInput?: boolean;
+  isEditing?: boolean;
   isLoading: boolean;
   onSubmit: (formValues: ServiceAccountFormValues) => void;
   credentialNames: string[];
@@ -35,25 +36,26 @@ const defaultInitialValues = {
 
 export function GCPCredentialsForm({
   selectedProvider,
-  showProviderInput = false,
+  isEditing = false,
   isLoading,
   onSubmit,
   credentialNames,
   initialValues = defaultInitialValues,
 }: Props) {
   const [serviceKeyFile, setserviceKeyFile] = useState<File>();
+  const router = useRouter();
 
   return (
     <Formik
       initialValues={initialValues}
       enableReinitialize
-      validationSchema={() => validationSchema(credentialNames)}
+      validationSchema={() => validationSchema(credentialNames, isEditing)}
       onSubmit={(values) => onSubmit(values)}
       validateOnMount
     >
       {({ values, errors, handleSubmit, setFieldValue, isValid, dirty }) => (
         <Form className="form-horizontal" onSubmit={handleSubmit} noValidate>
-          {showProviderInput && (
+          {isEditing && (
             <FormControl inputId="provider" label="Provider">
               <Field
                 as={Input}
@@ -95,17 +97,23 @@ export function GCPCredentialsForm({
           <div className="form-group">
             <div className="col-sm-12 mt-3">
               <LoadingButton
-                disabled={
-                  !isValid ||
-                  !dirty ||
-                  !isMeaningfulChange(values, initialValues)
-                }
+                disabled={!isValid || !dirty}
                 dataCy="createCredentials-saveButton"
                 isLoading={isLoading}
                 loadingText="Saving Credentials..."
               >
-                Save
+                {isEditing ? 'Update credentials' : 'Add credentials'}
               </LoadingButton>
+              {isEditing && (
+                <Button
+                  color="default"
+                  onClick={() =>
+                    router.stateService.go('portainer.settings.cloud')
+                  }
+                >
+                  Cancel
+                </Button>
+              )}
             </div>
           </div>
         </Form>

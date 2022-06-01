@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import { GenericFormValues, CredentialDetails } from './types';
+import { CredentialDetails } from './types';
 
 // trimObject trims the string values in an object (shallow) and returns the trimmed object
 export function trimObject<T extends Record<string, unknown>>(obj: T) {
@@ -19,44 +19,11 @@ export const sensitiveFields = [
   'clientSecret',
 ];
 
-// isMeaningfulChange only returns true if the credential form values have meaningfully changed
-export function isMeaningfulChange<T extends Partial<GenericFormValues>>(
-  newFormValues: T,
-  oldFormValues: T
-) {
-  // if any value other than the sensitive credential is changed, then return true
-  const newCredentialsNotSensitive = _.omit(
-    newFormValues.credentials,
-    sensitiveFields
-  );
-  const oldCredentialsNotSensitive = _.omit(
-    oldFormValues.credentials,
-    sensitiveFields
-  );
-  const newFormNotSensitive = {
-    ...newFormValues,
-    credentials: newCredentialsNotSensitive,
-  };
-  const oldFormNotSensitive = {
-    ...oldFormValues,
-    credentials: oldCredentialsNotSensitive,
-  };
-  if (!_.isEqual(newFormNotSensitive, oldFormNotSensitive)) {
-    return true;
-  }
-
-  if (newFormValues.credentials) {
-    return sensitiveFieldChanged(newFormValues.credentials);
-  }
-  return false;
-}
-
 export function sensitiveFieldChanged(credentials: CredentialDetails) {
   const newCredentialsSensitive = _.pick(credentials, sensitiveFields);
 
   return Object.values(newCredentialsSensitive).some((sensitiveValue) => {
-    // if all characters are '*', then return false
-    if (/^[*]+$/.test(sensitiveValue.trim())) {
+    if (sensitiveValue.trim().length === 0) {
       return false;
     }
     return true;

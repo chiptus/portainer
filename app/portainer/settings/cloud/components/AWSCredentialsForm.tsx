@@ -1,21 +1,23 @@
 import { Field, Form, Formik } from 'formik';
+import { useRouter } from '@uirouter/react';
 
 import { FormControl } from '@/portainer/components/form-components/FormControl';
 import { Input } from '@/portainer/components/form-components/Input';
 import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
+import { Button } from '@/portainer/components/Button';
 
 import { AccessKeyFormValues, KaasProvider, providerTitles } from '../types';
-import { isMeaningfulChange } from '../utils';
 
 import { validationSchema } from './AWSCredentialsForm.validation';
 
 type Props = {
   selectedProvider: KaasProvider;
-  showProviderInput?: boolean;
+  isEditing?: boolean;
   isLoading: boolean;
   onSubmit: (formValues: AccessKeyFormValues) => void;
   credentialNames: string[];
   initialValues?: AccessKeyFormValues;
+  placeholderText?: string;
 };
 
 const defaultInitialValues = {
@@ -28,23 +30,25 @@ const defaultInitialValues = {
 
 export function AWSCredentialsForm({
   selectedProvider,
-  showProviderInput = false,
+  isEditing = false,
   isLoading,
   onSubmit,
   credentialNames,
   initialValues = defaultInitialValues,
+  placeholderText = 'e.g. 5nq6uR3YQVhTNqRY2Q1lcft5rAp3Hq8S+8VUEDSW',
 }: Props) {
+  const router = useRouter();
   return (
     <Formik
       initialValues={initialValues}
       enableReinitialize
-      validationSchema={() => validationSchema(credentialNames)}
+      validationSchema={() => validationSchema(credentialNames, isEditing)}
       onSubmit={(values) => onSubmit(values)}
       validateOnMount
     >
       {({ values, errors, handleSubmit, isValid, dirty }) => (
         <Form className="form-horizontal" onSubmit={handleSubmit} noValidate>
-          {showProviderInput && (
+          {isEditing && (
             <FormControl inputId="provider" label="Provider">
               <Field
                 as={Input}
@@ -95,7 +99,7 @@ export function AWSCredentialsForm({
                 autoComplete="off"
                 id="secret_access_key"
                 value={values.credentials.secretAccessKey}
-                placeholder="e.g. 5nq6uR3YQVhTNqRY2Q1lcft5rAp3Hq8S+8VUEDSW"
+                placeholder={placeholderText}
                 data-cy="cloudSettings-SecretAccessKey"
               />
             </FormControl>
@@ -104,17 +108,23 @@ export function AWSCredentialsForm({
           <div className="form-group">
             <div className="col-sm-12 mt-3">
               <LoadingButton
-                disabled={
-                  !isValid ||
-                  !dirty ||
-                  !isMeaningfulChange(values, initialValues)
-                }
+                disabled={!isValid || !dirty}
                 dataCy="createCredentials-saveButton"
                 isLoading={isLoading}
                 loadingText="Saving Credentials..."
               >
-                Save
+                {isEditing ? 'Update credentials' : 'Add credentials'}
               </LoadingButton>
+              {isEditing && (
+                <Button
+                  color="default"
+                  onClick={() =>
+                    router.stateService.go('portainer.settings.cloud')
+                  }
+                >
+                  Cancel
+                </Button>
+              )}
             </div>
           </div>
         </Form>

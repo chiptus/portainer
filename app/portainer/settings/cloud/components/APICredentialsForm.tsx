@@ -1,11 +1,12 @@
 import { Field, Form, Formik } from 'formik';
+import { useRouter } from '@uirouter/react';
 
 import { FormControl } from '@/portainer/components/form-components/FormControl';
 import { Input } from '@/portainer/components/form-components/Input';
 import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
+import { Button } from '@/portainer/components/Button';
 
 import { APIFormValues, KaasProvider, providerTitles } from '../types';
-import { isMeaningfulChange } from '../utils';
 
 import { validationSchema } from './APICredentialsForm.validation';
 
@@ -25,32 +26,35 @@ const defaultInitialValues = {
 
 type Props = {
   selectedProvider: KaasProvider;
-  showProviderInput?: boolean;
+  isEditing?: boolean;
   isLoading: boolean;
   onSubmit: (formValues: APIFormValues) => void;
   credentialNames: string[];
   initialValues?: APIFormValues;
+  placeholderText?: string;
 };
 
 export function APICredentialsForm({
   selectedProvider,
-  showProviderInput = false,
+  isEditing = false,
   isLoading,
   onSubmit,
   credentialNames,
   initialValues = defaultInitialValues,
+  placeholderText = `e.g. ${exampleApiKeys[selectedProvider]}`,
 }: Props) {
+  const router = useRouter();
   return (
     <Formik
       initialValues={initialValues}
       enableReinitialize
-      validationSchema={() => validationSchema(credentialNames)}
+      validationSchema={() => validationSchema(credentialNames, isEditing)}
       onSubmit={(values) => onSubmit(values)}
       validateOnMount
     >
       {({ values, errors, handleSubmit, isValid, dirty }) => (
         <Form className="form-horizontal" onSubmit={handleSubmit} noValidate>
-          {showProviderInput && (
+          {isEditing && (
             <FormControl inputId="provider" label="Provider">
               <Field
                 as={Input}
@@ -85,7 +89,7 @@ export function APICredentialsForm({
               autoComplete="off"
               id="api_key"
               value={values.credentials.apiKey}
-              placeholder={`e.g. ${exampleApiKeys[selectedProvider]}`}
+              placeholder={placeholderText}
               data-cy="cloudSettings-ApiKey"
             />
           </FormControl>
@@ -93,17 +97,23 @@ export function APICredentialsForm({
           <div className="form-group">
             <div className="col-sm-12 mt-3">
               <LoadingButton
-                disabled={
-                  !isValid ||
-                  !dirty ||
-                  !isMeaningfulChange(values, initialValues)
-                }
+                disabled={!isValid || !dirty}
                 dataCy="createCredentials-saveButton"
                 isLoading={isLoading}
                 loadingText="Saving Credentials..."
               >
-                Save
+                {isEditing ? 'Update credentials' : 'Add credentials'}
               </LoadingButton>
+              {isEditing && (
+                <Button
+                  color="default"
+                  onClick={() =>
+                    router.stateService.go('portainer.settings.cloud')
+                  }
+                >
+                  Cancel
+                </Button>
+              )}
             </div>
           </div>
         </Form>

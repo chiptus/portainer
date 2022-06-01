@@ -33,7 +33,7 @@ export function CredentialsDatatableActions({ selectedItems }: Props) {
         dataCy="credentials-addButton"
       >
         <i className="fa fa-plus space-right" aria-hidden="true" />
-        Add Credentials
+        Add credentials
       </Button>
     </div>
   );

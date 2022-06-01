@@ -54,46 +54,78 @@ export function EditCredentialForm({ credential }: Props) {
 
   return (
     <>
-      {formType === FormTypes.API && (
+      {formType === FormTypes.API && 'apiKey' in credential.credentials && (
         <APICredentialsForm
           selectedProvider={provider}
-          showProviderInput
+          isEditing
           isLoading={updateCredentialMutation.isLoading}
           onSubmit={onSubmit}
           credentialNames={credentialNames}
-          initialValues={initialValues as APIFormValues}
+          initialValues={
+            {
+              ...initialValues,
+              credentials: { ...initialValues.credentials, apiKey: '' },
+            } as APIFormValues
+          }
+          placeholderText="*******"
         />
       )}
-      {formType === FormTypes.SERVICE_ACCOUNT && (
-        <GCPCredentialsForm
-          selectedProvider={provider}
-          showProviderInput
-          isLoading={updateCredentialMutation.isLoading}
-          onSubmit={onSubmit}
-          credentialNames={credentialNames}
-          initialValues={initialValues as ServiceAccountFormValues}
-        />
-      )}
-      {formType === FormTypes.ACCESS_KEY && (
-        <AWSCredentialsForm
-          selectedProvider={provider}
-          showProviderInput
-          isLoading={updateCredentialMutation.isLoading}
-          onSubmit={onSubmit}
-          credentialNames={credentialNames}
-          initialValues={initialValues as AccessKeyFormValues}
-        />
-      )}
-      {formType === FormTypes.AZURE && (
-        <AzureCredentialsForm
-          selectedProvider={provider}
-          showProviderInput
-          isLoading={updateCredentialMutation.isLoading}
-          onSubmit={onSubmit}
-          credentialNames={credentialNames}
-          initialValues={initialValues as AzureFormValues}
-        />
-      )}
+      {formType === FormTypes.SERVICE_ACCOUNT &&
+        'jsonKeyBase64' in credential.credentials && (
+          <GCPCredentialsForm
+            selectedProvider={provider}
+            isEditing
+            isLoading={updateCredentialMutation.isLoading}
+            onSubmit={onSubmit}
+            credentialNames={credentialNames}
+            initialValues={
+              {
+                ...initialValues,
+                credentials: {
+                  ...initialValues.credentials,
+                  jsonKeyBase64: '',
+                },
+              } as ServiceAccountFormValues
+            }
+          />
+        )}
+      {formType === FormTypes.ACCESS_KEY &&
+        'secretAccessKey' in credential.credentials && (
+          <AWSCredentialsForm
+            selectedProvider={provider}
+            isEditing
+            isLoading={updateCredentialMutation.isLoading}
+            onSubmit={onSubmit}
+            credentialNames={credentialNames}
+            initialValues={
+              {
+                ...initialValues,
+                credentials: {
+                  ...initialValues.credentials,
+                  secretAccessKey: '',
+                },
+              } as AccessKeyFormValues
+            }
+            placeholderText="*******"
+          />
+        )}
+      {formType === FormTypes.AZURE &&
+        'clientSecret' in credential.credentials && (
+          <AzureCredentialsForm
+            selectedProvider={provider}
+            isEditing
+            isLoading={updateCredentialMutation.isLoading}
+            onSubmit={onSubmit}
+            credentialNames={credentialNames}
+            initialValues={
+              {
+                ...initialValues,
+                credentials: { ...initialValues.credentials, clientSecret: '' },
+              } as AzureFormValues
+            }
+            placeholderText="*******"
+          />
+        )}
     </>
   );
 

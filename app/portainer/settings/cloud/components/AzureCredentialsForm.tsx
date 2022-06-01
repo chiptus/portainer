@@ -1,21 +1,23 @@
 import { Field, Form, Formik } from 'formik';
+import { useRouter } from '@uirouter/react';
 
 import { FormControl } from '@/portainer/components/form-components/FormControl';
 import { Input } from '@/portainer/components/form-components/Input';
 import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
+import { Button } from '@/portainer/components/Button';
 
 import { AzureFormValues, KaasProvider, providerTitles } from '../types';
-import { isMeaningfulChange } from '../utils';
 
 import { validationSchema } from './AzureCredentialsForm.validation';
 
 type Props = {
   selectedProvider: KaasProvider;
-  showProviderInput?: boolean;
+  isEditing?: boolean;
   isLoading: boolean;
   onSubmit: (formValues: AzureFormValues) => void;
   credentialNames: string[];
   initialValues?: AzureFormValues;
+  placeholderText?: string;
 };
 
 const defaultInitialValues = {
@@ -30,23 +32,26 @@ const defaultInitialValues = {
 
 export function AzureCredentialsForm({
   selectedProvider,
-  showProviderInput = false,
+  isEditing = false,
   isLoading,
   onSubmit,
   credentialNames,
   initialValues = defaultInitialValues,
+  placeholderText = 'e.g. WWE8Q~0J4GdItGa2UZiZU6pFYewu7c4cvmCSPbZF',
 }: Props) {
+  const router = useRouter();
+
   return (
     <Formik
       initialValues={initialValues}
       enableReinitialize
-      validationSchema={() => validationSchema(credentialNames)}
+      validationSchema={() => validationSchema(credentialNames, isEditing)}
       onSubmit={(values) => onSubmit(values)}
       validateOnMount
     >
       {({ values, errors, handleSubmit, isValid, dirty }) => (
         <Form className="form-horizontal" onSubmit={handleSubmit} noValidate>
-          {showProviderInput && (
+          {isEditing && (
             <FormControl inputId="provider" label="Provider">
               <Field
                 as={Input}
@@ -92,10 +97,10 @@ export function AzureCredentialsForm({
             <Field
               as={Input}
               name="credentials.clientSecret"
-              value={values.credentials.clientSecret}
               autoComplete="off"
               id="Client_Secret"
-              placeholder="e.g. WWE8Q~0J4GdItGa2UZiZU6pFYewu7c4cvmCSPbZF"
+              value={values.credentials.clientSecret}
+              placeholder={placeholderText}
               data-cy="cloudSettings-ClientSecret"
             />
           </FormControl>
@@ -133,17 +138,23 @@ export function AzureCredentialsForm({
           <div className="form-group">
             <div className="col-sm-12 mt-3">
               <LoadingButton
-                disabled={
-                  !isValid ||
-                  !dirty ||
-                  !isMeaningfulChange(values, initialValues)
-                }
+                disabled={!isValid || !dirty}
                 dataCy="createCredentials-saveButton"
                 isLoading={isLoading}
                 loadingText="Saving Credentials..."
               >
-                Save
+                {isEditing ? 'Update credentials' : 'Add credentials'}
               </LoadingButton>
+              {isEditing && (
+                <Button
+                  color="default"
+                  onClick={() =>
+                    router.stateService.go('portainer.settings.cloud')
+                  }
+                >
+                  Cancel
+                </Button>
+              )}
             </div>
           </div>
         </Form>
