@@ -1,0 +1,440 @@
+import { Field, Form, useFormikContext } from 'formik';
+import { useEffect, useMemo, useState } from 'react';
+import { UseQueryResult } from 'react-query';
+
+import { Select as ReactSelect } from '@/portainer/components/form-components/ReactSelect';
+import { FormControl } from '@/portainer/components/form-components/FormControl';
+import { Input, Select } from '@/portainer/components/form-components/Input';
+import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
+import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
+import { Loading } from '@/portainer/components/widget/Loading';
+import {
+  Credential,
+  KaasProvider,
+  providerTitles,
+} from '@/portainer/settings/cloud/types';
+import { Option } from '@/portainer/components/form-components/Input/Select';
+import { Alert } from '@/portainer/components/Alert';
+import { Link } from '@/portainer/components/Link';
+import { MetadataFieldset } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MetadataFieldset';
+
+import { useCloudProviderOptions } from '../queries';
+import {
+  AzureKaasInfo,
+  CreateAzureClusterFormValues,
+  isAzureKaasInfo,
+} from '../types';
+import { useSetAvailableOption } from '../useSetAvailableOption';
+import { useIsKaasNameValid } from '../useIsKaasNameValid';
+
+type Props = {
+  credentials: Credential[];
+  provider: KaasProvider;
+  name: string;
+};
+
+// ApiCreateClusterForm handles form changes, conditionally renders inputs, and manually set values
+export function AzureCreateClusterForm({ credentials, provider, name }: Props) {
+  const { values, errors, handleSubmit, isSubmitting, isValid, setFieldValue } =
+    useFormikContext<CreateAzureClusterFormValues>();
+  const {
+    region,
+    credentialId,
+    nodeSize,
+    kubernetesVersion,
+    resourceGroup,
+    tier,
+    availabilityZones,
+    resourceGroupInput,
+  } = values;
+  const [selectedCredential, setSelectedCredential] = useState<Credential>(
+    credentials[0]
+  );
+  const cloudOptionsQuery = useCloudProviderOptions(
+    selectedCredential,
+    provider
+  ) as UseQueryResult<AzureKaasInfo>;
+
+  const isNameValid = useIsKaasNameValid(name);
+
+  // update the node size options based on the selected region
+  const filteredNodeSizes = useMemo(() => {
+    if (cloudOptionsQuery.data?.nodeSizes[region]) {
+      return (
+        cloudOptionsQuery.data?.nodeSizes[region].map((ns) => ({
+          label: ns.name,
+          value: ns.value,
+        })) || []
+      );
+    }
+    return [];
+  }, [region, cloudOptionsQuery.data?.nodeSizes]);
+  // update the availabilityZoneOptions based on the node size selected inside the region
+  const availabilityZoneOptions = useMemo(() => {
+    if (nodeSize) {
+      return (
+        cloudOptionsQuery.data?.nodeSizes[region]
+          ?.find((ns) => ns.value === nodeSize)
+          ?.zones?.map((o) => ({ value: o, label: `Zone ${o}` })) || []
+      );
+    }
+    return [];
+  }, [nodeSize, region, cloudOptionsQuery.data?.nodeSizes]);
+  // update the tier option label based on availability zones
+  const tiers = useMemo(() => {
+    const paidLabel =
+      availabilityZones && availabilityZones.length ? '99.95%' : '99.9%';
+    return (
+      cloudOptionsQuery.data?.tiers.map((tier) => {
+        if (tier === 'Paid') {
+          return {
+            label: `${paidLabel} - charges apply`,
+            value: tier,
+          };
+        }
+        return {
+          label: '99.5% - free',
+          value: tier,
+        };
+      }) || []
+    );
+  }, [cloudOptionsQuery.data?.tiers, availabilityZones]);
+  const { regions, kubernetesVersions, resourceGroups } =
+    cloudOptionsQuery.data || {
+      regions: [],
+      kubernetesVersions: [],
+      resourceGroups: [],
+    };
+
+  // if the selected credential id changes, update the selected credential details
+  useEffect(() => {
+    setSelectedCredential(
+      credentials.find((c) => c.id === Number(credentialId)) || credentials[0]
+    );
+  }, [credentialId, setSelectedCredential, credentials]);
+
+  const credentialOptions: Option<number>[] = credentials.map((c) => ({
+    value: c.id,
+    label: c.name,
+  }));
+
+  // update credential details when the selected credential changes
+  useEffect(() => {
+    setSelectedCredential(
+      credentials.find((c) => c.id === Number(credentialId)) || credentials[0]
+    );
+  }, [credentialId, setSelectedCredential, credentials]);
+
+  // when the options change, set the available options in the select inputs
+  useSetAvailableOption(
+    resourceGroups,
+    resourceGroup,
+    'resourceGroup',
+    'None available'
+  );
+  useSetAvailableOption(tiers, tier, 'tier');
+  useSetAvailableOption(regions, region, 'region');
+  useSetAvailableOption(
+    kubernetesVersions,
+    kubernetesVersion,
+    'kubernetesVersion'
+  );
+  useSetAvailableOption(filteredNodeSizes, nodeSize, 'nodeSize');
+
+  return (
+    <Form className="form-horizontal" onSubmit={handleSubmit} noValidate>
+      <FormControl
+        label="Credentials"
+        tooltip="Credentials to create your cluster"
+        inputId="kaas-credential"
+        errors={errors.credentialId}
+      >
+        <Field
+          name="credentialId"
+          as={Select}
+          type="number"
+          id="kaas-credential"
+          data-cy="kaasCreateForm-crdentialSelect"
+          disabled={credentialOptions.length <= 1}
+          options={credentialOptions}
+        />
+      </FormControl>
+      {cloudOptionsQuery.isError && (
+        <Alert>
+          Error getting {providerTitles[provider]} info. Go to&nbsp;
+          <Link
+            to="portainer.settings.cloud.credential"
+            params={{ id: credentialId }}
+            title="cloud settings"
+          >
+            cloud settings
+          </Link>
+          &nbsp;to ensure the API key is valid.
+        </Alert>
+      )}
+      {cloudOptionsQuery.isLoading && <Loading />}
+      {/* cluster details inputs */}
+      {cloudOptionsQuery.data &&
+        !cloudOptionsQuery.isError &&
+        isAzureKaasInfo(cloudOptionsQuery.data) && (
+          <>
+            <FormControl
+              label="Region"
+              tooltip="Region in which to provision the cluster"
+              inputId="kaas-region"
+              errors={errors.region}
+            >
+              <Field
+                name="region"
+                as={Select}
+                id="kaas-region"
+                data-cy="kaasCreateForm-regionSelect"
+                disabled={regions.length <= 1}
+                options={regions}
+              />
+            </FormControl>
+            <FormControl
+              label="Resource group"
+              tooltip="A collection of Azure resources"
+              inputId="kaas-resourceGroup"
+              classes="!mb-0"
+            >
+              <div className="flex pb-0">
+                <label
+                  className="inline-flex items-center pt-3"
+                  htmlFor="radioSelect"
+                >
+                  <Field
+                    type="radio"
+                    name="resourceGroupInput"
+                    id="radioSelect"
+                    className="form-radio !mt-0"
+                    value="select"
+                  />
+                  <span className="ml-4 text-sm font-normal">
+                    Select existing resource group
+                  </span>
+                </label>
+                <label
+                  className="inline-flex items-center ml-12 pt-3"
+                  htmlFor="radioInput"
+                >
+                  <Field
+                    type="radio"
+                    name="resourceGroupInput"
+                    id="radioInput"
+                    className="form-radio !mt-0"
+                    value="input"
+                  />
+                  <span className="ml-4 text-sm font-normal">
+                    Add a new resource group
+                  </span>
+                </label>
+              </div>
+            </FormControl>
+            {/* Choose a resource group */}
+            {resourceGroupInput === 'select' && (
+              <FormControl
+                label=""
+                inputId="kaas-resourceGroup"
+                classes="!mt-2"
+                errors={
+                  !resourceGroup
+                    ? 'No resource groups available in the selected region, please change region or add a resource group.'
+                    : ''
+                }
+              >
+                <Field
+                  name="resourceGroup"
+                  as={Select}
+                  id="kaas-resourceGroup"
+                  data-cy="kaasCreateForm-resourceGroup"
+                  disabled={resourceGroups.length <= 1}
+                  options={resourceGroups}
+                />
+              </FormControl>
+            )}
+            {/* or create a resource group */}
+            {resourceGroupInput === 'input' && (
+              <FormControl
+                label=""
+                inputId="kaas-resourceGroupName"
+                errors={errors.resourceGroupName}
+                classes="!mt-2"
+              >
+                <Field
+                  name="resourceGroupName"
+                  as={Input}
+                  id="kaas-resourceGroupName"
+                  placeholder="e.g my-resource-group"
+                  data-cy="kaasCreateForm-resourceGroupName"
+                />
+              </FormControl>
+            )}
+            <FormControl
+              label="Node pool name"
+              tooltip="Name of the node pool(s) within the cluster"
+              inputId="kaas-name"
+              errors={errors.poolName}
+            >
+              <Field
+                name="poolName"
+                as={Input}
+                id="kaas-poolName"
+                data-cy="kaasCreateForm-poolNameInput"
+                placeholder="e.g. pool1"
+              />
+            </FormControl>
+            <FormControl
+              label="Node size"
+              tooltip="Size of each node deployed in the cluster. Check your Azure compute quota to ensure you have enough resources to deploy this cluster."
+              inputId="kaas-nodeSize"
+              errors={errors.nodeSize}
+            >
+              <Field
+                name="nodeSize"
+                as={Select}
+                id="kaas-nodeSize"
+                data-cy="kaasCreateForm-nodeSizeSelect"
+                options={filteredNodeSizes}
+              />
+            </FormControl>
+            <Alert type="info">
+              Check your{' '}
+              <a
+                href="https://portal.azure.com/#blade/Microsoft_Azure_Capacity/QuotaMenuBlade/myQuotas"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Azure compute quota
+              </a>{' '}
+              to ensure you have enough resources to deploy this cluster
+            </Alert>
+            <FormControl
+              label="Node count"
+              tooltip="Number of nodes to provision in the cluster. Check your Azure compute quota to ensure you have enough resources to deploy this cluster."
+              inputId="kaas-nodeCount"
+              errors={errors.nodeCount}
+            >
+              <Field
+                name="nodeCount"
+                as={Input}
+                type="number"
+                data-cy="kaasCreateForm-nodeCountInput"
+                min={1}
+                max={1000}
+                id="kaas-nodeCount"
+                placeholder="3"
+              />
+            </FormControl>
+            {/* availability zones */}
+            <FormControl
+              label="Availability zones"
+              tooltip="A high-availability offering that allows you to spread the nodes in this node pool across multiple physical locations, protecting your applications from datacenter failures"
+              inputId="kaas-availabilityZoneOptions"
+              errors={errors.availabilityZones}
+            >
+              {availabilityZoneOptions.length === 0 && (
+                <Field
+                  name="availabilityZonesNoneAvailable"
+                  as={ReactSelect}
+                  id="kaas-availabilityZonesNoneAvailable"
+                  data-cy="kaasCreateForm-availabilityZonesNoneAvailable"
+                  isDisabled
+                  placeholder="None available"
+                  options={[{ label: 'None available', value: '' }]}
+                />
+              )}
+              {availabilityZoneOptions.length > 0 && (
+                <Field
+                  name="availabilityZones"
+                  as={ReactSelect}
+                  isMulti
+                  closeMenuOnSelect={false}
+                  value={
+                    availabilityZones
+                      ? availabilityZones.find((o) =>
+                          availabilityZoneOptions?.includes({
+                            value: o,
+                            label: o,
+                          })
+                        )
+                      : ''
+                  }
+                  onChange={(options: Option<string>[]) =>
+                    setFieldValue(
+                      'availabilityZones',
+                      options.map((o) => o.value)
+                    )
+                  }
+                  options={availabilityZoneOptions}
+                  id="kaas-availabilityZoneOptions"
+                  data-cy="kaasCreateForm-availabilityZoneOptions"
+                />
+              )}
+            </FormControl>
+            {/* tier */}
+            <FormControl
+              label="API server availability"
+              tooltip="The uptime service level agreement that guarantees a Kubernetes API server uptime of 99.95% for clusters with one or more availability zones and 99.9% for all other clusters"
+              inputId="kaas-tier"
+              errors={errors.tier}
+            >
+              <Field
+                name="tier"
+                as={Select}
+                id="kaas-tier"
+                data-cy="kaasCreateForm-tierSelect"
+                disabled={tiers.length <= 1}
+                options={tiers}
+              />
+            </FormControl>
+            {/* dns prefix */}
+            <FormControl
+              label="DNS name prefix"
+              tooltip="DNS name prefix to use with the hosted Kubernetes API server FQDN. You will use this to connect to the Kubernetes API when managing containers after creating the cluster."
+              inputId="kaas-dnsPrefix"
+              errors={errors.dnsPrefix}
+            >
+              <Field
+                name="dnsPrefix"
+                as={Input}
+                data-cy="kaasCreateForm-dnsPrefix"
+                id="kaas-dnsPrefix"
+                placeholder="e.g. cluster1"
+              />
+            </FormControl>
+            <FormControl
+              label="Kubernetes version"
+              tooltip="Kubernetes version running on the cluster"
+              inputId="kaas-kubernetesVersion"
+              errors={errors.kubernetesVersion}
+            >
+              <Field
+                name="kubernetesVersion"
+                as={Select}
+                id="kaas-kubernetesVersion"
+                data-cy="kaasCreateForm-kubernetesVersionSelect"
+                disabled={kubernetesVersions.length <= 1}
+                options={kubernetesVersions}
+              />
+            </FormControl>
+          </>
+        )}
+      <MetadataFieldset />
+      <FormSectionTitle>Actions</FormSectionTitle>
+      <div className="form-group">
+        <div className="col-sm-12">
+          <LoadingButton
+            disabled={!isValid || !isNameValid}
+            isLoading={isSubmitting}
+            loadingText="Provision in progress..."
+          >
+            <i className="fa fa-plus space-right" aria-hidden="true" />
+            Provision environment
+          </LoadingButton>
+        </div>
+      </div>
+    </Form>
+  );
+}

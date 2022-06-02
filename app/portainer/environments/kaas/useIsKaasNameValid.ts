@@ -8,10 +8,10 @@ export function useIsKaasNameValid(environmentName: string) {
   useEffect(() => {
     async function validateName() {
       const nameValidation = validationSchema();
-      const isNameValid = await nameValidation.isValid({
+      const nameValid = await nameValidation.isValid({
         name: environmentName,
       });
-      setisNameValid(isNameValid);
+      setisNameValid(nameValid);
     }
     validateName();
   }, [environmentName]);

@@ -75,6 +75,36 @@ export function AzureCredentialsForm({
             />
           </FormControl>
           <FormControl
+            inputId="Subscription_ID"
+            label="Subscription ID"
+            errors={errors.credentials?.subscriptionID}
+          >
+            <Field
+              as={Input}
+              name="credentials.subscriptionID"
+              value={values.credentials.subscriptionID}
+              autoComplete="off"
+              id="Subscription_ID"
+              placeholder="e.g. c57c21b6-0e0d-448d-aa44-d33a1b9ab5e4"
+              data-cy="cloudSettings-SubscriptionID"
+            />
+          </FormControl>
+          <FormControl
+            inputId="Tenant_ID"
+            label="Tenant ID"
+            errors={errors.credentials?.tenantID}
+          >
+            <Field
+              as={Input}
+              name="credentials.tenantID"
+              value={values.credentials.tenantID}
+              autoComplete="off"
+              id="Tenant_ID"
+              placeholder="e.g. bea09a7f-8bc0-4e95-b130-762078e972ef"
+              data-cy="cloudSettings-TenantID"
+            />
+          </FormControl>
+          <FormControl
             inputId="Client_ID"
             label="Client ID"
             errors={errors.credentials?.clientID}
@@ -102,36 +132,6 @@ export function AzureCredentialsForm({
               value={values.credentials.clientSecret}
               placeholder={placeholderText}
               data-cy="cloudSettings-ClientSecret"
-            />
-          </FormControl>
-          <FormControl
-            inputId="Tenant_ID"
-            label="Tenant ID"
-            errors={errors.credentials?.tenantID}
-          >
-            <Field
-              as={Input}
-              name="credentials.tenantID"
-              value={values.credentials.tenantID}
-              autoComplete="off"
-              id="Tenant_ID"
-              placeholder="e.g. bea09a7f-8bc0-4e95-b130-762078e972ef"
-              data-cy="cloudSettings-TenantID"
-            />
-          </FormControl>
-          <FormControl
-            inputId="Subscription_ID"
-            label="Subscription ID"
-            errors={errors.credentials?.subscriptionID}
-          >
-            <Field
-              as={Input}
-              name="credentials.subscriptionID"
-              value={values.credentials.subscriptionID}
-              autoComplete="off"
-              id="Subscription_ID"
-              placeholder="e.g. c57c21b6-0e0d-448d-aa44-d33a1b9ab5e4"
-              data-cy="cloudSettings-SubscriptionID"
             />
           </FormControl>
 

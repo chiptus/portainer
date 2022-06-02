@@ -76,7 +76,15 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 
 		return response.JSON(w, gkeInfo)
 
+	case portaineree.CloudProviderAzure:
+
+		azureInfo, err := handler.cloudClusterInfoService.AzureGetInfo(credential)
+		if err != nil {
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve Azure information", err}
+		}
+
+		return response.JSON(w, azureInfo)
 	}
 
-	return &httperror.HandlerError{http.StatusInternalServerError, "Unable to fetch provider infomation", errors.New("Invalid provider route parameter. Valid values: civo, digitalocean, linode, gke")}
+	return &httperror.HandlerError{http.StatusInternalServerError, "Unable to get Kaas provider info", errors.New("invalid provider route parameter. Valid values: civo, digitalocean, linode, azure, gke")}
 }

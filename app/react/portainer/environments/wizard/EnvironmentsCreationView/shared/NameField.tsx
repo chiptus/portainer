@@ -1,6 +1,5 @@
 import { Field, useField } from 'formik';
 import { string } from 'yup';
-import { debounce } from 'lodash';
 
 import { FormControl } from '@/portainer/components/form-components/FormControl';
 import { Input } from '@/portainer/components/form-components/Input';
@@ -45,14 +44,12 @@ async function isNameUnique(name?: string) {
   return true;
 }
 
-const debouncedIsNameUnique = debounce(isNameUnique, 500);
-
 export function nameValidation() {
   return string()
     .required('Name is required')
     .test(
       'unique-name',
       'Name should be unique',
-      (name) => debouncedIsNameUnique(name) || false
+      async (name) => (await isNameUnique(name)) || false
     );
 }

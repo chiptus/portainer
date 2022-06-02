@@ -1,4 +1,4 @@
-package kaas
+package types
 
 import portaineree "github.com/portainer/portainer-ee/api"
 
@@ -6,6 +6,11 @@ type (
 	CloudProviderShortName string
 
 	CloudProviders map[CloudProviderShortName]portaineree.CloudProvider
+
+	EnvironmentMetadata struct {
+		GroupId portaineree.EndpointGroupID `json:"groupId"`
+		TagIds  []portaineree.TagID         `json:"tagIds"`
+	}
 )
 
 var CloudProvidersMap CloudProviders = CloudProviders{
@@ -24,5 +29,9 @@ var CloudProvidersMap CloudProviders = CloudProviders{
 	portaineree.CloudProviderGKE: {
 		Name: "Google Cloud Platform",
 		URL:  "https://console.cloud.google.com/kubernetes/",
+	},
+	portaineree.CloudProviderAzure: {
+		Name: "Azure",
+		URL:  "https://portal.azure.com/",
 	},
 }

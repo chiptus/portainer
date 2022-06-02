@@ -8,7 +8,7 @@ import {
 import { success as notifySuccess } from '@/portainer/services/notifications';
 
 import { getKaasInfo, createKaasEnvironment } from './kaas.service';
-import { CreateApiClusterPayload, CreateGKEClusterPayload } from './types';
+import { CreateClusterPayload } from './types';
 
 export function useCloudProviderOptions(
   credential: Credential,
@@ -38,7 +38,7 @@ export function useCreateKaasCluster() {
       payload,
       provider,
     }: {
-      payload: CreateApiClusterPayload | CreateGKEClusterPayload;
+      payload: CreateClusterPayload;
       provider: KaasProvider;
     }) => createKaasEnvironment(payload, provider),
     {

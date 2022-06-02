@@ -1,5 +1,6 @@
 import { Field, Form, useFormikContext } from 'formik';
 import { useEffect, useMemo, useState } from 'react';
+import { UseQueryResult } from 'react-query';
 
 import { FormControl } from '@/portainer/components/form-components/FormControl';
 import { Input, Select } from '@/portainer/components/form-components/Input';
@@ -58,12 +59,12 @@ export function GKECreateClusterForm({
   const cloudOptionsQuery = useCloudProviderOptions(
     selectedCredential,
     provider
-  );
+  ) as UseQueryResult<GKEKaasInfo>;
   const isNameValid = useIsKaasNameValid(name);
 
   const filteredNetworkOptions = useMemo(() => {
     const shortenedRegion = removeTextAfterLastHyphen(region);
-    return cloudOptionsQuery?.data?.networks?.get(shortenedRegion) || [];
+    return cloudOptionsQuery?.data?.networks?.[shortenedRegion] || [];
   }, [region, cloudOptionsQuery.data?.networks]);
   const credentialOptions = useMemo(
     () =>

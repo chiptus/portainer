@@ -2,16 +2,12 @@ import { useEffect, useState } from 'react';
 import { useCurrentStateAndParams } from '@uirouter/react';
 
 import { react2angular } from '@/react-tools/react2angular';
-import {
-  KaasProvider,
-  Credential,
-  providerTitles,
-} from '@/portainer/settings/cloud/types';
+import { KaasProvider, providerTitles } from '@/portainer/settings/cloud/types';
 import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
 import { useCloudCredentials } from '@/portainer/settings/cloud/cloudSettings.service';
 import { CredentialsForm } from '@/portainer/settings/cloud/CreateCredentialsView/CredentialsForm';
 import { Loading } from '@/portainer/components/widget/Loading';
-import { WarningAlert } from '@/portainer/components/Alert/WarningAlert';
+import { Alert } from '@/portainer/components/Alert/Alert';
 import { Link } from '@/portainer/components/Link';
 import { Environment } from '@/portainer/environments/types';
 import { AnalyticsStateKey } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/types';
@@ -20,6 +16,7 @@ import { KaasProvidersSelector } from './KaasProvidersSelector';
 import { EnvironmentNameForm } from './EnvironmentNameForm/EnvironmentNameForm';
 import { ApiCreateClusterFormContainer } from './ApiCreateClusterForm/ApiCreateClusterFormContainer';
 import { GKECreateClusterFormContainer } from './GKECreateClusterForm/GKECreateClusterFormContainer';
+import { AzureCreateClusterFormContainer } from './AzureCreateClusterForm/AzureCreateClusterFormContainer';
 
 interface Props {
   onCreate?(environment: Environment, analytics: AnalyticsStateKey): void;
@@ -30,10 +27,6 @@ export function KaasFormGroup({ onCreate }: Props) {
     KaasProvider.CIVO
   );
   const [environmentName, setEnvironmentName] = useState('');
-  const [isCredentialAvailable, setIsCredentialAvailable] = useState(false);
-  const [providerCredentials, setProviderCredentials] = useState<Credential[]>(
-    []
-  );
 
   const { state } = useCurrentStateAndParams();
 
@@ -54,14 +47,8 @@ export function KaasFormGroup({ onCreate }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [credentialsQuery.data]);
 
-  useEffect(() => {
-    const credentialsForProvider =
-      credentialsQuery.data?.filter((c) => c.provider === selectedProvider) ||
-      [];
-    setProviderCredentials(credentialsForProvider);
-    const credentialFound = credentialsForProvider.length > 0;
-    setIsCredentialAvailable(credentialFound);
-  }, [selectedProvider, credentialsQuery.data]);
+  const providerCredentials =
+    credentialsQuery.data?.filter((c) => c.provider === selectedProvider) || [];
 
   const Form = getForm(selectedProvider);
 
@@ -77,10 +64,12 @@ export function KaasFormGroup({ onCreate }: Props) {
       <FormSectionTitle>Cluster details</FormSectionTitle>
       <KaasProvidersSelector
         provider={selectedProvider}
-        onChange={onKaasProviderChange}
+        onChange={(provider) => {
+          setSelectedProvider(provider);
+        }}
       />
       {/* // switch between the create cluster forms based on the selected provider */}
-      {isCredentialAvailable && (
+      {providerCredentials.length >= 1 && (
         <Form
           name={environmentName}
           setName={setEnvironmentName}
@@ -90,9 +79,9 @@ export function KaasFormGroup({ onCreate }: Props) {
         />
       )}
       {credentialsQuery.isLoading && <Loading />}
-      {credentialsQuery.data && !isCredentialAvailable && (
+      {credentialsQuery.data && providerCredentials.length === 0 && (
         <>
-          <WarningAlert>
+          <Alert>
             No API key found for {providerTitles[selectedProvider]}. Save your{' '}
             {providerTitles[selectedProvider]} credentials below, or in
             the&nbsp;
@@ -100,20 +89,12 @@ export function KaasFormGroup({ onCreate }: Props) {
               cloud settings
             </Link>
             .
-          </WarningAlert>
+          </Alert>
           <CredentialsForm selectedProvider={selectedProvider} />
         </>
       )}
     </>
   );
-
-  function onKaasProviderChange(provider: KaasProvider) {
-    setSelectedProvider(provider);
-    setProviderCredentials(
-      credentialsQuery.data?.filter((c) => c.provider === selectedProvider) ||
-        []
-    );
-  }
 }
 
 // to expand when other create cluster forms are added
@@ -121,8 +102,8 @@ function getForm(provider: KaasProvider) {
   switch (provider) {
     case KaasProvider.GOOGLE_CLOUD:
       return GKECreateClusterFormContainer;
-    case KaasProvider.AWS:
     case KaasProvider.AZURE:
+      return AzureCreateClusterFormContainer;
     case KaasProvider.CIVO:
     case KaasProvider.DIGITAL_OCEAN:
     case KaasProvider.LINODE:

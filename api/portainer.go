@@ -5,6 +5,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/profiles/latest/containerservice/mgmt/containerservice"
 	"github.com/portainer/liblicense"
 	"github.com/portainer/portainer-ee/api/database/models"
 	portainer "github.com/portainer/portainer/api"
@@ -128,6 +129,13 @@ type (
 		NetworkID *string `json:"NetworkID"`
 		// CredentialID holds an ID of the credential used to create the cluster
 		CredentialID models.CloudCredentialID `json:"CredentialID"`
+
+		// Azure specific fields
+		ResourceGroup     string
+		Tier              string
+		PoolName          string
+		DNSPrefix         string
+		KubernetesVersion string
 	}
 
 	// CLIFlags represents the available flags on the CLI
@@ -988,7 +996,22 @@ type (
 		RAM               float64
 		HDD               int
 		KubernetesVersion string
-		CredentialID      models.CloudCredentialID
+
+		CredentialID models.CloudCredentialID
+
+		// Azure specific fields
+		ResourceGroup     string
+		ResourceGroupName string
+		ResourceName      string
+		Tier              string
+		PoolName          string
+		PoolType          containerservice.AgentPoolType
+		DNSPrefix         string
+		// Azure AKS
+		// --------------------------------------------------
+		// AvailabilityZones - The list of Availability zones to use for nodes.
+		// This can only be specified if the AgentPoolType property is 'VirtualMachineScaleSets'.
+		AvailabilityZones []string
 	}
 
 	// CloudProvisioningID represents a cloud provisioning identifier
@@ -1007,6 +1030,9 @@ type (
 		State   int   `json:"-"`
 		Retries int   `json:"-"`
 		Err     error `json:"-"`
+
+		// AZURE specific fields
+		ResourceGroup string
 	}
 
 	// Settings represents the application settings
@@ -2305,4 +2331,5 @@ const (
 	CloudProviderDigitalOcean = "digitalocean"
 	CloudProviderLinode       = "linode"
 	CloudProviderGKE          = "gke"
+	CloudProviderAzure        = "azure"
 )

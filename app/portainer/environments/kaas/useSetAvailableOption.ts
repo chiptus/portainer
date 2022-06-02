@@ -8,7 +8,8 @@ import { Option } from '@/portainer/components/form-components/Input/Select';
 export function useSetAvailableOption<T extends string | number>(
   options: Option<T>[] | undefined,
   value: T,
-  fieldName: string
+  fieldName: string,
+  defaultValue?: string
 ) {
   const { setFieldValue } = useFormikContext();
 
@@ -17,6 +18,8 @@ export function useSetAvailableOption<T extends string | number>(
       if (options.length > 0 && !valueFound(options, value)) {
         setFieldValue(fieldName, options[0].value || '');
       }
+    } else if (defaultValue) {
+      setFieldValue(fieldName, defaultValue);
     } else {
       setFieldValue(fieldName, '');
     }

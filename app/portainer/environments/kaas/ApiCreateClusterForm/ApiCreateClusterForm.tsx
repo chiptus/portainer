@@ -1,5 +1,6 @@
 import { Field, Form, useFormikContext } from 'formik';
 import { useEffect, useMemo, useState } from 'react';
+import { UseQueryResult } from 'react-query';
 
 import { FormControl } from '@/portainer/components/form-components/FormControl';
 import { Input, Select } from '@/portainer/components/form-components/Input';
@@ -12,14 +13,18 @@ import {
   providerTitles,
 } from '@/portainer/settings/cloud/types';
 import { Option } from '@/portainer/components/form-components/Input/Select';
-import { WarningAlert } from '@/portainer/components/Alert/WarningAlert';
+import { Alert } from '@/portainer/components/Alert/Alert';
 import { Link } from '@/portainer/components/Link';
 import { MoreSettingsSection } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MoreSettingsSection';
 
 import { useCloudProviderOptions } from '../queries';
-import { CreateApiClusterFormValues, isAPIKaasInfo } from '../types';
-import { useIsKaasNameValid } from '../useIsKaasNameValid';
+import {
+  APIKaasInfo,
+  CreateApiClusterFormValues,
+  isAPIKaasInfo,
+} from '../types';
 import { useSetAvailableOption } from '../useSetAvailableOption';
+import { useIsKaasNameValid } from '../useIsKaasNameValid';
 
 type Props = {
   credentials: Credential[];
@@ -39,15 +44,16 @@ export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
   const cloudOptionsQuery = useCloudProviderOptions(
     selectedCredential,
     provider
-  );
+  ) as UseQueryResult<APIKaasInfo>;
+
   const isNameValid = useIsKaasNameValid(name);
 
   const filteredNetworkOptions = useMemo(
-    () => cloudOptionsQuery?.data?.networks?.get(region) || [],
+    () => cloudOptionsQuery?.data?.networks?.[region] || [],
     [region, cloudOptionsQuery.data]
   );
 
-  // if the selected credential id changes, update the credential
+  // if the selected credential id changes, update the selected credential details
   useEffect(() => {
     setSelectedCredential(
       credentials.find((c) => c.id === Number(credentialId)) || credentials[0]
@@ -92,14 +98,14 @@ export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
           name="credentialId"
           as={Select}
           type="number"
-          id="kaa-credential"
-          data-cy="kaasCreateForm-crdentialSelect"
-          disabled={credentialOptions.length === 1}
+          id="kaas-credential"
+          data-cy="kaasCreateForm-credentialSelect"
+          disabled={credentialOptions.length <= 1}
           options={credentialOptions}
         />
       </FormControl>
       {cloudOptionsQuery.isError && (
-        <WarningAlert>
+        <Alert>
           Error getting {providerTitles[provider]} info. Go to&nbsp;
           <Link
             to="portainer.settings.cloud.credential"
@@ -109,7 +115,7 @@ export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
             cloud settings
           </Link>
           &nbsp;to ensure the API key is valid.
-        </WarningAlert>
+        </Alert>
       )}
       {cloudOptionsQuery.isLoading && <Loading />}
       {/* cluster details inputs */}

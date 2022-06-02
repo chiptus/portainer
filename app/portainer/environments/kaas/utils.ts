@@ -2,20 +2,36 @@ import { trackEvent } from '@/angulartics.matomo/analytics-services';
 import { KaasProvider } from '@/portainer/settings/cloud/types';
 
 import {
-  CreateApiClusterFormValues,
-  CreateGKEClusterFormValues,
+  CreateClusterFormValues,
+  isAzureClusterFormValues,
+  isGkeClusterFormValues,
 } from './types';
 
 export function sendKaasProvisionAnalytics(
-  values: CreateApiClusterFormValues | CreateGKEClusterFormValues,
+  values: CreateClusterFormValues,
   provider: KaasProvider
 ) {
   trackEvent('portainer-endpoint-creation', {
     category: 'portainer',
     metadata: { type: 'agent', platform: 'kubernetes' },
   });
-  if ('cpu' in values) {
-    // tracking for GKE
+
+  if (isAzureClusterFormValues(values)) {
+    trackEvent('provision-kaas-cluster', {
+      category: 'kubernetes',
+      metadata: {
+        provider,
+        region: values.region,
+        'availability-zones': values.availabilityZones,
+        teir: values.tier,
+        'node-count': values.nodeCount,
+        'node-size': values.nodeSize,
+      },
+    });
+    return;
+  }
+
+  if (isGkeClusterFormValues(values)) {
     trackEvent('provision-kaas-cluster', {
       category: 'kubernetes',
       metadata: {

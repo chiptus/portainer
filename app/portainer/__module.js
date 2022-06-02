@@ -482,6 +482,7 @@ angular
           },
         },
       };
+
       var settingsEdgeCompute = {
         name: 'portainer.settings.edgeCompute',
         url: '/edge',

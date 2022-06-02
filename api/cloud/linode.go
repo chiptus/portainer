@@ -34,15 +34,16 @@ func (service *CloudClusterInfoService) LinodeGetInfo(credential *models.CloudCr
 	service.mu.Lock()
 	info, ok := service.info[cacheKey]
 	service.mu.Unlock()
+	var err error
 	if !ok {
 		// Live fetch if missing cache.
-		info, err := service.LinodeFetchInfo(apiKey)
+		info, err = service.LinodeFetchInfo(apiKey)
 		if err != nil {
 			return nil, err
 		}
 		// Update the cache
 		service.mu.Lock()
-		service.info[cacheKey] = *info
+		service.info[cacheKey] = info
 		service.mu.Unlock()
 	}
 

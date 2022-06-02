@@ -3,11 +3,7 @@ import { KaasProvider, Credential } from '@/portainer/settings/cloud/types';
 
 import { Environment } from '../types';
 
-import {
-  CreateApiClusterPayload,
-  CreateGKEClusterPayload,
-  KaasInfoResponse,
-} from './types';
+import { KaasInfoResponse, CreateClusterPayload } from './types';
 import { parseKaasInfoResponse } from './converter';
 
 function buildUrl(provider: KaasProvider, action: string) {
@@ -15,7 +11,7 @@ function buildUrl(provider: KaasProvider, action: string) {
 }
 
 export async function createKaasEnvironment(
-  payload: CreateApiClusterPayload | CreateGKEClusterPayload,
+  payload: CreateClusterPayload,
   provider: KaasProvider
 ) {
   try {

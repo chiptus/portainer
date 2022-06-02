@@ -43,15 +43,16 @@ func (service *CloudClusterInfoService) CivoGetInfo(credential *models.CloudCred
 	service.mu.Lock()
 	info, ok := service.info[cacheKey]
 	service.mu.Unlock()
+	var err error
 	if !ok {
 		// Live fetch if missing cache.
-		info, err := service.CivoFetchInfo(apiKey)
+		info, err = service.CivoFetchInfo(apiKey)
 		if err != nil {
 			return nil, err
 		}
 		// Update the cache
 		service.mu.Lock()
-		service.info[cacheKey] = *info
+		service.info[cacheKey] = info
 		service.mu.Unlock()
 	}
 

@@ -64,6 +64,10 @@ func (service *CloudClusterInfoService) tryUpdate() {
 				info, err = service.DigitalOceanFetchInfo(credential.Credentials["apiKey"])
 			case portaineree.CloudProviderGKE:
 				info, err = service.GKEFetchInfo(credential.Credentials["jsonKeyBase64"])
+			case portaineree.CloudProviderAzure:
+				info, err = service.AzureFetchInfo(credential.Credentials)
+			default:
+				return
 			}
 			if err != nil {
 				log.Errorf("while fetching info for %s: %v", credential.Provider, err)

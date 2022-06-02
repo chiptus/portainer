@@ -95,14 +95,15 @@ func (service *CloudClusterSetupService) Request(r *portaineree.CloudProvisionin
 }
 
 // createClusterSetupTask transforms a provisioning request into a task and adds it to the db
-func (service *CloudClusterSetupService) createClusterSetupTask(request *portaineree.CloudProvisioningRequest, clusterID string) (portaineree.CloudProvisioningTask, error) {
+func (service *CloudClusterSetupService) createClusterSetupTask(request *portaineree.CloudProvisioningRequest, clusterID, resourceGroup string) (portaineree.CloudProvisioningTask, error) {
 	task := portaineree.CloudProvisioningTask{
-		Provider:   request.Provider,
-		ClusterID:  clusterID,
-		EndpointID: request.EndpointID,
-		Region:     request.Region,
-		State:      int(psPending),
-		CreatedAt:  time.Now(),
+		Provider:      request.Provider,
+		ClusterID:     clusterID,
+		EndpointID:    request.EndpointID,
+		Region:        request.Region,
+		State:         int(psPending),
+		CreatedAt:     time.Now(),
+		ResourceGroup: resourceGroup,
 	}
 
 	return task, service.dataStore.CloudProvisioning().Create(&task)
@@ -219,6 +220,9 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 
 	case portaineree.CloudProviderGKE:
 		cluster, err = GKEGetCluster(credentials.Credentials["jsonKeyBase64"], task.ClusterID, task.Region)
+
+	case portaineree.CloudProviderAzure:
+		cluster, err = AzureGetCluster(credentials.Credentials, task.ResourceGroup, task.ClusterID)
 
 	default:
 		return cluster, fmt.Errorf("%v is not supported", task.Provider)
@@ -365,6 +369,8 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 
 	var clusterID string
 	var provErr error
+	// Required for Azure AKS
+	var clusterResourceGroup string
 
 	switch request.Provider {
 	case portaineree.CloudProviderCivo:
@@ -403,9 +409,14 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 			log.Errorf("[cloud] [message: GKE cluster provisioning failed %v]", provErr)
 		}
 
+	case portaineree.CloudProviderAzure:
+		clusterID, clusterResourceGroup, provErr = AzureProvisionCluster(credentials.Credentials, request)
+		if provErr != nil {
+			log.Errorf("[cloud] [message: Azure cluster provisioning failed %v]", provErr)
+		}
 	}
 
-	task, err := service.createClusterSetupTask(request, clusterID)
+	task, err := service.createClusterSetupTask(request, clusterID, clusterResourceGroup)
 	task.Err = provErr
 	if err != nil {
 		if task.Err == nil {

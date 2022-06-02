@@ -17,6 +17,7 @@ export interface Props {
   children: ReactNode;
   errors?: string | ReactNode;
   required?: boolean;
+  classes?: string;
 }
 
 export function FormControl({
@@ -26,10 +27,11 @@ export function FormControl({
   tooltip = '',
   children,
   errors,
+  classes,
   required = false,
 }: PropsWithChildren<Props>) {
   return (
-    <div className={clsx('form-group', styles.container)}>
+    <div className={clsx('form-group', styles.container, classes)}>
       <label
         htmlFor={inputId}
         className={clsx(sizeClassLabel(size), 'control-label', 'text-left')}

@@ -9,6 +9,10 @@ export function validationSchema() {
         /^[a-z0-9-]+$/,
         'Name must only contain lowercase alphanumeric characters and hyphens.'
       )
+      .matches(
+        /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/,
+        'Name must start and end with an alphanumeric character.'
+      )
       .max(32, 'Name must be 32 characters or less.'),
   });
 }

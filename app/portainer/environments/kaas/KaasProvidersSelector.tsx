@@ -26,6 +26,14 @@ const civoOptions = buildOption(
   KaasProvider.CIVO
 );
 
+const azureOptions = buildOption(
+  KaasProvider.AZURE,
+  'fab fa-microsoft',
+  'Azure',
+  'Azure Kubernetes Service (AKS)',
+  KaasProvider.AZURE
+);
+
 const gkeOptions = buildOption(
   KaasProvider.GOOGLE_CLOUD,
   'fab fa-google',
@@ -38,8 +46,15 @@ const boxSelectorOptions: BoxSelectorOption<
   | KaasProvider.CIVO
   | KaasProvider.LINODE
   | KaasProvider.DIGITAL_OCEAN
+  | KaasProvider.AZURE
   | KaasProvider.GOOGLE_CLOUD
->[] = [civoOptions, linodeOptions, digitalOceanOptions, gkeOptions];
+>[] = [
+  civoOptions,
+  linodeOptions,
+  digitalOceanOptions,
+  azureOptions,
+  gkeOptions,
+];
 
 interface Props {
   provider: KaasProvider;
