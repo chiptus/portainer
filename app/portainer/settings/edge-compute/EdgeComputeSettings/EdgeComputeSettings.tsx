@@ -5,9 +5,7 @@ import { FormControl } from '@/portainer/components/form-components/FormControl'
 import { Widget, WidgetBody, WidgetTitle } from '@/portainer/components/widget';
 import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
 import { TextTip } from '@/portainer/components/Tip/TextTip';
-import { EdgeAsyncIntervalsForm } from '@/edge/components/EdgeAsyncIntervalsForm';
 import { EdgeCheckinIntervalField } from '@/edge/components/EdgeCheckInIntervalField';
-import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
 
 import { validationSchema } from './EdgeComputeSettings.validation';
 import { FormValues } from './types';
@@ -16,23 +14,6 @@ interface Props {
   settings?: FormValues;
   onSubmit(values: FormValues): void;
 }
-
-const asyncIntervalFieldSettings = {
-  ping: {
-    label: 'Edge agent default ping frequency',
-    tooltip:
-      'Interval used by default by each Edge agent to ping the Portainer instance. Affects Edge environment management and Edge compute features.',
-  },
-  snapshot: {
-    label: 'Edge agent default snapshot frequency',
-    tooltip:
-      'Interval used by default by each Edge agent to snapshot the agent state.',
-  },
-  command: {
-    label: 'Edge agent default command frequency',
-    tooltip: 'Interval used by default by each Edge agent to execute commands.',
-  },
-};
 
 export function EdgeComputeSettings({ settings, onSubmit }: Props) {
   if (!settings) {
@@ -105,43 +86,17 @@ export function EdgeComputeSettings({ settings, onSubmit }: Props) {
                   />
                 </FormControl>
 
-                {process.env.PORTAINER_EDITION === 'BE' && (
-                  <FormControl
-                    inputId="edge_async_mode"
-                    label="Use Async mode by default"
-                    size="medium"
-                    errors={errors?.Edge?.AsyncMode}
-                  >
-                    <Switch
-                      id="edge_async_mode"
-                      name="edge_async_mode"
-                      className="space-right"
-                      checked={values.Edge.AsyncMode}
-                      onChange={(e) =>
-                        setFieldValue('Edge.AsyncMode', e.valueOf())
-                      }
-                    />
-                  </FormControl>
+                {process.env.PORTAINER_EDITION !== 'BE' && (
+                  <EdgeCheckinIntervalField
+                    value={values.EdgeAgentCheckinInterval}
+                    onChange={(value) =>
+                      setFieldValue('EdgeAgentCheckinInterval', value)
+                    }
+                    isDefaultHidden
+                    label="Edge agent default poll frequency"
+                    tooltip="Interval used by default by each Edge agent to check in with the Portainer instance. Affects Edge environment management and Edge compute features."
+                  />
                 )}
-
-                <FormSectionTitle>Check-in Intervals</FormSectionTitle>
-
-                <EdgeCheckinIntervalField
-                  value={values.EdgeAgentCheckinInterval}
-                  onChange={(value) =>
-                    setFieldValue('EdgeAgentCheckinInterval', value)
-                  }
-                  isDefaultHidden
-                  label="Edge agent default poll frequency"
-                  tooltip="Interval used by default by each Edge agent to check in with the Portainer instance. Affects Edge environment management and Edge compute features."
-                />
-
-                <EdgeAsyncIntervalsForm
-                  values={values.Edge}
-                  onChange={(value) => setFieldValue('Edge', value)}
-                  isDefaultHidden
-                  fieldSettings={asyncIntervalFieldSettings}
-                />
 
                 <div className="form-group mt-5">
                   <div className="col-sm-12">
