@@ -37,8 +37,8 @@ func (payload *teamMembershipUpdatePayload) Validate(r *http.Request) error {
 
 // @id TeamMembershipUpdate
 // @summary Update a team membership
-// @description Update a team membership. Access is only available to administrators leaders of the associated team.
-// @description **Access policy**: administrator
+// @description Update a team membership. Access is only available to administrators or leaders of the associated team.
+// @description **Access policy**: administrator or leaders of the associated team
 // @tags team_memberships
 // @security ApiKeyAuth
 // @security jwt
@@ -64,15 +64,6 @@ func (handler *Handler) teamMembershipUpdate(w http.ResponseWriter, r *http.Requ
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
 	}
 
-	securityContext, err := security.RetrieveRestrictedRequestContext(r)
-	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
-	}
-
-	if !security.AuthorizedTeamManagement(portaineree.TeamID(payload.TeamID), securityContext) {
-		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to update the membership", httperrors.ErrResourceAccessDenied}
-	}
-
 	membership, err := handler.DataStore.TeamMembership().TeamMembership(portaineree.TeamMembershipID(membershipID))
 	if err == bolterrors.ErrObjectNotFound {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a team membership with the specified identifier inside the database", err}
@@ -80,8 +71,15 @@ func (handler *Handler) teamMembershipUpdate(w http.ResponseWriter, r *http.Requ
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a team membership with the specified identifier inside the database", err}
 	}
 
-	if securityContext.IsTeamLeader && membership.Role != portaineree.MembershipRole(payload.Role) {
-		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to update the role of membership", httperrors.ErrResourceAccessDenied}
+	securityContext, err := security.RetrieveRestrictedRequestContext(r)
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
+	}
+
+	isLeadingBothTeam := security.AuthorizedTeamManagement(portaineree.TeamID(payload.TeamID), securityContext) &&
+		security.AuthorizedTeamManagement(membership.TeamID, securityContext)
+	if !(securityContext.IsAdmin || isLeadingBothTeam) {
+		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to update the membership", httperrors.ErrResourceAccessDenied}
 	}
 
 	previousUserID := int(membership.UserID)

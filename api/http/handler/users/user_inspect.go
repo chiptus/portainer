@@ -39,7 +39,7 @@ func (handler *Handler) userInspect(w http.ResponseWriter, r *http.Request) *htt
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
 	}
 
-	if !securityContext.IsAdmin && securityContext.UserID != portaineree.UserID(userID) {
+	if !securityContext.IsAdmin && !securityContext.IsTeamLeader && securityContext.UserID != portaineree.UserID(userID) {
 		return &httperror.HandlerError{http.StatusForbidden, "Permission denied inspect user", errors.ErrResourceAccessDenied}
 	}
 

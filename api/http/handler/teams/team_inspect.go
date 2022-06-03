@@ -15,7 +15,7 @@ import (
 // @id TeamInspect
 // @summary Inspect a team
 // @description Retrieve details about a team. Access is only available for administrator and leaders of that team.
-// @description **Access policy**: administrator
+// @description **Access policy**: administrator or team leader
 // @tags teams
 // @security ApiKeyAuth
 // @security jwt

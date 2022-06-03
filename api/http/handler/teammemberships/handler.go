@@ -28,7 +28,7 @@ func NewHandler(bouncer *security.RequestBouncer, userActivityService portainere
 		userActivityService: userActivityService,
 	}
 
-	h.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
+	h.Use(bouncer.TeamLeaderAccess, useractivity.LogUserActivity(h.userActivityService))
 
 	h.Handle("/team_memberships", httperror.LoggerHandler(h.teamMembershipCreate)).Methods(http.MethodPost)
 	h.Handle("/team_memberships", httperror.LoggerHandler(h.teamMembershipList)).Methods(http.MethodGet)

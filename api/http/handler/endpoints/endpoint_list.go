@@ -32,7 +32,7 @@ const (
 // @id EndpointList
 // @summary List environments(endpoints)
 // @description List all environments(endpoints) based on the current user authorizations. Will
-// @description return all environments(endpoints) if using an administrator account otherwise it will
+// @description return all environments(endpoints) if using an administrator or team leader account otherwise it will
 // @description only return authorized environments(endpoints).
 // @description **Access policy**: restricted
 // @tags endpoints

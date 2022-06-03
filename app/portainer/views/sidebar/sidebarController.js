@@ -1,6 +1,6 @@
 angular.module('portainer.app').controller('SidebarController', SidebarController);
 
-function SidebarController($rootScope, $q, $scope, $transitions, StateManager, Notifications, Authentication, UserService, EndpointProvider) {
+function SidebarController($rootScope, $q, $scope, $transitions, StateManager, Notifications, Authentication, UserService, EndpointProvider, SettingsService) {
   $scope.applicationState = StateManager.getState();
   $scope.endpointState = EndpointProvider.endpoint();
 
@@ -37,8 +37,10 @@ function SidebarController($rootScope, $q, $scope, $transitions, StateManager, N
     $scope.isEndpointAdmin = isEndpointAdmin();
 
     $q.when(!isAdmin ? UserService.userMemberships(userDetails.ID) : [])
-      .then(function success(data) {
+      .then(async function success(data) {
         checkPermissions(data);
+        const settings = await SettingsService.publicSettings();
+        $scope.showUsersSection = isAdmin || ($scope.isTeamLeader && !settings.TeamSync);
       })
       .catch(function error(err) {
         Notifications.error('Failure', err, 'Unable to retrieve user memberships');

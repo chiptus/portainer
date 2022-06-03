@@ -79,11 +79,11 @@ func FilterRegistries(registries []portaineree.Registry, user *portaineree.User,
 }
 
 // FilterEndpoints filters environments(endpoints) based on user role and team memberships.
-// Non administrator users only have access to authorized environments(endpoints) (can be inherited via endpoint groups).
+// Non administrator and non-team-leader only have access to authorized environments(endpoints) (can be inherited via endpoint groups).
 func FilterEndpoints(endpoints []portaineree.Endpoint, groups []portaineree.EndpointGroup, context *RestrictedRequestContext) []portaineree.Endpoint {
 	filteredEndpoints := endpoints
 
-	if !context.IsAdmin {
+	if !context.IsAdmin && !context.IsTeamLeader {
 		filteredEndpoints = make([]portaineree.Endpoint, 0)
 
 		for _, endpoint := range endpoints {
@@ -99,11 +99,11 @@ func FilterEndpoints(endpoints []portaineree.Endpoint, groups []portaineree.Endp
 }
 
 // FilterEndpointGroups filters environment(endpoint) groups based on user role and team memberships.
-// Non administrator users only have access to authorized environment(endpoint) groups.
+// Non administrator users and Non-team-leaders only have access to authorized environment(endpoint) groups.
 func FilterEndpointGroups(endpointGroups []portaineree.EndpointGroup, context *RestrictedRequestContext) []portaineree.EndpointGroup {
 	filteredEndpointGroups := endpointGroups
 
-	if !context.IsAdmin {
+	if !context.IsAdmin && !context.IsTeamLeader {
 		filteredEndpointGroups = make([]portaineree.EndpointGroup, 0)
 
 		for _, group := range endpointGroups {
