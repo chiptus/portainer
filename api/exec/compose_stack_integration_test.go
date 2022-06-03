@@ -13,6 +13,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 )
 
 const composeFile = `version: "3.9"
@@ -43,9 +44,7 @@ func setup(t *testing.T) (*portaineree.Stack, *portaineree.Endpoint) {
 
 func Test_UpAndDown(t *testing.T) {
 
-	if !integrationTest() {
-		return
-	}
+	testhelpers.IntegrationTest(t)
 
 	stack, endpoint := setup(t)
 
@@ -84,12 +83,4 @@ func containerExists(containerName string) bool {
 	}
 
 	return strings.Contains(string(out), containerName)
-}
-
-func integrationTest() bool {
-	if val, ok := os.LookupEnv("INTEGRATION_TEST"); ok {
-		return strings.EqualFold(val, "true")
-	}
-
-	return false
 }
