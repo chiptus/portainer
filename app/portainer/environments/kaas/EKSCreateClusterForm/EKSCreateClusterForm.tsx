@@ -1,29 +1,27 @@
 import { Field, Form, useFormikContext } from 'formik';
 import { useEffect, useMemo, useState } from 'react';
-import { UseQueryResult } from 'react-query';
 
 import { FormControl } from '@/portainer/components/form-components/FormControl';
 import { Input, Select } from '@/portainer/components/form-components/Input';
 import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
 import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
 import { Loading } from '@/portainer/components/widget/Loading';
+import { MetadataFieldset } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MetadataFieldset';
 import {
   Credential,
   KaasProvider,
   providerTitles,
 } from '@/portainer/settings/cloud/types';
-import { Option } from '@/portainer/components/form-components/Input/Select';
-import { Alert } from '@/portainer/components/Alert/Alert';
+import { WarningAlert } from '@/portainer/components/Alert/WarningAlert';
 import { Link } from '@/portainer/components/Link';
-import { MoreSettingsSection } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MoreSettingsSection';
 
 import { useCloudProviderOptions } from '../queries';
-import {
-  APIKaasInfo,
-  CreateApiClusterFormValues,
-  isAPIKaasInfo,
-} from '../types';
 import { useSetAvailableOption } from '../useSetAvailableOption';
+import {
+  CreateEKSClusterFormValues,
+  InstanceTypeRegions,
+  isEKSKaasInfo,
+} from '../types';
 import { useIsKaasNameValid } from '../useIsKaasNameValid';
 
 type Props = {
@@ -33,10 +31,10 @@ type Props = {
 };
 
 // ApiCreateClusterForm handles form changes, conditionally renders inputs, and manually set values
-export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
-  const { values, setFieldValue, errors, handleSubmit, isSubmitting, isValid } =
-    useFormikContext<CreateApiClusterFormValues>();
-  const { region, credentialId, networkId, nodeSize, kubernetesVersion } =
+export function EKSCreateClusterForm({ credentials, provider, name }: Props) {
+  const { values, errors, handleSubmit, isSubmitting, isValid } =
+    useFormikContext<CreateEKSClusterFormValues>();
+  const { credentialId, region, amiType, instanceType, kubernetesVersion } =
     values;
   const [selectedCredential, setSelectedCredential] = useState<Credential>(
     credentials[0]
@@ -44,53 +42,59 @@ export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
   const cloudOptionsQuery = useCloudProviderOptions(
     selectedCredential,
     provider
-  ) as UseQueryResult<APIKaasInfo>;
+  );
   const isNameValid = useIsKaasNameValid(name);
 
-  const filteredNetworkOptions = useMemo(
-    () => cloudOptionsQuery?.data?.networks?.[region] || [],
-    [region, cloudOptionsQuery.data]
+  const filteredInstanceTypes = useMemo(() => {
+    if (cloudOptionsQuery.data && isEKSKaasInfo(cloudOptionsQuery.data)) {
+      return filterByAmiAndRegion(
+        cloudOptionsQuery.data.instanceTypes,
+        amiType,
+        region
+      );
+    }
+    return [];
+  }, [region, amiType, cloudOptionsQuery.data]);
+  const credentialOptions = useMemo(
+    () =>
+      credentials.map((c) => ({
+        value: c.id,
+        label: c.name,
+      })),
+    [credentials]
   );
+  const kubernetesVersions = useMemo(
+    () => cloudOptionsQuery.data?.kubernetesVersions || [],
+    [cloudOptionsQuery.data?.kubernetesVersions]
+  );
+  const regions = useMemo(
+    () => cloudOptionsQuery.data?.regions || [],
+    [cloudOptionsQuery.data?.regions]
+  );
+  const amiTypes = useMemo(() => {
+    if (cloudOptionsQuery.data && isEKSKaasInfo(cloudOptionsQuery.data)) {
+      return cloudOptionsQuery.data?.amiTypes || [];
+    }
+    return [];
+  }, [cloudOptionsQuery.data]);
 
-  // if the selected credential id changes, update the selected credential details
+  // if the selected credential id changes, update the credential
   useEffect(() => {
     setSelectedCredential(
       credentials.find((c) => c.id === Number(credentialId)) || credentials[0]
     );
   }, [credentialId, setSelectedCredential, credentials]);
 
-  // if the credentials change, select the first credential available
-  useEffect(() => {
-    const credential = credentials[0];
-    setSelectedCredential(credential);
-    setFieldValue('credentialId', credential.id);
-  }, [credentials, setFieldValue]);
-
-  const credentialOptions: Option<number>[] = credentials.map((c) => ({
-    value: c.id,
-    label: c.name,
-  }));
-
-  // when the options change, set the available options in the select inputs
-  useSetAvailableOption(filteredNetworkOptions, networkId || '', 'networkId');
-  useSetAvailableOption(cloudOptionsQuery.data?.regions, region, 'region');
+  // ensure the form values are valid when the options change
+  useSetAvailableOption(credentialOptions, credentialId, 'credentialId');
+  useSetAvailableOption(regions, region, 'region');
+  useSetAvailableOption(amiTypes, amiType, 'amiType');
+  useSetAvailableOption(filteredInstanceTypes, instanceType, 'instanceType');
   useSetAvailableOption(
-    cloudOptionsQuery.data?.nodeSizes,
-    nodeSize,
-    'nodeSize'
-  );
-  useSetAvailableOption(
-    cloudOptionsQuery.data?.kubernetesVersions,
+    kubernetesVersions,
     kubernetesVersion,
     'kubernetesVersion'
   );
-
-  // when the region changes, update the selected network
-  useEffect(() => {
-    if (filteredNetworkOptions.length > 0 && region) {
-      setFieldValue('networkId', filteredNetworkOptions[0].value);
-    }
-  }, [region, filteredNetworkOptions, setFieldValue]);
 
   return (
     <Form className="form-horizontal" onSubmit={handleSubmit} noValidate>
@@ -105,13 +109,13 @@ export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
           as={Select}
           type="number"
           id="kaas-credential"
-          data-cy="kaasCreateForm-credentialSelect"
-          disabled={credentialOptions.length <= 1}
+          data-cy="kaasCreateForm-crdentialSelect"
+          disabled={credentialOptions.length === 1}
           options={credentialOptions}
         />
       </FormControl>
       {cloudOptionsQuery.isError && (
-        <Alert>
+        <WarningAlert>
           Error getting {providerTitles[provider]} info. Go to&nbsp;
           <Link
             to="portainer.settings.cloud.credential"
@@ -121,11 +125,11 @@ export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
             cloud settings
           </Link>
           &nbsp;to ensure the API key is valid.
-        </Alert>
+        </WarningAlert>
       )}
       {cloudOptionsQuery.isLoading && <Loading />}
       {/* cluster details inputs */}
-      {cloudOptionsQuery.data && isAPIKaasInfo(cloudOptionsQuery.data) && (
+      {cloudOptionsQuery.data && isEKSKaasInfo(cloudOptionsQuery.data) && (
         <>
           <FormControl
             label="Region"
@@ -138,21 +142,55 @@ export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
               as={Select}
               id="kaa-region"
               data-cy="kaasCreateForm-regionSelect"
-              options={cloudOptionsQuery.data.regions}
+              options={regions}
             />
           </FormControl>
           <FormControl
-            label="Node size"
-            tooltip="Size of each node deployed in the cluster"
-            inputId="kaas-nodeSize"
-            errors={errors.nodeSize}
+            label="AMI type"
+            tooltip="Base image for Amazon EKS nodes"
+            inputId="kaas-amiType"
+            errors={errors.amiType}
           >
             <Field
-              name="nodeSize"
+              name="amiType"
               as={Select}
-              id="kaas-nodeSize"
-              data-cy="kaasCreateForm-nodeSizeSelect"
-              options={cloudOptionsQuery.data?.nodeSizes}
+              id="kaas-amiType"
+              data-cy="kaasCreateForm-amiType"
+              options={cloudOptionsQuery.data?.amiTypes || []}
+            />
+          </FormControl>
+          {region && (
+            <FormControl
+              label="Instance type"
+              tooltip="Instance type of each node deployed in the cluster"
+              inputId="kaas-instanceType"
+              errors={errors.instanceType}
+            >
+              <Field
+                name="instanceType"
+                as={Select}
+                id="kaas-instanceType"
+                data-cy="kaasCreateForm-instanceTypeSelect"
+                options={filteredInstanceTypes}
+              />
+            </FormControl>
+          )}
+
+          <FormControl
+            label="Node disk size (GiB)"
+            tooltip="The size of the Elastic Block Storage (EBS) volume for each node"
+            inputId="kaas-nodeVolumeSizeInput"
+            errors={errors.nodeVolumeSize}
+          >
+            <Field
+              name="nodeVolumeSize"
+              as={Input}
+              type="number"
+              data-cy="kaasCreateForm-nodeVolumeSizeInput"
+              step="1"
+              min={1}
+              max={16000}
+              id="kaas-nodeVolumeSize"
             />
           </FormControl>
           <FormControl
@@ -166,29 +204,11 @@ export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
               as={Input}
               type="number"
               data-cy="kaasCreateForm-nodeCountInput"
-              min={1}
-              max={1000}
+              min="1"
               id="kaas-nodeCount"
               placeholder="3"
             />
           </FormControl>
-          {region && filteredNetworkOptions.length > 0 && (
-            <FormControl
-              label="Network ID"
-              tooltip="ID of network attached to the cluster"
-              inputId="kaas-networkId"
-              errors={errors.networkId}
-            >
-              <Field
-                name="networkId"
-                as={Select}
-                id="kaas-networkId"
-                data-cy="kaasCreateForm-networkIdSelect"
-                disabled={filteredNetworkOptions.length === 1}
-                options={filteredNetworkOptions}
-              />
-            </FormControl>
-          )}
           <FormControl
             label="Kubernetes version"
             tooltip="Kubernetes version running on the cluster"
@@ -200,13 +220,13 @@ export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
               as={Select}
               id="kaas-kubernetesVersion"
               data-cy="kaasCreateForm-kubernetesVersionSelect"
-              options={cloudOptionsQuery.data?.kubernetesVersions}
+              options={kubernetesVersions}
             />
           </FormControl>
         </>
       )}
 
-      <MoreSettingsSection />
+      <MetadataFieldset />
 
       <FormSectionTitle>Actions</FormSectionTitle>
       <div className="form-group">
@@ -223,4 +243,22 @@ export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
       </div>
     </Form>
   );
+}
+
+function filterByAmiAndRegion(
+  instanceTypes: InstanceTypeRegions,
+  amiType: string,
+  region: string
+) {
+  if (amiType && region && instanceTypes[region]) {
+    return (
+      instanceTypes[region]
+        .filter((i) => i.compatibleAmiTypes.includes(amiType))
+        .map((i) => ({
+          label: i.name,
+          value: i.value,
+        })) || []
+    );
+  }
+  return [];
 }

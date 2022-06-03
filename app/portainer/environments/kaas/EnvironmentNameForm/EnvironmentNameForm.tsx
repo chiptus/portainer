@@ -36,7 +36,7 @@ export function EnvironmentNameForm({
               as={Input}
               id="kaas-name"
               data-cy="kaasCreateForm-nameInput"
-              placeholder="e.g. MyClusterName"
+              placeholder="e.g. my-cluster-name"
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setEnvironmentName(e.target.value);
                 setFieldValue('name', e.target.value);

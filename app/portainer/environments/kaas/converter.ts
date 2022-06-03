@@ -6,6 +6,7 @@ import {
   isAzureKaasInfoResponse,
   NetworkInfo,
   isGKEKaasInfoResponse,
+  isEksKaasInfoResponse,
 } from './types';
 
 function buildOption(value: string, label?: string): Option<string> {
@@ -18,7 +19,6 @@ export function parseKaasInfoResponse(response: KaasInfoResponse): KaasInfo {
   );
   const regions = response.regions.map((v) => buildOption(v.value, v.name));
 
-  // Azure response type
   if (isAzureKaasInfoResponse(response)) {
     return {
       ...response,
@@ -30,6 +30,15 @@ export function parseKaasInfoResponse(response: KaasInfoResponse): KaasInfo {
     };
   }
 
+  if (isEksKaasInfoResponse(response)) {
+    return {
+      kubernetesVersions,
+      instanceTypes: response.instanceTypes,
+      regions,
+      amiTypes: response.amiTypes.map((v) => buildOption(v.value, v.name)),
+    };
+  }
+
   const nodeSizes = response.nodeSizes.map((v) => buildOption(v.value, v.name));
   const networks =
     response.networks?.reduce((acc, n) => {
@@ -38,7 +47,7 @@ export function parseKaasInfoResponse(response: KaasInfoResponse): KaasInfo {
       } as NetworkInfo;
       return { ...acc, ...networkRegion };
     }, {} as NetworkInfo) || {};
-  // GKE response type
+
   if (isGKEKaasInfoResponse(response)) {
     return {
       ...response,

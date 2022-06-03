@@ -42,18 +42,28 @@ const gkeOptions = buildOption(
   KaasProvider.GOOGLE_CLOUD
 );
 
+const awsOptions = buildOption(
+  KaasProvider.AWS,
+  'fab fa-aws',
+  'AWS',
+  'Elastic Kubernetes Service (EKS)',
+  KaasProvider.AWS
+);
+
 const boxSelectorOptions: BoxSelectorOption<
   | KaasProvider.CIVO
   | KaasProvider.LINODE
   | KaasProvider.DIGITAL_OCEAN
   | KaasProvider.AZURE
   | KaasProvider.GOOGLE_CLOUD
+  | KaasProvider.AWS
 >[] = [
   civoOptions,
   linodeOptions,
   digitalOceanOptions,
   azureOptions,
   gkeOptions,
+  awsOptions,
 ];
 
 interface Props {

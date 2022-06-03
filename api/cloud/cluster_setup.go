@@ -34,6 +34,7 @@ const (
 type (
 	CloudClusterSetupService struct {
 		dataStore            dataservices.DataStore
+		fileService          portaineree.FileService
 		shutdownCtx          context.Context
 		requests             chan *portaineree.CloudProvisioningRequest
 		result               chan *cloudPrevisioningResult
@@ -52,12 +53,13 @@ type (
 	}
 )
 
-func NewCloudClusterSetupService(dataStore dataservices.DataStore, clientFactory *kubecli.ClientFactory, snapshotService portaineree.SnapshotService, authorizationService *authorization.Service, shutdownCtx context.Context) *CloudClusterSetupService {
+func NewCloudClusterSetupService(dataStore dataservices.DataStore, fileService portaineree.FileService, clientFactory *kubecli.ClientFactory, snapshotService portaineree.SnapshotService, authorizationService *authorization.Service, shutdownCtx context.Context) *CloudClusterSetupService {
 	requests := make(chan *portaineree.CloudProvisioningRequest, 10)
 	result := make(chan *cloudPrevisioningResult, 10)
 
 	return &CloudClusterSetupService{
 		dataStore:            dataStore,
+		fileService:          fileService,
 		shutdownCtx:          shutdownCtx,
 		requests:             requests,
 		result:               result,
@@ -158,7 +160,7 @@ func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 
 // changeState changes the state of a task and updates the db
 func (service *CloudClusterSetupService) changeState(task *portaineree.CloudProvisioningTask, newState ProvisioningState, message string) {
-	log.Debugf("[cloud] [message: changed state of cluster setup task] [clusterID: %s] [state: %s]\n", task.ClusterID, newState)
+	log.Debugf("[cloud] [message: changed state of cluster setup task] [clusterID: %s] [state: %s]", task.ClusterID, newState)
 	err := service.setMessage(task.EndpointID, message, "")
 	if err != nil {
 		log.Errorf("[cloud] [message: unable to update endpoint status message in database] [clusterID: %s] [state: %s] [error: %v]", task.ClusterID, ProvisioningState(task.State), err)
@@ -223,6 +225,9 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 
 	case portaineree.CloudProviderAzure:
 		cluster, err = AzureGetCluster(credentials.Credentials, task.ResourceGroup, task.ClusterID)
+
+	case portaineree.CloudProviderAmazon:
+		cluster, err = service.AmazonEksGetCluster(credentials.Credentials, task.ClusterID, task.Region)
 
 	default:
 		return cluster, fmt.Errorf("%v is not supported", task.Provider)
@@ -296,11 +301,11 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				break
 			}
 
-			log.Debugf("[cloud] [message: portainer agent service is ready] [provider: %s] [clusterId:%s] [serviceIP: %s]\n", task.Provider, task.ClusterID, serviceIP)
+			log.Debugf("[cloud] [message: portainer agent service is ready] [provider: %s] [clusterId:%s] [serviceIP: %s]", task.Provider, task.ClusterID, serviceIP)
 			service.changeState(&task, psUpdatingEndpoint, "Updating environment")
 
 		case psUpdatingEndpoint:
-			log.Debugf("[message: updating environment] [provider: %s] [clusterId: %s]\n", task.Provider, task.ClusterID)
+			log.Debugf("[message: updating environment] [provider: %s] [clusterId: %s]", task.Provider, task.ClusterID)
 			err = service.updateEndpoint(task.EndpointID, fmt.Sprintf("%s:9001", serviceIP))
 			if err != nil {
 				task.Retries++
@@ -414,13 +419,19 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 		if provErr != nil {
 			log.Errorf("[cloud] [message: Azure cluster provisioning failed %v]", provErr)
 		}
+
+	case portaineree.CloudProviderAmazon:
+		clusterID, provErr = service.AmazonEksProvisionCluster(credentials.Credentials, request)
+		if provErr != nil {
+			log.Errorf("[cloud] [message: Amazon cluster provisioning failed %v]", provErr)
+		}
 	}
 
 	task, err := service.createClusterSetupTask(request, clusterID, clusterResourceGroup)
 	task.Err = provErr
 	if err != nil {
 		if task.Err == nil {
-			// Avoid overwritting previous error. We don't want to give up quite
+			// Avoid overwriting previous error. We don't want to give up quite
 			// yet because at this point the endpoint exists, but we cannot log
 			// our errors to it.
 			task.Err = err

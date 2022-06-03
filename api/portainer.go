@@ -136,6 +136,11 @@ type (
 		PoolName          string
 		DNSPrefix         string
 		KubernetesVersion string
+
+		// Amazon specific fields
+		AmiType        *string `json:"AmiType"`
+		InstanceType   *string `json:"InstanceType"`
+		NodeVolumeSize *int    `json:"NodeVolumeSize"`
 	}
 
 	// CLIFlags represents the available flags on the CLI
@@ -1017,6 +1022,11 @@ type (
 		// AvailabilityZones - The list of Availability zones to use for nodes.
 		// This can only be specified if the AgentPoolType property is 'VirtualMachineScaleSets'.
 		AvailabilityZones []string
+
+		// Amazon specific fields
+		AmiType        string
+		InstanceType   string
+		NodeVolumeSize int
 	}
 
 	// CloudProvisioningID represents a cloud provisioning identifier
@@ -1519,6 +1529,13 @@ type (
 	// DockerSnapshotter represents a service used to create Docker environment(endpoint) snapshots
 	DockerSnapshotter interface {
 		CreateSnapshot(endpoint *Endpoint) (*portainer.DockerSnapshot, error)
+	}
+
+	// FileService represents a service for managing files
+	FileService interface {
+		portainer.FileService
+
+		GetKaasFolder() string
 	}
 
 	// GitService represents a service for managing Git
@@ -2338,4 +2355,5 @@ const (
 	CloudProviderLinode       = "linode"
 	CloudProviderGKE          = "gke"
 	CloudProviderAzure        = "azure"
+	CloudProviderAmazon       = "amazon"
 )

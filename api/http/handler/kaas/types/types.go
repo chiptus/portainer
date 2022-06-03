@@ -34,4 +34,8 @@ var CloudProvidersMap CloudProviders = CloudProviders{
 		Name: "Azure",
 		URL:  "https://portal.azure.com/",
 	},
+	portaineree.CloudProviderAmazon: {
+		Name: "Amazon",
+		URL:  "https://console.aws.amazon.com",
+	},
 }

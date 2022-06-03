@@ -14,7 +14,8 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
-	"github.com/portainer/portainer-ee/api/internal/utils"
+
+	"golang.org/x/exp/slices"
 )
 
 const (
@@ -204,7 +205,7 @@ func filterEndpointsByGroupIDs(endpoints []portaineree.Endpoint, endpointGroupID
 	filteredEndpoints := make([]portaineree.Endpoint, 0)
 
 	for _, endpoint := range endpoints {
-		if utils.Contains(endpointGroupIDs, int(endpoint.GroupID)) {
+		if slices.Contains(endpointGroupIDs, int(endpoint.GroupID)) {
 			filteredEndpoints = append(filteredEndpoints, endpoint)
 		}
 	}
@@ -250,7 +251,7 @@ func filterEndpointsByStatuses(endpoints []portaineree.Endpoint, statuses []int,
 			}
 		}
 
-		if utils.Contains(statuses, int(status)) {
+		if slices.Contains(statuses, int(status)) {
 			filteredEndpoints = append(filteredEndpoints, endpoint)
 		}
 	}

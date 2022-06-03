@@ -52,11 +52,36 @@ export function isGkeClusterFormValues(
 ): values is CreateGKEClusterFormValues {
   return 'cpu' in values;
 }
+export interface CreateEKSClusterFormValues
+  extends CreateBaseClusterFormValues {
+  amiType: string;
+  instanceType: string;
+  nodeVolumeSize: number;
+}
 
 export type CreateClusterFormValues =
   | CreateApiClusterFormValues
   | CreateAzureClusterFormValues
-  | CreateGKEClusterFormValues;
+  | CreateGKEClusterFormValues
+  | CreateEKSClusterFormValues;
+
+export function isAPIClusterFormValues(
+  formValues: CreateClusterFormValues
+): formValues is CreateApiClusterFormValues {
+  return 'nodeSize' in formValues;
+}
+
+export function isGKEClusterFormValues(
+  formValues: CreateClusterFormValues
+): formValues is CreateGKEClusterFormValues {
+  return 'cpu' in formValues;
+}
+
+export function isEKSClusterFormValues(
+  formValues: CreateClusterFormValues
+): formValues is CreateEKSClusterFormValues {
+  return 'instanceType' in formValues;
+}
 
 // Create KaaS cluster payloads
 export interface CreateApiClusterPayload extends CreateApiClusterFormValues {
@@ -77,8 +102,13 @@ export interface CreateGKEClusterPayload extends CreateBaseClusterFormValues {
   networkId: string;
 }
 
+export interface CreateEksClusterPayload extends CreateEKSClusterFormValues {
+  name: string;
+}
+
 export type CreateClusterPayload =
   | CreateApiClusterPayload
+  | CreateEksClusterPayload
   | CreateAzureClusterPayload
   | CreateGKEClusterPayload;
 
@@ -114,22 +144,22 @@ type KubernetesVersion = {
   value: string;
 };
 
+// the number of cpu cores per node
 interface CPUInfo {
-  // the number of cpu cores per node
   default: number;
   min: number;
   max: number;
 }
 
+// the amount of RAM per node
 interface RAMInfo {
-  // the amount of RAM per node
   default: number;
   min: number;
   max: number;
 }
 
+// the amount of disk space per node
 interface HDDInfo {
-  // the amount of disk space per node
   default: number;
   min: number;
   max: number;
@@ -139,6 +169,19 @@ interface KaasBaseInfoResponse {
   regions: KaasRegion[];
   kubernetesVersions: KubernetesVersion[];
 }
+
+type InstanceType = {
+  name: string;
+  value: string;
+  compatibleAmiTypes: string[];
+};
+
+type AMIType = {
+  name: string;
+  value: string;
+};
+
+export type InstanceTypeRegions = Record<string, InstanceType[]>;
 
 export interface KaasApiInfoResponse extends KaasBaseInfoResponse {
   networks?: KaasNetwork[];
@@ -159,12 +202,17 @@ export interface KaasGKEInfoResponse extends KaasBaseInfoResponse {
   nodeSizes: Array<KaasNodeSize>;
 }
 
+export interface KaasEksInfoResponse extends KaasBaseInfoResponse {
+  amiTypes: AMIType[];
+  instanceTypes: InstanceTypeRegions;
+}
+
 export type KaasInfoResponse =
   | KaasApiInfoResponse
   | KaasGKEInfoResponse
-  | KaasAzureInfoResponse;
+  | KaasAzureInfoResponse
+  | KaasEksInfoResponse;
 
-// returns true if the response is a api info response
 export function isAPIKaasInfoResponse(
   kaasInfoResponse: KaasInfoResponse
 ): kaasInfoResponse is KaasApiInfoResponse {
@@ -184,7 +232,13 @@ export function isGKEKaasInfoResponse(
   return 'cpu' in kaasInfoResponse;
 }
 
-// Formatted Kaas info
+export function isEksKaasInfoResponse(
+  kaasInfoResponse: KaasInfoResponse
+): kaasInfoResponse is KaasEksInfoResponse {
+  return 'amiTypes' in kaasInfoResponse;
+}
+
+// KaaS cluster info
 export type NetworkInfo = Record<string, Option<string>[]>;
 
 interface BaseKaasInfo {
@@ -211,7 +265,12 @@ export interface GKEKaasInfo extends BaseKaasInfo {
   ram: RAMInfo;
 }
 
-export type KaasInfo = APIKaasInfo | AzureKaasInfo | GKEKaasInfo;
+export interface EKSKaasInfo extends BaseKaasInfo {
+  amiTypes: Array<Option<string>>;
+  instanceTypes: InstanceTypeRegions;
+}
+
+export type KaasInfo = APIKaasInfo | AzureKaasInfo | GKEKaasInfo | EKSKaasInfo;
 
 export function isAPIKaasInfo(kaasInfo: KaasInfo): kaasInfo is APIKaasInfo {
   return 'nodeSizes' in kaasInfo;
@@ -225,4 +284,6 @@ export function isGKEKaasInfo(kaasInfo: KaasInfo): kaasInfo is GKEKaasInfo {
   return 'cpu' in kaasInfo;
 }
 
-export type CredentialProviderInfo = Map<string, Option<number>[]>;
+export function isEKSKaasInfo(kaasInfo: KaasInfo): kaasInfo is EKSKaasInfo {
+  return 'amiTypes' in kaasInfo;
+}

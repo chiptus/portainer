@@ -25,6 +25,7 @@ import (
 	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/exec"
+	"github.com/portainer/portainer-ee/api/filesystem"
 	"github.com/portainer/portainer-ee/api/http"
 	"github.com/portainer/portainer-ee/api/http/client"
 	"github.com/portainer/portainer-ee/api/http/proxy"
@@ -46,7 +47,6 @@ import (
 	"github.com/portainer/portainer-ee/api/useractivity"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
-	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/git"
 	"github.com/portainer/portainer/api/hostmanagement/openamt"
 	"github.com/sirupsen/logrus"
@@ -84,7 +84,7 @@ func shutdownUserActivityStore(shutdownCtx context.Context, store portaineree.Us
 	store.Close()
 }
 
-func initFileService(dataStorePath string) portainer.FileService {
+func initFileService(dataStorePath string) portaineree.FileService {
 	fileService, err := filesystem.NewService(dataStorePath, "")
 	if err != nil {
 		logrus.Fatalf("failed creating file service: %v", err)
@@ -677,7 +677,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	authorizationService := authorization.NewService(dataStore)
 	authorizationService.K8sClientFactory = kubernetesClientFactory
 
-	cloudClusterSetupService := cloud.NewCloudClusterSetupService(dataStore, kubernetesClientFactory, snapshotService, authorizationService, shutdownCtx)
+	cloudClusterSetupService := cloud.NewCloudClusterSetupService(dataStore, fileService, kubernetesClientFactory, snapshotService, authorizationService, shutdownCtx)
 	cloudClusterSetupService.Start()
 
 	cloudClusterInfoService := cloud.NewCloudInfoService(dataStore, shutdownCtx)

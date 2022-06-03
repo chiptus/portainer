@@ -23,6 +23,8 @@ module.exports = function (grunt) {
       helmVersion: 'v3.9.0',
       komposeVersion: 'v1.22.0',
       kubectlVersion: 'v1.24.1',
+      eksctlVersion: 'v0.100.0-rc.0',
+      awsAuthVersion: 'v0.5.7',
     },
     env: gruntConfig.env,
     clean: gruntConfig.clean,
@@ -128,11 +130,15 @@ function shell_storybook(env) {
 
 function shell_build_binary(platform, arch) {
   const binfile = 'dist/portainer';
+  const eksctlVersion = '<%= binaries.eksctlVersion %>';
+  const awsAuthVersion = '<%= binaries.awsAuthVersion %>';
   if (platform === 'linux' || platform === 'darwin') {
     return `
       if [ -f ${binfile} ]; then
         echo "Portainer binary exists";
       else
+	    export EKSCTL_VERSION=${eksctlVersion}
+	    export AWSAUTH_VERSION=${awsAuthVersion}
         build/build_binary.sh ${platform} ${arch};
       fi
     `;

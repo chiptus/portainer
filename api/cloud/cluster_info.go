@@ -21,6 +21,7 @@ const (
 // CloudProviderCivo         = "civo"
 // CloudProviderDigitalOcean = "digitalocean"
 // CloudProviderLinode       = "linode"
+// CloudProviderAmazon       = "amazon"
 type CloudProvider string
 
 type CloudClusterInfoService struct {
@@ -66,6 +67,8 @@ func (service *CloudClusterInfoService) tryUpdate() {
 				info, err = service.GKEFetchInfo(credential.Credentials["jsonKeyBase64"])
 			case portaineree.CloudProviderAzure:
 				info, err = service.AzureFetchInfo(credential.Credentials)
+			case portaineree.CloudProviderAmazon:
+				info, err = service.AmazonEksFetchInfo(credential.Credentials["accessKeyId"], credential.Credentials["secretAccessKey"])
 			default:
 				return
 			}

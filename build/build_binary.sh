@@ -14,6 +14,14 @@ if [ -n "${KAAS_AGENT_VERSION+1}" ]; then
   ldflags=$ldflags" -X github.com/portainer/portainer-ee/api/kubernetes/cli.DefaultAgentVersion=$KAAS_AGENT_VERSION"
 fi
 
+if [ -n "${EKSCTL_VERSION+1}" ]; then
+  ldflags=$ldflags" -X github.com/portainer/portainer-ee/api/cloud/eks/eksctl.DefaultEksCtlVersion=$EKSCTL_VERSION"
+fi
+
+if [ -n "${AWSAUTH_VERSION+1}" ]; then
+  ldflags=$ldflags" -X github.com/portainer/portainer-ee/api/cloud/eks/eksctl.DefaultAwsIamAuthenticatorVersion=$AWSAUTH_VERSION"
+fi
+
 echo "$ldflags"
 
 # the build takes 2 seconds

@@ -5,6 +5,7 @@ import {
   CreateClusterFormValues,
   isAzureClusterFormValues,
   isGkeClusterFormValues,
+  isEKSClusterFormValues,
 } from './types';
 
 export function sendKaasProvisionAnalytics(
@@ -44,16 +45,30 @@ export function sendKaasProvisionAnalytics(
         'node-count': values.nodeCount,
       },
     });
-  } else {
-    // tracking for Linode, Civo and DigitalOcean
+    return;
+  }
+
+  if (isEKSClusterFormValues(values)) {
     trackEvent('provision-kaas-cluster', {
       category: 'kubernetes',
       metadata: {
         provider,
         region: values.region,
-        'node-size': values.nodeSize,
+        'node-size': values.instanceType,
         'node-count': values.nodeCount,
       },
     });
+    return;
   }
+
+  // tracking for Linode, Civo and DigitalOcean
+  trackEvent('provision-kaas-cluster', {
+    category: 'kubernetes',
+    metadata: {
+      provider,
+      region: values.region,
+      'node-size': values.nodeSize,
+      'node-count': values.nodeCount,
+    },
+  });
 }

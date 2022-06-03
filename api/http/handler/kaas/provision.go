@@ -49,6 +49,10 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 		var p providers.GKEProvisionPayload
 		err = request.DecodeAndValidateJSONPayload(r, &p)
 		payload = &p
+	case portaineree.CloudProviderAmazon:
+		var p providers.AmazonProvisionPayload
+		err = request.DecodeAndValidateJSONPayload(r, &p)
+		payload = &p
 	case portaineree.CloudProviderCivo, portaineree.CloudProviderDigitalOcean, portaineree.CloudProviderLinode:
 		var p providers.DefaultProvisionPayload
 		err = request.DecodeAndValidateJSONPayload(r, &p)

@@ -17,6 +17,7 @@ import { EnvironmentNameForm } from './EnvironmentNameForm/EnvironmentNameForm';
 import { ApiCreateClusterFormContainer } from './ApiCreateClusterForm/ApiCreateClusterFormContainer';
 import { GKECreateClusterFormContainer } from './GKECreateClusterForm/GKECreateClusterFormContainer';
 import { AzureCreateClusterFormContainer } from './AzureCreateClusterForm/AzureCreateClusterFormContainer';
+import { EKSCreateClusterFormContainer } from './EKSCreateClusterForm/EKSCreateClusterFormContainer';
 
 interface Props {
   onCreate?(environment: Environment, analytics: AnalyticsStateKey): void;
@@ -50,7 +51,7 @@ export function KaasFormGroup({ onCreate }: Props) {
   const providerCredentials =
     credentialsQuery.data?.filter((c) => c.provider === selectedProvider) || [];
 
-  const Form = getForm(selectedProvider);
+  const CreateClusterForm = getForm(selectedProvider);
 
   return (
     <>
@@ -70,7 +71,7 @@ export function KaasFormGroup({ onCreate }: Props) {
       />
       {/* // switch between the create cluster forms based on the selected provider */}
       {providerCredentials.length >= 1 && (
-        <Form
+        <CreateClusterForm
           name={environmentName}
           setName={setEnvironmentName}
           provider={selectedProvider}
@@ -104,6 +105,8 @@ function getForm(provider: KaasProvider) {
       return GKECreateClusterFormContainer;
     case KaasProvider.AZURE:
       return AzureCreateClusterFormContainer;
+    case KaasProvider.AWS:
+      return EKSCreateClusterFormContainer;
     case KaasProvider.CIVO:
     case KaasProvider.DIGITAL_OCEAN:
     case KaasProvider.LINODE:

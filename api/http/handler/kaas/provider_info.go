@@ -84,6 +84,14 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 		}
 
 		return response.JSON(w, azureInfo)
+
+	case portaineree.CloudProviderAmazon:
+		awsInfo, err := handler.cloudClusterInfoService.AmazonEksGetInfo(credential)
+		if err != nil {
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve AWS information", err}
+		}
+
+		return response.JSON(w, awsInfo)
 	}
 
 	return &httperror.HandlerError{http.StatusInternalServerError, "Unable to get Kaas provider info", errors.New("invalid provider route parameter. Valid values: civo, digitalocean, linode, azure, gke")}

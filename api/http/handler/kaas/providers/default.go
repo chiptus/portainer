@@ -29,7 +29,7 @@ func (payload *DefaultProvisionPayload) Validate(r *http.Request) error {
 	if govalidator.IsNull(payload.NodeSize) {
 		return errors.New("Invalid node size")
 	}
-	if payload.NodeCount <= 0 {
+	if payload.NodeCount < 1 {
 		return errors.New("Invalid node count")
 	}
 	if govalidator.IsNull(payload.Region) {
@@ -55,7 +55,6 @@ func (payload *DefaultProvisionPayload) GetCloudProvider(provider string) (*port
 	cloudProvider.NodeCount = payload.NodeCount
 	cloudProvider.NetworkID = &payload.NetworkID
 	cloudProvider.CredentialID = payload.CredentialID
-
 	return &cloudProvider, nil
 }
 
