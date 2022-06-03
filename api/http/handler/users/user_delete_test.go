@@ -35,8 +35,9 @@ func Test_deleteUserRemovesAccessTokens(t *testing.T) {
 	requestBouncer := security.NewRequestBouncer(store, nil, jwtService, apiKeyService, nil)
 	rateLimiter := security.NewRateLimiter(10, 1*time.Second, 1*time.Hour)
 	authorizationService := authorization.NewService(store)
+	passwordChecker := security.NewPasswordStrengthChecker(store.SettingsService)
 
-	h := NewHandler(requestBouncer, rateLimiter, apiKeyService, testhelpers.NewUserActivityService(), &demo.Service{})
+	h := NewHandler(requestBouncer, rateLimiter, apiKeyService, testhelpers.NewUserActivityService(), &demo.Service{}, passwordChecker)
 	h.DataStore = store
 	h.AuthorizationService = authorizationService
 

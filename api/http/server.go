@@ -134,7 +134,9 @@ func (server *Server) Start() error {
 	rateLimiter := security.NewRateLimiter(10, 1*time.Second, 1*time.Hour)
 	offlineGate := offlinegate.NewOfflineGate()
 
-	var authHandler = auth.NewHandler(requestBouncer, rateLimiter)
+	passwordStrengthChecker := security.NewPasswordStrengthChecker(server.DataStore.Settings())
+
+	var authHandler = auth.NewHandler(requestBouncer, rateLimiter, passwordStrengthChecker)
 	authHandler.AuthorizationService = server.AuthorizationService
 	authHandler.DataStore = server.DataStore
 	authHandler.CryptoService = server.CryptoService
@@ -298,7 +300,7 @@ func (server *Server) Start() error {
 	var uploadHandler = upload.NewHandler(requestBouncer, server.UserActivityService)
 	uploadHandler.FileService = server.FileService
 
-	var userHandler = users.NewHandler(requestBouncer, rateLimiter, server.APIKeyService, server.UserActivityService, server.DemoService)
+	var userHandler = users.NewHandler(requestBouncer, rateLimiter, server.APIKeyService, server.UserActivityService, server.DemoService, passwordStrengthChecker)
 	userHandler.AuthorizationService = server.AuthorizationService
 	userHandler.DataStore = server.DataStore
 	userHandler.CryptoService = server.CryptoService

@@ -12,7 +12,6 @@ import (
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
-	"github.com/portainer/portainer-ee/api/internal/passwordutils"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
@@ -98,7 +97,7 @@ func (handler *Handler) userCreate(w http.ResponseWriter, r *http.Request) *http
 	}
 
 	if settings.AuthenticationMethod == portaineree.AuthenticationInternal {
-		if !passwordutils.StrengthCheck(payload.Password) {
+		if !handler.passwordStrengthChecker.Check(payload.Password) {
 			return &httperror.HandlerError{http.StatusBadRequest, "Password does not meet the requirements", nil}
 		}
 

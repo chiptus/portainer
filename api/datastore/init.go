@@ -47,7 +47,10 @@ func (store *Store) checkOrCreateDefaultSettings() error {
 		defaultSettings := &portaineree.Settings{
 			EnableTelemetry:      true,
 			AuthenticationMethod: portaineree.AuthenticationInternal,
-			BlackListedLabels:    make([]portaineree.Pair, 0),
+			InternalAuthSettings: portaineree.InternalAuthSettings{
+				RequiredPasswordLength: 12,
+			},
+			BlackListedLabels: make([]portaineree.Pair, 0),
 			LDAPSettings: portaineree.LDAPSettings{
 				AnonymousMode:   true,
 				AutoCreateUsers: true,

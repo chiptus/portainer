@@ -7,22 +7,26 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func updateEndpoint(m *Migrator, endpoints []portaineree.Endpoint, credID models.CloudCredentialID, providerName string) error {
-	for _, endpoint := range endpoints {
-
-		if endpoint.CloudProvider != nil && endpoint.CloudProvider.Name == providerName {
-			endpoint.CloudProvider.CredentialID = credID
-			err := m.endpointService.UpdateEndpoint(endpoint.ID, &endpoint)
-			if err != nil {
-				logrus.Errorf("Unable to update cloud endpoint %s: %s", endpoint.Name, err)
-			}
-		}
+func (m *Migrator) migrateDBVersionToDB50() error {
+	if err := m.migrateCloudAPIKeysToCloudCredentials(); err != nil {
+		return err
 	}
 
-	return nil
+	return m.migratePasswordLengthSettings()
 }
 
-func (m *Migrator) migrateCloudAPIKeysToCloudCredentials50() error {
+func (m *Migrator) migratePasswordLengthSettings() error {
+	migrateLog.Info("Updating required password length")
+	s, err := m.settingsService.Settings()
+	if err != nil {
+		return errors.Wrap(err, "unable to retrieve settings")
+	}
+
+	s.InternalAuthSettings.RequiredPasswordLength = 12
+	return m.settingsService.UpdateSettings(s)
+}
+
+func (m *Migrator) migrateCloudAPIKeysToCloudCredentials() error {
 	migrateLog.Info("- migrating cloud api keys to cloud credentials")
 	settings, err := m.settingsService.Settings()
 	if err != nil {
@@ -89,6 +93,21 @@ func (m *Migrator) migrateCloudAPIKeysToCloudCredentials50() error {
 	err = m.settingsService.UpdateSettings(settings)
 	if err != nil {
 		return errors.Wrap(err, "while updating settings")
+	}
+
+	return nil
+}
+
+func updateEndpoint(m *Migrator, endpoints []portaineree.Endpoint, credID models.CloudCredentialID, providerName string) error {
+	for _, endpoint := range endpoints {
+
+		if endpoint.CloudProvider != nil && endpoint.CloudProvider.Name == providerName {
+			endpoint.CloudProvider.CredentialID = credID
+			err := m.endpointService.UpdateEndpoint(endpoint.ID, &endpoint)
+			if err != nil {
+				logrus.Errorf("Unable to update cloud endpoint %s: %s", endpoint.Name, err)
+			}
+		}
 	}
 
 	return nil

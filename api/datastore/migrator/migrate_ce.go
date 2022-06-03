@@ -113,7 +113,7 @@ func (m *Migrator) MigrateCE() error {
 		newMigration(40, m.migrateDBVersionToDB40),
 
 		// Portainer 2.14.0
-		newMigration(50, m.migrateCloudAPIKeysToCloudCredentials50),
+		newMigration(50, m.migrateDBVersionToDB50),
 	}
 
 	var lastDbVersion int

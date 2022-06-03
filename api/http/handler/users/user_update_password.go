@@ -12,7 +12,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
-	"github.com/portainer/portainer-ee/api/internal/passwordutils"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
@@ -87,7 +86,7 @@ func (handler *Handler) userUpdatePassword(w http.ResponseWriter, r *http.Reques
 		return &httperror.HandlerError{http.StatusForbidden, "Specified password do not match actual password", httperrors.ErrUnauthorized}
 	}
 
-	if !passwordutils.StrengthCheck(payload.NewPassword) {
+	if !handler.passwordStrengthChecker.Check(payload.NewPassword) {
 		return &httperror.HandlerError{http.StatusBadRequest, "Password does not meet the requirements", nil}
 	}
 

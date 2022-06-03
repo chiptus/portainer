@@ -32,24 +32,26 @@ func hideFields(user *portaineree.User) {
 // Handler is the HTTP handler used to handle user operations.
 type Handler struct {
 	*mux.Router
-	bouncer              *security.RequestBouncer
-	apiKeyService        apikey.APIKeyService
-	AuthorizationService *authorization.Service
-	CryptoService        portaineree.CryptoService
-	DataStore            dataservices.DataStore
-	K8sClientFactory     *cli.ClientFactory
-	userActivityService  portaineree.UserActivityService
-	demoService          *demo.Service
+	bouncer                 *security.RequestBouncer
+	apiKeyService           apikey.APIKeyService
+	AuthorizationService    *authorization.Service
+	CryptoService           portaineree.CryptoService
+	DataStore               dataservices.DataStore
+	K8sClientFactory        *cli.ClientFactory
+	userActivityService     portaineree.UserActivityService
+	demoService             *demo.Service
+	passwordStrengthChecker security.PasswordStrengthChecker
 }
 
 // NewHandler creates a handler to manage user operations.
-func NewHandler(bouncer *security.RequestBouncer, rateLimiter *security.RateLimiter, apiKeyService apikey.APIKeyService, userActivityService portaineree.UserActivityService, demoService *demo.Service) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, rateLimiter *security.RateLimiter, apiKeyService apikey.APIKeyService, userActivityService portaineree.UserActivityService, demoService *demo.Service, passwordStrengthChecker security.PasswordStrengthChecker) *Handler {
 	h := &Handler{
-		Router:              mux.NewRouter(),
-		bouncer:             bouncer,
-		apiKeyService:       apiKeyService,
-		userActivityService: userActivityService,
-		demoService:         demoService,
+		Router:                  mux.NewRouter(),
+		bouncer:                 bouncer,
+		apiKeyService:           apiKeyService,
+		userActivityService:     userActivityService,
+		demoService:             demoService,
+		passwordStrengthChecker: passwordStrengthChecker,
 	}
 
 	adminRouter := h.NewRoute().Subrouter()

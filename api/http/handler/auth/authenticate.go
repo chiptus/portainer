@@ -14,7 +14,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
-	"github.com/portainer/portainer-ee/api/internal/passwordutils"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
@@ -251,7 +250,7 @@ func (handler *Handler) authenticateInternal(w http.ResponseWriter, user *portai
 
 	}
 
-	forceChangePassword := !passwordutils.StrengthCheck(password)
+	forceChangePassword := !handler.passwordStrengthChecker.Check(password)
 
 	return handler.writeToken(w, user, resp.Method, forceChangePassword)
 }

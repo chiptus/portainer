@@ -42,8 +42,9 @@ func Test_userCreateAccessToken(t *testing.T) {
 	apiKeyService := apikey.NewAPIKeyService(store.APIKeyRepository(), store.User())
 	requestBouncer := security.NewRequestBouncer(store, testhelpers.Licenseservice{}, jwtService, apiKeyService, nil)
 	rateLimiter := security.NewRateLimiter(10, 1*time.Second, 1*time.Hour)
+	passwordChecker := security.NewPasswordStrengthChecker(store.SettingsService)
 
-	h := NewHandler(requestBouncer, rateLimiter, apiKeyService, testhelpers.NewUserActivityService(), &demo.Service{})
+	h := NewHandler(requestBouncer, rateLimiter, apiKeyService, testhelpers.NewUserActivityService(), &demo.Service{}, passwordChecker)
 	h.DataStore = store
 
 	// generate standard and admin user tokens

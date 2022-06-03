@@ -1,8 +1,14 @@
-package passwordutils
+package security
 
-import "testing"
+import (
+	"testing"
+
+	portaineree "github.com/portainer/portainer-ee/api"
+)
 
 func TestStrengthCheck(t *testing.T) {
+	checker := NewPasswordStrengthChecker(settingsStub{minLength: 12})
+
 	type args struct {
 		password string
 	}
@@ -23,9 +29,21 @@ func TestStrengthCheck(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if gotStrong := StrengthCheck(tt.args.password); gotStrong != tt.wantStrong {
+			if gotStrong := checker.Check(tt.args.password); gotStrong != tt.wantStrong {
 				t.Errorf("StrengthCheck() = %v, want %v", gotStrong, tt.wantStrong)
 			}
 		})
 	}
+}
+
+type settingsStub struct {
+	minLength int
+}
+
+func (s settingsStub) Settings() (*portaineree.Settings, error) {
+	return &portaineree.Settings{
+		InternalAuthSettings: portaineree.InternalAuthSettings{
+			RequiredPasswordLength: s.minLength,
+		},
+	}, nil
 }
