@@ -120,6 +120,11 @@ export function EnvironmentCreationView() {
         ])
       ),
     });
+    if (localStorage.getItem('wizardRefferer') === 'environments') {
+      localStorage.removeItem('wizardRefferer');
+      router.stateService.go('portainer.endpoints');
+      return;
+    }
     router.stateService.go('portainer.home');
   }
 }

@@ -15,12 +15,6 @@ export const environmentTypes = [
     description: 'Connect to a kubernetes environment via URL/IP',
   },
   {
-    id: 'kaas',
-    title: 'KaaS',
-    description: 'Provision a Kubernetes environment with a cloud provider',
-    icon: KaaSIcon,
-  },
-  {
     id: 'aci',
     title: 'ACI',
     description: 'Connect to ACI environment via API',
@@ -31,5 +25,11 @@ export const environmentTypes = [
     title: 'Nomad',
     description: 'Connect to HashiCorp Nomad environment via API',
     icon: 'nomad-icon',
+  },
+  {
+    id: 'kaas',
+    title: 'KaaS',
+    description: 'Provision a Kubernetes environment with a cloud provider',
+    icon: KaaSIcon,
   },
 ] as const;
