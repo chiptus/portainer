@@ -7,5 +7,6 @@ export function validationSchema(isNomadTokenVisible?: boolean) {
     allowSelfSignedCertificates: boolean(),
     envVars: string(),
     ...(isNomadTokenVisible ? nomadTokenValidation() : {}),
+    tlsEnabled: boolean().default(false),
   });
 }

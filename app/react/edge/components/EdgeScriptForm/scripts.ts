@@ -255,6 +255,7 @@ export function buildLinuxNomadCommand(
     edgeIdGenerator,
     envVars,
     nomadToken = '',
+    tlsEnabled,
   } = properties;
 
   const agentShortVersion = getAgentShortVersion(agentVersion);
@@ -269,7 +270,7 @@ export function buildLinuxNomadCommand(
     : '';
   const edgeIdVar = !edgeIdGenerator && edgeId ? edgeId : '$PORTAINER_EDGE_ID';
 
-  return `${idEnvVar}curl https://downloads.portainer.io/ee${agentShortVersion}/portainer-edge-agent-nomad-setup.sh | bash -s -- "${nomadToken}" "${edgeIdVar}" "${edgeKey}" "${selfSigned}" "${envVarsTrimmed}" "${agentSecret}"`;
+  return `${idEnvVar}curl https://downloads.portainer.io/ee${agentShortVersion}/portainer-edge-agent-nomad-setup.sh | bash -s -- "${nomadToken}" "${edgeIdVar}" "${edgeKey}" "${selfSigned}" "${envVarsTrimmed}" "${agentSecret}" "${tlsEnabled}"`;
 }
 
 function buildDefaultEnvVars(

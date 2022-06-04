@@ -49,6 +49,18 @@ export function EdgeScriptSettingsFieldset({
 
       {isNomadTokenVisible && <NomadTokenField />}
 
+      {isNomadTokenVisible && (
+        <div className="form-group">
+          <div className="col-sm-12">
+            <SwitchField
+              label="TLS"
+              checked={values.tlsEnabled}
+              onChange={(checked) => setFieldValue('tlsEnabled', checked)}
+            />
+          </div>
+        </div>
+      )}
+
       <FormControl
         label="Environment variables"
         tooltip="Comma separated list of environment variables that will be sourced from the host where the agent is deployed."

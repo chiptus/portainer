@@ -338,7 +338,7 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 		Type:    portaineree.EdgeAgentOnDockerEnvironment,
 		GroupID: portaineree.EndpointGroupID(payload.GroupID),
 		TLSConfig: portaineree.TLSConfiguration{
-			TLS: false,
+			TLS: payload.TLS,
 		},
 		AuthorizedUsers:     []portaineree.UserID{},
 		AuthorizedTeams:     []portaineree.TeamID{},

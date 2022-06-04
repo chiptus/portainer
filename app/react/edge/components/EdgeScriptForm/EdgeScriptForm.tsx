@@ -14,6 +14,7 @@ const edgePropertiesFormInitialValues: ScriptFormValues = {
   platform: 'k8s' as Platform,
   nomadToken: '',
   authEnabled: true,
+  tlsEnabled: false,
 };
 
 interface Props {

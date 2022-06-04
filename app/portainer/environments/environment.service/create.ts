@@ -172,10 +172,6 @@ export function createEdgeAgentEnvironment({
     {
       url: portainerUrl,
       ...meta,
-      tls: {
-        skipVerify: true,
-        skipClientVerify: true,
-      },
     }
   );
 }
