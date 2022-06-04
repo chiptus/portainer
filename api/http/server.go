@@ -191,7 +191,7 @@ func (server *Server) Start() error {
 	var edgeTemplatesHandler = edgetemplates.NewHandler(requestBouncer)
 	edgeTemplatesHandler.DataStore = server.DataStore
 
-	var endpointHandler = endpoints.NewHandler(requestBouncer, server.UserActivityService, server.DataStore, &server.EdgeService, server.DemoService)
+	var endpointHandler = endpoints.NewHandler(requestBouncer, server.UserActivityService, server.DataStore, &server.EdgeService, server.DemoService, server.CloudClusterSetupService)
 	endpointHandler.AuthorizationService = server.AuthorizationService
 	endpointHandler.FileService = server.FileService
 	endpointHandler.ProxyManager = server.ProxyManager

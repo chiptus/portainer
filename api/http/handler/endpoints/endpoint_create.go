@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
@@ -16,6 +17,8 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/cloud"
+	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/http/client"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
@@ -41,6 +44,8 @@ type endpointCreatePayload struct {
 	TagIDs                 []portaineree.TagID
 	EdgeCheckinInterval    int
 	IsEdgeDevice           bool
+
+	KubeConfig string
 }
 
 type endpointCreationEnum int
@@ -52,6 +57,7 @@ const (
 	azureEnvironment
 	edgeAgentEnvironment
 	localKubernetesEnvironment
+	kubeConfigEnvironment
 )
 
 func (payload *endpointCreatePayload) Validate(r *http.Request) error {
@@ -116,6 +122,22 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 	}
 
 	switch payload.EndpointCreationType {
+	case kubeConfigEnvironment:
+		kubeConfig, err := request.RetrieveMultiPartFormValue(r, "KubeConfig", true)
+		if err != nil {
+			return fmt.Errorf("Invalid kubeconfig: %w", err)
+		}
+
+		if kubeConfig == "" {
+			return fmt.Errorf("Invalid kubeconfig")
+		}
+
+		_, err = base64.StdEncoding.DecodeString(kubeConfig)
+		if err != nil {
+			return errors.New("Invalid kubeconfig")
+		}
+		payload.KubeConfig = kubeConfig
+
 	case azureEnvironment:
 		azureApplicationID, err := request.RetrieveMultiPartFormValue(r, "AzureApplicationID", false)
 		if err != nil {
@@ -134,6 +156,7 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 			return errors.New("Invalid Azure authentication key")
 		}
 		payload.AzureAuthenticationKey = azureAuthenticationKey
+
 	default:
 		endpointURL, err := request.RetrieveMultiPartFormValue(r, "URL", true)
 		if err != nil {
@@ -256,6 +279,9 @@ func (handler *Handler) createEndpoint(payload *endpointCreatePayload) (*portain
 
 	case localKubernetesEnvironment:
 		return handler.createKubernetesEndpoint(payload)
+
+	case kubeConfigEnvironment:
+		return handler.createKubeConfigEndpoint(payload)
 	}
 
 	endpointType := portaineree.DockerEnvironment
@@ -454,6 +480,67 @@ func (handler *Handler) createKubernetesEndpoint(payload *endpointCreatePayload)
 	if err != nil {
 		return nil, err
 	}
+
+	return endpoint, nil
+}
+
+func (handler *Handler) createKubeConfigEndpoint(payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
+	if payload.URL == "" {
+		payload.URL = "https://kubernetes.default.svc"
+	}
+
+	// store kubeconfig as secret
+	credentials := models.CloudCredential{
+		Name:     "kubeconfig",
+		Provider: portaineree.CloudProviderKubeConfig,
+		Credentials: models.CloudCredentialMap{
+			"kubeconfig": payload.KubeConfig,
+		},
+	}
+	err := handler.dataStore.CloudCredential().Create(&credentials)
+	if err != nil {
+		return nil, &httperror.HandlerError{http.StatusInternalServerError, "Unable to create kubeconfig environment", err}
+	}
+
+	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
+	endpoint := &portaineree.Endpoint{
+		ID:      portaineree.EndpointID(endpointID),
+		Name:    payload.Name,
+		Type:    portaineree.AgentOnKubernetesEnvironment,
+		GroupID: portaineree.EndpointGroupID(payload.GroupID),
+		TLSConfig: portaineree.TLSConfiguration{
+			TLS:           true,
+			TLSSkipVerify: true,
+		},
+		UserAccessPolicies: portaineree.UserAccessPolicies{},
+		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
+		TagIDs:             payload.TagIDs,
+		Status:             portaineree.EndpointStatusProvisioning,
+		Snapshots:          []portainer.DockerSnapshot{},
+		Kubernetes:         portaineree.KubernetesDefault(),
+
+		ChangeWindow: portaineree.EndpointChangeWindow{
+			Enabled: false,
+		},
+
+		CloudProvider: &portaineree.CloudProvider{
+			CredentialID: credentials.ID,
+		},
+	}
+
+	err = handler.saveEndpointAndUpdateAuthorizations(endpoint)
+	if err != nil {
+		return nil, &httperror.HandlerError{http.StatusInternalServerError, "Unable to create kubeconfig environment", err}
+	}
+
+	request := portaineree.CloudProvisioningRequest{
+		EndpointID:    endpoint.ID,
+		CredentialID:  credentials.ID,
+		StartingState: int(cloud.ProvisioningStateWaitingForCluster),
+		Provider:      portaineree.CloudProviderKubeConfig,
+	}
+
+	handler.cloudClusterSetupService.Request(&request)
 
 	return endpoint, nil
 }

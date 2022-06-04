@@ -35,6 +35,8 @@ angular
         allowCreateTag: Authentication.isAdmin(),
         isEdgeDevice: $state.params.isEdgeDevice,
         edgeAsyncMode: false,
+        kubeconfigError: true,
+        kubeconfigFile: '',
       };
 
       $scope.agentVersion = StateManager.getState().application.version;
@@ -52,6 +54,7 @@ angular
         AzureAuthenticationKey: '',
         TagIds: [],
         CheckinInterval: 0,
+        KubeConfig: '',
         Edge: {
           PingInterval: EDGE_ASYNC_INTERVAL_USE_DEFAULT,
           SnapshotInterval: EDGE_ASYNC_INTERVAL_USE_DEFAULT,
@@ -113,6 +116,37 @@ angular
 
       $scope.onCreateKaaSEnvironment = function onCreateKaaSEnvironment() {
         $state.go('portainer.endpoints');
+      };
+
+      async function readFileContent(file) {
+        return new Promise((resolve, reject) => {
+          const fileReader = new FileReader();
+          fileReader.onload = (e) => {
+            if (e.target == null || e.target.result == null) {
+              resolve('');
+              return;
+            }
+            const base64 = e.target.result.toString();
+            const index = base64.indexOf('base64,');
+            const cert = base64.substring(index + 7, base64.length);
+            resolve(cert);
+          };
+          fileReader.onerror = () => {
+            reject(new Error('error reading provisioning certificate file'));
+          };
+          fileReader.readAsDataURL(file);
+        });
+      }
+
+      $scope.handleKubeconfigUpload = async function handleKubeconfigUpload(file) {
+        $scope.state.kubeconfigError = false;
+        $scope.state.kubeconfigFile = file;
+        const fileContent = await readFileContent(file);
+        $scope.formValues = {
+          ...$scope.formValues,
+          KubeConfig: fileContent,
+        };
+        $scope.$apply();
       };
 
       $scope.addDockerEndpoint = function () {
@@ -235,6 +269,30 @@ angular
         EndpointService.createAzureEndpoint(name, applicationId, tenantId, authenticationKey, groupId, tagIds)
           .then(function success() {
             Notifications.success('Environment created', name);
+            $state.go('portainer.endpoints', {}, { reload: true });
+          })
+          .catch(function error(err) {
+            Notifications.error('Failure', err, 'Unable to create environment');
+          })
+          .finally(function final() {
+            $scope.state.actionInProgress = false;
+          });
+      }
+
+      $scope.addKubeconfigEndpoint = function () {
+        var name = $scope.formValues.Name;
+        var kubeConfig = $scope.formValues.KubeConfig;
+        var groupId = $scope.formValues.GroupId;
+        var tagIds = $scope.formValues.TagIds;
+
+        createKubeconfigEndpoint(name, kubeConfig, groupId, tagIds);
+      };
+
+      function createKubeconfigEndpoint(name, kubeConfig, groupId, tagIds) {
+        $scope.state.actionInProgress = true;
+        EndpointService.createKubeConfigEndpoint(name, kubeConfig, groupId, tagIds)
+          .then(function success() {
+            Notifications.success('Kubeconfig import started', name);
             $state.go('portainer.endpoints', {}, { reload: true });
           })
           .catch(function error(err) {

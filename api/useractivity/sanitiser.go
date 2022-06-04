@@ -22,6 +22,7 @@ var blackList = map[string]struct{}{
 	"tlscacertfile":          {},
 	"tlscertfile":            {},
 	"tlskeyfile":             {},
+	"kubeconfig":             {},
 }
 
 // Sanitise removes possibly sensitive content from the map.

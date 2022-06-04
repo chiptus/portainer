@@ -29,6 +29,7 @@ export const PortainerEndpointCreationTypes = Object.freeze({
   AzureEnvironment: 3,
   EdgeAgentEnvironment: 4,
   LocalKubernetesEnvironment: 5,
+  KubeConfigEnvironment: 6,
 });
 
 export const PortainerEndpointConnectionTypes = Object.freeze({

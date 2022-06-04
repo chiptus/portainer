@@ -12,6 +12,7 @@ import { AnalyticsStateKey } from '../types';
 import { EdgeAgentTab } from '../shared/EdgeAgentTab';
 
 import { AgentPanel } from './AgentPanel';
+import { KubeConfigForm } from './KubeConfig/index';
 
 interface Props {
   onCreate(environment: Environment, analytics: AnalyticsStateKey): void;
@@ -19,6 +20,7 @@ interface Props {
 
 const options: BoxSelectorOption<
   | EnvironmentCreationTypes.AgentEnvironment
+  | EnvironmentCreationTypes.KubeConfigEnvironment
   | EnvironmentCreationTypes.EdgeAgentEnvironment
 >[] = [
   {
@@ -34,6 +36,13 @@ const options: BoxSelectorOption<
     label: 'Edge Agent',
     description: '',
     value: EnvironmentCreationTypes.EdgeAgentEnvironment,
+  },
+  {
+    id: 'kubeconfig_endpoint',
+    icon: 'fas fa-cloud-upload-alt',
+    label: 'Import',
+    value: EnvironmentCreationTypes.KubeConfigEnvironment,
+    description: 'Import an existing Kubernetes config',
   },
 ];
 
@@ -70,6 +79,12 @@ export function WizardKubernetes({ onCreate }: Props) {
               onCreate(environment, 'kubernetesEdgeAgent')
             }
             commands={[{ ...commandsTabs.k8sLinux, label: 'Linux' }]}
+          />
+        );
+      case EnvironmentCreationTypes.KubeConfigEnvironment:
+        return (
+          <KubeConfigForm
+            onCreate={(environment) => onCreate(environment, 'kubernetesAgent')}
           />
         );
       default:

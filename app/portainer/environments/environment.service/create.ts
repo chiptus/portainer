@@ -78,6 +78,12 @@ interface CreateAzureEnvironment {
   meta?: EnvironmentMetadata;
 }
 
+export interface CreateKubeConfigEnvironment {
+  name: string;
+  kubeConfig: string;
+  meta: EnvironmentMetadata;
+}
+
 export async function createAzureEnvironment({
   name,
   azure,
@@ -87,6 +93,21 @@ export async function createAzureEnvironment({
     meta,
     azure,
   });
+}
+
+export async function createKubeConfigEnvironment({
+  name,
+  kubeConfig,
+  meta = { tagIds: [] },
+}: CreateKubeConfigEnvironment) {
+  return createEnvironment(
+    name,
+    EnvironmentCreationTypes.KubeConfigEnvironment,
+    {
+      meta,
+      kubeConfig,
+    }
+  );
 }
 
 interface TLSSettings {
@@ -105,6 +126,7 @@ export interface EnvironmentOptions {
   azure?: AzureSettings;
   tls?: TLSSettings;
   isEdgeDevice?: boolean;
+  kubeConfig?: string;
 }
 
 interface CreateRemoteEnvironment {
@@ -197,6 +219,7 @@ async function createEnvironment(
       TagIds: arrayToJson(tagIds),
       CheckinInterval: options.checkinInterval,
       IsEdgeDevice: options.isEdgeDevice,
+      KubeConfig: options.kubeConfig,
     };
 
     const { tls, azure } = options;

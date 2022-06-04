@@ -7,6 +7,7 @@ import {
   createAgentEnvironment,
   createEdgeAgentEnvironment,
   createLocalKubernetesEnvironment,
+  createKubeConfigEnvironment,
 } from '../environment.service/create';
 
 export function useCreateAzureEnvironmentMutation() {
@@ -19,6 +20,10 @@ export function useCreateLocalDockerEnvironmentMutation() {
 
 export function useCreateLocalKubernetesEnvironmentMutation() {
   return useGenericCreationMutation(createLocalKubernetesEnvironment);
+}
+
+export function useCreateKubeConfigEnvironmentMutation() {
+  return useGenericCreationMutation(createKubeConfigEnvironment);
 }
 
 export function useCreateRemoteEnvironmentMutation(

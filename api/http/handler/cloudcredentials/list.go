@@ -7,10 +7,11 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
 )
 
-var redactedKeys = []string{"jsonKeyBase64", "apiKey", "secretAccessKey", "clientSecret"}
+var redactedKeys = []string{"jsonKeyBase64", "apiKey", "secretAccessKey", "clientSecret", "kubeconfig"}
 
 func redactCredentials(credential models.CloudCredentialMap) models.CloudCredentialMap {
 	if credential == nil {
@@ -45,11 +46,16 @@ func (h *Handler) getAll(w http.ResponseWriter, r *http.Request) *httperror.Hand
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to fetch cloud credentials from the database", Err: err}
 	}
 
+	filteredCredentials := []models.CloudCredential{}
 	for i, cred := range cloudCredentials {
+		if cred.Provider == portaineree.CloudProviderKubeConfig {
+			continue
+		}
 		cloudCredentials[i].Credentials = redactCredentials(cred.Credentials)
+		filteredCredentials = append(filteredCredentials, cloudCredentials[i])
 	}
 
-	return response.JSON(w, cloudCredentials)
+	return response.JSON(w, filteredCredentials)
 }
 
 // @id getByID

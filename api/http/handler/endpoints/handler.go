@@ -8,6 +8,7 @@ import (
 	werrors "github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/cloud"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/docker"
@@ -41,32 +42,41 @@ type requestBouncer interface {
 // Handler is the HTTP handler used to handle environment(endpoint) operations.
 type Handler struct {
 	*mux.Router
-	requestBouncer       requestBouncer
-	AuthorizationService *authorization.Service
-	dataStore            dataservices.DataStore
-	demoService          *demo.Service
-	FileService          portainer.FileService
-	ProxyManager         *proxy.Manager
-	ReverseTunnelService portaineree.ReverseTunnelService
-	SnapshotService      portaineree.SnapshotService
-	K8sClientFactory     *cli.ClientFactory
-	ComposeStackManager  portaineree.ComposeStackManager
-	DockerClientFactory  *docker.ClientFactory
-	BindAddress          string
-	BindAddressHTTPS     string
-	userActivityService  portaineree.UserActivityService
-	edgeService          *edge.Service
+	requestBouncer           requestBouncer
+	AuthorizationService     *authorization.Service
+	dataStore                dataservices.DataStore
+	demoService              *demo.Service
+	FileService              portainer.FileService
+	ProxyManager             *proxy.Manager
+	ReverseTunnelService     portaineree.ReverseTunnelService
+	SnapshotService          portaineree.SnapshotService
+	K8sClientFactory         *cli.ClientFactory
+	ComposeStackManager      portaineree.ComposeStackManager
+	DockerClientFactory      *docker.ClientFactory
+	BindAddress              string
+	BindAddressHTTPS         string
+	userActivityService      portaineree.UserActivityService
+	edgeService              *edge.Service
+	cloudClusterSetupService *cloud.CloudClusterSetupService
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.
-func NewHandler(bouncer requestBouncer, userActivityService portaineree.UserActivityService, dataStore dataservices.DataStore, edgeService *edge.Service, demoService *demo.Service) *Handler {
+func NewHandler(
+	bouncer requestBouncer,
+	userActivityService portaineree.UserActivityService,
+	dataStore dataservices.DataStore,
+	edgeService *edge.Service,
+	demoService *demo.Service,
+	cloudClusterSetupService *cloud.CloudClusterSetupService,
+) *Handler {
 	h := &Handler{
-		Router:              mux.NewRouter(),
-		requestBouncer:      bouncer,
-		userActivityService: userActivityService,
-		dataStore:           dataStore,
-		edgeService:         edgeService,
-		demoService:         demoService,
+		Router:                   mux.NewRouter(),
+		requestBouncer:           bouncer,
+		userActivityService:      userActivityService,
+		dataStore:                dataStore,
+		edgeService:              edgeService,
+		demoService:              demoService,
+		cloudClusterSetupService: cloudClusterSetupService,
 	}
 
 	logEndpointActivity := useractivity.LogUserActivityWithContext(h.userActivityService, middlewares.FindInPath(dataStore.Endpoint(), "id"))

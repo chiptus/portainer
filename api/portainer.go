@@ -1006,8 +1006,8 @@ type (
 		RAM               float64
 		HDD               int
 		KubernetesVersion string
-
-		CredentialID models.CloudCredentialID
+		CredentialID      models.CloudCredentialID
+		StartingState     int
 
 		// Azure specific fields
 		ResourceGroup     string
@@ -1588,6 +1588,7 @@ type (
 		CreateRegistrySecret(registry *Registry, namespace string) error
 		IsRegistrySecret(namespace, secretName string) (bool, error)
 		ToggleSystemState(namespace string, isSystem bool) error
+		DeletePortainerAgent() error
 		DeployPortainerAgent() error
 		GetPortainerAgentIPOrHostname() (string, error)
 	}
@@ -1875,6 +1876,10 @@ const (
 	EdgeAgentOnKubernetesEnvironment
 	// EdgeAgentOnNomadEnvironment represents an environment(endpoint) connected to an Edge agent deployed on a Nomad environment(endpoint)
 	EdgeAgentOnNomadEnvironment
+	// KubeConfigEnvironment represents an environment(endpoint) connected to a Kubernetes cluster
+	// Note: this endpoint type is only being used for validating the request payload but
+	// these environments are using `AgentOnKubernetesEnvironment` type when created
+	KubeConfigEnvironment
 )
 
 const (
@@ -2354,6 +2359,7 @@ const (
 	CloudProviderDigitalOcean = "digitalocean"
 	CloudProviderLinode       = "linode"
 	CloudProviderGKE          = "gke"
+	CloudProviderKubeConfig   = "kubeconfig"
 	CloudProviderAzure        = "azure"
 	CloudProviderAmazon       = "amazon"
 )

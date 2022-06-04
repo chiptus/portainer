@@ -8,12 +8,12 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[psPending-0]
-	_ = x[psWaitingForCluster-1]
-	_ = x[psAgentSetup-2]
-	_ = x[psWaitingForAgent-3]
-	_ = x[psUpdatingEndpoint-4]
-	_ = x[psDone-5]
+	_ = x[ProvisioningStatePending-0]
+	_ = x[ProvisioningStateWaitingForCluster-1]
+	_ = x[ProvisioningStateAgentSetup-2]
+	_ = x[ProvisioningStateWaitingForAgent-3]
+	_ = x[ProvisioningStateUpdatingEndpoint-4]
+	_ = x[ProvisioningStateDone-5]
 }
 
 const _ProvisioningState_name = "PendingWaitingForClusterAgentSetupWaitingForAgentUpdatingEndpointDone"

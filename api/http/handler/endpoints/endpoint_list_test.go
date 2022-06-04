@@ -52,7 +52,7 @@ func Test_endpointList(t *testing.T) {
 	is.NoError(err, "error creating a user")
 
 	bouncer := helper.NewTestRequestBouncer()
-	h := NewHandler(bouncer, helper.NewUserActivityService(), store, nil, nil)
+	h := NewHandler(bouncer, helper.NewUserActivityService(), store, nil, nil, nil)
 	h.ComposeStackManager = testhelpers.NewComposeStackManager()
 
 	tests := []endpointListEdgeDeviceTest{

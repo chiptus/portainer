@@ -166,6 +166,20 @@ angular.module('portainer.app').factory('EndpointService', [
       return deferred.promise;
     };
 
+    service.createKubeConfigEndpoint = function (name, kubeConfig, groupId, tagIds) {
+      var deferred = $q.defer();
+
+      FileUploadService.createKubeConfigEndpoint(name, kubeConfig, groupId, tagIds)
+        .then(function success(response) {
+          deferred.resolve(response.data);
+        })
+        .catch(function error(err) {
+          deferred.reject({ msg: 'Unable to create environment from KubeConfig', err: err });
+        });
+
+      return deferred.promise;
+    };
+
     service.updatePoolAccess = function (endpointID, resourcePool, usersToAdd, teamsToAdd, usersToRemove, teamsToRemove) {
       return Endpoints.updatePoolAccess(
         {

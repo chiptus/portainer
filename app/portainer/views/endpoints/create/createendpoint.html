@@ -75,6 +75,16 @@
                   <p>Connect to Microsoft Azure ACI</p>
                 </label>
               </div>
+              <div ng-show="!state.isEdgeDevice">
+                <input type="radio" id="kubeconfig_endpoint" ng-model="state.EnvironmentType" value="kubeconfig" />
+                <label for="kubeconfig_endpoint" data-cy="endpointCreate-kubeconfigSelectButton">
+                  <div class="boxselector_header">
+                    <i class="fas fa-cloud-upload-alt" aria-hidden="true" style="margin-right: 2px"></i>
+                    Import
+                  </div>
+                  <p>Import an existing Kubernetes config</p>
+                </label>
+              </div>
             </div>
           </div>
           <div ng-if="state.EnvironmentType === 'docker'">
@@ -201,6 +211,27 @@
           <!-- PURE ANGULARJS FORM -->
           <div ng-if="state.EnvironmentType !== 'kaas'">
             <div class="col-sm-12 form-section-title"> Environment details </div>
+            <div ng-if="state.EnvironmentType === 'kubeconfig'">
+              <div class="form-group">
+                <div class="col-sm-12">
+                  <span class="text-primary"> <i class="fa fa-exclamation-circle" aria-hidden="true" style="margin-right: 2px"></i></span>
+                  <span class="text-muted small">
+                    Import the
+                    <a href="https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/" target="_blank" rel="noreferrer">kubeconfig file</a> of an
+                    existing Kubernetes cluster located on-premise or on a cloud platform. This will create a corresponding environment in Portainer and install the agent on the
+                    cluster. Please ensure:
+                  </span>
+                </div>
+                <div class="col-sm-12 text-muted small">
+                  <ul style="padding: 10px 20px">
+                    <li>You have a load balancer enabled in your cluster</li>
+                    <li>You specify current-context in your kubeconfig</li>
+                    <li>The kubeconfig is self-contained - including any required credentials.</li>
+                  </ul>
+                  <p>Note: Officially supported cloud providers are Civo, Linode, DigitalOcean and Microsoft Azure (others are not guaranteed to work at present)</p>
+                </div>
+              </div>
+            </div>
             <!-- name-input -->
             <div class="form-group">
               <label for="container_name" class="col-sm-3 col-lg-2 control-label text-left">Name</label>
@@ -221,6 +252,19 @@
               <div class="col-sm-12 small text-warning">
                 <div ng-messages="endpointCreationForm.container_name.$error">
                   <p ng-message="required"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> This field is required.</p>
+                </div>
+              </div>
+            </div>
+            <div ng-if="state.EnvironmentType === 'kubeconfig'">
+              <div class="form-group">
+                <label for="kubeconfig_file" class="col-sm-3 col-lg-2 control-label text-left"> Kubeconfig file </label>
+                <div class="col-sm-9 col-lg-10">
+                  <file-upload-field name="kubeconfig_file" accept="'.yml,.yaml'" value="state.kubeconfigFile" on-change="(handleKubeconfigUpload)"></file-upload-field>
+                </div>
+              </div>
+              <div class="form-group" ng-if="state.kubeconfigError">
+                <div class="col-sm-12 small text-warning">
+                  <p><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Kubeconfig file is required.</p>
                 </div>
               </div>
             </div>
@@ -553,6 +597,23 @@
                   analytics-category="portainer"
                   analytics-event="portainer-endpoint-creation"
                   analytics-properties="{ metadata: { type: 'azure-api' } }"
+                >
+                  <span ng-hide="state.actionInProgress"><i class="fa fa-plus" aria-hidden="true"></i> Add environment</span>
+                  <span ng-show="state.actionInProgress">Creating environment...</span>
+                </button>
+
+                <button
+                  ng-if="state.EnvironmentType === 'kubeconfig'"
+                  type="submit"
+                  class="btn btn-primary btn-sm"
+                  ng-disabled="state.actionInProgress || !endpointCreationForm.$valid || state.kubeconfigError"
+                  ng-click="addKubeconfigEndpoint()"
+                  button-spinner="state.actionInProgress"
+                  data-cy="endpointCreate-createKubeconfigEndpoint"
+                  analytics-on
+                  analytics-category="portainer"
+                  analytics-event="portainer-endpoint-creation"
+                  analytics-properties="{ metadata: { type: 'kubeconfig-api' } }"
                 >
                   <span ng-hide="state.actionInProgress"><i class="fa fa-plus" aria-hidden="true"></i> Add environment</span>
                   <span ng-show="state.actionInProgress">Creating environment...</span>

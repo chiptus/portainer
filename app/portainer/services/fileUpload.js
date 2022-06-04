@@ -180,6 +180,21 @@ angular.module('portainer.app').factory('FileUploadService', [
       });
     };
 
+    service.createKubeConfigEndpoint = function (name, kubeConfig, groupId, tagIds) {
+      console.log(kubeConfig);
+      return Upload.upload({
+        url: 'api/endpoints',
+        data: {
+          Name: name,
+          EndpointCreationType: PortainerEndpointCreationTypes.KubeConfigEnvironment,
+          GroupID: groupId,
+          TagIds: Upload.json(tagIds),
+          KubeConfig: kubeConfig,
+        },
+        ignoreLoadingBar: true,
+      });
+    };
+
     service.uploadLDAPTLSFiles = function (TLSCAFile, TLSCertFile, TLSKeyFile) {
       var queue = [];
 

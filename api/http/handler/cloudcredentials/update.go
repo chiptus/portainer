@@ -6,6 +6,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
 )
 
@@ -31,6 +32,10 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) *httperror.Hand
 	cloudCredential, err := h.DataStore.CloudCredential().GetByID(models.CloudCredentialID(id))
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to fetch cloud credentials from the database", Err: err}
+	}
+
+	if cloudCredential.Provider == portaineree.CloudProviderKubeConfig {
+		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request", Err: err}
 	}
 
 	var payload models.CloudCredential

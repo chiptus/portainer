@@ -47,6 +47,7 @@ func setupGlobalKeyHandler() (*Handler, func(), error) {
 		store,
 		edge.NewService(store, fs),
 		nil,
+		nil,
 	)
 
 	handler.ReverseTunnelService = chisel.NewService(store, shutdownCtx)

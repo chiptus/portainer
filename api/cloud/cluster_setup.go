@@ -2,7 +2,9 @@ package cloud
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -14,21 +16,20 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type ProvisioningState int
+
+const (
+	ProvisioningStatePending ProvisioningState = iota
+	ProvisioningStateWaitingForCluster
+	ProvisioningStateAgentSetup
+	ProvisioningStateWaitingForAgent
+	ProvisioningStateUpdatingEndpoint
+	ProvisioningStateDone
+)
+
 const (
 	stateWaitTime      = 15 * time.Second
 	maxRequestFailures = 480
-)
-
-type ProvisioningState int
-
-//go:generate stringer -type=ProvisioningState -trimprefix=ps
-const (
-	psPending ProvisioningState = iota
-	psWaitingForCluster
-	psAgentSetup
-	psWaitingForAgent
-	psUpdatingEndpoint
-	psDone
 )
 
 type (
@@ -46,7 +47,6 @@ type (
 	cloudPrevisioningResult struct {
 		endpointID portaineree.EndpointID
 		state      int
-		msg        string
 		errSummary string
 		err        error
 		taskID     portaineree.CloudProvisioningTaskID
@@ -103,7 +103,7 @@ func (service *CloudClusterSetupService) createClusterSetupTask(request *portain
 		ClusterID:     clusterID,
 		EndpointID:    request.EndpointID,
 		Region:        request.Region,
-		State:         int(psPending),
+		State:         int(ProvisioningStatePending),
 		CreatedAt:     time.Now(),
 		ResourceGroup: resourceGroup,
 	}
@@ -136,7 +136,7 @@ func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 
 		// many tasks cannot be restored at the state that they began with,
 		// it's safe and reliable to go right back to the beginning
-		task.State = int(psPending)
+		task.State = int(ProvisioningStatePending)
 
 		_, err := service.dataStore.Endpoint().Endpoint(task.EndpointID)
 		if err != nil {
@@ -223,6 +223,21 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 	case portaineree.CloudProviderGKE:
 		cluster, err = GKEGetCluster(credentials.Credentials["jsonKeyBase64"], task.ClusterID, task.Region)
 
+	case portaineree.CloudProviderKubeConfig:
+		b64config, ok := credentials.Credentials["kubeconfig"]
+		if !ok {
+			return nil, fmt.Errorf("failed finding KubeConfig")
+		}
+		kubeconfig, err := base64.StdEncoding.DecodeString(b64config)
+		if err != nil {
+			return nil, fmt.Errorf("failed decoding KubeConfig")
+		}
+		cluster = &KaasCluster{
+			Id:         task.ClusterID,
+			KubeConfig: string(kubeconfig),
+			Ready:      true,
+		}
+
 	case portaineree.CloudProviderAzure:
 		cluster, err = AzureGetCluster(credentials.Credentials, task.ResourceGroup, task.ClusterID)
 
@@ -247,15 +262,16 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 	var kubeClient portaineree.KubeClient
 	var serviceIP string
 	var err error
+	var fatal bool = false
 
-	log.Infof("[message: starting provisionKaasClusterTask] [provider: %s] [clusterId: %s] [endpointId: %d]", task.Provider, task.ClusterID, task.EndpointID)
+	log.Infof("[message: starting provisionKaasClusterTask] [provider: %s] [clusterId: %s] [endpointId: %d] [state: %d]", task.Provider, task.ClusterID, task.EndpointID, task.State)
 	for {
 		switch ProvisioningState(task.State) {
-		case psPending:
+		case ProvisioningStatePending:
 			// pendingState logic is completed outside of this function, but this is the initial state
-			service.changeState(&task, psWaitingForCluster, "Creating KaaS Cluster")
+			service.changeState(&task, ProvisioningStateWaitingForCluster, "Creating KaaS Cluster")
 
-		case psWaitingForCluster:
+		case ProvisioningStateWaitingForCluster:
 			cluster, err = service.getKaasCluster(&task)
 			if err != nil {
 				task.Retries++
@@ -263,20 +279,29 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			}
 
 			if cluster.Ready {
-				service.changeState(&task, psAgentSetup, "Deploying Portainer agent")
+				service.changeState(&task, ProvisioningStateAgentSetup, "Deploying Portainer agent")
 			}
 
 			log.Debugf("[message: waiting for cluster] [provider: %s] [clusterId: %s]", task.Provider, task.ClusterID)
 
-		case psAgentSetup:
+		case ProvisioningStateAgentSetup:
 			log.Infof("[message: process state] [state: %s] [retries: %d]", ProvisioningState(task.State), task.Retries)
 
 			if kubeClient == nil {
 				kubeClient, err = service.clientFactory.CreateKubeClientFromKubeConfig(task.ClusterID, cluster.KubeConfig)
 				if err != nil {
+					// If KubeClient is not created from KubeConfig, it means KubeConfig is incorrect
+					fatal = true
 					task.Retries++
 					break
 				}
+			}
+
+			log.Infof("[message: checking for old portainer namespace] [state: %s] [retries: %d]", ProvisioningState(task.State), task.Retries)
+			err = kubeClient.DeletePortainerAgent()
+			if err != nil {
+				task.Retries++
+				break
 			}
 
 			log.Infof("[message: deploying Portainer agent version: %s] [provider: %s] [clusterId: %s] [endpointId: %d]", kubecli.DefaultAgentVersion, task.Provider, task.ClusterID, task.EndpointID)
@@ -286,9 +311,9 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				break
 			}
 
-			service.changeState(&task, psWaitingForAgent, "Waiting for agent response")
+			service.changeState(&task, ProvisioningStateWaitingForAgent, "Waiting for agent response")
 
-		case psWaitingForAgent:
+		case ProvisioningStateWaitingForAgent:
 			log.Debugf("[message: waiting for portainer agent] [provider: %s] [clusterId: %s] [endpointId: %d]", task.Provider, task.ClusterID, task.EndpointID)
 
 			serviceIP, err = kubeClient.GetPortainerAgentIPOrHostname()
@@ -302,9 +327,9 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			}
 
 			log.Debugf("[cloud] [message: portainer agent service is ready] [provider: %s] [clusterId:%s] [serviceIP: %s]", task.Provider, task.ClusterID, serviceIP)
-			service.changeState(&task, psUpdatingEndpoint, "Updating environment")
+			service.changeState(&task, ProvisioningStateUpdatingEndpoint, "Updating environment")
 
-		case psUpdatingEndpoint:
+		case ProvisioningStateUpdatingEndpoint:
 			log.Debugf("[message: updating environment] [provider: %s] [clusterId: %s]", task.Provider, task.ClusterID)
 			err = service.updateEndpoint(task.EndpointID, fmt.Sprintf("%s:9001", serviceIP))
 			if err != nil {
@@ -312,9 +337,9 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				break
 			}
 
-			service.changeState(&task, psDone, "Connecting")
+			service.changeState(&task, ProvisioningStateDone, "Connecting")
 
-		case psDone:
+		case ProvisioningStateDone:
 			if err != nil {
 				log.Infof("[message: environment ready] [provider: %s] [endpointId: %d] [clusterId: %s]", task.Provider, task.EndpointID, task.ClusterID)
 			}
@@ -322,7 +347,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			service.result <- &cloudPrevisioningResult{
 				endpointID: task.EndpointID,
 				err:        err,
-				state:      int(psDone),
+				state:      int(ProvisioningStateDone),
 				taskID:     task.ID,
 			}
 			return
@@ -336,11 +361,11 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 		}
 
 		// Handle exceeding max retries in a single state.
-		if task.Retries >= maxRequestFailures {
+		if task.Retries >= maxRequestFailures || fatal {
 			service.result <- &cloudPrevisioningResult{
 				endpointID: task.EndpointID,
 				err:        err,
-				state:      int(psDone),
+				state:      int(ProvisioningStateDone),
 				taskID:     task.ID,
 			}
 			return
@@ -352,7 +377,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			service.result <- &cloudPrevisioningResult{
 				endpointID: task.EndpointID,
 				err:        task.Err,
-				state:      int(psDone),
+				state:      int(ProvisioningStateDone),
 				taskID:     task.ID,
 			}
 			return
@@ -413,6 +438,9 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 		if provErr != nil {
 			log.Errorf("[cloud] [message: GKE cluster provisioning failed %v]", provErr)
 		}
+
+	case portaineree.CloudProviderKubeConfig:
+		clusterID = "kubeconfig-" + strconv.Itoa(int(time.Now().Unix()))
 
 	case portaineree.CloudProviderAzure:
 		clusterID, clusterResourceGroup, provErr = AzureProvisionCluster(credentials.Credentials, request)

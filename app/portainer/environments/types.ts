@@ -116,6 +116,7 @@ export enum EnvironmentCreationTypes {
   AzureEnvironment,
   EdgeAgentEnvironment,
   LocalKubernetesEnvironment,
+  KubeConfigEnvironment,
 }
 
 export enum PlatformType {

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	log "github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -30,6 +31,33 @@ func (kcl *KubeClient) GetPortainerAgentIPOrHostname() (string, error) {
 	}
 
 	return "", nil
+}
+
+func (kcl *KubeClient) DeletePortainerAgent() error {
+	// NAMESPACE
+	namespaceName := "portainer"
+
+	list, err := kcl.cli.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+
+	var found bool
+	for _, n := range list.Items {
+		if n.Name == namespaceName {
+			log.Infof("attempting to delete old portainer namespace")
+			found = true
+		}
+	}
+
+	if found {
+		return kcl.cli.CoreV1().Namespaces().Delete(
+			context.TODO(),
+			namespaceName,
+			metav1.DeleteOptions{},
+		)
+	}
+	return err
 }
 
 // DeployPortainerAgent deploys the Portainer agent in the current Kubernetes
