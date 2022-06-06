@@ -121,7 +121,7 @@ export function AzureCredentialsForm({
           </FormControl>
           <FormControl
             inputId="Client_Secret"
-            label="Client Secret"
+            label="Client secret"
             errors={errors.credentials?.clientSecret}
           >
             <Field

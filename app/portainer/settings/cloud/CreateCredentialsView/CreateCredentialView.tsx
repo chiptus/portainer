@@ -17,11 +17,11 @@ export default function CreateCredentialView() {
   return (
     <>
       <PageHeader
-        title="Add Cloud Provider Credentials"
+        title="Add cloud provider credentials"
         breadcrumbs={[
           { label: 'Settings', link: 'portainer.settings' },
           { label: 'Cloud', link: 'portainer.settings.cloud' },
-          { label: 'Add Credential' },
+          { label: 'Add credentials' },
         ]}
       />
 
@@ -29,7 +29,7 @@ export default function CreateCredentialView() {
         <div className="col-sm-12">
           <Widget>
             <WidgetBody>
-              <FormSectionTitle>Cloud Service Provider</FormSectionTitle>
+              <FormSectionTitle>Cloud service provider</FormSectionTitle>
               <CloudProviderSelector
                 value={selectedProvider}
                 onChange={(provider: KaasProvider) => {

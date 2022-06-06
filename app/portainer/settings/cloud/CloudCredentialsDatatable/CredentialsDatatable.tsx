@@ -99,7 +99,7 @@ export function CredentialsDatatable({
 
   return (
     <TableContainer>
-      <TableTitle icon="fa-cloud" label="Cloud Provider Credentials" />
+      <TableTitle icon="fa-cloud" label="Cloud provider credentials" />
 
       <TableActions>
         <CredentialsDatatableActions

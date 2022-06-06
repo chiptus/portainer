@@ -81,7 +81,7 @@ export function GCPCredentialsForm({
 
           <FormControl
             inputId="credentials.jsonKeyBase64"
-            label="Service Account Key (.json)"
+            label="Service account key (.json)"
             tooltip="Service account keys can be created in the 'IAM and admin' section in Google Cloud Console"
             errors={errors.credentials?.jsonKeyBase64}
           >

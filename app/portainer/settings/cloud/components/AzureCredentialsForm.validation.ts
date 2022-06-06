@@ -21,7 +21,7 @@ export function validationSchema(names: string[], isEditing = false) {
     credentials: object()
       .shape({
         clientID: string().required('Client ID is required'),
-        clientSecret: string().required('Client Secret is required'),
+        clientSecret: string().required('Client secret is required'),
         tenantID: string().required('Tenant ID key is required'),
         subscriptionID: string().required('Subscription ID is required'),
       })

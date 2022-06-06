@@ -7,7 +7,7 @@ export function CloudView() {
   return (
     <>
       <PageHeader
-        title="Cloud Settings"
+        title="Cloud settings"
         breadcrumbs={[
           { label: 'Settings', link: 'portainer.settings' },
           { label: 'Cloud' },

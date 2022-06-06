@@ -22,7 +22,7 @@ export default class RegistryController {
     const type = this.registry.Type;
     switch (type) {
       case RegistryTypes.ECR:
-        return 'AWS Secret Access Key';
+        return 'AWS secret access key';
       case RegistryTypes.DOCKERHUB:
         return 'Access token';
       default:

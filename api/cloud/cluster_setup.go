@@ -269,7 +269,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 		switch ProvisioningState(task.State) {
 		case ProvisioningStatePending:
 			// pendingState logic is completed outside of this function, but this is the initial state
-			service.changeState(&task, ProvisioningStateWaitingForCluster, "Creating KaaS Cluster")
+			service.changeState(&task, ProvisioningStateWaitingForCluster, "Creating KaaS cluster")
 
 		case ProvisioningStateWaitingForCluster:
 			cluster, err = service.getKaasCluster(&task)

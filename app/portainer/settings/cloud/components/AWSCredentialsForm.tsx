@@ -75,7 +75,7 @@ export function AWSCredentialsForm({
           <>
             <FormControl
               inputId="access_key_id"
-              label="Access Key Id"
+              label="Access key ID"
               errors={errors.credentials?.accessKeyId}
             >
               <Field
@@ -90,7 +90,7 @@ export function AWSCredentialsForm({
             </FormControl>
             <FormControl
               inputId="secret_access_key"
-              label="Secret Access Key"
+              label="Secret access key"
               errors={errors.credentials?.secretAccessKey}
             >
               <Field

@@ -61,7 +61,7 @@
             <!-- credentials-password -->
             <div class="form-group">
               <label for="credentials_password" class="col-sm-3 col-lg-2 control-label text-left">
-                {{ $ctrl.registry.Type === $ctrl.RegistryTypes.ECR ? 'AWS Secret Access Key' : 'Password' }}
+                {{ $ctrl.registry.Type === $ctrl.RegistryTypes.ECR ? 'AWS secret access key' : 'Password' }}
               </label>
               <div class="col-sm-9 col-lg-10">
                 <input type="password" class="form-control" id="credentials_password" ng-model="$ctrl.model.Password" placeholder="*******" />
