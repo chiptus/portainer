@@ -115,10 +115,11 @@ func (a *CloudClusterInfoService) AzureFetchInfo(credentials models.CloudCredent
 	nodesBR := make(nodesByRegion, 0)
 	for _, sku := range skus.Values() {
 		for _, loc := range *sku.Locations {
-			// If resource type is Virtual Machines
-			if *sku.ResourceType != "virtualMachines" {
+			// Skip when resource type is not Virtual Machines or family is basic
+			if *sku.ResourceType != "virtualMachines" || *sku.Family == "basicAFamily" {
 				continue
 			}
+
 			location, ok := nodesBR[loc]
 			if !ok {
 				location = make([]pairWithZones, 0)
