@@ -44,6 +44,11 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 		}
 	}
 
+	settings, err := handler.dataStore.Settings().Settings()
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve the settings from the database", err}
+	}
+
 	// Create a new endpoint if none was found
 
 	p := &endpointCreatePayload{
@@ -52,18 +57,13 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 		EndpointCreationType: edgeAgentEnvironment,
 		GroupID:              1,
 		TagIDs:               []portaineree.TagID{},
-		EdgeCheckinInterval:  portaineree.DefaultEdgeAgentCheckinIntervalInSeconds,
+		EdgeCheckinInterval:  settings.EdgeAgentCheckinInterval,
 		IsEdgeDevice:         true,
 	}
 
 	endpoint, hErr := handler.createEndpoint(p)
 	if hErr != nil {
 		return hErr
-	}
-
-	settings, err := handler.dataStore.Settings().Settings()
-	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve the settings from the database", err}
 	}
 
 	endpoint.UserTrusted = settings.TrustOnFirstConnect
