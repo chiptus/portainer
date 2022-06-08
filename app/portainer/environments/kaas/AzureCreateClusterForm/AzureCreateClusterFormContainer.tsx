@@ -3,6 +3,8 @@ import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
 
 import { useSettings } from '@/portainer/settings/queries';
 import { KaasProvider, Credential } from '@/portainer/settings/cloud/types';
+import { AnalyticsStateKey } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/types';
+import { Environment } from '@/portainer/environments/types';
 
 import { useCreateKaasCluster } from '../queries';
 import { CreateAzureClusterFormValues } from '../types';
@@ -17,7 +19,7 @@ type Props = {
   provider: KaasProvider;
   credentials: Credential[];
   onUpdate?: () => void;
-  onAnalytics?: (eventName: string) => void;
+  onCreate?(environment: Environment, analytics: AnalyticsStateKey): void;
 };
 
 export function AzureCreateClusterFormContainer({
@@ -26,7 +28,7 @@ export function AzureCreateClusterFormContainer({
   provider,
   credentials,
   onUpdate,
-  onAnalytics,
+  onCreate,
 }: Props) {
   const { state } = useCurrentStateAndParams();
   const router = useRouter();
@@ -93,7 +95,7 @@ export function AzureCreateClusterFormContainer({
     createKaasCluster.mutate(
       { payload, provider },
       {
-        onSuccess: () => {
+        onSuccess: (environment) => {
           if (onUpdate) {
             onUpdate();
           }
@@ -102,8 +104,8 @@ export function AzureCreateClusterFormContainer({
           } else {
             setName('');
           }
-          if (onAnalytics) {
-            onAnalytics('kaas-agent');
+          if (onCreate) {
+            onCreate(environment, 'kaasAgent');
           }
         },
       }

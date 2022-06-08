@@ -94,7 +94,7 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 	request := payload.GetCloudProvisioningRequest(endpoint.ID, provider)
 
 	handler.cloudClusterSetupService.Request(request)
-	return response.Empty(w)
+	return response.JSON(w, endpoint)
 }
 
 func (handler *Handler) createEndpoint(name string, provider portaineree.CloudProvider, metadata types.EnvironmentMetadata) (*portaineree.Endpoint, error) {
