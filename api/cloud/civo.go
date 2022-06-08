@@ -33,38 +33,44 @@ type (
 	}
 )
 
-func (service *CloudClusterInfoService) CivoGetInfo(credential *models.CloudCredential) (interface{}, error) {
+func (service *CloudClusterInfoService) CivoGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
 	apiKey, ok := credential.Credentials["apiKey"]
 	if !ok {
 		return nil, errors.New("missing API key in the credentials")
 	}
 
 	cacheKey := fmt.Sprintf("%s_%d", portaineree.CloudProviderCivo, credential.ID)
+
+	if force {
+		if err := service.civoFetchRefresh(apiKey, cacheKey); err != nil {
+			return nil, err
+		}
+	}
+
 	service.mu.Lock()
 	info, ok := service.info[cacheKey]
 	service.mu.Unlock()
-	var err error
 	if !ok {
 		// Live fetch if missing cache.
-		info, err = service.CivoFetchInfo(apiKey)
-		if err != nil {
+		if err := service.civoFetchRefresh(apiKey, cacheKey); err != nil {
 			return nil, err
 		}
-		// Update the cache
-		service.mu.Lock()
-		service.info[cacheKey] = info
-		service.mu.Unlock()
 	}
 
-	// Schedule an update to occur after sending back the cached data. This is
-	// needed so the user will get fresh info if they refresh the page twice.
-	// For example, if they added a new network to their Civo account, and
-	// wanted it to show up without needing to wait 2 hours for the cache to
-	// refresh.
-	log.Debug("[cloud] [message: used cached cloud data: scheduling new update]")
-	service.Update()
-
 	return &info, nil
+}
+
+func (service *CloudClusterInfoService) civoFetchRefresh(apiKey, cacheKey string) error {
+	info, err := service.CivoFetchInfo(apiKey)
+	if err != nil {
+		return err
+	}
+
+	// Update the cache
+	service.mu.Lock()
+	service.info[cacheKey] = *info
+	service.mu.Unlock()
+	return nil
 }
 
 func (service *CloudClusterInfoService) CivoFetchInfo(apiKey string) (*CivoInfo, error) {

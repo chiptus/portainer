@@ -34,6 +34,7 @@ type Props = {
 
 // ApiCreateClusterForm handles form changes, conditionally renders inputs, and manually set values
 export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
+  const [isOptionsForce, setisOptionsForce] = useState(false);
   const { values, setFieldValue, errors, handleSubmit, isSubmitting, isValid } =
     useFormikContext<CreateApiClusterFormValues>();
   const { region, credentialId, networkId, nodeSize, kubernetesVersion } =
@@ -43,7 +44,8 @@ export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
   );
   const cloudOptionsQuery = useCloudProviderOptions(
     selectedCredential,
-    provider
+    provider,
+    isOptionsForce
   ) as UseQueryResult<APIKaasInfo>;
   const isNameValid = useIsKaasNameValid(name);
 
@@ -123,88 +125,92 @@ export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
           &nbsp;to ensure the API key is valid.
         </Alert>
       )}
-      {cloudOptionsQuery.isLoading && <Loading />}
+      {(cloudOptionsQuery.isLoading || cloudOptionsQuery.isFetching) && (
+        <Loading />
+      )}
       {/* cluster details inputs */}
-      {cloudOptionsQuery.data && isAPIKaasInfo(cloudOptionsQuery.data) && (
-        <>
-          <FormControl
-            label="Region"
-            tooltip="Region in which to provision the cluster"
-            inputId="kaas-region"
-            errors={errors.region}
-          >
-            <Field
-              name="region"
-              as={Select}
-              id="kaa-region"
-              data-cy="kaasCreateForm-regionSelect"
-              options={cloudOptionsQuery.data.regions}
-            />
-          </FormControl>
-          <FormControl
-            label="Node size"
-            tooltip="Size of each node deployed in the cluster"
-            inputId="kaas-nodeSize"
-            errors={errors.nodeSize}
-          >
-            <Field
-              name="nodeSize"
-              as={Select}
-              id="kaas-nodeSize"
-              data-cy="kaasCreateForm-nodeSizeSelect"
-              options={cloudOptionsQuery.data?.nodeSizes}
-            />
-          </FormControl>
-          <FormControl
-            label="Node count"
-            tooltip="Number of nodes to provision in the cluster."
-            inputId="kaas-nodeCount"
-            errors={errors.nodeCount}
-          >
-            <Field
-              name="nodeCount"
-              as={Input}
-              type="number"
-              data-cy="kaasCreateForm-nodeCountInput"
-              min={1}
-              max={1000}
-              id="kaas-nodeCount"
-              placeholder="3"
-            />
-          </FormControl>
-          {region && filteredNetworkOptions.length > 0 && (
+      {cloudOptionsQuery.data &&
+        isAPIKaasInfo(cloudOptionsQuery.data) &&
+        !cloudOptionsQuery.isFetching && (
+          <>
             <FormControl
-              label="Network ID"
-              tooltip="ID of network attached to the cluster"
-              inputId="kaas-networkId"
-              errors={errors.networkId}
+              label="Region"
+              tooltip="Region in which to provision the cluster"
+              inputId="kaas-region"
+              errors={errors.region}
             >
               <Field
-                name="networkId"
+                name="region"
                 as={Select}
-                id="kaas-networkId"
-                data-cy="kaasCreateForm-networkIdSelect"
-                disabled={filteredNetworkOptions.length === 1}
-                options={filteredNetworkOptions}
+                id="kaa-region"
+                data-cy="kaasCreateForm-regionSelect"
+                options={cloudOptionsQuery.data.regions}
               />
             </FormControl>
-          )}
-          <FormControl
-            label="Kubernetes version"
-            tooltip="Kubernetes version running on the cluster"
-            inputId="kaas-kubernetesVersion"
-            errors={errors.kubernetesVersion}
-          >
-            <Field
-              name="kubernetesVersion"
-              as={Select}
-              id="kaas-kubernetesVersion"
-              data-cy="kaasCreateForm-kubernetesVersionSelect"
-              options={cloudOptionsQuery.data?.kubernetesVersions}
-            />
-          </FormControl>
-        </>
-      )}
+            <FormControl
+              label="Node size"
+              tooltip="Size of each node deployed in the cluster"
+              inputId="kaas-nodeSize"
+              errors={errors.nodeSize}
+            >
+              <Field
+                name="nodeSize"
+                as={Select}
+                id="kaas-nodeSize"
+                data-cy="kaasCreateForm-nodeSizeSelect"
+                options={cloudOptionsQuery.data?.nodeSizes}
+              />
+            </FormControl>
+            <FormControl
+              label="Node count"
+              tooltip="Number of nodes to provision in the cluster"
+              inputId="kaas-nodeCount"
+              errors={errors.nodeCount}
+            >
+              <Field
+                name="nodeCount"
+                as={Input}
+                type="number"
+                data-cy="kaasCreateForm-nodeCountInput"
+                min={1}
+                max={1000}
+                id="kaas-nodeCount"
+                placeholder="3"
+              />
+            </FormControl>
+            {region && filteredNetworkOptions.length > 0 && (
+              <FormControl
+                label="Network ID"
+                tooltip="ID of network attached to the cluster"
+                inputId="kaas-networkId"
+                errors={errors.networkId}
+              >
+                <Field
+                  name="networkId"
+                  as={Select}
+                  id="kaas-networkId"
+                  data-cy="kaasCreateForm-networkIdSelect"
+                  disabled={filteredNetworkOptions.length === 1}
+                  options={filteredNetworkOptions}
+                />
+              </FormControl>
+            )}
+            <FormControl
+              label="Kubernetes version"
+              tooltip="Kubernetes version running on the cluster"
+              inputId="kaas-kubernetesVersion"
+              errors={errors.kubernetesVersion}
+            >
+              <Field
+                name="kubernetesVersion"
+                as={Select}
+                id="kaas-kubernetesVersion"
+                data-cy="kaasCreateForm-kubernetesVersionSelect"
+                options={cloudOptionsQuery.data?.kubernetesVersions}
+              />
+            </FormControl>
+          </>
+        )}
 
       <MoreSettingsSection />
 
@@ -218,6 +224,21 @@ export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
           >
             <i className="fa fa-plus space-right" aria-hidden="true" />
             Provision environment
+          </LoadingButton>
+          <LoadingButton
+            type="button"
+            color="default"
+            onClick={() => {
+              setisOptionsForce(true);
+              cloudOptionsQuery.refetch();
+            }}
+            isLoading={
+              cloudOptionsQuery.isLoading || cloudOptionsQuery.isFetching
+            }
+            loadingText="Reloading details..."
+          >
+            <i className="fa fa-sync space-right" aria-hidden="true" />
+            Reload cluster details
           </LoadingButton>
         </div>
       </div>

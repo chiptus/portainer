@@ -12,11 +12,12 @@ import { CreateClusterPayload } from './types';
 
 export function useCloudProviderOptions(
   credential: Credential,
-  provider: KaasProvider
+  provider: KaasProvider,
+  force = false
 ) {
   return useQuery(
-    ['cloud', credential.provider, 'info', credential.id],
-    () => getKaasInfo(credential.provider, credential),
+    ['cloud', credential.provider, 'info', credential.id, force],
+    () => getKaasInfo(credential.provider, credential, force),
     {
       meta: {
         error: {
@@ -26,7 +27,6 @@ export function useCloudProviderOptions(
       },
       enabled: credential.provider === provider,
       retry: 1,
-      staleTime: 10000,
     }
   );
 }

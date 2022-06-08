@@ -53,12 +53,14 @@ export function GKECreateClusterForm({
     networkId,
     nodeSize,
   } = values;
+  const [isOptionsForce, setisOptionsForce] = useState(false);
   const [selectedCredential, setSelectedCredential] = useState<Credential>(
     credentials[0]
   );
   const cloudOptionsQuery = useCloudProviderOptions(
     selectedCredential,
-    provider
+    provider,
+    isOptionsForce
   ) as UseQueryResult<GKEKaasInfo>;
   const isNameValid = useIsKaasNameValid(name);
 
@@ -313,6 +315,21 @@ export function GKECreateClusterForm({
           >
             <i className="fa fa-plus space-right" aria-hidden="true" />
             Provision environment
+          </LoadingButton>
+          <LoadingButton
+            type="button"
+            color="default"
+            onClick={() => {
+              setisOptionsForce(true);
+              cloudOptionsQuery.refetch();
+            }}
+            isLoading={
+              cloudOptionsQuery.isLoading || cloudOptionsQuery.isFetching
+            }
+            loadingText="Reloading details..."
+          >
+            <i className="fa fa-sync space-right" aria-hidden="true" />
+            Reload cluster details
           </LoadingButton>
         </div>
       </div>

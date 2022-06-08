@@ -33,37 +33,43 @@ type (
 	kubernetesVersions []portaineree.Pair
 )
 
-func (service *CloudClusterInfoService) AzureGetInfo(credentials *models.CloudCredential) (interface{}, error) {
+func (service *CloudClusterInfoService) AzureGetInfo(credentials *models.CloudCredential, force bool) (interface{}, error) {
 	if len(credentials.Credentials) == 0 {
 		return nil, fmt.Errorf("missing credentials in the database")
 	}
 
 	cacheKey := fmt.Sprintf("%s_%d", portaineree.CloudProviderAzure, credentials.ID)
+
+	if force {
+		if err := service.azureFetchRefresh(credentials, cacheKey); err != nil {
+			return nil, err
+		}
+	}
+
 	service.mu.Lock()
 	info, ok := service.info[cacheKey]
 	service.mu.Unlock()
-	var err error
 	if !ok {
 		// Live fetch if missing cache.
-		info, err = service.AzureFetchInfo(credentials.Credentials)
-		if err != nil {
+		if err := service.azureFetchRefresh(credentials, cacheKey); err != nil {
 			return nil, err
 		}
-		// Update the cache
-		service.mu.Lock()
-		service.info[cacheKey] = info
-		service.mu.Unlock()
 	}
 
-	// Schedule an update to occur after sending back the cached data. This is
-	// needed so the user will get fresh info if they refresh the page twice.
-	// For example, if they added a new network to their Civo account, and
-	// wanted it to show up without needing to wait 2 hours for the cache to
-	// refresh.
-	log.Debug("[cloud] [message: used cached cloud data: scheduling new update]")
-	service.Update()
-
 	return &info, nil
+}
+
+func (service *CloudClusterInfoService) azureFetchRefresh(c *models.CloudCredential, cacheKey string) error {
+	info, err := service.AzureFetchInfo(c.Credentials)
+	if err != nil {
+		return err
+	}
+
+	// Update the cache
+	service.mu.Lock()
+	service.info[cacheKey] = info
+	service.mu.Unlock()
+	return nil
 }
 
 func (a *CloudClusterInfoService) AzureFetchInfo(credentials models.CloudCredentialMap) (*AzureInfo, error) {

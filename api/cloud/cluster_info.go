@@ -12,10 +12,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const (
-	infoCheckInterval = 12 * time.Hour
-)
-
 // CloudProvider represents one of the Kubernetes Cloud Providers.
 // The following constants are recognized:
 // CloudProviderCivo         = "civo"
@@ -91,8 +87,6 @@ func (service *CloudClusterInfoService) Update() {
 }
 
 func (service *CloudClusterInfoService) Start() {
-	ticker := time.NewTicker(infoCheckInterval)
-
 	go func() {
 		time.Sleep(2 * time.Second)
 
@@ -100,15 +94,11 @@ func (service *CloudClusterInfoService) Start() {
 
 		for {
 			select {
-			case <-ticker.C:
-				service.tryUpdate()
-
 			case <-service.update:
 				service.tryUpdate()
 
 			case <-service.shutdownCtx.Done():
 				log.Debug("[cloud] [message: shutting down KaaS info queue]")
-				ticker.Stop()
 				return
 			}
 		}
