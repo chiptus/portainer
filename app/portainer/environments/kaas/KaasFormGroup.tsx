@@ -1,118 +1,187 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useCurrentStateAndParams } from '@uirouter/react';
+import { Form, Formik } from 'formik';
 
 import { react2angular } from '@/react-tools/react2angular';
-import { KaasProvider, providerTitles } from '@/portainer/settings/cloud/types';
+import {
+  KaasProvider,
+  Credential,
+  providerTitles,
+} from '@/portainer/settings/cloud/types';
 import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
 import { useCloudCredentials } from '@/portainer/settings/cloud/cloudSettings.service';
-import { CredentialsForm } from '@/portainer/settings/cloud/CreateCredentialsView/CredentialsForm';
-import { Loading } from '@/portainer/components/widget/Loading';
-import { Alert } from '@/portainer/components/Alert/Alert';
-import { Link } from '@/portainer/components/Link';
 import { Environment } from '@/portainer/environments/types';
 import { AnalyticsStateKey } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/types';
+import { NameField } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/NameField';
+import { useSettings } from '@/portainer/settings/queries';
+import { FormSection } from '@/portainer/components/form-components/FormSection';
+import { TextTip } from '@/portainer/components/Tip/TextTip';
+import { Link } from '@/portainer/components/Link';
+import { CredentialsForm } from '@/portainer/settings/cloud/CreateCredentialsView/CredentialsForm';
+import { Loading } from '@/portainer/components/widget/Loading';
 
 import { KaasProvidersSelector } from './KaasProvidersSelector';
-import { EnvironmentNameForm } from './EnvironmentNameForm/EnvironmentNameForm';
-import { ApiCreateClusterFormContainer } from './ApiCreateClusterForm/ApiCreateClusterFormContainer';
-import { GKECreateClusterFormContainer } from './GKECreateClusterForm/GKECreateClusterFormContainer';
-import { AzureCreateClusterFormContainer } from './AzureCreateClusterForm/AzureCreateClusterFormContainer';
-import { EKSCreateClusterFormContainer } from './EKSCreateClusterForm/EKSCreateClusterFormContainer';
+import { sendKaasProvisionAnalytics } from './utils';
+import { useCloudProviderOptions, useCreateKaasCluster } from './queries';
+import { validationSchema } from './KaaSEnvironmentForm.validation';
+import { ProviderForm } from './ProviderForm';
+import { FormValues, KaasInfo } from './types';
+import { getPayloadParse } from './converter';
 
 interface Props {
-  onCreate?(environment: Environment, analytics: AnalyticsStateKey): void;
+  onCreate(environment: Environment, analytics: AnalyticsStateKey): void;
 }
 
-export function KaasFormGroup({ onCreate }: Props) {
-  const [selectedProvider, setSelectedProvider] = useState<KaasProvider>(
-    KaasProvider.CIVO
-  );
-  const [environmentName, setEnvironmentName] = useState('');
+const initialValues: FormValues = {
+  name: '',
+  nodeCount: 3,
+  kubernetesVersion: '',
+  nodeSize: '',
+  region: '',
+  credentialId: 0,
 
+  meta: {
+    groupId: 1,
+    tagIds: [],
+  },
+
+  google: {
+    cpu: 2,
+    ram: 4,
+    hdd: 100,
+    networkId: '',
+  },
+  api: {
+    networkId: '',
+  },
+  azure: {
+    resourceGroup: '',
+    resourceGroupName: '',
+    tier: 'Free',
+    poolName: '',
+    dnsPrefix: '',
+    availabilityZones: [],
+    resourceGroupInput: 'select',
+  },
+  amazon: {
+    amiType: '',
+    instanceType: '',
+    nodeVolumeSize: 20,
+  },
+};
+
+export function KaaSFormGroup({ onCreate }: Props) {
+  const settingsQuery = useSettings();
+  const createKaasClusterMutation = useCreateKaasCluster();
+
+  const [provider, setProvider] = useState<KaasProvider>(KaasProvider.CIVO);
+  const [credential, setCredential] = useState<Credential | null>(null);
   const { state } = useCurrentStateAndParams();
 
-  // select an initial provider that has credentials available
   const credentialsQuery = useCloudCredentials();
-  useEffect(() => {
-    if (credentialsQuery.data && credentialsQuery.data.length > 0) {
-      const credentialAvailable = credentialsQuery.data.some(
-        (credential) => credential.provider === selectedProvider
-      );
-      if (!credentialAvailable) {
-        setSelectedProvider(credentialsQuery.data[0].provider);
-      }
-      // do nothing if there is a credential available
-      return;
-    }
-    setSelectedProvider(KaasProvider.CIVO);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [credentialsQuery.data]);
 
-  const providerCredentials =
-    credentialsQuery.data?.filter((c) => c.provider === selectedProvider) || [];
+  const cloudOptionsQuery = useCloudProviderOptions<KaasInfo>(
+    provider,
+    isKaasInfo,
+    credential
+  );
 
-  const CreateClusterForm = getForm(selectedProvider);
+  const credentials = credentialsQuery.data;
+
+  const providerCredentials = useMemo(
+    () => credentials?.filter((c) => c.provider === provider) || [],
+    [credentials, provider]
+  );
+
+  const credentialsFound = providerCredentials.length > 0;
 
   return (
     <>
-      {state.name === 'portainer.endpoints.new' && (
-        <FormSectionTitle>Environment details</FormSectionTitle>
-      )}
-      <EnvironmentNameForm
-        environmentName={environmentName}
-        setEnvironmentName={setEnvironmentName}
-      />
-      <FormSectionTitle>Cluster details</FormSectionTitle>
-      <KaasProvidersSelector
-        provider={selectedProvider}
-        onChange={(provider) => {
-          setSelectedProvider(provider);
-        }}
-      />
-      {/* // switch between the create cluster forms based on the selected provider */}
-      {providerCredentials.length >= 1 && (
-        <CreateClusterForm
-          name={environmentName}
-          setName={setEnvironmentName}
-          provider={selectedProvider}
-          credentials={providerCredentials}
-          onCreate={onCreate}
-        />
-      )}
-      {credentialsQuery.isLoading && <Loading />}
-      {credentialsQuery.data && providerCredentials.length === 0 && (
+      <Formik
+        initialValues={initialValues}
+        onSubmit={handleSubmit}
+        validationSchema={() =>
+          validationSchema(provider, cloudOptionsQuery.data)
+        }
+        validateOnMount
+        enableReinitialize
+      >
+        <Form className="form-horizontal">
+          {state.name === 'portainer.endpoints.new' && (
+            <FormSectionTitle>Environment details</FormSectionTitle>
+          )}
+
+          <NameField
+            tooltip="Name of the cluster and environment"
+            placeholder="e.g. my-cluster-name"
+          />
+
+          <FormSection title="Cluster details">
+            <KaasProvidersSelector provider={provider} onChange={setProvider} />
+
+            {credentialsQuery.isLoading ? (
+              <Loading />
+            ) : (
+              <ProviderForm
+                provider={provider}
+                onChangeSelectedCredential={setCredential}
+                credentials={providerCredentials}
+                isSubmitting={createKaasClusterMutation.isLoading}
+              />
+            )}
+          </FormSection>
+        </Form>
+      </Formik>
+
+      {!credentialsFound && (
         <>
-          <Alert>
-            No API key found for {providerTitles[selectedProvider]}. Save your{' '}
-            {providerTitles[selectedProvider]} credentials below, or in
-            the&nbsp;
-            <Link to="portainer.settings.cloud" title="cloud settings">
+          <TextTip color="orange">
+            No API key found for
+            <span className="mx-1">{providerTitles[provider]}.</span>
+            Save your
+            <span className="mx-1">{providerTitles[provider]}</span>
+            credentials below, or in the
+            <Link
+              to="portainer.settings.cloud"
+              title="cloud settings"
+              className="ml-1"
+            >
               cloud settings
             </Link>
             .
-          </Alert>
-          <CredentialsForm selectedProvider={selectedProvider} />
+          </TextTip>
+          <CredentialsForm selectedProvider={provider} />
         </>
       )}
     </>
   );
-}
 
-// to expand when other create cluster forms are added
-function getForm(provider: KaasProvider) {
-  switch (provider) {
-    case KaasProvider.GOOGLE_CLOUD:
-      return GKECreateClusterFormContainer;
-    case KaasProvider.AZURE:
-      return AzureCreateClusterFormContainer;
-    case KaasProvider.AWS:
-      return EKSCreateClusterFormContainer;
-    case KaasProvider.CIVO:
-    case KaasProvider.DIGITAL_OCEAN:
-    case KaasProvider.LINODE:
-    default:
-      return ApiCreateClusterFormContainer;
+  function handleSubmit(
+    values: FormValues,
+    { resetForm }: { resetForm: () => void }
+  ) {
+    if (settingsQuery.data?.EnableTelemetry) {
+      sendKaasProvisionAnalytics(values, provider);
+    }
+
+    const parser = getPayloadParse(provider);
+
+    const payload = parser(values);
+
+    createKaasClusterMutation.mutate(
+      { payload, provider },
+      {
+        onSuccess: (environment) => {
+          onCreate(environment, 'kaasAgent');
+          resetForm();
+        },
+      }
+    );
   }
 }
 
-export const KaasFormGroupAngular = react2angular(KaasFormGroup, ['onCreate']);
+export const KaasFormGroupAngular = react2angular(KaaSFormGroup, ['onCreate']);
+
+function isKaasInfo(value: KaasInfo): value is KaasInfo {
+  return true;
+}

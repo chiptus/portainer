@@ -1,14 +1,19 @@
-import { object, string, number, array } from 'yup';
+import { object, string, number, array, SchemaOf } from 'yup';
 
-export function validationSchema() {
+import { CreateAzureClusterFormValues } from '../types';
+
+export function validationSchema(): SchemaOf<CreateAzureClusterFormValues> {
   return object().shape({
-    resourceGroup: string().when('resourceGroupInput', {
-      is: 'select',
-      then: string().required(
-        'No resource groups available in the selected region, please change region or add a resource group.'
-      ),
-    }),
+    resourceGroup: string()
+      .default('')
+      .when('resourceGroupInput', {
+        is: 'select',
+        then: string().required(
+          'No resource groups available in the selected region, please change region or add a resource group.'
+        ),
+      }),
     resourceGroupName: string()
+      .default('')
       .when('resourceGroupInput', {
         is: 'input',
         then: string().required('Resource group name is required.'),
@@ -30,7 +35,7 @@ export function validationSchema() {
       .min(1, 'Node count must be greater than or equal to 1.')
       .max(1000, 'Node count must be less than or equal to 1000.')
       .required('Node count is required.'),
-    availabilityZones: array().of(string()),
+    availabilityZones: array().of(string()).default([]),
     tier: string().required('Tier is required.'),
     dnsPrefix: string()
       .required('DNS prefix is required.')
@@ -43,6 +48,6 @@ export function validationSchema() {
         /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/,
         'DNS prefix name must start and end with an alphanumeric character.'
       ),
-    kubernetesVersion: string().required('Kubernetes version is required.'),
+    resourceGroupInput: string().oneOf(['select', 'input']).default('select'),
   });
 }

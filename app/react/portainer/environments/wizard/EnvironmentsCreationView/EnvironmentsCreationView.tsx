@@ -7,7 +7,7 @@ import { Stepper } from '@/react/components/Stepper';
 import { Widget, WidgetBody, WidgetTitle } from '@/portainer/components/widget';
 import { notifyError } from '@/portainer/services/notifications';
 import { PageHeader } from '@/portainer/components/PageHeader';
-import { KaasFormGroup } from '@/portainer/environments/kaas/KaasFormGroup';
+import { KaaSFormGroup } from '@/portainer/environments/kaas/KaasFormGroup';
 import { Button } from '@/portainer/components/Button';
 import { Environment, EnvironmentId } from '@/portainer/environments/types';
 import { useAnalytics } from '@/angulartics.matomo/analytics-services';
@@ -55,7 +55,7 @@ export function EnvironmentCreationView() {
     Component,
     isFirstStep,
     isLastStep,
-  } = useStepper(steps, handleFinish);
+  } = useStepper(steps, handleClose);
 
   return (
     <>
@@ -87,7 +87,7 @@ export function EnvironmentCreationView() {
                     <i className="fas fa-arrow-left space-right" /> Previous
                   </Button>
                   <Button onClick={onNextClick}>
-                    {isLastStep ? 'Finish' : 'Next'}
+                    {isLastStep ? 'Close' : 'Next'}
                     <i className="fas fa-arrow-right space-left" />
                   </Button>
                 </div>
@@ -110,7 +110,7 @@ export function EnvironmentCreationView() {
     setAnalytics(analytics);
   }
 
-  function handleFinish() {
+  function handleClose() {
     trackEvent('endpoint-wizard-environment-add-finish', {
       category: 'portainer',
       metadata: Object.fromEntries(
@@ -120,8 +120,8 @@ export function EnvironmentCreationView() {
         ])
       ),
     });
-    if (localStorage.getItem('wizardRefferer') === 'environments') {
-      localStorage.removeItem('wizardRefferer');
+    if (localStorage.getItem('wizardReferer') === 'environments') {
+      localStorage.removeItem('wizardReferer');
       router.stateService.go('portainer.endpoints');
       return;
     }
@@ -185,7 +185,7 @@ function useStepper(
       case 'kubernetes':
         return WizardKubernetes;
       case 'kaas':
-        return KaasFormGroup;
+        return KaaSFormGroup;
       case 'nomad':
         return WizardNomad;
       default:

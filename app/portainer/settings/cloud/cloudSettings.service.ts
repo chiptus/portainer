@@ -111,6 +111,7 @@ export function useCloudCredential(id: number) {
 
 export function useCloudCredentials() {
   return useQuery('cloudcredentials', () => getCloudCredentials(), {
+    staleTime: 20,
     meta: {
       error: {
         title: 'Failure',

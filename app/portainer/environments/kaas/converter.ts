@@ -1,4 +1,5 @@
 import { Option } from '@/portainer/components/form-components/Input/Select';
+import { KaasProvider } from '@/portainer/settings/cloud/types';
 
 import {
   KaasInfo,
@@ -7,6 +8,11 @@ import {
   NetworkInfo,
   isGKEKaasInfoResponse,
   isEksKaasInfoResponse,
+  CreateApiClusterPayload,
+  CreateAzureClusterPayload,
+  CreateEksClusterPayload,
+  CreateGKEClusterPayload,
+  FormValues,
 } from './types';
 
 function buildOption(value: string, label?: string): Option<string> {
@@ -65,4 +71,80 @@ export function parseKaasInfoResponse(response: KaasInfoResponse): KaasInfo {
     regions,
     kubernetesVersions,
   };
+}
+
+export function getPayloadParse(provider: KaasProvider) {
+  switch (provider) {
+    case KaasProvider.GOOGLE_CLOUD:
+      return googlePayload;
+    case KaasProvider.CIVO:
+    case KaasProvider.LINODE:
+    case KaasProvider.DIGITAL_OCEAN:
+      return apiPayload;
+    case KaasProvider.AZURE:
+      return azurePayload;
+    case KaasProvider.AWS:
+      return amazonPayload;
+    default:
+      throw new Error('Unsupported provider');
+  }
+
+  function googlePayload({
+    azure,
+    api,
+    amazon,
+    google: { cpu, ram, ...google },
+    ...values
+  }: FormValues): CreateGKEClusterPayload {
+    if (values.nodeSize === 'custom') {
+      return { cpu, ram, ...google, ...values };
+    }
+
+    return { ...google, ...values };
+  }
+
+  function apiPayload({
+    amazon,
+    azure,
+    google,
+    api,
+    ...values
+  }: FormValues): CreateApiClusterPayload {
+    return { ...api, ...values };
+  }
+
+  function azurePayload({
+    amazon,
+    azure,
+    google,
+    api,
+    ...values
+  }: FormValues): CreateAzureClusterPayload {
+    let resourceGroup = '';
+    let { resourceGroupName } = azure;
+    if (azure.resourceGroupInput === 'select') {
+      resourceGroup = azure.resourceGroup;
+      resourceGroupName = '';
+    }
+
+    return {
+      ...azure,
+      ...values,
+      resourceGroup,
+      resourceGroupName,
+    };
+  }
+
+  function amazonPayload({
+    amazon,
+    azure,
+    google,
+    api,
+    ...values
+  }: FormValues): CreateEksClusterPayload {
+    return {
+      ...amazon,
+      ...values,
+    };
+  }
 }

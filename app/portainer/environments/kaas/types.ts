@@ -1,23 +1,19 @@
 import { Option } from '@/portainer/components/form-components/Input/Select';
 import { EnvironmentMetadata } from '@/portainer/environments/environment.service/create';
 
-// Form values
 interface CreateBaseClusterFormValues {
   kubernetesVersion: string;
   region: string;
   credentialId: number;
-  meta: EnvironmentMetadata;
   nodeCount: number;
   nodeSize: string;
 }
 
-export interface CreateApiClusterFormValues
-  extends CreateBaseClusterFormValues {
-  networkId?: string;
+export interface CreateApiClusterFormValues {
+  networkId: string;
 }
 
-export interface CreateAzureClusterFormValues
-  extends CreateBaseClusterFormValues {
+export interface CreateAzureClusterFormValues {
   resourceGroup: string;
   resourceGroupName?: string;
   tier: string;
@@ -27,66 +23,31 @@ export interface CreateAzureClusterFormValues
   resourceGroupInput: string;
 }
 
-export interface CreateGKEClusterFormValues
-  extends CreateBaseClusterFormValues {
+export interface CreateGKEClusterFormValues {
   cpu: number;
   ram: number;
   hdd: number;
   networkId: string;
 }
 
-export function isApiClusterFormValues(
-  values: CreateBaseClusterFormValues
-): values is CreateApiClusterFormValues {
-  return !('cpu' in values) && !('availabilityZones' in values);
-}
-
-export function isAzureClusterFormValues(
-  values: CreateBaseClusterFormValues
-): values is CreateAzureClusterFormValues {
-  return 'resourceGroup' in values;
-}
-
-export function isGkeClusterFormValues(
-  values: CreateBaseClusterFormValues
-): values is CreateGKEClusterFormValues {
-  return 'cpu' in values;
-}
-export interface CreateEKSClusterFormValues
-  extends CreateBaseClusterFormValues {
+export interface CreateEKSClusterFormValues {
   amiType: string;
   instanceType: string;
   nodeVolumeSize: number;
 }
 
-export type CreateClusterFormValues =
-  | CreateApiClusterFormValues
-  | CreateAzureClusterFormValues
-  | CreateGKEClusterFormValues
-  | CreateEKSClusterFormValues;
+export interface FormValues extends CreateBaseClusterFormValues {
+  name: string;
+  meta: EnvironmentMetadata;
 
-export function isAPIClusterFormValues(
-  formValues: CreateClusterFormValues
-): formValues is CreateApiClusterFormValues {
-  return 'nodeSize' in formValues;
-}
-
-export function isGKEClusterFormValues(
-  formValues: CreateClusterFormValues
-): formValues is CreateGKEClusterFormValues {
-  return 'cpu' in formValues;
-}
-
-export function isEKSClusterFormValues(
-  formValues: CreateClusterFormValues
-): formValues is CreateEKSClusterFormValues {
-  return 'instanceType' in formValues;
+  azure: CreateAzureClusterFormValues;
+  google: CreateGKEClusterFormValues;
+  api: CreateApiClusterFormValues;
+  amazon: CreateEKSClusterFormValues;
 }
 
 // Create KaaS cluster payloads
-export interface CreateApiClusterPayload extends CreateApiClusterFormValues {
-  name: string;
-}
+export type CreateApiClusterPayload = CreateApiClusterFormValues;
 
 export interface CreateAzureClusterPayload
   extends CreateAzureClusterFormValues {
@@ -94,8 +55,6 @@ export interface CreateAzureClusterPayload
 }
 
 export interface CreateGKEClusterPayload extends CreateBaseClusterFormValues {
-  name: string;
-  nodeSize: string;
   cpu?: number;
   ram?: number;
   hdd: number;

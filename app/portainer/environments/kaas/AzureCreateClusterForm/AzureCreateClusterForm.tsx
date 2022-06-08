@@ -1,12 +1,9 @@
-import { Field, Form, useFormikContext } from 'formik';
-import { useEffect, useMemo, useState } from 'react';
-import { UseQueryResult } from 'react-query';
+import { Field, useFormikContext } from 'formik';
+import { useMemo, useState } from 'react';
 
 import { Select as ReactSelect } from '@/portainer/components/form-components/ReactSelect';
 import { FormControl } from '@/portainer/components/form-components/FormControl';
 import { Input, Select } from '@/portainer/components/form-components/Input';
-import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
-import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
 import { Loading } from '@/portainer/components/widget/Loading';
 import {
   Credential,
@@ -16,48 +13,46 @@ import {
 import { Option } from '@/portainer/components/form-components/Input/Select';
 import { Alert } from '@/portainer/components/Alert';
 import { Link } from '@/portainer/components/Link';
-import { MetadataFieldset } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MetadataFieldset';
+import { TextTip } from '@/portainer/components/Tip/TextTip';
+import { MoreSettingsSection } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MoreSettingsSection';
 
 import { useCloudProviderOptions } from '../queries';
-import {
-  AzureKaasInfo,
-  CreateAzureClusterFormValues,
-  isAzureKaasInfo,
-} from '../types';
+import { FormValues, isAzureKaasInfo } from '../types';
 import { useSetAvailableOption } from '../useSetAvailableOption';
-import { useIsKaasNameValid } from '../useIsKaasNameValid';
+import { CredentialsField } from '../shared/CredentialsField';
+import { ActionsSection } from '../shared/ActionsSection';
 
 type Props = {
   credentials: Credential[];
   provider: KaasProvider;
-  name: string;
+  isSubmitting: boolean;
 };
 
 // ApiCreateClusterForm handles form changes, conditionally renders inputs, and manually set values
-export function AzureCreateClusterForm({ credentials, provider, name }: Props) {
-  const { values, errors, handleSubmit, isSubmitting, isValid, setFieldValue } =
-    useFormikContext<CreateAzureClusterFormValues>();
+export function AzureCreateClusterForm({
+  credentials,
+  provider,
+  isSubmitting,
+}: Props) {
+  const { values, errors, setFieldValue } = useFormikContext<FormValues>();
   const {
     region,
     credentialId,
     nodeSize,
     kubernetesVersion,
-    resourceGroup,
-    tier,
-    availabilityZones,
-    resourceGroupInput,
+    azure: { resourceGroup, tier, availabilityZones, resourceGroupInput },
   } = values;
-  const [isOptionsForce, setisOptionsForce] = useState(false);
-  const [selectedCredential, setSelectedCredential] = useState<Credential>(
-    credentials[0]
-  );
-  const cloudOptionsQuery = useCloudProviderOptions(
-    selectedCredential,
-    provider,
-    isOptionsForce
-  ) as UseQueryResult<AzureKaasInfo>;
+  const [isOptionsForce, setIsOptionsForce] = useState(false);
 
-  const isNameValid = useIsKaasNameValid(name);
+  const selectedCredential =
+    credentials.find((c) => c.id === credentialId) || credentials[0];
+
+  const cloudOptionsQuery = useCloudProviderOptions(
+    provider,
+    isAzureKaasInfo,
+    selectedCredential,
+    isOptionsForce
+  );
 
   // update the node size options based on the selected region
   const filteredNodeSizes = useMemo(() => {
@@ -108,33 +103,14 @@ export function AzureCreateClusterForm({ credentials, provider, name }: Props) {
       resourceGroups: [],
     };
 
-  // if the selected credential id changes, update the selected credential details
-  useEffect(() => {
-    setSelectedCredential(
-      credentials.find((c) => c.id === Number(credentialId)) || credentials[0]
-    );
-  }, [credentialId, setSelectedCredential, credentials]);
-
-  const credentialOptions: Option<number>[] = credentials.map((c) => ({
-    value: c.id,
-    label: c.name,
-  }));
-
-  // update credential details when the selected credential changes
-  useEffect(() => {
-    setSelectedCredential(
-      credentials.find((c) => c.id === Number(credentialId)) || credentials[0]
-    );
-  }, [credentialId, setSelectedCredential, credentials]);
-
   // when the options change, set the available options in the select inputs
   useSetAvailableOption(
     resourceGroups,
     resourceGroup,
-    'resourceGroup',
+    'azure.resourceGroup',
     'None available'
   );
-  useSetAvailableOption(tiers, tier, 'tier');
+  useSetAvailableOption(tiers, tier, 'azure.tier');
   useSetAvailableOption(regions, region, 'region');
   useSetAvailableOption(
     kubernetesVersions,
@@ -144,23 +120,9 @@ export function AzureCreateClusterForm({ credentials, provider, name }: Props) {
   useSetAvailableOption(filteredNodeSizes, nodeSize, 'nodeSize');
 
   return (
-    <Form className="form-horizontal" onSubmit={handleSubmit} noValidate>
-      <FormControl
-        label="Credentials"
-        tooltip="Credentials to create your cluster"
-        inputId="kaas-credential"
-        errors={errors.credentialId}
-      >
-        <Field
-          name="credentialId"
-          as={Select}
-          type="number"
-          id="kaas-credential"
-          data-cy="kaasCreateForm-crdentialSelect"
-          disabled={credentialOptions.length <= 1}
-          options={credentialOptions}
-        />
-      </FormControl>
+    <>
+      <CredentialsField credentials={credentials} />
+
       {cloudOptionsQuery.isError && (
         <Alert>
           Error getting {providerTitles[provider]} info. Go to&nbsp;
@@ -208,7 +170,7 @@ export function AzureCreateClusterForm({ credentials, provider, name }: Props) {
                 >
                   <Field
                     type="radio"
-                    name="resourceGroupInput"
+                    name="azure.resourceGroupInput"
                     id="radioSelect"
                     className="form-radio !mt-0"
                     value="select"
@@ -223,7 +185,7 @@ export function AzureCreateClusterForm({ credentials, provider, name }: Props) {
                 >
                   <Field
                     type="radio"
-                    name="resourceGroupInput"
+                    name="azure.resourceGroupInput"
                     id="radioInput"
                     className="form-radio !mt-0"
                     value="input"
@@ -247,7 +209,7 @@ export function AzureCreateClusterForm({ credentials, provider, name }: Props) {
                 }
               >
                 <Field
-                  name="resourceGroup"
+                  name="azure.resourceGroup"
                   as={Select}
                   id="kaas-resourceGroup"
                   data-cy="kaasCreateForm-resourceGroup"
@@ -261,11 +223,11 @@ export function AzureCreateClusterForm({ credentials, provider, name }: Props) {
               <FormControl
                 label=""
                 inputId="kaas-resourceGroupName"
-                errors={errors.resourceGroupName}
+                errors={errors.azure?.resourceGroupName}
                 classes="!mt-2"
               >
                 <Field
-                  name="resourceGroupName"
+                  name="azure.resourceGroupName"
                   as={Input}
                   id="kaas-resourceGroupName"
                   placeholder="e.g my-resource-group"
@@ -277,10 +239,10 @@ export function AzureCreateClusterForm({ credentials, provider, name }: Props) {
               label="Node pool name"
               tooltip="Name of the node pool(s) within the cluster"
               inputId="kaas-name"
-              errors={errors.poolName}
+              errors={errors.azure?.poolName}
             >
               <Field
-                name="poolName"
+                name="azure.poolName"
                 as={Input}
                 id="kaas-poolName"
                 data-cy="kaasCreateForm-poolNameInput"
@@ -334,7 +296,7 @@ export function AzureCreateClusterForm({ credentials, provider, name }: Props) {
               label="Availability zones"
               tooltip="A high-availability offering that allows you to spread the nodes in this node pool across multiple physical locations, protecting your applications from datacenter failures"
               inputId="kaas-availabilityZoneOptions"
-              errors={errors.availabilityZones}
+              errors={errors.azure?.availabilityZones}
             >
               {availabilityZoneOptions.length === 0 && (
                 <Field
@@ -365,7 +327,7 @@ export function AzureCreateClusterForm({ credentials, provider, name }: Props) {
                   }
                   onChange={(options: Option<string>[]) =>
                     setFieldValue(
-                      'availabilityZones',
+                      'azure.availabilityZones',
                       options.map((o) => o.value)
                     )
                   }
@@ -380,10 +342,10 @@ export function AzureCreateClusterForm({ credentials, provider, name }: Props) {
               label="API server availability"
               tooltip="The uptime service level agreement that guarantees a Kubernetes API server uptime of 99.95% for clusters with one or more availability zones and 99.9% for all other clusters"
               inputId="kaas-tier"
-              errors={errors.tier}
+              errors={errors.azure?.tier}
             >
               <Field
-                name="tier"
+                name="azure.tier"
                 as={Select}
                 id="kaas-tier"
                 data-cy="kaasCreateForm-tierSelect"
@@ -396,10 +358,10 @@ export function AzureCreateClusterForm({ credentials, provider, name }: Props) {
               label="DNS name prefix"
               tooltip="DNS name prefix to use with the hosted Kubernetes API server FQDN. You will use this to connect to the Kubernetes API when managing containers after creating the cluster."
               inputId="kaas-dnsPrefix"
-              errors={errors.dnsPrefix}
+              errors={errors.azure?.dnsPrefix}
             >
               <Field
-                name="dnsPrefix"
+                name="azure.dnsPrefix"
                 as={Input}
                 data-cy="kaasCreateForm-dnsPrefix"
                 id="kaas-dnsPrefix"
@@ -423,35 +385,25 @@ export function AzureCreateClusterForm({ credentials, provider, name }: Props) {
             </FormControl>
           </>
         )}
-      <MetadataFieldset />
-      <FormSectionTitle>Actions</FormSectionTitle>
-      <div className="form-group">
-        <div className="col-sm-12">
-          <LoadingButton
-            disabled={!isValid || !isNameValid}
-            isLoading={isSubmitting}
-            loadingText="Provision in progress..."
-          >
-            <i className="fa fa-plus space-right" aria-hidden="true" />
-            Provision environment
-          </LoadingButton>
-          <LoadingButton
-            type="button"
-            color="default"
-            onClick={() => {
-              setisOptionsForce(true);
-              cloudOptionsQuery.refetch();
-            }}
-            isLoading={
-              cloudOptionsQuery.isLoading || cloudOptionsQuery.isFetching
-            }
-            loadingText="Reloading details..."
-          >
-            <i className="fa fa-sync space-right" aria-hidden="true" />
-            Reload cluster details
-          </LoadingButton>
-        </div>
-      </div>
-    </Form>
+
+      <MoreSettingsSection>
+        <TextTip color="blue">
+          Metadata is only assigned to the environment in Portainer, i.e. the
+          group and tags are not assigned to the cluster at the cloud provider
+          end.
+        </TextTip>
+      </MoreSettingsSection>
+
+      <ActionsSection
+        onReloadClick={() => {
+          setIsOptionsForce(true);
+          cloudOptionsQuery.refetch();
+        }}
+        isReloading={
+          cloudOptionsQuery.isLoading || cloudOptionsQuery.isFetching
+        }
+        isSubmitting={isSubmitting}
+      />
+    </>
   );
 }

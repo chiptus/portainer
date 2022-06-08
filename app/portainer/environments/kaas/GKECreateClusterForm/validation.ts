@@ -1,8 +1,6 @@
-import { object, number } from 'yup';
+import { object, number, SchemaOf, string } from 'yup';
 
-import { metadataValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MetadataFieldset/validation';
-
-import { GKEKaasInfo } from '../types';
+import { CreateGKEClusterFormValues, isGKEKaasInfo, KaasInfo } from '../types';
 
 // for E2 machines, min is 0.5GB per vCPU
 export function minGKERam(cpu: number) {
@@ -14,12 +12,15 @@ export function maxGKERam(cpu: number) {
   return Math.min(cpu * 8, 128);
 }
 
-export function validationSchema(vCPUCount: number, kaasInfo?: GKEKaasInfo) {
-  let cpuSchema;
-  let ramSchema;
-  let hddSchema;
-  if (kaasInfo) {
-    cpuSchema = number()
+export function validationSchema(
+  kaasInfo?: KaasInfo | null
+): SchemaOf<CreateGKEClusterFormValues> {
+  let cpuSchema = number();
+  let ramSchema = number();
+  let hddSchema = number();
+
+  if (kaasInfo && isGKEKaasInfo(kaasInfo)) {
+    cpuSchema = cpuSchema
       .min(
         kaasInfo.cpu.min,
         `Node vCPUs must be greater than or equal to ${kaasInfo.cpu.min}.`
@@ -28,16 +29,18 @@ export function validationSchema(vCPUCount: number, kaasInfo?: GKEKaasInfo) {
         kaasInfo.cpu.max,
         `Node vCPUs must be less than or equal to ${kaasInfo.cpu.max}.`
       );
-    ramSchema = number()
-      .min(
-        minGKERam(vCPUCount),
-        `Node RAM must be greater than or equal to ${minGKERam(vCPUCount)} GB.`
-      )
-      .max(
-        maxGKERam(vCPUCount),
-        `Node RAM must be less than or equal to ${maxGKERam(vCPUCount)} GB.`
-      );
-    hddSchema = number()
+    ramSchema = ramSchema.when('cpu', (cpu, schema) =>
+      schema
+        .min(
+          minGKERam(cpu),
+          `Node RAM must be greater than or equal to ${minGKERam(cpu)} GB.`
+        )
+        .max(
+          maxGKERam(cpu),
+          `Node RAM must be less than or equal to ${maxGKERam(cpu)} GB.`
+        )
+    );
+    hddSchema = hddSchema
       .min(
         kaasInfo.hdd.min,
         `Node disk space must be greater than or equal to ${kaasInfo.hdd.min} GB.`
@@ -46,10 +49,6 @@ export function validationSchema(vCPUCount: number, kaasInfo?: GKEKaasInfo) {
         kaasInfo.hdd.max,
         `Node disk space must be less than or equal to ${kaasInfo.hdd.max} GB.`
       );
-  } else {
-    cpuSchema = number();
-    ramSchema = number();
-    hddSchema = number();
   }
 
   return object().shape({
@@ -72,6 +71,6 @@ export function validationSchema(vCPUCount: number, kaasInfo?: GKEKaasInfo) {
     hdd: hddSchema
       .integer('HDD must be an integer.')
       .required('HDD is required.'),
-    meta: metadataValidation(),
+    networkId: string().required('Network ID is required.'),
   });
 }

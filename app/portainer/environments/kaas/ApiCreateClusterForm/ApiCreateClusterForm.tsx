@@ -1,88 +1,76 @@
-import { Field, Form, useFormikContext } from 'formik';
+import { Field, useFormikContext } from 'formik';
 import { useEffect, useMemo, useState } from 'react';
-import { UseQueryResult } from 'react-query';
 
 import { FormControl } from '@/portainer/components/form-components/FormControl';
 import { Input, Select } from '@/portainer/components/form-components/Input';
-import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
-import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
 import { Loading } from '@/portainer/components/widget/Loading';
 import {
   Credential,
   KaasProvider,
   providerTitles,
 } from '@/portainer/settings/cloud/types';
-import { Option } from '@/portainer/components/form-components/Input/Select';
 import { Alert } from '@/portainer/components/Alert/Alert';
 import { Link } from '@/portainer/components/Link';
+import { TextTip } from '@/portainer/components/Tip/TextTip';
 import { MoreSettingsSection } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MoreSettingsSection';
 
 import { useCloudProviderOptions } from '../queries';
-import {
-  APIKaasInfo,
-  CreateApiClusterFormValues,
-  isAPIKaasInfo,
-} from '../types';
+import { FormValues, isAPIKaasInfo } from '../types';
 import { useSetAvailableOption } from '../useSetAvailableOption';
-import { useIsKaasNameValid } from '../useIsKaasNameValid';
+import { CredentialsField } from '../shared/CredentialsField';
+import { ActionsSection } from '../shared/ActionsSection';
 
 type Props = {
   credentials: Credential[];
   provider: KaasProvider;
-  name: string;
+  isSubmitting: boolean;
 };
 
 // ApiCreateClusterForm handles form changes, conditionally renders inputs, and manually set values
-export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
-  const [isOptionsForce, setisOptionsForce] = useState(false);
-  const { values, setFieldValue, errors, handleSubmit, isSubmitting, isValid } =
-    useFormikContext<CreateApiClusterFormValues>();
-  const { region, credentialId, networkId, nodeSize, kubernetesVersion } =
-    values;
-  const [selectedCredential, setSelectedCredential] = useState<Credential>(
-    credentials[0]
-  );
+export function ApiCreateClusterForm({
+  credentials,
+  provider,
+  isSubmitting,
+}: Props) {
+  const [isOptionsForce, setIsOptionsForce] = useState(false);
+  const { values, setFieldValue, errors } = useFormikContext<FormValues>();
+  const {
+    region,
+    credentialId,
+    nodeSize,
+    kubernetesVersion,
+    api: { networkId },
+  } = values;
+
+  const selectedCredential =
+    credentials.find((c) => c.id === credentialId) || credentials[0];
+
   const cloudOptionsQuery = useCloudProviderOptions(
-    selectedCredential,
     provider,
+    isAPIKaasInfo,
+    selectedCredential,
     isOptionsForce
-  ) as UseQueryResult<APIKaasInfo>;
-  const isNameValid = useIsKaasNameValid(name);
+  );
+
+  const cloudOptions = cloudOptionsQuery.data;
 
   const filteredNetworkOptions = useMemo(
-    () => cloudOptionsQuery?.data?.networks?.[region] || [],
-    [region, cloudOptionsQuery.data]
+    () => cloudOptions?.networks?.[region] || [],
+    [cloudOptions?.networks, region]
   );
-
-  // if the selected credential id changes, update the selected credential details
-  useEffect(() => {
-    setSelectedCredential(
-      credentials.find((c) => c.id === Number(credentialId)) || credentials[0]
-    );
-  }, [credentialId, setSelectedCredential, credentials]);
 
   // if the credentials change, select the first credential available
   useEffect(() => {
     const credential = credentials[0];
-    setSelectedCredential(credential);
     setFieldValue('credentialId', credential.id);
   }, [credentials, setFieldValue]);
 
-  const credentialOptions: Option<number>[] = credentials.map((c) => ({
-    value: c.id,
-    label: c.name,
-  }));
-
   // when the options change, set the available options in the select inputs
-  useSetAvailableOption(filteredNetworkOptions, networkId || '', 'networkId');
-  useSetAvailableOption(cloudOptionsQuery.data?.regions, region, 'region');
+  useSetAvailableOption(filteredNetworkOptions, networkId, 'api.networkId');
+  useSetAvailableOption(cloudOptions?.regions, region, 'region');
+  useSetAvailableOption(cloudOptions?.nodeSizes, nodeSize, 'nodeSize');
   useSetAvailableOption(
-    cloudOptionsQuery.data?.nodeSizes,
-    nodeSize,
-    'nodeSize'
-  );
-  useSetAvailableOption(
-    cloudOptionsQuery.data?.kubernetesVersions,
+    cloudOptions?.kubernetesVersions,
     kubernetesVersion,
     'kubernetesVersion'
   );
@@ -90,28 +78,13 @@ export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
   // when the region changes, update the selected network
   useEffect(() => {
     if (filteredNetworkOptions.length > 0 && region) {
-      setFieldValue('networkId', filteredNetworkOptions[0].value);
+      setFieldValue('api.networkId', filteredNetworkOptions[0].value);
     }
   }, [region, filteredNetworkOptions, setFieldValue]);
 
   return (
-    <Form className="form-horizontal" onSubmit={handleSubmit} noValidate>
-      <FormControl
-        label="Credentials"
-        tooltip="Credentials to create your cluster"
-        inputId="kaas-credential"
-        errors={errors.credentialId}
-      >
-        <Field
-          name="credentialId"
-          as={Select}
-          type="number"
-          id="kaas-credential"
-          data-cy="kaasCreateForm-credentialSelect"
-          disabled={credentialOptions.length <= 1}
-          options={credentialOptions}
-        />
-      </FormControl>
+    <>
+      <CredentialsField credentials={credentials} />
       {cloudOptionsQuery.isError && (
         <Alert>
           Error getting {providerTitles[provider]} info. Go to&nbsp;
@@ -129,119 +102,105 @@ export function ApiCreateClusterForm({ credentials, provider, name }: Props) {
         <Loading />
       )}
       {/* cluster details inputs */}
-      {cloudOptionsQuery.data &&
-        isAPIKaasInfo(cloudOptionsQuery.data) &&
-        !cloudOptionsQuery.isFetching && (
-          <>
-            <FormControl
-              label="Region"
-              tooltip="Region in which to provision the cluster"
-              inputId="kaas-region"
-              errors={errors.region}
-            >
-              <Field
-                name="region"
-                as={Select}
-                id="kaa-region"
-                data-cy="kaasCreateForm-regionSelect"
-                options={cloudOptionsQuery.data.regions}
-              />
-            </FormControl>
-            <FormControl
-              label="Node size"
-              tooltip="Size of each node deployed in the cluster"
-              inputId="kaas-nodeSize"
-              errors={errors.nodeSize}
-            >
-              <Field
-                name="nodeSize"
-                as={Select}
-                id="kaas-nodeSize"
-                data-cy="kaasCreateForm-nodeSizeSelect"
-                options={cloudOptionsQuery.data?.nodeSizes}
-              />
-            </FormControl>
-            <FormControl
-              label="Node count"
-              tooltip="Number of nodes to provision in the cluster"
-              inputId="kaas-nodeCount"
-              errors={errors.nodeCount}
-            >
-              <Field
-                name="nodeCount"
-                as={Input}
-                type="number"
-                data-cy="kaasCreateForm-nodeCountInput"
-                min={1}
-                max={1000}
-                id="kaas-nodeCount"
-                placeholder="3"
-              />
-            </FormControl>
-            {region && filteredNetworkOptions.length > 0 && (
-              <FormControl
-                label="Network ID"
-                tooltip="ID of network attached to the cluster"
-                inputId="kaas-networkId"
-                errors={errors.networkId}
-              >
-                <Field
-                  name="networkId"
-                  as={Select}
-                  id="kaas-networkId"
-                  data-cy="kaasCreateForm-networkIdSelect"
-                  disabled={filteredNetworkOptions.length === 1}
-                  options={filteredNetworkOptions}
-                />
-              </FormControl>
-            )}
-            <FormControl
-              label="Kubernetes version"
-              tooltip="Kubernetes version running on the cluster"
-              inputId="kaas-kubernetesVersion"
-              errors={errors.kubernetesVersion}
-            >
-              <Field
-                name="kubernetesVersion"
-                as={Select}
-                id="kaas-kubernetesVersion"
-                data-cy="kaasCreateForm-kubernetesVersionSelect"
-                options={cloudOptionsQuery.data?.kubernetesVersions}
-              />
-            </FormControl>
-          </>
-        )}
-
-      <MoreSettingsSection />
-
-      <FormSectionTitle>Actions</FormSectionTitle>
-      <div className="form-group">
-        <div className="col-sm-12">
-          <LoadingButton
-            disabled={!isValid || !isNameValid}
-            isLoading={isSubmitting}
-            loadingText="Provision in progress..."
+      {cloudOptions && (
+        <>
+          <FormControl
+            label="Region"
+            tooltip="Region in which to provision the cluster"
+            inputId="kaas-region"
+            errors={errors.region}
           >
-            <i className="fa fa-plus space-right" aria-hidden="true" />
-            Provision environment
-          </LoadingButton>
-          <LoadingButton
-            type="button"
-            color="default"
-            onClick={() => {
-              setisOptionsForce(true);
-              cloudOptionsQuery.refetch();
-            }}
-            isLoading={
-              cloudOptionsQuery.isLoading || cloudOptionsQuery.isFetching
-            }
-            loadingText="Reloading details..."
+            <Field
+              name="region"
+              as={Select}
+              id="kaa-region"
+              data-cy="kaasCreateForm-regionSelect"
+              options={cloudOptions.regions}
+            />
+          </FormControl>
+          <FormControl
+            label="Node size"
+            tooltip="Size of each node deployed in the cluster"
+            inputId="kaas-nodeSize"
+            errors={errors.nodeSize}
           >
-            <i className="fa fa-sync space-right" aria-hidden="true" />
-            Reload cluster details
-          </LoadingButton>
-        </div>
-      </div>
-    </Form>
+            <Field
+              name="nodeSize"
+              as={Select}
+              id="kaas-nodeSize"
+              data-cy="kaasCreateForm-nodeSizeSelect"
+              options={cloudOptions.nodeSizes}
+            />
+          </FormControl>
+          <FormControl
+            label="Node count"
+            tooltip="Number of nodes to provision in the cluster"
+            inputId="kaas-nodeCount"
+            errors={errors.nodeCount}
+          >
+            <Field
+              name="nodeCount"
+              as={Input}
+              type="number"
+              data-cy="kaasCreateForm-nodeCountInput"
+              min={1}
+              max={1000}
+              id="kaas-nodeCount"
+              placeholder="3"
+            />
+          </FormControl>
+          {region && filteredNetworkOptions.length > 0 && (
+            <FormControl
+              label="Network ID"
+              tooltip="ID of network attached to the cluster"
+              inputId="kaas-networkId"
+              errors={errors.api?.networkId}
+            >
+              <Field
+                name="api.networkId"
+                as={Select}
+                id="kaas-networkId"
+                data-cy="kaasCreateForm-networkIdSelect"
+                disabled={filteredNetworkOptions.length === 1}
+                options={filteredNetworkOptions}
+              />
+            </FormControl>
+          )}
+          <FormControl
+            label="Kubernetes version"
+            tooltip="Kubernetes version running on the cluster"
+            inputId="kaas-kubernetesVersion"
+            errors={errors.kubernetesVersion}
+          >
+            <Field
+              name="kubernetesVersion"
+              as={Select}
+              id="kaas-kubernetesVersion"
+              data-cy="kaasCreateForm-kubernetesVersionSelect"
+              options={cloudOptions.kubernetesVersions}
+            />
+          </FormControl>
+        </>
+      )}
+
+      <MoreSettingsSection>
+        <TextTip color="blue">
+          Metadata is only assigned to the environment in Portainer, i.e. the
+          group and tags are not assigned to the cluster at the cloud provider
+          end.
+        </TextTip>
+      </MoreSettingsSection>
+
+      <ActionsSection
+        onReloadClick={() => {
+          setIsOptionsForce(true);
+          cloudOptionsQuery.refetch();
+        }}
+        isReloading={
+          cloudOptionsQuery.isLoading || cloudOptionsQuery.isFetching
+        }
+        isSubmitting={isSubmitting}
+      />
+    </>
   );
 }

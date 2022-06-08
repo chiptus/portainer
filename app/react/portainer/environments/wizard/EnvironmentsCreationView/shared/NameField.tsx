@@ -7,21 +7,33 @@ import { getEndpoints } from '@/portainer/environments/environment.service';
 
 interface Props {
   readonly?: boolean;
+  tooltip?: string;
+  placeholder?: string;
 }
 
-export function NameField({ readonly }: Props) {
+export function NameField({
+  readonly,
+  tooltip,
+  placeholder = 'e.g. docker-prod01 / kubernetes-cluster01',
+}: Props) {
   const [, meta] = useField('name');
 
   const id = 'name-input';
 
   return (
-    <FormControl label="Name" required errors={meta.error} inputId={id}>
+    <FormControl
+      label="Name"
+      required
+      errors={meta.error}
+      inputId={id}
+      tooltip={tooltip}
+    >
       <Field
         id={id}
         name="name"
         as={Input}
         data-cy="endpointCreate-nameInput"
-        placeholder="e.g. docker-prod01 / kubernetes-cluster01"
+        placeholder={placeholder}
         readOnly={readonly}
       />
     </FormControl>

@@ -1,11 +1,8 @@
-import { Field, Form, useFormikContext } from 'formik';
+import { Field, useFormikContext } from 'formik';
 import { useEffect, useMemo, useState } from 'react';
-import { UseQueryResult } from 'react-query';
 
 import { FormControl } from '@/portainer/components/form-components/FormControl';
 import { Input, Select } from '@/portainer/components/form-components/Input';
-import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
-import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
 import { Loading } from '@/portainer/components/widget/Loading';
 import {
   Credential,
@@ -14,143 +11,102 @@ import {
 } from '@/portainer/settings/cloud/types';
 import { WarningAlert } from '@/portainer/components/Alert/WarningAlert';
 import { Link } from '@/portainer/components/Link';
+import { TextTip } from '@/portainer/components/Tip/TextTip';
 import { MoreSettingsSection } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MoreSettingsSection';
 
 import { useCloudProviderOptions } from '../queries';
 import { useSetAvailableOption } from '../useSetAvailableOption';
-import {
-  CreateGKEClusterFormValues,
-  isGKEKaasInfo,
-  GKEKaasInfo,
-} from '../types';
-import { useIsKaasNameValid } from '../useIsKaasNameValid';
+import { FormValues, isGKEKaasInfo } from '../types';
+import { CredentialsField } from '../shared/CredentialsField';
+import { ActionsSection } from '../shared/ActionsSection';
 
 import { maxGKERam, minGKERam } from './validation';
 
 type Props = {
   credentials: Credential[];
   provider: KaasProvider;
-  name: string;
-  setGKEKaasInfo: (info: GKEKaasInfo) => void;
-  setvCPUCount: (vCPUCount: number) => void;
+  isSubmitting: boolean;
 };
 
 export function GKECreateClusterForm({
   credentials,
   provider,
-  name,
-  setGKEKaasInfo,
-  setvCPUCount,
+  isSubmitting,
 }: Props) {
-  const { values, setFieldValue, errors, handleSubmit, isSubmitting, isValid } =
-    useFormikContext<CreateGKEClusterFormValues>();
+  const { values, setFieldValue, errors } = useFormikContext<FormValues>();
   const {
     region,
     credentialId,
-    cpu,
-    ram,
     kubernetesVersion,
-    networkId,
     nodeSize,
+    google: { networkId, cpu, ram },
   } = values;
-  const [isOptionsForce, setisOptionsForce] = useState(false);
-  const [selectedCredential, setSelectedCredential] = useState<Credential>(
-    credentials[0]
-  );
+  const [isOptionsForce, setIsOptionsForce] = useState(false);
+
+  const selectedCredential =
+    credentials.find((c) => c.id === credentialId) || credentials[0];
+
   const cloudOptionsQuery = useCloudProviderOptions(
-    selectedCredential,
     provider,
+    isGKEKaasInfo,
+    selectedCredential,
     isOptionsForce
-  ) as UseQueryResult<GKEKaasInfo>;
-  const isNameValid = useIsKaasNameValid(name);
+  );
+
+  const cloudOptions = cloudOptionsQuery.data;
 
   const filteredNetworkOptions = useMemo(() => {
     const shortenedRegion = removeTextAfterLastHyphen(region);
-    return cloudOptionsQuery?.data?.networks?.[shortenedRegion] || [];
-  }, [region, cloudOptionsQuery.data?.networks]);
-  const credentialOptions = useMemo(
-    () =>
-      credentials.map((c) => ({
-        value: c.id,
-        label: c.name,
-      })),
-    [credentials]
-  );
+    return cloudOptions?.networks?.[shortenedRegion] || [];
+  }, [region, cloudOptions?.networks]);
+
   const kubernetesVersions = useMemo(
-    () => cloudOptionsQuery.data?.kubernetesVersions || [],
-    [cloudOptionsQuery.data?.kubernetesVersions]
+    () => cloudOptions?.kubernetesVersions || [],
+    [cloudOptions?.kubernetesVersions]
   );
   const regions = useMemo(
-    () => cloudOptionsQuery.data?.regions || [],
-    [cloudOptionsQuery.data?.regions]
+    () => cloudOptions?.regions || [],
+    [cloudOptions?.regions]
   );
   const nodeSizes = useMemo(
-    () => cloudOptionsQuery.data?.nodeSizes || [],
-    [cloudOptionsQuery.data?.nodeSizes]
+    () => cloudOptions?.nodeSizes || [],
+    [cloudOptions?.nodeSizes]
   );
-
-  // if the selected credential id changes, update the credential
-  useEffect(() => {
-    setSelectedCredential(
-      credentials.find((c) => c.id === Number(credentialId)) || credentials[0]
-    );
-  }, [credentialId, setSelectedCredential, credentials]);
 
   // if the vCPU count changes, update the vCPU count for validation
   useEffect(() => {
-    setvCPUCount(cpu);
     // if the ram is out of the new valid range, change it
     if (ram < minGKERam(cpu)) {
-      setFieldValue('ram', minGKERam(cpu));
+      setFieldValue('google.ram', minGKERam(cpu));
     }
     if (ram > maxGKERam(cpu)) {
-      setFieldValue('ram', maxGKERam(cpu));
+      setFieldValue('google.ram', maxGKERam(cpu));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cpu, setvCPUCount, setFieldValue]);
+  }, [cpu, setFieldValue]);
 
   // if the credentials change, select the first credential available
   useEffect(() => {
-    const credential = credentials[0];
-    setSelectedCredential(credential);
-    setFieldValue('credentialId', credential.id);
-  }, [credentials, setFieldValue]);
+    if (credentials.length > 0) {
+      const credential = credentials[0];
 
+      setFieldValue('credentialId', credential.id);
+    }
+  }, [credentials, setFieldValue]);
   // set each form value to a valid option when the options change
-  useSetAvailableOption<string>(regions, region, 'region');
-  useSetAvailableOption<string>(nodeSizes, nodeSize, 'nodeSize');
-  useSetAvailableOption<string>(
+  useSetAvailableOption(regions, region, 'region');
+  useSetAvailableOption(nodeSizes, nodeSize, 'nodeSize');
+  useSetAvailableOption(
     kubernetesVersions,
     kubernetesVersion,
     'kubernetesVersion'
   );
-  useSetAvailableOption<string>(filteredNetworkOptions, networkId, 'networkId');
-
-  // pass options to parent component to use for validation
-  useEffect(() => {
-    if (cloudOptionsQuery.data && isGKEKaasInfo(cloudOptionsQuery.data)) {
-      setGKEKaasInfo(cloudOptionsQuery.data);
-    }
-  }, [cloudOptionsQuery.data, setFieldValue, setGKEKaasInfo]);
+  useSetAvailableOption(filteredNetworkOptions, networkId, 'google.networkId');
 
   return (
-    <Form className="form-horizontal" onSubmit={handleSubmit} noValidate>
-      <FormControl
-        label="Credentials"
-        tooltip="Credentials to create your cluster"
-        inputId="kaas-credential"
-        errors={errors.credentialId}
-      >
-        <Field
-          name="credentialId"
-          as={Select}
-          type="number"
-          id="kaa-credential"
-          data-cy="kaasCreateForm-crdentialSelect"
-          disabled={credentialOptions.length <= 1}
-          options={credentialOptions}
-        />
-      </FormControl>
+    <>
+      <CredentialsField credentials={credentials} />
+
       {cloudOptionsQuery.isError && (
         <WarningAlert>
           Error getting {providerTitles[provider]} info. Go to&nbsp;
@@ -166,7 +122,7 @@ export function GKECreateClusterForm({
       )}
       {cloudOptionsQuery.isLoading && <Loading />}
       {/* cluster details inputs */}
-      {cloudOptionsQuery.data && isGKEKaasInfo(cloudOptionsQuery.data) && (
+      {cloudOptions && isGKEKaasInfo(cloudOptions) && (
         <>
           <FormControl
             label="Region"
@@ -204,28 +160,28 @@ export function GKECreateClusterForm({
                 label="Node vCPUs"
                 tooltip="Number of vCPU cores in each node"
                 inputId="kaas-nodeCPU"
-                errors={errors.cpu}
+                errors={errors.google?.cpu}
               >
                 <Field
-                  name="cpu"
+                  name="google.cpu"
                   as={Input}
                   type="number"
                   data-cy="kaasCreateForm-cpuInput"
                   step={2}
-                  min={cloudOptionsQuery.data.cpu.min}
-                  max={cloudOptionsQuery.data.cpu.max}
+                  min={cloudOptions.cpu.min}
+                  max={cloudOptions.cpu.max}
                   id="kaas-cpu"
-                  placeholder={cloudOptionsQuery.data.cpu.default}
+                  placeholder={cloudOptions.cpu.default}
                 />
               </FormControl>
               <FormControl
                 label="Node RAM (GB)"
                 tooltip="Amount of RAM (GB) in each node"
                 inputId="kaas-nodeRAM"
-                errors={errors.ram}
+                errors={errors.google?.ram}
               >
                 <Field
-                  name="ram"
+                  name="google.ram"
                   as={Input}
                   type="number"
                   data-cy="kaasCreateForm-ramInput"
@@ -233,7 +189,7 @@ export function GKECreateClusterForm({
                   min={minGKERam(cpu)}
                   max={maxGKERam(cpu)}
                   id="kaas-ram"
-                  placeholder={cloudOptionsQuery.data.cpu.default}
+                  placeholder={cloudOptions.cpu.default}
                 />
               </FormControl>
             </>
@@ -242,17 +198,17 @@ export function GKECreateClusterForm({
             label="Node disk space (GB)"
             tooltip="Amount of disk space (GB) in each node"
             inputId="kaas-nodeHDD"
-            errors={errors.hdd}
+            errors={errors.google?.hdd}
           >
             <Field
-              name="hdd"
+              name="google.hdd"
               as={Input}
               type="number"
               data-cy="kaasCreateForm-hddInput"
-              min={cloudOptionsQuery.data.hdd.min}
-              max={cloudOptionsQuery.data.hdd.max}
+              min={cloudOptions.hdd.min}
+              max={cloudOptions.hdd.max}
               id="kaas-hdd"
-              placeholder={cloudOptionsQuery.data.hdd.default}
+              placeholder={cloudOptions.hdd.default}
             />
           </FormControl>
           <FormControl
@@ -276,10 +232,10 @@ export function GKECreateClusterForm({
             label="Subnet"
             tooltip="Name of the subnet attached to the cluster"
             inputId="kaas-networkId"
-            errors={errors.networkId}
+            errors={errors.google?.networkId}
           >
             <Field
-              name="networkId"
+              name="google.networkId"
               as={Select}
               id="kaas-networkId"
               data-cy="kaasCreateForm-networkIdSelect"
@@ -304,36 +260,26 @@ export function GKECreateClusterForm({
           </FormControl>
         </>
       )}
-      <MoreSettingsSection />
-      <FormSectionTitle>Actions</FormSectionTitle>
-      <div className="form-group">
-        <div className="col-sm-12">
-          <LoadingButton
-            disabled={!isValid || !isNameValid}
-            isLoading={isSubmitting}
-            loadingText="Provision in progress..."
-          >
-            <i className="fa fa-plus space-right" aria-hidden="true" />
-            Provision environment
-          </LoadingButton>
-          <LoadingButton
-            type="button"
-            color="default"
-            onClick={() => {
-              setisOptionsForce(true);
-              cloudOptionsQuery.refetch();
-            }}
-            isLoading={
-              cloudOptionsQuery.isLoading || cloudOptionsQuery.isFetching
-            }
-            loadingText="Reloading details..."
-          >
-            <i className="fa fa-sync space-right" aria-hidden="true" />
-            Reload cluster details
-          </LoadingButton>
-        </div>
-      </div>
-    </Form>
+
+      <MoreSettingsSection>
+        <TextTip color="blue">
+          Metadata is only assigned to the environment in Portainer, i.e. the
+          group and tags are not assigned to the cluster at the cloud provider
+          end.
+        </TextTip>
+      </MoreSettingsSection>
+
+      <ActionsSection
+        onReloadClick={() => {
+          setIsOptionsForce(true);
+          cloudOptionsQuery.refetch();
+        }}
+        isReloading={
+          cloudOptionsQuery.isLoading || cloudOptionsQuery.isFetching
+        }
+        isSubmitting={isSubmitting}
+      />
+    </>
   );
 }
 

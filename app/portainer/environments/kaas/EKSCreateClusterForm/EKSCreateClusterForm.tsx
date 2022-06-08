@@ -1,12 +1,9 @@
-import { Field, Form, useFormikContext } from 'formik';
-import { useEffect, useMemo, useState } from 'react';
+import { Field, useFormikContext } from 'formik';
+import { useMemo, useState } from 'react';
 
 import { FormControl } from '@/portainer/components/form-components/FormControl';
 import { Input, Select } from '@/portainer/components/form-components/Input';
-import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
-import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
 import { Loading } from '@/portainer/components/widget/Loading';
-import { MetadataFieldset } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MetadataFieldset';
 import {
   Credential,
   KaasProvider,
@@ -14,49 +11,71 @@ import {
 } from '@/portainer/settings/cloud/types';
 import { WarningAlert } from '@/portainer/components/Alert/WarningAlert';
 import { Link } from '@/portainer/components/Link';
+import { TextTip } from '@/portainer/components/Tip/TextTip';
+import { MoreSettingsSection } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MoreSettingsSection';
 
-import { useCloudProviderOptions } from '../queries';
+import { CredentialsField } from '../shared/CredentialsField';
+import { FormValues, InstanceTypeRegions, isEKSKaasInfo } from '../types';
 import { useSetAvailableOption } from '../useSetAvailableOption';
-import {
-  CreateEKSClusterFormValues,
-  InstanceTypeRegions,
-  isEKSKaasInfo,
-} from '../types';
-import { useIsKaasNameValid } from '../useIsKaasNameValid';
+import { useCloudProviderOptions } from '../queries';
+import { ActionsSection } from '../shared/ActionsSection';
 
 type Props = {
   credentials: Credential[];
   provider: KaasProvider;
-  name: string;
+  isSubmitting: boolean;
 };
 
 // ApiCreateClusterForm handles form changes, conditionally renders inputs, and manually set values
-export function EKSCreateClusterForm({ credentials, provider, name }: Props) {
-  const { values, errors, handleSubmit, isSubmitting, isValid } =
-    useFormikContext<CreateEKSClusterFormValues>();
-  const { credentialId, region, amiType, instanceType, kubernetesVersion } =
-    values;
-  const [isOptionsForce, setisOptionsForce] = useState(false);
-  const [selectedCredential, setSelectedCredential] = useState<Credential>(
-    credentials[0]
-  );
+export function EKSCreateClusterForm({
+  credentials,
+  provider,
+  isSubmitting,
+}: Props) {
+  const { values, errors } = useFormikContext<FormValues>();
+  const [isOptionsForce, setIsOptionsForce] = useState(false);
+
+  const {
+    credentialId,
+    region,
+    kubernetesVersion,
+    amazon: { amiType, instanceType },
+  } = values;
+
+  const selectedCredential =
+    credentials.find((c) => c.id === credentialId) || credentials[0];
+
   const cloudOptionsQuery = useCloudProviderOptions(
-    selectedCredential,
     provider,
+    isEKSKaasInfo,
+    selectedCredential,
     isOptionsForce
   );
-  const isNameValid = useIsKaasNameValid(name);
+
+  const cloudOptions = cloudOptionsQuery.data;
 
   const filteredInstanceTypes = useMemo(() => {
-    if (cloudOptionsQuery.data && isEKSKaasInfo(cloudOptionsQuery.data)) {
-      return filterByAmiAndRegion(
-        cloudOptionsQuery.data.instanceTypes,
-        amiType,
-        region
-      );
+    if (cloudOptions) {
+      return filterByAmiAndRegion(cloudOptions.instanceTypes, amiType, region);
     }
     return [];
-  }, [region, amiType, cloudOptionsQuery.data]);
+  }, [region, amiType, cloudOptions]);
+
+  const kubernetesVersions = useMemo(
+    () => cloudOptions?.kubernetesVersions || [],
+    [cloudOptions?.kubernetesVersions]
+  );
+  const regions = useMemo(
+    () => cloudOptions?.regions || [],
+    [cloudOptions?.regions]
+  );
+  const amiTypes = useMemo(() => {
+    if (cloudOptions && isEKSKaasInfo(cloudOptions)) {
+      return cloudOptions?.amiTypes || [];
+    }
+    return [];
+  }, [cloudOptions]);
+
   const credentialOptions = useMemo(
     () =>
       credentials.map((c) => ({
@@ -65,33 +84,16 @@ export function EKSCreateClusterForm({ credentials, provider, name }: Props) {
       })),
     [credentials]
   );
-  const kubernetesVersions = useMemo(
-    () => cloudOptionsQuery.data?.kubernetesVersions || [],
-    [cloudOptionsQuery.data?.kubernetesVersions]
-  );
-  const regions = useMemo(
-    () => cloudOptionsQuery.data?.regions || [],
-    [cloudOptionsQuery.data?.regions]
-  );
-  const amiTypes = useMemo(() => {
-    if (cloudOptionsQuery.data && isEKSKaasInfo(cloudOptionsQuery.data)) {
-      return cloudOptionsQuery.data?.amiTypes || [];
-    }
-    return [];
-  }, [cloudOptionsQuery.data]);
-
-  // if the selected credential id changes, update the credential
-  useEffect(() => {
-    setSelectedCredential(
-      credentials.find((c) => c.id === Number(credentialId)) || credentials[0]
-    );
-  }, [credentialId, setSelectedCredential, credentials]);
 
   // ensure the form values are valid when the options change
   useSetAvailableOption(credentialOptions, credentialId, 'credentialId');
   useSetAvailableOption(regions, region, 'region');
-  useSetAvailableOption(amiTypes, amiType, 'amiType');
-  useSetAvailableOption(filteredInstanceTypes, instanceType, 'instanceType');
+  useSetAvailableOption(amiTypes, amiType, 'amazon.amiType');
+  useSetAvailableOption(
+    filteredInstanceTypes,
+    instanceType,
+    'amazon.instanceType'
+  );
   useSetAvailableOption(
     kubernetesVersions,
     kubernetesVersion,
@@ -99,23 +101,9 @@ export function EKSCreateClusterForm({ credentials, provider, name }: Props) {
   );
 
   return (
-    <Form className="form-horizontal" onSubmit={handleSubmit} noValidate>
-      <FormControl
-        label="Credentials"
-        tooltip="Credentials to create your cluster"
-        inputId="kaas-credential"
-        errors={errors.credentialId}
-      >
-        <Field
-          name="credentialId"
-          as={Select}
-          type="number"
-          id="kaas-credential"
-          data-cy="kaasCreateForm-crdentialSelect"
-          disabled={credentialOptions.length === 1}
-          options={credentialOptions}
-        />
-      </FormControl>
+    <>
+      <CredentialsField credentials={credentials} />
+
       {cloudOptionsQuery.isError && (
         <WarningAlert>
           Error getting {providerTitles[provider]} info. Go to&nbsp;
@@ -131,7 +119,7 @@ export function EKSCreateClusterForm({ credentials, provider, name }: Props) {
       )}
       {cloudOptionsQuery.isLoading && <Loading />}
       {/* cluster details inputs */}
-      {cloudOptionsQuery.data && isEKSKaasInfo(cloudOptionsQuery.data) && (
+      {cloudOptions && (
         <>
           <FormControl
             label="Region"
@@ -151,14 +139,14 @@ export function EKSCreateClusterForm({ credentials, provider, name }: Props) {
             label="AMI type"
             tooltip="Base image for Amazon EKS nodes"
             inputId="kaas-amiType"
-            errors={errors.amiType}
+            errors={errors.amazon?.amiType}
           >
             <Field
-              name="amiType"
+              name="amazon.amiType"
               as={Select}
               id="kaas-amiType"
               data-cy="kaasCreateForm-amiType"
-              options={cloudOptionsQuery.data?.amiTypes || []}
+              options={cloudOptions.amiTypes || []}
             />
           </FormControl>
           {region && (
@@ -166,10 +154,10 @@ export function EKSCreateClusterForm({ credentials, provider, name }: Props) {
               label="Instance type"
               tooltip="Instance type of each node deployed in the cluster"
               inputId="kaas-instanceType"
-              errors={errors.instanceType}
+              errors={errors.amazon?.instanceType}
             >
               <Field
-                name="instanceType"
+                name="amazon.instanceType"
                 as={Select}
                 id="kaas-instanceType"
                 data-cy="kaasCreateForm-instanceTypeSelect"
@@ -182,10 +170,10 @@ export function EKSCreateClusterForm({ credentials, provider, name }: Props) {
             label="Node disk size (GiB)"
             tooltip="The size of the Elastic Block Storage (EBS) volume for each node"
             inputId="kaas-nodeVolumeSizeInput"
-            errors={errors.nodeVolumeSize}
+            errors={errors.amazon?.nodeVolumeSize}
           >
             <Field
-              name="nodeVolumeSize"
+              name="amazon.nodeVolumeSize"
               as={Input}
               type="number"
               data-cy="kaasCreateForm-nodeVolumeSizeInput"
@@ -228,37 +216,25 @@ export function EKSCreateClusterForm({ credentials, provider, name }: Props) {
         </>
       )}
 
-      <MetadataFieldset />
+      <MoreSettingsSection>
+        <TextTip color="blue">
+          Metadata is only assigned to the environment in Portainer, i.e. the
+          group and tags are not assigned to the cluster at the cloud provider
+          end.
+        </TextTip>
+      </MoreSettingsSection>
 
-      <FormSectionTitle>Actions</FormSectionTitle>
-      <div className="form-group">
-        <div className="col-sm-12">
-          <LoadingButton
-            disabled={!isValid || !isNameValid}
-            isLoading={isSubmitting}
-            loadingText="Provision in progress..."
-          >
-            <i className="fa fa-plus space-right" aria-hidden="true" />
-            Provision environment
-          </LoadingButton>
-          <LoadingButton
-            type="button"
-            color="default"
-            onClick={() => {
-              setisOptionsForce(true);
-              cloudOptionsQuery.refetch();
-            }}
-            isLoading={
-              cloudOptionsQuery.isLoading || cloudOptionsQuery.isFetching
-            }
-            loadingText="Reloading details..."
-          >
-            <i className="fa fa-sync space-right" aria-hidden="true" />
-            Reload cluster details
-          </LoadingButton>
-        </div>
-      </div>
-    </Form>
+      <ActionsSection
+        onReloadClick={() => {
+          setIsOptionsForce(true);
+          cloudOptionsQuery.refetch();
+        }}
+        isReloading={
+          cloudOptionsQuery.isLoading || cloudOptionsQuery.isFetching
+        }
+        isSubmitting={isSubmitting}
+      />
+    </>
   );
 }
 

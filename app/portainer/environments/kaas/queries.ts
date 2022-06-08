@@ -8,27 +8,44 @@ import {
 import { success as notifySuccess } from '@/portainer/services/notifications';
 
 import { getKaasInfo, createKaasEnvironment } from './kaas.service';
-import { CreateClusterPayload } from './types';
+import { CreateClusterPayload, KaasInfo } from './types';
 
-export function useCloudProviderOptions(
-  credential: Credential,
+export function useCloudProviderOptions<T extends KaasInfo>(
   provider: KaasProvider,
+  validator: (info: KaasInfo) => info is T,
+  credential?: Credential | null,
   force = false
 ) {
   return useQuery(
-    ['cloud', credential.provider, 'info', credential.id, force],
-    () => getKaasInfo(credential.provider, credential, force),
+    ['cloud', credential?.provider, 'info', credential?.id, { force }],
+    () => kaasInfoFetcher(validator, credential, force),
     {
       meta: {
         error: {
-          title: `Failed to get ${providerTitles[credential.provider]} info`,
+          title:
+            credential &&
+            `Failed to get ${providerTitles[credential.provider]} info`,
           message: '',
         },
       },
-      enabled: credential.provider === provider,
+      enabled: !!credential && credential.provider === provider,
       retry: 1,
     }
   );
+}
+
+async function kaasInfoFetcher<T extends KaasInfo>(
+  validator: (info: KaasInfo) => info is T,
+  credential?: Credential | null,
+  force = false
+) {
+  if (!credential) {
+    return null;
+  }
+
+  const info = await getKaasInfo(credential, force);
+
+  return validator(info) ? info : null;
 }
 
 export function useCreateKaasCluster() {

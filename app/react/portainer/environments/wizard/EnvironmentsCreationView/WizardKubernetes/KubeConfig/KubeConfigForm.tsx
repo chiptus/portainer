@@ -11,7 +11,7 @@ import { FormControl } from '@/portainer/components/form-components/FormControl'
 import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
 
 import { NameField } from '../../shared/NameField';
-import { MetadataFieldset } from '../../shared/MetadataFieldset';
+import { MoreSettingsSection } from '../../shared/MoreSettingsSection';
 
 import { validation } from './KubeConfig.validation';
 
@@ -85,22 +85,21 @@ export function KubeConfigForm({ onCreate }: Props) {
           <div className="form-group">
             <div className="col-sm-12">
               <span className="text-primary">
-                {' '}
                 <i
-                  className="fa fa-exclamation-circle"
+                  className="fa fa-exclamation-circle space-right"
                   aria-hidden="true"
-                  style={{ marginRight: 2 }}
                 />
               </span>
               <span className="text-muted small">
-                Import the{' '}
+                Import the
                 <a
                   href="https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/"
                   target="_blank"
                   rel="noreferrer"
+                  className="mx-1"
                 >
                   kubeconfig file
-                </a>{' '}
+                </a>
                 of an existing Kubernetes cluster located on-premise or on a
                 cloud platform. This will create a corresponding environment in
                 Portainer and install the agent on the cluster. Please ensure:
@@ -140,7 +139,7 @@ export function KubeConfigForm({ onCreate }: Props) {
             />
           </FormControl>
 
-          <MetadataFieldset />
+          <MoreSettingsSection />
 
           <div className="form-group">
             <div className="col-sm-12">

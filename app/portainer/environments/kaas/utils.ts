@@ -1,15 +1,10 @@
 import { trackEvent } from '@/angulartics.matomo/analytics-services';
 import { KaasProvider } from '@/portainer/settings/cloud/types';
 
-import {
-  CreateClusterFormValues,
-  isAzureClusterFormValues,
-  isGkeClusterFormValues,
-  isEKSClusterFormValues,
-} from './types';
+import { FormValues } from './types';
 
 export function sendKaasProvisionAnalytics(
-  values: CreateClusterFormValues,
+  values: FormValues,
   provider: KaasProvider
 ) {
   trackEvent('portainer-endpoint-creation', {
@@ -17,57 +12,74 @@ export function sendKaasProvisionAnalytics(
     metadata: { type: 'agent', platform: 'kubernetes' },
   });
 
-  if (isAzureClusterFormValues(values)) {
-    trackEvent('provision-kaas-cluster', {
-      category: 'kubernetes',
-      metadata: {
-        provider,
-        region: values.region,
-        'availability-zones': values.availabilityZones,
-        teir: values.tier,
-        'node-count': values.nodeCount,
-        'node-size': values.nodeSize,
-      },
-    });
-    return;
+  switch (provider) {
+    case KaasProvider.GOOGLE_CLOUD:
+      trackGoogleCloudProvision(values);
+      break;
+    case KaasProvider.CIVO:
+    case KaasProvider.LINODE:
+    case KaasProvider.DIGITAL_OCEAN:
+      trackApiProvision(provider, values);
+      break;
+    case KaasProvider.AZURE:
+      trackAzureProvision(values);
+      break;
+    case KaasProvider.AWS:
+      trackAmazonProvision(values);
+      break;
+    default:
+      break;
   }
+}
 
-  if (isGkeClusterFormValues(values)) {
-    trackEvent('provision-kaas-cluster', {
-      category: 'kubernetes',
-      metadata: {
-        provider,
-        region: values.region,
-        cpu: values.cpu,
-        ram: values.ram,
-        hdd: values.hdd,
-        'node-size': values.nodeSize,
-        'node-count': values.nodeCount,
-      },
-    });
-    return;
-  }
+function trackAzureProvision(values: FormValues) {
+  trackEvent('provision-kaas-cluster', {
+    category: 'kubernetes',
+    metadata: {
+      provider: KaasProvider.AZURE,
+      region: values.region,
+      'availability-zones': values.azure.availabilityZones,
+      teir: values.azure.tier,
+      'node-count': values.nodeCount,
+      'node-size': values.nodeSize,
+    },
+  });
+}
 
-  if (isEKSClusterFormValues(values)) {
-    trackEvent('provision-kaas-cluster', {
-      category: 'kubernetes',
-      metadata: {
-        provider,
-        region: values.region,
-        'node-size': values.instanceType,
-        'node-count': values.nodeCount,
-      },
-    });
-    return;
-  }
+function trackGoogleCloudProvision(values: FormValues) {
+  trackEvent('provision-kaas-cluster', {
+    category: 'kubernetes',
+    metadata: {
+      provider: KaasProvider.GOOGLE_CLOUD,
+      region: values.region,
+      cpu: values.google.cpu,
+      ram: values.google.ram,
+      hdd: values.google.hdd,
+      'node-size': values.nodeSize,
+      'node-count': values.nodeCount,
+    },
+  });
+}
 
-  // tracking for Linode, Civo and DigitalOcean
+function trackApiProvision(provider: KaasProvider, values: FormValues) {
   trackEvent('provision-kaas-cluster', {
     category: 'kubernetes',
     metadata: {
       provider,
       region: values.region,
       'node-size': values.nodeSize,
+      'node-count': values.nodeCount,
+    },
+  });
+}
+
+function trackAmazonProvision(values: FormValues) {
+  trackEvent('provision-kaas-cluster', {
+    category: 'kubernetes',
+    metadata: {
+      provider: KaasProvider.AWS,
+      region: values.region,
+      'node-size': values.amazon.instanceType,
       'node-count': values.nodeCount,
     },
   });

@@ -26,20 +26,16 @@ export async function createKaasEnvironment(
 }
 
 export async function getKaasInfo(
-  provider: KaasProvider,
-  credential: Credential,
+  { provider, id }: Credential,
   force?: boolean
 ) {
-  if (provider === credential.provider) {
-    try {
-      const { data } = await axios.get<KaasInfoResponse>(
-        buildUrl(provider, 'info'),
-        { params: { credentialId: credential.id, force } }
-      );
-      return parseKaasInfoResponse(data);
-    } catch (e) {
-      throw parseAxiosError(e as Error);
-    }
+  try {
+    const { data } = await axios.get<KaasInfoResponse>(
+      buildUrl(provider, 'info'),
+      { params: { credentialId: id, force } }
+    );
+    return parseKaasInfoResponse(data);
+  } catch (e) {
+    throw parseAxiosError(e as Error);
   }
-  return null;
 }
