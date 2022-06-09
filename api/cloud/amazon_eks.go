@@ -31,7 +31,7 @@ func (service *CloudClusterInfoService) AmazonEksGetInfo(credential *models.Clou
 	service.mu.Unlock()
 	if !ok {
 		// live fetch if missing
-		if err := service.eksFetchRefresh(cacheKey, secretAccessKey, cacheKey); err != nil {
+		if err := service.eksFetchRefresh(accessKeyId, secretAccessKey, cacheKey); err != nil {
 			return nil, err
 		}
 	}
