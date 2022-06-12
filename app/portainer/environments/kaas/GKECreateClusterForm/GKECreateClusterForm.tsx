@@ -13,12 +13,14 @@ import { WarningAlert } from '@/portainer/components/Alert/WarningAlert';
 import { Link } from '@/portainer/components/Link';
 import { TextTip } from '@/portainer/components/Tip/TextTip';
 import { MoreSettingsSection } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MoreSettingsSection';
+import { NameField } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/NameField';
 
 import { useCloudProviderOptions } from '../queries';
 import { useSetAvailableOption } from '../useSetAvailableOption';
 import { FormValues, isGKEKaasInfo } from '../types';
 import { CredentialsField } from '../shared/CredentialsField';
 import { ActionsSection } from '../shared/ActionsSection';
+import { KaasInfoText } from '../shared/KaasInfoText';
 
 import { maxGKERam, minGKERam } from './validation';
 
@@ -105,6 +107,11 @@ export function GKECreateClusterForm({
 
   return (
     <>
+      <KaasInfoText />
+      <NameField
+        tooltip="Name of the cluster and environment"
+        placeholder="e.g. my-cluster-name"
+      />
       <CredentialsField credentials={credentials} />
 
       {cloudOptionsQuery.isError && (

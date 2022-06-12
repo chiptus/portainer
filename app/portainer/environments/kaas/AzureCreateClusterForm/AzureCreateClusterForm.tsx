@@ -15,12 +15,14 @@ import { Alert } from '@/portainer/components/Alert';
 import { Link } from '@/portainer/components/Link';
 import { TextTip } from '@/portainer/components/Tip/TextTip';
 import { MoreSettingsSection } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MoreSettingsSection';
+import { NameField } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/NameField';
 
 import { useCloudProviderOptions } from '../queries';
 import { FormValues, isAzureKaasInfo } from '../types';
 import { useSetAvailableOption } from '../useSetAvailableOption';
 import { CredentialsField } from '../shared/CredentialsField';
 import { ActionsSection } from '../shared/ActionsSection';
+import { KaasInfoText } from '../shared/KaasInfoText';
 
 type Props = {
   credentials: Credential[];
@@ -121,6 +123,11 @@ export function AzureCreateClusterForm({
 
   return (
     <>
+      <KaasInfoText />
+      <NameField
+        tooltip="Name of the cluster and environment"
+        placeholder="e.g. my-cluster-name"
+      />
       <CredentialsField credentials={credentials} />
 
       {cloudOptionsQuery.isError && (
@@ -204,7 +211,7 @@ export function AzureCreateClusterForm({
                 classes="!mt-2"
                 errors={
                   !resourceGroup
-                    ? 'No resource groups available in the selected region, please change region or add a resource group.'
+                    ? 'No resource groups available, please add a resource group.'
                     : ''
                 }
               >

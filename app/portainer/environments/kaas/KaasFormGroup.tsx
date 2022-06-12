@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { useCurrentStateAndParams } from '@uirouter/react';
 import { Form, Formik } from 'formik';
 
 import { react2angular } from '@/react-tools/react2angular';
@@ -8,13 +7,10 @@ import {
   Credential,
   providerTitles,
 } from '@/portainer/settings/cloud/types';
-import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
 import { useCloudCredentials } from '@/portainer/settings/cloud/cloudSettings.service';
 import { Environment } from '@/portainer/environments/types';
 import { AnalyticsStateKey } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/types';
-import { NameField } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/NameField';
 import { useSettings } from '@/portainer/settings/queries';
-import { FormSection } from '@/portainer/components/form-components/FormSection';
 import { TextTip } from '@/portainer/components/Tip/TextTip';
 import { Link } from '@/portainer/components/Link';
 import { CredentialsForm } from '@/portainer/settings/cloud/CreateCredentialsView/CredentialsForm';
@@ -76,7 +72,6 @@ export function KaaSFormGroup({ onCreate }: Props) {
 
   const [provider, setProvider] = useState<KaasProvider>(KaasProvider.CIVO);
   const [credential, setCredential] = useState<Credential | null>(null);
-  const { state } = useCurrentStateAndParams();
 
   const credentialsQuery = useCloudCredentials();
 
@@ -107,29 +102,18 @@ export function KaaSFormGroup({ onCreate }: Props) {
         enableReinitialize
       >
         <Form className="form-horizontal">
-          {state.name === 'portainer.endpoints.new' && (
-            <FormSectionTitle>Environment details</FormSectionTitle>
+          <KaasProvidersSelector provider={provider} onChange={setProvider} />
+
+          {credentialsQuery.isLoading ? (
+            <Loading />
+          ) : (
+            <ProviderForm
+              provider={provider}
+              onChangeSelectedCredential={setCredential}
+              credentials={providerCredentials}
+              isSubmitting={createKaasClusterMutation.isLoading}
+            />
           )}
-
-          <NameField
-            tooltip="Name of the cluster and environment"
-            placeholder="e.g. my-cluster-name"
-          />
-
-          <FormSection title="Cluster details">
-            <KaasProvidersSelector provider={provider} onChange={setProvider} />
-
-            {credentialsQuery.isLoading ? (
-              <Loading />
-            ) : (
-              <ProviderForm
-                provider={provider}
-                onChangeSelectedCredential={setCredential}
-                credentials={providerCredentials}
-                isSubmitting={createKaasClusterMutation.isLoading}
-              />
-            )}
-          </FormSection>
         </Form>
       </Formik>
 

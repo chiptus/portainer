@@ -8,7 +8,6 @@ import { Environment } from '@/portainer/environments/types';
 import { CreateKubeConfigEnvironment } from '@/portainer/environments/environment.service/create';
 import { FileUploadField } from '@/portainer/components/form-components/FileUpload/FileUploadField';
 import { FormControl } from '@/portainer/components/form-components/FormControl';
-import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
 
 import { NameField } from '../../shared/NameField';
 import { MoreSettingsSection } from '../../shared/MoreSettingsSection';
@@ -80,8 +79,6 @@ export function KubeConfigForm({ onCreate }: Props) {
     >
       {({ isValid, dirty, setFieldValue, errors }) => (
         <Form>
-          <FormSectionTitle>Environment details</FormSectionTitle>
-
           <div className="form-group">
             <div className="col-sm-12">
               <span className="text-primary">

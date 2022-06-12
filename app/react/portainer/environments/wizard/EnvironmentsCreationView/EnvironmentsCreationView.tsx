@@ -71,10 +71,7 @@ export function EnvironmentCreationView() {
             <Stepper steps={steps} currentStep={currentStepIndex + 1} />
 
             <div className="mt-12">
-              <FormSection
-                title={`Connect to your ${currentStep.title}
-                    environment`}
-              >
+              <FormSection title={currentStep.formTitle}>
                 <Component onCreate={handleCreateEnvironment} />
 
                 <div

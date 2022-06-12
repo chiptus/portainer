@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { CopyButton } from '@/portainer/components/Button/CopyButton';
 import { Code } from '@/portainer/components/Code';
-import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
+import { TextTip } from '@/portainer/components/Tip/TextTip';
 import { NavTabs } from '@/portainer/components/NavTabs/NavTabs';
 import { getAgentShortVersion } from '@/portainer/views/endpoints/helpers';
 import { useAgentDetails } from '@/portainer/environments/queries/useAgentDetails';
@@ -51,14 +51,10 @@ export function DeploymentScripts() {
 
   return (
     <>
-      <FormSectionTitle>Information</FormSectionTitle>
-
-      <div className="form-group">
-        <span className="col-sm-12 text-muted small">
-          Ensure that you have deployed the Portainer agent in your cluster
-          first. Refer to the platform related command below to deploy it.
-        </span>
-      </div>
+      <TextTip color="blue">
+        Ensure that you have deployed the Portainer agent in your cluster first.
+        Refer to the platform related command below to deploy it.
+      </TextTip>
 
       <NavTabs
         options={options}

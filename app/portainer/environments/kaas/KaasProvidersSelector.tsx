@@ -54,16 +54,16 @@ const boxSelectorOptions: BoxSelectorOption<
   | KaasProvider.CIVO
   | KaasProvider.LINODE
   | KaasProvider.DIGITAL_OCEAN
-  | KaasProvider.AZURE
   | KaasProvider.GOOGLE_CLOUD
   | KaasProvider.AWS
+  | KaasProvider.AZURE
 >[] = [
   civoOptions,
   linodeOptions,
   digitalOceanOptions,
-  azureOptions,
   gkeOptions,
   awsOptions,
+  azureOptions,
 ];
 
 interface Props {
