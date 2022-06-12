@@ -566,10 +566,6 @@ func updateLicenseKeyFromFlags(licenseService portaineree.LicenseService, licens
 	}
 
 	_, err := licenseService.AddLicense(*licenseKey)
-	if errors.Is(err, license.ErrLicenseAlreadyApplied) {
-		return nil
-	}
-
 	return errors.WithMessage(err, "failed to add license")
 }
 
