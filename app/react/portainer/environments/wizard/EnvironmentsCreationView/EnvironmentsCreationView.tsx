@@ -117,8 +117,8 @@ export function EnvironmentCreationView() {
         ])
       ),
     });
-    if (localStorage.getItem('wizardReferer') === 'environments') {
-      localStorage.removeItem('wizardReferer');
+    if (localStorage.getItem('wizardReferrer') === 'environments') {
+      localStorage.removeItem('wizardReferrer');
       router.stateService.go('portainer.endpoints');
       return;
     }
