@@ -8,6 +8,8 @@ import {
 } from '@/portainer/components/form-components/Input/Select';
 import { Credential } from '@/portainer/settings/cloud/types';
 
+import { useSetAvailableOption } from '../useSetAvailableOption';
+
 interface Props {
   credentials: Credential[];
 }
@@ -19,6 +21,7 @@ export function CredentialsField({ credentials }: Props) {
   }));
 
   const [fieldProps, meta, helpers] = useField<number>('credentialId');
+  useSetAvailableOption(credentialOptions, fieldProps.value, 'credentialId');
 
   return (
     <FormControl
