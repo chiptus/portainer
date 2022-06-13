@@ -155,7 +155,7 @@ export function CredentialsDatatable({
                 className="text-center text-muted"
                 data-cy="credentials-noneAvailable"
               >
-                No credential available.
+                No credentials available.
               </td>
             </tr>
           )}

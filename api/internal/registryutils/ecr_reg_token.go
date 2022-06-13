@@ -37,7 +37,7 @@ func parseRegToken(registry *portaineree.Registry) (username, password string, e
 func EnsureRegTokenValid(dataStore dataservices.DataStore, registry *portaineree.Registry) (err error) {
 	if registry.Type == portaineree.EcrRegistry {
 		if isRegTokenValid(registry) {
-			log.Println("[DEBUG] [registry, GetEcrAccessToken] [message: curretn ECR token is still valid]")
+			log.Println("[DEBUG] [registry, GetEcrAccessToken] [message: current ECR token is still valid]")
 		} else {
 			err = doGetRegToken(dataStore, registry)
 			if err != nil {

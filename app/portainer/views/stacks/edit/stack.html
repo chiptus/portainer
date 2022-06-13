@@ -25,7 +25,7 @@
                       <i class="fa fa-exclamation-circle orange-icon" aria-hidden="true" style="margin-right: 2px"></i>
                       <span ng-if="external">This stack was created outside of Portainer. Control over this stack is limited.</span>
                       <span ng-if="orphaned || orphanedRunning"
-                        >This stack is orphaned. You can reassociate it with the current environment using the "Associate to this environment" feature.</span
+                        >This stack is orphaned. You can re-associate it with the current environment using the "Associate to this environment" feature.</span
                       >
                     </p>
                   </span>
@@ -93,7 +93,7 @@
               <!-- associate -->
               <div ng-if="orphaned">
                 <div class="col-sm-12 form-section-title"> Associate to this environment </div>
-                <p class="small text-muted"> This feature allows you to reassociate this stack to the current environment. </p>
+                <p class="small text-muted"> This feature allows you to re-associate this stack to the current environment. </p>
                 <form class="form-horizontal">
                   <por-access-control-form form-data="formValues.AccessControlData" hide-title="true"></por-access-control-form>
                   <div class="form-group">
