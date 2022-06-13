@@ -44,9 +44,9 @@ func TestChangeState(t *testing.T) {
 			task: &portaineree.CloudProvisioningTask{
 				EndpointID: 0,
 				ClusterID:  "ID",
-				State:      int(psPending),
+				State:      int(ProvisioningStatePending),
 			},
-			state:   psWaitingForCluster,
+			state:   ProvisioningStateWaitingForCluster,
 			message: "Creating KaaS Cluster",
 		},
 		{
@@ -54,9 +54,9 @@ func TestChangeState(t *testing.T) {
 			task: &portaineree.CloudProvisioningTask{
 				EndpointID: 0,
 				ClusterID:  "",
-				State:      int(psPending),
+				State:      int(ProvisioningStatePending),
 			},
-			state:   psAgentSetup,
+			state:   ProvisioningStateAgentSetup,
 			message: "Deploying portainer agent",
 		},
 		{
@@ -64,9 +64,9 @@ func TestChangeState(t *testing.T) {
 			task: &portaineree.CloudProvisioningTask{
 				EndpointID: 0,
 				ClusterID:  "ID",
-				State:      int(psPending),
+				State:      int(ProvisioningStatePending),
 			},
-			state:   psWaitingForAgent,
+			state:   ProvisioningStateWaitingForAgent,
 			message: "Waiting for agent response",
 		},
 		{
@@ -74,9 +74,9 @@ func TestChangeState(t *testing.T) {
 			task: &portaineree.CloudProvisioningTask{
 				EndpointID: 0,
 				ClusterID:  "ID",
-				State:      int(psPending),
+				State:      int(ProvisioningStatePending),
 			},
-			state:   psUpdatingEndpoint,
+			state:   ProvisioningStateUpdatingEndpoint,
 			message: "Updating environment",
 		},
 		{
@@ -84,9 +84,9 @@ func TestChangeState(t *testing.T) {
 			task: &portaineree.CloudProvisioningTask{
 				EndpointID: 0,
 				ClusterID:  "civoID",
-				State:      int(psPending),
+				State:      int(ProvisioningStatePending),
 			},
-			state:   psDone,
+			state:   ProvisioningStateDone,
 			message: "Connecting",
 		},
 	}
