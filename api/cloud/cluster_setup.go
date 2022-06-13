@@ -103,7 +103,7 @@ func (service *CloudClusterSetupService) createClusterSetupTask(request *portain
 		ClusterID:     clusterID,
 		EndpointID:    request.EndpointID,
 		Region:        request.Region,
-		State:         int(ProvisioningStatePending),
+		State:         request.StartingState,
 		CreatedAt:     time.Now(),
 		ResourceGroup: resourceGroup,
 	}
@@ -290,7 +290,8 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			if kubeClient == nil {
 				kubeClient, err = service.clientFactory.CreateKubeClientFromKubeConfig(task.ClusterID, cluster.KubeConfig)
 				if err != nil {
-					// If KubeClient is not created from KubeConfig, it means KubeConfig is incorrect
+					// If KubeClient is not created from KubeConfig, it means
+					// KubeConfig is incorrect
 					fatal = true
 					task.Retries++
 					break
