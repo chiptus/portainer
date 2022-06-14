@@ -2,6 +2,7 @@ package images
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/containers/image/v5/docker"
@@ -148,18 +149,25 @@ func (c *DigestClient) cacheAllLocalDigest() {
 	}
 
 	for _, inspect := range inspects {
-		_inspect := types.ImageInspect{
-			ID:          inspect.ID,
-			RepoTags:    inspect.RepoTags,
-			RepoDigests: inspect.RepoDigests,
-			Parent:      inspect.ParentID,
-		}
-		localImage, err := ParseLocalImage(_inspect)
-		if err != nil {
-			continue
-		}
+		for i := 0; i < len(inspect.RepoTags); i++ {
+			image := strings.Split(inspect.RepoTags[i], ":")[0]
+			for j := 0; j < len(inspect.RepoDigests); j++ {
+				if strings.HasPrefix(inspect.RepoDigests[j], image+"@") {
+					_inspect := types.ImageInspect{
+						ID:          inspect.ID,
+						RepoTags:    []string{inspect.RepoTags[i]},
+						RepoDigests: []string{inspect.RepoDigests[j]},
+						Parent:      inspect.ParentID,
+					}
+					localImage, err := ParseLocalImage(_inspect)
+					if err != nil {
+						continue
+					}
 
-		_imageLocalDigestCache.Set(localImage.FullName(), localImage.Digest, 0)
+					_imageLocalDigestCache.Set(localImage.FullName(), localImage.Digest, 0)
+				}
+			}
+		}
 	}
 }
 
