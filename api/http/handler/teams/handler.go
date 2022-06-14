@@ -37,7 +37,7 @@ func NewHandler(bouncer *security.RequestBouncer, userActivityService portainere
 	teamLeaderRouter.Use(bouncer.TeamLeaderAccess, useractivity.LogUserActivity(h.userActivityService))
 
 	adminRouter.Handle("/teams", httperror.LoggerHandler(h.teamCreate)).Methods(http.MethodPost)
-	teamLeaderRouter.Handle("/teams", httperror.LoggerHandler(h.teamList)).Methods(http.MethodGet)
+	adminRouter.Handle("/teams", httperror.LoggerHandler(h.teamList)).Methods(http.MethodGet)
 	teamLeaderRouter.Handle("/teams/{id}", httperror.LoggerHandler(h.teamInspect)).Methods(http.MethodGet)
 	adminRouter.Handle("/teams/{id}", httperror.LoggerHandler(h.teamUpdate)).Methods(http.MethodPut)
 	adminRouter.Handle("/teams/{id}", httperror.LoggerHandler(h.teamDelete)).Methods(http.MethodDelete)
