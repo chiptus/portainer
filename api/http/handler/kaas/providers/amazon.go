@@ -6,7 +6,6 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/types"
 )
 
@@ -16,10 +15,9 @@ const defaultNodeVolumeSize = 80
 type AmazonProvisionPayload struct {
 	DefaultProvisionPayload
 
-	AmiType        string                   `validate:"required" example:"BOTTLEROCKET_x86_64"`
-	InstanceType   string                   `validate:"required" example:"m5.large"`
-	NodeVolumeSize *int                     `example:"20"`
-	CredentialID   models.CloudCredentialID `validate:"required" example:"1"`
+	AmiType        string `validate:"required" example:"BOTTLEROCKET_x86_64"`
+	InstanceType   string `validate:"required" example:"m5.large"`
+	NodeVolumeSize *int   `example:"20"`
 }
 
 func (payload *AmazonProvisionPayload) Validate(r *http.Request) error {

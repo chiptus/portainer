@@ -19,43 +19,34 @@ on:
 jobs:
   openapi-spec:
     runs-on: ubuntu-latest
+    env:
+      GOPRIVATE: github.com/portainer/*
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
-    - name: Setup Node v14
-      uses: actions/setup-node@v2
+    - uses: actions/checkout@v3
+    - uses: webfactory/ssh-agent@v0.5.4
       with:
-        node-version: 14
+        ssh-private-key: ${{ secrets.DEPLOY_KEY_LIBLICENSE }}
 
-    # https://github.com/actions/cache/blob/main/examples.md#node---yarn
-    - name: Get yarn cache directory path
-      id: yarn-cache-dir-path
-      run: echo "::set-output name=dir::$(yarn cache dir)"
-
-    - uses: actions/cache@v2
-      id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+    - uses: actions/setup-go@v3
       with:
-        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-yarn-
+        go-version: '1.18'
 
-    - name: Setup Go v1.17.3
-      uses: actions/setup-go@v2
+    - name: Configure git for private modules
+      run: git config --global url."git@github.com:".insteadOf "https://github.com"
+
+    - name: Download golang modules
+      run: cd ./api && go get -t -v -d ./...
+    - uses: actions/setup-node@v3
       with:
-        go-version: '^1.17.3'
-
-    - name: Prebuild docs
-      run: yarn prebuild:docs
-
+          node-version: '14'
+          cache: 'yarn'
+    - run: yarn --frozen-lockfile
+    
     - name: Build OpenAPI 2.0 Spec
       run: yarn build:docs
 
-    # Install dependencies globally to bypass installing all frontend deps
-    - name: Install swagger2openapi and swagger-cli
-      run: yarn global add swagger2openapi @apidevtools/swagger-cli
-
-    # OpenAPI2.0 does not support multiple body params (which we utilise in some of our handlers).
+    
+    # OpenAPI2.0 does not support multiple body params (which we utilize in some of our handlers).
     # OAS3.0 however does support multiple body params - hence its best to convert the generated OAS 2.0
     # to OAS 3.0 and validate the output of generated OAS 3.0 instead.
     - name: Convert OpenAPI 2.0 to OpenAPI 3.0 and validate spec

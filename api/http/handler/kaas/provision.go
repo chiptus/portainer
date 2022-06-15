@@ -22,12 +22,16 @@ import (
 // @security jwt
 // @accept json
 // @produce json
-// @param body body kaasClusterProvisionPayload true "Kaas cluster provisioning details"
-// @success 204 "Success"
+// @param provider path int true "Provider" Enum("azure", "gke", "amazon", "civo", "digitalocean", "linode")
+// @param body_azure body providers.AzureProvisionPayload false "KaaS cluster provisioning details (required when provider is azure)"
+// @param body_gke body providers.GKEProvisionPayload false "KaaS cluster provisioning details (required when provider is gke)"
+// @param body_amazon body providers.AmazonProvisionPayload false "KaaS cluster provisioning details (required when provider is amazon)"
+// @param body_api body providers.DefaultProvisionPayload false "KaaS cluster provisioning details (required when provider is civo, digitalocean or linode)"
+// @success 200 {object} portaineree.Endpoint "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
-// @router /cloud [post]
+// @router /cloud/{provider} [post]
 func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	provider, err := request.RetrieveRouteVariableValue(r, "provider")
 	if err != nil {
