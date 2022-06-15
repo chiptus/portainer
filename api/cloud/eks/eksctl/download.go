@@ -12,14 +12,21 @@ import (
 	"path"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/cavaliergopher/grab/v3"
 	log "github.com/sirupsen/logrus"
 )
 
+var mu sync.Mutex
+
 // ensureEksctl makes sure that eksctl and prerequesite binaries are installed
 func ensureEksctl(outputPath string) error {
+
+	// This prevents downloading the binaries multiple times from different threads
+	mu.Lock()
+	defer mu.Unlock()
 
 	prependPathEnvironment(outputPath)
 
