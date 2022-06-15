@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	portainer "github.com/portainer/portainer/api"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -14,6 +13,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	portainer "github.com/portainer/portainer/api"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
@@ -454,7 +455,20 @@ func (transport *Transport) decorateRegistryAuthenticationHeader(request *http.R
 			return err
 		}
 
-		authenticationHeader, err := createRegistryAuthenticationHeader(transport.dataStore, originalHeaderData.RegistryId, accessContext)
+		// delete header and exist function without error if Front End
+		// passes empty json. This is to restore original behavior which
+		// never originally passed this header
+		if string(decodedHeaderData) == "{}" {
+			request.Header.Del("X-Registry-Auth")
+			return nil
+		}
+
+		// only set X-Registry-Auth if registryId is defined
+		if originalHeaderData.RegistryId == nil {
+			return nil
+		}
+
+		authenticationHeader, err := createRegistryAuthenticationHeader(transport.dataStore, *originalHeaderData.RegistryId, accessContext)
 		if err != nil {
 			return err
 		}
