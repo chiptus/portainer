@@ -48,7 +48,6 @@ class DockerRegistryAccessController {
 
       const roleId = entityAccess.RoleId;
       const role = this.roles.find((role) => role.Id === roleId);
-      console.log(role);
       return this.isStandardOrReadOnlyRole(role);
     });
   }
