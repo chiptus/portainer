@@ -40,8 +40,7 @@ export function GKECreateClusterForm({
     region,
     credentialId,
     kubernetesVersion,
-    nodeSize,
-    google: { networkId, cpu, ram },
+    google: { networkId, cpu, ram, nodeSize },
   } = values;
   const [isOptionsForce, setIsOptionsForce] = useState(false);
 
@@ -97,7 +96,7 @@ export function GKECreateClusterForm({
   }, [credentials, setFieldValue]);
   // set each form value to a valid option when the options change
   useSetAvailableOption(regions, region, 'region');
-  useSetAvailableOption(nodeSizes, nodeSize, 'nodeSize');
+  useSetAvailableOption(nodeSizes, nodeSize, 'google.nodeSize');
   useSetAvailableOption(
     kubernetesVersions,
     kubernetesVersion,
@@ -150,10 +149,10 @@ export function GKECreateClusterForm({
             label="Node size"
             tooltip="Size of each node deployed in the cluster"
             inputId="kaas-nodeSize"
-            errors={errors.nodeSize}
+            errors={errors.google?.nodeSize}
           >
             <Field
-              name="nodeSize"
+              name="google.nodeSize"
               as={Select}
               id="kaas-nodeSize"
               data-cy="kaasCreateForm-nodeSizeSelect"

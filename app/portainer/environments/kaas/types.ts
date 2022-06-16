@@ -1,16 +1,23 @@
 import { Option } from '@/portainer/components/form-components/Input/Select';
 import { EnvironmentMetadata } from '@/portainer/environments/environment.service/create';
 
+export enum KaaSFormType {
+  API = 'api',
+  EKS = 'eks',
+  GKE = 'gke',
+  AZURE = 'azure',
+}
+
 interface CreateBaseClusterFormValues {
   kubernetesVersion: string;
   region: string;
   credentialId: number;
   nodeCount: number;
-  nodeSize: string;
 }
 
 export interface CreateApiClusterFormValues {
   networkId: string;
+  nodeSize: string;
 }
 
 export interface CreateAzureClusterFormValues {
@@ -21,6 +28,7 @@ export interface CreateAzureClusterFormValues {
   dnsPrefix: string;
   availabilityZones: string[];
   resourceGroupInput: string;
+  nodeSize: string;
 }
 
 export interface CreateGKEClusterFormValues {
@@ -28,6 +36,7 @@ export interface CreateGKEClusterFormValues {
   ram: number;
   hdd: number;
   networkId: string;
+  nodeSize: string;
 }
 
 export interface CreateEKSClusterFormValues {

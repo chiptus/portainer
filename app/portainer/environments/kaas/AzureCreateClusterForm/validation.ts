@@ -1,4 +1,4 @@
-import { object, string, number, array, SchemaOf } from 'yup';
+import { object, string, array, SchemaOf } from 'yup';
 
 import { CreateAzureClusterFormValues } from '../types';
 
@@ -16,13 +16,14 @@ export function validationSchema(): SchemaOf<CreateAzureClusterFormValues> {
       .default('')
       .when('resourceGroupInput', {
         is: 'input',
-        then: string().required('Resource group name is required.'),
-      })
-      .matches(
-        /^[a-z0-9-_]+$/,
-        'Resource group name must only contain lowercase alphanumeric characters and hyphens.'
-      )
-      .max(90, 'Resource group name must be 90 characters or less.'),
+        then: string()
+          .required('Resource group name is required.')
+          .matches(
+            /^[a-z0-9-_]+$/,
+            'Resource group name must only contain lowercase alphanumeric characters and hyphens.'
+          )
+          .max(90, 'Resource group name must be 90 characters or less.'),
+      }),
     poolName: string()
       .required('Pool name is required.')
       .matches(
@@ -30,11 +31,7 @@ export function validationSchema(): SchemaOf<CreateAzureClusterFormValues> {
         'Pool name must only contain lowercase alphanumeric characters.'
       )
       .max(11, 'Pool name must be 11 characters or less.'),
-    nodeSize: string().required('Node type is required.'),
-    nodeCount: number()
-      .min(1, 'Node count must be greater than or equal to 1.')
-      .max(1000, 'Node count must be less than or equal to 1000.')
-      .required('Node count is required.'),
+    nodeSize: string().required('Node size is required.'),
     availabilityZones: array().of(string()).default([]),
     tier: string().required('Tier is required.'),
     dnsPrefix: string()

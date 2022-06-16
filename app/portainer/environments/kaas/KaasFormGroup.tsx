@@ -32,7 +32,6 @@ const initialValues: FormValues = {
   name: '',
   nodeCount: 3,
   kubernetesVersion: '',
-  nodeSize: '',
   region: '',
   credentialId: 0,
 
@@ -46,9 +45,11 @@ const initialValues: FormValues = {
     ram: 4,
     hdd: 100,
     networkId: '',
+    nodeSize: '',
   },
   api: {
     networkId: '',
+    nodeSize: '',
   },
   azure: {
     resourceGroup: '',
@@ -58,6 +59,7 @@ const initialValues: FormValues = {
     dnsPrefix: '',
     availabilityZones: [],
     resourceGroupInput: 'select',
+    nodeSize: '',
   },
   amazon: {
     amiType: '',
@@ -142,7 +144,15 @@ export function KaaSFormGroup({ onCreate }: Props) {
 
   function handleSubmit(
     values: FormValues,
-    { resetForm }: { resetForm: () => void }
+    {
+      setFieldValue,
+    }: {
+      setFieldValue: (
+        field: string,
+        value: string,
+        shouldValidate?: boolean
+      ) => void;
+    }
   ) {
     if (settingsQuery.data?.EnableTelemetry) {
       sendKaasProvisionAnalytics(values, provider);
@@ -157,7 +167,7 @@ export function KaaSFormGroup({ onCreate }: Props) {
       {
         onSuccess: (environment) => {
           onCreate(environment, 'kaasAgent');
-          resetForm();
+          setFieldValue('name', '');
         },
       }
     );

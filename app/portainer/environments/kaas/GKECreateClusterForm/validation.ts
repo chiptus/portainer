@@ -4,11 +4,14 @@ import { CreateGKEClusterFormValues, isGKEKaasInfo, KaasInfo } from '../types';
 
 // for E2 machines, min is 0.5GB per vCPU
 export function minGKERam(cpu: number) {
-  return cpu * 0.5;
+  return Math.max(cpu * 0.5, 1);
 }
 
 // for E2 machines, max is 8GB per vCPU with a 128GB maximum
 export function maxGKERam(cpu: number) {
+  if (cpu <= 0) {
+    return 128;
+  }
   return Math.min(cpu * 8, 128);
 }
 
@@ -52,11 +55,7 @@ export function validationSchema(
   }
 
   return object().shape({
-    nodeCount: number()
-      .integer('Node count must be a whole number.')
-      .min(1, 'Node count must be greater than or equal to 1.')
-      .max(1000, 'Node count must be less than or equal to 1000.')
-      .required('Node count is required.'),
+    nodeSize: string().required('Node size is required.'),
     cpu: cpuSchema
       .integer('CPUs must be an integer.')
       .test('2 increments', 'Number of vCPUs must a multiple of 2.', (number) =>

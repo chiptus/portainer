@@ -10,6 +10,6 @@ export function validationSchema(): SchemaOf<CreateEKSClusterFormValues> {
       .integer('Node volume size must be a whole number.')
       .min(1, 'Node volume size must be greater than or equal to 1 GiB.')
       .max(16384, 'Node volume size must be less than or equal to 16384 GiB.')
-      .default(20),
+      .required(),
   });
 }

@@ -39,9 +39,8 @@ export function ApiCreateClusterForm({
   const {
     region,
     credentialId,
-    nodeSize,
     kubernetesVersion,
-    api: { networkId },
+    api: { networkId, nodeSize },
   } = values;
 
   const selectedCredential =
@@ -70,7 +69,7 @@ export function ApiCreateClusterForm({
   // when the options change, set the available options in the select inputs
   useSetAvailableOption(filteredNetworkOptions, networkId, 'api.networkId');
   useSetAvailableOption(cloudOptions?.regions, region, 'region');
-  useSetAvailableOption(cloudOptions?.nodeSizes, nodeSize, 'nodeSize');
+  useSetAvailableOption(cloudOptions?.nodeSizes, nodeSize, 'api.nodeSize');
   useSetAvailableOption(
     cloudOptions?.kubernetesVersions,
     kubernetesVersion,
@@ -129,10 +128,10 @@ export function ApiCreateClusterForm({
             label="Node size"
             tooltip="Size of each node deployed in the cluster"
             inputId="kaas-nodeSize"
-            errors={errors.nodeSize}
+            errors={errors.api?.nodeSize}
           >
             <Field
-              name="nodeSize"
+              name="api.nodeSize"
               as={Select}
               id="kaas-nodeSize"
               data-cy="kaasCreateForm-nodeSizeSelect"

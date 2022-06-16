@@ -12,5 +12,6 @@ export function validationSchema(): SchemaOf<CreateApiClusterFormValues> {
         then: string().required('Network ID is required.'),
       })
       .default(''),
+    nodeSize: string().required('Node size is required.'),
   });
 }

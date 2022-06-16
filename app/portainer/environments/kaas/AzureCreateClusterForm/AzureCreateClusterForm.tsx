@@ -40,9 +40,14 @@ export function AzureCreateClusterForm({
   const {
     region,
     credentialId,
-    nodeSize,
     kubernetesVersion,
-    azure: { resourceGroup, tier, availabilityZones, resourceGroupInput },
+    azure: {
+      resourceGroup,
+      tier,
+      availabilityZones,
+      resourceGroupInput,
+      nodeSize,
+    },
   } = values;
   const [isOptionsForce, setIsOptionsForce] = useState(false);
 
@@ -119,7 +124,7 @@ export function AzureCreateClusterForm({
     kubernetesVersion,
     'kubernetesVersion'
   );
-  useSetAvailableOption(filteredNodeSizes, nodeSize, 'nodeSize');
+  useSetAvailableOption(filteredNodeSizes, nodeSize, 'azure.nodeSize');
 
   return (
     <>
@@ -260,10 +265,10 @@ export function AzureCreateClusterForm({
               label="Node size"
               tooltip="Size of each node deployed in the cluster. Check your Azure compute quota to ensure you have enough resources to deploy this cluster."
               inputId="kaas-nodeSize"
-              errors={errors.nodeSize}
+              errors={errors.azure?.nodeSize}
             >
               <Field
-                name="nodeSize"
+                name="azure.nodeSize"
                 as={Select}
                 id="kaas-nodeSize"
                 data-cy="kaasCreateForm-nodeSizeSelect"

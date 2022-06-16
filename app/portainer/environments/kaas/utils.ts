@@ -1,7 +1,7 @@
 import { trackEvent } from '@/angulartics.matomo/analytics-services';
 import { KaasProvider } from '@/portainer/settings/cloud/types';
 
-import { FormValues } from './types';
+import { FormValues, KaaSFormType } from './types';
 
 export function sendKaasProvisionAnalytics(
   values: FormValues,
@@ -41,7 +41,7 @@ function trackAzureProvision(values: FormValues) {
       'availability-zones': values.azure.availabilityZones,
       teir: values.azure.tier,
       'node-count': values.nodeCount,
-      'node-size': values.nodeSize,
+      'node-size': values.azure.nodeSize,
     },
   });
 }
@@ -55,7 +55,7 @@ function trackGoogleCloudProvision(values: FormValues) {
       cpu: values.google.cpu,
       ram: values.google.ram,
       hdd: values.google.hdd,
-      'node-size': values.nodeSize,
+      'node-size': values.google.nodeSize,
       'node-count': values.nodeCount,
     },
   });
@@ -67,7 +67,7 @@ function trackApiProvision(provider: KaasProvider, values: FormValues) {
     metadata: {
       provider,
       region: values.region,
-      'node-size': values.nodeSize,
+      'node-size': values.api.nodeSize,
       'node-count': values.nodeCount,
     },
   });
@@ -83,4 +83,20 @@ function trackAmazonProvision(values: FormValues) {
       'node-count': values.nodeCount,
     },
   });
+}
+
+export function providerFormType(provider: KaasProvider) {
+  switch (provider) {
+    case KaasProvider.GOOGLE_CLOUD:
+      return KaaSFormType.GKE;
+    case KaasProvider.AWS:
+      return KaaSFormType.EKS;
+    case KaasProvider.AZURE:
+      return KaaSFormType.AZURE;
+    case KaasProvider.DIGITAL_OCEAN:
+    case KaasProvider.LINODE:
+    case KaasProvider.CIVO:
+    default:
+      return KaaSFormType.API;
+  }
 }

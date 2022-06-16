@@ -96,7 +96,7 @@ export function getPayloadParse(provider: KaasProvider) {
     google: { cpu, ram, ...google },
     ...values
   }: FormValues): CreateGKEClusterPayload {
-    if (values.nodeSize === 'custom') {
+    if (google.nodeSize === 'custom') {
       return { cpu, ram, ...google, ...values };
     }
 
