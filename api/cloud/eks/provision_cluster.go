@@ -29,9 +29,9 @@ func NewProvisioner(accessKeyId, secretAccessKey, region, binaryPath string) *Ek
 	}
 }
 
-func (e *EksProvisioner) ProvisionCluster(accessKeyId, secretAccessKey, region, clusterName, amiType, nodeType string, nodeCount, nodeVolumeSizeGb int, kubernetesVersion string) (string, error) {
+func (e *EksProvisioner) ProvisionCluster(name, accessKeyId, secretAccessKey, region, amiType, nodeType string, nodeCount, nodeVolumeSizeGb int, kubernetesVersion string) (string, error) {
 
-	cfg := eksctl.NewConfig(e.AccessKeyId, e.SecretAccessKey, e.Region, e.BinaryPath)
+	cfg := eksctl.NewConfig(name, e.AccessKeyId, e.SecretAccessKey, e.Region, e.BinaryPath)
 
 	nodeAmiFamily := AmiFamilyAL2
 	if strings.HasPrefix(amiType, "BOTTLEROCKET") {
@@ -39,7 +39,7 @@ func (e *EksProvisioner) ProvisionCluster(accessKeyId, secretAccessKey, region, 
 	}
 
 	args := []string{"create", "cluster",
-		"--name", clusterName,
+		"--name", name,
 		"--region", region,
 		"--node-ami-family", nodeAmiFamily,
 		"--node-type", nodeType,
@@ -57,5 +57,5 @@ func (e *EksProvisioner) ProvisionCluster(accessKeyId, secretAccessKey, region, 
 		return "", err
 	}
 
-	return clusterName, nil
+	return name, nil
 }

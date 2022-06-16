@@ -8,12 +8,13 @@ import (
 	"regexp"
 	"strings"
 	"syscall"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
 
 var (
-	DefaultEksCtlVersion              = "v0.100.0-rc.0"
+	DefaultEksCtlVersion              = "v0.101.0"
 	DefaultAwsIamAuthenticatorVersion = "v0.5.7"
 )
 
@@ -23,14 +24,16 @@ const (
 )
 
 type Config struct {
+	id              string
 	accessKeyId     string
 	secretAccessKey string
 	region          string
 	binaryPath      string
 }
 
-func NewConfig(accessKeyId, secretAccessKey, region, binaryPath string) *Config {
+func NewConfig(id, accessKeyId, secretAccessKey, region, binaryPath string) *Config {
 	return &Config{
+		id:              id,
 		accessKeyId:     accessKeyId,
 		secretAccessKey: secretAccessKey,
 		region:          region,
@@ -74,20 +77,49 @@ func (c *Config) Run(params ...string) error {
 	// e.g. 2022-05-25 10:21:03 [ℹ]  waiting for CloudFormation stack "eksctl-matt-test2-cluster
 	// We strip that off so it does not appear twice when run in a docker container
 	stripPrefix := regexp.MustCompile(`.*\]  `)
-	errorText := ""
-	for scanner.Scan() {
-		text := stripPrefix.ReplaceAllString(scanner.Text(), "")
-		if strings.Contains(strings.ToLower(text), "error") {
-			errorText = text
-		}
+	ekserr := regexp.MustCompile(`✖|(?i)error|CREATE_FAILED`)
+	errorText := []string{}
+	logText := []string{}
+	ticker := time.NewTicker(500 * time.Millisecond)
+	ch := make(chan string)
+	run := true
 
-		log.Infof("[cloud][eksctl][%s]", text)
+	for run {
+		// scanner.Scan blocks.  This logic allows us to read to as a block of output from eksctl and output to the
+		// portainer log in one block at a time.  Rather than line by line.  This should make reading the log output
+		// easier when a lot of things are going on.
+		go func() {
+			for scanner.Scan() {
+				ch <- scanner.Text()
+			}
+			run = false
+		}()
+
+		select {
+		case <-ticker.C:
+			if len(logText) > 0 {
+				// As it's possible to provision multiple clusters at the same,
+				// we use invocation id to tie groups of output together.
+				log.Infof("[cloud] [eksctl] [cluster id: %s] [message: %s]", c.id, strings.Join(logText[:], "\n  "))
+				logText = []string{}
+			}
+
+		case text := <-ch:
+			if len(errorText) > 0 || ekserr.MatchString(text) {
+				// once we have an error, keep capturing the text following the error
+				text = stripPrefix.ReplaceAllString(text, "")
+				errorText = append(errorText, text)
+			} else {
+				text = stripPrefix.ReplaceAllString(text, "")
+				logText = append(logText, text)
+			}
+		}
 	}
 
 	if err = cmd.Wait(); err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if _, ok := exiterr.Sys().(syscall.WaitStatus); ok {
-				return fmt.Errorf("eksctl error: %s, %v", errorText, err)
+				return fmt.Errorf("eksctl error: %s, %v", strings.Join(errorText[:], "\n"), err)
 			}
 		}
 	}

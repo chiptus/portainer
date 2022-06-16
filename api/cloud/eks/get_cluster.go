@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/portainer/portainer-ee/api/cloud/eks/eksctl"
+	clouderrors "github.com/portainer/portainer-ee/api/cloud/errors"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -66,11 +67,11 @@ type (
 func (e *EksProvisioner) GetCluster(name string) (*Cluster, error) {
 	log.Debugf("[cloud] [message: sending KaaS cluster details request] [provider: Amazon EKS] [clusterName: %s] [region: %s]", name, e.Region)
 
-	cfg := eksctl.NewConfig(e.AccessKeyId, e.SecretAccessKey, e.Region, e.BinaryPath)
+	cfg := eksctl.NewConfig(name, e.AccessKeyId, e.SecretAccessKey, e.Region, e.BinaryPath)
 
 	kubeconfig, err := os.CreateTemp("", "")
 	if err != nil {
-		return nil, err
+		return nil, clouderrors.NewFatalErrorf("could not create temp file for kubeconfig, err: %s", err.Error())
 	}
 	defer os.Remove(kubeconfig.Name())
 
@@ -87,13 +88,13 @@ func (e *EksProvisioner) GetCluster(name string) (*Cluster, error) {
 
 	b, err := os.ReadFile(kubeconfig.Name())
 	if err != nil {
-		return nil, err
+		return nil, clouderrors.NewFatalErrorf("read kubeconfig failed, err: %s", err.Error())
 	}
 
 	var config Config
 	err = yaml.Unmarshal(b, &config)
 	if err != nil {
-		return nil, err
+		return nil, clouderrors.NewFatalErrorf("unmarshal kubeconfig failed, err: %s", err.Error())
 	}
 
 	config.Users[0].User.Exec.Env = append(config.Users[0].User.Exec.Env,
@@ -104,7 +105,7 @@ func (e *EksProvisioner) GetCluster(name string) (*Cluster, error) {
 
 	b, err = yaml.Marshal(config)
 	if err != nil {
-		return nil, err
+		return nil, clouderrors.NewFatalErrorf("marshal kubeconfig failed, err: %s", err.Error())
 	}
 
 	cluster := &Cluster{

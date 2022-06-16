@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
+	clouderrors "github.com/portainer/portainer-ee/api/cloud/errors"
 	"github.com/portainer/portainer-ee/api/cloud/gke"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
@@ -359,6 +360,10 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			log.Errorf("[cloud] [message: failure in state %s] [err: %v]", ProvisioningState(task.State), err)
 			log.Infof("[cloud] [message: retrying] [state: %s] [attempt: %d of %d]", ProvisioningState(task.State), task.Retries, maxRequestFailures)
 
+		}
+
+		if _, ok := err.(clouderrors.FatalError); ok {
+			fatal = true
 		}
 
 		// Handle exceeding max retries in a single state.

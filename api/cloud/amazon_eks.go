@@ -87,5 +87,5 @@ func (service *CloudClusterSetupService) AmazonEksProvisionCluster(credentials m
 
 	prov := eks.NewProvisioner(accessKeyId, secretAccessKey, request.Region, service.fileService.GetKaasFolder())
 
-	return prov.ProvisionCluster(accessKeyId, secretAccessKey, request.Region, request.Name, request.AmiType, request.InstanceType, request.NodeCount, request.NodeVolumeSize, request.KubernetesVersion)
+	return prov.ProvisionCluster(request.Name, accessKeyId, secretAccessKey, request.Region, request.AmiType, request.InstanceType, request.NodeCount, request.NodeVolumeSize, request.KubernetesVersion)
 }

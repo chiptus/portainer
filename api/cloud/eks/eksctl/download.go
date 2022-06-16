@@ -167,7 +167,7 @@ func downloadToFile(url, dest string, checksum string) (string, error) {
 
 	client := grab.NewClient()
 
-	log.Infof("Downloading %v...\n", req.URL())
+	log.Infof("[cloud] [eksctl] [message: Downloading %v...]", req.URL())
 	resp := client.Do(req)
 
 	t := time.NewTicker(500 * time.Millisecond)

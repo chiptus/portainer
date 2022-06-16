@@ -23,7 +23,7 @@ module.exports = function (grunt) {
       helmVersion: 'v3.9.0',
       komposeVersion: 'v1.22.0',
       kubectlVersion: 'v1.24.1',
-      eksctlVersion: 'v0.100.0-rc.0',
+      eksctlVersion: 'v0.101.0',
       awsAuthVersion: 'v0.5.7',
     },
     env: gruntConfig.env,
