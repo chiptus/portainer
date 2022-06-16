@@ -109,18 +109,17 @@ class InternalAuthenticationController {
 
     const isAdmin = this.Authentication.isAdmin();
     this.$analytics.setUserRole(isAdmin ? 'admin' : 'standard-user');
+
     let path = 'portainer.home';
+    if (this.Authentication.getUserDetails().forceChangePassword) {
+      path = 'portainer.account';
+    }
     if (isAdmin) {
       path = await this.checkForLicensesAsync();
       if (!path) {
         path = await this.checkForEndpointsAsync();
       }
     }
-
-    if (this.Authentication.getUserDetails().forceChangePassword) {
-      path = 'portainer.account';
-    }
-
     this.$state.go(path);
   }
   /**

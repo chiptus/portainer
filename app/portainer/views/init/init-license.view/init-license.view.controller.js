@@ -1,10 +1,11 @@
 export default class InitLicenseViewController {
   /* @ngInject */
-  constructor($async, $state, LicenseService, Notifications) {
+  constructor($async, $state, LicenseService, Notifications, Authentication) {
     this.$async = $async;
     this.$state = $state;
     this.LicenseService = LicenseService;
     this.Notifications = Notifications;
+    this.Authentication = Authentication;
 
     this.license = '';
     this.state = {
@@ -36,7 +37,11 @@ export default class InitLicenseViewController {
           throw new Error(failedKeys[this.license]);
         }
 
-        this.$state.go('portainer.wizard');
+        let path = 'portainer.wizard';
+        if (this.Authentication.getUserDetails().forceChangePassword) {
+          path = 'portainer.account';
+        }
+        this.$state.go(path);
       } catch (err) {
         this.Notifications.error('Failure', err, 'Failed validating licenses');
       } finally {

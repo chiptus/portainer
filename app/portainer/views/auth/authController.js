@@ -177,8 +177,7 @@ class AuthenticationController {
         path = await this.checkForEndpointsAsync();
       }
     }
-
-    if (this.Authentication.getUserDetails().forceChangePassword) {
+    if (this.Authentication.getUserDetails().forceChangePassword && path !== 'portainer.init.license') {
       path = 'portainer.account';
     }
 
