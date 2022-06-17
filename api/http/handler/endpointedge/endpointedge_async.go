@@ -3,7 +3,6 @@ package endpointedge
 import (
 	"compress/gzip"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	httperror "github.com/portainer/libhttp/error"
@@ -23,8 +23,9 @@ import (
 )
 
 type EdgeAsyncRequest struct {
-	CommandTimestamp *time.Time `json:"commandTimestamp"`
-	Snapshot         *snapshot  `json:"snapshot"`
+	CommandTimestamp *time.Time             `json:"commandTimestamp"`
+	Snapshot         *snapshot              `json:"snapshot"`
+	EndpointID       portaineree.EndpointID `json:"endpointId"`
 }
 
 const (
@@ -69,18 +70,26 @@ type EdgeAsyncResponse struct {
 // @failure 500 "Server error"
 // @router /endpoints/edge/async [post]
 func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+	var err error
+
 	edgeID := r.Header.Get(portaineree.PortainerAgentEdgeIDHeader)
 	if edgeID == "" {
 		logrus.WithField("PortainerAgentEdgeIDHeader", edgeID).Debug("missing agent edge id")
 		return httperror.BadRequest("missing Edge identifier", errors.New("missing Edge identifier"))
 	}
 
-	endpoints, err := handler.DataStore.Endpoint().Endpoints()
+	var payload EdgeAsyncRequest
+	err = request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve environments from database", err)
+		logrus.WithError(err).WithField("payload", r).Debug("decode payload")
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	endpoint := edge.EdgeEndpoint(endpoints, edgeID)
+	endpoint, err := handler.getEndpoint(payload.EndpointID, edgeID)
+	if err != nil {
+		return httperror.InternalServerError("Endpoint with edge id or endpoint id is missing", err)
+	}
+
 	if endpoint == nil {
 		logrus.WithField("PortainerAgentEdgeIDHeader", edgeID).Debug("edge id not found in existing endpoints")
 		agentPlatform, agentPlatformErr := parseAgentPlatform(r)
@@ -118,13 +127,6 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 		}
 
 		r.Body = gzr
-	}
-
-	var payload EdgeAsyncRequest
-	err = request.DecodeAndValidateJSONPayload(r, &payload)
-	if err != nil {
-		logrus.WithError(err).WithField("payload", r).Debug("decode payload")
-		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	if payload.Snapshot != nil {
@@ -425,4 +427,31 @@ func (handler *Handler) sendCommandsSince(endpoint *portaineree.Endpoint, comman
 	}
 
 	return commandsResponse, nil
+}
+
+func (handler *Handler) getEndpoint(endpointID portaineree.EndpointID, edgeID string) (*portaineree.Endpoint, error) {
+	if endpointID == 0 {
+		endpoints, err := handler.DataStore.Endpoint().Endpoints()
+		if err != nil {
+			return nil, errors.WithMessage(err, "Unable to retrieve environments from database")
+		}
+
+		return edge.EdgeEndpoint(endpoints, edgeID), nil
+	}
+
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
+	if err != nil {
+		return nil, errors.WithMessage(err, "Unable to retrieve the Endpoint from the database")
+	}
+
+	if endpoint.EdgeID == "" {
+		endpoint.EdgeID = edgeID
+
+		err = handler.DataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
+		if err != nil {
+			return nil, errors.WithMessage(err, "Unable to update the Endpoint in the database")
+		}
+	}
+
+	return endpoint, nil
 }
