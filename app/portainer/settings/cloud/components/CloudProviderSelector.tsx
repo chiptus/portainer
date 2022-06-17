@@ -1,5 +1,4 @@
-import { BoxSelector } from '@/portainer/components/BoxSelector';
-import { BoxSelectorOption } from '@/portainer/components/BoxSelector/types';
+import { BoxSelector, BoxSelectorOption } from '@@/BoxSelector';
 
 import { KaasProvider } from '../types';
 

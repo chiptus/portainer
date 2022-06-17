@@ -1,4 +1,4 @@
-import { TextTip } from '@/portainer/components/Tip/TextTip';
+import { TextTip } from '@@/Tip/TextTip';
 
 export function KaasInfoText() {
   return (

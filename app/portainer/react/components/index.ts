@@ -1,8 +1,15 @@
 import angular from 'angular';
 
 import { r2a } from '@/react-tools/react2angular';
-import { TagSelector } from '@/react/components/TagSelector';
 
+import { TagSelector } from '@@/TagSelector';
+import { LicenseExpirationPanelContainer } from '@@/PageHeader/LicenseExpirationPanel';
+import { Loading } from '@@/Widget/Loading';
+import { PasswordCheckHint } from '@@/PasswordCheckHint';
+import { ViewLoading } from '@@/ViewLoading';
+
+import { fileUploadField } from './file-upload-field';
+import { switchField } from './switch-field';
 import { customTemplatesModule } from './custom-templates';
 
 export const componentsModule = angular
@@ -10,4 +17,13 @@ export const componentsModule = angular
   .component(
     'tagSelector',
     r2a(TagSelector, ['allowCreate', 'onChange', 'value'])
-  ).name;
+  )
+  .component('fileUploadField', fileUploadField)
+  .component('porSwitchField', switchField)
+  .component('licenseExpirationPanel', r2a(LicenseExpirationPanelContainer, []))
+  .component(
+    'passwordCheckHint',
+    r2a(PasswordCheckHint, ['forceChangePassword', 'passwordValid'])
+  )
+  .component('rdLoading', r2a(Loading, []))
+  .component('viewLoading', r2a(ViewLoading, ['message'])).name;

@@ -1,12 +1,13 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
 import { react2angular } from '@/react-tools/react2angular';
-import { PageHeader } from '@/portainer/components/PageHeader';
 import { useEnvironmentId } from '@/portainer/hooks/useEnvironmentId';
-import { TableSettingsProvider } from '@/portainer/components/datatables/components/useTableSettings';
 import { useEvents } from '@/nomad/hooks/useEvents';
 import { EventsDatatable } from '@/nomad/Events/datatable/EventsDatatable';
 import { NomadEventsList } from '@/nomad/types';
+
+import { TableSettingsProvider } from '@@/datatables/useTableSettings';
+import { PageHeader } from '@@/PageHeader';
 
 export function Events() {
   const environmentId = useEnvironmentId();

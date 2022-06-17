@@ -1,6 +1,6 @@
 import { CellProps, Column } from 'react-table';
 
-import { Link } from '@/portainer/components/Link';
+import { Link } from '@@/Link';
 
 import { Credential } from '../../types';
 

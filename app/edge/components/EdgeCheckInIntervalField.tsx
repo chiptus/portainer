@@ -1,6 +1,7 @@
-import { FormControl } from '@/portainer/components/form-components/FormControl';
-import { Select } from '@/portainer/components/form-components/Input';
 import { r2a } from '@/react-tools/react2angular';
+
+import { FormControl } from '@@/form-components/FormControl';
+import { Select } from '@@/form-components/Input';
 
 import { Options, useIntervalOptions } from './useIntervalOptions';
 

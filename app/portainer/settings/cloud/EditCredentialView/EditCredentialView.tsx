@@ -1,9 +1,10 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
-import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
-import { PageHeader } from '@/portainer/components/PageHeader';
-import { Widget, WidgetBody } from '@/portainer/components/widget';
 import { react2angular } from '@/react-tools/react2angular';
+
+import { FormSectionTitle } from '@@/form-components/FormSectionTitle';
+import { PageHeader } from '@@/PageHeader';
+import { Widget, WidgetBody } from '@@/Widget';
 
 import { useCloudCredential } from '../cloudSettings.service';
 

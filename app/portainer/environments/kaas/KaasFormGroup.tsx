@@ -11,10 +11,11 @@ import { useCloudCredentials } from '@/portainer/settings/cloud/cloudSettings.se
 import { Environment } from '@/portainer/environments/types';
 import { AnalyticsStateKey } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/types';
 import { useSettings } from '@/portainer/settings/queries';
-import { TextTip } from '@/portainer/components/Tip/TextTip';
-import { Link } from '@/portainer/components/Link';
 import { CredentialsForm } from '@/portainer/settings/cloud/CreateCredentialsView/CredentialsForm';
-import { Loading } from '@/portainer/components/widget/Loading';
+
+import { Loading } from '@@/Widget/Loading';
+import { Link } from '@@/Link';
+import { TextTip } from '@@/Tip/TextTip';
 
 import { KaasProvidersSelector } from './KaasProvidersSelector';
 import { sendKaasProvisionAnalytics } from './utils';

@@ -1,12 +1,13 @@
 import { useState } from 'react';
 
-import { BoxSelector } from '@/portainer/components/BoxSelector';
 import {
   Environment,
   EnvironmentCreationTypes,
 } from '@/portainer/environments/types';
-import { BoxSelectorOption } from '@/portainer/components/BoxSelector/types';
 import { commandsTabs } from '@/react/edge/components/EdgeScriptForm/scripts';
+
+import { BoxSelector } from '@@/BoxSelector';
+import { BoxSelectorOption } from '@@/BoxSelector/types';
 
 import { AnalyticsStateKey } from '../types';
 import { EdgeAgentTab } from '../shared/EdgeAgentTab';

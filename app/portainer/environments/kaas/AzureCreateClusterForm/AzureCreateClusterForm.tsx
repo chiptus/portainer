@@ -1,21 +1,21 @@
 import { Field, useFormikContext } from 'formik';
 import { useMemo, useState } from 'react';
 
-import { Select as ReactSelect } from '@/portainer/components/form-components/ReactSelect';
-import { FormControl } from '@/portainer/components/form-components/FormControl';
-import { Input, Select } from '@/portainer/components/form-components/Input';
-import { Loading } from '@/portainer/components/widget/Loading';
 import {
   Credential,
   KaasProvider,
   providerTitles,
 } from '@/portainer/settings/cloud/types';
-import { Option } from '@/portainer/components/form-components/Input/Select';
-import { Alert } from '@/portainer/components/Alert';
-import { Link } from '@/portainer/components/Link';
-import { TextTip } from '@/portainer/components/Tip/TextTip';
 import { MoreSettingsSection } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MoreSettingsSection';
 import { NameField } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/NameField';
+
+import { Select as ReactSelect } from '@@/form-components/ReactSelect';
+import { FormControl } from '@@/form-components/FormControl';
+import { Input, Select } from '@@/form-components/Input';
+import { Loading } from '@@/Widget/Loading';
+import { Option } from '@@/form-components/Input/Select';
+import { Link } from '@@/Link';
+import { TextTip } from '@@/Tip/TextTip';
 
 import { useCloudProviderOptions } from '../queries';
 import { FormValues, isAzureKaasInfo } from '../types';
@@ -136,7 +136,7 @@ export function AzureCreateClusterForm({
       <CredentialsField credentials={credentials} />
 
       {cloudOptionsQuery.isError && (
-        <Alert>
+        <TextTip color="orange">
           Error getting {providerTitles[provider]} info. Go to&nbsp;
           <Link
             to="portainer.settings.cloud.credential"
@@ -146,7 +146,7 @@ export function AzureCreateClusterForm({
             cloud settings
           </Link>
           &nbsp;to ensure the API key is valid.
-        </Alert>
+        </TextTip>
       )}
       {cloudOptionsQuery.isLoading && <Loading />}
       {/* cluster details inputs */}
@@ -275,17 +275,18 @@ export function AzureCreateClusterForm({
                 options={filteredNodeSizes}
               />
             </FormControl>
-            <Alert type="info">
-              Check your{' '}
+            <TextTip color="blue">
+              Check your
               <a
                 href="https://portal.azure.com/#blade/Microsoft_Azure_Capacity/QuotaMenuBlade/myQuotas"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="mx-1"
               >
                 Azure compute quota
-              </a>{' '}
+              </a>
               to ensure you have enough resources to deploy this cluster
-            </Alert>
+            </TextTip>
             <FormControl
               label="Node count"
               tooltip="Number of nodes to provision in the cluster. Check your Azure compute quota to ensure you have enough resources to deploy this cluster."

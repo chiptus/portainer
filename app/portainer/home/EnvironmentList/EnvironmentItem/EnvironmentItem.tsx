@@ -14,10 +14,11 @@ import {
   isEdgeEnvironment,
 } from '@/portainer/environments/utils';
 import type { TagId } from '@/portainer/tags/types';
-import { Button } from '@/portainer/components/Button';
-import { Link } from '@/portainer/components/Link';
 import { useIsAdmin } from '@/portainer/hooks/useUser';
 import { useTags } from '@/portainer/tags/queries';
+
+import { Link } from '@@/Link';
+import { Button } from '@@/buttons';
 
 import { EnvironmentIcon } from './EnvironmentIcon';
 import { EdgeIndicator } from './EdgeIndicator';

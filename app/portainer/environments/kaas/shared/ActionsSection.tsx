@@ -1,7 +1,7 @@
 import { useFormikContext } from 'formik';
 
-import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
-import { FormSection } from '@/portainer/components/form-components/FormSection';
+import { LoadingButton } from '@@/buttons/LoadingButton';
+import { FormSection } from '@@/form-components/FormSection';
 
 import { FormValues } from '../types';
 

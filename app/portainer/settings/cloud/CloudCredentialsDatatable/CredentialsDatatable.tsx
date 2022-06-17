@@ -8,26 +8,24 @@ import {
   usePagination,
 } from 'react-table';
 
+import { useDebounce } from '@/portainer/hooks/useDebounce';
+
 import {
   TableActions,
   TableContainer,
   TableHeaderRow,
   TableRow,
   TableTitle,
-} from '@/portainer/components/datatables/components';
-import {
-  SearchBar,
-  useSearchBarState,
-} from '@/portainer/components/datatables/components/SearchBar';
-import { multiple } from '@/portainer/components/datatables/components/filter-types';
-import { useTableSettings } from '@/portainer/components/datatables/components/useTableSettings';
-import { useDebounce } from '@/portainer/hooks/useDebounce';
-import { Table } from '@/portainer/components/datatables/components/Table';
-import { TableFooter } from '@/portainer/components/datatables/components/TableFooter';
-import { SelectedRowsCount } from '@/portainer/components/datatables/components/SelectedRowsCount';
-import { PaginationControls } from '@/portainer/components/pagination-controls';
-import { Checkbox } from '@/portainer/components/form-components/Checkbox';
-import { useRowSelect } from '@/portainer/components/datatables/components/useRowSelect';
+} from '@@/datatables';
+import { SearchBar, useSearchBarState } from '@@/datatables/SearchBar';
+import { multiple } from '@@/datatables/filter-types';
+import { useTableSettings } from '@@/datatables/useTableSettings';
+import { Table } from '@@/datatables/Table';
+import { TableFooter } from '@@/datatables/TableFooter';
+import { SelectedRowsCount } from '@@/datatables/SelectedRowsCount';
+import { PaginationControls } from '@@/PaginationControls';
+import { Checkbox } from '@@/form-components/Checkbox';
+import { useRowSelect } from '@@/datatables/useRowSelect';
 
 import { Credential, CredentialTableSettings } from '../types';
 

@@ -1,8 +1,9 @@
 import { react2angular } from '@/react-tools/react2angular';
-import { DashboardItem } from '@/portainer/components/Dashboard/DashboardItem';
-import { Widget, WidgetTitle, WidgetBody } from '@/portainer/components/widget';
-import { PageHeader } from '@/portainer/components/PageHeader';
 import { useCurrentEnvironmentSnapshot } from '@/portainer/hooks/useCurrentEnvironmentSnapshot';
+
+import { DashboardItem } from '@@/DashboardItem';
+import { Widget, WidgetTitle, WidgetBody } from '@@/Widget';
+import { PageHeader } from '@@/PageHeader';
 
 import { RunningStatus } from './RunningStatus';
 

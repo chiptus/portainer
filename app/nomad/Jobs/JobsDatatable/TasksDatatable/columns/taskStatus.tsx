@@ -2,8 +2,9 @@ import _ from 'lodash';
 import clsx from 'clsx';
 import { CellProps, Column } from 'react-table';
 
-import { DefaultFilter } from '@/portainer/components/datatables/components/Filter';
 import { Task } from '@/nomad/types';
+
+import { DefaultFilter } from '@@/datatables/Filter';
 
 export const taskStatus: Column<Task> = {
   Header: 'Task Status',

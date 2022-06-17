@@ -1,15 +1,16 @@
 import { Form, Formik } from 'formik';
 import { useReducer } from 'react';
 
-import { EdgeAsyncIntervalsForm } from '@/edge/components/EdgeAsyncIntervalsForm';
 import { EdgeCheckinIntervalField } from '@/edge/components/EdgeCheckInIntervalField';
-import { FormControl } from '@/portainer/components/form-components/FormControl';
-import { Switch } from '@/portainer/components/form-components/SwitchField/Switch';
-import { Widget, WidgetBody, WidgetTitle } from '@/portainer/components/widget';
-import { FormSection } from '@/portainer/components/form-components/FormSection';
-import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
-import { TextTip } from '@/portainer/components/Tip/TextTip';
+import { EdgeAsyncIntervalsForm } from '@/edge/components/EdgeAsyncIntervalsForm';
 import { notifySuccess } from '@/portainer/services/notifications';
+
+import { FormControl } from '@@/form-components/FormControl';
+import { Switch } from '@@/form-components/SwitchField/Switch';
+import { Widget, WidgetBody, WidgetTitle } from '@@/Widget';
+import { FormSection } from '@@/form-components/FormSection';
+import { LoadingButton } from '@@/buttons/LoadingButton';
+import { TextTip } from '@@/Tip/TextTip';
 
 import { useSettings, useUpdateSettingsMutation } from '../../queries';
 

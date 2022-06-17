@@ -1,5 +1,6 @@
-import { PageHeader } from '@/portainer/components/PageHeader';
 import { react2angular } from '@/react-tools/react2angular';
+
+import { PageHeader } from '@@/PageHeader';
 
 import { CredentialsDatatableContainer } from './CloudCredentialsDatatable/CredentialsDatatableContainer';
 

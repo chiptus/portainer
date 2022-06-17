@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Field, Form, Formik } from 'formik';
 import { useRouter } from '@uirouter/react';
 
-import { FormControl } from '@/portainer/components/form-components/FormControl';
-import { Input } from '@/portainer/components/form-components/Input';
-import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
-import { FileUploadField } from '@/portainer/components/form-components/FileUpload';
 import { error as notifyError } from '@/portainer/services/notifications';
 import { readFileAsArrayBuffer } from '@/portainer/services/fileUploadReact';
-import { Button } from '@/portainer/components/Button';
+
+import { FormControl } from '@@/form-components/FormControl';
+import { Input } from '@@/form-components/Input';
+import { LoadingButton } from '@@/buttons/LoadingButton';
+import { FileUploadField } from '@@/form-components/FileUpload';
+import { Button } from '@@/buttons';
 
 import {
   ServiceAccountFormValues,

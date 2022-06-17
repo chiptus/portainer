@@ -1,6 +1,7 @@
-import { BoxSelector, buildOption } from '@/portainer/components/BoxSelector';
-import { BoxSelectorOption } from '@/portainer/components/BoxSelector/types';
+import { buildOption } from '@/portainer/components/BoxSelector';
 import { KaasProvider } from '@/portainer/settings/cloud/types';
+
+import { BoxSelector, BoxSelectorOption } from '@@/BoxSelector';
 
 const linodeOptions = buildOption(
   KaasProvider.LINODE,

@@ -1,5 +1,6 @@
-import { Option } from '@/portainer/components/form-components/Input/Select';
 import { EnvironmentMetadata } from '@/portainer/environments/environment.service/create';
+
+import { Option } from '@@/form-components/Input/Select';
 
 export enum KaaSFormType {
   API = 'api',

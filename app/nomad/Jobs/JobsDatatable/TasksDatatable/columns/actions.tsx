@@ -1,7 +1,8 @@
 import { CellProps, Column } from 'react-table';
 
-import { Link } from '@/portainer/components/Link';
 import { Task } from '@/nomad/types';
+
+import { Link } from '@@/Link';
 
 export const actions: Column<Task> = {
   Header: 'Task Actions',

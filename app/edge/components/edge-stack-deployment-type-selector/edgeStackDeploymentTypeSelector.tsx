@@ -1,7 +1,8 @@
-import { BoxSelector } from '@/portainer/components/BoxSelector';
 import { react2angular } from '@/react-tools/react2angular';
-import { BoxSelectorOption } from '@/portainer/components/BoxSelector/types';
 import { EditorType } from '@/edge/types';
+
+import { BoxSelector } from '@@/BoxSelector';
+import { BoxSelectorOption } from '@@/BoxSelector/types';
 
 interface Props {
   value: number;

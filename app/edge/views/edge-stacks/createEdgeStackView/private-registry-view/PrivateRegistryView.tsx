@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 
-import { Select } from '@/portainer/components/form-components/ReactSelect';
-import { FormControl } from '@/portainer/components/form-components/FormControl';
-import { Button } from '@/portainer/components/Button';
 import { RegistryViewModel } from '@/portainer/models/registry';
-import { Tooltip } from '@/portainer/components/Tip/Tooltip';
+
+import { Select } from '@@/form-components/ReactSelect';
+import { FormControl } from '@@/form-components/FormControl';
+import { Button } from '@@/buttons';
+import { Tooltip } from '@@/Tip/Tooltip';
+
 import './PrivateRegistryView.css';
 
 interface Props {

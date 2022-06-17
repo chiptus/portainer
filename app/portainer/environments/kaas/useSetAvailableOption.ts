@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useFormikContext } from 'formik';
 
-import { Option } from '@/portainer/components/form-components/Input/Select';
+import { Option } from '@@/form-components/Input/Select';
 
 // If the value is not found in the new list of available options,
 // then set the fieldName to an available value.

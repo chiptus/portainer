@@ -7,24 +7,22 @@ import {
   useTable,
 } from 'react-table';
 
-import { PaginationControls } from '@/portainer/components/pagination-controls';
+import { NomadEvent } from '@/nomad/types';
+import { useDebounce } from '@/portainer/hooks/useDebounce';
+
+import { PaginationControls } from '@@/PaginationControls';
 import {
   Table,
   TableContainer,
   TableHeaderRow,
   TableRow,
   TableTitle,
-} from '@/portainer/components/datatables/components';
-import { multiple } from '@/portainer/components/datatables/components/filter-types';
-import { useTableSettings } from '@/portainer/components/datatables/components/useTableSettings';
-import { useDebounce } from '@/portainer/hooks/useDebounce';
-import {
-  SearchBar,
-  useSearchBarState,
-} from '@/portainer/components/datatables/components/SearchBar';
-import { TableFooter } from '@/portainer/components/datatables/components/TableFooter';
-import { NomadEvent } from '@/nomad/types';
-import { TableContent } from '@/portainer/components/datatables/components/TableContent';
+} from '@@/datatables';
+import { multiple } from '@@/datatables/filter-types';
+import { useTableSettings } from '@@/datatables/useTableSettings';
+import { SearchBar, useSearchBarState } from '@@/datatables/SearchBar';
+import { TableFooter } from '@@/datatables/TableFooter';
+import { TableContent } from '@@/datatables/TableContent';
 
 import { useColumns } from './columns';
 

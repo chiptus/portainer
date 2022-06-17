@@ -1,13 +1,14 @@
 import { Form, Formik } from 'formik';
 import { useReducer, useState } from 'react';
 
-import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
 import { useCreateKubeConfigEnvironmentMutation } from '@/portainer/environments/queries/useCreateEnvironmentMutation';
 import { notifySuccess } from '@/portainer/services/notifications';
 import { Environment } from '@/portainer/environments/types';
 import { CreateKubeConfigEnvironment } from '@/portainer/environments/environment.service/create';
-import { FileUploadField } from '@/portainer/components/form-components/FileUpload/FileUploadField';
-import { FormControl } from '@/portainer/components/form-components/FormControl';
+
+import { FormControl } from '@@/form-components/FormControl';
+import { FileUploadField } from '@@/form-components/FileUpload/FileUploadField';
+import { LoadingButton } from '@@/buttons/LoadingButton';
 
 import { NameField } from '../../shared/NameField';
 import { MoreSettingsSection } from '../../shared/MoreSettingsSection';

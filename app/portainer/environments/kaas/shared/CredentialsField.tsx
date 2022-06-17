@@ -1,12 +1,10 @@
 import { useField } from 'formik';
 import { ChangeEvent } from 'react';
 
-import { FormControl } from '@/portainer/components/form-components/FormControl';
-import {
-  Select,
-  Option,
-} from '@/portainer/components/form-components/Input/Select';
 import { Credential } from '@/portainer/settings/cloud/types';
+
+import { FormControl } from '@@/form-components/FormControl';
+import { Select, Option } from '@@/form-components/Input/Select';
 
 import { useSetAvailableOption } from '../useSetAvailableOption';
 

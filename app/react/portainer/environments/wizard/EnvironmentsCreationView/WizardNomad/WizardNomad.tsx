@@ -1,9 +1,10 @@
 import { Environment } from '@/portainer/environments/types';
-import { BoxSelector } from '@/portainer/components/BoxSelector';
 import {
   buildLinuxNomadCommand,
   CommandTab,
 } from '@/react/edge/components/EdgeScriptForm/scripts';
+
+import { BoxSelector } from '@@/BoxSelector';
 
 import { AnalyticsStateKey } from '../types';
 import { EdgeAgentTab } from '../shared/EdgeAgentTab';

@@ -1,15 +1,11 @@
 import { usePagination, useTable } from 'react-table';
 
-import {
-  Table,
-  TableContainer,
-  TableHeaderRow,
-  TableRow,
-} from '@/portainer/components/datatables/components';
-import { InnerDatatable } from '@/portainer/components/datatables/components/InnerDatatable';
 import { Device } from '@/portainer/hostmanagement/open-amt/model';
 import { EnvironmentId } from '@/portainer/environments/types';
 import PortainerError from '@/portainer/error';
+
+import { InnerDatatable } from '@@/datatables/InnerDatatable';
+import { Table, TableContainer, TableHeaderRow, TableRow } from '@@/datatables';
 
 import { useAMTDevices } from './useAMTDevices';
 import { RowProvider } from './columns/RowContext';

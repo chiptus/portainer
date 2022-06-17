@@ -1,7 +1,8 @@
 import { useRouter } from '@uirouter/react';
 
-import { Button } from '@/portainer/components/Button';
 import { confirmAsync } from '@/portainer/services/modal.service/confirm';
+
+import { Button } from '@@/buttons';
 
 import { Credential } from '../types';
 import { useDeleteCredentialMutation } from '../cloudSettings.service';

@@ -3,7 +3,8 @@ import { useMutation } from 'react-query';
 
 import { Job } from '@/nomad/types';
 import { confirmDeletionAsync } from '@/portainer/services/modal.service/confirm';
-import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
+
+import { LoadingButton } from '@@/buttons/LoadingButton';
 
 import { deleteJobs } from './delete';
 

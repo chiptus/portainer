@@ -9,7 +9,10 @@ import {
 } from 'react-table';
 import { useRowSelectColumn } from '@lineup-lite/hooks';
 
-import { PaginationControls } from '@/portainer/components/pagination-controls';
+import { Job } from '@/nomad/types';
+import { useDebounce } from '@/portainer/hooks/useDebounce';
+
+import { PaginationControls } from '@@/PaginationControls';
 import {
   Table,
   TableActions,
@@ -19,20 +22,15 @@ import {
   TableTitle,
   TableSettingsMenu,
   TableTitleActions,
-} from '@/portainer/components/datatables/components';
-import { multiple } from '@/portainer/components/datatables/components/filter-types';
-import { useTableSettings } from '@/portainer/components/datatables/components/useTableSettings';
-import { useDebounce } from '@/portainer/hooks/useDebounce';
-import {
-  SearchBar,
-  useSearchBarState,
-} from '@/portainer/components/datatables/components/SearchBar';
-import { useRowSelect } from '@/portainer/components/datatables/components/useRowSelect';
-import { TableFooter } from '@/portainer/components/datatables/components/TableFooter';
-import { SelectedRowsCount } from '@/portainer/components/datatables/components/SelectedRowsCount';
-import { Job } from '@/nomad/types';
-import { TableContent } from '@/portainer/components/datatables/components/TableContent';
-import { useRepeater } from '@/portainer/components/datatables/components/useRepeater';
+} from '@@/datatables';
+import { multiple } from '@@/datatables/filter-types';
+import { useTableSettings } from '@@/datatables/useTableSettings';
+import { SearchBar, useSearchBarState } from '@@/datatables/SearchBar';
+import { useRowSelect } from '@@/datatables/useRowSelect';
+import { TableFooter } from '@@/datatables/TableFooter';
+import { SelectedRowsCount } from '@@/datatables/SelectedRowsCount';
+import { TableContent } from '@@/datatables/TableContent';
+import { useRepeater } from '@@/datatables/useRepeater';
 
 import { JobsTableSettings } from './types';
 import { TasksDatatable } from './TasksDatatable';

@@ -1,10 +1,10 @@
 import { Field, Form, Formik } from 'formik';
 import { useRouter } from '@uirouter/react';
 
-import { FormControl } from '@/portainer/components/form-components/FormControl';
-import { Input } from '@/portainer/components/form-components/Input';
-import { LoadingButton } from '@/portainer/components/Button/LoadingButton';
-import { Button } from '@/portainer/components/Button';
+import { FormControl } from '@@/form-components/FormControl';
+import { Input } from '@@/form-components/Input';
+import { LoadingButton } from '@@/buttons/LoadingButton';
+import { Button } from '@@/buttons';
 
 import { APIFormValues, KaasProvider, providerTitles } from '../types';
 

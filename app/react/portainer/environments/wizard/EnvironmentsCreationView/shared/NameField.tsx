@@ -1,9 +1,10 @@
 import { Field, useField } from 'formik';
 import { string } from 'yup';
 
-import { FormControl } from '@/portainer/components/form-components/FormControl';
-import { Input } from '@/portainer/components/form-components/Input';
 import { getEndpoints } from '@/portainer/environments/environment.service';
+
+import { FormControl } from '@@/form-components/FormControl';
+import { Input } from '@@/form-components/Input';
 
 interface Props {
   readonly?: boolean;

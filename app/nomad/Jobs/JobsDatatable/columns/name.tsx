@@ -1,7 +1,8 @@
 import { CellProps, Column } from 'react-table';
 
-import { ExpandingCell } from '@/portainer/components/datatables/components/ExpandingCell';
 import { Job } from '@/nomad/types';
+
+import { ExpandingCell } from '@@/datatables/ExpandingCell';
 
 export const name: Column<Job> = {
   Header: 'Name',

@@ -1,14 +1,10 @@
 import { useFilters, usePagination, useSortBy, useTable } from 'react-table';
 import { useState } from 'react';
 
-import {
-  Table,
-  TableContainer,
-  TableHeaderRow,
-  TableRow,
-} from '@/portainer/components/datatables/components';
-import { InnerDatatable } from '@/portainer/components/datatables/components/InnerDatatable';
 import { Task } from '@/nomad/types';
+
+import { Table, TableContainer, TableHeaderRow, TableRow } from '@@/datatables';
+import { InnerDatatable } from '@@/datatables/InnerDatatable';
 
 import { useColumns } from './columns';
 

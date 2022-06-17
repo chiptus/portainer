@@ -1,5 +1,6 @@
-import { Option } from '@/portainer/components/form-components/Input/Select';
 import { KaasProvider } from '@/portainer/settings/cloud/types';
+
+import { Option } from '@@/form-components/Input/Select';
 
 import {
   KaasInfo,

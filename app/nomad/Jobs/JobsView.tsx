@@ -1,7 +1,8 @@
 import { react2angular } from '@/react-tools/react2angular';
-import { PageHeader } from '@/portainer/components/PageHeader';
-import { TableSettingsProvider } from '@/portainer/components/datatables/components/useTableSettings';
 import { useCurrentEnvironmentSnapshot } from '@/portainer/hooks/useCurrentEnvironmentSnapshot';
+
+import { PageHeader } from '@@/PageHeader';
+import { TableSettingsProvider } from '@@/datatables/useTableSettings';
 
 import { JobsDatatable } from './JobsDatatable';
 

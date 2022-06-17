@@ -1,7 +1,7 @@
 import { useRouter } from '@uirouter/react';
 
-import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
-import { TextTip } from '@/portainer/components/Tip/TextTip';
+import { FormSectionTitle } from '@@/form-components/FormSectionTitle';
+import { TextTip } from '@@/Tip/TextTip';
 
 import {
   useCreateCredentialMutation,

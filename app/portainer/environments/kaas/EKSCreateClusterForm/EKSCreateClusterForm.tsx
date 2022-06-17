@@ -1,19 +1,19 @@
 import { Field, useFormikContext } from 'formik';
 import { useMemo, useState } from 'react';
 
-import { FormControl } from '@/portainer/components/form-components/FormControl';
-import { Input, Select } from '@/portainer/components/form-components/Input';
-import { Loading } from '@/portainer/components/widget/Loading';
 import {
   Credential,
   KaasProvider,
   providerTitles,
 } from '@/portainer/settings/cloud/types';
-import { WarningAlert } from '@/portainer/components/Alert/WarningAlert';
-import { Link } from '@/portainer/components/Link';
-import { TextTip } from '@/portainer/components/Tip/TextTip';
 import { MoreSettingsSection } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MoreSettingsSection';
 import { NameField } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/NameField';
+
+import { FormControl } from '@@/form-components/FormControl';
+import { Input, Select } from '@@/form-components/Input';
+import { Loading } from '@@/Widget/Loading';
+import { Link } from '@@/Link';
+import { TextTip } from '@@/Tip/TextTip';
 
 import { CredentialsField } from '../shared/CredentialsField';
 import { FormValues, InstanceTypeRegions, isEKSKaasInfo } from '../types';
@@ -112,7 +112,7 @@ export function EKSCreateClusterForm({
       <CredentialsField credentials={credentials} />
 
       {cloudOptionsQuery.isError && (
-        <WarningAlert>
+        <TextTip color="orange">
           Error getting {providerTitles[provider]} info. Go to&nbsp;
           <Link
             to="portainer.settings.cloud.credential"
@@ -122,7 +122,7 @@ export function EKSCreateClusterForm({
             cloud settings
           </Link>
           &nbsp;to ensure the API key is valid.
-        </WarningAlert>
+        </TextTip>
       )}
       {cloudOptionsQuery.isLoading && <Loading />}
       {/* cluster details inputs */}
