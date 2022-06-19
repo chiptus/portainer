@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"gopkg.in/yaml.v3"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -25,6 +26,21 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
 )
+
+type SelfContainedConfigExecError struct{}
+
+func (e *SelfContainedConfigExecError) Error() string {
+	return "The kubeconfig uses a binary authentication plugin and is therefore not self-contained. Only self-contained kubeconfigs are currently supported."
+}
+
+type SelfContainedConfigFileError struct {
+	File string
+}
+
+func (e *SelfContainedConfigFileError) Error() string {
+	return "The kubeconfig is not self-contained: found local file reference to " + e.File +
+		": kubeconfig should be created with `kubectl config view --flatten=true --minify=true`"
+}
 
 type endpointCreatePayload struct {
 	Name                   string
@@ -123,20 +139,11 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 
 	switch payload.EndpointCreationType {
 	case kubeConfigEnvironment:
-		kubeConfig, err := request.RetrieveMultiPartFormValue(r, "KubeConfig", true)
+		c, err := validateKubeConfigEnvironment(r)
 		if err != nil {
-			return fmt.Errorf("Invalid kubeconfig: %w", err)
+			return err
 		}
-
-		if kubeConfig == "" {
-			return fmt.Errorf("Invalid kubeconfig")
-		}
-
-		_, err = base64.StdEncoding.DecodeString(kubeConfig)
-		if err != nil {
-			return errors.New("Invalid kubeconfig")
-		}
-		payload.KubeConfig = kubeConfig
+		payload.KubeConfig = c
 
 	case azureEnvironment:
 		azureApplicationID, err := request.RetrieveMultiPartFormValue(r, "AzureApplicationID", false)
@@ -175,6 +182,128 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 	payload.IsEdgeDevice = isEdgeDevice
 
 	return nil
+}
+
+func validateKubeConfigEnvironment(r *http.Request) (string, error) {
+	encoded, err := request.RetrieveMultiPartFormValue(r, "KubeConfig", true)
+	if err != nil {
+		return "", fmt.Errorf("Invalid kubeconfig: %w", err)
+	}
+
+	if encoded == "" {
+		return "", fmt.Errorf("Missing or invalid kubeconfig")
+	}
+
+	decoded, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		return "", errors.New("KubeConfig could not be decoded")
+	}
+
+	// Parse the config as yaml so we can check for the existence of several
+	// fields which indicate a dependency on external files which (very
+	// likely) do not exist inside the portainer environment.
+	type Cluster struct {
+		CertificateAuthority string `yaml:"certificate-authority"`
+	}
+
+	type Clusters struct {
+		Cluster Cluster `yaml:"cluster"`
+		Name    string  `yaml:"name"`
+	}
+
+	type AuthConfig struct {
+		CmdArgs string `yaml:"cmd-args"`
+		CmdPath string `yaml:"cmd-path"`
+	}
+
+	type AuthProvider struct {
+		AuthConfig AuthConfig `yaml:"config"`
+	}
+
+	type User struct {
+		ClientCertificate string       `yaml:"client-certificate"`
+		ClientKey         string       `yaml:"client-key"`
+		AuthProvider      AuthProvider `yaml:"auth-provider"`
+	}
+
+	type Users struct {
+		Name string `yaml:"name"`
+		User User   `yaml:"user"`
+	}
+
+	type Context struct {
+		Cluster string `yaml:"cluster"`
+		User    string `yaml:"user"`
+	}
+
+	type Contexts struct {
+		Context Context `yaml:"context,omitempty"`
+		Name    string  `yaml:"name"`
+	}
+
+	type Config struct {
+		Clusters       []Clusters `yaml:"clusters"`
+		Contexts       []Contexts `yaml:"contexts"`
+		CurrentContext string     `yaml:"current-context"`
+		Users          []Users    `yaml:"users"`
+	}
+
+	var config Config
+	err = yaml.Unmarshal([]byte(decoded), &config)
+	if err != nil {
+		return "", errors.New("KubeConfig could not be parsed as yaml")
+	}
+
+	// Check if any of the invalid fields are present. These fields refer to
+	// local filepaths on the system which uploaded the Kubeconfig which
+	// indicates that the config is not self contained and will fail. The user
+	// should instead get their kubeconfig with the following:
+	//
+	// kubectl config view --flatten=true --minify=true
+	var ctxUser, ctxCluster string
+	for _, v := range config.Contexts {
+		if config.CurrentContext == v.Name {
+			ctxUser = v.Context.User
+			ctxCluster = v.Context.Cluster
+		}
+	}
+
+	for _, v := range config.Users {
+		if v.Name != ctxUser && config.CurrentContext != "" {
+			continue
+		}
+
+		if v.User.ClientCertificate != "" {
+			return "", &SelfContainedConfigFileError{
+				File: v.User.ClientCertificate,
+			}
+		}
+		if v.User.ClientKey != "" {
+			return "", &SelfContainedConfigFileError{
+				File: v.User.ClientKey,
+			}
+		}
+		if v.User.AuthProvider.AuthConfig.CmdArgs != "" {
+			return "", &SelfContainedConfigExecError{}
+		}
+		if v.User.AuthProvider.AuthConfig.CmdPath != "" {
+			return "", &SelfContainedConfigExecError{}
+		}
+	}
+
+	for _, v := range config.Clusters {
+		if v.Name != ctxCluster && config.CurrentContext != "" {
+			continue
+		}
+
+		if v.Cluster.CertificateAuthority != "" {
+			return "", &SelfContainedConfigFileError{
+				File: v.Cluster.CertificateAuthority,
+			}
+		}
+	}
+
+	return encoded, nil
 }
 
 // @id EndpointCreate

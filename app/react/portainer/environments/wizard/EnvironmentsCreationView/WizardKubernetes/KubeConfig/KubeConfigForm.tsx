@@ -89,14 +89,13 @@ export function KubeConfigForm({ onCreate }: Props) {
                 />
               </span>
               <span className="text-muted small">
-                Import the
                 <a
-                  href="https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/"
+                  href="https://docs.portainer.io/start/install/agent/kubernetes/import"
                   target="_blank"
                   rel="noreferrer"
                   className="mx-1"
                 >
-                  kubeconfig file
+                  Import the kubeconfig file
                 </a>
                 of an existing Kubernetes cluster located on-premise or on a
                 cloud platform. This will create a corresponding environment in
