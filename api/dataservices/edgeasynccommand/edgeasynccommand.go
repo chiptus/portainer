@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/database/boltdb"
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -35,45 +36,43 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}, nil
 }
 
-// Create assign an ID to a new EdgeAsyncCommand and saves it.
-func (service *Service) Create(command *portaineree.EdgeAsyncCommand) error {
-	command.ID = service.connection.GetNextIdentifier(BucketName)
-	logrus.WithField("command", command).Info("Create EdgeAsyncCommand")
-	return service.connection.CreateObjectWithSetSequence(BucketName, command.ID, command)
+func (service *Service) generateKey(cmd *portaineree.EdgeAsyncCommand) []byte {
+	return append(service.connection.ConvertToKey(int(cmd.EndpointID)), service.connection.ConvertToKey(cmd.ID)...)
+}
+
+// Create assigns an ID to a new EdgeAsyncCommand and saves it.
+func (service *Service) Create(cmd *portaineree.EdgeAsyncCommand) error {
+	cmd.ID = service.connection.GetNextIdentifier(BucketName)
+	logrus.WithField("command", cmd).Info("Create EdgeAsyncCommand")
+
+	return service.connection.CreateObjectWithStringId(BucketName, service.generateKey(cmd), cmd)
 }
 
 // Update updates an EdgeAsyncCommand.
-func (service *Service) Update(id int, command *portaineree.EdgeAsyncCommand) error {
-	identifier := service.connection.ConvertToKey(id)
-	logrus.WithField("command", command).WithField("id", id).Info("Update EdgeAsyncCommand")
-	return service.connection.UpdateObject(BucketName, identifier, command)
-}
-
-// Delete deletes an EdgeAsyncCommand.
-func (service *Service) Delete(id int) error {
-	identifier := service.connection.ConvertToKey(id)
-	logrus.WithField("id", id).Info("Update EdgeAsyncCommand")
-	return service.connection.DeleteObject(BucketName, identifier)
+func (service *Service) Update(id int, cmd *portaineree.EdgeAsyncCommand) error {
+	logrus.WithField("command", cmd).WithField("id", cmd.ID).Info("Update EdgeAsyncCommand")
+	return service.connection.UpdateObject(BucketName, service.generateKey(cmd), cmd)
 }
 
 // EndpointCommands return all EdgeAsyncCommand associated to a given endpoint.
 func (service *Service) EndpointCommands(endpointID portaineree.EndpointID) ([]portaineree.EdgeAsyncCommand, error) {
-	var commands = make([]portaineree.EdgeAsyncCommand, 0)
+	var cmds = make([]portaineree.EdgeAsyncCommand, 0)
 
-	err := service.connection.GetAllWithJsoniter(
+	err := service.connection.(*boltdb.DbConnection).GetAllWithKeyPrefix(
 		BucketName,
+		service.connection.ConvertToKey(int(endpointID)),
 		&portaineree.EdgeAsyncCommand{},
 		func(obj interface{}) (interface{}, error) {
-			command, ok := obj.(*portaineree.EdgeAsyncCommand)
+			cmd, ok := obj.(*portaineree.EdgeAsyncCommand)
 			if !ok {
 				logrus.WithField("obj", obj).Errorf("Failed to convert to EdgeAsyncCommand object")
 				return nil, fmt.Errorf("failed to convert to EdgeAsyncCommand object: %s", obj)
 			}
-			if command.EndpointID == endpointID {
-				commands = append(commands, *command)
-			}
+
+			cmds = append(cmds, *cmd)
+
 			return &portaineree.EdgeAsyncCommand{}, nil
 		})
 
-	return commands, err
+	return cmds, err
 }

@@ -193,17 +193,12 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 		portainerHost = portainerURL.Host
 	}
 
-	deviceHostname := req.Header.Get("portainer_hostname")
-	if deviceHostname == "" {
-		deviceHostname = fmt.Sprintf("Edge device %v", endpointID)
-	}
-
 	edgeKey := handler.ReverseTunnelService.GenerateEdgeKey(requestURL, portainerHost, endpointID)
 
 	endpoint := &portaineree.Endpoint{
 		ID:     portaineree.EndpointID(endpointID),
 		EdgeID: edgeID,
-		Name:   deviceHostname,
+		Name:   edgeID,
 		URL:    requestURL,
 		Type:   endpointType,
 		TLSConfig: portaineree.TLSConfiguration{
@@ -410,7 +405,7 @@ func (handler *Handler) sendCommandsSince(endpoint *portaineree.Endpoint, comman
 			continue
 		}
 
-		if storedCommand.Timestamp.Before(commandTimestamp) || storedCommand.Timestamp.Equal(commandTimestamp) {
+		if commandTimestamp.After(storedCommand.Timestamp) {
 			storedCommand.Executed = true
 			err := handler.DataStore.EdgeAsyncCommand().Update(storedCommand.ID, &storedCommand)
 			if err != nil {

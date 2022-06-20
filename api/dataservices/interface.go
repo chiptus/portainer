@@ -74,7 +74,6 @@ type (
 	EdgeAsyncCommandService interface {
 		Create(command *portaineree.EdgeAsyncCommand) error
 		Update(id int, command *portaineree.EdgeAsyncCommand) error
-		Delete(id int) error
 		EndpointCommands(endpointID portaineree.EndpointID) ([]portaineree.EdgeAsyncCommand, error)
 	}
 

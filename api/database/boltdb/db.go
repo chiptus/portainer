@@ -1,6 +1,7 @@
 package boltdb
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -386,6 +387,26 @@ func (connection *DbConnection) GetAllWithJsoniter(bucketName string, obj interf
 		return nil
 	})
 	return err
+}
+
+func (connection *DbConnection) GetAllWithKeyPrefix(bucketName string, keyPrefix []byte, obj interface{}, append func(o interface{}) (interface{}, error)) error {
+	return connection.View(func(tx *bolt.Tx) error {
+		cursor := tx.Bucket([]byte(bucketName)).Cursor()
+
+		for k, v := cursor.Seek(keyPrefix); k != nil && bytes.HasPrefix(k, keyPrefix); k, v = cursor.Next() {
+			err := connection.UnmarshalObjectWithJsoniter(v, obj)
+			if err != nil {
+				return err
+			}
+
+			obj, err = append(obj)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
 // BackupMetadata will return a copy of the boltdb sequence numbers for all buckets.
