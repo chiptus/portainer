@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"errors"
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
@@ -15,45 +16,55 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // Handler is the HTTP handler which will natively deal with to external environments(endpoints).
 type Handler struct {
 	*mux.Router
+	opaOperationMutex        *sync.Mutex
 	requestBouncer           *security.RequestBouncer
 	DataStore                dataservices.DataStore
 	KubernetesClientFactory  *cli.ClientFactory
 	kubeClusterAccessService kubernetes.KubeClusterAccessService
 	AuthorizationService     *authorization.Service
 	userActivityService      portaineree.UserActivityService
+	KubernetesDeployer       portaineree.KubernetesDeployer
 	JwtService               portaineree.JWTService
+	fileService              portainer.FileService
+	baseFileDir              string
 }
 
 // NewHandler creates a handler to process pre-proxied requests to external APIs.
-func NewHandler(bouncer *security.RequestBouncer, authorizationService *authorization.Service, dataStore dataservices.DataStore, jwtService portaineree.JWTService, kubeClusterAccessService kubernetes.KubeClusterAccessService, kubernetesClientFactory *cli.ClientFactory, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, authorizationService *authorization.Service, dataStore dataservices.DataStore, jwtService portaineree.JWTService, kubeClusterAccessService kubernetes.KubeClusterAccessService, kubernetesClientFactory *cli.ClientFactory, userActivityService portaineree.UserActivityService, k8sDeployer portaineree.KubernetesDeployer, fileService portainer.FileService, assetsPath string) *Handler {
+
 	h := &Handler{
 		Router:                   mux.NewRouter(),
+		opaOperationMutex:        &sync.Mutex{},
 		requestBouncer:           bouncer,
 		AuthorizationService:     authorizationService,
 		DataStore:                dataStore,
 		JwtService:               jwtService,
 		kubeClusterAccessService: kubeClusterAccessService,
 		KubernetesClientFactory:  kubernetesClientFactory,
+		KubernetesDeployer:       k8sDeployer,
 		userActivityService:      userActivityService,
+		fileService:              fileService,
+		baseFileDir:              assetsPath,
 	}
 
 	kubeRouter := h.PathPrefix("/kubernetes").Subrouter()
 	kubeRouter.Use(bouncer.AuthenticatedAccess)
-	kubeRouter.PathPrefix("/config").Handler(
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.getKubernetesConfig))).Methods(http.MethodGet)
+	kubeRouter.PathPrefix("/config").Handler(httperror.LoggerHandler(h.getKubernetesConfig)).Methods(http.MethodGet)
 
 	// endpoints
 	endpointRouter := kubeRouter.PathPrefix("/{id}").Subrouter()
 	endpointRouter.Use(middlewares.WithEndpoint(dataStore.Endpoint(), "id"))
 	endpointRouter.Use(kubeOnlyMiddleware)
 
-	endpointRouter.PathPrefix("/nodes_limits").Handler(
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.getKubernetesNodesLimits))).Methods(http.MethodGet)
+	endpointRouter.PathPrefix("/nodes_limits").Handler(httperror.LoggerHandler(h.getKubernetesNodesLimits)).Methods(http.MethodGet)
+	endpointRouter.PathPrefix("/opa").Handler(httperror.LoggerHandler(h.getK8sPodSecurityRule)).Methods(http.MethodGet)
+	endpointRouter.PathPrefix("/opa").Handler(httperror.LoggerHandler(h.updateK8sPodSecurityRule)).Methods(http.MethodPut)
 
 	// namespaces
 	// in the future this piece of code might be in another package (or a few different packages - namespaces/namespace?)

@@ -72,6 +72,7 @@ module.exports = function (grunt) {
       `shell:download_helm_binary:${platform}:${a}`,
       `shell:download_kompose_binary:${platform}:${a}`,
       `shell:download_kubectl_binary:${platform}:${a}`,
+      `shell:download_gatekeeper_library`,
     ]);
   });
 };
@@ -112,6 +113,7 @@ gruntConfig.shell = {
   download_kompose_binary: { command: shell_download_kompose_binary },
   download_kubectl_binary: { command: shell_download_kubectl_binary },
   download_docker_compose_binary: { command: shell_download_docker_compose_binary },
+  download_gatekeeper_library: { command: shell_download_gatekeeper_library },
   run_container: { command: shell_run_container },
   run_localserver: { command: shell_run_localserver, options: { async: true } },
   install_yarndeps: { command: shell_install_yarndeps },
@@ -244,6 +246,16 @@ function shell_download_kubectl_binary(platform, arch) {
       echo "kubectl binary exists";
     else
       build/download_kubectl_binary.sh ${platform} ${arch} ${binaryVersion};
+    fi
+  `;
+}
+
+function shell_download_gatekeeper_library() {
+  return `
+    if [ -d dist/pod-security-policy ]; then
+      echo "gatekeeper library exists";
+    else
+      build/download_gatekeeper.sh;
     fi
   `;
 }

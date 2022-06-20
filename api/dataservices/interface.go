@@ -7,6 +7,7 @@ import (
 	"github.com/portainer/liblicense"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
+	"github.com/portainer/portainer-ee/api/kubernetes/podsecurity"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices/errors"
 )
@@ -52,6 +53,7 @@ type (
 		Team() TeamService
 		TunnelServer() TunnelServerService
 		User() UserService
+		PodSecurity() PodSecurityService
 		Version() VersionService
 		Webhook() WebhookService
 		CloudCredential() CloudCredentialService
@@ -276,7 +278,14 @@ type (
 		RefreshableStacks() ([]portaineree.Stack, error)
 		BucketName() string
 	}
-
+	PodSecurityService interface {
+		PodSecurityRule(ID podsecurity.PodSecurityRuleID) (*podsecurity.PodSecurityRule, error)
+		PodSecurityByEndpointID(endpointID int) (*podsecurity.PodSecurityRule, error)
+		Create(podsecurity *podsecurity.PodSecurityRule) error
+		UpdatePodSecurityRule(endpointID int, podsecurity *podsecurity.PodSecurityRule) error
+		DeletePodSecurityRule(endpointID int) error
+		GetNextIdentifier() int
+	}
 	// TagService represents a service for managing tag data
 	TagService interface {
 		Tags() ([]portaineree.Tag, error)

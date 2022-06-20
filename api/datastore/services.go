@@ -25,6 +25,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/fdoprofile"
 	"github.com/portainer/portainer-ee/api/dataservices/helmuserrepository"
 	"github.com/portainer/portainer-ee/api/dataservices/license"
+	"github.com/portainer/portainer-ee/api/dataservices/podsecurity"
 	"github.com/portainer/portainer-ee/api/dataservices/registry"
 	"github.com/portainer/portainer-ee/api/dataservices/resourcecontrol"
 	"github.com/portainer/portainer-ee/api/dataservices/role"
@@ -73,6 +74,7 @@ type Store struct {
 	SettingsService           *settings.Service
 	SSLSettingsService        *ssl.Service
 	StackService              *stack.Service
+	PodSecurityService        *podsecurity.Service
 	TagService                *tag.Service
 	TeamMembershipService     *teammembership.Service
 	TeamService               *team.Service
@@ -209,6 +211,11 @@ func (store *Store) initServices() error {
 		return err
 	}
 	store.StackService = stackService
+	podsecurityService, err := podsecurity.NewService(store.connection)
+	if err != nil {
+		return err
+	}
+	store.PodSecurityService = podsecurityService
 
 	tagService, err := tag.NewService(store.connection)
 	if err != nil {
@@ -384,6 +391,10 @@ func (store *Store) TeamMembership() dataservices.TeamMembershipService {
 // Team gives access to the Team data management layer
 func (store *Store) Team() dataservices.TeamService {
 	return store.TeamService
+}
+
+func (store *Store) PodSecurity() dataservices.PodSecurityService {
+	return store.PodSecurityService
 }
 
 // TunnelServer gives access to the TunnelServer data management layer

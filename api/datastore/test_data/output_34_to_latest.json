@@ -465,6 +465,7 @@
   "fdo_profiles": null,
   "helm_user_repository": null,
   "license": null,
+  "podsecurity": null,
   "registries": null,
   "resource_control": null,
   "roles": [

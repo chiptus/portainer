@@ -1199,6 +1199,7 @@
   "fdo_profiles": null,
   "helm_user_repository": null,
   "license": null,
+  "podsecurity": null,
   "registries": [
     {
       "Authentication": true,

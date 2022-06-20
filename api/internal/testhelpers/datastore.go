@@ -32,6 +32,7 @@ type testDatastore struct {
 	s3backup                dataservices.S3BackupService
 	stack                   dataservices.StackService
 	tag                     dataservices.TagService
+	podSecurity             dataservices.PodSecurityService
 	teamMembership          dataservices.TeamMembershipService
 	team                    dataservices.TeamService
 	tunnelServer            dataservices.TunnelServerService
@@ -87,6 +88,7 @@ func (d *testDatastore) S3Backup() dataservices.S3BackupService             { re
 func (d *testDatastore) Settings() dataservices.SettingsService             { return d.settings }
 func (d *testDatastore) SSLSettings() dataservices.SSLSettingsService       { return d.sslSettings }
 func (d *testDatastore) Stack() dataservices.StackService                   { return d.stack }
+func (d *testDatastore) PodSecurity() dataservices.PodSecurityService       { return d.podSecurity }
 func (d *testDatastore) Tag() dataservices.TagService                       { return d.tag }
 func (d *testDatastore) TeamMembership() dataservices.TeamMembershipService { return d.teamMembership }
 func (d *testDatastore) Team() dataservices.TeamService                     { return d.team }

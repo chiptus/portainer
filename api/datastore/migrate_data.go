@@ -217,6 +217,7 @@ func (store *Store) rollbackToCE(forceUpdate bool) error {
 		FileService:              store.fileService,
 		DockerhubService:         store.DockerHubService,
 		AuthorizationService:     authorization.NewService(store),
+		PodSecurityService:       store.PodSecurityService,
 	}
 	migrator := migrator.NewMigrator(migratorParams)
 	if err != nil {

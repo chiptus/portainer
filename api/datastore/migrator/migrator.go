@@ -4,6 +4,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/cloudcredential"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudprovisioning"
 	"github.com/portainer/portainer-ee/api/dataservices/fdoprofile"
+	"github.com/portainer/portainer-ee/api/dataservices/podsecurity"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices/dockerhub"
@@ -80,6 +81,7 @@ type (
 		FileService              portainer.FileService
 		AuthorizationService     *authorization.Service
 		DockerhubService         *dockerhub.Service
+		PodSecurityService       *podsecurity.Service
 		CloudCredentialService   *cloudcredential.Service
 	}
 )
