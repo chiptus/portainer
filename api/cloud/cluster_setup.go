@@ -127,8 +127,19 @@ func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 		if task.CreatedAt.Before(time.Now().Add(-time.Hour * 24 * 7)) {
 			log.Infof("[cloud] [message: removing provisioning task, too old]")
 
+			// Get the associated endpoint and set it's status to error and error detail to timed out
+			err := service.setStatus(task.EndpointID, 4)
+			if err != nil {
+				log.Errorf("[cloud] [message: unable to update endpoint status in database] [error: %v]", err)
+			}
+
+			err = service.setMessage(task.EndpointID, "Provisioning Error", "Timed out")
+			if err != nil {
+				log.Errorf("[cloud] [message: unable to update endpoint status message in database] [error: %v]", err)
+			}
+
 			// Remove the task from the database because it's too old
-			err := service.dataStore.CloudProvisioning().Delete(task.ID)
+			err = service.dataStore.CloudProvisioning().Delete(task.ID)
 			if err != nil {
 				log.Warnf("[cloud] [message: unable to remove task from the database] [error: %s]", err.Error())
 			}
