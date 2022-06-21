@@ -78,14 +78,14 @@ func (c *Config) Run(params ...string) error {
 	// We strip that off so it does not appear twice when run in a docker container
 	stripPrefix := regexp.MustCompile(`.*\]  `)
 	ekserr := regexp.MustCompile(`✖|(?i)error|CREATE_FAILED`)
-	errorText := []string{}
+	errorText := ""
 	logText := []string{}
 	ticker := time.NewTicker(500 * time.Millisecond)
 	ch := make(chan string)
 	run := true
 
 	for run {
-		// scanner.Scan blocks.  This logic allows us to read to as a block of output from eksctl and output to the
+		// scanner.Scan blocks.  This logic allows us to read as a block of output from eksctl and output to the
 		// portainer log in one block at a time.  Rather than line by line.  This should make reading the log output
 		// easier when a lot of things are going on.
 		go func() {
@@ -105,21 +105,20 @@ func (c *Config) Run(params ...string) error {
 			}
 
 		case text := <-ch:
-			if len(errorText) > 0 || ekserr.MatchString(text) {
-				// once we have an error, keep capturing the text following the error
-				text = stripPrefix.ReplaceAllString(text, "")
-				errorText = append(errorText, text)
-			} else {
-				text = stripPrefix.ReplaceAllString(text, "")
-				logText = append(logText, text)
+			if errorText == "" && ekserr.MatchString(text) {
+				// drop the first error seen into here to be returned once the process exits
+				errorText = stripPrefix.ReplaceAllString(text, "")
 			}
+
+			text = stripPrefix.ReplaceAllString(text, "")
+			logText = append(logText, text)
 		}
 	}
 
 	if err = cmd.Wait(); err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if _, ok := exiterr.Sys().(syscall.WaitStatus); ok {
-				return fmt.Errorf("eksctl error: %s, %v", strings.Join(errorText[:], "\n"), err)
+				return fmt.Errorf("eksctl error: %s, %v. See portainer log for more detail.", errorText, err)
 			}
 		}
 	}

@@ -76,6 +76,15 @@ func (t RegionByName) Swap(i, j int) {
 }
 
 func (t RegionByName) Less(i, j int) bool {
+	// Put US Regions at the top.  Similar to AWS Console
+	if strings.HasPrefix(t[i].Name, "US ") {
+		if !strings.HasPrefix(t[j].Name, "US ") {
+			return true
+		}
+	} else if strings.HasPrefix(t[j].Name, "US ") {
+		return false
+	}
+
 	return sortorder.NaturalLess(t[i].Name, t[j].Name)
 }
 

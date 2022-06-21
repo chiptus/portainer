@@ -79,7 +79,7 @@ func (service *CloudClusterSetupService) Start() {
 		for {
 			select {
 			case request := <-service.requests:
-				service.processRequest(request)
+				go service.processRequest(request)
 
 			case result := <-service.result:
 				service.processResult(result)
@@ -263,12 +263,33 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 	var kubeClient portaineree.KubeClient
 	var serviceIP string
 	var err error
-	var fatal bool = false
 
-	log.Infof("[message: starting provisionKaasClusterTask] [provider: %s] [clusterId: %s] [endpointId: %d] [state: %d]", task.Provider, task.ClusterID, task.EndpointID, task.State)
 	for {
+		var fatal *clouderrors.FatalError
+		if errors.As(err, &fatal) {
+			task.Err = fatal
+		}
+
+		// Handle fatal provisioning errors (such as Quota reached etc)
+		// Also handle exceeding max retries in a single state.
+		if task.Err != nil || task.Retries >= maxRequestFailures {
+			if task.Err == nil {
+				task.Err = err
+			}
+
+			service.result <- &cloudPrevisioningResult{
+				endpointID: task.EndpointID,
+				err:        task.Err,
+				state:      int(ProvisioningStateDone),
+				taskID:     task.ID,
+			}
+			return
+		}
+
 		switch ProvisioningState(task.State) {
 		case ProvisioningStatePending:
+			log.Infof("[message: starting provisionKaasClusterTask] [provider: %s] [clusterId: %s] [endpointId: %d] [state: %d]", task.Provider, task.ClusterID, task.EndpointID, task.State)
+
 			// pendingState logic is completed outside of this function, but this is the initial state
 			service.changeState(&task, ProvisioningStateWaitingForCluster, "Creating KaaS cluster")
 
@@ -291,9 +312,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			if kubeClient == nil {
 				kubeClient, err = service.clientFactory.CreateKubeClientFromKubeConfig(task.ClusterID, cluster.KubeConfig)
 				if err != nil {
-					// If KubeClient is not created from KubeConfig, it means
-					// KubeConfig is incorrect
-					fatal = true
+					task.Err = err
 					task.Retries++
 					break
 				}
@@ -359,34 +378,6 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 		if err != nil {
 			log.Errorf("[cloud] [message: failure in state %s] [err: %v]", ProvisioningState(task.State), err)
 			log.Infof("[cloud] [message: retrying] [state: %s] [attempt: %d of %d]", ProvisioningState(task.State), task.Retries, maxRequestFailures)
-
-		}
-
-		if _, ok := err.(clouderrors.FatalError); ok {
-			fatal = true
-		}
-
-		// Handle exceeding max retries in a single state.
-		if task.Retries >= maxRequestFailures || fatal {
-			service.result <- &cloudPrevisioningResult{
-				endpointID: task.EndpointID,
-				err:        err,
-				state:      int(ProvisioningStateDone),
-				taskID:     task.ID,
-			}
-			return
-		}
-
-		// Handle initial fatal provisioning errors (such as Quota reached or a
-		// broken datastore).
-		if task.Err != nil {
-			service.result <- &cloudPrevisioningResult{
-				endpointID: task.EndpointID,
-				err:        task.Err,
-				state:      int(ProvisioningStateDone),
-				taskID:     task.ID,
-			}
-			return
 		}
 
 		time.Sleep(stateWaitTime)
@@ -408,24 +399,18 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 	// Required for Azure AKS
 	var clusterResourceGroup string
 
+	// Note: provErr is logged elsewhere. We just capture it here. Not logging it here avoids
+	// it appearing twice in the portainer logs.
+
 	switch request.Provider {
 	case portaineree.CloudProviderCivo:
 		clusterID, provErr = CivoProvisionCluster(credentials.Credentials["apiKey"], request.Region, request.Name, request.NodeSize, request.NetworkID, request.NodeCount, request.KubernetesVersion)
-		if provErr != nil {
-			log.Errorf("[cloud] [message: Civo cluster provisioning failed %v]", provErr)
-		}
 
 	case portaineree.CloudProviderDigitalOcean:
 		clusterID, provErr = DigitalOceanProvisionCluster(credentials.Credentials["apiKey"], request.Region, request.Name, request.NodeSize, request.NodeCount, request.KubernetesVersion)
-		if provErr != nil {
-			log.Errorf("[cloud] [message: Digital Ocean cluster provisioning failed %v]", provErr)
-		}
 
 	case portaineree.CloudProviderLinode:
 		clusterID, provErr = LinodeProvisionCluster(credentials.Credentials["apiKey"], request.Region, request.Name, request.NodeSize, request.NodeCount, request.KubernetesVersion)
-		if provErr != nil {
-			log.Errorf("[cloud] [message: Linode cluster provisioning failed %v]", provErr)
-		}
 
 	case portaineree.CloudProviderGKE:
 		req := gke.ProvisionRequest{
@@ -441,26 +426,19 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 			KubernetesVersion: request.KubernetesVersion,
 		}
 		clusterID, provErr = GKEProvisionCluster(req)
-		if provErr != nil {
-			log.Errorf("[cloud] [message: GKE cluster provisioning failed %v]", provErr)
-		}
 
 	case portaineree.CloudProviderKubeConfig:
 		clusterID = "kubeconfig-" + strconv.Itoa(int(time.Now().Unix()))
 
 	case portaineree.CloudProviderAzure:
 		clusterID, clusterResourceGroup, provErr = AzureProvisionCluster(credentials.Credentials, request)
-		if provErr != nil {
-			log.Errorf("[cloud] [message: Azure cluster provisioning failed %v]", provErr)
-		}
 
 	case portaineree.CloudProviderAmazon:
 		clusterID, provErr = service.AmazonEksProvisionCluster(credentials.Credentials, request)
-		if provErr != nil {
-			log.Errorf("[cloud] [message: Amazon cluster provisioning failed %v]", provErr)
-		}
 	}
 
+	// Even though there could be a provisioning error above, we still need to continue
+	// with the setup task here to properly set the error state of the endpoint
 	task, err := service.createClusterSetupTask(request, clusterID, clusterResourceGroup)
 	task.Err = provErr
 	if err != nil {
