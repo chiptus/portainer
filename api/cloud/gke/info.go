@@ -3,9 +3,11 @@ package gke
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	compute "cloud.google.com/go/compute/apiv1"
+	"github.com/fvbommel/sortorder"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"google.golang.org/api/container/v1"
 	"google.golang.org/api/iterator"
@@ -66,6 +68,25 @@ type SubnetDetails struct {
 
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type SubnetByName []SubnetDetails
+
+func (s SubnetByName) Len() int {
+	return len(s)
+}
+
+func (s SubnetByName) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s SubnetByName) Less(i, j int) bool {
+	// Put default network at the top.
+	if s[i].Name == "default" {
+		return true
+	}
+
+	return sortorder.NaturalLess(s[i].Name, s[j].Name)
 }
 
 // FetchZones gets a list of "Zones" instead of regions.
@@ -180,6 +201,7 @@ func (k Key) FetchNetworks(ctx context.Context) ([]Network, error) {
 			}
 			details = append(details, detail)
 		}
+		sort.Stable(SubnetByName(details))
 		net := Network{
 			Region:  region,
 			Subnets: details,
