@@ -12,6 +12,7 @@ import (
 	"github.com/fvbommel/sortorder"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/cloud/azure"
+	clouderrors "github.com/portainer/portainer-ee/api/cloud/errors"
 	"github.com/portainer/portainer-ee/api/database/models"
 	log "github.com/sirupsen/logrus"
 )
@@ -335,7 +336,6 @@ func AzureGetCluster(credentials models.CloudCredentialMap, resourceGroup, resou
 	if *cluster.ProvisioningState != "Succeeded" {
 		return kaasCluster, fmt.Errorf("cluster is %s", *cluster.ProvisioningState)
 	}
-	kaasCluster.Ready = true
 
 	if cluster.ManagedClusterProperties != nil && cluster.ManagedClusterProperties.Fqdn != nil {
 		log.Infof("[cloud] [provider: azure] cluster (%s) FQDN: (%s)", *cluster.Name, *cluster.ManagedClusterProperties.Fqdn)
@@ -344,6 +344,7 @@ func AzureGetCluster(credentials models.CloudCredentialMap, resourceGroup, resou
 		adminCreds, err := containerClient.ListClusterAdminCredentials(context.TODO(), resourceGroup, resourceName, *cluster.ManagedClusterProperties.Fqdn)
 		if err != nil {
 			log.Errorf("[cloud] [message: error while getting cluster admin credentials] [provider: azure] [cluster_name: %s] [error: %s]", resourceName, err)
+			return nil, clouderrors.NewFatalError("error while getting azure cluster admin credentials for resource (%s), err: %s", resourceName, err.Error())
 		}
 
 		for _, c := range *adminCreds.Kubeconfigs {
@@ -353,6 +354,7 @@ func AzureGetCluster(credentials models.CloudCredentialMap, resourceGroup, resou
 			}
 		}
 	}
+	kaasCluster.Ready = true
 
 	return kaasCluster, nil
 }
