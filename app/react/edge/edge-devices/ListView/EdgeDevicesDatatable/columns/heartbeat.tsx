@@ -15,28 +15,5 @@ export const heartbeat: Column<Environment> = {
 export function StatusCell({
   row: { original: environment },
 }: CellProps<Environment>) {
-  let checkIn = environment.EdgeCheckinInterval;
-
-  if (environment.Edge.AsyncMode) {
-    checkIn = 60;
-
-    const intervals = [
-      environment.Edge.PingInterval,
-      environment.Edge.SnapshotInterval,
-      environment.Edge.CommandInterval,
-    ].filter((n) => n > 0);
-
-    if (intervals.length > 0) {
-      checkIn = Math.min(...intervals);
-    }
-  }
-
-  return (
-    <EdgeIndicator
-      checkInInterval={checkIn}
-      edgeId={environment.EdgeID}
-      lastCheckInDate={environment.LastCheckInDate}
-      queryDate={environment.QueryDate}
-    />
-  );
+  return <EdgeIndicator environment={environment} />;
 }

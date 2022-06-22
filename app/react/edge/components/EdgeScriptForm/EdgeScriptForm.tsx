@@ -21,12 +21,14 @@ interface Props {
   edgeInfo: EdgeInfo;
   commands: CommandTab[] | Partial<Record<OS, CommandTab[]>>;
   isNomadTokenVisible?: boolean;
+  hideAsyncMode?: boolean;
 }
 
 export function EdgeScriptForm({
   edgeInfo,
   commands,
   isNomadTokenVisible,
+  hideAsyncMode,
 }: Props) {
   const showOsSelector = !(commands instanceof Array);
 
@@ -61,6 +63,7 @@ export function EdgeScriptForm({
                 onPlatformChange={(platform) =>
                   setFieldValue('platform', platform)
                 }
+                hideAsyncMode={hideAsyncMode}
               />
             </div>
           </>

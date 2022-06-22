@@ -64,6 +64,8 @@ export function DeploymentSyncOptions() {
                   label="Use Async mode by default"
                   size="medium"
                   errors={errors?.Edge?.AsyncMode}
+                  tooltip="Using Async allows the ability to define different ping,
+                  snapshot and command frequencies."
                 >
                   <Switch
                     id="edge_async_mode"
@@ -76,9 +78,8 @@ export function DeploymentSyncOptions() {
                   />
                 </FormControl>
 
-                <TextTip color="blue">
-                  Using Async allows the ability to define different ping,
-                  snapshot and command frequencies
+                <TextTip color="orange">
+                  Enabling Async disables the tunnel function.
                 </TextTip>
 
                 <FormSection title="Check-in Intervals">

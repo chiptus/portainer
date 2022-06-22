@@ -6,32 +6,14 @@ import { Environment } from '@/portainer/environments/types';
 import { UserContext } from '@/portainer/hooks/useUser';
 import { UserViewModel } from '@/portainer/models/user';
 import { Tag } from '@/portainer/tags/types';
+import { createMockEnvironment } from '@/react-tools/test-mocks';
 import { renderWithQueryClient } from '@/react-tools/test-utils';
 import { server, rest } from '@/setup-tests/server';
 
 import { EnvironmentItem } from './EnvironmentItem';
 
 test('loads component', async () => {
-  const env: Environment = {
-    TagIds: [],
-    GroupId: 1,
-    Type: 1,
-    Name: 'environment',
-    Status: 1,
-    URL: 'url',
-    Snapshots: [],
-    Kubernetes: { Snapshots: [] },
-    Nomad: { Snapshots: [] },
-    EdgeKey: '',
-    Id: 3,
-    UserTrusted: false,
-    Edge: {
-      AsyncMode: false,
-      PingInterval: 0,
-      CommandInterval: 0,
-      SnapshotInterval: 0,
-    },
-  };
+  const env = createMockEnvironment();
   const { getByText } = renderComponent(env);
 
   expect(getByText(env.Name)).toBeInTheDocument();

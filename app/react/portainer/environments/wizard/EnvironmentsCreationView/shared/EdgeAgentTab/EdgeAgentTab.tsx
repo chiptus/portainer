@@ -31,6 +31,7 @@ export function EdgeAgentTab({
         onCreate={handleCreate}
         readonly={!!edgeInfo}
         key={formKey}
+        hideAsyncMode
       />
 
       {edgeInfo && (
@@ -39,6 +40,7 @@ export function EdgeAgentTab({
             edgeInfo={edgeInfo}
             commands={commands}
             isNomadTokenVisible={isNomadTokenVisible}
+            hideAsyncMode
           />
 
           <hr />

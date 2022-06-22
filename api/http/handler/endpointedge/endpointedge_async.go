@@ -78,10 +78,8 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 		return httperror.BadRequest("missing Edge identifier", errors.New("missing Edge identifier"))
 	}
 
-	var payload EdgeAsyncRequest
-	err = request.DecodeAndValidateJSONPayload(r, &payload)
+	payload, err := parseBodyPayload(r)
 	if err != nil {
-		logrus.WithError(err).WithField("payload", r).Debug("decode payload")
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
@@ -118,15 +116,6 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 	err = handler.requestBouncer.AuthorizedEdgeEndpointOperation(r, endpoint)
 	if err != nil {
 		return httperror.Forbidden("Permission denied to access environment", err)
-	}
-
-	if r.Header.Get("Content-Encoding") == "gzip" {
-		gzr, err := gzip.NewReader(r.Body)
-		if err != nil {
-			return httperror.BadRequest("Invalid request payload", err)
-		}
-
-		r.Body = gzr
 	}
 
 	if payload.Snapshot != nil {
@@ -178,6 +167,28 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 	}
 
 	return response.JSON(w, asyncResponse)
+}
+
+func parseBodyPayload(req *http.Request) (EdgeAsyncRequest, error) {
+	var err error
+
+	if req.Header.Get("Content-Encoding") == "gzip" {
+		gzr, err := gzip.NewReader(req.Body)
+		if err != nil {
+			return EdgeAsyncRequest{}, errors.WithMessage(err, "Unable to read gzip body")
+		}
+
+		req.Body = gzr
+	}
+
+	var payload EdgeAsyncRequest
+	err = request.DecodeAndValidateJSONPayload(req, &payload)
+	if err != nil {
+		logrus.WithError(err).WithField("payload", req).Debug("decode payload")
+		return EdgeAsyncRequest{}, errors.WithMessage(err, "Unable to decode payload")
+	}
+
+	return payload, nil
 }
 
 func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID string, endpointType portaineree.EndpointType) (*portaineree.Endpoint, *httperror.HandlerError) {

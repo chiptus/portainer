@@ -10,7 +10,12 @@ export const componentsModule = angular
   .module('app.edge.components', [])
   .component(
     'edgeScriptForm',
-    r2a(EdgeScriptForm, ['edgeInfo', 'commands', 'isNomadTokenVisible'])
+    r2a(EdgeScriptForm, [
+      'edgeInfo',
+      'commands',
+      'isNomadTokenVisible',
+      'hideAsyncMode',
+    ])
   )
   .component('edgeCheckinIntervalField', EdgeCheckinIntervalFieldAngular)
   .component('edgeAsyncIntervalsForm', EdgeAsyncIntervalsFormAngular).name;

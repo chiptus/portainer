@@ -22,11 +22,12 @@ import { FormValues } from './types';
 interface Props {
   onCreate(environment: Environment): void;
   readonly: boolean;
+  hideAsyncMode?: boolean;
 }
 
 const initialValues = buildInitialValues();
 
-export function EdgeAgentForm({ onCreate, readonly }: Props) {
+export function EdgeAgentForm({ onCreate, readonly, hideAsyncMode }: Props) {
   const edgeSettingsQuery = useSettings((settings) => settings.Edge);
 
   const createMutation = useCreateEdgeAgentEnvironmentMutation();
@@ -50,7 +51,7 @@ export function EdgeAgentForm({ onCreate, readonly }: Props) {
 
           <MoreSettingsSection>
             <FormSection title="Check-in Intervals">
-              {edgeSettings.AsyncMode ? (
+              {!hideAsyncMode && edgeSettings.AsyncMode ? (
                 <EdgeAsyncIntervalsForm
                   values={values.edge}
                   readonly={readonly}
