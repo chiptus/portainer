@@ -67,7 +67,11 @@ export function APICredentialsForm({
               />
             </FormControl>
           )}
-          <FormControl inputId="name" label="Name" errors={errors.name}>
+          <FormControl
+            inputId="name"
+            label="Credentials name"
+            errors={errors.name}
+          >
             <Field
               as={Input}
               name="name"

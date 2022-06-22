@@ -42,7 +42,7 @@ export function CredentialsDatatableActions({ selectedItems }: Props) {
   async function onDeleteClick(selectedItems: Credential[]) {
     const confirmed = await confirmAsync({
       title: 'Confirm action',
-      message: `Are you sure you want to deleted the selected ${
+      message: `Are you sure you want to remove the selected ${
         selectedItems.length > 1 ? 'credentials' : 'credential'
       }?`,
       buttons: {
