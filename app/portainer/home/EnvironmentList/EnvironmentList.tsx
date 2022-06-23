@@ -282,7 +282,6 @@ export function EnvironmentList({ onClickItem, onRefresh }: Props) {
 
             <TableActions className={styles.actionBar}>
               <div className={styles.description}>
-                <i className="fa fa-exclamation-circle blue-icon space-right" />
                 Click on an environment to manage
               </div>
               <div className={styles.actionButton}>

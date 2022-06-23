@@ -14,9 +14,9 @@ export const TooltipAngular: IComponentOptions = {
     tooltip-class="portainer-tooltip"
     uib-tooltip="{{$ctrl.message}}"
   >
-    <i
-      class="{{$ctrl.iconClassName || 'fa fa-question-circle blue-icon tooltip-icon'}}"
-      aria-hidden="true"
-    ></i>
+  <i
+  class="fa fa-question-circle blue-icon tooltip-icon"
+  aria-hidden="true"
+  ></i>
   </span>`,
 };

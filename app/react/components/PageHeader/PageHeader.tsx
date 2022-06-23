@@ -1,5 +1,5 @@
-import clsx from 'clsx';
 import { useRouter } from '@uirouter/react';
+import { RefreshCw } from 'react-feather';
 
 import { Button } from '../buttons';
 
@@ -42,7 +42,7 @@ export function PageHeader({
             className={styles.reloadButton}
             disabled={loading}
           >
-            <i className={clsx('fa', 'fa-sync', { 'fa-spin': loading })} />
+            <RefreshCw className="feather" />
           </Button>
         )}
       </HeaderTitle>

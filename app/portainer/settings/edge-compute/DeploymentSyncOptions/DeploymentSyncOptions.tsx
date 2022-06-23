@@ -112,7 +112,7 @@ export function DeploymentSyncOptions() {
                         isLoading={settingsMutation.isLoading}
                         loadingText="Saving settings..."
                       >
-                        Save Settings
+                        Save settings
                       </LoadingButton>
                     </div>
                   </div>

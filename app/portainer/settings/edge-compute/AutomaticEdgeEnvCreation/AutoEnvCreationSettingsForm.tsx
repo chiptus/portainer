@@ -107,7 +107,7 @@ export function AutoEnvCreationSettingsForm({ settings }: Props) {
                 isLoading={mutation.isLoading}
                 disabled={!isValid || !dirty}
               >
-                Save Settings
+                Save settings
               </LoadingButton>
             </div>
           </div>

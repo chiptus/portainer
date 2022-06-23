@@ -12,15 +12,15 @@
 
 .updated {
   composes: round-cycle;
-  background-color: rgb(92 184 92);
+  background-color: var(--ui-green-1);
 }
 
 .outdated {
   composes: round-cycle;
-  background-color: rgb(212 63 58);
+  background-color: var(--ui-red-1);
 }
 
 .unknown {
   composes: round-cycle;
-  background-color: rgb(165, 165, 165);
+  background-color: var(--ui-grey-1);
 }
