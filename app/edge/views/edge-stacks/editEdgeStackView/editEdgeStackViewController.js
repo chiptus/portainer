@@ -81,7 +81,7 @@ export class EditEdgeStackViewController {
   async deployStackAsync() {
     this.state.actionInProgress = true;
     try {
-      if (this.originalFileContent != this.formValues.StackFileContent) {
+      if (this.originalFileContent != this.formValues.StackFileContent || this.formValues.Registries[0] !== this.stack.Registries[0]) {
         this.formValues.Version = this.stack.Version + 1;
       }
       await this.EdgeStackService.updateStack(this.stack.Id, this.formValues);
