@@ -24,7 +24,7 @@ interface Props {
 }
 
 export function LicenseExpirationPanel({ remainingDays, isLoading }: Props) {
-  if (isLoading || remainingDays >= 30) {
+  if (isLoading || !remainingDays || remainingDays >= 30) {
     return null;
   }
 
