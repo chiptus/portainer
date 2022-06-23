@@ -89,7 +89,14 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 	// failure can be seen rather than having the stack sit in deploying state forever
 	registryCredentials := handler.getRegistryCredentialsForEdgeStack(edgeStack)
 	if len(registryCredentials) > 0 && !secureEndpoint(endpoint) {
-		logrus.Debugf("Insecure endpoint detected, private edge registries")
+		environmentType := "environment"
+		if endpoint.IsEdgeDevice {
+			environmentType = "edge device"
+		}
+
+		logrus.Warnf("The %s named %s was deployed using HTTP and is insecure (registry credentials withheld). "+
+			"To use private registries, please update it to use HTTPS", environmentType, endpoint.Name)
+
 		registryCredentials = []Credentials{}
 	}
 
