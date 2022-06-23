@@ -78,5 +78,16 @@ function mockEnvironment(type: EnvironmentType): Environment {
       CommandInterval: 0,
       SnapshotInterval: 0,
     },
+    SecuritySettings: {
+      allowBindMountsForRegularUsers: false,
+      allowContainerCapabilitiesForRegularUsers: false,
+      allowDeviceMappingForRegularUsers: false,
+      allowHostNamespaceForRegularUsers: false,
+      allowPrivilegedModeForRegularUsers: false,
+      allowStackManagementForRegularUsers: false,
+      allowSysctlSettingForRegularUsers: false,
+      allowVolumeBrowserForRegularUsers: false,
+      enableHostManagementFeatures: false,
+    },
   };
 }

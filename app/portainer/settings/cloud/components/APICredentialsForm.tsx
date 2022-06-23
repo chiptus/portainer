@@ -102,7 +102,7 @@ export function APICredentialsForm({
             <div className="col-sm-12 mt-3">
               <LoadingButton
                 disabled={!isValid || !dirty}
-                dataCy="createCredentials-saveButton"
+                data-cy="createCredentials-saveButton"
                 isLoading={isLoading}
                 loadingText="Saving Credentials..."
               >

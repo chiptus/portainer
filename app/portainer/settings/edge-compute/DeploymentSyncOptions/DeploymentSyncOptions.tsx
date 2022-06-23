@@ -108,7 +108,7 @@ export function DeploymentSyncOptions() {
                     <div className="col-sm-12">
                       <LoadingButton
                         disabled={!isValid || !dirty}
-                        dataCy="settings-deploySyncOptionsButton"
+                        data-cy="settings-deploySyncOptionsButton"
                         isLoading={settingsMutation.isLoading}
                         loadingText="Saving settings..."
                       >

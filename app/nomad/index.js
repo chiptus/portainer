@@ -1,7 +1,6 @@
 import { isNomadEnvironment } from '@/portainer/environments/utils';
 import { NomadDashboardAngular } from './Dashboard';
 import { JobsViewAngular } from './Jobs';
-import { NomadSidebarAngular } from './NomadSidebar';
 import { NomadEventsAngular } from './Events/Events';
 import { reactModule } from './react';
 
@@ -83,6 +82,5 @@ export const nomadModule = angular
   .module('portainer.nomad', ['portainer.app', reactModule])
   .config(['$stateRegistryProvider', config])
   .component('nomadDashboard', NomadDashboardAngular)
-  .component('nomadSidebar', NomadSidebarAngular)
   .component('nomadEvents', NomadEventsAngular)
   .component('nomadJobs', JobsViewAngular).name;

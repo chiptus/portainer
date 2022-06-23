@@ -53,7 +53,6 @@ class AuthenticationController {
 
     this.checkForEndpointsAsync = this.checkForEndpointsAsync.bind(this);
     this.checkForLicensesAsync = this.checkForLicensesAsync.bind(this);
-    this.checkForLatestVersionAsync = this.checkForLatestVersionAsync.bind(this);
     this.postLoginSteps = this.postLoginSteps.bind(this);
 
     this.oAuthLoginAsync = this.oAuthLoginAsync.bind(this);
@@ -143,23 +142,6 @@ class AuthenticationController {
       }
     } catch (err) {
       this.error(err, 'Unable to retrieve licenses info');
-    }
-  }
-
-  async checkForLatestVersionAsync() {
-    let versionInfo = {
-      UpdateAvailable: false,
-      LatestVersion: '',
-    };
-
-    try {
-      const versionStatus = await this.StatusService.version();
-      if (versionStatus.UpdateAvailable) {
-        versionInfo.UpdateAvailable = true;
-        versionInfo.LatestVersion = versionStatus.LatestVersion;
-      }
-    } finally {
-      this.StateManager.setVersionInfo(versionInfo);
     }
   }
 

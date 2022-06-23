@@ -816,12 +816,6 @@ json-tree .branch-preview {
   color: var(--text-dashboard-item-color);
 }
 
-.kubectl-shell {
-  display: block;
-  text-align: center;
-  padding-bottom: 5px;
-}
-
 .text-wrap {
   word-break: break-all;
   white-space: normal;

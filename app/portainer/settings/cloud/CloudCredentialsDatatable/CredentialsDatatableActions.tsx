@@ -21,7 +21,7 @@ export function CredentialsDatatableActions({ selectedItems }: Props) {
         disabled={selectedItems.length < 1}
         color="danger"
         onClick={() => onDeleteClick(selectedItems)}
-        dataCy="credentials-deleteButton"
+        data-cy="credentials-deleteButton"
       >
         <i className="fa fa-trash-alt space-right" aria-hidden="true" />
         Remove
@@ -31,7 +31,7 @@ export function CredentialsDatatableActions({ selectedItems }: Props) {
         onClick={() =>
           router.stateService.go('portainer.settings.cloud.addCredential')
         }
-        dataCy="credentials-addButton"
+        data-cy="credentials-addButton"
       >
         <i className="fa fa-plus space-right" aria-hidden="true" />
         Add credentials

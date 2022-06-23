@@ -1,7 +1,6 @@
 import angular from 'angular';
 
 import formComponentsModule from './form-components';
-import sidebarModule from './sidebar';
 import gitFormModule from './forms/git-form';
 import porAccessManagementModule from './accessManagement';
 import widgetModule from './widget';
@@ -14,16 +13,7 @@ import { beFeatureIndicator } from './BEFeatureIndicator';
 import { InformationPanelAngular } from './InformationPanel';
 
 export default angular
-  .module('portainer.app.components', [
-    pageHeaderModule,
-    boxSelectorModule,
-    widgetModule,
-    sidebarModule,
-    dateRangePickerModule,
-    gitFormModule,
-    porAccessManagementModule,
-    formComponentsModule,
-  ])
+  .module('portainer.app.components', [pageHeaderModule, boxSelectorModule, widgetModule, dateRangePickerModule, gitFormModule, porAccessManagementModule, formComponentsModule])
   .component('informationPanel', InformationPanelAngular)
 
   .component('portainerTooltip', TooltipAngular)

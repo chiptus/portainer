@@ -18,3 +18,10 @@ declare module 'axios-progress-bar' {
     instance?: AxiosInstance
   ): void;
 }
+
+interface Window {
+  /**
+   * will be true if portainer is run as a Docker Desktop Extension
+   */
+  ddExtension?: boolean;
+}

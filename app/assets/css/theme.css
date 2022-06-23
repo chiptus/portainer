@@ -116,7 +116,6 @@
   --bg-main-color: var(--white-color);
   --bg-body-color: var(--grey-9);
   --bg-checkbox-border-color: var(--grey-49);
-  --bg-sidebar-color: var(--ui-grey-5);
   --bg-widget-color: var(--white-color);
   --bg-widget-header-color: var(--grey-10);
   --bg-widget-table-color: var(--grey-13);
@@ -265,7 +264,6 @@
   --border-blocklist: var(--ui-grey-1);
   --border-widget: var(--ui-grey-1);
 
-  --hover-sidebar-color: var(--grey-34);
   --shadow-box-color: 0 3px 10px -2px var(--grey-50);
   --shadow-boxselector-color: 0 3px 10px -2px var(--grey-50);
   --blue-color: var(--grey-35);
@@ -309,7 +307,6 @@
   --bg-codemirror-selected-color: var(--grey-3);
   --bg-dropdown-menu-color: var(--grey-1);
   --bg-main-color: var(--grey-2);
-  --bg-sidebar-color: var(--grey-1);
   --bg-widget-color: var(--grey-1);
   --bg-widget-header-color: var(--grey-1);
   --bg-widget-table-color: var(--grey-1);
@@ -451,7 +448,6 @@
   --border-blocklist: var(--ui-grey-3);
   --border-widget: var(--ui-grey-3);
 
-  --hover-sidebar-color: var(--grey-3);
   --blue-color: var(--blue-2);
   --button-close-color: var(--white-color);
   --button-opacity: 0.6;
@@ -484,7 +480,6 @@
   --bg-main-color: var(--black-color);
   --bg-body-color: var(--black-color);
   --bg-checkbox-border-color: var(--grey-8);
-  --bg-sidebar-color: var(--black-color);
   --bg-widget-color: var(--black-color);
   --bg-widget-header-color: var(--black-color);
   --bg-widget-table-color: var(--black-color);
@@ -496,7 +491,6 @@
   --bg-dropdown-menu-color: var(--black-color);
   --bg-codemirror-selected-color: var(--grey-3);
   --bg-row-header-color: var(--black-color);
-  --bg-sidebar-wrapper-color: var(--black-color);
   --bg-motd-body-color: var(--black-color);
   --bg-blocklist-hover-color: var(--black-color);
   --bg-blocklist-item-selected-color: var(--black-color);
@@ -626,8 +620,6 @@
   --border-blocklist: var(--white-color);
   --border-widget: var(--white-color);
 
-  --hover-sidebar-color: var(--blue-9);
-  --hover-sidebar-color: var(--black-color);
   --shadow-box-color: none;
   --shadow-boxselector-color: none;
 

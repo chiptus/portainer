@@ -84,6 +84,27 @@ export type EnvironmentEdge = {
   CommandInterval: number;
 };
 
+export interface EnvironmentSecuritySettings {
+  // Whether non-administrator should be able to use bind mounts when creating containers
+  allowBindMountsForRegularUsers: boolean;
+  // Whether non-administrator should be able to use privileged mode when creating containers
+  allowPrivilegedModeForRegularUsers: boolean;
+  // Whether non-administrator should be able to browse volumes
+  allowVolumeBrowserForRegularUsers: boolean;
+  // Whether non-administrator should be able to use the host pid
+  allowHostNamespaceForRegularUsers: boolean;
+  // Whether non-administrator should be able to use device mapping
+  allowDeviceMappingForRegularUsers: boolean;
+  // Whether non-administrator should be able to manage stacks
+  allowStackManagementForRegularUsers: boolean;
+  // Whether non-administrator should be able to use container capabilities
+  allowContainerCapabilitiesForRegularUsers: boolean;
+  // Whether non-administrator should be able to use sysctl settings
+  allowSysctlSettingForRegularUsers: boolean;
+  // Whether host management features are enabled
+  enableHostManagementFeatures: boolean;
+}
+
 export type Environment = {
   Id: EnvironmentId;
   Type: EnvironmentType;
@@ -105,6 +126,7 @@ export type Environment = {
   UserTrusted: boolean;
   AMTDeviceGUID?: string;
   Edge: EnvironmentEdge;
+  SecuritySettings: EnvironmentSecuritySettings;
 };
 
 /**
@@ -124,25 +146,4 @@ export enum PlatformType {
   Kubernetes,
   Azure,
   Nomad,
-}
-
-export interface EnvironmentSettings {
-  // Whether non-administrator should be able to use bind mounts when creating containers
-  allowBindMountsForRegularUsers: boolean;
-  // Whether non-administrator should be able to use privileged mode when creating containers
-  allowPrivilegedModeForRegularUsers: boolean;
-  // Whether non-administrator should be able to browse volumes
-  allowVolumeBrowserForRegularUsers: boolean;
-  // Whether non-administrator should be able to use the host pid
-  allowHostNamespaceForRegularUsers: boolean;
-  // Whether non-administrator should be able to use device mapping
-  allowDeviceMappingForRegularUsers: boolean;
-  // Whether non-administrator should be able to manage stacks
-  allowStackManagementForRegularUsers: boolean;
-  // Whether non-administrator should be able to use container capabilities
-  allowContainerCapabilitiesForRegularUsers: boolean;
-  // Whether non-administrator should be able to use sysctl settings
-  allowSysctlSettingForRegularUsers: boolean;
-  // Whether host management features are enabled
-  enableHostManagementFeatures: boolean;
 }
