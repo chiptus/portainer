@@ -9,15 +9,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type (
-	GKEProvisionPayload struct {
-		DefaultProvisionPayload
+type GKEProvisionPayload struct {
+	DefaultProvisionPayload
 
-		CPU int     `example:"2"`
-		RAM float64 `example:"4"`
-		HDD int     `example:"100"`
-	}
-)
+	CPU int     `example:"2"`
+	RAM float64 `example:"4"`
+	HDD int     `example:"100"`
+}
 
 func (payload *GKEProvisionPayload) Validate(r *http.Request) error {
 
@@ -70,5 +68,8 @@ func (payload *GKEProvisionPayload) GetCloudProvisioningRequest(endpointID porta
 		NodeCount:         payload.NodeCount,
 		KubernetesVersion: payload.KubernetesVersion,
 		CredentialID:      payload.CredentialID,
+		CPU:               payload.CPU,
+		RAM:               payload.RAM,
+		HDD:               payload.HDD,
 	}
 }
