@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
 
 	httperror "github.com/portainer/libhttp/error"
@@ -187,24 +186,19 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "unable to get gatekeeper status", err}
 		}
+
 		//2.deploy gatekeeper constrainttemplate
-		templateGroup := new(errgroup.Group)
 		for _, v := range podsecurity.PodSecurityConstraintsMap {
-			folder := v
-			templateGroup.Go(func() error {
-				log.Printf("[INFO] [internal,k8s] [message: deploying %s]", folder)
-				_, err := handler.KubernetesDeployer.Deploy(tokenData.ID, endpoint, []string{path.Join(handler.baseFileDir, "pod-security-policy", folder, "template.yaml")}, podsecurity.GateKeeperNameSpace)
-				if err != nil {
-					log.Printf("[ERROR] [internal,k8s] [message: Unable to deploy %s with error: %s]", folder, err)
-				}
-				return err
-			})
+			log.Printf("[INFO] [internal,k8s] [message: deploying constraint template %s]", v)
+			_, err := handler.KubernetesDeployer.Deploy(tokenData.ID, endpoint, []string{path.Join(handler.baseFileDir, "pod-security-policy", v, "template.yaml")}, podsecurity.GateKeeperNameSpace)
+			if err != nil {
+				log.Printf("[ERROR] [internal,k8s] [message: Unable to deploy %s with error: %s]", v, err)
+				return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to apply the pod security rule templates to the system", Err: err}
+			}
+
+			log.Printf("[INFO] [internal,k8s] [message: Successfully deployed template %s]", v)
 		}
-		if err := templateGroup.Wait(); err != nil {
-			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to apply the pod security rule templates to the system", Err: err}
-		} else {
-			log.Println("[INFO] [internal,k8s] [message: Successfully deployed pod security rule templates]")
-		}
+
 		err = handler.DataStore.PodSecurity().Create(existedRule)
 		if err != nil {
 			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to add the pod security rule to the database", Err: err}
@@ -212,24 +206,16 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 	}
 
 	//3.deploy gatekeeper constraint yaml files
-	constraintGroup := new(errgroup.Group)
 	for name := range podsecurity.PodSecurityConstraintsMap {
 		rulename := name
 		constraint := PodSecurityConstraint{}
 		constraint.init(tokenData.ID, endpoint, rulename, requestRule, existedRule, handler.fileService.GetDatastorePath(), handler)
-		constraintGroup.Go(func() error {
-			err := constraint.fresh(handler)
-			if err != nil {
-				log.Printf("[ERROR] [internal,k8s] [message: Unable to deploy %s with error: %s]", rulename, err)
-			}
-			return err
-		})
-	}
+		if err := constraint.fresh(handler); err != nil {
+			log.Printf("[ERROR] [internal,k8s] [message: Unable to deploy constraint <%s> with error: %s]", rulename, err)
+			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to apply the pod security rule constraints to the system", Err: err}
+		}
 
-	if err := constraintGroup.Wait(); err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to apply the pod security rule constraints to the system", Err: err}
-	} else {
-		log.Println("[INFO] [internal,k8s] [message: Successfully deployed pod security rule constraints]")
+		log.Printf("[INFO] [internal,k8s] [message: Successfully deployed constraint <%s>]", rulename)
 	}
 
 	err = handler.DataStore.PodSecurity().UpdatePodSecurityRule(existedRule.EndpointID, requestRule)

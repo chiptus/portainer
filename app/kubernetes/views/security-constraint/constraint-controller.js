@@ -42,19 +42,19 @@ angular.module('portainer.kubernetes').controller('KubernetesSecurityConstraintC
       users: {
         enabled: false,
         runAsUser: {
-          type: 'MustRunAs',
+          type: 'RunAsAny',
           idrange: [{ max: 0, min: 0 }],
         },
         runAsGroup: {
-          type: 'MustRunAs',
+          type: 'RunAsAny',
           idrange: [{ max: 0, min: 0 }],
         },
         supplementalGroups: {
-          type: 'MustRunAs',
+          type: 'RunAsAny',
           idrange: [{ max: 0, min: 0 }],
         },
         fsGroups: {
-          type: 'MustRunAs',
+          type: 'RunAsAny',
           gids: [],
           idrange: [{ max: 0, min: 0 }],
         },
@@ -90,7 +90,6 @@ angular.module('portainer.kubernetes').controller('KubernetesSecurityConstraintC
       },
     };
 
-    $scope.endpoint = this.endpoint;
     $scope.duplicated = false;
     $scope.updateDuplicated = function () {
       $scope.duplicated =
@@ -251,9 +250,13 @@ angular.module('portainer.kubernetes').controller('KubernetesSecurityConstraintC
         form.allowFlexVolumes.allowedVolumes = [];
       }
       if (!form.users.enabled) {
+        form.users.runAsUser.type = 'RunAsAny';
         form.users.runAsUser.idrange = [{ max: 0, min: 0 }];
+        form.users.runAsGroup.type = 'RunAsAny';
         form.users.runAsGroup.idrange = [{ max: 0, min: 0 }];
+        form.users.supplementalGroups.type = 'RunAsAny';
         form.users.supplementalGroups.idrange = [{ max: 0, min: 0 }];
+        form.users.fsGroups.type = 'RunAsAny';
         form.users.fsGroups.idrange = [{ max: 0, min: 0 }];
       }
       if (!form.capabilities.enabled) {
