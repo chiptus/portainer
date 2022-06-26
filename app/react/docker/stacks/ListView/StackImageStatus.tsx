@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { useQuery } from 'react-query';
 
 import { getStackImagesStatus } from '@/portainer/services/api/stack.service';
-import { statusClass } from '@/docker/components/ImageStatus/helpers';
+import { statusClass } from '@/react/docker/components/ImageStatus/helpers';
 
 export interface Props {
   stackId: number;
