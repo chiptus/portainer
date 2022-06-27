@@ -16,10 +16,10 @@ export function InputToggleSelector({ labels, icons, onClick, active }: Props) {
             type="button"
             data-cy={`${label}-button`}
             className={clsx(
-              'text-blue-9 rounded text-xs border-0 py-1.5 px-2 !ml-0 w-full',
+              'text-legacy-blue-9 rounded text-xs border-0 py-1.5 px-2 !ml-0 w-full',
               active === i
-                ? 'text-white bg-blue-2'
-                : 'text-blue-9 hover:bg-grey-3'
+                ? 'text-white bg-legacy-blue-2'
+                : 'text-legacy-blue-9 hover:bg-legacy-grey-3'
             )}
             onClick={() => onClick(i)}
           >
