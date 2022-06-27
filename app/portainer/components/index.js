@@ -15,6 +15,5 @@ import { InformationPanelAngular } from './InformationPanel';
 export default angular
   .module('portainer.app.components', [pageHeaderModule, boxSelectorModule, widgetModule, dateRangePickerModule, gitFormModule, porAccessManagementModule, formComponentsModule])
   .component('informationPanel', InformationPanelAngular)
-
   .component('portainerTooltip', TooltipAngular)
   .component('beFeatureIndicator', beFeatureIndicator).name;

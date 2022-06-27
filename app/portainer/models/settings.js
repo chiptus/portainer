@@ -22,6 +22,7 @@ export function SettingsViewModel(data) {
 
   this.EdgeAgentCheckinInterval = data.EdgeAgentCheckinInterval;
   this.Edge = new EdgeSettingsViewModel(data.Edge);
+  this.DefaultRegistry = data.DefaultRegistry;
 }
 
 export function PublicSettingsViewModel(settings) {

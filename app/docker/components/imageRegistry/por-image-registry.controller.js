@@ -5,7 +5,7 @@ import { RegistryTypes } from '@/portainer/models/registryTypes';
 
 class porImageRegistryController {
   /* @ngInject */
-  constructor($async, $scope, ImageHelper, RegistryService, EndpointService, ImageService, Notifications) {
+  constructor($async, $scope, ImageHelper, RegistryService, EndpointService, ImageService, Notifications, SettingsService) {
     this.$async = $async;
     this.$scope = $scope;
     this.ImageHelper = ImageHelper;
@@ -13,6 +13,7 @@ class porImageRegistryController {
     this.EndpointService = EndpointService;
     this.ImageService = ImageService;
     this.Notifications = Notifications;
+    this.SettingsService = SettingsService;
 
     this.onRegistryChange = this.onRegistryChange.bind(this);
     this.onImageChange = this.onImageChange.bind(this);
@@ -78,18 +79,21 @@ class porImageRegistryController {
     return this.$async(async () => {
       try {
         let showDefaultRegistry = false;
-        this.registries = await this.EndpointService.registries(this.endpoint.Id, this.namespace);
+        this.registries = await this.EndpointService.registries(this.endpoint.Id, this.namespace, true);
 
         // Sort the registries by Name
         this.registries.sort((a, b) => a.Name.localeCompare(b.Name));
 
         // hide default(anonymous) dockerhub registry if user has an authenticated one
         if (!this.registries.some((registry) => registry.Type === RegistryTypes.DOCKERHUB)) {
-          showDefaultRegistry = true;
-          // Add dockerhub on top
-          this.registries.splice(0, 0, this.defaultRegistry);
+          const settings = await this.SettingsService.settings();
+          const defaultRegistry = settings.DefaultRegistry;
+          if (!defaultRegistry.Hide || this.registries.length === 0) {
+            showDefaultRegistry = true;
+            // Add dockerhub on top
+            this.registries.splice(0, 0, this.defaultRegistry);
+          }
         }
-
         const id = this.model.Registry.Id;
         const registry = _.find(this.registries, { Id: id });
         if (!registry) {

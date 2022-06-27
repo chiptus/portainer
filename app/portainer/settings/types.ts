@@ -89,6 +89,10 @@ enum AuthenticationMethod {
 
 type Feature = string;
 
+export interface DefaultRegistry {
+  Hide: boolean;
+}
+
 export interface Settings {
   LogoURL: string;
   BlackListedLabels: Pair[];
@@ -122,6 +126,7 @@ export interface Settings {
   AllowStackManagementForRegularUsers: boolean;
   AllowDeviceMappingForRegularUsers: boolean;
   AllowContainerCapabilitiesForRegularUsers: boolean;
+  DefaultRegistry: DefaultRegistry;
   Edge: {
     PingInterval: number;
     SnapshotInterval: number;

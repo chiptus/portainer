@@ -12,8 +12,9 @@ import {
   updateSettings,
   getSettings,
   getPublicSettings,
+  updateDefaultRegistry,
 } from './settings.service';
-import { Settings } from './types';
+import { DefaultRegistry, Settings } from './types';
 
 export function usePublicSettings<T = PublicSettingsViewModel>({
   enabled,
@@ -49,6 +50,18 @@ export function useUpdateSettingsMutation() {
     mutationOptions(
       withInvalidate(queryClient, [['settings'], ['cloud']]),
       withError('Unable to update settings')
+    )
+  );
+}
+
+export function useUpdateDefaultRegistrySettingsMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    (payload: Partial<DefaultRegistry>) => updateDefaultRegistry(payload),
+    mutationOptions(
+      withInvalidate(queryClient, [['settings']]),
+      withError('Unable to update default registry settings')
     )
   );
 }

@@ -1877,6 +1877,9 @@
       "GKEApiKey": "",
       "LinodeToken": ""
     },
+    "DefaultRegistry": {
+      "Hide": false
+    },
     "DisplayDonationHeader": false,
     "DisplayExternalContributors": false,
     "Edge": {

@@ -49,6 +49,7 @@ func NewHandler(bouncer *security.RequestBouncer, userActivityService portainere
 
 	adminRouter.Handle("/settings", httperror.LoggerHandler(h.settingsInspect)).Methods(http.MethodGet)
 	adminRouter.Handle("/settings", httperror.LoggerHandler(h.settingsUpdate)).Methods(http.MethodPut)
+	adminRouter.Handle("/settings/default_registry", httperror.LoggerHandler(h.defaultRegistryUpdate)).Methods(http.MethodPut)
 
 	publicRouter.Handle("/settings/public", httperror.LoggerHandler(h.settingsPublic)).Methods(http.MethodGet)
 

@@ -1094,6 +1094,11 @@ type (
 		// The default check in interval for edge agent (in seconds)
 		EdgeAgentCheckinInterval int `json:"EdgeAgentCheckinInterval" example:"5"`
 
+		// the default builtin registry now is anonymous docker hub registry
+		DefaultRegistry struct {
+			Hide bool
+		}
+
 		Edge struct {
 			// The command list interval for edge agent - used in edge async mode (in seconds)
 			CommandInterval int `json:"CommandInterval" example:"5"`

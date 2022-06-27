@@ -13,6 +13,9 @@
   text-align: center;
   font-size: 12px !important;
   font-weight: 400;
+
+  white-space: normal;
+  word-break: break-word;
 }
 
 .icon {
