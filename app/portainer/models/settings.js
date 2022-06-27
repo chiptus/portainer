@@ -38,6 +38,7 @@ export function PublicSettingsViewModel(settings) {
   this.OAuthLogoutURI = settings.OAuthLogoutURI;
   this.KubeconfigExpiry = settings.KubeconfigExpiry;
   this.Features = settings.Features;
+  this.Edge = new EdgeSettingsViewModel(settings.Edge);
 }
 
 export function InternalAuthSettingsViewModel(data) {
@@ -84,7 +85,8 @@ export function OAuthSettingsViewModel(data) {
   this.LogoutURI = data.LogoutURI;
 }
 
-export function EdgeSettingsViewModel(data) {
+export function EdgeSettingsViewModel(data = {}) {
+  this.CheckinInterval = data.CheckinInterval;
   this.PingInterval = data.PingInterval;
   this.SnapshotInterval = data.SnapshotInterval;
   this.CommandInterval = data.CommandInterval;
