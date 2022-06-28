@@ -2,6 +2,8 @@ import { UserContext } from '@/portainer/hooks/useUser';
 import { UserViewModel } from '@/portainer/models/user';
 import { render, within } from '@/react-tools/test-utils';
 
+import { TestSidebarProvider } from '../useSidebarState';
+
 import { NomadSidebar } from './NomadSidebar';
 
 test('dashboard items should render correctly', () => {
@@ -11,22 +13,16 @@ test('dashboard items should render correctly', () => {
   expect(dashboardItem).toHaveTextContent('Dashboard');
 
   const dashboardItemElements = within(dashboardItem);
-  expect(dashboardItemElements.getByLabelText('itemIcon')).toBeVisible();
-  expect(dashboardItemElements.getByLabelText('itemIcon')).toHaveClass(
-    'fa-tachometer-alt',
-    'fa-fw'
-  );
+  expect(
+    dashboardItemElements.getByRole('img', { hidden: true })
+  ).toBeVisible();
 
   const jobsItem = getByLabelText('Nomad Jobs');
   expect(jobsItem).toBeVisible();
   expect(jobsItem).toHaveTextContent('Jobs');
 
   const jobsItemElements = within(jobsItem);
-  expect(jobsItemElements.getByLabelText('itemIcon')).toBeVisible();
-  expect(jobsItemElements.getByLabelText('itemIcon')).toHaveClass(
-    'fa-th-list',
-    'fa-fw'
-  );
+  expect(jobsItemElements.getByRole('img', { hidden: true })).toBeVisible();
 });
 
 function renderComponent() {
@@ -34,7 +30,9 @@ function renderComponent() {
 
   return render(
     <UserContext.Provider value={{ user }}>
-      <NomadSidebar environmentId={1} />
+      <TestSidebarProvider>
+        <NomadSidebar environmentId={1} />
+      </TestSidebarProvider>
     </UserContext.Provider>
   );
 }
