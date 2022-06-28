@@ -12,12 +12,18 @@ interface Props {
 export function NomadSidebar({ environmentId }: Props) {
   return (
     <>
-      <DashboardLink environmentId={environmentId} platformPath="nomad" />
+      <DashboardLink
+        environmentId={environmentId}
+        platformPath="nomad"
+        data-cy="nomadSidebar-dashboard"
+      />
+
       <SidebarItem
         to="nomad.jobs"
         params={{ endpointId: environmentId }}
         icon={Clock}
         label="Nomad Jobs"
+        data-cy="nomadSidebar-jobs"
       />
     </>
   );
