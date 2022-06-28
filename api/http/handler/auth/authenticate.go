@@ -196,7 +196,7 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 		log.Printf("Warning: unable to automatically add user into teams: %s\n", err.Error())
 	}
 
-	err = handler.AuthorizationService.UpdateUsersAuthorizations()
+	err = handler.AuthorizationService.UpdateUserAuthorizations(user.ID)
 	if err != nil {
 		return resp,
 			&httperror.HandlerError{

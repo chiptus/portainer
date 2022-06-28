@@ -700,6 +700,18 @@ func (service *Service) RemoveUserAccessPolicies(userID portaineree.UserID) erro
 	return nil
 }
 
+// UpdateUserAuthorizations will update the authorizations for the provided userid
+func (service *Service) UpdateUserAuthorizations(userID portaineree.UserID) error {
+	err := service.updateUserAuthorizations(userID)
+	if err != nil {
+		return err
+	}
+
+	service.TriggerUsersAuthUpdate()
+
+	return nil
+}
+
 // UpdateUsersAuthorizations will trigger an update of the authorizations for all the users.
 func (service *Service) UpdateUsersAuthorizations() error {
 	users, err := service.dataStore.User().Users()
