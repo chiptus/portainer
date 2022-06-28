@@ -140,7 +140,10 @@ angular.module('portainer.app').factory('FileUploadService', [
       TLSCertFile,
       TLSKeyFile,
       checkinInterval,
-      isEdgeDevice
+      isEdgeDevice,
+      EdgePingInterval,
+      EdgeSnapshotInterval,
+      EdgeCommandInterval
     ) {
       return Upload.upload({
         url: 'api/endpoints',
@@ -159,6 +162,9 @@ angular.module('portainer.app').factory('FileUploadService', [
           TLSKeyFile: TLSKeyFile,
           CheckinInterval: checkinInterval,
           IsEdgeDevice: isEdgeDevice,
+          EdgePingInterval: EdgePingInterval,
+          EdgeSnapshotInterval: EdgeSnapshotInterval,
+          EdgeCommandInterval: EdgeCommandInterval,
         },
         ignoreLoadingBar: true,
       });

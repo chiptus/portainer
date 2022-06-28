@@ -250,7 +250,24 @@ angular
         var tagIds = $scope.formValues.TagIds;
         var URL = $scope.formValues.URL;
 
-        addEndpoint(name, PortainerEndpointCreationTypes.EdgeAgentEnvironment, URL, '', groupId, tagIds, false, false, false, null, null, null, $scope.formValues.CheckinInterval);
+        addEndpoint(
+          name,
+          PortainerEndpointCreationTypes.EdgeAgentEnvironment,
+          URL,
+          '',
+          groupId,
+          tagIds,
+          false,
+          false,
+          false,
+          null,
+          null,
+          null,
+          $scope.formValues.CheckinInterval,
+          $scope.formValues.Edge.PingInterval,
+          $scope.formValues.Edge.SnapshotInterval,
+          $scope.formValues.Edge.CommandInterval
+        );
       };
 
       $scope.addAzureEndpoint = function () {
@@ -316,7 +333,10 @@ angular
         TLSCAFile,
         TLSCertFile,
         TLSKeyFile,
-        CheckinInterval
+        CheckinInterval,
+        EdgePingInterval,
+        EdgeSnapshotInterval,
+        EdgeCommandInterval
       ) {
         return $async(async () => {
           $scope.state.actionInProgress = true;
@@ -335,7 +355,10 @@ angular
               TLSCertFile,
               TLSKeyFile,
               CheckinInterval,
-              $scope.state.isEdgeDevice
+              $scope.state.isEdgeDevice,
+              EdgePingInterval,
+              EdgeSnapshotInterval,
+              EdgeCommandInterval
             );
 
             Notifications.success('Environment created', name);

@@ -60,6 +60,11 @@ type endpointCreatePayload struct {
 	TagIDs                 []portaineree.TagID
 	EdgeCheckinInterval    int
 	IsEdgeDevice           bool
+	Edge                   struct {
+		PingInterval     int
+		SnapshotInterval int
+		CommandInterval  int
+	}
 
 	KubeConfig string
 }
@@ -180,6 +185,10 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 
 	isEdgeDevice, _ := request.RetrieveBooleanMultiPartFormValue(r, "IsEdgeDevice", true)
 	payload.IsEdgeDevice = isEdgeDevice
+
+	payload.Edge.PingInterval, _ = request.RetrieveNumericMultiPartFormValue(r, "EdgePingInterval", true)
+	payload.Edge.SnapshotInterval, _ = request.RetrieveNumericMultiPartFormValue(r, "EdgeSnapshotInterval", true)
+	payload.Edge.CommandInterval, _ = request.RetrieveNumericMultiPartFormValue(r, "EdgeCommandInterval", true)
 
 	return nil
 }
@@ -515,6 +524,13 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 	settings, err := handler.dataStore.Settings().Settings()
 	if err != nil {
 		return nil, &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve the settings from the database", err}
+	}
+
+	if payload.IsEdgeDevice && settings.Edge.AsyncMode {
+		endpoint.Edge.AsyncMode = true
+		endpoint.Edge.PingInterval = payload.Edge.PingInterval
+		endpoint.Edge.SnapshotInterval = payload.Edge.SnapshotInterval
+		endpoint.Edge.CommandInterval = payload.Edge.CommandInterval
 	}
 
 	if settings.EnforceEdgeID {
