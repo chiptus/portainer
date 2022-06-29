@@ -86,6 +86,14 @@ func (c *NomadClient) Validate() bool {
 	return tunnel.Port == c.tunnel.Port && tunnel.Status == portaineree.EdgeAgentActive
 }
 
+func (c *NomadClient) Leader() (string, error) {
+	leader, err := c.nomadApiClient.Status().Leader()
+	if err != nil {
+		c.setTunnelStatusToIdle(err)
+	}
+	return leader, err
+}
+
 func (c *NomadClient) ListJobs(namespace string) ([]*nomad.JobListStub, error) {
 	jobList, _, err := c.nomadApiClient.Jobs().List(&nomad.QueryOptions{Namespace: namespace})
 	if err != nil {

@@ -1601,6 +1601,7 @@ type (
 	// NomadClient represents a service used to query a Nomad environment(endpoint)
 	NomadClient interface {
 		Validate() (valid bool)
+		Leader() (string, error)
 		ListJobs(namespace string) (jobList []*nomad.JobListStub, err error)
 		ListNodes() (nodeList []*nomad.NodeListStub, err error)
 		ListAllocations(jobID, namespace string) (allocationsList []*nomad.AllocationListStub, err error)

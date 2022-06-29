@@ -21,11 +21,11 @@ func (factory *ClientFactory) GetClient(endpoint *portaineree.Endpoint) (portain
 
 		// if the tunnel of the client is closed, remove it
 		ok = nomadClient.Validate()
-		if !ok {
-			factory.RemoveClient(endpoint.ID)
+		if ok {
+			return nomadClient, nil
 		}
 
-		return nomadClient, nil
+		factory.RemoveClient(endpoint.ID)
 	}
 
 	nomadClient, err := factory.createClient(endpoint)

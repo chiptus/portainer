@@ -1,4 +1,5 @@
 import { isNomadEnvironment } from '@/portainer/environments/utils';
+import { ping } from '@/nomad/rest/ping';
 import { NomadDashboardAngular } from './Dashboard';
 import { JobsViewAngular } from './Jobs';
 import { NomadEventsAngular } from './Events/Events';
@@ -19,11 +20,13 @@ function config($stateRegistryProvider) {
           $state.go('portainer.home');
           return;
         }
+
         try {
+          await ping(endpoint.Id);
           EndpointProvider.setEndpointID(endpoint.Id);
           await StateManager.updateEndpointState(endpoint, []);
         } catch (e) {
-          Notifications.error('Failed loading environment', e);
+          Notifications.error('Unable to contact Edge agent, please ensure that the agent is properly running on the remote environment.');
           $state.go('portainer.home', {}, { reload: true });
         }
       });

@@ -1,6 +1,7 @@
 package snapshot
 
 import (
+	"github.com/portainer/portainer-ee/api/nomad/helpers"
 	"log"
 	"time"
 
@@ -46,7 +47,7 @@ func doSnapshot(client portaineree.NomadClient, endpoint *portaineree.Endpoint) 
 		snapshot.GroupCount += len(groups)
 
 		for _, group := range groups {
-			snapshot.TaskCount += group.Lost + group.Failed + group.Queued + group.Complete + group.Running + group.Starting
+			snapshot.TaskCount += helpers.CalcGroupTasks(group)
 			snapshot.RunningTaskCount += group.Running
 		}
 

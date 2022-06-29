@@ -20,7 +20,7 @@ angular.module('portainer.app').factory('Endpoints', [
         updateAccess: { method: 'PUT', params: { id: '@id', action: 'access' } },
         remove: { method: 'DELETE', params: { id: '@id' } },
         snapshots: { method: 'POST', params: { action: 'snapshot' } },
-        snapshot: { method: 'POST', params: { id: '@id', action: 'snapshot' } },
+        dashboardQuery: { method: 'POST', params: { id: '@id', action: 'snapshot' } },
         status: { method: 'GET', params: { id: '@id', action: 'status' } },
         updateSettings: { method: 'PUT', params: { id: '@id', action: 'settings' } },
         dockerhubLimits: { method: 'GET', url: `${API_ENDPOINT_ENDPOINTS}/:id/dockerhub/:registryId` },

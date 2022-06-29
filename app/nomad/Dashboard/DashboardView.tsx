@@ -1,5 +1,7 @@
+import { useEnvironmentId } from 'Portainer/hooks/useEnvironmentId';
+
 import { react2angular } from '@/react-tools/react2angular';
-import { useCurrentEnvironmentSnapshot } from '@/portainer/hooks/useCurrentEnvironmentSnapshot';
+import { useDashboard } from '@/nomad/hooks/useDashboard';
 
 import { DashboardItem } from '@@/DashboardItem';
 import { Widget, WidgetTitle, WidgetBody } from '@@/Widget';
@@ -8,7 +10,11 @@ import { PageHeader } from '@@/PageHeader';
 import { RunningStatus } from './RunningStatus';
 
 export function DashboardView() {
-  const { snapshot, isLoading } = useCurrentEnvironmentSnapshot();
+  const environmentId = useEnvironmentId();
+  const dashboardQuery = useDashboard(environmentId);
+
+  const running = dashboardQuery.data?.RunningTaskCount || 0;
+  const stopped = (dashboardQuery.data?.TaskCount || 0) - running;
 
   return (
     <>
@@ -17,7 +23,7 @@ export function DashboardView() {
         breadcrumbs={[{ label: 'Environment summary' }]}
       />
 
-      {isLoading ? (
+      {dashboardQuery.isLoading ? (
         <div className="text-center" style={{ marginTop: '30%' }}>
           Connecting to the Edge environment...
           <i className="fa fa-cog fa-spin space-left" />
@@ -36,7 +42,7 @@ export function DashboardView() {
                   <tbody>
                     <tr>
                       <td>Nodes in the cluster</td>
-                      <td>{snapshot?.NodeCount ?? '-'}</td>
+                      <td>{dashboardQuery.data?.NodeCount ?? '-'}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -46,31 +52,26 @@ export function DashboardView() {
           <div className="row">
             {/* jobs */}
             <DashboardItem
-              value={snapshot?.JobCount}
+              value={dashboardQuery.data?.JobCount}
               icon="fa fa-th-list"
               type="Nomad Jobs"
             />
 
             {/* groups */}
             <DashboardItem
-              value={snapshot?.GroupCount}
+              value={dashboardQuery.data?.GroupCount}
               icon="fa fa-list-alt"
               type="Groups"
             />
 
             {/* tasks */}
             <DashboardItem
-              value={snapshot?.TaskCount}
+              value={dashboardQuery.data?.TaskCount}
               icon="fa fa-cubes"
               type="Tasks"
             >
               {/* running status of tasks */}
-              {snapshot && (
-                <RunningStatus
-                  running={snapshot.RunningTaskCount}
-                  stopped={snapshot.TaskCount - snapshot.RunningTaskCount}
-                />
-              )}
+              <RunningStatus running={running} stopped={stopped} />
             </DashboardItem>
           </div>
         </div>

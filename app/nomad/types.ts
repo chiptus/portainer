@@ -23,3 +23,15 @@ export type Job = {
   SubmitTime: string;
   Tasks: Task[];
 };
+
+export type Dashboard = {
+  JobCount: number;
+  GroupCount: number;
+  TaskCount: number;
+  RunningTaskCount: number;
+  NodeCount: number;
+};
+
+export type Leader = {
+  Leader: string;
+};

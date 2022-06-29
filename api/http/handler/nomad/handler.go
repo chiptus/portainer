@@ -38,7 +38,13 @@ func NewHandler(bouncer *security.RequestBouncer, nomadClientFactory *clientFact
 
 	authenticatedRouter.Handle("/nomad/allocation/{id}/events", httperror.LoggerHandler(h.getTaskEvents)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/nomad/allocation/{id}/logs", httperror.LoggerHandler(h.getTaskLogs)).Methods(http.MethodGet)
+
+	authenticatedRouter.Handle("/nomad/leader", httperror.LoggerHandler(h.getLeader)).Methods(http.MethodGet)
+
+	authenticatedRouter.Handle("/nomad/jobs", httperror.LoggerHandler(h.listJobs)).Methods(http.MethodGet)
 	adminRouter.Handle("/nomad/jobs/{id}", httperror.LoggerHandler(h.deleteJob)).Methods(http.MethodDelete)
+
+	authenticatedRouter.Handle("/nomad/dashboard", httperror.LoggerHandler(h.getDashboard)).Methods(http.MethodGet)
 
 	return h
 }

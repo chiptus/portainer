@@ -34,7 +34,7 @@ export function useCurrentEnvironmentSnapshot() {
   }, [environment?.Id, triggerSnapshot]);
 
   return {
-    snapshot,
+    dashboardQuery: snapshot,
     triggerSnapshot,
     isLoading: snapshotMutation.isLoading || environmentQuery.isLoading,
   };

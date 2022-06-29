@@ -1,5 +1,6 @@
 import { react2angular } from '@/react-tools/react2angular';
-import { useCurrentEnvironmentSnapshot } from '@/portainer/hooks/useCurrentEnvironmentSnapshot';
+import { useJobs } from '@/nomad/hooks/useJobs';
+import { useEnvironmentId } from '@/portainer/hooks/useEnvironmentId';
 
 import { PageHeader } from '@@/PageHeader';
 import { TableSettingsProvider } from '@@/datatables/useTableSettings';
@@ -7,10 +8,8 @@ import { TableSettingsProvider } from '@@/datatables/useTableSettings';
 import { JobsDatatable } from './JobsDatatable';
 
 export function JobsView() {
-  const { isLoading, snapshot, triggerSnapshot } =
-    useCurrentEnvironmentSnapshot();
-
-  const data = snapshot?.Jobs || [];
+  const environmentId = useEnvironmentId();
+  const jobsQuery = useJobs(environmentId);
 
   const defaultSettings = {
     autoRefreshRate: 10,
@@ -18,23 +17,27 @@ export function JobsView() {
     sortBy: { id: 'name', desc: false },
   };
 
+  async function reloadData() {
+    await jobsQuery.refetch();
+  }
+
   return (
     <>
       <PageHeader
         title="Nomad Job list"
         breadcrumbs={[{ label: 'Nomad Jobs' }]}
         reload
-        loading={isLoading}
-        onReload={triggerSnapshot}
+        loading={jobsQuery.isLoading}
+        onReload={reloadData}
       />
 
       <div className="row">
         <div className="col-sm-12">
           <TableSettingsProvider defaults={defaultSettings} storageKey="jobs">
             <JobsDatatable
-              jobs={data}
-              refreshData={triggerSnapshot}
-              isLoading={isLoading}
+              jobs={jobsQuery.data || []}
+              refreshData={reloadData}
+              isLoading={jobsQuery.isLoading}
             />
           </TableSettingsProvider>
         </div>
