@@ -10,6 +10,7 @@ import { LicenseExpirationPanelContainer } from '@@/PageHeader/LicenseExpiration
 import { Loading } from '@@/Widget/Loading';
 import { PasswordCheckHint } from '@@/PasswordCheckHint';
 import { ViewLoading } from '@@/ViewLoading';
+import { Tooltip } from '@@/Tip/Tooltip';
 
 import { fileUploadField } from './file-upload-field';
 import { switchField } from './switch-field';
@@ -21,6 +22,7 @@ export const componentsModule = angular
     'tagSelector',
     r2a(TagSelector, ['allowCreate', 'onChange', 'value'])
   )
+  .component('portainerTooltip', r2a(Tooltip, ['message', 'position']))
   .component('fileUploadField', fileUploadField)
   .component('porSwitchField', switchField)
   .component('licenseExpirationPanel', r2a(LicenseExpirationPanelContainer, []))
