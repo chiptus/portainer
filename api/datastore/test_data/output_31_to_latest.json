@@ -2004,6 +2004,7 @@
       "IsComposeFormat": false,
       "Name": "redis",
       "Namespace": "",
+      "Option": null,
       "ProjectPath": "/home/prabhat/portainer/data/ee2.7/compose/2",
       "ResourceControl": null,
       "Status": 1,

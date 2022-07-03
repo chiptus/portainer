@@ -27,6 +27,7 @@ type stackGitRedployPayload struct {
 	RepositoryUsername       string
 	RepositoryPassword       string
 	Env                      []portaineree.Pair
+	Prune                    bool `example:"false"`
 	// Force a pulling to current image with the original tag though the image is already the latest
 	PullImage bool `example:"false"`
 }
@@ -124,6 +125,11 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 
 	stack.GitConfig.ReferenceName = payload.RepositoryReferenceName
 	stack.Env = payload.Env
+	if stack.Type == portaineree.DockerSwarmStack {
+		stack.Option = &portaineree.StackOption{
+			Prune: payload.Prune,
+		}
+	}
 
 	backupProjectPath := fmt.Sprintf("%s-old", stack.ProjectPath)
 	err = filesystem.MoveDirectory(stack.ProjectPath, backupProjectPath)
@@ -194,7 +200,11 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 func (handler *Handler) deployStack(r *http.Request, stack *portaineree.Stack, pullImage bool, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 	switch stack.Type {
 	case portaineree.DockerSwarmStack:
-		config, httpErr := handler.createSwarmDeployConfig(r, stack, endpoint, false, pullImage)
+		prune := false
+		if stack.Option != nil {
+			prune = stack.Option.Prune
+		}
+		config, httpErr := handler.createSwarmDeployConfig(r, stack, endpoint, prune, pullImage)
 		if httpErr != nil {
 			return httpErr
 		}

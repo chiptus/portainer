@@ -1174,6 +1174,8 @@ type (
 		AdditionalFiles []string `json:"AdditionalFiles"`
 		// The auto update settings of a git stack
 		AutoUpdate *StackAutoUpdate `json:"AutoUpdate"`
+		// The stack deployment option
+		Option *StackOption `json:"Option"`
 		// The git configuration of a git stack
 		GitConfig *gittypes.RepoConfig
 		// Whether the stack is from a app template
@@ -1198,6 +1200,12 @@ type (
 		ForceUpdate bool `example:"false"`
 		// Pull latest image
 		ForcePullImage bool `example:"false"`
+	}
+
+	// StackOption represents the options for stack deployment
+	StackOption struct {
+		// Prune services that are no longer referenced
+		Prune bool `example:"false"`
 	}
 
 	// StackID represents a stack identifier (it must be composed of Name + "_" + SwarmID to create a unique identifier)

@@ -25,6 +25,9 @@ class StackRedeployGitFormController {
       RepositoryUsername: '',
       RepositoryPassword: '',
       Env: [],
+      Option: {
+        Prune: false,
+      },
       PullImage: false,
       // auto update
       AutoUpdate: {
@@ -41,6 +44,7 @@ class StackRedeployGitFormController {
     this.onChangeRef = this.onChangeRef.bind(this);
     this.onChangeAutoUpdate = this.onChangeAutoUpdate.bind(this);
     this.onChangeEnvVar = this.onChangeEnvVar.bind(this);
+    this.onChangeOption = this.onChangeOption.bind(this);
   }
 
   buildAnalyticsProperties() {
@@ -88,6 +92,15 @@ class StackRedeployGitFormController {
     this.onChange({ Env: value });
   }
 
+  onChangeOption(values) {
+    this.onChange({
+      Option: {
+        ...this.formValues.Option,
+        ...values,
+      },
+    });
+  }
+
   async submit() {
     const isSwarmStack = this.stack.Type === 1;
     const that = this;
@@ -101,7 +114,14 @@ class StackRedeployGitFormController {
         }
         try {
           that.state.redeployInProgress = true;
-          await that.StackService.updateGit(that.stack.Id, that.stack.EndpointId, that.FormHelper.removeInvalidEnvVars(that.formValues.Env), false, that.formValues, !!result[0]);
+          await that.StackService.updateGit(
+            that.stack.Id,
+            that.stack.EndpointId,
+            that.FormHelper.removeInvalidEnvVars(that.formValues.Env),
+            that.formValues.Option.Prune,
+            that.formValues,
+            !!result[0]
+          );
           that.Notifications.success('Pulled and redeployed stack successfully');
           that.$state.reload();
         } catch (err) {
@@ -150,6 +170,10 @@ class StackRedeployGitFormController {
     this.formValues.RefName = this.model.ReferenceName;
     this.formValues.Env = this.stack.Env;
 
+    if (this.stack.Option) {
+      this.formValues.Option = this.stack.Option;
+    }
+
     // Init auto update
     if (this.stack.AutoUpdate && (this.stack.AutoUpdate.Interval || this.stack.AutoUpdate.Webhook)) {
       this.formValues.AutoUpdate.RepositoryAutomaticUpdates = true;
@@ -174,7 +198,6 @@ class StackRedeployGitFormController {
       this.formValues.RepositoryAuthentication = true;
       this.state.isEdit = true;
     }
-
     this.savedFormValues = angular.copy(this.formValues);
   }
 }
