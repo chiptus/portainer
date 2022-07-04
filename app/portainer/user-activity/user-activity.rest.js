@@ -1,6 +1,8 @@
+import { baseHref } from '@/portainer/helpers/pathHelper';
+
 /* @ngInject */
 export function UserActivity($resource, $http) {
-  const BASE_URL = '/api/useractivity';
+  const BASE_URL = baseHref() + 'api/useractivity';
 
   const resource = $resource(
     `${BASE_URL}/:action`,
