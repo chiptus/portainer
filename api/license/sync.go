@@ -20,7 +20,7 @@ func (service *Service) startSyncLoop() error {
 
 	ticker := time.NewTicker(syncInterval)
 
-	go (func() {
+	go func() {
 		for {
 			select {
 			case <-service.shutdownCtx.Done():
@@ -31,7 +31,7 @@ func (service *Service) startSyncLoop() error {
 				service.syncLicenses()
 			}
 		}
-	})()
+	}()
 
 	return nil
 }

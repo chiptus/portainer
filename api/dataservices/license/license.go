@@ -2,7 +2,9 @@ package license
 
 import (
 	"fmt"
+
 	"github.com/portainer/liblicense"
+	"github.com/portainer/portainer-ee/api/license"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/sirupsen/logrus"
 )
@@ -55,7 +57,9 @@ func (service *Service) Licenses() ([]liblicense.PortainerLicense, error) {
 				logrus.WithField("obj", obj).Errorf("Failed to convert to PortainerLicense object")
 				return nil, fmt.Errorf("Failed to convert to PortainerLicense object: %s", obj)
 			}
-			licenses = append(licenses, *r)
+
+			l := license.ParseLicense(*r)
+			licenses = append(licenses, l)
 
 			return &liblicense.PortainerLicense{}, nil
 		})

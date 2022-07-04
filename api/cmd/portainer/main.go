@@ -777,13 +777,6 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		logrus.Fatalf("failed starting tunnel server: %s", err)
 	}
 
-	if !*flags.DemoEnvironment {
-		err = licenseService.Start()
-		if err != nil {
-			logrus.Fatalf("failed starting license service: %s", err)
-		}
-	}
-
 	scheduler := scheduler.NewScheduler(shutdownCtx)
 	stackDeployer := stacks.NewStackDeployer(swarmStackManager, composeStackManager, kubernetesDeployer)
 	stacks.StartStackSchedules(scheduler, stackDeployer, dataStore, gitService, userActivityService)
