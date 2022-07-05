@@ -1,15 +1,18 @@
 <rd-widget>
   <rd-widget-body>
     <form class="form-horizontal" name="$ctrl.form" novalidate>
+      <div class="col-sm-12 form-section-title"> License registration </div>
       <div class="form-group">
-        <div class="col-sm-12">
-          <div class="col-sm-12 form-section-title"> License registration </div>
-
-          <div class="small text-muted"> Please input your license keys. </div>
-          <button class="label label-default interactive" style="border: 0; margin-left: 0; margin-top: 10px" ng-click="$ctrl.addLicense()">
-            <i class="fa fa-plus-circle" aria-hidden="true"></i> add license
-          </button>
+        <span class="col-sm-12 text-muted"><p>Please input your license keys.</p></span>
+        <div class="col-sm-12 small text-muted">
+          <i class="fa fa-info-circle blue-icon fa-lg space-right" aria-hidden="true"></i>
+          Your license key should start with “2-” and end with “=”.
         </div>
+        <div class="col-sm-12"
+          ><button class="label label-default interactive" style="border: 0; margin-left: 0; margin-top: 10px" ng-click="$ctrl.addLicense()">
+            <i class="fa fa-plus-circle" aria-hidden="true"></i> add license
+          </button></div
+        >
       </div>
 
       <license-form-item
