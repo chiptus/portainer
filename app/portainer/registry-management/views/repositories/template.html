@@ -1,17 +1,28 @@
-<rd-header>
-  <rd-header-title title-text="Registry repositories">
-    <a data-toggle="tooltip" title="Refresh" ui-sref="portainer.registries.registry.repositories" ui-sref-opts="{reload: true}">
-      <i class="fa fa-sync" aria-hidden="true"></i>
-    </a>
-  </rd-header-title>
-  <rd-header-content ng-if="$ctrl.isAdmin">
-    <a ui-sref="portainer.registries">Registries</a> &gt;
-    <a ui-sref="portainer.registries.registry({id: $ctrl.registry.Id})" ui-sref-opts="{reload:true}">{{ $ctrl.registry.Name }}</a> &gt; Repositories
-  </rd-header-content>
-  <rd-header-content ng-if="!$ctrl.isAdmin">
-    <a ui-sref="docker.registries({endpointId: $ctrl.endpointId})">Registries</a> &gt; <span>{{ $ctrl.registry.Name }}</span> &gt; Repositories
-  </rd-header-content>
-</rd-header>
+<page-header
+  ng-if="$ctrl.isAdmin"
+  title="'Registry repositories'"
+  breadcrumbs="[
+    { label:'Registries', link:'portainer.registries' },
+    { 
+      label:$ctrl.registry.Name,
+      link: 'portainer.registries.registry', 
+      linkParams:{id: $ctrl.registry.Id}
+    }, 'Repositories']"
+  reload="true"
+>
+</page-header>
+
+<page-header
+  ng-if="!$ctrl.isAdmin"
+  title="'Registry repositories'"
+  breadcrumbs="[
+    { 
+      label: 'Registries',
+      link: 'docker.registries', 
+      linkParams:{endpointId: $ctrl.endpointId}
+    }, $ctrl.registry.Name, 'Repositories']"
+>
+</page-header>
 
 <div class="row">
   <information-panel ng-if="$ctrl.state.displayInvalidConfigurationMessage" title-text="Registry management configuration required">

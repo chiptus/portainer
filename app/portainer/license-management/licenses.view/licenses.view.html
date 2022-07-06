@@ -1,11 +1,4 @@
-<rd-header>
-  <rd-header-title title-text="Licenses">
-    <a data-toggle="tooltip" title="Refresh" ui-sref="portainer.licenses" ui-sref-opts="{reload: true}">
-      <i class="fa fa-sync" aria-hidden="true"></i>
-    </a>
-  </rd-header-title>
-  <rd-header-content>Licenses</rd-header-content>
-</rd-header>
+<page-header title="'Licenses'" breadcrumbs="['Licenses']" reload="true"> </page-header>
 
 <div class="row" ng-if="$ctrl.info">
   <license-info info="$ctrl.info"></license-info>

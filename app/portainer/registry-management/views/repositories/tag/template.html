@@ -1,21 +1,42 @@
-<rd-header>
-  <rd-header-title title-text="Tag">
-    <a data-toggle="tooltip" title="Refresh" ui-sref="portainer.registries.registry.repository.tag" ui-sref-opts="{reload: true}">
-      <i class="fa fa-sync" aria-hidden="true"></i>
-    </a>
-  </rd-header-title>
-  <rd-header-content ng-if="!$ctrl.context.endpointId">
-    <a ui-sref="portainer.registries">Registries</a> > <a ui-sref="portainer.registries.registry.repositories">{{ $ctrl.registry.Name }}</a> >
-    <a ui-sref="portainer.registries.registry.repository">{{ $ctrl.context.repository }} </a> &gt;
-    {{ $ctrl.context.tag }}
-  </rd-header-content>
-  <rd-header-content ng-if="$ctrl.context.endpointId">
-    <a ui-sref="docker.registries({endpointId: $ctrl.context.endpointId})">Registries</a> &gt;
-    <a ui-sref="portainer.registries.registry.repositories({endpointId: $ctrl.context.endpointId})">{{ $ctrl.registry.Name }}</a> &gt;
-    <a ui-sref="portainer.registries.registry.repository">{{ $ctrl.context.repository }} </a> &gt;
-    {{ $ctrl.context.tag }}
-  </rd-header-content>
-</rd-header>
+<page-header
+  ng-if="!$ctrl.context.endpointId"
+  title="'Tag'"
+  breadcrumbs="[
+    { label:'Registries', link:'portainer.registries' },
+    { 
+      label:$ctrl.registry.Name,
+      link: 'portainer.registries.registry.repositories'
+    },
+    { 
+      label:$ctrl.context.repository,
+      link: 'portainer.registries.registry.repository', 
+    }, 
+    $ctrl.context.tag]"
+  reload="true"
+>
+</page-header>
+
+<page-header
+  ng-if="$ctrl.context.endpointId"
+  title="'Tag'"
+  breadcrumbs="[
+    { label:'Registries', 
+    link:'docker.registries',
+    linkParams:{endpointId: $ctrl.context.endpointId}
+    },
+    { 
+      label:$ctrl.registry.Name,
+      link: 'portainer.registries.registry.repositories',
+      linkParams:{endpointId: $ctrl.context.endpointId}
+    },
+    { 
+      label:$ctrl.context.repository,
+      link: 'portainer.registries.registry.repository', 
+    },
+    $ctrl.context.tag]"
+  reload="true"
+>
+</page-header>
 
 <div class="row" ng-if="$ctrl.details.RepoTags.length > 0">
   <div class="col-lg-12 col-md-12 col-xs-12">

@@ -1,10 +1,14 @@
-<rd-header>
-  <rd-header-title title-text="Configure registry"></rd-header-title>
-  <rd-header-content>
-    <a ui-sref="portainer.registries">Registries</a> &gt; <a ui-sref="portainer.registries.registry({id: $ctrl.registry.Id})">{{ $ctrl.registry.Name }}</a> &gt; Management
-    configuration
-  </rd-header-content>
-</rd-header>
+<page-header
+  title="'Configure registry'"
+  breadcrumbs="[
+    { label:'Registries', link:'portainer.registries' },
+    { 
+      label:$ctrl.registry.Name,
+      link: 'portainer.registries.registry', 
+      linkParams:{id: $ctrl.registry.Id}
+    }, 'Management']"
+>
+</page-header>
 
 <div class="row">
   <div class="col-sm-12">

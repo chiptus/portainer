@@ -1,19 +1,40 @@
-<rd-header>
-  <rd-header-title title-text="Repository">
-    <a data-toggle="tooltip" title="Refresh" ui-sref="portainer.registries.registry.repository" ui-sref-opts="{reload: true}">
-      <i class="fa fa-sync" aria-hidden="true"></i>
-    </a>
-  </rd-header-title>
-  <rd-header-content ng-if="!endpointId">
-    <a ui-sref="portainer.registries">Registries</a> &gt; <a ui-sref="portainer.registries.registry.repositories({ id: registry.Id })">{{ registry.Name }}</a> &gt;
-    <a ui-sref="portainer.registries.registry.repository">{{ repository.Name }} </a>
-  </rd-header-content>
-  <rd-header-content ng-if="endpointId">
-    <a ui-sref="docker.registries({endpointId: endpointId})">Registries</a> &gt;
-    <a ui-sref="portainer.registries.registry.repositories({ id: registry.Id, endpointId: endpointId })">{{ registry.Name }}</a> &gt;
-    <a ui-sref="portainer.registries.registry.repository">{{ repository.Name }} </a>
-  </rd-header-content>
-</rd-header>
+<page-header
+  ng-if="!endpointId"
+  title="'Repository'"
+  breadcrumbs="[
+    { label:'Registries', link:'portainer.registries' },
+    { 
+      label:registry.Name,
+      link: 'portainer.registries.registry.repositories', 
+      linkParams:{ id: registry.Id }
+    },
+    { 
+      label:repository.Name,
+      link: 'portainer.registries.registry.repository', 
+    }]"
+  reload="true"
+>
+</page-header>
+
+<page-header
+  ng-if="endpointId"
+  title="'Repository'"
+  breadcrumbs="[
+    { label:'Registries', 
+    link:'docker.registries', 
+    linkParams:{ endpointId: endpointId }
+    { 
+      label:registry.Name,
+      link: 'portainer.registries.registry.repositories', 
+      linkParams:{ id: registry.Id, endpointId: endpointId }
+    },
+    { 
+      label:repository.Name,
+      link: 'portainer.registries.registry.repository' 
+    }]"
+  reload="true"
+>
+</page-header>
 
 <div class="row">
   <information-panel ng-if="!state.tagsRetrieval.auto" title-text="Information regarding repository size">
