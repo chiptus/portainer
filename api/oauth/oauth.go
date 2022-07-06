@@ -4,14 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"mime"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"golang.org/x/oauth2"
 
+	"github.com/golang-jwt/jwt"
+	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
+	log "github.com/sirupsen/logrus"
 )
 
 // Service represents a service used to authenticate users against an authorization server
@@ -29,29 +32,44 @@ func NewService() *Service {
 func (*Service) Authenticate(code string, configuration *portaineree.OAuthSettings) (*portaineree.OAuthInfo, error) {
 	token, err := getOAuthToken(code, configuration)
 	if err != nil {
-		log.Printf("[DEBUG] [internal,oauth] [message: failed retrieving oauth token: %v]", err)
+		log.Debugf("[internal,oauth] [message: failed retrieving oauth token: %v]", err)
 		return nil, err
+	}
+
+	idToken, err := getIdToken(token)
+	if err != nil {
+		log.Debugf("[internal,oauth] [message: failed parsing id_token: %v]", err)
 	}
 
 	resource, err := getResource(token.AccessToken, configuration)
 	if err != nil {
-		log.Printf("[DEBUG] [internal,oauth] [message: failed retrieving resource: %v]", err)
+		log.Debugf("[internal,oauth] [message: failed retrieving resource: %v]", err)
 		return nil, err
 	}
 
+	resource = mergeSecondIntoFirst(idToken, resource)
+
 	username, err := getUsername(resource, configuration)
 	if err != nil {
-		log.Printf("[DEBUG] [internal,oauth] [message: failed retrieving username: %v]", err)
+		log.Debugf("[internal,oauth] [message: failed retrieving username: %v]", err)
 		return nil, err
 	}
 
 	teams, err := getTeams(resource, configuration)
 	if err != nil {
-		log.Printf("[DEBUG] [internal,oauth] [message: failed retrieving oauth teams: %v]", err)
+		log.Debugf("[internal,oauth] [message: failed retrieving oauth teams: %v]", err)
 		return nil, err
 	}
 
 	return &portaineree.OAuthInfo{Username: username, Teams: teams}, nil
+}
+
+// mergeSecondIntoFirst merges the overlap map into the base overwriting any existing values.
+func mergeSecondIntoFirst(base map[string]interface{}, overlap map[string]interface{}) map[string]interface{} {
+	for k, v := range overlap {
+		base[k] = v
+	}
+	return base
 }
 
 func getOAuthToken(code string, configuration *portaineree.OAuthSettings) (*oauth2.Token, error) {
@@ -67,6 +85,34 @@ func getOAuthToken(code string, configuration *portaineree.OAuthSettings) (*oaut
 	}
 
 	return token, nil
+}
+
+// getIdToken retrieves parsed id_token from the OAuth token response.
+// This is necessary for OAuth providers like Azure
+// that do not provide information about user groups on the user resource endpoint.
+func getIdToken(token *oauth2.Token) (map[string]interface{}, error) {
+	tokenData := make(map[string]interface{})
+
+	idToken := token.Extra("id_token")
+	if idToken == nil {
+		return tokenData, nil
+	}
+
+	jwtParser := jwt.Parser{
+		SkipClaimsValidation: true,
+	}
+
+	t, _, err := jwtParser.ParseUnverified(idToken.(string), jwt.MapClaims{})
+	if err != nil {
+		return tokenData, errors.Wrap(err, "failed to parse id_token")
+	}
+
+	if claims, ok := t.Claims.(jwt.MapClaims); ok {
+		for k, v := range claims {
+			tokenData[k] = v
+		}
+	}
+	return tokenData, nil
 }
 
 func getResource(token string, configuration *portaineree.OAuthSettings) (map[string]interface{}, error) {
@@ -136,6 +182,6 @@ func buildConfig(configuration *portaineree.OAuthSettings) *oauth2.Config {
 		ClientSecret: configuration.ClientSecret,
 		Endpoint:     endpoint,
 		RedirectURL:  configuration.RedirectURI,
-		Scopes:       []string{configuration.Scopes},
+		Scopes:       strings.Split(configuration.Scopes, ","),
 	}
 }

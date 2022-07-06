@@ -6,6 +6,8 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/oauth/oauthtest"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/oauth2"
 )
 
 func Test_getOAuthToken(t *testing.T) {
@@ -29,6 +31,60 @@ func Test_getOAuthToken(t *testing.T) {
 			t.Errorf("getOAuthToken should successfully return access token upon providing valid code")
 		}
 	})
+}
+
+func Test_getIdToken(t *testing.T) {
+	verifiedToken := `eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE2NTM1NDA3MjksImV4cCI6MTY4NTA3NjcyOSwiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoiam9obi5kb2VAZXhhbXBsZS5jb20iLCJHaXZlbk5hbWUiOiJKb2huIiwiU3VybmFtZSI6IkRvZSIsIkdyb3VwcyI6WyJGaXJzdCIsIlNlY29uZCJdfQ.GeU8XCV4Y4p5Vm-i63Aj7UP5zpb_0Zxb7-DjM2_z-s8`
+	nonVerifiedToken := `eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE2NTM1NDA3MjksImV4cCI6MTY4NTA3NjcyOSwiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoiam9obi5kb2VAZXhhbXBsZS5jb20iLCJHaXZlbk5hbWUiOiJKb2huIiwiU3VybmFtZSI6IkRvZSIsIkdyb3VwcyI6WyJGaXJzdCIsIlNlY29uZCJdfQ.`
+	claims := map[string]interface{}{
+		"iss":       "Online JWT Builder",
+		"iat":       float64(1653540729),
+		"exp":       float64(1685076729),
+		"aud":       "www.example.com",
+		"sub":       "john.doe@example.com",
+		"GivenName": "John",
+		"Surname":   "Doe",
+		"Groups":    []interface{}{"First", "Second"},
+	}
+
+	tests := []struct {
+		testName       string
+		idToken        string
+		expectedResult map[string]interface{}
+		expectedError  error
+	}{
+		{
+			testName:       "should return claims if token exists and is verified",
+			idToken:        verifiedToken,
+			expectedResult: claims,
+			expectedError:  nil,
+		},
+		{
+			testName:       "should return claims if token exists but is not verified",
+			idToken:        nonVerifiedToken,
+			expectedResult: claims,
+			expectedError:  nil,
+		},
+		{
+			testName:       "should return empty map if token does not exist",
+			idToken:        "",
+			expectedResult: make(map[string]interface{}),
+			expectedError:  nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.testName, func(t *testing.T) {
+			token := &oauth2.Token{}
+			if tc.idToken != "" {
+				token = token.WithExtra(map[string]interface{}{"id_token": tc.idToken})
+			}
+
+			result, err := getIdToken(token)
+			assert.Equal(t, err, tc.expectedError)
+			assert.Equal(t, result, tc.expectedResult)
+		})
+	}
 }
 
 func Test_getResource(t *testing.T) {

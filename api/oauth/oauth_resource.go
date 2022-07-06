@@ -58,19 +58,20 @@ func getNestedClaimValues(claimVal interface{}) ([]string, error) {
 }
 
 func getTeams(datamap map[string]interface{}, configuration *portaineree.OAuthSettings) ([]string, error) {
-	if configuration.OAuthAutoMapTeamMemberships && configuration.TeamMemberships.OAuthClaimName != "" {
-		teamClaimValues, ok := datamap[configuration.TeamMemberships.OAuthClaimName]
-		if !ok {
-			log.Println("[DEBUG] [internal,oauth] [message: Failed to find group claim in resource]")
-			return []string{}, nil
-		}
-
-		claimValues, err := getNestedClaimValues(teamClaimValues)
-		if err != nil {
-			return nil, fmt.Errorf("failed to extract nested claim values, map: %v, err: %w", teamClaimValues, err)
-		}
-
-		return claimValues, nil
+	if !configuration.OAuthAutoMapTeamMemberships || configuration.TeamMemberships.OAuthClaimName == "" {
+		return []string{}, nil
 	}
-	return []string{}, nil
+
+	teamClaimValues, ok := datamap[configuration.TeamMemberships.OAuthClaimName]
+	if !ok {
+		log.Println("[DEBUG] [internal,oauth] [message: Failed to find group claim in resource]")
+		return []string{}, nil
+	}
+
+	claimValues, err := getNestedClaimValues(teamClaimValues)
+	if err != nil {
+		return nil, fmt.Errorf("failed to extract nested claim values, map: %v, err: %w", teamClaimValues, err)
+	}
+
+	return claimValues, nil
 }
