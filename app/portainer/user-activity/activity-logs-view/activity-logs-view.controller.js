@@ -3,8 +3,9 @@ import moment from 'moment';
 import { FeatureId } from '@/portainer/feature-flags/enums';
 export default class ActivityLogsViewController {
   /* @ngInject */
-  constructor($async, UserActivityService, Notifications) {
+  constructor($async, $scope, UserActivityService, Notifications) {
     this.$async = $async;
+    this.$scope = $scope;
     this.UserActivityService = UserActivityService;
     this.Notifications = Notifications;
 
@@ -54,9 +55,11 @@ export default class ActivityLogsViewController {
   }
 
   onChangeKeyword(keyword) {
-    this.state.page = 1;
-    this.state.keyword = keyword;
-    this.loadLogs();
+    return this.$scope.$evalAsync(() => {
+      this.state.page = 1;
+      this.state.keyword = keyword;
+      this.loadLogs();
+    });
   }
 
   onChangeDate({ startDate, endDate }) {

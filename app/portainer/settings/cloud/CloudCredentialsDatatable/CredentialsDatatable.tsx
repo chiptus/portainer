@@ -107,7 +107,7 @@ export function CredentialsDatatable({
       <SearchBar
         value={searchBarValue}
         onChange={(value: string) => setSearchBarValue(value)}
-        dataCy="credentials-searchBar"
+        data-cy="credentials-searchBar"
       />
       <Table
         className={tableProps.className}
