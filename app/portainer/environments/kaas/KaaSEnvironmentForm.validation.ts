@@ -23,8 +23,8 @@ export function validationSchema(
       )
       .max(32, 'Name must be 32 characters or less.')
       .matches(
-        /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/,
-        'Name must start and end with an alphanumeric character.'
+        /^[a-z](?:[a-z0-9-]*[a-z0-9])?$/,
+        'Name must start with a letter and end with an alphanumeric character.'
       ),
     meta: metadataValidation(),
     api:
