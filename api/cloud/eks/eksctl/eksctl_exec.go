@@ -65,10 +65,10 @@ func (c *Config) Run(params ...string) error {
 	)
 
 	stdout, _ := cmd.StdoutPipe()
-
+	cmd.Stderr = cmd.Stdout
 	err = cmd.Start()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to start eksctl: %v", err)
 	}
 
 	scanner := bufio.NewScanner(stdout)
@@ -84,13 +84,23 @@ func (c *Config) Run(params ...string) error {
 	ch := make(chan string)
 	run := true
 
+	// We periodically poll the output of the command rather than running the
+	// whole command and then printing the output. This is because calling
+	// provision for a provider is not async. For the other providers it doesn't
+	// matter because they return very quickly, but for AWS it can sometimes
+	// take 30 minutes and it would be bad UX to show nothing in the logs while
+	// that happens.
 	for run {
 		// scanner.Scan blocks.  This logic allows us to read as a block of output from eksctl and output to the
 		// portainer log in one block at a time.  Rather than line by line.  This should make reading the log output
 		// easier when a lot of things are going on.
 		go func() {
 			for scanner.Scan() {
-				ch <- scanner.Text()
+				// When piping to a file or docker's logging system, logrus has
+				// a bug in which it prints loads of null characters to the
+				// output. This is a hacky workaround until ultimately we
+				// replace logrus in the future.
+				ch <- strings.Trim(scanner.Text(), "\x00")
 			}
 			run = false
 		}()
@@ -98,9 +108,11 @@ func (c *Config) Run(params ...string) error {
 		select {
 		case <-ticker.C:
 			if len(logText) > 0 {
-				// As it's possible to provision multiple clusters at the same,
-				// we use invocation id to tie groups of output together.
-				log.Infof("[cloud] [eksctl] [cluster id: %s] [message: %s]", c.id, strings.Join(logText[:], "\n  "))
+				log.Infof(
+					"[cloud] [eksctl] [cluster id: %s] [output]\n  %s",
+					c.id,
+					strings.Join(logText, "\n  "),
+				)
 				logText = []string{}
 			}
 
@@ -110,15 +122,21 @@ func (c *Config) Run(params ...string) error {
 				errorText = stripPrefix.ReplaceAllString(text, "")
 			}
 
-			text = stripPrefix.ReplaceAllString(text, "")
 			logText = append(logText, text)
 		}
 	}
 
+	// Dump out any remaining log text.
+	log.Infof(
+		"[cloud] [eksctl] [cluster id: %s] [output]\n  %s",
+		c.id,
+		strings.Join(logText, "\n  "),
+	)
+
 	if err = cmd.Wait(); err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if _, ok := exiterr.Sys().(syscall.WaitStatus); ok {
-				return fmt.Errorf("eksctl error: %s, %v. See portainer log for more detail.", errorText, err)
+				return fmt.Errorf("eksctl error: %s, %v. See Portainer and AWS CloudFormation logs for more detail.", errorText, err)
 			}
 		}
 	}
