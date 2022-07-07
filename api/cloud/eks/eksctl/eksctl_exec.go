@@ -84,6 +84,16 @@ func (c *Config) Run(params ...string) error {
 	ch := make(chan string)
 	run := true
 
+	// scanner.Scan blocks.  This logic allows us to read as a block of output from eksctl and output to the
+	// portainer log in one block at a time.  Rather than line by line.  This should make reading the log output
+	// easier when a lot of things are going on.
+	go func() {
+		for scanner.Scan() {
+			ch <- scanner.Text()
+		}
+		run = false
+	}()
+
 	// We periodically poll the output of the command rather than running the
 	// whole command and then printing the output. This is because calling
 	// provision for a provider is not async. For the other providers it doesn't
@@ -91,20 +101,6 @@ func (c *Config) Run(params ...string) error {
 	// take 30 minutes and it would be bad UX to show nothing in the logs while
 	// that happens.
 	for run {
-		// scanner.Scan blocks.  This logic allows us to read as a block of output from eksctl and output to the
-		// portainer log in one block at a time.  Rather than line by line.  This should make reading the log output
-		// easier when a lot of things are going on.
-		go func() {
-			for scanner.Scan() {
-				// When piping to a file or docker's logging system, logrus has
-				// a bug in which it prints loads of null characters to the
-				// output. This is a hacky workaround until ultimately we
-				// replace logrus in the future.
-				ch <- strings.Trim(scanner.Text(), "\x00")
-			}
-			run = false
-		}()
-
 		select {
 		case <-ticker.C:
 			if len(logText) > 0 {
