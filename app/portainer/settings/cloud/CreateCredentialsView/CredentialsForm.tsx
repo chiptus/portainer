@@ -10,6 +10,8 @@ import {
 import {
   CreateCredentialPayload,
   KaasProvider,
+  providerTitles,
+  providerHelpLinks,
   GenericFormValues,
 } from '../types';
 import { APICredentialsForm } from '../components/APICredentialsForm';
@@ -27,6 +29,8 @@ export function CredentialsForm({ selectedProvider, routeOnSuccess }: Props) {
   const router = useRouter();
 
   const Form = getForm(selectedProvider);
+  const title = providerTitles[selectedProvider];
+  const helpLink = providerHelpLinks[selectedProvider];
 
   const createCredentialMutation = useCreateCredentialMutation();
   const cloudCredentialsQuery = useCloudCredentials();
@@ -39,8 +43,12 @@ export function CredentialsForm({ selectedProvider, routeOnSuccess }: Props) {
     <>
       <FormSectionTitle>Credential details</FormSectionTitle>
       <TextTip color="blue">
-        Credentials that you set here will be usable by any admin user (although
-        the actual credential values themselves cannot be viewed).
+        See our{' '}
+        <a href={helpLink} target="_blank" rel="noreferrer">
+          documentation for obtaining {title} credentials.
+        </a>{' '}
+        Any credentials that you set up will be usable by all admin users{' '}
+        (although the actual values themselves cannot be viewed).
       </TextTip>
       <Form
         selectedProvider={selectedProvider}

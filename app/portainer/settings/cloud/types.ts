@@ -25,6 +25,15 @@ export const providerTitles: Record<KaasProvider, string> = {
   azure: 'Azure',
 };
 
+export const providerHelpLinks: Record<KaasProvider, string> = {
+  civo: 'https://docs.portainer.io/admin/settings/cloud/civo',
+  linode: 'https://docs.portainer.io/admin/settings/cloud/linode',
+  digitalocean: 'https://docs.portainer.io/admin/settings/cloud/digitalocean',
+  gke: 'https://docs.portainer.io/admin/settings/cloud/gke',
+  amazon: 'https://docs.portainer.io/admin/settings/cloud/eks',
+  azure: 'https://docs.portainer.io/admin/settings/cloud/aks',
+};
+
 export type APICredentials = {
   apiKey: string;
 };
