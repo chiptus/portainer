@@ -116,7 +116,36 @@ func (service *CloudClusterSetupService) createClusterSetupTask(request *portain
 func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 	tasks, err := service.dataStore.CloudProvisioning().Tasks()
 	if err != nil {
-		log.Errorf("[cloud] [message: failed to restore provisioning tasks] [error: %s]", err)
+		log.Errorf("[cloud] [message: failed to restore provisioning tasks] [error: %v]", err)
+	}
+
+	// First update endpoints that are in provisioning state and have no corresponding provisioning task
+	// this can happen with some providers, especially amazon eks
+	endpoints, err := service.dataStore.Endpoint().Endpoints()
+	if err != nil {
+		log.Errorf("[cloud] [message: failed to read environments] [error: %v]", err)
+	}
+
+	for _, endpoint := range endpoints {
+		if endpoint.Status == portaineree.EndpointStatusProvisioning {
+			found := false
+			for _, task := range tasks {
+				found = task.EndpointID == task.EndpointID
+			}
+
+			if !found {
+				// Get the associated endpoint and set it's status to error and error detail to timed out
+				err := service.setStatus(endpoint.ID, 4)
+				if err != nil {
+					log.Errorf("[cloud] [message: unable to update endpoint status in database] [error: %v]", err)
+				}
+
+				err = service.setMessage(endpoint.ID, "Provisioning Error", "Portainer may have been restarted during provisioning and cannot be recovered.")
+				if err != nil {
+					log.Errorf("[cloud] [message: unable to update endpoint status message in database] [error: %v]", err)
+				}
+			}
+		}
 	}
 
 	if len(tasks) > 0 {
@@ -141,7 +170,7 @@ func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 			// Remove the task from the database because it's too old
 			err = service.dataStore.CloudProvisioning().Delete(task.ID)
 			if err != nil {
-				log.Warnf("[cloud] [message: unable to remove task from the database] [error: %s]", err.Error())
+				log.Warnf("[cloud] [message: unable to remove task from the database] [error: %v]", err)
 			}
 			continue
 		}
@@ -159,10 +188,10 @@ func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 				// endpoint has been deleted
 				err := service.dataStore.CloudProvisioning().Delete(task.ID)
 				if err != nil {
-					log.Warnf("[cloud] [message: unable to remove task from the database] [error: %s]", err.Error())
+					log.Warnf("[cloud] [message: unable to remove task from the database] [error: %v]", err)
 				}
 			} else {
-				log.Errorf("[cloud] [message: unable to restore KaaS provisioning task] [error: %s]", err.Error())
+				log.Errorf("[cloud] [message: unable to restore KaaS provisioning task] [error: %v]", err)
 			}
 		} else {
 			go service.provisionKaasClusterTask(task)
@@ -257,12 +286,12 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 		cluster, err = service.AmazonEksGetCluster(credentials.Credentials, task.ClusterID, task.Region)
 
 	default:
-		return cluster, fmt.Errorf("%v is not supported", task.Provider)
+		return cluster, fmt.Errorf("%s is not supported", task.Provider)
 	}
 
 	if err != nil {
 		log.Errorf("[cloud] [message: failed to get kaasCluster: %v]", err)
-		err = fmt.Errorf("%v is not responding", task.Provider)
+		err = fmt.Errorf("%s is not responding", task.Provider)
 	}
 	return cluster, err
 }
@@ -401,7 +430,7 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 
 	credentials, err := service.dataStore.CloudCredential().GetByID(request.CredentialID)
 	if err != nil {
-		log.Errorf("[cloud] [message: unable to retrieve credentials from the database] [error: %v]", err.Error())
+		log.Errorf("[cloud] [message: unable to retrieve credentials from the database] [error: %v]", err)
 		return
 	}
 
@@ -469,7 +498,7 @@ func (service *CloudClusterSetupService) processResult(result *cloudPrevisioning
 	log.Info("[cloud] [message: cluster creation request completed]")
 
 	if result.err != nil {
-		log.Errorf("[cloud] [message: unable to provision cluster] [error: %v]", result.err.Error())
+		log.Errorf("[cloud] [message: unable to provision cluster] [error: %v]", result.err)
 		err := service.setStatus(result.endpointID, 4)
 		if err != nil {
 			log.Errorf("[cloud] [message: unable to update endpoint status in database] [error: %v]", err)
@@ -491,7 +520,7 @@ func (service *CloudClusterSetupService) processResult(result *cloudPrevisioning
 
 	err := service.dataStore.CloudProvisioning().Delete(result.taskID)
 	if err != nil {
-		log.Errorf("[cloud] [message: unable to remove task from the database] [error: %v]", err.Error())
+		log.Errorf("[cloud] [message: unable to remove task from the database] [error: %v]", err)
 	}
 }
 
