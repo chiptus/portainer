@@ -24,7 +24,7 @@ export function EdgeStackDeploymentTypeSelector({
       id: 'deployment_compose',
       icon: 'fab fa-docker',
       label: 'Compose',
-      description: 'docker-compose format',
+      description: 'Docker compose format',
       value: EditorType.Compose,
       disabled: () => hasNomadEndpoint,
       tooltip: () =>
