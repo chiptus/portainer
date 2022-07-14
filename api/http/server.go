@@ -318,9 +318,7 @@ func (server *Server) Start() error {
 	var webhookHandler = webhooks.NewHandler(requestBouncer, server.DataStore, server.UserActivityService, containerService)
 	webhookHandler.DockerClientFactory = server.DockerClientFactory
 
-	var nomadHandler = nomad.NewHandler(requestBouncer, server.NomadClientFactory)
-	nomadHandler.AuthorizationService = server.AuthorizationService
-	nomadHandler.DataStore = server.DataStore
+	var nomadHandler = nomad.NewHandler(requestBouncer, server.DataStore, server.NomadClientFactory, server.AuthorizationService)
 
 	var cloudCredHandler = cloudcredentials.NewHandler(requestBouncer, server.UserActivityService)
 	cloudCredHandler.DataStore = server.DataStore

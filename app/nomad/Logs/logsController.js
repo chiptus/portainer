@@ -42,12 +42,11 @@ angular.module('portainer.nomad').controller('LogsController', [
     }
     async function loadLogs(logType, jobID, taskName, namespace, endpointId, controller, refresh = true, offset = 50000) {
       axios
-        .get(`/nomad/allocation/${$scope.allocationID}/logs`, {
+        .get(`/nomad/endpoints/${endpointId}/allocation/${$scope.allocationID}/logs`, {
           params: {
             jobID,
             taskName,
             namespace,
-            endpointId,
             refresh,
             logType,
             offset,

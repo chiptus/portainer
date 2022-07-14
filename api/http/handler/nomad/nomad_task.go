@@ -6,12 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
-
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	portaineree "github.com/portainer/portainer-ee/api"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
 
 	"github.com/portainer/libhttp/response"
 )
@@ -32,7 +29,7 @@ type slimNomadTaskEvent struct {
 // @produce json
 // @success 200 {array} slimNomadTaskEvent "Success"
 // @failure 500 "Server error"
-// @router /nomad/allocation/{id}/events [get]
+// @router /nomad/endpoints/{endpointID}/allocation/{id}/events [get]
 func (handler *Handler) getTaskEvents(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
 	allocationID, err := request.RetrieveRouteVariableValue(r, "id")
@@ -50,16 +47,9 @@ func (handler *Handler) getTaskEvents(w http.ResponseWriter, r *http.Request) *h
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: namespace", Err: err}
 	}
 
-	endpointID, err := request.RetrieveNumericQueryParameter(r, "endpointId", false)
+	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: endpointId", Err: err}
-	}
-
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == portainerDsErrors.ErrObjectNotFound {
-		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
-	} else if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
+		return httperror.InternalServerError(err.Error(), err)
 	}
 
 	nomadClient, err := handler.nomadClientFactory.GetClient(endpoint)
@@ -110,7 +100,7 @@ func (handler *Handler) getTaskEvents(w http.ResponseWriter, r *http.Request) *h
 // @produce json
 // @success 200 {array} slimNomadTaskEvent "Success"
 // @failure 500 "Server error"
-// @router /nomad/allocation/{id}/logs [get]
+// @router /nomad/endpoints/{endpointID}/allocation/{id}/logs [get]
 func (handler *Handler) getTaskLogs(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	allocationID, err := request.RetrieveRouteVariableValue(r, "id")
 	if err != nil {
@@ -127,21 +117,14 @@ func (handler *Handler) getTaskLogs(w http.ResponseWriter, r *http.Request) *htt
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: namespace", Err: err}
 	}
 
-	endpointID, err := request.RetrieveNumericQueryParameter(r, "endpointId", false)
+	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: endpointId", Err: err}
+		return httperror.InternalServerError(err.Error(), err)
 	}
 
 	refresh, err := request.RetrieveBooleanQueryParameter(r, "refresh", false)
 	if err != nil {
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: refresh", Err: err}
-	}
-
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
-	} else if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
 	}
 
 	logType, err := request.RetrieveQueryParameter(r, "logType", true)

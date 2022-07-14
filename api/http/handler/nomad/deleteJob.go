@@ -1,13 +1,12 @@
 package nomad
 
 import (
-	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
 )
 
 // @id deleteJob
@@ -20,7 +19,7 @@ import (
 // @produce json
 // @success 200 "Success"
 // @failure 500 "Server error"
-// @router /nomad/jobs/{id} [delete]
+// @router /nomad/endpoints/{endpointID}/jobs/{id} [delete]
 func (handler *Handler) deleteJob(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
 	jobID, err := request.RetrieveRouteVariableValue(r, "id")
@@ -33,16 +32,9 @@ func (handler *Handler) deleteJob(w http.ResponseWriter, r *http.Request) *httpe
 		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: namespace", Err: err}
 	}
 
-	endpointID, err := request.RetrieveNumericQueryParameter(r, "endpointId", false)
+	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: endpointId", Err: err}
-	}
-
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == portainerDsErrors.ErrObjectNotFound {
-		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
-	} else if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
+		return httperror.InternalServerError(err.Error(), err)
 	}
 
 	nomadClient, err := handler.nomadClientFactory.GetClient(endpoint)

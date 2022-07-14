@@ -4,17 +4,17 @@ import { EnvironmentId } from 'Portainer/environments/types';
 import { NomadEventsList } from '@/nomad/types';
 
 export async function getTaskEvents(
-  environmentID: EnvironmentId,
-  allocationID: string,
-  jobID: string,
+  environmentId: EnvironmentId,
+  allocationId: string,
+  jobId: string,
   taskName: string,
   namespace: string
 ) {
   try {
     const ret = await axios.get<NomadEventsList>(
-      `/nomad/allocation/${allocationID}/events`,
+      `/nomad/endpoints/${environmentId}/allocation/${allocationId}/events`,
       {
-        params: { jobID, taskName, namespace, endpointId: environmentID },
+        params: { jobId, taskName, namespace },
       }
     );
     return ret.data;

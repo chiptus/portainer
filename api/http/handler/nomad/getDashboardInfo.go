@@ -1,13 +1,12 @@
 package nomad
 
 import (
-	httperror "github.com/portainer/libhttp/error"
-	"github.com/portainer/libhttp/request"
-	"github.com/portainer/libhttp/response"
-	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/nomad/helpers"
-	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 	"net/http"
+
+	httperror "github.com/portainer/libhttp/error"
+	"github.com/portainer/libhttp/response"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/nomad/helpers"
 )
 
 type (
@@ -30,18 +29,11 @@ type (
 // @success 200 "Success"
 // @failure 404 "Endpoint not found"
 // @failure 500 "Server error"
-// @router /nomad/dashboard [get]
+// @router /nomad/endpoints/{endpointID}/dashboard [get]
 func (handler *Handler) getDashboard(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	endpointID, err := request.RetrieveNumericQueryParameter(r, "endpointId", false)
+	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: endpointId", Err: err}
-	}
-
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == portainerDsErrors.ErrObjectNotFound {
-		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
-	} else if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find an environment with the specified identifier inside the database", Err: err}
+		return httperror.InternalServerError(err.Error(), err)
 	}
 
 	nomadClient, err := handler.nomadClientFactory.GetClient(endpoint)
