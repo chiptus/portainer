@@ -29,7 +29,7 @@ func NewHandler(bouncer *security.RequestBouncer, status *portaineree.Status, de
 	h.Handle("/status",
 		bouncer.PublicAccess(httperror.LoggerHandler(h.statusInspect))).Methods(http.MethodGet)
 	h.Handle("/status/version",
-		bouncer.AuthenticatedAccess(http.HandlerFunc(h.statusInspectVersion))).Methods(http.MethodGet)
+		bouncer.AuthenticatedAccess(http.HandlerFunc(h.version))).Methods(http.MethodGet)
 	h.Handle("/status/nodes",
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.statusNodesCount))).Methods(http.MethodGet)
 
