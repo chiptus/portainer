@@ -2,9 +2,9 @@
   title="'Configure registry'"
   breadcrumbs="[
     { label:'Registries', link:'portainer.registries' },
-    { 
+    {
       label:$ctrl.registry.Name,
-      link: 'portainer.registries.registry', 
+      link: 'portainer.registries.registry',
       linkParams:{id: $ctrl.registry.Id}
     }, 'Management']"
 >
@@ -41,12 +41,12 @@
               $ctrl.registry.Type === $ctrl.RegistryTypes.ECR
             "
           >
-            <div class="col-sm-12">
-              <label for="registry_auth" class="control-label text-left">
-                Authentication
-                <portainer-tooltip message="'Enable this option if you need to specify credentials to connect to this registry.'"></portainer-tooltip>
-              </label>
-              <label class="switch" style="margin-left: 20px"> <input type="checkbox" ng-model="$ctrl.model.Authentication" /><i></i> </label>
+            <label for="registry_auth" class="col-sm-3 col-lg-2 control-label text-left">
+              Authentication
+              <portainer-tooltip message="'Enable this option if you need to specify credentials to connect to this registry.'"> </portainer-tooltip>
+            </label>
+            <div class="col-sm-9 col-lg-10">
+              <por-switch-field checked="$ctrl.model.Authentication" on-change="($ctrl.toggleAuthentication)" switch-values="{on:'Yes',off:'No'}"></por-switch-field>
             </div>
           </div>
           <!-- !authentication-checkbox -->
@@ -95,23 +95,23 @@
           >
             <!-- tls-checkbox -->
             <div class="form-group">
-              <div class="col-sm-12">
-                <label for="tls" class="control-label text-left">
-                  TLS
-                  <portainer-tooltip message="'Enable this option if you need to connect to the registry API with TLS.'"></portainer-tooltip>
-                </label>
-                <label class="switch" style="margin-left: 20px"> <input type="checkbox" ng-model="$ctrl.model.TLS" /><i></i> </label>
+              <label for="tls" class="col-sm-3 col-lg-2 control-label text-left">
+                TLS
+                <portainer-tooltip message="'Enable this option if you need to connect to the registry API with TLS.'"> </portainer-tooltip>
+              </label>
+              <div class="col-sm-9 col-lg-10">
+                <por-switch-field checked="$ctrl.model.TLS" on-change="($ctrl.toggleTLS)" switch-values="{on:'Yes',off:'No'}"></por-switch-field>
               </div>
             </div>
             <!-- !tls-checkbox -->
             <!-- tls-skip-verify -->
             <div class="form-group" ng-if="$ctrl.model.TLS">
-              <div class="col-sm-12">
-                <label for="tls" class="control-label text-left">
-                  Skip certificate verification
-                  <portainer-tooltip message="'Skip the verification of the server TLS certificate. Not recommended on unsecured networks.'"></portainer-tooltip>
-                </label>
-                <label class="switch" style="margin-left: 20px"> <input type="checkbox" ng-model="$ctrl.model.TLSSkipVerify" /><i></i> </label>
+              <label for="tls" class="col-sm-3 col-lg-2 control-label text-left">
+                Skip certificate verification
+                <portainer-tooltip message="'Skip the verification of the server TLS certificate. Not recommended on unsecured networks.'"></portainer-tooltip>
+              </label>
+              <div class="col-sm-9 col-lg-10">
+                <por-switch-field checked="$ctrl.model.TLSSkipVerify" on-change="($ctrl.toggleTLSSkipVerify)" switch-values="{on:'Yes',off:'No'}"></por-switch-field>
               </div>
             </div>
             <!-- !tls-skip-verify -->
@@ -121,16 +121,17 @@
               <!-- tls-ca-file-cert -->
               <div class="form-group">
                 <label for="tls_cert" class="col-sm-3 col-lg-2 control-label text-left">TLS CA certificate</label>
-                <div class="col-sm-9 col-lg-10">
+                <div class="col-sm-9 col-lg-10 vertical-center">
                   <button type="button" class="btn btn-sm btn-primary" ngf-select ng-model="$ctrl.model.TLSCACertFile">Select file</button>
-                  <span style="margin-left: 5px">
+                  <span class="vertical-center">
                     {{ $ctrl.model.TLSCACertFile.name }}
-                    <i
-                      class="fa fa-check green-icon"
+                    <pr-icon
+                      icon="'check'"
+                      feather="true"
+                      class="icon-success"
                       ng-if="$ctrl.model.TLSCACertFile && $ctrl.model.TLSCACertFile === $ctrl.registry.ManagementConfiguration.TLSConfig.TLSCACertFile"
-                      aria-hidden="true"
-                    ></i>
-                    <i class="fa fa-times red-icon" ng-if="!$ctrl.model.TLSCACertFile" aria-hidden="true"></i>
+                    ></pr-icon>
+                    <pr-icon icon="'x'" feather="true" class="icon-danger" ng-if="!$ctrl.model.TLSCACertFile"></pr-icon>
                   </span>
                 </div>
               </div>
@@ -138,16 +139,17 @@
               <!-- tls-file-cert -->
               <div class="form-group">
                 <label for="tls_cert" class="col-sm-3 col-lg-2 control-label text-left">TLS certificate</label>
-                <div class="col-sm-9 col-lg-10">
+                <div class="col-sm-9 col-lg-10 vertical-center">
                   <button type="button" class="btn btn-sm btn-primary" ngf-select ng-model="$ctrl.model.TLSCertFile">Select file</button>
-                  <span style="margin-left: 5px">
+                  <span class="vertical-center">
                     {{ $ctrl.model.TLSCertFile.name }}
-                    <i
-                      class="fa fa-check green-icon"
+                    <pr-icon
+                      icon="'check'"
+                      feather="true"
+                      class="icon-success"
                       ng-if="$ctrl.model.TLSCertFile && $ctrl.model.TLSCertFile === $ctrl.registry.ManagementConfiguration.TLSConfig.TLSCertFile"
-                      aria-hidden="true"
-                    ></i>
-                    <i class="fa fa-times red-icon" ng-if="!$ctrl.model.TLSCertFile" aria-hidden="true"></i>
+                    ></pr-icon>
+                    <pr-icon icon="'x'" feather="true" class="icon-danger" ng-if="!$ctrl.model.TLSCertFile"></pr-icon>
                   </span>
                 </div>
               </div>
@@ -155,16 +157,17 @@
               <!-- tls-file-key -->
               <div class="form-group">
                 <label class="col-sm-3 col-lg-2 control-label text-left">TLS key</label>
-                <div class="col-sm-9 col-lg-10">
+                <div class="col-sm-9 col-lg-10 vertical-center">
                   <button type="button" class="btn btn-sm btn-primary" ngf-select ng-model="$ctrl.model.TLSKeyFile">Select file</button>
-                  <span style="margin-left: 5px">
+                  <span class="vertical-center">
                     {{ $ctrl.model.TLSKeyFile.name }}
-                    <i
-                      class="fa fa-check green-icon"
+                    <pr-icon
+                      icon="'check'"
+                      feather="true"
+                      class="icon-success"
                       ng-if="$ctrl.model.TLSKeyFile && $ctrl.model.TLSKeyFile === $ctrl.registry.ManagementConfiguration.TLSConfig.TLSKeyFile"
-                      aria-hidden="true"
-                    ></i>
-                    <i class="fa fa-times red-icon" ng-if="!$ctrl.model.TLSKeyFile" aria-hidden="true"></i>
+                    ></pr-icon>
+                    <pr-icon icon="'x'" feather="true" class="icon-danger" ng-if="!$ctrl.model.TLSKeyFile"></pr-icon>
                   </span>
                 </div>
               </div>

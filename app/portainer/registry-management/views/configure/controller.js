@@ -3,7 +3,8 @@ import { RegistryManagementConfigurationDefaultModel } from 'Portainer/models/re
 
 export class ConfigureRegistryController {
   /* @ngInject */
-  constructor($async, $state, RegistryService, RegistryServiceSelector, Notifications) {
+  constructor($scope, $async, $state, RegistryService, RegistryServiceSelector, Notifications) {
+    this.$scope = $scope;
     Object.assign(this, { $async, $state, RegistryService, RegistryServiceSelector, Notifications });
 
     this.state = {
@@ -16,7 +17,28 @@ export class ConfigureRegistryController {
     this.testConfigurationAsync = this.testConfigurationAsync.bind(this);
     this.updateConfiguration = this.updateConfiguration.bind(this);
     this.updateConfigurationAsync = this.updateConfigurationAsync.bind(this);
+    this.toggleAuthentication = this.toggleAuthentication.bind(this);
+    this.toggleTLS = this.toggleTLS.bind(this);
+    this.toggleTLSSkipVerify = this.toggleTLSSkipVerify.bind(this);
     this.$onInit = this.$onInit.bind(this);
+  }
+
+  toggleAuthentication(newValue) {
+    this.$scope.$evalAsync(() => {
+      this.model.Authentication = newValue;
+    });
+  }
+
+  toggleTLS(newValue) {
+    this.$scope.$evalAsync(() => {
+      this.model.TLS = newValue;
+    });
+  }
+
+  toggleTLSSkipVerify(newValue) {
+    this.$scope.$evalAsync(() => {
+      this.model.TLSSkipVerify = newValue;
+    });
   }
 
   testConfiguration() {
