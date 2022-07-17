@@ -1,6 +1,7 @@
 import { number, object, SchemaOf } from 'yup';
 
 import { edgeAsyncIntervalsValidation } from '@/edge/components/EdgeAsyncIntervalsForm';
+import { gpusListValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/Hardware/GpusList';
 
 import { metadataValidation } from '../../MetadataFieldset/validation';
 import { nameValidation } from '../../NameField';
@@ -14,6 +15,7 @@ export function validationSchema(): SchemaOf<FormValues> {
     portainerUrl: urlValidation(),
     pollFrequency: number().required(),
     meta: metadataValidation(),
+    gpus: gpusListValidation(),
     edge: edgeAsyncIntervalsValidation(),
   });
 }

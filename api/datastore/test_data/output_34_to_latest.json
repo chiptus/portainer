@@ -37,15 +37,30 @@
         "AuthenticationKey": "",
         "TenantID": ""
       },
+      "ChangeWindow": {
+        "Enabled": false,
+        "EndTime": "",
+        "StartTime": ""
+      },
+      "CloudProvider": null,
       "ComposeSyntaxMaxVersion": "",
+      "Edge": {
+        "AsyncMode": false,
+        "CommandInterval": 0,
+        "PingInterval": 0,
+        "SnapshotInterval": 0
+      },
       "EdgeCheckinInterval": 0,
       "EdgeKey": "",
+      "Gpus": [],
       "GroupId": 1,
       "Id": 2,
       "IsEdgeDevice": false,
       "Kubernetes": {
         "Configuration": {
+          "EnableResourceOverCommit": false,
           "IngressClasses": [],
+          "ResourceOverCommitPercentage": 0,
           "RestrictDefaultNamespace": false,
           "StorageClasses": [],
           "UseLoadBalancer": false,
@@ -55,6 +70,9 @@
       },
       "LastCheckInDate": 0,
       "Name": "local",
+      "Nomad": {
+        "Snapshots": null
+      },
       "PublicURL": "",
       "QueryDate": 0,
       "SecuritySettings": {
@@ -432,6 +450,8 @@
             }
           },
           "DockerVersion": "20.10.9",
+          "GpuUseAll": false,
+          "GpuUseList": null,
           "HealthyContainerCount": 0,
           "ImageCount": 1,
           "NodeCount": 0,
@@ -448,6 +468,10 @@
         }
       ],
       "Status": 1,
+      "StatusMessage": {
+        "Detail": "",
+        "Summary": ""
+      },
       "TLSConfig": {
         "TLS": false,
         "TLSSkipVerify": false

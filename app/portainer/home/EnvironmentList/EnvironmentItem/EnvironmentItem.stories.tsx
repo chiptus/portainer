@@ -89,5 +89,6 @@ function mockEnvironment(type: EnvironmentType): Environment {
       allowVolumeBrowserForRegularUsers: false,
       enableHostManagementFeatures: false,
     },
+    Gpus: [],
   };
 }

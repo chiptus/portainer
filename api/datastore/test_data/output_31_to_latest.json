@@ -42,12 +42,25 @@
         "AuthenticationKey": "",
         "TenantID": ""
       },
+      "ChangeWindow": {
+        "Enabled": false,
+        "EndTime": "",
+        "StartTime": ""
+      },
+      "CloudProvider": null,
       "ComposeSyntaxMaxVersion": "",
+      "Edge": {
+        "AsyncMode": false,
+        "CommandInterval": 0,
+        "PingInterval": 0,
+        "SnapshotInterval": 0
+      },
       "EdgeCheckinInterval": 0,
       "EdgeKey": "",
-      "Extensions": [],
+      "Gpus": [],
       "GroupId": 1,
       "Id": 1,
+      "IsEdgeDevice": false,
       "Kubernetes": {
         "Configuration": {
           "EnableResourceOverCommit": true,
@@ -62,7 +75,11 @@
       },
       "LastCheckInDate": 0,
       "Name": "docker",
+      "Nomad": {
+        "Snapshots": null
+      },
       "PublicURL": "",
+      "QueryDate": 0,
       "SecuritySettings": {
         "allowBindMountsForRegularUsers": true,
         "allowContainerCapabilitiesForRegularUsers": true,
@@ -607,8 +624,6 @@
               "CPUSet": true,
               "CPUShares": true,
               "CgroupDriver": "cgroupfs",
-              "ClusterAdvertise": "",
-              "ClusterStore": "",
               "ContainerdCommit": {
                 "Expected": "2a1d4dbdb2a1030dc5b01e96fb110a9d9f150ecc",
                 "ID": "2a1d4dbdb2a1030dc5b01e96fb110a9d9f150ecc"
@@ -670,6 +685,7 @@
               "Name": "prabhat-linux",
               "NoProxy": "",
               "OSType": "linux",
+              "OSVersion": "",
               "OomKillDisable": true,
               "OperatingSystem": "Zorin OS 16.1",
               "PidsLimit": true,
@@ -744,7 +760,6 @@
                 "NodeID": "",
                 "RemoteManagers": null
               },
-              "SystemStatus": null,
               "SystemTime": "2022-03-31T16:10:28.461552513+13:00",
               "Warnings": null
             },
@@ -1167,6 +1182,8 @@
             }
           },
           "DockerVersion": "20.10.13",
+          "GpuUseAll": false,
+          "GpuUseList": null,
           "HealthyContainerCount": 0,
           "ImageCount": 10,
           "NodeCount": 0,
@@ -1183,6 +1200,10 @@
         }
       ],
       "Status": 1,
+      "StatusMessage": {
+        "Detail": "",
+        "Summary": ""
+      },
       "TLSConfig": {
         "TLS": false,
         "TLSSkipVerify": false
@@ -1192,7 +1213,8 @@
       "TeamAccessPolicies": {},
       "Type": 1,
       "URL": "unix:///var/run/docker.sock",
-      "UserAccessPolicies": {}
+      "UserAccessPolicies": {},
+      "UserTrusted": false
     }
   ],
   "extension": null,

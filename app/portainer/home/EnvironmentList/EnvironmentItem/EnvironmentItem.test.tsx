@@ -53,6 +53,7 @@ test('shows group name', async () => {
       allowVolumeBrowserForRegularUsers: false,
       enableHostManagementFeatures: false,
     },
+    Gpus: [],
   };
 
   const { findByText } = renderComponent(env, { Name: groupName });
