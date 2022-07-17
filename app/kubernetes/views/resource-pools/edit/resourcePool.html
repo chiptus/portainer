@@ -203,9 +203,12 @@
                   <div class="form-group" ng-if="ctrl.oldQuota && ctrl.oldQuota.LoadBalancers > 0">
                     <label for="cpu-usage" class="col-sm-3 col-lg-2 control-label text-left"> Load Balancers usage </label>
                     <div class="col-sm-9" style="margin-top: 4px">
-                      <uib-progressbar animate="false" value="ctrl.state.loadBalancersUsage" type="{{ ctrl.state.loadBalancersUsage | kubernetesUsageLevelInfo }}">
-                        <b style="white-space: nowrap"> {{ ctrl.state.loadBalancersUsed }} / {{ ctrl.oldQuota.LoadBalancers }} - {{ ctrl.state.loadBalancersUsage }}% </b>
-                      </uib-progressbar>
+                      <uib-progressbar
+                        animate="false"
+                        value="ctrl.state.loadBalancersUsage"
+                        type="{{ ctrl.state.loadBalancersUsage | kubernetesUsageLevelInfo }}"
+                      ></uib-progressbar>
+                      <span> {{ ctrl.state.loadBalancersUsed }} / {{ ctrl.oldQuota.LoadBalancers }} - {{ ctrl.state.loadBalancersUsage }}% </span>
                     </div>
                   </div>
                 </div>
@@ -492,9 +495,8 @@
                     <div class="form-group">
                       <label class="col-sm-2 control-label text-left"> Quota usage </label>
                       <div class="col-sm-10" style="margin-top: 4px">
-                        <uib-progressbar animate="false" value="sc.Usage" type="{{ sc.Usage | kubernetesUsageLevelInfo }}">
-                          <b style="white-space: nowrap"> {{ sc.Used.Size }} {{ sc.Used.SizeUnit }} / {{ sc.Size }} {{ sc.SizeUnit }} - {{ sc.Usage }}% </b>
-                        </uib-progressbar>
+                        <uib-progressbar animate="false" value="sc.Usage" type="{{ sc.Usage | kubernetesUsageLevelInfo }}"></uib-progressbar>
+                        <span> {{ sc.Used.Size }} {{ sc.Used.SizeUnit }} / {{ sc.Size }} {{ sc.SizeUnit }} - {{ sc.Usage }}% </span>
                       </div>
                     </div>
                   </div>
