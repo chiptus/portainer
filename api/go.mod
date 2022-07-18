@@ -21,7 +21,6 @@ require (
 	github.com/cavaliergopher/grab/v3 v3.0.1
 	github.com/civo/civogo v0.2.67
 	github.com/containers/image/v5 v5.21.0
-	github.com/coreos/go-semver v0.3.0
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
 	github.com/digitalocean/godo v1.75.0
 	github.com/distribution/distribution v2.8.0+incompatible
@@ -56,7 +55,7 @@ require (
 	github.com/portainer/libhelm v0.0.0-20210929000907-825e93d62108
 	github.com/portainer/libhttp v0.0.0-20211208103139-07a5f798eb3f
 	github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91
-	github.com/portainer/portainer/api v0.0.0-20220710032008-0ad69a182cfc
+	github.com/portainer/portainer/api v0.0.0-20220717234824-6aa7fdb4f2de
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.1
