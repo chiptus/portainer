@@ -187,7 +187,6 @@ angular.module('portainer.app').factory('FileUploadService', [
     };
 
     service.createKubeConfigEndpoint = function (name, kubeConfig, groupId, tagIds) {
-      console.log(kubeConfig);
       return Upload.upload({
         url: 'api/endpoints',
         data: {
