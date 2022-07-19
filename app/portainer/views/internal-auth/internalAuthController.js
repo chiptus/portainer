@@ -1,23 +1,9 @@
 import angular from 'angular';
+import { getEnvironments } from '@/portainer/environments/environment.service';
 
 class InternalAuthenticationController {
   /* @ngInject */
-  constructor(
-    $async,
-    $analytics,
-    $scope,
-    $state,
-    $stateParams,
-    $window,
-    Authentication,
-    UserService,
-    EndpointService,
-    StateManager,
-    Notifications,
-    LocalStorage,
-    StatusService,
-    LicenseService
-  ) {
+  constructor($async, $analytics, $scope, $state, $stateParams, $window, Authentication, UserService, StateManager, Notifications, LocalStorage, StatusService, LicenseService) {
     this.$async = $async;
     this.$analytics = $analytics;
     this.$scope = $scope;
@@ -26,7 +12,6 @@ class InternalAuthenticationController {
     this.$window = $window;
     this.Authentication = Authentication;
     this.UserService = UserService;
-    this.EndpointService = EndpointService;
     this.StateManager = StateManager;
     this.Notifications = Notifications;
     this.LocalStorage = LocalStorage;
@@ -81,7 +66,7 @@ class InternalAuthenticationController {
 
   async checkForEndpointsAsync() {
     try {
-      const endpoints = await this.EndpointService.endpoints(0, 1);
+      const endpoints = await getEnvironments({ limit: 1 });
 
       if (endpoints.value.length === 0) {
         return 'portainer.init.endpoint';

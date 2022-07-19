@@ -14,6 +14,7 @@ import homeModule from './home';
 import { accessControlModule } from './access-control';
 import { reactModule } from './react';
 import { sidebarModule } from './react/views/sidebar';
+import { getEnvironments } from './environments/environment.service';
 
 async function initAuthentication(authManager, Authentication, $rootScope, $state) {
   authManager.checkAuthOnRefresh();
@@ -594,7 +595,7 @@ function isTransitionRequiresAuthentication(transition) {
 }
 
 /* @ngInject */
-function run($transitions, UserService, Authentication, LicenseService, EndpointService, Notifications) {
+function run($transitions, UserService, Authentication, LicenseService, Notifications) {
   $transitions.onBefore({ to: 'portainer.init.*' }, async function (transition) {
     const to = transition.to();
     const stateService = transition.router.stateService;
@@ -624,7 +625,7 @@ function run($transitions, UserService, Authentication, LicenseService, Endpoint
     }
 
     try {
-      const endpoints = await EndpointService.endpoints(0, 1);
+      const endpoints = await getEnvironments({ start: 0, limit: 1 });
       if (endpoints.value.length === 0) {
         return to.name !== 'portainer.init.endpoint' ? stateService.target('portainer.init.endpoint') : true;
       }

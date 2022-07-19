@@ -1,6 +1,7 @@
 import uuidv4 from 'uuid/v4';
 import { ResourceControlType } from '@/portainer/access-control/types';
 import { AccessControlFormData } from 'Portainer/components/accessControlForm/porAccessControlFormModel';
+import { getEnvironments } from '@/portainer/environments/environment.service';
 
 angular.module('portainer.app').controller('StackController', [
   '$async',
@@ -20,7 +21,6 @@ angular.module('portainer.app').controller('StackController', [
   'Notifications',
   'FormHelper',
   'EndpointProvider',
-  'EndpointService',
   'GroupService',
   'ModalService',
   'StackHelper',
@@ -47,7 +47,6 @@ angular.module('portainer.app').controller('StackController', [
     Notifications,
     FormHelper,
     EndpointProvider,
-    EndpointService,
     GroupService,
     ModalService,
     StackHelper,
@@ -333,63 +332,65 @@ angular.module('portainer.app').controller('StackController', [
     }
 
     function loadStack(id) {
-      var agentProxy = $scope.applicationState.endpoint.mode.agentProxy;
+      return $async(() => {
+        var agentProxy = $scope.applicationState.endpoint.mode.agentProxy;
 
-      EndpointService.endpoints()
-        .then(function success(data) {
-          $scope.endpoints = data.value;
-        })
-        .catch(function error(err) {
-          Notifications.error('Failure', err, 'Unable to retrieve environments');
-        });
-
-      $q.all({
-        stack: StackService.stack(id),
-        groups: GroupService.groups(),
-        containers: ContainerService.containers(true),
-      })
-        .then(function success(data) {
-          var stack = data.stack;
-          $scope.groups = data.groups;
-          $scope.stack = stack;
-          $scope.containerNames = ContainerHelper.getContainerNames(data.containers);
-
-          $scope.formValues.Env = $scope.stack.Env;
-          $scope.formValues.EnableWebhook = !!$scope.stack.Webhook;
-          if ($scope.formValues.EnableWebhook) {
-            $scope.formValues.WebhookURL = WebhookHelper.returnStackWebhookUrl($scope.stack.Webhook);
-          }
-
-          let resourcesPromise = Promise.resolve({});
-          if (!stack.Status || stack.Status === 1) {
-            resourcesPromise = stack.Type === 1 ? retrieveSwarmStackResources(stack.Name, agentProxy) : retrieveComposeStackResources(stack.Name);
-          }
-
-          return $q.all({
-            stackFile: StackService.getStackFile(id),
-            resources: resourcesPromise,
+        getEnvironments()
+          .then(function success(data) {
+            $scope.endpoints = data.value;
+          })
+          .catch(function error(err) {
+            Notifications.error('Failure', err, 'Unable to retrieve environments');
           });
-        })
-        .then(function success(data) {
-          const isSwarm = $scope.stack.Type === 1;
-          $scope.stackFileContent = data.stackFile;
-          // workaround for missing status, if stack has resources, set the status to 1 (active), otherwise to 2 (inactive) (https://github.com/portainer/portainer/issues/4422)
-          if (!$scope.stack.Status) {
-            $scope.stack.Status = data.resources && ((isSwarm && data.resources.services.length) || data.resources.containers.length) ? 1 : 2;
-          }
 
-          if ($scope.stack.Status === 1) {
-            if (isSwarm) {
-              assignSwarmStackResources(data.resources, agentProxy);
-            } else {
-              assignComposeStackResources(data.resources);
-            }
-          }
-          $scope.state.yamlError = StackHelper.validateYAML($scope.stackFileContent, $scope.containerNames);
+        $q.all({
+          stack: StackService.stack(id),
+          groups: GroupService.groups(),
+          containers: ContainerService.containers(true),
         })
-        .catch(function error(err) {
-          Notifications.error('Failure', err, 'Unable to retrieve stack details');
-        });
+          .then(function success(data) {
+            var stack = data.stack;
+            $scope.groups = data.groups;
+            $scope.stack = stack;
+            $scope.containerNames = ContainerHelper.getContainerNames(data.containers);
+
+            $scope.formValues.Env = $scope.stack.Env;
+            $scope.formValues.EnableWebhook = !!$scope.stack.Webhook;
+            if ($scope.formValues.EnableWebhook) {
+              $scope.formValues.WebhookURL = WebhookHelper.returnStackWebhookUrl($scope.stack.Webhook);
+            }
+
+            let resourcesPromise = Promise.resolve({});
+            if (!stack.Status || stack.Status === 1) {
+              resourcesPromise = stack.Type === 1 ? retrieveSwarmStackResources(stack.Name, agentProxy) : retrieveComposeStackResources(stack.Name);
+            }
+
+            return $q.all({
+              stackFile: StackService.getStackFile(id),
+              resources: resourcesPromise,
+            });
+          })
+          .then(function success(data) {
+            const isSwarm = $scope.stack.Type === 1;
+            $scope.stackFileContent = data.stackFile;
+            // workaround for missing status, if stack has resources, set the status to 1 (active), otherwise to 2 (inactive) (https://github.com/portainer/portainer/issues/4422)
+            if (!$scope.stack.Status) {
+              $scope.stack.Status = data.resources && ((isSwarm && data.resources.services.length) || data.resources.containers.length) ? 1 : 2;
+            }
+
+            if ($scope.stack.Status === 1) {
+              if (isSwarm) {
+                assignSwarmStackResources(data.resources, agentProxy);
+              } else {
+                assignComposeStackResources(data.resources);
+              }
+            }
+            $scope.state.yamlError = StackHelper.validateYAML($scope.stackFileContent, $scope.containerNames);
+          })
+          .catch(function error(err) {
+            Notifications.error('Failure', err, 'Unable to retrieve stack details');
+          });
+      });
     }
 
     function retrieveSwarmStackResources(stackName, agentProxy) {

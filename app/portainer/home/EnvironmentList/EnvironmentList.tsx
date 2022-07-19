@@ -136,7 +136,7 @@ export function EnvironmentList({ onClickItem, onRefresh }: Props) {
         sort: sortByFilter,
         order: sortByDescending ? 'desc' : 'asc',
         provisioned: true,
-        edgeDeviceFilter: 'none',
+        edgeDevice: false,
         tagsPartialMatch: true,
       },
       refetchIfAnyOffline
@@ -315,7 +315,7 @@ export function EnvironmentList({ onClickItem, onRefresh }: Props) {
                       groupIds: groupFilter,
                       sort: sortByFilter,
                       order: sortByDescending ? 'desc' : 'asc',
-                      edgeDeviceFilter: 'none',
+                      edgeDevice: false,
                     }}
                   />
                 </div>

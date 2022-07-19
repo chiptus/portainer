@@ -1,5 +1,6 @@
 import angular from 'angular';
 import uuidv4 from 'uuid/v4';
+import { getEnvironments } from '@/portainer/environments/environment.service';
 
 class AuthenticationController {
   /* @ngInject */
@@ -12,7 +13,6 @@ class AuthenticationController {
     $window,
     Authentication,
     UserService,
-    EndpointService,
     StateManager,
     Notifications,
     SettingsService,
@@ -29,7 +29,6 @@ class AuthenticationController {
     this.$window = $window;
     this.Authentication = Authentication;
     this.UserService = UserService;
-    this.EndpointService = EndpointService;
     this.StateManager = StateManager;
     this.Notifications = Notifications;
     this.SettingsService = SettingsService;
@@ -122,7 +121,7 @@ class AuthenticationController {
 
   async checkForEndpointsAsync() {
     try {
-      const endpoints = await this.EndpointService.endpoints(0, 1);
+      const endpoints = await getEnvironments({ limit: 1 });
 
       if (endpoints.value.length === 0) {
         return 'portainer.wizard';
