@@ -5,6 +5,8 @@ import { StackImageStatus } from '@/react/docker/stacks/ListView/StackImageStatu
 import { ContainersDatatableContainer } from '@/react/docker/containers/ListView/ContainersDatatable/ContainersDatatableContainer';
 import { ContainerQuickActions } from '@/react/docker/containers/components/ContainerQuickActions';
 import { ImageStatus } from '@/react/docker/components/ImageStatus';
+import { TemplateListDropdownAngular } from '@/react/docker/app-templates/TemplateListDropdown';
+import { TemplateListSortAngular } from '@/react/docker/app-templates/TemplateListSort';
 
 export const componentsModule = angular
   .module('portainer.docker.react.components', [])
@@ -30,7 +32,6 @@ export const componentsModule = angular
       'taskId',
     ])
   )
-  .component(
-    'imageStatus',
-    r2a(ImageStatus, ['imageName', 'environmentId'])
-  ).name;
+  .component('imageStatus', r2a(ImageStatus, ['imageName', 'environmentId']))
+  .component('templateListDropdown', TemplateListDropdownAngular)
+  .component('templateListSort', TemplateListSortAngular).name;
