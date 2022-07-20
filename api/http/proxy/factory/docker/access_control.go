@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	resourceLabelForPortainerTeamResourceControl   = "io.portaineree.accesscontrol.teams"
-	resourceLabelForPortainerUserResourceControl   = "io.portaineree.accesscontrol.users"
-	resourceLabelForPortainerPublicResourceControl = "io.portaineree.accesscontrol.public"
+	resourceLabelForPortainerTeamResourceControl   = "io.portainer.accesscontrol.teams"
+	resourceLabelForPortainerUserResourceControl   = "io.portainer.accesscontrol.users"
+	resourceLabelForPortainerPublicResourceControl = "io.portainer.accesscontrol.public"
 	resourceLabelForDockerSwarmStackName           = "com.docker.stack.namespace"
 	resourceLabelForDockerServiceID                = "com.docker.swarm.service.id"
 	resourceLabelForDockerComposeStackName         = "com.docker.compose.project"
