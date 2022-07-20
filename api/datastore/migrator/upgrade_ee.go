@@ -80,6 +80,11 @@ func (m *Migrator) updateSettingsToEE() error {
 
 	legacySettings.LDAPSettings.ServerType = portaineree.LDAPServerCustom
 
+	// The front end requires a slice with a single empty element to allow configuration
+	legacySettings.LDAPSettings.AdminGroupSearchSettings = []portaineree.LDAPGroupSearchSettings{
+		{},
+	}
+
 	err = m.settingsService.UpdateSettings(legacySettings)
 	if err != nil {
 		return err
