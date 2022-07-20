@@ -47,8 +47,8 @@
   <div ng-if="!$ctrl.model.UseRegistry">
     <div class="form-group">
       <span class="small">
-        <p class="text-muted mb-5" style="margin-left: 15px">
-          <pr-icon icon="'alert-circle'" mode="'primary'" feather="true"></pr-icon>
+        <p class="text-muted" style="margin-left: 15px">
+          <i class="fa fa-exclamation-circle blue-icon" aria-hidden="true" style="margin-right: 2px"></i>
           When using advanced mode, image and repository <b>must be</b> publicly available.
         </p>
       </span>
@@ -75,10 +75,10 @@
     <div class="col-sm-12">
       <p>
         <a class="small interactive" ng-if="!$ctrl.model.UseRegistry" ng-click="$ctrl.model.UseRegistry = true;">
-          <i class="fa fa-database space-right" aria-hidden="true"></i> Simple mode
+          <pr-icon icon="'database'" feather="true"> </pr-icon> Simple mode
         </a>
         <a class="small interactive" ng-if="$ctrl.model.UseRegistry" ng-click="$ctrl.model.UseRegistry = false;">
-          <i class="fa fa-globe space-right" aria-hidden="true"></i> Advanced mode
+          <pr-icon icon="'globe'" feather="true"> </pr-icon> Advanced mode
         </a>
       </p>
     </div>

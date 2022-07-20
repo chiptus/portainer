@@ -82,6 +82,10 @@ angular.module('portainer.docker').controller('ContainerController', [
     };
 
     $scope.disabledWebhookButton = function (webhookExists) {
+      if (!Authentication.hasAuthorizations(['DockerContainerUpdate'])) {
+        return true;
+      }
+
       if (webhookExists) {
         return !$scope.hasAuthorizations(['PortainerWebhookDelete']);
       }
@@ -93,6 +97,13 @@ angular.module('portainer.docker').controller('ContainerController', [
       $scope.state.pullImageValidity = validity;
     }
 
+    $scope.onWebhookChange = function (enabled) {
+      $scope.$evalAsync(() => {
+        $scope.updateWebhook($scope.container, false);
+        $scope.WebhookExists = enabled;
+      });
+    };
+
     $scope.updateRestartPolicy = updateRestartPolicy;
     $scope.updateWebhook = function updateWebhook(container, recreate) {
       if (($scope.WebhookExists && recreate) || (!$scope.WebhookExists && !recreate)) {
@@ -102,7 +113,6 @@ angular.module('portainer.docker').controller('ContainerController', [
           .then(function success() {
             $scope.WebhookURL = null;
             $scope.WebhookID = null;
-            $scope.WebhookExists = false;
           })
           .catch(function error(err) {
             Notifications.error('Failure', err, 'Unable to delete webhook');
