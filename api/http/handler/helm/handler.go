@@ -2,6 +2,8 @@ package helm
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/portainer/libhelm"
 	"github.com/portainer/libhelm/options"
@@ -12,8 +14,6 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/kubernetes"
-	"net/http"
-	"strings"
 )
 
 type requestBouncer interface {
@@ -113,10 +113,11 @@ func (handler *Handler) getHelmClusterAccess(r *http.Request) (*options.Kubernet
 
 	hostURL := "localhost"
 	if !sslSettings.SelfSigned {
-		hostURL = strings.Split(r.Host, ":")[0]
+		hostURL = r.Host
 	}
 
 	kubeConfigInternal := handler.kubeClusterAccessService.GetData(hostURL, endpoint.ID)
+
 	return &options.KubernetesClusterAccess{
 		ClusterServerURL:         kubeConfigInternal.ClusterServerURL,
 		CertificateAuthorityFile: kubeConfigInternal.CertificateAuthorityFile,
