@@ -99,8 +99,10 @@ func generatePublicSettings(appSettings *portaineree.Settings) *publicSettingsRe
 		}
 	}
 	//if LDAP authentication is on, compose the related fields from application settings
-	if publicSettings.AuthenticationMethod == portaineree.AuthenticationLDAP {
-		publicSettings.TeamSync = len(appSettings.LDAPSettings.GroupSearchSettings) > 0
+	if publicSettings.AuthenticationMethod == portaineree.AuthenticationLDAP && appSettings.LDAPSettings.GroupSearchSettings != nil {
+		if len(appSettings.LDAPSettings.GroupSearchSettings) > 0 {
+			publicSettings.TeamSync = len(appSettings.LDAPSettings.GroupSearchSettings[0].GroupBaseDN) > 0
+		}
 	}
 	return publicSettings
 }
