@@ -3,9 +3,9 @@
   title="'Registry repositories'"
   breadcrumbs="[
     { label:'Registries', link:'portainer.registries' },
-    { 
+    {
       label:$ctrl.registry.Name,
-      link: 'portainer.registries.registry', 
+      link: 'portainer.registries.registry',
       linkParams:{id: $ctrl.registry.Id}
     }, 'Repositories']"
   reload="true"
@@ -16,9 +16,9 @@
   ng-if="!$ctrl.isAdmin"
   title="'Registry repositories'"
   breadcrumbs="[
-    { 
+    {
       label: 'Registries',
-      link: 'docker.registries', 
+      link: 'docker.registries',
       linkParams:{endpointId: $ctrl.endpointId}
     }, $ctrl.registry.Name, 'Repositories']"
 >
@@ -27,8 +27,8 @@
 <div class="row">
   <information-panel ng-if="$ctrl.state.displayInvalidConfigurationMessage" title-text="Registry management configuration required">
     <span class="small text-muted">
-      <p>
-        <i class="fa fa-exclamation-circle orange-icon" aria-hidden="true" style="margin-right: 2px"></i>
+      <p class="vertical-center">
+        <pr-icon icon="'alert-circle'" mode="'warning'" feather="true"></pr-icon>
         Portainer was not able to use this registry management features. You might need to update the configuration used by Portainer to access this registry.
       </p>
       <p>
@@ -36,7 +36,10 @@
         <a href="https://docs.docker.com/registry/spec/api/" target="_blank">v2 registry API</a>.
       </p>
       <div ng-if="$ctrl.isAdmin" style="margin-top: 7px">
-        <a ui-sref="portainer.registries.registry.configure({id: $ctrl.registry.Id})"> <i class="fa fa-wrench" aria-hidden="true"></i> Configure this registry </a>
+        <a ui-sref="portainer.registries.registry.configure({id: $ctrl.registry.Id})" class="vertical-center">
+          <pr-icon icon="'tool'" feather="true"></pr-icon>
+          Configure this registry
+        </a>
       </div>
     </span>
   </information-panel>
@@ -46,7 +49,7 @@
   <div class="col-sm-12">
     <registry-repositories-datatable
       title-text="Repositories"
-      title-icon="fa-book"
+      title-icon="book"
       dataset="$ctrl.repositories"
       endpoint-id="$ctrl.endpointId"
       table-key="registryRepositories"
