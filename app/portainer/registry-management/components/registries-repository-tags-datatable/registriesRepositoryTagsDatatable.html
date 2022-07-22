@@ -1,45 +1,61 @@
 <div class="datatable">
   <rd-widget>
     <rd-widget-body classes="no-padding">
-      <div class="toolBar">
-        <div class="toolBarTitle"> <i class="fa" ng-class="$ctrl.titleIcon" aria-hidden="true" style="margin-right: 2px"></i> {{ $ctrl.titleText }} </div>
-      </div>
-      <div class="actionBar" ng-if="$ctrl.advancedFeaturesAvailable">
-        <button type="button" class="btn btn-sm btn-danger" ng-disabled="$ctrl.state.selectedItemCount === 0" ng-click="$ctrl.removeAction($ctrl.state.selectedItems)">
-          <i class="fa fa-trash-alt space-right" aria-hidden="true"></i>Remove
-        </button>
-      </div>
-      <div class="searchBar">
-        <i class="fa fa-search searchIcon" aria-hidden="true"></i>
-        <input
-          type="text"
-          class="searchInput"
-          ng-model="$ctrl.state.textFilter"
-          ng-model-options="{ debounce: 300 }"
-          ng-change="$ctrl.onTextFilterChange()"
-          placeholder="Search..."
-          auto-focus
-        />
+      <div class="toolBar vertical-center">
+        <div class="toolBarTitle vertical-center">
+          <pr-icon icon="$ctrl.titleIcon" feather="true" class-name="'icon-nested-blue'" mode="'primary'"></pr-icon>
+          {{ $ctrl.titleText }}
+        </div>
+        <div class="actionBar vertical-center" ng-if="$ctrl.advancedFeaturesAvailable">
+          <button type="button" class="btn btn-sm btn-dangerlight" ng-disabled="$ctrl.state.selectedItemCount === 0" ng-click="$ctrl.removeAction($ctrl.state.selectedItems)">
+            <pr-icon icon="'trash-2'" feather="true"></pr-icon>
+            Remove
+          </button>
+        </div>
+        <div class="searchBar vertical-center">
+          <pr-icon icon="'search'" feather="true"></pr-icon>
+          <input
+            type="text"
+            class="searchInput"
+            ng-model="$ctrl.state.textFilter"
+            ng-model-options="{ debounce: 300 }"
+            ng-change="$ctrl.onTextFilterChange()"
+            placeholder="Search..."
+            auto-focus
+          />
+        </div>
       </div>
       <div class="table-responsive">
         <table class="table table-hover nowrap-cells">
           <thead>
             <tr>
               <th>
-                <span class="md-checkbox">
-                  <input id="select_all" type="checkbox" ng-model="$ctrl.state.selectAll" ng-change="$ctrl.selectAll()" />
-                  <label for="select_all"></label>
-                </span>
-                <a ng-click="$ctrl.changeOrderBy('Name')">
-                  Name
-                  <i class="fa fa-sort-alpha-down" aria-hidden="true" ng-if="$ctrl.state.orderBy === 'Name' && !$ctrl.state.reverseOrder"></i>
-                  <i class="fa fa-sort-alpha-up" aria-hidden="true" ng-if="$ctrl.state.orderBy === 'Name' && $ctrl.state.reverseOrder"></i>
-                </a>
+                <div class="vertical-center">
+                  <span class="md-checkbox vertical-center">
+                    <input id="select_all" type="checkbox" ng-model="$ctrl.state.selectAll" ng-change="$ctrl.selectAll()" />
+                    <label for="select_all"></label>
+                  </span>
+                  <table-column-header
+                    col-title="'Name'"
+                    can-sort="true"
+                    is-sorted="$ctrl.state.orderBy === 'Name'"
+                    is-sorted-desc="$ctrl.state.orderBy === 'Name' && $ctrl.state.reverseOrder"
+                    ng-click="$ctrl.changeOrderBy('Name')"
+                  ></table-column-header>
+                </div>
               </th>
-              <th>Os/Architecture</th>
-              <th>Image ID</th>
-              <th>Compressed size</th>
-              <th ng-if="$ctrl.advancedFeaturesAvailable">Actions</th>
+              <th>
+                <table-column-header col-title="'Os/Architecture'" can-sort="false"></table-column-header>
+              </th>
+              <th>
+                <table-column-header col-title="'Image ID'" can-sort="false"></table-column-header>
+              </th>
+              <th>
+                <table-column-header col-title="'Compressed size'" can-sort="false"></table-column-header>
+              </th>
+              <th ng-if="$ctrl.advancedFeaturesAvailable">
+                <table-column-header col-title="'Actions'" can-sort="false"></table-column-header>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -60,17 +76,22 @@
               <td>{{ item.Size | humansize }}</td>
               <td ng-if="$ctrl.advancedFeaturesAvailable">
                 <span ng-if="!item.Modified">
-                  <a class="interactive" ng-click="item.Modified = true; item.NewName = item.Name; $event.stopPropagation();">
-                    <i class="fa fa-tag" aria-hidden="true"></i> Retag
+                  <a class="interactive vertical-center" ng-click="item.Modified = true; item.NewName = item.Name; $event.stopPropagation();">
+                    <pr-icon icon="'tag'" feather="true" mode="'primary'"></pr-icon>
+                    Retag
                   </a>
                 </span>
-                <span ng-if="item.Modified">
+                <span ng-if="item.Modified" class="vertical-center">
                   <portainer-tooltip
                     message="'Tag can only contain alphanumeric (a-zA-Z0-9) and special _ . - characters. Tag must not start with . - characters.'"
                   ></portainer-tooltip>
                   <input class="input-sm" type="text" ng-model="item.NewName" on-enter-key="$ctrl.retagAction(item)" auto-focus ng-click="$event.stopPropagation();" />
-                  <a class="interactive" ng-click="item.Modified = false; $event.stopPropagation();"><i class="fa fa-times"></i></a>
-                  <a class="interactive" ng-click="$ctrl.retagAction(item); $event.stopPropagation();"><i class="fa fa-check-square"></i></a>
+                  <a class="interactive" ng-click="item.Modified = false; $event.stopPropagation();">
+                    <pr-icon icon="'x'" feather="true" mode="'primary'"></pr-icon>
+                  </a>
+                  <a class="interactive" ng-click="$ctrl.retagAction(item); $event.stopPropagation();">
+                    <pr-icon icon="'check'" feather="true" mode="'primary'"></pr-icon>
+                  </a>
                 </span>
               </td>
             </tr>
