@@ -143,7 +143,7 @@ func initDataStore(flags *portaineree.CLIFlags, secretKey []byte, fileService po
 
 	if isNew {
 		// from MigrateData
-		store.VersionService.StoreDBVersion(portainer.DBVersion)
+		store.VersionService.StoreDBVersion(portaineree.DBVersion)
 		store.VersionService.StoreEdition(portaineree.PortainerEE)
 
 		err := updateSettingsFromFlags(store, flags)
@@ -848,6 +848,6 @@ func main() {
 			"GoVersion":      build.GoVersion},
 		).Print("[INFO] [cmd,main] Starting Portainer version")
 		err := server.Start()
-		logrus.Printf("[INFO] [cmd,main] Http server exited: %s\n", err)
+		logrus.Printf("[INFO] [cmd,main] Http server exited: %s", err)
 	}
 }
