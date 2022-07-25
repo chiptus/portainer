@@ -6,6 +6,7 @@
   "dockerhub": null,
   "edge_async_command": null,
   "edge_stack": null,
+  "edge_stack_log": null,
   "edgegroups": null,
   "edgejobs": null,
   "endpoint_groups": [

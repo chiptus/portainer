@@ -18,6 +18,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/edgegroup"
 	"github.com/portainer/portainer-ee/api/dataservices/edgejob"
 	"github.com/portainer/portainer-ee/api/dataservices/edgestack"
+	"github.com/portainer/portainer-ee/api/dataservices/edgestacklog"
 	"github.com/portainer/portainer-ee/api/dataservices/endpoint"
 	"github.com/portainer/portainer-ee/api/dataservices/endpointgroup"
 	"github.com/portainer/portainer-ee/api/dataservices/endpointrelation"
@@ -58,6 +59,7 @@ type Store struct {
 	EdgeGroupService          *edgegroup.Service
 	EdgeJobService            *edgejob.Service
 	EdgeStackService          *edgestack.Service
+	EdgeStackLogService       *edgestacklog.Service
 	EndpointGroupService      *endpointgroup.Service
 	EndpointService           *endpoint.Service
 	EndpointRelationService   *endpointrelation.Service
@@ -121,6 +123,12 @@ func (store *Store) initServices() error {
 		return err
 	}
 	store.EdgeStackService = edgeStackService
+
+	edgeStacklogService, err := edgestacklog.NewService(store.connection)
+	if err != nil {
+		return err
+	}
+	store.EdgeStackLogService = edgeStacklogService
 
 	edgeGroupService, err := edgegroup.NewService(store.connection)
 	if err != nil {
@@ -307,6 +315,11 @@ func (store *Store) EdgeJob() dataservices.EdgeJobService {
 // EdgeStack gives access to the EdgeStack data management layer
 func (store *Store) EdgeStack() dataservices.EdgeStackService {
 	return store.EdgeStackService
+}
+
+// EdgeStackLog gives access to the EdgeStackLog data management layer
+func (store *Store) EdgeStackLog() dataservices.EdgeStackLogService {
+	return store.EdgeStackLogService
 }
 
 // Environment(Endpoint) gives access to the Environment(Endpoint) data management layer

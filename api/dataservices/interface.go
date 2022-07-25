@@ -34,6 +34,7 @@ type (
 		EdgeGroup() EdgeGroupService
 		EdgeJob() EdgeJobService
 		EdgeStack() EdgeStackService
+		EdgeStackLog() EdgeStackLogService
 		Endpoint() EndpointService
 		EndpointGroup() EndpointGroupService
 		EndpointRelation() EndpointRelationService
@@ -127,6 +128,13 @@ type (
 		DeleteEdgeStack(ID portaineree.EdgeStackID) error
 		GetNextIdentifier() int
 		BucketName() string
+	}
+
+	EdgeStackLogService interface {
+		Create(edgeStack *portaineree.EdgeStackLog) error
+		Update(edgeStack *portaineree.EdgeStackLog) error
+		Delete(edgeStackID portaineree.EdgeStackID, endpointID portaineree.EndpointID) error
+		EdgeStackLog(edgeStackID portaineree.EdgeStackID, endpointID portaineree.EndpointID) (*portaineree.EdgeStackLog, error)
 	}
 
 	// EndpointService represents a service for managing environment(endpoint) data

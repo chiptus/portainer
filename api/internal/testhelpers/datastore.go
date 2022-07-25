@@ -17,6 +17,7 @@ type testDatastore struct {
 	edgeGroup               dataservices.EdgeGroupService
 	edgeJob                 dataservices.EdgeJobService
 	edgeStack               dataservices.EdgeStackService
+	edgeStackLog            dataservices.EdgeStackLogService
 	endpoint                dataservices.EndpointService
 	endpointGroup           dataservices.EndpointGroupService
 	endpointRelation        dataservices.EndpointRelationService
@@ -64,6 +65,7 @@ func (d *testDatastore) EdgeAsyncCommand() dataservices.EdgeAsyncCommandService 
 func (d *testDatastore) EdgeGroup() dataservices.EdgeGroupService         { return d.edgeGroup }
 func (d *testDatastore) EdgeJob() dataservices.EdgeJobService             { return d.edgeJob }
 func (d *testDatastore) EdgeStack() dataservices.EdgeStackService         { return d.edgeStack }
+func (d *testDatastore) EdgeStackLog() dataservices.EdgeStackLogService   { return d.edgeStackLog }
 func (d *testDatastore) Endpoint() dataservices.EndpointService           { return d.endpoint }
 func (d *testDatastore) EndpointGroup() dataservices.EndpointGroupService { return d.endpointGroup }
 func (d *testDatastore) FDOProfile() dataservices.FDOProfileService {

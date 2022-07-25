@@ -2,6 +2,9 @@ package edgestacks
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -12,8 +15,6 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
-	"net/http"
-	"strconv"
 )
 
 // Handler is the HTTP handler used to handle environment(endpoint) group operations.
@@ -50,6 +51,11 @@ func NewHandler(bouncer *security.RequestBouncer, userActivityService portainere
 	adminRouter.Handle("/edge_stacks/{id}", httperror.LoggerHandler(h.edgeStackUpdate)).Methods(http.MethodPut)
 	adminRouter.Handle("/edge_stacks/{id}", httperror.LoggerHandler(h.edgeStackDelete)).Methods(http.MethodDelete)
 	adminRouter.Handle("/edge_stacks/{id}/file", httperror.LoggerHandler(h.edgeStackFile)).Methods(http.MethodGet)
+
+	adminRouter.Handle("/edge_stacks/{id}/logs/{endpoint_id}", httperror.LoggerHandler(h.edgeStackLogsStatusGet)).Methods(http.MethodGet)
+	adminRouter.Handle("/edge_stacks/{id}/logs/{endpoint_id}", httperror.LoggerHandler(h.edgeStackLogsCollect)).Methods(http.MethodPut)
+	adminRouter.Handle("/edge_stacks/{id}/logs/{endpoint_id}", httperror.LoggerHandler(h.edgeStackLogsDelete)).Methods(http.MethodDelete)
+	adminRouter.Handle("/edge_stacks/{id}/logs/{endpoint_id}/file", httperror.LoggerHandler(h.edgeStackLogsDownload)).Methods(http.MethodGet)
 
 	publicRouter.Handle("/edge_stacks/{id}/status", httperror.LoggerHandler(h.edgeStackStatusUpdate)).Methods(http.MethodPut)
 

@@ -14,6 +14,7 @@ export class EditEdgeStackViewController {
 
     this.stack = null;
     this.edgeGroups = null;
+    this.logEnvironmentIds = null;
 
     this.state = {
       actionInProgress: false,
@@ -28,31 +29,34 @@ export class EditEdgeStackViewController {
   }
 
   async $onInit() {
-    const { stackId, tab } = this.$state.params;
-    this.state.activeTab = tab;
-    try {
-      const [edgeGroups, model, file] = await Promise.all([this.EdgeGroupService.groups(), this.EdgeStackService.stack(stackId), this.EdgeStackService.stackFile(stackId)]);
-      this.edgeGroups = edgeGroups;
-      this.stack = model;
-      this.stackEndpointIds = this.filterStackEndpoints(model.EdgeGroups, edgeGroups);
-      this.originalFileContent = file;
-      this.formValues = {
-        StackFileContent: file,
-        EdgeGroups: this.stack.EdgeGroups,
-        DeploymentType: this.stack.DeploymentType,
-        Name: this.stack.Name,
-        Registries: this.stack.Registries,
-      };
-      this.oldFileContent = this.formValues.StackFileContent;
-    } catch (err) {
-      this.Notifications.error('Failure', err, 'Unable to retrieve stack data');
-    }
+    return this.$async(async () => {
+      const { stackId, tab } = this.$state.params;
+      this.state.activeTab = tab;
+      try {
+        const [edgeGroups, model, file] = await Promise.all([this.EdgeGroupService.groups(), this.EdgeStackService.stack(stackId), this.EdgeStackService.stackFile(stackId)]);
 
-    this.$window.onbeforeunload = () => {
-      if (this.formValues.StackFileContent !== this.oldFileContent && this.state.isEditorDirty) {
-        return '';
+        this.edgeGroups = edgeGroups;
+        this.stack = model;
+        this.stackEndpointIds = this.filterStackEndpoints(model.EdgeGroups, edgeGroups);
+        this.originalFileContent = file;
+        this.formValues = {
+          StackFileContent: file,
+          EdgeGroups: this.stack.EdgeGroups,
+          DeploymentType: this.stack.DeploymentType,
+          Name: this.stack.Name,
+          Registries: this.stack.Registries,
+        };
+        this.oldFileContent = this.formValues.StackFileContent;
+      } catch (err) {
+        this.Notifications.error('Failure', err, 'Unable to retrieve stack data');
       }
-    };
+
+      this.$window.onbeforeunload = () => {
+        if (this.formValues.StackFileContent !== this.oldFileContent && this.state.isEditorDirty) {
+          return '';
+        }
+      };
+    });
   }
 
   $onDestroy() {
@@ -105,8 +109,13 @@ export class EditEdgeStackViewController {
       const { value, totalCount } = await getEnvironments({ start: lastId, limit, query });
       const endpoints = _.map(value, (endpoint) => {
         const status = this.stack.Status[endpoint.Id];
-        endpoint.Status = status;
-        return endpoint;
+
+        return {
+          id: endpoint.Id,
+          name: endpoint.Name,
+          status,
+          asyncMode: endpoint.Edge.AsyncMode,
+        };
       });
       return { endpoints, totalCount };
     } catch (err) {

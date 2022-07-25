@@ -41,6 +41,8 @@
                   <i class="fa fa-sort-alpha-up" aria-hidden="true" ng-if="$ctrl.state.orderBy === 'Error' && $ctrl.state.reverseOrder"></i>
                 </a>
               </th>
+              <th>Actions</th>
+              <th>Action Status</th>
             </tr>
           </thead>
           <tbody>
@@ -49,9 +51,11 @@
               total-items="$ctrl.state.totalFilteredDataSet"
               ng-class="{ active: item.Checked }"
             >
-              <td>{{ item.Name }}</td>
-              <td>{{ $ctrl.statusMap[item.Status.Type] || 'Pending' }}</td>
-              <td>{{ item.Status.Error ? item.Status.Error : '-' }}</td>
+              <td>{{ item.name }}</td>
+              <td>{{ $ctrl.statusMap[item.status.Type] || 'Pending' }}</td>
+              <td>{{ item.status.Error ? item.status.Error : '-' }}</td>
+              <td><edge-stack-environment-actions environment-id="item.id" async-mode="item.asyncMode" edge-stack-id="$ctrl.edgeStackId"></edge-stack-environment-actions></td>
+              <td><edge-stack-action-status environment-id="item.id" edge-stack-id="$ctrl.edgeStackId"></edge-stack-action-status></td>
             </tr>
             <tr ng-if="$ctrl.state.loading">
               <td colspan="5" class="text-center text-muted">Loading...</td>

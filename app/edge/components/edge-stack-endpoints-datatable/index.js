@@ -12,5 +12,6 @@ angular.module('portainer.edge').component('edgeStackEndpointsDatatable', {
     orderBy: '@',
     reverseOrder: '<',
     retrievePage: '<',
+    edgeStackId: '<',
   },
 });

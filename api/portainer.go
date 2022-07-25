@@ -304,6 +304,18 @@ type (
 	//EdgeStackID represents an edge stack id
 	EdgeStackID int
 
+	EndpointLog struct {
+		DockerContainerID string `json:"dockerContainerID,omitempty"`
+		StdOut            string `json:"stdOut,omitempty"`
+		StdErr            string `json:"stdErr,omitempty"`
+	}
+
+	EdgeStackLog struct {
+		EdgeStackID EdgeStackID   `json:"edgeStackID,omitempty"`
+		EndpointID  EndpointID    `json:"endpointID,omitempty"`
+		Logs        []EndpointLog `json:"logs,omitempty"`
+	}
+
 	//EdgeStackStatus represents an edge stack status
 	EdgeStackStatus struct {
 		Type       EdgeStackStatusType `json:"Type"`
@@ -2047,6 +2059,7 @@ const (
 const (
 	EdgeAsyncCommandTypeStack EdgeAsyncCommandType = "edgeStack"
 	EdgeAsyncCommandTypeJob   EdgeAsyncCommandType = "edgeJob"
+	EdgeAsyncCommandTypeLog   EdgeAsyncCommandType = "edgeLog"
 
 	EdgeAsyncCommandOpAdd     EdgeAsyncCommandOperation = "add"
 	EdgeAsyncCommandOpRemove  EdgeAsyncCommandOperation = "remove"

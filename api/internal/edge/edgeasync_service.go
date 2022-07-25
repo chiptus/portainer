@@ -20,6 +20,12 @@ type edgeStackData struct {
 	Name             string
 }
 
+type edgeLogData struct {
+	EdgeStackID   portaineree.EdgeStackID
+	EdgeStackName string
+	Tail          int
+}
+
 type edgeJobData struct {
 	ID                portaineree.EdgeJobID
 	CollectLogs       bool
@@ -29,12 +35,10 @@ type edgeJobData struct {
 	Version           int
 }
 
-type (
-	Service struct {
-		dataStore   dataservices.DataStore
-		fileService portainer.FileService
-	}
-)
+type Service struct {
+	dataStore   dataservices.DataStore
+	fileService portainer.FileService
+}
 
 func NewService(dataStore dataservices.DataStore, fileService portainer.FileService) *Service {
 	return &Service{
@@ -67,8 +71,7 @@ func (service *Service) storeUpdateStackCommand(endpoint *portaineree.Endpoint, 
 			logrus.Error("Docker is not supported by this stack")
 			return nil
 		}
-	}
-	if endpointutils.IsKubernetesEndpoint(endpoint) {
+	} else if endpointutils.IsKubernetesEndpoint(endpoint) {
 		fileName = edgeStack.ManifestPath
 		if fileName == "" {
 			logrus.Error("Kubernetes is not supported by this stack")
@@ -97,17 +100,14 @@ func (service *Service) storeUpdateStackCommand(endpoint *portaineree.Endpoint, 
 		Path:       fmt.Sprintf("/edgestack/%d", edgeStackID),
 		Value:      stackStatus,
 	}
+
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
 }
 
 func (service *Service) RemoveStackCommand(endpointID portaineree.EndpointID, edgeStackID portaineree.EdgeStackID) error {
 	endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
-	if err != nil {
+	if err != nil || !endpoint.Edge.AsyncMode {
 		return err
-	}
-
-	if !endpoint.Edge.AsyncMode {
-		return nil
 	}
 
 	edgeStack, err := service.dataStore.EdgeStack().EdgeStack(edgeStackID)
@@ -129,7 +129,25 @@ func (service *Service) RemoveStackCommand(endpointID portaineree.EndpointID, ed
 		Path:       fmt.Sprintf("/edgestack/%d", edgeStackID),
 		Value:      stackStatus,
 	}
+
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
+}
+
+func (service *Service) AddLogCommand(edgeStack *portaineree.EdgeStack, endpointID portaineree.EndpointID, tail int) error {
+	cmd := &portaineree.EdgeAsyncCommand{
+		Type:       portaineree.EdgeAsyncCommandTypeLog,
+		EndpointID: portaineree.EndpointID(endpointID),
+		Timestamp:  time.Now(),
+		Operation:  portaineree.EdgeAsyncCommandOpAdd,
+		Path:       fmt.Sprintf("/edgestack/%d", edgeStack.ID),
+		Value: edgeLogData{
+			EdgeStackID:   edgeStack.ID,
+			EdgeStackName: edgeStack.Name,
+			Tail:          tail,
+		},
+	}
+
+	return service.dataStore.EdgeAsyncCommand().Create(cmd)
 }
 
 func (service *Service) AddJobCommand(endpointID portaineree.EndpointID, edgeJob portaineree.EdgeJob, fileContent []byte) error {
@@ -142,12 +160,8 @@ func (service *Service) ReplaceJobCommand(endpointID portaineree.EndpointID, edg
 
 func (service *Service) storeUpdateJobCommand(endpointID portaineree.EndpointID, edgeJob portaineree.EdgeJob, fileContent []byte, commandOperation portaineree.EdgeAsyncCommandOperation) error {
 	endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
-	if err != nil {
+	if err != nil || !endpoint.Edge.AsyncMode {
 		return err
-	}
-
-	if !endpoint.Edge.AsyncMode {
-		return nil
 	}
 
 	edgeJobData := &edgeJobData{
@@ -167,17 +181,14 @@ func (service *Service) storeUpdateJobCommand(endpointID portaineree.EndpointID,
 		Path:       fmt.Sprintf("/edgejob/%d", edgeJob.ID),
 		Value:      edgeJobData,
 	}
+
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
 }
 
 func (service *Service) RemoveJobCommand(endpointID portaineree.EndpointID, edgeJobID portaineree.EdgeJobID) error {
 	endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
-	if err != nil {
+	if err != nil || !endpoint.Edge.AsyncMode {
 		return err
-	}
-
-	if !endpoint.Edge.AsyncMode {
-		return nil
 	}
 
 	asyncCommand := &portaineree.EdgeAsyncCommand{
@@ -187,5 +198,6 @@ func (service *Service) RemoveJobCommand(endpointID portaineree.EndpointID, edge
 		Operation:  portaineree.EdgeAsyncCommandOpRemove,
 		Path:       fmt.Sprintf("/edgejob/%d", edgeJobID),
 	}
+
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
 }

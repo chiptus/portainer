@@ -37,6 +37,7 @@ type snapshot struct {
 	DockerPatch     jsonpatch.Patch                                         `json:"dockerPatch,omitempty"`
 	Kubernetes      *portaineree.KubernetesSnapshot                         `json:"kubernetes,omitempty"`
 	KubernetesPatch jsonpatch.Patch                                         `json:"kubernetesPatch,omitempty"`
+	StackLogs       []portaineree.EdgeStackLog                              `json:"stackLogs,omitempty"`
 	StackStatus     map[portaineree.EdgeStackID]portaineree.EdgeStackStatus `json:"stackStatus,omitempty"`
 	JobsStatus      map[portaineree.EdgeJobID]portaineree.EdgeJobStatus     `json:"jobsStatus:,omitempty"`
 }
@@ -361,6 +362,16 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 		err = handler.DataStore.EdgeStack().UpdateEdgeStack(stack.ID, stack)
 		if err != nil {
 			logrus.WithError(err).WithField("stack", stackID).Error("update edge stack")
+		}
+	}
+
+	// Save edge stack logs
+	for _, logs := range snapshotPayload.StackLogs {
+		logs.EndpointID = endpoint.ID
+
+		err := handler.DataStore.EdgeStackLog().Update(&logs)
+		if err != nil {
+			logrus.WithError(err).WithField("stack", logs.EdgeStackID).WithField("endpoint", logs.EndpointID).Error("update edge stack")
 		}
 	}
 
