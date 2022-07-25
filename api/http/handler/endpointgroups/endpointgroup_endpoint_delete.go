@@ -60,5 +60,10 @@ func (handler *Handler) endpointGroupDeleteEndpoint(w http.ResponseWriter, r *ht
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist environment relations changes inside the database", err}
 	}
 
+	err = handler.AuthorizationService.UpdateUsersAuthorizations()
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to update user authorizations", err}
+	}
+
 	return response.Empty(w)
 }
