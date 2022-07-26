@@ -1,7 +1,7 @@
 <div class="page-wrapper">
   <!-- login box -->
   <div class="container simple-box">
-    <div class="col-sm-6 col-sm-offset-3">
+    <div class="col-sm-4 col-sm-offset-4">
       <!-- login box logo -->
       <div class="row">
         <img ng-if="!ctrl.logo" src="~@/assets/images/logo_alt.svg" class="simple-box-logo" alt="Portainer" />
@@ -9,34 +9,39 @@
       </div>
       <!-- !login box logo -->
 
+      <div class="row text-center p-5">
+        <p class="text-xl">Log in to your account</p>
+        <p class="text-md text-muted fw-bold">Welcome back! Please enter your details</p>
+      </div>
+
       <!-- login panel -->
       <div class="panel panel-default">
         <div class="panel-body">
           <!-- login form -->
           <form class="simple-box-form form-horizontal">
             <!-- !username input -->
-            <div class="input-group">
-              <span class="input-group-addon"><i class="fa fa-user" aria-hidden="true"></i></span>
-              <input id="username" type="text" class="form-control" name="username" ng-model="ctrl.formValues.Username" auto-focus />
+            <div>
+              <div class="pb-2">Username</div>
+              <input id="username" type="text" class="form-control" name="username" ng-model="ctrl.formValues.Username" auto-focus placeholder="Enter your username" />
             </div>
 
             <!-- password input -->
-            <div class="input-group">
-              <span class="input-group-addon"><i class="fa fa-lock" aria-hidden="true"></i></span>
-              <input id="password" type="password" class="form-control" name="password" ng-model="ctrl.formValues.Password" />
+            <div>
+              <div class="pb-2">Password</div>
+              <input id="password" type="password" class="form-control" name="password" ng-model="ctrl.formValues.Password" placeholder="Enter your password" />
             </div>
 
             <div class="form-group">
               <!-- login button -->
-              <div class="col-sm-12" style="display: flex; align-items: center; justify-content: center">
+              <div class="col-sm-12 d-flex">
                 <button
                   type="submit"
-                  class="btn btn-primary btn-sm pull-right"
+                  class="btn btn-primary btn-lg btn-block"
                   ng-click="ctrl.authenticateUser()"
                   button-spinner="ctrl.state.loginInProgress"
                   ng-disabled="ctrl.state.loginInProgress"
                 >
-                  <span ng-hide="ctrl.state.loginInProgress"><i class="fa fa-sign-in-alt" aria-hidden="true"></i> Login</span>
+                  <span ng-hide="ctrl.state.loginInProgress">Login</span>
                   <span ng-show="ctrl.state.loginInProgress">Login in progress...</span>
                 </button>
               </div>
