@@ -17,6 +17,14 @@ angular.module('portainer.app').controller('porAccessControlFormController', [
     ctrl.availableTeams = [];
     ctrl.availableUsers = [];
 
+    ctrl.onAccessControlEnabledChange = onAccessControlEnabledChange.bind(ctrl);
+
+    function onAccessControlEnabledChange(enabled) {
+      $scope.$evalAsync(() => {
+        ctrl.formData.AccessControlEnabled = enabled;
+      });
+    }
+
     function setOwnership(resourceControl, isAdmin) {
       if (isAdmin && resourceControl.Ownership === RCO.PRIVATE) {
         ctrl.formData.Ownership = RCO.RESTRICTED;

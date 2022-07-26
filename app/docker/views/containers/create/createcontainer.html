@@ -25,7 +25,7 @@
           <!-- !name-input -->
           <div class="col-sm-12 form-section-title"> Image configuration </div>
           <div ng-if="!formValues.RegistryModel.Registry && fromContainer">
-            <i class="fa fa-exclamation-triangle orange-icon" aria-hidden="true"></i>
+            <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>
             <span class="small text-danger" style="margin-left: 5px">
               The Docker registry for the <code>{{ config.Image }}</code> image is not registered inside Portainer, you will not be able to create a container. Please register that
               registry first.
@@ -106,7 +106,7 @@
                 ></portainer-tooltip>
               </label>
               <span class="label label-default interactive" style="margin-left: 10px" ng-click="addPortBinding()">
-                <i class="fa fa-plus-circle" aria-hidden="true"></i> publish a new network port
+                <pr-icon icon="'plus'" mode="'alt'" feather="true"></pr-icon> publish a new network port
               </span>
             </div>
             <!-- port-mapping-input-list -->
@@ -337,7 +337,7 @@
                     style="margin-left: 10px"
                     ng-click="!formValues.LogDriverName || formValues.LogDriverName === 'none' || addLogDriverOpt(formValues.LogDriverName)"
                   >
-                    <i class="fa fa-plus-circle" aria-hidden="true"></i> add logging driver option
+                    <pr-icon icon="'plus'" mode="'alt'" feather="true"></pr-icon> add logging driver option
                   </span>
                 </div>
                 <!-- logging-opts-input-list -->
@@ -370,7 +370,7 @@
                 <div class="col-sm-12" style="margin-top: 5px">
                   <label class="control-label text-left">Volume mapping</label>
                   <span class="label label-default interactive" style="margin-left: 10px" ng-click="addVolume()">
-                    <i class="fa fa-plus-circle" aria-hidden="true"></i> map additional volume
+                    <pr-icon icon="'plus'" mode="'alt'" feather="true"></pr-icon> map additional volume
                   </span>
                 </div>
                 <!-- volumes-input-list -->
@@ -528,7 +528,7 @@
                 <div class="col-sm-12" style="margin-top: 5px">
                   <label class="control-label text-left">Hosts file entries</label>
                   <span class="label label-default interactive" style="margin-left: 10px" ng-click="addExtraHost()">
-                    <i class="fa fa-plus-circle" aria-hidden="true"></i> add additional entry
+                    <pr-icon icon="'plus'" mode="'alt'" feather="true"></pr-icon> add additional entry
                   </span>
                 </div>
                 <!-- extra-hosts-input-list -->
@@ -557,7 +557,7 @@
                 <div class="col-sm-12" style="margin-top: 5px">
                   <label class="control-label text-left">Labels</label>
                   <span class="label label-default interactive" style="margin-left: 10px" ng-click="addLabel()">
-                    <i class="fa fa-plus-circle" aria-hidden="true"></i> add label
+                    <pr-icon icon="'plus'" mode="'alt'" feather="true"></pr-icon> add label
                   </span>
                 </div>
                 <!-- labels-input-list -->
@@ -648,7 +648,7 @@
                 <div class="col-sm-12" style="margin-top: 5px">
                   <label class="control-label text-left">Devices</label>
                   <span class="label label-default interactive" style="margin-left: 10px" ng-click="addDevice()">
-                    <i class="fa fa-plus-circle" aria-hidden="true"></i> add device
+                    <pr-icon icon="'plus'" mode="'alt'" feather="true"></pr-icon> add device
                   </span>
                 </div>
                 <!-- devices-input-list -->
