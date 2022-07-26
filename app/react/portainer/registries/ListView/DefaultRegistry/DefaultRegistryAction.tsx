@@ -6,6 +6,7 @@ import { notifySuccess } from 'Portainer/services/notifications';
 
 import { Tooltip } from '@@/Tip/Tooltip';
 import { Button } from '@@/buttons';
+import { Icon } from '@@/Icon';
 
 export function DefaultRegistryAction() {
   const settingsQuery = useSettings(
@@ -21,12 +22,12 @@ export function DefaultRegistryAction() {
   return (
     <>
       {!hideDefaultRegistry ? (
-        <div>
+        <div className="vertical-center">
           <Button
-            className="btn btn-xs btn-danger"
+            className="btn btn-xs btn-danger vertical-center"
             onClick={() => handleShowOrHide(true)}
           >
-            <i className="fa fa-eye-slash space-right" aria-hidden="true" />{' '}
+            <Icon icon="eye-off" feather />
             Hide for all users
           </Button>
 
@@ -37,13 +38,13 @@ export function DefaultRegistryAction() {
           />
         </div>
       ) : (
-        <div>
+        <div className="vertical-center">
           <Button
-            className="btn btn-xs btn-success"
+            className="btn btn-xs btn-success vertical-center"
             onClick={() => handleShowOrHide(false)}
           >
-            <i className="fa fa-eye space-right" aria-hidden="true" /> Show for
-            all users
+            <Icon icon="eye" feather />
+            Show for all users
           </Button>
           <Tooltip
             message="This reveals the option in any registry dropdown prompts.<br />
