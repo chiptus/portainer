@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 
-import { DockerContainerStatus } from '@/react/docker/containers/types';
+import { ContainerStatus } from '@/react/docker/containers/types';
 import { Authorized } from '@/portainer/hooks/useUser';
 import { Icon } from '@/react/components/Icon';
 import { Link } from '@/react/components/Link';
@@ -20,7 +20,7 @@ interface Props {
   containerId?: string;
   nodeName: string;
   state: QuickActionsState;
-  status: DockerContainerStatus;
+  status: ContainerStatus;
 }
 
 export function ContainerQuickActions({

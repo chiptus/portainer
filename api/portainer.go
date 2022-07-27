@@ -367,14 +367,14 @@ type (
 		// List of user identifiers authorized to connect to this environment(endpoint)
 		UserAccessPolicies UserAccessPolicies `json:"UserAccessPolicies"`
 		// List of team identifiers authorized to connect to this environment(endpoint)
-		TeamAccessPolicies TeamAccessPolicies `json:"TeamAccessPolicies" example:""`
+		TeamAccessPolicies TeamAccessPolicies `json:"TeamAccessPolicies"`
 		// The identifier of the edge agent associated with this environment(endpoint)
-		EdgeID string `json:"EdgeID,omitempty" example:""`
+		EdgeID string `json:"EdgeID,omitempty"`
 		// The key which is used to map the agent to Portainer
-		EdgeKey string `json:"EdgeKey" example:""`
+		EdgeKey string `json:"EdgeKey"`
 
 		// Associated Kubernetes data
-		Kubernetes KubernetesData `json:"Kubernetes" example:""`
+		Kubernetes KubernetesData `json:"Kubernetes"`
 		// Associated Nomad data
 		Nomad NomadData `json:"Nomad"`
 		// Maximum version of docker-compose
@@ -437,8 +437,8 @@ type (
 		Name string `json:"Name" example:"my-environment-group"`
 		// Description associated to the environment(endpoint) group
 		Description        string             `json:"Description" example:"Environment(Endpoint) group description"`
-		UserAccessPolicies UserAccessPolicies `json:"UserAccessPolicies" example:""`
-		TeamAccessPolicies TeamAccessPolicies `json:"TeamAccessPolicies" example:""`
+		UserAccessPolicies UserAccessPolicies `json:"UserAccessPolicies"`
+		TeamAccessPolicies TeamAccessPolicies `json:"TeamAccessPolicies"`
 		// List of tags associated to this environment(endpoint) group
 		TagIDs []TagID `json:"TagIds"`
 
@@ -1071,12 +1071,12 @@ type (
 		BlackListedLabels []Pair `json:"BlackListedLabels"`
 		// Active authentication method for the Portainer instance. Valid values are: 1 for internal, 2 for LDAP, or 3 for oauth
 		AuthenticationMethod AuthenticationMethod           `json:"AuthenticationMethod" example:"1"`
-		InternalAuthSettings InternalAuthSettings           `json:"InternalAuthSettings" example:""`
+		InternalAuthSettings InternalAuthSettings           `json:"InternalAuthSettings"`
 		LDAPSettings         LDAPSettings                   `json:"LDAPSettings"`
 		OAuthSettings        OAuthSettings                  `json:"OAuthSettings"`
-		OpenAMTConfiguration portainer.OpenAMTConfiguration `json:"openAMTConfiguration" example:""`
-		FDOConfiguration     FDOConfiguration               `json:"fdoConfiguration" example:""`
-		FeatureFlagSettings  map[Feature]bool               `json:"FeatureFlagSettings" example:""`
+		OpenAMTConfiguration portainer.OpenAMTConfiguration `json:"openAMTConfiguration"`
+		FDOConfiguration     FDOConfiguration               `json:"fdoConfiguration"`
+		FeatureFlagSettings  map[Feature]bool               `json:"FeatureFlagSettings"`
 		// The interval in which environment(endpoint) snapshots are created
 		SnapshotInterval string `json:"SnapshotInterval" example:"5m"`
 		// URL to the templates that will be displayed in the UI when navigating to App Templates

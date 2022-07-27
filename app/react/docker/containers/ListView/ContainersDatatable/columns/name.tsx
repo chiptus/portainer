@@ -33,8 +33,9 @@ export function NameCell({
   const endpoint = useEnvironment();
   const offlineMode = endpoint.Status !== 1;
 
-  const linkProps = useSref('docker.containers.container', {
+  const linkProps = useSref('.container', {
     id: container.Id,
+    containerId: container.Id,
     nodeName: container.NodeName,
   });
 

@@ -79,6 +79,32 @@ angular
       },
     };
 
+    $stateRegistryProvider.register({
+      name: 'edge.stacks.edit.environment',
+      url: '/environment/:environmentId',
+      abstract: true,
+    });
+
+    $stateRegistryProvider.register({
+      name: 'edge.stacks.edit.environment.containers',
+      url: '/containers',
+      views: {
+        'content@': {
+          component: 'edgeStackEnvironmentContainersView',
+        },
+      },
+    });
+
+    $stateRegistryProvider.register({
+      name: 'edge.stacks.edit.environment.containers.container',
+      url: '/:containerId',
+      views: {
+        'content@': {
+          component: 'edgeStackEnvironmentContainerView',
+        },
+      },
+    });
+
     const edgeJobs = {
       name: 'edge.jobs',
       url: '/jobs',

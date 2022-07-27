@@ -2,13 +2,15 @@ package docker
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
-	"net/http"
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/http/handler/dockersnapshot"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
@@ -18,9 +20,9 @@ import (
 type Handler struct {
 	*mux.Router
 	requestBouncer       *security.RequestBouncer
-	DataStore            dataservices.DataStore
-	DockerClientFactory  *docker.ClientFactory
-	AuthorizationService *authorization.Service
+	dataStore            dataservices.DataStore
+	dockerClientFactory  *docker.ClientFactory
+	authorizationService *authorization.Service
 }
 
 // NewHandler creates a handler to process non-proxied requests to docker APIs directly.
@@ -28,21 +30,22 @@ func NewHandler(bouncer *security.RequestBouncer, authorizationService *authoriz
 	h := &Handler{
 		Router:               mux.NewRouter(),
 		requestBouncer:       bouncer,
-		AuthorizationService: authorizationService,
-		DataStore:            dataStore,
-		DockerClientFactory:  dockerClientFactory,
+		authorizationService: authorizationService,
+		dataStore:            dataStore,
+		dockerClientFactory:  dockerClientFactory,
 	}
 
-	dockerRouter := h.PathPrefix("/docker").Subrouter()
-	dockerRouter.Use(bouncer.AuthenticatedAccess)
-
 	// endpoints
-	endpointRouter := dockerRouter.PathPrefix("/{id}").Subrouter()
+	endpointRouter := h.PathPrefix("/{id}").Subrouter()
 	endpointRouter.Use(middlewares.WithEndpoint(dataStore.Endpoint(), "id"))
 	endpointRouter.Use(dockerOnlyMiddleware)
 
 	endpointRouter.PathPrefix("/images/status").Handler(
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.imageStatus))).Methods(http.MethodPost)
+
+	dockerSnapshotHandler := dockersnapshot.NewHandler("/{id}/snapshot", bouncer, dataStore)
+
+	endpointRouter.PathPrefix("/snapshot").Handler(dockerSnapshotHandler)
 
 	return h
 }

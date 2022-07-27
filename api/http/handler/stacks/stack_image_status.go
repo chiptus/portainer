@@ -49,7 +49,7 @@ func (handler *Handler) stackImagesStatus(w http.ResponseWriter, r *http.Request
 
 	status, err := handler.stackImageDigest(r.Context(), stack, endpoint)
 	if err != nil {
-		return httperror.InternalServerError("Unable get the status of this stack", err)
+		return httperror.InternalServerError("Unable to get the status of this stack", err)
 	}
 
 	return response.JSON(w, &images.StatusResponse{Status: status, Message: ""})

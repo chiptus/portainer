@@ -1,9 +1,10 @@
 package docker
 
 import (
+	"net/http"
+
 	"github.com/portainer/portainer-ee/api/docker/images"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
-	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -30,16 +31,16 @@ func (handler *Handler) imageStatus(w http.ResponseWriter, r *http.Request) *htt
 		return httperror.NotFound("Unable to find an environment on request context", err)
 	}
 
-	cli, err := handler.DockerClientFactory.CreateClient(endpoint, "", nil)
+	cli, err := handler.dockerClientFactory.CreateClient(endpoint, "", nil)
 	if err != nil {
 		return httperror.InternalServerError("Unable to connect to the Docker daemon", err)
 	}
 
-	digestCli := images.NewClientWithRegistry(images.NewRegistryClient(handler.DataStore), cli)
+	digestCli := images.NewClientWithRegistry(images.NewRegistryClient(handler.dataStore), cli)
 
 	s, err := digestCli.Status(r.Context(), payload.ImageName)
 	if err != nil {
-		return httperror.InternalServerError("Unable get the status of this image", err)
+		return httperror.InternalServerError("Unable to get the status of this image", err)
 	}
 
 	return response.JSON(w, &images.StatusResponse{Status: s, Message: ""})

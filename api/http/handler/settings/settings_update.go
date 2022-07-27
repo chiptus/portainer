@@ -24,8 +24,8 @@ type settingsUpdatePayload struct {
 	// A list of label name & value that will be used to hide containers when querying containers
 	BlackListedLabels []portaineree.Pair
 	// Active authentication method for the Portainer instance. Valid values are: 1 for internal, 2 for LDAP, or 3 for oauth
-	AuthenticationMethod *int                              `example:"1"`
-	InternalAuthSettings *portaineree.InternalAuthSettings `example:""`
+	AuthenticationMethod *int `example:"1"`
+	InternalAuthSettings *portaineree.InternalAuthSettings
 	LDAPSettings         *portaineree.LDAPSettings
 	OAuthSettings        *portaineree.OAuthSettings
 	// The interval in which environment(endpoint) snapshots are created

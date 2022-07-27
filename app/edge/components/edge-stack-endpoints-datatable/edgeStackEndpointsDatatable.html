@@ -51,11 +51,11 @@
               total-items="$ctrl.state.totalFilteredDataSet"
               ng-class="{ active: item.Checked }"
             >
-              <td>{{ item.name }}</td>
+              <td>{{ item.Name }}</td>
               <td>{{ $ctrl.statusMap[item.status.Type] || 'Pending' }}</td>
-              <td>{{ item.status.Error ? item.status.Error : '-' }}</td>
-              <td><edge-stack-environment-actions environment-id="item.id" async-mode="item.asyncMode" edge-stack-id="$ctrl.edgeStackId"></edge-stack-environment-actions></td>
-              <td><edge-stack-action-status environment-id="item.id" edge-stack-id="$ctrl.edgeStackId"></edge-stack-action-status></td>
+              <td>{{ item.Status.Error ? item.Status.Error : '-' }}</td>
+              <td><edge-stack-environment-actions environment="item" edge-stack-id="$ctrl.edgeStackId"></edge-stack-environment-actions></td>
+              <td><edge-stack-action-status environment-id="item.Id" edge-stack-id="$ctrl.edgeStackId"></edge-stack-action-status></td>
             </tr>
             <tr ng-if="$ctrl.state.loading">
               <td colspan="5" class="text-center text-muted">Loading...</td>

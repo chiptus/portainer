@@ -1,5 +1,6 @@
 import _ from 'lodash-es';
 import { getEnvironments } from '@/portainer/environments/environment.service';
+// import { environmentTypeIcon } from '@/portainer/filters/filters';
 
 export class EditEdgeStackViewController {
   /* @ngInject */
@@ -107,17 +108,8 @@ export class EditEdgeStackViewController {
     try {
       const query = { search, endpointIds: this.stackEndpointIds };
       const { value, totalCount } = await getEnvironments({ start: lastId, limit, query });
-      const endpoints = _.map(value, (endpoint) => {
-        const status = this.stack.Status[endpoint.Id];
 
-        return {
-          id: endpoint.Id,
-          name: endpoint.Name,
-          status,
-          asyncMode: endpoint.Edge.AsyncMode,
-        };
-      });
-      return { endpoints, totalCount };
+      return { endpoints: value, totalCount };
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to retrieve environment information');
     }

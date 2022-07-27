@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/internal/stackutils"
 
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
@@ -17,9 +18,9 @@ const (
 	resourceLabelForPortainerTeamResourceControl   = "io.portainer.accesscontrol.teams"
 	resourceLabelForPortainerUserResourceControl   = "io.portainer.accesscontrol.users"
 	resourceLabelForPortainerPublicResourceControl = "io.portainer.accesscontrol.public"
-	resourceLabelForDockerSwarmStackName           = "com.docker.stack.namespace"
+	resourceLabelForDockerSwarmStackName           = docker.SwarmStackNameLabel
 	resourceLabelForDockerServiceID                = "com.docker.swarm.service.id"
-	resourceLabelForDockerComposeStackName         = "com.docker.compose.project"
+	resourceLabelForDockerComposeStackName         = docker.ComposeStackNameLabel
 )
 
 type (

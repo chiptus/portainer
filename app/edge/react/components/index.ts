@@ -8,7 +8,7 @@ export const componentsModule = angular
   .module('portainer.edge.react.components', [])
   .component(
     'edgeStackEnvironmentActions',
-    r2a(EnvironmentActions, ['environmentId', 'edgeStackId', 'asyncMode'])
+    r2a(EnvironmentActions, ['environment', 'edgeStackId'])
   )
   .component(
     'edgeStackActionStatus',

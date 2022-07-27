@@ -8,9 +8,9 @@ import {
 import clsx from 'clsx';
 
 import { AutomationTestingProps } from '@/types';
+import './Button.css';
 
 import { Icon } from '@@/Icon';
-import './Button.css';
 
 type Type = 'submit' | 'button' | 'reset';
 type Color =

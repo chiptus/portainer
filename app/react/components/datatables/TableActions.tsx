@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { PropsWithChildren } from 'react';
+import { Children, PropsWithChildren } from 'react';
 
 import { useTableContext } from './TableContainer';
 
@@ -12,6 +12,10 @@ export function TableActions({
   className,
 }: PropsWithChildren<Props>) {
   useTableContext();
+
+  if (Children.count(children) === 0) {
+    return null;
+  }
 
   return <div className={clsx('actionBar', className)}>{children}</div>;
 }

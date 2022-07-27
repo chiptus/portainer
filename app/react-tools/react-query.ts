@@ -70,6 +70,11 @@ function mergeOptions<T>(options: T[]) {
 
 export function createQueryClient() {
   return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 20,
+      },
+    },
     mutationCache: new MutationCache({
       onError: (error, variable, context, mutation) => {
         handleError(error, mutation.meta?.error);
