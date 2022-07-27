@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import moment from 'moment';
 import clsx from 'clsx';
+import { AlertTriangle } from 'react-feather';
 
 import { LicenseInfo } from '@/portainer/license-management/types';
 import { useLicenseInfo } from '@/portainer/license-management/use-license.service';
@@ -31,12 +32,14 @@ export function LicenseExpirationPanel({ remainingDays, isLoading }: Props) {
   const expirationMessage = buildMessage(remainingDays);
 
   return (
-    <div className={clsx(styles.root, 'text-danger small')}>
-      <i className="fa fa-exclamation-triangle space-right" />
-      <strong className={styles.message}>
-        <span className="space-right">{expirationMessage}</span>
-        Please contact your administrator to renew your license.
-      </strong>
+    <div className={clsx(styles.container)}>
+      <div className={clsx(styles.item, 'vertical-center')}>
+        <AlertTriangle className="icon icon-sm icon-warning" />
+        <span className="text-muted">
+          {expirationMessage} Please contact your administrator to renew your
+          license.
+        </span>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,17 @@
-.root {
+.container {
   display: flex;
   align-items: center;
   margin-top: 5px;
+  border: 1px solid var(--ui-warning-5);
+  background-color: var(--ui-warning-1);
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
 }
 
 .root .message {
