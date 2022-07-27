@@ -1,41 +1,52 @@
 <div class="datatable">
   <rd-widget>
-    <rd-widget-header icon="{{ $ctrl.titleIcon }}" title-text="{{ $ctrl.titleText }}"> </rd-widget-header>
+    <rd-widget-header icon="{{ $ctrl.titleIcon }}" feather-icon="true" title-text="{{ $ctrl.titleText }}"> </rd-widget-header>
     <rd-widget-body classes="no-padding">
       <div class="toolBar small" ng-if="$ctrl.inheritFrom">
         Access tagged as <code>inherited</code> are inherited from the group access. They cannot be removed or modified at the environment level but they can be overridden.
       </div>
       <div class="toolBar small" ng-if="$ctrl.inheritFrom"> Access tagged as <code>override</code> are overriding the group access for the related users/teams. </div>
       <div class="toolBar small" ng-if="$ctrl.showWarning">
-        <span class="text-warning">
-          <i class="fa fa-exclamation-circle orange-icon" aria-hidden="true" style="margin-right: 2px"></i>
+        <span class="text-warning small">
+          <pr-icon icon="'alert-circle'" mode="'warning'" feather="true"></pr-icon>
           Updating user access will require the affected user(s) to logout and login for the changes to be taken into account.
         </span>
       </div>
-      <div class="actionBar">
-        <button type="button" class="btn btn-sm btn-danger" ng-disabled="$ctrl.state.selectedItemCount === 0" ng-click="$ctrl.removeAction($ctrl.state.selectedItems)">
-          <i class="fa fa-trash-alt space-right" aria-hidden="true"></i>Remove
-        </button>
-        <button
-          ng-if="$ctrl.isUpdateEnabled"
-          type="button"
-          class="btn btn-sm btn-primary"
-          ng-disabled="($ctrl.dataset | filter:{ Updated: true}).length === 0 "
-          ng-click="$ctrl.updateAction()"
-        >
-          <i class="fa fa-check space-right" aria-hidden="true"></i>Update
-        </button>
-      </div>
-      <div class="searchBar">
-        <i class="fa fa-search searchIcon" aria-hidden="true"></i>
-        <input
-          type="text"
-          class="searchInput"
-          ng-model="$ctrl.state.textFilter"
-          ng-change="$ctrl.onTextFilterChange()"
-          placeholder="Search..."
-          ng-model-options="{ debounce: 300 }"
-        />
+      <div class="toolBar vertical-center !gap-x-5 !gap-y-1 flex-wrap">
+        <div class="actionBar !gap-3">
+          <button
+            type="button"
+            class="btn btn-sm btn-dangerlight h-fit vertical-center !ml-0"
+            authorization="PortainerStackDelete"
+            ng-disabled="$ctrl.state.selectedItemCount === 0"
+            ng-click="$ctrl.removeAction($ctrl.state.selectedItems)"
+            data-cy="access-removeButton"
+          >
+            <pr-icon icon="'trash-2'" feather="true" mode="'danger'"></pr-icon>Remove
+          </button>
+          <button
+            ng-if="$ctrl.isUpdateEnabled"
+            type="button"
+            class="btn btn-sm btn-primary"
+            ng-disabled="($ctrl.dataset | filter:{ Updated: true}).length === 0 "
+            ng-click="$ctrl.updateAction()"
+            data-cy="access-updateButton"
+          >
+            <pr-icon icon="'check'" feather="true"></pr-icon>Update
+          </button>
+        </div>
+        <div class="searchBar vertical-center">
+          <pr-icon icon="'search'" feather="true"></pr-icon>
+          <input
+            type="text"
+            class="searchInput"
+            ng-model="$ctrl.state.textFilter"
+            ng-change="$ctrl.onTextFilterChange()"
+            placeholder="Search..."
+            ng-model-options="{ debounce: 300 }"
+            data-cy="access-searchInput"
+          />
+        </div>
       </div>
       <div class="table-responsive">
         <table class="table table-hover nowrap-cells">
