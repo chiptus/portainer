@@ -124,7 +124,17 @@ export function EdgeDevicesDatatable({
     <div className="row">
       <div className="col-sm-12">
         <TableContainer>
-          <TableTitle icon="fa-plug" label="Edge Devices">
+          <TableTitle icon="box" featherIcon label="Edge Devices">
+            <SearchBar value={search} onChange={handleSearchBarChange} />
+            <TableActions>
+              <EdgeDevicesDatatableActions
+                selectedItems={selectedFlatRows.map((row) => row.original)}
+                isFDOEnabled={isFdoEnabled}
+                isOpenAMTEnabled={isOpenAmtEnabled}
+                setLoadingMessage={setLoadingMessage}
+                showWaitingRoomLink={showWaitingRoomLink}
+              />
+            </TableActions>
             <TableTitleActions>
               <ColumnVisibilityMenu<Environment>
                 columns={columnsToHide}
@@ -136,15 +146,6 @@ export function EdgeDevicesDatatable({
               </TableSettingsMenu>
             </TableTitleActions>
           </TableTitle>
-          <TableActions>
-            <EdgeDevicesDatatableActions
-              selectedItems={selectedFlatRows.map((row) => row.original)}
-              isFDOEnabled={isFdoEnabled}
-              isOpenAMTEnabled={isOpenAmtEnabled}
-              setLoadingMessage={setLoadingMessage}
-              showWaitingRoomLink={showWaitingRoomLink}
-            />
-          </TableActions>
           {isOpenAmtEnabled && someDeviceHasAMTActivated && (
             <div className={styles.kvmTip}>
               <TextTip color="blue">
@@ -162,7 +163,6 @@ export function EdgeDevicesDatatable({
               </TextTip>
             </div>
           )}
-          <SearchBar value={search} onChange={handleSearchBarChange} />
           <Table
             className={tableProps.className}
             role={tableProps.role}
