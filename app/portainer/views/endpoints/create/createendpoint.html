@@ -22,8 +22,8 @@
               <div ng-click="setDefaultPortainerInstanceURL()">
                 <input type="radio" id="edge_agent_endpoint" ng-model="state.EnvironmentType" value="edge_agent" />
                 <label for="edge_agent_endpoint" data-cy="endpointCreate-edgeAgentSelectButton">
-                  <div class="boxselector_header">
-                    <i class="fa fa-cloud" aria-hidden="true" style="margin-right: 2px"></i>
+                  <div class="boxselector_header vertical-center">
+                    <pr-icon icon="'cloud'" feather="true"></pr-icon>
                     Edge Agent
                   </div>
                   <p>Docker, Swarm, Kubernetes, Nomad</p>
@@ -231,7 +231,7 @@
             </div>
             <!-- name-input -->
             <div class="form-group">
-              <label for="container_name" class="col-sm-3 col-lg-2 control-label text-left">Name</label>
+              <label for="container_name" class="col-sm-3 col-lg-2 control-label text-left required">Name</label>
               <div class="col-sm-9 col-lg-10">
                 <input
                   type="text"
@@ -356,7 +356,7 @@
             <!-- portainer-instance-input -->
             <div ng-if="state.EnvironmentType === 'edge_agent'">
               <div class="form-group">
-                <label for="endpoint_url" class="col-sm-3 col-lg-2 control-label text-left">
+                <label for="endpoint_url" class="col-sm-3 col-lg-2 control-label text-left required">
                   Portainer server URL
                   <portainer-tooltip message="'URL of the Portainer instance that the agent will use to initiate the communications.'"> </portainer-tooltip>
                 </label>
@@ -605,7 +605,7 @@
                   analytics-event="portainer-endpoint-creation"
                   analytics-properties="{ metadata: { type: 'kubeconfig-api' } }"
                 >
-                  <span ng-hide="state.actionInProgress"><i class="fa fa-plus" aria-hidden="true"></i> Add environment</span>
+                  <span ng-hide="state.actionInProgress"><pr-icon icon="'plus'" feather="true"></pr-icon> Add environment</span>
                   <span ng-show="state.actionInProgress">Creating environment...</span>
                 </button>
               </div>
