@@ -1,6 +1,6 @@
 import { useRouter } from '@uirouter/react';
 
-import { confirmAsync } from '@/portainer/services/modal.service/confirm';
+import { confirmDeletionAsync } from '@/portainer/services/modal.service/confirm';
 
 import { Button } from '@@/buttons';
 
@@ -40,22 +40,11 @@ export function CredentialsDatatableActions({ selectedItems }: Props) {
   );
 
   async function onDeleteClick(selectedItems: Credential[]) {
-    const confirmed = await confirmAsync({
-      title: 'Confirm action',
-      message: `Are you sure you want to remove the selected ${
+    const confirmed = await confirmDeletionAsync(
+      `Are you sure you want to remove the selected ${
         selectedItems.length > 1 ? 'credentials' : 'credential'
-      }?`,
-      buttons: {
-        cancel: {
-          label: 'Cancel',
-          className: 'btn-default',
-        },
-        confirm: {
-          label: 'Confirm',
-          className: 'btn-primary',
-        },
-      },
-    });
+      }?`
+    );
 
     if (!confirmed) {
       return;

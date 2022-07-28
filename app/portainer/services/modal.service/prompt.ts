@@ -1,7 +1,13 @@
 import sanitize from 'sanitize-html';
 import bootbox from 'bootbox';
 
-import { applyBoxCSS, ButtonsOptions, confirmButtons } from './utils';
+import {
+  applyBoxCSS,
+  ButtonsOptions,
+  confirmButtons,
+  buildTitle,
+  ModalTypeIcon,
+} from './utils';
 
 type PromptCallback = ((value: string) => void) | ((value: string[]) => void);
 
@@ -59,10 +65,8 @@ export function confirmContainerDeletion(
   title: string,
   callback: PromptCallback
 ) {
-  const sanitizedTitle = sanitize(title);
-
   prompt({
-    title: sanitizedTitle,
+    title: buildTitle(title, ModalTypeIcon.Destructive),
     inputType: 'checkbox',
     inputOptions: [
       {
@@ -89,7 +93,7 @@ export function confirmContainerRecreation(
   callback: PromptCallback
 ) {
   const box = prompt({
-    title: 'Are you sure?',
+    title: buildTitle('Are you sure?', ModalTypeIcon.Destructive),
 
     inputType: 'checkbox',
     inputOptions: [
@@ -136,7 +140,7 @@ export function confirmServiceForceUpdate(
   const sanitizedMessage = sanitize(message);
 
   const box = prompt({
-    title: 'Are you sure?',
+    title: buildTitle('Are you sure?'),
     inputType: 'checkbox',
     inputOptions: [
       {
@@ -165,7 +169,7 @@ export function confirmStackUpdate(
   const sanitizedMessage = sanitize(message);
 
   const box = prompt({
-    title: 'Are you sure?',
+    title: buildTitle('Are you sure?'),
     inputType: 'checkbox',
     inputOptions: [
       {

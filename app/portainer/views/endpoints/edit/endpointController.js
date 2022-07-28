@@ -5,7 +5,7 @@ import { PortainerEndpointTypes } from '@/portainer/models/endpoint/models';
 import { EndpointSecurityFormData } from '@/portainer/components/endpointSecurity/porEndpointSecurityModel';
 import EndpointHelper from '@/portainer/helpers/endpointHelper';
 import { getAMTInfo } from 'Portainer/hostmanagement/open-amt/open-amt.service';
-import { confirmAsync } from '@/portainer/services/modal.service/confirm';
+import { confirmDestructiveAsync } from '@/portainer/services/modal.service/confirm';
 import { getPlatformTypeName, isAgentEnvironment, isEdgeEnvironment } from '@/portainer/environments/utils';
 import { commandsTabs } from '@/react/edge/components/EdgeScriptForm/scripts';
 import { GpusListAngular } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/Hardware/GpusList';
@@ -195,7 +195,7 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
     var TLSSkipClientVerify = TLS && (TLSMode === 'tls_ca' || TLSMode === 'tls_only');
 
     if (isEdgeEnvironment(endpoint.Type) && _.difference($scope.initialTagIds, endpoint.TagIds).length > 0) {
-      let confirmed = await confirmAsync({
+      let confirmed = await confirmDestructiveAsync({
         title: 'Confirm action',
         message: 'Removing tags from this environment will remove the corresponding edge stacks when dynamic grouping is being used',
         buttons: {
