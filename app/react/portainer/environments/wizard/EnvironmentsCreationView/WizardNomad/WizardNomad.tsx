@@ -1,4 +1,9 @@
-import { Environment } from '@/portainer/environments/types';
+import { useState } from 'react';
+
+import {
+  Environment,
+  EnvironmentCreationTypes,
+} from '@/portainer/environments/types';
 import {
   buildLinuxNomadCommand,
   CommandTab,
@@ -8,6 +13,7 @@ import { BoxSelector } from '@@/BoxSelector';
 
 import { AnalyticsStateKey } from '../types';
 import { EdgeAgentTab } from '../shared/EdgeAgentTab';
+import { useFilterEdgeOptionsIfNeeded } from '../useOnlyEdgeOptions';
 
 interface Props {
   onCreate(environment: Environment, analytics: AnalyticsStateKey): void;
@@ -21,25 +27,32 @@ const commands: CommandTab[] = [
   },
 ];
 
-const options = [
+const defaultOptions = [
   {
     description: 'Portainer Edge Agent',
     icon: 'fa fa-cloud',
     id: 'id',
     label: 'Edge Agent',
-    value: 'edge',
+    value: EnvironmentCreationTypes.EdgeAgentEnvironment,
   },
 ];
 
 export function WizardNomad({ onCreate }: Props) {
+  const options = useFilterEdgeOptionsIfNeeded(
+    defaultOptions,
+    EnvironmentCreationTypes.EdgeAgentEnvironment
+  );
+
+  const [selected, setSelected] = useState(options[0].value);
+
   return (
     <div className="form-horizontal">
       <div className="form-group">
         <div className="col-sm-12">
           <BoxSelector
-            onChange={() => {}}
+            onChange={(value) => setSelected(value)}
             options={options}
-            value="edge"
+            value={selected}
             radioName="creation-type"
           />
         </div>

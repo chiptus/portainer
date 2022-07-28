@@ -4,7 +4,6 @@ import _ from 'lodash';
 import clsx from 'clsx';
 
 import { notifyError } from '@/portainer/services/notifications';
-import { KaaSFormGroup } from '@/portainer/environments/kaas/KaasFormGroup';
 import { Environment, EnvironmentId } from '@/portainer/environments/types';
 import { useAnalytics } from '@/angulartics.matomo/analytics-services';
 
@@ -22,8 +21,9 @@ import { WizardAzure } from './WizardAzure';
 import { WizardKubernetes } from './WizardKubernetes';
 import { WizardNomad } from './WizardNomad';
 import { AnalyticsState, AnalyticsStateKey } from './types';
-import styles from './EnvironmentsCreationView.module.css';
 import { WizardEndpointsList } from './WizardEndpointsList';
+import { WizardKaaS } from './WizardKaaS';
+import styles from './EnvironmentsCreationView.module.css';
 
 export function EnvironmentCreationView() {
   const {
@@ -183,7 +183,7 @@ function useStepper(
       case 'kubernetes':
         return WizardKubernetes;
       case 'kaas':
-        return KaaSFormGroup;
+        return WizardKaaS;
       case 'nomad':
         return WizardNomad;
       default:

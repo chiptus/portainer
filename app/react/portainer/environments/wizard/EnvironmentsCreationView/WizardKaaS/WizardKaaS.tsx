@@ -9,7 +9,6 @@ import {
 } from '@/portainer/settings/cloud/types';
 import { useCloudCredentials } from '@/portainer/settings/cloud/cloudSettings.service';
 import { Environment } from '@/portainer/environments/types';
-import { AnalyticsStateKey } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/types';
 import { useSettings } from '@/portainer/settings/queries';
 import { CredentialsForm } from '@/portainer/settings/cloud/CreateCredentialsView/CredentialsForm';
 
@@ -17,10 +16,12 @@ import { Loading } from '@@/Widget/Loading';
 import { Link } from '@@/Link';
 import { TextTip } from '@@/Tip/TextTip';
 
+import { AnalyticsStateKey } from '../types';
+
 import { KaasProvidersSelector } from './KaasProvidersSelector';
 import { sendKaasProvisionAnalytics } from './utils';
 import { useCloudProviderOptions, useCreateKaasCluster } from './queries';
-import { validationSchema } from './KaaSEnvironmentForm.validation';
+import { validationSchema } from './WizardKaaS.validation';
 import { ProviderForm } from './ProviderForm';
 import { FormValues, KaasInfo } from './types';
 import { getPayloadParse } from './converter';
@@ -69,7 +70,7 @@ const initialValues: FormValues = {
   },
 };
 
-export function KaaSFormGroup({ onCreate }: Props) {
+export function WizardKaaS({ onCreate }: Props) {
   const settingsQuery = useSettings();
   const createKaasClusterMutation = useCreateKaasCluster();
 
@@ -175,8 +176,7 @@ export function KaaSFormGroup({ onCreate }: Props) {
   }
 }
 
-export const KaasFormGroupAngular = react2angular(KaaSFormGroup, ['onCreate']);
-
+export const KaasFormGroupAngular = react2angular(WizardKaaS, ['onCreate']);
 function isKaasInfo(value: KaasInfo): value is KaasInfo {
   return true;
 }

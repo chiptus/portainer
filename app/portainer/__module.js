@@ -9,7 +9,6 @@ import componentsModule from './components';
 import featureFlagModule from './feature-flags';
 import servicesModule from './services';
 import teamsModule from './teams';
-import environmentsModule from './environments';
 import homeModule from './home';
 import { accessControlModule } from './access-control';
 import { reactModule } from './react';
@@ -45,7 +44,6 @@ angular
     teamsModule,
     'portainer.shared.datatable',
     servicesModule,
-    environmentsModule,
     accessControlModule,
     reactModule,
     sidebarModule,
@@ -206,20 +204,6 @@ angular
           'content@': {
             templateUrl: './views/endpoints/edit/endpoint.html',
             controller: 'EndpointController',
-          },
-        },
-      };
-
-      var edgeDeviceCreation = {
-        name: 'portainer.endpoints.newEdgeDevice',
-        url: '/newEdgeDevice',
-        params: {
-          isEdgeDevice: true,
-        },
-        views: {
-          'content@': {
-            templateUrl: './views/endpoints/create/createendpoint.html',
-            controller: 'CreateEndpointController',
           },
         },
       };
@@ -534,7 +518,6 @@ angular
       $stateRegistryProvider.register(endpoint);
       $stateRegistryProvider.register(endpointAccess);
       $stateRegistryProvider.register(endpointKVM);
-      $stateRegistryProvider.register(edgeDeviceCreation);
       $stateRegistryProvider.register(deviceImport);
       $stateRegistryProvider.register(addFDOProfile);
       $stateRegistryProvider.register(editFDOProfile);

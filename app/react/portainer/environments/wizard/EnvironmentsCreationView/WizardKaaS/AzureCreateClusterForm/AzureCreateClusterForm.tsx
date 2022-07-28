@@ -6,8 +6,6 @@ import {
   KaasProvider,
   providerTitles,
 } from '@/portainer/settings/cloud/types';
-import { MoreSettingsSection } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MoreSettingsSection';
-import { NameField } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/NameField';
 
 import { Select as ReactSelect } from '@@/form-components/ReactSelect';
 import { FormControl } from '@@/form-components/FormControl';
@@ -22,7 +20,9 @@ import { FormValues, isAzureKaasInfo } from '../types';
 import { useSetAvailableOption } from '../useSetAvailableOption';
 import { CredentialsField } from '../shared/CredentialsField';
 import { ActionsSection } from '../shared/ActionsSection';
-import { KaasInfoText } from '../shared/KaasInfoText';
+import { KaaSInfoText } from '../shared/KaaSInfoText';
+import { NameField } from '../../shared/NameField';
+import { MoreSettingsSection } from '../../shared/MoreSettingsSection';
 
 type Props = {
   credentials: Credential[];
@@ -128,7 +128,7 @@ export function AzureCreateClusterForm({
 
   return (
     <>
-      <KaasInfoText />
+      <KaaSInfoText />
       <NameField
         tooltip="Name of the cluster and environment"
         placeholder="e.g. my-cluster-name"

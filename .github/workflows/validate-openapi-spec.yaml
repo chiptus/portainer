@@ -1,12 +1,5 @@
-name: Validate
+name: Validate OpenAPI specs
 
-# NOTE: This workflow has been disabled in the Github Repo actions:
-# https://github.com/portainer/portainer-ee/actions/workflows/validate-openapi-spec.yaml
-
-# workflow disabled due to: https://portainer.atlassian.net/browse/EE-2056?focusedCommentId=15130
-# The license delete endpoint invalidates OAS3.0 spec since it consumes a json payload
-# source: https://github.com/portainer/portainer-ee/blob/develop/api/http/handler/licenses/licenses_delete.go#L43
-# We cannot successfully validate the spec unless this endpoint is updated.
 
 
 on:

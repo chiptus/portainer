@@ -1,7 +1,6 @@
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 import { KaasProvider, Credential } from '@/portainer/settings/cloud/types';
-
-import { Environment } from '../types';
+import { Environment } from '@/portainer/environments/types';
 
 import { KaasInfoResponse, CreateClusterPayload } from './types';
 import { parseKaasInfoResponse } from './converter';

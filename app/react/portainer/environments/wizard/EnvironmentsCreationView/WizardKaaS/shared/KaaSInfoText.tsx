@@ -1,6 +1,6 @@
 import { TextTip } from '@@/Tip/TextTip';
 
-export function KaasInfoText() {
+export function KaaSInfoText() {
   return (
     <TextTip color="blue">
       This will allow you to create a Kubernetes environment (cluster) using a
