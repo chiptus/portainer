@@ -158,6 +158,7 @@
   --bg-searchbar: var(--ui-gray-2);
   --bg-inputbox: var(--ui-gray-2);
   --bg-dropdown-hover: var(--ui-gray-3);
+  --bg-webeditor-color: var(--ui-gray-3);
 
   --text-main-color: var(--grey-7);
   --text-body-color: var(--grey-6);
@@ -283,9 +284,9 @@
   --bg-card-color: var(--grey-1);
   --bg-checkbox-border-color: var(--grey-8);
   --bg-code-color: var(--red-4);
-  --bg-codemirror-color: var(--grey-2);
-  --bg-codemirror-gutters-color: var(--grey-2);
-  --bg-codemirror-selected-color: var(--grey-3);
+  --bg-codemirror-color: var(--ui-gray-warm-11);
+  --bg-codemirror-gutters-color: var(--ui-gray-warm-8);
+  --bg-codemirror-selected-color: var(--ui-gray-warm-7);
   --bg-dropdown-menu-color: var(--grey-1);
   --bg-main-color: var(--grey-2);
   --bg-widget-color: var(--grey-1);
@@ -341,6 +342,7 @@
   --bg-searchbar: var(--grey-1);
   --bg-inputbox: var(--grey-2);
   --bg-dropdown-hover: var(--grey-3);
+  --bg-webeditor-color: var(--ui-gray-warm-9);
 
   --text-main-color: var(--white-color);
   --text-body-color: var(--white-color);
@@ -480,7 +482,7 @@
   --bg-blocklist-item-selected-color: var(--black-color);
   --bg-input-group-addon-color: var(--grey-3);
   --bg-table-color: var(--black-color);
-  --bg-codemirror-gutters-color: var(--black-color);
+  --bg-codemirror-gutters-color: var(--ui-gray-warm-11);
   --bg-codemirror-color: var(--black-color);
   --bg-codemirror-selected-color: var(--grey-3);
   --bg-log-viewer-color: var(--black-color);
@@ -528,6 +530,7 @@
   --bg-inputbox: var(--black-color);
   --bg-searchbar: var(--black-color);
   --bg-dropdown-hover: var(--black-color);
+  --bg-webeditor-color: var(--ui-gray-warm-9);
 
   --text-main-color: var(--white-color);
   --text-body-color: var(--white-color);
