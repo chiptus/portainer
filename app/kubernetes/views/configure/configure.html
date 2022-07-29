@@ -146,8 +146,8 @@
 
             <div class="form-group" ng-if="ctrl.hasTraefikIngress()">
               <span class="col-sm-12 text-muted small">
-                <p>
-                  <i class="fa fa-flask blue-icon" aria-hidden="true" style="margin-right: 2px"></i>
+                <p class="vertical-center">
+                  <pr-icon icon="'svg-flask'" mode="'primary'"></pr-icon>
                   Traefik support is experimental.
                 </p>
               </span>
@@ -319,7 +319,7 @@
                     </tr>
                     <tr ng-repeat="class in ctrl.StorageClasses">
                       <td>
-                        <div class="flex-center justify-left">
+                        <div class="flex">
                           <label class="switch mr-2 mb-0">
                             <input type="checkbox" ng-model="class.selected" /><span class="slider round" data-cy="kubeSetup-storageToggle{{ class.Name }}"></span>
                           </label>
