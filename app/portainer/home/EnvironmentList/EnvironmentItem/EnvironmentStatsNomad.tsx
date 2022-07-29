@@ -20,32 +20,47 @@ export function EnvironmentStatsNomad({ snapshots = [] }: Props) {
 
   return (
     <div className="blocklist-item-line endpoint-item">
-      <span className="blocklist-item-desc space-x-4">
-        <Stat value={addPlural(snapshot.JobCount, 'job')} icon="fa-th-list" />
+      <span className="blocklist-item-desc space-x-2 vertical-center">
+        <Stat
+          value={addPlural(snapshot.JobCount, 'job')}
+          icon="list"
+          featherIcon
+        />
         <Stat
           value={addPlural(snapshot.GroupCount, 'group')}
-          icon="fa-list-alt"
+          icon="svg-objectgroup"
         />
-        <Stat value={addPlural(snapshot.TaskCount, 'task')} icon="fa-cubes">
+        <Stat
+          value={addPlural(snapshot.TaskCount, 'task')}
+          icon="box"
+          featherIcon
+        >
           {snapshot.TaskCount > 0 && (
             <span className="space-x-2">
-              <span>-</span>
               <Stat
                 value={snapshot.RunningTaskCount}
-                icon="fa-power-off green-icon"
+                icon="power"
+                featherIcon
+                iconClass="icon-success"
               />
               <Stat
                 value={snapshot.TaskCount - snapshot.RunningTaskCount}
-                icon="fa-power-off red-icon"
+                icon="power"
+                featherIcon
+                iconClass="icon-danger"
               />
             </span>
           )}
         </Stat>
       </span>
 
-      <span className="small text-muted space-x-3">
+      <span className="small text-muted space-x-2 vertical-center">
         <span>Nomad</span>
-        <Stat value={addPlural(snapshot.NodeCount, 'node')} icon="fa-hdd" />
+        <Stat
+          value={addPlural(snapshot.NodeCount, 'node')}
+          icon="hard-drive"
+          featherIcon
+        />
       </span>
     </div>
   );

@@ -6,6 +6,8 @@ import kube from '@/assets/images/kubernetes_endpoint.png';
 import kubeEdge from '@/assets/images/kubernetes_edge_endpoint.png';
 import { EnvironmentType } from '@/portainer/environments/types';
 import nomad from '@/assets/images/nomad_edge_endpoint.png';
+import azure from '@/assets/ico/vendor/azure.svg';
+import docker from '@/assets/ico/vendor/docker.svg';
 
 interface Props {
   type: EnvironmentType;
@@ -13,6 +15,15 @@ interface Props {
 
 export function EnvironmentIcon({ type }: Props) {
   switch (type) {
+    case EnvironmentType.AgentOnDocker:
+    case EnvironmentType.Docker:
+      return (
+        <img src={docker} width="60" alt="azure endpoint" aria-hidden="true" />
+      );
+    case EnvironmentType.Azure:
+      return (
+        <img src={azure} width="60" alt="azure endpoint" aria-hidden="true" />
+      );
     case EnvironmentType.EdgeAgentOnDocker:
       return (
         <img src={dockerEdge} alt="docker edge endpoint" aria-hidden="true" />
