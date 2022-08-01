@@ -64,13 +64,12 @@ export function PrivateRegistryView({
     <>
       <div className="col-sm-12 form-section-title"> Registry </div>
       <div className="form-group">
-        <div className="col-sm-12">
-          <label className="registry-label control-label text-left">
+        <div className="col-sm-12 vertical-center">
+          <label className="registry-label control-label text-left !pt-0">
             {' '}
             Use Credentials <Tooltip message={tooltipMessage} />
           </label>
-          <label className="switch">
-            {' '}
+          <label className="switch mb-0">
             <input
               type="checkbox"
               name="toggle_registry"
@@ -78,7 +77,7 @@ export function PrivateRegistryView({
               disabled={forminvalid}
               defaultChecked={isActive}
             />
-            <i />{' '}
+            <span className="slider round" />
           </label>
         </div>
       </div>
