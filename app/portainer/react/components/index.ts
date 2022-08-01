@@ -1,4 +1,5 @@
 import angular from 'angular';
+import { react2angular } from 'react2angular';
 
 import { r2a } from '@/react-tools/react2angular';
 import { Icon } from '@/react/components/Icon';
@@ -25,7 +26,10 @@ export const componentsModule = angular
     'tagSelector',
     r2a(TagSelector, ['allowCreate', 'onChange', 'value'])
   )
-  .component('portainerTooltip', r2a(Tooltip, ['message', 'position']))
+  .component(
+    'portainerTooltip',
+    react2angular(Tooltip, ['message', 'position'])
+  )
   .component('fileUploadField', fileUploadField)
   .component('porSwitchField', switchField)
   .component('licenseExpirationPanel', r2a(LicenseExpirationPanelContainer, []))
@@ -36,7 +40,7 @@ export const componentsModule = angular
   .component('rdLoading', r2a(Loading, []))
   .component(
     'tableColumnHeader',
-    r2a(TableColumnHeaderAngular, [
+    react2angular(TableColumnHeaderAngular, [
       'colTitle',
       'canSort',
       'isSorted',
@@ -50,7 +54,7 @@ export const componentsModule = angular
   )
   .component(
     'prIcon',
-    r2a(Icon, ['className', 'feather', 'icon', 'mode', 'size'])
+    react2angular(Icon, ['className', 'feather', 'icon', 'mode', 'size'])
   )
   .component('reactQueryDevTools', r2a(ReactQueryDevtoolsWrapper, []))
   .component(
