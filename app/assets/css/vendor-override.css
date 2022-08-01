@@ -411,4 +411,5 @@ fieldset[disabled] .btn {
 
 .label-default {
   line-height: 11px;
+  vertical-align: middle;
 }

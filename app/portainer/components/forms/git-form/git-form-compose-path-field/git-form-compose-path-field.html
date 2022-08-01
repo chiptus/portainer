@@ -19,7 +19,7 @@
         ng-pattern="/.+\.(yml|yaml|json|hcl)$/i"
         required
       />
-      <p class="mt-2" ng-show="pathForm.repoPathField.$error.pattern">
+      <p class="mt-2 text-muted small vertical-center" ng-show="pathForm.repoPathField.$error.pattern">
         <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> File path must include yaml, yml, json, or hcl extension
       </p>
     </div>
