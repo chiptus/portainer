@@ -86,6 +86,18 @@ angular.module('portainer.app').controller('StackController', [
       $scope.formValues.Env = value;
     }
 
+    $scope.onEnableWebhookChange = function (enable) {
+      $scope.$evalAsync(() => {
+        $scope.formValues.EnableWebhook = enable;
+      });
+    };
+
+    $scope.onPruneChange = function (enable) {
+      $scope.$evalAsync(() => {
+        $scope.formValues.Prune = enable;
+      });
+    };
+
     $window.onbeforeunload = () => {
       if ($scope.stackFileContent && $scope.state.isEditorDirty) {
         return '';
