@@ -1,19 +1,12 @@
 package stacks
 
 import (
-	"context"
-	"fmt"
-	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"path"
 	"strconv"
 	"time"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
 	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -288,82 +281,21 @@ func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWrite
 	if configErr != nil {
 		return configErr
 	}
-	//here EE-3159
-	cli, err := handler.DockerClientFactory.CreateClient(endpoint, "", nil)
+
+	err = handler.deployComposeStack(config, false)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to create Docker client", Err: err}
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: err.Error(), Err: err}
 	}
 
-	// TODO: REVIEW
-	// Context should be handled properly
-	ctx := context.TODO()
-
-	reader, err := cli.ImagePull(ctx, "portainer/compose-unpacker:latest", types.ImagePullOptions{})
-	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to pull unpacker image", Err: err}
-	}
-
-	defer reader.Close()
-	io.Copy(ioutil.Discard, reader)
-
-	// TODO: REVIEW
-	// Will only work on Linux filesystems
-	composePath := path.Join("/tmp", fmt.Sprintf("compose-%d-%s", stack.ID, stack.Name))
-
-	resp, err := cli.ContainerCreate(ctx, &container.Config{
-		Image: "portainer/compose-unpacker:latest",
-		// TODO: REVIEW
-		// Only supports one compose file for the scope of this POC
-		Cmd: []string{"deploy", payload.RepositoryURL, config.stack.EntryPoint, stack.Name, composePath},
-		// Cmd: []string{"deploy", payload.RepositoryURL, config.stack.EntryPoint, stack.Name, composePath, "-u", config.stack.GitConfig.Authentication.Username, "-p", config.stack.GitConfig.Authentication.Password},
-	}, &container.HostConfig{
-		Binds: []string{
-			fmt.Sprintf("%s:%s", composePath, composePath),
-			// TODO: REVIEW
-			// Will only work on Linux filesystems
-			"/var/run/docker.sock:/var/run/docker.sock",
-		},
-	}, nil, nil, fmt.Sprintf("portainer-unpacker-%d-%s", stack.ID, stack.Name))
-
-	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to create unpacker container", Err: err}
-	}
-
-	err = cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
-	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to start unpacker container", Err: err}
-	}
-
-	// TODO: REVIEW
-	// Container should be cleaned-up after the operation is completed
-	statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
-	select {
-	case err := <-errCh:
-		if err != nil {
-			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "An error occured while waiting for the deployment of the stack through the unpacker container", Err: err}
+	if payload.AutoUpdate != nil && payload.AutoUpdate.Interval != "" {
+		jobID, e := startAutoupdate(stack.ID, stack.AutoUpdate.Interval, handler.Scheduler, handler.StackDeployer, handler.DataStore, handler.GitService, handler.userActivityService)
+		if e != nil {
+			return e
 		}
-	case <-statusCh:
+
+		stack.AutoUpdate.JobID = jobID
 	}
 
-	// TODO: REVIEW
-	// Security settings check was not implemented in POC
-
-	// err = handler.deployComposeStack(config, false)
-	// if err != nil {
-	// 	return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: err.Error(), Err: err}
-	// }
-
-	// TODO: REVIEW
-	// AutoUpdate was not implemented in the POC
-
-	// if payload.AutoUpdate != nil && payload.AutoUpdate.Interval != "" {
-	// 	jobID, e := startAutoupdate(stack.ID, stack.AutoUpdate.Interval, handler.Scheduler, handler.StackDeployer, handler.DataStore, handler.GitService, handler.userActivityService)
-	// 	if e != nil {
-	// 		return e
-	// 	}
-
-	// 	stack.AutoUpdate.JobID = jobID
-	// }
 	stack.CreatedBy = config.user.Username
 	err = handler.DataStore.Stack().Create(stack)
 	if err != nil {
