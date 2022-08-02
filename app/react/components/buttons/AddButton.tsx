@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 
-import { Icon } from '@/react/components/Icon';
+import { Icon } from '@@/Icon';
 
 import styles from './AddButton.module.css';
 
