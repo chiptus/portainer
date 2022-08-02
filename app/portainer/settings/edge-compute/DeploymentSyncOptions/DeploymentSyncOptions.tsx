@@ -50,7 +50,7 @@ export function DeploymentSyncOptions() {
   return (
     <div className="row">
       <Widget>
-        <WidgetTitle icon="fa-laptop" title="Deployment sync options" />
+        <WidgetTitle icon="svg-laptop" title="Deployment sync options" />
         <WidgetBody>
           <Formik<FormValues>
             initialValues={initialValues}
@@ -62,7 +62,7 @@ export function DeploymentSyncOptions() {
                 <FormControl
                   inputId="edge_async_mode"
                   label="Use Async mode by default"
-                  size="medium"
+                  size="small"
                   errors={errors?.Edge?.AsyncMode}
                   tooltip="Using Async allows the ability to define different ping,
                   snapshot and command frequencies."
