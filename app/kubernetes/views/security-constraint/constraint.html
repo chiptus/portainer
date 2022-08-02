@@ -49,8 +49,8 @@
                 <label class="control-label text-left col-sm-3 col-lg-2 px-0">Restrict host networking ports</label>
                 <label class="switch space-left col-sm-8"> <input type="checkbox" ng-model="formValues.hostPorts.enabled" /><span class="slider round"></span> </label>
                 <div ng-if="formValues.hostPorts.enabled" class="form-group-inline-message row px-2">
-                  <div class="col-sm-12 p-0 !mb-0 flex">
-                    <label class="control-label text-left mr-5">Host network</label>
+                  <div class="col-sm-12 p-0 !mb-0 flex justify-start">
+                    <label class="control-label text-left">Host network</label>
                     <label class="switch space-left"> <input type="checkbox" ng-model="formValues.hostPorts.hostNetwork" /><span class="slider round"></span> </label>
                   </div>
                   <div class="text-muted small top-space-sm col-sm-12 !mb-0 p-0">Range of allowable ports in the host network namespace</div>
@@ -92,7 +92,7 @@
               <div class="form-group col-sm-12 top-space-lg">
                 <div class="text-muted small">Controls which volume sources may be used</div>
                 <div class="row">
-                  <label class="control-label text-left col-sm-8 col-lg-2 p-0 m-0">Restrict volume types</label>
+                  <label class="control-label text-left col-sm-3 col-lg-2 p-0 m-0">Restrict volume types</label>
                   <label class="switch space-left col-sm-8">
                     <input type="checkbox" ng-model="formValues.volumeTypes.enabled" ng-change="updateDuplicated()" /><span class="slider round"></span>
                   </label>
@@ -143,7 +143,7 @@
               <div class="form-group col-sm-12 top-space-lg">
                 <div class="text-muted small">Controls the host paths that are allowed when using hostPath volumes</div>
                 <div class="row">
-                  <label class="control-label text-left col-sm-8 col-lg-2 p-0 m-0">Restrict host filesystem paths</label>
+                  <label class="control-label text-left col-sm-3 col-lg-2 p-0 m-0">Restrict host filesystem paths</label>
                   <label class="switch space-left col-sm-8 m-0">
                     <input type="checkbox" ng-model="formValues.hostFilesystem.enabled" ng-change="updateDuplicated()" />
                     <span class="slider round"></span>

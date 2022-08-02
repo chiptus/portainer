@@ -121,7 +121,7 @@ export function confirmDeletion(message: string, callback: ConfirmCallback) {
     buttons: {
       confirm: {
         label: 'Remove',
-        className: 'btn-danger',
+        className: 'btn-primary',
       },
     },
     callback,
