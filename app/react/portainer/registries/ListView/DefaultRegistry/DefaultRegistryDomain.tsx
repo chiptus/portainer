@@ -1,10 +1,10 @@
 import clsx from 'clsx';
-import { useSettings } from 'Portainer/settings/queries';
+import { usePublicSettings } from 'Portainer/settings/queries';
 
 export function DefaultRegistryDomain() {
-  const settingsQuery = useSettings(
-    (settings) => settings.DefaultRegistry.Hide
-  );
+  const settingsQuery = usePublicSettings({
+    select: (settings) => settings.DefaultRegistry.Hide,
+  });
 
   return (
     <span

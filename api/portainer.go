@@ -1109,7 +1109,7 @@ type (
 
 		// the default builtin registry now is anonymous docker hub registry
 		DefaultRegistry struct {
-			Hide bool
+			Hide bool `json:"Hide" example:"false"`
 		}
 
 		Edge struct {

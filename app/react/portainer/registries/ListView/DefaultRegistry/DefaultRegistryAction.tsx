@@ -1,5 +1,5 @@
 import {
-  useSettings,
+  usePublicSettings,
   useUpdateDefaultRegistrySettingsMutation,
 } from 'Portainer/settings/queries';
 import { notifySuccess } from 'Portainer/services/notifications';
@@ -9,9 +9,9 @@ import { Button } from '@@/buttons';
 import { Icon } from '@@/Icon';
 
 export function DefaultRegistryAction() {
-  const settingsQuery = useSettings(
-    (settings) => settings.DefaultRegistry.Hide
-  );
+  const settingsQuery = usePublicSettings({
+    select: (settings) => settings.DefaultRegistry.Hide,
+  });
   const defaultRegistryMutation = useUpdateDefaultRegistrySettingsMutation();
 
   if (!settingsQuery.isSuccess) {

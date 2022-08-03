@@ -89,7 +89,7 @@ class porImageRegistryController {
 
         // hide default(anonymous) dockerhub registry if user has an authenticated one
         if (!this.registries.some((registry) => registry.Type === RegistryTypes.DOCKERHUB)) {
-          const settings = await this.SettingsService.settings();
+          const settings = await this.SettingsService.publicSettings();
           const defaultRegistry = settings.DefaultRegistry;
           if (!defaultRegistry.Hide || this.registries.length === 0) {
             showDefaultRegistry = true;

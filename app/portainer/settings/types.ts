@@ -154,4 +154,6 @@ export interface PublicSettingsResponse {
   EnableTelemetry: boolean;
   // The expiry of a Kubeconfig
   KubeconfigExpiry: string;
+  // Default registry info
+  DefaultRegistry: DefaultRegistry;
 }

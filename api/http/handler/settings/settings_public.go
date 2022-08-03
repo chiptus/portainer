@@ -33,6 +33,10 @@ type publicSettingsResponse struct {
 	// Whether team sync is enabled
 	TeamSync bool `json:"TeamSync" example:"true"`
 
+	DefaultRegistry struct {
+		Hide bool `json:"Hide" example:"false"`
+	}
+
 	Edge struct {
 		// Whether the device has been started in edge async mode
 		AsyncMode bool
@@ -75,6 +79,7 @@ func generatePublicSettings(appSettings *portaineree.Settings) *publicSettingsRe
 		EnableTelemetry:           appSettings.EnableTelemetry,
 		KubeconfigExpiry:          appSettings.KubeconfigExpiry,
 		Features:                  appSettings.FeatureFlagSettings,
+		DefaultRegistry:           appSettings.DefaultRegistry,
 	}
 
 	publicSettings.Edge.AsyncMode = appSettings.Edge.AsyncMode
