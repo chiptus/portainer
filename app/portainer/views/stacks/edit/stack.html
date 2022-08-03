@@ -180,7 +180,7 @@
                 class="form-group"
                 ng-if="formValues.EnableWebhook && endpoint.type !== 4 && hasAuthorizations(['PortainerWebhookCreate', 'PortainerWebhookList', 'PortainerWebhookDelete'])"
               >
-                <label class="col-sm-1 control-label text-left"> Webhook </label>
+                <label class="col-sm-1 control-label text-left" style="padding-left: 30px"> Webhook </label>
                 <div class="col-sm-11">
                   <span class="text-muted"> {{ formValues.WebhookURL | truncatelr }} </span>
                   <button type="button" class="btn btn-sm btn-primary btn-sm space-left" ng-if="formValues.WebhookURL" ng-click="copyWebhook()">
