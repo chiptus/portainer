@@ -92,6 +92,15 @@ func (handler *Handler) stackAssociate(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
+	canManage, err := handler.userCanManageStacks(securityContext, endpoint)
+	if err != nil {
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to verify user authorizations to validate stack deletion", Err: err}
+	}
+	if !canManage {
+		errMsg := "Stack management is disabled for non-admin users"
+		return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: errMsg, Err: fmt.Errorf(errMsg)}
+	}
+
 	stack.EndpointID = portaineree.EndpointID(endpointID)
 	stack.SwarmID = swarmId
 

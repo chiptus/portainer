@@ -15,7 +15,6 @@ import (
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
-	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/stackutils"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
@@ -80,22 +79,18 @@ func (handler *Handler) stackCreate(w http.ResponseWriter, r *http.Request) *htt
 	}
 	middlewares.SetEndpoint(endpoint, r)
 
-	if endpointutils.IsDockerEndpoint(endpoint) && !endpoint.SecuritySettings.AllowStackManagementForRegularUsers {
-		securityContext, err := security.RetrieveRestrictedRequestContext(r)
-		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user info from request context", err}
-		}
+	securityContext, err := security.RetrieveRestrictedRequestContext(r)
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user info from request context", err}
+	}
 
-		canCreate, err := handler.userCanCreateStack(securityContext, portaineree.EndpointID(endpointID))
-
-		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to verify user authorizations to validate stack creation", err}
-		}
-
-		if !canCreate {
-			errMsg := "Stack creation is disabled for non-admin users"
-			return &httperror.HandlerError{http.StatusForbidden, errMsg, errors.New(errMsg)}
-		}
+	canManage, err := handler.userCanManageStacks(securityContext, endpoint)
+	if err != nil {
+		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to verify user authorizations to validate stack deletion", Err: err}
+	}
+	if !canManage {
+		errMsg := "Stack creation is disabled for non-admin users"
+		return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: errMsg, Err: errors.New(errMsg)}
 	}
 
 	err = handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)

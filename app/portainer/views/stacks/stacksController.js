@@ -56,13 +56,16 @@ function StacksController($scope, $state, Notifications, StackService, ModalServ
       });
   }
 
-  async function loadCreateEnabled() {
+  async function canManageStacks() {
     return endpoint.SecuritySettings.allowStackManagementForRegularUsers || Authentication.isAdmin() || Authentication.hasAuthorizations(['EndpointResourcesAccess']);
   }
 
   async function initView() {
+    $scope.createEnabled = await canManageStacks();
+    if (!$scope.createEnabled) {
+      $state.go('docker.dashboard');
+    }
     getStacks();
-    $scope.createEnabled = await loadCreateEnabled();
   }
 
   initView();
