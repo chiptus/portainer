@@ -152,7 +152,7 @@ export async function createRemoteEnvironment({
 }: CreateRemoteEnvironment) {
   return createEnvironment(name, creationType, {
     ...options,
-    url: `tcp://${url}`,
+    url: `${url}`,
   });
 }
 
