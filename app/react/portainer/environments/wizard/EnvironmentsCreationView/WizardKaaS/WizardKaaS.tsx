@@ -124,19 +124,15 @@ export function WizardKaaS({ onCreate }: Props) {
       {!credentialsFound && (
         <>
           <TextTip color="orange">
-            No API key found for
-            <span className="mx-1">{providerTitles[provider]}.</span>
-            Save your
-            <span className="mx-1">{providerTitles[provider]}</span>
-            credentials below, or in the
+            No API key found for {providerTitles[provider]}. Save your{' '}
+            {providerTitles[provider]} credentials below, or in the
             <Link
               to="portainer.settings.cloud"
               title="cloud settings"
-              className="ml-1"
+              className="hyperlink"
             >
-              cloud settings
+              cloud settings.
             </Link>
-            .
           </TextTip>
           <CredentialsForm selectedProvider={provider} />
         </>

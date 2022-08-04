@@ -97,18 +97,24 @@ export function CredentialsDatatable({
 
   return (
     <TableContainer>
-      <TableTitle icon="fa-cloud" label="Cloud provider credentials" />
-
-      <TableActions>
-        <CredentialsDatatableActions
-          selectedItems={selectedFlatRows.map((row) => row.original)}
+      <TableTitle
+        icon="cloud"
+        featherIcon
+        label="Cloud&nbsp;provider&nbsp;credentials"
+      >
+        <SearchBar
+          value={searchBarValue}
+          onChange={(value: string) => setSearchBarValue(value)}
+          data-cy="credentials-searchBar"
+          placeholder="Search for a credential..."
         />
-      </TableActions>
-      <SearchBar
-        value={searchBarValue}
-        onChange={(value: string) => setSearchBarValue(value)}
-        data-cy="credentials-searchBar"
-      />
+        <TableActions>
+          <CredentialsDatatableActions
+            selectedItems={selectedFlatRows.map((row) => row.original)}
+          />
+        </TableActions>
+      </TableTitle>
+
       <Table
         className={tableProps.className}
         role={tableProps.role}

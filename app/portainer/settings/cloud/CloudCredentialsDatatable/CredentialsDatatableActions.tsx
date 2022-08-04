@@ -3,6 +3,7 @@ import { useRouter } from '@uirouter/react';
 import { confirmDeletionAsync } from '@/portainer/services/modal.service/confirm';
 
 import { Button } from '@@/buttons';
+import { Icon } from '@@/Icon';
 
 import { Credential } from '../types';
 import { useDeleteCredentialMutation } from '../cloudSettings.service';
@@ -16,14 +17,19 @@ export function CredentialsDatatableActions({ selectedItems }: Props) {
   const deleteCredentialMutation = useDeleteCredentialMutation();
 
   return (
-    <div className="actionBar">
+    <>
       <Button
         disabled={selectedItems.length < 1}
-        color="danger"
+        color="dangerlight"
         onClick={() => onDeleteClick(selectedItems)}
         data-cy="credentials-deleteButton"
       >
-        <i className="fa fa-trash-alt space-right" aria-hidden="true" />
+        <Icon
+          icon="trash-2"
+          feather
+          className="space-right"
+          aria-hidden="true"
+        />
         Remove
       </Button>
 
@@ -33,10 +39,10 @@ export function CredentialsDatatableActions({ selectedItems }: Props) {
         }
         data-cy="credentials-addButton"
       >
-        <i className="fa fa-plus space-right" aria-hidden="true" />
+        <Icon icon="plus" feather className="space-right" />
         Add credentials
       </Button>
-    </div>
+    </>
   );
 
   async function onDeleteClick(selectedItems: Credential[]) {
@@ -53,5 +59,7 @@ export function CredentialsDatatableActions({ selectedItems }: Props) {
     selectedItems.forEach((item) => {
       deleteCredentialMutation.mutate(item);
     });
+
+    router.stateService.reload();
   }
 }
