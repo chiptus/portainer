@@ -10,7 +10,7 @@ function BuildImageController($scope, $async, $window, ModalService, BuildServic
   };
 
   $scope.formValues = {
-    ImageNames: [{ Name: '' }],
+    ImageNames: [{ Name: '', Valid: false, Unique: true }],
     UploadFile: null,
     DockerFileContent: '',
     URL: '',
@@ -28,23 +28,38 @@ function BuildImageController($scope, $async, $window, ModalService, BuildServic
     $scope.state.isEditorDirty = false;
   });
 
-  $scope.checkName = function (name) {
-    const parts = name.split('/');
+  $scope.checkName = function (index) {
+    var item = $scope.formValues.ImageNames[index];
+    item.Valid = true;
+    item.Unique = true;
+    if (item.Name !== '') {
+      // Check unique
+      $scope.formValues.ImageNames.forEach((element, idx) => {
+        if (idx != index && element.Name == item.Name) {
+          item.Valid = false;
+          item.Unique = false;
+        }
+      });
+      if (!item.Valid) {
+        return;
+      }
+    }
+    // Validation
+    const parts = item.Name.split('/');
     const repository = parts[parts.length - 1];
     const repositoryRegExp = RegExp('^[a-z0-9-_]{2,255}(:[A-Za-z0-9-_.]{1,128})?$');
-    return repositoryRegExp.test(repository);
+    item.Valid = repositoryRegExp.test(repository);
   };
 
   $scope.addImageName = function () {
-    $scope.formValues.ImageNames.push({ Name: '' });
-  };
-
-  $scope.addImageName = function () {
-    $scope.formValues.ImageNames.push({ Name: '' });
+    $scope.formValues.ImageNames.push({ Name: '', Valid: false, Unique: true });
   };
 
   $scope.removeImageName = function (index) {
     $scope.formValues.ImageNames.splice(index, 1);
+    for (var i = 0; i < $scope.formValues.ImageNames.length; i++) {
+      $scope.checkName(i);
+    }
   };
 
   function buildImageBasedOnBuildType(method, names) {
@@ -113,8 +128,7 @@ function BuildImageController($scope, $async, $window, ModalService, BuildServic
       return false;
     }
     for (var i = 0; i < $scope.formValues.ImageNames.length; i++) {
-      var item = $scope.formValues.ImageNames[i];
-      if (!$scope.checkName(item.Name)) {
+      if (!$scope.formValues.ImageNames[i].Valid) {
         return false;
       }
     }
