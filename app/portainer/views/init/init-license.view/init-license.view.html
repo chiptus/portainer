@@ -19,9 +19,11 @@
               <span class="col-sm-12 text-muted">
                 <p>Please register your Portainer license.</p>
               </span>
-              <div class="col-sm-12 small text-muted">
-                <i class="fa fa-info-circle blue-icon fa-lg space-right" aria-hidden="true"></i>
-                Your license key should start with “2-”.
+              <div class="col-sm-12"
+                ><span class="small text-muted vertical-center">
+                  <pr-icon icon="'info'" feather="true" mode="'primary'" size="'md'" class="vertical-center" aria-hidden="true"></pr-icon>
+                  Your license key should start with “2-”.</span
+                >
               </div>
             </div>
 
@@ -36,19 +38,18 @@
               <div class="col-sm-12">
                 <button
                   type="button"
-                  class="btn btn-primary btn-sm"
+                  class="btn btn-primary btn-sm no-margin"
                   ng-click="$ctrl.submit()"
                   ng-disabled="$ctrl.state.actionInProgress || !$ctrl.isFormValid()"
                   button-spinner="$ctrl.state.actionInProgress"
-                  style="margin-left: 0"
                 >
                   <span ng-hide="$ctrl.state.actionInProgress">Submit</span>
                   <span ng-show="$ctrl.state.actionInProgress">In progress...</span>
                 </button>
-                <div style="padding: 15px 0px; font-weight: bold">
+                <div class="padding-top bold">
                   <a href="https://www.portainer.io/get-a-license" target="_blank">Don't have a license?</a>
                 </div>
-                <span class="text-danger" ng-if="$ctrl.state.formError" style="margin-left: 5px">{{ $ctrl.state.formError }}</span>
+                <span class="text-danger space-left" ng-if="$ctrl.state.formError">{{ $ctrl.state.formError }}</span>
               </div>
             </div>
           </form>
