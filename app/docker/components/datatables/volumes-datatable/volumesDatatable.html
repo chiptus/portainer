@@ -7,7 +7,7 @@
           {{ $ctrl.titleText }}
         </div>
         <div class="searchBar vertical-center">
-          <pr-icon icon="'search'" feather="true" class="leading-none"></pr-icon>
+          <pr-icon icon="'search'" feather="true" class="'leading-none searchIcon'"></pr-icon>
           <input
             type="text"
             class="searchInput"
@@ -190,7 +190,7 @@
                 <span ng-if="$ctrl.offlineMode">{{ item.Id | truncate: 40 }}</span>
                 <btn authorization="DockerAgentBrowseList" ng-if="$ctrl.showBrowseAction && !$ctrl.offlineMode">
                   <a ui-sref="docker.volumes.volume.browse({ id: item.Id, nodeName: item.NodeName })" class="btn btn-xs btn-primary space-left">
-                    <pr-icon icon="'search'" feather="true"></pr-icon> browse
+                    <pr-icon icon="'search'" feather="true" class-name="'searchIcon'"></pr-icon> browse
                   </a>
                 </btn>
                 <span style="margin-left: 10px" class="label label-warning image-tag space-left" ng-if="item.dangling">Unused</span>
