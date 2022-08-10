@@ -1,4 +1,6 @@
-import { KaaSIcon } from './KaaSIcon';
+import { FeatureId } from '@/portainer/feature-flags/enums';
+
+import KaaSIcon from './kaas-icon.svg?c';
 
 export const environmentTypes = [
   {
@@ -29,6 +31,7 @@ export const environmentTypes = [
     formTitle: 'Connect to your Nomad environment',
     description: 'Connect to HashiCorp Nomad environment via API',
     icon: 'nomad-icon',
+    featureId: FeatureId.NOMAD,
   },
   {
     id: 'kaas',
@@ -36,5 +39,6 @@ export const environmentTypes = [
     formTitle: 'Provision a KaaS environment',
     description: 'Provision a Kubernetes environment with a cloud provider',
     icon: KaaSIcon,
+    featureId: FeatureId.KAAS_PROVISIONING,
   },
 ] as const;

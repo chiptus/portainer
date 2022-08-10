@@ -1,30 +1,43 @@
 .root {
   --selected-item-color: var(--blue-2);
+  @apply border border-solid;
+  @apply bg-gray-2 border-gray-5 text-black;
+  @apply th-dark:bg-gray-iron-10 th-dark:border-gray-neutral-8 th-dark:text-white;
+
   display: block;
   width: 200px;
-  height: 300px;
-  border: 1px solid rgb(163, 163, 163);
+
+  min-height: 300px;
+
   border-radius: 5px;
   padding: 25px 20px;
   cursor: pointer;
-  box-shadow: 0 3px 10px -2px rgb(161 170 166 / 60%);
+  box-shadow: var(--shadow-boxselector-color);
+
   margin: 0;
+  display: block;
 }
 
-.root:hover {
-  box-shadow: 0 3px 10px -2px rgb(161 170 166 / 80%);
-  border: 1px solid var(--blue-2);
+.feature:hover {
+  border-color: var(--blue-2);
   color: #337ab7;
+  box-shadow: 0 3px 10px -2px rgb(161 170 166 / 80%);
 }
 
-.active:hover {
-  color: #fff;
+.teaser {
+  @apply border-2;
+  border-color: var(--BE-only);
+  color: var(--text-muted-color);
+}
+
+.teaser:hover {
+  box-shadow: 0 3px 10px -2px rgb(161 170 166 / 80%);
 }
 
 .active {
-  background: #337ab7;
-  color: #fff;
-  border: 1px solid var(--blue-2);
+  @apply bg-blue-3 border-blue-6;
+  @apply th-dark:bg-blue-10 th-dark:border-blue-7;
+
   box-shadow: 0 3px 10px -2px rgb(161 170 166 / 80%);
 }
 
@@ -33,5 +46,5 @@
 }
 
 .icon-component {
-  font-size: 40px;
+  font-size: 80px;
 }
