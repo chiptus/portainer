@@ -287,7 +287,7 @@ class KubernetesDeployController {
 
       await this.StackService.kubernetesDeploy(this.endpoint.Id, method, payload);
 
-      this.Notifications.success('Manifest successfully deployed');
+      this.Notifications.success('Success', 'Manifest successfully deployed');
       this.state.isEditorDirty = false;
       this.$state.go('kubernetes.applications');
     } catch (err) {

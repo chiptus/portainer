@@ -133,7 +133,7 @@ export function DeploymentSyncOptions() {
       },
       {
         onSuccess() {
-          notifySuccess('Settings updated successfully');
+          notifySuccess('Success', 'Settings updated successfully');
           resetForm();
         },
       }

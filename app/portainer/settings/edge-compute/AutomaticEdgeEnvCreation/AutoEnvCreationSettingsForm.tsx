@@ -63,6 +63,7 @@ export function AutoEnvCreationSettingsForm({ settings }: Props) {
       updateSettings(variables, {
         onSuccess() {
           notifySuccess(
+            'Success',
             'Successfully updated Automatic Environment Creation settings'
           );
         },

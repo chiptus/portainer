@@ -122,7 +122,7 @@ class StackRedeployGitFormController {
             that.formValues,
             !!result[0]
           );
-          that.Notifications.success('Pulled and redeployed stack successfully');
+          that.Notifications.success('Success', 'Pulled and redeployed stack successfully');
           that.$state.reload();
         } catch (err) {
           that.Notifications.error('Failure', err, 'Failed redeploying stack');
@@ -145,7 +145,7 @@ class StackRedeployGitFormController {
         );
         this.savedFormValues = angular.copy(this.formValues);
         this.state.hasUnsavedChanges = false;
-        this.Notifications.success('Save stack settings successfully');
+        this.Notifications.success('Success', 'Save stack settings successfully');
 
         this.stack = stack;
       } catch (err) {

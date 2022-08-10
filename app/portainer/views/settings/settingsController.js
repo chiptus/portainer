@@ -116,7 +116,7 @@ angular.module('portainer.app').controller('SettingsController', [
         .then(function success(data) {
           const downloadData = new Blob([data.file], { type: 'application/gzip' });
           FileSaver.saveAs(downloadData, data.name);
-          Notifications.success('Backup successfully downloaded');
+          Notifications.success('Success', 'Backup successfully downloaded');
         })
         .catch(function error(err) {
           Notifications.error('Failure', err, 'Unable to download backup');
@@ -143,7 +143,7 @@ angular.module('portainer.app').controller('SettingsController', [
       const payload = getS3SettingsPayload();
       BackupService.saveS3Settings(payload)
         .then(function success() {
-          Notifications.success('S3 Backup settings successfully saved');
+          Notifications.success('Success', 'S3 Backup settings successfully saved');
         })
         .catch(function error(err) {
           Notifications.error('Failure', err, 'Unable to save S3 backup settings');
@@ -157,7 +157,7 @@ angular.module('portainer.app').controller('SettingsController', [
       const payload = getS3SettingsPayload();
       BackupService.exportBackup(payload)
         .then(function success() {
-          Notifications.success('Exported backup to S3 successfully');
+          Notifications.success('Success', 'Exported backup to S3 successfully');
         })
         .catch(function error(err) {
           Notifications.error('Failure', err, 'Unable to export backup to S3');
@@ -186,7 +186,7 @@ angular.module('portainer.app').controller('SettingsController', [
       settings.CloudApiKeys = undefined;
       SettingsService.update(settings)
         .then(function success() {
-          Notifications.success('Settings updated');
+          Notifications.success('Success', 'Settings updated');
           StateManager.updateLogo(settings.LogoURL);
           StateManager.updateSnapshotInterval(settings.SnapshotInterval);
           StateManager.updateEnableTelemetry(settings.EnableTelemetry);

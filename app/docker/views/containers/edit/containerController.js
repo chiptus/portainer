@@ -370,7 +370,7 @@ angular.module('portainer.docker').controller('ContainerController', [
           return $q.when($scope.WebhookID && WebhookService.deleteWebhook($scope.WebhookID));
         })
         .then(function success() {
-          Notifications.success('Container successfully removed');
+          Notifications.success('Success', 'Container successfully removed');
           $state.go('docker.containers', {}, { reload: true });
         })
         .catch(function error(err) {
@@ -465,7 +465,7 @@ angular.module('portainer.docker').controller('ContainerController', [
       }
 
       function notifyAndChangeView() {
-        Notifications.success('Container successfully re-created');
+        Notifications.success('Success', 'Container successfully re-created');
         $state.go('docker.containers', {}, { reload: true });
       }
 
@@ -499,7 +499,7 @@ angular.module('portainer.docker').controller('ContainerController', [
           Name: restartPolicy,
           MaximumRetryCount: maximumRetryCount,
         };
-        Notifications.success('Restart policy updated');
+        Notifications.success('Success', 'Restart policy updated');
       }
 
       function notifyOnError(err) {

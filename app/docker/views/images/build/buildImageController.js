@@ -113,7 +113,7 @@ function BuildImageController($scope, $async, $window, ModalService, BuildServic
         if (data.hasError) {
           Notifications.error('An error occurred during build', { msg: 'Please check build logs output' });
         } else {
-          Notifications.success('Image successfully built');
+          Notifications.success('Success', 'Image successfully built');
         }
       } catch (err) {
         Notifications.error('Failure', err, 'Unable to build image');

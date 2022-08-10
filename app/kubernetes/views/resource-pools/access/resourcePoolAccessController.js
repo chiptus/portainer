@@ -107,7 +107,7 @@ class KubernetesResourcePoolAccessController {
       }
       await this.KubernetesConfigMapService.updateAccess(accessConfigMap);
       await this.EndpointService.updatePoolAccess(this.endpoint.Id, this.pool.Namespace.Name, usersToAdd, teamsToAdd, [], []);
-      this.Notifications.success('Access successfully created');
+      this.Notifications.success('Success', 'Access successfully created');
       this.$state.reload(this.$state.current);
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to create accesses');
@@ -137,7 +137,7 @@ class KubernetesResourcePoolAccessController {
       }
       await this.KubernetesConfigMapService.updateAccess(accessConfigMap);
       await this.EndpointService.updatePoolAccess(this.endpoint.Id, this.pool.Namespace.Name, [], [], usersToRemove, teamsToRemove);
-      this.Notifications.success('Access successfully removed');
+      this.Notifications.success('Success', 'Access successfully removed');
       this.$state.reload(this.$state.current);
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to remove accesses');

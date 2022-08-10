@@ -123,7 +123,7 @@ export default class DockerFeaturesConfigurationController {
           },
         });
 
-        this.Notifications.success('Saved settings successfully');
+        this.Notifications.success('Success', 'Saved settings successfully');
       } catch (e) {
         this.Notifications.error('Failure', e, 'Failed saving settings');
       }

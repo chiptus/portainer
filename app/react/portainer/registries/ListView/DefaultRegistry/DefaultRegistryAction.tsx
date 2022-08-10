@@ -62,7 +62,10 @@ export function DefaultRegistryAction() {
       },
       {
         onSuccess() {
-          notifySuccess('Default registry Settings updated successfully');
+          notifySuccess(
+            'Success',
+            'Default registry Settings updated successfully'
+          );
         },
       }
     );

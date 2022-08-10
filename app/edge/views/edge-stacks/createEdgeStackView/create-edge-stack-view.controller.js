@@ -190,7 +190,7 @@ export default class CreateEdgeStackViewController {
       try {
         await this.createStackByMethod(name, method, this.dryrun);
 
-        this.Notifications.success('Stack successfully deployed');
+        this.Notifications.success('Success', 'Stack successfully deployed');
         this.state.isEditorDirty = false;
         this.$state.go('edge.stacks');
       } catch (err) {

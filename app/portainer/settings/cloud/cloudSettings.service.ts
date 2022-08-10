@@ -68,7 +68,10 @@ export function useUpdateCredentialMutation() {
     }) => updateCredential(credential, id),
     {
       onSuccess: (_, data) => {
-        notifySuccess('Credential updated successfully', data.credential.name);
+        notifySuccess(
+          'Credential updated successfully',
+          data.credential.name || ''
+        );
         return queryClient.invalidateQueries(['cloudcredentials']);
       },
       meta: {

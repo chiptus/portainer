@@ -84,7 +84,7 @@ export function LogsActions({ environmentId, edgeStackId }: Props) {
       },
       {
         onSuccess() {
-          notifySuccess('Logs Collection started');
+          notifySuccess('Success', 'Logs Collection started');
         },
       }
     );
@@ -105,7 +105,7 @@ export function LogsActions({ environmentId, edgeStackId }: Props) {
       },
       {
         onSuccess() {
-          notifySuccess('Logs Deleted');
+          notifySuccess('Success', 'Logs Deleted');
         },
       }
     );

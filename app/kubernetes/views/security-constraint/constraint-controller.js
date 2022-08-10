@@ -223,7 +223,7 @@ angular.module('portainer.kubernetes').controller('KubernetesSecurityConstraintC
       sanitizedForm();
       OpaService.save($scope.formValues)
         .then(() => {
-          Notifications.success('Constraint settings successfully saved');
+          Notifications.success('Success', 'Constraint settings successfully saved');
           $scope.state.actionInProgress = false;
         })
         .catch((err) => {
