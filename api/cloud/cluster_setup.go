@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"net"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -51,6 +53,7 @@ type (
 		errSummary string
 		err        error
 		taskID     portaineree.CloudProvisioningTaskID
+		provider   string
 	}
 )
 
@@ -140,7 +143,7 @@ func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 					log.Errorf("[cloud] [message: unable to update endpoint status in database] [error: %v]", err)
 				}
 
-				err = service.setMessage(endpoint.ID, "Provisioning Error", "Portainer may have been restarted during provisioning and cannot be recovered.")
+				err = service.setMessage(endpoint.ID, "Provisioning Error", "Provisioning of this environment has been interrupted and cannot be recovered. This may be due to a Portainer restart. Please check and delete the environment in the cloud platform's portal and remove here.")
 				if err != nil {
 					log.Errorf("[cloud] [message: unable to update endpoint status message in database] [error: %v]", err)
 				}
@@ -296,6 +299,21 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 	return cluster, err
 }
 
+// Wraps any fatal network error with FatalError type from clouderrors
+// which shortcuts exiting the privisioning loop
+func checkFatal(err error) error {
+	if err != nil {
+		if _, ok := err.(net.Error); ok {
+			if strings.Contains(err.Error(), "TLS handshake error") ||
+				strings.Contains(err.Error(), "connection refused") {
+				return clouderrors.NewFatalError(err.Error())
+			}
+		}
+	}
+
+	return nil
+}
+
 // provisionKaasClusterTask processes a provisioning task
 // this function uses a state machine model for progressing the provisioning.  This allows easy retry and state tracking
 func (service *CloudClusterSetupService) provisionKaasClusterTask(task portaineree.CloudProvisioningTask) {
@@ -322,6 +340,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				err:        task.Err,
 				state:      int(ProvisioningStateDone),
 				taskID:     task.ID,
+				provider:   task.Provider,
 			}
 			return
 		}
@@ -330,8 +349,13 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 		case ProvisioningStatePending:
 			log.Infof("[message: starting provisionKaasClusterTask] [provider: %s] [clusterId: %s] [endpointId: %d] [state: %d]", task.Provider, task.ClusterID, task.EndpointID, task.State)
 
+			msg := "Creating KaaS cluster"
+			if task.Provider == portaineree.CloudProviderKubeConfig {
+				msg = "Importing Kubeconfig"
+			}
+
 			// pendingState logic is completed outside of this function, but this is the initial state
-			service.changeState(&task, ProvisioningStateWaitingForCluster, "Creating KaaS cluster")
+			service.changeState(&task, ProvisioningStateWaitingForCluster, msg)
 
 		case ProvisioningStateWaitingForCluster:
 			cluster, err = service.getKaasCluster(&task)
@@ -361,6 +385,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			log.Infof("[message: checking for old portainer namespace] [state: %s] [retries: %d]", ProvisioningState(task.State), task.Retries)
 			err = kubeClient.DeletePortainerAgent()
 			if err != nil {
+				err = checkFatal(err)
 				task.Retries++
 				break
 			}
@@ -368,6 +393,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			log.Infof("[message: deploying Portainer agent version: %s] [provider: %s] [clusterId: %s] [endpointId: %d]", kubecli.DefaultAgentVersion, task.Provider, task.ClusterID, task.EndpointID)
 			err = kubeClient.DeployPortainerAgent()
 			if err != nil {
+				err = checkFatal(err)
 				task.Retries++
 				break
 			}
@@ -379,10 +405,11 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 
 			serviceIP, err = kubeClient.GetPortainerAgentIPOrHostname()
 			if serviceIP == "" {
-				err = fmt.Errorf("have not recieved agent service ip yet")
+				err = fmt.Errorf("could not get service ip or hostname: %v", err)
 			}
 
 			if err != nil {
+				err = checkFatal(err)
 				task.Retries++
 				break
 			}
@@ -506,7 +533,11 @@ func (service *CloudClusterSetupService) processResult(result *cloudPrevisioning
 
 		// Default error summary.
 		if result.errSummary == "" {
-			result.errSummary = "Provisioning Error"
+			if result.provider == portaineree.CloudProviderKubeConfig {
+				result.errSummary = "Connection Error"
+			} else {
+				result.errSummary = "Provisioning Error"
+			}
 		}
 
 		err = service.setMessage(result.endpointID, result.errSummary, result.err.Error())

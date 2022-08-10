@@ -69,7 +69,7 @@ export function useUpdateCredentialMutation() {
     {
       onSuccess: (_, data) => {
         notifySuccess(
-          'Credential updated successfully',
+          'Credentials updated successfully',
           data.credential.name || ''
         );
         return queryClient.invalidateQueries(['cloudcredentials']);
@@ -89,7 +89,7 @@ export function useDeleteCredentialMutation() {
 
   return useMutation(deleteCredential, {
     onSuccess: (_, credential) => {
-      notifySuccess('Credential deleted successfully', credential.name);
+      notifySuccess('Credentials deleted successfully', credential.name);
       return queryClient.invalidateQueries(['cloudcredentials']);
     },
     meta: {
