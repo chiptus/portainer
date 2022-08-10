@@ -162,7 +162,10 @@
                 <a ui-sref="docker.services.service({id: item.Id})" ng-click="$event.stopPropagation()">{{ item.Name }}</a>
               </td>
               <td ng-if="$ctrl.showStackColumn">{{ item.StackName ? item.StackName : '-' }}</td>
-              <td ng-show="$ctrl.columnVisibility.columns.image.display">{{ item.Image | hideshasum }}</td>
+              <td ng-show="$ctrl.columnVisibility.columns.image.display">
+                <image-status image-name="item.Image" environment-id="$ctrl.endpointId"></image-status>
+                {{ item.Image | hideshasum }}</td
+              >
               <td ng-controller="ServicesDatatableActionsController as actionCtrl">
                 {{ item.Mode }}
                 <code>{{ item.Tasks | runningtaskscount }}</code> / <code>{{ item.Mode === 'replicated' ? item.Replicas : ($ctrl.nodes | availablenodecount: item) }}</code>
