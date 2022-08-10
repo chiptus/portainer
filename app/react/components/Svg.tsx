@@ -67,6 +67,7 @@ import nomad from '@/assets/ico/vendor/nomad.svg?c';
 import openldap from '@/assets/ico/vendor/openldap.svg?c';
 import proget from '@/assets/ico/vendor/proget.svg?c';
 import quay from '@/assets/ico/vendor/quay.svg?c';
+import internal from '@/assets/ico/vendor/internal.svg?c';
 
 const placeholder = Placeholder;
 
@@ -136,6 +137,7 @@ export const SvgIcons = {
   openldap,
   proget,
   quay,
+  internal,
   kubernetes2,
 };
 
