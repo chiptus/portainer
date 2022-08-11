@@ -16,6 +16,64 @@ type filterTest struct {
 	query    EnvironmentsQuery
 }
 
+func Test_Filter_AgentVersion(t *testing.T) {
+
+	version1Endpoint := portaineree.Endpoint{ID: 1, GroupID: 1,
+		Type: portaineree.AgentOnDockerEnvironment,
+		Agent: struct {
+			Version string "example:\"1.0.0\""
+		}{Version: "1.0.0"}}
+	version2Endpoint := portaineree.Endpoint{ID: 2, GroupID: 1,
+		Type: portaineree.AgentOnDockerEnvironment,
+		Agent: struct {
+			Version string "example:\"1.0.0\""
+		}{Version: "2.0.0"}}
+	noVersionEndpoint := portaineree.Endpoint{ID: 3, GroupID: 1,
+		Type: portaineree.AgentOnDockerEnvironment,
+	}
+	notAgentEnvironments := portaineree.Endpoint{ID: 4, Type: portaineree.DockerEnvironment, GroupID: 1}
+
+	endpoints := []portaineree.Endpoint{
+		version1Endpoint,
+		version2Endpoint,
+		noVersionEndpoint,
+		notAgentEnvironments,
+	}
+
+	handler, teardown := setupFilterTest(t, endpoints)
+
+	defer teardown()
+
+	tests := []filterTest{
+		{
+			"should show version 1 endpoints",
+			[]portaineree.EndpointID{version1Endpoint.ID},
+			EnvironmentsQuery{
+				agentVersions: []string{version1Endpoint.Agent.Version},
+				types:         []portaineree.EndpointType{portaineree.AgentOnDockerEnvironment},
+			},
+		},
+		{
+			"should show version 2 endpoints",
+			[]portaineree.EndpointID{version2Endpoint.ID},
+			EnvironmentsQuery{
+				agentVersions: []string{version2Endpoint.Agent.Version},
+				types:         []portaineree.EndpointType{portaineree.AgentOnDockerEnvironment},
+			},
+		},
+		{
+			"should show version 1 and 2 endpoints",
+			[]portaineree.EndpointID{version2Endpoint.ID, version1Endpoint.ID},
+			EnvironmentsQuery{
+				agentVersions: []string{version2Endpoint.Agent.Version, version1Endpoint.Agent.Version},
+				types:         []portaineree.EndpointType{portaineree.AgentOnDockerEnvironment},
+			},
+		},
+	}
+
+	runTests(tests, t, handler, endpoints)
+}
+
 func Test_Filter_edgeDeviceFilter(t *testing.T) {
 
 	trustedEdgeDevice := portaineree.Endpoint{ID: 1, UserTrusted: true, IsEdgeDevice: true, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}

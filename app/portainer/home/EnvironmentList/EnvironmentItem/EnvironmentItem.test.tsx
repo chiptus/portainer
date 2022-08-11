@@ -22,39 +22,8 @@ test('loads component', async () => {
 test('shows group name', async () => {
   const groupName = 'group-name';
   const groupId: EnvironmentGroupId = 14;
-
-  const env: Environment = {
-    TagIds: [],
-    GroupId: groupId,
-    Type: 1,
-    Name: 'environment',
-    Status: 1,
-    URL: 'url',
-    Snapshots: [],
-    Nomad: { Snapshots: [] },
-    Kubernetes: { Snapshots: [] },
-    EdgeKey: '',
-    Id: 3,
-    UserTrusted: false,
-    Edge: {
-      AsyncMode: false,
-      PingInterval: 0,
-      CommandInterval: 0,
-      SnapshotInterval: 0,
-    },
-    SecuritySettings: {
-      allowBindMountsForRegularUsers: false,
-      allowContainerCapabilitiesForRegularUsers: false,
-      allowDeviceMappingForRegularUsers: false,
-      allowHostNamespaceForRegularUsers: false,
-      allowPrivilegedModeForRegularUsers: false,
-      allowStackManagementForRegularUsers: false,
-      allowSysctlSettingForRegularUsers: false,
-      allowVolumeBrowserForRegularUsers: false,
-      enableHostManagementFeatures: false,
-    },
-    Gpus: [],
-  };
+  const env = createMockEnvironment();
+  env.GroupId = groupId;
 
   const { findByText } = renderComponent(env, { Name: groupName });
 

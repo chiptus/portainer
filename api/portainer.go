@@ -406,6 +406,10 @@ type (
 			CommandInterval int `json:"CommandInterval" example:"60"`
 		}
 
+		Agent struct {
+			Version string `example:"1.0.0"`
+		}
+
 		// Automatic update change window restriction for stacks and apps
 		ChangeWindow EndpointChangeWindow `json:"ChangeWindow"`
 

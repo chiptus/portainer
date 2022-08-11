@@ -31,6 +31,9 @@
   ],
   "endpoints": [
     {
+      "Agent": {
+        "Version": ""
+      },
       "AuthorizedTeams": null,
       "AuthorizedUsers": null,
       "AzureCredentials": {

@@ -1,13 +1,20 @@
-import { NomadSnapshot } from '@/portainer/environments/types';
+import { EnvironmentType, NomadSnapshot } from '@/portainer/environments/types';
 import { addPlural } from '@/portainer/helpers/strings';
 
+import { AgentVersionTag } from './AgentVersionTag';
 import { Stat } from './EnvironmentStatsItem';
 
 interface Props {
   snapshots: NomadSnapshot[];
+  type: EnvironmentType;
+  agentVersion: string;
 }
 
-export function EnvironmentStatsNomad({ snapshots = [] }: Props) {
+export function EnvironmentStatsNomad({
+  snapshots = [],
+  agentVersion,
+  type,
+}: Props) {
   if (snapshots.length === 0) {
     return (
       <div className="blocklist-item-line endpoint-item">
@@ -61,6 +68,7 @@ export function EnvironmentStatsNomad({ snapshots = [] }: Props) {
           icon="hard-drive"
           featherIcon
         />
+        <AgentVersionTag type={type} version={agentVersion} />
       </span>
     </div>
   );

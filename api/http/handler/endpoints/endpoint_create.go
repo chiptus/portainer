@@ -1,15 +1,14 @@
 package endpoints
 
 import (
+	"crypto/tls"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"runtime"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gofrs/uuid"
 	"gopkg.in/yaml.v3"
@@ -18,6 +17,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/agent"
 	"github.com/portainer/portainer-ee/api/cloud"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/http/client"
@@ -416,6 +416,8 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 }
 
 func (handler *Handler) createEndpoint(payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
+	var err error
+
 	switch payload.EndpointCreationType {
 	case azureEnvironment:
 		return handler.createAzureEndpoint(payload)
@@ -431,13 +433,24 @@ func (handler *Handler) createEndpoint(payload *endpointCreatePayload) (*portain
 	}
 
 	endpointType := portaineree.DockerEnvironment
+	var agentVersion string
 	if payload.EndpointCreationType == agentEnvironment {
 		payload.URL = "tcp://" + normalizeAgentAddress(payload.URL)
 
-		agentPlatform, err := handler.pingAndCheckPlatform(payload)
+		var tlsConfig *tls.Config
+		if payload.TLS {
+			tlsConfig, err = crypto.CreateTLSConfigurationFromBytes(payload.TLSCACertFile, payload.TLSCertFile, payload.TLSKeyFile, payload.TLSSkipVerify, payload.TLSSkipClientVerify)
+			if err != nil {
+				return nil, httperror.InternalServerError("Unable to create TLS configuration", err)
+			}
+		}
+
+		agentPlatform, version, err := agent.GetAgentVersionAndPlatform(payload.URL, tlsConfig)
 		if err != nil {
 			return nil, &httperror.HandlerError{http.StatusInternalServerError, "Unable to get environment type", err}
 		}
+
+		agentVersion = version
 
 		if agentPlatform == portaineree.AgentPlatformDocker {
 			endpointType = portaineree.AgentOnDockerEnvironment
@@ -448,7 +461,7 @@ func (handler *Handler) createEndpoint(payload *endpointCreatePayload) (*portain
 	}
 
 	if payload.TLS {
-		return handler.createTLSSecuredEndpoint(payload, endpointType)
+		return handler.createTLSSecuredEndpoint(payload, endpointType, agentVersion)
 	}
 	return handler.createUnsecuredEndpoint(payload)
 }
@@ -708,7 +721,7 @@ func (handler *Handler) createKubeConfigEndpoint(payload *endpointCreatePayload)
 	return endpoint, nil
 }
 
-func (handler *Handler) createTLSSecuredEndpoint(payload *endpointCreatePayload, endpointType portaineree.EndpointType) (*portaineree.Endpoint, *httperror.HandlerError) {
+func (handler *Handler) createTLSSecuredEndpoint(payload *endpointCreatePayload, endpointType portaineree.EndpointType, agentVersion string) (*portaineree.Endpoint, *httperror.HandlerError) {
 	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
 	endpoint := &portaineree.Endpoint{
 		ID:        portaineree.EndpointID(endpointID),
@@ -733,6 +746,8 @@ func (handler *Handler) createTLSSecuredEndpoint(payload *endpointCreatePayload,
 			Enabled: false,
 		},
 	}
+
+	endpoint.Agent.Version = agentVersion
 
 	err := handler.storeTLSFiles(endpoint, payload)
 	if err != nil {
@@ -838,59 +853,4 @@ func (handler *Handler) storeTLSFiles(endpoint *portaineree.Endpoint, payload *e
 	}
 
 	return nil
-}
-
-func (handler *Handler) pingAndCheckPlatform(payload *endpointCreatePayload) (portaineree.AgentPlatform, error) {
-	httpCli := &http.Client{
-		Timeout: 3 * time.Second,
-	}
-
-	if payload.TLS {
-		tlsConfig, err := crypto.CreateTLSConfigurationFromBytes(payload.TLSCACertFile, payload.TLSCertFile, payload.TLSKeyFile, payload.TLSSkipVerify, payload.TLSSkipClientVerify)
-		if err != nil {
-			return 0, err
-		}
-
-		httpCli.Transport = &http.Transport{
-			TLSClientConfig: tlsConfig,
-		}
-	}
-
-	url, err := url.Parse(fmt.Sprintf("%s/ping", payload.URL))
-	if err != nil {
-		return 0, err
-	}
-
-	url.Scheme = "https"
-
-	req, err := http.NewRequest(http.MethodGet, url.String(), nil)
-	if err != nil {
-		return 0, err
-	}
-
-	resp, err := httpCli.Do(req)
-	if err != nil {
-		return 0, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusNoContent {
-		return 0, fmt.Errorf("Failed request with status %d", resp.StatusCode)
-	}
-
-	agentPlatformHeader := resp.Header.Get(portaineree.HTTPResponseAgentPlatform)
-	if agentPlatformHeader == "" {
-		return 0, errors.New("Agent Platform Header is missing")
-	}
-
-	agentPlatformNumber, err := strconv.Atoi(agentPlatformHeader)
-	if err != nil {
-		return 0, err
-	}
-
-	if agentPlatformNumber == 0 {
-		return 0, errors.New("Agent platform is invalid")
-	}
-
-	return portaineree.AgentPlatform(agentPlatformNumber), nil
 }

@@ -108,6 +108,7 @@ export interface EnvironmentSecuritySettings {
 }
 
 export type Environment = {
+  Agent: { Version: string };
   Id: EnvironmentId;
   Type: EnvironmentType;
   TagIds: TagId[];

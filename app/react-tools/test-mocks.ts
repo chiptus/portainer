@@ -93,5 +93,6 @@ export function createMockEnvironment(): Environment {
       enableHostManagementFeatures: false,
     },
     Gpus: [],
+    Agent: { Version: '1.0.0' },
   };
 }

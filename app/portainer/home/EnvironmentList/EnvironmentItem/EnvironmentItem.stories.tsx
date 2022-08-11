@@ -5,6 +5,7 @@ import {
   EnvironmentStatus,
   EnvironmentType,
 } from '@/portainer/environments/types';
+import { createMockEnvironment } from '@/react-tools/test-mocks';
 
 import { EnvironmentItem } from './EnvironmentItem';
 
@@ -57,38 +58,9 @@ KubernetesEdgeEnvironment.args = {
 };
 
 function mockEnvironment(type: EnvironmentType): Environment {
-  return {
-    Id: 1,
-    Name: 'environment',
-    GroupId: 1,
-    Snapshots: [],
-    Status: EnvironmentStatus.Up,
-    TagIds: [],
-    Type: type,
-    Nomad: { Snapshots: [] },
-    EdgeKey: '',
-    Kubernetes: {
-      Snapshots: [],
-    },
-    URL: 'url',
-    UserTrusted: false,
-    Edge: {
-      AsyncMode: false,
-      PingInterval: 0,
-      CommandInterval: 0,
-      SnapshotInterval: 0,
-    },
-    SecuritySettings: {
-      allowBindMountsForRegularUsers: false,
-      allowContainerCapabilitiesForRegularUsers: false,
-      allowDeviceMappingForRegularUsers: false,
-      allowHostNamespaceForRegularUsers: false,
-      allowPrivilegedModeForRegularUsers: false,
-      allowStackManagementForRegularUsers: false,
-      allowSysctlSettingForRegularUsers: false,
-      allowVolumeBrowserForRegularUsers: false,
-      enableHostManagementFeatures: false,
-    },
-    Gpus: [],
-  };
+  const env = createMockEnvironment();
+  env.Type = type;
+  env.Status = EnvironmentStatus.Up;
+
+  return env;
 }

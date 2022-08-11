@@ -93,6 +93,7 @@ func NewHandler(
 	adminRouter.Handle("/endpoints", httperror.LoggerHandler(h.endpointCreate)).Methods(http.MethodPost)
 	adminRouter.Handle("/endpoints/snapshot", httperror.LoggerHandler(h.endpointSnapshots)).Methods(http.MethodPost)
 	adminRouter.Handle("/endpoints", httperror.LoggerHandler(h.endpointList)).Methods(http.MethodGet)
+	adminRouter.Handle("/endpoints/agent_versions", httperror.LoggerHandler(h.agentVersions)).Methods(http.MethodGet)
 	adminRouter.Handle("/endpoints/{id}", httperror.LoggerHandler(h.endpointInspect)).Methods(http.MethodGet)
 	adminRouter.Handle("/endpoints/{id}", httperror.LoggerHandler(h.endpointDelete)).Methods(http.MethodDelete)
 	adminRouter.Handle("/endpoints/{id}/association", httperror.LoggerHandler(h.endpointAssociationDelete)).Methods(http.MethodDelete)

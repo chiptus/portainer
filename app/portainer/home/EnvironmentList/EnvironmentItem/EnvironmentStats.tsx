@@ -16,6 +16,8 @@ export function EnvironmentStats({ environment }: Props) {
       return (
         <EnvironmentStatsKubernetes
           snapshots={environment.Kubernetes.Snapshots || []}
+          type={environment.Type}
+          agentVersion={environment.Agent.Version}
         />
       );
     case PlatformType.Docker:
@@ -23,11 +25,16 @@ export function EnvironmentStats({ environment }: Props) {
         <EnvironmentStatsDocker
           snapshots={environment.Snapshots}
           type={environment.Type}
+          agentVersion={environment.Agent.Version}
         />
       );
     case PlatformType.Nomad:
       return (
-        <EnvironmentStatsNomad snapshots={environment.Nomad?.Snapshots || []} />
+        <EnvironmentStatsNomad
+          snapshots={environment.Nomad?.Snapshots || []}
+          type={environment.Type}
+          agentVersion={environment.Agent.Version}
+        />
       );
     default:
       return (

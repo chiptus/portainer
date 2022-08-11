@@ -9,6 +9,7 @@ import {
   EDGE_ASYNC_INTERVAL_USE_DEFAULT,
 } from '@/edge/components/EdgeAsyncIntervalsForm';
 import { useSettings } from '@/portainer/settings/queries';
+import { useCreateEdgeDeviceParam } from '@/react/portainer/environments/wizard/hooks/useCreateEdgeDeviceParam';
 
 import { FormSection } from '@@/form-components/FormSection';
 import { LoadingButton } from '@@/buttons/LoadingButton';
@@ -36,6 +37,7 @@ export function EdgeAgentForm({
   showGpus = false,
 }: Props) {
   const edgeSettingsQuery = useSettings((settings) => settings.Edge);
+  const createEdgeDevice = useCreateEdgeDeviceParam();
 
   const createMutation = useCreateEdgeAgentEnvironmentMutation();
 
@@ -95,11 +97,14 @@ export function EdgeAgentForm({
   );
 
   function handleSubmit(values: typeof initialValues) {
-    createMutation.mutate(values, {
-      onSuccess(environment) {
-        onCreate(environment);
-      },
-    });
+    createMutation.mutate(
+      { ...values, isEdgeDevice: createEdgeDevice },
+      {
+        onSuccess(environment) {
+          onCreate(environment);
+        },
+      }
+    );
   }
 }
 

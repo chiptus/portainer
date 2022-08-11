@@ -26,6 +26,7 @@ type EnvironmentsQuery struct {
 	edgeDeviceUntrusted bool
 	provisioned         bool
 	name                string
+	agentVersions       []string
 }
 
 func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
@@ -74,6 +75,8 @@ func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
 
 	edgeDeviceUntrusted, _ := request.RetrieveBooleanQueryParameter(r, "edgeDeviceUntrusted", true)
 
+	agentVersions := getArrayQueryParameter(r, "agentVersions")
+
 	return EnvironmentsQuery{
 		search:              search,
 		types:               endpointTypes,
@@ -86,6 +89,7 @@ func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
 		edgeDeviceUntrusted: edgeDeviceUntrusted,
 		provisioned:         provisioned,
 		name:                name,
+		agentVersions:       agentVersions,
 	}, nil
 }
 
@@ -141,6 +145,12 @@ func (handler *Handler) filterEndpointsByQuery(filteredEndpoints []portaineree.E
 
 	if query.provisioned {
 		filteredEndpoints = filteredNonProvisionedEndpoints(filteredEndpoints)
+	}
+
+	if len(query.agentVersions) > 0 {
+		filteredEndpoints = filter(filteredEndpoints, func(endpoint portaineree.Endpoint) bool {
+			return !endpointutils.IsAgentEndpoint(&endpoint) || contains(query.agentVersions, endpoint.Agent.Version)
+		})
 	}
 
 	return filteredEndpoints, totalAvailableEndpoints, nil
@@ -432,4 +442,14 @@ func getNumberArrayQueryParameter[T ~int](r *http.Request, parameter string) ([]
 	}
 
 	return result, nil
+}
+
+func contains(strings []string, param string) bool {
+	for _, str := range strings {
+		if str == param {
+			return true
+		}
+	}
+
+	return false
 }

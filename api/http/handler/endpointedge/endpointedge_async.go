@@ -89,6 +89,7 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 		return httperror.InternalServerError("Endpoint with edge id or endpoint id is missing", err)
 	}
 
+	version := r.Header.Get(portaineree.PortainerAgentHeader)
 	if endpoint == nil {
 		logrus.WithField("PortainerAgentEdgeIDHeader", edgeID).Debug("edge id not found in existing endpoints")
 		agentPlatform, agentPlatformErr := parseAgentPlatform(r)
@@ -101,14 +102,13 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 			return httperror.Forbidden("Permission denied to access environment", err)
 		}
 
-		newEndpoint, createEndpointErr := handler.createAsyncEdgeAgentEndpoint(r, edgeID, agentPlatform)
+		newEndpoint, createEndpointErr := handler.createAsyncEdgeAgentEndpoint(r, edgeID, agentPlatform, version)
 		if createEndpointErr != nil {
 			return createEndpointErr
 		}
-		endpoint = newEndpoint
 
 		asyncResponse := EdgeAsyncResponse{
-			EndpointID: endpoint.ID,
+			EndpointID: newEndpoint.ID,
 		}
 
 		return response.JSON(w, asyncResponse)
@@ -126,6 +126,8 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 	endpoint.LastCheckInDate = time.Now().Unix()
 	endpoint.Status = portaineree.EndpointStatusUp
 	endpoint.Edge.AsyncMode = true
+	endpoint.Agent.Version = version
+
 	err = handler.DataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
 	if err != nil {
 		return httperror.InternalServerError("Unable to Unable to persist environment changes inside the database", err)
@@ -192,7 +194,7 @@ func parseBodyPayload(req *http.Request) (EdgeAsyncRequest, error) {
 	return payload, nil
 }
 
-func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID string, endpointType portaineree.EndpointType) (*portaineree.Endpoint, *httperror.HandlerError) {
+func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID string, endpointType portaineree.EndpointType, version string) (*portaineree.Endpoint, *httperror.HandlerError) {
 	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
 
 	requestURL := fmt.Sprintf("https://%s", req.Host)
@@ -242,6 +244,8 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 			AllowStackManagementForRegularUsers:       true,
 		},
 	}
+
+	endpoint.Agent.Version = version
 
 	settings, err := handler.DataStore.Settings().Settings()
 	if err != nil {

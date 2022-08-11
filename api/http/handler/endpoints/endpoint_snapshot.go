@@ -57,6 +57,7 @@ func (handler *Handler) endpointSnapshot(w http.ResponseWriter, r *http.Request)
 	latestEndpointReference.Snapshots = endpoint.Snapshots
 	latestEndpointReference.Kubernetes.Snapshots = endpoint.Kubernetes.Snapshots
 	latestEndpointReference.Nomad.Snapshots = endpoint.Nomad.Snapshots
+	latestEndpointReference.Agent.Version = endpoint.Agent.Version
 
 	err = handler.dataStore.Endpoint().UpdateEndpoint(latestEndpointReference.ID, latestEndpointReference)
 	if err != nil {
