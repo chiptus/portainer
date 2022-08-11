@@ -1,7 +1,6 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
 import { useEnvironment } from '@/portainer/environments/queries';
-import { EnvironmentProvider } from '@/portainer/environments/useEnvironment';
 import { name } from '@/react/docker/containers/ListView/ContainersDatatable/columns/name';
 import { state } from '@/react/docker/containers/ListView/ContainersDatatable/columns/state';
 import { image } from '@/react/docker/containers/ListView/ContainersDatatable/columns/image';
@@ -11,12 +10,11 @@ import { host } from '@/react/docker/containers/ListView/ContainersDatatable/col
 import { ports } from '@/react/docker/containers/ListView/ContainersDatatable/columns/ports';
 import { Datatable } from '@/react/components/datatables/Datatable';
 import { useDockerSnapshotContainers } from '@/react/docker/queries/useDockerSnapshotContainers';
+import { createStore } from '@/react/docker/containers/ListView/ContainersDatatable/datatable-store';
 
 import { PageHeader } from '@@/PageHeader';
 
 import { useEdgeStack } from '../queries/useEdgeStack';
-
-import { createStore } from './datatable-store';
 
 const storageKey = 'edge_stack_containers';
 const useStore = createStore(storageKey);
@@ -60,20 +58,18 @@ export function ContainersView() {
         ]}
       />
 
-      <EnvironmentProvider environment={environmentQuery.data}>
-        <Datatable
-          titleOptions={{
-            icon: 'fa-cubes',
-            title: 'Containers',
-          }}
-          storageKey={storageKey}
-          dataset={containersQuery.data}
-          columns={columns}
-          settingsStore={settings}
-          disableSelect
-          emptyContentLabel="No containers found"
-        />
-      </EnvironmentProvider>
+      <Datatable
+        titleOptions={{
+          icon: 'fa-cubes',
+          title: 'Containers',
+        }}
+        storageKey={storageKey}
+        dataset={containersQuery.data}
+        columns={columns}
+        settingsStore={settings}
+        disableSelect
+        emptyContentLabel="No containers found"
+      />
     </>
   );
 }

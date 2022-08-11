@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/http/handler/docker/containers"
 	"github.com/portainer/portainer-ee/api/http/handler/dockersnapshot"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
@@ -47,6 +48,8 @@ func NewHandler(bouncer *security.RequestBouncer, authorizationService *authoriz
 
 	endpointRouter.PathPrefix("/snapshot").Handler(dockerSnapshotHandler)
 
+	containersHandler := containers.NewHandler("/{id}/containers", bouncer, dockerClientFactory)
+	endpointRouter.PathPrefix("/containers").Handler(containersHandler)
 	return h
 }
 

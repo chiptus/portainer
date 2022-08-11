@@ -198,8 +198,7 @@ export function EdgeDevicesDatatable({
                   return (
                     <RowProvider
                       key={key}
-                      isOpenAmtEnabled={isOpenAmtEnabled}
-                      groupName={group[0]?.Name}
+                      context={{ isOpenAmtEnabled, groupName: group[0]?.Name }}
                     >
                       <TableRow<Environment>
                         cells={row.cells}

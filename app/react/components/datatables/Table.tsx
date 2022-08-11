@@ -2,18 +2,18 @@ import clsx from 'clsx';
 import { PropsWithChildren } from 'react';
 import { TableProps } from 'react-table';
 
+import { useTableContext, TableContainer } from './TableContainer';
 import { TableActions } from './TableActions';
-import { TableContainer, useTableContext } from './TableContainer';
-import { TableContent } from './TableContent';
-import { TableFooter } from './TableFooter';
+import { TableTitleActions } from './TableTitleActions';
 import { TableHeaderCell } from './TableHeaderCell';
-import { TableHeaderRow } from './TableHeaderRow';
-import { TableRow } from './TableRow';
 import { TableSettingsMenu } from './TableSettingsMenu';
 import { TableTitle } from './TableTitle';
-import { TableTitleActions } from './TableTitleActions';
+import { TableHeaderRow } from './TableHeaderRow';
+import { TableRow } from './TableRow';
+import { TableContent } from './TableContent';
+import { TableFooter } from './TableFooter';
 
-function Table({
+function MainComponent({
   children,
   className,
   role,
@@ -50,8 +50,8 @@ interface SubComponents {
   Footer: typeof TableFooter;
 }
 
-const ExportedTable: typeof Table & SubComponents = Table as typeof Table &
-  SubComponents;
+export const Table: typeof MainComponent & SubComponents =
+  MainComponent as typeof MainComponent & SubComponents;
 
 Table.Actions = TableActions;
 Table.TitleActions = TableTitleActions;
@@ -63,5 +63,3 @@ Table.Row = TableRow;
 Table.HeaderRow = TableHeaderRow;
 Table.Content = TableContent;
 Table.Footer = TableFooter;
-
-export { ExportedTable as Table };

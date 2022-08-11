@@ -2,8 +2,9 @@ import clsx from 'clsx';
 
 import { ContainerStatus } from '@/react/docker/containers/types';
 import { Authorized } from '@/portainer/hooks/useUser';
-import { Icon } from '@/react/components/Icon';
-import { Link } from '@/react/components/Link';
+
+import { Icon } from '@@/Icon';
+import { Link } from '@@/Link';
 
 import styles from './ContainerQuickActions.module.css';
 
@@ -34,9 +35,12 @@ export function ContainerQuickActions({
     return <TaskQuickActions taskId={taskId} state={state} />;
   }
 
-  const isActive = ['starting', 'running', 'healthy', 'unhealthy'].includes(
-    status
-  );
+  const isActive = [
+    ContainerStatus.Starting,
+    ContainerStatus.Running,
+    ContainerStatus.Healthy,
+    ContainerStatus.Unhealthy,
+  ].includes(status);
 
   return (
     <div className={clsx('space-x-1', styles.root)}>

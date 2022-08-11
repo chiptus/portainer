@@ -5,33 +5,34 @@ import {
   useSortBy,
   usePagination,
   Column,
+  Row,
   TableInstance,
+  TableState,
 } from 'react-table';
 import { ReactNode } from 'react';
 import { useRowSelectColumn } from '@lineup-lite/hooks';
 
 import { PaginationControls } from '@@/PaginationControls';
-import { Table } from '@@/datatables/Table';
-import { multiple } from '@@/datatables/filter-types';
-import { SearchBar, useSearchBarState } from '@@/datatables/SearchBar';
-import { SelectedRowsCount } from '@@/datatables/SelectedRowsCount';
-import { TableSettingsProvider } from '@@/datatables/useTableSettings';
-import { useRowSelect } from '@@/datatables/useRowSelect';
-import { ColumnVisibilityMenu } from '@@/datatables/ColumnVisibilityMenu';
-import {
-  PaginationTableSettings,
-  SettableColumnsTableSettings,
-  SortableTableSettings,
-} from '@@/datatables/types';
+
+import { Table } from './Table';
+import { multiple } from './filter-types';
+import { SearchBar, useSearchBarState } from './SearchBar';
+import { SelectedRowsCount } from './SelectedRowsCount';
+import { TableSettingsProvider } from './useZustandTableSettings';
+import { useRowSelect } from './useRowSelect';
+import { PaginationTableSettings, SortableTableSettings } from './types';
 
 interface DefaultTableSettings
   extends SortableTableSettings,
-    PaginationTableSettings,
-    SettableColumnsTableSettings {
-  setHiddenColumns: (hiddenColumns: string[]) => void;
-  setSortBy: (id: string, desc: boolean) => void;
-  setPageSize: (size: number) => void;
+    PaginationTableSettings {}
+
+interface TitleOptionsVisible {
+  title: string;
+  icon?: string;
+  hide?: never;
 }
+
+type TitleOptions = TitleOptionsVisible | { hide: true };
 
 interface Props<
   D extends Record<string, unknown>,
@@ -39,19 +40,18 @@ interface Props<
 > {
   dataset: D[];
   storageKey: string;
-  columns: Column<D>[];
+  columns: readonly Column<D>[];
   renderTableSettings?(instance: TableInstance<D>): ReactNode;
   renderTableActions?(selectedRows: D[]): ReactNode;
   settingsStore: TSettings;
   disableSelect?: boolean;
-  hidableColumns?: string[];
   getRowId?(row: D): string;
-  isRowSelectable?(row: D): boolean;
+  isRowSelectable?(row: Row<D>): boolean;
   emptyContentLabel?: string;
-  titleOptions: {
-    title: string;
-    icon: string;
-  };
+  titleOptions: TitleOptions;
+  initialTableState?: Partial<TableState<D>>;
+  isLoading?: boolean;
+  totalCount?: number;
 }
 
 export function Datatable<
@@ -65,11 +65,13 @@ export function Datatable<
   renderTableActions,
   settingsStore,
   disableSelect,
-  hidableColumns = [],
   getRowId = defaultGetRowId,
   isRowSelectable = () => true,
   titleOptions,
   emptyContentLabel,
+  initialTableState = {},
+  isLoading,
+  totalCount = dataset.length,
 }: Props<D, TSettings>) {
   const [searchBarValue, setSearchBarValue] = useSearchBarState(storageKey);
 
@@ -81,9 +83,9 @@ export function Datatable<
       filterTypes: { multiple },
       initialState: {
         pageSize: settingsStore.pageSize || 10,
-        hiddenColumns: settingsStore.hiddenColumns,
         sortBy: [settingsStore.sortBy],
         globalFilter: searchBarValue,
+        ...initialTableState,
       },
       isRowSelectable,
       autoResetSelectedRows: false,
@@ -131,35 +133,24 @@ export function Datatable<
 
   const selectedItems = selectedFlatRows.map((row) => row.original);
 
-  const columnsToHide = tableInstance.allColumns.filter((colInstance) =>
-    hidableColumns?.includes(colInstance.id)
-  );
-
   return (
     <div className="row">
       <div className="col-sm-12">
-        <TableSettingsProvider defaults={settingsStore} storageKey={storageKey}>
+        <TableSettingsProvider settings={settingsStore}>
           <Table.Container>
-            <Table.Title label={titleOptions.title} icon={titleOptions.icon}>
-              <Table.TitleActions>
-                {hidableColumns.length > 0 && (
-                  <ColumnVisibilityMenu<D>
-                    columns={columnsToHide}
-                    onChange={(hiddenColumns) => {
-                      settingsStore.setHiddenColumns(hiddenColumns);
-                      tableInstance.setHiddenColumns(hiddenColumns);
-                    }}
-                    value={settingsStore.hiddenColumns}
-                  />
+            {isTitleVisible(titleOptions) && (
+              <Table.Title label={titleOptions.title} icon={titleOptions.icon}>
+                <SearchBar value={searchBarValue} onChange={setGlobalFilter} />
+                {renderTableActions && (
+                  <Table.Actions>
+                    {renderTableActions(selectedItems)}
+                  </Table.Actions>
                 )}
-
-                {!!renderTableSettings && renderTableSettings(tableInstance)}
-              </Table.TitleActions>
-            </Table.Title>
-            {renderTableActions && (
-              <Table.Actions>{renderTableActions(selectedItems)}</Table.Actions>
+                <Table.TitleActions>
+                  {!!renderTableSettings && renderTableSettings(tableInstance)}
+                </Table.TitleActions>
+              </Table.Title>
             )}
-            <SearchBar value={searchBarValue} onChange={setGlobalFilter} />
             <Table
               className={tableProps.className}
               role={tableProps.role}
@@ -187,7 +178,7 @@ export function Datatable<
               >
                 <Table.Content<D>
                   rows={page}
-                  isLoading={false}
+                  isLoading={isLoading}
                   prepareRow={prepareRow}
                   emptyContent={emptyContentLabel}
                   renderRow={(row, { key, className, role, style }) => (
@@ -209,7 +200,7 @@ export function Datatable<
                 pageLimit={pageSize}
                 page={pageIndex + 1}
                 onPageChange={(p) => gotoPage(p - 1)}
-                totalCount={dataset.length}
+                totalCount={totalCount}
                 onPageLimitChange={setPageSize}
               />
             </Table.Footer>
@@ -218,6 +209,12 @@ export function Datatable<
       </div>
     </div>
   );
+}
+
+function isTitleVisible(
+  titleSettings: TitleOptions
+): titleSettings is TitleOptionsVisible {
+  return !titleSettings.hide;
 }
 
 function defaultGetRowId<D extends Record<string, unknown>>(row: D): string {
