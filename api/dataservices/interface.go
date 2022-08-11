@@ -38,6 +38,7 @@ type (
 		Endpoint() EndpointService
 		EndpointGroup() EndpointGroupService
 		EndpointRelation() EndpointRelationService
+		Enforcement() EnforcementService
 		FDOProfile() FDOProfileService
 		HelmUserRepository() HelmUserRepositoryService
 		License() LicenseRepository
@@ -166,6 +167,12 @@ type (
 		UpdateEndpointRelation(EndpointID portaineree.EndpointID, endpointRelation *portaineree.EndpointRelation) error
 		DeleteEndpointRelation(EndpointID portaineree.EndpointID) error
 		BucketName() string
+	}
+
+	// Service manages license enforcement record
+	EnforcementService interface {
+		LicenseEnforcement() (*models.LicenseEnforcement, error)
+		UpdateOveruseStartedTimestamp(timestamp int64) error
 	}
 
 	// FDOProfileService represents a service to manage FDO Profiles

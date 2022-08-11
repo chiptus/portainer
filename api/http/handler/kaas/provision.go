@@ -102,7 +102,7 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 }
 
 func (handler *Handler) createEndpoint(name string, provider portaineree.CloudProvider, metadata types.EnvironmentMetadata) (*portaineree.Endpoint, error) {
-	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
+	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
 
 	endpoint := &portaineree.Endpoint{
 		ID:      portaineree.EndpointID(endpointID),
@@ -129,7 +129,7 @@ func (handler *Handler) createEndpoint(name string, provider portaineree.CloudPr
 		},
 	}
 
-	err := handler.DataStore.Endpoint().Create(endpoint)
+	err := handler.dataStore.Endpoint().Create(endpoint)
 	if err != nil {
 		return nil, err
 	}

@@ -12,6 +12,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/license"
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -26,7 +27,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.
-func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, fileService portainer.FileService, reverseTunnelService portaineree.ReverseTunnelService, edgeService edge.Service) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, fileService portainer.FileService, reverseTunnelService portaineree.ReverseTunnelService, edgeService edge.Service, licenseService portaineree.LicenseService) *Handler {
 	h := &Handler{
 		Router:               mux.NewRouter(),
 		requestBouncer:       bouncer,
@@ -48,7 +49,7 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 	endpointRouter.PathPrefix("/edge/jobs/{jobID}/logs").Handler(
 		bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeJobsLogs))).Methods(http.MethodPost)
 
-	endpointRouter.PathPrefix("/edge/trust").Handler(bouncer.AdminAccess(httperror.LoggerHandler(h.endpointTrust))).Methods(http.MethodPost)
+	endpointRouter.PathPrefix("/edge/trust").Handler(bouncer.AdminAccess(license.RecalculateLicenseUsage(licenseService, httperror.LoggerHandler(h.endpointTrust)))).Methods(http.MethodPost)
 
 	h.Handle("/edge/async", handlers.CompressHandler(bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeAsync)))).Methods(http.MethodPost)
 	h.Handle("/edge/generate-key", bouncer.AdminAccess(httperror.LoggerHandler(h.endpointEdgeGenerateKey))).Methods(http.MethodPost)

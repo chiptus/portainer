@@ -1,57 +1,25 @@
-import { useQuery } from 'react-query';
+import { LicenseInfoPanel } from '@@/LicenseInfoPanel/LicenseInfoPanel';
 
-import { error as notifyError } from '@/portainer/services/notifications';
-
-import { InformationPanel } from '@@/InformationPanel';
-import { TextTip } from '@@/Tip/TextTip';
-
-import { LicenseType } from '../license-management/types';
-import { useLicenseInfo } from '../license-management/use-license.service';
-import { getNodesCount } from '../services/api/status.service';
+import { useIntegratedLicenseInfo } from '../license-management/use-license.service';
 
 export function LicenseNodePanel() {
-  const nodesValid = useNodesValid();
+  const integratedInfo = useIntegratedLicenseInfo();
 
-  if (nodesValid) {
+  if (
+    !integratedInfo ||
+    integratedInfo.licenseInfo.enforcedAt === 0 ||
+    integratedInfo.usedNodes <= integratedInfo.licenseInfo.nodes
+  ) {
     return null;
   }
 
+  const template = 'enforcement';
+
   return (
-    <InformationPanel title="License node allowance exceeded">
-      <TextTip>
-        The number of nodes for your license has been exceeded. Please contact
-        your administrator.
-      </TextTip>
-    </InformationPanel>
+    <LicenseInfoPanel
+      template={template}
+      licenseInfo={integratedInfo.licenseInfo}
+      usedNodes={integratedInfo.usedNodes}
+    />
   );
-}
-
-function useNodesValid() {
-  const { isLoading: isLoadingNodes, nodesCount } = useNodesCounts();
-
-  const { isLoading: isLoadingLicense, info } = useLicenseInfo();
-  if (
-    isLoadingLicense ||
-    isLoadingNodes ||
-    !info ||
-    info.type === LicenseType.Trial
-  ) {
-    return true;
-  }
-
-  return nodesCount <= info.nodes;
-}
-
-function useNodesCounts() {
-  const { isLoading, data } = useQuery(
-    ['status', 'nodes'],
-    () => getNodesCount(),
-    {
-      onError(error) {
-        notifyError('Failure', error as Error, 'Failed to get nodes count');
-      },
-    }
-  );
-
-  return { nodesCount: data || 0, isLoading };
 }

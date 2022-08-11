@@ -2,9 +2,10 @@ import moment from 'moment';
 
 export default class LicensesViewController {
   /* @ngInject */
-  constructor($async, $state, LicenseService, ModalService, Notifications, clipboard) {
+  constructor($async, $state, StatusService, LicenseService, ModalService, Notifications, clipboard) {
     this.$async = $async;
     this.$state = $state;
+    this.StatusService = StatusService;
     this.LicenseService = LicenseService;
     this.ModalService = ModalService;
     this.Notifications = Notifications;
@@ -12,6 +13,8 @@ export default class LicensesViewController {
 
     this.info = null;
     this.licenses = null;
+    this.usedNodes = 0;
+    this.template = 'info';
 
     this.removeAction = this.removeAction.bind(this);
     this.copyLicenseKey = this.copyLicenseKey.bind(this);
@@ -66,7 +69,17 @@ export default class LicensesViewController {
       }
 
       try {
+        this.usedNodes = await this.StatusService.nodesCount();
+      } catch (err) {
+        this.Notifications.error('Failure', err, 'Failed to get nodes count');
+      }
+
+      try {
         this.info = await this.LicenseService.info();
+        if (this.usedNodes > this.info.nodes) {
+          this.template = 'alert';
+        }
+
         this.LicenseService.subscribe((info) => {
           this.info = info;
         });

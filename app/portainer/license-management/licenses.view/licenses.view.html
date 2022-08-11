@@ -1,7 +1,7 @@
 <page-header title="'Licenses'" breadcrumbs="['Licenses']" reload="true"> </page-header>
 
 <div class="row" ng-if="$ctrl.info">
-  <license-info info="$ctrl.info"></license-info>
+  <license-info-panel template="$ctrl.template" license-info="$ctrl.info" used-nodes="$ctrl.usedNodes"></license-info-panel>
 </div>
 
 <div class="row" ng-if="$ctrl.licenses">

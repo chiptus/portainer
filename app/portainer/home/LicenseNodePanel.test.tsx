@@ -21,7 +21,7 @@ test('when user is using more nodes then allowed he should see message', async (
 
   await expect(
     findByText(
-      /The number of nodes for your license has been exceeded. Please contact your administrator./
+      /You have exceeded the node allowance of your license and will be unable to log into your account/
     )
   ).resolves.toBeVisible();
 });
@@ -42,7 +42,7 @@ test("when user is using less nodes then allowed he shouldn't see message", asyn
 
   await expect(
     findByText(
-      /The number of nodes for your license has been exceeded. Please contact your administrator./
+      /You have exceeded the node allowance of your license and will be unable to log into your account/
     )
   ).rejects.toBeTruthy();
 });

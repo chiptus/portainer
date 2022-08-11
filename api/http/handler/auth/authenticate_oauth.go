@@ -181,11 +181,22 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 
 	info := handler.LicenseService.Info()
 
-	if user.Role != portaineree.AdministratorRole && !info.Valid {
-		return resp, &httperror.HandlerError{
-			StatusCode: http.StatusForbidden,
-			Message:    "License is not valid",
-			Err:        httperrors.ErrNoValidLicense,
+	if user.Role != portaineree.AdministratorRole {
+		if !info.Valid {
+			return resp, &httperror.HandlerError{
+				StatusCode: http.StatusForbidden,
+				Message:    "License is not valid",
+				Err:        httperrors.ErrNoValidLicense,
+			}
+		}
+
+		if handler.LicenseService.ShouldEnforceOveruse() {
+			// If the free subscription license is enforced, the OAuth standard user are not allowed to log in
+			return resp, &httperror.HandlerError{
+				StatusCode: http.StatusPaymentRequired,
+				Message:    "Node limit exceeds the 5 node free license, please contact your administrator",
+				Err:        httperrors.ErrUnauthorized,
+			}
 		}
 	}
 

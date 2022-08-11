@@ -17,8 +17,9 @@ import { SearchBar, useSearchBarState } from '@@/datatables/SearchBar';
 import { SelectedRowsCount } from '@@/datatables/SelectedRowsCount';
 import { PaginationControls } from '@@/PaginationControls';
 import { useTableSettings } from '@@/datatables/useTableSettings';
+import { TextTip } from '@@/Tip/TextTip';
 
-import { useAssociateDeviceMutation } from '../queries';
+import { useAssociateDeviceMutation, useLicenseOverused } from '../queries';
 
 import { TableSettings } from './types';
 
@@ -57,6 +58,8 @@ export function DataTable({
   totalCount,
 }: Props) {
   const associateMutation = useAssociateDeviceMutation();
+
+  const licenseOverused = useLicenseOverused();
 
   const [searchBarValue, setSearchBarValue] = useSearchBarState(storageKey);
   const { settings, setTableSettings } = useTableSettings<TableSettings>();
@@ -115,10 +118,18 @@ export function DataTable({
               onClick={() =>
                 handleAssociateDevice(selectedFlatRows.map((r) => r.original))
               }
-              disabled={selectedFlatRows.length === 0}
+              disabled={selectedFlatRows.length === 0 || licenseOverused}
             >
               Associate Device
             </Button>
+            {licenseOverused ? (
+              <div className="ml-2 mt-2">
+                <TextTip color="orange">
+                  Associating devices is disabled as your node count exceeds
+                  your license limit
+                </TextTip>
+              </div>
+            ) : null}
           </Table.Actions>
 
           <SearchBar onChange={handleSearchBarChange} value={searchBarValue} />

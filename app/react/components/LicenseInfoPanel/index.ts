@@ -1,0 +1,1 @@
+export { LicenseInfoPanel } from './LicenseInfoPanel';

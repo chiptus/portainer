@@ -15,3 +15,6 @@ func (l Licenseservice) AddLicense(licenseKey string) (*liblicense.PortainerLice
 }
 func (l Licenseservice) DeleteLicense(licenseKey string) error { return nil }
 func (l Licenseservice) Start() error                          { return nil }
+func (l Licenseservice) ShouldEnforceOveruse() bool            { return false }
+func (l Licenseservice) WillBeEnforcedAt() int64               { return 0 }
+func (l Licenseservice) ReaggregareLicenseInfo() error         { return nil }

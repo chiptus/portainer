@@ -18,6 +18,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	"github.com/portainer/portainer-ee/api/license"
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -68,6 +69,7 @@ func NewHandler(
 	edgeService *edge.Service,
 	demoService *demo.Service,
 	cloudClusterSetupService *cloud.CloudClusterSetupService,
+	licenseService portaineree.LicenseService,
 ) *Handler {
 	h := &Handler{
 		Router:                   mux.NewRouter(),
@@ -90,12 +92,12 @@ func NewHandler(
 	publicRouter := h.NewRoute().Subrouter()
 	publicRouter.Use(bouncer.PublicAccess)
 
-	adminRouter.Handle("/endpoints", httperror.LoggerHandler(h.endpointCreate)).Methods(http.MethodPost)
+	adminRouter.Handle("/endpoints", license.NotOverused(licenseService, dataStore, license.RecalculateLicenseUsage(licenseService, httperror.LoggerHandler(h.endpointCreate)))).Methods(http.MethodPost)
 	adminRouter.Handle("/endpoints/snapshot", httperror.LoggerHandler(h.endpointSnapshots)).Methods(http.MethodPost)
 	adminRouter.Handle("/endpoints", httperror.LoggerHandler(h.endpointList)).Methods(http.MethodGet)
 	adminRouter.Handle("/endpoints/agent_versions", httperror.LoggerHandler(h.agentVersions)).Methods(http.MethodGet)
 	adminRouter.Handle("/endpoints/{id}", httperror.LoggerHandler(h.endpointInspect)).Methods(http.MethodGet)
-	adminRouter.Handle("/endpoints/{id}", httperror.LoggerHandler(h.endpointDelete)).Methods(http.MethodDelete)
+	adminRouter.Handle("/endpoints/{id}", license.RecalculateLicenseUsage(licenseService, httperror.LoggerHandler(h.endpointDelete))).Methods(http.MethodDelete)
 	adminRouter.Handle("/endpoints/{id}/association", httperror.LoggerHandler(h.endpointAssociationDelete)).Methods(http.MethodDelete)
 
 	authenticatedRouter.Handle("/endpoints/{id}", httperror.LoggerHandler(h.endpointUpdate)).Methods(http.MethodPut)

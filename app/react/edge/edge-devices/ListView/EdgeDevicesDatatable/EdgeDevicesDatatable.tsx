@@ -124,7 +124,7 @@ export function EdgeDevicesDatatable({
     <div className="row">
       <div className="col-sm-12">
         <TableContainer>
-          <TableTitle icon="box" featherIcon label="Edge Devices">
+          <TableTitle icon="box" featherIcon label="Edge&nbsp;Devices">
             <SearchBar value={search} onChange={handleSearchBarChange} />
             <TableActions>
               <EdgeDevicesDatatableActions

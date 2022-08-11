@@ -22,6 +22,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/endpoint"
 	"github.com/portainer/portainer-ee/api/dataservices/endpointgroup"
 	"github.com/portainer/portainer-ee/api/dataservices/endpointrelation"
+	"github.com/portainer/portainer-ee/api/dataservices/enforcement"
 	"github.com/portainer/portainer-ee/api/dataservices/extension"
 	"github.com/portainer/portainer-ee/api/dataservices/fdoprofile"
 	"github.com/portainer/portainer-ee/api/dataservices/helmuserrepository"
@@ -63,6 +64,7 @@ type Store struct {
 	EndpointGroupService      *endpointgroup.Service
 	EndpointService           *endpoint.Service
 	EndpointRelationService   *endpointrelation.Service
+	EnforcementService        *enforcement.Service
 	ExtensionService          *extension.Service
 	FDOProfilesService        *fdoprofile.Service
 	HelmUserRepositoryService *helmuserrepository.Service
@@ -159,6 +161,12 @@ func (store *Store) initServices() error {
 		return err
 	}
 	store.EndpointRelationService = endpointRelationService
+
+	enforcementService, err := enforcement.NewService(store.connection)
+	if err != nil {
+		return err
+	}
+	store.EnforcementService = enforcementService
 
 	extensionService, err := extension.NewService(store.connection)
 	if err != nil {
@@ -335,6 +343,10 @@ func (store *Store) EndpointGroup() dataservices.EndpointGroupService {
 // EndpointRelation gives access to the EndpointRelation data management layer
 func (store *Store) EndpointRelation() dataservices.EndpointRelationService {
 	return store.EndpointRelationService
+}
+
+func (store *Store) Enforcement() dataservices.EnforcementService {
+	return store.EnforcementService
 }
 
 // FDOProfile gives access to the FDOProfile data management layer

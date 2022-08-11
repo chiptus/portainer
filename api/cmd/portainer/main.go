@@ -615,7 +615,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		logrus.Fatalf("failed initializing JWT service: %s", err)
 	}
 
-	licenseService := license.NewService(dataStore.License(), shutdownCtx)
+	licenseService := license.NewService(dataStore, shutdownCtx)
 	if err = licenseService.Init(); err != nil {
 		logrus.Fatalf("failed initializing license service: %s", err)
 	}
@@ -776,6 +776,13 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	err = reverseTunnelService.StartTunnelServer(*flags.TunnelAddr, *flags.TunnelPort, snapshotService)
 	if err != nil {
 		logrus.Fatalf("failed starting tunnel server: %s", err)
+	}
+
+	if !*flags.DemoEnvironment {
+		err = licenseService.Start()
+		if err != nil {
+			logrus.Fatalf("failed starting license service: %s", err)
+		}
 	}
 
 	scheduler := scheduler.NewScheduler(shutdownCtx)

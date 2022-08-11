@@ -53,7 +53,7 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	credential, err := handler.DataStore.CloudCredential().GetByID(models.CloudCredentialID(credentialId))
+	credential, err := handler.dataStore.CloudCredential().GetByID(models.CloudCredentialID(credentialId))
 	if err != nil {
 		return &httperror.HandlerError{
 			StatusCode: http.StatusInternalServerError,

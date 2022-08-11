@@ -4,16 +4,22 @@ import (
 	"log"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/portainer/liblicense"
 	"github.com/portainer/liblicense/master"
 )
 
 const (
 	syncInterval = 24 * time.Hour
+
+	// a period of time after which license overuse restrictions will be enforced.
+	// default value: 10 days
+	overuseGracePeriodInSeconds = 10 * 24 * 60 * 60
 )
 
 func (service *Service) startSyncLoop() error {
-	err := service.syncLicenses()
+	err := service.syncLicenses(master.ValidateLicense)
 	if err != nil {
 		return err
 	}
@@ -28,7 +34,7 @@ func (service *Service) startSyncLoop() error {
 				ticker.Stop()
 				return
 			case <-ticker.C:
-				service.syncLicenses()
+				service.syncLicenses(master.ValidateLicense)
 			}
 		}
 	}()
@@ -36,29 +42,62 @@ func (service *Service) startSyncLoop() error {
 	return nil
 }
 
-func (service *Service) syncLicenses() error {
-	licenses, err := service.Licenses()
+// syncLiceses
+// - revokes all licenses that are either expired, don't stack with each other, or has an invalid key
+// - marks license overuse
+func (service *Service) syncLicenses(validateLicenseFunc func(license *liblicense.PortainerLicense) (bool, error)) error {
+	err := service.revokeInvalidLicenses(validateLicenseFunc)
 	if err != nil {
 		return err
 	}
 
-	licensesToRevoke := []string{}
-	hasFreeSubscription := false
+	return service.ReaggregareLicenseInfo()
+}
 
-	for _, license := range licenses {
-		valid, err := master.ValidateLicense(&license)
+// revokeInvalidLicenses revokes all licenses that are either invalid or don't stack with each other
+func (service *Service) revokeInvalidLicenses(validateLicenseFunc func(license *liblicense.PortainerLicense) (bool, error)) error {
+	licenses, err := service.Licenses()
+	if err != nil {
+		return errors.Wrap(err, "failed to fetch licenses to check invalid licenses")
+	}
+
+	licensesToRevoke := []string{}
+	var newestTrialLicense *liblicense.PortainerLicense
+	var newestEssentialLicense *liblicense.PortainerLicense
+
+	for _, l := range licenses {
+		license := l // recapture loop var to get a new memory address
+		valid, err := validateLicenseFunc(&license)
 		if err != nil || !valid {
 			licensesToRevoke = append(licensesToRevoke, license.LicenseKey)
 			continue
 		}
 
-		if license.Type == liblicense.PortainerLicenseEssentials {
-			// allow only one single free subscription license, and revoke the rest
-			if !hasFreeSubscription {
-				hasFreeSubscription = true
+		// keep only the most recent license of each type
+		switch license.Type {
+		case liblicense.PortainerLicenseTrial:
+			if newestTrialLicense == nil {
+				newestTrialLicense = &license
 				continue
 			}
-			licensesToRevoke = append(licensesToRevoke, license.LicenseKey)
+			if license.Created > newestTrialLicense.Created {
+				licensesToRevoke = append(licensesToRevoke, newestTrialLicense.LicenseKey)
+				newestTrialLicense = &license
+			} else {
+				licensesToRevoke = append(licensesToRevoke, license.LicenseKey)
+			}
+		case liblicense.PortainerLicenseEssentials:
+			if newestEssentialLicense == nil {
+				newestEssentialLicense = &license
+				continue
+			}
+
+			if license.Created > newestEssentialLicense.Created {
+				licensesToRevoke = append(licensesToRevoke, newestEssentialLicense.LicenseKey)
+				newestEssentialLicense = &license
+			} else {
+				licensesToRevoke = append(licensesToRevoke, license.LicenseKey)
+			}
 		}
 	}
 

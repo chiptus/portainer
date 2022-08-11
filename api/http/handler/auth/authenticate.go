@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/asaskevich/govalidator"
-	errors "github.com/pkg/errors"
+	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
@@ -96,6 +96,15 @@ func (handler *Handler) authenticate(rw http.ResponseWriter, r *http.Request) (*
 		return resp, &httperror.HandlerError{
 			StatusCode: http.StatusUnprocessableEntity,
 			Message:    "Invalid credentials",
+			Err:        httperrors.ErrUnauthorized,
+		}
+	}
+
+	// If the free subscription license is enforced, the standard user are not allowed to log in
+	if user != nil && user.Role != portaineree.AdministratorRole && handler.LicenseService.ShouldEnforceOveruse() {
+		return resp, &httperror.HandlerError{
+			StatusCode: http.StatusPaymentRequired,
+			Message:    "Node limit exceeds the 5 node free license, please contact your administrator",
 			Err:        httperrors.ErrUnauthorized,
 		}
 	}
@@ -209,14 +218,23 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 
 	info := handler.LicenseService.Info()
 
-	if user.Role != portaineree.AdministratorRole && !info.Valid {
-		return resp,
-			&httperror.HandlerError{
+	if user.Role != portaineree.AdministratorRole {
+		if !info.Valid {
+			return resp, &httperror.HandlerError{
 				StatusCode: http.StatusForbidden,
 				Message:    "License is not valid",
 				Err:        httperrors.ErrNoValidLicense,
 			}
+		}
 
+		if handler.LicenseService.ShouldEnforceOveruse() {
+			// If the free subscription license is enforced, the LDAP standard user are not allowed to log in
+			return resp, &httperror.HandlerError{
+				StatusCode: http.StatusPaymentRequired,
+				Message:    "Node limit exceeds the 5 node free license, please contact your administrator",
+				Err:        httperrors.ErrUnauthorized,
+			}
+		}
 	}
 
 	return handler.writeToken(w, user, resp.Method, false)
@@ -240,14 +258,24 @@ func (handler *Handler) authenticateInternal(w http.ResponseWriter, user *portai
 
 	info := handler.LicenseService.Info()
 
-	if user.Role != portaineree.AdministratorRole && !info.Valid {
-		return resp,
-			&httperror.HandlerError{
-				StatusCode: http.StatusForbidden,
-				Message:    "License is not valid",
-				Err:        httperrors.ErrNoValidLicense,
-			}
+	if user.Role != portaineree.AdministratorRole {
+		if !info.Valid {
+			return resp,
+				&httperror.HandlerError{
+					StatusCode: http.StatusForbidden,
+					Message:    "License is not valid",
+					Err:        httperrors.ErrNoValidLicense,
+				}
+		}
 
+		if handler.LicenseService.ShouldEnforceOveruse() {
+			// If the free subscription license is enforced, the standard user are not allowed to log in
+			return resp, &httperror.HandlerError{
+				StatusCode: http.StatusPaymentRequired,
+				Message:    "Node limit exceeds the 5 node free license, please contact your administrator",
+				Err:        httperrors.ErrUnauthorized,
+			}
+		}
 	}
 
 	forceChangePassword := !handler.passwordStrengthChecker.Check(password)

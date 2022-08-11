@@ -489,6 +489,7 @@
       "UserTrusted": false
     }
   ],
+  "enforcement": null,
   "extension": null,
   "fdo_profiles": null,
   "helm_user_repository": null,

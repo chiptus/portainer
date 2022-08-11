@@ -188,6 +188,11 @@ class AuthenticationController {
       await this.Authentication.OAuthLogin(code);
       this.URLHelper.cleanParameters();
     } catch (err) {
+      if (err.status === 402) {
+        // When the free subscription license is enforced
+        this.error(err, err.data.message);
+        return;
+      }
       this.error(err, 'Unable to login via OAuth');
     }
   }
@@ -212,6 +217,11 @@ class AuthenticationController {
       this.state.loginInProgress = true;
       await this.internalLoginAsync(username, password);
     } catch (err) {
+      if (err.status === 402) {
+        // When the free subscription license is enforced
+        this.error(err, err.data.message);
+        return;
+      }
       this.error(err, 'Unable to login');
     }
   }

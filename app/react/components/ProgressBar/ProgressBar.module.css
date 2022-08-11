@@ -1,0 +1,13 @@
+.progress-info {
+  height: 10px;
+  margin-top: 10px;
+  margin-bottom: 0px;
+  color: #0086c9;
+}
+
+.progress-alert {
+  height: 10px;
+  margin-top: 10px;
+  margin-bottom: 0px;
+  color: #f04438;
+}

@@ -119,6 +119,16 @@ pr-icon {
   width: 20px;
 }
 
+.icon-nested-red {
+  height: 30px;
+  width: 30px;
+  padding: 5px;
+  text-align: center;
+  border-radius: 50%;
+  background-color: var(--ui-error-3);
+  margin-right: 5px;
+}
+
 .icon-container {
   display: flex;
   align-items: center;

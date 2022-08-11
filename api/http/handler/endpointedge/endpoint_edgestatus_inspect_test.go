@@ -125,6 +125,7 @@ func setupHandler() (*Handler, func(), error) {
 		fs,
 		chisel.NewService(store, shutdownCtx),
 		*edgeService,
+		nil,
 	)
 
 	handler.ReverseTunnelService = chisel.NewService(store, shutdownCtx)

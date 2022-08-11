@@ -10,6 +10,7 @@ export enum Edition {
 export enum LicenseType {
   Trial = 1,
   Subscription,
+  Essentials,
 }
 
 // matches https://github.com/portainer/liblicense/blob/master/liblicense.go#L35-L50
@@ -40,4 +41,6 @@ export interface LicenseInfo {
   nodes: number;
   type: LicenseType;
   valid: boolean;
+  enforcedAt: number;
+  enforced: boolean;
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/portainer/liblicense"
-	"github.com/portainer/portainer-ee/api/license"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/sirupsen/logrus"
 )
@@ -14,7 +13,7 @@ const (
 	BucketName = "license"
 )
 
-// Service represents a service for managing environment(endpoint) data.
+// Service represents a service for managing license data.
 type Service struct {
 	connection portainer.Connection
 }
@@ -58,8 +57,7 @@ func (service *Service) Licenses() ([]liblicense.PortainerLicense, error) {
 				return nil, fmt.Errorf("Failed to convert to PortainerLicense object: %s", obj)
 			}
 
-			l := license.ParseLicense(*r)
-			licenses = append(licenses, l)
+			licenses = append(licenses, *r)
 
 			return &liblicense.PortainerLicense{}, nil
 		})

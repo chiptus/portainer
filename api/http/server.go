@@ -191,7 +191,7 @@ func (server *Server) Start() error {
 	var edgeTemplatesHandler = edgetemplates.NewHandler(requestBouncer)
 	edgeTemplatesHandler.DataStore = server.DataStore
 
-	var endpointHandler = endpoints.NewHandler(requestBouncer, server.UserActivityService, server.DataStore, &server.EdgeService, server.DemoService, server.CloudClusterSetupService)
+	var endpointHandler = endpoints.NewHandler(requestBouncer, server.UserActivityService, server.DataStore, &server.EdgeService, server.DemoService, server.CloudClusterSetupService, server.LicenseService)
 	endpointHandler.AuthorizationService = server.AuthorizationService
 	endpointHandler.FileService = server.FileService
 	endpointHandler.ProxyManager = server.ProxyManager
@@ -203,7 +203,7 @@ func (server *Server) Start() error {
 	endpointHandler.BindAddress = server.BindAddress
 	endpointHandler.BindAddressHTTPS = server.BindAddressHTTPS
 
-	var endpointEdgeHandler = endpointedge.NewHandler(requestBouncer, server.DataStore, server.FileService, server.ReverseTunnelService, server.EdgeService)
+	var endpointEdgeHandler = endpointedge.NewHandler(requestBouncer, server.DataStore, server.FileService, server.ReverseTunnelService, server.EdgeService, server.LicenseService)
 
 	var endpointGroupHandler = endpointgroups.NewHandler(requestBouncer, server.UserActivityService)
 	endpointGroupHandler.AuthorizationService = server.AuthorizationService
@@ -214,8 +214,7 @@ func (server *Server) Start() error {
 	endpointProxyHandler.ProxyManager = server.ProxyManager
 	endpointProxyHandler.ReverseTunnelService = server.ReverseTunnelService
 
-	var kaasHandler = kaas.NewHandler(requestBouncer, server.CloudClusterSetupService, server.CloudClusterInfoService, server.UserActivityService)
-	kaasHandler.DataStore = server.DataStore
+	var kaasHandler = kaas.NewHandler(requestBouncer, server.DataStore, server.CloudClusterSetupService, server.CloudClusterInfoService, server.UserActivityService, server.LicenseService)
 
 	var kubernetesHandler = kubehandler.NewHandler(requestBouncer, server.AuthorizationService, server.DataStore, server.JWTService, server.KubeClusterAccessService, server.KubernetesClientFactory, server.UserActivityService, server.KubernetesDeployer, server.FileService, server.AssetsPath)
 
@@ -275,8 +274,7 @@ func (server *Server) Start() error {
 	stackHandler.ComposeStackManager = server.ComposeStackManager
 	stackHandler.StackDeployer = server.StackDeployer
 
-	var statusHandler = status.NewHandler(requestBouncer, server.Status, server.DemoService)
-	statusHandler.DataStore = server.DataStore
+	var statusHandler = status.NewHandler(requestBouncer, server.Status, server.DemoService, server.DataStore)
 
 	var storybookHandler = storybook.NewHandler(server.AssetsPath)
 

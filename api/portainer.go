@@ -744,14 +744,13 @@ type (
 
 	// LicenseInfo represents aggregated information about an instance license
 	LicenseInfo struct {
-		ProductEdition liblicense.ProductEdition       `json:"productEdition"`
-		Company        string                          `json:"company"`
-		Email          string                          `json:"email"`
-		CreatedAt      int64                           `json:"createdAt"`
-		ExpiresAt      int64                           `json:"expiresAt"`
-		Nodes          int                             `json:"nodes"`
-		Type           liblicense.PortainerLicenseType `json:"type"`
-		Valid          bool                            `json:"valid"`
+		Company   string                          `json:"company"`
+		ExpiresAt int64                           `json:"expiresAt"`
+		Nodes     int                             `json:"nodes"`
+		Type      liblicense.PortainerLicenseType `json:"type"`
+		Valid     bool                            `json:"valid"`
+		// unix timestamp when node usage exceeded avaiable license limit
+		OveruseStartedTimestamp int64 `json:"overuseStartedTimestamp"`
 	}
 
 	// MembershipRole represents the role of a user within a team
@@ -1669,7 +1668,10 @@ type (
 		Info() *LicenseInfo
 		Init() error
 		Licenses() ([]liblicense.PortainerLicense, error)
+		ReaggregareLicenseInfo() error
+		ShouldEnforceOveruse() bool
 		Start() error
+		WillBeEnforcedAt() int64
 	}
 
 	// LicenseRepository represents a service used to manage licenses store

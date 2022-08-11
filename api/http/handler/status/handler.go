@@ -14,17 +14,18 @@ import (
 // Handler is the HTTP handler used to handle status operations.
 type Handler struct {
 	*mux.Router
-	Status      *portaineree.Status
-	DataStore   dataservices.DataStore
+	status      *portaineree.Status
+	dataStore   dataservices.DataStore
 	demoService *demo.Service
 }
 
 // NewHandler creates a handler to manage status operations.
-func NewHandler(bouncer *security.RequestBouncer, status *portaineree.Status, demoService *demo.Service) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, status *portaineree.Status, demoService *demo.Service, dataStore dataservices.DataStore) *Handler {
 	h := &Handler{
 		Router:      mux.NewRouter(),
-		Status:      status,
+		dataStore:   dataStore,
 		demoService: demoService,
+		status:      status,
 	}
 	h.Handle("/status",
 		bouncer.PublicAccess(httperror.LoggerHandler(h.statusInspect))).Methods(http.MethodGet)

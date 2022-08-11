@@ -21,6 +21,7 @@ type testDatastore struct {
 	endpoint                dataservices.EndpointService
 	endpointGroup           dataservices.EndpointGroupService
 	endpointRelation        dataservices.EndpointRelationService
+	enforcement             dataservices.EnforcementService
 	fdoProfile              dataservices.FDOProfileService
 	helmUserRepository      dataservices.HelmUserRepositoryService
 	license                 dataservices.LicenseRepository
@@ -68,6 +69,7 @@ func (d *testDatastore) EdgeStack() dataservices.EdgeStackService         { retu
 func (d *testDatastore) EdgeStackLog() dataservices.EdgeStackLogService   { return d.edgeStackLog }
 func (d *testDatastore) Endpoint() dataservices.EndpointService           { return d.endpoint }
 func (d *testDatastore) EndpointGroup() dataservices.EndpointGroupService { return d.endpointGroup }
+func (d *testDatastore) Enforcement() dataservices.EnforcementService     { return d.enforcement }
 func (d *testDatastore) FDOProfile() dataservices.FDOProfileService {
 	return d.fdoProfile
 }

@@ -1,0 +1,68 @@
+.license-info-panel {
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  background: var(--bg-widget-color);
+  border: 1px solid var(--border-widget);
+  border-radius: 8px;
+}
+
+.license-alert-panel {
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  background: var(--bg-widget-color);
+  border: 1px solid #ee3528;
+  border-radius: 8px;
+}
+
+.license-home-info {
+  padding: 10px 10px;
+  color: #f04438;
+  border: 1px solid #ee3528;
+  background-color: #fef3f2;
+  border-radius: 8px;
+}
+
+.license-info-content {
+  padding: 20px;
+}
+
+.license-title {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid #eeeeee;
+  margin: 0;
+}
+
+.extra {
+  padding: 10px 20px;
+  color: #f0ad4e;
+}
+
+.alert-extra {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #fef3f2;
+  color: #f04438;
+  border: 1px solid #ee3528;
+  border-radius: 8px;
+}
+
+.license-block {
+  display: flex;
+  padding: 5px;
+  margin-bottom: 15px;
+}
+
+.icon {
+  padding: 5px 10px 5px 0px;
+}
+
+.content {
+  padding: 5px;
+}
+
+.button {
+  margin-left: auto;
+}
