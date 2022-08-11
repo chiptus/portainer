@@ -54,6 +54,7 @@ export function EdgeScriptSettingsFieldset({
           <div className="col-sm-12">
             <SwitchField
               label="TLS"
+              labelClass="col-sm-3 col-lg-2"
               checked={values.tlsEnabled}
               onChange={(checked) => setFieldValue('tlsEnabled', checked)}
             />

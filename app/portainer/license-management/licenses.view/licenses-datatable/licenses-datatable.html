@@ -88,18 +88,14 @@
               <td>{{ item.nodes ? item.nodes : '-' }}</td>
               <td>{{ item.showExpiresAt }}</td>
               <td>
-                <i
-                  class="fa"
-                  ng-class="{
-                    'fa fa-check green-icon': item.valid,
-                    'fa fa-times red-icon': !item.valid
-                  }"
-                ></i>
+                <pr-icon icon="'check'" mode="'success'" ng-if="item.valid" feather="true" size="'md'"></pr-icon>
+                <pr-icon icon="'x'" mode="'danger'" ng-if="!item.valid" feather="true" size="'md'"></pr-icon>
               </td>
               <td>
-                <button ng-if="item.valid" type="button" class="btn btn-link p-0" ng-click="$ctrl.copyLicenseKey(item)" title="Copy License Key">
-                  <i class="fa fa-copy"></i>
-                </button>
+                <span class="vertical-center"
+                  ><button ng-if="item.valid" type="button" class="btn btn-link p-0" ng-click="$ctrl.copyLicenseKey(item)" title="Copy License Key">
+                    <pr-icon icon="'copy'" feather="true"></pr-icon> </button
+                ></span>
               </td>
             </tr>
             <tr ng-if="!$ctrl.dataset">
