@@ -30,7 +30,7 @@ const commands: CommandTab[] = [
 const defaultOptions = [
   {
     description: 'Portainer Edge Agent',
-    icon: 'fa fa-cloud',
+    icon: 'svg-edgeagent',
     id: 'id',
     label: 'Edge Agent',
     value: EnvironmentCreationTypes.EdgeAgentEnvironment,

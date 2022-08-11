@@ -9,6 +9,8 @@ import { CreateKubeConfigEnvironment } from '@/portainer/environments/environmen
 import { FormControl } from '@@/form-components/FormControl';
 import { FileUploadField } from '@@/form-components/FileUpload/FileUploadField';
 import { LoadingButton } from '@@/buttons/LoadingButton';
+import { Icon } from '@@/Icon';
+import { TextTip } from '@@/Tip/TextTip';
 
 import { NameField } from '../../shared/NameField';
 import { MoreSettingsSection } from '../../shared/MoreSettingsSection';
@@ -82,25 +84,22 @@ export function KubeConfigForm({ onCreate }: Props) {
         <Form>
           <div className="form-group">
             <div className="col-sm-12">
-              <span className="text-primary">
-                <i
-                  className="fa fa-exclamation-circle space-right"
-                  aria-hidden="true"
-                />
-              </span>
-              <span className="text-muted small">
-                <a
-                  href="https://docs.portainer.io/start/install/agent/kubernetes/import"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mx-1"
-                >
-                  Import the kubeconfig file
-                </a>
-                of an existing Kubernetes cluster located on-premise or on a
-                cloud platform. This will create a corresponding environment in
-                Portainer and install the agent on the cluster. Please ensure:
-              </span>
+              <TextTip color="blue">
+                <span className="text-muted">
+                  <a
+                    href="https://docs.portainer.io/start/install/agent/kubernetes/import"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mx-1"
+                  >
+                    Import the kubeconfig file
+                  </a>
+                  of an existing Kubernetes cluster located on-premise or on a
+                  cloud platform. This will create a corresponding environment
+                  in Portainer and install the agent on the cluster. Please
+                  ensure:
+                </span>
+              </TextTip>
             </div>
             <div className="col-sm-12 text-muted small">
               <ul style={{ padding: 10, paddingLeft: 20 }}>
@@ -141,12 +140,16 @@ export function KubeConfigForm({ onCreate }: Props) {
           <div className="form-group">
             <div className="col-sm-12">
               <LoadingButton
-                className="wizard-connect-button"
+                className="wizard-connect-button vertical-center"
                 loadingText="Connecting environment..."
                 isLoading={mutation.isLoading}
                 disabled={!dirty || !isValid}
               >
-                <i className="fa fa-plug" aria-hidden="true" /> Connect
+                <Icon
+                  icon="svg-plug"
+                  className="icon icon-sm vertical-center"
+                />{' '}
+                Connect
               </LoadingButton>
             </div>
           </div>
