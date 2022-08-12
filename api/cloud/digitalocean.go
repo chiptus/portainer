@@ -97,7 +97,7 @@ func (service *CloudClusterInfoService) DigitalOceanFetchInfo(apiKey string) (*D
 	ns := make([]portaineree.Pair, 0)
 	for _, size := range nodeSizes {
 		// Skip 1GB nodes as they are not actually valid for Digital Ocean.
-		if strings.Contains(size.Slug, "-1gb") {
+		if size.Memory < 2048 {
 			continue
 		}
 
