@@ -144,6 +144,12 @@ angular.module('portainer.app').factory('LocalStorage', [
       getKubernetesSummaryToggle() {
         return localStorageService.get('kubernetes_summary_expanded');
       },
+      storeOAuthLoginBlockForNonAdmin(code) {
+        localStorageService.set('oauth_login_block_code_' + code, true);
+      },
+      getOAuthLoginBlockForNonAdmin(code) {
+        return localStorageService.get('oauth_login_block_code_' + code);
+      },
     };
   },
 ]);

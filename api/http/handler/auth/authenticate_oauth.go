@@ -195,7 +195,7 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 			return resp, &httperror.HandlerError{
 				StatusCode: http.StatusPaymentRequired,
 				Message:    "Node limit exceeds the 5 node free license, please contact your administrator",
-				Err:        httperrors.ErrUnauthorized,
+				Err:        httperrors.ErrLicenseOverused,
 			}
 		}
 	}

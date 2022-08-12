@@ -105,7 +105,7 @@ func (handler *Handler) authenticate(rw http.ResponseWriter, r *http.Request) (*
 		return resp, &httperror.HandlerError{
 			StatusCode: http.StatusPaymentRequired,
 			Message:    "Node limit exceeds the 5 node free license, please contact your administrator",
-			Err:        httperrors.ErrUnauthorized,
+			Err:        httperrors.ErrLicenseOverused,
 		}
 	}
 
@@ -232,7 +232,7 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 			return resp, &httperror.HandlerError{
 				StatusCode: http.StatusPaymentRequired,
 				Message:    "Node limit exceeds the 5 node free license, please contact your administrator",
-				Err:        httperrors.ErrUnauthorized,
+				Err:        httperrors.ErrLicenseOverused,
 			}
 		}
 	}
@@ -273,7 +273,7 @@ func (handler *Handler) authenticateInternal(w http.ResponseWriter, user *portai
 			return resp, &httperror.HandlerError{
 				StatusCode: http.StatusPaymentRequired,
 				Message:    "Node limit exceeds the 5 node free license, please contact your administrator",
-				Err:        httperrors.ErrUnauthorized,
+				Err:        httperrors.ErrLicenseOverused,
 			}
 		}
 	}

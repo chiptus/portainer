@@ -7,6 +7,8 @@ var (
 	ErrEndpointAccessDenied = errors.New("Access denied to environment")
 	// ErrNoValidLicense Unauthorized error
 	ErrNoValidLicense = errors.New("No valid Portainer License found")
+	// ErrLicenseOverused License overused error
+	ErrLicenseOverused = errors.New("Node limit exceeds the 5 node free license")
 	// ErrUnauthorized Unauthorized error
 	ErrUnauthorized = errors.New("Unauthorized")
 	// ErrResourceAccessDenied Access denied to resource error

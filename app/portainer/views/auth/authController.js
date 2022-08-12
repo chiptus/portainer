@@ -191,6 +191,7 @@ class AuthenticationController {
       if (err.status === 402) {
         // When the free subscription license is enforced
         this.error(err, err.data.message);
+        this.LocalStorage.storeOAuthLoginBlockForNonAdmin(code);
         return;
       }
       this.error(err, 'Unable to login via OAuth');
@@ -242,6 +243,10 @@ class AuthenticationController {
     if (this.hasValidState(state)) {
       await this.oAuthLoginAsync(code);
     } else {
+      if (this.LocalStorage.getOAuthLoginBlockForNonAdmin(code)) {
+        this.error(null, 'Node limit exceeds the 5 node free license, please contact your administrator');
+        return;
+      }
       this.error(null, 'Invalid OAuth state, try again.');
     }
   }
