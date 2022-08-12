@@ -32,9 +32,8 @@ export function DefaultRegistryAction() {
           </Button>
 
           <Tooltip
-            message="This hides the option in any registry dropdown prompts but does not prevent a user
-                                  from deploying anonymously from Docker Hub directly via YAML.<br />
-                                  Note: Docker Hub (anonymous) will always continue to show if there are NO other registries."
+            message="This hides the option in any registry dropdown prompts but does not prevent a user from deploying anonymously from Docker Hub directly via YAML.
+            Note: Docker Hub (anonymous) will continue to show as the ONLY option if there are NO other registries available to the user."
           />
         </div>
       ) : (
@@ -47,8 +46,8 @@ export function DefaultRegistryAction() {
             Show for all users
           </Button>
           <Tooltip
-            message="This reveals the option in any registry dropdown prompts.<br />
-                                  Note: Docker Hub (anonymous) will always continue to show if there are NO other registries."
+            message="This reveals the option in any registry dropdown prompts.
+                    (but note that the Docker Hub (anonymous) option only shows if there is no credentialled Docker Hub option available to the user)."
           />
         </div>
       )}
