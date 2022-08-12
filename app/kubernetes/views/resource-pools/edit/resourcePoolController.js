@@ -441,6 +441,7 @@ class KubernetesResourcePoolController {
   $onInit() {
     return this.$async(async () => {
       try {
+        this.isAdmin = this.Authentication.isAdmin();
         this.canEdit = this.Authentication.hasAuthorizations(['K8sResourcePoolDetailsW']);
 
         this.state = {
