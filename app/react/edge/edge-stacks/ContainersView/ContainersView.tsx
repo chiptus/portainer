@@ -11,6 +11,7 @@ import { ports } from '@/react/docker/containers/ListView/ContainersDatatable/co
 import { Datatable } from '@/react/components/datatables/Datatable';
 import { useDockerSnapshotContainers } from '@/react/docker/queries/useDockerSnapshotContainers';
 import { createStore } from '@/react/docker/containers/ListView/ContainersDatatable/datatable-store';
+import { RowProvider } from '@/react/docker/containers/ListView/ContainersDatatable/RowContext';
 
 import { PageHeader } from '@@/PageHeader';
 
@@ -58,18 +59,20 @@ export function ContainersView() {
         ]}
       />
 
-      <Datatable
-        titleOptions={{
-          icon: 'fa-cubes',
-          title: 'Containers',
-        }}
-        storageKey={storageKey}
-        dataset={containersQuery.data}
-        columns={columns}
-        settingsStore={settings}
-        disableSelect
-        emptyContentLabel="No containers found"
-      />
+      <RowProvider context={{ environment }}>
+        <Datatable
+          titleOptions={{
+            icon: 'fa-cubes',
+            title: 'Containers',
+          }}
+          storageKey={storageKey}
+          dataset={containersQuery.data}
+          columns={columns}
+          settingsStore={settings}
+          disableSelect
+          emptyContentLabel="No containers found"
+        />
+      </RowProvider>
     </>
   );
 }

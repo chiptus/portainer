@@ -58,8 +58,8 @@
               ng-class="{ active: item.Checked }"
             >
               <td>{{ item.Name }}</td>
-              <td>{{ $ctrl.statusMap[item.status.Type] || 'Pending' }}</td>
-              <td>{{ item.Status.Error ? item.Status.Error : '-' }}</td>
+              <td>{{ $ctrl.endpointStatusLabel(item.Id) }}</td>
+              <td>{{ $ctrl.endpointStatusError(item.Id) }}</td>
               <td><edge-stack-environment-actions environment="item" edge-stack-id="$ctrl.edgeStackId"></edge-stack-environment-actions></td>
               <td><edge-stack-action-status environment-id="item.Id" edge-stack-id="$ctrl.edgeStackId"></edge-stack-action-status></td>
             </tr>

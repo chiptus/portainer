@@ -19,7 +19,7 @@ export function EnvironmentActions({ environment, edgeStackId }: Props) {
         <Link
           to=".environment.containers"
           params={{ environmentId: environment.Id }}
-          className="text-inherit"
+          className="!text-inherit hover:!no-underline"
         >
           <Button color="none" title="Explore containers">
             <i className="fa fa-search" aria-hidden="true" />
