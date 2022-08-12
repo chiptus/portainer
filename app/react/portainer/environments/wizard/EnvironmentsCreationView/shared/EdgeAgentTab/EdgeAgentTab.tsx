@@ -61,7 +61,7 @@ export function EdgeAgentTab({
   );
 
   function handleCreate(environment: Environment) {
-    setEdgeInfo({ key: environment.EdgeKey, id: uuid() });
+    setEdgeInfo({ key: environment.EdgeKey, id: environment.EdgeID || uuid() });
     onCreate(environment);
   }
 
