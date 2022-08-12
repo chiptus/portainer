@@ -14,25 +14,25 @@ func (m *Migrator) UpgradeToEE() error {
 
 	migrateLog.Infof("Migrating CE database version %d to EE database version %d.", m.Version(), portaineree.DBVersion)
 
-	migrateLog.Info("Updating LDAP settings to EE")
-	err := m.updateSettingsToEE()
+	migrateLog.Info("- upgrading LDAP settings to EE")
+	err := m.updateLdapSettingsToEE()
 	if err != nil {
 		return err
 	}
 
-	migrateLog.Info("Updating user roles to EE")
+	migrateLog.Info("- upgrading user roles to EE")
 	err = m.updateUserRolesToEE()
 	if err != nil {
 		return err
 	}
 
-	migrateLog.Info("Updating role authorizations to EE")
+	migrateLog.Info("- upgrading role authorizations to EE")
 	err = m.roleService.CreateOrUpdatePredefinedRoles()
 	if err != nil {
 		return err
 	}
 
-	migrateLog.Info("Updating user authorizations")
+	migrateLog.Info("- upgrading user authorizations")
 	err = m.authorizationService.UpdateUsersAuthorizations()
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func (m *Migrator) UpgradeToEE() error {
 	return nil
 }
 
-func (m *Migrator) updateSettingsToEE() error {
+func (m *Migrator) updateLdapSettingsToEE() error {
 	legacySettings, err := m.settingsService.Settings()
 	if err != nil {
 		return err

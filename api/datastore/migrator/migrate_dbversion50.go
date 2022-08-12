@@ -16,10 +16,10 @@ func (m *Migrator) migrateDBVersionToDB50() error {
 }
 
 func (m *Migrator) migratePasswordLengthSettings() error {
-	migrateLog.Info("Updating required password length")
+	migrateLog.Info("- updating required password length")
 	s, err := m.settingsService.Settings()
 	if err != nil {
-		return errors.Wrap(err, "unable to retrieve settings")
+		return errors.Wrap(err, "while fetching settings from database")
 	}
 
 	s.InternalAuthSettings.RequiredPasswordLength = 12
@@ -100,7 +100,6 @@ func (m *Migrator) migrateCloudAPIKeysToCloudCredentials() error {
 
 func updateEndpoint(m *Migrator, endpoints []portaineree.Endpoint, credID models.CloudCredentialID, providerName string) error {
 	for _, endpoint := range endpoints {
-
 		if endpoint.CloudProvider != nil && endpoint.CloudProvider.Name == providerName {
 			endpoint.CloudProvider.CredentialID = credID
 			err := m.endpointService.UpdateEndpoint(endpoint.ID, &endpoint)

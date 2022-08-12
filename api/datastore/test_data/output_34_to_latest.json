@@ -1129,7 +1129,13 @@
     "KubectlShellImage": "portainer/kubectl-shell",
     "LDAPSettings": {
       "AdminAutoPopulate": false,
-      "AdminGroupSearchSettings": null,
+      "AdminGroupSearchSettings": [
+        {
+          "GroupAttribute": "",
+          "GroupBaseDN": "",
+          "GroupFilter": ""
+        }
+      ],
       "AdminGroups": null,
       "AnonymousMode": true,
       "AutoCreateUsers": true,
@@ -1155,7 +1161,9 @@
         "TLSSkipVerify": false
       },
       "URL": "kota.nz:389",
-      "URLs": null
+      "URLs": [
+        "kota.nz:389"
+      ]
     },
     "LogoURL": "",
     "OAuthSettings": {

@@ -40,7 +40,7 @@ func (m *Migrator) refreshRBACRoles() error {
 }
 
 func (m *Migrator) refreshUserAuthorizations() error {
-	migrateLog.Info("Refreshing user authorizations...")
+	migrateLog.Info("- refreshing user authorizations")
 	users, err := m.userService.Users()
 	if err != nil {
 		return err
