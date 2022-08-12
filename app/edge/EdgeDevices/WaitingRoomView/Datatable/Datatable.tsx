@@ -112,28 +112,30 @@ export function DataTable({
     <div className="row">
       <div className="col-sm-12">
         <Table.Container>
-          <Table.Title label="Edge Devices Waiting Room" icon="" />
-          <Table.Actions>
-            <Button
-              onClick={() =>
-                handleAssociateDevice(selectedFlatRows.map((r) => r.original))
-              }
-              disabled={selectedFlatRows.length === 0 || licenseOverused}
-            >
-              Associate Device
-            </Button>
-            {licenseOverused ? (
-              <div className="ml-2 mt-2">
-                <TextTip color="orange">
-                  Associating devices is disabled as your node count exceeds
-                  your license limit
-                </TextTip>
-              </div>
-            ) : null}
-          </Table.Actions>
-
-          <SearchBar onChange={handleSearchBarChange} value={searchBarValue} />
-
+          <Table.Title label="Edge Devices Waiting Room" icon="box" featherIcon>
+            <SearchBar
+              onChange={handleSearchBarChange}
+              value={searchBarValue}
+            />
+            <Table.Actions>
+              <Button
+                onClick={() =>
+                  handleAssociateDevice(selectedFlatRows.map((r) => r.original))
+                }
+                disabled={selectedFlatRows.length === 0}
+              >
+                Associate Device
+              </Button>
+              {licenseOverused ? (
+                <div className="ml-2 mt-2">
+                  <TextTip color="orange">
+                    Associating devices is disabled as your node count exceeds
+                    your license limit
+                  </TextTip>
+                </div>
+              ) : null}
+            </Table.Actions>
+          </Table.Title>
           <Table
             className={tableProps.className}
             role={tableProps.role}
