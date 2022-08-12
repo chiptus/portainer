@@ -28,11 +28,11 @@
       </div>
     </div>
     <div class="time-window-warning">
-      <span class="vertical-center"
-        ><pr-icon icon="'alert-circle'" mode="'warning'" feather="true"></pr-icon> Automatic updates to stacks or applications outside the defined change window will not
+      <span class="vertical-center text-warning"
+        ><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Automatic updates to stacks or applications outside the defined change window will not
         occur.</span
       >
-      <div style="padding: 8px 0px" class="vertical-center" ng-show="$ctrl.state.timeError">
+      <div style="padding: 8px 0px" class="vertical-center text-warning" ng-show="$ctrl.state.timeError">
         <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>
         The chosen time configuration is invalid
       </div>
