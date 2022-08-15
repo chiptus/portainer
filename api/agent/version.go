@@ -27,8 +27,8 @@ func GetAgentVersionAndPlatform(url string, tlsConfig *tls.Config) (portaineree.
 		}
 	}
 
-	if !strings.Contains(url, "//") {
-		url = "//" + url
+	if !strings.Contains(url, "://") {
+		url = "https://" + url
 	}
 
 	parsedURL, err := netUrl.Parse(fmt.Sprintf("%s/ping", url))
