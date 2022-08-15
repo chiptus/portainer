@@ -12,7 +12,7 @@ import (
 	nodeutil "github.com/portainer/portainer-ee/api/internal/nodes"
 )
 
-// NotOverused will ensure that the license is not overused.
+// NotOverused will ensure that the Essential license(5NF) is not overused.
 // It will response with an error if it is overused.
 func NotOverused(licenseService portaineree.LicenseService, dataStore dataservices.DataStore, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
@@ -21,9 +21,8 @@ func NotOverused(licenseService portaineree.LicenseService, dataStore dataservic
 			return
 		}
 
-		overused := licenseIsOverused(licenseService.Info().Nodes, dataStore.Endpoint())
-
-		if overused {
+		licenseInfo := licenseService.Info()
+		if licenseInfo != nil && licenseInfo.OveruseStartedTimestamp > 0 {
 			httperror.WriteError(rw, http.StatusPaymentRequired, "You have exceeded the node allowance of your current license. Please contact your administrator.", nil)
 			return
 		}

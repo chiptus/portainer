@@ -139,7 +139,6 @@ func Test_ShouldEnforceOveruse(t *testing.T) {
 }
 
 func Test_NotOverused(t *testing.T) {
-
 	_, store, teardown := datastore.MustNewTestStore(true, true)
 	defer teardown()
 
@@ -151,21 +150,21 @@ func Test_NotOverused(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	t.Run("should return http error if 5 nodes are in use but licensed 1", func(t *testing.T) {
+	t.Run("should return http error if licenseOveruseStartedTimestamp is set", func(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		licenseService := NewService(nil, nil)
-		licenseService.info = &portaineree.LicenseInfo{Nodes: 1}
+		licenseService.info = &portaineree.LicenseInfo{OveruseStartedTimestamp: time.Now().Unix()}
 
 		NotOverused(licenseService, store, nextHandler).ServeHTTP(w, r)
 		assert.Equal(t, http.StatusPaymentRequired, w.Code)
 	})
 
-	t.Run("should pass request through if 5 nodes are in use and licensed 10", func(t *testing.T) {
+	t.Run("should pass request through if licenseOveruseStartedTimestamp is empty", func(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		licenseService := NewService(nil, nil)
-		licenseService.info = &portaineree.LicenseInfo{Nodes: 10}
+		licenseService.info = &portaineree.LicenseInfo{OveruseStartedTimestamp: 0}
 
 		NotOverused(licenseService, store, nextHandler).ServeHTTP(w, r)
 		assert.Equal(t, http.StatusOK, w.Code)
