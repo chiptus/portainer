@@ -131,7 +131,7 @@ export function EnvironmentList({ onClickItem, onRefresh }: Props) {
     tagIds: tagFilter?.length ? tagFilter : undefined,
     groupIds: groupFilter,
     provisioned: true,
-    edgeDevice: getEdgeDeviceFilter(connectionTypes.map((p) => p.value)),
+    edgeDevice: false,
     tagsPartialMatch: true,
     agentVersions: agentVersions.map((a) => a.value),
   };
@@ -332,19 +332,6 @@ export function EnvironmentList({ onClickItem, onRefresh }: Props) {
     </>
   );
 
-  function getEdgeDeviceFilter(connectionTypes: ConnectionType[]) {
-    // show both types of edge agent if both are selected or  if no connection type is selected
-    if (
-      connectionTypes.length === 0 ||
-      (connectionTypes.includes(ConnectionType.EdgeAgent) &&
-        connectionTypes.includes(ConnectionType.EdgeDevice))
-    ) {
-      return undefined;
-    }
-
-    return connectionTypes.includes(ConnectionType.EdgeDevice);
-  }
-
   function getTypes(
     platformTypes: PlatformType[],
     connectionTypes: ConnectionType[]
@@ -498,7 +485,6 @@ function getConnectionTypeOptions(platformTypes: Filter<PlatformType>[]) {
     { value: ConnectionType.API, label: 'API' },
     { value: ConnectionType.Agent, label: 'Agent' },
     { value: ConnectionType.EdgeAgent, label: 'Edge Agent' },
-    { value: ConnectionType.EdgeDevice, label: 'Edge Device' },
   ];
 
   if (platformTypes.length === 0) {
