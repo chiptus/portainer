@@ -5,7 +5,7 @@ import { LicenseType } from '../license-management/types';
 
 import { LicenseNodePanel } from './LicenseNodePanel';
 
-test('when user is using more nodes then allowed he should see message', async () => {
+test('when user is using more nodes than allowed he should see message', async () => {
   const allowed = 2;
   const used = 5;
   server.use(
@@ -21,12 +21,12 @@ test('when user is using more nodes then allowed he should see message', async (
 
   await expect(
     findByText(
-      /You have exceeded the node allowance of your license and will be unable to log into your account/
+      /You have exceeded the node allowance of your license and your users will be unable to log into their accounts/
     )
   ).resolves.toBeVisible();
 });
 
-test("when user is using less nodes then allowed he shouldn't see message", async () => {
+test("when user is using less nodes than allowed he shouldn't see message", async () => {
   const allowed = 5;
   const used = 2;
   server.use(
@@ -42,7 +42,7 @@ test("when user is using less nodes then allowed he shouldn't see message", asyn
 
   await expect(
     findByText(
-      /You have exceeded the node allowance of your license and will be unable to log into your account/
+      /You have exceeded the node allowance of your license and your users will be unable to log into their accounts/
     )
   ).rejects.toBeTruthy();
 });

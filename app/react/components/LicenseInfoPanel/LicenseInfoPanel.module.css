@@ -10,6 +10,7 @@
   background: var(--bg-widget-color);
   border: 1px solid #ee3528;
   border-radius: 8px;
+  padding: 20px;
 }
 
 .license-home-info {
@@ -21,7 +22,7 @@
 }
 
 .license-info-content {
-  padding: 20px;
+  padding: 20px 20px 10px 20px;
 }
 
 .license-title {
@@ -37,22 +38,29 @@
 
 .extra {
   padding: 10px 20px;
-  color: #f0ad4e;
+}
+
+.extra-less-two-months {
+  margin-left: 5px;
+  color: #dc6803;
 }
 
 .alert-extra {
-  margin-top: 20px;
+  margin-top: 10px;
   padding: 10px 20px;
   background-color: #fef3f2;
-  color: #f04438;
   border: 1px solid #ee3528;
   border-radius: 8px;
+}
+
+.alert-extra-text {
+  margin-left: 5px;
+  color: #f04438;
 }
 
 .license-block {
   display: flex;
   padding: 5px;
-  margin-bottom: 15px;
 }
 
 .icon {
