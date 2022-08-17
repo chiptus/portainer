@@ -36,8 +36,7 @@ export function LicenseExpirationPanel({ remainingDays, isLoading }: Props) {
       <div className={clsx(styles.item, 'vertical-center')}>
         <AlertTriangle className="icon icon-sm icon-warning" />
         <span className="text-muted">
-          {expirationMessage} Please contact your administrator to renew your
-          license.
+          {expirationMessage} Please contact Portainer to renew your license.
         </span>
       </div>
     </div>
