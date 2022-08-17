@@ -8,7 +8,6 @@ import { trackEvent } from '@/angulartics.matomo/analytics-services';
 
 import { Button } from '@@/buttons';
 
-import styles from './KubeconfigButton.module.css';
 import { KubeconfigPrompt } from './KubeconfigPrompt';
 import '@reach/dialog/styles.css';
 
@@ -29,8 +28,8 @@ export function KubeconfigButton({ environments, envQueryParams }: Props) {
 
   return (
     <>
-      <Button className={styles.kubeconfigButton} onClick={handleClick}>
-        <Download className="feather-icon-white" aria-hidden="true" />{' '}
+      <Button onClick={handleClick} size="medium" className="!ml-3">
+        <Download className="feather icon-white" aria-hidden="true" />{' '}
         Kubeconfig
       </Button>
       {prompt()}
