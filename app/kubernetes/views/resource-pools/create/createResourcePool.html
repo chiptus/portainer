@@ -34,13 +34,17 @@
                     <div class="col-sm-12 small text-muted">
                       <div ng-messages="resourcePoolCreationForm.pool_name.$error">
                         <p class="vertical-center" ng-message="required"> <pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon>This field is required.</p>
-                        <p class="vertical-center" ng-message="pattern"
-                          ><pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> This field must consist of lower case alphanumeric characters or '-', and
-                          contain at most 63 characters, and must start and end with an alphanumeric character.
+                        <p class="vertical-center" ng-message="pattern">
+                          <pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon>
+                          This field must consist of lower case alphanumeric characters or '-', and contain at most 63 characters, and must start and end with an alphanumeric
+                          character.
                         </p>
                       </div>
                       <p class="vertical-center" ng-if="$ctrl.state.hasPrefixKube"
                         ><pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> Prefix "kube-" is reserved for Kubernetes system namespaces.</p
+                      >
+                      <p class="vertical-center" ng-if="$ctrl.state.isAlreadyExist"
+                        ><pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> A namespace with the same name already exists.</p
                       >
                     </div>
                   </div>
@@ -192,7 +196,7 @@
                 </div>
               </div>
               <div class="form-group" ng-if="$ctrl.formValues.UseLoadBalancersQuota">
-                <label for="pool_name" class="col-sm-3 col-lg-2 control-label text-left">Max Load Balancers</label>
+                <label for="pool_name" class="col-sm-3 col-lg-2 control-label text-left required">Max Load Balancers</label>
                 <div class="col-sm-3">
                   <input
                     type="number"
@@ -284,7 +288,7 @@
                     <div ng-repeat="item in ic.Hosts track by $index">
                       <div class="form-inline">
                         <div class="col-sm-10 input-group input-group-sm pt-2">
-                          <span class="input-group-addon">Hostname</span>
+                          <span class="input-group-addon required">Hostname</span>
                           <input
                             type="text"
                             class="form-control"
@@ -483,7 +487,7 @@
               <div ng-repeat-end ng-if="sc.Selected">
                 <div class="form-group">
                   <div class="col-sm-12 pl-0">
-                    <label class="control-label text-left col-sm-3 col-lg-2"> Maximum usage </label>
+                    <label class="control-label text-left col-sm-3 col-lg-2 required"> Maximum usage </label>
                     <div class="col-sm-3 input-group !pl-[15px]">
                       <div class="flex">
                         <input type="number" class="form-control" name="storage_class_size_{{ $index }}" ng-model="sc.Size" placeholder="20" min="0" ng-min="0" required />
