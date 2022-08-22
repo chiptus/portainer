@@ -1,8 +1,13 @@
 import { react2angular } from '@/react-tools/react2angular';
 import { EditorType } from '@/edge/types';
+import NomadIcon from '@/assets/ico/vendor/nomad.svg?c';
 
 import { BoxSelector } from '@@/BoxSelector';
 import { BoxSelectorOption } from '@@/BoxSelector/types';
+import {
+  compose,
+  kubernetes,
+} from '@@/BoxSelector/common-options/deployment-methods';
 
 interface Props {
   value: number;
@@ -21,10 +26,7 @@ export function EdgeStackDeploymentTypeSelector({
 }: Props) {
   const deploymentOptions: BoxSelectorOption<number>[] = [
     {
-      id: 'deployment_compose',
-      icon: 'fab fa-docker',
-      label: 'Compose',
-      description: 'Docker compose format',
+      ...compose,
       value: EditorType.Compose,
       disabled: () => hasNomadEndpoint,
       tooltip: () =>
@@ -33,10 +35,7 @@ export function EdgeStackDeploymentTypeSelector({
           : '',
     },
     {
-      id: 'deployment_kube',
-      icon: 'fa fa-cubes',
-      label: 'Kubernetes',
-      description: 'Kubernetes manifest format',
+      ...kubernetes,
       value: EditorType.Kubernetes,
       disabled: () => hasDockerEndpoint || hasNomadEndpoint,
       tooltip: () =>
@@ -46,7 +45,7 @@ export function EdgeStackDeploymentTypeSelector({
     },
     {
       id: 'deployment_nomad',
-      icon: 'nomad-icon',
+      icon: NomadIcon,
       label: 'Nomad',
       description: 'Nomad HCL format',
       value: EditorType.Nomad,

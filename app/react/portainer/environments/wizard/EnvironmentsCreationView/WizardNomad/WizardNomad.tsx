@@ -47,16 +47,12 @@ export function WizardNomad({ onCreate }: Props) {
 
   return (
     <div className="form-horizontal">
-      <div className="form-group">
-        <div className="col-sm-12">
-          <BoxSelector
-            onChange={(value) => setSelected(value)}
-            options={options}
-            value={selected}
-            radioName="creation-type"
-          />
-        </div>
-      </div>
+      <BoxSelector
+        onChange={(value) => setSelected(value)}
+        options={options}
+        value={selected}
+        radioName="creation-type"
+      />
 
       <EdgeAgentTab
         commands={commands}
