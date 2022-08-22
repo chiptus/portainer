@@ -2,6 +2,7 @@ import { Gpu } from '@/react/portainer/environments/wizard/EnvironmentsCreationV
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 import { type EnvironmentGroupId } from '@/portainer/environment-groups/types';
 import { type TagId } from '@/portainer/tags/types';
+import { EdgeAsyncIntervalsValues } from '@/edge/components/EdgeAsyncIntervalsForm';
 
 import { type Environment, EnvironmentCreationTypes } from '../types';
 
@@ -126,12 +127,14 @@ export interface EnvironmentOptions {
   url?: string;
   publicUrl?: string;
   meta?: EnvironmentMetadata;
-  checkinInterval?: number;
   azure?: AzureSettings;
   tls?: TLSSettings;
   gpus?: Gpu[];
   isEdgeDevice?: boolean;
   kubeConfig?: string;
+  pollFrequency?: number;
+  edge?: EdgeAsyncIntervalsValues;
+  asyncMode?: boolean;
 }
 
 interface CreateRemoteEnvironment {
@@ -189,6 +192,8 @@ interface CreateEdgeAgentEnvironment {
   pollFrequency: number;
   gpus?: Gpu[];
   isEdgeDevice?: boolean;
+  edge?: EdgeAsyncIntervalsValues;
+  asyncMode?: boolean;
 }
 
 export function createEdgeAgentEnvironment({
@@ -197,6 +202,9 @@ export function createEdgeAgentEnvironment({
   meta = { tagIds: [] },
   gpus = [],
   isEdgeDevice,
+  pollFrequency,
+  edge,
+  asyncMode,
 }: CreateEdgeAgentEnvironment) {
   return createEnvironment(
     name,
@@ -205,6 +213,9 @@ export function createEdgeAgentEnvironment({
       url: portainerUrl,
       gpus,
       isEdgeDevice,
+      pollFrequency,
+      edge,
+      asyncMode,
       ...meta,
     }
   );
@@ -229,13 +240,13 @@ async function createEnvironment(
       PublicURL: options.publicUrl,
       GroupID: groupId,
       TagIds: arrayToJson(tagIds),
-      CheckinInterval: options.checkinInterval,
+      CheckinInterval: options.pollFrequency,
       IsEdgeDevice: options.isEdgeDevice,
       Gpus: arrayToJson(options.gpus),
       KubeConfig: options.kubeConfig,
     };
 
-    const { tls, azure } = options;
+    const { tls, azure, asyncMode } = options;
 
     if (tls) {
       payload = {
@@ -255,6 +266,15 @@ async function createEnvironment(
         AzureApplicationID: azure.applicationId,
         AzureTenantID: azure.tenantId,
         AzureAuthenticationKey: azure.authenticationKey,
+      };
+    }
+
+    if (asyncMode) {
+      payload = {
+        ...payload,
+        EdgePingInterval: options.edge?.PingInterval,
+        EdgeSnapshotInterval: options.edge?.SnapshotInterval,
+        EdgeCommandInterval: options.edge?.CommandInterval,
       };
     }
   }

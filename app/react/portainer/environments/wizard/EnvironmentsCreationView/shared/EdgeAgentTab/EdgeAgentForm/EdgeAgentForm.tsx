@@ -103,7 +103,11 @@ export function EdgeAgentForm({
 
   function handleSubmit(values: typeof initialValues) {
     createMutation.mutate(
-      { ...values, isEdgeDevice: createEdgeDevice },
+      {
+        ...values,
+        isEdgeDevice: createEdgeDevice,
+        asyncMode: edgeSettings.AsyncMode,
+      },
       {
         onSuccess(environment) {
           onCreate(environment);

@@ -24,7 +24,6 @@ export function EdgeAgentTab({
   showGpus = false,
 }: Props) {
   const [edgeInfo, setEdgeInfo] = useState<EdgeInfo>();
-
   const [formKey, clearForm] = useReducer((state) => state + 1, 0);
 
   return (
@@ -34,7 +33,7 @@ export function EdgeAgentTab({
         readonly={!!edgeInfo}
         key={formKey}
         showGpus={showGpus}
-        hideAsyncMode
+        hideAsyncMode={false}
       />
 
       {edgeInfo && (
