@@ -12,10 +12,11 @@ import { Datatable } from '@/react/components/datatables/Datatable';
 import { useDockerSnapshotContainers } from '@/react/docker/queries/useDockerSnapshotContainers';
 import { createStore } from '@/react/docker/containers/ListView/ContainersDatatable/datatable-store';
 import { RowProvider } from '@/react/docker/containers/ListView/ContainersDatatable/RowContext';
+import { useEdgeStack } from '@/react/edge/edge-stacks/queries/useEdgeStack';
 
 import { PageHeader } from '@@/PageHeader';
-
-import { useEdgeStack } from '../queries/useEdgeStack';
+import { TextTip } from '@@/Tip/TextTip';
+import { Widget } from '@@/Widget';
 
 const storageKey = 'edge_stack_containers';
 const useStore = createStore(storageKey);
@@ -23,41 +24,58 @@ const columns = [name, state, image, created, ip, host, ports];
 
 export function ContainersView() {
   const {
-    params: { environmentId, stackId },
+    params: { environmentId, edgeStackId },
   } = useCurrentStateAndParams();
 
   const settings = useStore();
 
   const environmentQuery = useEnvironment(environmentId);
 
-  const edgeStackQuery = useEdgeStack(stackId);
+  const edgeStackQuery = useEdgeStack(edgeStackId);
 
   const containersQuery = useDockerSnapshotContainers(environmentId, {
-    edgeStackId: stackId,
+    edgeStackId,
   });
 
-  if (!environmentId || !stackId) {
-    throw new Error('Missing environmentId or stackId parameters');
+  if (!environmentId) {
+    throw new Error('Missing environmentId parameter');
   }
 
-  if (!environmentQuery.data || !edgeStackQuery.data || !containersQuery.data) {
+  if (
+    !environmentQuery.data ||
+    !containersQuery.data ||
+    (edgeStackId && !edgeStackQuery.data)
+  ) {
     return null;
   }
 
   const { data: environment } = environmentQuery;
-  const { data: edgeStack } = edgeStackQuery;
 
   return (
     <>
       <PageHeader
         title="Containers"
         breadcrumbs={[
-          { label: 'Edge Stacks', link: 'edge.stacks' },
-          { label: edgeStack.Name, link: 'edge.stacks.edit', linkParams: {} },
+          { label: 'Edge Devices', link: 'edge.devices' },
           { label: environment.Name },
           { label: 'Containers' },
         ]}
       />
+
+      {edgeStackQuery.data && (
+        <div className="row">
+          <div className="col-sm-12">
+            <Widget>
+              <Widget.Body>
+                <TextTip color="blue">
+                  Containers are filtered by edge stack
+                  <span className="ml-px">{edgeStackQuery.data?.Name}</span>.
+                </TextTip>
+              </Widget.Body>
+            </Widget>
+          </div>
+        </div>
+      )}
 
       <RowProvider context={{ environment }}>
         <Datatable

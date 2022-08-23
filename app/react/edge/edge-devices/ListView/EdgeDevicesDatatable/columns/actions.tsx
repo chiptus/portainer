@@ -33,11 +33,23 @@ export function ActionsCell({
     endpointId: environment.Id,
   });
 
+  const snapshotLinkProps = useSref('edge.devices.containers', {
+    environmentId: environment.Id,
+  });
+
   const showRefreshSnapshot = false; // remove and show MenuItem when feature is available
 
   return (
     <ActionsMenu>
-      {!environment.Edge.AsyncMode && (
+      {environment.Edge.AsyncMode ? (
+        <MenuLink
+          className="!text-inherit hover:!no-underline"
+          href={snapshotLinkProps.href}
+          onClick={snapshotLinkProps.onClick}
+        >
+          Browse Snapshot
+        </MenuLink>
+      ) : (
         <MenuLink href={browseLinkProps.href} onClick={browseLinkProps.onClick}>
           Browse
         </MenuLink>

@@ -79,32 +79,6 @@ angular
       },
     };
 
-    $stateRegistryProvider.register({
-      name: 'edge.stacks.edit.environment',
-      url: '/environment/:environmentId',
-      abstract: true,
-    });
-
-    $stateRegistryProvider.register({
-      name: 'edge.stacks.edit.environment.containers',
-      url: '/containers',
-      views: {
-        'content@': {
-          component: 'edgeStackEnvironmentContainersView',
-        },
-      },
-    });
-
-    $stateRegistryProvider.register({
-      name: 'edge.stacks.edit.environment.containers.container',
-      url: '/:containerId',
-      views: {
-        'content@': {
-          component: 'edgeStackEnvironmentContainerView',
-        },
-      },
-    });
-
     const edgeJobs = {
       name: 'edge.jobs',
       url: '/jobs',
@@ -159,6 +133,26 @@ angular
         },
       });
     }
+
+    $stateRegistryProvider.register({
+      name: 'edge.devices.containers',
+      url: '/:environmentId/containers?edgeStackId',
+      views: {
+        'content@': {
+          component: 'edgeDeviceContainersView',
+        },
+      },
+    });
+
+    $stateRegistryProvider.register({
+      name: 'edge.devices.containers.container',
+      url: '/:containerId',
+      views: {
+        'content@': {
+          component: 'edgeDeviceContainerView',
+        },
+      },
+    });
 
     $stateRegistryProvider.register(edge);
 

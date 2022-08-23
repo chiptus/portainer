@@ -17,11 +17,11 @@ export function EnvironmentActions({ environment, edgeStackId }: Props) {
     <div className="space-x-2">
       {environment.Snapshots.length > 0 && (
         <Link
-          to=".environment.containers"
-          params={{ environmentId: environment.Id }}
+          to="edge.devices.containers"
+          params={{ environmentId: environment.Id, edgeStackId }}
           className="!text-inherit hover:!no-underline"
         >
-          <Button color="none" title="Explore containers">
+          <Button color="none" title="Browse Snapshot">
             <i className="fa fa-search" aria-hidden="true" />
           </Button>
         </Link>
