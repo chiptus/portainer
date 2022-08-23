@@ -1,4 +1,5 @@
 import _ from 'lodash-es';
+import { trimSHA } from './utils';
 
 function includeString(text, values) {
   return values.some(function (val) {
@@ -251,18 +252,7 @@ angular
       return createdBy.replace('/bin/sh -c #(nop) ', '').replace('/bin/sh -c ', 'RUN ');
     };
   })
-  .filter('trimshasum', function () {
-    'use strict';
-    return function (imageName) {
-      if (!imageName) {
-        return;
-      }
-      if (imageName.indexOf('sha256:') === 0) {
-        return imageName.substring(7, 19);
-      }
-      return _.split(imageName, '@sha256')[0];
-    };
-  })
+  .filter('trimshasum', () => trimSHA)
   .filter('trimversiontag', function () {
     'use strict';
     return function trimversiontag(fullName) {

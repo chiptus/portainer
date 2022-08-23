@@ -3,7 +3,6 @@ import { useCurrentStateAndParams } from '@uirouter/react';
 import { useEnvironment } from '@/portainer/environments/queries';
 import { name } from '@/react/docker/containers/ListView/ContainersDatatable/columns/name';
 import { state } from '@/react/docker/containers/ListView/ContainersDatatable/columns/state';
-import { image } from '@/react/docker/containers/ListView/ContainersDatatable/columns/image';
 import { created } from '@/react/docker/containers/ListView/ContainersDatatable/columns/created';
 import { ip } from '@/react/docker/containers/ListView/ContainersDatatable/columns/ip';
 import { host } from '@/react/docker/containers/ListView/ContainersDatatable/columns/host';
@@ -17,6 +16,8 @@ import { useEdgeStack } from '@/react/edge/edge-stacks/queries/useEdgeStack';
 import { PageHeader } from '@@/PageHeader';
 import { TextTip } from '@@/Tip/TextTip';
 import { Widget } from '@@/Widget';
+
+import { image } from './image-column';
 
 const storageKey = 'edge_stack_containers';
 const useStore = createStore(storageKey);
