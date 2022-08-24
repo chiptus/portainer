@@ -27,14 +27,36 @@ export function getLicenseUpgradeURL(
 
 export function calculateCountdownTime(enforcedAt: number) {
   const given = moment.unix(enforcedAt);
-  const current = moment().startOf('day');
+  const currentHour = moment().startOf('hour');
+  const totalHours = Math.trunc(
+    moment.duration(given.diff(currentHour)).asHours()
+  );
 
-  const remaining = moment.duration(given.diff(current)).days();
-  if (remaining < 0) {
-    return '0';
+  const remainingDay = Math.trunc(totalHours / 24);
+  const remainingHour = totalHours % 24;
+  if (remainingDay === 0 && remainingHour > 0) {
+    return pluralizeTimeUnit(remainingHour, 'hour');
   }
+  if (remainingHour === 0 && remainingDay > 0) {
+    return pluralizeTimeUnit(remainingDay, 'day');
+  }
+  if (remainingHour > 0 && remainingDay > 0) {
+    return `${pluralizeTimeUnit(remainingDay, 'day')} and ${pluralizeTimeUnit(
+      remainingHour,
+      'hour'
+    )}`;
+  }
+  return '0 days';
+}
 
-  return remaining;
+function pluralizeTimeUnit(value: number, unit: string) {
+  if (value > 1) {
+    return `${value} ${unit}s`;
+  }
+  if (value > 0 && value <= 1) {
+    return `${value} ${unit}`;
+  }
+  return `${0} ${unit}`;
 }
 
 export function getProductionEdition(edition: number) {

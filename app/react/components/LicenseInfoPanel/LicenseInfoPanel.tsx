@@ -127,14 +127,14 @@ function buildCountdownWidget(licenseInfo: LicenseInfo, usedNodes: number) {
         <div className={clsx(styles.content)}>
           <div>
             <span className={styles.licenseTitle}>
-              {remainingTime} days remaining
+              {remainingTime} remaining
             </span>
           </div>
           <div>
             <span>
               You have exceeded the node allowance of your license and your
-              users will be unable to log into their accounts in {remainingTime}{' '}
-              days. Please contact Portainer to upgrade your license.
+              users will be unable to log into their accounts in {remainingTime}
+              . Please contact Portainer to upgrade your license.
             </span>
           </div>
         </div>
