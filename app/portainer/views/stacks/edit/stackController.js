@@ -505,6 +505,8 @@ angular.module('portainer.app').controller('StackController', [
       const orphanedRunning = $transition$.params().orphanedRunning == 'true';
       $scope.orphanedRunning = orphanedRunning;
 
+      $scope.stackType = parseInt($transition$.params().type, 10);
+
       if (external || (orphaned && orphanedRunning)) {
         loadExternalStack(stackName);
       }
@@ -515,8 +517,6 @@ angular.module('portainer.app').controller('StackController', [
       }
 
       $scope.composeSyntaxMaxVersion = endpoint.ComposeSyntaxMaxVersion;
-
-      $scope.stackType = parseInt($transition$.params().type, 10);
 
       $scope.editorReadOnly = !Authentication.hasAuthorizations(['PortainerStackUpdate']);
     }
