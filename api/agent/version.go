@@ -5,18 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	netUrl "net/url"
 	"strconv"
-	"strings"
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/url"
 )
 
 // GetAgentVersionAndPlatform returns the agent version and platform
 //
 // it sends a ping to the agent and parses the version and platform from the headers
-func GetAgentVersionAndPlatform(url string, tlsConfig *tls.Config) (portaineree.AgentPlatform, string, error) {
+func GetAgentVersionAndPlatform(endpointUrl string, tlsConfig *tls.Config) (portaineree.AgentPlatform, string, error) {
 	httpCli := &http.Client{
 		Timeout: 3 * time.Second,
 	}
@@ -27,11 +26,7 @@ func GetAgentVersionAndPlatform(url string, tlsConfig *tls.Config) (portaineree.
 		}
 	}
 
-	if !strings.Contains(url, "://") {
-		url = "https://" + url
-	}
-
-	parsedURL, err := netUrl.Parse(fmt.Sprintf("%s/ping", url))
+	parsedURL, err := url.ParseURL(endpointUrl + "/ping")
 	if err != nil {
 		return 0, "", err
 	}
