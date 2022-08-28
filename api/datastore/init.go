@@ -45,7 +45,7 @@ func (store *Store) checkOrCreateDefaultSettings() error {
 	_, err := store.SettingsService.Settings()
 	if err == errors.ErrObjectNotFound {
 		defaultSettings := &portaineree.Settings{
-			EnableTelemetry:      true,
+			EnableTelemetry:      false,
 			AuthenticationMethod: portaineree.AuthenticationInternal,
 			InternalAuthSettings: portaineree.InternalAuthSettings{
 				RequiredPasswordLength: 12,
