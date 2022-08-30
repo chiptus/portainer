@@ -747,6 +747,16 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       });
     }
 
+    function loadFromContainerWebhook(d) {
+      $q.all({
+        webhooks: WebhookService.webhooks(d.Id, endpoint.Id),
+      }).then(function success(data) {
+        if (data.webhooks.length > 0) {
+          $scope.formValues.EnableWebhook = true;
+        }
+      });
+    }
+
     function loadFromContainerSpec() {
       // Get container
       Container.get({ id: $transition$.params().from })
@@ -758,6 +768,7 @@ angular.module('portainer.docker').controller('CreateContainerController', [
           $scope.fromContainer = fromContainer;
           $scope.state.mode = 'duplicate';
           $scope.config = ContainerHelper.configFromContainer(fromContainer.Model);
+          loadFromContainerWebhook(d);
           loadFromContainerCmd(d);
           loadFromContainerEntrypoint(d);
           loadFromContainerLogging(d);
