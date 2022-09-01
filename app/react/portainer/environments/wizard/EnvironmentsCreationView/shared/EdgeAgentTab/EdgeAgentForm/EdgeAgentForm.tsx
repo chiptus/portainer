@@ -61,7 +61,7 @@ export function EdgeAgentForm({
 
           <MoreSettingsSection>
             <FormSection title="Check-in Intervals">
-              {!hideAsyncMode && edgeSettings.AsyncMode ? (
+              {!hideAsyncMode && edgeSettings.AsyncMode && createEdgeDevice ? (
                 <EdgeAsyncIntervalsForm
                   values={values.edge}
                   readonly={readonly}

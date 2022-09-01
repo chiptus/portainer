@@ -5,6 +5,7 @@ import { Environment } from '@/portainer/environments/types';
 import { EdgeScriptForm } from '@/react/edge/components/EdgeScriptForm';
 import { CommandTab } from '@/react/edge/components/EdgeScriptForm/scripts';
 import { OS, EdgeInfo } from '@/react/edge/components/EdgeScriptForm/types';
+import { useCreateEdgeDeviceParam } from '@/react/portainer/environments/wizard/hooks/useCreateEdgeDeviceParam';
 
 import { Button } from '@@/buttons';
 
@@ -26,6 +27,8 @@ export function EdgeAgentTab({
   const [edgeInfo, setEdgeInfo] = useState<EdgeInfo>();
   const [formKey, clearForm] = useReducer((state) => state + 1, 0);
 
+  const createEdgeDevice = useCreateEdgeDeviceParam();
+
   return (
     <>
       <EdgeAgentForm
@@ -42,7 +45,7 @@ export function EdgeAgentTab({
             edgeInfo={edgeInfo}
             commands={commands}
             isNomadTokenVisible={isNomadTokenVisible}
-            hideAsyncMode
+            hideAsyncMode={!createEdgeDevice}
           />
 
           <hr />
