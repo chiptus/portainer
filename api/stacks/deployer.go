@@ -57,7 +57,11 @@ func (d *stackDeployer) DeployComposeStack(stack *portaineree.Stack, endpoint *p
 			return err
 		}
 	}
-	return d.composeStackManager.Up(context.TODO(), stack, endpoint, forceRereate)
+	err := d.composeStackManager.Up(context.TODO(), stack, endpoint, forceRereate)
+	if err != nil {
+		d.composeStackManager.Down(context.TODO(), stack, endpoint)
+	}
+	return err
 }
 
 func (d *stackDeployer) DeployKubernetesStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, user *portaineree.User) error {
