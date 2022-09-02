@@ -4,6 +4,7 @@ import { EnvironmentId } from '@/portainer/environments/types';
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 import { promiseSequence } from '@/portainer/helpers/promise-utils';
 import { useIntegratedLicenseInfo } from '@/portainer/license-management/use-license.service';
+import { LicenseType } from '@/portainer/license-management/types';
 
 export function useAssociateDeviceMutation() {
   const queryClient = useQueryClient();
@@ -35,7 +36,11 @@ async function associateDevice(environmentId: EnvironmentId) {
 
 export function useLicenseOverused() {
   const integratedInfo = useIntegratedLicenseInfo();
-  if (integratedInfo && integratedInfo.licenseInfo.enforcedAt > 0) {
+  if (
+    integratedInfo &&
+    integratedInfo.usedNodes > integratedInfo.licenseInfo.nodes &&
+    integratedInfo.licenseInfo.type === LicenseType.Essentials
+  ) {
     return true;
   }
   return false;

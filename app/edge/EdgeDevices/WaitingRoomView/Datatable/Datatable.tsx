@@ -122,7 +122,7 @@ export function DataTable({
                 onClick={() =>
                   handleAssociateDevice(selectedFlatRows.map((r) => r.original))
                 }
-                disabled={selectedFlatRows.length === 0}
+                disabled={selectedFlatRows.length === 0 || licenseOverused}
               >
                 Associate Device
               </Button>

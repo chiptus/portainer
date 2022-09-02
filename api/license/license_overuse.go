@@ -12,8 +12,9 @@ import (
 	nodeutil "github.com/portainer/portainer-ee/api/internal/nodes"
 )
 
-// NotOverused will ensure that the Essential license(5NF) is not overused.
-// It will response with an error if it is overused.
+// NotOverused should be applied to a new endpoint provisioning,
+// will ensure that the Essential license(5NF) will not be overused by adding an endpoint.
+// It will responds with an error.
 func NotOverused(licenseService portaineree.LicenseService, dataStore dataservices.DataStore, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		if licenseService == nil || dataStore == nil {
@@ -22,9 +23,12 @@ func NotOverused(licenseService portaineree.LicenseService, dataStore dataservic
 		}
 
 		licenseInfo := licenseService.Info()
-		if licenseInfo != nil && licenseInfo.OveruseStartedTimestamp > 0 {
-			httperror.WriteError(rw, http.StatusPaymentRequired, "You have exceeded the node allowance of your current license. Please contact your administrator.", nil)
-			return
+		// license validation is only relevant for an Essential license
+		if licenseInfo.Type == liblicense.PortainerLicenseEssentials {
+			if licenseIsAtTheLimit(licenseInfo.Nodes, dataStore.Endpoint()) {
+				httperror.WriteError(rw, http.StatusPaymentRequired, "You have exceeded the node allowance of your current license. Please contact your administrator.", nil)
+				return
+			}
 		}
 
 		next.ServeHTTP(rw, r)
@@ -62,18 +66,17 @@ func (service *Service) getLicenseOveruseTimestamp(licenseType liblicense.Portai
 	licenseOveruseStartedTimestamp := enforcement.LicenseOveruseStartedTimestamp
 
 	// current only Essenstial License node abuse can trigger license enforcement
-	if licenseType == liblicense.PortainerLicenseEssentials {
-		licenseOverused := licenseIsOverused(licensedNodesCount, service.dataStore.Endpoint())
+	if licenseType != liblicense.PortainerLicenseEssentials {
+		return 0, nil
+	}
 
-		if licenseOveruseStartedTimestamp == 0 && licenseOverused {
-			licenseOveruseStartedTimestamp = time.Now().Unix()
-		}
+	licenseOverused := licenseIsOverused(licensedNodesCount, service.dataStore.Endpoint())
 
-		if !licenseOverused {
-			licenseOveruseStartedTimestamp = 0
-		}
-	} else {
-		// reset license overuse timestamp if license type is not Essentials
+	if licenseOveruseStartedTimestamp == 0 && licenseOverused {
+		licenseOveruseStartedTimestamp = time.Now().Unix()
+	}
+
+	if !licenseOverused {
 		licenseOveruseStartedTimestamp = 0
 	}
 
@@ -82,12 +85,20 @@ func (service *Service) getLicenseOveruseTimestamp(licenseType liblicense.Portai
 
 // licenseIsOverused returns true if the license node quota is exceeded
 func licenseIsOverused(allowedNodes int, endpointService dataservices.EndpointService) bool {
+	return nodesInUse(endpointService) > allowedNodes
+}
+
+// licenseIsAtTheLimit validates that the license is not at its node limit or over it.
+func licenseIsAtTheLimit(allowedNodes int, endpointService dataservices.EndpointService) bool {
+	return nodesInUse(endpointService) >= allowedNodes
+}
+
+// nodesInUse returns the number of nodes that are currently provisioned
+func nodesInUse(endpointService dataservices.EndpointService) int {
 	endpoints, err := endpointService.Endpoints()
 	if err != nil {
-		return false
+		return 0
 	}
 
-	nodesInUse := nodeutil.NodesCount(endpoints)
-
-	return nodesInUse > allowedNodes
+	return nodeutil.NodesCount(endpoints)
 }
