@@ -7,10 +7,16 @@ export function RegistryImageDetailsViewModel(data) {
     this.Os = data.os;
     this.Architecture = data.architecture;
     this.Author = data.author;
-    this.Command = data.config.Cmd;
-    this.Entrypoint = data.container_config.Entrypoint ? data.container_config.Entrypoint : '';
-    this.ExposedPorts = data.container_config.ExposedPorts ? Object.keys(data.container_config.ExposedPorts) : [];
-    this.Volumes = data.container_config.Volumes ? Object.keys(data.container_config.Volumes) : [];
-    this.Env = data.container_config.Env ? data.container_config.Env : [];
+
+    // buildx images don't have container_config property
+    // besides cotainer_config's cmd value is less intuitive than the same in config's
+    const config = data.config ? data.config : data.container_config;
+    if (config) {
+      this.Command = config.Cmd;
+      this.Entrypoint = config.Entrypoint ? config.Entrypoint : '';
+      this.ExposedPorts = config.ExposedPorts ? Object.keys(config.ExposedPorts) : [];
+      this.Volumes = config.Volumes ? Object.keys(config.Volumes) : [];
+      this.Env = config.Env ? config.Env : [];
+    }
   }
 }
