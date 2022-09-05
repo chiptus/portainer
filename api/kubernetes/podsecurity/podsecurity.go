@@ -234,10 +234,11 @@ var PodSecurityConstraintsMap = map[string]string{
 	"K8sPSPVolumeTypes":            "volumes"}
 
 var (
-	GateKeeperFile      = "gatekeeper-3.8.yaml"
-	GateKeeperNameSpace = "gatekeeper-system"
-	GateKeeperPodName   = "gatekeeper-controller-manager"
-	GateKeeperSelector  = "gatekeeper.sh/operation"
-	GateKeeperInterval  = 2 * time.Second
-	GateKeeperTimeOut   = 300 * time.Second
+	GateKeeperFile                   = "gatekeeper.yaml"
+	GateKeeperExcludedNamespacesFile = "excluded-namespaces.yaml"
+	GateKeeperNameSpace              = "gatekeeper-system"
+	GateKeeperPodName                = "gatekeeper-controller-manager"
+	GateKeeperSelector               = "gatekeeper.sh/operation"
+	GateKeeperInterval               = 2 * time.Second
+	GateKeeperTimeOut                = 300 * time.Second
 )

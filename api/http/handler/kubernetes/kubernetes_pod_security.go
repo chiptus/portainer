@@ -187,6 +187,15 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 			return &httperror.HandlerError{http.StatusInternalServerError, "unable to get gatekeeper status", err}
 		}
 
+		//2. deploy gatekeeper excluded namespaces
+		gatekeeperExcludedNamespacesManifest := path.Join(handler.baseFileDir, "pod-security-policy", podsecurity.GateKeeperExcludedNamespacesFile)
+		_, err = handler.KubernetesDeployer.Deploy(tokenData.ID, endpoint, []string{gatekeeperExcludedNamespacesManifest}, podsecurity.GateKeeperNameSpace)
+		if err != nil {
+			log.Printf("[ERROR] [internal,k8s] [message: failed to apply kubernetes gatekeeper namespace exclusions]")
+			handler.KubernetesDeployer.Remove(tokenData.ID, endpoint, []string{gatekeeperManifest}, podsecurity.GateKeeperNameSpace)
+			return &httperror.HandlerError{http.StatusInternalServerError, "failed to deploy kubernetes gatekeeper", err}
+		}
+
 		//2.deploy gatekeeper constrainttemplate
 		for _, v := range podsecurity.PodSecurityConstraintsMap {
 			log.Printf("[INFO] [internal,k8s] [message: deploying constraint template %s]", v)
@@ -225,7 +234,7 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 	return response.JSON(w, requestRule)
 }
 
-//check the gatekeeper pod status
+// check the gatekeeper pod status
 var checkGetekeeperStatus = func(handler *Handler, endpoint *portaineree.Endpoint, r *http.Request) error {
 	cli, err := handler.KubernetesClientFactory.CreateClient(endpoint)
 	if err != nil {
@@ -262,7 +271,7 @@ func (cons *PodSecurityConstraint) init(userID portaineree.UserID, endpoint *por
 	cons.templateFolder = handler.baseFileDir
 }
 
-//deploy the constraint with a maximum 5 times retry, as sometimes need to wait serveral seconds for the template to take effect
+// deploy the constraint with a maximum 5 times retry, as sometimes need to wait serveral seconds for the template to take effect
 func (cons *PodSecurityConstraint) create(handler *Handler) error {
 	constraint, err := cons.getConstraint()
 	if err != nil {
@@ -303,7 +312,7 @@ func (cons *PodSecurityConstraint) delete(handler *Handler) error {
 	return nil
 }
 
-//fresh the status of field in k8s
+// fresh the status of field in k8s
 func (cons *PodSecurityConstraint) fresh(handler *Handler) error {
 	log.Printf("[DEBUG] [Kubernetes, OPA] [message: Updating Pod Security Rule field %v]", cons.name)
 	cons.newRuleEnabled, cons.existingRuleEnabled = cons.getRulesStatus()
@@ -328,7 +337,7 @@ func (cons *PodSecurityConstraint) fresh(handler *Handler) error {
 	return nil
 }
 
-//check if the field needs to be created/updated/deleted by comparing the request value and database value
+// check if the field needs to be created/updated/deleted by comparing the request value and database value
 func (cons *PodSecurityConstraint) getRulesStatus() (bool, bool) {
 
 	switch cons.name {
@@ -367,12 +376,12 @@ func (cons *PodSecurityConstraint) getRulesStatus() (bool, bool) {
 	}
 }
 
-//generate constraint template yaml file locations according to different Pod Security Rule fields
+// generate constraint template yaml file locations according to different Pod Security Rule fields
 func (cons *PodSecurityConstraint) getConstraint() (string, error) {
 	return createK8SYamlFile(path.Join(cons.constraintFolder, "pod-security-policy", strconv.Itoa(cons.newRule.EndpointID)), cons.name, cons.newRule)
 }
 
-//generate constraint yaml files according to different Pod Security Rule fields
+// generate constraint yaml files according to different Pod Security Rule fields
 func createK8SYamlFile(workDir string, constraint string, rule *podsecurity.PodSecurityRule) (string, error) {
 	constraintManifest := podsecurity.PodSecurityConstraintCommon{}
 	constraintManifest.APIVersion = "constraints.gatekeeper.sh/v1beta1"
