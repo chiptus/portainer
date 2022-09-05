@@ -32,6 +32,8 @@ export const EdgeTypes = [
 export enum EnvironmentStatus {
   Up = 1,
   Down,
+  Provisioning,
+  Error,
 }
 
 export interface DockerSnapshot {

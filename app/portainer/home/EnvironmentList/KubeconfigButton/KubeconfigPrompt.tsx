@@ -49,7 +49,9 @@ export function KubeconfigPrompt({
       EnvironmentType.EdgeAgentOnKubernetes,
     ],
   });
-  const isAllPageSelected = environments.every((env) => selection[env.Id]);
+  const isAllPageSelected = environments
+    .filter((env) => env.Status <= 2)
+    .every((env) => selection[env.Id]);
 
   return (
     <DialogOverlay
@@ -86,24 +88,26 @@ export function KubeconfigPrompt({
             </div>
             <div className="datatable">
               <div className="bootbox-checkbox-list">
-                {environments.map((env) => (
-                  <div
-                    key={env.Id}
-                    className={clsx(
-                      styles.checkbox,
-                      'h-8 flex items-center pt-1'
-                    )}
-                  >
-                    <Checkbox
-                      id={`${env.Id}`}
-                      label={`${env.Name} (${env.URL})`}
-                      checked={!!selection[env.Id]}
-                      onChange={() =>
-                        toggleSelection(env.Id, !selection[env.Id])
-                      }
-                    />
-                  </div>
-                ))}
+                {environments
+                  .filter((env) => env.Status <= 2)
+                  .map((env) => (
+                    <div
+                      key={env.Id}
+                      className={clsx(
+                        styles.checkbox,
+                        'h-8 flex items-center pt-1'
+                      )}
+                    >
+                      <Checkbox
+                        id={`${env.Id}`}
+                        label={`${env.Name} (${env.URL})`}
+                        checked={!!selection[env.Id]}
+                        onChange={() =>
+                          toggleSelection(env.Id, !selection[env.Id])
+                        }
+                      />
+                    </div>
+                  ))}
               </div>
               <div className="pt-3 flex justify-end w-full">
                 <PaginationControls
@@ -131,7 +135,9 @@ export function KubeconfigPrompt({
   );
 
   function handleSelectAll() {
-    environments.forEach((env) => toggleSelection(env.Id, !isAllPageSelected));
+    environments
+      .filter((env) => env.Status <= 2)
+      .forEach((env) => toggleSelection(env.Id, !isAllPageSelected));
   }
 
   function handleDownload() {
