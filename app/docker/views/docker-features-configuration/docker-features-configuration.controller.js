@@ -22,6 +22,7 @@ export default class DockerFeaturesConfigurationController {
       disableDeviceMappingForRegularUsers: false,
       disableContainerCapabilitiesForRegularUsers: false,
       disableSysctlSettingForRegularUsers: false,
+      disableImageNotification: false,
     };
 
     this.isAgent = false;
@@ -35,6 +36,7 @@ export default class DockerFeaturesConfigurationController {
     this.save = this.save.bind(this);
     this.onChangeField = this.onChangeField.bind(this);
     this.onToggleAutoUpdate = this.onToggleAutoUpdate.bind(this);
+    this.onToggleImageNotification = this.onToggleImageNotification.bind(this);
     this.onChangeEnableHostManagementFeatures = this.onChangeField('enableHostManagementFeatures');
     this.onChangeAllowVolumeBrowserForRegularUsers = this.onChangeField('allowVolumeBrowserForRegularUsers');
     this.onChangeDisableBindMountsForRegularUsers = this.onChangeField('disableBindMountsForRegularUsers');
@@ -49,6 +51,12 @@ export default class DockerFeaturesConfigurationController {
   onToggleAutoUpdate(value) {
     return this.$scope.$evalAsync(() => {
       this.state.autoUpdateSettings.Enabled = value;
+    });
+  }
+
+  onToggleImageNotification(checked) {
+    this.$scope.$evalAsync(() => {
+      this.formValues.disableImageNotification = !checked;
     });
   }
 
@@ -106,6 +114,7 @@ export default class DockerFeaturesConfigurationController {
         const settings = {
           securitySettings,
           changeWindow: this.state.autoUpdateSettings,
+          DisableImageNotification: this.formValues.disableImageNotification,
         };
 
         await this.EndpointService.updateSettings(this.endpoint.Id, settings);
@@ -155,5 +164,6 @@ export default class DockerFeaturesConfigurationController {
     };
 
     this.state.autoUpdateSettings = this.endpoint.ChangeWindow;
+    this.formValues.disableImageNotification = this.endpoint.DisableImageNotification;
   }
 }

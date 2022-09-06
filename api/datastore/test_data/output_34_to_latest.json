@@ -48,6 +48,7 @@
       },
       "CloudProvider": null,
       "ComposeSyntaxMaxVersion": "",
+      "DisableImageNotification": false,
       "Edge": {
         "AsyncMode": false,
         "CommandInterval": 0,

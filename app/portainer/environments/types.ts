@@ -133,6 +133,7 @@ export type Environment = {
   Edge: EnvironmentEdge;
   SecuritySettings: EnvironmentSecuritySettings;
   Gpus: { name: string; value: string }[];
+  DisableImageNotification: boolean;
 };
 
 /**

@@ -10,7 +10,10 @@ import { TemplateListSortAngular } from '@/react/docker/app-templates/TemplateLi
 
 export const componentsModule = angular
   .module('portainer.docker.react.components', [])
-  .component('stackImageStatus', r2a(StackImageStatus, ['stackId']))
+  .component(
+    'stackImageStatus',
+    r2a(StackImageStatus, ['stackId', 'environmentId'])
+  )
   .component(
     'containerQuickActions',
     r2a(ContainerQuickActions, [

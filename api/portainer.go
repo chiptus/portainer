@@ -413,6 +413,8 @@ type (
 		// Automatic update change window restriction for stacks and apps
 		ChangeWindow EndpointChangeWindow `json:"ChangeWindow"`
 
+		DisableImageNotification bool `json:"DisableImageNotification"`
+
 		// Deprecated fields
 		// Deprecated in DBVersion == 4
 		TLS           bool   `json:"TLS,omitempty"`

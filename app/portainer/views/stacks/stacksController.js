@@ -37,6 +37,7 @@ function StacksController($scope, $state, Notifications, StackService, ModalServ
 
   $scope.offlineMode = false;
   $scope.createEnabled = false;
+  $scope.disableImageNotification = endpoint.DisableImageNotification;
 
   $scope.getStacks = getStacks;
 

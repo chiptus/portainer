@@ -12,5 +12,6 @@ angular.module('portainer.app').component('stacksDatatable', {
     offlineMode: '<',
     refreshCallback: '<',
     createEnabled: '<',
+    disableImageNotification: '<',
   },
 });

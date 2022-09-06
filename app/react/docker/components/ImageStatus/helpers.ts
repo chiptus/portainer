@@ -6,9 +6,14 @@ export function statusClass(
   status?: ImageStatus | null,
   isLoading?: boolean
 ): string {
-  if (isLoading || !status) {
+  if (isLoading) {
     return 'fa fa-spinner fa-spin';
   }
+
+  if (!status) {
+    return '';
+  }
+
   switch (status.Status) {
     case 'outdated':
       return style.outdated;

@@ -139,7 +139,7 @@
                   ng-click="$ctrl.changeOrderBy('Type')"
                 ></table-column-header>
               </th>
-              <th><table-column-header col-title="'Images up to date'" can-sort="false"></table-column-header></th>
+              <th ng-if="!$ctrl.disableImageNotification"><table-column-header col-title="'Images up to date'" can-sort="false"></table-column-header></th>
               <th><table-column-header col-title="'Control'" can-sort="false"></table-column-header></th>
               <th>
                 <table-column-header
@@ -196,8 +196,8 @@
                 <span ng-if="item.Regular && item.Status == 2" class="label label-warning image-tag space-left ml-2">Inactive</span>
               </td>
               <td>{{ item.Type === 1 ? 'Swarm' : 'Compose' }}</td>
-              <td>
-                <stack-image-status ng-if="item.Regular" stack-id="item.Id"></stack-image-status>
+              <td ng-if="!$ctrl.disableImageNotification">
+                <stack-image-status ng-if="item.Regular" stack-id="item.Id" environment-id="item.EndpointId"></stack-image-status>
               </td>
               <td>
                 <span
