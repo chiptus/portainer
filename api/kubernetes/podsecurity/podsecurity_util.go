@@ -10,7 +10,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/kubernetes/pkg/client/conditions"
 )
 
 var (
@@ -45,7 +44,7 @@ func (p *psppod) waitFunc(ctx context.Context, podName string) wait.ConditionFun
 		case v1.PodRunning:
 			return true, nil
 		case v1.PodFailed, v1.PodSucceeded:
-			return false, conditions.ErrPodCompleted
+			return false, errors.New("pod ran to completion")
 		}
 
 		return false, nil
