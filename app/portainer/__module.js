@@ -9,7 +9,6 @@ import componentsModule from './components';
 import featureFlagModule from './feature-flags';
 import servicesModule from './services';
 import homeModule from './home';
-import { accessControlModule } from './access-control';
 import { reactModule } from './react';
 import { sidebarModule } from './react/views/sidebar';
 import { getEnvironments } from './environments/environment.service';
@@ -43,7 +42,6 @@ angular
     featureFlagModule,
     'portainer.shared.datatable',
     servicesModule,
-    accessControlModule,
     reactModule,
     sidebarModule,
   ])

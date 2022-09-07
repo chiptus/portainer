@@ -2,7 +2,7 @@ import moment from 'moment';
 import _ from 'lodash-es';
 import { PorImageRegistryModel } from 'Docker/models/porImageRegistry';
 import { confirmContainerDeletion } from '@/portainer/services/modal.service/prompt';
-import { ResourceControlType } from '@/portainer/access-control/types';
+import { ResourceControlType } from '@/react/portainer/access-control/types';
 
 angular.module('portainer.docker').controller('ContainerController', [
   '$q',

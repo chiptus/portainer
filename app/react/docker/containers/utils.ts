@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import { ResourceControlViewModel } from '@/portainer/access-control/models/ResourceControlViewModel';
+import { ResourceControlViewModel } from '@/react/portainer/access-control/models/ResourceControlViewModel';
 
 import { DockerContainer, ContainerStatus } from './types';
 import { DockerContainerResponse } from './types/response';

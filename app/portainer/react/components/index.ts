@@ -4,6 +4,7 @@ import { react2angular } from 'react2angular';
 import { r2a } from '@/react-tools/react2angular';
 import { Icon } from '@/react/components/Icon';
 import { ReactQueryDevtoolsWrapper } from '@/react/components/ReactQueryDevtoolsWrapper';
+import { AccessControlPanel } from '@/react/portainer/access-control';
 
 import { PageHeader } from '@@/PageHeader';
 import { TagSelector } from '@@/TagSelector';
@@ -90,4 +91,14 @@ export const componentsModule = angular
   .component(
     'boxSelectorBadgeIcon',
     react2angular(BadgeIcon, ['featherIcon', 'icon'])
+  )
+  .component(
+    'accessControlPanel',
+    r2a(AccessControlPanel, [
+      'disableOwnershipChange',
+      'onUpdateSuccess',
+      'resourceControl',
+      'resourceId',
+      'resourceType',
+    ])
   ).name;
