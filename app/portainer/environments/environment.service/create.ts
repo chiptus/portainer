@@ -216,7 +216,7 @@ export function createEdgeAgentEnvironment({
       pollFrequency,
       edge,
       asyncMode,
-      ...meta,
+      meta,
     }
   );
 }
