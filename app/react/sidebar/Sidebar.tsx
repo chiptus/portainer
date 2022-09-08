@@ -30,10 +30,7 @@ export function Sidebar() {
     /* in the future (when we remove r2a) this should wrap the whole app - to change root styles */
     <SidebarProvider>
       <nav
-        className={clsx(
-          styles.root,
-          'p-5 flex flex-col be:bg-gray-11 bg-blue-10 th-dark:bg-gray-warm-10'
-        )}
+        className={clsx(styles.root, 'p-5 flex flex-col bg-blue-10')}
         aria-label="Main"
       >
         <Header logo={LogoURL} />
