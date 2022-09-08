@@ -99,7 +99,15 @@ func (c *NomadClient) ListJobs(namespace string) ([]*nomad.JobListStub, error) {
 	if err != nil {
 		c.setTunnelStatusToIdle(err)
 	}
-	return jobList, err
+
+	serviceJobList := make([]*nomad.JobListStub, 0)
+	for _, job := range jobList {
+		if job.Type == nomad.JobTypeService {
+			serviceJobList = append(serviceJobList, job)
+		}
+	}
+
+	return serviceJobList, err
 }
 
 func (c *NomadClient) DeleteJob(jobID, namespace string) error {
