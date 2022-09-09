@@ -21,6 +21,8 @@ import (
 type settingsUpdatePayload struct {
 	// URL to a logo that will be displayed on the login page as well as on top of the sidebar. Will use default Portainer logo when value is empty string
 	LogoURL *string `example:"https://mycompany.mydomain.tld/logo.png"`
+	// The content in plaintext used to display in the login page. Will hide when value is empty string
+	CustomLoginBanner *string `example:"notice or agreement"`
 	// A list of label name & value that will be used to hide containers when querying containers
 	BlackListedLabels []portaineree.Pair
 	// Active authentication method for the Portainer instance. Valid values are: 1 for internal, 2 for LDAP, or 3 for oauth
@@ -153,6 +155,10 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 
 	if payload.LogoURL != nil {
 		settings.LogoURL = *payload.LogoURL
+	}
+
+	if payload.CustomLoginBanner != nil {
+		settings.CustomLoginBanner = *payload.CustomLoginBanner
 	}
 
 	if payload.TemplatesURL != nil {

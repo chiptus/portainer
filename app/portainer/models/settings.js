@@ -1,5 +1,6 @@
 export function SettingsViewModel(data) {
   this.LogoURL = data.LogoURL;
+  this.CustomLoginBanner = data.CustomLoginBanner;
   this.BlackListedLabels = data.BlackListedLabels;
   this.AuthenticationMethod = data.AuthenticationMethod;
   this.InternalAuthSettings = data.InternalAuthSettings;
@@ -33,6 +34,7 @@ export function PublicSettingsViewModel(settings) {
   this.EnforceEdgeID = settings.EnforceEdgeID;
   this.FeatureFlagSettings = settings.Features;
   this.LogoURL = settings.LogoURL;
+  this.CustomLoginBanner = settings.CustomLoginBanner;
   this.OAuthLoginURI = settings.OAuthLoginURI;
   this.EnableTelemetry = settings.EnableTelemetry;
   this.OAuthHideInternalAuth = settings.OAuthHideInternalAuth;

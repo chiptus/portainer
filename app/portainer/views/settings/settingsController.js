@@ -49,6 +49,7 @@ angular.module('portainer.app').controller('SettingsController', [
 
     $scope.formValues = {
       customLogo: false,
+      customLoginBanner: false,
       labelName: '',
       labelValue: '',
       enableTelemetry: false,
@@ -72,6 +73,12 @@ angular.module('portainer.app').controller('SettingsController', [
     $scope.onToggleCustomLogo = function onToggleCustomLogo(checked) {
       $scope.$evalAsync(() => {
         $scope.formValues.customLogo = checked;
+      });
+    };
+
+    $scope.onToggleCustomLoginBanner = function onToggleCustomLoginBanner(checked) {
+      $scope.$evalAsync(() => {
+        $scope.formValues.customLoginBanner = checked;
       });
     };
 
@@ -131,6 +138,10 @@ angular.module('portainer.app').controller('SettingsController', [
 
       if (!$scope.formValues.customLogo) {
         settings.LogoURL = '';
+      }
+
+      if (!$scope.formValues.customLoginBanner) {
+        settings.CustomLoginBanner = '';
       }
 
       settings.EnableTelemetry = $scope.formValues.enableTelemetry;
@@ -227,6 +238,10 @@ angular.module('portainer.app').controller('SettingsController', [
 
           if (settings.LogoURL !== '') {
             $scope.formValues.customLogo = true;
+          }
+
+          if (settings.CustomLoginBanner !== '') {
+            $scope.formValues.customLoginBanner = true;
           }
           $scope.formValues.enableTelemetry = settings.EnableTelemetry;
         })

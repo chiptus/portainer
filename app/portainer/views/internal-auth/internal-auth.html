@@ -17,6 +17,10 @@
       <!-- login panel -->
       <div class="panel panel-default">
         <div class="panel-body">
+          <div ng-if="ctrl.state.showCustomLoginBanner">
+            <textarea class="login-banner" rows="5" readonly>{{ ctrl.state.customLoginBanner }}</textarea>
+          </div>
+          <br />
           <!-- login form -->
           <form class="simple-box-form form-horizontal">
             <!-- !username input -->

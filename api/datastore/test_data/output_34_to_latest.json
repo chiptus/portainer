@@ -1104,6 +1104,7 @@
       "GKEApiKey": "",
       "LinodeToken": ""
     },
+    "CustomLoginBanner": "",
     "DefaultRegistry": {
       "Hide": false
     },

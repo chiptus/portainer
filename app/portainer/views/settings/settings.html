@@ -62,6 +62,33 @@
             </div>
           </div>
 
+          <!-- login screen banner -->
+          <div class="form-group">
+            <por-switch-field
+              label="'Login screen banner'"
+              checked="formValues.customLoginBanner"
+              name="'toggle_login_banner'"
+              disabled="state.isDemo"
+              on-change="(onToggleCustomLoginBanner)"
+              field-class="'col-sm-12'"
+              label-class="'col-sm-2'"
+            ></por-switch-field>
+            <div class="col-sm-12" ng-if="state.isDemo" style="margin-top: 10px">
+              <span class="small text-muted">You cannot use this feature in the demo version of Portainer.</span>
+            </div>
+            <div class="col-sm-12 text-muted small" style="margin-top: 10px"> You can set a custom banner that will be shown to all users during login. </div>
+          </div>
+
+          <div ng-if="formValues.customLoginBanner">
+            <div class="form-group">
+              <label for="custom_login_banner" class="col-sm-2 control-label text-left required">Details</label>
+              <div class="col-sm-8">
+                <textarea class="form-control" rows="5" ng-model="settings.CustomLoginBanner" id="custom_login_banner" placeholder="Banner details"></textarea>
+              </div>
+            </div>
+          </div>
+          <!-- !login screen banner -->
+
           <!-- templates -->
           <div class="col-sm-12 form-section-title"> App Templates </div>
           <div>
@@ -125,7 +152,7 @@
                 type="button"
                 class="btn btn-primary btn-sm"
                 ng-click="saveApplicationSettings()"
-                ng-disabled="state.actionInProgress || !settings.TemplatesURL"
+                ng-disabled="state.actionInProgress || !settings.TemplatesURL || (formValues.customLoginBanner && !settings.CustomLoginBanner)"
                 button-spinner="state.actionInProgress"
                 data-cy="settings-saveSettingsButton"
               >

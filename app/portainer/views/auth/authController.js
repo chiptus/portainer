@@ -49,6 +49,8 @@ class AuthenticationController {
       AuthenticationError: '',
       loginInProgress: true,
       OAuthProvider: '',
+      showCustomLoginBanner: false,
+      customLoginBanner: '',
     };
 
     this.checkForEndpointsAsync = this.checkForEndpointsAsync.bind(this);
@@ -274,6 +276,8 @@ class AuthenticationController {
       this.state.showStandardLogin = !this.state.showOAuthLogin;
       this.state.OAuthLoginURI = settings.OAuthLoginURI;
       this.state.OAuthProvider = this.determineOauthProvider(settings.OAuthLoginURI);
+      this.state.showCustomLoginBanner = settings.CustomLoginBanner !== '';
+      this.state.customLoginBanner = settings.CustomLoginBanner;
 
       const code = this.URLHelper.getParameter('code');
       const state = this.URLHelper.getParameter('state');

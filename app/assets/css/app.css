@@ -382,6 +382,30 @@ input[type='checkbox'] {
   margin-bottom: 10px;
 }
 
+.login-form {
+  max-width: 600px;
+}
+
+.login-banner {
+  @apply th-dark:bg-yellow-11 th-dark:border-warning-5 th-dark:text-warning-3;
+  @apply th-highcontrast:bg-yellow-11 th-highcontrast:border-warning-5 th-highcontrast:text-warning-3;
+
+  max-height: 150px;
+  width: 100%;
+  border: 1px solid #fec84b;
+  background-color: #fffaeb;
+  color: #f79009;
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: normal;
+  resize: none;
+}
+
+.login-banner:focus {
+  outline: 0;
+}
+
 .no-margin-last-child:last-child {
   margin-bottom: 0;
 }

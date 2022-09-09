@@ -18,9 +18,13 @@
       <div class="panel panel-default" ng-if="!ctrl.state.loginInProgress">
         <div class="panel-body">
           <!-- login form -->
-          <form class="simple-box-form form-horizontal">
-            <div class="form-group">
-              <div class="col-sm-12" style="display: flex; justify-content: center" ng-if="ctrl.state.showOAuthLogin">
+          <form class="simple-box-form form-horizontal login-form">
+            <div ng-if="ctrl.state.showCustomLoginBanner">
+              <textarea class="login-banner" rows="5" readonly>{{ ctrl.state.customLoginBanner }}</textarea>
+            </div>
+
+            <div class="form-group" ng-if="ctrl.state.showOAuthLogin">
+              <div class="col-sm-12" style="display: flex; justify-content: center">
                 <a ng-href="{{ ctrl.OAuthLoginURI }}">
                   <div class="btn btn-primary btn-lg btn-block" ng-if="ctrl.state.OAuthProvider === 'Microsoft'">
                     <i class="fab fa-microsoft" aria-hidden="true"></i> Login with Microsoft

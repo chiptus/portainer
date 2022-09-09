@@ -3,7 +3,22 @@ import { getEnvironments } from '@/portainer/environments/environment.service';
 
 class InternalAuthenticationController {
   /* @ngInject */
-  constructor($async, $analytics, $scope, $state, $stateParams, $window, Authentication, UserService, StateManager, Notifications, LocalStorage, StatusService, LicenseService) {
+  constructor(
+    $async,
+    $analytics,
+    $scope,
+    $state,
+    $stateParams,
+    $window,
+    Authentication,
+    UserService,
+    StateManager,
+    Notifications,
+    SettingsService,
+    LocalStorage,
+    StatusService,
+    LicenseService
+  ) {
     this.$async = $async;
     this.$analytics = $analytics;
     this.$scope = $scope;
@@ -14,6 +29,7 @@ class InternalAuthenticationController {
     this.UserService = UserService;
     this.StateManager = StateManager;
     this.Notifications = Notifications;
+    this.SettingsService = SettingsService;
     this.LocalStorage = LocalStorage;
     this.StatusService = StatusService;
     this.LicenseService = LicenseService;
@@ -25,6 +41,8 @@ class InternalAuthenticationController {
     this.state = {
       AuthenticationError: '',
       loginInProgress: true,
+      showCustomLoginBanner: false,
+      customLoginBanner: '',
     };
 
     this.checkForEndpointsAsync = this.checkForEndpointsAsync.bind(this);
@@ -180,6 +198,14 @@ class InternalAuthenticationController {
     }
 
     this.state.loginInProgress = false;
+
+    try {
+      const settings = await this.SettingsService.publicSettings();
+      this.state.showCustomLoginBanner = settings.CustomLoginBanner !== '';
+      this.state.customLoginBanner = settings.CustomLoginBanner;
+    } catch (err) {
+      this.Notifications.error('Failure', err, 'Unable to retrieve public settings');
+    }
 
     await this.authEnabledFlowAsync();
   }
