@@ -775,6 +775,7 @@ type (
 
 	// OAuthSettings represents the settings used to authorize with an authorization server
 	OAuthSettings struct {
+		MicrosoftTenantID           string          `json:"MicrosoftTenantID"`
 		ClientID                    string          `json:"ClientID"`
 		ClientSecret                string          `json:"ClientSecret,omitempty"`
 		AccessTokenURI              string          `json:"AccessTokenURI"`

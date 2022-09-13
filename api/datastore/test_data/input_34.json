@@ -459,6 +459,7 @@
     },
     "LogoURL": "",
     "OAuthSettings": {
+      "MicrosoftTenantID": "",
       "AccessTokenURI": "",
       "AuthorizationURI": "",
       "ClientID": "",

@@ -1976,6 +1976,7 @@
       "HideInternalAuth": true,
       "KubeSecretKey": null,
       "LogoutURI": "",
+      "MicrosoftTenantID": "",
       "OAuthAutoCreateUsers": false,
       "OAuthAutoMapTeamMemberships": false,
       "RedirectURI": "",

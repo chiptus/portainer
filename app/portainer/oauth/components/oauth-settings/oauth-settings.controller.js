@@ -34,8 +34,7 @@ export default class OAuthSettingsController {
   }
 
   onMicrosoftTenantIDChange() {
-    const tenantID = this.state.microsoftTenantID || MS_TENANT_ID_PLACEHOLDER;
-
+    const tenantID = this.settings.MicrosoftTenantID || MS_TENANT_ID_PLACEHOLDER;
     this.settings.AuthorizationURI = `https://login.microsoftonline.com/${tenantID}/oauth2/v2.0/authorize`;
     this.settings.AccessTokenURI = `https://login.microsoftonline.com/${tenantID}/oauth2/v2.0/token`;
     this.settings.ResourceURI = `https://graph.microsoft.com/v1.0/me`;
@@ -55,7 +54,7 @@ export default class OAuthSettingsController {
       this.settings.UserIdentifier = provider.userIdentifier;
       this.settings.Scopes = provider.scopes;
 
-      if (providerId === 'microsoft' && this.state.microsoftTenantID !== '') {
+      if (providerId === 'microsoft' && !this.settings.MicrosoftTenantID) {
         this.onMicrosoftTenantIDChange();
       }
     } else {
@@ -150,8 +149,7 @@ export default class OAuthSettingsController {
       if (this.state.provider === 'microsoft') {
         const tenantID = authUrl.match(/login.microsoftonline.com\/(.*?)\//)[1];
         if (tenantID !== MS_TENANT_ID_PLACEHOLDER) {
-          this.state.microsoftTenantID = tenantID;
-          this.onMicrosoftTenantIDChange();
+          this.settings.MicrosoftTenantID = tenantID;
         }
       }
     }

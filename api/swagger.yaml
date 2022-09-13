@@ -1128,6 +1128,8 @@ definitions:
     type: object
   portainer.OAuthSettings:
     properties:
+      MicrosoftTenantID:
+        type: string
       AccessTokenURI:
         type: string
       AuthorizationURI:

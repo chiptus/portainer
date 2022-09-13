@@ -1177,6 +1177,7 @@
       "HideInternalAuth": false,
       "KubeSecretKey": "z7ATMa3QvES4QviuVcxzdvxM5gh6nJuhsY81bBX0OgM=",
       "LogoutURI": "",
+      "MicrosoftTenantID": "",
       "OAuthAutoCreateUsers": false,
       "OAuthAutoMapTeamMemberships": false,
       "RedirectURI": "",

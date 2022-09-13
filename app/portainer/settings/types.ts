@@ -57,6 +57,7 @@ export interface OpenAMTConfiguration {
 }
 
 export interface OAuthSettings {
+  MicrosoftTenantID: string;
   ClientID: string;
   ClientSecret?: string;
   AccessTokenURI: string;
