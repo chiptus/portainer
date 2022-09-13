@@ -55,14 +55,14 @@ require (
 	github.com/portainer/libhelm v0.0.0-20210929000907-825e93d62108
 	github.com/portainer/libhttp v0.0.0-20211208103139-07a5f798eb3f
 	github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91
-	github.com/portainer/portainer/api v0.0.0-20220907085059-9af9395b73f5
+	github.com/portainer/portainer/api v0.0.0-20220913135638-6c4c958bf00e
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.1
 	github.com/urfave/negroni v1.0.0
 	github.com/viney-shih/go-lock v1.1.1
 	go.etcd.io/bbolt v1.3.6
-	golang.org/x/exp v0.0.0-20220518171630-0b5c67f07fdf
+	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 	google.golang.org/api v0.75.0

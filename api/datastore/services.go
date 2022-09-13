@@ -19,6 +19,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/edgejob"
 	"github.com/portainer/portainer-ee/api/dataservices/edgestack"
 	"github.com/portainer/portainer-ee/api/dataservices/edgestacklog"
+	"github.com/portainer/portainer-ee/api/dataservices/edgeupdateschedule"
 	"github.com/portainer/portainer-ee/api/dataservices/endpoint"
 	"github.com/portainer/portainer-ee/api/dataservices/endpointgroup"
 	"github.com/portainer/portainer-ee/api/dataservices/endpointrelation"
@@ -59,6 +60,7 @@ type Store struct {
 	EdgeAsyncCommandService   *edgeasynccommand.Service
 	EdgeGroupService          *edgegroup.Service
 	EdgeJobService            *edgejob.Service
+	EdgeUpdateScheduleService *edgeupdateschedule.Service
 	EdgeStackService          *edgestack.Service
 	EdgeStackLogService       *edgestacklog.Service
 	EndpointGroupService      *endpointgroup.Service
@@ -119,6 +121,12 @@ func (store *Store) initServices() error {
 		return err
 	}
 	store.EdgeAsyncCommandService = edgeAsyncCommandService
+
+	edgeUpdateScheduleService, err := edgeupdateschedule.NewService(store.connection)
+	if err != nil {
+		return err
+	}
+	store.EdgeUpdateScheduleService = edgeUpdateScheduleService
 
 	edgeStackService, err := edgestack.NewService(store.connection)
 	if err != nil {
@@ -318,6 +326,11 @@ func (store *Store) EdgeGroup() dataservices.EdgeGroupService {
 // EdgeJob gives access to the EdgeJob data management layer
 func (store *Store) EdgeJob() dataservices.EdgeJobService {
 	return store.EdgeJobService
+}
+
+// EdgeUpdateSchedule gives access to the EdgeUpdateSchedule data management layer
+func (store *Store) EdgeUpdateSchedule() dataservices.EdgeUpdateScheduleService {
+	return store.EdgeUpdateScheduleService
 }
 
 // EdgeStack gives access to the EdgeStack data management layer

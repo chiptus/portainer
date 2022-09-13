@@ -13,6 +13,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/edgejobs"
 	"github.com/portainer/portainer-ee/api/http/handler/edgestacks"
 	"github.com/portainer/portainer-ee/api/http/handler/edgetemplates"
+	"github.com/portainer/portainer-ee/api/http/handler/edgeupdateschedules"
 	"github.com/portainer/portainer-ee/api/http/handler/endpointedge"
 	"github.com/portainer/portainer-ee/api/http/handler/endpointgroups"
 	"github.com/portainer/portainer-ee/api/http/handler/endpointproxy"
@@ -48,47 +49,48 @@ import (
 
 // Handler is a collection of all the service handlers.
 type Handler struct {
-	AuthHandler             *auth.Handler
-	BackupHandler           *backup.Handler
-	CustomTemplatesHandler  *customtemplates.Handler
-	DockerHandler           *docker.Handler
-	EdgeGroupsHandler       *edgegroups.Handler
-	EdgeJobsHandler         *edgejobs.Handler
-	EdgeStacksHandler       *edgestacks.Handler
-	EdgeTemplatesHandler    *edgetemplates.Handler
-	EndpointEdgeHandler     *endpointedge.Handler
-	EndpointGroupHandler    *endpointgroups.Handler
-	EndpointHandler         *endpoints.Handler
-	EndpointHelmHandler     *helm.Handler
-	EndpointProxyHandler    *endpointproxy.Handler
-	HelmTemplatesHandler    *helm.Handler
-	KaasHandler             *kaas.Handler
-	KubernetesHandler       *kubernetes.Handler
-	FileHandler             *file.Handler
-	LDAPHandler             *ldap.Handler
-	MOTDHandler             *motd.Handler
-	LicenseHandler          *licenses.Handler
-	OpenAMTHandler          *openamt.Handler
-	FDOHandler              *fdo.Handler
-	RegistryHandler         *registries.Handler
-	ResourceControlHandler  *resourcecontrols.Handler
-	RoleHandler             *roles.Handler
-	SettingsHandler         *settings.Handler
-	SSLHandler              *ssl.Handler
-	StackHandler            *stacks.Handler
-	StatusHandler           *status.Handler
-	StorybookHandler        *storybook.Handler
-	TagHandler              *tags.Handler
-	TeamMembershipHandler   *teammemberships.Handler
-	TeamHandler             *teams.Handler
-	TemplatesHandler        *templates.Handler
-	UploadHandler           *upload.Handler
-	UserHandler             *users.Handler
-	UserActivityHandler     *useractivity.Handler
-	WebSocketHandler        *websocket.Handler
-	WebhookHandler          *webhooks.Handler
-	NomadHandler            *nomad.Handler
-	CloudCredentialsHandler *cloudcredentials.Handler
+	AuthHandler               *auth.Handler
+	BackupHandler             *backup.Handler
+	CustomTemplatesHandler    *customtemplates.Handler
+	DockerHandler             *docker.Handler
+	EdgeGroupsHandler         *edgegroups.Handler
+	EdgeJobsHandler           *edgejobs.Handler
+	EdgeUpdateScheduleHandler *edgeupdateschedules.Handler
+	EdgeStacksHandler         *edgestacks.Handler
+	EdgeTemplatesHandler      *edgetemplates.Handler
+	EndpointEdgeHandler       *endpointedge.Handler
+	EndpointGroupHandler      *endpointgroups.Handler
+	EndpointHandler           *endpoints.Handler
+	EndpointHelmHandler       *helm.Handler
+	EndpointProxyHandler      *endpointproxy.Handler
+	HelmTemplatesHandler      *helm.Handler
+	KaasHandler               *kaas.Handler
+	KubernetesHandler         *kubernetes.Handler
+	FileHandler               *file.Handler
+	LDAPHandler               *ldap.Handler
+	MOTDHandler               *motd.Handler
+	LicenseHandler            *licenses.Handler
+	OpenAMTHandler            *openamt.Handler
+	FDOHandler                *fdo.Handler
+	RegistryHandler           *registries.Handler
+	ResourceControlHandler    *resourcecontrols.Handler
+	RoleHandler               *roles.Handler
+	SettingsHandler           *settings.Handler
+	SSLHandler                *ssl.Handler
+	StackHandler              *stacks.Handler
+	StatusHandler             *status.Handler
+	StorybookHandler          *storybook.Handler
+	TagHandler                *tags.Handler
+	TeamMembershipHandler     *teammemberships.Handler
+	TeamHandler               *teams.Handler
+	TemplatesHandler          *templates.Handler
+	UploadHandler             *upload.Handler
+	UserHandler               *users.Handler
+	UserActivityHandler       *useractivity.Handler
+	WebSocketHandler          *websocket.Handler
+	WebhookHandler            *webhooks.Handler
+	NomadHandler              *nomad.Handler
+	CloudCredentialsHandler   *cloudcredentials.Handler
 }
 
 // @title PortainerEE API
@@ -174,6 +176,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.BackupHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/custom_templates"):
 		http.StripPrefix("/api", h.CustomTemplatesHandler).ServeHTTP(w, r)
+	case strings.HasPrefix(r.URL.Path, "/api/edge_update_schedules"):
+		http.StripPrefix("/api", h.EdgeUpdateScheduleHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/edge_stacks"):
 		http.StripPrefix("/api", h.EdgeStacksHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/edge_groups"):

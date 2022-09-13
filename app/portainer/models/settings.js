@@ -32,7 +32,6 @@ export function PublicSettingsViewModel(settings) {
   this.RequiredPasswordLength = settings.RequiredPasswordLength;
   this.EnableEdgeComputeFeatures = settings.EnableEdgeComputeFeatures;
   this.EnforceEdgeID = settings.EnforceEdgeID;
-  this.FeatureFlagSettings = settings.Features;
   this.LogoURL = settings.LogoURL;
   this.CustomLoginBanner = settings.CustomLoginBanner;
   this.OAuthLoginURI = settings.OAuthLoginURI;

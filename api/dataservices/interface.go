@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/kubernetes/podsecurity"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices/errors"
+	"github.com/portainer/portainer/api/edgetypes"
 )
 
 type (
@@ -35,6 +36,7 @@ type (
 		EdgeJob() EdgeJobService
 		EdgeStack() EdgeStackService
 		EdgeStackLog() EdgeStackLogService
+		EdgeUpdateSchedule() EdgeUpdateScheduleService
 		Endpoint() EndpointService
 		EndpointGroup() EndpointGroupService
 		EndpointRelation() EndpointRelationService
@@ -117,6 +119,15 @@ type (
 		UpdateEdgeJob(ID portaineree.EdgeJobID, edgeJob *portaineree.EdgeJob) error
 		DeleteEdgeJob(ID portaineree.EdgeJobID) error
 		GetNextIdentifier() int
+		BucketName() string
+	}
+
+	EdgeUpdateScheduleService interface {
+		List() ([]edgetypes.UpdateSchedule, error)
+		Item(ID edgetypes.UpdateScheduleID) (*edgetypes.UpdateSchedule, error)
+		Create(edgeUpdateSchedule *edgetypes.UpdateSchedule) error
+		Update(ID edgetypes.UpdateScheduleID, edgeUpdateSchedule *edgetypes.UpdateSchedule) error
+		Delete(ID edgetypes.UpdateScheduleID) error
 		BucketName() string
 	}
 

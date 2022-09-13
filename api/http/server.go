@@ -32,6 +32,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/edgejobs"
 	"github.com/portainer/portainer-ee/api/http/handler/edgestacks"
 	"github.com/portainer/portainer-ee/api/http/handler/edgetemplates"
+	"github.com/portainer/portainer-ee/api/http/handler/edgeupdateschedules"
 	"github.com/portainer/portainer-ee/api/http/handler/endpointedge"
 	"github.com/portainer/portainer-ee/api/http/handler/endpointgroups"
 	"github.com/portainer/portainer-ee/api/http/handler/endpointproxy"
@@ -183,6 +184,8 @@ func (server *Server) Start() error {
 	edgeJobsHandler.FileService = server.FileService
 	edgeJobsHandler.ReverseTunnelService = server.ReverseTunnelService
 
+	edgeUpdateScheduleHandler := edgeupdateschedules.NewHandler(requestBouncer, server.DataStore)
+
 	var edgeStacksHandler = edgestacks.NewHandler(requestBouncer, server.UserActivityService, server.DataStore, &server.EdgeService)
 	edgeStacksHandler.FileService = server.FileService
 	edgeStacksHandler.GitService = server.GitService
@@ -322,47 +325,48 @@ func (server *Server) Start() error {
 	cloudCredHandler.DataStore = server.DataStore
 
 	server.Handler = &handler.Handler{
-		RoleHandler:             roleHandler,
-		AuthHandler:             authHandler,
-		BackupHandler:           backupHandler,
-		CustomTemplatesHandler:  customTemplatesHandler,
-		DockerHandler:           dockerHandler,
-		EdgeGroupsHandler:       edgeGroupsHandler,
-		EdgeJobsHandler:         edgeJobsHandler,
-		EdgeStacksHandler:       edgeStacksHandler,
-		EdgeTemplatesHandler:    edgeTemplatesHandler,
-		EndpointGroupHandler:    endpointGroupHandler,
-		EndpointHandler:         endpointHandler,
-		EndpointHelmHandler:     endpointHelmHandler,
-		EndpointEdgeHandler:     endpointEdgeHandler,
-		EndpointProxyHandler:    endpointProxyHandler,
-		HelmTemplatesHandler:    helmTemplatesHandler,
-		KaasHandler:             kaasHandler,
-		KubernetesHandler:       kubernetesHandler,
-		FileHandler:             fileHandler,
-		LDAPHandler:             ldapHandler,
-		LicenseHandler:          licenseHandler,
-		MOTDHandler:             motdHandler,
-		OpenAMTHandler:          openAMTHandler,
-		FDOHandler:              fdoHandler,
-		RegistryHandler:         registryHandler,
-		ResourceControlHandler:  resourceControlHandler,
-		SettingsHandler:         settingsHandler,
-		SSLHandler:              sslHandler,
-		StatusHandler:           statusHandler,
-		StackHandler:            stackHandler,
-		StorybookHandler:        storybookHandler,
-		TagHandler:              tagHandler,
-		TeamHandler:             teamHandler,
-		TeamMembershipHandler:   teamMembershipHandler,
-		TemplatesHandler:        templatesHandler,
-		UploadHandler:           uploadHandler,
-		UserHandler:             userHandler,
-		UserActivityHandler:     userActivityHandler,
-		WebSocketHandler:        websocketHandler,
-		WebhookHandler:          webhookHandler,
-		NomadHandler:            nomadHandler,
-		CloudCredentialsHandler: cloudCredHandler,
+		RoleHandler:               roleHandler,
+		AuthHandler:               authHandler,
+		BackupHandler:             backupHandler,
+		CustomTemplatesHandler:    customTemplatesHandler,
+		DockerHandler:             dockerHandler,
+		EdgeGroupsHandler:         edgeGroupsHandler,
+		EdgeJobsHandler:           edgeJobsHandler,
+		EdgeUpdateScheduleHandler: edgeUpdateScheduleHandler,
+		EdgeStacksHandler:         edgeStacksHandler,
+		EdgeTemplatesHandler:      edgeTemplatesHandler,
+		EndpointGroupHandler:      endpointGroupHandler,
+		EndpointHandler:           endpointHandler,
+		EndpointHelmHandler:       endpointHelmHandler,
+		EndpointEdgeHandler:       endpointEdgeHandler,
+		EndpointProxyHandler:      endpointProxyHandler,
+		HelmTemplatesHandler:      helmTemplatesHandler,
+		KaasHandler:               kaasHandler,
+		KubernetesHandler:         kubernetesHandler,
+		FileHandler:               fileHandler,
+		LDAPHandler:               ldapHandler,
+		LicenseHandler:            licenseHandler,
+		MOTDHandler:               motdHandler,
+		OpenAMTHandler:            openAMTHandler,
+		FDOHandler:                fdoHandler,
+		RegistryHandler:           registryHandler,
+		ResourceControlHandler:    resourceControlHandler,
+		SettingsHandler:           settingsHandler,
+		SSLHandler:                sslHandler,
+		StatusHandler:             statusHandler,
+		StackHandler:              stackHandler,
+		StorybookHandler:          storybookHandler,
+		TagHandler:                tagHandler,
+		TeamHandler:               teamHandler,
+		TeamMembershipHandler:     teamMembershipHandler,
+		TemplatesHandler:          templatesHandler,
+		UploadHandler:             uploadHandler,
+		UserHandler:               userHandler,
+		UserActivityHandler:       userActivityHandler,
+		WebSocketHandler:          websocketHandler,
+		WebhookHandler:            webhookHandler,
+		NomadHandler:              nomadHandler,
+		CloudCredentialsHandler:   cloudCredHandler,
 	}
 
 	handler := adminMonitor.WithRedirect(offlineGate.WaitingMiddleware(time.Minute, server.Handler))
