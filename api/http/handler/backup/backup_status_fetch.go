@@ -24,7 +24,7 @@ type backupStatus struct {
 func (h *Handler) backupStatusFetch(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	status, err := h.dataStore.S3Backup().GetStatus()
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve last backup run status from the database", Err: err}
+		return httperror.InternalServerError("Unable to retrieve last backup run status from the database", err)
 	}
 	return response.JSON(w, backupStatus{Failed: status.Failed, TimestampUTC: status.Timestamp.UTC().Format(time.RFC3339)})
 }

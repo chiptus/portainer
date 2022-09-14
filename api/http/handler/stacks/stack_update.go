@@ -79,14 +79,14 @@ func (payload *updateSwarmStackPayload) Validate(r *http.Request) error {
 func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	stackID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid stack identifier route variable", Err: err}
+		return httperror.BadRequest("Invalid stack identifier route variable", err)
 	}
 
 	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(stackID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find a stack with the specified identifier inside the database", Err: err}
+		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find a stack with the specified identifier inside the database", Err: err}
+		return httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
 	}
 
 	// TODO: this is a work-around for stacks created with Portainer version >= 1.17.1
@@ -94,7 +94,7 @@ func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *htt
 	// can use the optional EndpointID query parameter to associate a valid environment(endpoint) identifier to the stack.
 	endpointID, err := request.RetrieveNumericQueryParameter(r, "endpointId", true)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: endpointId", Err: err}
+		return httperror.BadRequest("Invalid query parameter: endpointId", err)
 	}
 	if endpointID != int(stack.EndpointID) {
 		stack.EndpointID = portaineree.EndpointID(endpointID)
@@ -102,45 +102,45 @@ func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *htt
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(stack.EndpointID)
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{StatusCode: http.StatusNotFound, Message: "Unable to find the environment associated to the stack inside the database", Err: err}
+		return httperror.NotFound("Unable to find the environment associated to the stack inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to find the environment associated to the stack inside the database", Err: err}
+		return httperror.InternalServerError("Unable to find the environment associated to the stack inside the database", err)
 	}
 	middlewares.SetEndpoint(endpoint, r)
 
 	err = handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "Permission denied to access environment", Err: err}
+		return httperror.Forbidden("Permission denied to access environment", err)
 	}
 
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve info from request context", Err: err}
+		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
 	//only check resource control when it is a DockerSwarmStack or a DockerComposeStack
 	if stack.Type == portaineree.DockerSwarmStack || stack.Type == portaineree.DockerComposeStack {
 		resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portaineree.StackResourceControl)
 		if err != nil {
-			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve a resource control associated to the stack", Err: err}
+			return httperror.InternalServerError("Unable to retrieve a resource control associated to the stack", err)
 		}
 
 		access, err := handler.userCanAccessStack(securityContext, endpoint.ID, resourceControl)
 		if err != nil {
-			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to verify user authorizations to validate stack access", Err: err}
+			return httperror.InternalServerError("Unable to verify user authorizations to validate stack access", err)
 		}
 		if !access {
-			return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "Access denied to resource", Err: httperrors.ErrResourceAccessDenied}
+			return httperror.Forbidden("Access denied to resource", httperrors.ErrResourceAccessDenied)
 		}
 	}
 
 	canManage, err := handler.userCanManageStacks(securityContext, endpoint)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to verify user authorizations to validate stack deletion", Err: err}
+		return httperror.InternalServerError("Unable to verify user authorizations to validate stack deletion", err)
 	}
 	if !canManage {
 		errMsg := "Stack editing is disabled for non-admin users"
-		return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: errMsg, Err: errors.New(errMsg)}
+		return httperror.Forbidden(errMsg, errors.New(errMsg))
 	}
 
 	updateError := handler.updateAndDeployStack(r, stack, endpoint)
@@ -150,7 +150,7 @@ func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *htt
 
 	user, err := handler.DataStore.User().User(securityContext.UserID)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Cannot find context user", Err: errors.Wrap(err, "failed to fetch the user")}
+		return httperror.BadRequest("Cannot find context user", errors.Wrap(err, "failed to fetch the user"))
 	}
 	stack.UpdatedBy = user.Username
 	stack.UpdateDate = time.Now().Unix()
@@ -158,7 +158,7 @@ func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *htt
 
 	err = handler.DataStore.Stack().UpdateStack(stack.ID, stack)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist the stack changes inside the database", Err: err}
+		return httperror.InternalServerError("Unable to persist the stack changes inside the database", err)
 	}
 
 	if stack.GitConfig != nil && stack.GitConfig.Authentication != nil && stack.GitConfig.Authentication.Password != "" {
@@ -182,7 +182,7 @@ func (handler *Handler) updateAndDeployStack(r *http.Request, stack *portaineree
 	} else if stack.Type == portaineree.KubernetesStack {
 		return handler.updateKubernetesStack(r, stack, endpoint)
 	} else {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unsupported stack", Err: errors.Errorf("unsupported stack type: %v", stack.Type)}
+		return httperror.InternalServerError("Unsupported stack", errors.Errorf("unsupported stack type: %v", stack.Type))
 	}
 }
 
@@ -199,7 +199,7 @@ func (handler *Handler) updateComposeStack(r *http.Request, stack *portaineree.S
 	var payload updateComposeStackPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	stack.Env = payload.Env
@@ -220,7 +220,7 @@ func (handler *Handler) updateComposeStack(r *http.Request, stack *portaineree.S
 			log.Printf("[WARN] [stack,update] [message: rollback stack file error] [err: %s]", rollbackErr)
 		}
 
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist updated Compose file on disk", Err: err}
+		return httperror.InternalServerError("Unable to persist updated Compose file on disk", err)
 	}
 
 	config, configErr := handler.createComposeDeployConfig(r, stack, endpoint, payload.PullImage)
@@ -238,7 +238,7 @@ func (handler *Handler) updateComposeStack(r *http.Request, stack *portaineree.S
 			log.Printf("[WARN] [stack,update] [message: rollback stack file error] [err: %s]", rollbackErr)
 		}
 
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: err.Error(), Err: err}
+		return httperror.InternalServerError(err.Error(), err)
 	}
 
 	handler.FileService.RemoveStackFileBackup(stackFolder, stack.EntryPoint)
@@ -260,7 +260,7 @@ func (handler *Handler) updateSwarmStack(r *http.Request, stack *portaineree.Sta
 	var payload updateSwarmStackPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	stack.Env = payload.Env
@@ -280,7 +280,7 @@ func (handler *Handler) updateSwarmStack(r *http.Request, stack *portaineree.Sta
 			log.Printf("[WARN] [swarm,stack,update] [message: rollback stack file error] [err: %s]", rollbackErr)
 		}
 
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist updated Compose file on disk", Err: err}
+		return httperror.InternalServerError("Unable to persist updated Compose file on disk", err)
 	}
 
 	config, configErr := handler.createSwarmDeployConfig(r, stack, endpoint, payload.Prune, payload.PullImage)
@@ -298,7 +298,7 @@ func (handler *Handler) updateSwarmStack(r *http.Request, stack *portaineree.Sta
 			log.Printf("[WARN] [swarm,stack,update] [message: rollback stack file error] [err: %s]", rollbackErr)
 		}
 
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: err.Error(), Err: err}
+		return httperror.InternalServerError(err.Error(), err)
 	}
 
 	handler.FileService.RemoveStackFileBackup(stackFolder, stack.EntryPoint)

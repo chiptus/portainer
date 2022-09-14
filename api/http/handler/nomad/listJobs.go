@@ -49,12 +49,12 @@ func (handler *Handler) listJobs(w http.ResponseWriter, r *http.Request) *httper
 
 	nomadClient, err := handler.nomadClientFactory.GetClient(endpoint)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to establish communication with Nomad server", Err: err}
+		return httperror.InternalServerError("Unable to establish communication with Nomad server", err)
 	}
 
 	jobList, err := nomadClient.ListJobs("*")
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to list jobs", Err: err}
+		return httperror.InternalServerError("Unable to list jobs", err)
 	}
 
 	jobsPayload := make([]JobPayload, 0)
@@ -70,7 +70,7 @@ func (handler *Handler) listJobs(w http.ResponseWriter, r *http.Request) *httper
 
 		allocations, err := nomadClient.ListAllocations(job.ID, job.Namespace)
 		if err != nil {
-			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to list allocations", Err: err}
+			return httperror.InternalServerError("Unable to list allocations", err)
 		}
 
 		for _, allocation := range allocations {

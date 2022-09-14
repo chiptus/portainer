@@ -27,14 +27,14 @@ import (
 func (handler *Handler) endpointGroupInspect(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpointGroupID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment group identifier route variable", err}
+		return httperror.BadRequest("Invalid environment group identifier route variable", err)
 	}
 
 	endpointGroup, err := handler.DataStore.EndpointGroup().EndpointGroup(portaineree.EndpointGroupID(endpointGroupID))
 	if err == portainerDsErrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment group with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find an environment group with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment group with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find an environment group with the specified identifier inside the database", err)
 	}
 
 	return response.JSON(w, endpointGroup)

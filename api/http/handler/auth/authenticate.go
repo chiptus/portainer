@@ -60,53 +60,31 @@ func (handler *Handler) authenticate(rw http.ResponseWriter, r *http.Request) (*
 	var payload authenticatePayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return resp,
-			&httperror.HandlerError{
-				StatusCode: http.StatusBadRequest,
-				Message:    "Invalid request payload",
-				Err:        err,
-			}
-
+		return resp, httperror.BadRequest("Invalid request payload", err)
 	}
 
 	resp.Username = payload.Username
 
 	settings, err := handler.DataStore.Settings().Settings()
 	if err != nil {
-		return resp, &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to retrieve settings from the database",
-			Err:        err,
-		}
+		return resp, httperror.InternalServerError("Unable to retrieve settings from the database", err)
 	}
 
 	user, err := handler.DataStore.User().UserByUsername(payload.Username)
 	if err != nil && err != bolterrors.ErrObjectNotFound {
-		return resp, &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to retrieve a user with the specified username from the database",
-			Err:        err,
-		}
+		return resp, httperror.InternalServerError("Unable to retrieve a user with the specified username from the database", err)
 	}
 
 	if err == bolterrors.ErrObjectNotFound &&
 		(settings.AuthenticationMethod == portaineree.AuthenticationInternal ||
 			settings.AuthenticationMethod == portaineree.AuthenticationOAuth ||
 			(settings.AuthenticationMethod == portaineree.AuthenticationLDAP && !settings.LDAPSettings.AutoCreateUsers)) {
-		return resp, &httperror.HandlerError{
-			StatusCode: http.StatusUnprocessableEntity,
-			Message:    "Invalid credentials",
-			Err:        httperrors.ErrUnauthorized,
-		}
+		return resp, &httperror.HandlerError{StatusCode: http.StatusUnprocessableEntity, Message: "Invalid credentials", Err: httperrors.ErrUnauthorized}
 	}
 
 	// If the free subscription license is enforced, the standard user are not allowed to log in
 	if user != nil && user.Role != portaineree.AdministratorRole && handler.LicenseService.ShouldEnforceOveruse() {
-		return resp, &httperror.HandlerError{
-			StatusCode: http.StatusPaymentRequired,
-			Message:    "Node limit exceeds the 5 node free license, please contact your administrator",
-			Err:        httperrors.ErrLicenseOverused,
-		}
+		return resp, &httperror.HandlerError{StatusCode: http.StatusPaymentRequired, Message: "Node limit exceeds the 5 node free license, please contact your administrator", Err: httperrors.ErrLicenseOverused}
 	}
 
 	if user != nil && isUserInitialAdmin(user) || settings.AuthenticationMethod == portaineree.AuthenticationInternal {
@@ -115,22 +93,14 @@ func (handler *Handler) authenticate(rw http.ResponseWriter, r *http.Request) (*
 
 	if settings.AuthenticationMethod == portaineree.AuthenticationOAuth {
 		resp.Method = portaineree.AuthenticationOAuth
-		return resp, &httperror.HandlerError{
-			StatusCode: http.StatusUnprocessableEntity,
-			Message:    "Only initial admin is allowed to login without oauth",
-			Err:        httperrors.ErrUnauthorized,
-		}
+		return resp, &httperror.HandlerError{StatusCode: http.StatusUnprocessableEntity, Message: "Only initial admin is allowed to login without oauth", Err: httperrors.ErrUnauthorized}
 	}
 
 	if settings.AuthenticationMethod == portaineree.AuthenticationLDAP {
 		return handler.authenticateLDAP(rw, user, payload.Username, payload.Password, &settings.LDAPSettings)
 	}
 
-	return resp, &httperror.HandlerError{
-		StatusCode: http.StatusUnprocessableEntity,
-		Message:    "Login method is not supported",
-		Err:        httperrors.ErrUnauthorized,
-	}
+	return resp, &httperror.HandlerError{StatusCode: http.StatusUnprocessableEntity, Message: "Login method is not supported", Err: httperrors.ErrUnauthorized}
 }
 
 func isUserInitialAdmin(user *portaineree.User) bool {
@@ -145,12 +115,7 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 
 	err := handler.LDAPService.AuthenticateUser(username, password, ldapSettings)
 	if err != nil {
-		return resp,
-			&httperror.HandlerError{
-				StatusCode: http.StatusForbidden,
-				Message:    "Only initial admin is allowed to login without oauth",
-				Err:        err,
-			}
+		return resp, httperror.Forbidden("Only initial admin is allowed to login without oauth", err)
 	}
 
 	if user == nil {
@@ -162,13 +127,7 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 
 		err = handler.DataStore.User().Create(user)
 		if err != nil {
-			return resp,
-				&httperror.HandlerError{
-					StatusCode: http.StatusInternalServerError,
-					Message:    "Unable to persist user inside the database",
-					Err:        err,
-				}
-
+			return resp, httperror.InternalServerError("Unable to persist user inside the database", err)
 		}
 	}
 
@@ -176,11 +135,7 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 		isLDAPAdmin, err := isLDAPAdmin(resp.Username, handler.LDAPService, ldapSettings)
 		if err != nil {
 			return resp,
-				&httperror.HandlerError{
-					StatusCode: http.StatusInternalServerError,
-					Message:    "Failed to search and match LDAP admin groups",
-					Err:        err,
-				}
+				httperror.InternalServerError("Failed to search and match LDAP admin groups", err)
 		}
 
 		if isLDAPAdmin != (user.Role == portaineree.AdministratorRole) {
@@ -191,11 +146,7 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 
 			if err := handler.updateUserRole(user, userRole); err != nil {
 				return resp,
-					&httperror.HandlerError{
-						StatusCode: http.StatusUnprocessableEntity,
-						Message:    "Failed to update user role",
-						Err:        err,
-					}
+					&httperror.HandlerError{StatusCode: http.StatusUnprocessableEntity, Message: "Failed to update user role", Err: err}
 			}
 		}
 	}
@@ -207,33 +158,19 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 
 	err = handler.AuthorizationService.UpdateUserAuthorizations(user.ID)
 	if err != nil {
-		return resp,
-			&httperror.HandlerError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Unable to update user authorizations",
-				Err:        err,
-			}
-
+		return resp, httperror.InternalServerError("Unable to update user authorizations", err)
 	}
 
 	info := handler.LicenseService.Info()
 
 	if user.Role != portaineree.AdministratorRole {
 		if !info.Valid {
-			return resp, &httperror.HandlerError{
-				StatusCode: http.StatusForbidden,
-				Message:    "License is not valid",
-				Err:        httperrors.ErrNoValidLicense,
-			}
+			return resp, httperror.Forbidden("License is not valid", httperrors.ErrNoValidLicense)
 		}
 
 		if handler.LicenseService.ShouldEnforceOveruse() {
 			// If the free subscription license is enforced, the LDAP standard user are not allowed to log in
-			return resp, &httperror.HandlerError{
-				StatusCode: http.StatusPaymentRequired,
-				Message:    "Node limit exceeds the 5 node free license, please contact your administrator",
-				Err:        httperrors.ErrLicenseOverused,
-			}
+			return resp, &httperror.HandlerError{StatusCode: http.StatusPaymentRequired, Message: "Node limit exceeds the 5 node free license, please contact your administrator", Err: httperrors.ErrLicenseOverused}
 		}
 	}
 
@@ -249,32 +186,19 @@ func (handler *Handler) authenticateInternal(w http.ResponseWriter, user *portai
 	err := handler.CryptoService.CompareHashAndData(user.Password, password)
 	if err != nil {
 		return resp,
-			&httperror.HandlerError{
-				StatusCode: http.StatusUnprocessableEntity,
-				Message:    "Invalid credentials",
-				Err:        httperrors.ErrUnauthorized,
-			}
+			&httperror.HandlerError{StatusCode: http.StatusUnprocessableEntity, Message: "Invalid credentials", Err: httperrors.ErrUnauthorized}
 	}
 
 	info := handler.LicenseService.Info()
 
 	if user.Role != portaineree.AdministratorRole {
 		if !info.Valid {
-			return resp,
-				&httperror.HandlerError{
-					StatusCode: http.StatusForbidden,
-					Message:    "License is not valid",
-					Err:        httperrors.ErrNoValidLicense,
-				}
+			return resp, httperror.Forbidden("License is not valid", httperrors.ErrNoValidLicense)
 		}
 
 		if handler.LicenseService.ShouldEnforceOveruse() {
 			// If the free subscription license is enforced, the standard user are not allowed to log in
-			return resp, &httperror.HandlerError{
-				StatusCode: http.StatusPaymentRequired,
-				Message:    "Node limit exceeds the 5 node free license, please contact your administrator",
-				Err:        httperrors.ErrLicenseOverused,
-			}
+			return resp, &httperror.HandlerError{StatusCode: http.StatusPaymentRequired, Message: "Node limit exceeds the 5 node free license, please contact your administrator", Err: httperrors.ErrLicenseOverused}
 		}
 	}
 
@@ -306,24 +230,12 @@ func (handler *Handler) persistAndWriteToken(w http.ResponseWriter, tokenData *p
 	if method == portaineree.AuthenticationOAuth {
 		token, err = handler.JWTService.GenerateTokenForOAuth(tokenData, expiryTime)
 		if err != nil {
-			return resp,
-				&httperror.HandlerError{
-					StatusCode: http.StatusInternalServerError,
-					Message:    "Unable to generate JWT token for OAuth",
-					Err:        err,
-				}
-
+			return resp, httperror.InternalServerError("Unable to generate JWT token for OAuth", err)
 		}
 	} else {
 		token, err = handler.JWTService.GenerateToken(tokenData)
 		if err != nil {
-			return resp,
-				&httperror.HandlerError{
-					StatusCode: http.StatusInternalServerError,
-					Message:    "Unable to generate JWT token",
-					Err:        err,
-				}
-
+			return resp, httperror.InternalServerError("Unable to generate JWT token", err)
 		}
 	}
 	return resp, response.JSON(w, &authenticateResponse{JWT: token})

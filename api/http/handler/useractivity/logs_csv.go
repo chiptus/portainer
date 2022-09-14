@@ -45,20 +45,12 @@ func (handler *Handler) logsCSV(w http.ResponseWriter, r *http.Request) *httperr
 
 	logs, _, err := handler.UserActivityStore.GetUserActivityLogs(opts)
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to retrieve logs",
-			Err:        err,
-		}
+		return httperror.InternalServerError("Unable to retrieve logs", err)
 	}
 
 	err = useractivity.MarshalLogsToCSV(w, logs)
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to marshal logs to csv",
-			Err:        err,
-		}
+		return httperror.InternalServerError("Unable to marshal logs to csv", err)
 	}
 
 	w.Header().Set("Content-Disposition", "attachment; filename=\"logs.csv\"")

@@ -18,22 +18,22 @@ import (
 func (handler *Handler) proxyRequestsToRegistryAPI(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	hasAccess, _, err := handler.userHasRegistryAccess(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
+		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 	if !hasAccess {
-		return &httperror.HandlerError{http.StatusForbidden, "Access denied to resource", httperrors.ErrResourceAccessDenied}
+		return httperror.Forbidden("Access denied to resource", httperrors.ErrResourceAccessDenied)
 	}
 
 	registryID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid registry identifier route variable", err}
+		return httperror.BadRequest("Invalid registry identifier route variable", err)
 	}
 
 	registry, err := handler.DataStore.Registry().Registry(portaineree.RegistryID(registryID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a registry with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find a registry with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a registry with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find a registry with the specified identifier inside the database", err)
 	}
 
 	managementConfiguration := registry.ManagementConfiguration
@@ -52,7 +52,7 @@ func (handler *Handler) proxyRequestsToRegistryAPI(w http.ResponseWriter, r *htt
 	managementUrl := getRegistryManagementUrl(registry)
 	proxy, err := handler.registryProxyService.GetProxy(key, managementUrl, managementConfiguration, forceCreate)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to create registry proxy", err}
+		return httperror.InternalServerError("Unable to create registry proxy", err)
 	}
 
 	if registry.Type == portaineree.ProGetRegistry {

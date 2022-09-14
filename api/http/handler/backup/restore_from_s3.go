@@ -55,10 +55,10 @@ func (p *restoreS3Settings) Validate(r *http.Request) error {
 func (h *Handler) restoreFromS3(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	initialized, err := h.adminMonitor.WasInitialized()
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Failed to check system initialization", Err: err}
+		return httperror.InternalServerError("Failed to check system initialization", err)
 	}
 	if initialized {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Cannot restore already initialized instance", Err: fmt.Errorf("system already initialized")}
+		return httperror.BadRequest("Cannot restore already initialized instance", fmt.Errorf("system already initialized"))
 	}
 
 	h.adminMonitor.Stop()
@@ -67,13 +67,13 @@ func (h *Handler) restoreFromS3(w http.ResponseWriter, r *http.Request) *httperr
 	var payload restoreS3Settings
 	err = request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	backupFile, err := createTmpBackupLocation(h.filestorePath)
 	if err != nil {
 		log.Println(err)
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Failed to restore", Err: err}
+		return httperror.InternalServerError("Failed to restore", err)
 	}
 	defer func() {
 		backupFile.Close()
@@ -86,12 +86,12 @@ func (h *Handler) restoreFromS3(w http.ResponseWriter, r *http.Request) *httperr
 	}
 	if err = s3client.Download(s3session, backupFile, payload.S3Location); err != nil {
 		log.Printf("[ERROR] %s \n", errors.Wrap(err, "failed downloading file from S3"))
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Failed to download file from S3", Err: err}
+		return httperror.InternalServerError("Failed to download file from S3", err)
 	}
 
 	if err = operations.RestoreArchive(backupFile, payload.Password, h.filestorePath, h.gate, h.dataStore, h.userActivityStore, h.shutdownTrigger); err != nil {
 		log.Printf("[ERROR] %s", errors.Wrap(err, "faild to restore system from backup"))
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Failed to restore backup", Err: err}
+		return httperror.InternalServerError("Failed to restore backup", err)
 	}
 
 	return nil

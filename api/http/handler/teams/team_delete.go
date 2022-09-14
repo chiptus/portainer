@@ -28,19 +28,19 @@ import (
 func (handler *Handler) teamDelete(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	teamID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid team identifier route variable", err}
+		return httperror.BadRequest("Invalid team identifier route variable", err)
 	}
 
 	_, err = handler.DataStore.Team().Team(portaineree.TeamID(teamID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a team with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find a team with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a team with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find a team with the specified identifier inside the database", err)
 	}
 
 	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to get user environment access", err}
+		return httperror.InternalServerError("Unable to get user environment access", err)
 	}
 
 	for _, endpoint := range endpoints {
@@ -52,7 +52,7 @@ func (handler *Handler) teamDelete(w http.ResponseWriter, r *http.Request) *http
 
 		kcl, err := handler.K8sClientFactory.GetKubeClient(&endpoint)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to get k8s environment access", err}
+			return httperror.InternalServerError("Unable to get k8s environment access", err)
 		}
 
 		accessPolicies, err := kcl.GetNamespaceAccessPolicies()
@@ -73,23 +73,23 @@ func (handler *Handler) teamDelete(w http.ResponseWriter, r *http.Request) *http
 
 	err = handler.DataStore.Team().DeleteTeam(portaineree.TeamID(teamID))
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to delete the team from the database", err}
+		return httperror.InternalServerError("Unable to delete the team from the database", err)
 	}
 
 	err = handler.DataStore.TeamMembership().DeleteTeamMembershipByTeamID(portaineree.TeamID(teamID))
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to delete associated team memberships from the database", err}
+		return httperror.InternalServerError("Unable to delete associated team memberships from the database", err)
 	}
 
 	err = handler.AuthorizationService.RemoveTeamAccessPolicies(portaineree.TeamID(teamID))
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to clean-up team access policies", err}
+		return httperror.InternalServerError("Unable to clean-up team access policies", err)
 	}
 
 	// update default team if deleted team was default
 	err = handler.updateDefaultTeamIfDeleted(portaineree.TeamID(teamID))
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to reset default team", err}
+		return httperror.InternalServerError("Unable to reset default team", err)
 	}
 
 	handler.AuthorizationService.TriggerUsersAuthUpdate()

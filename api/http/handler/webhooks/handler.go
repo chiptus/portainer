@@ -52,12 +52,12 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 func (handler *Handler) checkResourceAccess(r *http.Request, resourceID string, resourceControlType portaineree.ResourceControlType) *httperror.HandlerError {
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve user info from request context", Err: err}
+		return httperror.InternalServerError("Unable to retrieve user info from request context", err)
 	}
 	// non-admins
 	rc, err := handler.dataStore.ResourceControl().ResourceControlByResourceIDAndType(resourceID, resourceControlType)
 	if rc == nil || err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve a resource control associated to the resource", Err: err}
+		return httperror.InternalServerError("Unable to retrieve a resource control associated to the resource", err)
 	}
 	userTeamIDs := make([]portaineree.TeamID, 0)
 	for _, membership := range securityContext.UserMemberships {
@@ -73,18 +73,18 @@ func (handler *Handler) checkResourceAccess(r *http.Request, resourceID string, 
 func (handler *Handler) checkAuthorization(r *http.Request, endpoint *portaineree.Endpoint, authorizations []portaineree.Authorization) (bool, *httperror.HandlerError) {
 	err := handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
 	if err != nil {
-		return false, &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "Permission denied to access environment", Err: err}
+		return false, httperror.Forbidden("Permission denied to access environment", err)
 	}
 
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
-		return false, &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve user info from request context", Err: err}
+		return false, httperror.InternalServerError("Unable to retrieve user info from request context", err)
 	}
 
 	authService := authorization.NewService(handler.dataStore)
 	isAdminOrAuthorized, err := authService.UserIsAdminOrAuthorized(securityContext.UserID, endpoint.ID, authorizations)
 	if err != nil {
-		return false, &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to get user authorizations", Err: err}
+		return false, httperror.InternalServerError("Unable to get user authorizations", err)
 	}
 	return isAdminOrAuthorized, nil
 }

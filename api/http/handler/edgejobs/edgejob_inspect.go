@@ -31,14 +31,14 @@ type edgeJobInspectResponse struct {
 func (handler *Handler) edgeJobInspect(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	edgeJobID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid Edge job identifier route variable", err}
+		return httperror.BadRequest("Invalid Edge job identifier route variable", err)
 	}
 
 	edgeJob, err := handler.DataStore.EdgeJob().EdgeJob(portaineree.EdgeJobID(edgeJobID))
 	if err == portainerDsErrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an Edge job with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find an Edge job with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an Edge job with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find an Edge job with the specified identifier inside the database", err)
 	}
 
 	endpointIDs := []portaineree.EndpointID{}

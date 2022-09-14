@@ -27,7 +27,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) *httperror.Hand
 	id, _ := request.RetrieveNumericRouteVariableValue(r, "id")
 	err := h.DataStore.CloudCredential().Delete(models.CloudCredentialID(id))
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to delete cloud credential from the database", Err: err}
+		return httperror.InternalServerError("Unable to delete cloud credential from the database", err)
 	}
 
 	return response.JSON(w, nil)

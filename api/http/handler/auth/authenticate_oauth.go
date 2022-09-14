@@ -63,77 +63,49 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 	var payload oauthPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return resp, &httperror.HandlerError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Invalid request payload",
-			Err:        err,
-		}
+		return resp, httperror.BadRequest("Invalid request payload", err)
 	}
 
 	settings, err := handler.DataStore.Settings().Settings()
 	if err != nil {
-		return resp, &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to retrieve settings from the database",
-			Err:        err,
-		}
+		return resp, httperror.InternalServerError("Unable to retrieve settings from the database", err)
 	}
 
 	if settings.AuthenticationMethod != portaineree.AuthenticationOAuth {
-		return resp, &httperror.HandlerError{
-			StatusCode: http.StatusForbidden,
-			Message:    "OAuth authentication is not enabled",
-			Err:        errors.New("OAuth authentication is not enabled"),
-		}
+		return resp, httperror.Forbidden("OAuth authentication is not enabled", errors.New("OAuth authentication is not enabled"))
 	}
 
 	authInfo, err := handler.authenticateOAuth(payload.Code, &settings.OAuthSettings)
 	if err != nil {
 		log.Printf("[DEBUG] - OAuth authentication error: %s", err)
-		return resp, &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to authenticate through OAuth",
-			Err:        httperrors.ErrUnauthorized,
-		}
+		return resp, httperror.InternalServerError("Unable to authenticate through OAuth", httperrors.ErrUnauthorized)
 	}
 
 	resp.Username = authInfo.Username
 
 	user, err := handler.DataStore.User().UserByUsername(authInfo.Username)
 	if err != nil && err != bolterrors.ErrObjectNotFound {
-		return resp, &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to retrieve a user with the specified username from the database",
-			Err:        err,
-		}
+		return resp, httperror.InternalServerError("Unable to retrieve a user with the specified username from the database", err)
 	}
 
 	if user == nil && !settings.OAuthSettings.OAuthAutoMapTeamMemberships && !settings.OAuthSettings.OAuthAutoCreateUsers {
-		return resp, &httperror.HandlerError{
-			StatusCode: http.StatusForbidden,
-			Message:    "Auto OAuth team membership failed: user not created beforehand in Portainer and automatic user provisioning not enabled",
-			Err:        httperrors.ErrUnauthorized,
-		}
+		return resp, httperror.Forbidden("Auto OAuth team membership failed: user not created beforehand in Portainer and automatic user provisioning not enabled", httperrors.ErrUnauthorized)
 	}
 
 	//try to match retrieved oauth teams with pre-set auto admin claims
 	isValidAdminClaims, err := validateAdminClaims(settings.OAuthSettings, authInfo.Teams)
 	if err != nil {
-		return resp, &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to validate OAuth auto admin claims",
-			Err:        err,
-		}
+		return resp, httperror.InternalServerError("Failed to validate OAuth auto admin claims", err)
 	}
 
 	if user != nil {
 		//if user exists, check oauth settings and update user's role if needed
 		if err := handler.updateUser(user, settings.OAuthSettings, isValidAdminClaims); err != nil {
-			return resp, &httperror.HandlerError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Failed to update user OAuth membership",
-				Err:        err,
-			}
+			return resp, httperror.InternalServerError(
+
+				"Failed to update user OAuth membership",
+				err)
+
 		}
 	} else {
 		//if user not exists, create a new user with the correct role (according to AdminAutoPopulate settings)
@@ -143,39 +115,23 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 			PortainerAuthorizations: authorization.DefaultPortainerAuthorizations(),
 		}
 		if err := handler.createUserAndDefaultTeamMembership(user, settings.OAuthSettings, isValidAdminClaims); err != nil {
-			return resp, &httperror.HandlerError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Failed to create user or OAuth membership",
-				Err:        err,
-			}
+			return resp, httperror.InternalServerError("Failed to create user or OAuth membership", err)
 		}
 	}
 
 	if settings.OAuthSettings.OAuthAutoMapTeamMemberships {
 		if settings.OAuthSettings.TeamMemberships.OAuthClaimName == "" {
-			return resp, &httperror.HandlerError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Unable to process user oauth team memberships",
-				Err:        errors.New("empty value set for oauth team membership Claim name"),
-			}
+			return resp, httperror.InternalServerError("Unable to process user oauth team memberships", errors.New("empty value set for oauth team membership Claim name"))
 		}
 
 		err = updateOAuthTeamMemberships(handler.DataStore, settings.OAuthSettings, *user, authInfo.Teams)
 		if err != nil {
-			return resp, &httperror.HandlerError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Unable to update user oauth team memberships",
-				Err:        err,
-			}
+			return resp, httperror.InternalServerError("Unable to update user oauth team memberships", err)
 		}
 
 		err = handler.AuthorizationService.UpdateUsersAuthorizations()
 		if err != nil {
-			return resp, &httperror.HandlerError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Unable to update user authorizations",
-				Err:        err,
-			}
+			return resp, httperror.InternalServerError("Unable to update user authorizations", err)
 		}
 	}
 
@@ -183,20 +139,12 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 
 	if user.Role != portaineree.AdministratorRole {
 		if !info.Valid {
-			return resp, &httperror.HandlerError{
-				StatusCode: http.StatusForbidden,
-				Message:    "License is not valid",
-				Err:        httperrors.ErrNoValidLicense,
-			}
+			return resp, httperror.Forbidden("License is not valid", httperrors.ErrNoValidLicense)
 		}
 
 		if handler.LicenseService.ShouldEnforceOveruse() {
 			// If the free subscription license is enforced, the OAuth standard user are not allowed to log in
-			return resp, &httperror.HandlerError{
-				StatusCode: http.StatusPaymentRequired,
-				Message:    "Node limit exceeds the 5 node free license, please contact your administrator",
-				Err:        httperrors.ErrLicenseOverused,
-			}
+			return resp, &httperror.HandlerError{StatusCode: http.StatusPaymentRequired, Message: "Node limit exceeds the 5 node free license, please contact your administrator", Err: httperrors.ErrLicenseOverused}
 		}
 	}
 

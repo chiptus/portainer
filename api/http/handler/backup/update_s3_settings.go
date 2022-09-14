@@ -54,11 +54,11 @@ func (h *Handler) updateSettings(w http.ResponseWriter, r *http.Request) *httper
 	var payload backupSettings
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	if err := h.backupScheduler.Update(payload.S3BackupSettings); err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Couldn't update backup settings", Err: err}
+		return httperror.InternalServerError("Couldn't update backup settings", err)
 	}
 
 	return nil

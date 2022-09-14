@@ -69,25 +69,25 @@ func (payload *endpointSettingsUpdatePayload) Validate(_ *http.Request) error {
 func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
+		return httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 
 	var payload endpointSettingsUpdatePayload
 	err = request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == errors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
 	}
 
 	err = handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access environment", err}
+		return httperror.Forbidden("Permission denied to access environment", err)
 	}
 
 	securitySettings := endpoint.SecuritySettings
@@ -142,13 +142,13 @@ func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Re
 
 	err = handler.dataStore.Endpoint().UpdateEndpoint(portaineree.EndpointID(endpointID), endpoint)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Failed persisting environment in database", err}
+		return httperror.InternalServerError("Failed persisting environment in database", err)
 	}
 
 	if updateAuthorizations {
 		err := handler.AuthorizationService.UpdateUsersAuthorizations()
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to update RBAC authorizations", err}
+			return httperror.InternalServerError("Unable to update RBAC authorizations", err)
 		}
 	}
 

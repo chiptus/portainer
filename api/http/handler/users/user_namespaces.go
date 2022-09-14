@@ -32,21 +32,21 @@ type namespaceMapping map[int]map[string]portaineree.Authorizations
 func (handler *Handler) userNamespaces(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	userID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid user identifier route variable", err}
+		return httperror.BadRequest("Invalid user identifier route variable", err)
 	}
 
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}
+		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
 	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portaineree.UserID(userID) {
-		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to retrieve user namespaces", errors.ErrUnauthorized}
+		return httperror.Forbidden("Permission denied to retrieve user namespaces", errors.ErrUnauthorized)
 	}
 
 	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user namespace data", err}
+		return httperror.InternalServerError("Unable to retrieve user namespace data", err)
 	}
 
 	// key: endpointID, value: a map between namespace and user's role authorizations
@@ -74,7 +74,7 @@ func (handler *Handler) userNamespaces(w http.ResponseWriter, r *http.Request) *
 	}
 
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user namespace data", err}
+		return httperror.InternalServerError("Unable to retrieve user namespace data", err)
 	}
 
 	return response.JSON(w, results)

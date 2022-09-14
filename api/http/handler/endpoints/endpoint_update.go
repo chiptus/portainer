@@ -98,25 +98,25 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 	permissionDeniedErr := "Permission denied to update environment"
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
+		return httperror.Forbidden(permissionDeniedErr, err)
 	}
 
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
+		return httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 
 	var payload endpointUpdatePayload
 	err = request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == portainerDsErrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
 	}
 
 	isAdmin := tokenData.Role == portaineree.AdministratorRole
@@ -126,15 +126,15 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		// check if the user can access cluster setup in the environment(endpoint) (environment admin)
 		endpointRole, err := handler.AuthorizationService.GetUserEndpointRole(int(tokenData.ID), int(endpoint.ID))
 		if err != nil {
-			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
+			return httperror.Forbidden(permissionDeniedErr, err)
 		} else if !endpointRole.Authorizations[portaineree.OperationK8sClusterSetupRW] {
 			err = errors.New(permissionDeniedErr)
-			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
+			return httperror.Forbidden(permissionDeniedErr, err)
 		}
 		// deny access if user can not access all namespaces
 		if !endpointRole.Authorizations[portaineree.OperationK8sAccessAllNamespaces] {
 			err = errors.New(permissionDeniedErr)
-			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
+			return httperror.Forbidden(permissionDeniedErr, err)
 		} else {
 			canK8sClusterSetup = true
 		}
@@ -214,13 +214,13 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 				for tagID := range removeTags {
 					tag, err := handler.dataStore.Tag().Tag(tagID)
 					if err != nil {
-						return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a tag inside the database", err}
+						return httperror.InternalServerError("Unable to find a tag inside the database", err)
 					}
 
 					delete(tag.Endpoints, endpoint.ID)
 					err = handler.dataStore.Tag().UpdateTag(tag.ID, tag)
 					if err != nil {
-						return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist tag changes inside the database", err}
+						return httperror.InternalServerError("Unable to persist tag changes inside the database", err)
 					}
 				}
 
@@ -228,14 +228,14 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 				for _, tagID := range payload.TagIDs {
 					tag, err := handler.dataStore.Tag().Tag(tagID)
 					if err != nil {
-						return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a tag inside the database", err}
+						return httperror.InternalServerError("Unable to find a tag inside the database", err)
 					}
 
 					tag.Endpoints[endpoint.ID] = true
 
 					err = handler.dataStore.Tag().UpdateTag(tag.ID, tag)
 					if err != nil {
-						return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist tag changes inside the database", err}
+						return httperror.InternalServerError("Unable to persist tag changes inside the database", err)
 					}
 				}
 			}
@@ -279,7 +279,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 			httpClient := client.NewHTTPClient()
 			_, authErr := httpClient.ExecuteAzureAuthenticationRequest(&credentials)
 			if authErr != nil {
-				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to authenticate against Azure", authErr}
+				return httperror.InternalServerError("Unable to authenticate against Azure", authErr)
 			}
 			endpoint.AzureCredentials = credentials
 		}
@@ -323,7 +323,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 				endpoint.TLSConfig.TLSKeyPath = ""
 				err = handler.FileService.DeleteTLSFiles(folder)
 				if err != nil {
-					return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove TLS files from disk", err}
+					return httperror.InternalServerError("Unable to remove TLS files from disk", err)
 				}
 			}
 
@@ -337,7 +337,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 			handler.ProxyManager.DeleteEndpointProxy(endpoint.ID)
 			_, err = handler.ProxyManager.CreateAndRegisterEndpointProxy(endpoint)
 			if err != nil {
-				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to register HTTP proxy for the environment", err}
+				return httperror.InternalServerError("Unable to register HTTP proxy for the environment", err)
 			}
 		}
 	}
@@ -346,7 +346,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		if endpoint.Type == portaineree.KubernetesLocalEnvironment || endpoint.Type == portaineree.AgentOnKubernetesEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
 			err = handler.AuthorizationService.CleanNAPWithOverridePolicies(endpoint, nil)
 			if err != nil {
-				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to update user authorizations", err}
+				return httperror.InternalServerError("Unable to update user authorizations", err)
 			}
 		}
 	}
@@ -357,35 +357,35 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 	err = handler.dataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist environment changes inside the database", err}
+		return httperror.InternalServerError("Unable to persist environment changes inside the database", err)
 	}
 
 	if updateAuthorizations {
 		err = handler.AuthorizationService.UpdateUsersAuthorizations()
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to update user authorizations", err}
+			return httperror.InternalServerError("Unable to update user authorizations", err)
 		}
 	}
 
 	if (endpointutils.IsEdgeEndpoint(endpoint)) && (groupIDChanged || tagsChanged) {
 		relation, err := handler.dataStore.EndpointRelation().EndpointRelation(endpoint.ID)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find environment relation inside the database", err}
+			return httperror.InternalServerError("Unable to find environment relation inside the database", err)
 		}
 
 		endpointGroup, err := handler.dataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find environment group inside the database", err}
+			return httperror.InternalServerError("Unable to find environment group inside the database", err)
 		}
 
 		edgeGroups, err := handler.dataStore.EdgeGroup().EdgeGroups()
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge groups from the database", err}
+			return httperror.InternalServerError("Unable to retrieve edge groups from the database", err)
 		}
 
 		edgeStacks, err := handler.dataStore.EdgeStack().EdgeStacks()
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge stacks from the database", err}
+			return httperror.InternalServerError("Unable to retrieve edge stacks from the database", err)
 		}
 
 		existingEdgeStacks := relation.EdgeStacks
@@ -397,7 +397,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 			if !existingEdgeStacks[edgeStackID] {
 				err = handler.edgeService.AddStackCommand(endpoint, edgeStackID)
 				if err != nil {
-					return &httperror.HandlerError{http.StatusInternalServerError, "Unable to store edge async command into the database", err}
+					return httperror.InternalServerError("Unable to store edge async command into the database", err)
 				}
 			}
 		}
@@ -406,7 +406,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 			if !currentEdgeStackSet[existingEdgeStackID] {
 				err = handler.edgeService.RemoveStackCommand(endpoint.ID, existingEdgeStackID)
 				if err != nil {
-					return &httperror.HandlerError{http.StatusInternalServerError, "Unable to store edge async command into the database", err}
+					return httperror.InternalServerError("Unable to store edge async command into the database", err)
 				}
 			}
 		}
@@ -415,7 +415,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 		err = handler.dataStore.EndpointRelation().UpdateEndpointRelation(endpoint.ID, relation)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist environment relation changes inside the database", err}
+			return httperror.InternalServerError("Unable to persist environment relation changes inside the database", err)
 		}
 	}
 

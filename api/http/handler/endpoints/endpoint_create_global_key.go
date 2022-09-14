@@ -35,7 +35,7 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 
 	endpoints, err := handler.dataStore.Endpoint().Endpoints()
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve the endpoints from the database", err}
+		return httperror.InternalServerError("Unable to retrieve the endpoints from the database", err)
 	}
 
 	for _, endpoint := range endpoints {
@@ -46,7 +46,7 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 
 	settings, err := handler.dataStore.Settings().Settings()
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve the settings from the database", err}
+		return httperror.InternalServerError("Unable to retrieve the settings from the database", err)
 	}
 
 	// Create a new endpoint if none was found
@@ -71,7 +71,7 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 
 	err = handler.dataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist environment changes inside the database", err}
+		return httperror.InternalServerError("Unable to persist environment changes inside the database", err)
 	}
 
 	relationObject := &portaineree.EndpointRelation{
@@ -81,7 +81,7 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 
 	err = handler.dataStore.EndpointRelation().Create(relationObject)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the relation object inside the database", err}
+		return httperror.InternalServerError("Unable to persist the relation object inside the database", err)
 	}
 
 	handler.AuthorizationService.TriggerUsersAuthUpdate()

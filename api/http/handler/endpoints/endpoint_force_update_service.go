@@ -45,36 +45,36 @@ func (payload *forceUpdateServicePayload) Validate(r *http.Request) error {
 func (handler *Handler) endpointForceUpdateService(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
+		return httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 
 	var payload forceUpdateServicePayload
 	err = request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == portainerDsErrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
 	}
 
 	err = handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to force update service", err}
+		return httperror.Forbidden("Permission denied to force update service", err)
 	}
 
 	dockerClient, err := handler.DockerClientFactory.CreateClient(endpoint, "", nil)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Error creating docker client", err}
+		return httperror.InternalServerError("Error creating docker client", err)
 	}
 	defer dockerClient.Close()
 
 	service, _, err := dockerClient.ServiceInspectWithRaw(context.Background(), payload.ServiceID, dockertypes.ServiceInspectOptions{InsertDefaults: true})
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Error looking up service", err}
+		return httperror.InternalServerError("Error looking up service", err)
 	}
 
 	service.Spec.TaskTemplate.ForceUpdate++
@@ -85,7 +85,7 @@ func (handler *Handler) endpointForceUpdateService(w http.ResponseWriter, r *htt
 
 	newService, err := dockerClient.ServiceUpdate(context.Background(), payload.ServiceID, service.Version, service.Spec, dockertypes.ServiceUpdateOptions{QueryRegistry: true})
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Error force update service", err}
+		return httperror.InternalServerError("Error force update service", err)
 	}
 
 	return response.JSON(w, newService)

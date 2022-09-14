@@ -55,29 +55,29 @@ func (payload *resourceControlUpdatePayload) Validate(r *http.Request) error {
 func (handler *Handler) resourceControlUpdate(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	resourceControlID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid resource control identifier route variable", err}
+		return httperror.BadRequest("Invalid resource control identifier route variable", err)
 	}
 
 	var payload resourceControlUpdatePayload
 	err = request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	resourceControl, err := handler.dataStore.ResourceControl().ResourceControl(portaineree.ResourceControlID(resourceControlID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a resource control with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find a resource control with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a resource control with with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find a resource control with with the specified identifier inside the database", err)
 	}
 
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
+		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
 	if !security.AuthorizedResourceControlAccess(resourceControl, securityContext) {
-		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access the resource control", httperrors.ErrResourceAccessDenied}
+		return httperror.Forbidden("Permission denied to access the resource control", httperrors.ErrResourceAccessDenied)
 	}
 
 	resourceControl.Public = payload.Public
@@ -104,12 +104,12 @@ func (handler *Handler) resourceControlUpdate(w http.ResponseWriter, r *http.Req
 	resourceControl.TeamAccesses = teamAccesses
 
 	if !security.AuthorizedResourceControlUpdate(resourceControl, securityContext) {
-		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to update the resource control", httperrors.ErrResourceAccessDenied}
+		return httperror.Forbidden("Permission denied to update the resource control", httperrors.ErrResourceAccessDenied)
 	}
 
 	err = handler.dataStore.ResourceControl().UpdateResourceControl(resourceControl.ID, resourceControl)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist resource control changes inside the database", err}
+		return httperror.InternalServerError("Unable to persist resource control changes inside the database", err)
 	}
 
 	return response.JSON(w, resourceControl)

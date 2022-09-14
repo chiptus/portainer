@@ -44,7 +44,7 @@ func (handler *Handler) licensesDelete(w http.ResponseWriter, r *http.Request) *
 	var payload deletePayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	resp := &attachResponse{

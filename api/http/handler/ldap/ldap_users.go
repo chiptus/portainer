@@ -39,19 +39,19 @@ func (handler *Handler) ldapUsers(w http.ResponseWriter, r *http.Request) *httpe
 	var payload usersPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	settings := &payload.LDAPSettings
 
 	err = handler.prefillSettings(settings)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to fetch default settings", err}
+		return httperror.InternalServerError("Unable to fetch default settings", err)
 	}
 
 	users, err := handler.LDAPService.SearchUsers(settings)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to search for users", err}
+		return httperror.InternalServerError("Unable to search for users", err)
 	}
 
 	return response.JSON(w, users)

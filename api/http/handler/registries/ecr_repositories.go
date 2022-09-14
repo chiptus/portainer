@@ -31,27 +31,27 @@ import (
 func (handler *Handler) ecrDeleteRepository(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	registryID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid registry identifier route variable", err}
+		return httperror.BadRequest("Invalid registry identifier route variable", err)
 	}
 
 	repositoryName, err := request.RetrieveRouteVariableValue(r, "repositoryName")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid repository name route variable", err}
+		return httperror.BadRequest("Invalid repository name route variable", err)
 	}
 
 	registry, err := handler.DataStore.Registry().Registry(portaineree.RegistryID(registryID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a registry with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find a registry with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a registry with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find a registry with the specified identifier inside the database", err)
 	}
 
 	hasAccess, _, err := handler.userHasRegistryAccess(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
+		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 	if !hasAccess {
-		return &httperror.HandlerError{http.StatusForbidden, "Access denied to resource", httperrors.ErrResourceAccessDenied}
+		return httperror.Forbidden("Access denied to resource", httperrors.ErrResourceAccessDenied)
 	}
 
 	username, password, region := registryutils.GetManagementCredential(registry)
@@ -59,12 +59,12 @@ func (handler *Handler) ecrDeleteRepository(w http.ResponseWriter, r *http.Reque
 
 	registryId, err := registryutils.GetRegistryId(registry)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to get registry ID", err}
+		return httperror.InternalServerError("Unable to get registry ID", err)
 	}
 
 	err = ecrClient.DeleteRepository(&registryId, &repositoryName)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to list ECR repositories", err}
+		return httperror.InternalServerError("Unable to list ECR repositories", err)
 	}
 
 	return response.Empty(w)

@@ -35,11 +35,7 @@ import (
 func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	provider, err := request.RetrieveRouteVariableValue(r, "provider")
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Invalid user identifier route variable",
-			Err:        err,
-		}
+		return httperror.BadRequest("Invalid user identifier route variable", err)
 	}
 
 	var cloudProvider *portaineree.CloudProvider
@@ -62,36 +58,21 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 		err = request.DecodeAndValidateJSONPayload(r, &p)
 		payload = &p
 	default:
-		return &httperror.HandlerError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Invalid request payload",
-			Err:        fmt.Errorf("Invalid cloud provider: %s", provider),
-		}
+		return httperror.BadRequest("Invalid request payload", fmt.Errorf("Invalid cloud provider: %s", provider))
 	}
+
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Invalid request payload",
-			Err:        err,
-		}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	cloudProvider, err = payload.GetCloudProvider(provider)
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to create environment",
-			Err:        err,
-		}
+		return httperror.InternalServerError("Unable to create environment", err)
 	}
 
 	endpoint, err := handler.createEndpoint(payload.GetEndpointName(), *cloudProvider, payload.GetEnvironmentMetadata())
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to create environment",
-			Err:        err,
-		}
+		return httperror.InternalServerError("Unable to create environment", err)
 	}
 
 	// Prepare a new CloudProvisioningRequest

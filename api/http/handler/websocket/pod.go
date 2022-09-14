@@ -41,72 +41,72 @@ import (
 func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpointID, err := request.RetrieveNumericQueryParameter(r, "endpointId", false)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: endpointId", err}
+		return httperror.BadRequest("Invalid query parameter: endpointId", err)
 	}
 
 	namespace, err := request.RetrieveQueryParameter(r, "namespace", false)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: namespace", err}
+		return httperror.BadRequest("Invalid query parameter: namespace", err)
 	}
 
 	podName, err := request.RetrieveQueryParameter(r, "podName", false)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: podName", err}
+		return httperror.BadRequest("Invalid query parameter: podName", err)
 	}
 
 	containerName, err := request.RetrieveQueryParameter(r, "containerName", false)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: containerName", err}
+		return httperror.BadRequest("Invalid query parameter: containerName", err)
 	}
 
 	command, err := request.RetrieveQueryParameter(r, "command", false)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: command", err}
+		return httperror.BadRequest("Invalid query parameter: command", err)
 	}
 
 	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find the environment associated to the stack inside the database", err}
+		return httperror.NotFound("Unable to find the environment associated to the stack inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find the environment associated to the stack inside the database", err}
+		return httperror.InternalServerError("Unable to find the environment associated to the stack inside the database", err)
 	}
 
 	cli, err := handler.KubernetesClientFactory.GetKubeClient(endpoint)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to create Kubernetes client", err}
+		return httperror.InternalServerError("Unable to create Kubernetes client", err)
 	}
 
 	permissionDeniedErr := "Permission denied to access environment"
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
+		return httperror.Forbidden(permissionDeniedErr, err)
 	}
 
 	if tokenData.Role != portaineree.AdministratorRole {
 		// check if the user has console RW access in the environment(endpoint)
 		endpointRole, err := handler.authorizationService.GetUserEndpointRole(int(tokenData.ID), int(endpoint.ID))
 		if err != nil {
-			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
+			return httperror.Forbidden(permissionDeniedErr, err)
 		} else if !endpointRole.Authorizations[portaineree.OperationK8sApplicationConsoleRW] {
 			err = errors.New(permissionDeniedErr)
-			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
+			return httperror.Forbidden(permissionDeniedErr, err)
 		}
 		// will skip if user can access all namespaces
 		if !endpointRole.Authorizations[portaineree.OperationK8sAccessAllNamespaces] {
 			// check if the user has RW access to the namespace
 			namespaceAuthorizations, err := handler.authorizationService.GetNamespaceAuthorizations(int(tokenData.ID), *endpoint, cli)
 			if err != nil {
-				return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
+				return httperror.Forbidden(permissionDeniedErr, err)
 			} else if auth, ok := namespaceAuthorizations[namespace]; !ok || !auth[portaineree.OperationK8sAccessNamespaceWrite] {
 				err = errors.New(permissionDeniedErr)
-				return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
+				return httperror.Forbidden(permissionDeniedErr, err)
 			}
 		}
 	}
 
 	serviceAccountToken, isAdminToken, err := handler.getToken(r, endpoint, false)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to get user service account token", err}
+		return httperror.InternalServerError("Unable to get user service account token", err)
 	}
 
 	params := &webSocketRequestParams{
@@ -120,7 +120,7 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 		err := handler.proxyAgentWebsocketRequest(w, r, params)
 
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to proxy websocket request to agent", err}
+			return httperror.InternalServerError("Unable to proxy websocket request to agent", err)
 		}
 
 		return nil
@@ -128,7 +128,7 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 
 		err := handler.proxyEdgeAgentWebsocketRequest(w, r, params)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to proxy websocket request to Edge agent", err}
+			return httperror.InternalServerError("Unable to proxy websocket request to Edge agent", err)
 		}
 
 		return nil
@@ -155,7 +155,7 @@ func (handler *Handler) hijackPodExecStartOperation(
 
 	websocketConn, err := handler.connectionUpgrader.Upgrade(w, r, nil)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to upgrade the connection", err}
+		return httperror.InternalServerError("Unable to upgrade the connection", err)
 	}
 	defer websocketConn.Close()
 
@@ -182,7 +182,7 @@ func (handler *Handler) hijackPodExecStartOperation(
 		return nil
 	}
 
-	return &httperror.HandlerError{http.StatusInternalServerError, "Unable to start exec process inside container", err}
+	return httperror.InternalServerError("Unable to start exec process inside container", err)
 }
 
 func (handler *Handler) getToken(request *http.Request, endpoint *portaineree.Endpoint, setLocalAdminToken bool) (string, bool, error) {

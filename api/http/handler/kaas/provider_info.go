@@ -28,49 +28,29 @@ import (
 func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	provider, err := request.RetrieveRouteVariableValue(r, "provider")
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Invalid user identifier route variable",
-			Err:        err,
-		}
+		return httperror.BadRequest("Invalid user identifier route variable", err)
 	}
 
 	force, err := request.RetrieveBooleanQueryParameter(r, "force", true)
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Failed parsing \"force\" boolean",
-			Err:        err,
-		}
+		return httperror.BadRequest("Failed parsing \"force\" boolean", err)
 	}
 
 	credentialId, _ := request.RetrieveNumericQueryParameter(r, "credentialId", true)
 	if credentialId == 0 {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Missing credential id in the query parameter",
-			Err:        err,
-		}
+		return httperror.InternalServerError("Missing credential id in the query parameter", err)
 	}
 
 	credential, err := handler.dataStore.CloudCredential().GetByID(models.CloudCredentialID(credentialId))
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    fmt.Sprintf("Unable to retrieve %s information", provider),
-			Err:        err,
-		}
+		return httperror.InternalServerError(fmt.Sprintf("Unable to retrieve %s information", provider), err)
 	}
 
 	switch provider {
 	case portaineree.CloudProviderCivo:
 		civoInfo, err := handler.cloudClusterInfoService.CivoGetInfo(credential, force)
 		if err != nil {
-			return &httperror.HandlerError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Unable to retrieve Civo information",
-				Err:        err,
-			}
+			return httperror.InternalServerError("Unable to retrieve Civo information", err)
 		}
 
 		return response.JSON(w, civoInfo)
@@ -79,11 +59,7 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 
 		digitalOceanInfo, err := handler.cloudClusterInfoService.DigitalOceanGetInfo(credential, force)
 		if err != nil {
-			return &httperror.HandlerError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Unable to retrieve DigitalOcean information",
-				Err:        err,
-			}
+			return httperror.InternalServerError("Unable to retrieve DigitalOcean information", err)
 		}
 
 		return response.JSON(w, digitalOceanInfo)
@@ -92,11 +68,7 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 
 		linodeInfo, err := handler.cloudClusterInfoService.LinodeGetInfo(credential, force)
 		if err != nil {
-			return &httperror.HandlerError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Unable to retrieve Linode information",
-				Err:        err,
-			}
+			return httperror.InternalServerError("Unable to retrieve Linode information", err)
 		}
 
 		return response.JSON(w, linodeInfo)
@@ -104,11 +76,7 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 	case portaineree.CloudProviderGKE:
 		gkeInfo, err := handler.cloudClusterInfoService.GKEGetInfo(credential, force)
 		if err != nil {
-			return &httperror.HandlerError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Unable to retrieve GKE information",
-				Err:        err,
-			}
+			return httperror.InternalServerError("Unable to retrieve GKE information", err)
 		}
 
 		return response.JSON(w, gkeInfo)
@@ -117,11 +85,7 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 
 		azureInfo, err := handler.cloudClusterInfoService.AzureGetInfo(credential, force)
 		if err != nil {
-			return &httperror.HandlerError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Unable to retrieve Azure information",
-				Err:        err,
-			}
+			return httperror.InternalServerError("Unable to retrieve Azure information", err)
 		}
 
 		return response.JSON(w, azureInfo)
@@ -129,19 +93,11 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 	case portaineree.CloudProviderAmazon:
 		awsInfo, err := handler.cloudClusterInfoService.AmazonEksGetInfo(credential, force)
 		if err != nil {
-			return &httperror.HandlerError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Unable to retrieve AWS information",
-				Err:        err,
-			}
+			return httperror.InternalServerError("Unable to retrieve AWS information", err)
 		}
 
 		return response.JSON(w, awsInfo)
 	}
 
-	return &httperror.HandlerError{
-		StatusCode: http.StatusInternalServerError,
-		Message:    "Unable to get Kaas provider info",
-		Err:        errors.New("invalid provider route parameter. Valid values: civo, digitalocean, linode, azure, gke"),
-	}
+	return httperror.InternalServerError("Unable to get Kaas provider info", errors.New("invalid provider route parameter. Valid values: civo, digitalocean, linode, azure, gke"))
 }

@@ -33,14 +33,14 @@ func (handler *Handler) webhookList(w http.ResponseWriter, r *http.Request) *htt
 	var filters webhookListOperationFilters
 	err := request.RetrieveJSONQueryParameter(r, "filters", &filters, true)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: filters", err}
+		return httperror.BadRequest("Invalid query parameter: filters", err)
 	}
 
 	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(filters.EndpointID))
 	if err == portainerDsErrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
 	}
 	// endpoint will be used in the user activity logging middleware
 	middlewares.SetEndpoint(endpoint, r)
@@ -54,7 +54,7 @@ func (handler *Handler) webhookList(w http.ResponseWriter, r *http.Request) *htt
 	webhooks, err := handler.dataStore.Webhook().Webhooks()
 	webhooks = filterWebhooks(webhooks, &filters)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve webhooks from the database", err}
+		return httperror.InternalServerError("Unable to retrieve webhooks from the database", err)
 	}
 
 	return response.JSON(w, webhooks)

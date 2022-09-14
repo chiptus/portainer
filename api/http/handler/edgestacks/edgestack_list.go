@@ -22,7 +22,7 @@ import (
 func (handler *Handler) edgeStackList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	edgeStacks, err := handler.DataStore.EdgeStack().EdgeStacks()
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve edge stacks from the database", Err: err}
+		return httperror.InternalServerError("Unable to retrieve edge stacks from the database", err)
 	}
 
 	return response.JSON(w, edgeStacks)

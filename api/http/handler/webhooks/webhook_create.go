@@ -53,24 +53,24 @@ func (handler *Handler) webhookCreate(w http.ResponseWriter, r *http.Request) *h
 	var payload webhookCreatePayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	webhook, err := handler.dataStore.Webhook().WebhookByResourceID(payload.ResourceID)
 	if err != nil && err != bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusInternalServerError, "An error occurred retrieving webhooks from the database", err}
+		return httperror.InternalServerError("An error occurred retrieving webhooks from the database", err)
 	}
 	if webhook != nil {
-		return &httperror.HandlerError{http.StatusConflict, "A webhook for this resource already exists", errors.New("A webhook for this resource already exists")}
+		return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: "A webhook for this resource already exists", Err: errors.New("A webhook for this resource already exists")}
 	}
 
 	endpointID := portaineree.EndpointID(payload.EndpointID)
 
 	endpoint, err := handler.dataStore.Endpoint().Endpoint(endpointID)
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
 	}
 	// endpoint will be used in the user activity logging middleware
 	middlewares.SetEndpoint(endpoint, r)
@@ -85,18 +85,18 @@ func (handler *Handler) webhookCreate(w http.ResponseWriter, r *http.Request) *h
 	if payload.RegistryID != 0 {
 		tokenData, err := security.RetrieveTokenData(r)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}
+			return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 		}
 
 		_, err = access.GetAccessibleRegistry(handler.dataStore, tokenData.ID, endpointID, payload.RegistryID)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusForbidden, "Permission deny to access registry", err}
+			return httperror.Forbidden("Permission deny to access registry", err)
 		}
 	}
 
 	token, err := uuid.NewV4()
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Error creating unique token", err}
+		return httperror.InternalServerError("Error creating unique token", err)
 	}
 
 	webhook = &portaineree.Webhook{
@@ -109,7 +109,7 @@ func (handler *Handler) webhookCreate(w http.ResponseWriter, r *http.Request) *h
 
 	err = handler.dataStore.Webhook().Create(webhook)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the webhook inside the database", err}
+		return httperror.InternalServerError("Unable to persist the webhook inside the database", err)
 	}
 
 	return response.JSON(w, webhook)

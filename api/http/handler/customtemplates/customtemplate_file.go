@@ -31,19 +31,19 @@ type fileResponse struct {
 func (handler *Handler) customTemplateFile(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	customTemplateID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid custom template identifier route variable", err}
+		return httperror.BadRequest("Invalid custom template identifier route variable", err)
 	}
 
 	customTemplate, err := handler.DataStore.CustomTemplate().CustomTemplate(portaineree.CustomTemplateID(customTemplateID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a custom template with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find a custom template with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a custom template with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find a custom template with the specified identifier inside the database", err)
 	}
 
 	fileContent, err := handler.FileService.GetFileContent(customTemplate.ProjectPath, customTemplate.EntryPoint)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve custom template file from disk", err}
+		return httperror.InternalServerError("Unable to retrieve custom template file from disk", err)
 	}
 
 	return response.JSON(w, &fileResponse{FileContent: string(fileContent)})

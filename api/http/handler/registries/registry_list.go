@@ -23,7 +23,7 @@ import (
 func (handler *Handler) registryList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	registries, err := handler.DataStore.Registry().Registries()
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve registries from the database", err}
+		return httperror.InternalServerError("Unable to retrieve registries from the database", err)
 	}
 
 	return response.JSON(w, registries)

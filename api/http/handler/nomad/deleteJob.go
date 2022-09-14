@@ -24,12 +24,12 @@ func (handler *Handler) deleteJob(w http.ResponseWriter, r *http.Request) *httpe
 
 	jobID, err := request.RetrieveRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid Nomad job identifier route variable", Err: err}
+		return httperror.BadRequest("Invalid Nomad job identifier route variable", err)
 	}
 
 	namespace, err := request.RetrieveQueryParameter(r, "namespace", false)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: namespace", Err: err}
+		return httperror.BadRequest("Invalid query parameter: namespace", err)
 	}
 
 	endpoint, err := middlewares.FetchEndpoint(r)
@@ -39,12 +39,12 @@ func (handler *Handler) deleteJob(w http.ResponseWriter, r *http.Request) *httpe
 
 	nomadClient, err := handler.nomadClientFactory.GetClient(endpoint)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to establish communication with Nomad server", Err: err}
+		return httperror.InternalServerError("Unable to establish communication with Nomad server", err)
 	}
 
 	err = nomadClient.DeleteJob(jobID, namespace)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to delete Nomad job", Err: err}
+		return httperror.InternalServerError("Unable to delete Nomad job", err)
 	}
 
 	return response.Empty(w)

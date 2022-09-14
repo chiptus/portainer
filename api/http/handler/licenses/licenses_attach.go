@@ -46,7 +46,7 @@ func (handler *Handler) licensesAttach(w http.ResponseWriter, r *http.Request) *
 	var payload attachPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	resp := &attachResponse{

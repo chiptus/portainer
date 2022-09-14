@@ -31,17 +31,17 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) *httperror.Hand
 	id, _ := request.RetrieveNumericRouteVariableValue(r, "id")
 	cloudCredential, err := h.DataStore.CloudCredential().GetByID(models.CloudCredentialID(id))
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to fetch cloud credentials from the database", Err: err}
+		return httperror.InternalServerError("Unable to fetch cloud credentials from the database", err)
 	}
 
 	if cloudCredential.Provider == portaineree.CloudProviderKubeConfig {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request", Err: err}
+		return httperror.BadRequest("Invalid request", err)
 	}
 
 	var payload models.CloudCredential
 	err = request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	if payload.Name != "" {
@@ -62,16 +62,16 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) *httperror.Hand
 
 	cloudCredentials, err := h.DataStore.CloudCredential().GetAll()
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to validate credential name", Err: err}
+		return httperror.InternalServerError("Unable to validate credential name", err)
 	}
 	err = cloudCredential.ValidateUniqueNameByProvider(cloudCredentials)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	err = h.DataStore.CloudCredential().Update(models.CloudCredentialID(id), cloudCredential)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to update cloud credential in the database", Err: err}
+		return httperror.InternalServerError("Unable to update cloud credential in the database", err)
 	}
 
 	cloudCredential.Credentials = redactCredentials(cloudCredential.Credentials)

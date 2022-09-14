@@ -38,7 +38,7 @@ func (handler *Handler) getDashboard(w http.ResponseWriter, r *http.Request) *ht
 
 	nomadClient, err := handler.nomadClientFactory.GetClient(endpoint)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to establish communication with Nomad server", Err: err}
+		return httperror.InternalServerError("Unable to establish communication with Nomad server", err)
 	}
 
 	dashboardPayload := DashboardPayload{}
@@ -46,14 +46,14 @@ func (handler *Handler) getDashboard(w http.ResponseWriter, r *http.Request) *ht
 	// node count
 	nodeList, err := nomadClient.ListNodes()
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to list nodes", Err: err}
+		return httperror.InternalServerError("Unable to list nodes", err)
 	}
 	dashboardPayload.NodeCount = len(nodeList)
 
 	// job count
 	jobList, err := nomadClient.ListJobs("*")
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to list jobs", Err: err}
+		return httperror.InternalServerError("Unable to list jobs", err)
 	}
 	dashboardPayload.JobCount = len(jobList)
 

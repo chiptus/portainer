@@ -27,19 +27,19 @@ import (
 func (handler *Handler) edgeJobTasksCollect(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	edgeJobID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid Edge job identifier route variable", err}
+		return httperror.BadRequest("Invalid Edge job identifier route variable", err)
 	}
 
 	taskID, err := request.RetrieveNumericRouteVariableValue(r, "taskID")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid Task identifier route variable", err}
+		return httperror.BadRequest("Invalid Task identifier route variable", err)
 	}
 
 	edgeJob, err := handler.DataStore.EdgeJob().EdgeJob(portaineree.EdgeJobID(edgeJobID))
 	if err == portainerDsErrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an Edge job with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find an Edge job with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an Edge job with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find an Edge job with the specified identifier inside the database", err)
 	}
 
 	endpointID := portaineree.EndpointID(taskID)
@@ -51,22 +51,22 @@ func (handler *Handler) edgeJobTasksCollect(w http.ResponseWriter, r *http.Reque
 
 	err = handler.DataStore.EdgeJob().UpdateEdgeJob(edgeJob.ID, edgeJob)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist Edge job changes in the database", err}
+		return httperror.InternalServerError("Unable to persist Edge job changes in the database", err)
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve environment from the database", err}
+		return httperror.InternalServerError("Unable to retrieve environment from the database", err)
 	}
 
 	if endpoint.Edge.AsyncMode {
 		edgeJobFileContent, err := handler.FileService.GetFileContent(edgeJob.ScriptPath, "")
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve Edge job script file from disk", err}
+			return httperror.InternalServerError("Unable to retrieve Edge job script file from disk", err)
 		}
 		err = handler.edgeService.ReplaceJobCommand(endpoint.ID, *edgeJob, edgeJobFileContent)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist edge job changes to the database", err}
+			return httperror.InternalServerError("Unable to persist edge job changes to the database", err)
 		}
 	} else {
 		handler.ReverseTunnelService.AddEdgeJob(endpointID, edgeJob)

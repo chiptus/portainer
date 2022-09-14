@@ -136,12 +136,12 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 	var payload settingsUpdatePayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	settings, err := handler.DataStore.Settings().Settings()
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve the settings from the database", Err: err}
+		return httperror.InternalServerError("Unable to retrieve the settings from the database", err)
 	}
 
 	if handler.demoService.IsDemo() {
@@ -173,7 +173,7 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 			if newHelmRepo != settings.HelmRepositoryURL && newHelmRepo != portaineree.DefaultHelmRepositoryURL {
 				err := libhelm.ValidateHelmRepositoryURL(*payload.HelmRepositoryURL)
 				if err != nil {
-					return &httperror.HandlerError{http.StatusBadRequest, "Invalid Helm repository URL. Must correspond to a valid URL format", err}
+					return httperror.BadRequest("Invalid Helm repository URL. Must correspond to a valid URL format", err)
 				}
 			}
 			settings.HelmRepositoryURL = newHelmRepo
@@ -236,20 +236,12 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		if payload.OAuthSettings.OAuthAutoMapTeamMemberships {
 			// throw errors on invalid values
 			if payload.OAuthSettings.TeamMemberships.OAuthClaimName == "" {
-				return &httperror.HandlerError{
-					StatusCode: http.StatusBadRequest,
-					Message:    "oauth claim name required",
-					Err:        errors.New("provided oauth team membership claim name is empty"),
-				}
+				return httperror.BadRequest("oauth claim name required", errors.New("provided oauth team membership claim name is empty"))
 			}
 
 			for _, mapping := range payload.OAuthSettings.TeamMemberships.OAuthClaimMappings {
 				if mapping.ClaimValRegex == "" || mapping.Team == 0 {
-					return &httperror.HandlerError{
-						StatusCode: http.StatusBadRequest,
-						Message:    "invalid oauth mapping provided",
-						Err:        fmt.Errorf("invalid oauth team membership mapping; mapping=%v", mapping),
-					}
+					return httperror.BadRequest("invalid oauth mapping provided", fmt.Errorf("invalid oauth team membership mapping; mapping=%v", mapping))
 				}
 			}
 		} else {
@@ -282,7 +274,7 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 	if payload.SnapshotInterval != nil && *payload.SnapshotInterval != settings.SnapshotInterval {
 		err := handler.updateSnapshotInterval(settings, *payload.SnapshotInterval)
 		if err != nil {
-			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to update snapshot interval", Err: err}
+			return httperror.InternalServerError("Unable to update snapshot interval", err)
 		}
 	}
 
@@ -333,7 +325,7 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 
 	err = handler.DataStore.Settings().UpdateSettings(settings)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist settings changes inside the database", Err: err}
+		return httperror.InternalServerError("Unable to persist settings changes inside the database", err)
 	}
 
 	hideFields(settings)
@@ -354,7 +346,7 @@ func (handler *Handler) updateTLS(settings *portaineree.Settings) *httperror.Han
 		settings.LDAPSettings.TLSConfig.TLSCACertPath = ""
 		err := handler.FileService.DeleteTLSFiles(filesystem.LDAPStorePath)
 		if err != nil {
-			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to remove TLS files from disk", Err: err}
+			return httperror.InternalServerError("Unable to remove TLS files from disk", err)
 		}
 	}
 	return nil

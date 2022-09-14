@@ -34,27 +34,27 @@ import (
 func (handler *Handler) userDelete(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	userID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid user identifier route variable", err}
+		return httperror.BadRequest("Invalid user identifier route variable", err)
 	}
 
 	if userID == 1 {
-		return &httperror.HandlerError{http.StatusForbidden, "Cannot remove the initial admin account", errors.New("Cannot remove the initial admin account")}
+		return httperror.Forbidden("Cannot remove the initial admin account", errors.New("Cannot remove the initial admin account"))
 	}
 
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}
+		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
 	if tokenData.ID == portaineree.UserID(userID) {
-		return &httperror.HandlerError{http.StatusForbidden, "Cannot remove your own user account. Contact another administrator", errAdminCannotRemoveSelf}
+		return httperror.Forbidden("Cannot remove your own user account. Contact another administrator", errAdminCannotRemoveSelf)
 	}
 
 	user, err := handler.DataStore.User().User(portaineree.UserID(userID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a user with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find a user with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a user with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find a user with the specified identifier inside the database", err)
 	}
 
 	if user.Role == portaineree.AdministratorRole {
@@ -73,7 +73,7 @@ func (handler *Handler) deleteAdminUser(w http.ResponseWriter, user *portaineree
 
 	users, err := handler.DataStore.User().Users()
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve users from the database", err}
+		return httperror.InternalServerError("Unable to retrieve users from the database", err)
 	}
 
 	localAdminCount := 0
@@ -84,7 +84,7 @@ func (handler *Handler) deleteAdminUser(w http.ResponseWriter, user *portaineree
 	}
 
 	if localAdminCount < 2 {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Cannot remove local administrator user", errCannotRemoveLastLocalAdmin}
+		return httperror.InternalServerError("Cannot remove local administrator user", errCannotRemoveLastLocalAdmin)
 	}
 
 	return handler.deleteUser(w, user)
@@ -93,33 +93,33 @@ func (handler *Handler) deleteAdminUser(w http.ResponseWriter, user *portaineree
 func (handler *Handler) deleteUser(w http.ResponseWriter, user *portaineree.User) *httperror.HandlerError {
 	err := handler.removeUserKubeResources(user)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove user k8s resources", err}
+		return httperror.InternalServerError("Unable to remove user k8s resources", err)
 	}
 
 	err = handler.AuthorizationService.RemoveUserAccessPolicies(user.ID)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to clean-up user access policies", err}
+		return httperror.InternalServerError("Unable to clean-up user access policies", err)
 	}
 
 	err = handler.DataStore.User().DeleteUser(user.ID)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove user from the database", err}
+		return httperror.InternalServerError("Unable to remove user from the database", err)
 	}
 
 	err = handler.DataStore.TeamMembership().DeleteTeamMembershipByUserID(user.ID)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove user memberships from the database", err}
+		return httperror.InternalServerError("Unable to remove user memberships from the database", err)
 	}
 
 	// Remove all of the users persisted API keys
 	apiKeys, err := handler.apiKeyService.GetAPIKeys(user.ID)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user API keys from the database", err}
+		return httperror.InternalServerError("Unable to retrieve user API keys from the database", err)
 	}
 	for _, k := range apiKeys {
 		err = handler.apiKeyService.DeleteAPIKey(k.ID)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove user API key from the database", err}
+			return httperror.InternalServerError("Unable to remove user API key from the database", err)
 		}
 	}
 

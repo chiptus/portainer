@@ -33,67 +33,67 @@ import (
 func (handler *Handler) stackStop(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	stackID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid stack identifier route variable", err}
+		return httperror.BadRequest("Invalid stack identifier route variable", err)
 	}
 
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve info from request context", err}
+		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
 	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(stackID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a stack with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a stack with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
 	}
 
 	if stack.Type == portaineree.KubernetesStack {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Stopping a kubernetes stack is not supported", Err: err}
+		return httperror.BadRequest("Stopping a kubernetes stack is not supported", err)
 	}
 
 	endpointID, err := request.RetrieveNumericQueryParameter(r, "endpointId", true)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: endpointId", err}
+		return httperror.BadRequest("Invalid query parameter: endpointId", err)
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
 	}
 	middlewares.SetEndpoint(endpoint, r)
 
 	err = handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access environment", err}
+		return httperror.Forbidden("Permission denied to access environment", err)
 	}
 
 	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portaineree.StackResourceControl)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve a resource control associated to the stack", err}
+		return httperror.InternalServerError("Unable to retrieve a resource control associated to the stack", err)
 	}
 
 	canManage, err := handler.userCanManageStacks(securityContext, endpoint)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to verify user authorizations to validate stack deletion", Err: err}
+		return httperror.InternalServerError("Unable to verify user authorizations to validate stack deletion", err)
 	}
 	if !canManage {
 		errMsg := "Stack management is disabled for non-admin users"
-		return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: errMsg, Err: errors.New(errMsg)}
+		return httperror.Forbidden(errMsg, errors.New(errMsg))
 	}
 
 	access, err := handler.userCanAccessStack(securityContext, endpoint.ID, resourceControl)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to verify user authorizations to validate stack access", err}
+		return httperror.InternalServerError("Unable to verify user authorizations to validate stack access", err)
 	}
 	if !access {
-		return &httperror.HandlerError{http.StatusForbidden, "Access denied to resource", httperrors.ErrResourceAccessDenied}
+		return httperror.Forbidden("Access denied to resource", httperrors.ErrResourceAccessDenied)
 	}
 
 	if stack.Status == portaineree.StackStatusInactive {
-		return &httperror.HandlerError{http.StatusBadRequest, "Stack is already inactive", errors.New("Stack is already inactive")}
+		return httperror.BadRequest("Stack is already inactive", errors.New("Stack is already inactive"))
 	}
 
 	// stop scheduler updates of the stack before stopping
@@ -104,13 +104,13 @@ func (handler *Handler) stackStop(w http.ResponseWriter, r *http.Request) *httpe
 
 	err = handler.stopStack(stack, endpoint)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to stop stack", err}
+		return httperror.InternalServerError("Unable to stop stack", err)
 	}
 
 	stack.Status = portaineree.StackStatusInactive
 	err = handler.DataStore.Stack().UpdateStack(stack.ID, stack)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to update stack status", err}
+		return httperror.InternalServerError("Unable to update stack status", err)
 	}
 
 	if stack.GitConfig != nil && stack.GitConfig.Authentication != nil && stack.GitConfig.Authentication.Password != "" {

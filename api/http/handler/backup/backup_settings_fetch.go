@@ -21,7 +21,7 @@ import (
 func (h *Handler) backupSettingsFetch(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	settings, err := h.dataStore.S3Backup().GetSettings()
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve backup settings from the database", Err: err}
+		return httperror.InternalServerError("Unable to retrieve backup settings from the database", err)
 	}
 	return response.JSON(w, settings)
 }

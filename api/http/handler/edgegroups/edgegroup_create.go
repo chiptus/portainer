@@ -50,17 +50,17 @@ func (handler *Handler) edgeGroupCreate(w http.ResponseWriter, r *http.Request) 
 	var payload edgeGroupCreatePayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	edgeGroups, err := handler.DataStore.EdgeGroup().EdgeGroups()
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve Edge groups from the database", Err: err}
+		return httperror.InternalServerError("Unable to retrieve Edge groups from the database", err)
 	}
 
 	for _, edgeGroup := range edgeGroups {
 		if edgeGroup.Name == payload.Name {
-			return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Edge group name must be unique", Err: errors.New("Edge group name must be unique")}
+			return httperror.BadRequest("Edge group name must be unique", errors.New("Edge group name must be unique"))
 		}
 	}
 
@@ -79,7 +79,7 @@ func (handler *Handler) edgeGroupCreate(w http.ResponseWriter, r *http.Request) 
 		for _, endpointID := range payload.Endpoints {
 			endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
 			if err != nil {
-				return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve environment from the database", Err: err}
+				return httperror.InternalServerError("Unable to retrieve environment from the database", err)
 			}
 
 			if endpointutils.IsEdgeEndpoint(endpoint) {
@@ -91,7 +91,7 @@ func (handler *Handler) edgeGroupCreate(w http.ResponseWriter, r *http.Request) 
 
 	err = handler.DataStore.EdgeGroup().Create(edgeGroup)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist the Edge group inside the database", Err: err}
+		return httperror.InternalServerError("Unable to persist the Edge group inside the database", err)
 	}
 
 	return response.JSON(w, edgeGroup)

@@ -43,7 +43,7 @@ func (h *Handler) getAll(w http.ResponseWriter, r *http.Request) *httperror.Hand
 
 	cloudCredentials, err := h.DataStore.CloudCredential().GetAll()
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to fetch cloud credentials from the database", Err: err}
+		return httperror.InternalServerError("Unable to fetch cloud credentials from the database", err)
 	}
 
 	filteredCredentials := []models.CloudCredential{}
@@ -76,7 +76,7 @@ func (h *Handler) getByID(w http.ResponseWriter, r *http.Request) *httperror.Han
 	id, _ := request.RetrieveNumericRouteVariableValue(r, "id")
 	cloudCredential, err := h.DataStore.CloudCredential().GetByID(models.CloudCredentialID(id))
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to fetch cloud credentials from the database", Err: err}
+		return httperror.InternalServerError("Unable to fetch cloud credentials from the database", err)
 	}
 
 	cloudCredential.Credentials = redactCredentials(cloudCredential.Credentials)

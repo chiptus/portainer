@@ -45,47 +45,47 @@ func (payload *resourcePoolUpdatePayload) Validate(r *http.Request) error {
 func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
+		return httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 
 	resourcePoolName, err := request.RetrieveRouteVariableValue(r, "rpn")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid namespace identifier route variable", err}
+		return httperror.BadRequest("Invalid namespace identifier route variable", err)
 	}
 
 	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == portainerDsErrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
 	}
 
 	permissionDeniedErr := "Permission denied to access environment"
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
+		return httperror.Forbidden(permissionDeniedErr, err)
 	}
 
 	if tokenData.Role != portaineree.AdministratorRole {
 		// check if the user has Configuration RW access in the environment(endpoint)
 		endpointRole, err := handler.AuthorizationService.GetUserEndpointRole(int(tokenData.ID), int(endpoint.ID))
 		if err != nil {
-			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
+			return httperror.Forbidden(permissionDeniedErr, err)
 		} else if !endpointRole.Authorizations[portaineree.OperationK8sConfigurationsW] {
 			err = errors.New(permissionDeniedErr)
-			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
+			return httperror.Forbidden(permissionDeniedErr, err)
 		}
 		// will deny if user cannot access all namespaces
 		if !endpointRole.Authorizations[portaineree.OperationK8sAccessAllNamespaces] {
 			err = errors.New(permissionDeniedErr)
-			return &httperror.HandlerError{http.StatusForbidden, permissionDeniedErr, err}
+			return httperror.Forbidden(permissionDeniedErr, err)
 		}
 	}
 
 	var payload resourcePoolUpdatePayload
 	err = request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	errs := []string{}
@@ -140,7 +140,7 @@ func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http
 
 	if len(errs) > 0 {
 		err = fmt.Errorf(strings.Join(errs, "\n"))
-		return &httperror.HandlerError{http.StatusInternalServerError, "There are 1 or more errors when updating namespace access", err}
+		return httperror.InternalServerError("There are 1 or more errors when updating namespace access", err)
 	}
 
 	return response.Empty(w)

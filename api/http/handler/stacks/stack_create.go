@@ -58,49 +58,49 @@ func (handler *Handler) cleanUp(stack *portaineree.Stack, doCleanUp *bool) error
 func (handler *Handler) stackCreate(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	stackType, err := request.RetrieveNumericQueryParameter(r, "type", false)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: type", err}
+		return httperror.BadRequest("Invalid query parameter: type", err)
 	}
 
 	method, err := request.RetrieveQueryParameter(r, "method", false)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: method", err}
+		return httperror.BadRequest("Invalid query parameter: method", err)
 	}
 
 	endpointID, err := request.RetrieveNumericQueryParameter(r, "endpointId", false)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid query parameter: endpointId", err}
+		return httperror.BadRequest("Invalid query parameter: endpointId", err)
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
 	}
 	middlewares.SetEndpoint(endpoint, r)
 
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user info from request context", err}
+		return httperror.InternalServerError("Unable to retrieve user info from request context", err)
 	}
 
 	canManage, err := handler.userCanManageStacks(securityContext, endpoint)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to verify user authorizations to validate stack deletion", Err: err}
+		return httperror.InternalServerError("Unable to verify user authorizations to validate stack deletion", err)
 	}
 	if !canManage {
 		errMsg := "Stack creation is disabled for non-admin users"
-		return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: errMsg, Err: errors.New(errMsg)}
+		return httperror.Forbidden(errMsg, errors.New(errMsg))
 	}
 
 	err = handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to access environment", err}
+		return httperror.Forbidden("Permission denied to access environment", err)
 	}
 
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user details from authentication token", err}
+		return httperror.InternalServerError("Unable to retrieve user details from authentication token", err)
 	}
 
 	switch portaineree.StackType(stackType) {
@@ -112,7 +112,7 @@ func (handler *Handler) stackCreate(w http.ResponseWriter, r *http.Request) *htt
 		return handler.createKubernetesStack(w, r, method, endpoint)
 	}
 
-	return &httperror.HandlerError{http.StatusBadRequest, "Invalid value for query parameter: type. Value must be one of: 1 (Swarm stack) or 2 (Compose stack)", errors.New(request.ErrInvalidQueryParameter)}
+	return httperror.BadRequest("Invalid value for query parameter: type. Value must be one of: 1 (Swarm stack) or 2 (Compose stack)", errors.New(request.ErrInvalidQueryParameter))
 }
 
 func (handler *Handler) createComposeStack(w http.ResponseWriter, r *http.Request, method string, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
@@ -126,7 +126,7 @@ func (handler *Handler) createComposeStack(w http.ResponseWriter, r *http.Reques
 		return handler.createComposeStackFromFileUpload(w, r, endpoint, userID)
 	}
 
-	return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid value for query parameter: method. Value must be one of: string, repository or file", Err: errors.New(request.ErrInvalidQueryParameter)}
+	return httperror.BadRequest("Invalid value for query parameter: method. Value must be one of: string, repository or file", errors.New(request.ErrInvalidQueryParameter))
 }
 
 func (handler *Handler) createSwarmStack(w http.ResponseWriter, r *http.Request, method string, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
@@ -139,7 +139,7 @@ func (handler *Handler) createSwarmStack(w http.ResponseWriter, r *http.Request,
 		return handler.createSwarmStackFromFileUpload(w, r, endpoint, userID)
 	}
 
-	return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid value for query parameter: method. Value must be one of: string, repository or file", Err: errors.New(request.ErrInvalidQueryParameter)}
+	return httperror.BadRequest("Invalid value for query parameter: method. Value must be one of: string, repository or file", errors.New(request.ErrInvalidQueryParameter))
 }
 
 func (handler *Handler) createKubernetesStack(w http.ResponseWriter, r *http.Request, method string, endpoint *portaineree.Endpoint) *httperror.HandlerError {
@@ -151,7 +151,7 @@ func (handler *Handler) createKubernetesStack(w http.ResponseWriter, r *http.Req
 	case "url":
 		return handler.createKubernetesStackFromManifestURL(w, r, endpoint)
 	}
-	return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid value for query parameter: method. Value must be one of: string or repository", Err: errors.New(request.ErrInvalidQueryParameter)}
+	return httperror.BadRequest("Invalid value for query parameter: method. Value must be one of: string or repository", errors.New(request.ErrInvalidQueryParameter))
 }
 
 func (handler *Handler) isValidStackFile(stackFileContent []byte, securitySettings *portaineree.EndpointSecuritySettings) error {
@@ -216,7 +216,7 @@ func (handler *Handler) decorateStackResponse(w http.ResponseWriter, stack *port
 
 	isAdmin, err := handler.userIsAdmin(userID)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to load user information from the database", err}
+		return httperror.InternalServerError("Unable to load user information from the database", err)
 	}
 
 	if isAdmin {
@@ -227,7 +227,7 @@ func (handler *Handler) decorateStackResponse(w http.ResponseWriter, stack *port
 
 	err = handler.DataStore.ResourceControl().Create(resourceControl)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist resource control inside the database", err}
+		return httperror.InternalServerError("Unable to persist resource control inside the database", err)
 	}
 
 	stack.ResourceControl = resourceControl

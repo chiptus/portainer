@@ -38,33 +38,33 @@ func (payload *namespacesToggleSystemPayload) Validate(r *http.Request) error {
 func (handler *Handler) namespacesToggleSystem(rw http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment on request context", err}
+		return httperror.NotFound("Unable to find an environment on request context", err)
 	}
 
 	err = handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to perform operation", err}
+		return httperror.Forbidden("Permission denied to perform operation", err)
 	}
 
 	namespaceName, err := request.RetrieveRouteVariableValue(r, "namespace")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid namespace identifier route variable", err}
+		return httperror.BadRequest("Invalid namespace identifier route variable", err)
 	}
 
 	var payload namespacesToggleSystemPayload
 	err = request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	kubeClient, err := handler.KubernetesClientFactory.GetKubeClient(endpoint)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to create kubernetes client", err}
+		return httperror.InternalServerError("Unable to create kubernetes client", err)
 	}
 
 	err = kubeClient.ToggleSystemState(namespaceName, payload.System)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to toggle system status", err}
+		return httperror.InternalServerError("Unable to toggle system status", err)
 	}
 
 	return response.Empty(rw)

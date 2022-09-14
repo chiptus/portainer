@@ -34,17 +34,17 @@ func (handler *Handler) getTaskEvents(w http.ResponseWriter, r *http.Request) *h
 
 	allocationID, err := request.RetrieveRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid Nomad job identifier route variable", Err: err}
+		return httperror.BadRequest("Invalid Nomad job identifier route variable", err)
 	}
 
 	taskName, err := request.RetrieveQueryParameter(r, "taskName", false)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: taskName", Err: err}
+		return httperror.BadRequest("Invalid query parameter: taskName", err)
 	}
 
 	namespace, err := request.RetrieveQueryParameter(r, "namespace", false)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: namespace", Err: err}
+		return httperror.BadRequest("Invalid query parameter: namespace", err)
 	}
 
 	endpoint, err := middlewares.FetchEndpoint(r)
@@ -55,12 +55,12 @@ func (handler *Handler) getTaskEvents(w http.ResponseWriter, r *http.Request) *h
 	nomadClient, err := handler.nomadClientFactory.GetClient(endpoint)
 
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to establish communication with Nomad server", Err: err}
+		return httperror.InternalServerError("Unable to establish communication with Nomad server", err)
 	}
 
 	origTaskEvents, err := nomadClient.TaskEvents(allocationID, taskName, namespace)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve Nomad job task events", Err: err}
+		return httperror.InternalServerError("Unable to retrieve Nomad job task events", err)
 	}
 
 	var events []*slimNomadTaskEvent
@@ -104,17 +104,17 @@ func (handler *Handler) getTaskEvents(w http.ResponseWriter, r *http.Request) *h
 func (handler *Handler) getTaskLogs(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	allocationID, err := request.RetrieveRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid Nomad job identifier route variable", Err: err}
+		return httperror.BadRequest("Invalid Nomad job identifier route variable", err)
 	}
 
 	taskName, err := request.RetrieveQueryParameter(r, "taskName", false)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: taskName", Err: err}
+		return httperror.BadRequest("Invalid query parameter: taskName", err)
 	}
 
 	namespace, err := request.RetrieveQueryParameter(r, "namespace", false)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: namespace", Err: err}
+		return httperror.BadRequest("Invalid query parameter: namespace", err)
 	}
 
 	endpoint, err := middlewares.FetchEndpoint(r)
@@ -124,7 +124,7 @@ func (handler *Handler) getTaskLogs(w http.ResponseWriter, r *http.Request) *htt
 
 	refresh, err := request.RetrieveBooleanQueryParameter(r, "refresh", false)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid query parameter: refresh", Err: err}
+		return httperror.BadRequest("Invalid query parameter: refresh", err)
 	}
 
 	logType, err := request.RetrieveQueryParameter(r, "logType", true)
@@ -145,13 +145,13 @@ func (handler *Handler) getTaskLogs(w http.ResponseWriter, r *http.Request) *htt
 	nomadClient, err := handler.nomadClientFactory.GetClient(endpoint)
 
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to establish communication with Nomad server", Err: err}
+		return httperror.InternalServerError("Unable to establish communication with Nomad server", err)
 	}
 
 	frames, err := nomadClient.TaskLogs(refresh, allocationID, taskName, logType, origin, namespace, int64(offset))
 
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to retrieve Nomad task log channel", Err: err}
+		return httperror.InternalServerError("Unable to retrieve Nomad task log channel", err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

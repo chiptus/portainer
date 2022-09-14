@@ -53,11 +53,7 @@ func (handler *Handler) logsList(w http.ResponseWriter, r *http.Request) *httper
 
 	logs, totalCount, err := handler.UserActivityStore.GetUserActivityLogs(opts)
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to retrieve authentication logs",
-			Err:        err,
-		}
+		return httperror.InternalServerError("Unable to retrieve authentication logs", err)
 	}
 
 	return response.JSON(w, logsListResponse{

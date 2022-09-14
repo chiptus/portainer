@@ -252,7 +252,7 @@ func (handler *Handler) checkUniqueWebhookID(webhookID string) *httperror.Handle
 	}
 	isUnique, err := handler.isUniqueWebhookID(webhookID)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to check for webhook ID collision", Err: err}
+		return httperror.InternalServerError("Unable to check for webhook ID collision", err)
 	}
 	if !isUnique {
 		return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: fmt.Sprintf("Webhook ID: %s already exists", webhookID), Err: errWebhookIDAlreadyExists}

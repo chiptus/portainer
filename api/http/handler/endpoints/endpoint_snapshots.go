@@ -23,7 +23,7 @@ import (
 func (handler *Handler) endpointSnapshots(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpoints, err := handler.dataStore.Endpoint().Endpoints()
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve environments from the database", err}
+		return httperror.InternalServerError("Unable to retrieve environments from the database", err)
 	}
 
 	for _, endpoint := range endpoints {
@@ -56,7 +56,7 @@ func (handler *Handler) endpointSnapshots(w http.ResponseWriter, r *http.Request
 
 		err = handler.dataStore.Endpoint().UpdateEndpoint(latestEndpointReference.ID, latestEndpointReference)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist environment changes inside the database", err}
+			return httperror.InternalServerError("Unable to persist environment changes inside the database", err)
 		}
 	}
 

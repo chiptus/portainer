@@ -29,21 +29,21 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) *httperror.Hand
 	var payload models.CloudCredential
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	cloudCredentials, err := h.DataStore.CloudCredential().GetAll()
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to validate credential name", Err: err}
+		return httperror.InternalServerError("Unable to validate credential name", err)
 	}
 	err = payload.ValidateUniqueNameByProvider(cloudCredentials)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	err = h.DataStore.CloudCredential().Create(&payload)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist settings changes inside the database", Err: err}
+		return httperror.InternalServerError("Unable to persist settings changes inside the database", err)
 	}
 
 	payload.Credentials = redactCredentials(payload.Credentials)

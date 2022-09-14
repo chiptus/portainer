@@ -42,19 +42,19 @@ func (handler *Handler) ldapAdminGroups(w http.ResponseWriter, r *http.Request) 
 	var payload adminGroupsPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusBadRequest, Message: "Invalid request payload", Err: err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	settings := &payload.LDAPSettings
 
 	err = handler.prefillSettings(settings)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to fetch default settings", Err: err}
+		return httperror.InternalServerError("Unable to fetch default settings", err)
 	}
 
 	groups, err := handler.LDAPService.SearchAdminGroups(settings)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to search admin groups", Err: err}
+		return httperror.InternalServerError("Unable to search admin groups", err)
 	}
 
 	return response.JSON(w, groups)

@@ -40,7 +40,7 @@ import (
 func (handler *Handler) getK8sPodSecurityRule(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
+		return httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 	securityRule, err := handler.DataStore.PodSecurity().PodSecurityByEndpointID(int(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
@@ -103,7 +103,7 @@ func (handler *Handler) getK8sPodSecurityRule(w http.ResponseWriter, r *http.Req
 
 		return response.JSON(w, securityRule)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve pod security rule from the database", err}
+		return httperror.InternalServerError("Unable to retrieve pod security rule from the database", err)
 	}
 	return response.JSON(w, securityRule)
 }
@@ -131,30 +131,30 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 	requestRule := &podsecurity.PodSecurityRule{}
 	err := json.NewDecoder(r.Body).Decode(requestRule)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "cannot parse request body", err}
+		return httperror.BadRequest("cannot parse request body", err)
 	}
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid environment identifier route variable", err}
+		return httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 	requestRule.EndpointID = endpointID
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == bolterrors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
 	}
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user details from authentication token", err}
+		return httperror.InternalServerError("Unable to retrieve user details from authentication token", err)
 	}
 
 	gatekeeperManifest := path.Join(handler.baseFileDir, "pod-security-policy", podsecurity.GateKeeperFile)
 	if !requestRule.Enabled {
 		_, err = handler.KubernetesDeployer.Remove(tokenData.ID, endpoint, []string{gatekeeperManifest}, podsecurity.GateKeeperNameSpace)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "failed to remove kubernetes gatekeeper", err}
+			return httperror.InternalServerError("failed to remove kubernetes gatekeeper", err)
 		}
 		err = handler.DataStore.PodSecurity().DeletePodSecurityRule(endpointID)
 		if err != nil {
@@ -168,7 +168,7 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 	if err == bolterrors.ErrObjectNotFound {
 		isNewPodSecurity = true
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a pod security rule with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find a pod security rule with the specified identifier inside the database", err)
 	}
 	if isNewPodSecurity {
 		existedRule = &podsecurity.PodSecurityRule{}
@@ -179,12 +179,12 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 		if err != nil {
 			log.Printf("[ERROR] [internal,k8s] [message: failed to deploy kubernetes gatekeeper, remove installed files.]")
 			handler.KubernetesDeployer.Remove(tokenData.ID, endpoint, []string{gatekeeperManifest}, podsecurity.GateKeeperNameSpace)
-			return &httperror.HandlerError{http.StatusInternalServerError, "failed to deploy kubernetes gatekeeper", err}
+			return httperror.InternalServerError("failed to deploy kubernetes gatekeeper", err)
 		}
 
 		err := checkGetekeeperStatus(handler, endpoint, r)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "unable to get gatekeeper status", err}
+			return httperror.InternalServerError("unable to get gatekeeper status", err)
 		}
 
 		//2. deploy gatekeeper excluded namespaces
@@ -193,7 +193,7 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 		if err != nil {
 			log.Printf("[ERROR] [internal,k8s] [message: failed to apply kubernetes gatekeeper namespace exclusions]")
 			handler.KubernetesDeployer.Remove(tokenData.ID, endpoint, []string{gatekeeperManifest}, podsecurity.GateKeeperNameSpace)
-			return &httperror.HandlerError{http.StatusInternalServerError, "failed to deploy kubernetes gatekeeper", err}
+			return httperror.InternalServerError("failed to deploy kubernetes gatekeeper", err)
 		}
 
 		//2.deploy gatekeeper constrainttemplate
@@ -202,7 +202,7 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 			_, err := handler.KubernetesDeployer.Deploy(tokenData.ID, endpoint, []string{path.Join(handler.baseFileDir, "pod-security-policy", v, "template.yaml")}, podsecurity.GateKeeperNameSpace)
 			if err != nil {
 				log.Printf("[ERROR] [internal,k8s] [message: Unable to deploy %s with error: %s]", v, err)
-				return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to apply the pod security rule templates to the system", Err: err}
+				return httperror.InternalServerError("Unable to apply the pod security rule templates to the system", err)
 			}
 
 			log.Printf("[INFO] [internal,k8s] [message: Successfully deployed template %s]", v)
@@ -210,7 +210,7 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 
 		err = handler.DataStore.PodSecurity().Create(existedRule)
 		if err != nil {
-			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to add the pod security rule to the database", Err: err}
+			return httperror.InternalServerError("Unable to add the pod security rule to the database", err)
 		}
 	}
 
@@ -221,7 +221,7 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 		constraint.init(tokenData.ID, endpoint, rulename, requestRule, existedRule, handler.fileService.GetDatastorePath(), handler)
 		if err := constraint.fresh(handler); err != nil {
 			log.Printf("[ERROR] [internal,k8s] [message: Unable to deploy constraint <%s> with error: %s]", rulename, err)
-			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to apply the pod security rule constraints to the system", Err: err}
+			return httperror.InternalServerError("Unable to apply the pod security rule constraints to the system", err)
 		}
 
 		log.Printf("[INFO] [internal,k8s] [message: Successfully deployed constraint <%s>]", rulename)
@@ -229,7 +229,7 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 
 	err = handler.DataStore.PodSecurity().UpdatePodSecurityRule(existedRule.EndpointID, requestRule)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to persist the pod security rule changes inside the database", Err: err}
+		return httperror.InternalServerError("Unable to persist the pod security rule changes inside the database", err)
 	}
 	return response.JSON(w, requestRule)
 }

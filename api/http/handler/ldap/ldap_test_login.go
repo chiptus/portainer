@@ -46,19 +46,19 @@ func (handler *Handler) ldapTestLogin(w http.ResponseWriter, r *http.Request) *h
 	var payload testLoginPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	settings := &payload.LDAPSettings
 
 	err = handler.prefillSettings(settings)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to fetch default settings", err}
+		return httperror.InternalServerError("Unable to fetch default settings", err)
 	}
 
 	err = handler.LDAPService.AuthenticateUser(payload.Username, payload.Password, settings)
 	if err != nil && err != httperrors.ErrUnauthorized {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to test user authorization", err}
+		return httperror.InternalServerError("Unable to test user authorization", err)
 	}
 
 	return response.JSON(w, &testLoginResponse{Valid: err != httperrors.ErrUnauthorized})

@@ -46,20 +46,12 @@ func (handler *Handler) authLogsList(w http.ResponseWriter, r *http.Request) *ht
 
 	contextTypes, err := parseContextTypes(r.URL.RawQuery)
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to parse query string",
-			Err:        err,
-		}
+		return httperror.InternalServerError("Unable to parse query string", err)
 	}
 
 	activityTypes, err := parseActivityTypes(r.URL.RawQuery)
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to parse query string",
-			Err:        err,
-		}
+		return httperror.InternalServerError("Unable to parse query string", err)
 	}
 
 	opts := portaineree.AuthLogsQuery{
@@ -78,11 +70,7 @@ func (handler *Handler) authLogsList(w http.ResponseWriter, r *http.Request) *ht
 
 	logs, totalCount, err := handler.UserActivityStore.GetAuthLogs(opts)
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to retrieve authentication logs",
-			Err:        err,
-		}
+		return httperror.InternalServerError("Unable to retrieve authentication logs", err)
 	}
 
 	return response.JSON(w, authLogsListResponse{

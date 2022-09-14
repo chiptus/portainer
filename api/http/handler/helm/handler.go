@@ -93,22 +93,22 @@ func NewTemplateHandler(bouncer requestBouncer, helmPackageManager libhelm.HelmP
 func (handler *Handler) getHelmClusterAccess(r *http.Request) (*options.KubernetesClusterAccess, *httperror.HandlerError) {
 	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {
-		return nil, &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment on request context", err}
+		return nil, httperror.NotFound("Unable to find an environment on request context", err)
 	}
 
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
-		return nil, &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}
+		return nil, httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
 	bearerToken, err := handler.jwtService.GenerateToken(tokenData)
 	if err != nil {
-		return nil, &httperror.HandlerError{http.StatusUnauthorized, "Unauthorized", err}
+		return nil, httperror.Unauthorized("Unauthorized", err)
 	}
 
 	sslSettings, err := handler.dataStore.SSLSettings().Settings()
 	if err != nil {
-		return nil, &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve settings from the database", err}
+		return nil, httperror.InternalServerError("Unable to retrieve settings from the database", err)
 	}
 
 	hostURL := "localhost"
@@ -129,7 +129,7 @@ func (handler *Handler) getHelmClusterAccess(r *http.Request) (*options.Kubernet
 func (handler *Handler) authoriseHelmOperation(r *http.Request, authorization portaineree.Authorization) *httperror.HandlerError {
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user authentication token", err}
+		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
 	if tokenData.Role == portaineree.AdministratorRole {
@@ -138,17 +138,17 @@ func (handler *Handler) authoriseHelmOperation(r *http.Request, authorization po
 
 	user, err := handler.dataStore.User().User(tokenData.ID)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find user", err}
+		return httperror.NotFound("Unable to find user", err)
 	}
 
 	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an environment on request context", err}
+		return httperror.NotFound("Unable to find an environment on request context", err)
 	}
 	authorizations := user.EndpointAuthorizations[endpoint.ID]
 	if !authorizations[authorization] {
 		errMsg := "Permission denied to perform helm operation"
-		return &httperror.HandlerError{http.StatusForbidden, "Permission denied to perform helm operation", errors.New(errMsg)}
+		return httperror.Forbidden("Permission denied to perform helm operation", errors.New(errMsg))
 	}
 
 	return nil

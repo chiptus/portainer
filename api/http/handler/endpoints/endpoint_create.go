@@ -356,7 +356,7 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 	payload := &endpointCreatePayload{}
 	err := payload.Validate(r)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid request payload", err}
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
 	isUnique, err := handler.isNameUnique(payload.Name, 0)
@@ -375,7 +375,7 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 
 	edgeStacks, err := handler.dataStore.EdgeStack().EdgeStacks()
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge stacks from the database", err}
+		return httperror.InternalServerError("Unable to retrieve edge stacks from the database", err)
 	}
 
 	relationObject := &portaineree.EndpointRelation{
@@ -386,12 +386,12 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 	if endpointutils.IsEdgeEndpoint(endpoint) {
 		endpointGroup, err := handler.dataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an environment group inside the database", err}
+			return httperror.InternalServerError("Unable to find an environment group inside the database", err)
 		}
 
 		edgeGroups, err := handler.dataStore.EdgeGroup().EdgeGroups()
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve edge groups from the database", err}
+			return httperror.InternalServerError("Unable to retrieve edge groups from the database", err)
 		}
 
 		relatedEdgeStacks := edge.EndpointRelatedEdgeStacks(endpoint, endpointGroup, edgeGroups, edgeStacks)
@@ -400,14 +400,14 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 
 			err = handler.edgeService.AddStackCommand(endpoint, stackID)
 			if err != nil {
-				return &httperror.HandlerError{http.StatusInternalServerError, "Unable to store edge async command into the database", err}
+				return httperror.InternalServerError("Unable to store edge async command into the database", err)
 			}
 		}
 	}
 
 	err = handler.dataStore.EndpointRelation().Create(relationObject)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the relation object inside the database", err}
+		return httperror.InternalServerError("Unable to persist the relation object inside the database", err)
 	}
 
 	handler.AuthorizationService.TriggerUsersAuthUpdate()
@@ -445,7 +445,7 @@ func (handler *Handler) createEndpoint(payload *endpointCreatePayload) (*portain
 
 		agentPlatform, version, err := agent.GetAgentVersionAndPlatform(payload.URL, tlsConfig)
 		if err != nil {
-			return nil, &httperror.HandlerError{http.StatusInternalServerError, "Unable to get environment type", err}
+			return nil, httperror.InternalServerError("Unable to get environment type", err)
 		}
 
 		agentVersion = version
@@ -474,7 +474,7 @@ func (handler *Handler) createAzureEndpoint(payload *endpointCreatePayload) (*po
 	httpClient := client.NewHTTPClient()
 	_, err := httpClient.ExecuteAzureAuthenticationRequest(&credentials)
 	if err != nil {
-		return nil, &httperror.HandlerError{http.StatusInternalServerError, "Unable to authenticate against Azure", err}
+		return nil, httperror.InternalServerError("Unable to authenticate against Azure", err)
 	}
 
 	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
@@ -501,7 +501,7 @@ func (handler *Handler) createAzureEndpoint(payload *endpointCreatePayload) (*po
 
 	err = handler.saveEndpointAndUpdateAuthorizations(endpoint)
 	if err != nil {
-		return nil, &httperror.HandlerError{http.StatusInternalServerError, "An error occurred while trying to create the environment", err}
+		return nil, httperror.InternalServerError("An error occurred while trying to create the environment", err)
 	}
 
 	return endpoint, nil
@@ -546,7 +546,7 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 
 	settings, err := handler.dataStore.Settings().Settings()
 	if err != nil {
-		return nil, &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve the settings from the database", err}
+		return nil, httperror.InternalServerError("Unable to retrieve the settings from the database", err)
 	}
 
 	if payload.IsEdgeDevice && settings.Edge.AsyncMode {
@@ -559,7 +559,7 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 	if settings.EnforceEdgeID {
 		edgeID, err := uuid.NewV4()
 		if err != nil {
-			return nil, &httperror.HandlerError{http.StatusInternalServerError, "Cannot generate the Edge ID", err}
+			return nil, httperror.InternalServerError("Cannot generate the Edge ID", err)
 		}
 
 		endpoint.EdgeID = edgeID.String()
@@ -567,7 +567,7 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 
 	err = handler.saveEndpointAndUpdateAuthorizations(endpoint)
 	if err != nil {
-		return nil, &httperror.HandlerError{http.StatusInternalServerError, "An error occurred while trying to create the environment", err}
+		return nil, httperror.InternalServerError("An error occurred while trying to create the environment", err)
 	}
 
 	return endpoint, nil
@@ -669,7 +669,7 @@ func (handler *Handler) createKubeConfigEndpoint(payload *endpointCreatePayload)
 	}
 	err := handler.dataStore.CloudCredential().Create(&credentials)
 	if err != nil {
-		return nil, &httperror.HandlerError{http.StatusInternalServerError, "Unable to create kubeconfig environment", err}
+		return nil, httperror.InternalServerError("Unable to create kubeconfig environment", err)
 	}
 
 	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
@@ -704,7 +704,7 @@ func (handler *Handler) createKubeConfigEndpoint(payload *endpointCreatePayload)
 
 	err = handler.saveEndpointAndUpdateAuthorizations(endpoint)
 	if err != nil {
-		return nil, &httperror.HandlerError{http.StatusInternalServerError, "Unable to create kubeconfig environment", err}
+		return nil, httperror.InternalServerError("Unable to create kubeconfig environment", err)
 	}
 
 	request := portaineree.CloudProvisioningRequest{
@@ -766,12 +766,12 @@ func (handler *Handler) snapshotAndPersistEndpoint(endpoint *portaineree.Endpoin
 		if strings.Contains(err.Error(), "Invalid request signature") || strings.Contains(err.Error(), "unknown") {
 			err = errors.New("agent already paired with another Portainer instance")
 		}
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to initiate communications with environment", err}
+		return httperror.InternalServerError("Unable to initiate communications with environment", err)
 	}
 
 	err = handler.saveEndpointAndUpdateAuthorizations(endpoint)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "An error occured while trying to create the environment", err}
+		return httperror.InternalServerError("An error occured while trying to create the environment", err)
 	}
 
 	return nil
@@ -831,7 +831,7 @@ func (handler *Handler) storeTLSFiles(endpoint *portaineree.Endpoint, payload *e
 	if !payload.TLSSkipVerify {
 		caCertPath, err := handler.FileService.StoreTLSFileFromBytes(folder, portainer.TLSFileCA, payload.TLSCACertFile)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist TLS CA certificate file on disk", err}
+			return httperror.InternalServerError("Unable to persist TLS CA certificate file on disk", err)
 		}
 		endpoint.TLSConfig.TLSCACertPath = caCertPath
 	}
@@ -839,13 +839,13 @@ func (handler *Handler) storeTLSFiles(endpoint *portaineree.Endpoint, payload *e
 	if !payload.TLSSkipClientVerify {
 		certPath, err := handler.FileService.StoreTLSFileFromBytes(folder, portainer.TLSFileCert, payload.TLSCertFile)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist TLS certificate file on disk", err}
+			return httperror.InternalServerError("Unable to persist TLS certificate file on disk", err)
 		}
 		endpoint.TLSConfig.TLSCertPath = certPath
 
 		keyPath, err := handler.FileService.StoreTLSFileFromBytes(folder, portainer.TLSFileKey, payload.TLSKeyFile)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist TLS key file on disk", err}
+			return httperror.InternalServerError("Unable to persist TLS key file on disk", err)
 		}
 		endpoint.TLSConfig.TLSKeyPath = keyPath
 	}

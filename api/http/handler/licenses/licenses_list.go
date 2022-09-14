@@ -20,7 +20,7 @@ import (
 func (handler *Handler) licensesList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	licenses, err := handler.LicenseService.Licenses()
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve Licenses from the database", err}
+		return httperror.InternalServerError("Unable to retrieve Licenses from the database", err)
 	}
 
 	if handler.demoService.IsDemo() {

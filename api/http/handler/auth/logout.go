@@ -24,12 +24,7 @@ func (handler *Handler) logout(w http.ResponseWriter, r *http.Request) (*authMid
 	}
 
 	if err != nil {
-		return resp, &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to retrieve user details from authentication token",
-			Err:        err,
-		}
-
+		return resp, httperror.InternalServerError("Unable to retrieve user details from authentication token", err)
 	}
 
 	handler.KubernetesTokenCacheManager.RemoveUserFromCache(int(tokenData.ID))

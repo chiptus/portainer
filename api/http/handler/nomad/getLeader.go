@@ -33,12 +33,12 @@ func (handler *Handler) getLeader(w http.ResponseWriter, r *http.Request) *httpe
 
 	nomadClient, err := handler.nomadClientFactory.GetClient(endpoint)
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to establish communication with Nomad server", Err: err}
+		return httperror.InternalServerError("Unable to establish communication with Nomad server", err)
 	}
 
 	leader, err := nomadClient.Leader()
 	if err != nil {
-		return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Unable to get leader", Err: err}
+		return httperror.InternalServerError("Unable to get leader", err)
 	}
 
 	leaderPayload := LeaderPayload{

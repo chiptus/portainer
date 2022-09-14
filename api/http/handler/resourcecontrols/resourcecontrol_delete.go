@@ -26,19 +26,19 @@ import (
 func (handler *Handler) resourceControlDelete(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	resourceControlID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return &httperror.HandlerError{http.StatusBadRequest, "Invalid resource control identifier route variable", err}
+		return httperror.BadRequest("Invalid resource control identifier route variable", err)
 	}
 
 	_, err = handler.dataStore.ResourceControl().ResourceControl(portaineree.ResourceControlID(resourceControlID))
 	if err == errors.ErrObjectNotFound {
-		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a resource control with the specified identifier inside the database", err}
+		return httperror.NotFound("Unable to find a resource control with the specified identifier inside the database", err)
 	} else if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a resource control with with the specified identifier inside the database", err}
+		return httperror.InternalServerError("Unable to find a resource control with with the specified identifier inside the database", err)
 	}
 
 	err = handler.dataStore.ResourceControl().DeleteResourceControl(portaineree.ResourceControlID(resourceControlID))
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove the resource control from the database", err}
+		return httperror.InternalServerError("Unable to remove the resource control from the database", err)
 	}
 
 	return response.Empty(w)

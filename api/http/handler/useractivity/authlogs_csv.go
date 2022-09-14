@@ -36,20 +36,12 @@ func (handler *Handler) authLogsCSV(w http.ResponseWriter, r *http.Request) *htt
 
 	contextTypes, err := parseContextTypes(r.URL.RawQuery)
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to parse query string",
-			Err:        err,
-		}
+		return httperror.InternalServerError("Unable to parse query string", err)
 	}
 
 	activityTypes, err := parseActivityTypes(r.URL.RawQuery)
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to parse query string",
-			Err:        err,
-		}
+		return httperror.InternalServerError("Unable to parse query string", err)
 	}
 
 	opts := portaineree.AuthLogsQuery{
@@ -67,20 +59,12 @@ func (handler *Handler) authLogsCSV(w http.ResponseWriter, r *http.Request) *htt
 
 	logs, _, err := handler.UserActivityStore.GetAuthLogs(opts)
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to retrieve authentication logs",
-			Err:        err,
-		}
+		return httperror.InternalServerError("Unable to retrieve authentication logs", err)
 	}
 
 	err = useractivity.MarshalAuthLogsToCSV(w, logs)
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to marshal logs to csv",
-			Err:        err,
-		}
+		return httperror.InternalServerError("Unable to marshal logs to csv", err)
 	}
 
 	w.Header().Set("Content-Disposition", "attachment; filename=\"logs.csv\"")
