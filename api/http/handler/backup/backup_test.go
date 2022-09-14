@@ -55,8 +55,7 @@ func Test_backupHandlerWithoutPassword_shouldCreateATarballArchive(t *testing.T)
 	response := w.Result()
 	body, _ := io.ReadAll(response.Body)
 
-	tmpdir, _ := ioutil.TempDir("", "backup")
-	defer os.RemoveAll(tmpdir)
+	tmpdir := t.TempDir()
 
 	archivePath := filepath.Join(tmpdir, "archive.tar.gz")
 	err := ioutil.WriteFile(archivePath, body, 0600)
@@ -92,8 +91,7 @@ func Test_backupHandlerWithPassword_shouldCreateEncryptedATarballArchive(t *test
 	response := w.Result()
 	body, _ := io.ReadAll(response.Body)
 
-	tmpdir, _ := ioutil.TempDir("", "backup")
-	defer os.RemoveAll(tmpdir)
+	tmpdir := t.TempDir()
 
 	dr, err := crypto.AesDecrypt(bytes.NewReader(body), []byte("secret"))
 	if err != nil {

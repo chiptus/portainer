@@ -42,7 +42,7 @@ func (g *gitService) LatestCommitID(repositoryURL, referenceName, username, pass
 func setupHandler(t *testing.T) (*Handler, string, func()) {
 	t.Helper()
 
-	_, store, storeTeardown := datastore.MustNewTestStore(true, true)
+	_, store, storeTeardown := datastore.MustNewTestStore(t, true, true)
 
 	jwtService, err := jwt.NewService("1h", store)
 	if err != nil {
@@ -64,7 +64,7 @@ func setupHandler(t *testing.T) (*Handler, string, func()) {
 		t.Fatal(err)
 	}
 
-	tmpDir, err := os.MkdirTemp(os.TempDir(), "portainer-test")
+	tmpDir, err := os.MkdirTemp(t.TempDir(), "portainer-test")
 	if err != nil {
 		storeTeardown()
 		t.Fatal(err)

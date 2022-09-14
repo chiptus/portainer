@@ -18,8 +18,8 @@ import (
 	"github.com/portainer/portainer/api/filesystem"
 )
 
-func setupGlobalKeyHandler() (*Handler, func(), error) {
-	_, store, storeTeardown := datastore.MustNewTestStore(true, true)
+func setupGlobalKeyHandler(t *testing.T) (*Handler, func(), error) {
+	_, store, storeTeardown := datastore.MustNewTestStore(t, true, true)
 
 	ctx := context.Background()
 	shutdownCtx, cancelFn := context.WithCancel(ctx)
@@ -29,7 +29,7 @@ func setupGlobalKeyHandler() (*Handler, func(), error) {
 		storeTeardown()
 	}
 
-	tmpDir, err := os.MkdirTemp(os.TempDir(), "portainer-test-global-key-*")
+	tmpDir, err := os.MkdirTemp(t.TempDir(), "portainer-test-global-key-*")
 	if err != nil {
 		teardown()
 		return nil, nil, fmt.Errorf("could not create a tmp dir: %w", err)
@@ -58,7 +58,7 @@ func setupGlobalKeyHandler() (*Handler, func(), error) {
 }
 
 func TestGlobalKey(t *testing.T) {
-	handler, teardown, err := setupGlobalKeyHandler()
+	handler, teardown, err := setupGlobalKeyHandler(t)
 	defer teardown()
 
 	if err != nil {
@@ -118,7 +118,7 @@ func TestGlobalKey(t *testing.T) {
 }
 
 func TestEmptyGlobalKey(t *testing.T) {
-	handler, teardown, err := setupGlobalKeyHandler()
+	handler, teardown, err := setupGlobalKeyHandler(t)
 	defer teardown()
 
 	if err != nil {

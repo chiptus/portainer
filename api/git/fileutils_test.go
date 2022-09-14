@@ -1,7 +1,6 @@
 package git
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -22,13 +21,11 @@ import (
 
 func Test_removeAllExcept(t *testing.T) {
 	t.Run("copy nothing", func(t *testing.T) {
-		src, terminate := PrepareTest(t)
-		defer terminate()
+		src := PrepareTest(t)
 		var paths []string
 		err := validatePath(paths)
 		assert.NoError(t, err)
-		temp, err := ioutil.TempDir("", "copy")
-		defer os.RemoveAll(temp)
+		temp := t.TempDir()
 		err = copyPaths(paths, src, temp)
 
 		assert.NoError(t, err)
@@ -36,13 +33,11 @@ func Test_removeAllExcept(t *testing.T) {
 		assert.NoFileExists(t, filepath.Join(temp, "0.txt"))
 	})
 	t.Run("copy 2.txt, 0.txt", func(t *testing.T) {
-		src, terminate := PrepareTest(t)
-		defer terminate()
+		src := PrepareTest(t)
 		paths := []string{"0/1/2.txt", "0.txt"}
 		err := validatePath(paths)
 		assert.NoError(t, err)
-		temp, err := ioutil.TempDir("", "copy")
-		defer os.RemoveAll(temp)
+		temp := t.TempDir()
 		err = copyPaths(paths, src, temp)
 
 		assert.NoError(t, err)
@@ -50,13 +45,11 @@ func Test_removeAllExcept(t *testing.T) {
 		assert.NoFileExists(t, filepath.Join(temp, "0", "1.txt"))
 	})
 	t.Run("copy 2.txt", func(t *testing.T) {
-		src, terminate := PrepareTest(t)
-		defer terminate()
+		src := PrepareTest(t)
 		paths := []string{"0/1/2.txt"}
 		err := validatePath(paths)
 		assert.NoError(t, err)
-		temp, err := ioutil.TempDir("", "copy")
-		defer os.RemoveAll(temp)
+		temp := t.TempDir()
 		err = copyPaths(paths, src, temp)
 
 		assert.NoError(t, err)
@@ -65,13 +58,11 @@ func Test_removeAllExcept(t *testing.T) {
 		assert.NoFileExists(t, filepath.Join(temp, "0", "1.txt"))
 	})
 	t.Run("copy 0/1", func(t *testing.T) {
-		src, terminate := PrepareTest(t)
-		defer terminate()
+		src := PrepareTest(t)
 		paths := []string{"0/1"}
 		err := validatePath(paths)
 		assert.NoError(t, err)
-		temp, err := ioutil.TempDir("", "copy")
-		defer os.RemoveAll(temp)
+		temp := t.TempDir()
 		err = copyPaths(paths, src, temp)
 
 		assert.NoError(t, err)
@@ -81,14 +72,12 @@ func Test_removeAllExcept(t *testing.T) {
 	})
 }
 
-func PrepareTest(t *testing.T) (string, func()) {
-	tempDir, _ := ioutil.TempDir("", "clone")
+func PrepareTest(t *testing.T) string {
+	tempDir := t.TempDir()
 	err := archive.UnzipFile("./testdata/sample_archive.zip", tempDir)
 	assert.NoError(t, err)
 	dst := filepath.Join(tempDir, "sample_archive")
-	return dst, func() {
-		os.RemoveAll(tempDir)
-	}
+	return dst
 }
 
 func Test_normalisePath(t *testing.T) {

@@ -82,7 +82,7 @@ func Test_aggregateLicense_CalculateCorrectType(t *testing.T) {
 				licenses = append(licenses, *l)
 			}
 
-			_, store, teardown := datastore.MustNewTestStore(true, true)
+			_, store, teardown := datastore.MustNewTestStore(t, true, true)
 			defer teardown()
 			service := NewService(store, nil)
 
@@ -129,7 +129,7 @@ func Test_aggregateLicenses_aggregatesValidLicenses(t *testing.T) {
 		validLicense2,
 	}
 
-	_, store, teardown := datastore.MustNewTestStore(true, true)
+	_, store, teardown := datastore.MustNewTestStore(t, true, true)
 	defer teardown()
 	service := NewService(store, nil)
 
@@ -158,7 +158,7 @@ func Test_aggregateLicenses_picksEarliestExpirationDate(t *testing.T) {
 
 	licenses := []liblicense.PortainerLicense{expiresFirst, expiresLast, expiresSecond}
 
-	_, store, teardown := datastore.MustNewTestStore(true, true)
+	_, store, teardown := datastore.MustNewTestStore(t, true, true)
 	defer teardown()
 	service := NewService(store, nil)
 
@@ -167,7 +167,7 @@ func Test_aggregateLicenses_picksEarliestExpirationDate(t *testing.T) {
 }
 
 func Test_aggregateLicenses_shouldSetOveruseTimestamp(t *testing.T) {
-	_, store, teardown := datastore.MustNewTestStore(true, true)
+	_, store, teardown := datastore.MustNewTestStore(t, true, true)
 	defer teardown()
 
 	endpoint := &portaineree.Endpoint{Snapshots: []portainer.DockerSnapshot{{NodeCount: 10}}, Type: portaineree.DockerEnvironment, ID: portaineree.EndpointID(1)}

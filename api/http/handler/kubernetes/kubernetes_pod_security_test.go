@@ -31,7 +31,7 @@ type endpointListEdgeDeviceTest struct {
 func Test_getK8sPodSecurityRule(t *testing.T) {
 	is := assert.New(t)
 
-	_, store, teardown := datastore.MustNewTestStore(true, true)
+	_, store, teardown := datastore.MustNewTestStore(t, true, true)
 	defer teardown()
 
 	err := store.Endpoint().Create(&portaineree.Endpoint{ID: 1, Type: portaineree.AgentOnKubernetesEnvironment})
@@ -68,7 +68,7 @@ func Test_getK8sPodSecurityRule(t *testing.T) {
 func Test_updateK8sPodSecurityRule(t *testing.T) {
 	is := assert.New(t)
 
-	_, store, teardown := datastore.MustNewTestStore(true, true)
+	_, store, teardown := datastore.MustNewTestStore(t, true, true)
 	defer teardown()
 
 	err := store.Endpoint().Create(&portaineree.Endpoint{ID: 1, Type: portaineree.AgentOnKubernetesEnvironment})
@@ -112,7 +112,7 @@ func TestHandler_updateK8sPodSecurityRule(t *testing.T) {
 	}
 	is := assert.New(t)
 
-	_, store, teardown := datastore.MustNewTestStore(true, true)
+	_, store, teardown := datastore.MustNewTestStore(t, true, true)
 	defer teardown()
 
 	err := store.Endpoint().Create(&portaineree.Endpoint{ID: 1, Type: portaineree.AgentOnKubernetesEnvironment})
@@ -131,7 +131,7 @@ func TestHandler_updateK8sPodSecurityRule(t *testing.T) {
 	kubeClusterAccessService := kubernetes.NewKubeClusterAccessService("", "", "")
 	authorizationService := authorization.NewService(store)
 
-	tmpDir, err := os.MkdirTemp(os.TempDir(), "portainer-test-global-key-*")
+	tmpDir, err := os.MkdirTemp(t.TempDir(), "portainer-test-global-key-*")
 	if err != nil {
 		teardown()
 	}

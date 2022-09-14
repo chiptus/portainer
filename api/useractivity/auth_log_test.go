@@ -30,10 +30,6 @@ func createAuthLog(username, origin string, context portaineree.AuthenticationMe
 func BenchmarkAuthLog(b *testing.B) {
 	defer timeTrack(time.Now(), "AuthActivityLog")
 
-	// https://github.com/golang/go/issues/41062
-	// bug in go 1.15 causes b.TempDir() to break in benchmarks
-	// TODO remove in go 1.16
-
 	err := os.RemoveAll("./useractivity.db")
 	if err != nil {
 		b.Fatalf("Failed removing db: %s", err)

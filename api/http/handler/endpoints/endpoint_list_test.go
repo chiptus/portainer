@@ -187,7 +187,7 @@ func Test_endpointList_edgeDeviceFilter(t *testing.T) {
 
 func setup(t *testing.T, endpoints []portaineree.Endpoint) (handler *Handler, teardown func()) {
 	is := assert.New(t)
-	_, store, teardown := datastore.MustNewTestStore(true, true)
+	_, store, teardown := datastore.MustNewTestStore(t, true, true)
 
 	for _, endpoint := range endpoints {
 		err := store.Endpoint().Create(&endpoint)
