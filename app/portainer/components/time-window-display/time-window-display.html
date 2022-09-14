@@ -1,10 +1,12 @@
 <div ng-if="$ctrl.state.timeWindow.Enabled" class="form-group">
   <span class="col-sm-12 text-muted small">
-    <i class="fa fa-exclamation-circle orange-icon" aria-hidden="true"></i>
-    A change window is enabled, automatic updates will not occur outside of
-    <span style="font-weight: bold"
-      >{{ $ctrl.state.startTimeUtc | date: 'shortTime' }} - {{ $ctrl.state.endTimeUtc | date: 'shortTime' }} UTC ({{ $ctrl.state.startTimeUser | date: 'shortTime' }} -
-      {{ $ctrl.state.endTimeUser | date: 'shortTime' }} {{ $ctrl.state.dst ? 'DST' : '' }} {{ $ctrl.state.timezone }})</span
-    >.
+    <p class="vertical-center">
+      <pr-icon icon="'alert-circle'" mode="'warning'" feather="true"></pr-icon>
+      A change window is enabled, automatic updates will not occur outside of
+      <span style="font-weight: bold"
+        >{{ $ctrl.state.startTimeUtc | date: 'shortTime' }} - {{ $ctrl.state.endTimeUtc | date: 'shortTime' }} UTC ({{ $ctrl.state.startTimeUser | date: 'shortTime' }} -
+        {{ $ctrl.state.endTimeUser | date: 'shortTime' }} {{ $ctrl.state.dst ? 'DST' : '' }} {{ $ctrl.state.timezone }})</span
+      >.
+    </p>
   </span>
 </div>

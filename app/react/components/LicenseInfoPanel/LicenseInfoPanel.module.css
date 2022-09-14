@@ -42,7 +42,7 @@
 
 .extra-less-two-months {
   margin-left: 5px;
-  color: #dc6803;
+  @apply text-warning-9 th-dark:text-warning-7 th-highcontrast:text-warning-1;
 }
 
 .alert-extra {

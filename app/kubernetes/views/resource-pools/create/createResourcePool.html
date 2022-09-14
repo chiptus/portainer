@@ -31,7 +31,7 @@
                 />
                 <span class="help-block">
                   <div class="form-group" ng-show="resourcePoolCreationForm.pool_name.$invalid || $ctrl.state.isAlreadyExist || $ctrl.state.hasPrefixKube">
-                    <div class="col-sm-12 small text-muted">
+                    <div class="col-sm-12 small text-warning">
                       <div ng-messages="resourcePoolCreationForm.pool_name.$error">
                         <p class="vertical-center" ng-message="required"> <pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon>This field is required.</p>
                         <p class="vertical-center" ng-message="pattern">
@@ -84,7 +84,7 @@
               </div>
             </div>
             <div class="form-group text-muted" ng-if="$ctrl.formValues.HasQuota && $ctrl.state.sliderMaxCpu <= 0 && $ctrl.state.sliderMaxMemory <= 0">
-              <div class="col-sm-12 small text-muted vertical-center">
+              <div class="col-sm-12 small text-warning vertical-center">
                 <pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> Not enough resources available in the cluster to apply a resource reservation.
               </div>
             </div>
@@ -96,7 +96,7 @@
               <div class="col-sm-12 form-section-title"> Resource limits </div>
               <div>
                 <div class="form-group">
-                  <span class="col-sm-12 small text-muted" ng-switch on="$ctrl.formValues.HasQuota && !$ctrl.isQuotaValid()">
+                  <span class="col-sm-12 small text-warning" ng-switch on="$ctrl.formValues.HasQuota && !$ctrl.isQuotaValid()">
                     <p class="vertical-center mb-0" ng-switch-when="true"
                       ><pr-icon class="vertical-center" icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> At least a single limit must be set for the quota to be
                       valid.
@@ -137,7 +137,7 @@
                   <span class="col-sm-3 col-lg-2"></span>
                   <span class="help-block col-sm-9 col-lg-10">
                     <div ng-show="resourcePoolCreationForm.memory_limit.$invalid">
-                      <div class="small text-muted">
+                      <div class="small text-warning">
                         <div ng-messages="resourcePoolCreationForm.pool_name.$error">
                           <p class="vertical-center"
                             ><pr-icon class="vertical-center" icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> Value must be between
@@ -210,7 +210,7 @@
                   />
                   <div class="help-block">
                     <div class="form-group" ng-show="resourcePoolCreationForm.max_load_balancers.$invalid">
-                      <div class="col-sm-12 small text-muted">
+                      <div class="col-sm-12 small text-warning">
                         <div ng-messages="resourcePoolCreationForm.max_load_balancers.$error">
                           <p class="vertical-center" ng-message="required"
                             ><pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> Max load balancers value is required.
@@ -308,7 +308,7 @@
                         </div>
                       </div>
                       <div
-                        class="small text-muted pt-1"
+                        class="small text-warning pt-1"
                         ng-show="
                           resourcePoolCreationForm['hostname_' + ic.IngressClass.Name + '_' + $index].$invalid ||
                           $ctrl.state.duplicates.ingressHosts.refs[ic.IngressClass.Name][$index] !== undefined
@@ -489,26 +489,27 @@
                   <div class="col-sm-12 pl-0">
                     <label class="control-label text-left col-sm-3 col-lg-2 required"> Maximum usage </label>
                     <div class="col-sm-3 input-group !pl-[15px]">
-                      <div class="flex">
-                        <input type="number" class="form-control" name="storage_class_size_{{ $index }}" ng-model="sc.Size" placeholder="20" min="0" ng-min="0" required />
-                        <select
-                          class="input-group-addon form-control !w-max rounded-r-[5px]"
-                          ng-model="sc.SizeUnit"
-                          ng-options="unit for unit in $ctrl.state.availableSizeUnits"
-                        ></select>
+                      <div class="flex-col">
+                        <div class="flex">
+                          <input type="number" class="form-control" name="storage_class_size_{{ $index }}" ng-model="sc.Size" placeholder="20" min="0" ng-min="0" required />
+                          <select
+                            class="input-group-addon form-control !w-max rounded-r-[5px]"
+                            ng-model="sc.SizeUnit"
+                            ng-options="unit for unit in $ctrl.state.availableSizeUnits"
+                          ></select>
+                        </div>
+                        <div class="help-block" ng-show="resourcePoolCreationForm['storage_class_size_' + $index].$invalid">
+                          <div class="small text-warning">
+                            <div ng-messages="resourcePoolCreationForm['storage_class_size_' + $index].$error">
+                              <p class="vertical-center" ng-message="required"><pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> Size is required.</p>
+                              <p class="vertical-center" ng-message="number"><pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> Invalid number.</p>
+                              <p class="vertical-center" ng-message="min"
+                                ><pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> This value must be greater than zero.</p
+                              >
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="form-group" ng-show="resourcePoolCreationForm['storage_class_size_' + $index].$invalid">
-                  <div class="col-sm-12 small text-muted">
-                    <div ng-messages="resourcePoolCreationForm['storage_class_size_' + $index].$error">
-                      <p class="vertical-center" ng-message="required"><pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> Size is required.</p>
-                      <p class="vertical-center" ng-message="number"><pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> Invalid number.</p>
-                      <p class="vertical-center" ng-message="min"
-                        ><pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> This value must be greater than zero.</p
-                      >
                     </div>
                   </div>
                 </div>

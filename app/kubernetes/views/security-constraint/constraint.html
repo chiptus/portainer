@@ -61,7 +61,7 @@
                         <span class="input-group-addon">min</span>
                         <input name="minPort" class="form-control" type="number" ng-model="formValues.hostPorts.min" ng-min="0" ng-max="formValues.hostPorts.max" required />
                       </div>
-                      <div class="small text-muted mt-1" ng-class="{ invisible: !k8sConstraintForm['minPort'].$invalid }" ng-messages="k8sConstraintForm['minPort'].$error">
+                      <div class="small text-warning mt-1" ng-class="{ invisible: !k8sConstraintForm['minPort'].$invalid }" ng-messages="k8sConstraintForm['minPort'].$error">
                         <p ng-message="required" class="vertical-center"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>Min port number is required.</p>
                         <p ng-message="max" class="vertical-center"
                           ><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>Min port number cannot be greater than max port number.</p
@@ -76,7 +76,7 @@
                         <span class="input-group-addon">max</span>
                         <input name="maxPort" class="form-control" type="number" ng-model="formValues.hostPorts.max" ng-min="formValues.hostPorts.min" ng-max="65535" required />
                       </div>
-                      <div class="small text-muted mt-1" ng-class="{ invisible: !k8sConstraintForm['maxPort'].$invalid }" ng-messages="k8sConstraintForm['maxPort'].$error">
+                      <div class="small text-warning mt-1" ng-class="{ invisible: !k8sConstraintForm['maxPort'].$invalid }" ng-messages="k8sConstraintForm['maxPort'].$error">
                         <p ng-message="required" class="vertical-center"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>Max port number is required.</p>
                         <p ng-message="max" class="vertical-center"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>Max port number range is 0-65535.</p>
                         <p ng-message="min" class="vertical-center"
@@ -132,7 +132,7 @@
                         <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
                       </button>
                     </div>
-                    <div class="form-group col-sm-12 small space-left text-muted vertical-center mt-1" ng-if="formValues.volumeTypes.allowedTypes.duplicated">
+                    <div class="form-group col-sm-12 small space-left text-warning vertical-center mt-1" ng-if="formValues.volumeTypes.allowedTypes.duplicated">
                       <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Allowed volume types cannot be duplicated.
                     </div>
                   </div>
@@ -173,7 +173,7 @@
                         </button>
                       </div>
                     </div>
-                    <div class="form-group col-sm-12 small space-left vertical-center mt-1" ng-if="formValues.hostFilesystem.allowedPaths.duplicated">
+                    <div class="form-group col-sm-12 small text-warning space-left vertical-center mt-1" ng-if="formValues.hostFilesystem.allowedPaths.duplicated">
                       <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Allowed host paths cannot be duplicated.
                     </div>
                   </div>
@@ -266,7 +266,7 @@
                         <input class="form-control" type="number" ng-model="range.min" name="rsu_{{ $index }}_min" ng-min="0" ng-max="{{ range.max }}" required />
                       </div>
                       <div
-                        class="small vertical-center mt-1 text-muted"
+                        class="small vertical-center mt-1 text-warning"
                         ng-class="{ invisible: !k8sConstraintForm['rsu' + '_' + $index + '_min'].$invalid }"
                         ng-messages="k8sConstraintForm['rsu' + '_' + $index + '_min'].$error"
                       >
@@ -327,7 +327,7 @@
                         <input class="form-control" type="number" ng-model="range.min" name="rsg_{{ $index }}_min" ng-min="0" ng-max="{{ range.max }}" required />
                       </div>
                       <div
-                        class="small vertical-center mt-1 text-muted"
+                        class="small vertical-center mt-1 text-warning"
                         ng-class="{ invisible: !k8sConstraintForm['rsg' + '_' + $index + '_min'].$invalid }"
                         ng-messages="k8sConstraintForm['rsg' + '_' + $index + '_min'].$error"
                       >
@@ -392,7 +392,7 @@
                         <input class="form-control" type="number" ng-model="range.min" name="rss_{{ $index }}_min" ng-min="0" ng-max="{{ range.max }}" required />
                       </div>
                       <div
-                        class="small vertical-center mt-1 text-muted"
+                        class="small vertical-center mt-1 text-warning"
                         ng-class="{ invisible: !k8sConstraintForm['rss' + '_' + $index + '_min'].$invalid }"
                         ng-messages="k8sConstraintForm['rss' + '_' + $index + '_min'].$error"
                       >
@@ -453,7 +453,7 @@
                         <input class="form-control" type="number" ng-model="range.min" name="rsf_{{ $index }}_min" ng-min="0" ng-max="{{ range.max }}" required />
                       </div>
                       <div
-                        class="small vertical-center mt-1 text-muted"
+                        class="small vertical-center mt-1 text-warning"
                         ng-class="{ invisible: !k8sConstraintForm['rsf' + '_' + $index + '_min'].$invalid }"
                         ng-messages="k8sConstraintForm['rsf' + '_' + $index + '_min'].$error"
                       >
@@ -468,7 +468,7 @@
                         <input class="form-control" type="number" ng-model="range.max" name="rsf_{{ $index }}_max" ng-min="{{ range.min }}" required />
                       </div>
                       <div
-                        class="small vertical-center mt-1 text-muted"
+                        class="small vertical-center mt-1 text-warning"
                         ng-class="{ invisible: !k8sConstraintForm['rsf' + '_' + $index + '_max'].$invalid }"
                         ng-messages="k8sConstraintForm['rsf' + '_' + $index + '_max'].$error"
                       >
@@ -531,7 +531,7 @@
                           <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
                         </button>
                       </div>
-                      <div class="form-group col-sm-12 small vertical-center mt-1 text-muted space-left" ng-if="formValues.capabilities.allowedCapabilities.duplicated">
+                      <div class="form-group col-sm-12 small vertical-center mt-1 text-warning space-left" ng-if="formValues.capabilities.allowedCapabilities.duplicated">
                         <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Allowed capabilities cannot be duplicated.
                       </div>
                     </div>
@@ -557,10 +557,10 @@
                           <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
                         </button>
                       </div>
-                      <div class="form-group col-sm-12 small vertical-center mt-1 space-left text-muted" ng-if="formValues.capabilities.requiredDropCapabilities.duplicated">
+                      <div class="form-group col-sm-12 small vertical-center mt-1 space-left text-warning" ng-if="formValues.capabilities.requiredDropCapabilities.duplicated">
                         <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Required drop capabilities cannot be duplicated.
                       </div>
-                      <div class="form-group col-sm-12 small vertical-center mt-1 space-left text-muted" ng-if="formValues.capabilities.duplicated">
+                      <div class="form-group col-sm-12 small vertical-center mt-1 space-left text-warning" ng-if="formValues.capabilities.duplicated">
                         <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Required drop capabilities must not be included in allowed capabilities
                       </div>
                     </div>
@@ -605,7 +605,7 @@
                         <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
                       </button>
                     </div>
-                    <div class="form-group col-sm-12 small text-muted vertical-center mt-1 space-left" ng-if="formValues.selinux.allowedCapabilities.duplicated">
+                    <div class="form-group col-sm-12 small text-warning vertical-center mt-1 space-left" ng-if="formValues.selinux.allowedCapabilities.duplicated">
                       <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Allowed options cannot be duplicated.
                     </div>
                   </div>
@@ -659,7 +659,7 @@
                         <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
                       </button>
                     </div>
-                    <div class="form-group col-sm-12 small text-muted vertical-center mt-1 space-left" ng-if="formValues.appArmor.AppArmorType.duplicated">
+                    <div class="form-group col-sm-12 small text-warning vertical-center mt-1 space-left" ng-if="formValues.appArmor.AppArmorType.duplicated">
                       <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Allowed profiles cannot be duplicated.
                     </div>
                   </div>
@@ -691,7 +691,7 @@
                         <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
                       </button>
                     </div>
-                    <div class="form-group col-sm-12 small text-muted vertical-center mt-1 space-left" ng-if="formValues.secComp.secCompType.duplicated">
+                    <div class="form-group col-sm-12 small text-warning vertical-center mt-1 space-left" ng-if="formValues.secComp.secCompType.duplicated">
                       <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Allowed profiles cannot be duplicated.
                     </div>
                   </div>
@@ -723,7 +723,10 @@
                         <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
                       </button>
                     </div>
-                    <div class="form-group col-sm-12 small text-muted vertical-center mt-1 space-left" ng-if="formValues.forbiddenSysctlsList.requiredDropCapabilities.duplicated">
+                    <div
+                      class="form-group col-sm-12 small text-warning vertical-center mt-1 space-left"
+                      ng-if="formValues.forbiddenSysctlsList.requiredDropCapabilities.duplicated"
+                    >
                       <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Forbidden sysctls cannot be duplicated.
                     </div>
                   </div>

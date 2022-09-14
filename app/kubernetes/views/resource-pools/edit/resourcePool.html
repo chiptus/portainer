@@ -65,7 +65,7 @@
                   </div>
                 </div>
                 <div class="form-group" ng-if="ctrl.formValues.HasQuota && ctrl.state.sliderMaxCpu <= 0 && ctrl.state.sliderMaxMemory <= 0">
-                  <div class="col-sm-12 small text-muted">
+                  <div class="col-sm-12 small text-warning">
                     <p class="vertical-center">
                       <pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon>
                       Not enough resources available in the cluster to apply a resource reservation.
@@ -73,7 +73,7 @@
                   </div>
                 </div>
                 <div class="form-group" authorization="K8sResourcePoolDetailsW" ng-if="ctrl.formValues.HasQuota && ctrl.isEditable && !ctrl.isQuotaValid()">
-                  <span class="col-sm-12 text-muted small">
+                  <span class="col-sm-12 text-warning small">
                     <p class="vertical-center">
                       <pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon>
                       At least a single limit must be set for the quota to be valid.
@@ -186,7 +186,7 @@
                       </div>
                     </div>
                     <div class="form-group" ng-show="resourcePoolEditForm.max_load_balancers.$invalid || ctrl.state.loadBalancersUsed > ctrl.formValues.LoadBalancers">
-                      <div class="col-sm-12 small text-muted">
+                      <div class="col-sm-12 small text-warning">
                         <div ng-messages="resourcePoolEditForm.max_load_balancers.$error">
                           <p class="vertical-center" ng-message="required">
                             <pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon>
