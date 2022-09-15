@@ -101,16 +101,23 @@
                 {{ item.URL }}
               </td>
               <td>
-                <a class="vertical-center" authorization="PortainerRegistryUpdateAccess" ng-if="$ctrl.canManageAccess(item)" ng-click="$ctrl.redirectToManageAccess(item)">
+                <button
+                  type="button"
+                  class="btn btn-link hover:no-underline !ml-0 p-0 vertical-center"
+                  authorization="PortainerRegistryUpdateAccess"
+                  ng-if="$ctrl.canManageAccess(item)"
+                  ng-click="$ctrl.redirectToManageAccess(item)"
+                >
                   <pr-icon icon="'users'" feather="true"></pr-icon>Manage access
-                </a>
-                <a
-                  class="vertical-center space-left"
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-link hover:no-underline p-0 vertical-center"
                   ng-if="$ctrl.canBrowse(item)"
                   ui-sref="portainer.registries.registry.repositories({id: item.Id, endpointId: $ctrl.endpointId})"
                 >
                   <pr-icon icon="'search'" feather="true"></pr-icon>Browse
-                </a>
+                </button>
                 <span ng-if="!$ctrl.canBrowse(item) && !$ctrl.canManageAccess(item)"> - </span>
               </td>
             </tr>
