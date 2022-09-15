@@ -101,10 +101,10 @@ func AuthorizedIsAdmin(context *RestrictedRequestContext) bool {
 	return context.IsAdmin
 }
 
-// authorizedEndpointAccess ensure that the user can access the specified environment(endpoint).
+// AuthorizedEndpointAccess ensure that the user can access the specified environment(endpoint).
 // It will check if the user is part of the authorized users or part of a team that is
 // listed in the authorized teams of the environment(endpoint) and the associated group.
-func authorizedEndpointAccess(endpoint *portaineree.Endpoint, endpointGroup *portaineree.EndpointGroup, userID portaineree.UserID, memberships []portaineree.TeamMembership) bool {
+func AuthorizedEndpointAccess(endpoint *portaineree.Endpoint, endpointGroup *portaineree.EndpointGroup, userID portaineree.UserID, memberships []portaineree.TeamMembership) bool {
 	groupAccess := AuthorizedAccess(userID, memberships, endpointGroup.UserAccessPolicies, endpointGroup.TeamAccessPolicies)
 	if !groupAccess {
 		return AuthorizedAccess(userID, memberships, endpoint.UserAccessPolicies, endpoint.TeamAccessPolicies)
