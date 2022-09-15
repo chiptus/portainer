@@ -10,7 +10,23 @@
 
   <git-form-additional-files-panel ng-if="$ctrl.additionalFile" model="$ctrl.model" on-change="($ctrl.onChange)"></git-form-additional-files-panel>
 
-  <git-form-auth-fieldset model="$ctrl.model" on-change="($ctrl.onChange)"></git-form-auth-fieldset>
+  <git-form-auth-fieldset
+    repository-authentication="$ctrl.model.RepositoryAuthentication"
+    repository-username="$ctrl.model.RepositoryUsername"
+    repository-password="$ctrl.model.RepositoryPassword"
+    git-credentials="$ctrl.model.GitCredentials"
+    selected-git-credential="$ctrl.model.SelectedGitCredential"
+    save-credential="$ctrl.model.SaveCredential"
+    new-credential-name="$ctrl.model.NewCredentialName"
+    new-credential-name-exist="$ctrl.model.NewCredentialNameExist"
+    new-credential-name-invalid="$ctrl.model.NewCredentialNameInvalid"
+    on-select-git-credential="($ctrl.onSelectGitCredential)"
+    on-change-repository-Authentication="($ctrl.onChangeRepositoryAuthentication)"
+    on-change-save-credential="($ctrl.onChangeSaveCredential)"
+    on-change-repository-username="($ctrl.onChangeRepositoryUsername)"
+    on-change-repository-password="($ctrl.onChangeRepositoryPassword)"
+    on-change-new-credential-name="($ctrl.onChangeNewCredentialName)"
+  ></git-form-auth-fieldset>
 
   <git-form-auto-update-fieldset
     ng-if="$ctrl.autoUpdate"

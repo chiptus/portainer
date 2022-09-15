@@ -1,0 +1,14 @@
+.personal-access-token.form-group {
+  margin-bottom: 0;
+}
+
+.save-credential .md-checkbox,
+.save-credential .save-credential-name {
+  display: inline-block;
+}
+
+.save-credential-name {
+  margin-left: 20px;
+  width: 200px;
+  margin-bottom: 10px;
+}

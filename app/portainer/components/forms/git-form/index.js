@@ -1,7 +1,7 @@
 import angular from 'angular';
 
 import { gitForm } from './git-form';
-import { gitFormAuthFieldset } from './git-form-auth-fieldset';
+import { GitFormAuthFieldsetReactAngular } from './git-form-auth-fieldset';
 import { gitFormAdditionalFilesPanel } from './git-form-additional-files-panel';
 import { gitFormAdditionalFileItem } from './/git-form-additional-files-panel/git-form-additional-file-item';
 import { gitFormAutoUpdateFieldset } from './git-form-auto-update-fieldset';
@@ -20,4 +20,4 @@ export default angular
   .component('gitFormAdditionalFilesPanel', gitFormAdditionalFilesPanel)
   .component('gitFormAdditionalFileItem', gitFormAdditionalFileItem)
   .component('gitFormAutoUpdateFieldset', gitFormAutoUpdateFieldset)
-  .component('gitFormAuthFieldset', gitFormAuthFieldset).name;
+  .component('gitFormAuthFieldset', GitFormAuthFieldsetReactAngular).name;

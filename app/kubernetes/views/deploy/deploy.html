@@ -78,6 +78,7 @@
                   ng-if="ctrl.state.BuildMethod === ctrl.BuildMethods.GIT"
                   model="ctrl.formValues"
                   on-change="(ctrl.onChangeFormValues)"
+                  on-select-git-credential="(ctrl.onChangeGitCredential)"
                   additional-file="true"
                   auto-update="true"
                   show-auth-explanation="true"

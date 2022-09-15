@@ -4,8 +4,8 @@ import { getValidEditorTypes } from '@/edge/utils';
 
 export default class CreateEdgeStackViewController {
   /* @ngInject */
-  constructor($state, $window, ModalService, EdgeStackService, EdgeGroupService, Notifications, $async, $scope, RegistryService) {
-    Object.assign(this, { $state, $window, ModalService, EdgeStackService, EdgeGroupService, Notifications, $async, RegistryService, $scope });
+  constructor($state, $window, ModalService, EdgeStackService, EdgeGroupService, Notifications, $async, $scope, RegistryService, UserService, Authentication) {
+    Object.assign(this, { $state, $window, ModalService, EdgeStackService, EdgeGroupService, Notifications, $async, RegistryService, $scope, UserService, Authentication });
 
     this.formValues = {
       Name: '',
@@ -16,6 +16,13 @@ export default class CreateEdgeStackViewController {
       RepositoryAuthentication: false,
       RepositoryUsername: '',
       RepositoryPassword: '',
+      SelectedGitCredential: null,
+      GitCredentials: [],
+      SaveCredential: true,
+      RepositoryGitCredentialID: 0,
+      NewCredentialName: '',
+      NewCredentialNameExist: false,
+      NewCredentialNameInvalid: false,
       Env: [],
       ComposeFilePathInRepository: '',
       Groups: [],
@@ -49,6 +56,7 @@ export default class CreateEdgeStackViewController {
     this.hasKubeEndpoint = this.hasKubeEndpoint.bind(this);
     this.hasNomadEndpoint = this.hasNomadEndpoint.bind(this);
     this.onChangeDeploymentType = this.onChangeDeploymentType.bind(this);
+    this.onChangeGitCredential = this.onChangeGitCredential.bind(this);
   }
 
   buildAnalyticsProperties() {
@@ -96,6 +104,12 @@ export default class CreateEdgeStackViewController {
       this.Notifications.error('Failure', err, 'Unable to retrieve Edge groups');
     }
 
+    try {
+      this.formValues.GitCredentials = await this.UserService.getGitCredentials(this.Authentication.getUserDetails().ID);
+    } catch (err) {
+      this.Notifications.error('Failure', err, 'Unable to retrieve user saved git credentials');
+    }
+
     this.$window.onbeforeunload = () => {
       if (this.state.Method === 'editor' && this.formValues.StackFileContent && this.state.isEditorDirty) {
         return '';
@@ -105,6 +119,23 @@ export default class CreateEdgeStackViewController {
 
   $onDestroy() {
     this.state.isEditorDirty = false;
+  }
+
+  onChangeGitCredential(selectedGitCredential) {
+    return this.$async(async () => {
+      if (selectedGitCredential) {
+        this.formValues.SelectedGitCredential = selectedGitCredential;
+        this.formValues.RepositoryGitCredentialID = Number(selectedGitCredential.id);
+        this.formValues.RepositoryUsername = selectedGitCredential.username;
+        this.formValues.SaveGitCredential = false;
+        this.formValues.NewCredentialName = '';
+      } else {
+        this.formValues.SelectedGitCredential = null;
+        this.formValues.RepositoryUsername = '';
+        this.formValues.RepositoryPassword = '';
+        this.formValues.RepositoryGitCredentialID = 0;
+      }
+    });
   }
 
   checkRegistries(registries) {
@@ -195,6 +226,10 @@ export default class CreateEdgeStackViewController {
         this.$state.go('edge.stacks');
       } catch (err) {
         this.Notifications.error('Deployment error', err, 'Unable to deploy stack');
+        if (this.formValues.SaveCredential && this.formValues.NewCredentialName && this.formValues.RepositoryGitCredentialID) {
+          const userDetails = this.Authentication.getUserDetails();
+          this.UserService.deleteGitCredential(userDetails.ID, this.formValues.RepositoryGitCredentialID);
+        }
       } finally {
         this.state.actionInProgress = false;
       }
@@ -283,8 +318,19 @@ export default class CreateEdgeStackViewController {
     );
   }
 
-  createStackFromGitRepository(name) {
+  async createStackFromGitRepository(name) {
     const { Groups, DeploymentType, Registries } = this.formValues;
+
+    if (this.formValues.SaveCredential && this.formValues.NewCredentialName) {
+      const userDetails = this.Authentication.getUserDetails();
+      const that = this;
+      await this.UserService.saveGitCredential(userDetails.ID, this.formValues.NewCredentialName, this.formValues.RepositoryUsername, this.formValues.RepositoryPassword).then(
+        function success(data) {
+          that.formValues.RepositoryGitCredentialID = data.gitCredential.id;
+        }
+      );
+    }
+
     const repositoryOptions = {
       RepositoryURL: this.formValues.RepositoryURL,
       RepositoryReferenceName: this.formValues.RepositoryReferenceName,
@@ -292,6 +338,7 @@ export default class CreateEdgeStackViewController {
       RepositoryAuthentication: this.formValues.RepositoryAuthentication,
       RepositoryUsername: this.formValues.RepositoryUsername,
       RepositoryPassword: this.formValues.RepositoryPassword,
+      RepositoryGitCredentialID: this.formValues.RepositoryGitCredentialID,
     };
 
     return this.EdgeStackService.createStackFromGitRepository(

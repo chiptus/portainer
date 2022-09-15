@@ -7,5 +7,6 @@ export const NomadHclForm = {
   bindings: {
     formValues: '=',
     state: '=',
+    onChangeGitCredential: '<',
   },
 };

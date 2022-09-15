@@ -7,5 +7,6 @@ export const kubeManifestForm = {
   bindings: {
     formValues: '=',
     state: '=',
+    onChangeGitCredential: '<',
   },
 };

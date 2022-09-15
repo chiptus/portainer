@@ -48,6 +48,7 @@ type (
 		ResourceControl() ResourceControlService
 		Role() RoleService
 		APIKeyRepository() APIKeyRepository
+		GitCredential() GitCredential
 		S3Backup() S3BackupService
 		SSLSettings() SSLSettingsService
 		Settings() SettingsService
@@ -263,6 +264,17 @@ type (
 		DeleteAPIKey(ID portaineree.APIKeyID) error
 		GetAPIKeysByUserID(userID portaineree.UserID) ([]portaineree.APIKey, error)
 		GetAPIKeyByDigest(digest []byte) (*portaineree.APIKey, error)
+	}
+
+	// GitCredential
+	GitCredential interface {
+		Create(cred *portaineree.GitCredential) error
+		GetGitCredentials() ([]portaineree.GitCredential, error)
+		GetGitCredential(credID portaineree.GitCredentialID) (*portaineree.GitCredential, error)
+		UpdateGitCredential(ID portaineree.GitCredentialID, cred *portaineree.GitCredential) error
+		DeleteGitCredential(ID portaineree.GitCredentialID) error
+		GetGitCredentialsByUserID(userID portaineree.UserID) ([]portaineree.GitCredential, error)
+		GetGitCredentialByName(userID portaineree.UserID, name string) (*portaineree.GitCredential, error)
 	}
 
 	// S3BackupService represents a storage service for managing S3 backup settings and status

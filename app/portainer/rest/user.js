@@ -20,6 +20,9 @@ angular.module('portainer.app').factory('Users', [
         createAccessToken: { url: `${API_ENDPOINT_USERS}/:id/tokens`, method: 'POST', params: { id: '@id' }, ignoreLoadingBar: true },
         getAccessTokens: { method: 'GET', params: { id: '@id', entity: 'tokens' }, isArray: true },
         deleteAccessToken: { url: `${API_ENDPOINT_USERS}/:id/tokens/:tokenId`, method: 'DELETE', params: { id: '@id', entityId: '@tokenId' } },
+        getGitCredentials: { method: 'GET', params: { id: '@id', entity: 'gitcredentials' }, isArray: true },
+        saveGitCredential: { url: `${API_ENDPOINT_USERS}/:id/gitcredentials`, method: 'POST', params: { id: '@id' }, ignoreLoadingBar: true },
+        deleteGitCredential: { url: `${API_ENDPOINT_USERS}/:id/gitcredentials/:gitCredentialId`, method: 'DELETE', params: { id: '@id', entityId: '@gitCredentialId' } },
       }
     );
   },

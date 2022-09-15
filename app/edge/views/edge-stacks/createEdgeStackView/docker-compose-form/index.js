@@ -7,5 +7,6 @@ export const edgeStacksDockerComposeForm = {
   bindings: {
     formValues: '=',
     state: '=',
+    onChangeGitCredential: '<',
   },
 };

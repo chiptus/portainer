@@ -2,8 +2,8 @@ import { editor, git, template, upload } from '@@/BoxSelector/common-options/bui
 
 class DockerComposeFormController {
   /* @ngInject */
-  constructor($async, EdgeTemplateService, Notifications) {
-    Object.assign(this, { $async, EdgeTemplateService, Notifications });
+  constructor($async, EdgeTemplateService, Notifications, UserService, Authentication) {
+    Object.assign(this, { $async, EdgeTemplateService, Notifications, UserService, Authentication });
 
     this.methodOptions = [editor, upload, git, template];
 
@@ -16,8 +16,16 @@ class DockerComposeFormController {
     this.onChangeFormValues = this.onChangeFormValues.bind(this);
   }
 
-  onChangeFormValues(values) {
-    this.formValues = values;
+  onChangeFormValues(newValues) {
+    return this.$async(async () => {
+      this.formValues = {
+        ...this.formValues,
+        ...newValues,
+      };
+      const existGitCredential = this.formValues.GitCredentials.find((x) => x.name === this.formValues.NewCredentialName);
+      this.formValues.NewCredentialNameExist = existGitCredential ? true : false;
+      this.formValues.NewCredentialNameInvalid = this.formValues.NewCredentialName && !this.formValues.NewCredentialName.match(/^[-_a-z0-9]+$/) ? true : false;
+    });
   }
 
   onChangeMethod(method) {

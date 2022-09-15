@@ -12,7 +12,19 @@ import { editor, git, template, url } from '@@/BoxSelector/common-options/build-
 
 class KubernetesDeployController {
   /* @ngInject */
-  constructor($async, $state, $window, Authentication, CustomTemplateService, ModalService, Notifications, KubernetesResourcePoolService, StackService, WebhookHelper) {
+  constructor(
+    $async,
+    $state,
+    $window,
+    Authentication,
+    CustomTemplateService,
+    ModalService,
+    Notifications,
+    KubernetesResourcePoolService,
+    StackService,
+    WebhookHelper,
+    UserService
+  ) {
     this.$async = $async;
     this.$state = $state;
     this.$window = $window;
@@ -23,6 +35,7 @@ class KubernetesDeployController {
     this.KubernetesResourcePoolService = KubernetesResourcePoolService;
     this.StackService = StackService;
     this.WebhookHelper = WebhookHelper;
+    this.UserService = UserService;
     this.DeployMethod = 'manifest';
 
     this.isTemplateVariablesEnabled = isBE;
@@ -57,6 +70,13 @@ class KubernetesDeployController {
       RepositoryAuthentication: false,
       RepositoryUsername: '',
       RepositoryPassword: '',
+      SelectedGitCredential: null,
+      GitCredentials: [],
+      SaveCredential: true,
+      RepositoryGitCredentialID: 0,
+      NewCredentialName: '',
+      NewCredentialNameExist: false,
+      NewCredentialNameInvalid: false,
       AdditionalFiles: [],
       ComposeFilePathInRepository: '',
       RepositoryAutomaticUpdates: false,
@@ -79,6 +99,7 @@ class KubernetesDeployController {
     this.onChangeMethod = this.onChangeMethod.bind(this);
     this.onChangeDeployType = this.onChangeDeployType.bind(this);
     this.onChangeTemplateVariables = this.onChangeTemplateVariables.bind(this);
+    this.onChangeGitCredential = this.onChangeGitCredential.bind(this);
   }
 
   onChangeTemplateVariables(value) {
@@ -168,8 +189,14 @@ class KubernetesDeployController {
   disableDeploy() {
     const isGitFormInvalid =
       this.state.BuildMethod === KubernetesDeployBuildMethods.GIT &&
-      (!this.formValues.RepositoryURL || !this.formValues.FilePathInRepository || (this.formValues.RepositoryAuthentication && !this.formValues.RepositoryPassword)) &&
-      _.isEmpty(this.formValues.Namespace);
+      (!this.formValues.RepositoryURL ||
+        !this.formValues.ComposeFilePathInRepository ||
+        (this.formValues.RepositoryAuthentication && !this.formValues.RepositoryPassword && this.formValues.RepositoryGitCredentialID === 0) ||
+        (this.formValues.RepositoryAuthentication &&
+          this.formValues.RepositoryPassword &&
+          this.formValues.SaveCredential &&
+          (!this.formValues.NewCredentialName || this.formValues.NewCredentialNameExist)));
+
     const isWebEditorInvalid =
       this.state.BuildMethod === KubernetesDeployBuildMethods.WEB_EDITOR && _.isEmpty(this.formValues.EditorContent) && _.isEmpty(this.formValues.Namespace);
     const isURLFormInvalid = this.state.BuildMethod == KubernetesDeployBuildMethods.WEB_EDITOR.URL && _.isEmpty(this.formValues.ManifestURL);
@@ -179,11 +206,16 @@ class KubernetesDeployController {
     return !this.formValues.StackName || isGitFormInvalid || isWebEditorInvalid || isURLFormInvalid || this.state.actionInProgress || isNamespaceInvalid;
   }
 
-  onChangeFormValues(values) {
-    this.formValues = {
-      ...this.formValues,
-      ...values,
-    };
+  onChangeFormValues(newValues) {
+    return this.$async(async () => {
+      this.formValues = {
+        ...this.formValues,
+        ...newValues,
+      };
+      const existGitCredential = this.formValues.GitCredentials.find((x) => x.name === this.formValues.NewCredentialName);
+      this.formValues.NewCredentialNameExist = existGitCredential ? true : false;
+      this.formValues.NewCredentialNameInvalid = this.formValues.NewCredentialName && !this.formValues.NewCredentialName.match(/^[-_a-z0-9]+$/) ? true : false;
+    });
   }
 
   onChangeTemplateId(templateId, template) {
@@ -224,7 +256,7 @@ class KubernetesDeployController {
   async deployAsync() {
     this.errorLog = '';
     this.state.actionInProgress = true;
-
+    const that = this;
     try {
       let method;
       let composeFormat = this.state.DeployType === this.ManifestDeployTypes.COMPOSE;
@@ -261,12 +293,26 @@ class KubernetesDeployController {
       };
 
       if (method === KubernetesDeployRequestMethods.REPOSITORY) {
+        const userDetails = this.Authentication.getUserDetails();
+
         payload.RepositoryURL = this.formValues.RepositoryURL;
         payload.RepositoryReferenceName = this.formValues.RepositoryReferenceName;
         payload.RepositoryAuthentication = this.formValues.RepositoryAuthentication ? true : false;
         if (payload.RepositoryAuthentication) {
-          payload.RepositoryUsername = this.formValues.RepositoryUsername;
-          payload.RepositoryPassword = this.formValues.RepositoryPassword;
+          // save git credential
+          if (this.formValues.SaveCredential && this.formValues.NewCredentialName) {
+            await this.UserService.saveGitCredential(
+              userDetails.ID,
+              this.formValues.NewCredentialName,
+              this.formValues.RepositoryUsername,
+              this.formValues.RepositoryPassword
+            ).then(function success(data) {
+              that.formValues.RepositoryGitCredentialID = data.gitCredential.id;
+            });
+          }
+          payload.RepositoryGitCredentialID = this.formValues.RepositoryGitCredentialID;
+          payload.RepositoryUsername = payload.RepositoryGitCredentialID === 0 ? this.formValues.RepositoryUsername : '';
+          payload.RepositoryPassword = payload.RepositoryGitCredentialID === 0 ? this.formValues.RepositoryPassword : '';
         }
         payload.ManifestFile = this.formValues.ComposeFilePathInRepository;
         payload.AdditionalFiles = this.formValues.AdditionalFiles;
@@ -293,6 +339,10 @@ class KubernetesDeployController {
       this.$state.go('kubernetes.applications');
     } catch (err) {
       this.Notifications.error('Unable to deploy manifest', err, 'Unable to deploy resources');
+      const userDetails = this.Authentication.getUserDetails();
+      if (this.formValues.SaveCredential && this.formValues.NewCredentialName && this.formValues.RepositoryGitCredentialID) {
+        this.UserService.deleteGitCredential(userDetails.ID, this.formValues.RepositoryGitCredentialID);
+      }
       this.displayErrorLog(err.err.data.details);
     } finally {
       this.state.actionInProgress = false;
@@ -354,11 +404,35 @@ class KubernetesDeployController {
           return '';
         }
       };
+
+      try {
+        this.formValues.GitCredentials = await this.UserService.getGitCredentials(this.Authentication.getUserDetails().ID);
+      } catch (err) {
+        this.Notifications.error('Failure', err, 'Unable to retrieve user saved git credentials');
+      }
     });
   }
 
   $onDestroy() {
     this.state.isEditorDirty = false;
+  }
+
+  onChangeGitCredential(selectedGitCredential) {
+    return this.$async(async () => {
+      if (selectedGitCredential) {
+        this.formValues.SelectedGitCredential = selectedGitCredential;
+        this.formValues.RepositoryGitCredentialID = Number(selectedGitCredential.id);
+        this.formValues.RepositoryUsername = selectedGitCredential.username;
+        this.formValues.SaveGitCredential = false;
+        this.formValues.NewCredentialName = '';
+      } else {
+        this.formValues.SelectedGitCredential = null;
+        this.formValues.RepositoryUsername = '';
+        this.formValues.RepositoryGitCredentialID = 0;
+      }
+
+      this.formValues.RepositoryPassword = '';
+    });
   }
 }
 

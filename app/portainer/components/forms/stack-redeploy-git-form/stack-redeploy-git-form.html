@@ -27,9 +27,21 @@
   <git-form-ref-field ng-if="$ctrl.state.showConfig" value="$ctrl.formValues.RefName" on-change="($ctrl.onChangeRef)"></git-form-ref-field>
   <git-form-auth-fieldset
     ng-if="$ctrl.state.showConfig"
-    model="$ctrl.formValues"
-    is-edit="$ctrl.state.isEdit"
-    on-change="($ctrl.onChange)"
+    repository-authentication="$ctrl.formValues.RepositoryAuthentication"
+    repository-username="$ctrl.formValues.RepositoryUsername"
+    repository-password="$ctrl.formValues.RepositoryPassword"
+    git-credentials="$ctrl.formValues.GitCredentials"
+    selected-git-credential="$ctrl.formValues.SelectedGitCredential"
+    save-credential="$ctrl.formValues.SaveCredential"
+    new-credential-name="$ctrl.formValues.NewCredentialName"
+    new-credential-name-exist="$ctrl.formValues.NewCredentialNameExist"
+    new-credential-name-invalid="$ctrl.formValues.NewCredentialNameInvalid"
+    on-select-git-credential="($ctrl.onSelectGitCredential)"
+    on-change-repository-Authentication="($ctrl.onChangeRepositoryAuthentication)"
+    on-change-save-credential="($ctrl.onChangeSaveCredential)"
+    on-change-repository-username="($ctrl.onChangeRepositoryUsername)"
+    on-change-repository-password="($ctrl.onChangeRepositoryPassword)"
+    on-change-new-credential-name="($ctrl.onChangeNewCredentialName)"
     show-auth-explanation="true"
   ></git-form-auth-fieldset>
   <environment-variables-panel
@@ -55,7 +67,7 @@
   <button
     class="btn btn-sm btn-primary"
     ng-click="$ctrl.saveGitSettings()"
-    ng-disabled="$ctrl.isSubmitButtonDisabled() || !$ctrl.state.hasUnsavedChanges || !$ctrl.redeployGitForm.$valid"
+    ng-disabled="$ctrl.isSubmitButtonDisabled() || !$ctrl.state.hasUnsavedChanges || !$ctrl.redeployGitForm.$valid || ($ctrl.formValues.RepositoryAuthentication && (!$ctrl.formValues.RepositoryPassword && $ctrl.formValues.RepositoryGitCredentialID===0)) || ($ctrl.formValues.RepositoryAuthentication && $ctrl.formValues.RepositoryPassword && $ctrl.formValues.SaveCredential && (!$ctrl.formValues.NewCredentialName || $ctrl.formValues.NewCredentialNameExist || $ctrl.formValues.NewCredentialNameInvalid))"
     style="margin-top: 7px; margin-left: 0"
     button-spinner="$ctrl.state.inProgress"
     analytics-on

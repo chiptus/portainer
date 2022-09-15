@@ -14,8 +14,10 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer/api/filesystem"
+	"github.com/portainer/portainer/api/git"
 )
 
 const nomadJobFileDefaultName = "nomad-job.hcl"
@@ -42,7 +44,12 @@ func (handler *Handler) edgeStackCreate(w http.ResponseWriter, r *http.Request) 
 	}
 	dryrun, _ := request.RetrieveBooleanQueryParameter(r, "dryrun", true)
 
-	edgeStack, err := handler.createSwarmStack(method, dryrun, r)
+	tokenData, err := security.RetrieveTokenData(r)
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user details from authentication token", err}
+	}
+
+	edgeStack, err := handler.createSwarmStack(method, dryrun, tokenData.ID, r)
 	if err != nil {
 		return httperror.InternalServerError("Unable to create Edge stack", err)
 	}
@@ -50,13 +57,13 @@ func (handler *Handler) edgeStackCreate(w http.ResponseWriter, r *http.Request) 
 	return response.JSON(w, edgeStack)
 }
 
-func (handler *Handler) createSwarmStack(method string, dryrun bool, r *http.Request) (*portaineree.EdgeStack, error) {
+func (handler *Handler) createSwarmStack(method string, dryrun bool, userID portaineree.UserID, r *http.Request) (*portaineree.EdgeStack, error) {
 
 	switch method {
 	case "string":
 		return handler.createSwarmStackFromFileContent(r, dryrun)
 	case "repository":
-		return handler.createSwarmStackFromGitRepository(r, dryrun)
+		return handler.createSwarmStackFromGitRepository(r, dryrun, userID)
 	case "file":
 		return handler.createSwarmStackFromFileUpload(r, dryrun)
 	}
@@ -217,6 +224,8 @@ type swarmStackFromGitRepositoryPayload struct {
 	RepositoryUsername string `example:"myGitUsername"`
 	// Password used in basic authentication. Required when RepositoryAuthentication is true.
 	RepositoryPassword string `example:"myGitPassword"`
+	// GitCredentialID used to identify the binded git credential
+	RepositoryGitCredentialID int `example:"0"`
 	// Path to the Stack file inside the Git repository
 	FilePathInRepository string `example:"docker-compose.yml" default:"docker-compose.yml"`
 	// List of identifiers of EdgeGroups
@@ -238,8 +247,8 @@ func (payload *swarmStackFromGitRepositoryPayload) Validate(r *http.Request) err
 	if govalidator.IsNull(payload.RepositoryURL) || !govalidator.IsURL(payload.RepositoryURL) {
 		return errors.New("Invalid repository URL. Must correspond to a valid URL format")
 	}
-	if payload.RepositoryAuthentication && (govalidator.IsNull(payload.RepositoryUsername) || govalidator.IsNull(payload.RepositoryPassword)) {
-		return errors.New("Invalid repository credentials. Username and password must be specified when authentication is enabled")
+	if payload.RepositoryAuthentication && govalidator.IsNull(payload.RepositoryPassword) && payload.RepositoryGitCredentialID == 0 {
+		return errors.New("Invalid repository credentials. Password must be specified when authentication is enabled")
 	}
 	if govalidator.IsNull(payload.FilePathInRepository) {
 		switch payload.DeploymentType {
@@ -257,7 +266,7 @@ func (payload *swarmStackFromGitRepositoryPayload) Validate(r *http.Request) err
 	return nil
 }
 
-func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request, dryrun bool) (*portaineree.EdgeStack, error) {
+func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request, dryrun bool, userID portaineree.UserID) (*portaineree.EdgeStack, error) {
 	var payload swarmStackFromGitRepositoryPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
@@ -289,11 +298,28 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request, dryru
 	projectPath := handler.FileService.GetEdgeStackProjectPath(strconv.Itoa(int(stack.ID)))
 	stack.ProjectPath = projectPath
 
-	repositoryUsername := payload.RepositoryUsername
-	repositoryPassword := payload.RepositoryPassword
-	if !payload.RepositoryAuthentication {
-		repositoryUsername = ""
-		repositoryPassword = ""
+	repositoryUsername := ""
+	repositoryPassword := ""
+	if payload.RepositoryAuthentication {
+		if payload.RepositoryGitCredentialID != 0 {
+			credential, err := handler.DataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(payload.RepositoryGitCredentialID))
+			if err != nil {
+				return nil, fmt.Errorf("git credential not found: %w", err)
+			}
+
+			// When creating the stack with an existing git credential, the git credential must be owned by the calling user
+			if credential.UserID != userID {
+				return nil, fmt.Errorf("couldn't retrieve the git credential for another user: %w", err)
+			}
+
+			repositoryUsername = credential.Username
+			repositoryPassword = credential.Password
+		}
+
+		if payload.RepositoryPassword != "" {
+			repositoryUsername = payload.RepositoryUsername
+			repositoryPassword = payload.RepositoryPassword
+		}
 	}
 
 	relationConfig, err := fetchEndpointRelationsConfig(handler.DataStore)
@@ -308,6 +334,9 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request, dryru
 
 	err = handler.GitService.CloneRepository(projectPath, payload.RepositoryURL, payload.RepositoryReferenceName, repositoryUsername, repositoryPassword)
 	if err != nil {
+		if err == git.ErrAuthenticationFailure {
+			return nil, errInvalidGitCredential
+		}
 		return nil, err
 	}
 

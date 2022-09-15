@@ -76,6 +76,11 @@ func NewHandler(bouncer *security.RequestBouncer, rateLimiter *security.RateLimi
 	authenticatedRouter.Handle("/users/{id}/passwd", rateLimiter.LimitAccess(httperror.LoggerHandler(h.userUpdatePassword))).Methods(http.MethodPut)
 	publicRouter.Handle("/users/admin/check", httperror.LoggerHandler(h.adminCheck)).Methods(http.MethodGet)
 	publicRouter.Handle("/users/admin/init", httperror.LoggerHandler(h.adminInit)).Methods(http.MethodPost)
+	authenticatedRouter.Handle("/users/{id}/gitcredentials", httperror.LoggerHandler(h.userGetGitCredentials)).Methods(http.MethodGet)
+	authenticatedRouter.Handle("/users/{id}/gitcredentials", rateLimiter.LimitAccess(httperror.LoggerHandler(h.userCreateGitCredential))).Methods(http.MethodPost)
+	authenticatedRouter.Handle("/users/{id}/gitcredentials/{credentialID}", httperror.LoggerHandler(h.userRemoveGitCredential)).Methods(http.MethodDelete)
+	authenticatedRouter.Handle("/users/{id}/gitcredentials/{credentialID}", httperror.LoggerHandler(h.userUpdateGitCredential)).Methods(http.MethodPut)
+	authenticatedRouter.Handle("/users/{id}/gitcredentials/{credentialID}", httperror.LoggerHandler(h.userGetGitCredential)).Methods(http.MethodGet)
 
 	return h
 }

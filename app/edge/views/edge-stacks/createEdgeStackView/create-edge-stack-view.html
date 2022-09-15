@@ -59,11 +59,26 @@
             </div>
           </div>
 
-          <edge-stacks-docker-compose-form ng-if="$ctrl.formValues.DeploymentType == 0" form-values="$ctrl.formValues" state="$ctrl.state"></edge-stacks-docker-compose-form>
+          <edge-stacks-docker-compose-form
+            ng-if="$ctrl.formValues.DeploymentType == 0"
+            form-values="$ctrl.formValues"
+            state="$ctrl.state"
+            on-change-git-credential="($ctrl.onChangeGitCredential)"
+          ></edge-stacks-docker-compose-form>
 
-          <edge-stacks-kube-manifest-form ng-if="$ctrl.formValues.DeploymentType == 1" form-values="$ctrl.formValues" state="$ctrl.state"></edge-stacks-kube-manifest-form>
+          <edge-stacks-kube-manifest-form
+            ng-if="$ctrl.formValues.DeploymentType == 1"
+            form-values="$ctrl.formValues"
+            state="$ctrl.state"
+            on-change-git-credential="($ctrl.onChangeGitCredential)"
+          ></edge-stacks-kube-manifest-form>
 
-          <edge-stacks-nomad-hcl-form ng-if="$ctrl.formValues.DeploymentType == 2" form-values="$ctrl.formValues" state="$ctrl.state"></edge-stacks-nomad-hcl-form>
+          <edge-stacks-nomad-hcl-form
+            ng-if="$ctrl.formValues.DeploymentType == 2"
+            form-values="$ctrl.formValues"
+            state="$ctrl.state"
+            on-change-git-credential="($ctrl.onChangeGitCredential)"
+          ></edge-stacks-nomad-hcl-form>
 
           <private-registry-view
             method="$ctrl.state.Method"
@@ -83,7 +98,7 @@
               <button
                 type="button"
                 class="btn btn-primary btn-sm"
-                ng-disabled="$ctrl.state.actionInProgress || $ctrl.formIsInvalid()"
+                ng-disabled="$ctrl.state.actionInProgress || $ctrl.formIsInvalid() || ($ctrl.formValues.RepositoryAuthentication && (!$ctrl.formValues.RepositoryPassword && $ctrl.formValues.RepositoryGitCredentialID===0)) || ($ctrl.formValues.RepositoryAuthentication && $ctrl.formValues.RepositoryPassword && $ctrl.formValues.SaveCredential && (!$ctrl.formValues.NewCredentialName || $ctrl.formValues.NewCredentialNameExist || $ctrl.formValues.NewCredentialNameInvalid))"
                 ng-click="$ctrl.createStack()"
                 button-spinner="$ctrl.state.actionInProgress"
                 analytics-on

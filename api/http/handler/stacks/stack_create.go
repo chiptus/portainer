@@ -17,6 +17,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/stackutils"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
+	"github.com/portainer/portainer/api/git"
 )
 
 func (handler *Handler) cleanUp(stack *portaineree.Stack, doCleanUp *bool) error {
@@ -247,6 +248,9 @@ func (handler *Handler) clone(projectPath, repositoryURL, refName string, auth b
 
 	err := handler.GitService.CloneRepository(projectPath, repositoryURL, refName, username, password)
 	if err != nil {
+		if err == git.ErrAuthenticationFailure {
+			return errInvalidGitCredential
+		}
 		return fmt.Errorf("unable to clone git repository: %w", err)
 	}
 

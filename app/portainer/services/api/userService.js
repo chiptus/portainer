@@ -1,5 +1,5 @@
 import _ from 'lodash-es';
-import { UserTokenModel, UserViewModel } from '@/portainer/models/user';
+import { UserTokenModel, UserViewModel, UserGitCredential } from '@/portainer/models/user';
 import { getUser, getUsers } from '@/portainer/users/user.service';
 
 import { TeamMembershipModel } from '../../models/teamMembership';
@@ -167,6 +167,38 @@ export function UserService($q, Users, TeamService, TeamMembershipService) {
       });
 
     return deferred.promise;
+  };
+
+  service.getGitCredentials = function (id) {
+    var deferred = $q.defer();
+    Users.getGitCredentials({ id })
+      .$promise.then(function success(data) {
+        const gitCreds = data.map(function (item) {
+          return new UserGitCredential(item);
+        });
+        deferred.resolve(gitCreds);
+      })
+      .catch(function error(err) {
+        deferred.reject({ msg: 'Unable to retrieve git credentials', err: err });
+      });
+    return deferred.promise;
+  };
+
+  service.saveGitCredential = function (userId, name, username, password) {
+    const deferred = $q.defer();
+    const payload = { name, username, password };
+    Users.saveGitCredential({ id: userId }, payload)
+      .$promise.then((data) => {
+        deferred.resolve(data);
+      })
+      .catch(function error(err) {
+        deferred.reject({ msg: 'Unable to save user git credential', err: err });
+      });
+    return deferred.promise;
+  };
+
+  service.deleteGitCredential = function (id, gitCredentialId) {
+    return Users.deleteGitCredential({ id: id, gitCredentialId: gitCredentialId }).$promise;
   };
 
   return service;

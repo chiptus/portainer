@@ -661,6 +661,12 @@ func portainerUserOperationAuthorization(url, method string) portaineree.Authori
 			return portaineree.OperationPortainerUserMemberships
 		case "tokens":
 			return portaineree.OperationPortainerUserListToken
+		case "gitcredentials":
+			if resource == "" {
+				return portaineree.OperationPortainerUserListGitCredential
+			} else {
+				return portaineree.OperationPortainerUserInspectGitCredential
+			}
 		}
 
 	case http.MethodPost:
@@ -668,18 +674,24 @@ func portainerUserOperationAuthorization(url, method string) portaineree.Authori
 			return portaineree.OperationPortainerUserCreate
 		} else if action == "tokens" {
 			return portaineree.OperationPortainerUserCreateToken
+		} else if action == "gitcredentials" {
+			return portaineree.OperationPortainerUserCreateGitCredential
 		}
 	case http.MethodPut:
 		if resource != "" && action == "" {
 			return portaineree.OperationPortainerUserUpdate
 		} else if resource != "" && action == "passwd" {
 			return portaineree.OperationPortainerUserUpdatePassword
+		} else if resource != "" && strings.HasPrefix(action, "gitcredentials") {
+			return portaineree.OperationPortainerUserUpdateGitCredential
 		}
 	case http.MethodDelete:
 		if resource != "" && action == "" {
 			return portaineree.OperationPortainerUserDelete
 		} else if strings.HasPrefix(action, "tokens") {
 			return portaineree.OperationPortainerUserRevokeToken
+		} else if strings.HasPrefix(action, "gitcredentials") {
+			return portaineree.OperationPortainerUserDeleteGitCredential
 		}
 	}
 

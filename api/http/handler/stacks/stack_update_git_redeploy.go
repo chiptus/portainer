@@ -18,6 +18,8 @@ import (
 	k "github.com/portainer/portainer-ee/api/kubernetes"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 	"github.com/portainer/portainer/api/filesystem"
+	"github.com/portainer/portainer/api/git"
+	gittypes "github.com/portainer/portainer/api/git/types"
 	logger "github.com/sirupsen/logrus"
 )
 
@@ -29,7 +31,8 @@ type stackGitRedployPayload struct {
 	Env                      []portaineree.Pair
 	Prune                    bool `example:"false"`
 	// Force a pulling to current image with the original tag though the image is already the latest
-	PullImage bool `example:"false"`
+	PullImage                 bool `example:"false"`
+	RepositoryGitCredentialID int
 }
 
 func (payload *stackGitRedployPayload) Validate(r *http.Request) error {
@@ -148,12 +151,44 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 
 	repositoryUsername := ""
 	repositoryPassword := ""
+	repositoryGitCredentialID := 0
 	if payload.RepositoryAuthentication {
-		repositoryPassword = payload.RepositoryPassword
-		if repositoryPassword == "" && stack.GitConfig != nil && stack.GitConfig.Authentication != nil {
-			repositoryPassword = stack.GitConfig.Authentication.Password
+		if payload.RepositoryGitCredentialID != 0 {
+			credential, err := handler.DataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(payload.RepositoryGitCredentialID))
+			if err != nil {
+				return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Git credential not found", Err: err}
+			}
+
+			// Only check the ownership of git credential when it is updated
+			if stack.GitConfig != nil && stack.GitConfig.Authentication != nil && payload.RepositoryGitCredentialID != stack.GitConfig.Authentication.GitCredentialID && credential.UserID != securityContext.UserID {
+				return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "Couldn't update the git credential for another user", Err: httperrors.ErrUnauthorized}
+			}
+
+			repositoryUsername = credential.Username
+			repositoryPassword = credential.Password
+			repositoryGitCredentialID = payload.RepositoryGitCredentialID
 		}
-		repositoryUsername = payload.RepositoryUsername
+
+		if payload.RepositoryPassword != "" {
+			repositoryUsername = payload.RepositoryUsername
+			repositoryPassword = payload.RepositoryPassword
+			repositoryGitCredentialID = 0
+		}
+
+		// When the existing stack is using the custom username/password and the password is not updated,
+		// the stack should keep using the saved username/password
+		if payload.RepositoryPassword == "" && payload.RepositoryGitCredentialID == 0 &&
+			stack.GitConfig != nil && stack.GitConfig.Authentication != nil {
+			repositoryUsername = stack.GitConfig.Authentication.Username
+			repositoryPassword = stack.GitConfig.Authentication.Password
+			repositoryGitCredentialID = stack.GitConfig.Authentication.GitCredentialID
+		}
+
+		stack.GitConfig.Authentication = &gittypes.GitAuthentication{
+			Username:        repositoryUsername,
+			Password:        repositoryPassword,
+			GitCredentialID: repositoryGitCredentialID,
+		}
 	}
 
 	err = handler.GitService.CloneRepository(stack.ProjectPath, stack.GitConfig.URL, payload.RepositoryReferenceName, repositoryUsername, repositoryPassword)
@@ -163,6 +198,9 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 			log.Printf("[WARN] [http,stacks,git] [error: %s] [message: failed restoring backup folder]", restoreError)
 		}
 
+		if err == git.ErrAuthenticationFailure {
+			return httperror.InternalServerError(errInvalidGitCredential.Error(), err)
+		}
 		return httperror.InternalServerError("Unable to clone git repository", err)
 	}
 

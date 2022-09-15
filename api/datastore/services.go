@@ -26,6 +26,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/enforcement"
 	"github.com/portainer/portainer-ee/api/dataservices/extension"
 	"github.com/portainer/portainer-ee/api/dataservices/fdoprofile"
+	"github.com/portainer/portainer-ee/api/dataservices/gitcredential"
 	"github.com/portainer/portainer-ee/api/dataservices/helmuserrepository"
 	"github.com/portainer/portainer-ee/api/dataservices/license"
 	"github.com/portainer/portainer-ee/api/dataservices/podsecurity"
@@ -75,6 +76,7 @@ type Store struct {
 	ResourceControlService    *resourcecontrol.Service
 	RoleService               *role.Service
 	APIKeyRepositoryService   *apikeyrepository.Service
+	GitCredentialService      *gitcredential.Service
 	S3BackupService           *s3backup.Service
 	ScheduleService           *schedule.Service
 	SettingsService           *settings.Service
@@ -277,6 +279,12 @@ func (store *Store) initServices() error {
 	}
 	store.APIKeyRepositoryService = apiKeyService
 
+	gitCredentialService, err := gitcredential.NewService(store.connection)
+	if err != nil {
+		return err
+	}
+	store.GitCredentialService = gitCredentialService
+
 	versionService, err := version.NewService(store.connection)
 	if err != nil {
 		return err
@@ -396,6 +404,11 @@ func (store *Store) APIKeyRepository() dataservices.APIKeyRepository {
 	return store.APIKeyRepositoryService
 }
 
+// GitCredential gives access to the git-credential data management layer
+func (store *Store) GitCredential() dataservices.GitCredential {
+	return store.GitCredentialService
+}
+
 // S3Backup gives access to S3 backup settings and status
 func (store *Store) S3Backup() dataservices.S3BackupService {
 	return store.S3BackupService
@@ -471,6 +484,7 @@ type storeExport struct {
 	Endpoint           []portaineree.Endpoint           `json:"endpoints,omitempty"`
 	Extensions         []portaineree.Extension          `json:"extension,omitempty"`
 	FDOProfile         []portaineree.FDOProfile         `json:"fdo_profiles,omitempty"`
+	GitCredentials     []portaineree.GitCredential      `json:"git_credentials,omitempty"`
 	HelmUserRepository []portaineree.HelmUserRepository `json:"helm_user_repository,omitempty"`
 	License            []liblicense.PortainerLicense    `json:"license,omitempty"`
 	Registry           []portaineree.Registry           `json:"registries,omitempty"`
@@ -566,6 +580,14 @@ func (store *Store) Export(filename string) (err error) {
 		}
 	} else {
 		backup.FDOProfile = r
+	}
+
+	if r, err := store.GitCredential().GetGitCredentials(); err != nil {
+		if !store.IsErrObjectNotFound(err) {
+			logrus.WithError(err).Errorf("Exporting Git Credentials")
+		}
+	} else {
+		backup.GitCredentials = r
 	}
 
 	if r, err := store.HelmUserRepository().HelmUserRepositories(); err != nil {
@@ -774,6 +796,10 @@ func (store *Store) Import(filename string) (err error) {
 
 	for _, v := range backup.FDOProfile {
 		store.FDOProfile().Update(v.ID, &v)
+	}
+
+	for _, v := range backup.GitCredentials {
+		store.GitCredential().UpdateGitCredential(v.ID, &v)
 	}
 
 	for _, v := range backup.HelmUserRepository {

@@ -27,6 +27,7 @@ angular
       ContainerHelper,
       CustomTemplateService,
       ContainerService,
+      UserService,
       endpoint,
       WebhookHelper,
       clipboard
@@ -48,6 +49,13 @@ angular
         RepositoryAuthentication: false,
         RepositoryUsername: '',
         RepositoryPassword: '',
+        SelectedGitCredential: null,
+        GitCredentials: [],
+        SaveCredential: true,
+        RepositoryGitCredentialID: 0,
+        NewCredentialName: '',
+        NewCredentialNameExist: false,
+        NewCredentialNameInvalid: false,
         Env: [],
         AdditionalFiles: [],
         ComposeFilePathInRepository: 'docker-compose.yml',
@@ -85,6 +93,7 @@ angular
       });
 
       $scope.onChangeFormValues = onChangeFormValues;
+      $scope.onChangeGitCredential = onChangeGitCredential;
 
       $scope.onEnableWebhookChange = function (enable) {
         $scope.$evalAsync(() => {
@@ -178,8 +187,9 @@ angular
             RepositoryReferenceName: $scope.formValues.RepositoryReferenceName,
             ComposeFilePathInRepository: $scope.formValues.ComposeFilePathInRepository,
             RepositoryAuthentication: $scope.formValues.RepositoryAuthentication,
-            RepositoryUsername: $scope.formValues.RepositoryUsername,
-            RepositoryPassword: $scope.formValues.RepositoryPassword,
+            RepositoryUsername: $scope.formValues.RepositoryGitCredentialID === 0 ? $scope.formValues.RepositoryUsername : '',
+            RepositoryPassword: $scope.formValues.RepositoryGitCredentialID === 0 ? $scope.formValues.RepositoryPassword : '',
+            RepositoryGitCredentialID: $scope.formValues.RepositoryGitCredentialID,
             ForcePullImage: $scope.formValues.ForcePullImage,
           };
 
@@ -221,8 +231,9 @@ angular
             RepositoryReferenceName: $scope.formValues.RepositoryReferenceName,
             ComposeFilePathInRepository: $scope.formValues.ComposeFilePathInRepository,
             RepositoryAuthentication: $scope.formValues.RepositoryAuthentication,
-            RepositoryUsername: $scope.formValues.RepositoryUsername,
-            RepositoryPassword: $scope.formValues.RepositoryPassword,
+            RepositoryUsername: $scope.formValues.RepositoryGitCredentialID === 0 ? $scope.formValues.RepositoryUsername : '',
+            RepositoryPassword: $scope.formValues.RepositoryGitCredentialID === 0 ? $scope.formValues.RepositoryPassword : '',
+            RepositoryGitCredentialID: $scope.formValues.RepositoryGitCredentialID,
             ForcePullImage: $scope.formValues.ForcePullImage,
           };
 
@@ -242,7 +253,7 @@ angular
         $scope.formValues.Env = value;
       }
 
-      $scope.deployStack = function () {
+      $scope.deployStack = async function () {
         var name = $scope.formValues.Name;
         var method = $scope.state.Method;
 
@@ -261,10 +272,21 @@ angular
 
         var type = $scope.state.StackType;
         var action = createSwarmStack;
+
         if (type === 2) {
           action = createComposeStack;
         }
         $scope.state.actionInProgress = true;
+
+        // save git credential
+        if ($scope.formValues.SaveCredential && $scope.formValues.NewCredentialName) {
+          await UserService.saveGitCredential(userDetails.ID, $scope.formValues.NewCredentialName, $scope.formValues.RepositoryUsername, $scope.formValues.RepositoryPassword).then(
+            function success(data) {
+              $scope.formValues.RepositoryGitCredentialID = data.gitCredential.id;
+            }
+          );
+        }
+
         action(name, method)
           .then(function success(data) {
             if (data.data) {
@@ -281,6 +303,9 @@ angular
           })
           .catch(function error(err) {
             Notifications.error('Deployment error', err, 'Unable to deploy stack');
+            if ($scope.formValues.SaveCredential && $scope.formValues.NewCredentialName && $scope.formValues.RepositoryGitCredentialID) {
+              UserService.deleteGitCredential(userDetails.ID, $scope.formValues.RepositoryGitCredentialID);
+            }
           })
           .finally(function final() {
             $scope.state.actionInProgress = false;
@@ -361,6 +386,12 @@ angular
         } catch (err) {
           Notifications.error('Failure', err, 'Unable to retrieve Containers');
         }
+
+        try {
+          $scope.formValues.GitCredentials = await UserService.getGitCredentials(Authentication.getUserDetails().ID);
+        } catch (err) {
+          Notifications.error('Failure', err, 'Unable to retrieve user saved git credentials');
+        }
       }
 
       this.uiCanExit = async function () {
@@ -371,11 +402,34 @@ angular
 
       initView();
 
-      function onChangeFormValues(values) {
-        $scope.formValues = {
-          ...$scope.formValues,
-          ...values,
-        };
+      function onChangeFormValues(newValues) {
+        return $async(async () => {
+          $scope.formValues = {
+            ...$scope.formValues,
+            ...newValues,
+          };
+          const existGitCredential = $scope.formValues.GitCredentials.find((x) => x.name === $scope.formValues.NewCredentialName);
+          $scope.formValues.NewCredentialNameExist = existGitCredential ? true : false;
+          $scope.formValues.NewCredentialNameInvalid = $scope.formValues.NewCredentialName && !$scope.formValues.NewCredentialName.match(/^[-_a-z0-9]+$/) ? true : false;
+        });
+      }
+
+      function onChangeGitCredential(selectedGitCredential) {
+        return $async(async () => {
+          if (selectedGitCredential) {
+            $scope.formValues.SelectedGitCredential = selectedGitCredential;
+            $scope.formValues.RepositoryGitCredentialID = Number(selectedGitCredential.id);
+            $scope.formValues.RepositoryUsername = selectedGitCredential.username;
+            $scope.formValues.SaveGitCredential = false;
+            $scope.formValues.NewCredentialName = '';
+          } else {
+            $scope.formValues.SelectedGitCredential = null;
+            $scope.formValues.RepositoryUsername = '';
+            $scope.formValues.RepositoryGitCredentialID = 0;
+          }
+
+          $scope.formValues.RepositoryPassword = '';
+        });
       }
     }
   );

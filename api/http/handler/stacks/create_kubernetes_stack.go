@@ -14,11 +14,13 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/client"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/stackutils"
 	k "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer/api/filesystem"
+	"github.com/portainer/portainer/api/git"
 	gittypes "github.com/portainer/portainer/api/git/types"
 )
 
@@ -30,17 +32,18 @@ type kubernetesStringDeploymentPayload struct {
 }
 
 type kubernetesGitDeploymentPayload struct {
-	StackName                string
-	ComposeFormat            bool
-	Namespace                string
-	RepositoryURL            string
-	RepositoryReferenceName  string
-	RepositoryAuthentication bool
-	RepositoryUsername       string
-	RepositoryPassword       string
-	ManifestFile             string
-	AdditionalFiles          []string
-	AutoUpdate               *portaineree.StackAutoUpdate
+	StackName                 string
+	ComposeFormat             bool
+	Namespace                 string
+	RepositoryURL             string
+	RepositoryReferenceName   string
+	RepositoryAuthentication  bool
+	RepositoryUsername        string
+	RepositoryPassword        string
+	RepositoryGitCredentialID int
+	ManifestFile              string
+	AdditionalFiles           []string
+	AutoUpdate                *portaineree.StackAutoUpdate
 }
 
 type kubernetesManifestURLDeploymentPayload struct {
@@ -64,7 +67,7 @@ func (payload *kubernetesGitDeploymentPayload) Validate(r *http.Request) error {
 	if govalidator.IsNull(payload.RepositoryURL) || !govalidator.IsURL(payload.RepositoryURL) {
 		return errors.New("Invalid repository URL. Must correspond to a valid URL format")
 	}
-	if payload.RepositoryAuthentication && govalidator.IsNull(payload.RepositoryPassword) {
+	if payload.RepositoryAuthentication && govalidator.IsNull(payload.RepositoryPassword) && payload.RepositoryGitCredentialID == 0 {
 		return errors.New("Invalid repository credentials. Password must be specified when authentication is enabled")
 	}
 	if govalidator.IsNull(payload.ManifestFile) {
@@ -224,10 +227,36 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 		AdditionalFiles: payload.AdditionalFiles,
 	}
 
+	repositoryUsername := ""
+	repositoryPassword := ""
+	repositoryGitCredentialID := 0
 	if payload.RepositoryAuthentication {
+		if payload.RepositoryGitCredentialID != 0 {
+			credential, err := handler.DataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(payload.RepositoryGitCredentialID))
+			if err != nil {
+				return httperror.InternalServerError("git credential not found", err)
+			}
+
+			// When creating the stack with an existing git credential, the git credential must be owned by the calling user
+			if credential.UserID != tokenData.ID {
+				return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "couldn't add the git credential of another user", Err: httperrors.ErrUnauthorized}
+			}
+
+			repositoryUsername = credential.Username
+			repositoryPassword = credential.Password
+			repositoryGitCredentialID = payload.RepositoryGitCredentialID
+		}
+
+		if payload.RepositoryPassword != "" {
+			repositoryUsername = payload.RepositoryUsername
+			repositoryPassword = payload.RepositoryPassword
+			repositoryGitCredentialID = 0
+		}
+
 		stack.GitConfig.Authentication = &gittypes.GitAuthentication{
-			Username: payload.RepositoryUsername,
-			Password: payload.RepositoryPassword,
+			GitCredentialID: repositoryGitCredentialID,
+			Username:        repositoryUsername,
+			Password:        repositoryPassword,
 		}
 	}
 
@@ -237,14 +266,12 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 	doCleanUp := true
 	defer handler.cleanUp(stack, &doCleanUp)
 
-	commitID, err := handler.latestCommitID(payload.RepositoryURL, payload.RepositoryReferenceName, payload.RepositoryAuthentication, payload.RepositoryUsername, payload.RepositoryPassword)
+	commitID, err := handler.latestCommitID(payload.RepositoryURL, payload.RepositoryReferenceName, payload.RepositoryAuthentication, repositoryUsername, repositoryPassword)
 	if err != nil {
 		return httperror.InternalServerError("Unable to fetch git repository id", err)
 	}
 	stack.GitConfig.ConfigHash = commitID
 
-	repositoryUsername := payload.RepositoryUsername
-	repositoryPassword := payload.RepositoryPassword
 	if !payload.RepositoryAuthentication {
 		repositoryUsername = ""
 		repositoryPassword = ""
@@ -252,6 +279,9 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 
 	err = handler.GitService.CloneRepository(projectPath, payload.RepositoryURL, payload.RepositoryReferenceName, repositoryUsername, repositoryPassword)
 	if err != nil {
+		if err == git.ErrAuthenticationFailure {
+			return httperror.InternalServerError(errInvalidGitCredential.Error(), err)
+		}
 		return httperror.InternalServerError("Failed to clone git repository", err)
 	}
 

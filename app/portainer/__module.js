@@ -11,6 +11,7 @@ import servicesModule from './services';
 import homeModule from './home';
 import { reactModule } from './react';
 import { sidebarModule } from './react/views/sidebar';
+import { gitCredentialsModule } from './views/account/git-credential';
 import { getEnvironments } from './environments/environment.service';
 
 async function initAuthentication(authManager, Authentication, $rootScope, $state) {
@@ -44,6 +45,7 @@ angular
     servicesModule,
     reactModule,
     sidebarModule,
+    gitCredentialsModule,
   ])
   .config([
     '$stateRegistryProvider',
@@ -438,6 +440,26 @@ angular
         },
       };
 
+      const createGitCredential = {
+        name: 'portainer.account.gitCreateGitCredential',
+        url: '/git-credential/new',
+        views: {
+          'content@': {
+            component: 'createGitCredentialViewAngular',
+          },
+        },
+      };
+
+      const editGitCredential = {
+        name: 'portainer.account.gitEditGitCredential',
+        url: '/git-credential/:id',
+        views: {
+          'content@': {
+            component: 'editGitCredentialViewAngular',
+          },
+        },
+      };
+
       var settingsEdgeCompute = {
         name: 'portainer.settings.edgeCompute',
         url: '/edge',
@@ -513,6 +535,8 @@ angular
       $stateRegistryProvider.register(settingsCloud);
       $stateRegistryProvider.register(addCloudCredential);
       $stateRegistryProvider.register(editCloudCredential);
+      $stateRegistryProvider.register(createGitCredential);
+      $stateRegistryProvider.register(editGitCredential);
       $stateRegistryProvider.register(settingsEdgeCompute);
       $stateRegistryProvider.register(tags);
       $stateRegistryProvider.register(users);

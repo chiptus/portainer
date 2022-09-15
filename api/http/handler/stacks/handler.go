@@ -29,6 +29,7 @@ import (
 var (
 	errStackAlreadyExists     = errors.New("A stack already exists with this name")
 	errWebhookIDAlreadyExists = errors.New("A webhook ID already exists")
+	errInvalidGitCredential   = errors.New("Invalid git credential")
 )
 
 // Handler is the HTTP handler used to handle stack operations.

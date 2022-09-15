@@ -29,6 +29,7 @@ type testDatastore struct {
 	registry                dataservices.RegistryService
 	resourceControl         dataservices.ResourceControlService
 	apiKeyRepositoryService dataservices.APIKeyRepository
+	gitCredential           dataservices.GitCredential
 	role                    dataservices.RoleService
 	sslSettings             dataservices.SSLSettingsService
 	settings                dataservices.SettingsService
@@ -92,6 +93,7 @@ func (d *testDatastore) Role() dataservices.RoleService { return d.role }
 func (d *testDatastore) APIKeyRepository() dataservices.APIKeyRepository {
 	return d.apiKeyRepositoryService
 }
+func (d *testDatastore) GitCredential() dataservices.GitCredential          { return d.gitCredential }
 func (d *testDatastore) S3Backup() dataservices.S3BackupService             { return d.s3backup }
 func (d *testDatastore) Settings() dataservices.SettingsService             { return d.settings }
 func (d *testDatastore) SSLSettings() dataservices.SSLSettingsService       { return d.sslSettings }

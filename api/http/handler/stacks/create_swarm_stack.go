@@ -10,6 +10,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
@@ -105,7 +106,7 @@ func (handler *Handler) createSwarmStackFromFileContent(w http.ResponseWriter, r
 
 	err = handler.DataStore.Stack().Create(stack)
 	if err != nil {
-		return httperror.InternalServerError("Unable to persist the stack inside the database", err)
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to persist the stack inside the database", err}
 	}
 
 	doCleanUp = false
@@ -126,10 +127,15 @@ type swarmStackFromGitRepositoryPayload struct {
 	RepositoryReferenceName string `example:"refs/heads/master"`
 	// Use basic authentication to clone the Git repository
 	RepositoryAuthentication bool `example:"true"`
-	// Username used in basic authentication. Required when RepositoryAuthentication is true.
+	// Username used in basic authentication. Required when RepositoryAuthentication is true
+	// and RepositoryGitCredentialID is 0
 	RepositoryUsername string `example:"myGitUsername"`
-	// Password used in basic authentication. Required when RepositoryAuthentication is true.
+	// Password used in basic authentication. Required when RepositoryAuthentication is true
+	// and RepositoryGitCredentialID is 0
 	RepositoryPassword string `example:"myGitPassword"`
+	// GitCredentialID used to identify the bound git credential. Required when RepositoryAuthentication
+	// is true and RepositoryUsername/RepositoryPassword are not provided
+	RepositoryGitCredentialID int `example:"0"`
 	// Path to the Stack file inside the Git repository
 	ComposeFile string `example:"docker-compose.yml" default:"docker-compose.yml"`
 	// Applicable when deploying with multiple stack files
@@ -150,7 +156,7 @@ func (payload *swarmStackFromGitRepositoryPayload) Validate(r *http.Request) err
 	if govalidator.IsNull(payload.RepositoryURL) || !govalidator.IsURL(payload.RepositoryURL) {
 		return errors.New("Invalid repository URL. Must correspond to a valid URL format")
 	}
-	if payload.RepositoryAuthentication && govalidator.IsNull(payload.RepositoryPassword) {
+	if payload.RepositoryAuthentication && govalidator.IsNull(payload.RepositoryPassword) && payload.RepositoryGitCredentialID == 0 {
 		return errors.New("Invalid repository credentials. Password must be specified when authentication is enabled")
 	}
 	if err := validateStackAutoUpdate(payload.AutoUpdate); err != nil {
@@ -205,10 +211,36 @@ func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter,
 		CreationDate:    time.Now().Unix(),
 	}
 
+	repositoryUsername := ""
+	repositoryPassword := ""
+	repositoryGitCredentialID := 0
 	if payload.RepositoryAuthentication {
+		if payload.RepositoryGitCredentialID != 0 {
+			credential, err := handler.DataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(payload.RepositoryGitCredentialID))
+			if err != nil {
+				return httperror.InternalServerError("git credential not found", err)
+			}
+
+			// When creating the stack with an existing git credential, the git credential must be owned by the calling user
+			if credential.UserID != userID {
+				return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "couldn't add the git credential of another user", Err: httperrors.ErrUnauthorized}
+			}
+
+			repositoryUsername = credential.Username
+			repositoryPassword = credential.Password
+			repositoryGitCredentialID = payload.RepositoryGitCredentialID
+		}
+
+		if payload.RepositoryPassword != "" {
+			repositoryUsername = payload.RepositoryUsername
+			repositoryPassword = payload.RepositoryPassword
+			repositoryGitCredentialID = 0
+		}
+
 		stack.GitConfig.Authentication = &gittypes.GitAuthentication{
-			Username: payload.RepositoryUsername,
-			Password: payload.RepositoryPassword,
+			GitCredentialID: repositoryGitCredentialID,
+			Username:        repositoryUsername,
+			Password:        repositoryPassword,
 		}
 	}
 
@@ -218,12 +250,12 @@ func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter,
 	doCleanUp := true
 	defer handler.cleanUp(stack, &doCleanUp)
 
-	err = handler.clone(projectPath, payload.RepositoryURL, payload.RepositoryReferenceName, payload.RepositoryAuthentication, payload.RepositoryUsername, payload.RepositoryPassword)
+	err = handler.clone(projectPath, payload.RepositoryURL, payload.RepositoryReferenceName, payload.RepositoryAuthentication, repositoryUsername, repositoryPassword)
 	if err != nil {
 		return httperror.InternalServerError("Unable to clone git repository", err)
 	}
 
-	commitID, err := handler.latestCommitID(payload.RepositoryURL, payload.RepositoryReferenceName, payload.RepositoryAuthentication, payload.RepositoryUsername, payload.RepositoryPassword)
+	commitID, err := handler.latestCommitID(payload.RepositoryURL, payload.RepositoryReferenceName, payload.RepositoryAuthentication, repositoryUsername, repositoryPassword)
 	if err != nil {
 		return httperror.InternalServerError("Unable to fetch git repository id", err)
 	}

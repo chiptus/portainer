@@ -3,6 +3,7 @@ package customtemplates
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -17,6 +18,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer/api/filesystem"
+	"github.com/portainer/portainer/api/git"
 )
 
 // @id CustomTemplateCreate
@@ -52,7 +54,7 @@ func (handler *Handler) customTemplateCreate(w http.ResponseWriter, r *http.Requ
 		return httperror.InternalServerError("unable to retrieve user details from authentication token", err)
 	}
 
-	customTemplate, err := handler.createCustomTemplate(method, r)
+	customTemplate, err := handler.createCustomTemplate(method, tokenData.ID, r)
 	if err != nil {
 		return httperror.InternalServerError("Unable to create custom template", err)
 	}
@@ -87,12 +89,12 @@ func (handler *Handler) customTemplateCreate(w http.ResponseWriter, r *http.Requ
 	return response.JSON(w, customTemplate)
 }
 
-func (handler *Handler) createCustomTemplate(method string, r *http.Request) (*portaineree.CustomTemplate, error) {
+func (handler *Handler) createCustomTemplate(method string, userID portaineree.UserID, r *http.Request) (*portaineree.CustomTemplate, error) {
 	switch method {
 	case "string":
 		return handler.createCustomTemplateFromFileContent(r)
 	case "repository":
-		return handler.createCustomTemplateFromGitRepository(r)
+		return handler.createCustomTemplateFromGitRepository(r, userID)
 	case "file":
 		return handler.createCustomTemplateFromFileUpload(r)
 	}
@@ -208,10 +210,15 @@ type customTemplateFromGitRepositoryPayload struct {
 	RepositoryReferenceName string `example:"refs/heads/master"`
 	// Use basic authentication to clone the Git repository
 	RepositoryAuthentication bool `example:"true"`
-	// Username used in basic authentication. Required when RepositoryAuthentication is true.
+	// Username used in basic authentication. Required when RepositoryAuthentication is true
+	// and RepositoryGitCredentialID is 0
 	RepositoryUsername string `example:"myGitUsername"`
-	// Password used in basic authentication. Required when RepositoryAuthentication is true.
+	// Password used in basic authentication. Required when RepositoryAuthentication is true
+	// and RepositoryGitCredentialID is 0
 	RepositoryPassword string `example:"myGitPassword"`
+	// GitCredentialID used to identify the bound git credential. Required when RepositoryAuthentication
+	// is true and RepositoryUsername/RepositoryPassword are not provided
+	RepositoryGitCredentialID int `example:"0"`
 	// Path to the Stack file inside the Git repository
 	ComposeFilePathInRepository string `example:"docker-compose.yml" default:"docker-compose.yml"`
 	// Definitions of variables in the stack file
@@ -228,7 +235,7 @@ func (payload *customTemplateFromGitRepositoryPayload) Validate(r *http.Request)
 	if govalidator.IsNull(payload.RepositoryURL) || !govalidator.IsURL(payload.RepositoryURL) {
 		return errors.New("Invalid repository URL. Must correspond to a valid URL format")
 	}
-	if payload.RepositoryAuthentication && (govalidator.IsNull(payload.RepositoryUsername) || govalidator.IsNull(payload.RepositoryPassword)) {
+	if payload.RepositoryAuthentication && govalidator.IsNull(payload.RepositoryPassword) && payload.RepositoryGitCredentialID == 0 {
 		return errors.New("Invalid repository credentials. Username and password must be specified when authentication is enabled")
 	}
 	if govalidator.IsNull(payload.ComposeFilePathInRepository) {
@@ -257,7 +264,7 @@ func (payload *customTemplateFromGitRepositoryPayload) Validate(r *http.Request)
 	return nil
 }
 
-func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request) (*portaineree.CustomTemplate, error) {
+func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request, userID portaineree.UserID) (*portaineree.CustomTemplate, error) {
 	var payload customTemplateFromGitRepositoryPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
@@ -280,15 +287,35 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request) (
 	projectPath := handler.FileService.GetCustomTemplateProjectPath(strconv.Itoa(customTemplateID))
 	customTemplate.ProjectPath = projectPath
 
-	repositoryUsername := payload.RepositoryUsername
-	repositoryPassword := payload.RepositoryPassword
-	if !payload.RepositoryAuthentication {
-		repositoryUsername = ""
-		repositoryPassword = ""
+	repositoryUsername := ""
+	repositoryPassword := ""
+	if payload.RepositoryAuthentication {
+		if payload.RepositoryGitCredentialID != 0 {
+			credential, err := handler.DataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(payload.RepositoryGitCredentialID))
+			if err != nil {
+				return nil, fmt.Errorf("git credential not found: %w", err)
+			}
+
+			// When creating the stack with an existing git credential, the git credential must be owned by the calling user
+			if credential.UserID != userID {
+				return nil, fmt.Errorf("couldn't retrieve the git credential for another user: %w", err)
+			}
+
+			repositoryUsername = credential.Username
+			repositoryPassword = credential.Password
+		}
+	}
+
+	if payload.RepositoryPassword != "" {
+		repositoryUsername = payload.RepositoryUsername
+		repositoryPassword = payload.RepositoryPassword
 	}
 
 	err = handler.GitService.CloneRepository(projectPath, payload.RepositoryURL, payload.RepositoryReferenceName, repositoryUsername, repositoryPassword)
 	if err != nil {
+		if err == git.ErrAuthenticationFailure {
+			return nil, fmt.Errorf("invalid git credential")
+		}
 		return nil, err
 	}
 

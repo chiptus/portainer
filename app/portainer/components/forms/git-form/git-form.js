@@ -7,6 +7,7 @@ export const gitForm = {
     deployMethod: '@',
     model: '<',
     onChange: '<',
+    onSelectGitCredential: '<',
     additionalFile: '<',
     autoUpdate: '<',
     showAuthExplanation: '<',

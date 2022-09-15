@@ -18,13 +18,14 @@ import (
 )
 
 type stackGitUpdatePayload struct {
-	AutoUpdate               *portaineree.StackAutoUpdate
-	Env                      []portaineree.Pair
-	Prune                    bool
-	RepositoryReferenceName  string
-	RepositoryAuthentication bool
-	RepositoryUsername       string
-	RepositoryPassword       string
+	AutoUpdate                *portaineree.StackAutoUpdate
+	Env                       []portaineree.Pair
+	Prune                     bool
+	RepositoryReferenceName   string
+	RepositoryAuthentication  bool
+	RepositoryUsername        string
+	RepositoryPassword        string
+	RepositoryGitCredentialID int
 }
 
 func (payload *stackGitUpdatePayload) Validate(r *http.Request) error {
@@ -151,16 +152,47 @@ func (handler *Handler) stackUpdateGit(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
+	repositoryUsername := ""
+	repositoryPassword := ""
+	repositoryGitCredentialID := 0
 	if payload.RepositoryAuthentication {
-		password := payload.RepositoryPassword
-		if password == "" && stack.GitConfig != nil && stack.GitConfig.Authentication != nil {
-			password = stack.GitConfig.Authentication.Password
+		if payload.RepositoryGitCredentialID != 0 {
+			credential, err := handler.DataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(payload.RepositoryGitCredentialID))
+			if err != nil {
+				return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Git credential not found", Err: err}
+			}
+
+			// Only check the ownership of git credential when it is updated
+			if stack.GitConfig != nil && stack.GitConfig.Authentication != nil && payload.RepositoryGitCredentialID != stack.GitConfig.Authentication.GitCredentialID && credential.UserID != user.ID {
+				return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "Couldn't update the git credential for another user", Err: httperrors.ErrUnauthorized}
+			}
+
+			repositoryUsername = credential.Username
+			repositoryPassword = credential.Password
+			repositoryGitCredentialID = payload.RepositoryGitCredentialID
 		}
+
+		if payload.RepositoryPassword != "" {
+			repositoryUsername = payload.RepositoryUsername
+			repositoryPassword = payload.RepositoryPassword
+			repositoryGitCredentialID = 0
+		}
+
+		// When the existing stack is using the custom username/password and the password is not updated,
+		// the stack should keep using the saved username/password
+		if payload.RepositoryPassword == "" && payload.RepositoryGitCredentialID == 0 &&
+			stack.GitConfig != nil && stack.GitConfig.Authentication != nil {
+			repositoryUsername = stack.GitConfig.Authentication.Username
+			repositoryPassword = stack.GitConfig.Authentication.Password
+			repositoryGitCredentialID = stack.GitConfig.Authentication.GitCredentialID
+		}
+
 		stack.GitConfig.Authentication = &gittypes.GitAuthentication{
-			Username: payload.RepositoryUsername,
-			Password: password,
+			Username:        repositoryUsername,
+			Password:        repositoryPassword,
+			GitCredentialID: repositoryGitCredentialID,
 		}
-		_, err = handler.GitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, stack.GitConfig.Authentication.Username, stack.GitConfig.Authentication.Password)
+		_, err = handler.GitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, repositoryUsername, repositoryPassword)
 		if err != nil {
 			return httperror.InternalServerError("Unable to fetch git repository", err)
 		}
@@ -176,7 +208,6 @@ func (handler *Handler) stackUpdateGit(w http.ResponseWriter, r *http.Request) *
 
 		stack.AutoUpdate.JobID = jobID
 	}
-
 	//save the updated stack to DB
 	err = handler.DataStore.Stack().UpdateStack(stack.ID, stack)
 	if err != nil {

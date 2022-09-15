@@ -124,6 +124,7 @@
             ng-if="state.Method === 'repository'"
             model="formValues"
             on-change="(onChangeFormValues)"
+            on-select-git-credential="(onChangeGitCredential)"
             additional-file="true"
             auto-update="true"
             show-auth-explanation="true"
@@ -197,7 +198,7 @@
               || !createStackForm.$valid
               || ((state.Method === 'editor' || state.Method === 'template') && (!formValues.StackFileContent || state.editorYamlValidationError))
               || (state.Method === 'upload' && (!formValues.StackFile || state.uploadYamlValidationError))
-              || (state.Method === 'repository' && ((!formValues.RepositoryURL || !formValues.ComposeFilePathInRepository) || (formValues.RepositoryAuthentication && !formValues.RepositoryPassword)))
+              || (state.Method === 'repository' && ((!formValues.RepositoryURL || !formValues.ComposeFilePathInRepository) || (formValues.RepositoryAuthentication && (!formValues.RepositoryPassword && formValues.RepositoryGitCredentialID===0)) || (formValues.RepositoryAuthentication && formValues.RepositoryPassword && formValues.SaveCredential && (!formValues.NewCredentialName || formValues.NewCredentialNameExist || formValues.NewCredentialNameInvalid))))
               || !formValues.Name"
                 ng-click="deployStack()"
                 button-spinner="state.actionInProgress"

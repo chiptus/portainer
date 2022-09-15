@@ -303,6 +303,7 @@ angular.module('portainer.app').factory('StackService', [
           RepositoryAuthentication: gitConfig.RepositoryAuthentication,
           RepositoryUsername: gitConfig.RepositoryUsername,
           RepositoryPassword: gitConfig.RepositoryPassword,
+          RepositoryGitCredentialID: gitConfig.RepositoryGitCredentialID,
         };
       }
 
@@ -374,6 +375,7 @@ angular.module('portainer.app').factory('StackService', [
         RepositoryAuthentication: repositoryOptions.RepositoryAuthentication,
         RepositoryUsername: repositoryOptions.RepositoryUsername,
         RepositoryPassword: repositoryOptions.RepositoryPassword,
+        RepositoryGitCredentialID: repositoryOptions.RepositoryGitCredentialID,
         FromAppTemplate: repositoryOptions.FromAppTemplate,
         Env: env,
       };
@@ -401,6 +403,7 @@ angular.module('portainer.app').factory('StackService', [
             RepositoryAuthentication: repositoryOptions.RepositoryAuthentication,
             RepositoryUsername: repositoryOptions.RepositoryUsername,
             RepositoryPassword: repositoryOptions.RepositoryPassword,
+            RepositoryGitCredentialID: repositoryOptions.RepositoryGitCredentialID,
             FromAppTemplate: repositoryOptions.FromAppTemplate,
             Env: env,
           };
@@ -456,6 +459,7 @@ angular.module('portainer.app').factory('StackService', [
           prune,
           RepositoryReferenceName: gitConfig.RefName,
           RepositoryAuthentication: gitConfig.RepositoryAuthentication,
+          RepositoryGitCredentialID: gitConfig.RepositoryGitCredentialID,
           RepositoryUsername: gitConfig.RepositoryUsername,
           RepositoryPassword: gitConfig.RepositoryPassword,
           PullImage: pullImage,
@@ -472,6 +476,7 @@ angular.module('portainer.app').factory('StackService', [
           RepositoryAuthentication: gitConfig.RepositoryAuthentication,
           RepositoryUsername: gitConfig.RepositoryUsername,
           RepositoryPassword: gitConfig.RepositoryPassword,
+          RepositoryGitCredentialID: gitConfig.RepositoryGitCredentialID,
         }
       ).$promise;
     }
@@ -497,6 +502,7 @@ angular.module('portainer.app').factory('StackService', [
           Env: env,
           RepositoryReferenceName: gitConfig.RefName,
           RepositoryAuthentication: gitConfig.RepositoryAuthentication,
+          RepositoryGitCredentialID: gitConfig.RepositoryGitCredentialID,
           RepositoryUsername: gitConfig.RepositoryUsername,
           RepositoryPassword: gitConfig.RepositoryPassword,
           Prune: gitConfig.Option.Prune,

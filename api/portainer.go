@@ -940,6 +940,19 @@ type (
 		Digest      []byte   `json:"digest,omitempty"` // Digest represents SHA256 hash of the raw API key
 	}
 
+	// GitCredentialID represents a git credential identifier
+	GitCredentialID int
+
+	// GitCredential represents a git credential
+	GitCredential struct {
+		ID           GitCredentialID `json:"id" example:"1"`
+		UserID       UserID          `json:"userId" example:"1"`
+		Name         string          `json:"name"`
+		Username     string          `json:"username"`
+		Password     string          `json:"password,omitempty"`
+		CreationDate int64           `json:"creationDate" example:"1587399600"`
+	}
+
 	// S3BackupSettings represents when and where to backup
 	S3BackupSettings struct {
 		// Crontab rule to make periodical backups
@@ -2312,10 +2325,17 @@ const (
 	OperationPortainerUserUpdate             Authorization = "PortainerUserUpdate"
 	OperationPortainerUserUpdatePassword     Authorization = "PortainerUserUpdatePassword"
 	OperationPortainerUserDelete             Authorization = "PortainerUserDelete"
-	OperationPortainerWebsocketExec          Authorization = "PortainerWebsocketExec"
-	OperationPortainerWebhookList            Authorization = "PortainerWebhookList"
-	OperationPortainerWebhookCreate          Authorization = "PortainerWebhookCreate"
-	OperationPortainerWebhookDelete          Authorization = "PortainerWebhookDelete"
+
+	OperationPortainerUserListGitCredential    Authorization = "PortainerUserListGitCredential"
+	OperationPortainerUserInspectGitCredential Authorization = "PortainerUserInspectGitCredential"
+	OperationPortainerUserCreateGitCredential  Authorization = "PortainerUserCreateGitCredential"
+	OperationPortainerUserUpdateGitCredential  Authorization = "PortainerUserUpdateGitCredential"
+	OperationPortainerUserDeleteGitCredential  Authorization = "PortainerUserDeleteGitCredential"
+
+	OperationPortainerWebsocketExec Authorization = "PortainerWebsocketExec"
+	OperationPortainerWebhookList   Authorization = "PortainerWebhookList"
+	OperationPortainerWebhookCreate Authorization = "PortainerWebhookCreate"
+	OperationPortainerWebhookDelete Authorization = "PortainerWebhookDelete"
 
 	OperationDockerUndefined      Authorization = "DockerUndefined"
 	OperationAzureUndefined       Authorization = "AzureUndefined"

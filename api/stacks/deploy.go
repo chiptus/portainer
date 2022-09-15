@@ -120,7 +120,22 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 		logger.Debugln("The stack has a git config, try to poll from git repository.")
 		username, password := "", ""
 		if stack.GitConfig.Authentication != nil {
-			username, password = stack.GitConfig.Authentication.Username, stack.GitConfig.Authentication.Password
+			if stack.GitConfig.Authentication.GitCredentialID != 0 {
+				credential, err := datastore.GitCredential().GetGitCredential(portaineree.GitCredentialID(stack.GitConfig.Authentication.GitCredentialID))
+				if err != nil {
+					return errors.WithMessagef(err, "failed to get credential associated to the stack %v", stack.ID)
+				}
+				username, password = credential.Username, credential.Password
+
+				// update stack git credential accordingly when associated git credential is changed from account setting
+				if credential.Username != stack.GitConfig.Authentication.Username || credential.Password != stack.GitConfig.Authentication.Password {
+					stack.GitConfig.Authentication.Username = credential.Username
+					stack.GitConfig.Authentication.Password = credential.Password
+				}
+			} else {
+				username, password = stack.GitConfig.Authentication.Username, stack.GitConfig.Authentication.Password
+			}
+
 		}
 		newHash, err := gitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, username, password)
 		if err != nil {
