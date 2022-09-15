@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/docker/docker/api/types"
 	"github.com/sirupsen/logrus"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -33,6 +34,25 @@ type edgeJobData struct {
 	CronExpression    string
 	ScriptFileContent string
 	Version           int
+}
+
+type containerCommandData struct {
+	ContainerName          string
+	ContainerStartOptions  types.ContainerStartOptions
+	ContainerRemoveOptions types.ContainerRemoveOptions
+	ContainerOperation     portaineree.EdgeAsyncContainerOperation
+}
+
+type imageCommandData struct {
+	ImageName          string
+	ImageRemoveOptions types.ImageRemoveOptions
+	ImageOperation     portaineree.EdgeAsyncImageOperation
+}
+
+type volumeCommandData struct {
+	VolumeName      string
+	ForceRemove     bool
+	VolumeOperation portaineree.EdgeAsyncVolumeOperation
 }
 
 type Service struct {
@@ -197,6 +217,144 @@ func (service *Service) RemoveJobCommand(endpointID portaineree.EndpointID, edge
 		Timestamp:  time.Now(),
 		Operation:  portaineree.EdgeAsyncCommandOpRemove,
 		Path:       fmt.Sprintf("/edgejob/%d", edgeJobID),
+	}
+
+	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
+}
+
+func (service *Service) StartContainerCommand(endpointID portaineree.EndpointID, name string, startOptions types.ContainerStartOptions) error {
+	cmdData := containerCommandData{
+		ContainerName:          name,
+		ContainerStartOptions:  startOptions,
+		ContainerRemoveOptions: types.ContainerRemoveOptions{},
+		ContainerOperation:     portaineree.EdgeAsyncContainerOperationStart,
+	}
+
+	asyncCommand := &portaineree.EdgeAsyncCommand{
+		Type:       portaineree.EdgeAsyncCommandTypeContainer,
+		EndpointID: endpointID,
+		Timestamp:  time.Now(),
+		Operation:  portaineree.EdgeAsyncCommandOpAdd,
+		Path:       fmt.Sprintf("/containers/%s/%s", portaineree.EdgeAsyncContainerOperationStart, name),
+		Value:      cmdData,
+	}
+
+	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
+}
+
+func (service *Service) RestartContainerCommand(endpointID portaineree.EndpointID, name string) error {
+	cmdData := containerCommandData{
+		ContainerName:          name,
+		ContainerStartOptions:  types.ContainerStartOptions{},
+		ContainerRemoveOptions: types.ContainerRemoveOptions{},
+		ContainerOperation:     portaineree.EdgeAsyncContainerOperationRestart,
+	}
+
+	asyncCommand := &portaineree.EdgeAsyncCommand{
+		Type:       portaineree.EdgeAsyncCommandTypeContainer,
+		EndpointID: endpointID,
+		Timestamp:  time.Now(),
+		Operation:  portaineree.EdgeAsyncCommandOpAdd,
+		Path:       fmt.Sprintf("/containers/%s/%s", portaineree.EdgeAsyncContainerOperationRestart, name),
+		Value:      cmdData,
+	}
+
+	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
+}
+
+func (service *Service) StopContainerCommand(endpointID portaineree.EndpointID, name string) error {
+	cmdData := containerCommandData{
+		ContainerName:          name,
+		ContainerStartOptions:  types.ContainerStartOptions{},
+		ContainerRemoveOptions: types.ContainerRemoveOptions{},
+		ContainerOperation:     portaineree.EdgeAsyncContainerOperationStop,
+	}
+
+	asyncCommand := &portaineree.EdgeAsyncCommand{
+		Type:       portaineree.EdgeAsyncCommandTypeContainer,
+		EndpointID: endpointID,
+		Timestamp:  time.Now(),
+		Operation:  portaineree.EdgeAsyncCommandOpAdd,
+		Path:       fmt.Sprintf("/containers/%s/%s", portaineree.EdgeAsyncContainerOperationStop, name),
+		Value:      cmdData,
+	}
+
+	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
+}
+
+func (service *Service) DeleteContainerCommand(endpointID portaineree.EndpointID, name string, removeOptions types.ContainerRemoveOptions) error {
+	cmdData := containerCommandData{
+		ContainerName:          name,
+		ContainerStartOptions:  types.ContainerStartOptions{},
+		ContainerRemoveOptions: removeOptions,
+		ContainerOperation:     portaineree.EdgeAsyncContainerOperationDelete,
+	}
+
+	asyncCommand := &portaineree.EdgeAsyncCommand{
+		Type:       portaineree.EdgeAsyncCommandTypeContainer,
+		EndpointID: endpointID,
+		Timestamp:  time.Now(),
+		Operation:  portaineree.EdgeAsyncCommandOpAdd,
+		Path:       fmt.Sprintf("/containers/%s/%s", portaineree.EdgeAsyncContainerOperationDelete, name),
+		Value:      cmdData,
+	}
+
+	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
+}
+
+func (service *Service) KillContainerCommand(endpointID portaineree.EndpointID, name string) error {
+	cmdData := containerCommandData{
+		ContainerName:          name,
+		ContainerStartOptions:  types.ContainerStartOptions{},
+		ContainerRemoveOptions: types.ContainerRemoveOptions{},
+		ContainerOperation:     portaineree.EdgeAsyncContainerOperationKill,
+	}
+
+	asyncCommand := &portaineree.EdgeAsyncCommand{
+		Type:       portaineree.EdgeAsyncCommandTypeContainer,
+		EndpointID: endpointID,
+		Timestamp:  time.Now(),
+		Operation:  portaineree.EdgeAsyncCommandOpAdd,
+		Path:       fmt.Sprintf("/containers/%s/%s", portaineree.EdgeAsyncContainerOperationKill, name),
+		Value:      cmdData,
+	}
+
+	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
+}
+
+func (service *Service) DeleteImageCommand(endpointID portaineree.EndpointID, name string, removeOptions types.ImageRemoveOptions) error {
+	cmdData := imageCommandData{
+		ImageName:          name,
+		ImageRemoveOptions: removeOptions,
+		ImageOperation:     portaineree.EdgeAsyncImageOperationDelete,
+	}
+
+	asyncCommand := &portaineree.EdgeAsyncCommand{
+		Type:       portaineree.EdgeAsyncCommandTypeImage,
+		EndpointID: endpointID,
+		Timestamp:  time.Now(),
+		Operation:  portaineree.EdgeAsyncCommandOpAdd,
+		Path:       fmt.Sprintf("/images/%s/%s", portaineree.EdgeAsyncImageOperationDelete, name),
+		Value:      cmdData,
+	}
+
+	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
+}
+
+func (service *Service) DeleteVolumeCommand(endpointID portaineree.EndpointID, name string, forceRemove bool) error {
+	cmdData := volumeCommandData{
+		VolumeName:      name,
+		ForceRemove:     forceRemove,
+		VolumeOperation: portaineree.EdgeAsyncVolumeOperationDelete,
+	}
+
+	asyncCommand := &portaineree.EdgeAsyncCommand{
+		Type:       portaineree.EdgeAsyncCommandTypeVolume,
+		EndpointID: endpointID,
+		Timestamp:  time.Now(),
+		Operation:  portaineree.EdgeAsyncCommandOpAdd,
+		Path:       fmt.Sprintf("/volumes/%s/%s", portaineree.EdgeAsyncVolumeOperationDelete, name),
+		Value:      cmdData,
 	}
 
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)

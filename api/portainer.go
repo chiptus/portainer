@@ -32,8 +32,11 @@ type (
 		Authorizations Authorizations
 	}
 
-	EdgeAsyncCommandType      string
-	EdgeAsyncCommandOperation string
+	EdgeAsyncCommandType        string
+	EdgeAsyncCommandOperation   string
+	EdgeAsyncContainerOperation string
+	EdgeAsyncImageOperation     string
+	EdgeAsyncVolumeOperation    string
 
 	// EdgeAsyncCommand represents a command that is executed by an Edge Agent. Follows JSONPatch RFC https://datatracker.ietf.org/doc/html/rfc6902
 	EdgeAsyncCommand struct {
@@ -2086,13 +2089,26 @@ const (
 )
 
 const (
-	EdgeAsyncCommandTypeStack EdgeAsyncCommandType = "edgeStack"
-	EdgeAsyncCommandTypeJob   EdgeAsyncCommandType = "edgeJob"
-	EdgeAsyncCommandTypeLog   EdgeAsyncCommandType = "edgeLog"
+	EdgeAsyncCommandTypeStack     EdgeAsyncCommandType = "edgeStack"
+	EdgeAsyncCommandTypeJob       EdgeAsyncCommandType = "edgeJob"
+	EdgeAsyncCommandTypeLog       EdgeAsyncCommandType = "edgeLog"
+	EdgeAsyncCommandTypeContainer EdgeAsyncCommandType = "container"
+	EdgeAsyncCommandTypeImage     EdgeAsyncCommandType = "image"
+	EdgeAsyncCommandTypeVolume    EdgeAsyncCommandType = "volume"
 
 	EdgeAsyncCommandOpAdd     EdgeAsyncCommandOperation = "add"
 	EdgeAsyncCommandOpRemove  EdgeAsyncCommandOperation = "remove"
 	EdgeAsyncCommandOpReplace EdgeAsyncCommandOperation = "replace"
+
+	EdgeAsyncContainerOperationStart   EdgeAsyncContainerOperation = "start"
+	EdgeAsyncContainerOperationRestart EdgeAsyncContainerOperation = "restart"
+	EdgeAsyncContainerOperationStop    EdgeAsyncContainerOperation = "stop"
+	EdgeAsyncContainerOperationDelete  EdgeAsyncContainerOperation = "delete"
+	EdgeAsyncContainerOperationKill    EdgeAsyncContainerOperation = "kill"
+
+	EdgeAsyncImageOperationDelete EdgeAsyncImageOperation = "delete"
+
+	EdgeAsyncVolumeOperationDelete EdgeAsyncVolumeOperation = "delete"
 )
 
 const (

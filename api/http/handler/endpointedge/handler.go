@@ -54,5 +54,9 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 	h.Handle("/edge/async", handlers.CompressHandler(bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeAsync)))).Methods(http.MethodPost)
 	h.Handle("/edge/generate-key", bouncer.AdminAccess(httperror.LoggerHandler(h.endpointEdgeGenerateKey))).Methods(http.MethodPost)
 
+	endpointRouter.Handle("/edge/async/commands/container", bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.createContainerCommand))).Methods(http.MethodPost)
+	endpointRouter.Handle("/edge/async/commands/image", bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.createImageCommand))).Methods(http.MethodPost)
+	endpointRouter.Handle("/edge/async/commands/volume", bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.createVolumeCommand))).Methods(http.MethodPost)
+
 	return h
 }
