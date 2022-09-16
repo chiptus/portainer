@@ -6,7 +6,7 @@ import (
 
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 // Status constants
@@ -26,12 +26,14 @@ var (
 type Status string
 
 func (c *DigestClient) Status(ctx context.Context, image string) (Status, error) {
-	log.Debugf("orginal incoming image name is %s", image)
+	log.Debug().Str("image", image).Msg("original incoming image")
+
 	img, err := ParseImage(ParseImageOptions{
 		Name: image,
 	})
 	if err != nil {
-		log.Debugf("image parse failed: %s", image)
+		log.Debug().Str("image", image).Msg("parse failed")
+
 		return Error, err
 	}
 
@@ -43,8 +45,9 @@ func (c *DigestClient) Status(ctx context.Context, image string) (Status, error)
 
 	s, err = c.status(img)
 	if err != nil {
-		log.Debugf("error when fetch a certain image status: %v", err)
+		log.Debug().Err(err).Msg("fetching a certain image status")
 		_statusCache.Set(imageString, Error, 0)
+
 		return Error, err
 	}
 
@@ -54,30 +57,39 @@ func (c *DigestClient) Status(ctx context.Context, image string) (Status, error)
 
 func (c *DigestClient) status(img Image) (Status, error) {
 	image := img.FullName()
-	log.Debugf("start image: %s", image)
+
+	log.Debug().Str("image", image).Msg("start image")
+
 	dg := img.Digest
 	if dg == "" {
-		log.Debugf("incoming local digest is null, fetch via docker images")
+		log.Debug().Msg("incoming local digest is null, fetching via docker images")
+
 		var err error
 		dg, err = c.LocalDigest(img)
 		if err != nil {
-			log.Debugf("err when fetch local digest for image: %s, %v", image, err)
+			log.Debug().Str("image", image).Err(err).Msg("fetching local digest for image")
+
 			return Skipped, err
 		}
 	}
 	remoteDigest, err := c.RemoteDigest(img)
 	if err != nil {
-		log.Errorf("error when fetch remote digest for image: %s, %v", image, err)
+		log.Error().Str("image", image).Err(err).Msg("fetching remote digest for image")
+
 		return Error, err
 	}
 
-	log.Debugf("digest from remote image %s is %s, local is: %s", image, remoteDigest, dg)
-	var imageStatus Status
+	log.Debug().
+		Str("image", image).
+		Stringer("remote_digest", remoteDigest).
+		Stringer("local_digest", dg).
+		Msg("")
+
+	imageStatus := Outdated
 	if dg == remoteDigest {
 		imageStatus = Updated
-	} else {
-		imageStatus = Outdated
 	}
+
 	return imageStatus, nil
 }
 

@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer/api/dataservices/errors"
-	"github.com/sirupsen/logrus"
-
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/dataservices/errors"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -61,13 +61,15 @@ func (service *Service) TeamByName(name string) (*portaineree.Team, error) {
 		func(obj interface{}) (interface{}, error) {
 			team, ok := obj.(*portaineree.Team)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to Team object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Team object")
 				return nil, fmt.Errorf("Failed to convert to Team object: %s", obj)
 			}
+
 			if strings.EqualFold(team.Name, name) {
 				t = team
 				return nil, stop
 			}
+
 			return &portaineree.Team{}, nil
 		})
 	if err == stop {
@@ -90,10 +92,12 @@ func (service *Service) Teams() ([]portaineree.Team, error) {
 		func(obj interface{}) (interface{}, error) {
 			team, ok := obj.(*portaineree.Team)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to Team object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Team object")
 				return nil, fmt.Errorf("Failed to convert to Team object: %s", obj)
 			}
+
 			teams = append(teams, *team)
+
 			return &portaineree.Team{}, nil
 		})
 

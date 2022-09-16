@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/sirupsen/logrus"
-
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	portainer "github.com/portainer/portainer/api"
+
+	"github.com/docker/docker/api/types"
+	"github.com/rs/zerolog/log"
 )
 
 type edgeStackData struct {
@@ -88,20 +88,23 @@ func (service *Service) storeUpdateStackCommand(endpoint *portaineree.Endpoint, 
 	fileName := edgeStack.EntryPoint
 	if endpointutils.IsDockerEndpoint(endpoint) {
 		if fileName == "" {
-			logrus.Error("Docker is not supported by this stack")
+			log.Error().Msg("Docker is not supported by this stack")
+
 			return nil
 		}
 	} else if endpointutils.IsKubernetesEndpoint(endpoint) {
 		fileName = edgeStack.ManifestPath
 		if fileName == "" {
-			logrus.Error("Kubernetes is not supported by this stack")
+			log.Error().Msg("Kubernetes is not supported by this stack")
+
 			return nil
 		}
 	}
 
 	stackFileContent, err := service.fileService.GetFileContent(edgeStack.ProjectPath, fileName)
 	if err != nil {
-		logrus.WithError(err).Error("Unable to retrieve Compose file from disk")
+		log.Error().Err(err).Msg("unable to retrieve Compose file from disk")
+
 		return err
 	}
 

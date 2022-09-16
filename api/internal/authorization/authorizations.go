@@ -1196,8 +1196,8 @@ func getUserNamespaceRoles(
 
 // For each namespace, first calculate the role(s) of a user
 // based on the sequence of searching:
-//  - His namespace role (single)
-//  - His teams namespace role (multiple, 1 user has n teams)
+//   - His namespace role (single)
+//   - His teams namespace role (multiple, 1 user has n teams)
 //
 // If roles are found in any of the step, the search stops.
 // Then the role with the hightest priority is returned.
@@ -1220,8 +1220,8 @@ func getUserNamespaceRole(
 
 // For each environment(endpoint), first calculate the role(s) of a team
 // based on the sequence of searching:
-//  - Team's environment(endpoint) role (multiple, 1 user has n teams)
-//  - Team's roles in all the assigned environment(endpoint) groups (multiple, 1 user has n teams, 1 team has 1 environment(endpoint) group)
+//   - Team's environment(endpoint) role (multiple, 1 user has n teams)
+//   - Team's roles in all the assigned environment(endpoint) groups (multiple, 1 user has n teams, 1 team has 1 environment(endpoint) group)
 //
 // If roles are found in any of the step, the search stops.
 // Then the role with the hightest priority is returned.
@@ -1264,10 +1264,10 @@ func (service *Service) GetTeamEndpointRole(
 
 // For each environment(endpoint), first calculate the role(s) of a user
 // based on the sequence of searching:
-//  - His environment(endpoint) role (single)
-//  - His environment(endpoint) group role (single, 1 environment(endpoint) has 1 environment(endpoint) group)
-//  - His teams environment(endpoint) role (multiple, 1 user has n teams)
-//  - His teams roles in all the assigned environment(endpoint) groups (multiple, 1 user has n teams, 1 team has 1 environment(endpoint) group)
+//   - His environment(endpoint) role (single)
+//   - His environment(endpoint) group role (single, 1 environment(endpoint) has 1 environment(endpoint) group)
+//   - His teams environment(endpoint) role (multiple, 1 user has n teams)
+//   - His teams roles in all the assigned environment(endpoint) groups (multiple, 1 user has n teams, 1 team has 1 environment(endpoint) group)
 //
 // If roles are found in any of the step, the search stops.
 // Then the role with the hightest priority is returned.

@@ -1,7 +1,6 @@
 package datastore
 
 import (
-	"log"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -9,7 +8,8 @@ import (
 	"github.com/portainer/portainer-ee/api/database"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 var errTempDir = errors.New("can't create a temp dir")
@@ -24,7 +24,8 @@ func MustNewTestStore(t *testing.T, init, secure bool) (bool, *Store, func()) {
 		if !errors.Is(err, errTempDir) && teardown != nil {
 			teardown()
 		}
-		log.Fatal(err)
+
+		log.Fatal().Err(err).Msg("")
 	}
 
 	return newStore, store, teardown
@@ -54,7 +55,7 @@ func NewTestStore(t *testing.T, init, secure bool) (bool, *Store, func(), error)
 		return newStore, nil, nil, err
 	}
 
-	logrus.Error("Openned")
+	log.Debug().Msg("opened")
 
 	if init {
 		err = store.Init()
@@ -63,7 +64,7 @@ func NewTestStore(t *testing.T, init, secure bool) (bool, *Store, func(), error)
 		}
 	}
 
-	logrus.Error("Initialised")
+	log.Debug().Msg("initialised")
 
 	if newStore {
 		// from MigrateData
@@ -84,6 +85,6 @@ func NewTestStore(t *testing.T, init, secure bool) (bool, *Store, func(), error)
 func teardown(store *Store) {
 	err := store.Close()
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal().Err(err).Msg("")
 	}
 }

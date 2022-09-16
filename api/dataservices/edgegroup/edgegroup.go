@@ -5,7 +5,8 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -44,10 +45,11 @@ func (service *Service) EdgeGroups() ([]portaineree.EdgeGroup, error) {
 		func(obj interface{}) (interface{}, error) {
 			group, ok := obj.(*portaineree.EdgeGroup)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to EdgeGroup object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to EdgeGroup object")
 				return nil, fmt.Errorf("Failed to convert to EdgeGroup object: %s", obj)
 			}
 			groups = append(groups, *group)
+
 			return &portaineree.EdgeGroup{}, nil
 		})
 

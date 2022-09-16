@@ -2,12 +2,9 @@ package backup
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
-
-	"github.com/pkg/errors"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
@@ -16,6 +13,9 @@ import (
 	"github.com/portainer/portainer/api/archive"
 	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/filesystem"
+
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 const rwxr__r__ os.FileMode = 0744
@@ -36,12 +36,15 @@ var filesToBackup = []string{
 func BackupToS3(settings portaineree.S3BackupSettings, gate *offlinegate.OfflineGate, datastore dataservices.DataStore, userActivityStore portaineree.UserActivityStore, filestorePath string) error {
 	archivePath, err := CreateBackupArchive(settings.Password, gate, datastore, userActivityStore, filestorePath)
 	if err != nil {
-		log.Printf("[ERROR] failed to backup: %s \n", err)
+		log.Error().Err(err).Msg("failed to backup")
+
 		return err
 	}
+
 	archiveReader, err := os.Open(archivePath)
 	if err != nil {
-		log.Println("[ERROR] failed to open backup file")
+		log.Error().Msg("failed to open backup file")
+
 		return err
 	}
 	defer os.RemoveAll(filepath.Dir(archivePath))
@@ -50,13 +53,17 @@ func BackupToS3(settings portaineree.S3BackupSettings, gate *offlinegate.Offline
 
 	s3session, err := s3.NewSession(settings.Region, settings.AccessKeyID, settings.SecretAccessKey)
 	if err != nil {
-		log.Printf("[ERROR] %s \n", err)
+		log.Error().Err(err).Msg("")
+
 		return err
 	}
+
 	if err := s3.Upload(s3session, archiveReader, settings.BucketName, archiveName); err != nil {
-		log.Printf("[ERROR] failed to upload backup to S3: %s \n", err)
+		log.Error().Err(err).Msg("failed to upload backup to S3")
+
 		return err
 	}
+
 	return nil
 }
 

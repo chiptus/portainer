@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -44,7 +44,8 @@ func NewConfig(id, accessKeyId, secretAccessKey, region, binaryPath string) *Con
 func (c *Config) Run(params ...string) error {
 	err := ensureEksctl(c.binaryPath)
 	if err != nil {
-		log.Errorf("Cannot download eksctl and dependencies: %v", err)
+		log.Error().Err(err).Msg("cannot download eksctl and dependencies")
+
 		return fmt.Errorf("Failed to download eksctl or dependancy. Cannot create EKS cluster.")
 	}
 
@@ -54,7 +55,7 @@ func (c *Config) Run(params ...string) error {
 	// run eksctl with privided params
 	cmd := exec.Command(Eksctl, params...)
 
-	log.Debugf("exec: %v", cmd.Args)
+	log.Debug().Strs("args", cmd.Args).Msg("exec")
 
 	// add aws environment vars for authentication and region
 	cmd.Env = os.Environ()
@@ -104,11 +105,11 @@ func (c *Config) Run(params ...string) error {
 		select {
 		case <-ticker.C:
 			if len(logText) > 0 {
-				log.Infof(
-					"[cloud] [eksctl] [cluster id: %s] [output]\n  %s",
-					c.id,
-					strings.Join(logText, "\n  "),
-				)
+				log.Info().
+					Str("cluster_id", c.id).
+					Str("output", strings.Join(logText, "\n  ")).
+					Msg("")
+
 				logText = []string{}
 			}
 
@@ -123,11 +124,10 @@ func (c *Config) Run(params ...string) error {
 	}
 
 	// Dump out any remaining log text.
-	log.Infof(
-		"[cloud] [eksctl] [cluster id: %s] [output]\n  %s",
-		c.id,
-		strings.Join(logText, "\n  "),
-	)
+	log.Info().
+		Str("cluster_id", c.id).
+		Str("output", strings.Join(logText, "\n  ")).
+		Msg("")
 
 	if err = cmd.Wait(); err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {

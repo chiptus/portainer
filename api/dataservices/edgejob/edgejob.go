@@ -5,7 +5,8 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -42,13 +43,14 @@ func (service *Service) EdgeJobs() ([]portaineree.EdgeJob, error) {
 		BucketName,
 		&portaineree.EdgeJob{},
 		func(obj interface{}) (interface{}, error) {
-			//var tag portaineree.Tag
 			job, ok := obj.(*portaineree.EdgeJob)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to EdgeJob object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to EdgeJob object")
 				return nil, fmt.Errorf("Failed to convert to EdgeJob object: %s", obj)
 			}
+
 			edgeJobs = append(edgeJobs, *job)
+
 			return &portaineree.EdgeJob{}, nil
 		})
 

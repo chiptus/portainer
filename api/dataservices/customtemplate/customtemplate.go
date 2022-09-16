@@ -5,7 +5,8 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -45,10 +46,11 @@ func (service *Service) CustomTemplates() ([]portaineree.CustomTemplate, error) 
 			//var tag portainer.Tag
 			customTemplate, ok := obj.(*portaineree.CustomTemplate)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to CustomTemplate object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to CustomTemplate object")
 				return nil, fmt.Errorf("Failed to convert to CustomTemplate object: %s", obj)
 			}
 			customTemplates = append(customTemplates, *customTemplate)
+
 			return &portaineree.CustomTemplate{}, nil
 		})
 

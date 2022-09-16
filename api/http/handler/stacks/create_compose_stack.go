@@ -1,13 +1,11 @@
 package stacks
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/asaskevich/govalidator"
-	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -16,6 +14,10 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/stackutils"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type composeStackFromFileContentPayload struct {
@@ -46,6 +48,7 @@ func (handler *Handler) checkAndCleanStackDupFromSwarm(w http.ResponseWriter, r 
 	if err != nil {
 		return err
 	}
+
 	// stop scheduler updates of the stack before removal
 	if stack.AutoUpdate != nil {
 		stopAutoupdate(stack.ID, stack.AutoUpdate.JobID, *handler.Scheduler)
@@ -59,16 +62,21 @@ func (handler *Handler) checkAndCleanStackDupFromSwarm(w http.ResponseWriter, r 
 	if resourceControl != nil {
 		err = handler.DataStore.ResourceControl().DeleteResourceControl(resourceControl.ID)
 		if err != nil {
-			log.Printf("[ERROR] [Stack] Unable to remove the associated resource control from the database for stack: [%+v].", stack)
+			log.Error().
+				Str("stack", fmt.Sprintf("%+v", stack)).
+				Msg("unable to remove the associated resource control from the database for stack")
 		}
 	}
 
 	if exists, _ := handler.FileService.FileExists(stack.ProjectPath); exists {
 		err = handler.FileService.RemoveDirectory(stack.ProjectPath)
 		if err != nil {
-			log.Printf("Unable to remove stack files from disk for stack: [%+v].", stack)
+			log.Warn().
+				Str("stack", fmt.Sprintf("%+v", stack)).
+				Msg("unable to remove stack files from disk for stack")
 		}
 	}
+
 	return nil
 }
 
@@ -85,6 +93,7 @@ func (handler *Handler) createComposeStackFromFileContent(w http.ResponseWriter,
 	if err != nil {
 		return httperror.InternalServerError("Unable to check for name collision", err)
 	}
+
 	if !isUnique {
 		stacks, err := handler.DataStore.Stack().StacksByName(payload.Name)
 		if err != nil {
@@ -214,6 +223,7 @@ func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWrite
 	if err != nil {
 		return httperror.InternalServerError("Unable to check for name collision", err)
 	}
+
 	if !isUnique {
 		stacks, err := handler.DataStore.Stack().StacksByName(payload.Name)
 		if err != nil {
@@ -329,6 +339,7 @@ func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWrite
 	}
 
 	stack.CreatedBy = config.user.Username
+
 	err = handler.DataStore.Stack().Create(stack)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist the stack inside the database", err)
@@ -385,6 +396,7 @@ func (handler *Handler) createComposeStackFromFileUpload(w http.ResponseWriter, 
 	if err != nil {
 		return httperror.InternalServerError("Unable to check for name collision", err)
 	}
+
 	if !isUnique {
 		stacks, err := handler.DataStore.Stack().StacksByName(payload.Name)
 		if err != nil {

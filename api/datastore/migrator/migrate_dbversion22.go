@@ -1,9 +1,14 @@
 package migrator
 
-import portaineree "github.com/portainer/portainer-ee/api"
+import (
+	portaineree "github.com/portainer/portainer-ee/api"
+
+	"github.com/rs/zerolog/log"
+)
 
 func (m *Migrator) updateTagsToDBVersion23() error {
-	migrateLog.Info("- updating tags")
+	log.Info().Msg("updating tags")
+
 	tags, err := m.tagService.Tags()
 	if err != nil {
 		return err
@@ -12,16 +17,19 @@ func (m *Migrator) updateTagsToDBVersion23() error {
 	for _, tag := range tags {
 		tag.EndpointGroups = make(map[portaineree.EndpointGroupID]bool)
 		tag.Endpoints = make(map[portaineree.EndpointID]bool)
+
 		err = m.tagService.UpdateTag(tag.ID, &tag)
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
 func (m *Migrator) updateEndpointsAndEndpointGroupsToDBVersion23() error {
-	migrateLog.Info("- updating endpoints and endpoint groups")
+	log.Info().Msg("updating endpoints and endpoint groups")
+
 	tags, err := m.tagService.Tags()
 	if err != nil {
 		return err
@@ -90,5 +98,6 @@ func (m *Migrator) updateEndpointsAndEndpointGroupsToDBVersion23() error {
 			return err
 		}
 	}
+
 	return nil
 }

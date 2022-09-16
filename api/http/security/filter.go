@@ -79,6 +79,7 @@ func FilterRegistries(registries []portaineree.Registry, user *portaineree.User,
 			filteredRegistries = append(filteredRegistries, registry)
 		}
 	}
+
 	return filteredRegistries
 }
 

@@ -3,17 +3,17 @@ package exec
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	_ "github.com/joho/godotenv/autoload"
-
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
+
+	_ "github.com/joho/godotenv/autoload"
+	"github.com/rs/zerolog/log"
 )
 
 const composeFile = `version: "3.9"
@@ -79,7 +79,7 @@ func containerExists(containerName string) bool {
 
 	out, err := cmd.Output()
 	if err != nil {
-		log.Fatalf("failed to list containers: %s", err)
+		log.Fatal().Err(err).Msg("failed to list containers")
 	}
 
 	return strings.Contains(string(out), containerName)

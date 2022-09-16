@@ -8,13 +8,12 @@ import (
 	"strconv"
 	"sync"
 
-	cmap "github.com/orcaman/concurrent-map"
-
-	"github.com/pkg/errors"
-
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer/api/filesystem"
+
+	cmap "github.com/orcaman/concurrent-map"
+	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"

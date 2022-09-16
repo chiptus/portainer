@@ -11,7 +11,8 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 // @id OpenAMTDevices
@@ -69,6 +70,7 @@ func (payload *deviceActionPayload) Validate(r *http.Request) error {
 	if payload.Action == "" {
 		return errors.New("device action must be provided")
 	}
+
 	return nil
 }
 
@@ -95,7 +97,8 @@ func (handler *Handler) deviceAction(w http.ResponseWriter, r *http.Request) *ht
 	var payload deviceActionPayload
 	err = request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		logrus.WithError(err).Error("Invalid request payload")
+		log.Error().Err(err).Msg("invalid request payload")
+
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
@@ -106,7 +109,8 @@ func (handler *Handler) deviceAction(w http.ResponseWriter, r *http.Request) *ht
 
 	err = handler.OpenAMTService.ExecuteDeviceAction(settings.OpenAMTConfiguration, deviceID, payload.Action)
 	if err != nil {
-		logrus.WithError(err).Error("Error executing device action")
+		log.Error().Err(err).Msg("error executing device action")
+
 		return httperror.BadRequest("Error executing device action", err)
 	}
 
@@ -121,6 +125,7 @@ func (payload *deviceFeaturesPayload) Validate(r *http.Request) error {
 	if payload.Features.UserConsent == "" {
 		return errors.New("device user consent status must be provided")
 	}
+
 	return nil
 }
 
@@ -152,7 +157,8 @@ func (handler *Handler) deviceFeatures(w http.ResponseWriter, r *http.Request) *
 	var payload deviceFeaturesPayload
 	err = request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		logrus.WithError(err).Error("Invalid request payload")
+		log.Error().Err(err).Msg("invalid request payload")
+
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
@@ -168,7 +174,8 @@ func (handler *Handler) deviceFeatures(w http.ResponseWriter, r *http.Request) *
 
 	token, err := handler.OpenAMTService.EnableDeviceFeatures(settings.OpenAMTConfiguration, deviceID, payload.Features)
 	if err != nil {
-		logrus.WithError(err).Error("Error executing device action")
+		log.Error().Err(err).Msg("error executing device action")
+
 		return httperror.BadRequest("Error executing device action", err)
 	}
 
@@ -176,5 +183,6 @@ func (handler *Handler) deviceFeatures(w http.ResponseWriter, r *http.Request) *
 		Server: settings.OpenAMTConfiguration.MPSServer,
 		Token:  token,
 	}
+
 	return response.JSON(w, authorizationResponse)
 }

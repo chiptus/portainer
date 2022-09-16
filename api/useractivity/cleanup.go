@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	portaineree "github.com/portainer/portainer-ee/api"
 
 	storm "github.com/asdine/storm/v3"
 	"github.com/asdine/storm/v3/q"
-	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/rs/zerolog/log"
 )
 
 func (store *Store) startCleanupLoop() error {
-	log.Debugf("[useractivity] [check_interval_seconds: %f] [message: starting logs cleanup process]", cleanupInterval.Seconds())
+	log.Debug().Float64("check_interval_seconds", cleanupInterval.Seconds()).Msg("starting logs cleanup process")
+
 	err := store.cleanLogs()
 	if err != nil {
 		return fmt.Errorf("failed starting logs cleanup process: %w", err)
@@ -33,13 +34,15 @@ func (store *Store) cleanupLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ticker.C:
-			log.Printf("[DEBUG] [useractivity] [message: cleaning logs]")
+			log.Debug().Msg("cleaning logs]")
+
 			err := store.cleanLogs()
 			if err != nil {
-				log.Printf("[ERROR] [useractivity] [message: failed clearing auth logs] [error: %s]", err)
+				log.Error().Err(err).Msg("failed clearing auth logs")
 			}
 		case <-ctx.Done():
 			ticker.Stop()
+
 			return
 		}
 	}
@@ -54,13 +57,15 @@ func (store *Store) cleanLogs() error {
 	if err != nil {
 		return fmt.Errorf("failed cleaning auth logs: %w", err)
 	}
-	log.Printf("[DEBUG] [message: removed %d old auth logs]", count)
+
+	log.Debug().Int("count", count).Msg("removed old auth logs")
 
 	count, err = store.cleanLogsByType(&portaineree.UserActivityLog{})
 	if err != nil {
 		return fmt.Errorf("failed cleaning user activity logs: %w", err)
 	}
-	log.Printf("[DEBUG] [message: removed %d old user activity logs]", count)
+
+	log.Debug().Int("count", count).Msg("removed old user activity logs")
 
 	return nil
 }

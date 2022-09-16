@@ -1,12 +1,13 @@
 package azure
 
 import (
-	"log"
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+
+	"github.com/rs/zerolog/log"
 )
 
 func (transport *Transport) createAzureRequestContext(request *http.Request) (*azureRequestContext, error) {
@@ -73,7 +74,11 @@ func (transport *Transport) createPrivateResourceControl(
 
 	err := transport.dataStore.ResourceControl().Create(resourceControl)
 	if err != nil {
-		log.Printf("[ERROR] [http,proxy,azure,transport] [message: unable to persist resource control] [resource: %s] [err: %s]", resourceIdentifier, err)
+		log.Error().
+			Str("resource", resourceIdentifier).
+			Err(err).
+			Msg("unable to persist resource control")
+
 		return nil, err
 	}
 
@@ -84,6 +89,7 @@ func (transport *Transport) userCanDeleteContainerGroup(request *http.Request, c
 	if context.isAdmin || context.endpointResourceAccess {
 		return true
 	}
+
 	resourceIdentifier := request.URL.Path
 	resourceControl := transport.findResourceControl(resourceIdentifier, context)
 	return authorization.UserCanAccessResource(context.userID, context.userTeamIDs, resourceControl)
@@ -108,7 +114,7 @@ func (transport *Transport) decorateContainerGroup(containerGroup map[string]int
 			containerGroup = decorateObject(containerGroup, resourceControl)
 		}
 	} else {
-		log.Printf("[WARN] [http,proxy,azure,decorate] [message: unable to find resource id property in container group]")
+		log.Warn().Msg("unable to find resource id property in container group")
 	}
 
 	return containerGroup
@@ -145,7 +151,7 @@ func (transport *Transport) removeResourceControl(containerGroup map[string]inte
 			return err
 		}
 	} else {
-		log.Printf("[WARN] [http,proxy,azure] [message: missign ID in container group]")
+		log.Debug().Msg("missing ID in container group")
 	}
 
 	return nil

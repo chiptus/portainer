@@ -4,9 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
-
-	"github.com/sirupsen/logrus"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -14,6 +11,8 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
+
+	"github.com/rs/zerolog/log"
 )
 
 // @id UserDelete
@@ -183,8 +182,7 @@ func (handler *Handler) removeUserKubeResources(user *portaineree.User) error {
 	}
 
 	if len(errs) > 0 {
-		err = fmt.Errorf(strings.Join(errs, "\n"))
-		logrus.WithError(err).Error("failed to remove user k8s resources")
+		log.Error().Strs("errors", errs).Msg("failed to remove user k8s resources")
 		// ignore error
 	}
 

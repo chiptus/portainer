@@ -5,7 +5,8 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -69,10 +70,12 @@ func (service *Service) Schedules() ([]portaineree.Schedule, error) {
 		func(obj interface{}) (interface{}, error) {
 			schedule, ok := obj.(*portaineree.Schedule)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to Schedule object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Schedule object")
 				return nil, fmt.Errorf("Failed to convert to Schedule object: %s", obj)
 			}
+
 			schedules = append(schedules, *schedule)
+
 			return &portaineree.Schedule{}, nil
 		})
 
@@ -90,12 +93,14 @@ func (service *Service) SchedulesByJobType(jobType portaineree.JobType) ([]porta
 		func(obj interface{}) (interface{}, error) {
 			schedule, ok := obj.(*portaineree.Schedule)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to Schedule object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Schedule object")
 				return nil, fmt.Errorf("Failed to convert to Schedule object: %s", obj)
 			}
+
 			if schedule.JobType == jobType {
 				schedules = append(schedules, *schedule)
 			}
+
 			return &portaineree.Schedule{}, nil
 		})
 

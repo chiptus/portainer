@@ -1,7 +1,6 @@
 package registries
 
 import (
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -12,6 +11,8 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
+
+	"github.com/rs/zerolog/log"
 )
 
 // request on /api/registries/:id/v2
@@ -67,9 +68,11 @@ func (handler *Handler) proxyRequestsToRegistryAPI(w http.ResponseWriter, r *htt
 
 func getRegistryManagementUrl(registry *portaineree.Registry) string {
 	if registry.Type == portaineree.ProGetRegistry && registry.BaseURL != "" {
-		log.Printf("[DEBUG] using BaseURL = \"%s\" for registry %d", registry.BaseURL, registry.ID)
+		log.Debug().Str("base_URL", registry.BaseURL).Int("registry_id", int(registry.ID)).Msg("")
+
 		return registry.BaseURL
 	}
+
 	return registry.URL
 }
 

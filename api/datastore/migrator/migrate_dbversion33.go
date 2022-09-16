@@ -1,16 +1,15 @@
 package migrator
 
-func (m *Migrator) migrateDBVersionToDB34() error {
+import "github.com/rs/zerolog/log"
 
-	migrateLog.Info("Refreshing RBAC roles")
+func (m *Migrator) migrateDBVersionToDB34() error {
+	log.Info().Msg("refreshing RBAC roles")
+
 	if err := m.refreshRBACRoles(); err != nil {
 		return err
 	}
 
-	migrateLog.Info("Refreshing user authorisations")
-	if err := m.refreshUserAuthorizations(); err != nil {
-		return err
-	}
+	log.Info().Msg("refreshing user authorisations")
 
-	return nil
+	return m.refreshUserAuthorizations()
 }

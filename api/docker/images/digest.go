@@ -12,7 +12,7 @@ import (
 	"github.com/opencontainers/go-digest"
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -85,7 +85,7 @@ func (c *DigestClient) RemoteDigest(image Image) (digest.Digest, error) {
 	if c.registryClient != nil {
 		username, password, err := c.registryClient.RegistryAuth(image)
 		if err != nil {
-			log.Warnf("Can not find registry auth for image %s", image)
+			log.Warn().Stringer("image", image).Msg("cannot find registry auth for image")
 		} else {
 			sysCtx = &imagetypes.SystemContext{
 				DockerAuthConfig: &imagetypes.DockerAuthConfig{
@@ -106,7 +106,9 @@ func (c *DigestClient) RemoteDigest(image Image) (digest.Digest, error) {
 				return rmDigest, nil
 			}
 		}
-		log.Debugf("get remote digest err: %v", err)
+
+		log.Debug().Err(err).Msg("get remote digest")
+
 		return "", errors.Wrap(err, "Cannot get image digest from HEAD request")
 	}
 
@@ -143,8 +145,10 @@ func (c *DigestClient) cacheAllLocalDigest() {
 	inspects, err := c.client.ImageList(context.TODO(), types.ImageListOptions{
 		All: true,
 	})
+
 	if err != nil {
-		log.Error("run docker images error:", err)
+		log.Error().Err(err).Msg("run docker images error")
+
 		return
 	}
 
@@ -160,6 +164,7 @@ func (c *DigestClient) cacheAllLocalDigest() {
 						Parent:      inspect.ParentID,
 					}
 					localImage, err := ParseLocalImage(_inspect)
+
 					if err != nil {
 						continue
 					}

@@ -9,12 +9,12 @@ import (
 	"net/url"
 	"strings"
 
-	"golang.org/x/oauth2"
+	portaineree "github.com/portainer/portainer-ee/api"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/pkg/errors"
-	portaineree "github.com/portainer/portainer-ee/api"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
+	"golang.org/x/oauth2"
 )
 
 // Service represents a service used to authenticate users against an authorization server
@@ -32,18 +32,20 @@ func NewService() *Service {
 func (*Service) Authenticate(code string, configuration *portaineree.OAuthSettings) (*portaineree.OAuthInfo, error) {
 	token, err := getOAuthToken(code, configuration)
 	if err != nil {
-		log.Debugf("[internal,oauth] [message: failed retrieving oauth token: %v]", err)
+		log.Debug().Err(err).Msg("failed retrieving OAuth token")
+
 		return nil, err
 	}
 
 	idToken, err := getIdToken(token)
 	if err != nil {
-		log.Debugf("[internal,oauth] [message: failed parsing id_token: %v]", err)
+		log.Debug().Err(err).Msg("failed parsing id_token")
 	}
 
 	resource, err := getResource(token.AccessToken, configuration)
 	if err != nil {
-		log.Debugf("[internal,oauth] [message: failed retrieving resource: %v]", err)
+		log.Debug().Err(err).Msg("failed retrieving resource")
+
 		return nil, err
 	}
 
@@ -51,13 +53,15 @@ func (*Service) Authenticate(code string, configuration *portaineree.OAuthSettin
 
 	username, err := getUsername(resource, configuration)
 	if err != nil {
-		log.Debugf("[internal,oauth] [message: failed retrieving username: %v]", err)
+		log.Debug().Err(err).Msg("failed retrieving username")
+
 		return nil, err
 	}
 
 	teams, err := getTeams(resource, configuration)
 	if err != nil {
-		log.Debugf("[internal,oauth] [message: failed retrieving oauth teams: %v]", err)
+		log.Debug().Err(err).Msg("failed retrieving OAuth teams")
+
 		return nil, err
 	}
 
@@ -69,6 +73,7 @@ func mergeSecondIntoFirst(base map[string]interface{}, overlap map[string]interf
 	for k, v := range overlap {
 		base[k] = v
 	}
+
 	return base
 }
 
@@ -112,6 +117,7 @@ func getIdToken(token *oauth2.Token) (map[string]interface{}, error) {
 			tokenData[k] = v
 		}
 	}
+
 	return tokenData, nil
 }
 

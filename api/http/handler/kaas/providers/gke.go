@@ -6,7 +6,8 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/types"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 type GKEProvisionPayload struct {
@@ -32,7 +33,7 @@ func (payload *GKEProvisionPayload) GetCloudProvider(_ string) (*portaineree.Clo
 		return nil, errors.New("Invalid cloud provider")
 	}
 
-	logrus.Infof("Cloud provider: %s", cloudProvider.Name)
+	log.Info().Str("provider", cloudProvider.Name).Msg("cloud provider")
 
 	cloudProvider.Region = payload.Region
 	cloudProvider.Size = &payload.NodeSize

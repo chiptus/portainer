@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/cavaliergopher/grab/v3"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 var mu sync.Mutex
@@ -60,40 +60,38 @@ func downloadEksctl(outputPath string) error {
 	eksUrl, checksumFileUrl := getEksctlDownloadUrl()
 	checksum, err := getChecksum(checksumFileUrl, path.Base(eksUrl), 30)
 	if err != nil {
-		log.Warnf("%v", err)
+		log.Warn().Err(err).Msg("")
 	}
 
 	// Download the archive to temp and extract it to the cache directory
 	filename, err := downloadToFile(eksUrl, os.TempDir(), checksum)
 	if err != nil {
-		log.Errorf("Failed to download file %s. err=%v", filename, err)
+		log.Error().Str("filename", filename).Err(err).Msg("failed to download file")
+
 		return err
 	}
 
-	log.Debugf("Downloaded archive to %v\n", filename)
-	err = extractArchive(filename, outputPath, true)
-	if err != nil {
-		return err
-	}
+	log.Debug().Str("filename", filename).Msg("downloaded archive")
 
-	return nil
+	return extractArchive(filename, outputPath, true)
 }
 
 func downloadAuthenticator(outputPath string) error {
 	authenticatorUrl, checksumFileUrl := getAuthenticatorDownloadUrl()
 	checksum, err := getChecksum(checksumFileUrl, path.Base(authenticatorUrl), 30)
 	if err != nil {
-		log.Warnf("%v", err)
+		log.Warn().Err(err).Msg("")
 	}
 
 	// Download the archive to temp and extract it to the cache directory
 	filename, err := downloadToFile(authenticatorUrl, os.TempDir(), checksum)
 	if err != nil {
-		log.Errorf("Failed to download file %s. err=%v", filename, err)
+		log.Error().Str("filename", filename).Err(err).Msg("failed to download file")
+
 		return err
 	}
 
-	log.Debugf("Downloaded authenticator to %v\n", filename)
+	log.Debug().Str("filename", filename).Msg("downloaded authenticator")
 
 	authenticatorPath := path.Join(outputPath, AwsIamAuthenticator)
 
@@ -127,8 +125,7 @@ func getChecksum(checksumFileUrl, filename string, timeout int) (string, error) 
 		checksums[s[1]] = s[0]
 	}
 
-	checksum := checksums[filename]
-	return checksum, nil
+	return checksums[filename], nil
 }
 
 func downloadUrl(url string, timeout int) (string, error) {
@@ -149,8 +146,9 @@ func downloadUrl(url string, timeout int) (string, error) {
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("")
 	}
+
 	return string(bodyBytes), nil
 }
 
@@ -165,9 +163,9 @@ func downloadToFile(url, dest string, checksum string) (string, error) {
 
 	req.SetChecksum(sha256.New(), decodedChecksum, false)
 
-	client := grab.NewClient()
+	log.Info().Stringer("URL", req.URL()).Msg("downloading")
 
-	log.Infof("[cloud] [eksctl] [message: Downloading %v...]", req.URL())
+	client := grab.NewClient()
 	resp := client.Do(req)
 
 	t := time.NewTicker(500 * time.Millisecond)
@@ -240,21 +238,25 @@ func moveFile(sourcePath, destPath string) error {
 	if err != nil {
 		return fmt.Errorf("could not open source file: %s", err)
 	}
+
 	outputFile, err := os.Create(destPath)
 	if err != nil {
 		inputFile.Close()
 		return fmt.Errorf("could not open dest file: %s", err)
 	}
 	defer outputFile.Close()
+
 	_, err = io.Copy(outputFile, inputFile)
 	inputFile.Close()
 	if err != nil {
 		return fmt.Errorf("writing to output file failed: %s", err)
 	}
+
 	// it's now safe to remove the original file
 	err = os.Remove(sourcePath)
 	if err != nil {
 		return fmt.Errorf("failed removing original file: %s", err)
 	}
+
 	return nil
 }

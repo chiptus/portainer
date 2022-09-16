@@ -1,22 +1,25 @@
 package migrator
 
-import portaineree "github.com/portainer/portainer-ee/api"
+import (
+	portaineree "github.com/portainer/portainer-ee/api"
+
+	"github.com/rs/zerolog/log"
+)
 
 func (m *Migrator) migrateDBVersionToDB60() error {
-	migrateLog.Info("- add gpu input field")
+	log.Info().Msg("add gpu input field")
+
 	if err := m.addGpuInputFieldDB60(); err != nil {
 		return err
 	}
 
-	migrateLog.Info("- updating ldap settings")
-	if err := m.updateLdapSettingsEE(); err != nil {
-		return err
-	}
+	log.Info().Msg("updating ldap settings")
 
-	return nil
+	return m.updateLdapSettingsEE()
 }
 
 func (m *Migrator) addGpuInputFieldDB60() error {
+	log.Info().Msg("add gpu input field")
 
 	endpoints, err := m.endpointService.Endpoints()
 	if err != nil {

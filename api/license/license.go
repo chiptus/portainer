@@ -2,7 +2,6 @@ package license
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"time"
 
@@ -11,6 +10,8 @@ import (
 	"github.com/portainer/liblicense/master"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+
+	"github.com/rs/zerolog/log"
 )
 
 // Service represents a service for managing portainer licenses
@@ -88,7 +89,7 @@ func (service *Service) AddLicense(licenseKey string) (*liblicense.PortainerLice
 				return nil, err
 			}
 
-			log.Printf("[DEBUG] [msg: removing the existing trial license]")
+			log.Debug().Msg("removing the existing trial license")
 		}
 	}
 
@@ -162,6 +163,7 @@ func (service *Service) DeleteLicense(licenseKey string) error {
 	}
 
 	service.info = service.aggregateLicenses(licenses)
+
 	return nil
 }
 

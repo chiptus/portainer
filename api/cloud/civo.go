@@ -7,11 +7,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/civo/civogo"
-	"github.com/fvbommel/sortorder"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
-	log "github.com/sirupsen/logrus"
+
+	"github.com/civo/civogo"
+	"github.com/fvbommel/sortorder"
+	"github.com/rs/zerolog/log"
 )
 
 type (
@@ -74,7 +75,7 @@ func (service *CloudClusterInfoService) civoFetchRefresh(apiKey, cacheKey string
 }
 
 func (service *CloudClusterInfoService) CivoFetchInfo(apiKey string) (*CivoInfo, error) {
-	log.Debug("[cloud] [message: sending cloud provider info request] [provider: civo]")
+	log.Debug().Str("provider", "civo").Msg("sending cloud provider info request")
 
 	client, err := civogo.NewClient(apiKey, "")
 	if err != nil {
@@ -210,7 +211,11 @@ func (service *CloudClusterInfoService) CivoFetchInfo(apiKey string) (*CivoInfo,
 }
 
 func CivoGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
-	log.Debugf("[cloud] [message: sending KaaS cluster details request] [provider: civo] [cluster_id: %s] [region: %s]", clusterID, region)
+	log.Debug().
+		Str("provider", "civo").
+		Str("cluster_id", clusterID).
+		Str("region", region).
+		Msg("sending KaaS cluster details request")
 
 	client, err := civogo.NewClient(apiKey, region)
 	if err != nil {
@@ -237,7 +242,13 @@ func CivoGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
 }
 
 func CivoProvisionCluster(apiKey, region, clusterName, nodeSize, networkID string, nodeCount int, kubernetesVersion string) (string, error) {
-	log.Debugf("[cloud] [message: sending KaaS cluster provisioning request] [provider: civo] [cluster_name: %s] [node_size: %s] [node_count: %d] [region: %s]", clusterName, nodeSize, nodeCount, region)
+	log.Debug().
+		Str("provider", "civo").
+		Str("cluster", clusterName).
+		Str("node_size", nodeSize).
+		Int("node_count", nodeCount).
+		Str("region", region).
+		Msg("sending KaaS cluster provisioning request")
 
 	client, err := civogo.NewClient(apiKey, region)
 	if err != nil {

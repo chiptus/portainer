@@ -8,13 +8,14 @@ import (
 	"path"
 	"strings"
 
-	"github.com/pkg/errors"
 	libstack "github.com/portainer/docker-compose-wrapper"
 	"github.com/portainer/docker-compose-wrapper/compose"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/proxy"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory"
 	"github.com/portainer/portainer-ee/api/internal/stackutils"
+
+	"github.com/pkg/errors"
 )
 
 // ComposeStackManager is a wrapper for docker-compose binary
@@ -78,6 +79,7 @@ func (manager *ComposeStackManager) Down(ctx context.Context, stack *portaineree
 	}
 
 	filePaths := stackutils.GetStackFilePaths(stack)
+
 	err = manager.deployer.Remove(ctx, stack.ProjectPath, url, stack.Name, filePaths, envFile)
 	return errors.Wrap(err, "failed to remove a stack")
 }

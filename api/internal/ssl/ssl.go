@@ -5,18 +5,17 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"io/ioutil"
-	"log"
 	"os"
 	"time"
-
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 
 	"github.com/portainer/libcrypto"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/ssl/revoke"
 	portainer "github.com/portainer/portainer/api"
+
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // Service represents a service to manage SSL certificates
@@ -66,7 +65,7 @@ func (service *Service) Init(host, certPath, keyPath, caCertPath string) error {
 
 	settings, err := service.GetSSLSettings()
 	if err != nil {
-		return errors.Wrap(err, "failed fetching ssl settings")
+		return errors.Wrap(err, "failed fetching SSL settings")
 	}
 
 	// certificates already exist
@@ -98,7 +97,8 @@ func generateSelfSignedCertificates(ip, certPath, keyPath string) error {
 		return errors.New("host can't be empty")
 	}
 
-	log.Printf("[INFO] [internal,ssl] [message: no cert files found, generating self signed ssl certificates]")
+	log.Info().Msg("no cert files found, generating self signed SSL certificates")
+
 	return libcrypto.GenerateCertsForHost("localhost", ip, certPath, keyPath, time.Now().AddDate(5, 0, 0))
 }
 
@@ -146,12 +146,13 @@ func (service *Service) GetCACertificatePool() *x509.CertPool {
 	}
 	caCert, err := ioutil.ReadFile(settings.CACertPath)
 	if err != nil {
-		log.Printf("error reading CA cert in path %s: %s", settings.CACertPath, err)
+		log.Debug().Str("path", settings.CACertPath).Err(err).Msg("error reading CA cert")
 		return nil
 	}
 
 	certPool := x509.NewCertPool()
 	certPool.AppendCertsFromPEM(caCert)
+
 	return certPool
 }
 
@@ -180,13 +181,15 @@ func (service *Service) SetHTTPEnabled(httpEnabled bool) error {
 func (service *Service) ValidateCACert(tlsConn *tls.ConnectionState) error {
 	// if a caCert is set, then reject any requests that don't have a client Auth cert signed with it
 	if tlsConn == nil || len(tlsConn.PeerCertificates) == 0 {
-		logrus.Error("No clientAuth Agent certificate offered")
+		log.Error().Msg("no clientAuth Agent certificate offered")
+
 		return errors.New("no clientAuth Agent certificate offered")
 	}
 
 	serverCACertPool := service.GetCACertificatePool()
 	if serverCACertPool == nil {
-		logrus.Error("CA Certificate not found")
+		log.Error().Msg("CA Certificate not found")
+
 		return errors.New("no CA Certificate was found")
 	}
 
@@ -198,8 +201,9 @@ func (service *Service) ValidateCACert(tlsConn *tls.ConnectionState) error {
 
 	revoked, err := service.crlService.VerifyCertificate(agentCert)
 	if err != nil {
-		logrus.WithError(err).Error("failed verifying certificate with crl list")
-		return errors.Wrap(err, "failed verifying certificate with crl list")
+		log.Error().Err(err).Msg("failed verifying certificate with CRL list")
+
+		return errors.Wrap(err, "failed verifying certificate with CRL list")
 	}
 
 	if revoked {
@@ -207,14 +211,16 @@ func (service *Service) ValidateCACert(tlsConn *tls.ConnectionState) error {
 	}
 
 	if _, err := agentCert.Verify(opts); err != nil {
-		logrus.WithError(err).Error("Agent certificate not signed by the CACert")
+		log.Error().Err(err).Msg("agent certificate not signed by the CACert")
+
 		return errors.New("agent certificate wasn't signed by required CA Cert")
 	}
 
-	logrus.
-		WithField("subject", agentCert.Subject.String()).
-		WithField("dns_names", agentCert.DNSNames).
-		Debug("Successfully validated TLS Client Chain")
+	log.Debug().
+		Str("subject", agentCert.Subject.String()).
+		Strs("dns_names", agentCert.DNSNames).
+		Msg("successfully validated TLS Client Chain")
+
 	return nil
 }
 

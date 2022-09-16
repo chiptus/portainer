@@ -3,7 +3,6 @@ package factory
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 
@@ -12,6 +11,8 @@ import (
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/docker"
 	"github.com/portainer/portainer-ee/api/internal/url"
 	"github.com/portainer/portainer/api/crypto"
+
+	"github.com/rs/zerolog/log"
 )
 
 func (factory *ProxyFactory) newDockerProxy(endpoint *portaineree.Endpoint) (http.Handler, error) {
@@ -108,6 +109,6 @@ func (proxy *dockerLocalProxy) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(res.StatusCode)
 
 	if _, err := io.Copy(w, res.Body); err != nil {
-		log.Printf("proxy error: %s\n", err)
+		log.Debug().Err(err).Msg("proxy error")
 	}
 }

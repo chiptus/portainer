@@ -12,6 +12,7 @@ import (
 	"github.com/portainer/portainer-ee/api/datastore"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/jwt"
+
 	"github.com/stretchr/testify/assert"
 )
 

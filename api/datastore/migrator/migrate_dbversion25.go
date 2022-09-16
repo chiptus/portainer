@@ -2,10 +2,13 @@ package migrator
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
+
+	"github.com/rs/zerolog/log"
 )
 
 func (m *Migrator) updateEndpointSettingsToDB26() error {
-	migrateLog.Info("- updating endpoint settings")
+	log.Info().Msg("updating endpoint settings")
+
 	settings, err := m.settingsService.Settings()
 	if err != nil {
 		return err
@@ -52,6 +55,7 @@ func (m *Migrator) updateEndpointSettingsToDB26() error {
 }
 
 func (m *Migrator) updateRbacRolesToDB26() error {
-	migrateLog.Info("Updating RBAC roles...")
+	log.Info().Msg("updating RBAC roles")
+
 	return m.refreshRBACRoles()
 }

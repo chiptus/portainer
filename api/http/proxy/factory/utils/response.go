@@ -2,12 +2,13 @@ package utils
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // GetResponseAsJSONObject returns the response content as a generic JSON object
@@ -41,10 +42,17 @@ func GetResponseAsJSONArray(response *http.Response) ([]interface{}, error) {
 		if responseObject["message"] != nil {
 			return nil, errors.New(responseObject["message"].(string))
 		}
-		log.Printf("[ERROR] [http,proxy,response] [message: invalid response format, expecting JSON array] [response: %+v]", responseObject)
+
+		log.Error().
+			Str("response", fmt.Sprintf("%+v", responseObject)).
+			Msg("invalid response format, expecting JSON array")
+
 		return nil, errors.New("unable to parse response: expected JSON array, got JSON object")
 	default:
-		log.Printf("[ERROR] [http,proxy,response] [message: invalid response format, expecting JSON array] [response: %+v]", responseObject)
+		log.Error().
+			Str("response", fmt.Sprintf("%+v", responseObject)).
+			Msg("invalid response format, expecting JSON array")
+
 		return nil, errors.New("unable to parse response: expected JSON array")
 	}
 }
@@ -57,6 +65,7 @@ type errorResponse struct {
 func WriteAccessDeniedResponse() (*http.Response, error) {
 	response := &http.Response{}
 	err := RewriteResponse(response, errorResponse{Message: "access denied to resource"}, http.StatusForbidden)
+
 	return response, err
 }
 

@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/asaskevich/govalidator"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
@@ -13,6 +12,8 @@ import (
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
+
+	"github.com/asaskevich/govalidator"
 )
 
 type userUpdatePayload struct {

@@ -1,12 +1,15 @@
 package migrator
 
 import (
-	"github.com/pkg/errors"
 	"github.com/portainer/portainer-ee/api/datastore/validate"
+
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 func (m *Migrator) updateUsersAndRolesToDBVersion28() error {
-	migrateLog.Info("- updating users and roles")
+	log.Info().Msg("updating users and roles")
+
 	err := m.roleService.CreateOrUpdatePredefinedRoles()
 	if err != nil {
 		return err

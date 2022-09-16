@@ -10,11 +10,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fvbommel/sortorder"
-	"github.com/linode/linodego"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
-	log "github.com/sirupsen/logrus"
+
+	"github.com/fvbommel/sortorder"
+	"github.com/linode/linodego"
+	log "github.com/rs/zerolog/log"
 	"golang.org/x/oauth2"
 )
 
@@ -63,7 +64,7 @@ func (service *CloudClusterInfoService) linodeFetchRefresh(apiKey, cacheKey stri
 	return nil
 }
 func (service *CloudClusterInfoService) LinodeFetchInfo(apiKey string) (*LinodeInfo, error) {
-	log.Debugf("[cloud] [message: sending cloud provider info request] [provider: linode]")
+	log.Debug().Str("provider", "linode").Msg("sending cloud provider info request")
 
 	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: apiKey})
 
@@ -148,7 +149,7 @@ func (service *CloudClusterInfoService) LinodeFetchInfo(apiKey string) (*LinodeI
 }
 
 func LinodeGetCluster(apiKey, clusterID string) (*KaasCluster, error) {
-	log.Debugf("[cloud] [message: sending KaaS cluster details request] [provider: linode] [cluster_id: %s]", clusterID)
+	log.Debug().Str("provider", "linode").Str("cluster_id", clusterID).Msg("sending KaaS cluster details request")
 
 	id, err := strconv.Atoi(clusterID)
 	if err != nil {
@@ -197,7 +198,13 @@ func LinodeGetCluster(apiKey, clusterID string) (*KaasCluster, error) {
 }
 
 func LinodeProvisionCluster(apiKey, region, clusterName, nodeSize string, nodeCount int, kubernetesVersion string) (string, error) {
-	log.Debugf("[cloud] [message: sending KaaS cluster provisioning request] [provider: linode] [cluster_name: %s] [node_size: %s] [node_count: %d] [region: %s]", clusterName, nodeSize, nodeCount, region)
+	log.Debug().
+		Str("provider", "linode").
+		Str("cluster_name", clusterName).
+		Str("node_size", nodeSize).
+		Int("node_count", nodeCount).
+		Str("region", region).
+		Msg("sending KaaS cluster provisioning request")
 
 	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: apiKey})
 

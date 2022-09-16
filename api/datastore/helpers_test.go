@@ -1,11 +1,12 @@
 package datastore
 
 import (
-	"log"
 	"path/filepath"
 	"testing"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+
+	"github.com/rs/zerolog/log"
 )
 
 // isFileExist is helper function to check for file existence
@@ -20,14 +21,14 @@ func isFileExist(path string) bool {
 func updateVersion(store *Store, v int) {
 	err := store.VersionService.StoreDBVersion(v)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 }
 
 func updateEdition(store *Store, edition portaineree.SoftwareEdition) {
 	err := store.VersionService.StoreEdition(edition)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 }
 

@@ -3,9 +3,10 @@ package oauth
 import (
 	"errors"
 	"fmt"
-	"log"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+
+	"github.com/rs/zerolog/log"
 )
 
 func getUsername(datamap map[string]interface{}, configuration *portaineree.OAuthSettings) (string, error) {
@@ -64,7 +65,8 @@ func getTeams(datamap map[string]interface{}, configuration *portaineree.OAuthSe
 
 	teamClaimValues, ok := datamap[configuration.TeamMemberships.OAuthClaimName]
 	if !ok {
-		log.Println("[DEBUG] [internal,oauth] [message: Failed to find group claim in resource]")
+		log.Debug().Msg("failed to find group claim in resource")
+
 		return []string{}, nil
 	}
 

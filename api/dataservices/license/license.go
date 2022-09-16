@@ -5,7 +5,8 @@ import (
 
 	"github.com/portainer/liblicense"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -53,7 +54,7 @@ func (service *Service) Licenses() ([]liblicense.PortainerLicense, error) {
 		func(obj interface{}) (interface{}, error) {
 			r, ok := obj.(*liblicense.PortainerLicense)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to PortainerLicense object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("Failed to convert to PortainerLicense object")
 				return nil, fmt.Errorf("Failed to convert to PortainerLicense object: %s", obj)
 			}
 

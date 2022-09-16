@@ -5,7 +5,8 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -57,10 +58,12 @@ func (service *Service) Registries() ([]portaineree.Registry, error) {
 		func(obj interface{}) (interface{}, error) {
 			registry, ok := obj.(*portaineree.Registry)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to Registry object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Registry object")
 				return nil, fmt.Errorf("Failed to convert to Registry object: %s", obj)
 			}
+
 			registries = append(registries, *registry)
+
 			return &portaineree.Registry{}, nil
 		})
 

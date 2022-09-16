@@ -5,7 +5,8 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -69,10 +70,12 @@ func (service *Service) Endpoints() ([]portaineree.Endpoint, error) {
 		func(obj interface{}) (interface{}, error) {
 			endpoint, ok := obj.(*portaineree.Endpoint)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to Endpoint object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Endpoint object")
 				return nil, fmt.Errorf("failed to convert to Endpoint object: %s", obj)
 			}
+
 			endpoints = append(endpoints, *endpoint)
+
 			return &portaineree.Endpoint{}, nil
 		})
 

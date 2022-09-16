@@ -11,7 +11,8 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/utils"
 	"github.com/portainer/portainer-ee/api/useractivity"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 	"github.com/urfave/negroni"
 )
 
@@ -82,14 +83,16 @@ func LogActivity(service portaineree.UserActivityService, contextFetcher middlew
 
 		body, err = json.Marshal(b)
 		if err != nil {
-			logrus.WithError(err).Debug("failed to marshal user activity payload")
+			log.Error().Err(err).Msg("failed to marshal user activity payload")
+
 			return
 		}
 
 	case "application/json":
 		var b map[string]interface{}
 		if err := json.Unmarshal(body, &b); err != nil {
-			logrus.WithError(err).Debug("failed to unmarshal user activity payload")
+			log.Error().Err(err).Msg("failed to unmarshal user activity payload")
+
 			return
 		}
 
@@ -97,7 +100,8 @@ func LogActivity(service portaineree.UserActivityService, contextFetcher middlew
 
 		body, err = json.Marshal(b)
 		if err != nil {
-			logrus.WithError(err).Debug("failed to marshal user activity payload")
+			log.Error().Err(err).Msg("failed to marshal user activity payload")
+
 			return
 		}
 
@@ -122,6 +126,6 @@ func LogActivity(service portaineree.UserActivityService, contextFetcher middlew
 
 	err = service.LogUserActivity(username, context, action, body)
 	if err != nil {
-		logrus.WithError(err).Debug("failed logging user activity")
+		log.Error().Err(err).Msg("failed logging user activity")
 	}
 }

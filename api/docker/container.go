@@ -4,15 +4,15 @@ import (
 	"context"
 	"strings"
 
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/docker/images"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-
-	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/portainer/portainer-ee/api/docker/images"
+	"github.com/rs/zerolog/log"
 )
 
 type ContainerService struct {
@@ -41,13 +41,14 @@ func (c *ContainerService) Recreate(ctx context.Context, endpoint *portaineree.E
 		cli.Close()
 	}(cli)
 
-	log.Debugf("Starting to fetch container(id=%s) information", containerId)
+	log.Debug().Str("container_id", containerId).Msg("starting to fetch container information")
+
 	container, _, err := cli.ContainerInspectWithRaw(ctx, containerId, true)
 	if err != nil {
 		return nil, errors.Wrap(err, "fetch container information error")
 	}
 
-	log.Debugf("Starting to parse image %s", container.Config.Image)
+	log.Debug().Str("image", container.Config.Image).Msg("starting to parse image")
 	img, err := images.ParseImage(images.ParseImageOptions{
 		Name: container.Config.Image,
 	})
@@ -61,7 +62,8 @@ func (c *ContainerService) Recreate(ctx context.Context, endpoint *portaineree.E
 			return nil, errors.Wrap(err, "set image tag error")
 		}
 
-		log.Debugf("New image with tag: %s", container.Config.Image)
+		log.Debug().Str("image", container.Config.Image).Msg("new image with tag")
+
 		container.Config.Image = img.FullName()
 	}
 
@@ -75,14 +77,14 @@ func (c *ContainerService) Recreate(ctx context.Context, endpoint *portaineree.E
 	}
 
 	// 2. stop the current container
-	log.Debugf("Starting to stop the container(id=%s)", containerId)
+	log.Debug().Str("container_id", containerId).Msg("starting to stop the container")
 	err = cli.ContainerStop(ctx, containerId, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "stop container error")
 	}
 
 	// 3. rename the current container
-	log.Debugf("Starting to rename the container(id=%s)", containerId)
+	log.Debug().Str("container_id", containerId).Msg("starting to rename the container")
 	err = cli.ContainerRename(ctx, containerId, container.Name+"-old")
 	if err != nil {
 		return nil, errors.Wrap(err, "rename container error")
@@ -93,17 +95,17 @@ func (c *ContainerService) Recreate(ctx context.Context, endpoint *portaineree.E
 	defer c.sr.restore()
 
 	c.sr.push(func() {
-		log.Debugf("Restoring the container(id=%s, name=%s)", containerId, container.Name)
+		log.Debug().Str("container_id", containerId).Str("container", container.Name).Msg("restoring the container")
 		cli.ContainerRename(ctx, containerId, container.Name)
 		cli.ContainerStart(ctx, containerId, types.ContainerStartOptions{})
 	})
 
 	// 4. create a new container
-	log.Debugf("Starting to create a new container(name=%s)", strings.Split(container.Name, "/")[1])
+	log.Debug().Str("container", strings.Split(container.Name, "/")[1]).Msg("starting to create a new container")
 	create, err := cli.ContainerCreate(ctx, container.Config, container.HostConfig, &network.NetworkingConfig{EndpointsConfig: container.NetworkSettings.Networks}, nil, container.Name)
 
 	c.sr.push(func() {
-		log.Debugf("Removing the new container(id=%s)", create.ID)
+		log.Debug().Str("container_id", create.ID).Msg("removing the new container")
 		cli.ContainerStop(ctx, create.ID, nil)
 		cli.ContainerRemove(ctx, create.ID, types.ContainerRemoveOptions{})
 	})
@@ -115,21 +117,21 @@ func (c *ContainerService) Recreate(ctx context.Context, endpoint *portaineree.E
 	newContainerId := create.ID
 
 	// 5. network connect with bridge(not sure)
-	log.Debugf("Starting to connect network to container(id=%s)", newContainerId)
+	log.Debug().Str("container_id", newContainerId).Msg("starting to connect network to container")
 	err = cli.NetworkConnect(ctx, container.HostConfig.NetworkMode.NetworkName(), newContainerId, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "connect container network error")
 	}
 
 	// 6. start the new container
-	log.Debugf("Starting the new container(id=%s)", newContainerId)
+	log.Debug().Str("container_id", newContainerId).Msg("starting the new container")
 	err = cli.ContainerStart(ctx, newContainerId, types.ContainerStartOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "start container error")
 	}
 
 	// 7. delete the old container
-	log.Debugf("Starting to remove the old container(id=%s)", containerId)
+	log.Debug().Str("container_id", containerId).Msg("starting to remove the old container")
 	_ = cli.ContainerRemove(ctx, containerId, types.ContainerRemoveOptions{})
 
 	c.sr.disable()

@@ -6,17 +6,18 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/patrickmn/go-cache"
-	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/docker/images"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
-	log "github.com/sirupsen/logrus"
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/patrickmn/go-cache"
+	"github.com/pkg/errors"
+	log "github.com/rs/zerolog/log"
 )
 
 var (
@@ -111,22 +112,26 @@ func (handler *Handler) imageStatus(ctx context.Context, stack *portaineree.Stac
 	}
 
 	if len(imageList) == 0 {
-		log.Debugf("No containers or services under this stack: %s", stack.Name)
+		log.Debug().Str("stack", stack.Name).Msg("no containers or services under this stack")
+
 		return images.Skipped, nil
 	}
+
 	statusClient := images.NewClientWithRegistry(images.NewRegistryClient(handler.DataStore), cli)
 	statuses := make([]images.Status, len(imageList))
 	for i, resourceImage := range imageList {
 		s, err := statusClient.Status(ctx, resourceImage)
 		if err != nil {
 			statuses[i] = images.Error
-			log.Debugf("error when fetching image status for stacks: %v", err)
+			log.Debug().Err(err).Msg("error when fetching image status for stacks")
 		}
+
 		statuses[i] = s
 		if s == images.Outdated || s == images.Processing {
 			break
 		}
 	}
+
 	if contains(statuses, images.Outdated) {
 		return images.Outdated, nil
 	} else if contains(statuses, images.Processing) {
@@ -135,9 +140,9 @@ func (handler *Handler) imageStatus(ctx context.Context, stack *portaineree.Stac
 		return images.Error, nil
 	} else if contains(statuses, images.Skipped) {
 		return images.Skipped, nil
-	} else {
-		return images.Updated, nil
 	}
+
+	return images.Updated, nil
 }
 
 func getStatus(stack string) (images.Status, error) {
@@ -148,6 +153,7 @@ func getStatus(stack string) (images.Status, error) {
 			return status, nil
 		}
 	}
+
 	return "", errors.New("no digest found in cache")
 }
 
@@ -161,5 +167,6 @@ func contains(statuses []images.Status, status images.Status) bool {
 			return true
 		}
 	}
+
 	return false
 }

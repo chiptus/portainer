@@ -4,7 +4,8 @@ import (
 	"context"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	log "github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -45,7 +46,7 @@ func (kcl *KubeClient) DeletePortainerAgent() error {
 	var found bool
 	for _, n := range list.Items {
 		if n.Name == namespaceName {
-			log.Infof("attempting to delete old portainer namespace")
+			log.Info().Msg("attempting to delete old portainer namespace")
 			found = true
 		}
 	}

@@ -3,11 +3,11 @@ package edgeasynccommand
 import (
 	"fmt"
 
-	"github.com/sirupsen/logrus"
-
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/boltdb"
 	portainer "github.com/portainer/portainer/api"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -43,14 +43,15 @@ func (service *Service) generateKey(cmd *portaineree.EdgeAsyncCommand) []byte {
 // Create assigns an ID to a new EdgeAsyncCommand and saves it.
 func (service *Service) Create(cmd *portaineree.EdgeAsyncCommand) error {
 	cmd.ID = service.connection.GetNextIdentifier(BucketName)
-	logrus.WithField("command", cmd).Info("Create EdgeAsyncCommand")
+	log.Debug().Str("command", fmt.Sprintf("%v", cmd)).Msg("create EdgeAsyncCommand")
 
 	return service.connection.CreateObjectWithStringId(BucketName, service.generateKey(cmd), cmd)
 }
 
 // Update updates an EdgeAsyncCommand.
 func (service *Service) Update(id int, cmd *portaineree.EdgeAsyncCommand) error {
-	logrus.WithField("command", cmd).WithField("id", cmd.ID).Info("Update EdgeAsyncCommand")
+	log.Debug().Str("command", fmt.Sprintf("%v", cmd)).Int("id", cmd.ID).Msg("update EdgeAsyncCommand")
+
 	return service.connection.UpdateObject(BucketName, service.generateKey(cmd), cmd)
 }
 
@@ -65,7 +66,8 @@ func (service *Service) EndpointCommands(endpointID portaineree.EndpointID) ([]p
 		func(obj interface{}) (interface{}, error) {
 			cmd, ok := obj.(*portaineree.EdgeAsyncCommand)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to EdgeAsyncCommand object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to EdgeAsyncCommand object")
+
 				return nil, fmt.Errorf("failed to convert to EdgeAsyncCommand object: %s", obj)
 			}
 

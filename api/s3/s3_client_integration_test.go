@@ -2,7 +2,6 @@ package s3
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -10,13 +9,14 @@ import (
 	"testing"
 	"time"
 
+	portaineree "github.com/portainer/portainer-ee/api"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/pkg/errors"
-	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,7 +36,7 @@ func TestMain(m *testing.M) {
 	s3session = sess
 
 	if _, err := s3.New(s3session).CreateBucket(&s3.CreateBucketInput{Bucket: aws.String(existingBucket)}); err != nil {
-		log.Fatal(errors.Wrap(err, "failed to create bucket"))
+		log.Fatal().Err(err).Msg("failed to create bucket")
 	}
 
 	m.Run()
@@ -83,7 +83,7 @@ func startMinio() (*session.Session, func()) {
 	up := exec.Command("docker-compose", "-f", "docker-compose.test.yml", "up", "-d")
 	up.Stderr = os.Stderr
 	if err := up.Run(); err != nil {
-		log.Fatal(errors.Wrap(err, "failed to run docker-compose up"))
+		log.Fatal().Err(err).Msg("failed to run docker-compose up")
 	}
 
 	minioHost := "http://localhost:9090"
@@ -95,7 +95,7 @@ func startMinio() (*session.Session, func()) {
 	for i := 0; i < 10; i++ {
 		resp, _ := client.Get(fmt.Sprintf("%s/minio/health/live", minioHost))
 		if resp != nil && resp.StatusCode == http.StatusOK {
-			log.Println("[DEBUG] Minio is up and running")
+			log.Debug().Msg("Minio is up and running")
 			break
 		}
 		<-time.After(500 * time.Millisecond)
@@ -111,13 +111,13 @@ func startMinio() (*session.Session, func()) {
 			S3ForcePathStyle: aws.Bool(true),
 		}})
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "failed to create minio session"))
+		log.Fatal().Err(err).Msg("failed to create minio session")
 	}
 
 	return sess, func() {
 		down := exec.Command("docker-compose", "-f", "docker-compose.test.yml", "rm", "-sfv")
 		if err := down.Run(); err != nil {
-			log.Fatal(errors.Wrap(err, "failed to run docker-compose rm"))
+			log.Fatal().Err(err).Msg("failed to run docker-compose rm")
 		}
 	}
 }

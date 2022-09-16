@@ -1,12 +1,14 @@
 package snapshot
 
 import (
-	"github.com/portainer/portainer-ee/api/nomad/helpers"
-	"log"
 	"time"
+
+	"github.com/portainer/portainer-ee/api/nomad/helpers"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/nomad/clientFactory"
+
+	"github.com/rs/zerolog/log"
 )
 
 type Snapshotter struct {
@@ -36,9 +38,11 @@ func doSnapshot(client portaineree.NomadClient, endpoint *portaineree.Endpoint) 
 	// job count
 	jobList, err := client.ListJobs("*")
 	if err != nil {
-		log.Printf("[WARN] [Nomad,snapshot] [message: unable to snapshot Nomad jobs] [endpoint: %s] [err: %s]", endpoint.Name, err)
+		log.Warn().Str("endpoint", endpoint.Name).Err(err).Msg("unable to snapshot Nomad jobs")
+
 		return nil, err
 	}
+
 	snapshot.JobCount = len(jobList)
 
 	// group and task count
@@ -61,7 +65,8 @@ func doSnapshot(client portaineree.NomadClient, endpoint *portaineree.Endpoint) 
 
 		allocations, err := client.ListAllocations(snapshotJob.ID, job.Namespace)
 		if err != nil {
-			log.Printf("[WARN] [Nomad,snapshot] [message: unable to snapshot Nomad jobs] [endpoint: %s] [err: %s]", endpoint.Name, err)
+			log.Warn().Str("endpoint", endpoint.Name).Err(err).Msg("unable to snapshot Nomad jobs")
+
 			return nil, err
 		}
 
@@ -86,9 +91,11 @@ func doSnapshot(client portaineree.NomadClient, endpoint *portaineree.Endpoint) 
 	// node count
 	nodeList, err := client.ListNodes()
 	if err != nil {
-		log.Printf("[WARN] [Nomad,snapshot] [message: unable to snapshot Nomad nodes] [endpoint: %s] [err: %s]", endpoint.Name, err)
+		log.Warn().Str("endpoint", endpoint.Name).Err(err).Msg("unable to snapshot Nomad nodes")
+
 		return nil, err
 	}
+
 	snapshot.NodeCount = len(nodeList)
 	snapshot.Time = time.Now().Unix()
 

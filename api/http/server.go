@@ -3,14 +3,9 @@ package http
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
-	"log"
 	"net/http"
 	"path/filepath"
 	"time"
-
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 
 	"github.com/portainer/libhelm"
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -78,6 +73,9 @@ import (
 	stackdeployer "github.com/portainer/portainer-ee/api/stacks"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
+
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // Server implements the portaineree.Server interface
@@ -372,21 +370,22 @@ func (server *Server) Start() error {
 	handler := adminMonitor.WithRedirect(offlineGate.WaitingMiddleware(time.Minute, server.Handler))
 	if server.HTTPEnabled {
 		go func() {
-			log.Printf("[INFO] [http,server] [message: starting HTTP server on port %s]", server.BindAddress)
+			log.Info().Str("bind_address", server.BindAddress).Msg("starting HTTP server")
 			httpServer := &http.Server{
 				Addr:    server.BindAddress,
 				Handler: handler,
 			}
 
 			go shutdown(server.ShutdownCtx, httpServer, backupScheduler)
+
 			err := httpServer.ListenAndServe()
 			if err != nil && err != http.ErrServerClosed {
-				log.Printf("[ERROR] [message: http server failed] [error: %s]", err)
+				log.Error().Err(err).Msg("HTTP server failed to start")
 			}
 		}()
 	}
 
-	log.Printf("[INFO] [http,server] [message: starting HTTPS server on port %s]", server.BindAddressHTTPS)
+	log.Info().Str("bind_address", server.BindAddressHTTPS).Msg("starting HTTPS server")
 	httpsServer := &http.Server{
 		Addr:    server.BindAddressHTTPS,
 		Handler: handler,
@@ -399,12 +398,14 @@ func (server *Server) Start() error {
 
 	caCertPool := server.SSLService.GetCACertificatePool()
 	if caCertPool != nil {
-		logrus.Debugf("using CA certificate for %s", server.BindAddressHTTPS)
+		log.Debug().Str("bind_address_HTTPS", server.BindAddressHTTPS).Msg("using CA certificate")
+
 		httpsServer.TLSConfig.ClientCAs = caCertPool
 		httpsServer.TLSConfig.ClientAuth = tls.VerifyClientCertIfGiven // can't use tls.RequireAndVerifyClientCert, this port is also used for the browser
 	}
 
 	go shutdown(server.ShutdownCtx, httpsServer, backupScheduler)
+
 	return httpsServer.ListenAndServeTLS("", "")
 }
 
@@ -413,12 +414,14 @@ func shutdown(shutdownCtx context.Context, httpServer *http.Server, backupSchedu
 
 	backupScheduler.Stop()
 
-	log.Println("[DEBUG] [http,server] [message: shutting down http server]")
+	log.Debug().Msg("shutting down the HTTP server")
 	shutdownTimeout, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	err := httpServer.Shutdown(shutdownTimeout)
 	if err != nil {
-		fmt.Printf("[ERROR] [http,server] [message: failed shutdown http server] [error: %s]", err)
+		log.Error().
+			Err(err).
+			Msg("failed to shut down the HTTP server")
 	}
 }

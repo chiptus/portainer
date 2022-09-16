@@ -1,13 +1,10 @@
 package auth
 
 import (
-	"log"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/asaskevich/govalidator"
-	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
@@ -15,6 +12,10 @@ import (
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type authenticatePayload struct {
@@ -33,9 +34,11 @@ func (payload *authenticatePayload) Validate(r *http.Request) error {
 	if govalidator.IsNull(payload.Username) {
 		return errors.New("Invalid username")
 	}
+
 	if govalidator.IsNull(payload.Password) {
 		return errors.New("Invalid password")
 	}
+
 	return nil
 }
 
@@ -153,7 +156,7 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 
 	err = handler.addUserIntoTeams(user, ldapSettings)
 	if err != nil {
-		log.Printf("Warning: unable to automatically add user into teams: %s\n", err.Error())
+		log.Warn().Err(err).Msg("unable to automatically add user into teams")
 	}
 
 	err = handler.AuthorizationService.UpdateUserAuthorizations(user.ID)
@@ -316,6 +319,7 @@ func teamExists(teamName string, ldapGroups []string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -325,6 +329,7 @@ func teamMembershipExists(teamID portaineree.TeamID, memberships []portaineree.T
 			return true
 		}
 	}
+
 	return false
 }
 

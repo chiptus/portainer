@@ -5,7 +5,8 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -44,10 +45,12 @@ func (service *Service) Tags() ([]portaineree.Tag, error) {
 		func(obj interface{}) (interface{}, error) {
 			tag, ok := obj.(*portaineree.Tag)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to Tag object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Tag object")
 				return nil, fmt.Errorf("Failed to convert to Tag object: %s", obj)
 			}
+
 			tags = append(tags, *tag)
+
 			return &portaineree.Tag{}, nil
 		})
 

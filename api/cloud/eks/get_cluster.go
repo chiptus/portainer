@@ -5,7 +5,8 @@ import (
 
 	"github.com/portainer/portainer-ee/api/cloud/eks/eksctl"
 	clouderrors "github.com/portainer/portainer-ee/api/cloud/errors"
-	log "github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
 )
 
@@ -65,7 +66,11 @@ type (
 )
 
 func (e *EksProvisioner) GetCluster(name string) (*Cluster, error) {
-	log.Debugf("[cloud] [message: sending KaaS cluster details request] [provider: Amazon EKS] [clusterName: %s] [region: %s]", name, e.Region)
+	log.Debug().
+		Str("provider", "Amazon EKS").
+		Str("cluster", name).
+		Str("region", e.Region).
+		Msg("sending KaaS cluster details request")
 
 	cfg := eksctl.NewConfig(name, e.AccessKeyId, e.SecretAccessKey, e.Region, e.BinaryPath)
 

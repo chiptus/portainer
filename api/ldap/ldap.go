@@ -2,14 +2,15 @@ package ldap
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
-	ldap "github.com/go-ldap/ldap/v3"
-	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer/api/crypto"
+
+	ldap "github.com/go-ldap/ldap/v3"
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -25,7 +26,7 @@ func createConnection(settings *portaineree.LDAPSettings) (*ldap.Conn, error) {
 	for _, url := range settings.URLs {
 		conn, err := createConnectionForURL(url, settings)
 		if err != nil {
-			log.Printf("[DEBUG] [ldap] [message: failed creating LDAP connection] [error: %s]", err)
+			log.Debug().Err(err).Msg("failed creating LDAP connection")
 		} else {
 			return conn, nil
 		}

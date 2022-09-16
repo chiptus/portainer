@@ -12,7 +12,7 @@ import (
 	"github.com/fvbommel/sortorder"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
-	log "github.com/sirupsen/logrus"
+	log "github.com/rs/zerolog/log"
 )
 
 type DigitalOceanInfo struct {
@@ -61,7 +61,7 @@ func (service *CloudClusterInfoService) digitalOceanFetchRefresh(apiKey, cacheKe
 }
 
 func (service *CloudClusterInfoService) DigitalOceanFetchInfo(apiKey string) (*DigitalOceanInfo, error) {
-	log.Debug("[cloud] [message: sending cloud provider info request] [provider: digitalocean]")
+	log.Debug().Str("provider", "digitalocean").Msg("sending cloud provider info request")
 
 	client := godo.NewFromToken(apiKey)
 
@@ -145,7 +145,7 @@ func (service *CloudClusterInfoService) DigitalOceanFetchInfo(apiKey string) (*D
 }
 
 func DigitalOceanGetCluster(apiKey, clusterID string) (*KaasCluster, error) {
-	log.Debugf("[cloud] [message: sending KaaS cluster details request] [provider: digitalocean] [cluster_id: %s]", clusterID)
+	log.Debug().Str("provider", "digitalocean").Str("cluster_id", clusterID).Msg("sending KaaS cluster details request")
 
 	client := godo.NewFromToken(apiKey)
 
@@ -177,7 +177,13 @@ func DigitalOceanGetCluster(apiKey, clusterID string) (*KaasCluster, error) {
 }
 
 func DigitalOceanProvisionCluster(apiKey, region, clusterName, nodeSize string, nodeCount int, kubernetesVersion string) (string, error) {
-	log.Debugf("[cloud] [message: sending KaaS cluster provisioning request] [provider: digitalocean] [cluster_name: %s] [node_size: %s] [node_count: %d] [region: %s]", clusterName, nodeSize, nodeCount, region)
+	log.Debug().
+		Str("provider", "digitalocean").
+		Str("cluster", clusterName).
+		Str("node_size", nodeSize).
+		Int("node_count", nodeCount).
+		Str("region", region).
+		Msg("sending KaaS cluster provisioning request")
 
 	client := godo.NewFromToken(apiKey)
 

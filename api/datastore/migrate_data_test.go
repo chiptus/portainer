@@ -5,15 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	portaineree "github.com/portainer/portainer-ee/api"
+
+	"github.com/google/go-cmp/cmp"
 	"github.com/portainer/portainer-ee/api/database/boltdb"
+	"github.com/rs/zerolog/log"
 )
 
 func TestMigrateData(t *testing.T) {
@@ -129,12 +130,12 @@ func Test_getBackupRestoreOptions(t *testing.T) {
 
 	wantDir := store.commonBackupDir()
 	if !strings.HasSuffix(options.BackupDir, wantDir) {
-		log.Fatalf("incorrect backup dir; got=%s, want=%s", options.BackupDir, wantDir)
+		log.Fatal().Str("got", options.BackupDir).Str("want", wantDir).Msg("incorrect backup dir")
 	}
 
 	wantFilename := "portainer.db.bak"
 	if options.BackupFileName != wantFilename {
-		log.Fatalf("incorrect backup file; got=%s, want=%s", options.BackupFileName, wantFilename)
+		log.Fatal().Str("got", options.BackupFileName).Str("want", wantFilename).Msg("incorrect backup file")
 	}
 }
 
@@ -147,19 +148,20 @@ func TestRollback(t *testing.T) {
 
 		_, err := store.backupWithOptions(getBackupRestoreOptions(store.commonBackupDir()))
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal().Err(err).Msg("")
 		}
 
 		// Change the current edition
 		err = store.VersionService.StoreDBVersion(version + 10)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal().Err(err).Msg("")
 		}
 
 		err = store.Rollback(true)
 		if err != nil {
 			t.Logf("Rollback failed: %s", err)
 			t.Fail()
+
 			return
 		}
 

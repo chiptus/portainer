@@ -5,22 +5,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"path"
 	"regexp"
 	"strconv"
 	"strings"
 
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	ru "github.com/portainer/portainer-ee/api/http/utils"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 
-	portaineree "github.com/portainer/portainer-ee/api"
-
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type baseTransport struct {
@@ -136,7 +135,10 @@ func getRoundTripToken(request *http.Request, tokenManager *tokenManager, endpoi
 	} else {
 		token, err = tokenManager.GetUserServiceAccountToken(int(tokenData.ID), int(endpointID))
 		if err != nil {
-			log.Printf("Failed retrieving service account token: %v", err)
+			log.Debug().
+				Err(err).
+				Msg("failed retrieving service account token")
+
 			return "", err
 		}
 	}

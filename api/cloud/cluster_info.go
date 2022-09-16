@@ -9,7 +9,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	log "github.com/sirupsen/logrus"
+	log "github.com/rs/zerolog/log"
 )
 
 // CloudProvider represents one of the Kubernetes Cloud Providers.
@@ -43,7 +43,8 @@ func NewCloudInfoService(dataStore dataservices.DataStore, shutdownCtx context.C
 func (service *CloudClusterInfoService) tryUpdate() {
 	credentials, err := service.dataStore.CloudCredential().GetAll()
 	if err != nil {
-		log.Errorf("while fetching cloud credentials: %v", err)
+		log.Error().Err(err).Msg("while fetching cloud credentials")
+
 		return
 	}
 
@@ -71,7 +72,8 @@ func (service *CloudClusterInfoService) tryUpdate() {
 				return
 			}
 			if err != nil {
-				log.Errorf("while fetching info for %s: %v", credential.Provider, err)
+				log.Error().Str("provider", credential.Provider).Err(err).Msg("while fetching info")
+
 				return
 			}
 			service.mu.Lock()
@@ -98,7 +100,8 @@ func (service *CloudClusterInfoService) Start() {
 				service.tryUpdate()
 
 			case <-service.shutdownCtx.Done():
-				log.Debug("[cloud] [message: shutting down KaaS info queue]")
+				log.Debug().Msg("shutting down KaaS info queue")
+
 				return
 			}
 		}

@@ -1,13 +1,13 @@
 package license
 
 import (
-	"log"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/portainer/liblicense"
 	"github.com/portainer/liblicense/master"
+
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -30,8 +30,9 @@ func (service *Service) startSyncLoop() error {
 		for {
 			select {
 			case <-service.shutdownCtx.Done():
-				log.Println("[DEBUG] [internal,license] [message: shutting down License service]")
+				log.Debug().Msg("shutting down License service")
 				ticker.Stop()
+
 				return
 			case <-ticker.C:
 				service.syncLicenses(master.ValidateLicense)

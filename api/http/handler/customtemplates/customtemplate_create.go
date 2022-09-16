@@ -4,13 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"regexp"
 	"strconv"
 
-	"github.com/asaskevich/govalidator"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
@@ -19,6 +17,9 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/git"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/rs/zerolog/log"
 )
 
 // @id CustomTemplateCreate
@@ -323,7 +324,7 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request, u
 	defer func() {
 		if !isValidProject {
 			if err := handler.FileService.RemoveDirectory(projectPath); err != nil {
-				log.Printf("[WARN] [http,customtemplate,git] [error: %s] [message: unable to remove git repository directory]", err)
+				log.Warn().Err(err).Msg("unable to remove git repository directory")
 			}
 		}
 	}()
@@ -342,6 +343,7 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request, u
 	if !exists {
 		return nil, errors.New("Invalid Compose file, ensure that the Compose file path is correct")
 	}
+
 	info, err := os.Lstat(entryPath)
 	if err != nil {
 		isValidProject = false
@@ -351,6 +353,7 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request, u
 		isValidProject = false
 		return nil, errors.New("Invalid Compose file, ensure that the Compose file is not a symbolic link")
 	}
+
 	return customTemplate, nil
 }
 

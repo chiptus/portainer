@@ -5,7 +5,8 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -57,10 +58,12 @@ func (service *Service) TeamMemberships() ([]portaineree.TeamMembership, error) 
 		func(obj interface{}) (interface{}, error) {
 			membership, ok := obj.(*portaineree.TeamMembership)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to TeamMembership object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to TeamMembership object")
 				return nil, fmt.Errorf("Failed to convert to TeamMembership object: %s", obj)
 			}
+
 			memberships = append(memberships, *membership)
+
 			return &portaineree.TeamMembership{}, nil
 		})
 
@@ -77,12 +80,14 @@ func (service *Service) TeamMembershipsByUserID(userID portaineree.UserID) ([]po
 		func(obj interface{}) (interface{}, error) {
 			membership, ok := obj.(*portaineree.TeamMembership)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to TeamMembership object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to TeamMembership object")
 				return nil, fmt.Errorf("Failed to convert to TeamMembership object: %s", obj)
 			}
+
 			if membership.UserID == userID {
 				memberships = append(memberships, *membership)
 			}
+
 			return &portaineree.TeamMembership{}, nil
 		})
 
@@ -99,12 +104,14 @@ func (service *Service) TeamMembershipsByTeamID(teamID portaineree.TeamID) ([]po
 		func(obj interface{}) (interface{}, error) {
 			membership, ok := obj.(*portaineree.TeamMembership)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to TeamMembership object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to TeamMembership object")
 				return nil, fmt.Errorf("Failed to convert to TeamMembership object: %s", obj)
 			}
+
 			if membership.TeamID == teamID {
 				memberships = append(memberships, *membership)
 			}
+
 			return &portaineree.TeamMembership{}, nil
 		})
 
@@ -141,13 +148,15 @@ func (service *Service) DeleteTeamMembershipByUserID(userID portaineree.UserID) 
 		func(obj interface{}) (id int, ok bool) {
 			membership, ok := obj.(portaineree.TeamMembership)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to TeamMembership object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to TeamMembership object")
 				//return fmt.Errorf("Failed to convert to TeamMembership object: %s", obj)
 				return -1, false
 			}
+
 			if membership.UserID == userID {
 				return int(membership.ID), true
 			}
+
 			return -1, false
 		})
 }
@@ -159,13 +168,15 @@ func (service *Service) DeleteTeamMembershipByTeamID(teamID portaineree.TeamID) 
 		func(obj interface{}) (id int, ok bool) {
 			membership, ok := obj.(portaineree.TeamMembership)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to TeamMembership object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to TeamMembership object")
 				//return fmt.Errorf("Failed to convert to TeamMembership object: %s", obj)
 				return -1, false
 			}
+
 			if membership.TeamID == teamID {
 				return int(membership.ID), true
 			}
+
 			return -1, false
 		})
 }

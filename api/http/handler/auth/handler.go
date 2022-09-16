@@ -1,11 +1,9 @@
 package auth
 
 import (
-	"log"
 	"net/http"
 	"regexp"
 
-	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
@@ -13,6 +11,9 @@ import (
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+
+	"github.com/gorilla/mux"
+	"github.com/rs/zerolog/log"
 )
 
 // Handler is the HTTP handler used to handle authentication operations.
@@ -73,7 +74,7 @@ func (handler *Handler) authActivityMiddleware(prev authMiddlewareHandler, defau
 
 		err := handler.UserActivityService.LogAuthActivity(resp.Username, origin, method, activityType)
 		if err != nil {
-			log.Printf("[ERROR] [msg: Failed logging auth activity] [error: %s]", err)
+			log.Error().Err(err).Msg("failed logging auth activity")
 		}
 
 		return respErr

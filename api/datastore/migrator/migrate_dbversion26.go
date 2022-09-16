@@ -5,10 +5,13 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer/api/dataservices/errors"
+
+	"github.com/rs/zerolog/log"
 )
 
 func (m *Migrator) updateStackResourceControlToDB27() error {
-	migrateLog.Info("- updating stack resource controls")
+	log.Info().Msg("updating stack resource controls")
+
 	resourceControls, err := m.resourceControlService.ResourceControls()
 	if err != nil {
 		return err

@@ -11,7 +11,8 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/cloud/gke"
 	"github.com/portainer/portainer-ee/api/database/models"
-	log "github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 	"google.golang.org/api/container/v1"
 	"google.golang.org/api/option"
 )
@@ -56,7 +57,7 @@ func (service *CloudClusterInfoService) gkeFetchRefresh(apiKey, cacheKey string)
 }
 
 func (service *CloudClusterInfoService) GKEFetchInfo(apiKey string) (*gke.Info, error) {
-	log.Debug("[cloud] [message: sending cloud provider info request] [provider: gke]")
+	log.Debug().Str("provider", "GKE").Msg("sending cloud provider info request")
 
 	key, err := gke.ExtractKey(apiKey)
 	if err != nil {
@@ -123,7 +124,11 @@ func (service *CloudClusterInfoService) GKEFetchInfo(apiKey string) (*gke.Info, 
 }
 
 func GKEGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
-	log.Debugf("[cloud] [message: sending KaaS cluster details request] [provider: gke] [cluster_id: %s] [region: %s]", clusterID, region)
+	log.Debug().
+		Str("provider", "GKE").
+		Str("cluster_id", clusterID).
+		Str("region", region).
+		Msg("sending KaaS cluster details request")
 
 	key, err := gke.ExtractKey(apiKey)
 	if err != nil {
@@ -140,15 +145,17 @@ func GKEGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
 
 	f, err := os.CreateTemp("", "portainer-gke")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("")
 	}
+
 	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", f.Name())
 
 	if _, err := f.Write(key.Bytes); err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("")
 	}
+
 	if err := f.Close(); err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("")
 	}
 
 	kaasCluster := &KaasCluster{
@@ -162,7 +169,12 @@ func GKEGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
 }
 
 func GKEProvisionCluster(r gke.ProvisionRequest) (string, error) {
-	log.Debugf("[cloud] [message: sending KaaS cluster provisioning request] [provider: GKE] [cluster_name: %s] [node_count: %d] [zone: %s]", r.ClusterName, r.NodeCount, r.Zone)
+	log.Debug().
+		Str("provider", "GKE").
+		Str("cluster", r.ClusterName).
+		Int("node_count", r.NodeCount).
+		Str("zone", r.Zone).
+		Msg("sending KaaS cluster provisioning request")
 
 	key, err := gke.ExtractKey(r.APIKey)
 	if err != nil {
@@ -174,9 +186,11 @@ func GKEProvisionCluster(r gke.ProvisionRequest) (string, error) {
 		ctx,
 		option.WithCredentialsJSON(key.Bytes),
 	)
+
 	if err != nil {
 		return "", fmt.Errorf("failed creating container service: %v", err)
 	}
+
 	zoneService := container.NewProjectsZonesClustersService(containerService)
 
 	cpuCount := strconv.Itoa(r.CPU)
@@ -186,6 +200,7 @@ func GKEProvisionCluster(r gke.ProvisionRequest) (string, error) {
 	if r.NodeSize == "custom" || r.NodeSize == "" {
 		machineType = "e2-custom-" + cpuCount + "-" + memCount
 	}
+
 	nodeConfig := container.NodeConfig{
 		DiskSizeGb:  int64(r.HDD),
 		MachineType: machineType,
@@ -239,5 +254,6 @@ func GKEProvisionCluster(r gke.ProvisionRequest) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("while creating cluster %v: %w", r.ClusterName, err)
 	}
+
 	return r.Zone + ":" + r.ClusterName, nil
 }

@@ -53,10 +53,11 @@ require (
 	github.com/portainer/docker-compose-wrapper v0.0.0-20220708023447-a69a4ebaa021
 	github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a
 	github.com/portainer/libhelm v0.0.0-20210929000907-825e93d62108
-	github.com/portainer/libhttp v0.0.0-20211208103139-07a5f798eb3f
+	github.com/portainer/libhttp v0.0.0-20220916153711-5d61e12f4b0a
 	github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91
 	github.com/portainer/portainer/api v0.0.0-20220915043205-fa162cafc14a
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/rs/zerolog v1.28.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.1
 	github.com/urfave/negroni v1.0.0
@@ -75,7 +76,11 @@ require (
 	software.sslmate.com/src/go-pkcs12 v0.0.0-20210415151418-c5206de65a78
 )
 
-require github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
+require (
+	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
+)
 
 require (
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect

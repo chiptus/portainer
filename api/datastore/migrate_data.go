@@ -7,21 +7,18 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/cli"
 	dserrors "github.com/portainer/portainer-ee/api/dataservices/errors"
-	plog "github.com/portainer/portainer-ee/api/datastore/log"
 	"github.com/portainer/portainer-ee/api/datastore/migrator"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
-	"github.com/sirupsen/logrus"
 
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 const (
 	beforePortainerVersionUpgradeBackup = "portainer.db.bak"
 	beforePortainerUpgradeToEEBackup    = "portainer.db.before-EE-upgrade"
 )
-
-var migrateLog = plog.NewScopedLog("database, migrate")
 
 func (store *Store) MigrateData() error {
 	version, err := store.version()
@@ -64,21 +61,21 @@ func (store *Store) MigrateData() error {
 	// restore on error
 	err = store.connectionMigrateData(migratorParams)
 	if err != nil {
-		logrus.Errorf("While DB migration %v. Restoring DB", err)
+		log.Error().Err(err).Msg("while DB migration, restoring DB")
+
 		options := BackupOptions{
 			BackupPath: backupPath,
 		}
+
 		err := store.restoreWithOptions(&options)
 		if err != nil {
-			logrus.Fatalf(
-				"Failed restoring the backup. portainer database file needs to restored manually by "+
-					"replacing %s database file with recent backup %s. Error %v",
-				store.databasePath(),
-				options.BackupPath,
-				err,
-			)
+			log.Fatal().
+				Str("database_file", store.databasePath()).
+				Str("backup", options.BackupPath).Err(err).
+				Msg("failed restoring the backup, Portainer database file needs to restored manually by replacing the database file with a recent backup")
 		}
 	}
+
 	return err
 }
 
@@ -117,25 +114,35 @@ func (store *Store) connectionMigrateData(migratorParams *migrator.MigratorParam
 		}
 	}
 
-	logrus.Infof("migrator.Version() = %v, portaineree.DBVersion = %v", migrator.Version(), portaineree.DBVersion)
+	log.Info().
+		Int("migrator_version", migrator.Version()).
+		Int("portaineree_db_version", portaineree.DBVersion).
+		Msg("migrating database")
+
 	// Migrate to the latest CE version
 	if migrator.Version() < portaineree.DBVersion {
-		migrateLog.Infof("Migrating database from version %v to %v", migrator.Version(), portaineree.DBVersion)
+		log.Info().Int("from", migrator.Version()).Int("to", portaineree.DBVersion).Msg("migrating database version")
+
 		err = store.FailSafeMigrate(migrator, portaineree.DBVersion)
 		if err != nil {
-			migrateLog.Error("An error occurred during database migration", err)
+			log.Error().Err(err).Msg("an error occurred during database migration")
+
 			return err
 		}
 	}
 
-	logrus.Infof("Portainer Edition = %s, Migrator Edition = %s, Store edition = %s",
-		portaineree.Edition.GetEditionLabel(), migrator.Edition().GetEditionLabel(), store.edition().GetEditionLabel())
+	log.Info().
+		Str("portainer_edition", portaineree.Edition.GetEditionLabel()).
+		Str("migrator_edition", migrator.Edition().GetEditionLabel()).
+		Str("store_edition", store.edition().GetEditionLabel()).
+		Msg("")
 
 	// If DB is CE Edition we need to upgrade settings to EE
 	if migrator.Edition() < portaineree.PortainerEE {
 		err = migrator.UpgradeToEE()
 		if err != nil {
-			migrateLog.Error("An error occurred while upgrading database to EE", err)
+			log.Error().Err(err).Msg("an error occurred while upgrading database to EE")
+
 			store.RollbackFailedUpgradeToEE()
 			return err
 		}
@@ -145,7 +152,8 @@ func (store *Store) connectionMigrateData(migratorParams *migrator.MigratorParam
 	if migrator.Edition() == portaineree.PortainerEE && migrator.Version() < portaineree.DBVersionEE {
 		err = store.FailSafeMigrate(migrator, portaineree.DBVersionEE)
 		if err != nil {
-			migrateLog.Error("An error occurred while migrating EE database to latest version", err)
+			log.Error().Err(err).Msg("an error occurred while migrating EE database to latest version")
+
 			return err
 		}
 	}
@@ -170,16 +178,17 @@ func (store *Store) RollbackFailedUpgradeToEE() error {
 
 // backupVersion will backup the database or panic if any errors occur
 func (store *Store) backupVersion(migrator *migrator.Migrator) error {
-	migrateLog.Info("Backing up database prior to version upgrade...")
+	log.Info().Msg("backing up database prior to version upgrade")
 
 	options := getBackupRestoreOptions(store.commonBackupDir())
 
 	_, err := store.backupWithOptions(options)
 	if err != nil {
-		migrateLog.Error("An error occurred during database backup", err)
+		log.Error().Err(err).Msg("an error occurred during database backup")
+
 		removalErr := store.removeWithOptions(options)
 		if removalErr != nil {
-			migrateLog.Error("An error occurred during store removal prior to backup", err)
+			log.Error().Err(err).Msg("an error occurred during store removal prior to backup")
 		}
 		return err
 	}
@@ -224,8 +233,10 @@ func (store *Store) rollbackToCE(forceUpdate bool) error {
 		return err
 	}
 
-	migrateLog.Infof("Current Software Edition: %s", migrator.Edition().GetEditionLabel())
-	migrateLog.Infof("Current DB Version: %d", migrator.Version())
+	log.Info().
+		Str("current_software_edition", migrator.Edition().GetEditionLabel()).
+		Int("current_DB_version", migrator.Version()).
+		Msg("")
 
 	if migrator.Edition() == portaineree.PortainerCE {
 		return dserrors.ErrMigrationToCE
@@ -241,16 +252,20 @@ func (store *Store) rollbackToCE(forceUpdate bool) error {
 
 	err = store.VersionService.StoreEdition(portaineree.PortainerCE)
 	if err != nil {
-		migrateLog.Error("An Error occurred with rolling back to the community edition", err)
+		log.Error().Err(err).Msg("an error occurred with rolling back to the community edition")
+
 		return err
 	}
 
 	err = store.downgradeLDAPSettings()
 	if err != nil {
-		migrateLog.Error("An Error occurred with rolling back LDAP URL setting", err)
+		log.Error().Err(err).Msg("an error occurred with rolling back LDAP URL setting")
+
 		return err
 	}
-	migrateLog.Info("Rolled back to CE Edition.")
+
+	log.Info().Msg("rolled back to CE Edition")
+
 	return nil
 }
 

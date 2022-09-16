@@ -24,7 +24,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2022-02-01/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/gofrs/uuid"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 type MachineTypes []string
@@ -186,7 +186,7 @@ func (client *RegionClient) ListRegions(ctx context.Context) (res []string, err 
 		return nil, err
 	}
 
-	logrus.Infof("%v", regions)
+	log.Info().Str("regions", fmt.Sprintf("%v", regions)).Msg("")
 
 	return res, err
 }

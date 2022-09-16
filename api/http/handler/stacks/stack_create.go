@@ -2,12 +2,8 @@ package stacks
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
-	"github.com/docker/cli/cli/compose/loader"
-	"github.com/docker/cli/cli/compose/types"
-	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
@@ -18,6 +14,11 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/stackutils"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 	"github.com/portainer/portainer/api/git"
+
+	"github.com/docker/cli/cli/compose/loader"
+	"github.com/docker/cli/cli/compose/types"
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 func (handler *Handler) cleanUp(stack *portaineree.Stack, doCleanUp *bool) error {
@@ -27,8 +28,9 @@ func (handler *Handler) cleanUp(stack *portaineree.Stack, doCleanUp *bool) error
 
 	err := handler.FileService.RemoveDirectory(stack.ProjectPath)
 	if err != nil {
-		log.Printf("http error: Unable to cleanup stack creation (err=%s)\n", err)
+		log.Error().Err(err).Msg("unable to cleanup stack creation")
 	}
+
 	return nil
 }
 
@@ -237,6 +239,7 @@ func (handler *Handler) decorateStackResponse(w http.ResponseWriter, stack *port
 		// sanitize password in the http response to minimise possible security leaks
 		stack.GitConfig.Authentication.Password = ""
 	}
+
 	return response.JSON(w, stack)
 }
 

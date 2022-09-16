@@ -1,11 +1,11 @@
 package demo
 
 import (
-	"log"
-
-	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type EnvironmentDetails struct {
@@ -27,7 +27,7 @@ func (service *Service) Details() EnvironmentDetails {
 }
 
 func (service *Service) Init(store dataservices.DataStore, cryptoService portaineree.CryptoService) error {
-	log.Print("[INFO] [main] Starting demo environment")
+	log.Info().Msg("starting demo environment")
 
 	isClean, err := isCleanStore(store)
 	if err != nil {

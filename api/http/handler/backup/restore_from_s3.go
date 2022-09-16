@@ -3,18 +3,19 @@ package backup
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
 	operations "github.com/portainer/portainer-ee/api/backup"
 	s3client "github.com/portainer/portainer-ee/api/s3"
+
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type restoreS3Settings struct {
@@ -72,9 +73,11 @@ func (h *Handler) restoreFromS3(w http.ResponseWriter, r *http.Request) *httperr
 
 	backupFile, err := createTmpBackupLocation(h.filestorePath)
 	if err != nil {
-		log.Println(err)
+		log.Debug().Err(err).Msg("")
+
 		return httperror.InternalServerError("Failed to restore", err)
 	}
+
 	defer func() {
 		backupFile.Close()
 		os.RemoveAll(filepath.Dir(backupFile.Name()))
@@ -82,15 +85,18 @@ func (h *Handler) restoreFromS3(w http.ResponseWriter, r *http.Request) *httperr
 
 	s3session, err := s3client.NewSession(payload.Region, payload.AccessKeyID, payload.SecretAccessKey)
 	if err != nil {
-		log.Printf("[ERROR] %s \n", err)
+		log.Error().Err(err).Msg("")
 	}
+
 	if err = s3client.Download(s3session, backupFile, payload.S3Location); err != nil {
-		log.Printf("[ERROR] %s \n", errors.Wrap(err, "failed downloading file from S3"))
+		log.Error().Err(err).Msg("failed downloading file from S3")
+
 		return httperror.InternalServerError("Failed to download file from S3", err)
 	}
 
 	if err = operations.RestoreArchive(backupFile, payload.Password, h.filestorePath, h.gate, h.dataStore, h.userActivityStore, h.shutdownTrigger); err != nil {
-		log.Printf("[ERROR] %s", errors.Wrap(err, "faild to restore system from backup"))
+		log.Error().Err(err).Msg("failed to restore system from backup")
+
 		return httperror.InternalServerError("Failed to restore backup", err)
 	}
 

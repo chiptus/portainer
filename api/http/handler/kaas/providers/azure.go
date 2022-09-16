@@ -7,7 +7,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/types"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 type (
@@ -52,7 +52,7 @@ func (payload *AzureProvisionPayload) GetCloudProvider(_ string) (*portaineree.C
 		return nil, errors.New("Invalid cloud provider")
 	}
 
-	logrus.Infof("Cloud provider: %s", cloudProvider.Name)
+	log.Info().Str("provider", cloudProvider.Name).Msg("cloud provider")
 
 	cloudProvider.Region = payload.Region
 	cloudProvider.Size = &payload.NodeSize

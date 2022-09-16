@@ -1,10 +1,11 @@
 package migrator
 
 import (
-	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
-	"github.com/sirupsen/logrus"
+
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 func (m *Migrator) migrateDBVersionToDB50() error {
@@ -16,7 +17,8 @@ func (m *Migrator) migrateDBVersionToDB50() error {
 }
 
 func (m *Migrator) migratePasswordLengthSettings() error {
-	migrateLog.Info("- updating required password length")
+	log.Info().Msg("updating required password length")
+
 	s, err := m.settingsService.Settings()
 	if err != nil {
 		return errors.Wrap(err, "while fetching settings from database")
@@ -27,7 +29,8 @@ func (m *Migrator) migratePasswordLengthSettings() error {
 }
 
 func (m *Migrator) migrateCloudAPIKeysToCloudCredentials() error {
-	migrateLog.Info("- migrating cloud api keys to cloud credentials")
+	log.Info().Msg("migrating cloud api keys to cloud credentials")
+
 	settings, err := m.settingsService.Settings()
 	if err != nil {
 		return errors.Wrap(err, "while fetching settings from database")
@@ -46,9 +49,10 @@ func (m *Migrator) migrateCloudAPIKeysToCloudCredentials() error {
 				"apiKey": settings.CloudApiKeys.CivoApiKey,
 			},
 		}
+
 		err = m.cloudCredentialService.Create(&credentials)
 		if err != nil {
-			logrus.Errorf("Unable to create cloud credential for %s: %s", portaineree.CloudProviderCivo, err)
+			log.Error().Str("provider", portaineree.CloudProviderCivo).Err(err).Msg("unable to create cloud credential")
 		} else {
 			updateEndpoint(m, endpoints, credentials.ID, portaineree.CloudProviderCivo)
 		}
@@ -64,7 +68,10 @@ func (m *Migrator) migrateCloudAPIKeysToCloudCredentials() error {
 		}
 		err = m.cloudCredentialService.Create(&credentials)
 		if err != nil {
-			logrus.Errorf("Unable to create cloud credential for %s: %s", portaineree.CloudProviderDigitalOcean, err)
+			log.Error().
+				Str("provider", portaineree.CloudProviderDigitalOcean).
+				Err(err).
+				Msg("unable to create cloud credential")
 		} else {
 			updateEndpoint(m, endpoints, credentials.ID, portaineree.CloudProviderDigitalOcean)
 		}
@@ -80,7 +87,10 @@ func (m *Migrator) migrateCloudAPIKeysToCloudCredentials() error {
 		}
 		err = m.cloudCredentialService.Create(&credentials)
 		if err != nil {
-			logrus.Errorf("Unable to create cloud credential for %s: %s", portaineree.CloudProviderLinode, err)
+			log.Error().
+				Str("provider", portaineree.CloudProviderLinode).
+				Err(err).
+				Msg("unable to create cloud credential")
 		} else {
 			updateEndpoint(m, endpoints, credentials.ID, portaineree.CloudProviderLinode)
 		}
@@ -104,7 +114,7 @@ func updateEndpoint(m *Migrator, endpoints []portaineree.Endpoint, credID models
 			endpoint.CloudProvider.CredentialID = credID
 			err := m.endpointService.UpdateEndpoint(endpoint.ID, &endpoint)
 			if err != nil {
-				logrus.Errorf("Unable to update cloud endpoint %s: %s", endpoint.Name, err)
+				log.Error().Str("endpoint", endpoint.Name).Err(err).Msg("unable to update cloud endpoint")
 			}
 		}
 	}

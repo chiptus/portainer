@@ -3,7 +3,6 @@ package fdo
 import (
 	"errors"
 	"fmt"
-	portaineree "github.com/portainer/portainer-ee/api"
 	"net/http"
 	"strconv"
 	"time"
@@ -11,6 +10,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type createProfileFromFileContentPayload struct {

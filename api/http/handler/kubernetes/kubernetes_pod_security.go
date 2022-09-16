@@ -3,16 +3,12 @@ package kubernetes
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"path"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
-	"gopkg.in/yaml.v3"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -22,6 +18,10 @@ import (
 	"github.com/portainer/portainer-ee/api/kubernetes/podsecurity"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 	"github.com/portainer/portainer/api/filesystem"
+
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
+	"gopkg.in/yaml.v3"
 )
 
 // @id getKubernetesPodSecurityRule
@@ -156,10 +156,12 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 		if err != nil {
 			return httperror.InternalServerError("failed to remove kubernetes gatekeeper", err)
 		}
+
 		err = handler.DataStore.PodSecurity().DeletePodSecurityRule(endpointID)
 		if err != nil {
-			log.Printf("[ERROR] [message: failed to delete pod security rule for %d] [error: %s]", endpointID, err)
+			log.Error().Err(err).Int("endpoint_id", endpointID).Msg("failed to delete pod security rule")
 		}
+
 		return response.JSON(w, requestRule)
 	}
 
@@ -177,7 +179,7 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 		//1.deploy gatekeeper
 		_, err = handler.KubernetesDeployer.Deploy(tokenData.ID, endpoint, []string{gatekeeperManifest}, podsecurity.GateKeeperNameSpace)
 		if err != nil {
-			log.Printf("[ERROR] [internal,k8s] [message: failed to deploy kubernetes gatekeeper, remove installed files.]")
+			log.Error().Msg("failed to deploy kubernetes gatekeeper, remove installed files")
 			handler.KubernetesDeployer.Remove(tokenData.ID, endpoint, []string{gatekeeperManifest}, podsecurity.GateKeeperNameSpace)
 			return httperror.InternalServerError("failed to deploy kubernetes gatekeeper", err)
 		}
@@ -191,21 +193,23 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 		gatekeeperExcludedNamespacesManifest := path.Join(handler.baseFileDir, "pod-security-policy", podsecurity.GateKeeperExcludedNamespacesFile)
 		_, err = handler.KubernetesDeployer.Deploy(tokenData.ID, endpoint, []string{gatekeeperExcludedNamespacesManifest}, podsecurity.GateKeeperNameSpace)
 		if err != nil {
-			log.Printf("[ERROR] [internal,k8s] [message: failed to apply kubernetes gatekeeper namespace exclusions]")
+			log.Error().Msg("failed to apply kubernetes gatekeeper namespace exclusions")
 			handler.KubernetesDeployer.Remove(tokenData.ID, endpoint, []string{gatekeeperManifest}, podsecurity.GateKeeperNameSpace)
 			return httperror.InternalServerError("failed to deploy kubernetes gatekeeper", err)
 		}
 
 		//2.deploy gatekeeper constrainttemplate
 		for _, v := range podsecurity.PodSecurityConstraintsMap {
-			log.Printf("[INFO] [internal,k8s] [message: deploying constraint template %s]", v)
+			log.Info().Str("template", v).Msg("deploying constraint template")
+
 			_, err := handler.KubernetesDeployer.Deploy(tokenData.ID, endpoint, []string{path.Join(handler.baseFileDir, "pod-security-policy", v, "template.yaml")}, podsecurity.GateKeeperNameSpace)
 			if err != nil {
-				log.Printf("[ERROR] [internal,k8s] [message: Unable to deploy %s with error: %s]", v, err)
+				log.Error().Str("template", v).Err(err).Msg("unable to deploy")
+
 				return httperror.InternalServerError("Unable to apply the pod security rule templates to the system", err)
 			}
 
-			log.Printf("[INFO] [internal,k8s] [message: Successfully deployed template %s]", v)
+			log.Info().Str("template", v).Msg("successfully deployed")
 		}
 
 		err = handler.DataStore.PodSecurity().Create(existedRule)
@@ -219,18 +223,21 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 		rulename := name
 		constraint := PodSecurityConstraint{}
 		constraint.init(tokenData.ID, endpoint, rulename, requestRule, existedRule, handler.fileService.GetDatastorePath(), handler)
+
 		if err := constraint.fresh(handler); err != nil {
-			log.Printf("[ERROR] [internal,k8s] [message: Unable to deploy constraint <%s> with error: %s]", rulename, err)
+			log.Error().Str("rule", rulename).Err(err).Msg("unable to deploy constraint")
+
 			return httperror.InternalServerError("Unable to apply the pod security rule constraints to the system", err)
 		}
 
-		log.Printf("[INFO] [internal,k8s] [message: Successfully deployed constraint <%s>]", rulename)
+		log.Info().Str("rule", rulename).Msg("successfully deployed constraint")
 	}
 
 	err = handler.DataStore.PodSecurity().UpdatePodSecurityRule(existedRule.EndpointID, requestRule)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist the pod security rule changes inside the database", err)
 	}
+
 	return response.JSON(w, requestRule)
 }
 
@@ -277,19 +284,22 @@ func (cons *PodSecurityConstraint) create(handler *Handler) error {
 	if err != nil {
 		return err
 	}
+
 	cons.constraint = constraint
 	//kubctrl apply -f constraint
-	log.Printf("[INFO] [internal,k8s] [message: creating %s]", cons.constraint)
+	log.Info().Str("constraint", cons.constraint).Msg("creating")
 
 	for retry := 0; retry < 5; retry++ {
 		_, err = handler.KubernetesDeployer.Deploy(cons.userID, cons.endpoint, []string{cons.constraint}, podsecurity.GateKeeperNameSpace)
 		if err != nil && strings.Contains(strings.ToLower(err.Error()), "no matches for kind") {
-			log.Printf("[INFO] [internal,k8s] [message: waiting for template to take effect: %s]", cons.constraint)
+			log.Info().Str("constraint", cons.constraint).Msg("waiting for template to take effect")
+
 			time.Sleep(5 * time.Second)
 			continue
 		}
 		break
 	}
+
 	return err
 }
 func (cons *PodSecurityConstraint) delete(handler *Handler) error {
@@ -308,15 +318,18 @@ func (cons *PodSecurityConstraint) delete(handler *Handler) error {
 	if err != nil {
 		return err
 	}
+
 	os.Remove(cons.constraint)
 	return nil
 }
 
 // fresh the status of field in k8s
 func (cons *PodSecurityConstraint) fresh(handler *Handler) error {
-	log.Printf("[DEBUG] [Kubernetes, OPA] [message: Updating Pod Security Rule field %v]", cons.name)
-	cons.newRuleEnabled, cons.existingRuleEnabled = cons.getRulesStatus()
-	log.Printf("[DEBUG] [Kubernetes, OPA] [message: request enabled status =%t, existing enabled status =%t]", cons.newRuleEnabled, cons.existingRuleEnabled)
+	log.Debug().
+		Str("constraint", cons.name).
+		Bool("request_enabled_status", cons.newRuleEnabled).
+		Bool("existing_enabled_status", cons.existingRuleEnabled).
+		Msg("updating Pod Security Rule field")
 
 	if cons.newRuleEnabled && cons.existingRuleEnabled {
 		//kubctrl delete -f constraint then apply -f new constraint
@@ -324,22 +337,19 @@ func (cons *PodSecurityConstraint) fresh(handler *Handler) error {
 		if err != nil {
 			return err
 		}
-		err = cons.create(handler)
-		return err
 
+		return cons.create(handler)
 	} else if cons.newRuleEnabled && !cons.existingRuleEnabled {
-		err := cons.create(handler)
-		return err
+		return cons.create(handler)
 	} else if !cons.newRuleEnabled && cons.existingRuleEnabled {
-		err := cons.delete(handler)
-		return err
+		return cons.delete(handler)
 	}
+
 	return nil
 }
 
 // check if the field needs to be created/updated/deleted by comparing the request value and database value
 func (cons *PodSecurityConstraint) getRulesStatus() (bool, bool) {
-
 	switch cons.name {
 	case "K8sPSPAllowPrivilegeEscalationContainer":
 		return cons.newRule.AllowPrivilegeEscalation.Enabled, cons.existingRule.AllowPrivilegeEscalation.Enabled
@@ -407,6 +417,7 @@ func createK8SYamlFile(workDir string, constraint string, rule *podsecurity.PodS
 		type Parameters struct {
 			AllowedProfiles []string `yaml:"allowedProfiles"`
 		}
+
 		params := Parameters{}
 		params.AllowedProfiles = rule.AppArmour.AppArmourType
 		constraintManifest.Spec.Parameters = params
@@ -415,6 +426,7 @@ func createK8SYamlFile(workDir string, constraint string, rule *podsecurity.PodS
 			AllowedCapabilities      []string `yaml:"allowedCapabilities"`
 			RequiredDropCapabilities []string `yaml:"requiredDropCapabilities"`
 		}
+
 		params := Parameters{}
 		params.AllowedCapabilities = rule.Capabilities.AllowedCapabilities
 		params.RequiredDropCapabilities = rule.Capabilities.RequiredDropCapabilities
@@ -427,6 +439,7 @@ func createK8SYamlFile(workDir string, constraint string, rule *podsecurity.PodS
 		type Parameters struct {
 			AllowedFlexVolumes []AllowedFlexVolumes `yaml:"allowedFlexVolumes"`
 		}
+
 		params := Parameters{}
 		for _, item := range rule.AllowFlexVolumes.AllowedVolumes {
 			vol := AllowedFlexVolumes{}
@@ -439,6 +452,7 @@ func createK8SYamlFile(workDir string, constraint string, rule *podsecurity.PodS
 		type Parameters struct {
 			ForbiddenSysctls []string `yaml:"forbiddenSysctls"`
 		}
+
 		params := Parameters{}
 		params.ForbiddenSysctls = rule.ForbiddenSysctlsList.RequiredDropCapabilities
 		constraintManifest.Spec.Parameters = params
@@ -447,9 +461,11 @@ func createK8SYamlFile(workDir string, constraint string, rule *podsecurity.PodS
 			ReadOnly   bool   `yaml:"readOnly"`
 			PathPrefix string `yaml:"pathPrefix"`
 		}
+
 		type Parameters struct {
 			AllowedHostPaths []AllowedHostPaths `yaml:"allowedHostPaths"`
 		}
+
 		params := Parameters{}
 		for _, path := range rule.HostFilesystem.AllowedPaths {
 			allowedPath := AllowedHostPaths{}
@@ -457,6 +473,7 @@ func createK8SYamlFile(workDir string, constraint string, rule *podsecurity.PodS
 			allowedPath.ReadOnly = path.Readonly
 			params.AllowedHostPaths = append(params.AllowedHostPaths, allowedPath)
 		}
+
 		constraintManifest.Spec.Parameters = params
 
 	case "K8sPSPHostNetworkingPorts":
@@ -465,6 +482,7 @@ func createK8SYamlFile(workDir string, constraint string, rule *podsecurity.PodS
 			Max         int  `yaml:"max"`
 			HostNetwork bool `yaml:"hostNetwork"`
 		}
+
 		params := Parameters{}
 		params.HostNetwork = rule.HostNetworkingPorts.HostNetwork
 		params.Max = rule.HostNetworkingPorts.Max
@@ -476,17 +494,21 @@ func createK8SYamlFile(workDir string, constraint string, rule *podsecurity.PodS
 
 	case "K8sPSPProcMount":
 		constraintManifest.Metadata.Name = "psp-proc-mount"
+
 		type Parameters struct {
 			ProcMount string `yaml:"procMount"`
 		}
+
 		params := Parameters{}
 		params.ProcMount = rule.AllowProcMount.ProcMountType
 		constraintManifest.Spec.Parameters = params
 	case "K8sPSPSeccomp":
 		constraintManifest.Metadata.Name = "psp-seccomp"
+
 		type Parameters struct {
 			AllowedProfiles []string `yaml:"allowedProfiles"`
 		}
+
 		params := Parameters{}
 		params.AllowedProfiles = rule.SecComp.SecCompType
 		constraintManifest.Spec.Parameters = params
@@ -497,9 +519,11 @@ func createK8SYamlFile(workDir string, constraint string, rule *podsecurity.PodS
 			Type  string `yaml:"type"`
 			User  string `yaml:"user"`
 		}
+
 		type Parameters struct {
 			AllowedSELinuxOptions []AllowedSELinuxOptions `yaml:"allowedSELinuxOptions"`
 		}
+
 		params := Parameters{}
 		for _, item := range rule.Selinux.AllowedCapabilities {
 			option := AllowedSELinuxOptions{}
@@ -509,6 +533,7 @@ func createK8SYamlFile(workDir string, constraint string, rule *podsecurity.PodS
 			option.User = item.User
 			params.AllowedSELinuxOptions = append(params.AllowedSELinuxOptions, option)
 		}
+
 		constraintManifest.Spec.Parameters = params
 	case "K8sPSPAllowedUsers":
 		type Ranges struct {
@@ -531,7 +556,7 @@ func createK8SYamlFile(workDir string, constraint string, rule *podsecurity.PodS
 		}
 		params := Parameters{}
 
-		//hanlde runAsUser
+		//handle runAsUser
 		params.RunAsUser.Rule = string(rule.Users.RunAsUser.Type)
 		if rule.Users.RunAsUser.Type == podsecurity.RunAsUserStrategyMustRunAs {
 			//handle range list
@@ -543,7 +568,8 @@ func createK8SYamlFile(workDir string, constraint string, rule *podsecurity.PodS
 			}
 
 		}
-		//hanlde RunAsGroup
+
+		//handle RunAsGroup
 		params.RunAsGroup.Rule = string(rule.Users.RunAsGroup.Type)
 		if rule.Users.RunAsGroup.Type == podsecurity.RunAsGroupStrategyMustRunAs || rule.Users.RunAsGroup.Type == podsecurity.RunAsGroupStrategyMayRunAs {
 			//handle range list
@@ -555,7 +581,7 @@ func createK8SYamlFile(workDir string, constraint string, rule *podsecurity.PodS
 			}
 		}
 
-		//hanlde SupplementalGroups
+		//handle SupplementalGroups
 		params.SupplementalGroups.Rule = string(rule.Users.SupplementalGroups.Type)
 		if rule.Users.SupplementalGroups.Type == podsecurity.SupplementalGroupsStrategyMustRunAs || rule.Users.SupplementalGroups.Type == podsecurity.SupplementalGroupsStrategyMayRunAs {
 			//handle range list
@@ -611,6 +637,7 @@ func createK8SYamlFile(workDir string, constraint string, rule *podsecurity.PodS
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to create constraint yaml file: %v", manifestFilePath)
 	}
+
 	return manifestFilePath, nil
 }
 func (cons *PodSecurityConstraint) getExistingConstraint() (string, error) {

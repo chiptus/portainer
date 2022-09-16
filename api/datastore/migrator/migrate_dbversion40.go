@@ -1,27 +1,30 @@
 package migrator
 
-import "github.com/portainer/portainer-ee/api/internal/endpointutils"
+import (
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+
+	"github.com/rs/zerolog/log"
+)
 
 func (m *Migrator) migrateDBVersionToDB40() error {
-	migrateLog.Info("- refreshing RBAC roles")
+	log.Info().Msg("refreshing RBAC roles")
+
 	if err := m.refreshRBACRoles(); err != nil {
 		return err
 	}
 
-	migrateLog.Info("- refreshing user authorizations")
+	log.Info().Msg("refreshing user authorizations")
+
 	if err := m.refreshUserAuthorizations(); err != nil {
 		return err
 	}
 
-	if err := m.trustCurrentEdgeEndpointsDB40(); err != nil {
-		return err
-	}
-
-	return nil
+	return m.trustCurrentEdgeEndpointsDB40()
 }
 
 func (m *Migrator) trustCurrentEdgeEndpointsDB40() error {
-	migrateLog.Info("- trusting current edge endpoints")
+	log.Info().Msg("trusting current edge endpoints")
+
 	endpoints, err := m.endpointService.Endpoints()
 	if err != nil {
 		return err

@@ -1,9 +1,9 @@
 package migrator
 
+import "github.com/rs/zerolog/log"
+
 func (m *Migrator) migrateDBVersionToDB31() error {
-	migrateLog.Info("Refresh RBAC roles")
-	if err := m.refreshRBACRoles(); err != nil {
-		return err
-	}
-	return nil
+	log.Info().Msg("refresh RBAC roles")
+
+	return m.refreshRBACRoles()
 }

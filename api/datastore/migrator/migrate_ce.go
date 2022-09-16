@@ -4,8 +4,10 @@ import (
 	"reflect"
 	"runtime"
 
-	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
+
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type migration struct {
@@ -125,7 +127,7 @@ func (m *Migrator) MigrateCE() error {
 
 			// Print the next line only when the version changes
 			if migration.dbversion > lastDbVersion {
-				migrateLog.Infof("Migrating DB to version %d", migration.dbversion)
+				log.Info().Int("to_version", migration.dbversion).Msg("migrating DB")
 			}
 
 			err := migration.migrate()
@@ -136,12 +138,14 @@ func (m *Migrator) MigrateCE() error {
 		lastDbVersion = migration.dbversion
 	}
 
-	migrateLog.Infof("Set DB version to %d", portaineree.DBVersion)
+	log.Info().Int("version", portaineree.DBVersion).Msg("setting DB version")
+
 	err = m.versionService.StoreDBVersion(portaineree.DBVersion)
 	if err != nil {
 		return migrationError(err, "StoreDBVersion")
 	}
-	migrateLog.Infof("Updated DB version to %d", portaineree.DBVersion)
+
+	log.Info().Int("version", portaineree.DBVersion).Msg("updated DB version")
 
 	// reset DB updating status
 	return m.versionService.StoreIsUpdating(false)

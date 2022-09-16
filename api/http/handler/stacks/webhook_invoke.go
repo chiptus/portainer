@@ -3,9 +3,6 @@ package stacks
 import (
 	"net/http"
 
-	"github.com/gofrs/uuid"
-	"github.com/sirupsen/logrus"
-
 	"github.com/portainer/libhttp/response"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -14,6 +11,9 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
+
+	"github.com/gofrs/uuid"
+	"github.com/rs/zerolog/log"
 )
 
 // @id WebhookInvoke
@@ -54,7 +54,9 @@ func (handler *Handler) webhookInvoke(w http.ResponseWriter, r *http.Request) *h
 		if _, ok := err.(*stacks.StackAuthorMissingErr); ok {
 			return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: "Autoupdate for the stack isn't available", Err: err}
 		}
-		logrus.WithError(err).Error("failed to update the stack")
+
+		log.Error().Err(err).Msg("failed to update the stack")
+
 		return httperror.InternalServerError("Failed to update the stack", err)
 	}
 

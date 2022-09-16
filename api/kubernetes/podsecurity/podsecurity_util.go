@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	log "github.com/rs/zerolog/log"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -70,7 +70,7 @@ func (p *psppod) wait(ctx context.Context, interval, timeout time.Duration) erro
 	}
 
 	for _, pod := range podList.Items {
-		log.Debugf("waiting for k8s/psppod [name=%s] running", pod.Name)
+		log.Debug().Str("name", pod.Name).Msg("waiting for k8s/psppod running")
 		if err := wait.PollImmediate(interval, timeout, p.waitFunc(ctx, pod.Name)); err != nil {
 			return errors.Wrap(err, "k8s/psppod running error")
 		}

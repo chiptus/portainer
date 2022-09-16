@@ -10,16 +10,17 @@ import (
 	"strconv"
 	"time"
 
-	jsonpatch "github.com/evanphx/json-patch/v5"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/sirupsen/logrus"
+
+	jsonpatch "github.com/evanphx/json-patch/v5"
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type EdgeAsyncRequest struct {
@@ -75,7 +76,8 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 
 	edgeID := r.Header.Get(portaineree.PortainerAgentEdgeIDHeader)
 	if edgeID == "" {
-		logrus.WithField("PortainerAgentEdgeIDHeader", edgeID).Debug("missing agent edge id")
+		log.Debug().Str("PortainerAgentEdgeIDHeader", edgeID).Msg("missing agent edge id")
+
 		return httperror.BadRequest("missing Edge identifier", errors.New("missing Edge identifier"))
 	}
 
@@ -91,7 +93,8 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 
 	version := r.Header.Get(portaineree.PortainerAgentHeader)
 	if endpoint == nil {
-		logrus.WithField("PortainerAgentEdgeIDHeader", edgeID).Debug("edge id not found in existing endpoints")
+		log.Debug().Str("PortainerAgentEdgeIDHeader", edgeID).Msg("edge id not found in existing endpoints")
+
 		agentPlatform, agentPlatformErr := parseAgentPlatform(r)
 		if agentPlatformErr != nil {
 			return httperror.BadRequest("agent platform header is not valid", err)
@@ -187,7 +190,7 @@ func parseBodyPayload(req *http.Request) (EdgeAsyncRequest, error) {
 	var payload EdgeAsyncRequest
 	err = request.DecodeAndValidateJSONPayload(req, &payload)
 	if err != nil {
-		logrus.WithError(err).WithField("payload", req).Debug("decode payload")
+		log.Error().Err(err).Str("payload", fmt.Sprintf("%+v", req)).Msg("decode payload")
 		return EdgeAsyncRequest{}, errors.WithMessage(err, "Unable to decode payload")
 	}
 
@@ -300,10 +303,10 @@ func (handler *Handler) updateDockerSnapshot(endpoint *portaineree.Endpoint, sna
 			return fmt.Errorf("could not unmarshal the patched Docker snapshot: %s", err)
 		}
 
-		logrus.Debug("setting the patched Docker snapshot")
+		log.Debug().Msg("setting the patched Docker snapshot")
 		endpoint.Snapshots = []portainer.DockerSnapshot{newSnapshot}
 	} else if snapshotPayload.Docker != nil {
-		logrus.Debug("setting the full Docker snapshot")
+		log.Debug().Msg("setting the full Docker snapshot")
 		endpoint.Snapshots = []portainer.DockerSnapshot{*snapshotPayload.Docker}
 	}
 
@@ -334,10 +337,10 @@ func (handler *Handler) updateKubernetesSnapshot(endpoint *portaineree.Endpoint,
 			return fmt.Errorf("could not unmarshal the patched Kubernetes snapshot: %s", err)
 		}
 
-		logrus.Debug("setting the patched Kubernetes snapshot")
+		log.Debug().Msg("setting the patched Kubernetes snapshot")
 		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{newSnapshot}
 	} else if snapshotPayload.Kubernetes != nil {
-		logrus.Debug("setting the full Kubernetes snapshot")
+		log.Debug().Msg("setting the full Kubernetes snapshot")
 		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{*snapshotPayload.Kubernetes}
 	}
 
@@ -349,7 +352,8 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 	for stackID, status := range snapshotPayload.StackStatus {
 		stack, err := handler.DataStore.EdgeStack().EdgeStack(stackID)
 		if err != nil {
-			logrus.WithError(err).WithField("stack", stackID).Error("fetch edge stack")
+			log.Error().Err(err).Int("stack_id", int(stackID)).Msg("fetch edge stack")
+
 			continue
 		}
 
@@ -365,7 +369,7 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 
 		err = handler.DataStore.EdgeStack().UpdateEdgeStack(stack.ID, stack)
 		if err != nil {
-			logrus.WithError(err).WithField("stack", stackID).Error("update edge stack")
+			log.Error().Err(err).Int("stack_id", int(stackID)).Msg("update edge stack")
 		}
 	}
 
@@ -375,7 +379,11 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 
 		err := handler.DataStore.EdgeStackLog().Update(&logs)
 		if err != nil {
-			logrus.WithError(err).WithField("stack", logs.EdgeStackID).WithField("endpoint", logs.EndpointID).Error("update edge stack")
+			log.Error().
+				Err(err).
+				Int("stack_id", int(logs.EdgeStackID)).
+				Int("endpoint_id", int(logs.EndpointID)).
+				Msg("update edge stack")
 		}
 	}
 
@@ -383,13 +391,15 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 	for jobID, jobPayload := range snapshotPayload.JobsStatus {
 		edgeJob, err := handler.DataStore.EdgeJob().EdgeJob(jobID)
 		if err != nil {
-			logrus.WithError(err).WithField("job", jobID).Error("fetch edge job")
+			log.Error().Err(err).Int("job", int(jobID)).Msg("fetch edge job")
+
 			continue
 		}
 
 		err = handler.FileService.StoreEdgeJobTaskLogFileFromBytes(strconv.Itoa(int(jobID)), strconv.Itoa(int(endpoint.ID)), []byte(jobPayload.LogFileContent))
 		if err != nil {
-			logrus.WithError(err).WithField("job", jobID).Error("save log file")
+			log.Error().Err(err).Int("job", int(jobID)).Msg("save log file")
+
 			continue
 		}
 
@@ -400,7 +410,7 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 
 		err = handler.DataStore.EdgeJob().UpdateEdgeJob(edgeJob.ID, edgeJob)
 		if err != nil {
-			logrus.WithError(err).WithField("job", jobID).Error("fetch edge job")
+			log.Error().Err(err).Int("job", int(jobID)).Msg("fetch edge job")
 		}
 	}
 
@@ -444,7 +454,7 @@ func (handler *Handler) sendCommandsSince(endpoint *portaineree.Endpoint, comman
 	}
 
 	if len(commandsResponse) > 0 {
-		logrus.WithField("endpoint", endpoint.Name).WithField("from command", commandTimestamp).Debug("Sending commands")
+		log.Debug().Str("endpoint", endpoint.Name).Time("command_timestamp", commandTimestamp).Msg("sending commands")
 	}
 
 	return commandsResponse, nil

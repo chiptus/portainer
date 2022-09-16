@@ -7,14 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"path"
 	"regexp"
 	"strconv"
 	"strings"
-
-	portainer "github.com/portainer/portainer/api"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
@@ -24,7 +21,10 @@ import (
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	ru "github.com/portainer/portainer-ee/api/http/utils"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 	portainerErrors "github.com/portainer/portainer/api/dataservices/errors"
+
+	"github.com/rs/zerolog/log"
 )
 
 var apiVersionRe = regexp.MustCompile(`(/v[0-9]\.[0-9]*)?`)
@@ -212,7 +212,6 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 
 		r.Body = ioutil.NopCloser(bytes.NewReader(newBody))
 		r.ContentLength = int64(len(newBody))
-
 	}
 
 	return transport.executeDockerRequest(r)
@@ -630,7 +629,8 @@ func (transport *Transport) decorateGenericResourceCreationResponse(response *ht
 	}
 
 	if responseObject[resourceIdentifierAttribute] == nil {
-		log.Printf("[ERROR] [proxy,docker]")
+		log.Error().Msg("missing identifier in Docker resource creation response")
+
 		return errors.New("missing identifier in Docker resource creation response")
 	}
 
@@ -794,6 +794,7 @@ func (transport *Transport) createOperationContext(request *http.Request) (*rest
 		for _, membership := range teamMemberships {
 			userTeamIDs = append(userTeamIDs, membership.TeamID)
 		}
+
 		operationContext.userTeamIDs = userTeamIDs
 	}
 

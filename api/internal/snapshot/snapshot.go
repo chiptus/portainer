@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
-	"log"
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -12,6 +11,8 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
+
+	"github.com/rs/zerolog/log"
 )
 
 // Service represents a service to manage environment(endpoint) snapshots.
@@ -172,7 +173,7 @@ func (service *Service) startSnapshotLoop() {
 
 	err := service.snapshotEndpoints()
 	if err != nil {
-		log.Printf("[ERROR] [internal,snapshot] [message: background schedule error (environment snapshot).] [error: %s]", err)
+		log.Error().Err(err).Msg("background schedule error (environment snapshot)")
 	}
 
 	for {
@@ -180,10 +181,10 @@ func (service *Service) startSnapshotLoop() {
 		case <-ticker.C:
 			err := service.snapshotEndpoints()
 			if err != nil {
-				log.Printf("[ERROR] [internal,snapshot] [message: background schedule error (environment snapshot).] [error: %s]", err)
+				log.Error().Err(err).Msg("background schedule error (environment snapshot)")
 			}
 		case <-service.shutdownCtx.Done():
-			log.Println("[DEBUG] [internal,snapshot] [message: shutting down snapshotting]")
+			log.Debug().Msg("shutting down snapshotting")
 			ticker.Stop()
 			return
 		case interval := <-service.snapshotIntervalCh:
@@ -211,13 +212,21 @@ func (service *Service) snapshotEndpoints() error {
 
 		latestEndpointReference, err := service.dataStore.Endpoint().Endpoint(endpoint.ID)
 		if latestEndpointReference == nil {
-			log.Printf("background schedule error (environment snapshot). Environment not found inside the database anymore (endpoint=%s, URL=%s) (err=%s)\n", endpoint.Name, endpoint.URL, err)
+			log.Debug().
+				Str("endpoint", endpoint.Name).
+				Str("URL", endpoint.URL).Err(err).
+				Msg("background schedule error (environment snapshot), environment not found inside the database anymore")
+
 			continue
 		}
 
 		latestEndpointReference.Status = portaineree.EndpointStatusUp
 		if snapshotError != nil {
-			log.Printf("background schedule error (environment snapshot). Unable to create snapshot (endpoint=%s, URL=%s) (err=%s)\n", endpoint.Name, endpoint.URL, snapshotError)
+			log.Debug().
+				Str("endpoint", endpoint.Name).
+				Str("URL", endpoint.URL).Err(err).
+				Msg("background schedule error (environment snapshot), unable to create snapshot")
+
 			latestEndpointReference.Status = portaineree.EndpointStatusDown
 		}
 
@@ -227,7 +236,11 @@ func (service *Service) snapshotEndpoints() error {
 
 		err = service.dataStore.Endpoint().UpdateEndpoint(latestEndpointReference.ID, latestEndpointReference)
 		if err != nil {
-			log.Printf("background schedule error (environment snapshot). Unable to update environment (endpoint=%s, URL=%s) (err=%s)\n", endpoint.Name, endpoint.URL, err)
+			log.Debug().
+				Str("endpoint", endpoint.Name).
+				Str("URL", endpoint.URL).Err(err).
+				Msg("background schedule error (environment snapshot), unable to update environment")
+
 			continue
 		}
 	}

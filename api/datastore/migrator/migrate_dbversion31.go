@@ -2,13 +2,14 @@ package migrator
 
 import (
 	"fmt"
-	"log"
 
-	"github.com/docker/docker/api/types/volume"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	snapshotutils "github.com/portainer/portainer-ee/api/internal/snapshot"
 	"github.com/portainer/portainer/api/dataservices/errors"
+
+	"github.com/docker/docker/api/types/volume"
+	"github.com/rs/zerolog/log"
 )
 
 func (m *Migrator) migrateDBVersionToDB32() error {
@@ -58,7 +59,8 @@ func (m *Migrator) migrateDBVersionToDB32() error {
 }
 
 func (m *Migrator) updateRegistriesToDB32() error {
-	migrateLog.Info("- updating registries")
+	log.Info().Msg("updating registries")
+
 	registries, err := m.registryService.Registries()
 	if err != nil {
 		return err
@@ -101,7 +103,8 @@ func (m *Migrator) updateRegistriesToDB32() error {
 }
 
 func (m *Migrator) updateDockerhubToDB32() error {
-	migrateLog.Info("- updating dockerhub")
+	log.Info().Msg("updating dockerhub")
+
 	dockerhub, err := m.dockerhubService.DockerHub()
 	if err == errors.ErrObjectNotFound {
 		return nil
@@ -190,7 +193,8 @@ func (m *Migrator) updateDockerhubToDB32() error {
 }
 
 func (m *Migrator) migrateStackEntryPoint() error {
-	migrateLog.Info("- updating stack entry points")
+	log.Info().Msg("updating stack entry points")
+
 	stacks, err := m.stackService.Stacks()
 	if err != nil {
 		return err
@@ -209,7 +213,8 @@ func (m *Migrator) migrateStackEntryPoint() error {
 }
 
 func (m *Migrator) updateVolumeResourceControlToDB32() error {
-	migrateLog.Info("- updating resource controls")
+	log.Info().Msg("updating resource controls")
+
 	endpoints, err := m.endpointService.Endpoints()
 	if err != nil {
 		return fmt.Errorf("failed fetching environments: %w", err)
@@ -237,7 +242,7 @@ func (m *Migrator) updateVolumeResourceControlToDB32() error {
 
 		totalSnapshots := len(endpoint.Snapshots)
 		if totalSnapshots == 0 {
-			log.Println("[DEBUG] [volume migration] [message: no snapshot found]")
+			log.Debug().Msg("no snapshot found")
 			continue
 		}
 
@@ -245,13 +250,13 @@ func (m *Migrator) updateVolumeResourceControlToDB32() error {
 
 		endpointDockerID, err := snapshotutils.FetchDockerID(snapshot)
 		if err != nil {
-			log.Printf("[WARN] [bolt,migrator,v31] [message: failed fetching environment docker id] [err: %s]", err)
+			log.Warn().Err(err).Msg("failed fetching environment docker id")
 			continue
 		}
 
 		volumesData := snapshot.SnapshotRaw.Volumes
 		if volumesData.Volumes == nil {
-			log.Println("[DEBUG] [volume migration] [message: no volume data found]")
+			log.Debug().Msg("no volume data found")
 			continue
 		}
 
@@ -262,17 +267,18 @@ func (m *Migrator) updateVolumeResourceControlToDB32() error {
 	for _, resourceControl := range volumeResourceControls {
 		if newResourceID, ok := toUpdate[resourceControl.ID]; ok {
 			resourceControl.ResourceID = newResourceID
+
 			err := m.resourceControlService.UpdateResourceControl(resourceControl.ID, resourceControl)
 			if err != nil {
 				return fmt.Errorf("failed updating resource control %d: %w", resourceControl.ID, err)
 			}
-
 		} else {
 			err := m.resourceControlService.DeleteResourceControl(resourceControl.ID)
 			if err != nil {
 				return fmt.Errorf("failed deleting resource control %d: %w", resourceControl.ID, err)
 			}
-			log.Printf("[DEBUG] [volume migration] [message: legacy resource control(%s) has been deleted]", resourceControl.ResourceID)
+
+			log.Debug().Str("resource_id", resourceControl.ResourceID).Msg("legacy resource control has been deleted")
 		}
 	}
 
@@ -295,7 +301,8 @@ func findResourcesToUpdateToDB32(dockerID string, volumesData volume.VolumeListO
 }
 
 func (m *Migrator) updateAdminGroupSearchSettingsToDB32() error {
-	migrateLog.Info("- updating admin group search settings")
+	log.Info().Msg("updating admin group search settings")
+
 	legacySettings, err := m.settingsService.Settings()
 	if err != nil {
 		return err
@@ -309,7 +316,8 @@ func (m *Migrator) updateAdminGroupSearchSettingsToDB32() error {
 }
 
 func (m *Migrator) kubeconfigExpiryToDB32() error {
-	migrateLog.Info("- updating kubeconfig expiry")
+	log.Info().Msg("updating kubeconfig expiry")
+
 	settings, err := m.settingsService.Settings()
 	if err != nil {
 		return err
@@ -319,11 +327,13 @@ func (m *Migrator) kubeconfigExpiryToDB32() error {
 }
 
 func (m *Migrator) helmRepositoryURLToDB32() error {
-	migrateLog.Info("- setting default helm repository URL")
+	log.Info().Msg("setting default helm repository URL")
+
 	settings, err := m.settingsService.Settings()
 	if err != nil {
 		return err
 	}
+
 	settings.HelmRepositoryURL = portaineree.DefaultHelmRepositoryURL
 	return m.settingsService.UpdateSettings(settings)
 }

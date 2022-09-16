@@ -20,6 +20,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/offlinegate"
 	i "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer/api/crypto"
+
 	"github.com/stretchr/testify/assert"
 )
 

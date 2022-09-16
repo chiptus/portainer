@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang-jwt/jwt"
-	"github.com/gorilla/securecookie"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+
+	"github.com/golang-jwt/jwt"
+	"github.com/gorilla/securecookie"
 )
 
 // scope represents JWT scopes that are supported in JWT claims.
@@ -130,6 +131,7 @@ func (service *Service) ParseAndVerifyToken(token string) (*portaineree.TokenDat
 			if user.TokenIssueAt > cl.StandardClaims.IssuedAt {
 				return nil, errInvalidJWTToken
 			}
+
 			return &portaineree.TokenData{
 				ID:       portaineree.UserID(cl.UserID),
 				Username: cl.Username,
@@ -150,6 +152,7 @@ func parseScope(token string) scope {
 			}
 		}
 	}
+
 	return defaultScope
 }
 

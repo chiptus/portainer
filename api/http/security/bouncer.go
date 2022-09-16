@@ -3,7 +3,6 @@ package security
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -16,6 +15,8 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/ssl"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
+
+	"github.com/rs/zerolog/log"
 )
 
 type (
@@ -74,10 +75,10 @@ func (bouncer *RequestBouncer) AdminAccess(h http.Handler) http.Handler {
 // and resource filtering.
 //
 // Bouncer operations are applied backwards:
-//  - Parse the JWT from the request and stored in context, user has to be authenticated
-//  - Validate the software license
-//  - Authorize the user to the request from the token data
-//  - Upgrade to the restricted request
+//   - Parse the JWT from the request and stored in context, user has to be authenticated
+//   - Validate the software license
+//   - Authorize the user to the request from the token data
+//   - Upgrade to the restricted request
 func (bouncer *RequestBouncer) RestrictedAccess(h http.Handler) http.Handler {
 	h = bouncer.mwUpgradeToRestrictedRequest(h)
 	h = bouncer.mwCheckPortainerAuthorizations(h)
@@ -89,9 +90,9 @@ func (bouncer *RequestBouncer) RestrictedAccess(h http.Handler) http.Handler {
 // TeamLeaderAccess defines a security check for APIs require team leader privilege
 //
 // Bouncer operations are applied backwards:
-//  - Parse the JWT from the request and stored in context, user has to be authenticated
-//  - Upgrade to the restricted request
-//  - User is admin or team leader
+//   - Parse the JWT from the request and stored in context, user has to be authenticated
+//   - Upgrade to the restricted request
+//   - User is admin or team leader
 func (bouncer *RequestBouncer) TeamLeaderAccess(h http.Handler) http.Handler {
 	h = bouncer.mwIsTeamLeader(h)
 	h = bouncer.mwUpgradeToRestrictedRequest(h)
@@ -106,8 +107,8 @@ func (bouncer *RequestBouncer) TeamLeaderAccess(h http.Handler) http.Handler {
 // and resource filtering.
 //
 // Bouncer operations are applied backwards:
-//  - Parse the JWT from the request and stored in context, user has to be authenticated
-//  - Upgrade to the restricted request
+//   - Parse the JWT from the request and stored in context, user has to be authenticated
+//   - Upgrade to the restricted request
 func (bouncer *RequestBouncer) AuthenticatedAccess(h http.Handler) http.Handler {
 	h = bouncer.mwUpgradeToRestrictedRequest(h)
 	h = bouncer.mwAuthenticatedUser(h)
@@ -259,8 +260,9 @@ func (bouncer *RequestBouncer) mwCheckLicense(next http.Handler) http.Handler {
 		info := bouncer.licenseService.Info()
 
 		if !info.Valid {
-			log.Printf("[INFO] [http,security,bouncer] [msg: licenses are invalid]")
+			log.Info().Msg("licenses are invalid")
 			httperror.WriteError(w, http.StatusForbidden, "License is not valid", httperrors.ErrUnauthorized)
+
 			return
 		}
 

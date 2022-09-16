@@ -2,17 +2,18 @@ package auth
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+
+	"github.com/rs/zerolog/log"
 )
 
 // removeMemberships removes a user's team membership(s) if user does not belong to it/them anymore
 func removeMemberships(tms dataservices.TeamMembershipService, user portaineree.User, teams []portaineree.Team) error {
-	log.Println("[DEBUG] [internal,oauth] [message: removing user team memberships which no longer exist]")
+	log.Debug().Msg("removing user team memberships which no longer exist")
 	memberships, err := tms.TeamMembershipsByUserID(user.ID)
 	if err != nil {
 		return err
@@ -44,7 +45,8 @@ func createOrUpdateMembership(tms dataservices.TeamMembershipService, user porta
 	if err != nil {
 		return err
 	}
-	log.Printf("[DEBUG] [internal,oauth] [message: memberships: %v]", memberships)
+
+	log.Debug().Str("memberships", fmt.Sprintf("%+v", memberships)).Msg("")
 
 	var membership *portaineree.TeamMembership
 	for _, m := range memberships {
@@ -60,15 +62,19 @@ func createOrUpdateMembership(tms dataservices.TeamMembershipService, user porta
 			TeamID: team.ID,
 			Role:   portaineree.MembershipRole(user.Role),
 		}
-		log.Printf("[DEBUG] [internal,oauth] [message: creating oauth user team membership: %v]", membership)
+
+		log.Debug().Str("membership", fmt.Sprintf("%+v", membership)).Msg("creating OAuth user team membership")
+
 		err = tms.Create(membership)
 		if err != nil {
 			return err
 		}
 	} else {
-		log.Printf("[DEBUG] [internal,oauth] [message: membership found %v]", membership)
+		log.Debug().Str("membership", fmt.Sprintf("%+v", membership)).Msg("membership found")
+
 		if updatedRole := portaineree.MembershipRole(user.Role); membership.Role != updatedRole {
-			log.Printf("[DEBUG] [internal,oauth] [message: updating membership role %d]", updatedRole)
+			log.Debug().Int("updated_role", int(updatedRole)).Msg("updating membership role")
+
 			membership.Role = updatedRole
 			err = tms.UpdateTeamMembership(membership.ID, membership)
 			if err != nil {
@@ -76,6 +82,7 @@ func createOrUpdateMembership(tms dataservices.TeamMembershipService, user porta
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -84,7 +91,7 @@ func createOrUpdateMembership(tms dataservices.TeamMembershipService, user porta
 func mapAllClaimValuesToTeams(ts dataservices.TeamService, user portaineree.User, oAuthTeams []string) ([]portaineree.Team, error) {
 	teams := make([]portaineree.Team, 0)
 
-	log.Println("[DEBUG] [internal,oauth] [message: mapping oauth claim values automatically to existing portainer teams]")
+	log.Debug().Msg("mapping OAuth claim values automatically to existing portainer teams")
 	dsTeams, err := ts.Teams()
 	if err != nil {
 		return []portaineree.Team{}, err
@@ -107,7 +114,8 @@ func mapAllClaimValuesToTeams(ts dataservices.TeamService, user portaineree.User
 func mapClaimValRegexToTeams(ts dataservices.TeamService, claimMappings []portaineree.OAuthClaimMappings, oAuthTeams []string) ([]portaineree.Team, error) {
 	teams := make([]portaineree.Team, 0)
 
-	log.Println("[DEBUG] [internal,oauth] [message: using oauth claim mappings to map groups to portainer teams]")
+	log.Debug().Msg("using oauth claim mappings to map groups to portainer teams")
+
 	for _, oAuthTeam := range oAuthTeams {
 		for _, mapping := range claimMappings {
 			match, err := regexp.MatchString(mapping.ClaimValRegex, oAuthTeam)
@@ -116,7 +124,10 @@ func mapClaimValRegexToTeams(ts dataservices.TeamService, claimMappings []portai
 			}
 
 			if match {
-				log.Printf("[DEBUG] [internal,oauth] [message: oauth mapping claim matched; claim: %s, team: %s]\n", mapping.ClaimValRegex, oAuthTeam)
+				log.Debug().
+					Str("claim", mapping.ClaimValRegex).
+					Str("team", oAuthTeam).
+					Msg("OAuth mapping claim matched")
 
 				team, err := ts.Team(portaineree.TeamID(mapping.Team))
 				if err != nil {
@@ -157,6 +168,7 @@ func updateOAuthTeamMemberships(dataStore dataservices.DataStore, oAuthSettings 
 		if err != nil {
 			return fmt.Errorf("failed to retrieve default portainer team, err: %w", err)
 		}
+
 		teams = append(teams, *defaultTeam)
 	}
 

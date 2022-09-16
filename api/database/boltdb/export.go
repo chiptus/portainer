@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -32,6 +32,8 @@ func backupMetadata(connection *bolt.DB) (map[string]interface{}, error) {
 // inspired by github.com/konoui/boltdb-exporter (which has no license)
 // but very much simplified, based on how we use boltdb
 func (c *DbConnection) ExportJSON(databasePath string, metadata bool) ([]byte, error) {
+	log.Debug().Str("databasePath", databasePath).Msg("exportJson")
+
 	connection, err := bolt.Open(databasePath, 0o600, &bolt.Options{Timeout: 1 * time.Second, ReadOnly: true})
 	if err != nil {
 		return []byte("{}"), err
@@ -42,8 +44,9 @@ func (c *DbConnection) ExportJSON(databasePath string, metadata bool) ([]byte, e
 	if metadata {
 		meta, err := backupMetadata(connection)
 		if err != nil {
-			logrus.WithError(err).Errorf("Failed exporting metadata: %v", err)
+			log.Error().Err(err).Msg("failed exporting metadata")
 		}
+
 		backup["__metadata"] = meta
 	}
 
@@ -57,18 +60,26 @@ func (c *DbConnection) ExportJSON(databasePath string, metadata bool) ([]byte, e
 				if v == nil {
 					continue
 				}
+
 				var obj interface{}
 				err := c.UnmarshalObject(v, &obj)
 				if err != nil {
-					logrus.WithError(err).Errorf("Failed to unmarshal (bucket %s): %v", bucketName, string(v))
+					log.Error().
+						Str("bucket", bucketName).
+						Str("object", string(v)).
+						Err(err).
+						Msg("failed to unmarshal")
+
 					obj = v
 				}
+
 				if bucketName == "version" {
 					version[string(k)] = string(v)
 				} else {
 					list = append(list, obj)
 				}
 			}
+
 			if bucketName == "version" {
 				backup[bucketName] = version
 				return nil
@@ -86,8 +97,10 @@ func (c *DbConnection) ExportJSON(databasePath string, metadata bool) ([]byte, e
 			backup[bucketName] = list
 			return nil
 		})
+
 		return err
 	})
+
 	if err != nil {
 		return []byte("{}"), err
 	}

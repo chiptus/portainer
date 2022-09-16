@@ -4,8 +4,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/asaskevich/govalidator"
-	"github.com/gofrs/uuid"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
@@ -14,6 +12,9 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/registryutils/access"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/gofrs/uuid"
 )
 
 type webhookCreatePayload struct {

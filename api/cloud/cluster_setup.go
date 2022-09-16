@@ -16,7 +16,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	kubecli "github.com/portainer/portainer-ee/api/kubernetes/cli"
-	log "github.com/sirupsen/logrus"
+	log "github.com/rs/zerolog/log"
 )
 
 type ProvisioningState int
@@ -74,7 +74,7 @@ func NewCloudClusterSetupService(dataStore dataservices.DataStore, fileService p
 }
 
 func (service *CloudClusterSetupService) Start() {
-	log.Info("[cloud] [message: starting cloud cluster setup service]")
+	log.Info().Msg("starting cloud cluster setup service")
 
 	service.restoreProvisioningTasks()
 
@@ -88,7 +88,7 @@ func (service *CloudClusterSetupService) Start() {
 				service.processResult(result)
 
 			case <-service.shutdownCtx.Done():
-				log.Debugln("[cloud] [message: shutting down KaaS setup queue]")
+				log.Debug().Msg("shutting down KaaS setup queue")
 				return
 			}
 		}
@@ -119,14 +119,14 @@ func (service *CloudClusterSetupService) createClusterSetupTask(request *portain
 func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 	tasks, err := service.dataStore.CloudProvisioning().Tasks()
 	if err != nil {
-		log.Errorf("[cloud] [message: failed to restore provisioning tasks] [error: %v]", err)
+		log.Error().Err(err).Msg("failed to restore provisioning tasks")
 	}
 
 	// First update endpoints that are in provisioning state and have no corresponding provisioning task
 	// this can happen with some providers, especially amazon eks
 	endpoints, err := service.dataStore.Endpoint().Endpoints()
 	if err != nil {
-		log.Errorf("[cloud] [message: failed to read environments] [error: %v]", err)
+		log.Error().Err(err).Msg("failed to read environments")
 	}
 
 	for _, endpoint := range endpoints {
@@ -140,41 +140,42 @@ func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 				// Get the associated endpoint and set it's status to error and error detail to timed out
 				err := service.setStatus(endpoint.ID, 4)
 				if err != nil {
-					log.Errorf("[cloud] [message: unable to update endpoint status in database] [error: %v]", err)
+					log.Error().Err(err).Msg("unable to update endpoint status in database")
 				}
 
 				err = service.setMessage(endpoint.ID, "Provisioning Error", "Provisioning of this environment has been interrupted and cannot be recovered. This may be due to a Portainer restart. Please check and delete the environment in the cloud platform's portal and remove here.")
 				if err != nil {
-					log.Errorf("[cloud] [message: unable to update endpoint status message in database] [error: %v]", err)
+					log.Error().Err(err).Msg("unable to update endpoint status message in database")
 				}
 			}
 		}
 	}
 
 	if len(tasks) > 0 {
-		log.Infof("[cloud] [message: restoring %d KaaS provisioning tasks]", len(tasks))
+		log.Info().Int("count", len(tasks)).Msg("restoring KaaS provisioning tasks")
 	}
 
 	for _, task := range tasks {
 		if task.CreatedAt.Before(time.Now().Add(-time.Hour * 24 * 7)) {
-			log.Infof("[cloud] [message: removing provisioning task, too old]")
+			log.Info().Msg("removing provisioning task, too old]")
 
 			// Get the associated endpoint and set it's status to error and error detail to timed out
 			err := service.setStatus(task.EndpointID, 4)
 			if err != nil {
-				log.Errorf("[cloud] [message: unable to update endpoint status in database] [error: %v]", err)
+				log.Error().Err(err).Msg("unable to update endpoint status in database")
 			}
 
 			err = service.setMessage(task.EndpointID, "Provisioning Error", "Timed out")
 			if err != nil {
-				log.Errorf("[cloud] [message: unable to update endpoint status message in database] [error: %v]", err)
+				log.Error().Err(err).Msg("unable to update endpoint status message in database")
 			}
 
 			// Remove the task from the database because it's too old
 			err = service.dataStore.CloudProvisioning().Delete(task.ID)
 			if err != nil {
-				log.Warnf("[cloud] [message: unable to remove task from the database] [error: %v]", err)
+				log.Warn().Err(err).Msg("unable to remove task from the database")
 			}
+
 			continue
 		}
 
@@ -185,16 +186,16 @@ func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 		_, err := service.dataStore.Endpoint().Endpoint(task.EndpointID)
 		if err != nil {
 			if service.dataStore.IsErrObjectNotFound(err) {
-				log.Infof("[cloud] [message: removing KaaS provisioning task for non-existent endpoint] [endpointID: %d]", task.EndpointID)
+				log.Info().Int("endpoint_id", int(task.EndpointID)).Msg("removing KaaS provisioning task for non-existent endpoint")
 
 				// Remove the task from the database because it's associated
 				// endpoint has been deleted
 				err := service.dataStore.CloudProvisioning().Delete(task.ID)
 				if err != nil {
-					log.Warnf("[cloud] [message: unable to remove task from the database] [error: %v]", err)
+					log.Warn().Err(err).Msg("unable to remove task from the database")
 				}
 			} else {
-				log.Errorf("[cloud] [message: unable to restore KaaS provisioning task] [error: %v]", err)
+				log.Error().Err(err).Msg("unable to restore KaaS provisioning task")
 			}
 		} else {
 			go service.provisionKaasClusterTask(task)
@@ -204,10 +205,18 @@ func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 
 // changeState changes the state of a task and updates the db
 func (service *CloudClusterSetupService) changeState(task *portaineree.CloudProvisioningTask, newState ProvisioningState, message string) {
-	log.Debugf("[cloud] [message: changed state of cluster setup task] [clusterID: %s] [state: %s]", task.ClusterID, newState)
+	log.Debug().
+		Str("cluster_id", task.ClusterID).
+		Int("state", int(newState)).
+		Msg("changed state of cluster setup task")
+
 	err := service.setMessage(task.EndpointID, message, "")
 	if err != nil {
-		log.Errorf("[cloud] [message: unable to update endpoint status message in database] [clusterID: %s] [state: %s] [error: %v]", task.ClusterID, ProvisioningState(task.State), err)
+		log.Error().
+			Str("cluster_id", task.ClusterID).
+			Int("state", int(ProvisioningState(task.State))).
+			Err(err).
+			Msg("unable to update endpoint status message in database")
 	}
 	task.State = int(newState)
 	task.Retries = 0
@@ -293,9 +302,10 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 	}
 
 	if err != nil {
-		log.Errorf("[cloud] [message: failed to get kaasCluster: %v]", err)
+		log.Error().Err(err).Msg("failed to get kaasCluster")
 		err = fmt.Errorf("%s is not responding", task.Provider)
 	}
+
 	return cluster, err
 }
 
@@ -347,7 +357,12 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 
 		switch ProvisioningState(task.State) {
 		case ProvisioningStatePending:
-			log.Infof("[message: starting provisionKaasClusterTask] [provider: %s] [clusterId: %s] [endpointId: %d] [state: %d]", task.Provider, task.ClusterID, task.EndpointID, task.State)
+			log.Info().
+				Str("provider", task.Provider).
+				Str("cluster_id", task.ClusterID).
+				Int("endpoint_id", int(task.EndpointID)).
+				Int("state", task.State).
+				Msg("starting provisionKaasClusterTask")
 
 			msg := "Creating KaaS cluster"
 			if task.Provider == portaineree.CloudProviderKubeConfig {
@@ -368,10 +383,10 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				service.changeState(&task, ProvisioningStateAgentSetup, "Deploying Portainer agent")
 			}
 
-			log.Debugf("[message: waiting for cluster] [provider: %s] [clusterId: %s]", task.Provider, task.ClusterID)
+			log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Msg("waiting for cluster")
 
 		case ProvisioningStateAgentSetup:
-			log.Infof("[message: process state] [state: %s] [retries: %d]", ProvisioningState(task.State), task.Retries)
+			log.Info().Int("state", task.State).Int("retries", task.Retries).Msg("process state")
 
 			if kubeClient == nil {
 				kubeClient, err = service.clientFactory.CreateKubeClientFromKubeConfig(task.ClusterID, cluster.KubeConfig)
@@ -382,7 +397,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				}
 			}
 
-			log.Infof("[message: checking for old portainer namespace] [state: %s] [retries: %d]", ProvisioningState(task.State), task.Retries)
+			log.Info().Int("state", task.State).Int("retries", task.Retries).Msg("checking for old portainer namespace")
 			err = kubeClient.DeletePortainerAgent()
 			if err != nil {
 				err = checkFatal(err)
@@ -390,7 +405,13 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				break
 			}
 
-			log.Infof("[message: deploying Portainer agent version: %s] [provider: %s] [clusterId: %s] [endpointId: %d]", kubecli.DefaultAgentVersion, task.Provider, task.ClusterID, task.EndpointID)
+			log.Info().
+				Str("version", kubecli.DefaultAgentVersion).
+				Str("provider", task.Provider).
+				Str("cluster_id", task.ClusterID).
+				Int("endpoint_id", int(task.EndpointID)).
+				Msg("deploying Portainer agent version")
+
 			err = kubeClient.DeployPortainerAgent()
 			if err != nil {
 				err = checkFatal(err)
@@ -401,7 +422,11 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			service.changeState(&task, ProvisioningStateWaitingForAgent, "Waiting for agent response")
 
 		case ProvisioningStateWaitingForAgent:
-			log.Debugf("[message: waiting for portainer agent] [provider: %s] [clusterId: %s] [endpointId: %d]", task.Provider, task.ClusterID, task.EndpointID)
+			log.Debug().
+				Str("provider", task.Provider).
+				Str("cluster_id", task.ClusterID).
+				Int("endpoint_id", int(task.EndpointID)).
+				Msg("waiting for portainer agent")
 
 			serviceIP, err = kubeClient.GetPortainerAgentIPOrHostname()
 			if serviceIP == "" {
@@ -414,11 +439,17 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				break
 			}
 
-			log.Debugf("[cloud] [message: portainer agent service is ready] [provider: %s] [clusterId:%s] [serviceIP: %s]", task.Provider, task.ClusterID, serviceIP)
+			log.Debug().
+				Str("provider", task.Provider).
+				Str("cluster_id", task.ClusterID).
+				Str("service_ip", serviceIP).
+				Msg("portainer agent service is ready")
+
 			service.changeState(&task, ProvisioningStateUpdatingEndpoint, "Updating environment")
 
 		case ProvisioningStateUpdatingEndpoint:
-			log.Debugf("[message: updating environment] [provider: %s] [clusterId: %s]", task.Provider, task.ClusterID)
+			log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Msg("updating environment")
+
 			err = service.updateEndpoint(task.EndpointID, fmt.Sprintf("%s:9001", serviceIP))
 			if err != nil {
 				task.Retries++
@@ -429,7 +460,11 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 
 		case ProvisioningStateDone:
 			if err != nil {
-				log.Infof("[message: environment ready] [provider: %s] [endpointId: %d] [clusterId: %s]", task.Provider, task.EndpointID, task.ClusterID)
+				log.Info().
+					Str("provider", task.Provider).
+					Int("endpoint_id", int(task.EndpointID)).
+					Str("cluster_id", task.ClusterID).
+					Msg("environment ready")
 			}
 
 			service.result <- &cloudPrevisioningResult{
@@ -438,13 +473,19 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				state:      int(ProvisioningStateDone),
 				taskID:     task.ID,
 			}
+
 			return
 		}
 
 		// Print state errors and retry counter.
 		if err != nil {
-			log.Errorf("[cloud] [message: failure in state %s] [err: %v]", ProvisioningState(task.State), err)
-			log.Infof("[cloud] [message: retrying] [state: %s] [attempt: %d of %d]", ProvisioningState(task.State), task.Retries, maxRequestFailures)
+			log.Error().Int("state", task.State).Err(err).Msg("failure in state")
+
+			log.Info().
+				Int("state", task.State).
+				Int("attempt", task.Retries).
+				Int("max_attempts", maxRequestFailures).
+				Msg("retrying")
 		}
 
 		time.Sleep(stateWaitTime)
@@ -452,12 +493,12 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 }
 
 func (service *CloudClusterSetupService) processRequest(request *portaineree.CloudProvisioningRequest) {
-	log.Info("[cloud] [message: new cluster creation request received]")
-	log.Infof("[cloud] [message: will use agent version: %s]", kubecli.DefaultAgentVersion)
+	log.Info().Str("agent_version", kubecli.DefaultAgentVersion).Msg("new cluster creation request received")
 
 	credentials, err := service.dataStore.CloudCredential().GetByID(request.CredentialID)
 	if err != nil {
-		log.Errorf("[cloud] [message: unable to retrieve credentials from the database] [error: %v]", err)
+		log.Error().Err(err).Msg("unable to retrieve credentials from the database")
+
 		return
 	}
 
@@ -515,20 +556,22 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 			// our errors to it.
 			task.Err = err
 		}
-		log.Errorf("Failed to create cluster setup task %v", err)
+
+		log.Error().Err(err).Msg("failed to create cluster setup task")
 	}
 
 	go service.provisionKaasClusterTask(task)
 }
 
 func (service *CloudClusterSetupService) processResult(result *cloudPrevisioningResult) {
-	log.Info("[cloud] [message: cluster creation request completed]")
+	log.Info().Msg("cluster creation request completed]")
 
 	if result.err != nil {
-		log.Errorf("[cloud] [message: unable to provision cluster] [error: %v]", result.err)
+		log.Error().Err(result.err).Msg("unable to provision cluster")
+
 		err := service.setStatus(result.endpointID, 4)
 		if err != nil {
-			log.Errorf("[cloud] [message: unable to update endpoint status in database] [error: %v]", err)
+			log.Error().Err(err).Msg("unable to update endpoint status in database")
 		}
 
 		// Default error summary.
@@ -542,16 +585,16 @@ func (service *CloudClusterSetupService) processResult(result *cloudPrevisioning
 
 		err = service.setMessage(result.endpointID, result.errSummary, result.err.Error())
 		if err != nil {
-			log.Errorf("[cloud] [message: unable to update endpoint status message in database] [error: %v]", err)
+			log.Error().Err(err).Msg("unable to update endpoint status message in database")
 		}
 	}
 
 	// Remove the task from the database
-	log.Infof("[cloud] [message: removing KaaS provisioning task] [endpointID: %d]", result.endpointID)
+	log.Info().Int("endpoint_id", int(result.endpointID)).Msg("removing KaaS provisioning task")
 
 	err := service.dataStore.CloudProvisioning().Delete(result.taskID)
 	if err != nil {
-		log.Errorf("[cloud] [message: unable to remove task from the database] [error: %v]", err)
+		log.Error().Err(err).Msg("unable to remove task from the database")
 	}
 }
 
@@ -598,6 +641,10 @@ func (service *CloudClusterSetupService) updateEndpoint(endpointID portaineree.E
 		}
 	}
 
-	log.Infof("[cloud] [message: environment successfully created from KaaS cluster] [endpointId: %d] [environment: %s]", endpoint.ID, endpoint.Name)
+	log.Info().
+		Int("endpoint_id", int(endpoint.ID)).
+		Str("environment", endpoint.Name).
+		Msg("environment successfully created from KaaS cluster")
+
 	return nil
 }

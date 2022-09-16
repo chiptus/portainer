@@ -2,11 +2,12 @@ package kubernetes
 
 import (
 	"context"
-	"log"
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+
+	"github.com/rs/zerolog/log"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -42,12 +43,12 @@ func snapshot(cli *kubernetes.Clientset, endpoint *portaineree.Endpoint) (*porta
 
 	err := snapshotVersion(snapshot, cli)
 	if err != nil {
-		log.Printf("[WARN] [kubernetes,snapshot] [message: unable to snapshot cluster version] [endpoint: %s] [err: %s]", endpoint.Name, err)
+		log.Warn().Str("endpoint", endpoint.Name).Err(err).Msg("unable to snapshot cluster version")
 	}
 
 	err = snapshotNodes(snapshot, cli)
 	if err != nil {
-		log.Printf("[WARN] [kubernetes,snapshot] [message: unable to snapshot cluster nodes] [endpoint: %s] [err: %s]", endpoint.Name, err)
+		log.Warn().Str("endpoint", endpoint.Name).Err(err).Msg("unable to snapshot cluster nodes")
 	}
 
 	snapshot.Time = time.Now().Unix()

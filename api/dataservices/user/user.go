@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer/api/dataservices/errors"
-	"github.com/sirupsen/logrus"
-
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/dataservices/errors"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -60,13 +60,16 @@ func (service *Service) UserByUsername(username string) (*portaineree.User, erro
 		func(obj interface{}) (interface{}, error) {
 			user, ok := obj.(*portaineree.User)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to User object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to User object")
+
 				return nil, fmt.Errorf("Failed to convert to User object: %s", obj)
 			}
+
 			if strings.EqualFold(user.Username, username) {
 				u = user
 				return nil, stop
 			}
+
 			return &portaineree.User{}, nil
 		})
 	if err == stop {
@@ -89,10 +92,13 @@ func (service *Service) Users() ([]portaineree.User, error) {
 		func(obj interface{}) (interface{}, error) {
 			user, ok := obj.(*portaineree.User)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to User object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to User object")
+
 				return nil, fmt.Errorf("Failed to convert to User object: %s", obj)
 			}
+
 			users = append(users, *user)
+
 			return &portaineree.User{}, nil
 		})
 
@@ -109,12 +115,15 @@ func (service *Service) UsersByRole(role portaineree.UserRole) ([]portaineree.Us
 		func(obj interface{}) (interface{}, error) {
 			user, ok := obj.(*portaineree.User)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to User object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to User object")
+
 				return nil, fmt.Errorf("Failed to convert to User object: %s", obj)
 			}
+
 			if user.Role == role {
 				users = append(users, *user)
 			}
+
 			return &portaineree.User{}, nil
 		})
 

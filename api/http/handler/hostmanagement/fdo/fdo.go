@@ -3,7 +3,6 @@ package fdo
 import (
 	"errors"
 	"fmt"
-	portaineree "github.com/portainer/portainer-ee/api"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -12,8 +11,10 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer/api/hostmanagement/fdo"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 type fdoConfigurePayload portaineree.FDOConfiguration
@@ -88,7 +89,8 @@ func (handler *Handler) fdoConfigure(w http.ResponseWriter, r *http.Request) *ht
 
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		logrus.WithError(err).Error("Invalid request payload")
+		log.Error().Err(err).Msg("invalid request payload")
+
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
@@ -101,6 +103,7 @@ func (handler *Handler) fdoConfigure(w http.ResponseWriter, r *http.Request) *ht
 	if err != nil {
 		return httperror.InternalServerError("Error saving FDO settings", err)
 	}
+
 	if len(profiles) == 0 {
 		err = handler.addDefaultProfile()
 		if err != nil {
@@ -129,6 +132,7 @@ func (handler *Handler) addDefaultProfile() error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

@@ -6,12 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	consts "github.com/portainer/portainer-ee/api/useractivity"
-	log "github.com/sirupsen/logrus"
+
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type StackAuthorMissingErr struct {
@@ -54,11 +55,9 @@ func updateAllowed(endpoint *portaineree.Endpoint, clock Clock) (bool, error) {
 
 // RedeployWhenChanged pull and redeploy the stack when  git repo changed
 func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, datastore dataservices.DataStore, gitService portaineree.GitService, activityService portaineree.UserActivityService, additionalEnv []portaineree.Pair) error {
-	logger := log.WithFields(log.Fields{"stackID": stackID})
-	logger.Debug("redeploying stack")
+	log.Debug().Int("stack_id", int(stackID)).Msg("redeploying stack")
 
 	stack, err := datastore.Stack().Stack(stackID)
-
 	if err != nil {
 		return errors.WithMessagef(err, "failed to get the stack %v", stackID)
 	}
@@ -100,7 +99,8 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 			return errors.WithMessagef(err, "failed to parse the time stored in the portainer database")
 		}
 
-		logger.Debug("not in update window. ignoring changes/webhooks")
+		log.Debug().Int("stack_id", int(stackID)).Msg("not in update window. ignoring changes/webhooks")
+
 		return nil // do nothing right now as we're not within the update window
 	}
 
@@ -111,13 +111,20 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 
 	user, err := datastore.User().UserByUsername(author)
 	if err != nil {
-		logger.WithFields(log.Fields{"author": author, "stack": stack.Name, "endpointID": stack.EndpointID}).Warn("cannot autoupdate a stack, stack author user is missing")
+		log.Warn().
+			Int("stack_id", int(stackID)).
+			Str("author", author).
+			Str("stack", stack.Name).
+			Int("endpoint_id", int(stack.EndpointID)).
+			Msg("cannot autoupdate a stack, stack author user is missing")
+
 		return &StackAuthorMissingErr{int(stack.ID), author}
 	}
 
 	var gitCommitChangedOrForceUpdate bool
 	if stack.GitConfig != nil && !stack.FromAppTemplate {
-		logger.Debugln("The stack has a git config, try to poll from git repository.")
+		log.Debug().Int("stack_id", int(stackID)).Msg("the stack has a git config, try to poll from git repository")
+
 		username, password := "", ""
 		if stack.GitConfig.Authentication != nil {
 			if stack.GitConfig.Authentication.GitCredentialID != 0 {
@@ -137,6 +144,7 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 			}
 
 		}
+
 		newHash, err := gitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, username, password)
 		if err != nil {
 			return errors.WithMessagef(err, "failed to fetch latest commit id of the stack %v", stack.ID)
@@ -158,6 +166,7 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 			if err := cloneGitRepository(gitService, cloneParams); err != nil {
 				return errors.WithMessagef(err, "failed to do a fresh clone of the stack %v", stack.ID)
 			}
+
 			stack.UpdateDate = time.Now().Unix()
 			stack.GitConfig.ConfigHash = newHash
 			gitCommitChangedOrForceUpdate = true
@@ -175,7 +184,8 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 
 	switch stack.Type {
 	case portaineree.DockerComposeStack:
-		logger.Debugf("Compose stack redeploy with pull image flag: %t", forcePullImage)
+		log.Debug().Int("stack_id", int(stackID)).Bool("force_pull_image", forcePullImage).Msg("compose stack redeploy with pull image flag")
+
 		err := deployer.DeployComposeStack(stack, endpoint, registries, forcePullImage, stack.AutoUpdate != nil && stack.AutoUpdate.ForceUpdate)
 		if err != nil {
 			return errors.WithMessagef(err, "failed to deploy a docker compose stack %v", stackID)
@@ -186,7 +196,10 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 			return errors.WithMessagef(err, "failed to deploy a docker compose stack %v", stackID)
 		}
 	case portaineree.KubernetesStack:
-		logger.Debugf("deploying a kube app")
+		log.Debug().
+			Int("stack_id", int(stackID)).
+			Msg("deploying a kube app")
+
 		err := deployer.DeployKubernetesStack(stack, endpoint, user)
 		if err != nil {
 			return errors.WithMessagef(err, "failed to deploy a kubternetes app stack %v", stackID)
@@ -252,5 +265,6 @@ func cloneGitRepository(gitService portaineree.GitService, cloneParams *cloneRep
 	if cloneParams.auth != nil {
 		return gitService.CloneRepository(cloneParams.toDir, cloneParams.url, cloneParams.ref, cloneParams.auth.username, cloneParams.auth.password)
 	}
+
 	return gitService.CloneRepository(cloneParams.toDir, cloneParams.url, cloneParams.ref, "", "")
 }

@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 func extractArchive(archiveFileName, destFolder string, delete bool) (err error) {
@@ -49,12 +49,12 @@ func extractTgz(archiveFile, destination string) error {
 
 	uncompressedStream, err := gzip.NewReader(file)
 	if err != nil {
-		log.Fatal("ExtractTarGz: NewReader failed")
+		log.Fatal().Msg("NewReader failed")
 	}
 
 	tarReader := tar.NewReader(uncompressedStream)
 
-	for true {
+	for {
 		header, err := tarReader.Next()
 
 		if err == io.EOF {

@@ -8,7 +8,8 @@ import (
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	plog "github.com/portainer/portainer-ee/api/datastore/log"
+
+	"github.com/rs/zerolog/log"
 )
 
 var backupDefaults = struct {
@@ -21,8 +22,6 @@ var backupDefaults = struct {
 	[]string{"CE", "BE", "EE"},
 }
 
-var backupLog = plog.NewScopedLog("database, backup")
-
 //
 // Backup Helpers
 //
@@ -33,7 +32,7 @@ func (store *Store) createBackupFolders() {
 	commonDir := store.commonBackupDir()
 	if exists, _ := store.fileService.FileExists(commonDir); !exists {
 		if err := os.MkdirAll(commonDir, 0700); err != nil {
-			backupLog.Error("Error while creating common backup folder", err)
+			log.Error().Err(err).Msg("error while creating common backup folder")
 		}
 	}
 
@@ -43,7 +42,7 @@ func (store *Store) createBackupFolders() {
 		if exists, _ := store.fileService.FileExists(p); !exists {
 			err := os.MkdirAll(p, 0700)
 			if err != nil {
-				backupLog.Error("Error while creating edition backup folders", err)
+				log.Error().Err(err).Msg("error while creating edition backup folders")
 			}
 		}
 	}
@@ -72,11 +71,13 @@ func (store *Store) editionBackupDir(edition portaineree.SoftwareEdition) string
 }
 
 func (store *Store) copyDBFile(from string, to string) error {
-	backupLog.Info(fmt.Sprintf("Copying db file from %s to %s", from, to))
+	log.Info().Str("from", from).Str("to", to).Msg("copying DB file")
+
 	err := store.fileService.Copy(from, to, true)
 	if err != nil {
-		backupLog.Error("Failed", err)
+		log.Error().Err(err).Msg("failed")
 	}
+
 	return err
 }
 
@@ -117,7 +118,8 @@ func (store *Store) listEditionBackups(edition portaineree.SoftwareEdition) ([]s
 	files, err := ioutil.ReadDir(store.editionBackupDir(edition))
 
 	if err != nil {
-		backupLog.Error("Error while retrieving backup files", err)
+		log.Error().Err(err).Msg("error while retrieving backup files")
+
 		return fileNames, err
 	}
 
@@ -133,7 +135,7 @@ func (store *Store) lastestEditionBackup() (string, error) {
 
 	files, err := store.listEditionBackups(edition)
 	if err != nil {
-		backupLog.Error("Error while retrieving backup files", err)
+		log.Error().Err(err).Msg("error while retrieving backup files")
 		return "", err
 	}
 
@@ -146,7 +148,8 @@ func (store *Store) lastestEditionBackup() (string, error) {
 
 // BackupWithOptions backup current database with options
 func (store *Store) backupWithOptions(options *BackupOptions) (string, error) {
-	backupLog.Info("creating db backup")
+	log.Info().Msg("creating DB backup")
+
 	store.createBackupFolders()
 
 	options = store.setupOptions(options)
@@ -187,17 +190,19 @@ func (store *Store) restoreWithOptions(options *BackupOptions) error {
 	// Check if backup file exist before restoring
 	_, err := os.Stat(options.BackupPath)
 	if os.IsNotExist(err) {
-		backupLog.Error(fmt.Sprintf("Backup file to restore does not exist %s", options.BackupPath), err)
+		log.Error().Str("path", options.BackupPath).Err(err).Msg("backup file to restore does not exist %s")
+
 		return err
 	}
 
 	err = store.Close()
 	if err != nil {
-		backupLog.Error("Error while closing store before restore", err)
+		log.Error().Err(err).Msg("error while closing store before restore")
+
 		return err
 	}
 
-	backupLog.Info("Restoring db backup")
+	log.Info().Msg("restoring DB backup")
 	path := store.databasePath()
 	err = store.copyDBFile(options.BackupPath, path)
 	if err != nil {
@@ -216,25 +221,28 @@ func (store *Store) Restore() error {
 	if err != nil {
 		return err
 	}
+
 	return store.restoreWithOptions(options)
 }
 
 // RemoveWithOptions removes backup database based on supplied options
 func (store *Store) removeWithOptions(options *BackupOptions) error {
-	backupLog.Info("Removing db backup")
+	log.Info().Msg("removing DB backup")
 
 	options = store.setupOptions(options)
 	_, err := os.Stat(options.BackupPath)
 
 	if os.IsNotExist(err) {
-		backupLog.Error(fmt.Sprintf("Backup file to remove does not exist %s", options.BackupPath), err)
+		log.Error().Str("path", options.BackupPath).Err(err).Msg("backup file to remove does not exist")
+
 		return err
 	}
 
-	backupLog.Info(fmt.Sprintf("Removing db file at %s", options.BackupPath))
+	log.Info().Str("path", options.BackupPath).Msg("removing DB file")
 	err = os.Remove(options.BackupPath)
 	if err != nil {
-		backupLog.Error("Failed", err)
+		log.Error().Err(err).Msg("failed")
+
 		return err
 	}
 

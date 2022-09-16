@@ -2,12 +2,13 @@ package datastore
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path"
 	"testing"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+
+	"github.com/rs/zerolog/log"
 )
 
 func TestCreateBackupFolders(t *testing.T) {
@@ -41,7 +42,7 @@ func TestStoreCreation(t *testing.T) {
 
 	version, err := store.version()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 
 	if version != portaineree.DBVersionEE {

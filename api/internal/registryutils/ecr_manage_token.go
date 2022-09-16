@@ -3,7 +3,7 @@ package registryutils
 import (
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	log "github.com/rs/zerolog/log"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/aws/ecr"
@@ -29,11 +29,11 @@ func doGetManageToken(config *portaineree.RegistryManagementConfiguration) (err 
 func EnsureManageTokenValid(config *portaineree.RegistryManagementConfiguration) (err error) {
 	if config.Type == portaineree.EcrRegistry {
 		if isManageTokenValid(config) {
-			log.Println("[DEBUG] [RegistryManagementConfiguration, GetEcrAccessToken] [message: current ECR token is still valid]")
+			log.Debug().Msg("current ECR token is still valid")
 		} else {
 			err = doGetManageToken(config)
 			if err != nil {
-				log.Println("[DEBUG] [RegistryManagementConfiguration, GetEcrAccessToken] [message: refresh ECR token]")
+				log.Debug().Msg("refresh ECR token")
 			}
 		}
 	}

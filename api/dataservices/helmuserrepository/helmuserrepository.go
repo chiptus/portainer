@@ -5,7 +5,8 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -34,7 +35,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}, nil
 }
 
-//HelmUserRepository returns an array of all HelmUserRepository
+// HelmUserRepository returns an array of all HelmUserRepository
 func (service *Service) HelmUserRepositories() ([]portaineree.HelmUserRepository, error) {
 	var repos = make([]portaineree.HelmUserRepository, 0)
 
@@ -44,10 +45,12 @@ func (service *Service) HelmUserRepositories() ([]portaineree.HelmUserRepository
 		func(obj interface{}) (interface{}, error) {
 			r, ok := obj.(*portaineree.HelmUserRepository)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to HelmUserRepository object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to HelmUserRepository object")
 				return nil, fmt.Errorf("Failed to convert to HelmUserRepository object: %s", obj)
 			}
+
 			repos = append(repos, *r)
+
 			return &portaineree.HelmUserRepository{}, nil
 		})
 
@@ -64,12 +67,14 @@ func (service *Service) HelmUserRepositoryByUserID(userID portaineree.UserID) ([
 		func(obj interface{}) (interface{}, error) {
 			record, ok := obj.(*portaineree.HelmUserRepository)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to HelmUserRepository object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to HelmUserRepository object")
 				return nil, fmt.Errorf("Failed to convert to HelmUserRepository object: %s", obj)
 			}
+
 			if record.UserID == userID {
 				result = append(result, *record)
 			}
+
 			return &portaineree.HelmUserRepository{}, nil
 		})
 

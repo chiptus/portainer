@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 

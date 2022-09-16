@@ -7,14 +7,15 @@ import (
 	"strings"
 	"sync"
 
+	portaineree "github.com/portainer/portainer-ee/api"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/pkg/errors"
-	portaineree "github.com/portainer/portainer-ee/api"
-	log "github.com/sirupsen/logrus"
+	log "github.com/rs/zerolog/log"
 	"golang.org/x/exp/slices"
 	"golang.org/x/sync/errgroup"
 )
@@ -117,10 +118,11 @@ func getRegions(cfg aws.Config) ([]portaineree.Pair, error) {
 	if err != nil {
 		// If one region fails don't return an error or it will fail all.
 		// At least this way we get something back.
-		log.Warnf("Get long region names failed: %v", err)
+		log.Warn().Err(err).Msg("get long region names failed")
 	}
 
 	sort.Stable(RegionByName(regions))
+
 	return regions, nil
 }
 
@@ -138,7 +140,7 @@ func getRegionLongName(cfg aws.Config, shortName string) (string, error) {
 }
 
 func FetchInfo(accessKeyId, secretAccessKey string) (*EksInfo, error) {
-	log.Debug("[cloud] [message: sending cloud provider info request] [provider: amazon]")
+	log.Debug().Str("provider", "amazon").Msg("sending cloud provider info request")
 
 	cfg, err := loadConfig(accessKeyId, secretAccessKey, nil)
 	if err != nil {

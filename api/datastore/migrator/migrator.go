@@ -5,6 +5,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/cloudprovisioning"
 	"github.com/portainer/portainer-ee/api/dataservices/fdoprofile"
 	"github.com/portainer/portainer-ee/api/dataservices/podsecurity"
+	"github.com/rs/zerolog/log"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices/dockerhub"
@@ -22,12 +23,9 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/teammembership"
 	"github.com/portainer/portainer-ee/api/dataservices/user"
 	"github.com/portainer/portainer-ee/api/dataservices/version"
-	plog "github.com/portainer/portainer-ee/api/datastore/log"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	portainer "github.com/portainer/portainer/api"
 )
-
-var migrateLog = plog.NewScopedLog("database, migrate")
 
 type (
 	// Migrator defines a service to migrate data after a Portainer version update.
@@ -125,14 +123,20 @@ func (migrator *Migrator) Edition() portaineree.SoftwareEdition {
 
 // Migrate helper to upgrade DB
 func (migrator *Migrator) Migrate(version int) error {
-	migrateLog.Infof("Migrating %s database from version %d to %d.", migrator.Edition().GetEditionLabel(), migrator.currentDBVersion, version)
+	log.Info().
+		Str("edition", migrator.Edition().GetEditionLabel()).
+		Int("from_version", migrator.currentDBVersion).
+		Int("to_version", version).
+		Msg("migrating database version")
+
 	err := migrator.MigrateCE() //CE
 	if err != nil {
-		migrateLog.Error("An error occurred during database migration", err)
+		log.Error().Err(err).Msg("an error occurred during database migration")
 		return err
 	}
 
 	migrator.versionService.StoreDBVersion(version)
 	migrator.currentDBVersion = version
+
 	return nil
 }

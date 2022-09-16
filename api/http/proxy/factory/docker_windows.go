@@ -7,9 +7,10 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/Microsoft/go-winio"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/docker"
+
+	"github.com/Microsoft/go-winio"
 )
 
 func (factory ProxyFactory) newOSBasedLocalProxy(path string, endpoint *portaineree.Endpoint) (http.Handler, error) {

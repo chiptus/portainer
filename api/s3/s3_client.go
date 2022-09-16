@@ -1,8 +1,10 @@
 package s3
 
 import (
+	"fmt"
 	"io"
-	"log"
+
+	portaineree "github.com/portainer/portainer-ee/api"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -10,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/pkg/errors"
-	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/rs/zerolog/log"
 )
 
 func NewSession(region string, accessKeyID string, secretAccessKey string) (*session.Session, error) {
@@ -39,7 +41,8 @@ func Upload(sess *session.Session, r io.Reader, bucketname string, filename stri
 		return errors.Wrap(err, "failed to upload the backup")
 	}
 
-	log.Printf("[DEBUG] upload backup to: %s \n", out.Location)
+	log.Debug().Str("location", out.Location).Msg("upload backup")
+
 	return nil
 }
 
@@ -55,6 +58,9 @@ func Download(sess *session.Session, w io.WriterAt, settings portaineree.S3Locat
 		return errors.Wrap(err, "failed to download the backup")
 	}
 
-	log.Printf("[DEBUG] downloaded backup from: https://%s.s3.%s.amazonaws.com/%s \n", settings.BucketName, settings.Region, settings.Filename)
+	log.Debug().
+		Str("URL", fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", settings.BucketName, settings.Region, settings.Filename)).
+		Msg("downloaded backup")
+
 	return nil
 }

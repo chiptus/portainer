@@ -2,7 +2,7 @@ package apikey
 
 import (
 	"crypto/sha256"
-	"log"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -10,6 +10,8 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/rs/zerolog/log"
 )
 
 func Test_SatisfiesAPIKeyServiceInterface(t *testing.T) {
@@ -169,11 +171,9 @@ func Test_UpdateAPIKey(t *testing.T) {
 		_, apiKeyGot, err := service.GetDigestUserAndKey(apiKey.Digest)
 		is.NoError(err)
 
-		log.Println(apiKey)
-		log.Println(apiKeyGot)
+		log.Debug().Str("wanted", fmt.Sprintf("%+v", apiKey)).Str("got", fmt.Sprintf("%+v", apiKeyGot)).Msg("")
 
 		is.Equal(apiKey.LastUsed, apiKeyGot.LastUsed)
-
 	})
 
 	t.Run("Successfully updates api-key in cache upon api-key update", func(t *testing.T) {

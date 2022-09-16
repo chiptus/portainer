@@ -6,7 +6,7 @@ import (
 
 type kubernetesMockDeployer struct{}
 
-//NewKubernetesDeployer creates a mock kubernetes deployer
+// NewKubernetesDeployer creates a mock kubernetes deployer
 func NewKubernetesDeployer() portaineree.KubernetesDeployer {
 	return &kubernetesMockDeployer{}
 }

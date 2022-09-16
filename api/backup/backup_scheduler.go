@@ -2,14 +2,16 @@ package backup
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/offlinegate"
+
+	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
+	"github.com/rs/zerolog/log"
 )
 
 // BackupScheduler orchestrates S3 settings and active backup cron jobs
@@ -56,7 +58,7 @@ func (s *BackupScheduler) Start() error {
 // A context is returned so the caller can wait for running jobs to complete.
 func (s *BackupScheduler) Stop() context.Context {
 	if s.cronmanager != nil {
-		log.Println("[DEBUG] Stopping backup scheduler")
+		log.Debug().Msg("[DEBUG] Stopping backup scheduler")
 		return s.cronmanager.Stop()
 	}
 
@@ -115,7 +117,10 @@ func (s *BackupScheduler) backup(settings portaineree.S3BackupSettings) func() {
 			Timestamp: time.Now(),
 		}
 		if err = s.s3backupService.UpdateStatus(status); err != nil {
-			log.Printf("[ERROR] failed to update status of last scheduled backup. Status: %+v . Err: %s \n", status, err)
+			log.Error().
+				Str("status", fmt.Sprintf("%+v", status)).
+				Err(err).
+				Msg("failed to update status of last scheduled backup")
 		}
 	}
 }

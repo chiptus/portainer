@@ -1,9 +1,14 @@
 package migrator
 
-import portaineree "github.com/portainer/portainer-ee/api"
+import (
+	portaineree "github.com/portainer/portainer-ee/api"
+
+	"github.com/rs/zerolog/log"
+)
 
 func (m *Migrator) updateSettingsToDB24() error {
-	migrateLog.Info("- updating settings")
+	log.Info().Msg("updating Settings")
+
 	legacySettings, err := m.settingsService.Settings()
 	if err != nil {
 		return err
@@ -17,7 +22,8 @@ func (m *Migrator) updateSettingsToDB24() error {
 }
 
 func (m *Migrator) updateStacksToDB24() error {
-	migrateLog.Info("- updating stacks")
+	log.Info().Msg("updating stacks")
+
 	stacks, err := m.stackService.Stacks()
 	if err != nil {
 		return err

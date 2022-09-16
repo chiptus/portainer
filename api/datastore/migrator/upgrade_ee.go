@@ -1,38 +1,38 @@
 package migrator
 
 import (
-	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/datastore/validate"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 
-	"github.com/portainer/portainer-ee/api/datastore/validate"
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // UpgradeToEE will migrate the db from latest ce version to latest ee version
 // Latest version is v25 on 06/11/2020
 func (m *Migrator) UpgradeToEE() error {
+	log.Info().Int("ce_version", m.Version()).Int("ee_version", portaineree.DBVersion).Msg("migrating CE database EE")
 
-	migrateLog.Infof("Migrating CE database version %d to EE database version %d.", m.Version(), portaineree.DBVersion)
-
-	migrateLog.Info("- upgrading LDAP settings to EE")
+	log.Info().Msg("upgrading LDAP settings to EE")
 	err := m.updateLdapSettingsToEE()
 	if err != nil {
 		return err
 	}
 
-	migrateLog.Info("- upgrading user roles to EE")
+	log.Info().Msg("upgrading user roles to EE")
 	err = m.updateUserRolesToEE()
 	if err != nil {
 		return err
 	}
 
-	migrateLog.Info("- upgrading role authorizations to EE")
+	log.Info().Msg("upgrading role authorizations to EE")
 	err = m.roleService.CreateOrUpdatePredefinedRoles()
 	if err != nil {
 		return err
 	}
 
-	migrateLog.Info("- upgrading user authorizations")
+	log.Info().Msg("upgrading user authorizations")
 	err = m.authorizationService.UpdateUsersAuthorizations()
 	if err != nil {
 		return err
@@ -43,18 +43,21 @@ func (m *Migrator) UpgradeToEE() error {
 	if err != nil {
 		return errors.Wrap(err, "while getting roles")
 	}
+
 	err = validate.ValidatePredefinedRoles(roles)
 	if err != nil {
 		return errors.Wrap(err, "while validating roles")
 	}
 
-	migrateLog.Infof("Setting db version to %d", portaineree.DBVersionEE)
+	log.Info().Int("version", portaineree.DBVersionEE).Msg("setting DB version")
+
 	err = m.versionService.StoreDBVersion(portaineree.DBVersionEE)
 	if err != nil {
 		return err
 	}
 
-	migrateLog.Infof("Setting edition to %s", portaineree.PortainerEE.GetEditionLabel())
+	log.Info().Str("edition", portaineree.PortainerEE.GetEditionLabel()).Msg("setting edition")
+
 	err = m.versionService.StoreEdition(portaineree.PortainerEE)
 	if err != nil {
 		return err
@@ -101,23 +104,24 @@ func (m *Migrator) updateUserRolesToEE() error {
 		return err
 	}
 
-	migrateLog.Debug("Retrieving extension info")
+	log.Debug().Msg("retrieving extension info")
 	extensions, err := m.extensionService.Extensions()
 	for _, extension := range extensions {
 		if extension.ID == 3 && extension.Enabled {
-			migrateLog.Info("RBAC extensions were enabled before; Skip updating User Roles")
+			log.Info().Msg("RBAC extensions were enabled before; Skip updating User Roles")
 			return nil
 		}
 	}
 
-	migrateLog.Debug("Retrieving environment groups")
+	log.Debug().Msg("retrieving environment groups")
 	endpointGroups, err := m.endpointGroupService.EndpointGroups()
 	if err != nil {
 		return err
 	}
 
 	for _, endpointGroup := range endpointGroups {
-		migrateLog.Debugf("Updating user policies for environment group %v", endpointGroup.ID)
+		log.Debug().Int("group", int(endpointGroup.ID)).Msg("updating user policies for environment group")
+
 		for key := range endpointGroup.UserAccessPolicies {
 			updateUserAccessPolicyToReadOnlyRole(endpointGroup.UserAccessPolicies, key)
 		}
@@ -132,14 +136,15 @@ func (m *Migrator) updateUserRolesToEE() error {
 		}
 	}
 
-	migrateLog.Debug("Retrieving environments")
+	log.Debug().Msg("Retrieving environments")
 	endpoints, err := m.endpointService.Endpoints()
 	if err != nil {
 		return err
 	}
 
 	for _, endpoint := range endpoints {
-		migrateLog.Debugf("Updating user policies for environment %v", endpoint.ID)
+		log.Debug().Int("endpoint_id", int(endpoint.ID)).Msg("updating user policies for environment")
+
 		for key := range endpoint.UserAccessPolicies {
 			updateUserAccessPolicyToReadOnlyRole(endpoint.UserAccessPolicies, key)
 		}

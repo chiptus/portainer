@@ -1076,7 +1076,7 @@ func dockerTaskOperationAuthorization(url, method string) portaineree.Authorizat
 }
 
 // Based on the routes available at
-//https://github.com/moby/moby/blob/c12f09bf99/api/server/router/plugin/plugin.go#L25
+// https://github.com/moby/moby/blob/c12f09bf99/api/server/router/plugin/plugin.go#L25
 func dockerPluginOperationAuthorization(url, method string) portaineree.Authorization {
 	resource, action := extractResourceAndActionFromURL("plugins", url)
 

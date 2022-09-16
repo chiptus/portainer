@@ -4,13 +4,16 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
+
+	"github.com/rs/zerolog/log"
 )
 
 // refreshRBACRoles updates roles to current defaults
 // running it after changing one of `authorization.DefaultEndpointAuthorizations`
 // will update the role
 func (m *Migrator) refreshRBACRoles() error {
-	migrateLog.Info("- refreshing RBAC roles")
+	log.Info().Msg("refreshing RBAC roles")
+
 	defaultAuthorizationsOfRoles := map[portaineree.RoleID]portaineree.Authorizations{
 		portaineree.RoleIDEndpointAdmin: authorization.DefaultEndpointAuthorizationsForEndpointAdministratorRole(),
 		portaineree.RoleIDHelpdesk:      authorization.DefaultEndpointAuthorizationsForHelpDeskRole(),
@@ -40,7 +43,8 @@ func (m *Migrator) refreshRBACRoles() error {
 }
 
 func (m *Migrator) refreshUserAuthorizations() error {
-	migrateLog.Info("- refreshing user authorizations")
+	log.Info().Msg("refreshing user authorizations")
+
 	users, err := m.userService.Users()
 	if err != nil {
 		return err

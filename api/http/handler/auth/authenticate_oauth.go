@@ -2,16 +2,17 @@ package auth
 
 import (
 	"errors"
-	"log"
 	"net/http"
 
-	"github.com/asaskevich/govalidator"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/rs/zerolog/log"
 )
 
 type oauthPayload struct {
@@ -23,6 +24,7 @@ func (payload *oauthPayload) Validate(r *http.Request) error {
 	if govalidator.IsNull(payload.Code) {
 		return errors.New("Invalid OAuth authorization code")
 	}
+
 	return nil
 }
 
@@ -77,7 +79,8 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 
 	authInfo, err := handler.authenticateOAuth(payload.Code, &settings.OAuthSettings)
 	if err != nil {
-		log.Printf("[DEBUG] - OAuth authentication error: %s", err)
+		log.Debug().Err(err).Msg("OAuth authentication error")
+
 		return resp, httperror.InternalServerError("Unable to authenticate through OAuth", httperrors.ErrUnauthorized)
 	}
 

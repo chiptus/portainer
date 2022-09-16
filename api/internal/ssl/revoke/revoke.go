@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 	"github.com/sirupsen/logrus"
 )
 
@@ -53,14 +54,14 @@ func (service *Service) VerifyCertificate(cert *x509.Certificate) (revoked bool,
 	// certificate expired
 	if !time.Now().Before(cert.NotAfter) {
 		msg := fmt.Sprintf("Certificate expired %s\n", cert.NotAfter)
-		logrus.Info(msg)
+		log.Info().Msg(msg)
 		return true, fmt.Errorf(msg)
 	}
 
 	// certificate is not yet valid
 	if !time.Now().After(cert.NotBefore) {
 		msg := fmt.Sprintf("Certificate isn't valid until %s\n", cert.NotBefore)
-		logrus.Info(msg)
+		log.Info().Msg(msg)
 		return true, fmt.Errorf(msg)
 	}
 
@@ -71,7 +72,7 @@ func (service *Service) VerifyCertificate(cert *x509.Certificate) (revoked bool,
 func (service *Service) revCheck(cert *x509.Certificate) (revoked bool, err error) {
 	for _, url := range cert.CRLDistributionPoints {
 		if ldapURL(url) {
-			logrus.Infof("skipping LDAP CRL: %s", url)
+			log.Info().Str("URL", url).Msg("skipping LDAP CRL")
 			continue
 		}
 
@@ -86,7 +87,7 @@ func (service *Service) revCheck(cert *x509.Certificate) (revoked bool, err erro
 		}
 
 		if revoked {
-			logrus.Info("certificate is revoked via CRL")
+			log.Info().Msg("certificate is revoked via CRL")
 			return true, err
 		}
 	}
@@ -99,12 +100,15 @@ func (service *Service) revCheck(cert *x509.Certificate) (revoked bool, err erro
 func ldapURL(url string) bool {
 	u, err := neturl.Parse(url)
 	if err != nil {
-		logrus.Printf("error parsing url %s: %v", url, err)
+		log.Info().Str("URL", url).Err(err).Msg("parsing error")
+
 		return false
 	}
+
 	if u.Scheme == "ldap" {
 		return true
 	}
+
 	return false
 }
 
@@ -132,7 +136,8 @@ func (service *Service) certIsRevokedCRL(cert *x509.Certificate, url string) (re
 		var err error
 		crl, err = service.fetchCRL(url)
 		if err != nil {
-			logrus.WithField("url", url).WithError(err).Warnf("failed fetching CRL")
+			log.Warn().Str("URL", url).Err(err).Msg("failed fetching CRL")
+
 			return false, err
 		}
 
@@ -140,7 +145,8 @@ func (service *Service) certIsRevokedCRL(cert *x509.Certificate, url string) (re
 		if issuer != nil {
 			err = issuer.CheckCRLSignature(crl)
 			if err != nil {
-				logrus.WithField("url", url).WithError(err).Warnf("failed verifying CRL")
+				log.Debug().Str("URL", url).Err(err).Msg("failed verifying CRL")
+
 				return false, err
 			}
 		}
@@ -223,7 +229,8 @@ func parseCertificatePEM(certPEM []byte) (*x509.Certificate, error) {
 	cert, rest, err := parseOneCertificateFromPEM(certPEM)
 	if err != nil {
 		// Log the actual parsing error but throw a default parse error message.
-		logrus.Debugf("Certificate parsing error: %v", err)
+		log.Debug().Err(err).Msg("certificate parsing error")
+
 		return nil, errors.Wrap(err, "unable to parse certificate")
 	}
 

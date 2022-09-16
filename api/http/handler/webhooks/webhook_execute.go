@@ -7,14 +7,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/portainer/portainer-ee/api/internal/registryutils"
-
-	dockertypes "github.com/docker/docker/api/types"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
+
+	dockertypes "github.com/docker/docker/api/types"
 )
 
 // @summary Execute a webhook

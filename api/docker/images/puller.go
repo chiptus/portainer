@@ -4,10 +4,11 @@ import (
 	"context"
 	"io/ioutil"
 
+	"github.com/portainer/portainer-ee/api/dataservices"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"github.com/portainer/portainer-ee/api/dataservices"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 type Puller struct {
@@ -25,10 +26,14 @@ func NewPuller(client *client.Client, registryClient *RegistryClient, dataStore 
 }
 
 func (puller *Puller) Pull(ctx context.Context, image Image) error {
-	log.Debugf("Starting to pull the image: %s", image.FullName())
+	log.Debug().Str("image", image.FullName()).Msg("starting to pull the image")
+
 	registryAuth, err := puller.registryClient.EncodedRegistryAuth(image)
 	if err != nil {
-		log.Debugf("Failed to get an encoded registry auth via image: %s, err: %v, try to pull image without registry auth", image.FullName(), err)
+		log.Debug().
+			Str("image", image.FullName()).
+			Err(err).
+			Msg("failed to get an encoded registry auth via image, try to pull image without registry auth")
 	}
 
 	out, err := puller.client.ImagePull(ctx, image.FullName(), types.ImagePullOptions{
@@ -37,13 +42,9 @@ func (puller *Puller) Pull(ctx context.Context, image Image) error {
 	if err != nil {
 		return err
 	}
-
 	defer out.Close()
 
 	_, err = ioutil.ReadAll(out)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }

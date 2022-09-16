@@ -6,7 +6,8 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices/errors"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -35,7 +36,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}, nil
 }
 
-//Webhooks returns an array of all webhooks
+// Webhooks returns an array of all webhooks
 func (service *Service) Webhooks() ([]portaineree.Webhook, error) {
 	var webhooks = make([]portaineree.Webhook, 0)
 
@@ -45,10 +46,12 @@ func (service *Service) Webhooks() ([]portaineree.Webhook, error) {
 		func(obj interface{}) (interface{}, error) {
 			webhook, ok := obj.(*portaineree.Webhook)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to Webhook object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Webhook object")
 				return nil, fmt.Errorf("Failed to convert to Webhook object: %s", obj)
 			}
+
 			webhooks = append(webhooks, *webhook)
+
 			return &portaineree.Webhook{}, nil
 		})
 
@@ -78,18 +81,23 @@ func (service *Service) WebhookByResourceID(ID string) (*portaineree.Webhook, er
 		func(obj interface{}) (interface{}, error) {
 			webhook, ok := obj.(*portaineree.Webhook)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to Webhook object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Webhook object")
+
 				return nil, fmt.Errorf("Failed to convert to Webhook object: %s", obj)
 			}
+
 			if webhook.ResourceID == ID {
 				w = webhook
 				return nil, stop
 			}
+
 			return &portaineree.Webhook{}, nil
 		})
+
 	if err == stop {
 		return w, nil
 	}
+
 	if err == nil {
 		return nil, errors.ErrObjectNotFound
 	}
@@ -107,18 +115,23 @@ func (service *Service) WebhookByToken(token string) (*portaineree.Webhook, erro
 		func(obj interface{}) (interface{}, error) {
 			webhook, ok := obj.(*portaineree.Webhook)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to Webhook object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Webhook object")
+
 				return nil, fmt.Errorf("Failed to convert to Webhook object: %s", obj)
 			}
+
 			if webhook.Token == token {
 				w = webhook
 				return nil, stop
 			}
+
 			return &portaineree.Webhook{}, nil
 		})
+
 	if err == stop {
 		return w, nil
 	}
+
 	if err == nil {
 		return nil, errors.ErrObjectNotFound
 	}

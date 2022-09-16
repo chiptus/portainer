@@ -7,14 +7,15 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2022-02-01/containerservice"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
-	"github.com/fvbommel/sortorder"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/cloud/azure"
 	clouderrors "github.com/portainer/portainer-ee/api/cloud/errors"
 	"github.com/portainer/portainer-ee/api/database/models"
-	log "github.com/sirupsen/logrus"
+
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2022-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
+	"github.com/fvbommel/sortorder"
+	"github.com/rs/zerolog/log"
 )
 
 type (
@@ -74,8 +75,7 @@ func (service *CloudClusterInfoService) azureFetchRefresh(c *models.CloudCredent
 }
 
 func (a *CloudClusterInfoService) AzureFetchInfo(credentials models.CloudCredentialMap) (*AzureInfo, error) {
-
-	log.Debug("[cloud] [message: sending cloud provider info request] [provider: azure]")
+	log.Debug().Msg("sending cloud provider info request")
 
 	conn, err := azure.NewCredentials(credentials).GetConnection()
 	if err != nil {
@@ -117,7 +117,7 @@ func (a *CloudClusterInfoService) AzureFetchInfo(credentials models.CloudCredent
 		return nil, err
 	}
 
-	log.Infof("total resource skus [%d]", len(skus.Values()))
+	log.Info().Int("count", len(skus.Values())).Msg("total resource skus")
 
 	nodesBR := make(nodesByRegion, 0)
 	for _, sku := range skus.Values() {
@@ -168,7 +168,8 @@ func (a *CloudClusterInfoService) AzureFetchInfo(credentials models.CloudCredent
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("number of locations [%d]", len(*locations.Value))
+
+	log.Info().Int("count", len(*locations.Value)).Msg("number of locations")
 	if len(*locations.Value) == 0 {
 		return nil, fmt.Errorf("AKS failed to return any locations")
 	}
@@ -202,14 +203,14 @@ func (a *CloudClusterInfoService) AzureFetchInfo(credentials models.CloudCredent
 }
 
 func AzureProvisionCluster(credentials models.CloudCredentialMap, params *portaineree.CloudProvisioningRequest) (string, string, error) {
-	log.Debugf(
-		"[cloud] [message: sending KaaS cluster provisioning request] [provider: azure] [cluster_name: %s] [node_size: %s] [node_count: %d] [region: %s] [tier: %s]",
-		params.Name,
-		params.NodeSize,
-		params.NodeCount,
-		params.Region,
-		containerservice.ManagedClusterSKUTier(params.Tier),
-	)
+	log.Debug().
+		Str("provider", "azure").
+		Str("cluster_name", params.Name).
+		Str("node_size", params.NodeSize).
+		Int("node_count", params.NodeCount).
+		Str("region", params.Region).
+		Str("tier", string(containerservice.ManagedClusterSKUTier(params.Tier))).
+		Msg("sending KaaS cluster provisioning request")
 
 	conn, err := azure.NewCredentials(credentials).GetConnection()
 	if err != nil {
@@ -218,16 +219,20 @@ func AzureProvisionCluster(credentials models.CloudCredentialMap, params *portai
 
 	// Resource Groups
 	if params.ResourceGroupName != "" && params.ResourceGroup == "" {
-		log.Infof("[cloud] [message: using existing resource group] %s", params.ResourceGroupName)
+		log.Info().Str("resource_group", params.ResourceGroupName).Msg("using existing resource group")
+
 		groupClient := conn.GetGroupsClient()
 		rg, err := groupClient.CreateOrUpdate(context.TODO(), params.ResourceGroupName, resources.Group{
 			Name:     &params.ResourceGroupName,
 			Location: &params.Region,
 		})
-		log.Infof("[cloud] [message: using existing resource group] %v", rg.Name)
+
+		log.Info().Str("resource_group", *rg.Name).Msg("using existing resource group")
+
 		if err != nil {
 			return "", "", fmt.Errorf("while creating resource group: %w", err)
 		}
+
 		params.ResourceGroup = *rg.Name
 	}
 
@@ -305,7 +310,12 @@ func AzureProvisionCluster(credentials models.CloudCredentialMap, params *portai
 	var managedCluster containerservice.ManagedCluster
 	managedCluster, err = cluster.Result(containerClient.ManagedClustersClient)
 	if err != nil {
-		log.Warnf("[cloud] [message: error while getting cluster details - returning resourceName as ID] [provider: azure] [cluster_name: %s] [error: %s]", params.Name, err)
+		log.Warn().
+			Str("provider", "azure").
+			Str("cluster_name", params.Name).
+			Err(err).
+			Msg("error while getting cluster details, returning resourceName as ID")
+
 		return params.Name, params.ResourceGroup, nil
 	}
 
@@ -331,19 +341,31 @@ func AzureGetCluster(credentials models.CloudCredentialMap, resourceGroup, resou
 		Ready: false,
 	}
 
-	log.Infof("[cloud] [provider: azure] cluster (%s) provisioning status: %s", *cluster.Name, *cluster.ProvisioningState)
+	log.Info().
+		Str("provider", "azure").
+		Str("cluster", *cluster.Name).
+		Str("status", *cluster.ProvisioningState).
+		Msg("cluster provisioning")
 
 	if *cluster.ProvisioningState != "Succeeded" {
 		return kaasCluster, fmt.Errorf("cluster is %s", *cluster.ProvisioningState)
 	}
 
 	if cluster.ManagedClusterProperties != nil && cluster.ManagedClusterProperties.Fqdn != nil {
-		log.Infof("[cloud] [provider: azure] cluster (%s) FQDN: (%s)", *cluster.Name, *cluster.ManagedClusterProperties.Fqdn)
-		log.Infof("[cloud] [provider: azure] cluster (%s) AzurePortalFQDN (%s)", *cluster.Name, *cluster.ManagedClusterProperties.AzurePortalFQDN)
+		log.Info().
+			Str("cluster", *cluster.Name).
+			Str("FQDN", *cluster.ManagedClusterProperties.Fqdn).
+			Str("azure_portal_FQDN", *cluster.ManagedClusterProperties.AzurePortalFQDN).
+			Msg("")
 
 		adminCreds, err := containerClient.ListClusterAdminCredentials(context.TODO(), resourceGroup, resourceName, *cluster.ManagedClusterProperties.Fqdn)
 		if err != nil {
-			log.Errorf("[cloud] [message: error while getting cluster admin credentials] [provider: azure] [cluster_name: %s] [error: %s]", resourceName, err)
+			log.Error().
+				Str("provider", "azure").
+				Str("cluster", *cluster.Name).
+				Err(err).
+				Msg("error while getting cluster admin credentials")
+
 			return nil, clouderrors.NewFatalError("error while getting azure cluster admin credentials for resource (%s), err: %s", resourceName, err.Error())
 		}
 

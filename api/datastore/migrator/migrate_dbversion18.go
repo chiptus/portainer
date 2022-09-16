@@ -1,9 +1,14 @@
 package migrator
 
-import portaineree "github.com/portainer/portainer-ee/api"
+import (
+	portaineree "github.com/portainer/portainer-ee/api"
+
+	"github.com/rs/zerolog/log"
+)
 
 func (m *Migrator) updateSettingsToDBVersion19() error {
-	migrateLog.Info("- updating settings")
+	log.Info().Msg("updating settings")
+
 	legacySettings, err := m.settingsService.Settings()
 	if err != nil {
 		return err
