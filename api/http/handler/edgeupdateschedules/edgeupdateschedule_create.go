@@ -9,17 +9,18 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/edgetypes"
 )
 
 type createPayload struct {
-	Name     string
-	GroupIDs []portainer.EdgeGroupID
-	Type     edgetypes.UpdateScheduleType
-	Version  string
-	Time     int64
+	Name         string
+	GroupIDs     []portainer.EdgeGroupID
+	Environments map[portaineree.EndpointID]string
+	Type         edgetypes.UpdateScheduleType
+	Time         int64
 }
 
 func (payload *createPayload) Validate(r *http.Request) error {
@@ -31,12 +32,12 @@ func (payload *createPayload) Validate(r *http.Request) error {
 		return errors.New("Required to choose at least one group")
 	}
 
-	if payload.Type != edgetypes.UpdateScheduleRollback && payload.Type != edgetypes.UpdateScheduleUpdate {
-		return errors.New("Invalid schedule type")
+	if len(payload.Environments) == 0 {
+		return errors.New("No Environment is scheduled for update")
 	}
 
-	if payload.Version == "" {
-		return errors.New("Invalid version")
+	if payload.Type != edgetypes.UpdateScheduleRollback && payload.Type != edgetypes.UpdateScheduleUpdate {
+		return errors.New("Invalid schedule type")
 	}
 
 	if payload.Time < time.Now().Unix() {
@@ -85,7 +86,45 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 		Created:   time.Now().Unix(),
 		CreatedBy: portainer.UserID(tokenData.ID),
 		Type:      payload.Type,
-		Version:   payload.Version,
+	}
+
+	schedules, err := handler.dataStore.EdgeUpdateSchedule().List()
+	if err != nil {
+		return httperror.InternalServerError("Unable to list edge update schedules", err)
+	}
+
+	prevVersions := map[portainer.EndpointID]string{}
+	if item.Type == edgetypes.UpdateScheduleRollback {
+		prevVersions = previousVersions(schedules)
+	}
+
+	for environmentID, version := range payload.Environments {
+		environment, err := handler.dataStore.Endpoint().Endpoint(environmentID)
+		if err != nil {
+			return httperror.InternalServerError("Unable to retrieve environment from the database", err)
+		}
+
+		// TODO check that env is standalone (snapshots)
+		if environment.Type != portaineree.EdgeAgentOnDockerEnvironment {
+			return httperror.BadRequest("Only standalone docker Environments are supported for remote update", nil)
+		}
+
+		// validate version id is valid for rollback
+		if item.Type == edgetypes.UpdateScheduleRollback {
+			prevVersion := prevVersions[portainer.EndpointID(environmentID)]
+			if prevVersion == "" {
+				return httperror.BadRequest("No previous version found for environment", nil)
+			}
+
+			if version != prevVersion {
+				return httperror.BadRequest("Rollback version must match previous version", nil)
+			}
+		}
+
+		item.Status[portainer.EndpointID(environmentID)] = edgetypes.UpdateScheduleStatus{
+			TargetVersion:  version,
+			CurrentVersion: environment.Agent.Version,
+		}
 	}
 
 	err = handler.dataStore.EdgeUpdateSchedule().Create(item)
