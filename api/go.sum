@@ -990,14 +990,12 @@ github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a h1:B0z3skIMT+O
 github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a/go.mod h1:n54EEIq+MM0NNtqLeCby8ljL+l275VpolXO0ibHegLE=
 github.com/portainer/libhelm v0.0.0-20210929000907-825e93d62108 h1:5e8KAnDa2G3cEHK7aV/ue8lOaoQwBZUzoALslwWkR04=
 github.com/portainer/libhelm v0.0.0-20210929000907-825e93d62108/go.mod h1:YvYAk7krKTzB+rFwDr0jQ3sQu2BtiXK1AR0sZH7nhJA=
-github.com/portainer/libhttp v0.0.0-20211208103139-07a5f798eb3f h1:GMIjRVV2LADpJprPG2+8MdRH6XvrFgC7wHm7dFUdOpc=
-github.com/portainer/libhttp v0.0.0-20211208103139-07a5f798eb3f/go.mod h1:nyQA6IahOruIvENCcBk54aaUvV2WHFdXkvBjIutg+SY=
 github.com/portainer/libhttp v0.0.0-20220916153711-5d61e12f4b0a h1:BJ5V4EDNhg3ImYbmXnGS8vrMhq6rzsEneIXyJh0g4dc=
 github.com/portainer/libhttp v0.0.0-20220916153711-5d61e12f4b0a/go.mod h1:ckuHnoLA5kLuE5WkvPBXmrw63LUMdSH4aX71QRi9y10=
 github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91 h1:mtz7L81z05+CfJdB8Cgh9r8k3tSgLXZR++BgA/Y0PpQ=
 github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91/go.mod h1:6OSugUz07QF1WwrMmRNIMhgiq+drVMIZ98UTu5LVZP8=
-github.com/portainer/portainer/api v0.0.0-20220915060548-d22809e13a48 h1:MSyQgXmwFT9jqXjwkCPPJBRnGXhpHu0Sc4JZYkxsklo=
-github.com/portainer/portainer/api v0.0.0-20220915060548-d22809e13a48/go.mod h1:lV/CH5ouNDtKF4LLsqO0Z6kR6NKoQRLkacg9xuhb3yU=
+github.com/portainer/portainer/api v0.0.0-20220919014452-47f2490059b2 h1:ZOgRGgatu0xUVO8TZ74N6v0hwP9NCqenX3yscvNE64Q=
+github.com/portainer/portainer/api v0.0.0-20220919014452-47f2490059b2/go.mod h1:P+HmQadvPOoYdXHfbJovCs6bml4yUk/Bb2QIUlVlLBA=
 github.com/posener/complete v1.1.1/go.mod h1:em0nMJCgc9GFtwrmVmEMR/ZL6WyhyjMBndrE9hABlRI=
 github.com/pquerna/cachecontrol v0.0.0-20171018203845-0dec1b30a021/go.mod h1:prYjPmNq4d1NPVmpShWobRqXY3q7Vp+80DqgxxUrUIA=
 github.com/proglottis/gpgme v0.1.1/go.mod h1:fPbW/EZ0LvwQtH8Hy7eixhp1eF3G39dtx7GUN+0Gmy0=

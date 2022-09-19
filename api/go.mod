@@ -55,7 +55,7 @@ require (
 	github.com/portainer/libhelm v0.0.0-20210929000907-825e93d62108
 	github.com/portainer/libhttp v0.0.0-20220916153711-5d61e12f4b0a
 	github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91
-	github.com/portainer/portainer/api v0.0.0-20220915060548-d22809e13a48
+	github.com/portainer/portainer/api v0.0.0-20220919014452-47f2490059b2
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.28.0
 	github.com/sirupsen/logrus v1.8.1
