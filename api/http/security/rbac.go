@@ -41,6 +41,7 @@ var dockerRule = regexp.MustCompile(`/(?P<identifier>\d+)/docker(?P<operation>/.
 var k8sProxyRule = regexp.MustCompile(`/(?P<identifier>\d+)/kubernetes(?P<operation>/.*)`)
 var k8sRule = regexp.MustCompile(`/kubernetes/(?P<identifier>\d+)(?P<operation>/.*)`)
 var azureRule = regexp.MustCompile(`/(?P<identifier>\d+)/azure(?P<operation>/.*)`)
+var agentRule = regexp.MustCompile(`/(?P<identifier>\d+)/agent(?P<operation>/.*)`)
 
 func extractMatches(regex *regexp.Regexp, str string) map[string]string {
 	match := regex.FindStringSubmatch(str)
@@ -77,6 +78,9 @@ func getOperationAuthorization(url, method string) portaineree.Authorization {
 	} else if k8sRule.MatchString(url) {
 		match := k8sRule.FindStringSubmatch(url)
 		return getKubernetesOperationAuthorization(strings.TrimPrefix(url, "/kubernetes/"+match[1]), method)
+	} else if agentRule.MatchString(url) {
+		match := agentRule.FindStringSubmatch(url)
+		return portainerAgentOperationAuthorization(strings.TrimPrefix(url, "/"+match[1]+"/agent"), method)
 	}
 
 	return getPortainerOperationAuthorization(url, method)
@@ -209,6 +213,14 @@ func getDockerOperationAuthorization(url, method string) portaineree.Authorizati
 	default:
 		return portaineree.OperationDockerUndefined
 	}
+}
+
+func portainerAgentOperationAuthorization(url, method string) portaineree.Authorization {
+	var dockerHubRule = regexp.MustCompile(`/docker/v2/dockerhub/\d+`)
+	if dockerHubRule.MatchString(url) && method == http.MethodGet {
+		return portaineree.OperationPortainerDockerHubInspect
+	}
+	return portaineree.OperationPortainerUndefined
 }
 
 func portainerDockerhubOperationAuthorization(url, method string) portaineree.Authorization {
