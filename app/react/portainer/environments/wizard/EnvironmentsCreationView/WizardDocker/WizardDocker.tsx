@@ -15,6 +15,7 @@ import { SocketTab } from './SocketTab';
 
 interface Props {
   onCreate(environment: Environment, analytics: AnalyticsStateKey): void;
+  isDockerStandalone?: boolean;
 }
 
 const defaultOptions: BoxSelectorOption<
@@ -50,7 +51,7 @@ const defaultOptions: BoxSelectorOption<
   },
 ];
 
-export function WizardDocker({ onCreate }: Props) {
+export function WizardDocker({ onCreate, isDockerStandalone }: Props) {
   const options = useFilterEdgeOptionsIfNeeded(defaultOptions, 'edgeAgent');
 
   const [creationType, setCreationType] = useState(options[0].value);
@@ -76,6 +77,7 @@ export function WizardDocker({ onCreate }: Props) {
         return (
           <AgentTab
             onCreate={(environment) => onCreate(environment, 'dockerAgent')}
+            isDockerStandalone={isDockerStandalone}
           />
         );
       case 'api':

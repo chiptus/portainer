@@ -59,6 +59,8 @@ export function EnvironmentCreationView() {
     isLastStep,
   } = useStepper(steps, handleClose);
 
+  const isDockerStandalone = currentStep.id === 'dockerStandalone';
+
   return (
     <>
       <PageHeader
@@ -74,7 +76,10 @@ export function EnvironmentCreationView() {
 
             <div className="mt-12">
               <FormSection title={currentStep.formTitle}>
-                <Component onCreate={handleCreateEnvironment} />
+                <Component
+                  onCreate={handleCreateEnvironment}
+                  isDockerStandalone={isDockerStandalone}
+                />
 
                 <div
                   className={clsx(
@@ -177,7 +182,8 @@ function useStepper(
 
   function getComponent(id: EnvironmentSelectorValue) {
     switch (id) {
-      case 'docker':
+      case 'dockerStandalone':
+      case 'dockerSwarm':
         return WizardDocker;
       case 'aci':
         return WizardAzure;

@@ -4,12 +4,18 @@ import KaaSIcon from './kaas-icon.svg?c';
 
 export const environmentTypes = [
   {
-    id: 'docker',
-    title: 'Docker',
-    formTitle: 'Connect to your Docker environment',
+    id: 'dockerStandalone',
+    title: 'Docker Standalone',
+    formTitle: 'Connect to your Docker Standalone environment',
     icon: 'fab fa-docker',
-    description:
-      'Connect to Docker Standalone / Swarm via URL/IP, API or Socket',
+    description: 'Connect to Docker Standalone via URL/IP, API or Socket',
+  },
+  {
+    id: 'dockerSwarm',
+    title: 'Docker Swarm',
+    formTitle: 'Connect to your Docker Swarm environment',
+    icon: 'fab fa-docker',
+    description: 'Connect to Docker Swarm via URL/IP, API or Socket',
   },
   {
     id: 'kubernetes',
