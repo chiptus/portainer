@@ -5,7 +5,7 @@ import { isoDateFromTimestamp } from '@/portainer/filters/filters';
 import { GitCredential } from '../../types';
 
 export const creationDate: Column<GitCredential> = {
-  Header: 'Creation Date',
+  Header: 'Created',
   accessor: (row) => row.creationDate,
   id: 'creationDate',
   Cell: ({ value }: { value: number }) => isoDateFromTimestamp(value),

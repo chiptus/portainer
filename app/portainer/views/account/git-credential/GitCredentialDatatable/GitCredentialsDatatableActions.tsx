@@ -2,6 +2,7 @@ import { useRouter } from '@uirouter/react';
 
 import { confirmDestructiveAsync } from '@/portainer/services/modal.service/confirm';
 
+import { Icon } from '@@/Icon';
 import { Button } from '@@/buttons';
 
 import { GitCredential } from '../types';
@@ -19,11 +20,11 @@ export function GitCredentialsDatatableActions({ selectedItems }: Props) {
     <>
       <Button
         disabled={selectedItems.length < 1}
-        color="danger"
+        color="dangerlight"
         onClick={() => onDeleteClick(selectedItems)}
         data-cy="credentials-deleteButton"
       >
-        <i className="fa fa-trash-alt space-right" aria-hidden="true" />
+        <Icon icon="trash-2" feather className="vertical-center" />
         Remove
       </Button>
 
@@ -33,7 +34,7 @@ export function GitCredentialsDatatableActions({ selectedItems }: Props) {
         }
         data-cy="credentials-addButton"
       >
-        <i className="fa fa-plus space-right" aria-hidden="true" />
+        <Icon icon="plus" feather className="vertical-center" />
         Add git credential
       </Button>
     </>
