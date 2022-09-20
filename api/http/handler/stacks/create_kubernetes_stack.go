@@ -3,6 +3,7 @@ package stacks
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -96,6 +97,12 @@ type createKubernetesStackResponse struct {
 	Output string `json:"Output"`
 }
 
+// convert string to valid kubernetes label by replacing invalid characters with periods
+func sanitizeLabel(value string) string {
+	re := regexp.MustCompile(`[^A-Za-z0-9\.\-\_]+`)
+	return re.ReplaceAllString(value, ".")
+}
+
 func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 	if !endpointutils.IsKubernetesEndpoint(endpoint) {
 		return httperror.BadRequest("Environment type does not match", errors.New("Environment type does not match"))
@@ -152,7 +159,7 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 	output, deployError := handler.deployKubernetesStack(tokenData, endpoint, stack, k.KubeAppLabels{
 		StackID:   stackID,
 		StackName: stack.Name,
-		Owner:     stack.CreatedBy,
+		Owner:     sanitizeLabel(stack.CreatedBy),
 		Kind:      "content",
 	})
 	if deployError != nil {
@@ -288,7 +295,7 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 	output, deployError := handler.deployKubernetesStack(tokenData, endpoint, stack, k.KubeAppLabels{
 		StackID:   stackID,
 		StackName: stack.Name,
-		Owner:     stack.CreatedBy,
+		Owner:     sanitizeLabel(stack.CreatedBy),
 		Kind:      "git",
 	})
 	if deployError != nil {
@@ -369,7 +376,7 @@ func (handler *Handler) createKubernetesStackFromManifestURL(w http.ResponseWrit
 	output, deployError := handler.deployKubernetesStack(tokenData, endpoint, stack, k.KubeAppLabels{
 		StackID:   stackID,
 		StackName: stack.Name,
-		Owner:     stack.CreatedBy,
+		Owner:     sanitizeLabel(stack.CreatedBy),
 		Kind:      "url",
 	})
 	if deployError != nil {
