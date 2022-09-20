@@ -1,6 +1,9 @@
-import { react2angular } from '@/react-tools/react2angular';
+import { r2a } from '@/react-tools/react2angular';
 import { useJobs } from '@/nomad/hooks/useJobs';
 import { useEnvironmentId } from '@/portainer/hooks/useEnvironmentId';
+import { withCurrentUser } from '@/react-tools/withCurrentUser';
+import { withReactQuery } from '@/react-tools/withReactQuery';
+import { withUIRouter } from '@/react-tools/withUIRouter';
 
 import { PageHeader } from '@@/PageHeader';
 import { TableSettingsProvider } from '@@/datatables/useTableSettings';
@@ -46,4 +49,7 @@ export function JobsView() {
   );
 }
 
-export const JobsViewAngular = react2angular(JobsView, []);
+export const JobsViewAngular = r2a(
+  withUIRouter(withReactQuery(withCurrentUser(JobsView))),
+  []
+);

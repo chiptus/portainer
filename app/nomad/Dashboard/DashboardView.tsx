@@ -2,6 +2,9 @@ import { useEnvironmentId } from 'Portainer/hooks/useEnvironmentId';
 
 import { react2angular } from '@/react-tools/react2angular';
 import { useDashboard } from '@/nomad/hooks/useDashboard';
+import { withCurrentUser } from '@/react-tools/withCurrentUser';
+import { withUIRouter } from '@/react-tools/withUIRouter';
+import { withReactQuery } from '@/react-tools/withReactQuery';
 
 import { DashboardItem } from '@@/DashboardItem';
 import { Widget, WidgetTitle, WidgetBody } from '@@/Widget';
@@ -84,4 +87,7 @@ export function DashboardView() {
   );
 }
 
-export const NomadDashboardAngular = react2angular(DashboardView, []);
+export const NomadDashboardAngular = react2angular(
+  withUIRouter(withReactQuery(withCurrentUser(DashboardView))),
+  []
+);

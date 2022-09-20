@@ -5,6 +5,7 @@ import { LicenseExpirationPanelContainer } from './LicenseExpirationPanel';
 import styles from './HeaderContainer.module.css';
 
 const Context = createContext<null | boolean>(null);
+Context.displayName = 'PageHeaderContext';
 
 export function useHeaderContext() {
   const context = useContext(Context);

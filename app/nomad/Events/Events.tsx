@@ -5,6 +5,9 @@ import { useEnvironmentId } from '@/portainer/hooks/useEnvironmentId';
 import { useEvents } from '@/nomad/hooks/useEvents';
 import { EventsDatatable } from '@/nomad/Events/datatable/EventsDatatable';
 import { NomadEventsList } from '@/nomad/types';
+import { withReactQuery } from '@/react-tools/withReactQuery';
+import { withUIRouter } from '@/react-tools/withUIRouter';
+import { withCurrentUser } from '@/react-tools/withCurrentUser';
 
 import { TableSettingsProvider } from '@@/datatables/useTableSettings';
 import { PageHeader } from '@@/PageHeader';
@@ -61,4 +64,7 @@ export function Events() {
   );
 }
 
-export const NomadEventsAngular = react2angular(Events, []);
+export const NomadEventsAngular = react2angular(
+  withUIRouter(withReactQuery(withCurrentUser(Events))),
+  []
+);

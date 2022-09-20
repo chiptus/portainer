@@ -1,6 +1,9 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
 import { react2angular } from '@/react-tools/react2angular';
+import { withCurrentUser } from '@/react-tools/withCurrentUser';
+import { withReactQuery } from '@/react-tools/withReactQuery';
+import { withUIRouter } from '@/react-tools/withUIRouter';
 
 import { FormSectionTitle } from '@@/form-components/FormSectionTitle';
 import { PageHeader } from '@@/PageHeader';
@@ -41,4 +44,7 @@ export default function EditCredentialView() {
   );
 }
 
-export const EditCredentialViewAngular = react2angular(EditCredentialView, []);
+export const EditCredentialViewAngular = react2angular(
+  withUIRouter(withReactQuery(withCurrentUser(EditCredentialView))),
+  []
+);

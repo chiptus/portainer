@@ -1,6 +1,5 @@
 import { useRouter } from '@uirouter/react';
 
-import { r2a } from '@/react-tools/react2angular';
 import { useEnvironmentList } from '@/portainer/environments/queries/useEnvironmentList';
 import { EdgeTypes } from '@/portainer/environments/types';
 
@@ -58,5 +57,3 @@ export function WaitingRoomView() {
     </>
   );
 }
-
-export const WaitingRoomViewAngular = r2a(WaitingRoomView, []);

@@ -7,16 +7,20 @@ import { ContainerQuickActions } from '@/react/docker/containers/components/Cont
 import { ImageStatus } from '@/react/docker/components/ImageStatus';
 import { TemplateListDropdownAngular } from '@/react/docker/app-templates/TemplateListDropdown';
 import { TemplateListSortAngular } from '@/react/docker/app-templates/TemplateListSort';
+import { Gpu } from '@/react/docker/containers/CreateView/Gpu';
+import { withCurrentUser } from '@/react-tools/withCurrentUser';
+import { withReactQuery } from '@/react-tools/withReactQuery';
+import { withUIRouter } from '@/react-tools/withUIRouter';
 
 export const componentsModule = angular
   .module('portainer.docker.react.components', [])
   .component(
     'stackImageStatus',
-    r2a(StackImageStatus, ['stackId', 'environmentId'])
+    r2a(withReactQuery(StackImageStatus), ['stackId', 'environmentId'])
   )
   .component(
     'containerQuickActions',
-    r2a(ContainerQuickActions, [
+    r2a(withUIRouter(withCurrentUser(ContainerQuickActions)), [
       'containerId',
       'nodeName',
       'state',
@@ -24,10 +28,20 @@ export const componentsModule = angular
       'taskId',
     ])
   )
-  .component('imageStatus', r2a(ImageStatus, ['imageName', 'environmentId']))
+  .component(
+    'imageStatus',
+    r2a(withReactQuery(ImageStatus), ['imageName', 'environmentId'])
+  )
   .component('templateListDropdown', TemplateListDropdownAngular)
   .component('templateListSort', TemplateListSortAngular)
   .component(
     'stackContainersDatatable',
-    r2a(StackContainersDatatable, ['environment', 'stackName'])
+    r2a(
+      withUIRouter(withReactQuery(withCurrentUser(StackContainersDatatable))),
+      ['environment', 'stackName']
+    )
+  )
+  .component(
+    'gpu',
+    r2a(Gpu, ['values', 'onChange', 'gpus', 'usedGpus', 'usedAllGpus'])
   ).name;

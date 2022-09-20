@@ -1,4 +1,7 @@
+import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { react2angular } from '@/react-tools/react2angular';
+import { withReactQuery } from '@/react-tools/withReactQuery';
+import { withUIRouter } from '@/react-tools/withUIRouter';
 
 import { PageHeader } from '@@/PageHeader';
 
@@ -24,4 +27,7 @@ export function CloudView() {
   );
 }
 
-export const CloudViewAngular = react2angular(CloudView, []);
+export const CloudViewAngular = react2angular(
+  withUIRouter(withReactQuery(withCurrentUser(CloudView))),
+  []
+);
