@@ -34,7 +34,10 @@ export function SearchBar({
   );
 }
 
-function useDebounce(defaultValue: string, onChange: (value: string) => void) {
+export function useDebounce(
+  defaultValue: string,
+  onChange: (value: string) => void
+) {
   const [searchValue, setSearchValue] = useState(defaultValue);
 
   useEffect(() => {

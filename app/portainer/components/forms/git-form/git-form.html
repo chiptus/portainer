@@ -1,15 +1,5 @@
 <ng-form name="$ctrl.gitForm">
-  <div class="col-sm-12 form-section-title !mt-4"> Git repository </div>
-  <git-form-url-field value="$ctrl.model.RepositoryURL" on-change="($ctrl.onChangeURL)"></git-form-url-field>
-  <git-form-ref-field value="$ctrl.model.RepositoryReferenceName" on-change="($ctrl.onChangeRefName)"></git-form-ref-field>
-  <git-form-compose-path-field
-    value="$ctrl.model.ComposeFilePathInRepository"
-    on-change="($ctrl.onChangeComposePath)"
-    deploy-method="{{ $ctrl.deployMethod }}"
-  ></git-form-compose-path-field>
-
-  <git-form-additional-files-panel ng-if="$ctrl.additionalFile" model="$ctrl.model" on-change="($ctrl.onChange)"></git-form-additional-files-panel>
-
+  <div class="col-sm-12 form-section-title"> Git repository </div>
   <git-form-auth-fieldset
     repository-authentication="$ctrl.model.RepositoryAuthentication"
     repository-username="$ctrl.model.RepositoryUsername"
@@ -27,6 +17,25 @@
     on-change-repository-password="($ctrl.onChangeRepositoryPassword)"
     on-change-new-credential-name="($ctrl.onChangeNewCredentialName)"
   ></git-form-auth-fieldset>
+
+  <git-form-url-field
+    value="$ctrl.model.RepositoryURL"
+    on-change="($ctrl.onChangeURL)"
+    on-change-repository-valid="($ctrl.onChangeRepositoryValid)"
+    on-refresh-gitops-cache="($ctrl.onRefreshGitopsCache)"
+    model="$ctrl.model"
+  ></git-form-url-field>
+
+  <git-form-ref-field value="$ctrl.model.RepositoryReferenceName" on-change="($ctrl.onChangeRefName)" model="$ctrl.model"></git-form-ref-field>
+
+  <git-form-compose-path-field
+    value="$ctrl.model.ComposeFilePathInRepository"
+    on-change="($ctrl.onChangeComposePath)"
+    is-compose="$ctrl.deployMethod === 'compose'"
+    model="$ctrl.model"
+  ></git-form-compose-path-field>
+
+  <git-form-additional-files-panel ng-if="$ctrl.additionalFile" model="$ctrl.model" on-change="($ctrl.onChange)"></git-form-additional-files-panel>
 
   <git-form-auto-update-fieldset
     ng-if="$ctrl.autoUpdate"

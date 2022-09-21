@@ -26,6 +26,14 @@ func (g *gitService) LatestCommitID(repositoryURL, referenceName, username, pass
 	return g.id, nil
 }
 
+func (g *gitService) ListRefs(repositoryURL, username, password string, hardRefresh bool) ([]string, error) {
+	return nil, nil
+}
+
+func (g *gitService) ListFiles(repositoryURL, referenceName, username, password string, hardRefresh bool, inlcudedExts []string) ([]string, error) {
+	return nil, nil
+}
+
 type noopDeployer struct {
 	SwarmStackDeployed      bool
 	ComposeStackDeployed    bool

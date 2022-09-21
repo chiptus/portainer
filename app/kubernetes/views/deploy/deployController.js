@@ -66,7 +66,8 @@ class KubernetesDeployController {
     this.formValues = {
       StackName: '',
       RepositoryURL: '',
-      RepositoryReferenceName: '',
+      RepositoryURLValid: false,
+      RepositoryReferenceName: 'refs/heads/main',
       RepositoryAuthentication: false,
       RepositoryUsername: '',
       RepositoryPassword: '',

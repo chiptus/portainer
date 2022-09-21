@@ -1596,6 +1596,8 @@ type (
 	GitService interface {
 		CloneRepository(destination string, repositoryURL, referenceName string, username, password string) error
 		LatestCommitID(repositoryURL, referenceName, username, password string) (string, error)
+		ListRefs(repositoryURL, username, password string, hardRefresh bool) ([]string, error)
+		ListFiles(repositoryURL, referenceName, username, password string, hardRefresh bool, includedExts []string) ([]string, error)
 	}
 
 	// OpenAMTService represents a service for managing OpenAMT

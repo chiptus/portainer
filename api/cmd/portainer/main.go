@@ -233,8 +233,8 @@ func initOAuthService() portaineree.OAuthService {
 	return oauth.NewService()
 }
 
-func initGitService() portaineree.GitService {
-	return git.NewService()
+func initGitService(shutdownCtx context.Context) portaineree.GitService {
+	return git.NewService(shutdownCtx)
 }
 
 func initSSLService(addr, certPath, keyPath, caCertPath string, fileService portainer.FileService, dataStore dataservices.DataStore, shutdownTrigger context.CancelFunc) (*ssl.Service, error) {
@@ -634,7 +634,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 
 	oauthService := initOAuthService()
 
-	gitService := initGitService()
+	gitService := initGitService(shutdownCtx)
 
 	openAMTService := openamt.NewService()
 

@@ -33,6 +33,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/endpointproxy"
 	"github.com/portainer/portainer-ee/api/http/handler/endpoints"
 	"github.com/portainer/portainer-ee/api/http/handler/file"
+	"github.com/portainer/portainer-ee/api/http/handler/gitops"
 	"github.com/portainer/portainer-ee/api/http/handler/helm"
 	"github.com/portainer/portainer-ee/api/http/handler/hostmanagement/fdo"
 	"github.com/portainer/portainer-ee/api/http/handler/hostmanagement/openamt"
@@ -228,6 +229,8 @@ func (server *Server) Start() error {
 
 	var endpointHelmHandler = helm.NewHandler(requestBouncer, server.DataStore, server.JWTService, server.KubernetesDeployer, server.HelmPackageManager, server.KubeClusterAccessService, server.UserActivityService)
 
+	var gitOperationHandler = gitops.NewHandler(requestBouncer, server.DataStore, server.GitService)
+
 	var helmTemplatesHandler = helm.NewTemplateHandler(requestBouncer, server.HelmPackageManager)
 
 	var ldapHandler = ldap.NewHandler(requestBouncer)
@@ -338,6 +341,7 @@ func (server *Server) Start() error {
 		EndpointHelmHandler:       endpointHelmHandler,
 		EndpointEdgeHandler:       endpointEdgeHandler,
 		EndpointProxyHandler:      endpointProxyHandler,
+		GitOperationHandler:       gitOperationHandler,
 		HelmTemplatesHandler:      helmTemplatesHandler,
 		KaasHandler:               kaasHandler,
 		KubernetesHandler:         kubernetesHandler,
