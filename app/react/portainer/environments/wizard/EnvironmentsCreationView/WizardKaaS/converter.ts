@@ -1,4 +1,4 @@
-import { KaasProvider } from '@/portainer/settings/cloud/types';
+import { KaasProvider } from '@/react/portainer/settings/cloud/types';
 
 import { Option } from '@@/form-components/Input/Select';
 

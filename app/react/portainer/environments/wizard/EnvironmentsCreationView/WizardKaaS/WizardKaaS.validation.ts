@@ -1,6 +1,6 @@
 import { number, object, string, mixed, SchemaOf } from 'yup';
 
-import { KaasProvider } from '@/portainer/settings/cloud/types';
+import { KaasProvider } from '@/react/portainer/settings/cloud/types';
 import { nameValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/NameField';
 import { metadataValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MetadataFieldset/validation';
 

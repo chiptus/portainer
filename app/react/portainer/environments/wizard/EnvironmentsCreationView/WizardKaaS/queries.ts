@@ -4,7 +4,7 @@ import {
   Credential,
   KaasProvider,
   providerTitles,
-} from '@/portainer/settings/cloud/types';
+} from '@/react/portainer/settings/cloud/types';
 import { success as notifySuccess } from '@/portainer/services/notifications';
 
 import { getKaasInfo, createKaasEnvironment } from './kaas.service';

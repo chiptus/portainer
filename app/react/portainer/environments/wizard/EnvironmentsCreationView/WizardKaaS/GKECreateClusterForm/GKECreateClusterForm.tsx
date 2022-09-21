@@ -5,7 +5,7 @@ import {
   Credential,
   KaasProvider,
   providerTitles,
-} from '@/portainer/settings/cloud/types';
+} from '@/react/portainer/settings/cloud/types';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { Input, Select } from '@@/form-components/Input';

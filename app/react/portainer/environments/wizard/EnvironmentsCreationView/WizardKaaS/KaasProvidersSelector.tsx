@@ -1,4 +1,4 @@
-import { KaasProvider } from '@/portainer/settings/cloud/types';
+import { KaasProvider } from '@/react/portainer/settings/cloud/types';
 import Civo from '@/assets/ico/vendor/civo.svg?c';
 import Linode from '@/assets/ico/vendor/linode.svg?c';
 import Digitalocean from '@/assets/ico/vendor/digitalocean.svg?c';

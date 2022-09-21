@@ -6,11 +6,11 @@ import {
   KaasProvider,
   Credential,
   providerTitles,
-} from '@/portainer/settings/cloud/types';
-import { useCloudCredentials } from '@/portainer/settings/cloud/cloudSettings.service';
+} from '@/react/portainer/settings/cloud/types';
+import { useCloudCredentials } from '@/react/portainer/settings/cloud/cloudSettings.service';
 import { Environment } from '@/portainer/environments/types';
-import { useSettings } from '@/portainer/settings/queries';
-import { CredentialsForm } from '@/portainer/settings/cloud/CreateCredentialsView/CredentialsForm';
+import { useSettings } from '@/react/portainer/settings/queries';
+import { CredentialsForm } from '@/react/portainer/settings/cloud/CreateCredentialsView/CredentialsForm';
 
 import { Loading } from '@@/Widget/Loading';
 import { Link } from '@@/Link';

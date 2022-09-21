@@ -1,5 +1,5 @@
-import axios from 'Portainer/services/axios';
-import { EnvironmentId } from 'Portainer/environments/types';
+import { EnvironmentId } from '@/portainer/environments/types';
+import axios from '@/portainer/services/axios';
 
 import { ImageStatus } from './types';
 

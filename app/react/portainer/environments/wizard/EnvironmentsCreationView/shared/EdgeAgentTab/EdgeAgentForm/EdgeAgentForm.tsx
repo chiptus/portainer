@@ -8,7 +8,7 @@ import {
   EdgeAsyncIntervalsForm,
   EDGE_ASYNC_INTERVAL_USE_DEFAULT,
 } from '@/edge/components/EdgeAsyncIntervalsForm';
-import { useSettings } from '@/portainer/settings/queries';
+import { useSettings } from '@/react/portainer/settings/queries';
 import { useCreateEdgeDeviceParam } from '@/react/portainer/environments/wizard/hooks/useCreateEdgeDeviceParam';
 
 import { FormSection } from '@@/form-components/FormSection';

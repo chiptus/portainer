@@ -1,6 +1,5 @@
-import axios, { parseAxiosError } from 'Portainer/services/axios';
-import { EnvironmentId } from 'Portainer/environments/types';
-
+import axios, { parseAxiosError } from '@/portainer/services/axios';
+import { EnvironmentId } from '@/portainer/environments/types';
 import { NomadEventsList } from '@/nomad/types';
 
 export async function getTaskEvents(

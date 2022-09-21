@@ -1,6 +1,6 @@
 import { object, string, SchemaOf } from 'yup';
 
-import { KaasProvider } from '@/portainer/settings/cloud/types';
+import { KaasProvider } from '@/react/portainer/settings/cloud/types';
 
 import { CreateApiClusterFormValues } from '../types';
 

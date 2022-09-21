@@ -5,7 +5,7 @@ import {
   Credential,
   KaasProvider,
   providerTitles,
-} from '@/portainer/settings/cloud/types';
+} from '@/react/portainer/settings/cloud/types';
 
 import { Select as ReactSelect } from '@@/form-components/ReactSelect';
 import { FormControl } from '@@/form-components/FormControl';

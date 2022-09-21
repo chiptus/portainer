@@ -1,5 +1,5 @@
 import { trackEvent } from '@/angulartics.matomo/analytics-services';
-import { KaasProvider } from '@/portainer/settings/cloud/types';
+import { KaasProvider } from '@/react/portainer/settings/cloud/types';
 
 import { FormValues, KaaSFormType } from './types';
 

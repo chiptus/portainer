@@ -1,5 +1,4 @@
-import { useEnvironmentId } from 'Portainer/hooks/useEnvironmentId';
-
+import { useEnvironmentId } from '@/portainer/hooks/useEnvironmentId';
 import { react2angular } from '@/react-tools/react2angular';
 import { useDashboard } from '@/nomad/hooks/useDashboard';
 import { withCurrentUser } from '@/react-tools/withCurrentUser';

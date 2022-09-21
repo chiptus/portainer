@@ -1,7 +1,10 @@
 import { useFormikContext } from 'formik';
 import { useEffect } from 'react';
 
-import { KaasProvider, Credential } from '@/portainer/settings/cloud/types';
+import {
+  KaasProvider,
+  Credential,
+} from '@/react/portainer/settings/cloud/types';
 
 import { FormValues } from './types';
 import { GKECreateClusterForm } from './GKECreateClusterForm/GKECreateClusterForm';
