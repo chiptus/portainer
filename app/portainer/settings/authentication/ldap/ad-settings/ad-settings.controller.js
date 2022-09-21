@@ -48,7 +48,7 @@ export default class AdSettingsController {
 
   searchAdminGroups() {
     if (this.settings.AdminAutoPopulate) {
-      this.settings.AdminGroups = this.selectedAdminGroups.map((team) => team.name);
+      this.settings.AdminGroups = this.selectedAdminGroups;
     }
 
     const settings = {

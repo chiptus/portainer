@@ -7,9 +7,10 @@ import { RoleTypes } from 'Portainer/rbac/models/role';
 
 class KubernetesResourcePoolAccessController {
   /* @ngInject */
-  constructor($async, $state, Notifications, EndpointService, KubernetesResourcePoolService, KubernetesConfigMapService, GroupService, AccessService, RoleService) {
+  constructor($async, $state, $scope, Notifications, EndpointService, KubernetesResourcePoolService, KubernetesConfigMapService, GroupService, AccessService, RoleService) {
     this.$async = $async;
     this.$state = $state;
+    this.$scope = $scope;
     this.Notifications = Notifications;
     this.EndpointService = EndpointService;
     this.KubernetesResourcePoolService = KubernetesResourcePoolService;
@@ -22,7 +23,7 @@ class KubernetesResourcePoolAccessController {
     this.onInit = this.onInit.bind(this);
     this.authorizeAccessAsync = this.authorizeAccessAsync.bind(this);
     this.unauthorizeAccessAsync = this.unauthorizeAccessAsync.bind(this);
-
+    this.onUsersAndTeamsChange = this.onUsersAndTeamsChange.bind(this);
     this.unauthorizeAccess = this.unauthorizeAccess.bind(this);
   }
 
@@ -75,6 +76,7 @@ class KubernetesResourcePoolAccessController {
           return false;
         });
       }
+
       this.availableUsersAndTeams = _.without(endpointAccesses.authorizedUsersAndTeams, ...this.authorizedUsersAndTeams);
       this.availableUsersAndTeams = _.filter(this.availableUsersAndTeams, (item) => [RoleTypes.STANDARD, RoleTypes.READ_ONLY].includes(item.Role.Id));
     } catch (err) {
@@ -112,6 +114,12 @@ class KubernetesResourcePoolAccessController {
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to create accesses');
     }
+  }
+
+  onUsersAndTeamsChange(value) {
+    this.$scope.$evalAsync(() => {
+      this.formValues.multiselectOutput = value;
+    });
   }
 
   authorizeAccess() {

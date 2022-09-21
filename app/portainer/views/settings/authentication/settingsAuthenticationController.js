@@ -180,7 +180,7 @@ function SettingsAuthenticationController($q, $scope, $state, Notifications, Set
     const uploadRequired = (settings.TLSConfig.TLS || settings.StartTLS) && !settings.TLSConfig.TLSSkipVerify;
 
     if (settings.AdminAutoPopulate && $scope.formValues.selectedAdminGroups.length > 0) {
-      settings.AdminGroups = _.map($scope.formValues.selectedAdminGroups, (team) => team.name);
+      settings.AdminGroups = $scope.formValues.selectedAdminGroups;
     } else {
       settings.AdminGroups = [];
     }
@@ -255,6 +255,8 @@ function SettingsAuthenticationController($q, $scope, $state, Notifications, Set
         } else {
           $scope.formValues.ldap.ldapSettings = settings.LDAPSettings;
         }
+
+        $scope.formValues.selectedAdminGroups = settings.LDAPSettings.AdminGroups || [];
 
         if (!settings.LDAPSettings.URLs.length) {
           settings.LDAPSettings.URLs.push('');

@@ -38,6 +38,7 @@ class KubernetesCreateResourcePoolController {
     this.onToggleStorageQuota = this.onToggleStorageQuota.bind(this);
     this.onToggleLoadBalancerQuota = this.onToggleLoadBalancerQuota.bind(this);
     this.onToggleResourceQuota = this.onToggleResourceQuota.bind(this);
+    this.onRegistriesChange = this.onRegistriesChange.bind(this);
   }
   /* #endregion */
 
@@ -88,6 +89,12 @@ class KubernetesCreateResourcePoolController {
       if (Object.keys(value).length > 0) {
         state.hasRefs = true;
       }
+    });
+  }
+
+  onRegistriesChange(registries) {
+    return this.$scope.$evalAsync(() => {
+      this.formValues.Registries = registries;
     });
   }
 

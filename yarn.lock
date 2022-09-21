@@ -5698,10 +5698,6 @@ angular-moment-picker@^0.10.2:
     angular "^1.3"
     moment "^2.16.0"
 
-"angular-multiselect@https://github.com/portainer/angular-multi-select.git#5f6cb6f966b0bd89f211338fc41dcf70ecacbde7":
-  version "4.0.0"
-  resolved "https://github.com/portainer/angular-multi-select.git#5f6cb6f966b0bd89f211338fc41dcf70ecacbde7"
-
 angular-resource@1.8.2:
   version "1.8.2"
   resolved "https://registry.yarnpkg.com/angular-resource/-/angular-resource-1.8.2.tgz#fc1f1adb93dfb83e295d1cfff2a48cec4296e20a"
@@ -18141,11 +18137,6 @@ uglify-js@^3.1.4:
   version "3.14.5"
   resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.14.5.tgz#cdabb7d4954231d80cb4a927654c4655e51f4859"
   integrity sha512-qZukoSxOG0urUTvjc2ERMTcAy+BiFh3weWAkeurLwjrCba73poHmG3E36XEjd/JGukMzwTL7uCxZiAexj8ppvQ==
-
-ui-select@^0.19.8:
-  version "0.19.8"
-  resolved "https://registry.yarnpkg.com/ui-select/-/ui-select-0.19.8.tgz#74860848a7fd8bc494d9856d2f62776ea98637c1"
-  integrity sha1-dIYISKf9i8SU2YVtL2J3bqmGN8E=
 
 unbox-primitive@^1.0.1:
   version "1.0.1"

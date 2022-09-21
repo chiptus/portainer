@@ -1,6 +1,7 @@
 import _ from 'lodash-es';
 import { RegistryTypes } from 'Portainer/models/registryTypes';
 import { RepositoryShortTag, RepositoryTagViewModel } from '@/portainer/registry-management/models/repositoryTag';
+import { trimSHA } from '@/docker/filters/utils';
 
 angular.module('portainer.app').controller('RegistryRepositoryController', RegistryRepositoryController);
 
@@ -92,6 +93,12 @@ function RegistryRepositoryController(
       });
   };
 
+  $scope.onChangeImage = function (value) {
+    return $scope.$evalAsync(() => {
+      $scope.formValues.SelectedImage = value;
+    });
+  };
+
   /**
    * RETRIEVAL SECTION
    */
@@ -111,8 +118,11 @@ function RegistryRepositoryController(
   }
 
   function computeImages() {
-    const images = _.map($scope.short.Tags, 'ImageId');
-    $scope.short.Images = _.without(_.uniq(images), '');
+    const images = _.uniqBy(
+      $scope.short.Tags.map((tag) => ({ label: trimSHA(tag.ImageId), value: tag.ImageId })),
+      'label'
+    ).filter((image) => image.label !== '');
+    $scope.short.Images = images;
   }
 
   $scope.startStopRetrieval = function () {
@@ -164,6 +174,10 @@ function RegistryRepositoryController(
         throw { msg: 'Invalid tag pattern, see info for more details on format.' };
       }
       const tag = $scope.short.Tags.find((item) => item.ImageId === $scope.formValues.SelectedImage);
+      if (!tag) {
+        throw new Error(`Unable to find image ${$scope.formValues.SelectedImage}`);
+      }
+
       const manifest = tag.ManifestV2;
       await RegistryServiceSelector.addTag($scope.registry, $scope.endpointId, $scope.repository.Name, $scope.formValues.Tag, manifest);
 
@@ -172,7 +186,7 @@ function RegistryRepositoryController(
 
       await loadRepositoryDetails();
       $scope.formValues.Tag = '';
-      delete $scope.formValues.SelectedImage;
+      $scope.formValues.SelectedImage = '';
     } catch (err) {
       Notifications.error('Failure', err, 'Unable to add tag');
     } finally {
@@ -328,7 +342,7 @@ function RegistryRepositoryController(
       }
 
       _.pull($scope.short.Tags, ...deletedShortTags);
-      $scope.short.Images = _.map(_.uniqBy($scope.short.Tags, 'ImageId'), 'ImageId');
+      computeImages();
 
       Notifications.success('Success', 'Tags successfully deleted');
 

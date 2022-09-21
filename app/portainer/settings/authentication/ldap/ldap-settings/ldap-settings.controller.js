@@ -71,7 +71,7 @@ export default class LdapSettingsController {
 
   searchAdminGroups() {
     if (this.settings.AdminAutoPopulate) {
-      this.settings.AdminGroups = this.selectedAdminGroups.map((team) => team.Name);
+      this.settings.AdminGroups = this.selectedAdminGroups;
     }
 
     const settings = {
