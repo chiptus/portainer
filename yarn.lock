@@ -8097,6 +8097,11 @@ date-fns@^2.21.3:
   resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-2.27.0.tgz#e1ff3c3ddbbab8a2eaadbb6106be2929a5a2d92b"
   integrity sha512-sj+J0Mo2p2X1e306MHq282WS4/A8Pz/95GIFcsPNMPMZVI3EUrAdSv90al1k+p74WGLCruMXk23bfEDZa71X9Q==
 
+date-fns@^2.29.3:
+  version "2.29.3"
+  resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-2.29.3.tgz#27402d2fc67eb442b511b70bbdf98e6411cd68a8"
+  integrity sha512-dDCnyH2WnnKusqvZZ6+jA1O51Ibt8ZMRNkDZdyAyK4YfbDwa/cEmuztzG5pk6hqlp9aSBPYcjOlktquahGwGeA==
+
 dateformat@~3.0.3:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/dateformat/-/dateformat-3.0.3.tgz#a6e37499a4d9a9cf85ef5872044d62901c9889ae"

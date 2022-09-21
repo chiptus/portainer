@@ -89,6 +89,13 @@
 
   --BE-only: var(--orange-1);
 
+  --text-log-viewer-color-json-grey: #475467;
+  --text-log-viewer-color-json-magenta: #ee46bc;
+  --text-log-viewer-color-json-yellow: #f79009;
+  --text-log-viewer-color-json-green: #12b76a;
+  --text-log-viewer-color-json-red: #f04438;
+  --text-log-viewer-color-json-blue: #0ba5ec;
+
   /* Default Theme */
   --bg-card-color: var(--white-color);
   --bg-main-color: var(--white-color);
@@ -266,6 +273,13 @@
 
 /* Dark Theme */
 [theme='dark'] {
+  --text-log-viewer-color-json-grey: #d0d5dd;
+  --text-log-viewer-color-json-magenta: #fda29b;
+  --text-log-viewer-color-json-yellow: #fec84b;
+  --text-log-viewer-color-json-green: #6ce9a6;
+  --text-log-viewer-color-json-red: #f04438;
+  --text-log-viewer-color-json-blue: #7cd4fd;
+
   --bg-body-color: var(--grey-2);
   --bg-btn-default-color: var(--grey-3);
   --bg-blocklist-hover-color: var(--ui-gray-iron-10);
@@ -443,6 +457,13 @@
 
 /* High Contrast Theme */
 [theme='highcontrast'] {
+  --text-log-viewer-color-json-grey: #d0d5dd;
+  --text-log-viewer-color-json-magenta: #fda29b;
+  --text-log-viewer-color-json-yellow: #fec84b;
+  --text-log-viewer-color-json-green: #6ce9a6;
+  --text-log-viewer-color-json-red: #f04438;
+  --text-log-viewer-color-json-blue: #7cd4fd;
+
   --bg-card-color: var(--black-color);
   --bg-main-color: var(--black-color);
   --bg-body-color: var(--black-color);
