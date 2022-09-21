@@ -584,8 +584,8 @@ type (
 	JobType int
 
 	K8sNamespaceInfo struct {
-		IsSystem  bool
-		IsDefault bool
+		IsSystem  bool `json:"IsSystem"`
+		IsDefault bool `json:"IsDefault"`
 	}
 
 	K8sNodeLimits struct {
@@ -676,8 +676,10 @@ type (
 
 	// KubernetesIngressClassConfig represents a Kubernetes Ingress Class configuration
 	KubernetesIngressClassConfig struct {
-		Name string `json:"Name"`
-		Type string `json:"Type"`
+		Name              string   `json:"Name"`
+		Type              string   `json:"Type"`
+		Blocked           bool     `json:"Blocked"`
+		BlockedNamespaces []string `json:"BlockedNamespaces"`
 	}
 
 	// KubernetesShellPod represents a Kubectl Shell details to facilitate pod exec functionality
@@ -1625,8 +1627,21 @@ type (
 		GetServiceAccountBearerToken(userID int) (string, error)
 		CreateUserShellPod(ctx context.Context, serviceAccountName, shellPodImage string) (*KubernetesShellPod, error)
 		StartExecProcess(token string, useAdminToken bool, namespace, podName, containerName string, command []string, stdin io.Reader, stdout io.Writer, errChan chan error)
+		CreateNamespace(info models.K8sNamespaceInfo) error
+		UpdateNamespace(info models.K8sNamespaceInfo) error
 		GetNamespaces() (map[string]K8sNamespaceInfo, error)
+		DeleteNamespace(namespace string) error
+		GetConfigMapsAndSecrets(namespace string) ([]models.K8sConfigMapOrSecret, error)
+		CreateIngress(namespace string, info models.K8sIngressInfo) error
+		UpdateIngress(namespace string, info models.K8sIngressInfo) error
+		GetIngresses(namespace string) ([]models.K8sIngressInfo, error)
+		DeleteIngresses(reqs models.K8sIngressDeleteRequests) error
+		CreateService(namespace string, service models.K8sServiceInfo) error
+		UpdateService(namespace string, service models.K8sServiceInfo) error
+		GetServices(namespace string) ([]models.K8sServiceInfo, error)
+		DeleteServices(reqs models.K8sServiceDeleteRequests) error
 		GetNodesLimits() (K8sNodesLimits, error)
+		GetIngressControllers() models.K8sIngressControllers
 		RemoveUserServiceAccount(userID int) error
 		RemoveUserNamespaceBindings(
 			userID int,

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
+	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
@@ -17,6 +18,7 @@ import (
 	"github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	portainer "github.com/portainer/portainer/api"
+	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // Handler is the HTTP handler which will natively deal with to external environments(endpoints).
@@ -26,6 +28,7 @@ type Handler struct {
 	requestBouncer           *security.RequestBouncer
 	DataStore                dataservices.DataStore
 	KubernetesClientFactory  *cli.ClientFactory
+	KubernetesClient         portaineree.KubeClient
 	kubeClusterAccessService kubernetes.KubeClusterAccessService
 	AuthorizationService     *authorization.Service
 	userActivityService      portaineree.UserActivityService
@@ -36,7 +39,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to process pre-proxied requests to external APIs.
-func NewHandler(bouncer *security.RequestBouncer, authorizationService *authorization.Service, dataStore dataservices.DataStore, jwtService portaineree.JWTService, kubeClusterAccessService kubernetes.KubeClusterAccessService, kubernetesClientFactory *cli.ClientFactory, userActivityService portaineree.UserActivityService, k8sDeployer portaineree.KubernetesDeployer, fileService portainer.FileService, assetsPath string) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, authorizationService *authorization.Service, dataStore dataservices.DataStore, jwtService portaineree.JWTService, kubeClusterAccessService kubernetes.KubeClusterAccessService, kubernetesClientFactory *cli.ClientFactory, kubernetesClient portaineree.KubeClient, userActivityService portaineree.UserActivityService, k8sDeployer portaineree.KubernetesDeployer, fileService portainer.FileService, assetsPath string) *Handler {
 
 	h := &Handler{
 		Router:                   mux.NewRouter(),
@@ -47,6 +50,7 @@ func NewHandler(bouncer *security.RequestBouncer, authorizationService *authoriz
 		JwtService:               jwtService,
 		kubeClusterAccessService: kubeClusterAccessService,
 		KubernetesClientFactory:  kubernetesClientFactory,
+		KubernetesClient:         kubernetesClient,
 		KubernetesDeployer:       k8sDeployer,
 		userActivityService:      userActivityService,
 		fileService:              fileService,
@@ -61,18 +65,33 @@ func NewHandler(bouncer *security.RequestBouncer, authorizationService *authoriz
 	endpointRouter := kubeRouter.PathPrefix("/{id}").Subrouter()
 	endpointRouter.Use(middlewares.WithEndpoint(dataStore.Endpoint(), "id"))
 	endpointRouter.Use(kubeOnlyMiddleware)
+	endpointRouter.Use(h.kubeClient)
 
 	endpointRouter.PathPrefix("/nodes_limits").Handler(httperror.LoggerHandler(h.getKubernetesNodesLimits)).Methods(http.MethodGet)
 	endpointRouter.PathPrefix("/opa").Handler(httperror.LoggerHandler(h.getK8sPodSecurityRule)).Methods(http.MethodGet)
 	endpointRouter.PathPrefix("/opa").Handler(httperror.LoggerHandler(h.updateK8sPodSecurityRule)).Methods(http.MethodPut)
+	endpointRouter.Handle("/ingresscontrollers", httperror.LoggerHandler(h.getKubernetesIngressControllers)).Methods(http.MethodGet)
+	endpointRouter.Handle("/ingresscontrollers", httperror.LoggerHandler(h.updateKubernetesIngressControllers)).Methods(http.MethodPut)
+	endpointRouter.Handle("/ingresses/delete", httperror.LoggerHandler(h.deleteKubernetesIngresses)).Methods(http.MethodPost)
+	endpointRouter.Handle("/services/delete", httperror.LoggerHandler(h.deleteKubernetesServices)).Methods(http.MethodPost)
+	endpointRouter.Path("/namespaces").Handler(httperror.LoggerHandler(h.createKubernetesNamespace)).Methods(http.MethodPost)
+	endpointRouter.Path("/namespaces").Handler(httperror.LoggerHandler(h.updateKubernetesNamespace)).Methods(http.MethodPut)
+	endpointRouter.Path("/namespaces").Handler(httperror.LoggerHandler(h.getKubernetesNamespaces)).Methods(http.MethodGet)
+	endpointRouter.Path("/namespace/{namespace}").Handler(httperror.LoggerHandler(h.deleteKubernetesNamespaces)).Methods(http.MethodDelete)
 
 	// namespaces
-	// in the future this piece of code might be in another package (or a few different packages - namespaces/namespace?)
-	// to keep it simple, we've decided to leave it like this.
 	namespaceRouter := endpointRouter.PathPrefix("/namespaces/{namespace}").Subrouter()
 	namespaceRouter.Use(useractivity.LogUserActivity(h.userActivityService))
 	namespaceRouter.Handle("/system", httperror.LoggerHandler(h.namespacesToggleSystem)).Methods(http.MethodPut)
-
+	namespaceRouter.Handle("/ingresscontrollers", httperror.LoggerHandler(h.getKubernetesIngressControllersByNamespace)).Methods(http.MethodGet)
+	namespaceRouter.Handle("/ingresscontrollers", httperror.LoggerHandler(h.updateKubernetesIngressControllersByNamespace)).Methods(http.MethodPut)
+	namespaceRouter.Handle("/configmaps", httperror.LoggerHandler(h.getKubernetesConfigMaps)).Methods(http.MethodGet)
+	namespaceRouter.Handle("/ingresses", httperror.LoggerHandler(h.createKubernetesIngress)).Methods(http.MethodPost)
+	namespaceRouter.Handle("/ingresses", httperror.LoggerHandler(h.updateKubernetesIngress)).Methods(http.MethodPut)
+	namespaceRouter.Handle("/ingresses", httperror.LoggerHandler(h.getKubernetesIngresses)).Methods(http.MethodGet)
+	namespaceRouter.Handle("/services", httperror.LoggerHandler(h.createKubernetesService)).Methods(http.MethodPost)
+	namespaceRouter.Handle("/services", httperror.LoggerHandler(h.updateKubernetesService)).Methods(http.MethodPut)
+	namespaceRouter.Handle("/services", httperror.LoggerHandler(h.getKubernetesServices)).Methods(http.MethodGet)
 	return h
 }
 
@@ -91,5 +110,53 @@ func kubeOnlyMiddleware(next http.Handler) http.Handler {
 		}
 
 		next.ServeHTTP(rw, request)
+	})
+}
+
+func (handler *Handler) kubeClient(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
+		if err != nil {
+			httperror.WriteError(
+				w,
+				http.StatusBadRequest,
+				"Invalid environment identifier route variable",
+				err,
+			)
+		}
+
+		endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+		if err == portainerDsErrors.ErrObjectNotFound {
+			httperror.WriteError(
+				w,
+				http.StatusNotFound,
+				"Unable to find an environment with the specified identifier inside the database",
+				err,
+			)
+		} else if err != nil {
+			httperror.WriteError(
+				w,
+				http.StatusInternalServerError,
+				"Unable to find an environment with the specified identifier inside the database",
+				err,
+			)
+		}
+
+		if handler.KubernetesClientFactory == nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+		kubeCli, err := handler.KubernetesClientFactory.GetKubeClient(endpoint)
+		if err != nil {
+			httperror.WriteError(
+				w,
+				http.StatusInternalServerError,
+				"Unable to create Kubernetes client",
+				err,
+			)
+
+		}
+		handler.KubernetesClient = kubeCli
+		next.ServeHTTP(w, r)
 	})
 }

@@ -110,7 +110,6 @@ angular.module('portainer.kubernetes').controller('KubernetesSecurityConstraintC
       if (!list) {
         list = [];
       }
-      console.log(item);
       list.push(item);
     };
 

@@ -217,7 +217,7 @@ func (server *Server) Start() error {
 
 	var kaasHandler = kaas.NewHandler(requestBouncer, server.DataStore, server.CloudClusterSetupService, server.CloudClusterInfoService, server.UserActivityService, server.LicenseService)
 
-	var kubernetesHandler = kubehandler.NewHandler(requestBouncer, server.AuthorizationService, server.DataStore, server.JWTService, server.KubeClusterAccessService, server.KubernetesClientFactory, server.UserActivityService, server.KubernetesDeployer, server.FileService, server.AssetsPath)
+	var kubernetesHandler = kubehandler.NewHandler(requestBouncer, server.AuthorizationService, server.DataStore, server.JWTService, server.KubeClusterAccessService, server.KubernetesClientFactory, nil, server.UserActivityService, server.KubernetesDeployer, server.FileService, server.AssetsPath)
 
 	var dockerHandler = dockerhandler.NewHandler(requestBouncer, server.AuthorizationService, server.DataStore, server.DockerClientFactory)
 

@@ -55,7 +55,7 @@ export function ContainersDatatable({
     <RowProvider context={{ environment }}>
       <Datatable
         titleOptions={{
-          icon: 'fa-cubes',
+          icon: 'svg-cubes',
           title: 'Containers',
         }}
         settingsStore={settings}

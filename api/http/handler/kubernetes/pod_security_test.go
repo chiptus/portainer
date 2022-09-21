@@ -3,6 +3,11 @@ package kubernetes
 import (
 	"bytes"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+
 	"github.com/portainer/portainer-ee/api/apikey"
 	"github.com/portainer/portainer-ee/api/exec/exectest"
 	"github.com/portainer/portainer-ee/api/http/security"
@@ -12,10 +17,6 @@ import (
 	"github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer-ee/api/kubernetes/podsecurity"
 	"github.com/portainer/portainer/api/filesystem"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"testing"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
@@ -50,7 +51,7 @@ func Test_getK8sPodSecurityRule(t *testing.T) {
 	kubeClusterAccessService := kubernetes.NewKubeClusterAccessService("", "", "")
 	authorizationService := authorization.NewService(store)
 	handler := NewHandler(requestBouncer, authorizationService, store, jwtService, kubeClusterAccessService,
-		nil, testhelpers.NewUserActivityService(),
+		nil, nil, testhelpers.NewUserActivityService(),
 		kubernetesDeployer, nil, "./")
 	is.NotNil(handler, "Handler should not fail")
 
@@ -87,7 +88,7 @@ func Test_updateK8sPodSecurityRule(t *testing.T) {
 	kubeClusterAccessService := kubernetes.NewKubeClusterAccessService("", "", "")
 	authorizationService := authorization.NewService(store)
 	handler := NewHandler(requestBouncer, authorizationService, store, jwtService, kubeClusterAccessService,
-		nil, testhelpers.NewUserActivityService(),
+		nil, nil, testhelpers.NewUserActivityService(),
 		kubernetesDeployer, nil, "./")
 	is.NotNil(handler, "Handler should not fail")
 
@@ -140,7 +141,7 @@ func TestHandler_updateK8sPodSecurityRule(t *testing.T) {
 		teardown()
 	}
 	handler := NewHandler(requestBouncer, authorizationService, store, jwtService, kubeClusterAccessService,
-		nil, testhelpers.NewUserActivityService(),
+		nil, nil, testhelpers.NewUserActivityService(),
 		kubernetesDeployer, fs, "./")
 	is.NotNil(handler, "Handler should not fail")
 	payload := &podsecurity.PodSecurityRule{}

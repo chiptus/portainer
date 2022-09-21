@@ -1214,7 +1214,7 @@ class KubernetesCreateApplicationController {
 
         this.isAdmin = this.Authentication.isAdmin();
 
-        this.state.isEdit = this.$state.params.namespace && this.$state.params.name;
+        this.state.isEdit = !!(this.$state.params.namespace && this.$state.params.name);
 
         this.storageClasses = this.endpoint.Kubernetes.Configuration.StorageClasses;
         this.state.useLoadBalancer = this.endpoint.Kubernetes.Configuration.UseLoadBalancer;
@@ -1248,6 +1248,7 @@ class KubernetesCreateApplicationController {
 
         if (this.state.isEdit) {
           await this.getApplication();
+
           this.formValues = KubernetesApplicationConverter.applicationToFormValues(
             this.application,
             this.resourcePools,
