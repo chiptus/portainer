@@ -1,5 +1,3 @@
-import { react2angular } from '@/react-tools/react2angular';
-
 import { PageHeader } from '@@/PageHeader';
 import { Widget, WidgetBody } from '@@/Widget';
 
@@ -28,8 +26,3 @@ export default function CreateGitCredentialView() {
     </>
   );
 }
-
-export const createGitCredentialViewAngular = react2angular(
-  CreateGitCredentialView,
-  []
-);

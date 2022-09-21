@@ -1,6 +1,5 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
-import { react2angular } from '@/react-tools/react2angular';
 import { useUser } from '@/portainer/hooks/useUser';
 
 import { FormSectionTitle } from '@@/form-components/FormSectionTitle';
@@ -41,8 +40,3 @@ export default function EditGitCredentialView() {
     </>
   );
 }
-
-export const editGitCredentialViewAngular = react2angular(
-  EditGitCredentialView,
-  []
-);
