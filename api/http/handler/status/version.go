@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/build"
-
-	"github.com/portainer/libhttp/response"
+	portainerstatus "github.com/portainer/portainer/api/http/handler/status"
 )
 
 type versionResponse struct {
@@ -52,6 +52,12 @@ func (handler *Handler) version(w http.ResponseWriter, r *http.Request) {
 			WebpackVersion: build.WebpackVersion,
 			GoVersion:      build.GoVersion,
 		},
+	}
+
+	latestVersion := portainerstatus.GetLatestVersion()
+	if portainerstatus.HasNewerVersion(portaineree.APIVersion, latestVersion) {
+		result.UpdateAvailable = true
+		result.LatestVersion = latestVersion
 	}
 
 	response.JSON(w, &result)

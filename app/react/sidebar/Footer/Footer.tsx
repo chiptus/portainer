@@ -40,6 +40,8 @@ function CEFooter() {
 function BEFooter() {
   return (
     <div className={clsx(styles.root, 'text-center')}>
+      <UpdateNotification />
+
       <FooterContent>
         <span>&copy;</span>
         <span>Portainer Business Edition</span>
