@@ -16,18 +16,20 @@ import (
 
 // Service represents a service for managing portainer licenses
 type Service struct {
-	info        *portaineree.LicenseInfo
-	dataStore   dataservices.DataStore
-	shutdownCtx context.Context
+	info            *portaineree.LicenseInfo
+	dataStore       dataservices.DataStore
+	shutdownCtx     context.Context
+	snapshotService portaineree.SnapshotService
 }
 
 // NewService creates a new instance of Service
-func NewService(dataStore dataservices.DataStore, shutdownCtx context.Context) *Service {
+func NewService(dataStore dataservices.DataStore, shutdownCtx context.Context, snapshotService portaineree.SnapshotService) *Service {
 
 	return &Service{
-		info:        nil,
-		dataStore:   dataStore,
-		shutdownCtx: shutdownCtx,
+		info:            nil,
+		dataStore:       dataStore,
+		shutdownCtx:     shutdownCtx,
+		snapshotService: snapshotService,
 	}
 }
 

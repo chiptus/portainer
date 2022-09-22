@@ -78,6 +78,7 @@ require (
 
 require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
+	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 )

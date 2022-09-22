@@ -33,6 +33,7 @@ type testDatastore struct {
 	role                    dataservices.RoleService
 	sslSettings             dataservices.SSLSettingsService
 	settings                dataservices.SettingsService
+	snapshot                dataservices.SnapshotService
 	s3backup                dataservices.S3BackupService
 	stack                   dataservices.StackService
 	tag                     dataservices.TagService
@@ -96,6 +97,7 @@ func (d *testDatastore) APIKeyRepository() dataservices.APIKeyRepository {
 func (d *testDatastore) GitCredential() dataservices.GitCredential          { return d.gitCredential }
 func (d *testDatastore) S3Backup() dataservices.S3BackupService             { return d.s3backup }
 func (d *testDatastore) Settings() dataservices.SettingsService             { return d.settings }
+func (d *testDatastore) Snapshot() dataservices.SnapshotService             { return d.snapshot }
 func (d *testDatastore) SSLSettings() dataservices.SSLSettingsService       { return d.sslSettings }
 func (d *testDatastore) Stack() dataservices.StackService                   { return d.stack }
 func (d *testDatastore) PodSecurity() dataservices.PodSecurityService       { return d.podSecurity }

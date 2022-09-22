@@ -25,6 +25,10 @@ func (m *MockedSnapshotService) SnapshotEndpoint(endpoint *portaineree.Endpoint)
 	panic("not implemented")
 }
 
+func (m *MockedSnapshotService) FillSnapshotData(endpoint *portaineree.Endpoint) error {
+	panic("not implemented")
+}
+
 func TestChangeState(t *testing.T) {
 	authorizationService := new(authorization.Service)
 	snapshotService := new(MockedSnapshotService)

@@ -52,6 +52,7 @@ type (
 		S3Backup() S3BackupService
 		SSLSettings() SSLSettingsService
 		Settings() SettingsService
+		Snapshot() SnapshotService
 		Stack() StackService
 		Tag() TagService
 		TeamMembership() TeamMembershipService
@@ -293,6 +294,15 @@ type (
 		Settings() (*portaineree.Settings, error)
 		UpdateSettings(settings *portaineree.Settings) error
 		IsFeatureFlagEnabled(feature portaineree.Feature) bool
+		BucketName() string
+	}
+
+	SnapshotService interface {
+		Snapshot(endpointID portaineree.EndpointID) (*portaineree.Snapshot, error)
+		Snapshots() ([]portaineree.Snapshot, error)
+		UpdateSnapshot(snapshot *portaineree.Snapshot) error
+		DeleteSnapshot(endpointID portaineree.EndpointID) error
+		Create(snapshot *portaineree.Snapshot) error
 		BucketName() string
 	}
 

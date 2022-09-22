@@ -31,7 +31,7 @@ func Test_revokeInvalidLicenses(t *testing.T) {
 	store.License().AddLicense(olderSubscriptionLicense.LicenseKey, olderSubscriptionLicense)
 	store.License().AddLicense(newerSubscriptionLicense.LicenseKey, newerSubscriptionLicense)
 
-	service := NewService(store, context.Background())
+	service := NewService(store, context.Background(), nil)
 	err := service.revokeInvalidLicenses(func(l *liblicense.PortainerLicense) (bool, error) {
 		return l.LicenseKey != invalidLicense.LicenseKey, nil
 	})

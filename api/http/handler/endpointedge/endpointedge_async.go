@@ -280,13 +280,16 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 }
 
 func (handler *Handler) updateDockerSnapshot(endpoint *portaineree.Endpoint, snapshotPayload *snapshot) error {
+	snapshot := &portaineree.Snapshot{}
+
 	if len(snapshotPayload.DockerPatch) > 0 {
-		if len(endpoint.Snapshots) == 0 {
+		var err error
+		snapshot, err = handler.DataStore.Snapshot().Snapshot(endpoint.ID)
+		if err != nil || snapshot.Docker == nil {
 			return errors.New("received a Docker snapshot patch but there was no previous snapshot")
 		}
 
-		lastSnapshot := endpoint.Snapshots[len(endpoint.Snapshots)-1]
-
+		lastSnapshot := snapshot.Docker
 		lastSnapshotJSON, err := json.Marshal(lastSnapshot)
 		if err != nil {
 			return fmt.Errorf("could not marshal the last Docker snapshot: %s", err)
@@ -304,23 +307,31 @@ func (handler *Handler) updateDockerSnapshot(endpoint *portaineree.Endpoint, sna
 		}
 
 		log.Debug().Msg("setting the patched Docker snapshot")
-		endpoint.Snapshots = []portainer.DockerSnapshot{newSnapshot}
+		snapshot.Docker = &newSnapshot
 	} else if snapshotPayload.Docker != nil {
 		log.Debug().Msg("setting the full Docker snapshot")
-		endpoint.Snapshots = []portainer.DockerSnapshot{*snapshotPayload.Docker}
+		snapshot.Docker = snapshotPayload.Docker
+	}
+
+	err := handler.DataStore.Snapshot().UpdateSnapshot(snapshot)
+	if err != nil {
+		return errors.New("snapshot could not be updated")
 	}
 
 	return nil
 }
 
 func (handler *Handler) updateKubernetesSnapshot(endpoint *portaineree.Endpoint, snapshotPayload *snapshot) error {
+	snapshot := &portaineree.Snapshot{}
+
 	if len(snapshotPayload.KubernetesPatch) > 0 {
-		if len(endpoint.Kubernetes.Snapshots) == 0 {
+		var err error
+		snapshot, err = handler.DataStore.Snapshot().Snapshot(endpoint.ID)
+		if err != nil || snapshot.Kubernetes == nil {
 			return errors.New("received a Kubernetes snapshot patch but there was no previous snapshot")
 		}
 
-		lastSnapshot := endpoint.Kubernetes.Snapshots[len(endpoint.Kubernetes.Snapshots)-1]
-
+		lastSnapshot := snapshot.Kubernetes
 		lastSnapshotJSON, err := json.Marshal(lastSnapshot)
 		if err != nil {
 			return fmt.Errorf("could not marshal the last Kubernetes snapshot: %s", err)
@@ -338,10 +349,15 @@ func (handler *Handler) updateKubernetesSnapshot(endpoint *portaineree.Endpoint,
 		}
 
 		log.Debug().Msg("setting the patched Kubernetes snapshot")
-		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{newSnapshot}
+		snapshot.Kubernetes = &newSnapshot
 	} else if snapshotPayload.Kubernetes != nil {
 		log.Debug().Msg("setting the full Kubernetes snapshot")
-		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{*snapshotPayload.Kubernetes}
+		snapshot.Kubernetes = snapshotPayload.Kubernetes
+	}
+
+	err := handler.DataStore.Snapshot().UpdateSnapshot(snapshot)
+	if err != nil {
+		return errors.New("snapshot could not be updated")
 	}
 
 	return nil

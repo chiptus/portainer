@@ -8,7 +8,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	"github.com/portainer/portainer-ee/api/http/middlewares"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 // @id snapshotContainerInspect
@@ -30,16 +30,18 @@ func (handler *Handler) containerInspect(w http.ResponseWriter, r *http.Request)
 		return httperror.BadRequest("Invalid container identifier route variable", err)
 	}
 
-	endpoint, err := middlewares.FetchEndpoint(r)
+	environmentId, _ := request.RetrieveNumericRouteVariableValue(r, "id")
+
+	environmentSnapshot, err := handler.dataStore.Snapshot().Snapshot(portaineree.EndpointID(environmentId))
 	if err != nil {
-		return httperror.NotFound("Unable to find an environment on request context", err)
+		return httperror.NotFound("Unable to find a snapshot", err)
 	}
 
-	if len(endpoint.Snapshots) == 0 {
+	if environmentSnapshot == nil {
 		return response.JSON(w, []string{})
 	}
 
-	snapshot := endpoint.Snapshots[0]
+	snapshot := environmentSnapshot.Docker
 	containers := snapshot.SnapshotRaw.Containers
 
 	for _, container := range containers {

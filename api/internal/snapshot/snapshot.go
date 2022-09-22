@@ -131,38 +131,75 @@ func (service *Service) SnapshotEndpoint(endpoint *portaineree.Endpoint) error {
 	return service.snapshotDockerEndpoint(endpoint)
 }
 
-func (service *Service) snapshotKubernetesEndpoint(endpoint *portaineree.Endpoint) error {
-	snapshot, err := service.kubernetesSnapshotter.CreateSnapshot(endpoint)
+func (service *Service) Create(snapshot portaineree.Snapshot) error {
+	return service.dataStore.Snapshot().Create(&snapshot)
+}
+
+func (service *Service) FillSnapshotData(endpoint *portaineree.Endpoint) error {
+	snapshot, err := service.dataStore.Snapshot().Snapshot(endpoint.ID)
+	if service.dataStore.IsErrObjectNotFound(err) {
+		endpoint.Snapshots = []portainer.DockerSnapshot{}
+		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{}
+		endpoint.Nomad.Snapshots = []portaineree.NomadSnapshot{}
+
+		return nil
+	}
+
 	if err != nil {
 		return err
 	}
 
-	if snapshot != nil {
-		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{*snapshot}
+	if snapshot.Docker != nil {
+		endpoint.Snapshots = []portainer.DockerSnapshot{*snapshot.Docker}
+	}
+
+	if snapshot.Kubernetes != nil {
+		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{*snapshot.Kubernetes}
+	}
+
+	if snapshot.Nomad != nil {
+		endpoint.Nomad.Snapshots = []portaineree.NomadSnapshot{*snapshot.Nomad}
+	}
+
+	return nil
+}
+
+func (service *Service) snapshotKubernetesEndpoint(endpoint *portaineree.Endpoint) error {
+	kubernetesSnapshot, err := service.kubernetesSnapshotter.CreateSnapshot(endpoint)
+	if err != nil {
+		return err
+	}
+
+	if kubernetesSnapshot != nil {
+		snapshot := &portaineree.Snapshot{EndpointID: endpoint.ID, Kubernetes: kubernetesSnapshot}
+
+		return service.dataStore.Snapshot().Create(snapshot)
 	}
 
 	return nil
 }
 
 func (service *Service) snapshotNomadEndpoint(endpoint *portaineree.Endpoint) (err error) {
-	snapshot, err := service.nomadSnapshotter.CreateSnapshot(endpoint)
-	if err != nil {
-		return
-	}
-
-	endpoint.Nomad.Snapshots = []portaineree.NomadSnapshot{*snapshot}
-
-	return
-}
-
-func (service *Service) snapshotDockerEndpoint(endpoint *portaineree.Endpoint) error {
-	snapshot, err := service.dockerSnapshotter.CreateSnapshot(endpoint)
+	nomadSnapshot, err := service.nomadSnapshotter.CreateSnapshot(endpoint)
 	if err != nil {
 		return err
 	}
 
-	if snapshot != nil {
-		endpoint.Snapshots = []portainer.DockerSnapshot{*snapshot}
+	snapshot := &portaineree.Snapshot{EndpointID: endpoint.ID, Nomad: nomadSnapshot}
+
+	return service.dataStore.Snapshot().Create(snapshot)
+}
+
+func (service *Service) snapshotDockerEndpoint(endpoint *portaineree.Endpoint) error {
+	dockerSnapshot, err := service.dockerSnapshotter.CreateSnapshot(endpoint)
+	if err != nil {
+		return err
+	}
+
+	if dockerSnapshot != nil {
+		snapshot := &portaineree.Snapshot{EndpointID: endpoint.ID, Docker: dockerSnapshot}
+
+		return service.dataStore.Snapshot().Create(snapshot)
 	}
 
 	return nil
@@ -230,8 +267,6 @@ func (service *Service) snapshotEndpoints() error {
 			latestEndpointReference.Status = portaineree.EndpointStatusDown
 		}
 
-		latestEndpointReference.Snapshots = endpoint.Snapshots
-		latestEndpointReference.Kubernetes.Snapshots = endpoint.Kubernetes.Snapshots
 		latestEndpointReference.Agent.Version = endpoint.Agent.Version
 
 		err = service.dataStore.Endpoint().UpdateEndpoint(latestEndpointReference.ID, latestEndpointReference)

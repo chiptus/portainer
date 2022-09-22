@@ -47,7 +47,10 @@ export async function isNameUnique(name?: string) {
   }
 
   try {
-    const result = await getEnvironments({ limit: 1, query: { name } });
+    const result = await getEnvironments({
+      limit: 1,
+      query: { name, excludeSnapshots: true },
+    });
     if (result.totalCount > 0) {
       return false;
     }

@@ -11,6 +11,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/snapshot"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
@@ -200,6 +201,8 @@ func setup(t *testing.T, endpoints []portaineree.Endpoint) (handler *Handler, te
 	bouncer := helper.NewTestRequestBouncer()
 	handler = NewHandler(bouncer, helper.NewUserActivityService(), store, nil, nil, nil, nil)
 	handler.ComposeStackManager = testhelpers.NewComposeStackManager()
+
+	handler.SnapshotService, _ = snapshot.NewService("1s", store, nil, nil, nil, nil)
 
 	return handler, teardown
 }

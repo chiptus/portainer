@@ -23,11 +23,11 @@ type nodesCountResponse struct {
 // @failure 500 "Server error"
 // @router /status/nodes [get]
 func (handler *Handler) statusNodesCount(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	endpoints, err := handler.dataStore.Endpoint().Endpoints()
+	snapshots, err := handler.dataStore.Snapshot().Snapshots()
 	if err != nil {
-		return httperror.InternalServerError("Failed to get environment list", err)
+		return httperror.InternalServerError("Failed to get snapshot list", err)
 	}
 
-	nodes := statusutil.NodesCount(endpoints)
+	nodes := statusutil.NodesCount(snapshots)
 	return response.JSON(w, &nodesCountResponse{Nodes: nodes})
 }

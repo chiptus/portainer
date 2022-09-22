@@ -37,6 +37,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/s3backup"
 	"github.com/portainer/portainer-ee/api/dataservices/schedule"
 	"github.com/portainer/portainer-ee/api/dataservices/settings"
+	"github.com/portainer/portainer-ee/api/dataservices/snapshot"
 	"github.com/portainer/portainer-ee/api/dataservices/ssl"
 	"github.com/portainer/portainer-ee/api/dataservices/stack"
 	"github.com/portainer/portainer-ee/api/dataservices/tag"
@@ -82,6 +83,7 @@ type Store struct {
 	S3BackupService           *s3backup.Service
 	ScheduleService           *schedule.Service
 	SettingsService           *settings.Service
+	SnapshotService           *snapshot.Service
 	SSLSettingsService        *ssl.Service
 	StackService              *stack.Service
 	PodSecurityService        *podsecurity.Service
@@ -227,6 +229,12 @@ func (store *Store) initServices() error {
 		return err
 	}
 	store.SettingsService = settingsService
+
+	snapshotService, err := snapshot.NewService(store.connection)
+	if err != nil {
+		return err
+	}
+	store.SnapshotService = snapshotService
 
 	sslSettingsService, err := ssl.NewService(store.connection)
 	if err != nil {
@@ -421,6 +429,10 @@ func (store *Store) Settings() dataservices.SettingsService {
 	return store.SettingsService
 }
 
+func (store *Store) Snapshot() dataservices.SnapshotService {
+	return store.SnapshotService
+}
+
 // SSLSettings gives access to the SSL Settings data management layer
 func (store *Store) SSLSettings() dataservices.SSLSettingsService {
 	return store.SSLSettingsService
@@ -495,6 +507,7 @@ type storeExport struct {
 	S3BackupSettings   portaineree.S3BackupSettings     `json:"s3backup,omitempty"`
 	Schedules          []portaineree.Schedule           `json:"schedules,omitempty"`
 	Settings           portaineree.Settings             `json:"settings,omitempty"`
+	Snapshot           []portaineree.Snapshot           `json:"snapshots,omitempty"`
 	SSLSettings        portaineree.SSLSettings          `json:"ssl,omitempty"`
 	Stack              []portaineree.Stack              `json:"stacks,omitempty"`
 	Tag                []portaineree.Tag                `json:"tags,omitempty"`
@@ -654,6 +667,14 @@ func (store *Store) Export(filename string) (err error) {
 		}
 	} else {
 		backup.Settings = *settings
+	}
+
+	if snapshot, err := store.Snapshot().Snapshots(); err != nil {
+		if !store.IsErrObjectNotFound(err) {
+			log.Error().Err(err).Msg("Exporting Snapshots")
+		}
+	} else {
+		backup.Snapshot = snapshot
 	}
 
 	if settings, err := store.SSLSettings().Settings(); err != nil {
@@ -827,6 +848,10 @@ func (store *Store) Import(filename string) (err error) {
 	store.S3Backup().UpdateSettings(backup.S3BackupSettings)
 	store.Settings().UpdateSettings(&backup.Settings)
 	store.SSLSettings().UpdateSettings(&backup.SSLSettings)
+
+	for _, v := range backup.Snapshot {
+		store.Snapshot().UpdateSnapshot(&v)
+	}
 
 	for _, v := range backup.Stack {
 		store.Stack().UpdateStack(v.ID, &v)

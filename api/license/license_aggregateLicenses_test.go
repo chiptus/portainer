@@ -8,6 +8,7 @@ import (
 	"github.com/portainer/liblicense/master"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
+	"github.com/portainer/portainer-ee/api/internal/snapshot"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
@@ -84,7 +85,7 @@ func Test_aggregateLicense_CalculateCorrectType(t *testing.T) {
 
 			_, store, teardown := datastore.MustNewTestStore(t, true, true)
 			defer teardown()
-			service := NewService(store, nil)
+			service := NewService(store, nil, nil)
 
 			result := service.aggregateLicenses(licenses)
 			assert.Equal(t, tc.expectedType, result.Type)
@@ -131,7 +132,7 @@ func Test_aggregateLicenses_aggregatesValidLicenses(t *testing.T) {
 
 	_, store, teardown := datastore.MustNewTestStore(t, true, true)
 	defer teardown()
-	service := NewService(store, nil)
+	service := NewService(store, nil, nil)
 
 	result := service.aggregateLicenses(licenses)
 	assert.Equal(t, 150, result.Nodes)
@@ -160,7 +161,7 @@ func Test_aggregateLicenses_picksEarliestExpirationDate(t *testing.T) {
 
 	_, store, teardown := datastore.MustNewTestStore(t, true, true)
 	defer teardown()
-	service := NewService(store, nil)
+	service := NewService(store, nil, nil)
 
 	result := service.aggregateLicenses(licenses)
 	assert.Equal(t, master.ExpiresAt(expiresFirst.Created, expiresFirst.ExpiresAfter).Unix(), result.ExpiresAt)
@@ -170,10 +171,13 @@ func Test_aggregateLicenses_shouldSetOveruseTimestamp(t *testing.T) {
 	_, store, teardown := datastore.MustNewTestStore(t, true, true)
 	defer teardown()
 
-	endpoint := &portaineree.Endpoint{Snapshots: []portainer.DockerSnapshot{{NodeCount: 10}}, Type: portaineree.DockerEnvironment, ID: portaineree.EndpointID(1)}
+	endpoint := &portaineree.Endpoint{Type: portaineree.DockerEnvironment, ID: portaineree.EndpointID(1)}
 	store.Endpoint().Create(endpoint)
+	store.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint.ID, Docker: &portainer.DockerSnapshot{NodeCount: 10}})
 
-	service := NewService(store, nil)
+	snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil)
+
+	service := NewService(store, nil, snapshotService)
 	enforcement, _ := service.dataStore.Enforcement().LicenseEnforcement()
 	assert.Equal(t, int64(0), enforcement.LicenseOveruseStartedTimestamp)
 

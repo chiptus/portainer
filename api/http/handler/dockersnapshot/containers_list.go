@@ -10,7 +10,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/docker"
-	"github.com/portainer/portainer-ee/api/http/middlewares"
 	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
@@ -29,17 +28,14 @@ import (
 // @router /docker/{environmentId}/snapshot/containers [get]
 func (handler *Handler) containersList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	edgeStackId, _ := request.RetrieveNumericQueryParameter(r, "edgeStackId", true)
+	environmentId, _ := request.RetrieveNumericRouteVariableValue(r, "id")
 
-	endpoint, err := middlewares.FetchEndpoint(r)
+	environmentSnapshot, err := handler.dataStore.Snapshot().Snapshot(portaineree.EndpointID(environmentId))
 	if err != nil {
-		return httperror.NotFound("Unable to find an environment on request context", err)
-	}
-
-	if len(endpoint.Snapshots) == 0 {
 		return response.JSON(w, []string{})
 	}
 
-	snapshot := endpoint.Snapshots[0]
+	snapshot := environmentSnapshot.Docker
 	containers := snapshot.SnapshotRaw.Containers
 
 	if edgeStackId != 0 {

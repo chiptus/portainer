@@ -5,55 +5,29 @@ import (
 )
 
 // NodesCount returns the total node number of all environments
-func NodesCount(environemnts []portaineree.Endpoint) int {
+func NodesCount(snapshots []portaineree.Snapshot) int {
 	nodes := 0
-	for _, env := range environemnts {
+	for _, env := range snapshots {
 		nodes += countNodes(&env)
 	}
 
 	return nodes
 }
 
-func countNodes(env *portaineree.Endpoint) int {
-	switch env.Type {
-	case portaineree.EdgeAgentOnDockerEnvironment, portaineree.DockerEnvironment, portaineree.AgentOnDockerEnvironment:
-		return countDockerNodes(env)
-	case portaineree.EdgeAgentOnKubernetesEnvironment, portaineree.KubernetesLocalEnvironment, portaineree.AgentOnKubernetesEnvironment:
-		return countKubernetesNodes(env)
-	case portaineree.EdgeAgentOnNomadEnvironment:
-		return countNomadNodes(env)
+func countNodes(snapshot *portaineree.Snapshot) int {
+	if snapshot.Docker != nil {
+		return max(snapshot.Docker.NodeCount, 1)
 	}
+
+	if snapshot.Kubernetes != nil {
+		return max(snapshot.Kubernetes.NodeCount, 1)
+	}
+
+	if snapshot.Nomad != nil {
+		return max(snapshot.Nomad.NodeCount, 1)
+	}
+
 	return 1
-}
-
-func countDockerNodes(env *portaineree.Endpoint) int {
-	snapshots := env.Snapshots
-	if len(snapshots) == 0 {
-		return 1
-	}
-
-	lastSnapshot := snapshots[len(snapshots)-1]
-	return max(lastSnapshot.NodeCount, 1)
-}
-
-func countKubernetesNodes(env *portaineree.Endpoint) int {
-	snapshots := env.Kubernetes.Snapshots
-	if len(snapshots) == 0 {
-		return 1
-	}
-
-	lastSnapshot := snapshots[len(snapshots)-1]
-	return max(lastSnapshot.NodeCount, 1)
-}
-
-func countNomadNodes(env *portaineree.Endpoint) int {
-	snapshots := env.Nomad.Snapshots
-	if len(snapshots) == 0 {
-		return 1
-	}
-
-	lastSnapshot := snapshots[len(snapshots)-1]
-	return max(lastSnapshot.NodeCount, 1)
 }
 
 func max(a, b int) int {

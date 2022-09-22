@@ -620,11 +620,6 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		log.Fatal().Err(err).Msg("failed initializing JWT service")
 	}
 
-	licenseService := license.NewService(dataStore, shutdownCtx)
-	if err = licenseService.Init(); err != nil {
-		log.Fatal().Err(err).Msg("failed initializing license service")
-	}
-
 	err = enableFeaturesFromFlags(dataStore, flags)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed enabling feature flag")
@@ -675,6 +670,11 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		log.Fatal().Err(err).Msg("failed initializing snapshot service")
 	}
 	snapshotService.Start()
+
+	licenseService := license.NewService(dataStore, shutdownCtx, snapshotService)
+	if err = licenseService.Init(); err != nil {
+		log.Fatal().Err(err).Msg("failed initializing license service")
+	}
 
 	authorizationService := authorization.NewService(dataStore)
 	authorizationService.K8sClientFactory = kubernetesClientFactory
