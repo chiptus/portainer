@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
+	"hash/fnv"
 	"net"
 	"net/http"
 	"net/url"
@@ -16,7 +17,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/sirupsen/logrus"
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/pkg/errors"
@@ -34,13 +34,17 @@ const (
 )
 
 type snapshot struct {
-	Docker          *portainer.DockerSnapshot                               `json:"docker,omitempty"`
-	DockerPatch     jsonpatch.Patch                                         `json:"dockerPatch,omitempty"`
-	Kubernetes      *portaineree.KubernetesSnapshot                         `json:"kubernetes,omitempty"`
-	KubernetesPatch jsonpatch.Patch                                         `json:"kubernetesPatch,omitempty"`
-	StackLogs       []portaineree.EdgeStackLog                              `json:"stackLogs,omitempty"`
-	StackStatus     map[portaineree.EdgeStackID]portaineree.EdgeStackStatus `json:"stackStatus,omitempty"`
-	JobsStatus      map[portaineree.EdgeJobID]portaineree.EdgeJobStatus     `json:"jobsStatus:,omitempty"`
+	Docker      *portainer.DockerSnapshot `json:"docker,omitempty"`
+	DockerPatch jsonpatch.Patch           `json:"dockerPatch,omitempty"`
+	DockerHash  *uint32                   `json:"dockerHash,omitempty"`
+
+	Kubernetes      *portaineree.KubernetesSnapshot `json:"kubernetes,omitempty"`
+	KubernetesPatch jsonpatch.Patch                 `json:"kubernetesPatch,omitempty"`
+	KubernetesHash  *uint32                         `json:"kubernetesHash,omitempty"`
+
+	StackLogs   []portaineree.EdgeStackLog                              `json:"stackLogs,omitempty"`
+	StackStatus map[portaineree.EdgeStackID]portaineree.EdgeStackStatus `json:"stackStatus,omitempty"`
+	JobsStatus  map[portaineree.EdgeJobID]portaineree.EdgeJobStatus     `json:"jobsStatus:,omitempty"`
 }
 
 func (payload *EdgeAsyncRequest) Validate(r *http.Request) error {
@@ -54,7 +58,8 @@ type EdgeAsyncResponse struct {
 	SnapshotInterval time.Duration `json:"snapshotInterval"`
 	CommandInterval  time.Duration `json:"commandInterval"`
 
-	Commands []portaineree.EdgeAsyncCommand `json:"commands"`
+	Commands         []portaineree.EdgeAsyncCommand `json:"commands"`
+	NeedFullSnapshot bool                           `json:"needFullSnapshot"`
 }
 
 // @id endpointEdgeAsync
@@ -122,8 +127,9 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 		return httperror.Forbidden("Permission denied to access environment", err)
 	}
 
+	var needFullSnapshot bool
 	if payload.Snapshot != nil {
-		handler.saveSnapshot(endpoint, payload.Snapshot)
+		handler.saveSnapshot(endpoint, payload.Snapshot, &needFullSnapshot)
 	}
 
 	endpoint.LastCheckInDate = time.Now().Unix()
@@ -161,6 +167,7 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 		PingInterval:     time.Duration(pingInterval) * time.Second,
 		SnapshotInterval: time.Duration(snapshotInterval) * time.Second,
 		CommandInterval:  time.Duration(commandInterval) * time.Second,
+		NeedFullSnapshot: needFullSnapshot,
 	}
 
 	if payload.CommandTimestamp != nil {
@@ -279,30 +286,47 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 	return endpoint, nil
 }
 
-func (handler *Handler) updateDockerSnapshot(endpoint *portaineree.Endpoint, snapshotPayload *snapshot) error {
+func (handler *Handler) updateDockerSnapshot(endpoint *portaineree.Endpoint, snapshotPayload *snapshot, needFullSnapshot *bool) error {
 	snapshot := &portaineree.Snapshot{}
 
 	if len(snapshotPayload.DockerPatch) > 0 {
 		var err error
 		snapshot, err = handler.DataStore.Snapshot().Snapshot(endpoint.ID)
 		if err != nil || snapshot.Docker == nil {
+			*needFullSnapshot = true
 			return errors.New("received a Docker snapshot patch but there was no previous snapshot")
 		}
 
 		lastSnapshot := snapshot.Docker
 		lastSnapshotJSON, err := json.Marshal(lastSnapshot)
 		if err != nil {
+			*needFullSnapshot = true
 			return fmt.Errorf("could not marshal the last Docker snapshot: %s", err)
+		}
+
+		if snapshotPayload.DockerHash == nil {
+			*needFullSnapshot = true
+			return fmt.Errorf("the snapshot hash is missing")
+		}
+
+		h := snapshotHash(lastSnapshotJSON)
+		if *snapshotPayload.DockerHash != h {
+			*needFullSnapshot = true
+			log.Debug().Uint32("expected", h).Uint32("got", *snapshotPayload.DockerHash).Msg("hash mismatch")
+
+			return fmt.Errorf("the snapshot hash does not match against the stored one")
 		}
 
 		newSnapshotJSON, err := snapshotPayload.DockerPatch.Apply(lastSnapshotJSON)
 		if err != nil {
+			*needFullSnapshot = true
 			return fmt.Errorf("could not apply the patch to the Docker snapshot: %s", err)
 		}
 
 		var newSnapshot portainer.DockerSnapshot
 		err = json.Unmarshal(newSnapshotJSON, &newSnapshot)
 		if err != nil {
+			*needFullSnapshot = true
 			return fmt.Errorf("could not unmarshal the patched Docker snapshot: %s", err)
 		}
 
@@ -313,6 +337,7 @@ func (handler *Handler) updateDockerSnapshot(endpoint *portaineree.Endpoint, sna
 		snapshot.Docker = snapshotPayload.Docker
 	}
 
+	snapshot.EndpointID = endpoint.ID
 	err := handler.DataStore.Snapshot().UpdateSnapshot(snapshot)
 	if err != nil {
 		return errors.New("snapshot could not be updated")
@@ -321,30 +346,47 @@ func (handler *Handler) updateDockerSnapshot(endpoint *portaineree.Endpoint, sna
 	return nil
 }
 
-func (handler *Handler) updateKubernetesSnapshot(endpoint *portaineree.Endpoint, snapshotPayload *snapshot) error {
+func (handler *Handler) updateKubernetesSnapshot(endpoint *portaineree.Endpoint, snapshotPayload *snapshot, needFullSnapshot *bool) error {
 	snapshot := &portaineree.Snapshot{}
 
 	if len(snapshotPayload.KubernetesPatch) > 0 {
 		var err error
 		snapshot, err = handler.DataStore.Snapshot().Snapshot(endpoint.ID)
 		if err != nil || snapshot.Kubernetes == nil {
+			*needFullSnapshot = true
 			return errors.New("received a Kubernetes snapshot patch but there was no previous snapshot")
 		}
 
 		lastSnapshot := snapshot.Kubernetes
 		lastSnapshotJSON, err := json.Marshal(lastSnapshot)
 		if err != nil {
+			*needFullSnapshot = true
 			return fmt.Errorf("could not marshal the last Kubernetes snapshot: %s", err)
+		}
+
+		if snapshotPayload.KubernetesHash == nil {
+			*needFullSnapshot = true
+			return fmt.Errorf("the snapshot hash is missing")
+		}
+
+		h := snapshotHash(lastSnapshotJSON)
+		if *snapshotPayload.KubernetesHash != h {
+			*needFullSnapshot = true
+			log.Debug().Uint32("expected", h).Uint32("got", *snapshotPayload.KubernetesHash).Msg("hash mismatch")
+
+			return fmt.Errorf("the snapshot hash does not match against the stored one")
 		}
 
 		newSnapshotJSON, err := snapshotPayload.KubernetesPatch.Apply(lastSnapshotJSON)
 		if err != nil {
+			*needFullSnapshot = true
 			return fmt.Errorf("could not apply the patch to the Kubernetes snapshot: %s", err)
 		}
 
 		var newSnapshot portaineree.KubernetesSnapshot
 		err = json.Unmarshal(newSnapshotJSON, &newSnapshot)
 		if err != nil {
+			*needFullSnapshot = true
 			return fmt.Errorf("could not unmarshal the patched Kubernetes snapshot: %s", err)
 		}
 
@@ -355,6 +397,7 @@ func (handler *Handler) updateKubernetesSnapshot(endpoint *portaineree.Endpoint,
 		snapshot.Kubernetes = snapshotPayload.Kubernetes
 	}
 
+	snapshot.EndpointID = endpoint.ID
 	err := handler.DataStore.Snapshot().UpdateSnapshot(snapshot)
 	if err != nil {
 		return errors.New("snapshot could not be updated")
@@ -363,7 +406,7 @@ func (handler *Handler) updateKubernetesSnapshot(endpoint *portaineree.Endpoint,
 	return nil
 }
 
-func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPayload *snapshot) {
+func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPayload *snapshot, needFullSnapshot *bool) {
 	// Save edge stacks status
 	for stackID, status := range snapshotPayload.StackStatus {
 		stack, err := handler.DataStore.EdgeStack().EdgeStack(stackID)
@@ -433,14 +476,14 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 	// Update snapshot
 	switch endpoint.Type {
 	case portaineree.KubernetesLocalEnvironment, portaineree.AgentOnKubernetesEnvironment, portaineree.EdgeAgentOnKubernetesEnvironment:
-		err := handler.updateKubernetesSnapshot(endpoint, snapshotPayload)
+		err := handler.updateKubernetesSnapshot(endpoint, snapshotPayload, needFullSnapshot)
 		if err != nil {
-			logrus.Error(err)
+			log.Error().Err(err).Msg("unable to update Kubernetes snapshot")
 		}
 	case portaineree.DockerEnvironment, portaineree.AgentOnDockerEnvironment, portaineree.EdgeAgentOnDockerEnvironment:
-		err := handler.updateDockerSnapshot(endpoint, snapshotPayload)
+		err := handler.updateDockerSnapshot(endpoint, snapshotPayload, needFullSnapshot)
 		if err != nil {
-			logrus.Error(err)
+			log.Error().Err(err).Msg("unable to update Docker snapshot")
 		}
 	}
 }
@@ -501,4 +544,11 @@ func (handler *Handler) getEndpoint(endpointID portaineree.EndpointID, edgeID st
 	}
 
 	return endpoint, nil
+}
+
+func snapshotHash(snapshot []byte) uint32 {
+	h := fnv.New32a()
+	h.Write(snapshot)
+
+	return h.Sum32()
 }
