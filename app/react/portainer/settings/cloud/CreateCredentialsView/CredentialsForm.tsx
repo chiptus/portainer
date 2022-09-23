@@ -43,17 +43,19 @@ export function CredentialsForm({ selectedProvider, routeOnSuccess }: Props) {
     <>
       <FormSectionTitle>Credential details</FormSectionTitle>
       <TextTip color="blue">
-        See our{' '}
-        <a
-          className="hyperlink"
-          href={helpLink}
-          target="_blank"
-          rel="noreferrer"
-        >
-          documentation for obtaining {title} credentials.
-        </a>{' '}
-        Any credentials that you set up will be usable by all admin users{' '}
-        (although the actual values themselves cannot be viewed).
+        <span>
+          See our{' '}
+          <a
+            className="hyperlink"
+            href={helpLink}
+            target="_blank"
+            rel="noreferrer"
+          >
+            documentation for obtaining {title} credentials.
+          </a>{' '}
+          Any credentials that you set up will be usable by all admin users{' '}
+          (although the actual values themselves cannot be viewed).
+        </span>
       </TextTip>
       <Form
         selectedProvider={selectedProvider}
