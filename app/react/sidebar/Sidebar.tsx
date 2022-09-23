@@ -49,9 +49,7 @@ export function Sidebar() {
 
             {isAdmin && EnableEdgeComputeFeatures && <EdgeComputeSidebar />}
 
-            {(isAdmin || isTeamLeader) && (
-              <SettingsSidebar isAdmin={isAdmin} isTeamLeader={isTeamLeader} />
-            )}
+            <SettingsSidebar isAdmin={isAdmin} isTeamLeader={isTeamLeader} />
           </ul>
         </div>
 

@@ -1,5 +1,6 @@
 import angular from 'angular';
 
+import { NotificationsViewAngular } from '@/react/portainer/notifications/NotificationsView';
 import authLogsViewModule from './auth-logs-view';
 import activityLogsViewModule from './activity-logs-view';
 
@@ -8,6 +9,7 @@ import { UserActivityService } from './user-activity.service';
 
 export default angular
   .module('portainer.app.user-activity', [authLogsViewModule, activityLogsViewModule])
+  .component('notifications', NotificationsViewAngular)
   .service('UserActivity', UserActivity)
   .service('UserActivityService', UserActivityService)
 
@@ -31,6 +33,16 @@ function config($stateRegistryProvider) {
     views: {
       'content@': {
         component: 'activityLogsView',
+      },
+    },
+  });
+
+  $stateRegistryProvider.register({
+    name: 'portainer.notifications',
+    url: '/notifications',
+    views: {
+      'content@': {
+        component: 'notifications',
       },
     },
   });
