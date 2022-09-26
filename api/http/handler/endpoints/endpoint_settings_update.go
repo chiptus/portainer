@@ -36,7 +36,7 @@ type endpointSettingsUpdatePayload struct {
 	// Whether automatic update time restrictions are enabled
 	ChangeWindow *portaineree.EndpointChangeWindow `json:"changeWindow"`
 
-	DisableImageNotification *bool `json:"DisableImageNotification" example:"true"`
+	DisableImageNotification *bool `json:"disableImageNotification" example:"true"`
 }
 
 func (payload *endpointSettingsUpdatePayload) Validate(_ *http.Request) error {

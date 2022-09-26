@@ -157,8 +157,8 @@
             <div class="col-sm-12">
               <por-switch-field
                 label="'Show a notification to indicate out-of-date images for Docker environments'"
-                checked="!$ctrl.formValues.disableImageNotification"
-                name="'toggle_imageNotification'"
+                checked="!$ctrl.state.disableImageNotification"
+                name="'disableImageNotification'"
                 on-change="($ctrl.onToggleImageNotification)"
                 label-class="'col-sm-7 col-lg-4'"
               ></por-switch-field>
