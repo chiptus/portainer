@@ -19,7 +19,6 @@ func (kcl *KubeClient) GetConfigMapsAndSecrets(namespace string) ([]models.K8sCo
 		return nil, err
 	}
 
-	// TODO: Applications
 	var combined []models.K8sConfigMapOrSecret
 	for _, m := range mapsList.Items {
 		var cm models.K8sConfigMapOrSecret

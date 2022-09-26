@@ -41,24 +41,27 @@
               </div>
             </div>
 
-            <div class="form-group">
-              <div class="col-sm-12 text-muted small mt-4">
-                <p> Configuring ingress controllers will allow users to expose application they deploy over a HTTP route. </p>
-                <p class="mt-1 vertical-center">
-                  <pr-icon icon="'alert-circle'" mode="'warning'" feather="true"></pr-icon>
-                  Ingress classes must be manually specified for each controller you want to use in the cluster. Make sure that each controller is running inside your cluster.
-                </p>
-              </div>
-            </div>
-            <ingress-class-datatable></ingress-class-datatable>
+            <ingress-class-datatable
+              on-change-availability="(ctrl.onChangeAvailability)"
+              ingress-controllers="ctrl.originalIngressControllers"
+              description="'Enabling ingress controllers in your cluster allows them to be available in the Portainer UI for users to publish applications over HTTP/HTTPS. A controller must have a class name for it to be included here.'"
+              no-ingress-controller-label="'No supported ingress controllers found.'"
+              view="'cluster'"
+            ></ingress-class-datatable>
 
-            <div class="form-group" ng-if="ctrl.hasTraefikIngress()">
-              <span class="col-sm-12 text-muted small">
-                <p class="vertical-center">
-                  <pr-icon icon="'svg-flask'" mode="'primary'"></pr-icon>
-                  Traefik support is experimental.
-                </p>
-              </span>
+            <div class="form-group">
+              <div class="col-sm-12">
+                <por-switch-field
+                  checked="ctrl.formValues.IngressAvailabilityPerNamespace"
+                  name="'ingressAvailabilityPerNamespace'"
+                  label="'Configure ingress controller availability per namespace'"
+                  tooltip="'This allows an administrator to configure, in each namespace, which ingress controllers will be available for users to select when setting up ingresses for applications.'"
+                  on-change="(ctrl.onToggleIngressAvailabilityPerNamespace)"
+                  label-class="'col-sm-5 col-lg-4 px-0 !m-0'"
+                  switch-class="'col-sm-8'"
+                >
+                </por-switch-field>
+              </div>
             </div>
 
             <!-- auto update window -->

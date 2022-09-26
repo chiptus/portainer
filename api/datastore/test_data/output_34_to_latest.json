@@ -65,6 +65,7 @@
       "Kubernetes": {
         "Configuration": {
           "EnableResourceOverCommit": false,
+          "IngressAvailabilityPerNamespace": true,
           "IngressClasses": [],
           "ResourceOverCommitPercentage": 0,
           "RestrictDefaultNamespace": false,

@@ -5,23 +5,16 @@ import { KubernetesResourceQuotaDefaults } from 'Kubernetes/models/resource-quot
 import KubernetesResourceReservationHelper from 'Kubernetes/helpers/resourceReservationHelper';
 import { KubernetesResourceReservation } from 'Kubernetes/models/resource-reservation/models';
 import KubernetesEventHelper from 'Kubernetes/helpers/eventHelper';
-import {
-  KubernetesResourcePoolFormValues,
-  KubernetesResourcePoolIngressClassAnnotationFormValue,
-  KubernetesResourcePoolIngressClassHostFormValue,
-  KubernetesResourcePoolNginxRewriteAnnotationFormValue,
-  KubernetesResourcePoolNginxUseregexAnnotationFormValue,
-  KubernetesResourcePoolTraefikRewriteAnnotationFormValue,
-} from 'Kubernetes/models/resource-pool/formValues';
+import { KubernetesResourcePoolFormValues, KubernetesResourcePoolIngressClassHostFormValue } from 'Kubernetes/models/resource-pool/formValues';
 import { KubernetesIngressConverter } from 'Kubernetes/ingress/converter';
 import { KubernetesFormValidationReferences } from 'Kubernetes/models/application/formValues';
-import KubernetesFormValidationHelper from 'Kubernetes/helpers/formValidationHelper';
 import { KubernetesIngressClassTypes } from 'Kubernetes/ingress/constants';
 import KubernetesResourceQuotaConverter from 'Kubernetes/converters/resourceQuota';
 import KubernetesStorageClassConverter from 'Kubernetes/converters/storageClass';
 import KubernetesResourceQuotaHelper from 'Kubernetes/helpers/resourceQuotaHelper';
 import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
 import { FeatureId } from '@/portainer/feature-flags/enums';
+import { updateIngressControllerClassMap, getIngressControllerClassMap } from '@/react/kubernetes/cluster/ingressClass/utils';
 
 class KubernetesResourcePoolController {
   /* #region  CONSTRUCTOR */
@@ -75,6 +68,7 @@ class KubernetesResourcePoolController {
     this.getEvents = this.getEvents.bind(this);
     this.onToggleLoadBalancersQuota = this.onToggleLoadBalancersQuota.bind(this);
     this.onToggleStorageQuota = this.onToggleStorageQuota.bind(this);
+    this.onChangeIngressControllerAvailability = this.onChangeIngressControllerAvailability.bind(this);
     this.onRegistriesChange = this.onRegistriesChange.bind(this);
   }
   /* #endregion */
@@ -98,78 +92,10 @@ class KubernetesResourcePoolController {
   }
 
   /* #region  INGRESS MANAGEMENT */
-  onChangeIngressHostname() {
-    const state = this.state.duplicates.ingressHosts;
-
-    const otherIngresses = _.without(this.allIngresses, ...this.ingresses);
-    const allHosts = _.flatMap(otherIngresses, 'Hosts');
-
-    const hosts = _.flatMap(this.formValues.IngressClasses, 'Hosts');
-    const hostsWithoutRemoved = _.filter(hosts, { NeedsDeletion: false });
-    const hostnames = _.map(hostsWithoutRemoved, 'Host');
-    const formDuplicates = KubernetesFormValidationHelper.getDuplicates(hostnames);
-    _.forEach(hostnames, (host, idx) => {
-      if (host !== undefined && _.includes(allHosts, host)) {
-        formDuplicates[idx] = host;
-      }
-    });
-    const duplicatedHostnames = Object.values(formDuplicates);
-    state.hasRefs = false;
-    _.forEach(this.formValues.IngressClasses, (ic) => {
-      _.forEach(ic.Hosts, (hostFV) => {
-        if (_.includes(duplicatedHostnames, hostFV.Host) && hostFV.NeedsDeletion === false) {
-          hostFV.Duplicate = true;
-          state.hasRefs = true;
-        } else {
-          hostFV.Duplicate = false;
-        }
-      });
-    });
-  }
-
-  addHostname(ingressClass) {
-    ingressClass.Hosts.push(new KubernetesResourcePoolIngressClassHostFormValue());
-  }
-
-  removeHostname(ingressClass, index) {
-    if (!ingressClass.Hosts[index].IsNew) {
-      ingressClass.Hosts[index].NeedsDeletion = true;
-    } else {
-      ingressClass.Hosts.splice(index, 1);
-    }
-    this.onChangeIngressHostname();
-  }
-
-  restoreHostname(host) {
-    if (!host.IsNew) {
-      host.NeedsDeletion = false;
-    }
+  onChangeIngressControllerAvailability(controllerClassMap) {
+    this.ingressControllers = controllerClassMap;
   }
   /* #endregion*/
-
-  /* #region  ANNOTATIONS MANAGEMENT */
-  addAnnotation(ingressClass) {
-    ingressClass.Annotations.push(new KubernetesResourcePoolIngressClassAnnotationFormValue());
-  }
-
-  addRewriteAnnotation(ingressClass) {
-    if (ingressClass.IngressClass.Type === this.IngressClassTypes.NGINX) {
-      ingressClass.Annotations.push(new KubernetesResourcePoolNginxRewriteAnnotationFormValue());
-    }
-
-    if (ingressClass.IngressClass.Type === this.IngressClassTypes.TRAEFIK) {
-      ingressClass.Annotations.push(new KubernetesResourcePoolTraefikRewriteAnnotationFormValue());
-    }
-  }
-
-  addUseregexAnnotation(ingressClass) {
-    ingressClass.Annotations.push(new KubernetesResourcePoolNginxUseregexAnnotationFormValue());
-  }
-
-  removeAnnotation(ingressClass, index) {
-    ingressClass.Annotations.splice(index, 1);
-  }
-  /* #endregion */
 
   selectTab(index) {
     this.LocalStorage.storeActiveTab('resourcePool', index);
@@ -226,6 +152,7 @@ class KubernetesResourcePoolController {
     try {
       this.checkDefaults();
       await this.KubernetesResourcePoolService.patch(oldFormValues, newFormValues);
+      await updateIngressControllerClassMap(this.endpoint.Id, this.ingressControllers, this.formValues.Name);
       this.Notifications.success('Namespace successfully updated', this.pool.Namespace.Name);
       this.$state.reload(this.$state.current);
     } catch (err) {
@@ -466,7 +393,7 @@ class KubernetesResourcePoolController {
           ingressesLoading: true,
           viewReady: false,
           eventWarningCount: 0,
-          canUseIngress: this.endpoint.Kubernetes.Configuration.IngressClasses.length,
+          canUseIngress: false,
           resourceOverCommitEnabled: this.endpoint.Kubernetes.Configuration.EnableResourceOverCommit,
           resourceOverCommitPercentage: this.endpoint.Kubernetes.Configuration.ResourceOverCommitPercentage,
           useLoadBalancer: this.endpoint.Kubernetes.Configuration.UseLoadBalancer,
@@ -478,6 +405,7 @@ class KubernetesResourcePoolController {
           duplicates: {
             ingressHosts: new KubernetesFormValidationReferences(),
           },
+          ingressAvailabilityPerNamespace: this.endpoint.Kubernetes.Configuration.IngressAvailabilityPerNamespace,
         };
 
         this.state.activeTab = this.LocalStorage.getActiveTab('resourcePool');
@@ -485,6 +413,11 @@ class KubernetesResourcePoolController {
         const name = this.$state.params.id;
 
         const [nodes, pools, pool] = await Promise.all([this.KubernetesNodeService.get(), this.KubernetesResourcePoolService.get(), this.KubernetesResourcePoolService.get(name)]);
+
+        this.ingressControllers = [];
+        if (this.state.ingressAvailabilityPerNamespace) {
+          this.ingressControllers = await getIngressControllerClassMap({ environmentId: this.endpoint.Id, namespace: name });
+        }
 
         this.pool = pool;
         this.formValues = new KubernetesResourcePoolFormValues(KubernetesResourceQuotaDefaults);

@@ -2,7 +2,7 @@ import { CellProps, Column } from 'react-table';
 
 import type { IngressControllerClassMap } from '../../types';
 
-export const Type: Column<IngressControllerClassMap> = {
+export const type: Column<IngressControllerClassMap> = {
   Header: 'Ingress controller type',
   accessor: 'Type',
   Cell: ({ row }: CellProps<IngressControllerClassMap>) =>

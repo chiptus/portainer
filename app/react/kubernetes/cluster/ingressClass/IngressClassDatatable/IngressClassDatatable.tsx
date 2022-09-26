@@ -1,66 +1,221 @@
-import { useEnvironment } from '@/portainer/environments/queries';
-import { useEnvironmentId } from '@/portainer/hooks/useEnvironmentId';
+import { useState } from 'react';
+
+import { confirmWarn } from '@/portainer/services/modal.service/confirm';
 
 import { Datatable } from '@@/datatables';
-import { Button } from '@@/buttons';
+import { Button, ButtonGroup } from '@@/buttons';
+import { Icon } from '@@/Icon';
 
-import { useIngressControllerClassMap } from '../queries';
+import { IngressControllerClassMap } from '../types';
 
-import { RowProvider } from './RowContext';
 import { useColumns } from './columns';
 import { createStore } from './datatable-store';
 
 const useStore = createStore('ingressClasses');
 
-export function IngressClassDatatable() {
-  const envId = useEnvironmentId();
-  const environmentQuery = useEnvironment(envId);
-  const controllerClassMapQuery = useIngressControllerClassMap();
+interface Props {
+  onChangeAvailability: (
+    controllerClassMap: IngressControllerClassMap[]
+  ) => void; // angular function to save the ingress class list
+  description: string;
+  ingressControllers: IngressControllerClassMap[] | undefined;
+  noIngressControllerLabel: string;
+  view: string;
+}
+
+export function IngressClassDatatable({
+  onChangeAvailability,
+  description,
+  ingressControllers,
+  noIngressControllerLabel,
+  view,
+}: Props) {
+  const [ingControllerFormValues, setIngControllerFormValues] =
+    useState(ingressControllers);
   const settings = useStore();
   const columns = useColumns();
 
-  if (environmentQuery.isLoading) {
-    return <div>Loading environment...</div>;
-  }
+  return (
+    <div className="-mx-[15px]">
+      <Datatable
+        dataset={ingControllerFormValues || []}
+        storageKey="ingressClasses"
+        columns={columns}
+        settingsStore={settings}
+        isLoading={!ingControllerFormValues}
+        emptyContentLabel={noIngressControllerLabel}
+        titleOptions={{
+          icon: 'database',
+          title: 'Ingress controllers',
+          featherIcon: true,
+        }}
+        getRowId={(row) => `${row.Name}-${row.ClassName}-${row.Type}`}
+        renderTableActions={(selectedRows) => renderTableActions(selectedRows)}
+        description={renderIngressClassDescription()}
+      />
+    </div>
+  );
 
-  if (environmentQuery.isError) {
-    return <div>Error getting environments...</div>;
-  }
-
-  function renderTableActions() {
+  function renderTableActions(selectedRows: IngressControllerClassMap[]) {
     return (
-      <>
-        <Button color="dangerlight" onClick={() => console.log('none')}>
-          Disallow all
-        </Button>
-        <Button color="primary" onClick={() => console.log('all')}>
-          Allow all
-        </Button>
-      </>
+      <div className="flex items-start">
+        <ButtonGroup>
+          <Button
+            disabled={
+              selectedRows.filter((row) => row.Availability === true).length ===
+              0
+            }
+            color="dangerlight"
+            size="small"
+            onClick={() =>
+              updateIngressControllers(
+                selectedRows,
+                ingControllerFormValues || [],
+                false
+              )
+            }
+          >
+            Disallow selected
+          </Button>
+          <Button
+            disabled={
+              selectedRows.filter((row) => row.Availability === false)
+                .length === 0
+            }
+            color="default"
+            size="small"
+            onClick={() =>
+              updateIngressControllers(
+                selectedRows,
+                ingControllerFormValues || [],
+                true
+              )
+            }
+          >
+            Allow selected
+          </Button>
+        </ButtonGroup>
+      </div>
     );
   }
 
-  return (
-    <div className="-mx-[15px]">
-      {environmentQuery.data && (
-        <RowProvider context={{ environment: environmentQuery.data }}>
-          <Datatable
-            dataset={controllerClassMapQuery.data || []}
-            storageKey="ingressClasses"
-            columns={columns}
-            settingsStore={settings}
-            isLoading={controllerClassMapQuery.isLoading}
-            emptyContentLabel="No supported ingress controllers found"
-            titleOptions={{
-              icon: 'database',
-              title: 'Ingress controllers',
-              featherIcon: true,
-            }}
-            getRowId={(row) => row.Name + row.Type}
-            renderTableActions={renderTableActions}
-          />
-        </RowProvider>
-      )}
-    </div>
-  );
+  function renderIngressClassDescription() {
+    return (
+      <div className="flex flex-col !text-xs text-muted w-full">
+        <div className="mt-1">{description}</div>
+        {ingressControllers &&
+          ingControllerFormValues &&
+          isUnsavedChanges(ingressControllers, ingControllerFormValues) && (
+            <span className="flex items-center text-warning mt-1">
+              <Icon icon="alert-triangle" feather className="!mr-1" />
+              <span className="text-warning">Unsaved changes.</span>
+            </span>
+          )}
+      </div>
+    );
+  }
+
+  function updateIngressControllers(
+    selectedRows: IngressControllerClassMap[],
+    ingControllerFormValues: IngressControllerClassMap[],
+    availability: boolean
+  ) {
+    const updatedIngressControllers = getUpdatedIngressControllers(
+      selectedRows,
+      ingControllerFormValues || [],
+      availability
+    );
+
+    if (ingressControllers && ingressControllers.length) {
+      const newAllowed = updatedIngressControllers.map(
+        (ingController) => ingController.Availability
+      );
+      if (view === 'namespace') {
+        setIngControllerFormValues(updatedIngressControllers);
+        onChangeAvailability(updatedIngressControllers);
+        return;
+      }
+
+      const usedControllersToDisallow = ingressControllers.filter(
+        (ingController, index) => {
+          // if any of the current controllers are allowed, and are used, then become disallowed, then add the controller to a new list
+          if (
+            ingController.Availability &&
+            ingController.Used &&
+            !newAllowed[index]
+          ) {
+            return true;
+          }
+          return false;
+        }
+      );
+
+      if (usedControllersToDisallow.length > 0) {
+        const usedControllerHtmlListItems = usedControllersToDisallow.map(
+          (controller) => `<li>${controller.ClassName}</li>`
+        );
+        const usedControllerHtmlList = `<ul class="ml-6">${usedControllerHtmlListItems.join(
+          ''
+        )}</ul>`;
+        confirmWarn({
+          title: 'Disallow in-use ingress controllers?',
+          message: `
+            <div>
+              <p>There are ingress controllers you want to disallow that are in use:</p>
+              ${usedControllerHtmlList}
+              <p>No new ingress rules can be created for the disallowed controllers.</p>
+            </div>`,
+          buttons: {
+            cancel: {
+              label: 'Cancel',
+              className: 'btn-default',
+            },
+            confirm: {
+              label: 'Disallow',
+              className: 'btn-warning',
+            },
+          },
+          callback: (confirmed) => {
+            if (confirmed) {
+              setIngControllerFormValues(updatedIngressControllers);
+              onChangeAvailability(updatedIngressControllers);
+            }
+          },
+        });
+        return;
+      }
+      setIngControllerFormValues(updatedIngressControllers);
+      onChangeAvailability(updatedIngressControllers);
+    }
+  }
+}
+
+function isUnsavedChanges(
+  oldIngressControllers: IngressControllerClassMap[],
+  newIngressControllers: IngressControllerClassMap[]
+) {
+  for (let i = 0; i < oldIngressControllers.length; i += 1) {
+    if (
+      oldIngressControllers[i].Availability !==
+      newIngressControllers[i].Availability
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function getUpdatedIngressControllers(
+  selectedRows: IngressControllerClassMap[],
+  allRows: IngressControllerClassMap[],
+  allow: boolean
+) {
+  const selectedRowClassNames = selectedRows.map((row) => row.ClassName);
+  const updatedIngressControllers = allRows?.map((row) => {
+    if (selectedRowClassNames.includes(row.ClassName)) {
+      return { ...row, Availability: allow };
+    }
+    return row;
+  });
+  return updatedIngressControllers;
 }

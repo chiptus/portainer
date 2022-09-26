@@ -28,11 +28,10 @@ func (handler *Handler) getKubernetesNodesLimits(w http.ResponseWriter, r *http.
 	cli := handler.KubernetesClient
 	nodesLimits, err := cli.GetNodesLimits()
 	if err != nil {
-		return &httperror.HandlerError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Unable to retrieve nodes limits",
-			Err:        err,
-		}
+		return httperror.InternalServerError(
+			"Unable to retrieve nodes limits",
+			err,
+		)
 	}
 
 	return response.JSON(w, nodesLimits)
