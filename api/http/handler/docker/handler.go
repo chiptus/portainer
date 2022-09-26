@@ -45,7 +45,6 @@ func NewHandler(bouncer *security.RequestBouncer, authorizationService *authoriz
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.imageStatus))).Methods(http.MethodPost)
 
 	dockerSnapshotHandler := dockersnapshot.NewHandler("/{id}/snapshot", bouncer, dataStore)
-
 	endpointRouter.PathPrefix("/snapshot").Handler(dockerSnapshotHandler)
 
 	containersHandler := containers.NewHandler("/{id}/containers", bouncer, dockerClientFactory)

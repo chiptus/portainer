@@ -1,15 +1,15 @@
 import { DockerContainer } from '@/react/docker/containers/types';
-import { EnvironmentId } from '@/portainer/environments/types';
 import { EdgeStack } from '@/react/edge/edge-stacks/types';
+import { EnvironmentId } from '@/portainer/environments/types';
+
+import { buildDockerSnapshotUrl, queryKeys as rootQueryKeys } from './root';
 
 export interface ContainersQueryParams {
   edgeStackId?: EdgeStack['Id'];
 }
 
 export const queryKeys = {
-  root: (environmentId: EnvironmentId) => ['docker', environmentId] as const,
-  snapshot: (environmentId: EnvironmentId) =>
-    [...queryKeys.root(environmentId), 'snapshot'] as const,
+  ...rootQueryKeys,
   containers: (environmentId: EnvironmentId) =>
     [...queryKeys.snapshot(environmentId), 'containers'] as const,
   containersQuery: (
@@ -21,14 +21,6 @@ export const queryKeys = {
     containerId: DockerContainer['Id']
   ) => [...queryKeys.containers(environmentId), containerId] as const,
 };
-
-export function buildDockerUrl(environmentId: EnvironmentId) {
-  return `/docker/${environmentId}`;
-}
-
-export function buildDockerSnapshotUrl(environmentId: EnvironmentId) {
-  return `${buildDockerUrl(environmentId)}/snapshot`;
-}
 
 export function buildDockerSnapshotContainersUrl(
   environmentId: EnvironmentId,

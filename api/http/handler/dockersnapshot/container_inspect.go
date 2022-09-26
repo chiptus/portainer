@@ -20,8 +20,7 @@ import (
 // @accept json
 // @produce json
 // @param environmentId path int true "Environment identifier"
-// @param edgeStackId query int false "Edge stack identifier, will return only containers for this edge stack"
-// @success 200 {object} []types.Container "Success"
+// @success 200 {object} types.Container "Success"
 // @failure 404 "Environment not found"
 // @router /docker/{environmentId}/snapshot/container/{containerId} [get]
 func (handler *Handler) containerInspect(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {

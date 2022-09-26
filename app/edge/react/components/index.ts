@@ -4,13 +4,17 @@ import { r2a } from '@/react-tools/react2angular';
 import { EnvironmentActions } from '@/react/edge/edge-stacks/ItemView/EnvironmentActions';
 import { ActionStatus } from '@/react/edge/edge-stacks/ItemView/ActionStatus';
 import { withReactQuery } from '@/react-tools/withReactQuery';
+import { withUIRouter } from '@/react-tools/withUIRouter';
 import { EdgeGroupsSelector } from '@/react/edge/components/EdgeGroupsSelector';
 
 export const componentsModule = angular
   .module('portainer.edge.react.components', [])
   .component(
     'edgeStackEnvironmentActions',
-    r2a(withReactQuery(EnvironmentActions), ['environment', 'edgeStackId'])
+    r2a(withUIRouter(withReactQuery(EnvironmentActions)), [
+      'environment',
+      'edgeStackId',
+    ])
   )
   .component(
     'edgeStackActionStatus',

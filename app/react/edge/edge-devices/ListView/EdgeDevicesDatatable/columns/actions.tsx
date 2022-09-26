@@ -33,7 +33,7 @@ export function ActionsCell({
     endpointId: environment.Id,
   });
 
-  const snapshotLinkProps = useSref('edge.devices.containers', {
+  const snapshotLinkProps = useSref('edge.browse.dashboard', {
     environmentId: environment.Id,
   });
 

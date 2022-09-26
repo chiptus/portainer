@@ -139,21 +139,57 @@ angular
     }
 
     $stateRegistryProvider.register({
-      name: 'edge.devices.containers',
-      url: '/:environmentId/containers?edgeStackId',
+      name: 'edge.browse',
+      url: '/browse',
+      abstract: true,
+    });
+
+    $stateRegistryProvider.register({
+      name: 'edge.browse.dashboard',
+      url: '/:environmentId/dashboard',
       views: {
         'content@': {
-          component: 'edgeDeviceContainersView',
+          component: 'edgeDeviceDashboardView',
         },
       },
     });
 
     $stateRegistryProvider.register({
-      name: 'edge.devices.containers.container',
+      name: 'edge.browse.containers',
+      url: '/:environmentId/containers?edgeStackId',
+      views: {
+        'content@': {
+          component: 'edgeStackEnvironmentContainersView',
+        },
+      },
+    });
+
+    $stateRegistryProvider.register({
+      name: 'edge.browse.containers.container',
       url: '/:containerId',
       views: {
         'content@': {
-          component: 'edgeDeviceContainerView',
+          component: 'edgeStackEnvironmentContainerView',
+        },
+      },
+    });
+
+    $stateRegistryProvider.register({
+      name: 'edge.browse.images',
+      url: '/:environmentId/images',
+      views: {
+        'content@': {
+          component: 'edgeDeviceImagesView',
+        },
+      },
+    });
+
+    $stateRegistryProvider.register({
+      name: 'edge.browse.volumes',
+      url: '/:environmentId/volumes',
+      views: {
+        'content@': {
+          component: 'edgeDeviceVolumesView',
         },
       },
     });

@@ -500,7 +500,7 @@ func (handler *Handler) sendCommandsSince(endpoint *portaineree.Endpoint, comman
 			continue
 		}
 
-		if commandTimestamp.After(storedCommand.Timestamp) {
+		if !storedCommand.Timestamp.After(commandTimestamp) {
 			storedCommand.Executed = true
 			err := handler.DataStore.EdgeAsyncCommand().Update(storedCommand.ID, &storedCommand)
 			if err != nil {

@@ -23,6 +23,7 @@ import { KubernetesSidebar } from './KubernetesSidebar';
 import { SidebarSection, SidebarSectionTitle } from './SidebarSection';
 import { NomadSidebar } from './NomadSidebar';
 import { useSidebarState } from './useSidebarState';
+import { EdgeDeviceAsyncSidebar } from './EdgeDeviceAsyncSidebar';
 
 export function EnvironmentSidebar() {
   const { query: currentEnvironmentQuery, clearEnvironment } =
@@ -59,7 +60,9 @@ interface ContentProps {
 
 function Content({ environment, onClear }: ContentProps) {
   const platform = getPlatformType(environment.Type);
-  const Sidebar = getSidebar(platform);
+  const isEdgeDeviceAsync =
+    !!environment.IsEdgeDevice && environment.Edge.AsyncMode;
+  const Sidebar = getSidebar(platform, isEdgeDeviceAsync);
 
   return (
     <SidebarSection
@@ -73,7 +76,7 @@ function Content({ environment, onClear }: ContentProps) {
     </SidebarSection>
   );
 
-  function getSidebar(platform: PlatformType) {
+  function getSidebar(platform: PlatformType, isEdgeDeviceAsync: boolean) {
     const sidebar: {
       [key in PlatformType]: React.ComponentType<{
         environmentId: EnvironmentId;
@@ -81,7 +84,9 @@ function Content({ environment, onClear }: ContentProps) {
       }>;
     } = {
       [PlatformType.Azure]: AzureSidebar,
-      [PlatformType.Docker]: DockerSidebar,
+      [PlatformType.Docker]: isEdgeDeviceAsync
+        ? EdgeDeviceAsyncSidebar
+        : DockerSidebar,
       [PlatformType.Kubernetes]: KubernetesSidebar,
       [PlatformType.Nomad]: NomadSidebar,
     };
@@ -98,11 +103,18 @@ function useCurrentEnvironment() {
   >('environmentId', undefined, sessionStorage);
 
   useEffect(() => {
-    const environmentId = parseInt(params.endpointId, 10);
-    if (params.endpointId && !Number.isNaN(environmentId)) {
+    let environmentId;
+
+    if (params.endpointId) {
+      environmentId = parseInt(params.endpointId, 10);
+    } else if (params.environmentId) {
+      environmentId = parseInt(params.environmentId, 10);
+    }
+
+    if (!Number.isNaN(environmentId)) {
       setEnvironmentId(environmentId);
     }
-  }, [params.endpointId, setEnvironmentId]);
+  }, [params.endpointId, params.environmentId, setEnvironmentId]);
 
   return { query: useEnvironment(environmentId), clearEnvironment };
 

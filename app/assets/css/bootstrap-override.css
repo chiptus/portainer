@@ -347,8 +347,7 @@ input:checked + .slider:before {
 /* Status Indicator Inside Table Section Label Style */
 .table .label {
   border-radius: 8px !important;
-  display: inline-flex;
-  align-items: center;
+  display: inline;
 }
 
 .table .label .label-danger {

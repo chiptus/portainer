@@ -95,7 +95,7 @@ export const componentsModule = angular
   )
   .component(
     'prIcon',
-    r2a(Icon, ['className', 'feather', 'icon', 'mode', 'size'])
+    r2a(Icon, ['className', 'feather', 'icon', 'mode', 'size', 'inline'])
   )
   .component('reactQueryDevTools', r2a(ReactQueryDevtoolsWrapper, []))
   .component(

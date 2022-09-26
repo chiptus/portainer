@@ -1,0 +1,1 @@
+export { VolumesView } from './VolumesView';

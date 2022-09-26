@@ -17,7 +17,7 @@ export function EnvironmentActions({ environment, edgeStackId }: Props) {
     <div className="space-x-2">
       {environment.Snapshots.length > 0 && (
         <Link
-          to="edge.devices.containers"
+          to="edge.browse.containers"
           params={{ environmentId: environment.Id, edgeStackId }}
           className="!text-inherit hover:!no-underline"
         >
