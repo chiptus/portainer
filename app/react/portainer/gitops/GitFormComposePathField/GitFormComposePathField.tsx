@@ -62,7 +62,13 @@ export function GitFormComposePathField({
         <TextTip color="blue">
           Indicate the path to the {isCompose ? 'Compose' : 'Manifest'} file
           from the root of your repository (requires a yaml, yml, json, or hcl
-          file extension).
+          file extension). To enable rebuilding of an image if already present
+          on Docker standalone environments, include
+          <code>pull_policy: build</code> in your compose file as per
+          <a href="https://docs.docker.com/compose/compose-file/#pull_policy">
+            Docker documentation
+          </a>
+          .
         </TextTip>
       </span>
       <div className="col-sm-8">
