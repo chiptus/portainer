@@ -22,6 +22,7 @@ import { Widget } from '@@/Widget';
 import { NoSnapshotAvailablePanel } from '../NoSnapshotAvailablePanel';
 
 import { image } from './image-column';
+import { ContainersDatatableActions } from './ContainersDatatableActions';
 
 const storageKey = 'edge_stack_containers';
 const useStore = createStore(storageKey);
@@ -102,11 +103,16 @@ export function ContainersView() {
             icon: 'fa-cubes',
             title: 'Containers',
           }}
+          renderTableActions={(selectedRows) => (
+            <ContainersDatatableActions
+              selectedItems={selectedRows}
+              endpointId={environment.Id}
+            />
+          )}
           storageKey={storageKey}
           dataset={containersQuery.data}
           columns={columns}
           settingsStore={settings}
-          disableSelect
           emptyContentLabel="No containers found"
         />
       </RowProvider>
