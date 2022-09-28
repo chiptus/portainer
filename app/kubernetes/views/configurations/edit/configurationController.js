@@ -2,7 +2,7 @@ import angular from 'angular';
 import _ from 'lodash-es';
 
 import { KubernetesConfigurationFormValues } from 'Kubernetes/models/configuration/formvalues';
-import { KubernetesConfigurationKinds, KubernetesSecretTypes } from 'Kubernetes/models/configuration/models';
+import { KubernetesConfigurationKinds, KubernetesSecretTypeOptions } from 'Kubernetes/models/configuration/models';
 import KubernetesConfigurationHelper from 'Kubernetes/helpers/configurationHelper';
 import KubernetesConfigurationConverter from 'Kubernetes/converters/configuration';
 import KubernetesEventHelper from 'Kubernetes/helpers/eventHelper';
@@ -43,7 +43,7 @@ class KubernetesConfigurationController {
     this.KubernetesApplicationService = KubernetesApplicationService;
     this.KubernetesEventService = KubernetesEventService;
     this.KubernetesConfigurationKinds = KubernetesConfigurationKinds;
-    this.KubernetesSecretTypes = KubernetesSecretTypes;
+    this.KubernetesSecretTypeOptions = KubernetesSecretTypeOptions;
 
     this.onInit = this.onInit.bind(this);
     this.getConfigurationAsync = this.getConfigurationAsync.bind(this);
@@ -150,6 +150,7 @@ class KubernetesConfigurationController {
       if (secret.status === 'fulfilled') {
         this.configuration = KubernetesConfigurationConverter.secretToConfiguration(secret.value);
         this.formValues.Data = secret.value.Data;
+        // this.formValues.ServiceAccountName = secret.value.ServiceAccountName;
       } else {
         this.configuration = KubernetesConfigurationConverter.configMapToConfiguration(configMap.value);
         this.formValues.Data = configMap.value.Data;
@@ -282,17 +283,21 @@ class KubernetesConfigurationController {
       // after loading the configuration, check if it is a docker config secret type
       if (
         this.formValues.Kind === this.KubernetesConfigurationKinds.SECRET &&
-        (this.formValues.Type === this.KubernetesSecretTypes.DOCKERCONFIGJSON.value || this.formValues.Type === this.KubernetesSecretTypes.DOCKERCFG.value)
+        (this.formValues.Type === this.KubernetesSecretTypeOptions.DOCKERCONFIGJSON.value || this.formValues.Type === this.KubernetesSecretTypeOptions.DOCKERCFG.value)
       ) {
         this.state.isDockerConfig = true;
       }
       // convert the secret type to a human readable value
       if (this.formValues.Type) {
-        const secretTypeValues = Object.values(this.KubernetesSecretTypes);
+        const secretTypeValues = Object.values(this.KubernetesSecretTypeOptions);
         const secretType = secretTypeValues.find((secretType) => secretType.value === this.formValues.Type);
         this.secretTypeName = secretType ? secretType.name : this.formValues.Type;
       } else {
         this.secretTypeName = '';
+      }
+
+      if (this.formValues.Type === this.KubernetesSecretTypeOptions.SERVICEACCOUNTTOKEN.value) {
+        this.formValues.ServiceAccountName = configuration.ServiceAccountName;
       }
 
       this.tagUsedDataKeys();
