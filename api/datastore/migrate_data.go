@@ -64,6 +64,7 @@ func (store *Store) MigrateData() error {
 	if err != nil {
 		log.Error().Err(err).Msg("while DB migration, restoring DB")
 
+		// Restore options
 		options := BackupOptions{
 			BackupPath: backupPath,
 		}

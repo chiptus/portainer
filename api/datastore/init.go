@@ -3,7 +3,6 @@ package datastore
 import (
 	"github.com/gofrs/uuid"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // Init creates the default data set.
@@ -28,7 +27,7 @@ func (store *Store) Init() error {
 
 func (store *Store) checkOrCreateInstanceID() error {
 	_, err := store.VersionService.InstanceID()
-	if err == errors.ErrObjectNotFound {
+	if store.IsErrObjectNotFound(err) {
 		uid, err := uuid.NewV4()
 		if err != nil {
 			return err
@@ -43,7 +42,7 @@ func (store *Store) checkOrCreateInstanceID() error {
 
 func (store *Store) checkOrCreateDefaultSettings() error {
 	_, err := store.SettingsService.Settings()
-	if err == errors.ErrObjectNotFound {
+	if store.IsErrObjectNotFound(err) {
 		defaultSettings := &portaineree.Settings{
 			EnableTelemetry:      false,
 			AuthenticationMethod: portaineree.AuthenticationInternal,
@@ -90,7 +89,7 @@ func (store *Store) checkOrCreateDefaultSettings() error {
 
 func (store *Store) checkOrCreateDefaultSSLSettings() error {
 	_, err := store.SSLSettings().Settings()
-	if err == errors.ErrObjectNotFound {
+	if store.IsErrObjectNotFound(err) {
 		defaultSSLSettings := &portaineree.SSLSettings{
 			HTTPEnabled: true,
 		}

@@ -72,9 +72,11 @@ func (service *Service) UserByUsername(username string) (*portaineree.User, erro
 
 			return &portaineree.User{}, nil
 		})
+
 	if err == stop {
 		return u, nil
 	}
+
 	if err == nil {
 		return nil, errors.ErrObjectNotFound
 	}

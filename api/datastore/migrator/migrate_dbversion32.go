@@ -7,11 +7,9 @@ import (
 )
 
 func (m *Migrator) migrateDBVersionToDB33() error {
-	if err := m.migrateSettingsToDB33(); err != nil {
-		return err
-	}
+	log.Info().Msg("updating settings")
 
-	return nil
+	return m.migrateSettingsToDB33()
 }
 
 func (m *Migrator) migrateSettingsToDB33() error {
@@ -21,6 +19,8 @@ func (m *Migrator) migrateSettingsToDB33() error {
 		return err
 	}
 
+	log.Info().Msg("setting default kubectl shell image")
 	settings.KubectlShellImage = portaineree.DefaultKubectlShellImage
+
 	return m.settingsService.UpdateSettings(settings)
 }

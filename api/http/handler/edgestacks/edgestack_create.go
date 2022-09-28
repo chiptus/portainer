@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/asaskevich/govalidator"
-	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
@@ -18,6 +16,9 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/git"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/pkg/errors"
 )
 
 const nomadJobFileDefaultName = "nomad-job.hcl"

@@ -11,7 +11,6 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/websocket"
@@ -54,8 +53,8 @@ func (handler *Handler) websocketExec(w http.ResponseWriter, r *http.Request) *h
 		return httperror.BadRequest("Invalid query parameter: endpointId", err)
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == errors.ErrObjectNotFound {
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find the environment associated to the stack inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find the environment associated to the stack inside the database", err)

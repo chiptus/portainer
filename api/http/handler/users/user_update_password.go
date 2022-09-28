@@ -11,7 +11,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/asaskevich/govalidator"
 )
@@ -76,7 +75,7 @@ func (handler *Handler) userUpdatePassword(w http.ResponseWriter, r *http.Reques
 	}
 
 	user, err := handler.DataStore.User().User(portaineree.UserID(userID))
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a user with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a user with the specified identifier inside the database", err)
@@ -95,7 +94,9 @@ func (handler *Handler) userUpdatePassword(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return httperror.InternalServerError("Unable to hash user password", errCryptoHashFailure)
 	}
+
 	user.TokenIssueAt = time.Now().Unix()
+
 	err = handler.DataStore.User().UpdateUser(user.ID, user)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist user changes inside the database", err)

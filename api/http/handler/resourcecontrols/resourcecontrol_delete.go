@@ -7,7 +7,6 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // @id ResourceControlDelete
@@ -29,14 +28,14 @@ func (handler *Handler) resourceControlDelete(w http.ResponseWriter, r *http.Req
 		return httperror.BadRequest("Invalid resource control identifier route variable", err)
 	}
 
-	_, err = handler.dataStore.ResourceControl().ResourceControl(portaineree.ResourceControlID(resourceControlID))
-	if err == errors.ErrObjectNotFound {
+	_, err = handler.DataStore.ResourceControl().ResourceControl(portaineree.ResourceControlID(resourceControlID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a resource control with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a resource control with with the specified identifier inside the database", err)
 	}
 
-	err = handler.dataStore.ResourceControl().DeleteResourceControl(portaineree.ResourceControlID(resourceControlID))
+	err = handler.DataStore.ResourceControl().DeleteResourceControl(portaineree.ResourceControlID(resourceControlID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to remove the resource control from the database", err)
 	}

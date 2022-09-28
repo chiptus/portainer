@@ -22,7 +22,7 @@ import (
 // @failure 500 "Server Error"
 // @router /endpoints/snapshot [post]
 func (handler *Handler) endpointSnapshots(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	endpoints, err := handler.dataStore.Endpoint().Endpoints()
+	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve environments from the database", err)
 	}
@@ -38,7 +38,7 @@ func (handler *Handler) endpointSnapshots(w http.ResponseWriter, r *http.Request
 
 		snapshotError := handler.SnapshotService.SnapshotEndpoint(&endpoint)
 
-		latestEndpointReference, err := handler.dataStore.Endpoint().Endpoint(endpoint.ID)
+		latestEndpointReference, err := handler.DataStore.Endpoint().Endpoint(endpoint.ID)
 		if latestEndpointReference == nil {
 			log.Debug().
 				Str("endpoint", endpoint.Name).
@@ -62,7 +62,7 @@ func (handler *Handler) endpointSnapshots(w http.ResponseWriter, r *http.Request
 
 		latestEndpointReference.Agent.Version = endpoint.Agent.Version
 
-		err = handler.dataStore.Endpoint().UpdateEndpoint(latestEndpointReference.ID, latestEndpointReference)
+		err = handler.DataStore.Endpoint().UpdateEndpoint(latestEndpointReference.ID, latestEndpointReference)
 		if err != nil {
 			return httperror.InternalServerError("Unable to persist environment changes inside the database", err)
 		}

@@ -13,7 +13,6 @@ import (
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/stackutils"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/pkg/errors"
@@ -83,7 +82,7 @@ func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *htt
 	}
 
 	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(stackID))
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
@@ -101,7 +100,7 @@ func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *htt
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(stack.EndpointID)
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find the environment associated to the stack inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find the environment associated to the stack inside the database", err)
@@ -272,7 +271,7 @@ func (handler *Handler) updateSwarmStack(r *http.Request, stack *portaineree.Sta
 	_, err = handler.FileService.UpdateStoreStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
 	if err != nil {
 		if rollbackErr := handler.FileService.RollbackStackFile(stackFolder, stack.EntryPoint); rollbackErr != nil {
-			log.Printf("[WARN] [swarm,stack,update] [message: rollback stack file error] [err: %s]", rollbackErr)
+			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
 		}
 
 		return httperror.InternalServerError("Unable to persist updated Compose file on disk", err)
@@ -281,7 +280,7 @@ func (handler *Handler) updateSwarmStack(r *http.Request, stack *portaineree.Sta
 	config, configErr := handler.createSwarmDeployConfig(r, stack, endpoint, payload.Prune, payload.PullImage)
 	if configErr != nil {
 		if rollbackErr := handler.FileService.RollbackStackFile(stackFolder, stack.EntryPoint); rollbackErr != nil {
-			log.Printf("[WARN] [swarm,stack,update] [message: rollback stack file error] [err: %s]", rollbackErr)
+			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
 		}
 
 		return configErr
@@ -290,7 +289,7 @@ func (handler *Handler) updateSwarmStack(r *http.Request, stack *portaineree.Sta
 	err = handler.deploySwarmStack(config)
 	if err != nil {
 		if rollbackErr := handler.FileService.RollbackStackFile(stackFolder, stack.EntryPoint); rollbackErr != nil {
-			log.Printf("[WARN] [swarm,stack,update] [message: rollback stack file error] [err: %s]", rollbackErr)
+			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
 		}
 
 		return httperror.InternalServerError(err.Error(), err)

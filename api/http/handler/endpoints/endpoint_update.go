@@ -16,7 +16,6 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/tag"
 	portainer "github.com/portainer/portainer/api"
-	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type endpointUpdatePayload struct {
@@ -112,8 +111,8 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == portainerDsErrors.ErrObjectNotFound {
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
@@ -212,13 +211,13 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 				removeTags := tag.Difference(endpointTagSet, payloadTagSet)
 
 				for tagID := range removeTags {
-					tag, err := handler.dataStore.Tag().Tag(tagID)
+					tag, err := handler.DataStore.Tag().Tag(tagID)
 					if err != nil {
 						return httperror.InternalServerError("Unable to find a tag inside the database", err)
 					}
 
 					delete(tag.Endpoints, endpoint.ID)
-					err = handler.dataStore.Tag().UpdateTag(tag.ID, tag)
+					err = handler.DataStore.Tag().UpdateTag(tag.ID, tag)
 					if err != nil {
 						return httperror.InternalServerError("Unable to persist tag changes inside the database", err)
 					}
@@ -226,14 +225,14 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 				endpoint.TagIDs = payload.TagIDs
 				for _, tagID := range payload.TagIDs {
-					tag, err := handler.dataStore.Tag().Tag(tagID)
+					tag, err := handler.DataStore.Tag().Tag(tagID)
 					if err != nil {
 						return httperror.InternalServerError("Unable to find a tag inside the database", err)
 					}
 
 					tag.Endpoints[endpoint.ID] = true
 
-					err = handler.dataStore.Tag().UpdateTag(tag.ID, tag)
+					err = handler.DataStore.Tag().UpdateTag(tag.ID, tag)
 					if err != nil {
 						return httperror.InternalServerError("Unable to persist tag changes inside the database", err)
 					}
@@ -355,7 +354,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		endpoint.ChangeWindow = *payload.ChangeWindow
 	}
 
-	err = handler.dataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
+	err = handler.DataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist environment changes inside the database", err)
 	}
@@ -368,22 +367,22 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 	}
 
 	if (endpointutils.IsEdgeEndpoint(endpoint)) && (groupIDChanged || tagsChanged) {
-		relation, err := handler.dataStore.EndpointRelation().EndpointRelation(endpoint.ID)
+		relation, err := handler.DataStore.EndpointRelation().EndpointRelation(endpoint.ID)
 		if err != nil {
 			return httperror.InternalServerError("Unable to find environment relation inside the database", err)
 		}
 
-		endpointGroup, err := handler.dataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
+		endpointGroup, err := handler.DataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
 		if err != nil {
 			return httperror.InternalServerError("Unable to find environment group inside the database", err)
 		}
 
-		edgeGroups, err := handler.dataStore.EdgeGroup().EdgeGroups()
+		edgeGroups, err := handler.DataStore.EdgeGroup().EdgeGroups()
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve edge groups from the database", err)
 		}
 
-		edgeStacks, err := handler.dataStore.EdgeStack().EdgeStacks()
+		edgeStacks, err := handler.DataStore.EdgeStack().EdgeStacks()
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve edge stacks from the database", err)
 		}
@@ -413,7 +412,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 		relation.EdgeStacks = currentEdgeStackSet
 
-		err = handler.dataStore.EndpointRelation().UpdateEndpointRelation(endpoint.ID, relation)
+		err = handler.DataStore.EndpointRelation().UpdateEndpointRelation(endpoint.ID, relation)
 		if err != nil {
 			return httperror.InternalServerError("Unable to persist environment relation changes inside the database", err)
 		}

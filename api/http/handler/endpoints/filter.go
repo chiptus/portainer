@@ -65,6 +65,8 @@ func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
 		return EnvironmentsQuery{}, err
 	}
 
+	agentVersions := getArrayQueryParameter(r, "agentVersions")
+
 	name, _ := request.RetrieveQueryParameter(r, "name", true)
 
 	edgeDeviceParam, _ := request.RetrieveQueryParameter(r, "edgeDevice", true)
@@ -75,8 +77,6 @@ func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
 	}
 
 	edgeDeviceUntrusted, _ := request.RetrieveBooleanQueryParameter(r, "edgeDeviceUntrusted", true)
-
-	agentVersions := getArrayQueryParameter(r, "agentVersions")
 
 	excludeSnapshots, _ := request.RetrieveBooleanQueryParameter(r, "excludeSnapshots", true)
 
@@ -126,7 +126,7 @@ func (handler *Handler) filterEndpointsByQuery(filteredEndpoints []portaineree.E
 	}
 
 	if query.search != "" {
-		tags, err := handler.dataStore.Tag().Tags()
+		tags, err := handler.DataStore.Tag().Tags()
 		if err != nil {
 			return nil, 0, errors.WithMessage(err, "Unable to retrieve tags from the database")
 		}

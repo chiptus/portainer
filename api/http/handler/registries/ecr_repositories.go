@@ -10,7 +10,6 @@ import (
 	"github.com/portainer/portainer-ee/api/aws/ecr"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // @id ecrDeleteRepository
@@ -40,7 +39,7 @@ func (handler *Handler) ecrDeleteRepository(w http.ResponseWriter, r *http.Reque
 	}
 
 	registry, err := handler.DataStore.Registry().Registry(portaineree.RegistryID(registryID))
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a registry with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a registry with the specified identifier inside the database", err)

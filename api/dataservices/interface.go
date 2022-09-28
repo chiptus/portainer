@@ -20,15 +20,13 @@ type (
 		Init() error
 		Close() error
 		MigrateData() error
-		CheckCurrentEdition() error
 		Rollback(force bool) error
 		RollbackToCE() error
-
+		CheckCurrentEdition() error
 		BackupTo(w io.Writer) error
 		Export(filename string) (err error)
 		IsErrObjectNotFound(err error) bool
 		Connection() portainer.Connection
-
 		CloudProvisioning() CloudProvisioningService
 		CustomTemplate() CustomTemplateService
 		EdgeAsyncCommand() EdgeAsyncCommandService
@@ -50,9 +48,9 @@ type (
 		APIKeyRepository() APIKeyRepository
 		GitCredential() GitCredential
 		S3Backup() S3BackupService
-		SSLSettings() SSLSettingsService
 		Settings() SettingsService
 		Snapshot() SnapshotService
+		SSLSettings() SSLSettingsService
 		Stack() StackService
 		Tag() TagService
 		TeamMembership() TeamMembershipService
@@ -391,10 +389,10 @@ type (
 	// VersionService represents a service for managing version data
 	VersionService interface {
 		DBVersion() (int, error)
-		StoreDBVersion(version int) error
-		InstanceID() (string, error)
-		StoreInstanceID(ID string) error
 		Edition() (portaineree.SoftwareEdition, error)
+		InstanceID() (string, error)
+		StoreDBVersion(version int) error
+		StoreInstanceID(ID string) error
 		StoreEdition(portaineree.SoftwareEdition) error
 		PreviousDBVersion() (int, error)
 		BucketName() string

@@ -2,14 +2,15 @@ package edgegroups
 
 import (
 	"errors"
-	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"net/http"
 
-	"github.com/asaskevich/govalidator"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+
+	"github.com/asaskevich/govalidator"
 )
 
 type edgeGroupCreatePayload struct {
@@ -28,7 +29,7 @@ func (payload *edgeGroupCreatePayload) Validate(r *http.Request) error {
 		return errors.New("TagIDs is mandatory for a dynamic Edge group")
 	}
 	if !payload.Dynamic && (payload.Endpoints == nil || len(payload.Endpoints) == 0) {
-		return errors.New("Environments is mandatory for a static Edge group")
+		return errors.New("Environment is mandatory for a static Edge group")
 	}
 	return nil
 }

@@ -9,7 +9,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // @id UserGetGitCredentials
@@ -45,7 +44,7 @@ func (handler *Handler) userGetGitCredentials(w http.ResponseWriter, r *http.Req
 
 	_, err = handler.DataStore.User().User(portaineree.UserID(userID))
 	if err != nil {
-		if err == bolterrors.ErrObjectNotFound {
+		if handler.DataStore.IsErrObjectNotFound(err) {
 			return httperror.NotFound("Unable to find a user with the specified identifier inside the database", err)
 		}
 		return httperror.InternalServerError("Unable to find a user with the specified identifier inside the database", err)
@@ -102,7 +101,7 @@ func (handler *Handler) userGetGitCredential(w http.ResponseWriter, r *http.Requ
 
 	_, err = handler.DataStore.User().User(portaineree.UserID(userID))
 	if err != nil {
-		if err == bolterrors.ErrObjectNotFound {
+		if handler.DataStore.IsErrObjectNotFound(err) {
 			return httperror.Forbidden("Unable to find a user with the specified identifier inside the database", err)
 		}
 		return httperror.InternalServerError("Unable to find a user with the specified identifier inside the database", err)
@@ -122,7 +121,7 @@ func (handler *Handler) userGetGitCredential(w http.ResponseWriter, r *http.Requ
 	return response.JSON(w, cred)
 }
 
-//  hidePasswordFields remove the password from the Git Credential (it is not needed in the response)
+// hidePasswordFields remove the password from the Git Credential (it is not needed in the response)
 func hidePasswordFields(cred *portaineree.GitCredential) {
 	cred.Password = ""
 }

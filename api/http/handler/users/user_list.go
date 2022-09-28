@@ -37,7 +37,6 @@ func (handler *Handler) userList(w http.ResponseWriter, r *http.Request) *httper
 	}
 
 	availableUsers := security.FilterUsers(users, securityContext)
-
 	for i := range availableUsers {
 		hideFields(&availableUsers[i])
 	}
@@ -76,5 +75,6 @@ func (handler *Handler) userList(w http.ResponseWriter, r *http.Request) *httper
 			canAccessEndpoint = append(canAccessEndpoint, user)
 		}
 	}
+
 	return response.JSON(w, canAccessEndpoint)
 }

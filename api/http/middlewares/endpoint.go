@@ -14,7 +14,6 @@ import (
 	requesthelpers "github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 const (
@@ -38,7 +37,7 @@ func WithEndpoint(endpointService dataservices.EndpointService, endpointIDParam 
 			if err != nil {
 				statusCode := http.StatusInternalServerError
 
-				if err == bolterrors.ErrObjectNotFound {
+				if dataservices.IsErrObjectNotFound(err) {
 					statusCode = http.StatusNotFound
 				}
 				httperror.WriteError(rw, statusCode, "Unable to find an environment with the specified identifier inside the database", err)

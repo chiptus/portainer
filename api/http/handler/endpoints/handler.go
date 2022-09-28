@@ -45,7 +45,7 @@ type Handler struct {
 	*mux.Router
 	requestBouncer           requestBouncer
 	AuthorizationService     *authorization.Service
-	dataStore                dataservices.DataStore
+	DataStore                dataservices.DataStore
 	demoService              *demo.Service
 	FileService              portainer.FileService
 	ProxyManager             *proxy.Manager
@@ -75,7 +75,7 @@ func NewHandler(
 		Router:                   mux.NewRouter(),
 		requestBouncer:           bouncer,
 		userActivityService:      userActivityService,
-		dataStore:                dataStore,
+		DataStore:                dataStore,
 		edgeService:              edgeService,
 		demoService:              demoService,
 		cloudClusterSetupService: cloudClusterSetupService,

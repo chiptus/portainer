@@ -285,7 +285,7 @@ func (connection *DbConnection) GetNextIdentifier(bucketName string) int {
 
 // CreateObject creates a new object in the bucket, using the next bucket sequence id
 func (connection *DbConnection) CreateObject(bucketName string, fn func(uint64) (int, interface{})) error {
-	return connection.Update(func(tx *bolt.Tx) error {
+	return connection.Batch(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketName))
 
 		seqId, _ := bucket.NextSequence()

@@ -671,7 +671,7 @@ func (store *Store) Export(filename string) (err error) {
 
 	if snapshot, err := store.Snapshot().Snapshots(); err != nil {
 		if !store.IsErrObjectNotFound(err) {
-			log.Error().Err(err).Msg("Exporting Snapshots")
+			log.Error().Err(err).Msg("exporting Snapshots")
 		}
 	} else {
 		backup.Snapshot = snapshot

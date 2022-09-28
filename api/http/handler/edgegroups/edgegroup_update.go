@@ -2,16 +2,16 @@ package edgegroups
 
 import (
 	"errors"
-	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"net/http"
 
-	"github.com/asaskevich/govalidator"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/edge"
-	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+
+	"github.com/asaskevich/govalidator"
 )
 
 type edgeGroupUpdatePayload struct {
@@ -62,7 +62,7 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 	}
 
 	edgeGroup, err := handler.DataStore.EdgeGroup().EdgeGroup(portaineree.EdgeGroupID(edgeGroupID))
-	if err == portainerDsErrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an Edge group with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an Edge group with the specified identifier inside the database", err)

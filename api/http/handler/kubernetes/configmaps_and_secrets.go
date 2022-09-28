@@ -21,7 +21,7 @@ func (handler *Handler) getKubernetesConfigMaps(w http.ResponseWriter, r *http.R
 
 	configmaps, err := cli.GetConfigMapsAndSecrets(namespace)
 	if err != nil {
-		return httperror.BadRequest(
+		return httperror.InternalServerError(
 			"Unable to retrieve nodes limits",
 			err,
 		)

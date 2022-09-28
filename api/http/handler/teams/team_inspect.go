@@ -9,7 +9,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // @id TeamInspect
@@ -44,7 +43,7 @@ func (handler *Handler) teamInspect(w http.ResponseWriter, r *http.Request) *htt
 	}
 
 	team, err := handler.DataStore.Team().Team(portaineree.TeamID(teamID))
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a team with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a team with the specified identifier inside the database", err)

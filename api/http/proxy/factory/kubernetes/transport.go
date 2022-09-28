@@ -184,11 +184,10 @@ func decorateAgentDockerHubRequest(r *http.Request, dataStore dataservices.DataS
 
 	newBody, err := json.Marshal(registry)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed marshaling registry: %w", err)
 	}
 
 	r.Method = http.MethodPost
-
 	r.Body = ioutil.NopCloser(bytes.NewReader(newBody))
 	r.ContentLength = int64(len(newBody))
 

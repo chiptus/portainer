@@ -30,6 +30,7 @@ func (handler *Handler) helmRepoSearch(w http.ResponseWriter, r *http.Request) *
 	if repo == "" {
 		return httperror.BadRequest("Bad request", errors.New("missing `repo` query parameter"))
 	}
+
 	_, err := url.ParseRequestURI(repo)
 	if err != nil {
 		return httperror.BadRequest("Bad request", errors.Wrap(err, fmt.Sprintf("provided URL %q is not valid", repo)))
@@ -38,6 +39,7 @@ func (handler *Handler) helmRepoSearch(w http.ResponseWriter, r *http.Request) *
 	searchOpts := options.SearchRepoOptions{
 		Repo: repo,
 	}
+
 	result, err := handler.helmPackageManager.SearchRepo(searchOpts)
 	if err != nil {
 		return httperror.InternalServerError("Search failed", err)

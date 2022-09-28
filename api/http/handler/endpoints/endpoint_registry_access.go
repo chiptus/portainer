@@ -8,7 +8,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
-	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type registryAccessPayload struct {
@@ -49,8 +48,8 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 		return httperror.BadRequest("Invalid registry identifier route variable", err)
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == portainerDsErrors.ErrObjectNotFound {
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
@@ -61,7 +60,7 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 		return httperror.Forbidden("Permission denied to access environment", err)
 	}
 
-	isAdminOrEndpointAdmin, err := security.IsAdminOrEndpointAdmin(r, handler.dataStore, portaineree.EndpointID(endpointID))
+	isAdminOrEndpointAdmin, err := security.IsAdminOrEndpointAdmin(r, handler.DataStore, portaineree.EndpointID(endpointID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to check user role", err)
 	}
@@ -69,8 +68,8 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 		return httperror.Forbidden("User is not authorized", err)
 	}
 
-	registry, err := handler.dataStore.Registry().Registry(portaineree.RegistryID(registryID))
-	if err == portainerDsErrors.ErrObjectNotFound {
+	registry, err := handler.DataStore.Registry().Registry(portaineree.RegistryID(registryID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
@@ -106,7 +105,7 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 
 	registry.RegistryAccesses[portaineree.EndpointID(endpointID)] = registryAccess
 
-	handler.dataStore.Registry().UpdateRegistry(registry.ID, registry)
+	handler.DataStore.Registry().UpdateRegistry(registry.ID, registry)
 
 	return response.Empty(w)
 }

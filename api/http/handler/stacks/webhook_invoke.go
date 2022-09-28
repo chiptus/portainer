@@ -7,7 +7,6 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/stacks"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -33,12 +32,12 @@ func (handler *Handler) webhookInvoke(w http.ResponseWriter, r *http.Request) *h
 	}
 
 	stack, err := handler.DataStore.Stack().StackByWebhookID(webhookID.String())
-
 	if err != nil {
 		statusCode := http.StatusInternalServerError
-		if err == bolterrors.ErrObjectNotFound {
+		if handler.DataStore.IsErrObjectNotFound(err) {
 			statusCode = http.StatusNotFound
 		}
+
 		return &httperror.HandlerError{StatusCode: statusCode, Message: "Unable to find the stack by webhook ID", Err: err}
 	}
 

@@ -7,7 +7,6 @@ import (
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // @summary Execute a websocket on kubectl shell pod
@@ -31,8 +30,8 @@ func (handler *Handler) websocketShellPodExec(w http.ResponseWriter, r *http.Req
 		return httperror.BadRequest("Invalid query parameter: endpointId", err)
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == bolterrors.ErrObjectNotFound {
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find the environment associated to the stack inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find the environment associated to the stack inside the database", err)
@@ -53,7 +52,7 @@ func (handler *Handler) websocketShellPodExec(w http.ResponseWriter, r *http.Req
 		return httperror.InternalServerError("Unable to find serviceaccount associated with user", err)
 	}
 
-	settings, err := handler.dataStore.Settings().Settings()
+	settings, err := handler.DataStore.Settings().Settings()
 	if err != nil {
 		return httperror.InternalServerError("Unable read settings", err)
 	}

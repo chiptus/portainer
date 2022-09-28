@@ -58,17 +58,17 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 	sortField, _ := request.RetrieveQueryParameter(r, "sort", true)
 	sortOrder, _ := request.RetrieveQueryParameter(r, "order", true)
 
-	endpointGroups, err := handler.dataStore.EndpointGroup().EndpointGroups()
+	endpointGroups, err := handler.DataStore.EndpointGroup().EndpointGroups()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve environment groups from the database", err)
 	}
 
-	endpoints, err := handler.dataStore.Endpoint().Endpoints()
+	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve environments from the database", err)
 	}
 
-	settings, err := handler.dataStore.Settings().Settings()
+	settings, err := handler.DataStore.Settings().Settings()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve settings from the database", err)
 	}
@@ -159,7 +159,7 @@ func sortEndpointsByField(endpoints []portaineree.Endpoint, endpointGroups []por
 		if isSortDesc {
 			sort.Stable(sort.Reverse(endpointsByGroup))
 		} else {
-			sort.Stable(EndpointsByGroup(endpointsByGroup))
+			sort.Stable(endpointsByGroup)
 		}
 
 	case "Status":

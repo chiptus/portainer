@@ -3,10 +3,10 @@ package edgestacks
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_updateEndpointRelation_successfulRuns(t *testing.T) {

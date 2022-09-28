@@ -94,7 +94,7 @@ func TestGlobalKey(t *testing.T) {
 			t.Fatal("received invalid EndpointID:", p.EndpointID)
 		}
 
-		endpoint, err := handler.dataStore.Endpoint().Endpoint(p.EndpointID)
+		endpoint, err := handler.DataStore.Endpoint().Endpoint(p.EndpointID)
 		if err != nil {
 			t.Fatal("could not retrieve the created endpoint:", err)
 		}

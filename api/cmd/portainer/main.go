@@ -122,6 +122,7 @@ func initDataStore(flags *portaineree.CLIFlags, secretKey []byte, fileService po
 
 		log.Info().Msg("exiting rollback")
 		os.Exit(0)
+
 		return nil
 	}
 
@@ -199,16 +200,11 @@ func initAPIKeyService(datastore dataservices.DataStore) apikey.APIKeyService {
 	return apikey.NewAPIKeyService(datastore.APIKeyRepository(), datastore.User())
 }
 
-func initJWTService(dataStore dataservices.DataStore) (dataservices.JWTService, error) {
-	settings, err := dataStore.Settings().Settings()
-	if err != nil {
-		return nil, err
-	}
-
-	userSessionTimeout := settings.UserSessionTimeout
+func initJWTService(userSessionTimeout string, dataStore dataservices.DataStore) (dataservices.JWTService, error) {
 	if userSessionTimeout == "" {
 		userSessionTimeout = portaineree.DefaultUserSessionTimeout
 	}
+
 	jwtService, err := jwt.NewService(userSessionTimeout, dataStore)
 	if err != nil {
 		return nil, err
@@ -610,12 +606,12 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 
 	apiKeyService := initAPIKeyService(dataStore)
 
-	_, err = dataStore.Settings().Settings()
+	settings, err := dataStore.Settings().Settings()
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
 	}
 
-	jwtService, err := initJWTService(dataStore)
+	jwtService, err := initJWTService(settings.UserSessionTimeout, dataStore)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed initializing JWT service")
 	}

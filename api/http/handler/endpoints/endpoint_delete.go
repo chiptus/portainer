@@ -10,7 +10,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
-	"github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // @id EndpointDelete
@@ -36,8 +35,8 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		return httperror.Forbidden(httperrors.ErrNotAvailableInDemo.Error(), httperrors.ErrNotAvailableInDemo)
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == errors.ErrObjectNotFound {
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
@@ -51,7 +50,7 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
-	err = handler.dataStore.Endpoint().DeleteEndpoint(portaineree.EndpointID(endpointID))
+	err = handler.DataStore.Endpoint().DeleteEndpoint(portaineree.EndpointID(endpointID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to remove environment from the database", err)
 	}
@@ -65,26 +64,26 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
-	err = handler.dataStore.EndpointRelation().DeleteEndpointRelation(endpoint.ID)
+	err = handler.DataStore.EndpointRelation().DeleteEndpointRelation(endpoint.ID)
 	if err != nil {
 		return httperror.InternalServerError("Unable to remove environment relation from the database", err)
 	}
 
 	for _, tagID := range endpoint.TagIDs {
-		tag, err := handler.dataStore.Tag().Tag(tagID)
+		tag, err := handler.DataStore.Tag().Tag(tagID)
 		if err != nil {
 			return httperror.NotFound("Unable to find tag inside the database", err)
 		}
 
 		delete(tag.Endpoints, endpoint.ID)
 
-		err = handler.dataStore.Tag().UpdateTag(tagID, tag)
+		err = handler.DataStore.Tag().UpdateTag(tagID, tag)
 		if err != nil {
 			return httperror.InternalServerError("Unable to persist tag relation inside the database", err)
 		}
 	}
 
-	edgeGroups, err := handler.dataStore.EdgeGroup().EdgeGroups()
+	edgeGroups, err := handler.DataStore.EdgeGroup().EdgeGroups()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve edge groups from the database", err)
 	}
@@ -94,14 +93,14 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		endpointIdx := findEndpointIndex(edgeGroup.Endpoints, endpoint.ID)
 		if endpointIdx != -1 {
 			edgeGroup.Endpoints = removeElement(edgeGroup.Endpoints, endpointIdx)
-			err = handler.dataStore.EdgeGroup().UpdateEdgeGroup(edgeGroup.ID, edgeGroup)
+			err = handler.DataStore.EdgeGroup().UpdateEdgeGroup(edgeGroup.ID, edgeGroup)
 			if err != nil {
 				return httperror.InternalServerError("Unable to update edge group", err)
 			}
 		}
 	}
 
-	edgeStacks, err := handler.dataStore.EdgeStack().EdgeStacks()
+	edgeStacks, err := handler.DataStore.EdgeStack().EdgeStacks()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve edge stacks from the database", err)
 	}
@@ -110,14 +109,14 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		edgeStack := &edgeStacks[idx]
 		if _, ok := edgeStack.Status[endpoint.ID]; ok {
 			delete(edgeStack.Status, endpoint.ID)
-			err = handler.dataStore.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack)
+			err = handler.DataStore.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack)
 			if err != nil {
 				return httperror.InternalServerError("Unable to update edge stack", err)
 			}
 		}
 	}
 
-	registries, err := handler.dataStore.Registry().Registries()
+	registries, err := handler.DataStore.Registry().Registries()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve registries from the database", err)
 	}
@@ -126,7 +125,7 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		registry := &registries[idx]
 		if _, ok := registry.RegistryAccesses[endpoint.ID]; ok {
 			delete(registry.RegistryAccesses, endpoint.ID)
-			err = handler.dataStore.Registry().UpdateRegistry(registry.ID, registry)
+			err = handler.DataStore.Registry().UpdateRegistry(registry.ID, registry)
 			if err != nil {
 				return httperror.InternalServerError("Unable to update registry accesses", err)
 			}

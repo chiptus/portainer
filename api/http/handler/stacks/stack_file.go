@@ -11,7 +11,6 @@ import (
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/stackutils"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type stackFileResponse struct {
@@ -41,7 +40,7 @@ func (handler *Handler) stackFile(w http.ResponseWriter, r *http.Request) *httpe
 	}
 
 	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(stackID))
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
@@ -53,7 +52,7 @@ func (handler *Handler) stackFile(w http.ResponseWriter, r *http.Request) *httpe
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(stack.EndpointID)
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		if !securityContext.IsAdmin {
 			return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 		}

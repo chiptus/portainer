@@ -57,7 +57,7 @@ func (handler *Handler) webhookCreate(w http.ResponseWriter, r *http.Request) *h
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	webhook, err := handler.dataStore.Webhook().WebhookByResourceID(payload.ResourceID)
+	webhook, err := handler.DataStore.Webhook().WebhookByResourceID(payload.ResourceID)
 	if err != nil && err != bolterrors.ErrObjectNotFound {
 		return httperror.InternalServerError("An error occurred retrieving webhooks from the database", err)
 	}
@@ -67,8 +67,8 @@ func (handler *Handler) webhookCreate(w http.ResponseWriter, r *http.Request) *h
 
 	endpointID := portaineree.EndpointID(payload.EndpointID)
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(endpointID)
-	if err == bolterrors.ErrObjectNotFound {
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
@@ -89,7 +89,7 @@ func (handler *Handler) webhookCreate(w http.ResponseWriter, r *http.Request) *h
 			return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 		}
 
-		_, err = access.GetAccessibleRegistry(handler.dataStore, tokenData.ID, endpointID, payload.RegistryID)
+		_, err = access.GetAccessibleRegistry(handler.DataStore, tokenData.ID, endpointID, payload.RegistryID)
 		if err != nil {
 			return httperror.Forbidden("Permission deny to access registry", err)
 		}
@@ -108,7 +108,7 @@ func (handler *Handler) webhookCreate(w http.ResponseWriter, r *http.Request) *h
 		WebhookType: portaineree.WebhookType(payload.WebhookType),
 	}
 
-	err = handler.dataStore.Webhook().Create(webhook)
+	err = handler.DataStore.Webhook().Create(webhook)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist the webhook inside the database", err)
 	}

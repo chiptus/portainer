@@ -33,7 +33,7 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 
 	// Search for existing endpoints for the given edgeID
 
-	endpoints, err := handler.dataStore.Endpoint().Endpoints()
+	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve the endpoints from the database", err)
 	}
@@ -44,7 +44,7 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 		}
 	}
 
-	settings, err := handler.dataStore.Settings().Settings()
+	settings, err := handler.DataStore.Settings().Settings()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve the settings from the database", err)
 	}
@@ -69,7 +69,7 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 	endpoint.UserTrusted = settings.TrustOnFirstConnect
 	endpoint.EdgeID = edgeID
 
-	err = handler.dataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
+	err = handler.DataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist environment changes inside the database", err)
 	}
@@ -79,7 +79,7 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 		EdgeStacks: map[portaineree.EdgeStackID]bool{},
 	}
 
-	err = handler.dataStore.EndpointRelation().Create(relationObject)
+	err = handler.DataStore.EndpointRelation().Create(relationObject)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist the relation object inside the database", err)
 	}

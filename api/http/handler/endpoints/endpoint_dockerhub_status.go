@@ -55,7 +55,7 @@ func (handler *Handler) endpointDockerhubStatus(w http.ResponseWriter, r *http.R
 		Type: portaineree.DockerHubRegistry,
 	}
 	if registryID != 0 {
-		registry, err = handler.dataStore.Registry().Registry(portaineree.RegistryID(registryID))
+		registry, err = handler.DataStore.Registry().Registry(portaineree.RegistryID(registryID))
 		if err == portainerDsErrors.ErrObjectNotFound {
 			return httperror.NotFound("Unable to find a registry with the specified identifier inside the database", err)
 		} else if err != nil {
@@ -67,8 +67,8 @@ func (handler *Handler) endpointDockerhubStatus(w http.ResponseWriter, r *http.R
 		return httperror.BadRequest("Invalid registry type", errors.New("Invalid registry type"))
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == portainerDsErrors.ErrObjectNotFound {
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)

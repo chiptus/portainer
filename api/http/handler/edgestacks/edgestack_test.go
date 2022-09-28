@@ -12,8 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
-
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/apikey"
 	"github.com/portainer/portainer-ee/api/dataservices"
@@ -23,6 +21,8 @@ import (
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
 	"github.com/portainer/portainer/api/filesystem"
+
+	"github.com/pkg/errors"
 )
 
 type gitService struct {

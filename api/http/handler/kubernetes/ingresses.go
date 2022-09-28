@@ -197,7 +197,6 @@ func (handler *Handler) getKubernetesIngressControllersByNamespace(w http.Respon
 }
 
 func (handler *Handler) updateKubernetesIngressControllers(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
 		return httperror.BadRequest(

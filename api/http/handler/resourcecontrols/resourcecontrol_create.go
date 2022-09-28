@@ -75,7 +75,7 @@ func (handler *Handler) resourceControlCreate(w http.ResponseWriter, r *http.Req
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	rc, err := handler.dataStore.ResourceControl().ResourceControlByResourceIDAndType(payload.ResourceID, payload.Type)
+	rc, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(payload.ResourceID, payload.Type)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve resource controls from the database", err)
 	}
@@ -111,7 +111,7 @@ func (handler *Handler) resourceControlCreate(w http.ResponseWriter, r *http.Req
 		TeamAccesses:       teamAccesses,
 	}
 
-	err = handler.dataStore.ResourceControl().Create(&resourceControl)
+	err = handler.DataStore.ResourceControl().Create(&resourceControl)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist the resource control inside the database", err)
 	}

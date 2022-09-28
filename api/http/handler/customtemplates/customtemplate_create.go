@@ -52,7 +52,7 @@ func (handler *Handler) customTemplateCreate(w http.ResponseWriter, r *http.Requ
 
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
-		return httperror.InternalServerError("unable to retrieve user details from authentication token", err)
+		return httperror.InternalServerError("Unable to retrieve user details from authentication token", err)
 	}
 
 	customTemplate, err := handler.createCustomTemplate(method, tokenData.ID, r)

@@ -1,18 +1,16 @@
 package migrator
 
 import (
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudcredential"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudprovisioning"
-	"github.com/portainer/portainer-ee/api/dataservices/fdoprofile"
-	"github.com/portainer/portainer-ee/api/dataservices/podsecurity"
-	"github.com/rs/zerolog/log"
-
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices/dockerhub"
 	"github.com/portainer/portainer-ee/api/dataservices/endpoint"
 	"github.com/portainer/portainer-ee/api/dataservices/endpointgroup"
 	"github.com/portainer/portainer-ee/api/dataservices/endpointrelation"
 	"github.com/portainer/portainer-ee/api/dataservices/extension"
+	"github.com/portainer/portainer-ee/api/dataservices/fdoprofile"
+	"github.com/portainer/portainer-ee/api/dataservices/podsecurity"
 	"github.com/portainer/portainer-ee/api/dataservices/registry"
 	"github.com/portainer/portainer-ee/api/dataservices/resourcecontrol"
 	"github.com/portainer/portainer-ee/api/dataservices/role"
@@ -26,6 +24,8 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/version"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	portainer "github.com/portainer/portainer/api"
+
+	"github.com/rs/zerolog/log"
 )
 
 type (

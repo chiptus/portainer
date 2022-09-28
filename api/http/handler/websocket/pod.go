@@ -12,7 +12,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/http/security"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/gorilla/websocket"
 	"github.com/rs/zerolog/log"
@@ -64,8 +63,8 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 		return httperror.BadRequest("Invalid query parameter: command", err)
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == bolterrors.ErrObjectNotFound {
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find the environment associated to the stack inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find the environment associated to the stack inside the database", err)
@@ -118,14 +117,12 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 
 	if endpoint.Type == portaineree.AgentOnKubernetesEnvironment {
 		err := handler.proxyAgentWebsocketRequest(w, r, params)
-
 		if err != nil {
 			return httperror.InternalServerError("Unable to proxy websocket request to agent", err)
 		}
 
 		return nil
 	} else if endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
-
 		err := handler.proxyEdgeAgentWebsocketRequest(w, r, params)
 		if err != nil {
 			return httperror.InternalServerError("Unable to proxy websocket request to Edge agent", err)
@@ -199,7 +196,7 @@ func (handler *Handler) getToken(request *http.Request, endpoint *portaineree.En
 
 	tokenCache := handler.kubernetesTokenCacheManager.GetOrCreateTokenCache(int(endpoint.ID))
 
-	tokenManager, err := kubernetes.NewTokenManager(kubecli, handler.dataStore, tokenCache, setLocalAdminToken, handler.authorizationService)
+	tokenManager, err := kubernetes.NewTokenManager(kubecli, handler.DataStore, tokenCache, setLocalAdminToken, handler.authorizationService)
 	if err != nil {
 		return "", false, err
 	}

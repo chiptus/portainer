@@ -35,7 +35,7 @@ func (handler *Handler) webhookList(w http.ResponseWriter, r *http.Request) *htt
 		return httperror.BadRequest("Invalid query parameter: filters", err)
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(filters.EndpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(filters.EndpointID))
 	if err == portainerDsErrors.ErrObjectNotFound {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -50,7 +50,7 @@ func (handler *Handler) webhookList(w http.ResponseWriter, r *http.Request) *htt
 	if handlerErr != nil || !isAuthorized {
 		return response.JSON(w, []portaineree.Webhook{})
 	}
-	webhooks, err := handler.dataStore.Webhook().Webhooks()
+	webhooks, err := handler.DataStore.Webhook().Webhooks()
 	webhooks = filterWebhooks(webhooks, &filters)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve webhooks from the database", err)

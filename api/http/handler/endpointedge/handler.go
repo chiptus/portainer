@@ -3,9 +3,6 @@ package endpointedge
 import (
 	"net/http"
 
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
-
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
@@ -14,6 +11,9 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/license"
 	portainer "github.com/portainer/portainer/api"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 )
 
 // Handler is the HTTP handler used to handle edge environment(endpoint) operations.

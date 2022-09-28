@@ -20,6 +20,7 @@ type KubeClusterAccessService interface {
 	GetData(hostURL string, endpointId portaineree.EndpointID) kubernetesClusterAccessData
 }
 
+// KubernetesClusterAccess represents core details which can be used to generate KubeConfig file/data
 type kubernetesClusterAccessData struct {
 	ClusterServerURL         string `example:"https://mycompany.k8s.com"`
 	CertificateAuthorityFile string `example:"/data/tls/localhost.crt"`

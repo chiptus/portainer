@@ -8,6 +8,8 @@ import (
 )
 
 func (m *Migrator) migrateDBVersionToDB36() error {
+	log.Info().Msg("updating user authorizations")
+
 	return m.migrateUsersToDB36()
 }
 

@@ -9,7 +9,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
-	"github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // @id RegistryDelete
@@ -40,7 +39,7 @@ func (handler *Handler) registryDelete(w http.ResponseWriter, r *http.Request) *
 	}
 
 	_, err = handler.DataStore.Registry().Registry(portaineree.RegistryID(registryID))
-	if err == errors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a registry with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a registry with the specified identifier inside the database", err)

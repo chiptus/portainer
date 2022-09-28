@@ -12,7 +12,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	dockertypes "github.com/docker/docker/api/types"
 )
@@ -34,9 +33,9 @@ func (handler *Handler) webhookExecute(w http.ResponseWriter, r *http.Request) *
 		return httperror.InternalServerError("Invalid service id parameter", err)
 	}
 
-	webhook, err := handler.dataStore.Webhook().WebhookByToken(webhookToken)
+	webhook, err := handler.DataStore.Webhook().WebhookByToken(webhookToken)
 
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a webhook with this token", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to retrieve webhook from the database", err)
@@ -47,8 +46,8 @@ func (handler *Handler) webhookExecute(w http.ResponseWriter, r *http.Request) *
 	registryID := webhook.RegistryID
 	webhookType := webhook.WebhookType
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == bolterrors.ErrObjectNotFound {
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
@@ -105,13 +104,13 @@ func (handler *Handler) executeServiceWebhook(
 	}
 
 	if registryID != 0 {
-		registry, err := handler.dataStore.Registry().Registry(registryID)
+		registry, err := handler.DataStore.Registry().Registry(registryID)
 		if err != nil {
 			return httperror.InternalServerError("Error getting registry", err)
 		}
 
 		if registry.Authentication {
-			registryutils.EnsureRegTokenValid(handler.dataStore, registry)
+			registryutils.EnsureRegTokenValid(handler.DataStore, registry)
 			serviceUpdateOptions.EncodedRegistryAuth, err = registryutils.GetRegistryAuthHeader(registry)
 			if err != nil {
 				return httperror.InternalServerError("Error getting registry auth header", err)
@@ -141,7 +140,7 @@ func (handler *Handler) executeContainerWebhook(w http.ResponseWriter, endpoint 
 		return httperror.InternalServerError("Error updating service", err)
 	}
 	webhook.ResourceID = newContainer.ID
-	err = handler.dataStore.Webhook().UpdateWebhook(webhook.ID, webhook)
+	err = handler.DataStore.Webhook().UpdateWebhook(webhook.ID, webhook)
 	if err != nil {
 		return httperror.InternalServerError("Error updating webhook", err)
 	}

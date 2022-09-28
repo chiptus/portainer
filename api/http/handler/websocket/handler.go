@@ -18,7 +18,7 @@ import (
 // Handler is the HTTP handler used to handle websocket operations.
 type Handler struct {
 	*mux.Router
-	dataStore                   dataservices.DataStore
+	DataStore                   dataservices.DataStore
 	SignatureService            portaineree.DigitalSignatureService
 	ReverseTunnelService        portaineree.ReverseTunnelService
 	KubernetesClientFactory     *cli.ClientFactory
@@ -38,7 +38,7 @@ func NewHandler(kubernetesTokenCacheManager *kubernetes.TokenCacheManager, bounc
 		authorizationService:        authorizationService,
 		kubernetesTokenCacheManager: kubernetesTokenCacheManager,
 		userActivityService:         userActivityService,
-		dataStore:                   dataStore,
+		DataStore:                   dataStore,
 	}
 
 	activityLogging := useractivity.LogUserActivityWithContext(h.userActivityService, middlewares.FindInQuery(dataStore.Endpoint(), "endpointId"))

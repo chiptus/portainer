@@ -1,8 +1,6 @@
 package edge
 
-import (
-	portaineree "github.com/portainer/portainer-ee/api"
-)
+import portaineree "github.com/portainer/portainer-ee/api"
 
 // EndpointRelatedEdgeStacks returns a list of Edge stacks related to this Environment(Endpoint)
 func EndpointRelatedEdgeStacks(endpoint *portaineree.Endpoint, endpointGroup *portaineree.EndpointGroup, edgeGroups []portaineree.EdgeGroup, edgeStacks []portaineree.EdgeStack) []portaineree.EdgeStackID {

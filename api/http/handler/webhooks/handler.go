@@ -18,7 +18,7 @@ import (
 type Handler struct {
 	*mux.Router
 	requestBouncer      *security.RequestBouncer
-	dataStore           dataservices.DataStore
+	DataStore           dataservices.DataStore
 	DockerClientFactory *docker.ClientFactory
 	userActivityService portaineree.UserActivityService
 	containerService    *docker.ContainerService
@@ -30,7 +30,7 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		userActivityService: userActivityService,
-		dataStore:           dataStore,
+		DataStore:           dataStore,
 		requestBouncer:      bouncer,
 		containerService:    containerService,
 	}
@@ -55,7 +55,7 @@ func (handler *Handler) checkResourceAccess(r *http.Request, resourceID string, 
 		return httperror.InternalServerError("Unable to retrieve user info from request context", err)
 	}
 	// non-admins
-	rc, err := handler.dataStore.ResourceControl().ResourceControlByResourceIDAndType(resourceID, resourceControlType)
+	rc, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(resourceID, resourceControlType)
 	if rc == nil || err != nil {
 		return httperror.InternalServerError("Unable to retrieve a resource control associated to the resource", err)
 	}
@@ -81,7 +81,7 @@ func (handler *Handler) checkAuthorization(r *http.Request, endpoint *portainere
 		return false, httperror.InternalServerError("Unable to retrieve user info from request context", err)
 	}
 
-	authService := authorization.NewService(handler.dataStore)
+	authService := authorization.NewService(handler.DataStore)
 	isAdminOrAuthorized, err := authService.UserIsAdminOrAuthorized(securityContext.UserID, endpoint.ID, authorizations)
 	if err != nil {
 		return false, httperror.InternalServerError("Unable to get user authorizations", err)

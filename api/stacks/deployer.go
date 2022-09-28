@@ -50,6 +50,7 @@ func (d *stackDeployer) DeployComposeStack(stack *portaineree.Stack, endpoint *p
 
 	d.swarmStackManager.Login(registries, endpoint)
 	defer d.swarmStackManager.Logout(endpoint)
+
 	// --force-recreate doesn't pull updated images
 	if forcePullImage {
 		err := d.composeStackManager.Pull(context.TODO(), stack, endpoint)
@@ -57,6 +58,7 @@ func (d *stackDeployer) DeployComposeStack(stack *portaineree.Stack, endpoint *p
 			return err
 		}
 	}
+
 	err := d.composeStackManager.Up(context.TODO(), stack, endpoint, forceRereate)
 	if err != nil {
 		d.composeStackManager.Down(context.TODO(), stack, endpoint)

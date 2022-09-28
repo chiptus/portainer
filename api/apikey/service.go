@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+
+	"github.com/pkg/errors"
 )
 
 const portainerAPIKeyPrefix = "ptr_"

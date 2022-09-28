@@ -78,7 +78,7 @@ func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Re
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err == errors.ErrObjectNotFound {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -140,7 +140,7 @@ func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Re
 		endpoint.DisableImageNotification = *payload.DisableImageNotification
 	}
 
-	err = handler.dataStore.Endpoint().UpdateEndpoint(portaineree.EndpointID(endpointID), endpoint)
+	err = handler.DataStore.Endpoint().UpdateEndpoint(portaineree.EndpointID(endpointID), endpoint)
 	if err != nil {
 		return httperror.InternalServerError("Failed persisting environment in database", err)
 	}

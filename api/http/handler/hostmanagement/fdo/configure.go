@@ -11,7 +11,6 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/fxamacker/cbor/v2"
 	"github.com/rs/zerolog/log"
@@ -79,7 +78,7 @@ func (handler *Handler) fdoConfigureDevice(w http.ResponseWriter, r *http.Reques
 	}
 
 	profile, err := handler.DataStore.FDOProfile().FDOProfile(portaineree.FDOProfileID(payload.ProfileID))
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a FDO Profile with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a FDO Profile with the specified identifier inside the database", err)

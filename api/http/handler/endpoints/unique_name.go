@@ -3,7 +3,7 @@ package endpoints
 import portaineree "github.com/portainer/portainer-ee/api"
 
 func (handler *Handler) isNameUnique(name string, endpointID portaineree.EndpointID) (bool, error) {
-	endpoints, err := handler.dataStore.Endpoint().Endpoints()
+	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
 		return false, err
 	}

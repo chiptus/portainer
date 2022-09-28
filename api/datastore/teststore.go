@@ -3,12 +3,12 @@ package datastore
 import (
 	"testing"
 
-	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 

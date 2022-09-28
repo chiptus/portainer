@@ -78,7 +78,7 @@ func (handler *Handler) authenticate(rw http.ResponseWriter, r *http.Request) (*
 		return resp, httperror.InternalServerError("Unable to retrieve a user with the specified username from the database", err)
 	}
 
-	if err == bolterrors.ErrObjectNotFound &&
+	if handler.DataStore.IsErrObjectNotFound(err) &&
 		(settings.AuthenticationMethod == portaineree.AuthenticationInternal ||
 			settings.AuthenticationMethod == portaineree.AuthenticationOAuth ||
 			(settings.AuthenticationMethod == portaineree.AuthenticationLDAP && !settings.LDAPSettings.AutoCreateUsers)) {
@@ -276,7 +276,6 @@ func (handler *Handler) addUserIntoTeams(user *portaineree.User, settings *porta
 
 			err := handler.DataStore.TeamMembership().Create(membership)
 			if err != nil {
-
 				return err
 			}
 		}

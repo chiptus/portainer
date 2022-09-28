@@ -10,7 +10,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/proxy"
-	"github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/dchest/uniuri"
 	chserver "github.com/jpillora/chisel/server"
@@ -160,7 +159,7 @@ func (service *Service) retrievePrivateKeySeed() (string, error) {
 	var serverInfo *portaineree.TunnelServerInfo
 
 	serverInfo, err := service.dataStore.TunnelServer().Info()
-	if err == errors.ErrObjectNotFound {
+	if service.dataStore.IsErrObjectNotFound(err) {
 		keySeed := uniuri.NewLen(16)
 
 		serverInfo = &portaineree.TunnelServerInfo{

@@ -23,7 +23,6 @@ import (
 	"github.com/portainer/portainer-ee/api/scheduler"
 	"github.com/portainer/portainer-ee/api/stacks"
 	portainer "github.com/portainer/portainer/api"
-	dberrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 var (
@@ -241,7 +240,7 @@ func (handler *Handler) checkUniqueStackNameInDocker(endpoint *portaineree.Endpo
 
 func (handler *Handler) isUniqueWebhookID(webhookID string) (bool, error) {
 	_, err := handler.DataStore.Stack().StackByWebhookID(webhookID)
-	if err == dberrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return true, nil
 	}
 	return false, err

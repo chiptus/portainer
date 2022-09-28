@@ -373,7 +373,7 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		return endpointCreationError
 	}
 
-	edgeStacks, err := handler.dataStore.EdgeStack().EdgeStacks()
+	edgeStacks, err := handler.DataStore.EdgeStack().EdgeStacks()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve edge stacks from the database", err)
 	}
@@ -384,12 +384,12 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 	}
 
 	if endpointutils.IsEdgeEndpoint(endpoint) {
-		endpointGroup, err := handler.dataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
+		endpointGroup, err := handler.DataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
 		if err != nil {
 			return httperror.InternalServerError("Unable to find an environment group inside the database", err)
 		}
 
-		edgeGroups, err := handler.dataStore.EdgeGroup().EdgeGroups()
+		edgeGroups, err := handler.DataStore.EdgeGroup().EdgeGroups()
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve edge groups from the database", err)
 		}
@@ -405,7 +405,7 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
-	err = handler.dataStore.EndpointRelation().Create(relationObject)
+	err = handler.DataStore.EndpointRelation().Create(relationObject)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist the relation object inside the database", err)
 	}
@@ -477,7 +477,7 @@ func (handler *Handler) createAzureEndpoint(payload *endpointCreatePayload) (*po
 		return nil, httperror.InternalServerError("Unable to authenticate against Azure", err)
 	}
 
-	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
+	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
 	endpoint := &portaineree.Endpoint{
 		ID:                 portaineree.EndpointID(endpointID),
 		Name:               payload.Name,
@@ -508,7 +508,7 @@ func (handler *Handler) createAzureEndpoint(payload *endpointCreatePayload) (*po
 }
 
 func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
-	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
+	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
 
 	portainerHost, err := edge.ParseHostForEdge(payload.URL)
 	if err != nil {
@@ -544,7 +544,7 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 		},
 	}
 
-	settings, err := handler.dataStore.Settings().Settings()
+	settings, err := handler.DataStore.Settings().Settings()
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to retrieve the settings from the database", err)
 	}
@@ -583,7 +583,7 @@ func (handler *Handler) createUnsecuredEndpoint(payload *endpointCreatePayload) 
 		}
 	}
 
-	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
+	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
 	endpoint := &portaineree.Endpoint{
 		ID:        portaineree.EndpointID(endpointID),
 		Name:      payload.Name,
@@ -620,7 +620,7 @@ func (handler *Handler) createKubernetesEndpoint(payload *endpointCreatePayload)
 		payload.URL = "https://kubernetes.default.svc"
 	}
 
-	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
+	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
 
 	endpoint := &portaineree.Endpoint{
 		ID:        portaineree.EndpointID(endpointID),
@@ -667,12 +667,12 @@ func (handler *Handler) createKubeConfigEndpoint(payload *endpointCreatePayload)
 			"kubeconfig": payload.KubeConfig,
 		},
 	}
-	err := handler.dataStore.CloudCredential().Create(&credentials)
+	err := handler.DataStore.CloudCredential().Create(&credentials)
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to create kubeconfig environment", err)
 	}
 
-	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
+	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
 	endpoint := &portaineree.Endpoint{
 		ID:      portaineree.EndpointID(endpointID),
 		Name:    payload.Name,
@@ -720,7 +720,7 @@ func (handler *Handler) createKubeConfigEndpoint(payload *endpointCreatePayload)
 }
 
 func (handler *Handler) createTLSSecuredEndpoint(payload *endpointCreatePayload, endpointType portaineree.EndpointType, agentVersion string) (*portaineree.Endpoint, *httperror.HandlerError) {
-	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
+	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
 	endpoint := &portaineree.Endpoint{
 		ID:        portaineree.EndpointID(endpointID),
 		Name:      payload.Name,
@@ -792,12 +792,12 @@ func (handler *Handler) saveEndpointAndUpdateAuthorizations(endpoint *portainere
 		AllowStackManagementForRegularUsers:       true,
 	}
 
-	err := handler.dataStore.Endpoint().Create(endpoint)
+	err := handler.DataStore.Endpoint().Create(endpoint)
 	if err != nil {
 		return err
 	}
 
-	group, err := handler.dataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
+	group, err := handler.DataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
 	if err != nil {
 		return err
 	}
@@ -810,14 +810,14 @@ func (handler *Handler) saveEndpointAndUpdateAuthorizations(endpoint *portainere
 	}
 
 	for _, tagID := range endpoint.TagIDs {
-		tag, err := handler.dataStore.Tag().Tag(tagID)
+		tag, err := handler.DataStore.Tag().Tag(tagID)
 		if err != nil {
 			return err
 		}
 
 		tag.Endpoints[endpoint.ID] = true
 
-		err = handler.dataStore.Tag().UpdateTag(tagID, tag)
+		err = handler.DataStore.Tag().UpdateTag(tagID, tag)
 		if err != nil {
 			return err
 		}

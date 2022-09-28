@@ -57,7 +57,7 @@ func (*Service) ParseFlags(version string) (*portaineree.CLIFlags, error) {
 		SSLKey:                    kingpin.Flag("sslkey", "Path to the SSL key used to secure the Portainer instance").String(),
 		SSLCACert:                 kingpin.Flag("sslcacert", "Path to the SSL CA certificate used to validate the edge agent cert").String(),
 		SnapshotInterval:          kingpin.Flag("snapshot-interval", "Duration between each environment snapshot job").String(),
-		AdminPassword:             kingpin.Flag("admin-password", "Hashed admin password").String(),
+		AdminPassword:             kingpin.Flag("admin-password", "Set admin password with provided hash").String(),
 		AdminPasswordFile:         kingpin.Flag("admin-password-file", "Path to the file containing the password for the admin user").String(),
 		Labels:                    pairs(kingpin.Flag("hide-label", "Hide containers with a specific label in the UI").Short('l')),
 		Logo:                      kingpin.Flag("logo", "URL for the logo displayed in the UI").String(),

@@ -73,8 +73,8 @@ func NewHandler(bouncer requestBouncer, dataStore dataservices.DataStore, jwtSer
 func NewTemplateHandler(bouncer requestBouncer, helmPackageManager libhelm.HelmPackageManager) *Handler {
 	h := &Handler{
 		Router:             mux.NewRouter(),
-		requestBouncer:     bouncer,
 		helmPackageManager: helmPackageManager,
+		requestBouncer:     bouncer,
 	}
 
 	h.Handle("/templates/helm",

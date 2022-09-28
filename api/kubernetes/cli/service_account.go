@@ -111,6 +111,7 @@ func (kcl *KubeClient) createUserServiceAccount(namespace, serviceAccountName st
 			Name: serviceAccountName,
 		},
 	}
+
 	_, err := kcl.cli.CoreV1().ServiceAccounts(namespace).Create(context.TODO(), serviceAccount, metav1.CreateOptions{})
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err

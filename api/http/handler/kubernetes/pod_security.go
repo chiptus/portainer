@@ -16,7 +16,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/kubernetes/podsecurity"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 	"github.com/portainer/portainer/api/filesystem"
 
 	"github.com/pkg/errors"
@@ -43,7 +42,7 @@ func (handler *Handler) getK8sPodSecurityRule(w http.ResponseWriter, r *http.Req
 		return httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 	securityRule, err := handler.DataStore.PodSecurity().PodSecurityByEndpointID(int(endpointID))
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		securityRule := &podsecurity.PodSecurityRule{}
 
 		securityRule.Users = podsecurity.PodSecurityUsers{}
@@ -140,7 +139,7 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 	requestRule.EndpointID = endpointID
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
@@ -167,7 +166,7 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 
 	isNewPodSecurity := false
 	existedRule, err := handler.DataStore.PodSecurity().PodSecurityByEndpointID(endpointID)
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		isNewPodSecurity = true
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a pod security rule with the specified identifier inside the database", err)

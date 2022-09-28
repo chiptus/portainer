@@ -45,14 +45,12 @@ func (handler *Handler) helmList(w http.ResponseWriter, r *http.Request) *httper
 	}
 
 	// optional filter
-	filter, _ := request.RetrieveQueryParameter(r, "filter", true)
-	if filter != "" {
+	if filter, _ := request.RetrieveQueryParameter(r, "filter", true); filter != "" {
 		listOpts.Filter = filter
 	}
 
 	// optional selector
-	selector, _ := request.RetrieveQueryParameter(r, "selector", true)
-	if selector != "" {
+	if selector, _ := request.RetrieveQueryParameter(r, "selector", true); selector != "" {
 		listOpts.Selector = selector
 	}
 

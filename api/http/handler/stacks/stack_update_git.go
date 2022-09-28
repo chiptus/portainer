@@ -13,7 +13,6 @@ import (
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/stackutils"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 	gittypes "github.com/portainer/portainer/api/git/types"
 )
 
@@ -54,7 +53,6 @@ func (payload *stackGitUpdatePayload) Validate(r *http.Request) error {
 // @failure 500 "Server error"
 // @router /stacks/{id}/git [post]
 func (handler *Handler) stackUpdateGit(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-
 	stackID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
 		return httperror.BadRequest("Invalid stack identifier route variable", err)
@@ -67,7 +65,7 @@ func (handler *Handler) stackUpdateGit(w http.ResponseWriter, r *http.Request) *
 	}
 
 	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(stackID))
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
@@ -88,7 +86,7 @@ func (handler *Handler) stackUpdateGit(w http.ResponseWriter, r *http.Request) *
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(stack.EndpointID)
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find the environment associated to the stack inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find the environment associated to the stack inside the database", err)
@@ -208,6 +206,7 @@ func (handler *Handler) stackUpdateGit(w http.ResponseWriter, r *http.Request) *
 
 		stack.AutoUpdate.JobID = jobID
 	}
+
 	//save the updated stack to DB
 	err = handler.DataStore.Stack().UpdateStack(stack.ID, stack)
 	if err != nil {

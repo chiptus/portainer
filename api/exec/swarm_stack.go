@@ -96,6 +96,7 @@ func (manager *SwarmStackManager) Deploy(stack *portaineree.Stack, prune bool, p
 	if err != nil {
 		return err
 	}
+
 	if prune {
 		args = append(args, "stack", "deploy", "--prune", "--with-registry-auth")
 	} else {

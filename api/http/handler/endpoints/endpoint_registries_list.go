@@ -10,7 +10,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
-	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // @id endpointRegistriesList
@@ -32,7 +31,7 @@ func (handler *Handler) endpointRegistriesList(w http.ResponseWriter, r *http.Re
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	user, err := handler.dataStore.User().User(securityContext.UserID)
+	user, err := handler.DataStore.User().User(securityContext.UserID)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve user from the database", err)
 	}
@@ -42,19 +41,19 @@ func (handler *Handler) endpointRegistriesList(w http.ResponseWriter, r *http.Re
 		return httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == portainerDsErrors.ErrObjectNotFound {
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
 	}
 
-	isAdminOrEndpointAdmin, err := security.IsAdminOrEndpointAdmin(r, handler.dataStore, endpoint.ID)
+	isAdminOrEndpointAdmin, err := security.IsAdminOrEndpointAdmin(r, handler.DataStore, endpoint.ID)
 	if err != nil {
 		return httperror.InternalServerError("Unable to check user role", err)
 	}
 
-	registries, err := handler.dataStore.Registry().Registries()
+	registries, err := handler.DataStore.Registry().Registries()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve registries from the database", err)
 	}
@@ -81,7 +80,7 @@ func (handler *Handler) filterRegistriesByAccess(r *http.Request, registries []p
 
 func (handler *Handler) filterKubernetesEndpointRegistries(r *http.Request, registries []portaineree.Registry, endpoint *portaineree.Endpoint, user *portaineree.User, memberships []portaineree.TeamMembership) ([]portaineree.Registry, *httperror.HandlerError) {
 	namespaceParam, _ := request.RetrieveQueryParameter(r, "namespace", true)
-	isAdminOrEndpointAdmin, err := security.IsAdminOrEndpointAdmin(r, handler.dataStore, endpoint.ID)
+	isAdminOrEndpointAdmin, err := security.IsAdminOrEndpointAdmin(r, handler.DataStore, endpoint.ID)
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to check user role", err)
 	}

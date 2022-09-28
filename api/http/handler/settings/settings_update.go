@@ -176,6 +176,7 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 					return httperror.BadRequest("Invalid Helm repository URL. Must correspond to a valid URL format", err)
 				}
 			}
+
 			settings.HelmRepositoryURL = newHelmRepo
 		} else {
 			settings.HelmRepositoryURL = ""

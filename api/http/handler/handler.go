@@ -72,13 +72,13 @@ type Handler struct {
 	LDAPHandler               *ldap.Handler
 	MOTDHandler               *motd.Handler
 	LicenseHandler            *licenses.Handler
-	OpenAMTHandler            *openamt.Handler
-	FDOHandler                *fdo.Handler
 	RegistryHandler           *registries.Handler
 	ResourceControlHandler    *resourcecontrols.Handler
 	RoleHandler               *roles.Handler
 	SettingsHandler           *settings.Handler
 	SSLHandler                *ssl.Handler
+	OpenAMTHandler            *openamt.Handler
+	FDOHandler                *fdo.Handler
 	StackHandler              *stacks.Handler
 	StatusHandler             *status.Handler
 	StorybookHandler          *storybook.Handler

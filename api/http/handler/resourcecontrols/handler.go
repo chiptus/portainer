@@ -15,7 +15,7 @@ import (
 // Handler is the HTTP handler used to handle resource control operations.
 type Handler struct {
 	*mux.Router
-	dataStore           dataservices.DataStore
+	DataStore           dataservices.DataStore
 	userActivityService portaineree.UserActivityService
 }
 
@@ -23,7 +23,7 @@ type Handler struct {
 func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
-		dataStore:           dataStore,
+		DataStore:           dataStore,
 		userActivityService: userActivityService,
 	}
 

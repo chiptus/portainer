@@ -21,7 +21,7 @@ func (m *Migrator) migratePasswordLengthSettings() error {
 
 	s, err := m.settingsService.Settings()
 	if err != nil {
-		return errors.Wrap(err, "while fetching settings from database")
+		return errors.Wrap(err, "unable to retrieve settings")
 	}
 
 	s.InternalAuthSettings.RequiredPasswordLength = 12

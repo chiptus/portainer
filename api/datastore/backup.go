@@ -172,6 +172,7 @@ func (store *Store) backupWithOptions(options *BackupOptions) (string, error) {
 			err,
 		)
 	}
+
 	return options.BackupPath, nil
 }
 
@@ -203,8 +204,7 @@ func (store *Store) restoreWithOptions(options *BackupOptions) error {
 	}
 
 	log.Info().Msg("restoring DB backup")
-	path := store.databasePath()
-	err = store.copyDBFile(options.BackupPath, path)
+	err = store.copyDBFile(options.BackupPath, store.databasePath())
 	if err != nil {
 		return err
 	}

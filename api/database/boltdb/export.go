@@ -34,7 +34,7 @@ func backupMetadata(connection *bolt.DB) (map[string]interface{}, error) {
 func (c *DbConnection) ExportJSON(databasePath string, metadata bool) ([]byte, error) {
 	log.Debug().Str("databasePath", databasePath).Msg("exportJson")
 
-	connection, err := bolt.Open(databasePath, 0o600, &bolt.Options{Timeout: 1 * time.Second, ReadOnly: true})
+	connection, err := bolt.Open(databasePath, 0600, &bolt.Options{Timeout: 1 * time.Second, ReadOnly: true})
 	if err != nil {
 		return []byte("{}"), err
 	}

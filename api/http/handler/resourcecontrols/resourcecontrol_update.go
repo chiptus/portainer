@@ -10,7 +10,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type resourceControlUpdatePayload struct {
@@ -64,8 +63,8 @@ func (handler *Handler) resourceControlUpdate(w http.ResponseWriter, r *http.Req
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	resourceControl, err := handler.dataStore.ResourceControl().ResourceControl(portaineree.ResourceControlID(resourceControlID))
-	if err == bolterrors.ErrObjectNotFound {
+	resourceControl, err := handler.DataStore.ResourceControl().ResourceControl(portaineree.ResourceControlID(resourceControlID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a resource control with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a resource control with with the specified identifier inside the database", err)
@@ -107,7 +106,7 @@ func (handler *Handler) resourceControlUpdate(w http.ResponseWriter, r *http.Req
 		return httperror.Forbidden("Permission denied to update the resource control", httperrors.ErrResourceAccessDenied)
 	}
 
-	err = handler.dataStore.ResourceControl().UpdateResourceControl(resourceControl.ID, resourceControl)
+	err = handler.DataStore.ResourceControl().UpdateResourceControl(resourceControl.ID, resourceControl)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist resource control changes inside the database", err)
 	}

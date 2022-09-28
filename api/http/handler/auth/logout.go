@@ -30,5 +30,4 @@ func (handler *Handler) logout(w http.ResponseWriter, r *http.Request) (*authMid
 	handler.KubernetesTokenCacheManager.RemoveUserFromCache(int(tokenData.ID))
 
 	return resp, response.Empty(w)
-
 }

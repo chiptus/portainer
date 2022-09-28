@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 
@@ -76,11 +75,7 @@ var endpointTestCases = []endpointTestCase{
 }
 
 func setupHandler(t *testing.T) (*Handler, func(), error) {
-	tmpDir, err := os.MkdirTemp(t.TempDir(), "portainer-test")
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not create a tmp dir: %w", err)
-	}
-
+	tmpDir := t.TempDir()
 	fs, err := filesystem.NewService(tmpDir, "")
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not start a new filesystem service: %w", err)

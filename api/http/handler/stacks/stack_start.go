@@ -15,7 +15,6 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // @id StackStart
@@ -44,7 +43,7 @@ func (handler *Handler) stackStart(w http.ResponseWriter, r *http.Request) *http
 	}
 
 	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(stackID))
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
@@ -55,7 +54,7 @@ func (handler *Handler) stackStart(w http.ResponseWriter, r *http.Request) *http
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(stack.EndpointID)
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an endpoint with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an endpoint with the specified identifier inside the database", err)

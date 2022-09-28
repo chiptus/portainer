@@ -12,7 +12,6 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 	"github.com/portainer/portainer/api/hostmanagement/openamt"
 
 	"github.com/docker/docker/api/types"
@@ -62,7 +61,7 @@ func (handler *Handler) openAMTHostInfo(w http.ResponseWriter, r *http.Request) 
 	log.Info().Int("endpointID", endpointID).Msg("OpenAMTHostInfo")
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == bolterrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an endpoint with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an endpoint with the specified identifier inside the database", err)
@@ -313,6 +312,7 @@ func (handler *Handler) deactivateDevice(endpoint *portaineree.Endpoint, setting
 		"-u", fmt.Sprintf("wss://%s/activate", config.MPSServer),
 		"-password", config.MPSPassword,
 	}
+
 	_, err := handler.PullAndRunContainer(ctx, endpoint, rpcGoImageName, rpcGoContainerName, cmdLine)
 	if err != nil {
 		return err
