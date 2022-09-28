@@ -135,7 +135,7 @@ func (service *Service) GetNextIdentifier() int {
 
 // CreateStack creates a new stack.
 func (service *Service) Create(stack *portaineree.Stack) error {
-	return service.connection.CreateObjectWithSetSequence(BucketName, int(stack.ID), stack)
+	return service.connection.CreateObjectWithId(BucketName, int(stack.ID), stack)
 }
 
 // UpdateStack updates a stack.

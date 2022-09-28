@@ -84,7 +84,7 @@ func (service *Service) Endpoints() ([]portaineree.Endpoint, error) {
 
 // CreateEndpoint assign an ID to a new environment(endpoint) and saves it.
 func (service *Service) Create(endpoint *portaineree.Endpoint) error {
-	return service.connection.CreateObjectWithSetSequence(BucketName, int(endpoint.ID), endpoint)
+	return service.connection.CreateObjectWithId(BucketName, int(endpoint.ID), endpoint)
 }
 
 // GetNextIdentifier returns the next identifier for an environment(endpoint).

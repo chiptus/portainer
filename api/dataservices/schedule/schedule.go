@@ -109,7 +109,7 @@ func (service *Service) SchedulesByJobType(jobType portaineree.JobType) ([]porta
 
 // Create assign an ID to a new schedule and saves it.
 func (service *Service) CreateSchedule(schedule *portaineree.Schedule) error {
-	return service.connection.CreateObjectWithSetSequence(BucketName, int(schedule.ID), schedule)
+	return service.connection.CreateObjectWithId(BucketName, int(schedule.ID), schedule)
 }
 
 // GetNextIdentifier returns the next identifier for a schedule.
