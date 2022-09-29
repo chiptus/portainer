@@ -8,6 +8,7 @@ import {
   useTable,
 } from 'react-table';
 import { useRowSelectColumn } from '@lineup-lite/hooks';
+import { Box } from 'react-feather';
 
 import { Job } from '@/nomad/types';
 import { useDebounce } from '@/portainer/hooks/useDebounce';
@@ -104,7 +105,8 @@ export function JobsDatatable({
 
   return (
     <TableContainer>
-      <TableTitle icon="fa-cubes" label="Nomad Jobs">
+      <TableTitle icon={Box} label="Nomad Jobs">
+        <SearchBar value={searchBarValue} onChange={handleSearchBarChange} />
         <TableTitleActions>
           <TableSettingsMenu>
             <JobsDatatableSettings />
@@ -113,8 +115,6 @@ export function JobsDatatable({
       </TableTitle>
 
       <TableActions />
-
-      <SearchBar value={searchBarValue} onChange={handleSearchBarChange} />
 
       <Table
         className={tableProps.className}

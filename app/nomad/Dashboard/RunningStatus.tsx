@@ -1,3 +1,5 @@
+import { Stat } from '@/portainer/home/EnvironmentList/EnvironmentItem/EnvironmentStatsItem';
+
 interface Props {
   running: number;
   stopped: number;
@@ -7,18 +9,20 @@ export function RunningStatus({ running, stopped }: Props) {
   return (
     <div>
       <div>
-        <i
-          className="fa fa-power-off green-icon space-right"
-          aria-hidden="true"
+        <Stat
+          value={`${running || '-'} running`}
+          icon="power"
+          featherIcon
+          iconClass="icon-success"
         />
-        {`${running || '-'} running`}
       </div>
       <div>
-        <i
-          className="fa fa-power-off red-icon space-right"
-          aria-hidden="true"
+        <Stat
+          value={`${stopped || '-'} stopped`}
+          icon="power"
+          featherIcon
+          iconClass="icon-danger"
         />
-        {`${stopped || '-'} stopped`}
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import {
   useSortBy,
   useTable,
 } from 'react-table';
+import { Box } from 'react-feather';
 
 import { NomadEvent } from '@/nomad/types';
 import { useDebounce } from '@/portainer/hooks/useDebounce';
@@ -81,9 +82,9 @@ export function EventsDatatable({ data, isLoading }: EventsDatatableProps) {
 
   return (
     <TableContainer>
-      <TableTitle icon="fa-history" label="Events" />
-
-      <SearchBar value={searchBarValue} onChange={handleSearchBarChange} />
+      <TableTitle icon={Box} label="Events">
+        <SearchBar value={searchBarValue} onChange={handleSearchBarChange} />
+      </TableTitle>
 
       <Table
         className={tableProps.className}

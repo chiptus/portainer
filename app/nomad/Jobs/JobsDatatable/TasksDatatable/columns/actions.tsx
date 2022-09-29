@@ -1,4 +1,5 @@
 import { CellProps, Column } from 'react-table';
+import { Clock, FileText } from 'react-feather';
 
 import { Task } from '@/nomad/types';
 
@@ -25,7 +26,7 @@ export function ActionsCell({ row }: CellProps<Task>) {
   };
 
   return (
-    <div className="text-center">
+    <div className="text-center vertical-center">
       {/* events */}
       <Link
         to="nomad.events"
@@ -33,12 +34,12 @@ export function ActionsCell({ row }: CellProps<Task>) {
         title="Events"
         className="space-right"
       >
-        <i className="fa fa-history space-right" aria-hidden="true" />
+        <Clock className="feather space-right" />
       </Link>
 
       {/* logs */}
       <Link to="nomad.logs" params={params} title="Logs">
-        <i className="fa fa-file-alt space-right" aria-hidden="true" />
+        <FileText className="feather space-right" />
       </Link>
     </div>
   );
