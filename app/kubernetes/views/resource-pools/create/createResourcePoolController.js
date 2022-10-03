@@ -110,7 +110,7 @@ class KubernetesCreateResourcePoolController {
         const owner = this.Authentication.getUserDetails().username;
         this.formValues.Owner = owner;
         await this.KubernetesResourcePoolService.create(this.formValues);
-        await updateIngressControllerClassMap(this.endpoint.Id, this.ingressControllers, this.formValues.Name);
+        await updateIngressControllerClassMap(this.endpoint.Id, this.ingressControllers || [], this.formValues.Name);
         this.Notifications.success('Namespace successfully created', this.formValues.Name);
         this.$state.go('kubernetes.resourcePools');
       } catch (err) {

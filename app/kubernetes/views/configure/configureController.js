@@ -200,7 +200,7 @@ class KubernetesConfigureController {
       this.assignFormValuesToEndpoint(this.endpoint, storageClasses, ingressClasses);
       await this.EndpointService.updateEndpoint(this.endpoint.Id, this.endpoint);
       // updateIngressControllerClassMap must be done after updateEndpoint, as a hacky workaround. A better solution: saving ingresscontrollers somewhere else, is being discussed
-      await updateIngressControllerClassMap(this.state.endpointId, this.ingressControllers);
+      await updateIngressControllerClassMap(this.state.endpointId, this.ingressControllers || []);
       this.state.isSaving = true;
       const storagePromises = _.map(storageClasses, (storageClass) => {
         const oldStorageClass = _.find(this.oldStorageClasses, { Name: storageClass.Name });
@@ -224,31 +224,21 @@ class KubernetesConfigureController {
       this.state.actionInProgress = false;
 
       // Timezone is only for Analytics, not for API payload
-      this.$analytics.eventTrack('time-window-create', {
-        category: 'kubernetes',
-        metadata: {
-          'Start-time': this.state.autoUpdateSettings.StartTime,
-          'End-time': this.state.autoUpdateSettings.EndTime,
-          'Time-zone': this.state.timeZone,
-        },
-      });
+      if (this.state.autoUpdateSettings) {
+        this.$analytics.eventTrack('time-window-create', {
+          category: 'kubernetes',
+          metadata: {
+            'Start-time': this.state.autoUpdateSettings.StartTime,
+            'End-time': this.state.autoUpdateSettings.EndTime,
+            'Time-zone': this.state.timeZone,
+          },
+        });
+      }
     }
   }
 
   configure() {
-    const toDel = _.filter(this.formValues.IngressClasses, { NeedsDeletion: true });
-    if (toDel.length) {
-      this.ModalService.confirmUpdate(
-        `Removing ingress controllers may cause applications to be unaccessible. All ingress configurations from affected applications will be removed.<br/><br/>Do you wish to continue?`,
-        (confirmed) => {
-          if (confirmed) {
-            return this.$async(this.configureAsync);
-          }
-        }
-      );
-    } else {
-      return this.$async(this.configureAsync);
-    }
+    return this.$async(this.configureAsync);
   }
   /* #endregion */
 
@@ -304,6 +294,7 @@ class KubernetesConfigureController {
       IngressAvailabilityPerNamespace: false,
     };
 
+    this.isIngressControllersLoading = true;
     try {
       [this.StorageClasses, this.endpoint] = await Promise.all([this.KubernetesStorageService.get(this.state.endpointId), this.EndpointService.endpoint(this.state.endpointId)]);
 
@@ -343,6 +334,7 @@ class KubernetesConfigureController {
       this.Notifications.error('Failure', err, 'Unable to retrieve environment configuration');
     } finally {
       this.state.viewReady = true;
+      this.isIngressControllersLoading = false;
     }
 
     window.addEventListener('beforeunload', this.onBeforeOnload);
