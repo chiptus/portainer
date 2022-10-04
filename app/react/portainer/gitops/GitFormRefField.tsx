@@ -69,7 +69,7 @@ export function GitFormRefField({ value, onChange, model }: Props) {
           <code>refs/tags/tag_name</code>.
         </TextTip>
       </span>
-      <div className="col-sm-8">
+      <div className="col-sm-12">
         <FormControl
           label="Repository reference"
           inputId="stack_repository_reference_name"

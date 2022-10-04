@@ -22,6 +22,8 @@ class StackRedeployGitFormController {
     };
 
     this.formValues = {
+      RepositoryURL: '',
+      RepositoryURLValid: true,
       RefName: '',
       RepositoryAuthentication: false,
       RepositoryUsername: '',
@@ -255,6 +257,7 @@ class StackRedeployGitFormController {
   }
 
   async $onInit() {
+    this.formValues.RepositoryURL = this.model.URL;
     this.formValues.RefName = this.model.ReferenceName;
     this.formValues.Env = this.stack.Env;
 

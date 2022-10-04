@@ -22,6 +22,8 @@ class KubernetesRedeployAppGitFormController {
     };
 
     this.formValues = {
+      RepositoryURL: '',
+      RepositoryURLValid: true,
       RefName: '',
       RepositoryAuthentication: false,
       RepositoryUsername: '',
@@ -216,6 +218,7 @@ class KubernetesRedeployAppGitFormController {
   }
 
   async $onInit() {
+    this.formValues.RepositoryURL = this.stack.GitConfig.URL;
     this.formValues.RefName = this.stack.GitConfig.ReferenceName;
 
     try {

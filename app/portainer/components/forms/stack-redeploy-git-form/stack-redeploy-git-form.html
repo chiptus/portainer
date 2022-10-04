@@ -24,7 +24,7 @@
       </p>
     </div>
   </div>
-  <git-form-ref-field ng-if="$ctrl.state.showConfig" value="$ctrl.formValues.RefName" on-change="($ctrl.onChangeRef)"></git-form-ref-field>
+  <git-form-ref-field ng-if="$ctrl.state.showConfig" value="$ctrl.formValues.RefName" on-change="($ctrl.onChangeRef)" model="$ctrl.formValues"></git-form-ref-field>
   <git-form-auth-fieldset
     ng-if="$ctrl.state.showConfig"
     repository-authentication="$ctrl.formValues.RepositoryAuthentication"
