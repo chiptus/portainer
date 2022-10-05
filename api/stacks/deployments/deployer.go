@@ -1,4 +1,4 @@
-package stacks
+package deployments
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"github.com/pkg/errors"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/internal/stackutils"
 	k "github.com/portainer/portainer-ee/api/kubernetes"
 )
 
@@ -50,7 +49,6 @@ func (d *stackDeployer) DeployComposeStack(stack *portaineree.Stack, endpoint *p
 
 	d.swarmStackManager.Login(registries, endpoint)
 	defer d.swarmStackManager.Logout(endpoint)
-
 	// --force-recreate doesn't pull updated images
 	if forcePullImage {
 		err := d.composeStackManager.Pull(context.TODO(), stack, endpoint)
@@ -58,7 +56,6 @@ func (d *stackDeployer) DeployComposeStack(stack *portaineree.Stack, endpoint *p
 			return err
 		}
 	}
-
 	err := d.composeStackManager.Up(context.TODO(), stack, endpoint, forceRereate)
 	if err != nil {
 		d.composeStackManager.Down(context.TODO(), stack, endpoint)
@@ -82,13 +79,16 @@ func (d *stackDeployer) DeployKubernetesStack(stack *portaineree.Stack, endpoint
 		appLabels.Kind = "git"
 	}
 
-	deploymentFilesInfo, cleanUp, err := stackutils.CreateTempK8SDeploymentFiles(stack, d.kubernetesDeployer, appLabels)
+	tokenData := &portaineree.TokenData{
+		ID: user.ID,
+	}
+
+	k8sDeploymentConfig, err := CreateKubernetesStackDeploymentConfig(stack, d.kubernetesDeployer, appLabels, tokenData, endpoint, nil, nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to create temp kub deployment files")
 	}
-	defer cleanUp()
 
-	_, err = d.kubernetesDeployer.Deploy(user.ID, endpoint, deploymentFilesInfo.FilePaths, stack.Namespace)
+	err = k8sDeploymentConfig.Deploy()
 	if err != nil {
 		return errors.Wrap(err, "failed to deploy kubernetes application")
 	}

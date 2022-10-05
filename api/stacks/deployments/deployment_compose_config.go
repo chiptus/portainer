@@ -1,0 +1,94 @@
+package deployments
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/pkg/errors"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/stacks/stackutils"
+	portainer "github.com/portainer/portainer/api"
+)
+
+type ComposeStackDeploymentConfig struct {
+	stack          *portaineree.Stack
+	endpoint       *portaineree.Endpoint
+	registries     []portaineree.Registry
+	isAdmin        bool
+	user           *portaineree.User
+	forcePullImage bool
+	ForceCreate    bool
+	FileService    portainer.FileService
+	StackDeployer  StackDeployer
+}
+
+func CreateComposeStackDeploymentConfig(securityContext *security.RestrictedRequestContext, stack *portaineree.Stack, endpoint *portaineree.Endpoint, dataStore dataservices.DataStore, fileService portainer.FileService, deployer StackDeployer, forcePullImage, forceCreate bool) (*ComposeStackDeploymentConfig, error) {
+	user, err := dataStore.User().User(securityContext.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to load user information from the database: %w", err)
+	}
+
+	registries, err := dataStore.Registry().Registries()
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve registries from the database: %w", err)
+	}
+
+	filteredRegistries := security.FilterRegistries(registries, user, securityContext.UserMemberships, endpoint.ID)
+
+	config := &ComposeStackDeploymentConfig{
+		stack:          stack,
+		endpoint:       endpoint,
+		registries:     filteredRegistries,
+		isAdmin:        securityContext.IsAdmin,
+		user:           user,
+		forcePullImage: forcePullImage,
+		ForceCreate:    forceCreate,
+		FileService:    fileService,
+		StackDeployer:  deployer,
+	}
+
+	return config, nil
+}
+
+func (config *ComposeStackDeploymentConfig) GetUsername() string {
+	if config.user != nil {
+		return config.user.Username
+	}
+	return ""
+}
+
+func (config *ComposeStackDeploymentConfig) Deploy() error {
+	if config.FileService == nil || config.StackDeployer == nil {
+		log.Println("[deployment, compose] file service or stack deployer is not initialised")
+		return errors.New("file service or stack deployer cannot be nil")
+	}
+
+	isAdminOrEndpointAdmin, err := stackutils.UserIsAdminOrEndpointAdmin(config.user, config.endpoint.ID)
+	if err != nil {
+		return errors.Wrap(err, "failed to validate user admin privileges")
+	}
+
+	securitySettings := &config.endpoint.SecuritySettings
+
+	if (!securitySettings.AllowBindMountsForRegularUsers ||
+		!securitySettings.AllowPrivilegedModeForRegularUsers ||
+		!securitySettings.AllowHostNamespaceForRegularUsers ||
+		!securitySettings.AllowDeviceMappingForRegularUsers ||
+		!securitySettings.AllowSysctlSettingForRegularUsers ||
+		!securitySettings.AllowContainerCapabilitiesForRegularUsers) &&
+		!isAdminOrEndpointAdmin {
+
+		err = stackutils.ValidateStackFiles(config.stack, securitySettings, config.FileService)
+		if err != nil {
+			return err
+		}
+	}
+
+	return config.StackDeployer.DeployComposeStack(config.stack, config.endpoint, config.registries, config.forcePullImage, config.ForceCreate)
+}
+
+func (config *ComposeStackDeploymentConfig) GetResponse() string {
+	return ""
+}

@@ -1,4 +1,4 @@
-package stacks
+package deployments
 
 import (
 	"time"
@@ -7,25 +7,24 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/scheduler"
-	"github.com/portainer/portainer-ee/api/stacks"
 
 	"github.com/rs/zerolog/log"
 )
 
-func startAutoupdate(stackID portaineree.StackID, interval string, scheduler *scheduler.Scheduler, stackDeployer stacks.StackDeployer, datastore dataservices.DataStore, gitService portaineree.GitService, activityService portaineree.UserActivityService) (jobID string, e *httperror.HandlerError) {
+func StartAutoupdate(stackID portaineree.StackID, interval string, scheduler *scheduler.Scheduler, stackDeployer StackDeployer, datastore dataservices.DataStore, gitService portaineree.GitService, activityService portaineree.UserActivityService) (jobID string, e *httperror.HandlerError) {
 	d, err := time.ParseDuration(interval)
 	if err != nil {
 		return "", httperror.BadRequest("Unable to parse stack's auto update interval", err)
 	}
 
 	jobID = scheduler.StartJobEvery(d, func() error {
-		return stacks.RedeployWhenChanged(stackID, stackDeployer, datastore, gitService, activityService, nil)
+		return RedeployWhenChanged(stackID, stackDeployer, datastore, gitService, activityService, nil)
 	})
 
 	return jobID, nil
 }
 
-func stopAutoupdate(stackID portaineree.StackID, jobID string, scheduler scheduler.Scheduler) {
+func StopAutoupdate(stackID portaineree.StackID, jobID string, scheduler *scheduler.Scheduler) {
 	if jobID == "" {
 		return
 	}

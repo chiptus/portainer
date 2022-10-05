@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/internal/stackutils"
+	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 )
 
 // NewAdministratorsOnlyResourceControl will create a new administrators only resource control associated to the resource specified by the

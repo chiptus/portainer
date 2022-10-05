@@ -71,7 +71,7 @@ import (
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	"github.com/portainer/portainer-ee/api/nomad/clientFactory"
 	"github.com/portainer/portainer-ee/api/scheduler"
-	stackdeployer "github.com/portainer/portainer-ee/api/stacks"
+	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
 
@@ -121,7 +121,7 @@ type Server struct {
 	CloudClusterSetupService    *cloud.CloudClusterSetupService
 	CloudClusterInfoService     *cloud.CloudClusterInfoService
 	CloudCredentialService      *cloudcredential.Service
-	StackDeployer               stackdeployer.StackDeployer
+	StackDeployer               deployments.StackDeployer
 	DemoService                 *demo.Service
 }
 

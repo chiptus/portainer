@@ -16,7 +16,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer/api/filesystem"
-	"github.com/portainer/portainer/api/git"
+	gittypes "github.com/portainer/portainer/api/git/types"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/rs/zerolog/log"
@@ -314,7 +314,7 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request, u
 
 	err = handler.GitService.CloneRepository(projectPath, payload.RepositoryURL, payload.RepositoryReferenceName, repositoryUsername, repositoryPassword)
 	if err != nil {
-		if err == git.ErrAuthenticationFailure {
+		if err == gittypes.ErrAuthenticationFailure {
 			return nil, fmt.Errorf("invalid git credential")
 		}
 		return nil, err

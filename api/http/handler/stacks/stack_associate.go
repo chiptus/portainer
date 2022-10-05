@@ -11,7 +11,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
-	"github.com/portainer/portainer-ee/api/internal/stackutils"
+	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 )
 
 // @id StackAssociate

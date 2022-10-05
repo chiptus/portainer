@@ -12,6 +12,8 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
 	k "github.com/portainer/portainer-ee/api/kubernetes"
+	"github.com/portainer/portainer-ee/api/stacks/deployments"
+	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
 
@@ -40,7 +42,7 @@ func (payload *kubernetesFileStackUpdatePayload) Validate(r *http.Request) error
 }
 
 func (payload *kubernetesGitStackUpdatePayload) Validate(r *http.Request) error {
-	if err := validateStackAutoUpdate(payload.AutoUpdate); err != nil {
+	if err := stackutils.ValidateStackAutoUpdate(payload.AutoUpdate); err != nil {
 		return err
 	}
 	return nil
@@ -51,7 +53,7 @@ func (handler *Handler) updateKubernetesStack(r *http.Request, stack *portainere
 	if stack.GitConfig != nil {
 		//stop the autoupdate job if there is any
 		if stack.AutoUpdate != nil {
-			stopAutoupdate(stack.ID, stack.AutoUpdate.JobID, *handler.Scheduler)
+			deployments.StopAutoupdate(stack.ID, stack.AutoUpdate.JobID, handler.Scheduler)
 		}
 
 		var payload kubernetesGitStackUpdatePayload
@@ -81,7 +83,7 @@ func (handler *Handler) updateKubernetesStack(r *http.Request, stack *portainere
 		}
 
 		if payload.AutoUpdate != nil && payload.AutoUpdate.Interval != "" {
-			jobID, e := startAutoupdate(stack.ID, stack.AutoUpdate.Interval, handler.Scheduler, handler.StackDeployer, handler.DataStore, handler.GitService, handler.userActivityService)
+			jobID, e := deployments.StartAutoupdate(stack.ID, stack.AutoUpdate.Interval, handler.Scheduler, handler.StackDeployer, handler.DataStore, handler.GitService, handler.userActivityService)
 			if e != nil {
 				return e
 			}

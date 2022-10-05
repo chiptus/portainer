@@ -13,11 +13,11 @@ import (
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
-	"github.com/portainer/portainer-ee/api/internal/stackutils"
 	k "github.com/portainer/portainer-ee/api/kubernetes"
+	"github.com/portainer/portainer-ee/api/stacks/deployments"
+	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	"github.com/portainer/portainer/api/filesystem"
 
-	"github.com/portainer/portainer/api/git"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/rs/zerolog/log"
 )
@@ -197,8 +197,8 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 			log.Warn().Err(restoreError).Msg("failed restoring backup folder")
 		}
 
-		if err == git.ErrAuthenticationFailure {
-			return httperror.InternalServerError(errInvalidGitCredential.Error(), err)
+		if err == gittypes.ErrAuthenticationFailure {
+			return httperror.InternalServerError(stackutils.ErrInvalidGitCredential.Error(), err)
 		}
 
 		return httperror.InternalServerError("Unable to clone git repository", err)
@@ -246,28 +246,38 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 }
 
 func (handler *Handler) deployStack(r *http.Request, stack *portaineree.Stack, pullImage bool, endpoint *portaineree.Endpoint) *httperror.HandlerError {
+	var (
+		deploymentConfiger deployments.StackDeploymentConfiger
+		err                error
+	)
+
 	switch stack.Type {
 	case portaineree.DockerSwarmStack:
 		prune := false
 		if stack.Option != nil {
 			prune = stack.Option.Prune
 		}
-		config, httpErr := handler.createSwarmDeployConfig(r, stack, endpoint, prune, pullImage)
-		if httpErr != nil {
-			return httpErr
+
+		// Create swarm deployment config
+		securityContext, err := security.RetrieveRestrictedRequestContext(r)
+		if err != nil {
+			return httperror.InternalServerError("Unable to retrieve info from request context", err)
 		}
 
-		if err := handler.deploySwarmStack(config); err != nil {
+		deploymentConfiger, err = deployments.CreateSwarmStackDeploymentConfig(securityContext, stack, endpoint, handler.DataStore, handler.FileService, handler.StackDeployer, prune, pullImage)
+		if err != nil {
 			return httperror.InternalServerError(err.Error(), err)
 		}
 
 	case portaineree.DockerComposeStack:
-		config, httpErr := handler.createComposeDeployConfig(r, stack, endpoint, pullImage)
-		if httpErr != nil {
-			return httpErr
+		// Create compose deployment config
+		securityContext, err := security.RetrieveRestrictedRequestContext(r)
+		if err != nil {
+			return httperror.InternalServerError("Unable to retrieve info from request context", err)
 		}
 
-		if err := handler.deployComposeStack(config, true); err != nil {
+		deploymentConfiger, err = deployments.CreateComposeStackDeploymentConfig(securityContext, stack, endpoint, handler.DataStore, handler.FileService, handler.StackDeployer, pullImage, true)
+		if err != nil {
 			return httperror.InternalServerError(err.Error(), err)
 		}
 
@@ -276,19 +286,26 @@ func (handler *Handler) deployStack(r *http.Request, stack *portaineree.Stack, p
 		if err != nil {
 			return httperror.BadRequest("Failed to retrieve user token data", err)
 		}
-		_, deployError := handler.deployKubernetesStack(tokenData, endpoint, stack, k.KubeAppLabels{
+
+		appLabels := k.KubeAppLabels{
 			StackID:   int(stack.ID),
 			StackName: stack.Name,
 			Owner:     tokenData.Username,
 			Kind:      "git",
-		})
-		if deployError != nil {
-			return deployError
+		}
+
+		deploymentConfiger, err = deployments.CreateKubernetesStackDeploymentConfig(stack, handler.KubernetesDeployer, appLabels, tokenData, endpoint, handler.AuthorizationService, handler.KubernetesClientFactory)
+		if err != nil {
+			return httperror.InternalServerError(err.Error(), err)
 		}
 
 	default:
 		return httperror.InternalServerError("Unsupported stack", errors.Errorf("unsupported stack type: %v", stack.Type))
 	}
 
+	err = deploymentConfiger.Deploy()
+	if err != nil {
+		return httperror.InternalServerError(err.Error(), err)
+	}
 	return nil
 }

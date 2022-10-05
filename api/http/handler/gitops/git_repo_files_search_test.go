@@ -17,6 +17,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
 	"github.com/portainer/portainer/api/git"
+	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -82,7 +83,7 @@ func Test_gitOperationRepoFilesSearch(t *testing.T) {
 		var resp response
 		err = json.Unmarshal(body, &resp)
 		is.NoError(err, "response should be list json")
-		is.Equal(git.ErrAuthenticationFailure.Error(), resp.Details)
+		is.Equal(gittypes.ErrAuthenticationFailure.Error(), resp.Details)
 	})
 
 	t.Run("authenticated user can list files of a git repository", func(t *testing.T) {

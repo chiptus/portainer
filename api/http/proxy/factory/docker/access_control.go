@@ -8,7 +8,7 @@ import (
 	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
-	"github.com/portainer/portainer-ee/api/internal/stackutils"
+	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 
 	"github.com/rs/zerolog/log"
 )

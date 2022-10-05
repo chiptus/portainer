@@ -6,7 +6,7 @@ import (
 	"github.com/portainer/libhttp/response"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/stacks"
+	"github.com/portainer/portainer-ee/api/stacks/deployments"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -49,8 +49,8 @@ func (handler *Handler) webhookInvoke(w http.ResponseWriter, r *http.Request) *h
 		})
 	}
 
-	if err = stacks.RedeployWhenChanged(stack.ID, handler.StackDeployer, handler.DataStore, handler.GitService, handler.userActivityService, envs); err != nil {
-		if _, ok := err.(*stacks.StackAuthorMissingErr); ok {
+	if err = deployments.RedeployWhenChanged(stack.ID, handler.StackDeployer, handler.DataStore, handler.GitService, handler.userActivityService, envs); err != nil {
+		if _, ok := err.(*deployments.StackAuthorMissingErr); ok {
 			return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: "Autoupdate for the stack isn't available", Err: err}
 		}
 

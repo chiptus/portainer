@@ -14,7 +14,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
-	"github.com/portainer/portainer-ee/api/internal/stackutils"
+	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -91,7 +91,7 @@ func (manager *SwarmStackManager) Logout(endpoint *portaineree.Endpoint) error {
 
 // Deploy executes the docker stack deploy command.
 func (manager *SwarmStackManager) Deploy(stack *portaineree.Stack, prune bool, pullImage bool, endpoint *portaineree.Endpoint) error {
-	filePaths := stackutils.GetStackFilePaths(stack)
+	filePaths := stackutils.GetStackFilePaths(stack, false)
 	command, args, err := manager.prepareDockerCommandAndArgs(manager.binaryPath, manager.configPath, endpoint)
 	if err != nil {
 		return err

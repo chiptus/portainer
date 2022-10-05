@@ -1,7 +1,6 @@
 package stacks
 
 import (
-	"fmt"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
@@ -11,27 +10,10 @@ import (
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
-	"github.com/portainer/portainer-ee/api/internal/stackutils"
-	"github.com/portainer/portainer/api/git"
+	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 
-	"github.com/docker/cli/cli/compose/loader"
-	"github.com/docker/cli/cli/compose/types"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 )
-
-func (handler *Handler) cleanUp(stack *portaineree.Stack, doCleanUp *bool) error {
-	if !*doCleanUp {
-		return nil
-	}
-
-	err := handler.FileService.RemoveDirectory(stack.ProjectPath)
-	if err != nil {
-		log.Error().Err(err).Msg("unable to cleanup stack creation")
-	}
-
-	return nil
-}
 
 // @id StackCreate
 // @summary Deploy a new stack
@@ -159,63 +141,6 @@ func (handler *Handler) createKubernetesStack(w http.ResponseWriter, r *http.Req
 	return httperror.BadRequest("Invalid value for query parameter: method. Value must be one of: string or repository", errors.New(request.ErrInvalidQueryParameter))
 }
 
-func (handler *Handler) isValidStackFile(stackFileContent []byte, securitySettings *portaineree.EndpointSecuritySettings) error {
-	composeConfigYAML, err := loader.ParseYAML(stackFileContent)
-	if err != nil {
-		return err
-	}
-
-	composeConfigFile := types.ConfigFile{
-		Config: composeConfigYAML,
-	}
-
-	composeConfigDetails := types.ConfigDetails{
-		ConfigFiles: []types.ConfigFile{composeConfigFile},
-		Environment: map[string]string{},
-	}
-
-	composeConfig, err := loader.Load(composeConfigDetails, func(options *loader.Options) {
-		options.SkipValidation = true
-		options.SkipInterpolation = true
-	})
-	if err != nil {
-		return err
-	}
-
-	for key := range composeConfig.Services {
-		service := composeConfig.Services[key]
-		if !securitySettings.AllowBindMountsForRegularUsers {
-			for _, volume := range service.Volumes {
-				if volume.Type == "bind" {
-					return errors.New("bind-mount disabled for non administrator users")
-				}
-			}
-		}
-
-		if !securitySettings.AllowPrivilegedModeForRegularUsers && service.Privileged == true {
-			return errors.New("privileged mode disabled for non administrator users")
-		}
-
-		if !securitySettings.AllowHostNamespaceForRegularUsers && service.Pid == "host" {
-			return errors.New("pid host disabled for non administrator users")
-		}
-
-		if !securitySettings.AllowDeviceMappingForRegularUsers && service.Devices != nil && len(service.Devices) > 0 {
-			return errors.New("device mapping disabled for non administrator users")
-		}
-
-		if !securitySettings.AllowSysctlSettingForRegularUsers && service.Sysctls != nil && len(service.Sysctls) > 0 {
-			return errors.New("sysctl setting disabled for non administrator users")
-		}
-
-		if !securitySettings.AllowContainerCapabilitiesForRegularUsers && (len(service.CapAdd) > 0 || len(service.CapDrop) > 0) {
-			return errors.New("container capabilities disabled for non administrator users")
-		}
-	}
-
-	return nil
-}
-
 func (handler *Handler) decorateStackResponse(w http.ResponseWriter, stack *portaineree.Stack, userID portaineree.UserID) *httperror.HandlerError {
 	var resourceControl *portaineree.ResourceControl
 
@@ -243,30 +168,4 @@ func (handler *Handler) decorateStackResponse(w http.ResponseWriter, stack *port
 	}
 
 	return response.JSON(w, stack)
-}
-
-func (handler *Handler) clone(projectPath, repositoryURL, refName string, auth bool, username, password string) error {
-	if !auth {
-		username = ""
-		password = ""
-	}
-
-	err := handler.GitService.CloneRepository(projectPath, repositoryURL, refName, username, password)
-	if err != nil {
-		if err == git.ErrAuthenticationFailure {
-			return errInvalidGitCredential
-		}
-		return fmt.Errorf("unable to clone git repository: %w", err)
-	}
-
-	return nil
-}
-
-func (handler *Handler) latestCommitID(repositoryURL, refName string, auth bool, username, password string) (string, error) {
-	if !auth {
-		username = ""
-		password = ""
-	}
-
-	return handler.GitService.LatestCommitID(repositoryURL, refName, username, password)
 }

@@ -8,6 +8,8 @@ import (
 	"sync"
 
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	"github.com/portainer/portainer-ee/api/stacks/deployments"
+	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 
 	"github.com/docker/docker/api/types"
 	"github.com/gorilla/mux"
@@ -21,14 +23,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	"github.com/portainer/portainer-ee/api/scheduler"
-	"github.com/portainer/portainer-ee/api/stacks"
 	portainer "github.com/portainer/portainer/api"
-)
-
-var (
-	errStackAlreadyExists     = errors.New("A stack already exists with this name")
-	errWebhookIDAlreadyExists = errors.New("A webhook ID already exists")
-	errInvalidGitCredential   = errors.New("Invalid git credential")
 )
 
 // Handler is the HTTP handler used to handle stack operations.
@@ -48,7 +43,7 @@ type Handler struct {
 	KubernetesClientFactory *cli.ClientFactory
 	AuthorizationService    *authorization.Service
 	Scheduler               *scheduler.Scheduler
-	StackDeployer           stacks.StackDeployer
+	StackDeployer           deployments.StackDeployer
 }
 
 func stackExistsError(name string) *httperror.HandlerError {
@@ -112,7 +107,7 @@ func (handler *Handler) userCanAccessStack(securityContext *security.RestrictedR
 		return true, nil
 	}
 
-	return handler.userIsAdminOrEndpointAdmin(user, endpointID)
+	return stackutils.UserIsAdminOrEndpointAdmin(user, endpointID)
 }
 
 func (handler *Handler) userIsAdmin(userID portaineree.UserID) (bool, error) {
@@ -126,21 +121,13 @@ func (handler *Handler) userIsAdmin(userID portaineree.UserID) (bool, error) {
 	return isAdmin, nil
 }
 
-func (handler *Handler) userIsAdminOrEndpointAdmin(user *portaineree.User, endpointID portaineree.EndpointID) (bool, error) {
-	isAdmin := user.Role == portaineree.AdministratorRole
-
-	_, endpointResourceAccess := user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.EndpointResourcesAccess]
-
-	return isAdmin || endpointResourceAccess, nil
-}
-
 func (handler *Handler) userCanCreateStack(securityContext *security.RestrictedRequestContext, endpointID portaineree.EndpointID) (bool, error) {
 	user, err := handler.DataStore.User().User(securityContext.UserID)
 	if err != nil {
 		return false, err
 	}
 
-	return handler.userIsAdminOrEndpointAdmin(user, endpointID)
+	return stackutils.UserIsAdminOrEndpointAdmin(user, endpointID)
 }
 
 // if stack management is disabled for non admins and the user isn't an admin, then return false. Otherwise return true
@@ -255,7 +242,7 @@ func (handler *Handler) checkUniqueWebhookID(webhookID string) *httperror.Handle
 		return httperror.InternalServerError("Unable to check for webhook ID collision", err)
 	}
 	if !isUnique {
-		return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: fmt.Sprintf("Webhook ID: %s already exists", webhookID), Err: errWebhookIDAlreadyExists}
+		return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: fmt.Sprintf("Webhook ID: %s already exists", webhookID), Err: stackutils.ErrWebhookIDAlreadyExists}
 	}
 	return nil
 

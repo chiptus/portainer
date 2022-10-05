@@ -15,7 +15,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer/api/filesystem"
-	"github.com/portainer/portainer/api/git"
+	gittypes "github.com/portainer/portainer/api/git/types"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/pkg/errors"
@@ -335,7 +335,7 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request, dryru
 
 	err = handler.GitService.CloneRepository(projectPath, payload.RepositoryURL, payload.RepositoryReferenceName, repositoryUsername, repositoryPassword)
 	if err != nil {
-		if err == git.ErrAuthenticationFailure {
+		if err == gittypes.ErrAuthenticationFailure {
 			return nil, errInvalidGitCredential
 		}
 		return nil, err

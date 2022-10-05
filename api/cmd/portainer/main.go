@@ -42,7 +42,7 @@ import (
 	nomadSnapshot "github.com/portainer/portainer-ee/api/nomad/snapshot"
 	"github.com/portainer/portainer-ee/api/oauth"
 	"github.com/portainer/portainer-ee/api/scheduler"
-	"github.com/portainer/portainer-ee/api/stacks"
+	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	"github.com/portainer/portainer-ee/api/useractivity"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
@@ -789,8 +789,8 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	}
 
 	scheduler := scheduler.NewScheduler(shutdownCtx)
-	stackDeployer := stacks.NewStackDeployer(swarmStackManager, composeStackManager, kubernetesDeployer)
-	stacks.StartStackSchedules(scheduler, stackDeployer, dataStore, gitService, userActivityService)
+	stackDeployer := deployments.NewStackDeployer(swarmStackManager, composeStackManager, kubernetesDeployer)
+	deployments.StartStackSchedules(scheduler, stackDeployer, dataStore, gitService, userActivityService)
 
 	sslDBSettings, err := dataStore.SSLSettings().Settings()
 	if err != nil {
