@@ -61,7 +61,7 @@ export function GitFormUrlField({
       <span className="col-sm-12">
         <TextTip color="blue">You can use the URL of a git repository.</TextTip>
       </span>
-      <div className="col-sm-8">
+      <div className="col-sm-12">
         <FormControl
           label="Repository URL"
           inputId="stack_repository_url"

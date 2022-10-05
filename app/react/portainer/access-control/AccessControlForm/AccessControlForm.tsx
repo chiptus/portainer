@@ -38,6 +38,7 @@ export function AccessControlForm({
             checked={accessControlEnabled}
             name={withNamespace('accessControlEnabled')}
             label="Enable access control"
+            labelClass="col-sm-3 col-lg-2"
             tooltip="When enabled, you can restrict the access and management of this resource."
             onChange={handleToggleEnable}
           />

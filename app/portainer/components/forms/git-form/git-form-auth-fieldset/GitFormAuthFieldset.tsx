@@ -53,6 +53,7 @@ export function GitFormAuthFieldset({
         <div className="col-sm-12">
           <SwitchField
             label="Authentication"
+            labelClass="col-sm-3 col-lg-2"
             name="authentication"
             checked={repositoryAuthentication}
             onChange={onChangeRepositoryAuthentication}

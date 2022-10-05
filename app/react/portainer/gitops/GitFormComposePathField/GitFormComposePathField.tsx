@@ -81,7 +81,7 @@ export function GitFormComposePathField({
           )}
         </TextTip>
       </span>
-      <div className="col-sm-8">
+      <div className="col-sm-12">
         <FormControl
           label={isCompose ? 'Compose path' : 'Manifest path'}
           inputId="stack_repository_path"

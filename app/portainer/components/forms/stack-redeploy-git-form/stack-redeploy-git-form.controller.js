@@ -156,8 +156,7 @@ class StackRedeployGitFormController {
   onChangeOption(values) {
     this.onChange({
       Option: {
-        ...this.formValues.Option,
-        ...values,
+        Prune: values,
       },
     });
   }
