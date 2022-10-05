@@ -24,6 +24,7 @@ interface Props {
   onChange(value: string): void;
   isCompose: boolean;
   model: GitFormModel;
+  isDockerStandalone: boolean;
 }
 
 export function GitFormComposePathField({
@@ -31,6 +32,7 @@ export function GitFormComposePathField({
   onChange,
   isCompose,
   model,
+  isDockerStandalone,
 }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchValue = useDebounce(searchTerm);
@@ -60,15 +62,23 @@ export function GitFormComposePathField({
     <div className={clsx('form-group', styles.root)}>
       <span className="col-sm-12">
         <TextTip color="blue">
-          Indicate the path to the {isCompose ? 'Compose' : 'Manifest'} file
-          from the root of your repository (requires a yaml, yml, json, or hcl
-          file extension). To enable rebuilding of an image if already present
-          on Docker standalone environments, include
-          <code>pull_policy: build</code> in your compose file as per
-          <a href="https://docs.docker.com/compose/compose-file/#pull_policy">
-            Docker documentation
-          </a>
-          .
+          <span>
+            Indicate the path to the {isCompose ? 'Compose' : 'Manifest'} file
+            from the root of your repository (requires a yaml, yml, json, or hcl
+            file extension).
+          </span>
+          {isDockerStandalone && (
+            <span>
+              {' '}
+              To enable rebuilding of an image if already present on Docker
+              standalone environments, include
+              <code>pull_policy: build</code> in your compose file as per{' '}
+              <a href="https://docs.docker.com/compose/compose-file/#pull_policy">
+                Docker documentation
+              </a>
+              .
+            </span>
+          )}
         </TextTip>
       </span>
       <div className="col-sm-8">

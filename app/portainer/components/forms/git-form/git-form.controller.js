@@ -3,7 +3,7 @@ import axios from '@/portainer/services/axios';
 
 export default class GitFormController {
   /* @ngInject */
-  constructor($scope, Notifications) {
+  constructor($scope, Notifications, StateManager) {
     Object.assign(this, { $scope, Notifications });
 
     this.onChangeField = this.onChangeField.bind(this);
@@ -21,6 +21,7 @@ export default class GitFormController {
     this.onChangeSaveCredential = this.onChangeField('SaveCredential');
     this.onChangeNewCredentialName = this.onChangeField('NewCredentialName');
     this.onChangeRepositoryAuthentication = this.onChangeField('RepositoryAuthentication');
+    this.isDockerStandalone = StateManager.getState().endpoint.mode.provider === 'DOCKER_STANDALONE';
   }
 
   handleChange(...args) {

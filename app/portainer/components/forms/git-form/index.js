@@ -21,7 +21,10 @@ export default angular
   .component('gitFormAdditionalFilesPanel', gitFormAdditionalFilesPanel)
   .component('gitFormAdditionalFileItem', gitFormAdditionalFileItem)
   .component('gitFormAutoUpdateFieldset', gitFormAutoUpdateFieldset)
-  .component('gitFormComposePathField', r2a(withUIRouter(withReactQuery(withCurrentUser(GitFormComposePathField))), ['value', 'onChange', 'isCompose', 'model']))
+  .component(
+    'gitFormComposePathField',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(GitFormComposePathField))), ['value', 'onChange', 'isCompose', 'model', 'isDockerStandalone'])
+  )
   .component('gitFormRefField', r2a(withUIRouter(withReactQuery(withCurrentUser(GitFormRefField))), ['value', 'onChange', 'model']))
   .component(
     'gitFormUrlField',
