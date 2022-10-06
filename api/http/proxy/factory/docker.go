@@ -10,7 +10,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/docker"
 	"github.com/portainer/portainer-ee/api/internal/url"
-	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
 
 	"github.com/rs/zerolog/log"
@@ -56,15 +55,6 @@ func (factory *ProxyFactory) newDockerHTTPProxy(endpoint *portaineree.Endpoint) 
 
 		httpTransport.TLSClientConfig = config
 		endpointURL.Scheme = "https"
-	}
-
-	snapshot, err := factory.dataStore.Snapshot().Snapshot(endpoint.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	if snapshot.Docker != nil {
-		endpoint.Snapshots = []portainer.DockerSnapshot{*snapshot.Docker}
 	}
 
 	transportParameters := &docker.TransportParameters{
