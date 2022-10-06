@@ -10,7 +10,7 @@ import EditGitCredentialView from './EditGitCredentialView/EditGitCredentialView
 import CreateGitCredentialView from './CreateGitCredentialView/CreateGitCredentialView';
 
 export const gitCredentialsModule = angular
-  .module('portainer.azure.react.views', [])
+  .module('portainer.account.git.react.views', [])
   .component(
     'gitCredentialsDatatable',
     r2a(
