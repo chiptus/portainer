@@ -103,15 +103,10 @@ function useCurrentEnvironment() {
   >('environmentId', undefined, sessionStorage);
 
   useEffect(() => {
-    let environmentId;
+    const envIdParam = params.environmentId || params.endpointId;
+    const environmentId = parseInt(envIdParam, 10);
 
-    if (params.endpointId) {
-      environmentId = parseInt(params.endpointId, 10);
-    } else if (params.environmentId) {
-      environmentId = parseInt(params.environmentId, 10);
-    }
-
-    if (!Number.isNaN(environmentId)) {
+    if (envIdParam && !Number.isNaN(environmentId)) {
       setEnvironmentId(environmentId);
     }
   }, [params.endpointId, params.environmentId, setEnvironmentId]);
