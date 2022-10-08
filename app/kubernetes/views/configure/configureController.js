@@ -365,7 +365,7 @@ class KubernetesConfigureController {
   }
 
   uiCanExit() {
-    if (!this.state.isSaving && (this.areControllersChanged() || this.areFormValuesChanged())) {
+    if (!this.state.isSaving && (this.areControllersChanged() || this.areFormValuesChanged()) && !this.isIngressControllersLoading) {
       return this.ModalService.confirmAsync({
         title: 'Are you sure?',
         message: 'You currently have unsaved changes in the cluster setup view. Are you sure you want to leave?',
