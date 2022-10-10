@@ -47,6 +47,10 @@ func (m *Migrator) migrateDBVersionToDB70() error {
 		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{}
 		endpoint.Nomad.Snapshots = []portaineree.NomadSnapshot{}
 
+		log.Info().Msg("- try to update the default value for Image notification toggle")
+		if err = m.updateDefaultValueForImageNotificationToggleDb70(&endpoint); err != nil {
+			return err
+		}
 		// update endpoint
 		err = m.endpointService.UpdateEndpoint(endpoint.ID, &endpoint)
 		if err != nil {
@@ -54,6 +58,18 @@ func (m *Migrator) migrateDBVersionToDB70() error {
 		}
 	}
 
+	return nil
+}
+
+func (m *Migrator) updateDefaultValueForImageNotificationToggleDb70(endpoint *portaineree.Endpoint) error {
+	if m.Edition() == portaineree.PortainerCE {
+		log.Info().Msg("skip image notification toggle migration for CE version")
+		return nil
+	}
+	if m.Version() >= 50 && m.Version() < 70 {
+		log.Info().Msgf("migrating from %d to 70, update the default value for image notification toggle", m.currentDBVersion)
+		endpoint.EnableImageNotification = true
+	}
 	return nil
 }
 

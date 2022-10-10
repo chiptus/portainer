@@ -49,7 +49,6 @@
       },
       "CloudProvider": null,
       "ComposeSyntaxMaxVersion": "",
-      "DisableImageNotification": false,
       "Edge": {
         "AsyncMode": false,
         "CommandInterval": 0,
@@ -58,6 +57,7 @@
       },
       "EdgeCheckinInterval": 0,
       "EdgeKey": "",
+      "EnableImageNotification": false,
       "Gpus": [],
       "GroupId": 1,
       "Id": 2,

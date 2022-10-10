@@ -21,19 +21,16 @@ export function useStackImageNotification(
   stackId: number,
   environmentId?: EnvironmentId
 ) {
-  const disableImageNotificationQuery = useEnvironment(
+  const enableImageNotificationQuery = useEnvironment(
     environmentId,
-    (environment) => environment?.DisableImageNotification
+    (environment) => environment?.EnableImageNotification
   );
-  const disableImageNotification =
-    disableImageNotificationQuery.isLoading ||
-    !!disableImageNotificationQuery.data;
 
   return useQuery(
     ['stacks', stackId, 'images', 'status'],
     () => getStackImagesStatus(stackId),
     {
-      enabled: !disableImageNotification,
+      enabled: enableImageNotificationQuery.data,
     }
   );
 }

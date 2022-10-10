@@ -30,7 +30,7 @@ export default class DockerFeaturesConfigurationController {
       actionInProgress: false,
       autoUpdateSettings: { Enabled: false },
       timeZone: '',
-      disableImageNotification: false,
+      enableImageNotification: false,
     };
 
     this.save = this.save.bind(this);
@@ -56,7 +56,7 @@ export default class DockerFeaturesConfigurationController {
 
   onToggleImageNotification(checked) {
     this.$scope.$evalAsync(() => {
-      this.state.disableImageNotification = !checked;
+      this.state.enableImageNotification = checked;
     });
   }
 
@@ -114,14 +114,14 @@ export default class DockerFeaturesConfigurationController {
         const settings = {
           securitySettings,
           changeWindow: this.state.autoUpdateSettings,
-          disableImageNotification: this.state.disableImageNotification,
+          enableImageNotification: this.state.enableImageNotification,
         };
 
         await this.EndpointService.updateSettings(this.endpoint.Id, settings);
 
         this.endpoint.SecuritySettings = settings.securitySettings;
         this.endpoint.ChangeWindow = settings.changeWindow;
-        this.endpoint.DisableImageNotification = settings.disableImageNotification;
+        this.endpoint.EnableImageNotification = settings.enableImageNotification;
 
         // Timezone is only for Analytics, not for API payload
         this.$analytics.eventTrack('time-window-create', {
@@ -165,6 +165,6 @@ export default class DockerFeaturesConfigurationController {
     };
 
     this.state.autoUpdateSettings = this.endpoint.ChangeWindow;
-    this.state.disableImageNotification = this.endpoint.DisableImageNotification;
+    this.state.enableImageNotification = this.endpoint.EnableImageNotification;
   }
 }

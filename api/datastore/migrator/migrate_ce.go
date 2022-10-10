@@ -35,6 +35,7 @@ func GetFunctionName(i interface{}) string {
 }
 
 // Migrate checks the database version and migrate the existing data to the most recent data model.
+// not only for CE?
 func (m *Migrator) MigrateCE() error {
 	// set DB to updating status
 	err := m.versionService.StoreIsUpdating(true)

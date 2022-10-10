@@ -12,25 +12,29 @@ export interface Props {
 }
 
 export function ImageStatus({ imageName, environmentId }: Props) {
+  const enableImageNotificationQuery = useEnvironment(
+    environmentId,
+    (environment) => environment?.EnableImageNotification
+  );
+
   const { data, isLoading } = useImageNotification(environmentId, imageName);
 
-  return <span className={clsx(statusClass(data, isLoading), 'space-right')} />;
+  return !isLoading && !enableImageNotificationQuery.data ? null : (
+    <span className={clsx(statusClass(data, isLoading), 'space-right')} />
+  );
 }
 
 export function useImageNotification(environmentId: number, imageName: string) {
-  const disableImageNotificationQuery = useEnvironment(
+  const enableImageNotificationQuery = useEnvironment(
     environmentId,
-    (environment) => environment?.DisableImageNotification
+    (environment) => environment?.EnableImageNotification
   );
-  const disableImageNotification =
-    disableImageNotificationQuery.isLoading ||
-    !!disableImageNotificationQuery.data;
 
   return useQuery(
     ['environments', environmentId, 'docker', 'images', imageName, 'status'],
     () => getImagesStatus(environmentId, imageName),
     {
-      enabled: !disableImageNotification,
+      enabled: enableImageNotificationQuery.data,
     }
   );
 }
