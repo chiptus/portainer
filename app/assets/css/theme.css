@@ -220,6 +220,7 @@
   --border-widget-color: var(--grey-43);
   --border-sidebar-color: var(--ui-gray-8);
   --border-form-control-color: var(--grey-44);
+  --border-dropdown-menu-color: var(--grey-44);
   --border-table-color: var(--grey-19);
   --border-table-top-color: var(--grey-19);
   --border-datatable-top-color: var(--grey-10);
@@ -291,7 +292,7 @@
   --bg-codemirror-color: var(--grey-2);
   --bg-codemirror-gutters-color: var(--grey-3);
   --bg-codemirror-selected-color: var(--grey-3);
-  --bg-dropdown-menu-color: var(--ui-gray-warm-8);
+  --bg-dropdown-menu-color: var(--grey-2);
   --bg-main-color: var(--grey-2);
   --bg-sidebar-color: var(--grey-1);
   --bg-sidebar-nav-color: var(--grey-2);
@@ -403,6 +404,7 @@
   --border-widget-color: var(--grey-1);
   --border-sidebar-color: var(--ui-gray-8);
   --border-form-control-color: var(--grey-54);
+  --border-dropdown-menu-color: var(--grey-54);
   --border-table-color: var(--grey-3);
   --border-table-top-color: var(--grey-3);
   --border-datatable-top-color: var(--grey-3);
@@ -477,7 +479,7 @@
   --bg-hover-table-color: var(--grey-3);
   --bg-switch-box-color: var(--grey-53);
   --bg-panel-body-color: var(--black-color);
-  --bg-dropdown-menu-color: var(--ui-gray-warm-8);
+  --bg-dropdown-menu-color: var(--grey-2);
   --bg-codemirror-selected-color: var(--grey-3);
   --bg-motd-body-color: var(--black-color);
   --bg-blocklist-hover-color: var(--black-color);
@@ -576,6 +578,7 @@
   --border-widget-color: var(--white-color);
   --border-sidebar-color: var(--white-color);
   --border-form-control-color: var(--grey-54);
+  --border-dropdown-menu-color: var(--grey-54);
   --border-table-color: var(--grey-55);
   --border-table-top-color: var(--grey-55);
   --border-datatable-top-color: var(--grey-55);
