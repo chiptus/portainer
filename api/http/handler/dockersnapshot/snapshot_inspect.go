@@ -3,11 +3,29 @@ package dockersnapshot
 import (
 	"net/http"
 
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/volume"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 )
+
+type snapshotInfo struct {
+	Containers        int
+	ContainersRunning int
+	ContainersPaused  int
+	ContainersStopped int
+	Images            int
+	SystemTime        string
+}
+
+type snapshotResponse struct {
+	Containers []types.Container
+	Volumes    volume.VolumeListOKBody
+	Images     []types.ImageSummary
+	Info       snapshotInfo
+}
 
 // @id snapshotInspect
 // @summary Fetch latest snapshot of environment
@@ -29,7 +47,19 @@ func (handler *Handler) snapshotInspect(w http.ResponseWriter, r *http.Request) 
 		return httperror.NotFound("Unable to find a snapshot", err)
 	}
 
-	snapshot := environmentSnapshot.Docker.SnapshotRaw
+	snapshotResponse := snapshotResponse{
+		Containers: environmentSnapshot.Docker.SnapshotRaw.Containers,
+		Volumes:    environmentSnapshot.Docker.SnapshotRaw.Volumes,
+		Images:     environmentSnapshot.Docker.SnapshotRaw.Images,
+		Info: snapshotInfo{
+			SystemTime:        environmentSnapshot.Docker.SnapshotRaw.Info.SystemTime,
+			Containers:        environmentSnapshot.Docker.SnapshotRaw.Info.Containers,
+			ContainersRunning: environmentSnapshot.Docker.SnapshotRaw.Info.ContainersRunning,
+			ContainersPaused:  environmentSnapshot.Docker.SnapshotRaw.Info.ContainersPaused,
+			ContainersStopped: environmentSnapshot.Docker.SnapshotRaw.Info.ContainersStopped,
+			Images:            environmentSnapshot.Docker.SnapshotRaw.Info.Images,
+		},
+	}
 
-	return response.JSON(w, snapshot)
+	return response.JSON(w, snapshotResponse)
 }
