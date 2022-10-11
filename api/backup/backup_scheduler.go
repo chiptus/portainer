@@ -58,7 +58,7 @@ func (s *BackupScheduler) Start() error {
 // A context is returned so the caller can wait for running jobs to complete.
 func (s *BackupScheduler) Stop() context.Context {
 	if s.cronmanager != nil {
-		log.Debug().Msg("[DEBUG] Stopping backup scheduler")
+		log.Debug().Msg("stopping backup scheduler")
 		return s.cronmanager.Stop()
 	}
 
