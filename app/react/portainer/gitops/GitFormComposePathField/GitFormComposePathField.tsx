@@ -102,7 +102,11 @@ export function GitFormComposePathField({
               <ComboboxPopover>
                 <ComboboxList>
                   {searchResult.map((result: string, index: number) => (
-                    <ComboboxOption key={index} value={result} />
+                    <ComboboxOption
+                      key={index}
+                      value={result}
+                      className={`[&[aria-selected="true"]]:th-highcontrast:!bg-black [&[aria-selected="true"]]:th-dark:!bg-black`}
+                    />
                   ))}
                 </ComboboxList>
               </ComboboxPopover>
