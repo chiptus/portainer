@@ -39,7 +39,7 @@ fi
 
 echo "$ldflags"
 
-GOOS=${PLATFORM} GOARCH=${ARCH} CGO_ENABLED=0 go build -a --installsuffix cgo --gcflags="-trimpath $(pwd)" --ldflags "$ldflags"
+GOOS=${PLATFORM} GOARCH=${ARCH} CGO_ENABLED=0 go build -a -trimpath --installsuffix cgo --gcflags="-trimpath $(pwd)" --ldflags "$ldflags"
 
 if [ "${PLATFORM}" == 'windows' ]; then
     mv "$BUILD_SOURCESDIRECTORY/api/cmd/portainer/${binary}.exe" "$BUILD_SOURCESDIRECTORY/dist/portainer.exe"

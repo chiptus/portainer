@@ -41,8 +41,8 @@ echo "$ldflags"
 
 # the build takes 2 seconds
 GOOS=$1 GOARCH=$2 CGO_ENABLED=0 go build \
+	-trimpath \
 	--installsuffix cgo \
-	--gcflags="-trimpath $(pwd)" \
 	--ldflags "$ldflags" \
 	-o "../dist/portainer" \
 	./cmd/portainer/
