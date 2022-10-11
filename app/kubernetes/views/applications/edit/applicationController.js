@@ -108,6 +108,7 @@ class KubernetesApplicationController {
     Notifications,
     LocalStorage,
     ModalService,
+    KubernetesResourcePoolService,
     Authentication,
     KubernetesApplicationService,
     KubernetesEventService,
@@ -122,6 +123,7 @@ class KubernetesApplicationController {
     this.Notifications = Notifications;
     this.LocalStorage = LocalStorage;
     this.ModalService = ModalService;
+    this.KubernetesResourcePoolService = KubernetesResourcePoolService;
     this.Authentication = Authentication;
     this.StackService = StackService;
 
@@ -381,6 +383,9 @@ class KubernetesApplicationController {
       Note: '',
       SelectedRevision: undefined,
     };
+
+    const resourcePools = await this.KubernetesResourcePoolService.get();
+    this.allNamespaces = resourcePools.map(({ Namespace }) => Namespace.Name);
 
     await this.getApplication();
     await this.getEvents();

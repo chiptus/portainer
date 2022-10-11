@@ -736,6 +736,11 @@ class KubernetesCreateApplicationController {
     return this.formValues.DeploymentType === this.ApplicationDeploymentTypes.GLOBAL ? this.nodeNumber : this.formValues.ReplicaCount;
   }
 
+  hasPortErrors() {
+    const portError = this.formValues.Services.some((service) => service.nodePortError || service.servicePortError);
+    return portError;
+  }
+
   resourceReservationsOverflow() {
     const instances = this.effectiveInstances();
     const cpu = this.formValues.CpuLimit;
@@ -1329,6 +1334,7 @@ class KubernetesCreateApplicationController {
 
         const nonSystemNamespaces = _.filter(resourcePools, (resourcePool) => !KubernetesNamespaceHelper.isSystemNamespace(resourcePool.Namespace.Name));
 
+        this.allNamespaces = resourcePools.map(({ Namespace }) => Namespace.Name);
         this.resourcePools = _.sortBy(nonSystemNamespaces, ({ Namespace }) => (Namespace.Name === 'default' ? 0 : 1));
 
         this.formValues.ResourcePool = this.resourcePools[0];
