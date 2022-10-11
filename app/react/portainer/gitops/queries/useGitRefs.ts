@@ -23,7 +23,11 @@ export function useGitRefs<T = string[]>(
 
 export async function listRefs(payload: RefsPayload) {
   try {
-    const { data } = await axios.post<string[]>('/gitops/repo/refs', payload);
+    const { data } = await axios.post<string[]>(
+      '/gitops/repo/refs',
+      payload,
+      {}
+    );
     return data;
   } catch (error) {
     throw parseAxiosError(error as Error);

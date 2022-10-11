@@ -1,9 +1,15 @@
-import { ChangeEvent, useEffect, useLayoutEffect, useRef } from 'react';
+import _ from 'lodash';
+import {
+  ChangeEvent,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { RefreshCcw } from 'react-feather';
 import { useQueryClient } from 'react-query';
 
 import { useCheckRepo } from '@/react/portainer/gitops/queries/useCheckRepo';
-import { useDebounce } from '@/portainer/hooks/useDebounce';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { Input } from '@@/form-components/Input';
@@ -34,7 +40,6 @@ export function GitFormUrlField({
     handleChangeRef.current = onChangeRepositoryValid;
   });
 
-  const repository = useDebounce(value);
   // eslint-disable-next-line no-nested-ternary
   const creds = model.RepositoryPassword
     ? {
@@ -45,16 +50,21 @@ export function GitFormUrlField({
     ? { gitCredentialId: model.SelectedGitCredential.id }
     : {};
   const payload = {
-    repository,
+    repository: value,
     ...creds,
   };
-  const enabled = !!(repository && repository.length > 0);
+  const enabled = !!(value && value.length > 0);
   const repoStatusQuery = useCheckRepo(payload, enabled);
 
   useEffect(() => {
     if (!repoStatusQuery.isLoading && enabled)
       handleChangeRef.current(!repoStatusQuery.isError);
   }, [repoStatusQuery.isError, repoStatusQuery.isLoading, enabled]);
+
+  const debouncedOnChange = useMemo(
+    () => _.debounce(onChange, 500),
+    [onChange]
+  );
 
   return (
     <div className="form-group">
@@ -70,7 +80,7 @@ export function GitFormUrlField({
         >
           <span className="flex">
             <Input
-              value={value}
+              defaultValue={value}
               type="text"
               name="repoUrlField"
               className="form-control"
@@ -96,7 +106,7 @@ export function GitFormUrlField({
   );
 
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
-    onChange(e.target.value);
+    debouncedOnChange(e.target.value);
   }
 
   function onRefresh() {

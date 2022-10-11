@@ -1,4 +1,5 @@
-import { ChangeEvent } from 'react';
+import _ from 'lodash';
+import { ChangeEvent, useMemo } from 'react';
 
 import { UserGitCredential } from '@/portainer/models/user';
 
@@ -47,6 +48,16 @@ export function GitFormAuthFieldset({
   onChangeSaveCredential,
   onChangeNewCredentialName,
 }: Props) {
+  const debouncedOnChangeRepositoryUsername = useMemo(
+    () => _.debounce(onChangeRepositoryUsername, 500),
+    [onChangeRepositoryUsername]
+  );
+
+  const debouncedOnChangeRepositoryPassword = useMemo(
+    () => _.debounce(onChangeRepositoryPassword, 500),
+    [onChangeRepositoryPassword]
+  );
+
   return (
     <div className="git-form-auth-form">
       <div className="form-group">
@@ -98,11 +109,11 @@ export function GitFormAuthFieldset({
             <div className="col-sm-12">
               <FormControl label="Username">
                 <Input
-                  value={repositoryUsername}
+                  defaultValue={repositoryUsername}
                   name="repository_username"
                   placeholder={selectedGitCredential ? '' : 'git username'}
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    onChangeRepositoryUsername(e.target.value)
+                    debouncedOnChangeRepositoryUsername(e.target.value)
                   }
                   data-cy="component-gitUsernameInput"
                   readOnly={!!selectedGitCredential}
@@ -118,11 +129,11 @@ export function GitFormAuthFieldset({
               >
                 <Input
                   type="password"
-                  value={repositoryPassword}
+                  defaultValue={repositoryPassword}
                   name="repository_password"
                   placeholder="*******"
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    onChangeRepositoryPassword(e.target.value)
+                    debouncedOnChangeRepositoryPassword(e.target.value)
                   }
                   data-cy="component-gitPasswordInput"
                   readOnly={!!selectedGitCredential}
