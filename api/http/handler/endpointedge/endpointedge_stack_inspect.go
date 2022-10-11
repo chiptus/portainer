@@ -14,7 +14,8 @@ import (
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 type Credentials struct {
@@ -94,8 +95,10 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 			environmentType = "edge device"
 		}
 
-		logrus.Warnf("The %s named %s was deployed using HTTP and is insecure (registry credentials withheld). "+
-			"To use private registries, please update it to use HTTPS", environmentType, endpoint.Name)
+		log.Warn().
+			Str("type", environmentType).
+			Str("environment", endpoint.Name).
+			Msg("the environment was deployed using HTTP and is insecure (registry credentials withheld), to use private registries, please update it to use HTTPS")
 
 		registryCredentials = []Credentials{}
 	}

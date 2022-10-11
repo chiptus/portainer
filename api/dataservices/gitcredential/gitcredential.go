@@ -6,7 +6,8 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices/errors"
-	"github.com/sirupsen/logrus"
+
+	"github.com/rs/zerolog/log"
 )
 
 const BucketName = "git_credentials"
@@ -48,7 +49,7 @@ func (service *Service) GetGitCredentials() ([]portaineree.GitCredential, error)
 		func(obj interface{}) (interface{}, error) {
 			record, ok := obj.(*portaineree.GitCredential)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to GitCredential object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to GitCredential object")
 				return nil, fmt.Errorf("Failed to convert to GitCredential object: %s", obj)
 			}
 
@@ -92,7 +93,7 @@ func (service *Service) GetGitCredentialsByUserID(userID portaineree.UserID) ([]
 		func(obj interface{}) (interface{}, error) {
 			record, ok := obj.(*portaineree.GitCredential)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to GitCredential object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to GitCredential object")
 				return nil, fmt.Errorf("Failed to convert to GitCredential object: %s", obj)
 			}
 
@@ -115,7 +116,7 @@ func (service *Service) GetGitCredentialByName(userID portaineree.UserID, name s
 		func(obj interface{}) (interface{}, error) {
 			cred, ok := obj.(*portaineree.GitCredential)
 			if !ok {
-				logrus.WithField("obj", obj).Errorf("Failed to convert to GitCredential object")
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to GitCredential object")
 				return nil, fmt.Errorf("Failed to convert to GitCredential object: %s", obj)
 			}
 

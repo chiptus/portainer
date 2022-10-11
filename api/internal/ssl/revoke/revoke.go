@@ -9,7 +9,6 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -19,7 +18,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -78,12 +76,8 @@ func (service *Service) revCheck(cert *x509.Certificate) (revoked bool, err erro
 
 		revoked, err := service.certIsRevokedCRL(cert, url)
 		if err != nil {
-			logrus.Warning("error checking revocation via CRL")
-			if service.hardFail {
-				return true, err
-			}
-
-			return false, err
+			log.Warn().Msg("error checking revocation via CRL")
+			return service.hardFail, err
 		}
 
 		if revoked {
@@ -105,11 +99,7 @@ func ldapURL(url string) bool {
 		return false
 	}
 
-	if u.Scheme == "ldap" {
-		return true
-	}
-
-	return false
+	return u.Scheme == "ldap"
 }
 
 // certIsRevokedCRL checks a cert against a specific CRL. Returns the same bool pair
