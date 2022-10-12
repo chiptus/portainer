@@ -17,24 +17,29 @@ export function ImageStatus({ imageName, environmentId }: Props) {
     (environment) => environment?.EnableImageNotification
   );
 
-  const { data, isLoading } = useImageNotification(environmentId, imageName);
-
-  return !isLoading && !enableImageNotificationQuery.data ? null : (
-    <span className={clsx(statusClass(data, isLoading), 'space-right')} />
+  const { data, isLoading } = useImageNotification(
+    environmentId,
+    imageName,
+    enableImageNotificationQuery.data
   );
+
+  if (!enableImageNotificationQuery.data) {
+    return null;
+  }
+
+  return <span className={clsx(statusClass(data, isLoading), 'space-right')} />;
 }
 
-export function useImageNotification(environmentId: number, imageName: string) {
-  const enableImageNotificationQuery = useEnvironment(
-    environmentId,
-    (environment) => environment?.EnableImageNotification
-  );
-
+export function useImageNotification(
+  environmentId: number,
+  imageName: string,
+  enabled = false
+) {
   return useQuery(
     ['environments', environmentId, 'docker', 'images', imageName, 'status'],
     () => getImagesStatus(environmentId, imageName),
     {
-      enabled: enableImageNotificationQuery.data,
+      enabled,
     }
   );
 }
