@@ -40,15 +40,17 @@ export function GitFormUrlField({
     handleChangeRef.current = onChangeRepositoryValid;
   });
 
-  // eslint-disable-next-line no-nested-ternary
-  const creds = model.RepositoryPassword
-    ? {
+  let creds = {};
+  if (model.RepositoryAuthentication) {
+    if (model.RepositoryPassword) {
+      creds = {
         username: model.RepositoryUsername,
         password: model.RepositoryPassword,
-      }
-    : model.SelectedGitCredential
-    ? { gitCredentialId: model.SelectedGitCredential.id }
-    : {};
+      };
+    } else if (model.SelectedGitCredential) {
+      creds = { gitCredentialId: model.SelectedGitCredential.id };
+    }
+  }
   const payload = {
     repository: value,
     ...creds,
