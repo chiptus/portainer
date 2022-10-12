@@ -9,10 +9,15 @@ import {
   EnvironmentId,
   Environment,
 } from '@/portainer/environments/types';
-import { getPlatformType } from '@/portainer/environments/utils';
+import {
+  getPlatformType,
+  isEdgeDeviceAsync,
+} from '@/portainer/environments/utils';
 import { useEnvironment } from '@/portainer/environments/queries/useEnvironment';
 import { useLocalStorage } from '@/portainer/hooks/useLocalStorage';
 import { EndpointProvider } from '@/portainer/services/types';
+
+import { Icon } from '@@/Icon';
 
 import { getPlatformIcon } from '../portainer/environments/utils/get-platform-icon';
 
@@ -35,40 +40,62 @@ export function EnvironmentSidebar() {
   if (!isOpen && !environment) {
     return null;
   }
+  const isBrowsingSnapshot = isEdgeDeviceAsync(environment);
 
   return (
-    <div className={clsx(styles.root, 'rounded border border-dotted py-2')}>
-      {environment ? (
-        <Content environment={environment} onClear={clearEnvironment} />
-      ) : (
-        <SidebarSectionTitle>
-          <div className="flex items-center gap-1">
-            <span>Environment:</span>
-            <Slash size="1em" className="text-xl text-gray-6" />
-            <span className="text-gray-6 text-sm">None selected</span>
-          </div>
-        </SidebarSectionTitle>
+    <>
+      {isBrowsingSnapshot && (
+        <div
+          className={clsx(
+            styles.root,
+            'rounded-t border-x border-t border-b-0 border-dotted py-2 !mb-0'
+          )}
+        >
+          <SnapshotBrowseSection />
+        </div>
       )}
-    </div>
+      <div
+        className={clsx(
+          styles.root,
+          isBrowsingSnapshot ? 'rounded-b !mt-0' : 'rounded',
+          'border border-dotted py-2'
+        )}
+      >
+        {environment ? (
+          <Content
+            environment={environment}
+            onClear={clearEnvironment}
+            isBrowsingSnapshot={isBrowsingSnapshot}
+          />
+        ) : (
+          <SidebarSectionTitle>
+            <div className="flex items-center gap-1">
+              <span>Environment:</span>
+              <Slash size="1em" className="text-xl text-gray-6" />
+              <span className="text-gray-6 text-sm">None selected</span>
+            </div>
+          </SidebarSectionTitle>
+        )}
+      </div>
+    </>
   );
 }
 
 interface ContentProps {
   environment: Environment;
   onClear: () => void;
+  isBrowsingSnapshot: boolean;
 }
 
-function Content({ environment, onClear }: ContentProps) {
+function Content({ environment, onClear, isBrowsingSnapshot }: ContentProps) {
   const platform = getPlatformType(environment.Type);
-  const isEdgeDeviceAsync =
-    !!environment.IsEdgeDevice && environment.Edge.AsyncMode;
-  const Sidebar = getSidebar(platform, isEdgeDeviceAsync);
+  const Sidebar = getSidebar(platform, isBrowsingSnapshot);
 
   return (
     <SidebarSection
       title={<Title environment={environment} onClear={onClear} />}
       aria-label={environment.Name}
-      showTitleWhenOpen
+      showTitleWhenClosed
     >
       <div className="mt-2">
         <Sidebar environmentId={environment.Id} environment={environment} />
@@ -76,7 +103,7 @@ function Content({ environment, onClear }: ContentProps) {
     </SidebarSection>
   );
 
-  function getSidebar(platform: PlatformType, isEdgeDeviceAsync: boolean) {
+  function getSidebar(platform: PlatformType, isBrowsingSnapshot: boolean) {
     const sidebar: {
       [key in PlatformType]: React.ComponentType<{
         environmentId: EnvironmentId;
@@ -84,7 +111,7 @@ function Content({ environment, onClear }: ContentProps) {
       }>;
     } = {
       [PlatformType.Azure]: AzureSidebar,
-      [PlatformType.Docker]: isEdgeDeviceAsync
+      [PlatformType.Docker]: isBrowsingSnapshot
         ? EdgeDeviceAsyncSidebar
         : DockerSidebar,
       [PlatformType.Kubernetes]: KubernetesSidebar,
@@ -135,6 +162,35 @@ function useCurrentEnvironment() {
 interface TitleProps {
   environment: Environment;
   onClear(): void;
+}
+
+function SnapshotBrowseSection() {
+  const { isOpen } = useSidebarState();
+
+  if (!isOpen) {
+    return (
+      <SidebarSectionTitle showWhenClosed>
+        <div className="w-8 flex justify-center -ml-3">
+          <span className="w-2.5 h-2.5 rounded-full label-warning" />
+        </div>
+      </SidebarSectionTitle>
+    );
+  }
+  return (
+    <SidebarSectionTitle>
+      <div className="flex items-center">
+        <span className="w-2.5 h-2.5 rounded-full label-warning ml-1 mr-3" />
+        <span className="text-white text-ellipsis overflow-hidden whitespace-nowrap">
+          Browsing snapshot
+        </span>
+
+        <Icon
+          icon="svg-clockrewind"
+          className="!ml-auto !mr-3 text-gray-5 be:text-gray-6"
+        />
+      </div>
+    </SidebarSectionTitle>
+  );
 }
 
 function Title({ environment, onClear }: TitleProps) {

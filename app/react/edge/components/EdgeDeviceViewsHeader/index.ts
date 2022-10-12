@@ -1,0 +1,1 @@
+export { EdgeDeviceViewsHeader } from './EdgeDeviceViewsHeader';

@@ -1,5 +1,4 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
-import { find, forEach } from 'lodash';
 
 import { useEnvironment } from '@/portainer/environments/queries';
 import { Datatable } from '@/react/components/datatables/Datatable';
@@ -10,11 +9,8 @@ import { id } from '@/react/docker/images/ListView/ImagesDatatable/columns/id';
 import { tags } from '@/react/docker/images/ListView/ImagesDatatable/columns/tags';
 import { size } from '@/react/docker/images/ListView/ImagesDatatable/columns/size';
 import { created } from '@/react/docker/images/ListView/ImagesDatatable/columns/created';
-import { SnapshotBrowsingPanel } from '@/react/edge/components/SnapshotBrowsingPanel';
-
-import { PageHeader } from '@@/PageHeader';
-
-import { NoSnapshotAvailablePanel } from '../NoSnapshotAvailablePanel';
+import { EdgeDeviceViewsHeader } from '@/react/edge/components/EdgeDeviceViewsHeader';
+import { NoSnapshotAvailablePanel } from '@/react/edge/components/NoSnapshotAvailablePanel';
 
 import { ImagesDatatableActions } from './ImagesDatatableActions';
 
@@ -28,56 +24,57 @@ export function ImagesView() {
     params: { environmentId },
   } = useCurrentStateAndParams();
 
-  const settings = useStore();
-  const environmentQuery = useEnvironment(environmentId);
-  const snapshotQuery = useDockerSnapshot(environmentId);
-
   if (!environmentId) {
     throw new Error('Missing environmentId parameter');
   }
 
-  if (!environmentQuery.data) {
+  const settings = useStore();
+  const { data: environment } = useEnvironment(environmentId);
+  const { data: snapshot } = useDockerSnapshot(environmentId);
+
+  if (!environment) {
     return null;
   }
 
-  const { data: environment } = environmentQuery;
+  const breadcrumbs = [
+    { label: 'Edge Devices', link: 'edge.devices' },
+    {
+      label: environment.Name,
+      link: 'edge.browse.dashboard',
+      linkParams: { environmentId },
+    },
+    { label: 'Images' },
+  ];
 
-  if (!snapshotQuery.data) {
+  if (!snapshot) {
     return (
       <>
-        <Header name={environment.Name} environmentId={environmentId} />
+        <EdgeDeviceViewsHeader
+          title="Images"
+          breadcrumbs={breadcrumbs}
+          environment={environment}
+        />
 
         <NoSnapshotAvailablePanel />
       </>
     );
   }
 
-  const {
-    data: {
-      Images: images,
-      SnapshotTime: snapshotTime,
-      Containers: containers,
-    },
-  } = snapshotQuery;
+  const { Images: images, Containers: containers } = snapshot;
 
-  forEach(containers, (container) => {
-    const image = find(images, (image) =>
-      image.RepoTags.includes(container.Image)
-    );
-    if (image) {
-      image.Used = true;
-    }
-  });
+  const transformedImages = images.map((image) => ({
+    ...image,
+    Used: containers.some((c) => image.RepoTags.includes(c.Image)),
+  }));
 
   return (
     <>
-      <Header name={environment.Name} environmentId={environmentId} />
-
-      <div className="row">
-        <div className="col-sm-12">
-          <SnapshotBrowsingPanel snapshotTime={snapshotTime} />
-        </div>
-      </div>
+      <EdgeDeviceViewsHeader
+        title="Images"
+        breadcrumbs={breadcrumbs}
+        environment={environment}
+        snapshot={snapshot}
+      />
 
       <RowProvider context={{ environment }}>
         <Datatable
@@ -92,7 +89,7 @@ export function ImagesView() {
             />
           )}
           storageKey={storageKey}
-          dataset={images}
+          dataset={transformedImages}
           columns={columns}
           settingsStore={settings}
           emptyContentLabel="No images found"
@@ -100,29 +97,5 @@ export function ImagesView() {
         />
       </RowProvider>
     </>
-  );
-}
-
-function Header({
-  name,
-  environmentId,
-}: {
-  name: string;
-  environmentId: string;
-}) {
-  return (
-    <PageHeader
-      title="Images"
-      breadcrumbs={[
-        { label: 'Edge Devices', link: 'edge.devices' },
-        {
-          label: name,
-          link: 'edge.browse.dashboard',
-          linkParams: { environmentId },
-        },
-        { label: 'Images' },
-      ]}
-      reload
-    />
   );
 }

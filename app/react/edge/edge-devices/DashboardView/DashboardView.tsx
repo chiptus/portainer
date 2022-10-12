@@ -8,16 +8,15 @@ import { useTags } from '@/portainer/tags/queries';
 import { ContainerStatus } from '@/react/docker/DashboardView/ContainerStatus';
 import { ImagesTotalSize } from '@/react/docker/DashboardView/ImagesTotalSize';
 import { useDockerSnapshot } from '@/react/docker/queries/useDockerSnapshot';
-import { SnapshotBrowsingPanel } from '@/react/edge/components/SnapshotBrowsingPanel';
 
-import { PageHeader } from '@@/PageHeader';
 import { Widget } from '@@/Widget';
 import { DashboardGrid } from '@@/DashboardItem/DashboardGrid';
 import { DashboardItem } from '@@/DashboardItem';
 import { Icon } from '@@/Icon';
 import { Link } from '@@/Link';
 
-import { NoSnapshotAvailablePanel } from '../NoSnapshotAvailablePanel';
+import { NoSnapshotAvailablePanel } from '../../components/NoSnapshotAvailablePanel';
+import { EdgeDeviceViewsHeader } from '../../components/EdgeDeviceViewsHeader';
 
 export function DashboardView() {
   const {
@@ -32,11 +31,12 @@ export function DashboardView() {
   const snapshotQuery = useDockerSnapshot(environmentId);
   const tagsQuery = useTags();
 
-  if (!environmentQuery.data || !tagsQuery.tags) {
+  const { data: environment } = environmentQuery;
+  const { data: snapshot } = snapshotQuery;
+
+  if (!environment || !tagsQuery.tags) {
     return null;
   }
-
-  const { data: environment } = environmentQuery;
 
   const { tags } = tagsQuery;
 
@@ -53,24 +53,28 @@ export function DashboardView() {
     ? humanize(environment.Snapshots[0].TotalMemory)
     : '-';
 
-  if (!snapshotQuery.data) {
+  const breadcrumbs = [
+    { label: 'Edge Devices', link: 'edge.devices' },
+    { label: environment.Name },
+    { label: 'Dashboard' },
+  ];
+
+  if (!snapshot) {
     return (
       <>
-        <Header name={environment.Name} />
+        <EdgeDeviceViewsHeader
+          title="Dashboard"
+          breadcrumbs={breadcrumbs}
+          environment={environment}
+        />
 
         <NoSnapshotAvailablePanel />
       </>
     );
   }
 
-  const {
-    data: {
-      Containers: containers,
-      Images: images,
-      Volumes: volumes,
-      SnapshotTime: snapshotTime,
-    },
-  } = snapshotQuery;
+  const { Containers: containers, Images: images, Volumes: volumes } = snapshot;
+
   const imagesTotalSize = images.reduce(
     (res, image) => res + image.VirtualSize,
     0
@@ -78,13 +82,12 @@ export function DashboardView() {
 
   return (
     <>
-      <Header name={environment.Name} />
-
-      <div className="row">
-        <div className="col-sm-12">
-          <SnapshotBrowsingPanel snapshotTime={snapshotTime} />
-        </div>
-      </div>
+      <EdgeDeviceViewsHeader
+        title="Dashboard"
+        breadcrumbs={breadcrumbs}
+        environment={environment}
+        snapshot={snapshot}
+      />
 
       <div className="row">
         <div className="col-sm-12">
@@ -156,19 +159,5 @@ export function DashboardView() {
         </DashboardGrid>
       </div>
     </>
-  );
-}
-
-function Header({ name }: { name: string }) {
-  return (
-    <PageHeader
-      title="Dashboard"
-      breadcrumbs={[
-        { label: 'Edge Devices', link: 'edge.devices' },
-        { label: name },
-        { label: 'Dashboard' },
-      ]}
-      reload
-    />
   );
 }

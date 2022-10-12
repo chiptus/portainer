@@ -19,7 +19,7 @@ export function HeaderTitle({ title, children }: PropsWithChildren<Props>) {
         <div className="font-medium text-2xl text-gray-11 th-dark:text-white th-highcontrast:text-white">
           {title}
         </div>
-        {children && <span>{children}</span>}
+        {children && <>{children}</>}
       </div>
       <div className="flex items-end">
         <NotificationsMenu />

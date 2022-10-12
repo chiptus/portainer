@@ -10,11 +10,8 @@ import { stackName } from '@/react/docker/volumes/ListView/VolumesDatatable/colu
 import { driver } from '@/react/docker/volumes/ListView/VolumesDatatable/columns/driver';
 import { mountpoint } from '@/react/docker/volumes/ListView/VolumesDatatable/columns/mountpoint';
 import { created } from '@/react/docker/volumes/ListView/VolumesDatatable/columns/created';
-import { SnapshotBrowsingPanel } from '@/react/edge/components/SnapshotBrowsingPanel';
-
-import { PageHeader } from '@@/PageHeader';
-
-import { NoSnapshotAvailablePanel } from '../NoSnapshotAvailablePanel';
+import { EdgeDeviceViewsHeader } from '@/react/edge/components/EdgeDeviceViewsHeader';
+import { NoSnapshotAvailablePanel } from '@/react/edge/components/NoSnapshotAvailablePanel';
 
 import { VolumesDatatableActions } from './VolumesDatatableActions';
 
@@ -28,55 +25,57 @@ export function VolumesView() {
     params: { environmentId },
   } = useCurrentStateAndParams();
 
-  const settings = useStore();
-  const environmentQuery = useEnvironment(environmentId);
-  const snapshotQuery = useDockerSnapshot(environmentId);
-
   if (!environmentId) {
     throw new Error('Missing environmentId parameter');
   }
 
-  if (!environmentQuery.data) {
+  const settings = useStore();
+  const { data: environment } = useEnvironment(environmentId);
+  const { data: snapshot } = useDockerSnapshot(environmentId);
+
+  if (!environment) {
     return null;
   }
 
-  const { data: environment } = environmentQuery;
+  const breadcrumbs = [
+    { label: 'Edge Devices', link: 'edge.devices' },
+    {
+      label: environment.Name,
+      link: 'edge.browse.dashboard',
+      linkParams: { environmentId },
+    },
+    { label: 'Volumes' },
+  ];
 
-  if (!snapshotQuery.data) {
+  if (!snapshot) {
     return (
       <>
-        <Header name={environment.Name} environmentId={environmentId} />
+        <EdgeDeviceViewsHeader
+          title="Volumes"
+          breadcrumbs={breadcrumbs}
+          environment={environment}
+        />
 
         <NoSnapshotAvailablePanel />
       </>
     );
   }
 
-  const {
-    data: {
-      Volumes: volumes,
-      SnapshotTime: snapshotTime,
-      Containers: containers,
-    },
-  } = snapshotQuery;
+  const { Volumes: volumes, Containers: containers } = snapshot;
 
-  volumes.forEach((v) => {
-    const volume = v;
-    const used = containers.some((c) => c.Mounts.some((m) => m.Name === v.Id));
-    if (used) {
-      volume.Used = true;
-    }
-  });
+  const transformedVolumes = volumes.map((v) => ({
+    ...v,
+    Used: containers.some((c) => c.Mounts.some((m) => m.Name === v.Id)),
+  }));
 
   return (
     <>
-      <Header name={environment.Name} environmentId={environmentId} />
-
-      <div className="row">
-        <div className="col-sm-12">
-          <SnapshotBrowsingPanel snapshotTime={snapshotTime} />
-        </div>
-      </div>
+      <EdgeDeviceViewsHeader
+        title="Volumes"
+        breadcrumbs={breadcrumbs}
+        environment={environment}
+        snapshot={snapshot}
+      />
 
       <RowProvider context={{ environment }}>
         <Datatable
@@ -91,7 +90,7 @@ export function VolumesView() {
             />
           )}
           storageKey={storageKey}
-          dataset={volumes}
+          dataset={transformedVolumes}
           columns={columns}
           settingsStore={settings}
           emptyContentLabel="No volumes found"
@@ -99,29 +98,5 @@ export function VolumesView() {
         />
       </RowProvider>
     </>
-  );
-}
-
-function Header({
-  name,
-  environmentId,
-}: {
-  name: string;
-  environmentId: string;
-}) {
-  return (
-    <PageHeader
-      title="Volumes"
-      breadcrumbs={[
-        { label: 'Edge Devices', link: 'edge.devices' },
-        {
-          label: name,
-          link: 'edge.browse.dashboard',
-          linkParams: { environmentId },
-        },
-        { label: 'Volumes' },
-      ]}
-      reload
-    />
   );
 }

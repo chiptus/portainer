@@ -3,13 +3,24 @@ import { ReactNode } from 'react';
 interface Props {
   children?: ReactNode;
   label: string;
+  colClassName?: string;
+  className?: string;
 }
 
-export function DetailsRow({ label, children }: Props) {
+export function DetailsRow({
+  label,
+  children,
+  colClassName,
+  className,
+}: Props) {
   return (
-    <tr>
-      <td>{label}</td>
-      {children && <td data-cy={`detailsTable-${label}Value`}>{children}</td>}
+    <tr className={className}>
+      <td className={colClassName}>{label}</td>
+      {children && (
+        <td className={colClassName} data-cy={`detailsTable-${label}Value`}>
+          {children}
+        </td>
+      )}
     </tr>
   );
 }

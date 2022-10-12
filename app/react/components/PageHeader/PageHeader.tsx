@@ -1,4 +1,5 @@
 import { useRouter } from '@uirouter/react';
+import { PropsWithChildren } from 'react';
 import { RefreshCw } from 'react-feather';
 
 import { Button } from '../buttons';
@@ -9,7 +10,7 @@ import { HeaderContainer } from './HeaderContainer';
 import { HeaderTitle } from './HeaderTitle';
 import styles from './PageHeader.module.css';
 
-interface Props {
+export interface Props {
   id?: string;
   reload?: boolean;
   loading?: boolean;
@@ -25,7 +26,8 @@ export function PageHeader({
   reload,
   loading,
   onReload,
-}: Props) {
+  children,
+}: PropsWithChildren<Props>) {
   const router = useRouter();
 
   function onClickedRefresh() {
@@ -48,6 +50,7 @@ export function PageHeader({
             <RefreshCw className="icon" />
           </Button>
         )}
+        {children}
       </HeaderTitle>
     </HeaderContainer>
   );

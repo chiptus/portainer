@@ -12,14 +12,12 @@ import { useDockerSnapshotContainers } from '@/react/docker/queries/useDockerSna
 import { createStore } from '@/react/docker/containers/ListView/ContainersDatatable/datatable-store';
 import { RowProvider } from '@/react/docker/containers/ListView/ContainersDatatable/RowContext';
 import { useEdgeStack } from '@/react/edge/edge-stacks/queries/useEdgeStack';
-import { SnapshotBrowsingPanel } from '@/react/edge/components/SnapshotBrowsingPanel';
+import { NoSnapshotAvailablePanel } from '@/react/edge/components/NoSnapshotAvailablePanel';
+import { EdgeDeviceViewsHeader } from '@/react/edge/components/EdgeDeviceViewsHeader';
 import { useDockerSnapshot } from '@/react/docker/queries/useDockerSnapshot';
 
-import { PageHeader } from '@@/PageHeader';
 import { TextTip } from '@@/Tip/TextTip';
 import { Widget } from '@@/Widget';
-
-import { NoSnapshotAvailablePanel } from '../NoSnapshotAvailablePanel';
 
 import { image } from './image-column';
 import { ContainersDatatableActions } from './ContainersDatatableActions';
@@ -58,29 +56,40 @@ export function ContainersView() {
   }
 
   const { data: environment } = environmentQuery;
+  const { data: snapshot } = snapshotQuery;
 
-  if (!snapshotQuery.data) {
+  const breadcrumbs = [
+    { label: 'Edge Devices', link: 'edge.devices' },
+    {
+      label: environment.Name,
+      link: 'edge.browse.dashboard',
+      linkParams: { environmentId },
+    },
+    { label: 'Containers' },
+  ];
+
+  if (!snapshot) {
     return (
       <>
-        <Header name={environment.Name} environmentId={environmentId} />
+        <EdgeDeviceViewsHeader
+          title="Containers"
+          breadcrumbs={breadcrumbs}
+          environment={environment}
+        />
 
         <NoSnapshotAvailablePanel />
       </>
     );
   }
-  const {
-    data: { SnapshotTime: snapshotTime },
-  } = snapshotQuery;
 
   return (
     <>
-      <Header name={environment.Name} environmentId={environmentId} />
-
-      <div className="row">
-        <div className="col-sm-12">
-          <SnapshotBrowsingPanel snapshotTime={snapshotTime} />
-        </div>
-      </div>
+      <EdgeDeviceViewsHeader
+        title="Containers"
+        breadcrumbs={breadcrumbs}
+        environment={environment}
+        snapshot={snapshot}
+      />
 
       {edgeStackQuery.data && (
         <div className="row">
@@ -117,29 +126,5 @@ export function ContainersView() {
         />
       </RowProvider>
     </>
-  );
-}
-
-function Header({
-  name,
-  environmentId,
-}: {
-  name: string;
-  environmentId: string;
-}) {
-  return (
-    <PageHeader
-      title="Containers"
-      breadcrumbs={[
-        { label: 'Edge Devices', link: 'edge.devices' },
-        {
-          label: name,
-          link: 'edge.browse.dashboard',
-          linkParams: { environmentId },
-        },
-        { label: 'Containers' },
-      ]}
-      reload
-    />
   );
 }

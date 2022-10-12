@@ -4,19 +4,19 @@ import { useSidebarState } from './useSidebarState';
 
 interface Props {
   title: ReactNode;
-  showTitleWhenOpen?: boolean;
+  showTitleWhenClosed?: boolean;
   'aria-label'?: string;
 }
 
 export function SidebarSection({
   title,
   children,
-  showTitleWhenOpen,
+  showTitleWhenClosed,
   'aria-label': ariaLabel,
 }: PropsWithChildren<Props>) {
   return (
     <div>
-      <SidebarSectionTitle showWhenOpen={showTitleWhenOpen}>
+      <SidebarSectionTitle showWhenClosed={showTitleWhenClosed}>
         {title}
       </SidebarSectionTitle>
 
@@ -31,16 +31,16 @@ export function SidebarSection({
 }
 
 interface TitleProps {
-  showWhenOpen?: boolean;
+  showWhenClosed?: boolean;
 }
 
 export function SidebarSectionTitle({
-  showWhenOpen,
+  showWhenClosed,
   children,
 }: PropsWithChildren<TitleProps>) {
   const { isOpen } = useSidebarState();
 
-  if (!isOpen && !showWhenOpen) {
+  if (!isOpen && !showWhenClosed) {
     return null;
   }
 
