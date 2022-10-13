@@ -339,6 +339,7 @@ type (
 		Tag(ID portaineree.TagID) (*portaineree.Tag, error)
 		Create(tag *portaineree.Tag) error
 		UpdateTag(ID portaineree.TagID, tag *portaineree.Tag) error
+		UpdateTagFunc(ID portaineree.TagID, updateFunc func(tag *portaineree.Tag)) error
 		DeleteTag(ID portaineree.TagID) error
 	}
 

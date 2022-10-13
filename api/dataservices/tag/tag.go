@@ -81,10 +81,22 @@ func (service *Service) Create(tag *portaineree.Tag) error {
 	)
 }
 
-// UpdateTag updates a tag.
+// Deprecated: Use UpdateTagFunc instead.
 func (service *Service) UpdateTag(ID portaineree.TagID, tag *portaineree.Tag) error {
 	identifier := service.connection.ConvertToKey(int(ID))
 	return service.connection.UpdateObject(BucketName, identifier, tag)
+}
+
+// UpdateTagFunc updates a tag inside a transaction avoiding data races.
+func (service *Service) UpdateTagFunc(ID portaineree.TagID, updateFunc func(tag *portaineree.Tag)) error {
+	id := service.connection.ConvertToKey(int(ID))
+	tag := &portaineree.Tag{}
+
+	service.connection.UpdateObjectFunc(BucketName, id, tag, func() {
+		updateFunc(tag)
+	})
+
+	return nil
 }
 
 // DeleteTag deletes a tag.

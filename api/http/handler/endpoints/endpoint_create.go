@@ -810,14 +810,9 @@ func (handler *Handler) saveEndpointAndUpdateAuthorizations(endpoint *portainere
 	}
 
 	for _, tagID := range endpoint.TagIDs {
-		tag, err := handler.DataStore.Tag().Tag(tagID)
-		if err != nil {
-			return err
-		}
-
-		tag.Endpoints[endpoint.ID] = true
-
-		err = handler.DataStore.Tag().UpdateTag(tagID, tag)
+		err = handler.DataStore.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
+			tag.Endpoints[endpoint.ID] = true
+		})
 		if err != nil {
 			return err
 		}

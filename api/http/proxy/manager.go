@@ -2,19 +2,18 @@ package proxy
 
 import (
 	"fmt"
-	portainer "github.com/portainer/portainer/api"
 	"net/http"
 
-	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
-
-	cmap "github.com/orcaman/concurrent-map"
-	"github.com/portainer/portainer-ee/api/kubernetes/cli"
-
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	portainer "github.com/portainer/portainer/api"
+
+	cmap "github.com/orcaman/concurrent-map"
 )
 
 type (
@@ -88,7 +87,10 @@ func (manager *Manager) GetEndpointProxy(endpoint *portaineree.Endpoint) http.Ha
 // is currently only called for edge connection clean up and when endpoint is updated
 func (manager *Manager) DeleteEndpointProxy(endpointID portaineree.EndpointID) {
 	manager.endpointProxies.Remove(fmt.Sprint(endpointID))
-	manager.k8sClientFactory.RemoveKubeClient(endpointID)
+
+	if manager.k8sClientFactory != nil {
+		manager.k8sClientFactory.RemoveKubeClient(endpointID)
+	}
 }
 
 // CreateGitlabProxy creates a new HTTP reverse proxy that can be used to send requests to the Gitlab API
