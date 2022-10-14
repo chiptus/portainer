@@ -37,7 +37,6 @@ func (c *ContainerService) Recreate(ctx context.Context, endpoint *portaineree.E
 	}
 
 	defer func(cli *client.Client) {
-	_:
 		cli.Close()
 	}(cli)
 

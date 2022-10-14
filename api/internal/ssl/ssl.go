@@ -253,10 +253,5 @@ func (service *Service) cacheInfo(certPath string, keyPath string, caCertPath *s
 		settings.CACertPath = *caCertPath
 	}
 
-	err = service.dataStore.SSLSettings().UpdateSettings(settings)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return service.dataStore.SSLSettings().UpdateSettings(settings)
 }

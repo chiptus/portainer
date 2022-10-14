@@ -88,12 +88,7 @@ func (m *Migrator) updateLdapSettingsToEE() error {
 		{},
 	}
 
-	err = m.settingsService.UpdateSettings(legacySettings)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return m.settingsService.UpdateSettings(legacySettings)
 }
 
 // If RBAC extension wasn't installed before, update all users in environments(endpoints) and

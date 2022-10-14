@@ -251,12 +251,8 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 			switch *payload.Status {
 			case 1:
 				endpoint.Status = portaineree.EndpointStatusUp
-				break
 			case 2:
 				endpoint.Status = portaineree.EndpointStatusDown
-				break
-			default:
-				break
 			}
 		}
 
@@ -417,7 +413,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 	err = handler.SnapshotService.FillSnapshotData(endpoint)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to add snapshot data", err}
+		return httperror.InternalServerError("Unable to add snapshot data", err)
 	}
 
 	return response.JSON(w, endpoint)

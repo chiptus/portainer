@@ -91,14 +91,13 @@ func (client *ManagedClustersClient) DeleteAndWaitForIt(ctx context.Context, res
 	if err != nil {
 		return err
 	}
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 	_, err = future.Result(client.ManagedClustersClient)
-	if err != nil {
-		return err
-	}
-	return nil
+
+	return err
 }
 
 // AssignRole creates a role assignment featuring the specified role definition and principal and returns the assignment

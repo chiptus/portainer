@@ -294,11 +294,8 @@ func (handler *Handler) activateDevice(endpoint *portaineree.Endpoint, settings 
 	}
 
 	_, err := handler.PullAndRunContainer(ctx, endpoint, rpcGoImageName, rpcGoContainerName, cmdLine)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 func (handler *Handler) deactivateDevice(endpoint *portaineree.Endpoint, settings portaineree.Settings) error {
@@ -314,9 +311,6 @@ func (handler *Handler) deactivateDevice(endpoint *portaineree.Endpoint, setting
 	}
 
 	_, err := handler.PullAndRunContainer(ctx, endpoint, rpcGoImageName, rpcGoContainerName, cmdLine)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }

@@ -312,12 +312,10 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 // Wraps any fatal network error with FatalError type from clouderrors
 // which shortcuts exiting the privisioning loop
 func checkFatal(err error) error {
-	if err != nil {
-		if _, ok := err.(net.Error); ok {
-			if strings.Contains(err.Error(), "TLS handshake error") ||
-				strings.Contains(err.Error(), "connection refused") {
-				return clouderrors.NewFatalError(err.Error())
-			}
+	if _, ok := err.(net.Error); ok {
+		if strings.Contains(err.Error(), "TLS handshake error") ||
+			strings.Contains(err.Error(), "connection refused") {
+			return clouderrors.NewFatalError(err.Error())
 		}
 	}
 

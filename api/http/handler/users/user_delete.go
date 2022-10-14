@@ -124,12 +124,12 @@ func (handler *Handler) deleteUser(w http.ResponseWriter, user *portaineree.User
 	// Remove all of the users persisted git credentials
 	credentials, err := handler.DataStore.GitCredential().GetGitCredentialsByUserID(user.ID)
 	if err != nil {
-		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve user git credentials from the database", err}
+		return httperror.InternalServerError("Unable to retrieve user git credentials from the database", err)
 	}
 	for _, k := range credentials {
 		err = handler.DataStore.GitCredential().DeleteGitCredential(k.ID)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to remove user git credential from the database", err}
+			return httperror.InternalServerError("Unable to remove user git credential from the database", err)
 		}
 	}
 

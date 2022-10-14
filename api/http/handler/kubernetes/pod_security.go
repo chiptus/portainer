@@ -247,11 +247,7 @@ var checkGetekeeperStatus = func(handler *Handler, endpoint *portaineree.Endpoin
 		return err
 	}
 
-	err = podsecurity.WaitForOpaReady(r.Context(), cli)
-	if err != nil {
-		return err
-	}
-	return nil
+	return podsecurity.WaitForOpaReady(r.Context(), cli)
 }
 
 type PodSecurityConstraint struct {
