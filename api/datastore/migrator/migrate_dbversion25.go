@@ -53,9 +53,3 @@ func (m *Migrator) updateEndpointSettingsToDB26() error {
 
 	return nil
 }
-
-func (m *Migrator) updateRbacRolesToDB26() error {
-	log.Info().Msg("updating RBAC roles")
-
-	return m.refreshRBACRoles()
-}

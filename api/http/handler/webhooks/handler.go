@@ -49,27 +49,6 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 	return h
 }
 
-func (handler *Handler) checkResourceAccess(r *http.Request, resourceID string, resourceControlType portaineree.ResourceControlType) *httperror.HandlerError {
-	securityContext, err := security.RetrieveRestrictedRequestContext(r)
-	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve user info from request context", err)
-	}
-	// non-admins
-	rc, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(resourceID, resourceControlType)
-	if rc == nil || err != nil {
-		return httperror.InternalServerError("Unable to retrieve a resource control associated to the resource", err)
-	}
-	userTeamIDs := make([]portaineree.TeamID, 0)
-	for _, membership := range securityContext.UserMemberships {
-		userTeamIDs = append(userTeamIDs, membership.TeamID)
-	}
-	canAccess := authorization.UserCanAccessResource(securityContext.UserID, userTeamIDs, rc)
-	if !canAccess {
-		return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "This operation is disabled for non-admin users and unassigned access users"}
-	}
-	return nil
-}
-
 func (handler *Handler) checkAuthorization(r *http.Request, endpoint *portaineree.Endpoint, authorizations []portaineree.Authorization) (bool, *httperror.HandlerError) {
 	err := handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
 	if err != nil {

@@ -34,7 +34,6 @@ type (
 		currentDBVersion int
 		currentEdition   portaineree.SoftwareEdition
 
-		cloudProvisionService   *cloudprovisioning.Service
 		endpointGroupService    *endpointgroup.Service
 		endpointService         *endpoint.Service
 		endpointRelationService *endpointrelation.Service

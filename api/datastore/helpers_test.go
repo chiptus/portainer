@@ -37,9 +37,3 @@ func testVersion(store *Store, versionWant int, t *testing.T) {
 		t.Errorf("Expect store version to be %d but was %d", versionWant, v)
 	}
 }
-
-func testEdition(store *Store, editionWant portaineree.SoftwareEdition, t *testing.T) {
-	if e := store.edition(); e != editionWant {
-		t.Errorf("Expect store edition to be %s but was %s", editionWant.GetEditionLabel(), e.GetEditionLabel())
-	}
-}

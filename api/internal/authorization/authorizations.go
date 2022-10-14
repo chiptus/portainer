@@ -1397,18 +1397,6 @@ func getRoleFromTeamEndpointGroupPolicies(memberships []portaineree.TeamMembersh
 }
 
 // for each role in the roleIdentifiers,
-// find the highest priority role and returns its authorizations
-func getAuthorizationsFromRoles(roleIdentifiers []portaineree.RoleID, roles []portaineree.Role) portaineree.Authorizations {
-	keyRole := getKeyRole(roleIdentifiers, roles)
-
-	if keyRole == nil {
-		return portaineree.Authorizations{}
-	}
-
-	return keyRole.Authorizations
-}
-
-// for each role in the roleIdentifiers,
 // find the highest priority role
 func getKeyRole(roleIdentifiers []portaineree.RoleID, roles []portaineree.Role) *portaineree.Role {
 	var associatedRoles []portaineree.Role

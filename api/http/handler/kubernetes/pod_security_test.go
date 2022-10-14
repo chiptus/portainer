@@ -23,12 +23,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type endpointListEdgeDeviceTest struct {
-	title    string
-	expected []portaineree.EndpointID
-	filter   string
-}
-
 func Test_getK8sPodSecurityRule(t *testing.T) {
 	is := assert.New(t)
 

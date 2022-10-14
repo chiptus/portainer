@@ -9,9 +9,8 @@ import (
 )
 
 type gitlabTransport struct {
-	config              *portaineree.RegistryManagementConfiguration
-	httpTransport       http.RoundTripper
-	userActivityService portaineree.UserActivityService
+	config        *portaineree.RegistryManagementConfiguration
+	httpTransport http.RoundTripper
 }
 
 func newGitlabRegistryProxy(uri string, config *portaineree.RegistryManagementConfiguration, httpTransport http.RoundTripper) (http.Handler, error) {

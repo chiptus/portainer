@@ -7,7 +7,6 @@ import (
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
@@ -17,11 +16,8 @@ import (
 // Handler - Nomad handler
 type Handler struct {
 	*mux.Router
-	requestBouncer       *security.RequestBouncer
 	nomadClientFactory   *clientFactory.ClientFactory
 	authorizationService *authorization.Service
-	jwtService           portaineree.JWTService
-	userActivityService  portaineree.UserActivityService
 	dataStore            dataservices.DataStore
 }
 

@@ -13,7 +13,6 @@ import (
 type testDatastore struct {
 	customTemplate          dataservices.CustomTemplateService
 	edgeAsyncCommand        dataservices.EdgeAsyncCommandService
-	cloudProvisioning       dataservices.CloudProvisioningService
 	edgeGroup               dataservices.EdgeGroupService
 	edgeJob                 dataservices.EdgeJobService
 	edgeUpdateSchedule      dataservices.EdgeUpdateScheduleService

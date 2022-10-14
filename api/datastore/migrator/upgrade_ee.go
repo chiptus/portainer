@@ -175,18 +175,6 @@ func (m *Migrator) updateUserAuthorizationToEE() error {
 	return nil
 }
 
-func updateUserAccessPolicyToNoRole(policies portaineree.UserAccessPolicies, key portaineree.UserID) {
-	tmp := policies[key]
-	tmp.RoleID = 0
-	policies[key] = tmp
-}
-
-func updateTeamAccessPolicyToNoRole(policies portaineree.TeamAccessPolicies, key portaineree.TeamID) {
-	tmp := policies[key]
-	tmp.RoleID = 0
-	policies[key] = tmp
-}
-
 func updateUserAccessPolicyToReadOnlyRole(policies portaineree.UserAccessPolicies, key portaineree.UserID) {
 	tmp := policies[key]
 	tmp.RoleID = 4

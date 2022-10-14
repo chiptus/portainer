@@ -343,44 +343,6 @@ func (cons *PodSecurityConstraint) fresh(handler *Handler) error {
 	return nil
 }
 
-// check if the field needs to be created/updated/deleted by comparing the request value and database value
-func (cons *PodSecurityConstraint) getRulesStatus() (bool, bool) {
-	switch cons.name {
-	case "K8sPSPAllowPrivilegeEscalationContainer":
-		return cons.newRule.AllowPrivilegeEscalation.Enabled, cons.existingRule.AllowPrivilegeEscalation.Enabled
-	case "K8sPSPAppArmor":
-		return cons.newRule.AppArmour.Enabled, cons.existingRule.AppArmour.Enabled
-	case "K8sPSPCapabilities":
-		return cons.newRule.Capabilities.Enabled, cons.existingRule.Capabilities.Enabled
-	case "K8sPSPFlexVolumes":
-		return cons.newRule.AllowFlexVolumes.Enabled, cons.existingRule.AllowFlexVolumes.Enabled
-	case "K8sPSPForbiddenSysctls":
-		return cons.newRule.ForbiddenSysctlsList.Enabled, cons.existingRule.ForbiddenSysctlsList.Enabled
-	case "K8sPSPHostFilesystem":
-		return cons.newRule.HostFilesystem.Enabled, cons.existingRule.HostFilesystem.Enabled
-	case "K8sPSPHostNamespace":
-		return cons.newRule.HostNamespaces.Enabled, cons.existingRule.HostNamespaces.Enabled
-	case "K8sPSPHostNetworkingPorts":
-		return cons.newRule.HostNetworkingPorts.Enabled, cons.existingRule.HostNetworkingPorts.Enabled
-	case "K8sPSPPrivilegedContainer":
-		return cons.newRule.PrivilegedContainers.Enabled, cons.existingRule.PrivilegedContainers.Enabled
-	case "K8sPSPProcMount":
-		return cons.newRule.AllowProcMount.Enabled, cons.existingRule.AllowProcMount.Enabled
-	case "K8sPSPReadOnlyRootFilesystem":
-		return cons.newRule.ReadOnlyRootFileSystem.Enabled, cons.existingRule.ReadOnlyRootFileSystem.Enabled
-	case "K8sPSPSeccomp":
-		return cons.newRule.SecComp.Enabled, cons.existingRule.SecComp.Enabled
-	case "K8sPSPSELinuxV2":
-		return cons.newRule.Selinux.Enabled, cons.existingRule.Selinux.Enabled
-	case "K8sPSPAllowedUsers":
-		return cons.newRule.Users.Enabled, cons.existingRule.Users.Enabled
-	case "K8sPSPVolumeTypes":
-		return cons.newRule.VolumeTypes.Enabled, cons.existingRule.VolumeTypes.Enabled
-	default:
-		return false, false
-	}
-}
-
 // generate constraint template yaml file locations according to different Pod Security Rule fields
 func (cons *PodSecurityConstraint) getConstraint() (string, error) {
 	return createK8SYamlFile(path.Join(cons.constraintFolder, "pod-security-policy", strconv.Itoa(cons.newRule.EndpointID)), cons.name, cons.newRule)
