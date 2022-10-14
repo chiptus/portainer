@@ -42,7 +42,7 @@ func TestStoreCreation(t *testing.T) {
 
 	version, err := store.version()
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Msg("")
 	}
 
 	if version != portaineree.DBVersionEE {

@@ -21,14 +21,14 @@ func isFileExist(path string) bool {
 func updateVersion(store *Store, v int) {
 	err := store.VersionService.StoreDBVersion(v)
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Msg("")
 	}
 }
 
 func updateEdition(store *Store, edition portaineree.SoftwareEdition) {
 	err := store.VersionService.StoreEdition(edition)
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Msg("")
 	}
 }
 
