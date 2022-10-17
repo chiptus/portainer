@@ -1,8 +1,10 @@
 export default class InitLicenseViewController {
   /* @ngInject */
-  constructor($async, $state, LicenseService, Notifications, Authentication) {
+  constructor($async, $state, $scope, $location, LicenseService, Notifications, Authentication) {
     this.$async = $async;
     this.$state = $state;
+    this.$scope = $scope;
+    this.$location = $location;
     this.LicenseService = LicenseService;
     this.Notifications = Notifications;
     this.Authentication = Authentication;
@@ -18,6 +20,13 @@ export default class InitLicenseViewController {
 
   isFormValid() {
     return !!this.license;
+  }
+
+  $onInit() {
+    // Prevent bypassing license init view
+    this.$scope.$on('$locationChangeStart', () => {
+      this.$location.path('/init/license');
+    });
   }
 
   async submit() {
