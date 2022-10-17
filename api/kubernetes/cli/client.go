@@ -3,16 +3,15 @@ package cli
 import (
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 	"sync"
+	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/portainer/portainer/api/filesystem"
 
 	cmap "github.com/orcaman/concurrent-map"
+	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -27,6 +26,8 @@ type (
 		signatureService     portaineree.DigitalSignatureService
 		instanceID           string
 		endpointClients      cmap.ConcurrentMap
+		endpointProxyClients *cache.Cache
+		AddrHTTPS            string
 	}
 
 	// KubeClient represent a service used to execute Kubernetes operations
@@ -38,14 +39,24 @@ type (
 )
 
 // NewClientFactory returns a new instance of a ClientFactory
-func NewClientFactory(signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, dataStore dataservices.DataStore, instanceID string) *ClientFactory {
+func NewClientFactory(signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, dataStore dataservices.DataStore, instanceID, addrHTTPS, userSessionTimeout string) (*ClientFactory, error) {
+	if userSessionTimeout == "" {
+		userSessionTimeout = portaineree.DefaultUserSessionTimeout
+	}
+	timeout, err := time.ParseDuration(userSessionTimeout)
+	if err != nil {
+		return nil, err
+	}
+
 	return &ClientFactory{
 		dataStore:            dataStore,
 		signatureService:     signatureService,
 		reverseTunnelService: reverseTunnelService,
 		instanceID:           instanceID,
 		endpointClients:      cmap.New(),
-	}
+		endpointProxyClients: cache.New(timeout, timeout),
+		AddrHTTPS:            addrHTTPS,
+	}, nil
 }
 
 func (factory *ClientFactory) GetInstanceID() (instanceID string) {
@@ -63,7 +74,7 @@ func (factory *ClientFactory) GetKubeClient(endpoint *portaineree.Endpoint) (por
 	key := strconv.Itoa(int(endpoint.ID))
 	client, ok := factory.endpointClients.Get(key)
 	if !ok {
-		client, err := factory.createKubeClient(endpoint)
+		client, err := factory.createCachedAdminKubeClient(endpoint)
 		if err != nil {
 			return nil, err
 		}
@@ -75,23 +86,35 @@ func (factory *ClientFactory) GetKubeClient(endpoint *portaineree.Endpoint) (por
 	return client.(portaineree.KubeClient), nil
 }
 
+// GetProxyKubeClient retrieves a KubeClient from the cache. You should be
+// calling SetProxyKubeClient before first. It is normally, called the
+// kubernetes middleware.
+func (factory *ClientFactory) GetProxyKubeClient(endpointID, token string) (portaineree.KubeClient, bool) {
+	client, ok := factory.endpointProxyClients.Get(endpointID + "." + token)
+	if !ok {
+		return nil, false
+	}
+	return client.(portaineree.KubeClient), true
+}
+
+// SetProxyKubeClient stores a kubeclient in the cache.
+func (factory *ClientFactory) SetProxyKubeClient(endpointID, token string, cli portaineree.KubeClient) {
+	factory.endpointProxyClients.Set(endpointID+"."+token, cli, 0)
+}
+
 // CreateKubeClientFromKubeConfig creates a KubeClient from a clusterID, and
 // Kubernetes config.
-func (factory *ClientFactory) CreateKubeClientFromKubeConfig(clusterID string, kubeConfig string) (portaineree.KubeClient, error) {
-	// We must store the kubeConfig in a temp file because
-	// clientcmd.BuildConfigFromFlags takes a filepath an input.
-	kubeConfigPath := filepath.Join(os.TempDir(), clusterID)
-	err := filesystem.WriteToFile(kubeConfigPath, []byte(kubeConfig))
+func (factory *ClientFactory) CreateKubeClientFromKubeConfig(clusterID string, kubeConfig []byte) (portaineree.KubeClient, error) {
+	config, err := clientcmd.NewClientConfigFromBytes([]byte(kubeConfig))
+	if err != nil {
+		return nil, err
+	}
+	cliConfig, err := config.ClientConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	config, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
-	if err != nil {
-		return nil, err
-	}
-
-	cli, err := kubernetes.NewForConfig(config)
+	cli, err := kubernetes.NewForConfig(cliConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +128,7 @@ func (factory *ClientFactory) CreateKubeClientFromKubeConfig(clusterID string, k
 	return kubecli, nil
 }
 
-func (factory *ClientFactory) createKubeClient(endpoint *portaineree.Endpoint) (portaineree.KubeClient, error) {
+func (factory *ClientFactory) createCachedAdminKubeClient(endpoint *portaineree.Endpoint) (portaineree.KubeClient, error) {
 	cli, err := factory.CreateClient(endpoint)
 	if err != nil {
 		return nil, err

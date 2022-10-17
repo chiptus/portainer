@@ -88,6 +88,11 @@ func getPortainerDefaultK8sRoles() map[portaineree.K8sRole]k8sRoleConfig {
 					Resources: []string{"namespaces", "pods", "nodes"},
 					APIGroups: []string{"metrics.k8s.io"},
 				},
+				{
+					Verbs:     []string{"list"},
+					Resources: []string{"ingressclasses"},
+					APIGroups: []string{"networking.k8s.io"},
+				},
 			},
 		},
 		portaineree.K8sRolePortainerHelpdesk: {
@@ -106,6 +111,11 @@ func getPortainerDefaultK8sRoles() map[portaineree.K8sRole]k8sRoleConfig {
 				{
 					Verbs:     []string{"get", "watch"},
 					Resources: []string{"ingresses"},
+					APIGroups: []string{"networking.k8s.io"},
+				},
+				{
+					Verbs:     []string{"list"},
+					Resources: []string{"ingressclasses"},
 					APIGroups: []string{"networking.k8s.io"},
 				},
 				{
@@ -245,6 +255,7 @@ func (kcl *KubeClient) upsertPortainerK8sClusterRoles() error {
 			},
 			Rules: roleConfig.rules,
 		}
+
 		_, err := kcl.cli.RbacV1().ClusterRoles().Create(context.TODO(), clusterRole, metav1.CreateOptions{})
 
 		if err != nil {

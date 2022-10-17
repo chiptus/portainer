@@ -387,7 +387,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			log.Info().Int("state", task.State).Int("retries", task.Retries).Msg("process state")
 
 			if kubeClient == nil {
-				kubeClient, err = service.clientFactory.CreateKubeClientFromKubeConfig(task.ClusterID, cluster.KubeConfig)
+				kubeClient, err = service.clientFactory.CreateKubeClientFromKubeConfig(task.ClusterID, []byte(cluster.KubeConfig))
 				if err != nil {
 					task.Err = err
 					task.Retries++

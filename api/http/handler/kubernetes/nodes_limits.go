@@ -4,7 +4,10 @@ import (
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
+	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
+	portaineree "github.com/portainer/portainer-ee/api"
+	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // @id getKubernetesNodesLimits
@@ -25,7 +28,28 @@ import (
 // @failure 500 "Server error"
 // @router /kubernetes/{id}/nodes_limits [get]
 func (handler *Handler) getKubernetesNodesLimits(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	cli := handler.KubernetesClient
+	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
+	if err != nil {
+		return httperror.BadRequest(
+			"Invalid environment identifier route variable",
+			err,
+		)
+	}
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	if err == portainerDsErrors.ErrObjectNotFound {
+		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
+	} else if err != nil {
+		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
+	}
+
+	cli, err := handler.KubernetesClientFactory.GetKubeClient(endpoint)
+	if err != nil {
+		return httperror.InternalServerError(
+			"Failed to lookup KubeClient",
+			err,
+		)
+	}
+
 	nodesLimits, err := cli.GetNodesLimits()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve nodes limits", err)

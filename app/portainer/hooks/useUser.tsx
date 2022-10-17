@@ -123,6 +123,7 @@ interface AuthorizedProps {
   authorizations: string | string[];
   environmentId?: EnvironmentId;
   adminOnlyCE?: boolean;
+  childrenUnauthorised?: ReactNode;
 }
 
 export function Authorized({
@@ -130,6 +131,7 @@ export function Authorized({
   environmentId,
   adminOnlyCE = false,
   children,
+  childrenUnauthorised = null,
 }: PropsWithChildren<AuthorizedProps>) {
   const isAllowed = useAuthorizations(
     authorizations,
@@ -137,7 +139,7 @@ export function Authorized({
     adminOnlyCE
   );
 
-  return isAllowed ? <>{children}</> : null;
+  return isAllowed ? <>{children}</> : <>{childrenUnauthorised}</>;
 }
 
 interface UserProviderProps {

@@ -1646,7 +1646,7 @@ type (
 		UpdateIngress(namespace string, info models.K8sIngressInfo) error
 		GetIngresses(namespace string) ([]models.K8sIngressInfo, error)
 		DeleteIngresses(reqs models.K8sIngressDeleteRequests) error
-		GetIngressControllers() models.K8sIngressControllers
+		GetIngressControllers() (models.K8sIngressControllers, error)
 		CreateService(namespace string, service models.K8sServiceInfo) error
 		UpdateService(namespace string, service models.K8sServiceInfo) error
 		GetServices(namespace string) ([]models.K8sServiceInfo, error)
@@ -2431,6 +2431,10 @@ const (
 	OperationK8sClusterSetupRW                   Authorization = "K8sClusterSetupRW"
 	OperationK8sApplicationErrorDetailsR         Authorization = "K8sApplicationErrorDetailsR"
 	OperationK8sStorageClassDisabledR            Authorization = "K8sStorageClassDisabledR"
+
+	OperationK8sIngressesR Authorization = "K8sIngressesR"
+	OperationK8sIngressesW Authorization = "K8sIngressesW"
+
 	// Helm operations
 	OperationHelmRepoList       Authorization = "HelmRepoList"
 	OperationHelmRepoCreate     Authorization = "HelmRepoCreate"
