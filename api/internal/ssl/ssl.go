@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -144,7 +143,7 @@ func (service *Service) GetCACertificatePool() *x509.CertPool {
 	if settings.CACertPath == "" {
 		return nil
 	}
-	caCert, err := ioutil.ReadFile(settings.CACertPath)
+	caCert, err := os.ReadFile(settings.CACertPath)
 	if err != nil {
 		log.Debug().Str("path", settings.CACertPath).Err(err).Msg("error reading CA cert")
 		return nil

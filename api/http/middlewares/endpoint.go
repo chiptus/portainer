@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -148,12 +148,12 @@ func getIntRouteParam(param string) endpointIdLookup {
 
 func getIntJsonBodyField(fieldPath []string) endpointIdLookup {
 	return func(r *http.Request) (portaineree.EndpointID, error) {
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			return 0, errors.Wrap(err, "cannot read request body")
 		}
 
-		r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		r.Body = io.NopCloser(bytes.NewBuffer(body))
 
 		var b map[string]interface{}
 		if err := json.Unmarshal(body, &b); err != nil {

@@ -2,7 +2,7 @@ package middlewares
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -167,7 +167,7 @@ func Test_FindInJsonBodyField(t *testing.T) {
 			_, err := FindInJsonBodyField(endpointService, tt.fieldPath)(r)
 			assert.Equal(t, tt.hasError, err != nil, "err: %s", err)
 
-			b, err := ioutil.ReadAll(r.Body)
+			b, err := io.ReadAll(r.Body)
 			assert.NoError(t, err)
 			assert.Equal(t, []byte(tt.body), b, "request body shouldn't be changed by the find")
 		})

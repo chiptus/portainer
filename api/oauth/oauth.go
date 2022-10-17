@@ -3,7 +3,7 @@ package oauth
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"mime"
 	"net/http"
 	"net/url"
@@ -135,7 +135,7 @@ func getResource(token string, configuration *portaineree.OAuthSettings) (map[st
 	}
 
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

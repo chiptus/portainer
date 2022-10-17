@@ -2,7 +2,6 @@ package backup
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -104,7 +103,7 @@ func (h *Handler) restoreFromS3(w http.ResponseWriter, r *http.Request) *httperr
 }
 
 func createTmpBackupLocation(filestorePath string) (*os.File, error) {
-	restoreDir, err := ioutil.TempDir(filestorePath, fmt.Sprintf("restore_%s", time.Now().Format("2006-01-02_15-04-05")))
+	restoreDir, err := os.MkdirTemp(filestorePath, fmt.Sprintf("restore_%s", time.Now().Format("2006-01-02_15-04-05")))
 	if err != nil {
 		return nil, errors.New("failed to create tmp download dir")
 	}

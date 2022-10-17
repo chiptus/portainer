@@ -1,10 +1,11 @@
 package security
 
 import (
-	portaineree "github.com/portainer/portainer-ee/api"
 	"net/http"
 	"path"
 	"strings"
+
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 func getAzureOperationAuthorization(url, method string) portaineree.Authorization {

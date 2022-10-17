@@ -3,10 +3,11 @@ package registryproxy
 import (
 	"bytes"
 	"encoding/json"
-	portaineree "github.com/portainer/portainer-ee/api"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"regexp"
+
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 func requestToken(response *http.Response, config *portaineree.RegistryManagementConfiguration) (*string, error) {
@@ -80,13 +81,13 @@ func cloneRequest(originRequest *http.Request) (*http.Request, error) {
 	clonedRequest := originRequest.Clone(originRequest.Context())
 
 	if originRequest.Body != nil {
-		body, err := ioutil.ReadAll(originRequest.Body)
+		body, err := io.ReadAll(originRequest.Body)
 		if err != nil {
 			return nil, err
 		}
 
-		originRequest.Body = ioutil.NopCloser(bytes.NewReader(body))
-		clonedRequest.Body = ioutil.NopCloser(bytes.NewReader(body))
+		originRequest.Body = io.NopCloser(bytes.NewReader(body))
+		clonedRequest.Body = io.NopCloser(bytes.NewReader(body))
 	}
 
 	return clonedRequest, nil

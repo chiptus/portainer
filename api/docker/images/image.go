@@ -3,10 +3,11 @@ package images
 import (
 	"bytes"
 	"fmt"
-	"github.com/docker/docker/api/types"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/docker/docker/api/types"
 
 	"github.com/containers/image/v5/docker/reference"
 	"github.com/opencontainers/go-digest"

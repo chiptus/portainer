@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -63,7 +63,7 @@ func getCertificateAuthorityData(tlsCertPath string) (string, error) {
 		return "", errTLSCertNotProvided
 	}
 
-	data, err := ioutil.ReadFile(tlsCertPath)
+	data, err := os.ReadFile(tlsCertPath)
 	if err != nil {
 		return "", errors.Wrap(errTLSCertFileMissing, err.Error())
 	}

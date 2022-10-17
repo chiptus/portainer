@@ -2,7 +2,7 @@ package images
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 
 	"github.com/portainer/portainer-ee/api/dataservices"
 
@@ -44,7 +44,7 @@ func (puller *Puller) Pull(ctx context.Context, image Image) error {
 	}
 	defer out.Close()
 
-	_, err = ioutil.ReadAll(out)
+	_, err = io.ReadAll(out)
 
 	return err
 }

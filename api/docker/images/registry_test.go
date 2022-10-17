@@ -1,9 +1,10 @@
 package images
 
 import (
+	"testing"
+
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestFindBestMatchNeedAuthRegistry(t *testing.T) {

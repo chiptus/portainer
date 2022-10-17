@@ -3,7 +3,7 @@ package utils
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -82,7 +82,7 @@ func RewriteResponse(response *http.Response, newResponseData interface{}, statu
 		return err
 	}
 
-	body := ioutil.NopCloser(bytes.NewReader(data))
+	body := io.NopCloser(bytes.NewReader(data))
 
 	response.StatusCode = statusCode
 	response.Body = body
@@ -108,7 +108,7 @@ func getResponseBody(response *http.Response) (interface{}, error) {
 		return nil, err
 	}
 
-	return getBody(ioutil.NopCloser(bytes.NewBuffer(bodyBytes)), getContentType(response.Header), isGzip)
+	return getBody(io.NopCloser(bytes.NewBuffer(bodyBytes)), getContentType(response.Header), isGzip)
 }
 
 // CopyBody copies the request body and recreates it
@@ -117,14 +117,14 @@ func CopyResponseBody(response *http.Response) ([]byte, error) {
 		return nil, nil
 	}
 
-	bodyBytes, err := ioutil.ReadAll(response.Body)
+	bodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to read body")
 	}
 
 	response.Body.Close()
 	// recreate body to pass to actual request handler
-	response.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+	response.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
 	return bodyBytes, nil
 }

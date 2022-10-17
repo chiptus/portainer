@@ -1,13 +1,14 @@
 package images
 
 import (
+	"strings"
+	"time"
+
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
-	"strings"
-	"time"
 )
 
 var (

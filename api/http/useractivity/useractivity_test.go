@@ -3,7 +3,6 @@ package useractivity
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -23,7 +22,7 @@ func Test_CanHandleRequestsWithoutBody(t *testing.T) {
 
 	var passedThroughBody []byte
 	LogUserActivity(&uas)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		passedThroughBody, _ = ioutil.ReadAll(r.Body)
+		passedThroughBody, _ = io.ReadAll(r.Body)
 		r.Body.Close()
 		w.WriteHeader(http.StatusOK)
 	})).ServeHTTP(httptest.NewRecorder(), r)
@@ -44,7 +43,7 @@ func Test_OnlyLogWriteRequests(t *testing.T) {
 
 	var passedThroughBody []byte
 	LogUserActivity(&uas)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		passedThroughBody, _ = ioutil.ReadAll(r.Body)
+		passedThroughBody, _ = io.ReadAll(r.Body)
 		r.Body.Close()
 		w.WriteHeader(http.StatusOK)
 	})).ServeHTTP(httptest.NewRecorder(), r)
@@ -66,7 +65,7 @@ func Test_LogSkipUnknownPayloads(t *testing.T) {
 
 	var passedThroughBody []byte
 	LogUserActivity(&uas)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		passedThroughBody, _ = ioutil.ReadAll(r.Body)
+		passedThroughBody, _ = io.ReadAll(r.Body)
 		r.Body.Close()
 		w.WriteHeader(http.StatusOK)
 	})).ServeHTTP(httptest.NewRecorder(), r)
@@ -89,7 +88,7 @@ func Test_LogSanitisedJsonPayloads(t *testing.T) {
 
 	var passedThroughBody []byte
 	LogUserActivity(&uas)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		passedThroughBody, _ = ioutil.ReadAll(r.Body)
+		passedThroughBody, _ = io.ReadAll(r.Body)
 		r.Body.Close()
 		w.WriteHeader(http.StatusOK)
 	})).ServeHTTP(httptest.NewRecorder(), r)
@@ -112,7 +111,7 @@ func Test_ClearTarPayloads(t *testing.T) {
 
 	var passedThroughBody []byte
 	LogUserActivity(&uas)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		passedThroughBody, _ = ioutil.ReadAll(r.Body)
+		passedThroughBody, _ = io.ReadAll(r.Body)
 		r.Body.Close()
 		w.WriteHeader(http.StatusOK)
 	})).ServeHTTP(httptest.NewRecorder(), r)
@@ -171,7 +170,7 @@ func Test_PicksUsernameFromRequestSecurityToken(t *testing.T) {
 
 	var passedThroughBody []byte
 	LogUserActivity(&uas)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		passedThroughBody, _ = ioutil.ReadAll(r.Body)
+		passedThroughBody, _ = io.ReadAll(r.Body)
 		r.Body.Close()
 		w.WriteHeader(http.StatusOK)
 	})).ServeHTTP(httptest.NewRecorder(), r)
@@ -197,7 +196,7 @@ func Test_PicksEnpointFromRequestContext(t *testing.T) {
 	var passedThroughBody []byte
 	middlewares.WithEndpoint(ds.Endpoint(), "endpointId")(
 		LogUserActivity(&uas)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			passedThroughBody, _ = ioutil.ReadAll(r.Body)
+			passedThroughBody, _ = io.ReadAll(r.Body)
 			r.Body.Close()
 			w.WriteHeader(http.StatusOK)
 		}))).ServeHTTP(httptest.NewRecorder(), r)

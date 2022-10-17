@@ -2,7 +2,6 @@ package datastore
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"time"
@@ -115,7 +114,7 @@ func (store *Store) setupOptions(options *BackupOptions) *BackupOptions {
 func (store *Store) listEditionBackups(edition portaineree.SoftwareEdition) ([]string, error) {
 	var fileNames = []string{}
 
-	files, err := ioutil.ReadDir(store.editionBackupDir(edition))
+	files, err := os.ReadDir(store.editionBackupDir(edition))
 
 	if err != nil {
 		log.Error().Err(err).Msg("error while retrieving backup files")

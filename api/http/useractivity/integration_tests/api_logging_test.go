@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"net/http"
 	"os"
@@ -184,7 +184,7 @@ func login() (token string) {
 		return ``
 	}
 
-	v, err := ioutil.ReadAll(response.Body)
+	v, err := io.ReadAll(response.Body)
 	if err != nil {
 		return ``
 	}
@@ -222,7 +222,7 @@ func lastLogEntry(token string) *logEntry {
 		return nil
 	}
 
-	v, err := ioutil.ReadAll(response.Body)
+	v, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil
 	}
@@ -274,7 +274,7 @@ func post(token string, path string, payload []byte, headers ...header) (reply [
 		return nil, false
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, false
 	}

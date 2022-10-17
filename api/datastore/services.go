@@ -3,7 +3,7 @@ package datastore
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strconv"
 
 	"github.com/portainer/liblicense"
@@ -760,13 +760,13 @@ func (store *Store) Export(filename string) (err error) {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(filename, b, 0600)
+	return os.WriteFile(filename, b, 0600)
 }
 
 func (store *Store) Import(filename string) (err error) {
 	backup := storeExport{}
 
-	s, err := ioutil.ReadFile(filename)
+	s, err := os.ReadFile(filename)
 	if err != nil {
 		return err
 	}
