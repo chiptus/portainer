@@ -989,14 +989,12 @@ github.com/portainer/docker-compose-wrapper v0.0.0-20220708023447-a69a4ebaa021 h
 github.com/portainer/docker-compose-wrapper v0.0.0-20220708023447-a69a4ebaa021/go.mod h1:WxDlJWZxCnicdLCPnLNEv7/gRhjeIVuCGmsv+iOPH3c=
 github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a h1:B0z3skIMT+OwVNJPQhKp52X+9OWW6A9n5UWig3lHBJk=
 github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a/go.mod h1:n54EEIq+MM0NNtqLeCby8ljL+l275VpolXO0ibHegLE=
-github.com/portainer/libhelm v0.0.0-20210929000907-825e93d62108 h1:5e8KAnDa2G3cEHK7aV/ue8lOaoQwBZUzoALslwWkR04=
-github.com/portainer/libhelm v0.0.0-20210929000907-825e93d62108/go.mod h1:YvYAk7krKTzB+rFwDr0jQ3sQu2BtiXK1AR0sZH7nhJA=
+github.com/portainer/libhelm v0.0.0-20221018213433-5ad83b50dbc9 h1:PMw+45hocpYsMQ7WLIlzsf4854BhDM8C631kr0DVJtc=
+github.com/portainer/libhelm v0.0.0-20221018213433-5ad83b50dbc9/go.mod h1:YvYAk7krKTzB+rFwDr0jQ3sQu2BtiXK1AR0sZH7nhJA=
 github.com/portainer/libhttp v0.0.0-20220916153711-5d61e12f4b0a h1:BJ5V4EDNhg3ImYbmXnGS8vrMhq6rzsEneIXyJh0g4dc=
 github.com/portainer/libhttp v0.0.0-20220916153711-5d61e12f4b0a/go.mod h1:ckuHnoLA5kLuE5WkvPBXmrw63LUMdSH4aX71QRi9y10=
 github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91 h1:mtz7L81z05+CfJdB8Cgh9r8k3tSgLXZR++BgA/Y0PpQ=
 github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91/go.mod h1:6OSugUz07QF1WwrMmRNIMhgiq+drVMIZ98UTu5LVZP8=
-github.com/portainer/portainer/api v0.0.0-20221011053121-c23b8b28168e h1:gJnf7zSnKHYNLYmlU/sCnjn2rpPPytUQnkwV+Mef6o0=
-github.com/portainer/portainer/api v0.0.0-20221011053121-c23b8b28168e/go.mod h1:rmZTa1njzCbbJMGxZADBqARG9mx+sa854bunCIWuggY=
 github.com/portainer/portainer/api v0.0.0-20221013141212-367f3dd6d4d0 h1:wuuLj4z2UUnMWxzmz2P4cHlvOnmhq5/VUAggzQwFhtM=
 github.com/portainer/portainer/api v0.0.0-20221013141212-367f3dd6d4d0/go.mod h1:8g2rn2EP3lLsCtq0gsStHeBVAP5LvQZa8imktJ1LUKM=
 github.com/posener/complete v1.1.1/go.mod h1:em0nMJCgc9GFtwrmVmEMR/ZL6WyhyjMBndrE9hABlRI=
