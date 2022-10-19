@@ -11,7 +11,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2"
