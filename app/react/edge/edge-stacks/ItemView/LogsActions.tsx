@@ -4,6 +4,7 @@ import { notifySuccess } from '@/portainer/services/notifications';
 import { EnvironmentId } from '@/portainer/environments/types';
 
 import { Button } from '@@/buttons';
+import { Icon } from '@@/Icon';
 
 import { useCollectLogsMutation } from '../queries/useCollectLogsMutation';
 import { useDeleteLogsMutation } from '../queries/useDeleteLogsMutation';
@@ -33,12 +34,12 @@ export function LogsActions({ environmentId, edgeStackId }: Props) {
   return (
     <>
       <Button color="none" title="Retrieve logs" onClick={handleCollectLogs}>
-        <i
-          className={clsx('fa', {
-            'fa-file-alt': !collecting,
-            'fa-circle-notch fa-spin': collecting,
+        <Icon
+          icon={clsx({
+            'file-text': !collecting,
+            loader: collecting,
           })}
-          aria-hidden="true"
+          feather
         />
       </Button>
       <Button
@@ -47,12 +48,12 @@ export function LogsActions({ environmentId, edgeStackId }: Props) {
         disabled={status !== 'collected'}
         onClick={handleDownloadLogs}
       >
-        <i
-          className={clsx('fa', {
-            'fa-cloud-download-alt': !downloadLogsMutation.isLoading,
-            'fa-circle-notch fa-spin': downloadLogsMutation.isLoading,
+        <Icon
+          icon={clsx({
+            'download-cloud': !downloadLogsMutation.isLoading,
+            loader: downloadLogsMutation.isLoading,
           })}
-          aria-hidden="true"
+          feather
         />
       </Button>
       <Button
@@ -61,12 +62,12 @@ export function LogsActions({ environmentId, edgeStackId }: Props) {
         disabled={status !== 'collected'}
         onClick={handleDeleteLogs}
       >
-        <i
-          className={clsx('fa', {
-            'fa-backspace': !deleteLogsMutation.isLoading,
-            'fa-circle-notch fa-spin': deleteLogsMutation.isLoading,
+        <Icon
+          icon={clsx({
+            delete: !deleteLogsMutation.isLoading,
+            loader: deleteLogsMutation.isLoading,
           })}
-          aria-hidden="true"
+          feather
         />
       </Button>
     </>

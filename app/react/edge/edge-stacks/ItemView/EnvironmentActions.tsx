@@ -2,6 +2,7 @@ import { Environment } from '@/portainer/environments/types';
 
 import { Button } from '@@/buttons';
 import { Link } from '@@/Link';
+import { Icon } from '@@/Icon';
 
 import { EdgeStack } from '../types';
 
@@ -22,7 +23,7 @@ export function EnvironmentActions({ environment, edgeStackId }: Props) {
           className="!text-inherit hover:!no-underline"
         >
           <Button color="none" title="Browse Snapshot">
-            <i className="fa fa-search" aria-hidden="true" />
+            <Icon icon="search" feather className="searchIcon" />
           </Button>
         </Link>
       )}
