@@ -186,12 +186,21 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 	case portaineree.DockerComposeStack:
 		log.Debug().Int("stack_id", int(stackID)).Bool("force_pull_image", forcePullImage).Msg("compose stack redeploy with pull image flag")
 
-		err := deployer.DeployComposeStack(stack, endpoint, registries, forcePullImage, stack.AutoUpdate != nil && stack.AutoUpdate.ForceUpdate)
+		if stack.SupportRelativePath {
+			err = deployer.DeployRemoteComposeStack(stack, endpoint, registries, forcePullImage, stack.AutoUpdate != nil && stack.AutoUpdate.ForceUpdate)
+		} else {
+			err = deployer.DeployComposeStack(stack, endpoint, registries, forcePullImage, stack.AutoUpdate != nil && stack.AutoUpdate.ForceUpdate)
+		}
+
 		if err != nil {
 			return errors.WithMessagef(err, "failed to deploy a docker compose stack %v", stackID)
 		}
 	case portaineree.DockerSwarmStack:
-		err := deployer.DeploySwarmStack(stack, endpoint, registries, true, true)
+		if stack.SupportRelativePath {
+			err = deployer.DeployRemoteSwarmStack(stack, endpoint, registries, true, true)
+		} else {
+			err = deployer.DeploySwarmStack(stack, endpoint, registries, true, true)
+		}
 		if err != nil {
 			return errors.WithMessagef(err, "failed to deploy a docker compose stack %v", stackID)
 		}

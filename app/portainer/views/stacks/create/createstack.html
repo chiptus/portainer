@@ -182,6 +182,44 @@
               ></por-switch-field>
             </div>
           </div>
+
+          <div ng-if="state.Method == 'repository' && applicationState.endpoint.type !== 4" class="form-group">
+            <div class="col-sm-12 mb-3">
+              <por-switch-field
+                name="EnableRelativePaths"
+                checked="formValues.SupportRelativePath"
+                label="'Enable relative path volumes'"
+                label-class="'col-sm-3 col-lg-2'"
+                tooltip="'Enabling this means you can specify relative path volumes in your Compose files, with Portainer pulling the content from your git repository to the environment the stack is deployed to.'"
+                on-change="(onEnableRelativePathsChange)"
+              ></por-switch-field>
+            </div>
+            <div ng-if="formValues.SupportRelativePath">
+              <span ng-if="!isDockerStandalone" class="col-sm-12">
+                <p class="small vertical-center">
+                  <pr-icon icon="'info'" mode="'primary'" feather="true"></pr-icon>
+                  <span class="text-muted">For relative path volumes use with Docker Swarm, you must have a network filesystem which all of your nodes can access.</span>
+                </p>
+              </span>
+              <div class="col-sm-12">
+                <div class="form-group">
+                  <label ng-if="!isDockerStandalone" class="col-sm-3 col-lg-2 control-label text-left">Network filesystem path</label>
+                  <label ng-if="isDockerStandalone" class="col-sm-3 col-lg-2 control-label text-left">Local filesystem path</label>
+                  <div class="col-sm-9 col-lg-10">
+                    <input type="text" class="form-control" ng-model="formValues.FilesystemPath" placeholder="/tmp" />
+                    <span class="help-block" ng-if="formValues.FilesystemPath.length === 0">
+                      <p class="text-warning small vertical-center">
+                        <pr-icon icon="'alert-triangle'" mode="'warning'" size="'sm'" feather="true"></pr-icon>
+                        <span ng-if="!isDockerStandalone">Network filesystem path is required</span>
+                        <span ng-if="isDockerStandalone">Local filesystem path is required</span>
+                      </p>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- environment-variables -->
           <environment-variables-panel ng-model="formValues.Env" explanation="These values will be used as substitutions in the stack file" on-change="(handleEnvVarChange)">
           </environment-variables-panel>
@@ -199,7 +237,7 @@
               || ((state.Method === 'editor' || state.Method === 'template') && (!formValues.StackFileContent || state.editorYamlValidationError))
               || (state.Method === 'upload' && (!formValues.StackFile || state.uploadYamlValidationError))
               || (state.Method === 'repository' && ((!formValues.RepositoryURL || !formValues.ComposeFilePathInRepository) || (formValues.RepositoryAuthentication && (!formValues.RepositoryPassword && formValues.RepositoryGitCredentialID===0)) || (formValues.RepositoryAuthentication && formValues.RepositoryPassword && formValues.SaveCredential && (!formValues.NewCredentialName || formValues.NewCredentialNameExist || formValues.NewCredentialNameInvalid))))
-              || !formValues.Name"
+              || !formValues.Name || formValues.SupportRelativePath && formValues.FilesystemPath.length === 0"
                 ng-click="deployStack()"
                 button-spinner="state.actionInProgress"
                 analytics-on

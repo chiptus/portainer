@@ -39,6 +39,7 @@ angular
 
       $scope.STACK_NAME_VALIDATION_REGEX = STACK_NAME_VALIDATION_REGEX;
       $scope.isAdmin = Authentication.isAdmin();
+      $scope.isDockerStandalone = $scope.applicationState.endpoint.mode.provider === 'DOCKER_STANDALONE';
 
       $scope.formValues = {
         Name: '',
@@ -58,6 +59,8 @@ angular
         NewCredentialNameExist: false,
         NewCredentialNameInvalid: false,
         Env: [],
+        SupportRelativePath: false,
+        FilesystemPath: '',
         AdditionalFiles: [],
         ComposeFilePathInRepository: 'docker-compose.yml',
         AccessControlData: new AccessControlFormData(),
@@ -99,6 +102,12 @@ angular
       $scope.onEnableWebhookChange = function (enable) {
         $scope.$evalAsync(() => {
           $scope.formValues.EnableWebhook = enable;
+        });
+      };
+
+      $scope.onEnableRelativePathsChange = function (enable) {
+        $scope.$evalAsync(() => {
+          $scope.formValues.SupportRelativePath = enable;
         });
       };
 
@@ -192,6 +201,8 @@ angular
             RepositoryPassword: $scope.formValues.RepositoryGitCredentialID === 0 ? $scope.formValues.RepositoryPassword : '',
             RepositoryGitCredentialID: $scope.formValues.RepositoryGitCredentialID,
             ForcePullImage: $scope.formValues.ForcePullImage,
+            SupportRelativePath: $scope.formValues.SupportRelativePath,
+            FilesystemPath: $scope.formValues.FilesystemPath,
           };
 
           getAutoUpdatesProperty(repositoryOptions);
@@ -236,6 +247,8 @@ angular
             RepositoryPassword: $scope.formValues.RepositoryGitCredentialID === 0 ? $scope.formValues.RepositoryPassword : '',
             RepositoryGitCredentialID: $scope.formValues.RepositoryGitCredentialID,
             ForcePullImage: $scope.formValues.ForcePullImage,
+            SupportRelativePath: $scope.formValues.SupportRelativePath,
+            FilesystemPath: $scope.formValues.FilesystemPath,
           };
 
           getAutoUpdatesProperty(repositoryOptions);

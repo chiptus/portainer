@@ -197,10 +197,17 @@ func (handler *Handler) deleteExternalStack(r *http.Request, w http.ResponseWrit
 }
 
 func (handler *Handler) deleteStack(userID portaineree.UserID, stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
+
 	if stack.Type == portaineree.DockerSwarmStack {
+		if stack.SupportRelativePath {
+			return handler.StackDeployer.UndeployRemoteSwarmStack(stack, endpoint)
+		}
 		return handler.SwarmStackManager.Remove(stack, endpoint)
 	}
 	if stack.Type == portaineree.DockerComposeStack {
+		if stack.SupportRelativePath {
+			return handler.StackDeployer.UndeployRemoteComposeStack(stack, endpoint)
+		}
 		return handler.ComposeStackManager.Down(context.TODO(), stack, endpoint)
 	}
 	if stack.Type == portaineree.KubernetesStack {

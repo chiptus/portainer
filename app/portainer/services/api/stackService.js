@@ -378,6 +378,8 @@ angular.module('portainer.app').factory('StackService', [
         RepositoryGitCredentialID: repositoryOptions.RepositoryGitCredentialID,
         FromAppTemplate: repositoryOptions.FromAppTemplate,
         Env: env,
+        SupportRelativePath: repositoryOptions.SupportRelativePath,
+        FilesystemPath: repositoryOptions.FilesystemPath,
       };
 
       if (repositoryOptions.AutoUpdate) {
@@ -406,6 +408,8 @@ angular.module('portainer.app').factory('StackService', [
             RepositoryGitCredentialID: repositoryOptions.RepositoryGitCredentialID,
             FromAppTemplate: repositoryOptions.FromAppTemplate,
             Env: env,
+            SupportRelativePath: repositoryOptions.SupportRelativePath,
+            FilesystemPath: repositoryOptions.FilesystemPath,
           };
 
           if (repositoryOptions.AutoUpdate) {

@@ -135,8 +135,14 @@ func (handler *Handler) stackStart(w http.ResponseWriter, r *http.Request) *http
 func (handler *Handler) startStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
 	switch stack.Type {
 	case portaineree.DockerComposeStack:
+		if stack.SupportRelativePath {
+			return handler.StackDeployer.StartRemoteComposeStack(stack, endpoint)
+		}
 		return handler.ComposeStackManager.Up(context.TODO(), stack, endpoint, false)
 	case portaineree.DockerSwarmStack:
+		if stack.SupportRelativePath {
+			return handler.StackDeployer.StartRemoteSwarmStack(stack, endpoint)
+		}
 		return handler.SwarmStackManager.Deploy(stack, true, true, endpoint)
 	}
 	return nil

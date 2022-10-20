@@ -1,4 +1,14 @@
-<ng-form name="autoUpdateForm">
+<ng-form name="autoUpdateForm" class="form-group">
+  <div class="small vertical-center" ng-if="$ctrl.model.RepositoryAutomaticUpdates">
+    <pr-icon icon="'info'" mode="'primary'" feather="true"></pr-icon>
+    <span class="text-muted">When the Automatic Updates setting is enabled, enforces automatic deployment at each interval or webhook invocation.</span>
+  </div>
+  <div class="small vertical-center" ng-if="!$ctrl.model.RepositoryAutomaticUpdates">
+    <pr-icon icon="'info'" mode="'primary'" feather="true"></pr-icon>
+    <span class="text-muted"
+      >When the Automatic Updates setting is enabled, updates from the git repository will occur automatically at an interval or on calling of the webhook.</span
+    >
+  </div>
   <div class="form-group">
     <div class="col-sm-12">
       <por-switch-field
@@ -95,13 +105,5 @@
         switch-values="{on:'Yes',off:'No'}"
       ></por-switch-field>
     </div>
-  </div>
-  <div class="small vertical-center" ng-if="$ctrl.model.RepositoryAutomaticUpdates">
-    <pr-icon icon="'info'" mode="'primary'" feather="true"></pr-icon>
-    <span class="text-muted">When enabled, enforces automatic deployment at each interval or webhook invocation.</span>
-  </div>
-  <div class="small vertical-center" ng-if="!$ctrl.model.RepositoryAutomaticUpdates">
-    <pr-icon icon="'info'" mode="'primary'" feather="true"></pr-icon>
-    <span class="text-muted">When enabled, updates from the git repository will occur automatically at an interval or webhook.</span>
   </div>
 </ng-form>

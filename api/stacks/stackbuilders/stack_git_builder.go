@@ -46,6 +46,8 @@ func (b *GitMethodStackBuilder) SetGeneralInfo(payload *StackPayload, endpoint *
 	b.stack.Status = portaineree.StackStatusActive
 	b.stack.CreationDate = time.Now().Unix()
 	b.stack.AutoUpdate = payload.AutoUpdate
+	b.stack.SupportRelativePath = payload.SupportRelativePath
+	b.stack.FilesystemPath = payload.FilesystemPath
 	return b
 }
 

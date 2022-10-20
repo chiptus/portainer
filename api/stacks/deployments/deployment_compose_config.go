@@ -86,6 +86,10 @@ func (config *ComposeStackDeploymentConfig) Deploy() error {
 		}
 	}
 
+	if config.stack.SupportRelativePath {
+		return config.StackDeployer.DeployRemoteComposeStack(config.stack, config.endpoint, config.registries, config.forcePullImage, config.ForceCreate)
+	}
+
 	return config.StackDeployer.DeployComposeStack(config.stack, config.endpoint, config.registries, config.forcePullImage, config.ForceCreate)
 }
 

@@ -2038,6 +2038,7 @@
       "EndpointId": 1,
       "EntryPoint": "docker/redis-compose.yml",
       "Env": [],
+      "FilesystemPath": "",
       "FromAppTemplate": false,
       "GitConfig": {
         "Authentication": null,
@@ -2054,6 +2055,7 @@
       "ProjectPath": "/home/prabhat/portainer/data/ee2.7/compose/2",
       "ResourceControl": null,
       "Status": 1,
+      "SupportRelativePath": false,
       "SwarmId": "",
       "Type": 2,
       "UpdateDate": 0,

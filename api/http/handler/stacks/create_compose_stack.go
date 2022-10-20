@@ -174,9 +174,13 @@ type composeStackFromGitRepositoryPayload struct {
 	Env []portaineree.Pair
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
+	// Whether the stack suppors relative path volume
+	SupportRelativePath bool `example:"false"`
+	// Local filesystem path
+	FilesystemPath string `example:"/tmp"`
 }
 
-func createStackPayloadFromComposeGitPayload(name, repoUrl, repoReference, repoUsername, repoPassword string, repoGitCredentialID int, repoAuthentication bool, composeFile string, additionalFiles []string, autoUpdate *portaineree.StackAutoUpdate, env []portaineree.Pair, fromAppTemplate bool) stackbuilders.StackPayload {
+func createStackPayloadFromComposeGitPayload(name, repoUrl, repoReference, repoUsername, repoPassword string, repoGitCredentialID int, repoAuthentication bool, composeFile string, additionalFiles []string, autoUpdate *portaineree.StackAutoUpdate, env []portaineree.Pair, fromAppTemplate, supportRelativePath bool, filesystemPath string) stackbuilders.StackPayload {
 	return stackbuilders.StackPayload{
 		Name: name,
 		RepositoryConfigPayload: stackbuilders.RepositoryConfigPayload{
@@ -187,11 +191,13 @@ func createStackPayloadFromComposeGitPayload(name, repoUrl, repoReference, repoU
 			Password:        repoPassword,
 			GitCredentialID: repoGitCredentialID,
 		},
-		ComposeFile:     composeFile,
-		AdditionalFiles: additionalFiles,
-		AutoUpdate:      autoUpdate,
-		Env:             env,
-		FromAppTemplate: fromAppTemplate,
+		ComposeFile:         composeFile,
+		AdditionalFiles:     additionalFiles,
+		AutoUpdate:          autoUpdate,
+		Env:                 env,
+		FromAppTemplate:     fromAppTemplate,
+		SupportRelativePath: supportRelativePath,
+		FilesystemPath:      filesystemPath,
 	}
 }
 
@@ -269,7 +275,9 @@ func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWrite
 		payload.AdditionalFiles,
 		payload.AutoUpdate,
 		payload.Env,
-		payload.FromAppTemplate)
+		payload.FromAppTemplate,
+		payload.SupportRelativePath,
+		payload.FilesystemPath)
 
 	composeStackBuilder := stackbuilders.CreateComposeStackGitBuilder(securityContext,
 		handler.userActivityService,

@@ -55,6 +55,41 @@ func (s *noopDeployer) DeployKubernetesStack(stack *portaineree.Stack, endpoint 
 	return nil
 }
 
+func (s *noopDeployer) DeployRemoteSwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, prune bool, pullImage bool) error {
+	s.SwarmStackDeployed = true
+	return nil
+}
+
+func (s *noopDeployer) DeployRemoteComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, forcePullImage bool, forceRereate bool) error {
+	s.ComposeStackDeployed = true
+	return nil
+}
+
+func (s *noopDeployer) UndeployRemoteComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
+	s.ComposeStackDeployed = true
+	return nil
+}
+
+func (s *noopDeployer) UndeployRemoteSwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
+	s.SwarmStackDeployed = true
+	return nil
+}
+
+func (s *noopDeployer) StartRemoteSwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
+	return nil
+}
+
+func (s *noopDeployer) StopRemoteSwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
+	return nil
+}
+func (s *noopDeployer) StartRemoteComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
+	return nil
+}
+
+func (s *noopDeployer) StopRemoteComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
+	return nil
+}
+
 func Test_redeployWhenChanged_FailsWhenCannotFindStack(t *testing.T) {
 	_, store, teardown := datastore.MustNewTestStore(t, true, true)
 	defer teardown()

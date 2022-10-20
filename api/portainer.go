@@ -1228,6 +1228,10 @@ type (
 		IsComposeFormat bool `example:"false"`
 		// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
 		Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
+		//If stack support relative path volume
+		SupportRelativePath bool `example:"false"`
+		// Network(Swarm) or local(Standalone) filesystem path
+		FilesystemPath string `example:"/tmp"`
 	}
 
 	//StackAutoUpdate represents the git auto sync config for stack deployment

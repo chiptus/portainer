@@ -79,6 +79,10 @@ func (config *SwarmStackDeploymentConfig) Deploy() error {
 		}
 	}
 
+	if config.stack.SupportRelativePath {
+		return config.StackDeployer.DeployRemoteSwarmStack(config.stack, config.endpoint, config.registries, config.prune, config.pullImage)
+	}
+
 	return config.StackDeployer.DeploySwarmStack(config.stack, config.endpoint, config.registries, config.prune, config.pullImage)
 }
 

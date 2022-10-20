@@ -128,9 +128,13 @@ type swarmStackFromGitRepositoryPayload struct {
 	AutoUpdate *portaineree.StackAutoUpdate
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
+	// Whether the stack suppors relative path volume
+	SupportRelativePath bool `example:"false"`
+	// Network filesystem path
+	FilesystemPath string `example:"/tmp"`
 }
 
-func createStackPayloadFromSwarmGitPayload(name, swarmID, repoUrl, repoReference, repoUsername, repoPassword string, repoGitCredentialID int, repoAuthentication bool, composeFile string, additionalFiles []string, autoUpdate *portaineree.StackAutoUpdate, env []portaineree.Pair, fromAppTemplate bool) stackbuilders.StackPayload {
+func createStackPayloadFromSwarmGitPayload(name, swarmID, repoUrl, repoReference, repoUsername, repoPassword string, repoGitCredentialID int, repoAuthentication bool, composeFile string, additionalFiles []string, autoUpdate *portaineree.StackAutoUpdate, env []portaineree.Pair, fromAppTemplate, supportRelativePath bool, filesystemPath string) stackbuilders.StackPayload {
 	return stackbuilders.StackPayload{
 		Name:    name,
 		SwarmID: swarmID,
@@ -142,11 +146,13 @@ func createStackPayloadFromSwarmGitPayload(name, swarmID, repoUrl, repoReference
 			Password:        repoPassword,
 			GitCredentialID: repoGitCredentialID,
 		},
-		ComposeFile:     composeFile,
-		AdditionalFiles: additionalFiles,
-		AutoUpdate:      autoUpdate,
-		Env:             env,
-		FromAppTemplate: fromAppTemplate,
+		ComposeFile:         composeFile,
+		AdditionalFiles:     additionalFiles,
+		AutoUpdate:          autoUpdate,
+		Env:                 env,
+		FromAppTemplate:     fromAppTemplate,
+		SupportRelativePath: supportRelativePath,
+		FilesystemPath:      filesystemPath,
 	}
 }
 
@@ -211,7 +217,9 @@ func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter,
 		payload.AdditionalFiles,
 		payload.AutoUpdate,
 		payload.Env,
-		payload.FromAppTemplate)
+		payload.FromAppTemplate,
+		payload.SupportRelativePath,
+		payload.FilesystemPath)
 
 	swarmStackBuilder := stackbuilders.CreateSwarmStackGitBuilder(securityContext,
 		handler.userActivityService,
