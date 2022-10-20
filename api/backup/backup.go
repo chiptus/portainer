@@ -51,14 +51,9 @@ func BackupToS3(settings portaineree.S3BackupSettings, gate *offlinegate.Offline
 
 	archiveName := fmt.Sprintf("portainer-backup_%s", filepath.Base(archivePath))
 
-	s3session, err := s3.NewSession(settings.Region, settings.AccessKeyID, settings.SecretAccessKey)
-	if err != nil {
-		log.Error().Err(err).Msg("")
+	s3client := s3.NewClient(settings.Region, settings.AccessKeyID, settings.SecretAccessKey)
 
-		return err
-	}
-
-	if err := s3.Upload(s3session, archiveReader, settings.BucketName, archiveName); err != nil {
+	if err := s3.Upload(s3client, archiveReader, settings.BucketName, archiveName); err != nil {
 		log.Error().Err(err).Msg("failed to upload backup to S3")
 
 		return err

@@ -1,37 +1,34 @@
 package s3
 
 import (
+	"context"
 	"fmt"
 	"io"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 
-func NewSession(region string, accessKeyID string, secretAccessKey string) (*session.Session, error) {
-	sess, err := session.NewSessionWithOptions(session.Options{
-		Config: aws.Config{
-			Region:      aws.String(region),
-			Credentials: credentials.NewStaticCredentials(accessKeyID, secretAccessKey, "")},
-	})
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create AWS S3 session")
-	}
+func NewClient(region string, accessKeyID string, secretAccessKey string) *s3.Client {
 
-	return sess, nil
+	client := s3.New(s3.Options{
+		Region:      region,
+		Credentials: aws.NewCredentialsCache(credentials.NewStaticCredentialsProvider(accessKeyID, secretAccessKey, "")),
+	})
+
+	return client
 }
 
-func Upload(sess *session.Session, r io.Reader, bucketname string, filename string) error {
-	s3Uploader := s3manager.NewUploader(sess)
+func Upload(client *s3.Client, r io.Reader, bucketname string, filename string) error {
+	s3Uploader := manager.NewUploader(client)
 
-	out, err := s3Uploader.Upload(&s3manager.UploadInput{
+	out, err := s3Uploader.Upload(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String(bucketname),
 		Key:    aws.String(filename),
 		Body:   r,
@@ -46,10 +43,10 @@ func Upload(sess *session.Session, r io.Reader, bucketname string, filename stri
 	return nil
 }
 
-func Download(sess *session.Session, w io.WriterAt, settings portaineree.S3Location) error {
-	downloader := s3manager.NewDownloader(sess)
+func Download(client *s3.Client, w io.WriterAt, settings portaineree.S3Location) error {
+	downloader := manager.NewDownloader(client)
 
-	_, err := downloader.Download(w, &s3.GetObjectInput{
+	_, err := downloader.Download(context.TODO(), w, &s3.GetObjectInput{
 		Bucket: aws.String(settings.BucketName),
 		Key:    aws.String(settings.Filename),
 	})

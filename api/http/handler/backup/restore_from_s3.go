@@ -11,7 +11,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
 	operations "github.com/portainer/portainer-ee/api/backup"
-	s3client "github.com/portainer/portainer-ee/api/s3"
+	s3 "github.com/portainer/portainer-ee/api/s3"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -82,12 +82,9 @@ func (h *Handler) restoreFromS3(w http.ResponseWriter, r *http.Request) *httperr
 		os.RemoveAll(filepath.Dir(backupFile.Name()))
 	}()
 
-	s3session, err := s3client.NewSession(payload.Region, payload.AccessKeyID, payload.SecretAccessKey)
-	if err != nil {
-		log.Error().Err(err).Msg("")
-	}
+	s3client := s3.NewClient(payload.Region, payload.AccessKeyID, payload.SecretAccessKey)
 
-	if err = s3client.Download(s3session, backupFile, payload.S3Location); err != nil {
+	if err = s3.Download(s3client, backupFile, payload.S3Location); err != nil {
 		log.Error().Err(err).Msg("failed downloading file from S3")
 
 		return httperror.InternalServerError("Failed to download file from S3", err)
