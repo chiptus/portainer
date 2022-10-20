@@ -841,10 +841,12 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 
 func main() {
 	configureLogger()
+	setLoggingMode("PRETTY")
 
 	flags := initCLI()
 
 	setLoggingLevel(*flags.LogLevel)
+	setLoggingMode(*flags.LogMode)
 
 	for {
 		server := buildServer(flags)

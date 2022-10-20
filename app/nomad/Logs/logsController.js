@@ -1,3 +1,4 @@
+import { formatLogs } from '@/docker/helpers/logHelper';
 import axios from '@/portainer/services/axios';
 
 angular.module('portainer.nomad').controller('LogsController', [
@@ -21,25 +22,6 @@ angular.module('portainer.nomad').controller('LogsController', [
       }
     };
 
-    function stripEscapeCodes(logs) {
-      return logs.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
-    }
-
-    function formatLogs(logs, splitter = '\\n') {
-      if (!logs) {
-        return [];
-      }
-
-      const formattedLogs = [];
-      const logInLines = logs.trim().split(splitter);
-
-      for (const logInLine of logInLines) {
-        const line = stripEscapeCodes(logInLine).replace('\n', '').replace(/[""]+/g, '');
-        formattedLogs.push({ line, spans: [{ foregroundColor: null, backgroundColor: null, text: line }] });
-      }
-
-      return formattedLogs;
-    }
     async function loadLogs(logType, jobID, taskName, namespace, endpointId, controller, refresh = true, offset = 50000) {
       axios
         .get(`/nomad/endpoints/${endpointId}/allocation/${$scope.allocationID}/logs`, {
@@ -58,7 +40,7 @@ angular.module('portainer.nomad').controller('LogsController', [
           },
         })
         .then((response) => {
-          $scope[`${logType}Log`] = formatLogs(response.data, '\n');
+          $scope[`${logType}Log`] = formatLogs(response.data);
           $scope.$apply();
         })
         .catch((err) => {

@@ -185,6 +185,7 @@ type (
 		SecretKeyName             *string
 		LicenseKey                *string
 		LogLevel                  *string
+		LogMode                   *string
 	}
 
 	// CustomTemplateVariableDefinition
