@@ -1,10 +1,10 @@
 import { Form, Formik } from 'formik';
 import { useReducer, useState } from 'react';
 
-import { useCreateKubeConfigEnvironmentMutation } from '@/portainer/environments/queries/useCreateEnvironmentMutation';
+import { useCreateKubeConfigEnvironmentMutation } from '@/react/portainer/environments/queries/useCreateEnvironmentMutation';
 import { notifySuccess } from '@/portainer/services/notifications';
-import { Environment } from '@/portainer/environments/types';
-import { CreateKubeConfigEnvironment } from '@/portainer/environments/environment.service/create';
+import { Environment } from '@/react/portainer/environments/types';
+import { CreateKubeConfigEnvironment } from '@/react/portainer/environments/environment.service/create';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { FileUploadField } from '@@/form-components/FileUpload/FileUploadField';

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import {
   Environment,
   EnvironmentCreationTypes,
-} from '@/portainer/environments/types';
+} from '@/react/portainer/environments/types';
 import {
   buildLinuxNomadCommand,
   CommandTab,

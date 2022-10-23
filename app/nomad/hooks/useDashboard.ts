@@ -1,6 +1,6 @@
 import { useQuery } from 'react-query';
 
-import { EnvironmentId } from '@/portainer/environments/types';
+import { EnvironmentId } from '@/react/portainer/environments/types';
 import { Dashboard } from '@/nomad/types';
 import { getDashboard } from '@/nomad/rest/getDashboard';
 

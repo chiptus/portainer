@@ -1,6 +1,6 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
-import { useEnvironment } from '@/portainer/environments/queries';
+import { useEnvironment } from '@/react/portainer/environments/queries';
 import { name } from '@/react/docker/containers/ListView/ContainersDatatable/columns/name';
 import { state } from '@/react/docker/containers/ListView/ContainersDatatable/columns/state';
 import { created } from '@/react/docker/containers/ListView/ContainersDatatable/columns/created';

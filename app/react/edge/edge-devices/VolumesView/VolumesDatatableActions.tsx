@@ -2,7 +2,7 @@ import { useRouter } from '@uirouter/react';
 import { Trash2 } from 'react-feather';
 
 import * as notifications from '@/portainer/services/notifications';
-import type { EnvironmentId } from '@/portainer/environments/types';
+import type { EnvironmentId } from '@/react/portainer/environments/types';
 import { DockerVolume } from '@/react/docker/volumes/types';
 
 import { ButtonGroup, Button } from '@@/buttons';

@@ -1,5 +1,5 @@
 import angular from 'angular';
-import { getEnvironments } from '@/portainer/environments/environment.service';
+import { getEnvironments } from '@/react/portainer/environments/environment.service';
 
 class InternalAuthenticationController {
   /* @ngInject */

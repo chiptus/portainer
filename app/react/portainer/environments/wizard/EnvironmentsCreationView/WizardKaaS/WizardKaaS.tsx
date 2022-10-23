@@ -8,7 +8,7 @@ import {
   providerTitles,
 } from '@/react/portainer/settings/cloud/types';
 import { useCloudCredentials } from '@/react/portainer/settings/cloud/cloudSettings.service';
-import { Environment } from '@/portainer/environments/types';
+import { Environment } from '@/react/portainer/environments/types';
 import { useSettings } from '@/react/portainer/settings/queries';
 import { CredentialsForm } from '@/react/portainer/settings/cloud/CreateCredentialsView/CredentialsForm';
 

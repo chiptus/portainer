@@ -1,6 +1,6 @@
 import { DockerContainer } from '@/react/docker/containers/types';
 import { EdgeStack } from '@/react/edge/edge-stacks/types';
-import { EnvironmentId } from '@/portainer/environments/types';
+import { EnvironmentId } from '@/react/portainer/environments/types';
 
 import { buildDockerSnapshotUrl, queryKeys as rootQueryKeys } from './root';
 

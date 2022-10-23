@@ -1,6 +1,6 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
-import { useEnvironment } from '@/portainer/environments/queries';
+import { useEnvironment } from '@/react/portainer/environments/queries';
 import { Datatable } from '@/react/components/datatables/Datatable';
 import { useDockerSnapshot } from '@/react/docker/queries/useDockerSnapshot';
 import { createStore } from '@/react/docker/images/ListView/ImagesDatatable/datatable-store';

@@ -1,7 +1,7 @@
 import _ from 'lodash';
 
 import { ResourceControlViewModel } from '@/react/portainer/access-control/models/ResourceControlViewModel';
-import { EnvironmentId } from '@/portainer/environments/types';
+import { EnvironmentId } from '@/react/portainer/environments/types';
 import { useInfo } from '@/docker/services/system.service';
 
 import { DockerContainer, ContainerStatus } from './types';

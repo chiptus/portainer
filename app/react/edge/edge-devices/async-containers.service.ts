@@ -1,4 +1,4 @@
-import { EnvironmentId } from '@/portainer/environments/types';
+import { EnvironmentId } from '@/react/portainer/environments/types';
 import axios from '@/portainer/services/axios';
 import { ContainerId, DockerContainer } from '@/react/docker/containers/types';
 

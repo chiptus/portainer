@@ -1,10 +1,10 @@
 import clsx from 'clsx';
 import { useQuery } from 'react-query';
 
-import { useEnvironment } from '@/portainer/environments/queries';
+import { useEnvironment } from '@/react/portainer/environments/queries';
 import { getImagesStatus } from '@/react/docker/images/image.service';
 import { statusClass } from '@/react/docker/components/ImageStatus/helpers';
-import { EnvironmentId } from '@/portainer/environments/types';
+import { EnvironmentId } from '@/react/portainer/environments/types';
 
 export interface Props {
   imageName: string;

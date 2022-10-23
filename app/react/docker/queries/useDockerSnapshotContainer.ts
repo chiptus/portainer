@@ -2,7 +2,7 @@ import { useQuery } from 'react-query';
 
 import { withError } from '@/react-tools/react-query';
 import axios, { parseAxiosError } from '@/portainer/services/axios';
-import { Environment } from '@/portainer/environments/types';
+import { Environment } from '@/react/portainer/environments/types';
 import { DockerContainerResponse } from '@/react/docker/containers/types/response';
 import { parseViewModel } from '@/react/docker/containers/utils';
 

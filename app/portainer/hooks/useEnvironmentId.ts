@@ -1,6 +1,6 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
-import { EnvironmentId } from '../environments/types';
+import { EnvironmentId } from '@/react/portainer/environments/types';
 
 export function useEnvironmentId(): EnvironmentId {
   const {

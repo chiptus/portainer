@@ -3,7 +3,7 @@ import {
   KaasProvider,
   Credential,
 } from '@/react/portainer/settings/cloud/types';
-import { Environment } from '@/portainer/environments/types';
+import { Environment } from '@/react/portainer/environments/types';
 
 import { KaasInfoResponse, CreateClusterPayload } from './types';
 import { parseKaasInfoResponse } from './converter';

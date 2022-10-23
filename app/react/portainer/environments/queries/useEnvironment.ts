@@ -1,8 +1,9 @@
 import { useQuery } from 'react-query';
 
-import { getEndpoint } from '@/portainer/environments/environment.service';
-import { Environment, EnvironmentId } from '@/portainer/environments/types';
 import { withError } from '@/react-tools/react-query';
+
+import { getEndpoint } from '../environment.service';
+import { Environment, EnvironmentId } from '../types';
 
 export function useEnvironment<T = Environment | null>(
   id?: EnvironmentId,

@@ -1,7 +1,7 @@
 import { usePagination, useTable } from 'react-table';
 
 import { Device } from '@/portainer/hostmanagement/open-amt/model';
-import { EnvironmentId } from '@/portainer/environments/types';
+import { EnvironmentId } from '@/react/portainer/environments/types';
 import PortainerError from '@/portainer/error';
 
 import { InnerDatatable } from '@@/datatables/InnerDatatable';

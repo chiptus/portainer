@@ -1,6 +1,6 @@
 import { useQuery } from 'react-query';
 
-import { EnvironmentId } from '@/portainer/environments/types';
+import { EnvironmentId } from '@/react/portainer/environments/types';
 import { listJobs } from '@/nomad/jobs.service';
 import { Job } from '@/nomad/types';
 

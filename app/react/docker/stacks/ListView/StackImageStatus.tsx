@@ -1,8 +1,8 @@
 import clsx from 'clsx';
 import { useQuery } from 'react-query';
 
-import { EnvironmentId } from '@/portainer/environments/types';
-import { useEnvironment } from '@/portainer/environments/queries';
+import { EnvironmentId } from '@/react/portainer/environments/types';
+import { useEnvironment } from '@/react/portainer/environments/queries';
 import { getStackImagesStatus } from '@/portainer/services/api/stack.service';
 import { statusClass } from '@/react/docker/components/ImageStatus/helpers';
 

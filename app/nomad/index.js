@@ -1,4 +1,4 @@
-import { isNomadEnvironment } from '@/portainer/environments/utils';
+import { isNomadEnvironment } from '@/react/portainer/environments/utils';
 import { ping } from '@/nomad/rest/ping';
 import { NomadDashboardAngular } from './Dashboard';
 import { JobsViewAngular } from './Jobs';

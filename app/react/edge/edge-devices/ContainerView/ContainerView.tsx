@@ -1,6 +1,6 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
-import { useEnvironment } from '@/portainer/environments/queries';
+import { useEnvironment } from '@/react/portainer/environments/queries';
 import { useDockerSnapshotContainer } from '@/react/docker/queries/useDockerSnapshotContainer';
 import { isoDateFromTimestamp } from '@/portainer/filters/filters';
 

@@ -2,6 +2,7 @@ import _ from 'lodash-es';
 
 import './rbac';
 import './registry-management';
+import { getEnvironments } from '@/react/portainer/environments/environment.service';
 import licenseManagementModule from './license-management';
 import settingsModule from './settings';
 import userActivityModule from './user-activity';
@@ -11,7 +12,6 @@ import servicesModule from './services';
 import { reactModule } from './react';
 import { sidebarModule } from './react/views/sidebar';
 import { gitCredentialsModule } from './views/account/git-credential';
-import { getEnvironments } from './environments/environment.service';
 
 async function initAuthentication(authManager, Authentication, $rootScope, $state) {
   authManager.checkAuthOnRefresh();

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from 'react-query';
 
-import { snapshotEndpoint } from '@/portainer/environments/environment.service';
-import { EnvironmentId } from '@/portainer/environments/types';
+import { snapshotEndpoint } from '@/react/portainer/environments/environment.service';
+import { EnvironmentId } from '@/react/portainer/environments/types';
 
 export function useSnapshotMutation() {
   const queryClient = useQueryClient();

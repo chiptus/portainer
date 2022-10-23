@@ -1,6 +1,6 @@
 import { object, SchemaOf, string } from 'yup';
 
-import { CreateKubeConfigEnvironment } from '@/portainer/environments/environment.service/create';
+import { CreateKubeConfigEnvironment } from '@/react/portainer/environments/environment.service/create';
 
 import { metadataValidation } from '../../shared/MetadataFieldset/validation';
 import { nameValidation } from '../../shared/NameField';

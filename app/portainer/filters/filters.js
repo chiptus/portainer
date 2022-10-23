@@ -4,7 +4,7 @@ import filesize from 'filesize';
 
 import { Eye, EyeOff, Users } from 'react-feather';
 import { ResourceControlOwnership as RCO } from '@/react/portainer/access-control/types';
-import { EnvironmentType } from '../environments/types';
+import { EnvironmentType } from '@/react/portainer/environments/types';
 
 export function truncateLeftRight(text, max, left, right) {
   max = isNaN(max) ? 50 : max;

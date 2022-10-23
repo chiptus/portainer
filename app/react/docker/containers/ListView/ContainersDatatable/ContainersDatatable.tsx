@@ -1,7 +1,7 @@
 import _ from 'lodash';
 
 import { DockerContainer } from '@/react/docker/containers/types';
-import { Environment } from '@/portainer/environments/types';
+import { Environment } from '@/react/portainer/environments/types';
 import { useShowGPUsColumn } from '@/react/docker/containers/utils';
 
 import { TableSettingsMenu, Datatable } from '@@/datatables';

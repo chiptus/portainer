@@ -8,12 +8,12 @@ import {
   PlatformType,
   EnvironmentId,
   Environment,
-} from '@/portainer/environments/types';
+} from '@/react/portainer/environments/types';
 import {
   getPlatformType,
   isEdgeDeviceAsync,
-} from '@/portainer/environments/utils';
-import { useEnvironment } from '@/portainer/environments/queries/useEnvironment';
+} from '@/react/portainer/environments/utils';
+import { useEnvironment } from '@/react/portainer/environments/queries/useEnvironment';
 import { useLocalStorage } from '@/portainer/hooks/useLocalStorage';
 import { EndpointProvider } from '@/portainer/services/types';
 

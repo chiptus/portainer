@@ -1,4 +1,4 @@
-import { EnvironmentMetadata } from '@/portainer/environments/environment.service/create';
+import { EnvironmentMetadata } from '@/react/portainer/environments/environment.service/create';
 
 import { Option } from '@@/form-components/Input/Select';
 

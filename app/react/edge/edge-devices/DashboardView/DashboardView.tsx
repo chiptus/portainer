@@ -2,7 +2,7 @@ import { find } from 'lodash';
 import { Box, Cpu, Database, List } from 'react-feather';
 import { useCurrentStateAndParams } from '@uirouter/react';
 
-import { useEnvironment } from '@/portainer/environments/queries';
+import { useEnvironment } from '@/react/portainer/environments/queries';
 import { humanize } from '@/portainer/filters/filters';
 import { useTags } from '@/portainer/tags/queries';
 import { ContainerStatus } from '@/react/docker/DashboardView/ContainerStatus';

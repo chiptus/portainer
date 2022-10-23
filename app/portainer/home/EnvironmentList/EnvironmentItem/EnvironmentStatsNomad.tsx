@@ -1,4 +1,7 @@
-import { EnvironmentType, NomadSnapshot } from '@/portainer/environments/types';
+import {
+  EnvironmentType,
+  NomadSnapshot,
+} from '@/react/portainer/environments/types';
 import { addPlural } from '@/portainer/helpers/strings';
 
 import { AgentVersionTag } from './AgentVersionTag';

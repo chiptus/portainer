@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from 'react';
 
-import { useSnapshotMutation } from '@/portainer/environments/queries';
+import { useSnapshotMutation } from '@/react/portainer/environments/queries';
 
 import { useCurrentEnvironment } from './useCurrentEnvironment';
 

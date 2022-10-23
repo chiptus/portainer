@@ -27,7 +27,7 @@ import {
   startContainer,
   stopContainer,
 } from '@/react/docker/containers/containers.service';
-import type { EnvironmentId } from '@/portainer/environments/types';
+import type { EnvironmentId } from '@/react/portainer/environments/types';
 
 import { ButtonGroup, Button } from '@@/buttons';
 import { Link } from '@@/Link';

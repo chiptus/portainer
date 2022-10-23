@@ -9,7 +9,7 @@ import {
   ContainerStatus,
   DockerContainer,
 } from '@/react/docker/containers/types';
-import type { EnvironmentId } from '@/portainer/environments/types';
+import type { EnvironmentId } from '@/react/portainer/environments/types';
 
 import { ButtonGroup, Button } from '@@/buttons';
 
