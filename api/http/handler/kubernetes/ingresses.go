@@ -57,11 +57,22 @@ func (handler *Handler) getKubernetesIngressControllers(w http.ResponseWriter, r
 			err,
 		)
 	}
+
+	// Add none controller if "AllowNone" is set for endpoint.
+	if endpoint.Kubernetes.Configuration.AllowNoneIngressClass {
+		controllers = append(controllers, models.K8sIngressController{
+			Name:      "none",
+			ClassName: "none",
+			Type:      "custom",
+		})
+	}
 	existingClasses := endpoint.Kubernetes.Configuration.IngressClasses
 	var updatedClasses []portaineree.KubernetesIngressClassConfig
 	for i := range controllers {
 		controllers[i].Availability = true
-		controllers[i].New = true
+		if controllers[i].ClassName != "none" {
+			controllers[i].New = true
+		}
 
 		var updatedClass portaineree.KubernetesIngressClassConfig
 		updatedClass.Name = controllers[i].ClassName
@@ -154,6 +165,14 @@ func (handler *Handler) getKubernetesIngressControllersByNamespace(w http.Respon
 		)
 	}
 
+	// Add none controller if "AllowNone" is set for endpoint.
+	if endpoint.Kubernetes.Configuration.AllowNoneIngressClass {
+		currentControllers = append(currentControllers, models.K8sIngressController{
+			Name:      "none",
+			ClassName: "none",
+			Type:      "custom",
+		})
+	}
 	kubernetesConfig := endpoint.Kubernetes.Configuration
 	existingClasses := kubernetesConfig.IngressClasses
 	ingressAvailabilityPerNamespace := kubernetesConfig.IngressAvailabilityPerNamespace
@@ -162,7 +181,9 @@ func (handler *Handler) getKubernetesIngressControllersByNamespace(w http.Respon
 	for i := range currentControllers {
 		var globallyblocked bool
 		currentControllers[i].Availability = true
-		currentControllers[i].New = true
+		if currentControllers[i].ClassName != "none" {
+			currentControllers[i].New = true
+		}
 
 		var updatedClass portaineree.KubernetesIngressClassConfig
 		updatedClass.Name = currentControllers[i].ClassName
@@ -257,6 +278,15 @@ func (handler *Handler) updateKubernetesIngressControllers(w http.ResponseWriter
 			"Unable to fetch ingressclasses",
 			err,
 		)
+	}
+
+	// Add none controller if "AllowNone" is set for endpoint.
+	if endpoint.Kubernetes.Configuration.AllowNoneIngressClass {
+		controllers = append(controllers, models.K8sIngressController{
+			Name:      "none",
+			ClassName: "none",
+			Type:      "custom",
+		})
 	}
 	var updatedClasses []portaineree.KubernetesIngressClassConfig
 	for i := range controllers {

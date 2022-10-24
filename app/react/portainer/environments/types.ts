@@ -76,6 +76,7 @@ export interface KubernetesConfiguration {
   RestrictDefaultNamespace?: boolean;
   IngressClasses: IngressClass[];
   IngressAvailabilityPerNamespace: boolean;
+  AllowNoneIngressClass: boolean;
 }
 
 export interface KubernetesSettings {

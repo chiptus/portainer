@@ -69,6 +69,7 @@
       "IsEdgeDevice": false,
       "Kubernetes": {
         "Configuration": {
+          "AllowNoneIngressClass": false,
           "EnableResourceOverCommit": true,
           "IngressAvailabilityPerNamespace": true,
           "IngressClasses": [],

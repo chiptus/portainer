@@ -11,6 +11,7 @@ func KubernetesDefault() KubernetesData {
 			IngressClasses:                  []KubernetesIngressClassConfig{},
 			RestrictDefaultNamespace:        false,
 			IngressAvailabilityPerNamespace: false,
+			AllowNoneIngressClass:           false,
 		},
 		Snapshots: []KubernetesSnapshot{},
 	}
