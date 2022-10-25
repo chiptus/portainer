@@ -38,6 +38,10 @@ angular.module('portainer.app').factory('WebhookService', [
       return Webhooks.remove({ id: id }).$promise;
     };
 
+    service.reassignWebhook = function (id, resourceID, webhookType) {
+      return Webhooks.reassign({ id, ResourceID: resourceID, WebhookType: webhookType }).$promise;
+    };
+
     return service;
   },
 ]);

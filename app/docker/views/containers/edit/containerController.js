@@ -394,7 +394,7 @@ angular.module('portainer.docker').controller('ContainerController', [
         .then(renameContainer)
         .then(setMainNetworkAndCreateContainer)
         .then(connectContainerToOtherNetworks)
-        .then(recreateWebhook)
+        .then(reassignWebhook)
         .then(startContainerIfNeeded)
         .then(createResourceControl)
         .then(deleteOldContainer)
@@ -411,8 +411,15 @@ angular.module('portainer.docker').controller('ContainerController', [
       function renameContainer() {
         return ContainerService.renameContainer(container.Id, container.Name + '-old');
       }
-      function recreateWebhook(container) {
-        $scope.updateWebhook(container, true);
+
+      function reassignWebhook(container) {
+        WebhookService.reassignWebhook($scope.WebhookID, container.Id, 2)
+          .then(function success() {
+            $scope.WebhookExists = false;
+          })
+          .catch(function error(err) {
+            Notifications.error('Failure', err, 'Unable to reassign webhook');
+          });
         return container;
       }
 

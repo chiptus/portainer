@@ -11,6 +11,7 @@ angular.module('portainer.app').factory('Webhooks', [
         create: { method: 'POST' },
         update: { method: 'PUT', params: { id: '@id' } },
         remove: { method: 'DELETE', params: { id: '@id' } },
+        reassign: { url: `${API_ENDPOINT_WEBHOOKS}/:id/reassign`, method: 'PUT', params: { id: '@id' } },
       }
     );
   },

@@ -45,6 +45,7 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 	authenticatedRouter.Handle("/webhooks", httperror.LoggerHandler(h.webhookList)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/webhooks/{id}", httperror.LoggerHandler(h.webhookUpdate)).Methods(http.MethodPut)
 	authenticatedRouter.Handle("/webhooks/{id}", httperror.LoggerHandler(h.webhookDelete)).Methods(http.MethodDelete)
+	authenticatedRouter.Handle("/webhooks/{id}/reassign", httperror.LoggerHandler(h.webhookReassign)).Methods(http.MethodPut)
 	publicRouter.Handle("/webhooks/{token}", httperror.LoggerHandler(h.webhookExecute)).Methods(http.MethodPost)
 	return h
 }
