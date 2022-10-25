@@ -133,7 +133,7 @@ func (service *Service) DeleteLicense(licenseKey string) error {
 		return err
 	}
 
-	valid := isExpiredOrRevoked(*license)
+	valid := !isExpiredOrRevoked(*license)
 
 	if valid {
 		licenses, err := service.Licenses()
@@ -143,7 +143,7 @@ func (service *Service) DeleteLicense(licenseKey string) error {
 
 		hasMoreValidLicenses := false
 		for _, otherLicense := range licenses {
-			if licenseKey != otherLicense.LicenseKey && isExpiredOrRevoked(otherLicense) {
+			if licenseKey != otherLicense.LicenseKey && !isExpiredOrRevoked(otherLicense) {
 				hasMoreValidLicenses = true
 				break
 			}
