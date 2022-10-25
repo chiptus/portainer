@@ -78,7 +78,7 @@
               <td>{{ item.Size | humansize }}</td>
               <td ng-if="$ctrl.advancedFeaturesAvailable">
                 <span ng-if="!item.Modified">
-                  <a class="interactive vertical-center" ng-click="item.Modified = true; item.NewName = item.Name; $event.stopPropagation();">
+                  <a class="interactive vertical-center hyperlink" ng-click="item.Modified = true; item.NewName = item.Name; $event.stopPropagation();">
                     <pr-icon icon="'tag'" feather="true" mode="'primary'"></pr-icon>
                     Retag
                   </a>

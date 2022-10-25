@@ -1,3 +1,5 @@
+import { Eye, EyeOff } from 'react-feather';
+
 import { notifySuccess } from '@/portainer/services/notifications';
 import { FeatureId } from '@/portainer/feature-flags/enums';
 import { isLimitedToBE } from '@/portainer/feature-flags/feature-flags.service';
@@ -8,7 +10,6 @@ import {
 
 import { Tooltip } from '@@/Tip/Tooltip';
 import { Button } from '@@/buttons';
-import { Icon } from '@@/Icon';
 
 export function DefaultRegistryAction() {
   const settingsQuery = usePublicSettings({
@@ -28,11 +29,12 @@ export function DefaultRegistryAction() {
       {!hideDefaultRegistry ? (
         <div className="vertical-center">
           <Button
-            className="btn btn-xs btn-danger vertical-center"
+            color="danger"
+            size="xsmall"
+            icon={EyeOff}
             onClick={() => handleShowOrHide(true)}
             disabled={isLimited}
           >
-            <Icon icon="eye-off" feather />
             Hide for all users
           </Button>
           {isLimited ? null : (
@@ -45,10 +47,10 @@ export function DefaultRegistryAction() {
       ) : (
         <div className="vertical-center">
           <Button
-            className="btn btn-xs btn-success vertical-center"
+            size="xsmall"
+            icon={Eye}
             onClick={() => handleShowOrHide(false)}
           >
-            <Icon icon="eye" feather />
             Show for all users
           </Button>
           <Tooltip
