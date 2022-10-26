@@ -3,6 +3,7 @@ package stacks
 import (
 	"context"
 	"fmt"
+	"github.com/portainer/portainer-ee/api/docker/client"
 	"net/http"
 	"strings"
 	"sync"
@@ -17,7 +18,6 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
@@ -34,7 +34,7 @@ type Handler struct {
 	requestBouncer          *security.RequestBouncer
 	userActivityService     portaineree.UserActivityService
 	DataStore               dataservices.DataStore
-	DockerClientFactory     *docker.ClientFactory
+	DockerClientFactory     *client.ClientFactory
 	FileService             portainer.FileService
 	GitService              portaineree.GitService
 	SwarmStackManager       portaineree.SwarmStackManager

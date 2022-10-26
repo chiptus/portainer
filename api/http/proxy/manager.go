@@ -2,11 +2,13 @@ package proxy
 
 import (
 	"fmt"
+	"github.com/portainer/portainer-ee/api/docker/client"
+
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+
 	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
@@ -30,7 +32,7 @@ func NewManager(
 	dataStore dataservices.DataStore,
 	signatureService portaineree.DigitalSignatureService,
 	tunnelService portaineree.ReverseTunnelService,
-	clientFactory *docker.ClientFactory,
+	clientFactory *client.ClientFactory,
 	kubernetesClientFactory *cli.ClientFactory,
 	kubernetesTokenCacheManager *kubernetes.TokenCacheManager,
 	authService *authorization.Service,

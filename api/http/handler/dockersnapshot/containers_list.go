@@ -2,6 +2,7 @@ package dockersnapshot
 
 import (
 	"fmt"
+	"github.com/portainer/portainer-ee/api/docker/consts"
 	"net/http"
 
 	"github.com/docker/docker/api/types"
@@ -9,7 +10,6 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/docker"
 	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
@@ -60,7 +60,7 @@ func filterContainersByEdgeStack(containers []types.Container, edgeStack *portai
 	filteredContainers := []types.Container{}
 
 	for _, container := range containers {
-		if container.Labels[docker.ComposeStackNameLabel] == stackName || container.Labels[docker.SwarmStackNameLabel] == stackName {
+		if container.Labels[consts.ComposeStackNameLabel] == stackName || container.Labels[consts.SwarmStackNameLabel] == stackName {
 			filteredContainers = append(filteredContainers, container)
 		}
 	}

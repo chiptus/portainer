@@ -30,7 +30,12 @@ export const componentsModule = angular
   )
   .component(
     'imageStatus',
-    r2a(withReactQuery(ImageStatus), ['imageName', 'environmentId'])
+    r2a(withReactQuery(ImageStatus), [
+      'environmentId',
+      'resourceId',
+      'resourceType',
+      'nodeName',
+    ])
   )
   .component('templateListDropdown', TemplateListDropdownAngular)
   .component('templateListSort', TemplateListSortAngular)

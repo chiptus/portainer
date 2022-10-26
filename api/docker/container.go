@@ -2,6 +2,7 @@ package docker
 
 import (
 	"context"
+	dockerclient "github.com/portainer/portainer-ee/api/docker/client"
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -16,12 +17,12 @@ import (
 )
 
 type ContainerService struct {
-	factory   *ClientFactory
+	factory   *dockerclient.ClientFactory
 	dataStore dataservices.DataStore
 	sr        *serviceRestore
 }
 
-func NewContainerService(factory *ClientFactory, dataStore dataservices.DataStore) *ContainerService {
+func NewContainerService(factory *dockerclient.ClientFactory, dataStore dataservices.DataStore) *ContainerService {
 	return &ContainerService{
 		factory:   factory,
 		dataStore: dataStore,
@@ -29,7 +30,7 @@ func NewContainerService(factory *ClientFactory, dataStore dataservices.DataStor
 	}
 }
 
-// Recreate a container, only can be trigger by a webhook
+// Recreate a container
 func (c *ContainerService) Recreate(ctx context.Context, endpoint *portaineree.Endpoint, containerId string, forcePullImage bool, imageTag, nodeName string) (*types.ContainerJSON, error) {
 	cli, err := c.factory.CreateClient(endpoint, nodeName, nil)
 	if err != nil {
@@ -58,7 +59,7 @@ func (c *ContainerService) Recreate(ctx context.Context, endpoint *portaineree.E
 	if imageTag != "" {
 		err = img.WithTag(imageTag)
 		if err != nil {
-			return nil, errors.Wrap(err, "set image tag error")
+			return nil, errors.Wrapf(err, "set image tag error %s", imageTag)
 		}
 
 		log.Debug().Str("image", container.Config.Image).Msg("new image with tag")
@@ -71,7 +72,7 @@ func (c *ContainerService) Recreate(ctx context.Context, endpoint *portaineree.E
 		puller := images.NewPuller(cli, images.NewRegistryClient(c.dataStore), c.dataStore)
 		err = puller.Pull(ctx, img)
 		if err != nil {
-			return nil, errors.Wrap(err, "pull image error")
+			return nil, errors.Wrapf(err, "pull image error %s", img.FullName())
 		}
 	}
 

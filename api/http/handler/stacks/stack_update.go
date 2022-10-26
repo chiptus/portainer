@@ -1,6 +1,7 @@
 package stacks
 
 import (
+	"github.com/portainer/portainer-ee/api/docker/images"
 	"net/http"
 	"strconv"
 	"time"
@@ -250,6 +251,11 @@ func (handler *Handler) updateComposeStack(r *http.Request, stack *portaineree.S
 
 	handler.FileService.RemoveStackFileBackup(stackFolder, stack.EntryPoint)
 
+	go func() {
+		images.EvictImageStatus(stack.Name)
+		EvictComposeStackImageStatusCache(r.Context(), endpoint, stack.Name, handler.DockerClientFactory)
+	}()
+
 	return nil
 }
 
@@ -322,5 +328,9 @@ func (handler *Handler) updateSwarmStack(r *http.Request, stack *portaineree.Sta
 
 	handler.FileService.RemoveStackFileBackup(stackFolder, stack.EntryPoint)
 
+	go func() {
+		images.EvictImageStatus(stack.Name)
+		EvictSwarmStackImageStatusCache(r.Context(), endpoint, stack.Name, handler.DockerClientFactory)
+	}()
 	return nil
 }

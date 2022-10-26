@@ -1,6 +1,7 @@
 package webhooks
 
 import (
+	"github.com/portainer/portainer-ee/api/docker/client"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
@@ -19,7 +20,7 @@ type Handler struct {
 	*mux.Router
 	requestBouncer      *security.RequestBouncer
 	DataStore           dataservices.DataStore
-	DockerClientFactory *docker.ClientFactory
+	DockerClientFactory *client.ClientFactory
 	userActivityService portaineree.UserActivityService
 	containerService    *docker.ContainerService
 }

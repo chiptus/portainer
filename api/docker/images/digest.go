@@ -2,17 +2,17 @@ package images
 
 import (
 	"context"
+	"github.com/docker/docker/api/types"
+	"github.com/portainer/portainer-ee/api/docker/client"
+	"github.com/rs/zerolog/log"
 	"strings"
 	"time"
 
 	"github.com/containers/image/v5/docker"
 	imagetypes "github.com/containers/image/v5/types"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
 	"github.com/opencontainers/go-digest"
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -26,43 +26,17 @@ type Options struct {
 }
 
 type DigestClient struct {
-	client         *client.Client
+	clientFactory  *client.ClientFactory
 	opts           Options
 	sysCtx         *imagetypes.SystemContext
 	registryClient *RegistryClient
 }
 
-func NewClientWithOpts(opts Options, client *client.Client) *DigestClient {
+func NewClientWithRegistry(registryClient *RegistryClient, clientFactory *client.ClientFactory) *DigestClient {
 	return &DigestClient{
-		client: client,
-		opts:   opts,
-		sysCtx: &imagetypes.SystemContext{
-			DockerAuthConfig: &opts.Auth,
-		},
-	}
-}
-
-func NewClientWithRegistry(registryClient *RegistryClient, client *client.Client) *DigestClient {
-	return &DigestClient{
-		client:         client,
+		clientFactory:  clientFactory,
 		registryClient: registryClient,
 	}
-}
-
-func (c *DigestClient) LocalDigest(img Image) (digest.Digest, error) {
-	localDigest, err := cachedLocalDigest(img.FullName())
-	if err == nil {
-		return localDigest, nil
-	}
-
-	c.cacheAllLocalDigest()
-	// get from cache again after triggering caching
-	localDigest, err = cachedLocalDigest(img.FullName())
-	if err != nil {
-		return "", err
-	}
-
-	return localDigest, nil
 }
 
 func (c *DigestClient) RemoteDigest(image Image) (digest.Digest, error) {
@@ -85,7 +59,7 @@ func (c *DigestClient) RemoteDigest(image Image) (digest.Digest, error) {
 	if c.registryClient != nil {
 		username, password, err := c.registryClient.RegistryAuth(image)
 		if err != nil {
-			log.Warn().Stringer("image", image).Msg("cannot find registry auth for image")
+			log.Info().Str("image", image.String()).Msg("Can not find registry auth, try to access in anonymous")
 		} else {
 			sysCtx = &imagetypes.SystemContext{
 				DockerAuthConfig: &imagetypes.DockerAuthConfig{
@@ -106,9 +80,7 @@ func (c *DigestClient) RemoteDigest(image Image) (digest.Digest, error) {
 				return rmDigest, nil
 			}
 		}
-
-		log.Debug().Err(err).Msg("get remote digest")
-
+		log.Debug().Err(err).Msg("get remote digest error")
 		return "", errors.Wrap(err, "Cannot get image digest from HEAD request")
 	}
 
@@ -141,39 +113,57 @@ func ParseLocalImage(inspect types.ImageInspect) (*Image, error) {
 	return &fromRepoDigests, nil
 }
 
-func (c *DigestClient) cacheAllLocalDigest() {
-	inspects, err := c.client.ImageList(context.TODO(), types.ImageListOptions{
-		All: true,
-	})
-
-	if err != nil {
-		log.Error().Err(err).Msg("run docker images error")
-
-		return
-	}
-
-	for _, inspect := range inspects {
-		for i := 0; i < len(inspect.RepoTags); i++ {
-			image := strings.Split(inspect.RepoTags[i], ":")[0]
-			for j := 0; j < len(inspect.RepoDigests); j++ {
-				if strings.HasPrefix(inspect.RepoDigests[j], image+"@") {
-					_inspect := types.ImageInspect{
-						ID:          inspect.ID,
-						RepoTags:    []string{inspect.RepoTags[i]},
-						RepoDigests: []string{inspect.RepoDigests[j]},
-						Parent:      inspect.ParentID,
-					}
-					localImage, err := ParseLocalImage(_inspect)
-
-					if err != nil {
-						continue
-					}
-
-					_imageLocalDigestCache.Set(localImage.FullName(), localImage.Digest, 0)
-				}
-			}
+func ParseRepoDigests(repoDigests []string) []digest.Digest {
+	digests := make([]digest.Digest, 0)
+	for _, repoDigest := range repoDigests {
+		d := ParseRepoDigest(repoDigest)
+		if d == "" {
+			continue
 		}
+
+		digests = append(digests, d)
 	}
+	return digests
+}
+
+func ParseRepoTags(repoTags []string) []*Image {
+	images := make([]*Image, 0)
+	for _, repoTag := range repoTags {
+		image := ParseRepoTag(repoTag)
+		if image == nil {
+			continue
+		}
+
+		images = append(images, image)
+	}
+	return images
+}
+
+func ParseRepoDigest(repoDigest string) digest.Digest {
+	if !strings.ContainsAny(repoDigest, "@") {
+		return ""
+	}
+
+	d, err := digest.Parse(strings.Split(repoDigest, "@")[1])
+	if err != nil {
+		log.Warn().Msgf("Skip invalid repo digest item: %s [error: %v]", repoDigest, err)
+		return ""
+	}
+	return d
+}
+
+func ParseRepoTag(repoTag string) *Image {
+	if repoTag == "" {
+		return nil
+	}
+	image, err := ParseImage(ParseImageOptions{
+		Name: repoTag,
+	})
+	if err != nil {
+		log.Warn().Err(err).Str("repoTag", repoTag).Msg("RepoTag cannot be parsed.")
+		return nil
+	}
+	return &image
 }
 
 func (c *DigestClient) timeoutContext() (context.Context, context.CancelFunc) {
@@ -183,16 +173,4 @@ func (c *DigestClient) timeoutContext() (context.Context, context.CancelFunc) {
 		ctx, cancel = context.WithTimeout(ctx, c.opts.Timeout)
 	}
 	return ctx, cancel
-}
-
-func cachedLocalDigest(imageName string) (digest.Digest, error) {
-	cacheDigest, ok := _imageLocalDigestCache.Get(imageName)
-	if ok {
-		cachedDigest, ok := cacheDigest.(digest.Digest)
-		if ok {
-			return cachedDigest, nil
-		}
-	}
-
-	return "", errors.Errorf("no local digest found for image: %s", imageName)
 }

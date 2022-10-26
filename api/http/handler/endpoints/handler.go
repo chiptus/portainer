@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"github.com/portainer/portainer-ee/api/docker/client"
 	"net/http"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/portainer/portainer-ee/api/cloud"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/demo"
-	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/proxy"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
@@ -53,7 +53,7 @@ type Handler struct {
 	SnapshotService          portaineree.SnapshotService
 	K8sClientFactory         *cli.ClientFactory
 	ComposeStackManager      portaineree.ComposeStackManager
-	DockerClientFactory      *docker.ClientFactory
+	DockerClientFactory      *client.ClientFactory
 	BindAddress              string
 	BindAddressHTTPS         string
 	userActivityService      portaineree.UserActivityService

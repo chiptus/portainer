@@ -14,6 +14,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+type ImageID string
+
 // Image holds information about an image.
 type Image struct {
 	// Domain is the registry host of this image
@@ -34,12 +36,12 @@ type ParseImageOptions struct {
 }
 
 // Name returns the full name representation of an image but no Tag or Digest.
-func (i Image) Name() string {
+func (i *Image) Name() string {
 	return i.named.Name()
 }
 
 // FullName return the real full name may include Tag or Digest of the image, Tag first.
-func (i Image) FullName() string {
+func (i *Image) FullName() string {
 	if i.Tag == "" {
 		return fmt.Sprintf("%s@%s", i.Name(), i.Digest)
 	}
@@ -47,12 +49,12 @@ func (i Image) FullName() string {
 }
 
 // String returns the string representation of an image, including Tag and Digest if existed.
-func (i Image) String() string {
+func (i *Image) String() string {
 	return i.named.String()
 }
 
 // Reference returns either the digest if it is non-empty or the tag for the image.
-func (i Image) Reference() string {
+func (i *Image) Reference() string {
 	if len(i.Digest.String()) > 1 {
 		return i.Digest.String()
 	}
@@ -79,7 +81,7 @@ func (i *Image) trimDigest() error {
 	if err != nil {
 		return err
 	}
-	i.named = named
+	i.named = &named
 	return nil
 }
 
@@ -119,7 +121,7 @@ func ParseImage(parseOpts ParseImageOptions) (Image, error) {
 	return i, nil
 }
 
-func (i Image) hubLink() (string, error) {
+func (i *Image) hubLink() (string, error) {
 	if i.opts.HubTpl != "" {
 		var out bytes.Buffer
 		tmpl, err := template.New("tmpl").

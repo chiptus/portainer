@@ -1,4 +1,5 @@
 import _ from 'lodash-es';
+import { ResourceType } from '@/react/docker/images/types';
 
 angular.module('portainer.docker').controller('ServicesDatatableController', [
   '$scope',
@@ -8,6 +9,7 @@ angular.module('portainer.docker').controller('ServicesDatatableController', [
     angular.extend(this, $controller('GenericDatatableController', { $scope: $scope }));
 
     var ctrl = this;
+    this.resourceType = ResourceType.SERVICE;
 
     this.state = Object.assign(this.state, {
       expandAll: false,

@@ -2,11 +2,15 @@ package endpoints
 
 import (
 	"context"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/portainer/portainer-ee/api/docker/consts"
+	"github.com/portainer/portainer-ee/api/docker/images"
 	"net/http"
 	"strings"
 
 	dockertypes "github.com/docker/docker/api/types"
 
+	"github.com/docker/docker/api/types"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
@@ -86,6 +90,19 @@ func (handler *Handler) endpointForceUpdateService(w http.ResponseWriter, r *htt
 	if err != nil {
 		return httperror.InternalServerError("Error force update service", err)
 	}
+
+	go func() {
+		images.EvictImageStatus(payload.ServiceID)
+		images.EvictImageStatus(service.Spec.Labels[consts.SwarmStackNameLabel])
+		containers, _ := dockerClient.ContainerList(context.TODO(), types.ContainerListOptions{
+			All:     true,
+			Filters: filters.NewArgs(filters.Arg("label", consts.SwarmServiceIdLabel+"="+payload.ServiceID)),
+		})
+
+		for _, container := range containers {
+			images.EvictImageStatus(container.ID)
+		}
+	}()
 
 	return response.JSON(w, newService)
 }

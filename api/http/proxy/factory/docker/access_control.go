@@ -1,11 +1,11 @@
 package docker
 
 import (
+	"github.com/portainer/portainer-ee/api/docker/consts"
 	"net/http"
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
@@ -17,9 +17,6 @@ const (
 	resourceLabelForPortainerTeamResourceControl   = "io.portainer.accesscontrol.teams"
 	resourceLabelForPortainerUserResourceControl   = "io.portainer.accesscontrol.users"
 	resourceLabelForPortainerPublicResourceControl = "io.portainer.accesscontrol.public"
-	resourceLabelForDockerSwarmStackName           = docker.SwarmStackNameLabel
-	resourceLabelForDockerServiceID                = "com.docker.swarm.service.id"
-	resourceLabelForDockerComposeStackName         = docker.ComposeStackNameLabel
 )
 
 type (
@@ -297,8 +294,8 @@ func (transport *Transport) findResourceControl(resourceIdentifier string, resou
 	}
 
 	if resourceLabelsObject != nil {
-		if resourceLabelsObject[resourceLabelForDockerServiceID] != nil {
-			inheritedServiceIdentifier := resourceLabelsObject[resourceLabelForDockerServiceID].(string)
+		if resourceLabelsObject[consts.SwarmServiceIdLabel] != nil {
+			inheritedServiceIdentifier := resourceLabelsObject[consts.SwarmServiceIdLabel].(string)
 			resourceControl = authorization.GetResourceControlByResourceIDAndType(inheritedServiceIdentifier, portaineree.ServiceResourceControl, resourceControls)
 
 			if resourceControl != nil {
@@ -306,8 +303,8 @@ func (transport *Transport) findResourceControl(resourceIdentifier string, resou
 			}
 		}
 
-		if resourceLabelsObject[resourceLabelForDockerSwarmStackName] != nil {
-			stackName := resourceLabelsObject[resourceLabelForDockerSwarmStackName].(string)
+		if resourceLabelsObject[consts.SwarmStackNameLabel] != nil {
+			stackName := resourceLabelsObject[consts.SwarmStackNameLabel].(string)
 			stackResourceID := stackutils.ResourceControlID(transport.endpoint.ID, stackName)
 			resourceControl = authorization.GetResourceControlByResourceIDAndType(stackResourceID, portaineree.StackResourceControl, resourceControls)
 
@@ -316,8 +313,8 @@ func (transport *Transport) findResourceControl(resourceIdentifier string, resou
 			}
 		}
 
-		if resourceLabelsObject[resourceLabelForDockerComposeStackName] != nil {
-			stackName := resourceLabelsObject[resourceLabelForDockerComposeStackName].(string)
+		if resourceLabelsObject[consts.ComposeStackNameLabel] != nil {
+			stackName := resourceLabelsObject[consts.ComposeStackNameLabel].(string)
 			stackResourceID := stackutils.ResourceControlID(transport.endpoint.ID, stackName)
 			resourceControl = authorization.GetResourceControlByResourceIDAndType(stackResourceID, portaineree.StackResourceControl, resourceControls)
 
@@ -333,13 +330,13 @@ func (transport *Transport) findResourceControl(resourceIdentifier string, resou
 }
 
 func getStackResourceIDFromLabels(resourceLabelsObject map[string]string, endpointID portaineree.EndpointID) string {
-	if resourceLabelsObject[resourceLabelForDockerSwarmStackName] != "" {
-		stackName := resourceLabelsObject[resourceLabelForDockerSwarmStackName]
+	if resourceLabelsObject[consts.SwarmStackNameLabel] != "" {
+		stackName := resourceLabelsObject[consts.SwarmStackNameLabel]
 		return stackutils.ResourceControlID(endpointID, stackName)
 	}
 
-	if resourceLabelsObject[resourceLabelForDockerComposeStackName] != "" {
-		stackName := resourceLabelsObject[resourceLabelForDockerComposeStackName]
+	if resourceLabelsObject[consts.ComposeStackNameLabel] != "" {
+		stackName := resourceLabelsObject[consts.ComposeStackNameLabel]
 		return stackutils.ResourceControlID(endpointID, stackName)
 	}
 

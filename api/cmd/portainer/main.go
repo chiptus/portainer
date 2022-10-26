@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	dockerclient "github.com/portainer/portainer-ee/api/docker/client"
 	"os"
 	"path"
 	"strconv"
@@ -250,8 +251,8 @@ func initSSLService(addr, certPath, keyPath, caCertPath string, fileService port
 	return sslService, nil
 }
 
-func initDockerClientFactory(signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService) *docker.ClientFactory {
-	return docker.NewClientFactory(signatureService, reverseTunnelService)
+func initDockerClientFactory(signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService) *dockerclient.ClientFactory {
+	return dockerclient.NewClientFactory(signatureService, reverseTunnelService)
 }
 
 func initKubernetesClientFactory(signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, dataStore dataservices.DataStore, instanceID, addrHTTPS, userSessionTimeout string) (*kubecli.ClientFactory, error) {
@@ -265,7 +266,7 @@ func initNomadClientFactory(signatureService portaineree.DigitalSignatureService
 func initSnapshotService(
 	snapshotInterval string,
 	dataStore dataservices.DataStore,
-	dockerClientFactory *docker.ClientFactory,
+	dockerClientFactory *dockerclient.ClientFactory,
 	kubernetesClientFactory *kubecli.ClientFactory,
 	nomadClientFactory *clientFactory.ClientFactory,
 	shutdownCtx context.Context,

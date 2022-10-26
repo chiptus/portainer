@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"crypto/tls"
+	"github.com/portainer/portainer-ee/api/docker/client"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -110,7 +111,7 @@ type Server struct {
 	KubeClusterAccessService    k8s.KubeClusterAccessService
 	Handler                     *handler.Handler
 	SSLService                  *ssl.Service
-	DockerClientFactory         *docker.ClientFactory
+	DockerClientFactory         *client.ClientFactory
 	KubernetesClientFactory     *cli.ClientFactory
 	KubernetesDeployer          portaineree.KubernetesDeployer
 	NomadClientFactory          *clientFactory.ClientFactory
@@ -220,7 +221,9 @@ func (server *Server) Start() error {
 
 	var kubernetesHandler = kubehandler.NewHandler(requestBouncer, server.AuthorizationService, server.DataStore, server.JWTService, server.KubeClusterAccessService, server.KubernetesClientFactory, nil, server.UserActivityService, server.KubernetesDeployer, server.FileService, server.AssetsPath)
 
-	var dockerHandler = dockerhandler.NewHandler(requestBouncer, server.AuthorizationService, server.DataStore, server.DockerClientFactory)
+	containerService := docker.NewContainerService(server.DockerClientFactory, server.DataStore)
+
+	var dockerHandler = dockerhandler.NewHandler(requestBouncer, server.AuthorizationService, server.DataStore, server.DockerClientFactory, containerService)
 
 	var licenseHandler = licenses.NewHandler(requestBouncer, server.UserActivityService, server.DemoService)
 	licenseHandler.LicenseService = server.LicenseService
@@ -316,7 +319,6 @@ func (server *Server) Start() error {
 	websocketHandler.ReverseTunnelService = server.ReverseTunnelService
 	websocketHandler.KubernetesClientFactory = server.KubernetesClientFactory
 
-	containerService := docker.NewContainerService(server.DockerClientFactory, server.DataStore)
 	var webhookHandler = webhooks.NewHandler(requestBouncer, server.DataStore, server.UserActivityService, containerService)
 	webhookHandler.DockerClientFactory = server.DockerClientFactory
 

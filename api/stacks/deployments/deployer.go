@@ -16,7 +16,7 @@ import (
 	"github.com/pkg/errors"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/docker"
+	"github.com/portainer/portainer-ee/api/docker/client"
 	k "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer/api/filesystem"
 )
@@ -45,12 +45,12 @@ type stackDeployer struct {
 	swarmStackManager   portaineree.SwarmStackManager
 	composeStackManager portaineree.ComposeStackManager
 	kubernetesDeployer  portaineree.KubernetesDeployer
-	ClientFactory       *docker.ClientFactory
+	ClientFactory       *client.ClientFactory
 }
 
 // NewStackDeployer inits a stackDeployer struct with a SwarmStackManager, a ComposeStackManager and a KubernetesDeployer
 func NewStackDeployer(swarmStackManager portaineree.SwarmStackManager, composeStackManager portaineree.ComposeStackManager,
-	kubernetesDeployer portaineree.KubernetesDeployer, clientFactory *docker.ClientFactory) *stackDeployer {
+	kubernetesDeployer portaineree.KubernetesDeployer, clientFactory *client.ClientFactory) *stackDeployer {
 	return &stackDeployer{
 		lock:                &sync.Mutex{},
 		swarmStackManager:   swarmStackManager,

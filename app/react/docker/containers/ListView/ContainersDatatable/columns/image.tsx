@@ -1,4 +1,4 @@
-import { Column } from 'react-table';
+import { Column, Row } from 'react-table';
 import { useSref } from '@uirouter/react';
 
 import { ImageStatus } from '@/react/docker/components/ImageStatus';
@@ -21,9 +21,10 @@ export const image: Column<DockerContainer> = {
 
 interface Props {
   value: string;
+  row: Row<DockerContainer>;
 }
 
-function ImageCell({ value: imageName }: Props) {
+function ImageCell({ value: imageName, row }: Props) {
   const linkProps = useSref('docker.images.image', { id: imageName });
   const shortImageName = trimSHA(imageName);
 
@@ -32,10 +33,13 @@ function ImageCell({ value: imageName }: Props) {
   if (isOfflineEndpoint(environment)) {
     return <span>{shortImageName}</span>;
   }
-
   return (
     <a href={linkProps.href} onClick={linkProps.onClick}>
-      <ImageStatus imageName={imageName} environmentId={environment.Id} />
+      <ImageStatus
+        environmentId={environment.Id}
+        resourceId={row.original.Id}
+        nodeName={row.original.NodeName}
+      />
       {shortImageName}
     </a>
   );

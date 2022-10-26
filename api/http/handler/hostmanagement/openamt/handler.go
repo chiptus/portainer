@@ -1,13 +1,13 @@
 package openamt
 
 import (
+	"github.com/portainer/portainer-ee/api/docker/client"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/http/security"
 	portainer "github.com/portainer/portainer/api"
 )
@@ -17,7 +17,7 @@ type Handler struct {
 	*mux.Router
 	OpenAMTService      portainer.OpenAMTService
 	DataStore           dataservices.DataStore
-	DockerClientFactory *docker.ClientFactory
+	DockerClientFactory *client.ClientFactory
 }
 
 // NewHandler returns a new Handler

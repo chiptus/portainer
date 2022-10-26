@@ -5,7 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/portainer/portainer-ee/api/docker/consts"
 	"io"
+
 	"net/http"
 	"strings"
 
@@ -26,7 +28,7 @@ func getInheritedResourceControlFromContainerLabels(dockerClient *client.Client,
 		return nil, err
 	}
 
-	serviceName := container.Config.Labels[resourceLabelForDockerServiceID]
+	serviceName := container.Config.Labels[consts.SwarmServiceIdLabel]
 	if serviceName != "" {
 		serviceResourceControl := authorization.GetResourceControlByResourceIDAndType(serviceName, portaineree.ServiceResourceControl, resourceControls)
 		if serviceResourceControl != nil {

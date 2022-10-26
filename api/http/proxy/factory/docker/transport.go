@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/portainer/portainer-ee/api/docker/client"
 	"io"
 	"net/http"
 	"path"
@@ -15,7 +16,6 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
@@ -38,7 +38,7 @@ type (
 		dataStore            dataservices.DataStore
 		signatureService     portaineree.DigitalSignatureService
 		reverseTunnelService portaineree.ReverseTunnelService
-		dockerClientFactory  *docker.ClientFactory
+		dockerClientFactory  *client.ClientFactory
 		userActivityService  portaineree.UserActivityService
 		gitService           portainer.GitService
 	}
@@ -49,7 +49,7 @@ type (
 		DataStore            dataservices.DataStore
 		SignatureService     portaineree.DigitalSignatureService
 		ReverseTunnelService portaineree.ReverseTunnelService
-		DockerClientFactory  *docker.ClientFactory
+		DockerClientFactory  *client.ClientFactory
 		UserActivityService  portaineree.UserActivityService
 	}
 

@@ -50,7 +50,7 @@ module.exports = function (grunt) {
 
   grunt.registerTask('build', ['build:server', 'build:client']);
 
-  grunt.registerTask('start:server', ['build:server:linux', 'shell:run_container']);
+  grunt.registerTask('start:server', [`build:server:${platform}`, 'shell:run_container']);
 
   grunt.registerTask('start:localserver', [`shell:build_binary:${platform}:${arch}`, 'shell:run_localserver']);
 

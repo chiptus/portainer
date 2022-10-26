@@ -1,11 +1,11 @@
 package factory
 
 import (
+	"github.com/portainer/portainer-ee/api/docker/client"
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
@@ -20,7 +20,7 @@ type (
 		dataStore                   dataservices.DataStore
 		signatureService            portaineree.DigitalSignatureService
 		reverseTunnelService        portaineree.ReverseTunnelService
-		dockerClientFactory         *docker.ClientFactory
+		dockerClientFactory         *client.ClientFactory
 		kubernetesClientFactory     *cli.ClientFactory
 		kubernetesTokenCacheManager *kubernetes.TokenCacheManager
 		authService                 *authorization.Service
@@ -34,7 +34,7 @@ func NewProxyFactory(
 	dataStore dataservices.DataStore,
 	signatureService portaineree.DigitalSignatureService,
 	tunnelService portaineree.ReverseTunnelService,
-	clientFactory *docker.ClientFactory,
+	clientFactory *client.ClientFactory,
 	kubernetesClientFactory *cli.ClientFactory,
 	kubernetesTokenCacheManager *kubernetes.TokenCacheManager,
 	authService *authorization.Service,

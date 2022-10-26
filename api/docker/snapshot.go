@@ -2,6 +2,8 @@ package docker
 
 import (
 	"context"
+	portainerdocker "github.com/portainer/portainer-ee/api/docker/client"
+	"github.com/portainer/portainer-ee/api/docker/consts"
 	"strings"
 	"time"
 
@@ -17,11 +19,11 @@ import (
 
 // Snapshotter represents a service used to create environment(endpoint) snapshots
 type Snapshotter struct {
-	clientFactory *ClientFactory
+	clientFactory *portainerdocker.ClientFactory
 }
 
 // NewSnapshotter returns a new Snapshotter instance
-func NewSnapshotter(clientFactory *ClientFactory) *Snapshotter {
+func NewSnapshotter(clientFactory *portainerdocker.ClientFactory) *Snapshotter {
 	return &Snapshotter{
 		clientFactory: clientFactory,
 	}
@@ -195,7 +197,7 @@ func snapshotContainers(snapshot *portainer.DockerSnapshot, cli *client.Client) 
 		}
 
 		for k, v := range container.Labels {
-			if k == ComposeStackNameLabel {
+			if k == consts.ComposeStackNameLabel {
 				stacks[v] = struct{}{}
 			}
 		}
