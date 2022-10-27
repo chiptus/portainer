@@ -2,6 +2,8 @@ package stacks
 
 import (
 	"net/http"
+	"net/url"
+	"strconv"
 
 	"github.com/portainer/libhttp/response"
 
@@ -41,15 +43,9 @@ func (handler *Handler) webhookInvoke(w http.ResponseWriter, r *http.Request) *h
 		return &httperror.HandlerError{StatusCode: statusCode, Message: "Unable to find the stack by webhook ID", Err: err}
 	}
 
-	envs := []portaineree.Pair{}
-	for key, value := range r.URL.Query() {
-		envs = append(envs, portaineree.Pair{
-			Name:  key,
-			Value: value[len(value)-1],
-		})
-	}
+	forcePullImage, envs := parseQuery(r.URL.Query())
 
-	if err = deployments.RedeployWhenChanged(stack.ID, handler.StackDeployer, handler.DataStore, handler.GitService, handler.userActivityService, envs); err != nil {
+	if err = deployments.RedeployWhenChanged(stack.ID, handler.StackDeployer, handler.DataStore, handler.GitService, handler.userActivityService, envs, forcePullImage); err != nil {
 		if _, ok := err.(*deployments.StackAuthorMissingErr); ok {
 			return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: "Autoupdate for the stack isn't available", Err: err}
 		}
@@ -60,6 +56,26 @@ func (handler *Handler) webhookInvoke(w http.ResponseWriter, r *http.Request) *h
 	}
 
 	return response.Empty(w)
+}
+
+func parseQuery(query url.Values) (*bool, []portaineree.Pair) {
+	var forcePullImage *bool
+	envs := []portaineree.Pair{}
+	for key, value := range query {
+		val := value[len(value)-1]
+
+		if key == "pullimage" {
+			v, err := strconv.ParseBool(val)
+			if err == nil {
+				forcePullImage = &v
+			}
+			continue
+		}
+
+		envs = append(envs, portaineree.Pair{Name: key, Value: val})
+	}
+
+	return forcePullImage, envs
 }
 
 func retrieveUUIDRouteVariableValue(r *http.Request, name string) (uuid.UUID, error) {

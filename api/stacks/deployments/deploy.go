@@ -54,7 +54,7 @@ func updateAllowed(endpoint *portaineree.Endpoint, clock Clock) (bool, error) {
 }
 
 // RedeployWhenChanged pull and redeploy the stack when  git repo changed
-func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, datastore dataservices.DataStore, gitService portaineree.GitService, activityService portaineree.UserActivityService, additionalEnv []portaineree.Pair) error {
+func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, datastore dataservices.DataStore, gitService portaineree.GitService, activityService portaineree.UserActivityService, additionalEnv []portaineree.Pair, pullImage *bool) error {
 	log.Debug().Int("stack_id", int(stackID)).Msg("redeploying stack")
 
 	stack, err := datastore.Stack().Stack(stackID)
@@ -172,7 +172,15 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 			gitCommitChangedOrForceUpdate = true
 		}
 	}
-	forcePullImage := stack.AutoUpdate == nil || stack.AutoUpdate.ForcePullImage
+
+	forcePullImage := func() bool {
+		if pullImage != nil {
+			return *pullImage
+		}
+
+		return stack.AutoUpdate == nil || stack.AutoUpdate.ForcePullImage
+	}()
+
 	if !forcePullImage && !gitCommitChangedOrForceUpdate && !additionalEnvUpserted {
 		return nil
 	}
@@ -197,9 +205,9 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 		}
 	case portaineree.DockerSwarmStack:
 		if stack.SupportRelativePath {
-			err = deployer.DeployRemoteSwarmStack(stack, endpoint, registries, true, true)
+			err = deployer.DeployRemoteSwarmStack(stack, endpoint, registries, true, forcePullImage)
 		} else {
-			err = deployer.DeploySwarmStack(stack, endpoint, registries, true, true)
+			err = deployer.DeploySwarmStack(stack, endpoint, registries, true, forcePullImage)
 		}
 		if err != nil {
 			return errors.WithMessagef(err, "failed to deploy a docker compose stack %v", stackID)
