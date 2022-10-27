@@ -585,8 +585,9 @@ type (
 	JobType int
 
 	K8sNamespaceInfo struct {
-		IsSystem  bool `json:"IsSystem"`
-		IsDefault bool `json:"IsDefault"`
+		IsSystem  bool        `json:"IsSystem"`
+		IsDefault bool        `json:"IsDefault"`
+		Status    interface{} `json:"Status"`
 	}
 
 	K8sNodeLimits struct {
@@ -1646,6 +1647,7 @@ type (
 		CreateNamespace(info models.K8sNamespaceDetails) error
 		UpdateNamespace(info models.K8sNamespaceDetails) error
 		GetNamespaces() (map[string]K8sNamespaceInfo, error)
+		GetNamespace(string) (K8sNamespaceInfo, error)
 		DeleteNamespace(namespace string) error
 		GetConfigMapsAndSecrets(namespace string) ([]models.K8sConfigMapOrSecret, error)
 		CreateIngress(namespace string, info models.K8sIngressInfo) error

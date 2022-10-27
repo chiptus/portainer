@@ -44,6 +44,22 @@ func (kcl *KubeClient) GetNamespaces() (map[string]portaineree.K8sNamespaceInfo,
 	return results, nil
 }
 
+// GetNamespace gets the namespace in the current k8s environment(endpoint).
+func (kcl *KubeClient) GetNamespace(name string) (portaineree.K8sNamespaceInfo, error) {
+	namespace, err := kcl.cli.CoreV1().Namespaces().Get(context.TODO(), name, metav1.GetOptions{})
+	if err != nil {
+		return portaineree.K8sNamespaceInfo{}, err
+	}
+
+	result := portaineree.K8sNamespaceInfo{
+		IsSystem:  isSystemNamespace(*namespace),
+		IsDefault: namespace.Name == defaultNamespace,
+		Status:    namespace.Status,
+	}
+
+	return result, nil
+}
+
 // CreateIngress creates a new ingress in a given namespace in a k8s endpoint.
 func (kcl *KubeClient) CreateNamespace(info models.K8sNamespaceDetails) error {
 	client := kcl.cli.CoreV1().Namespaces()
