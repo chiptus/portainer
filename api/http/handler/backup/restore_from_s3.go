@@ -29,9 +29,7 @@ func (p *restoreS3Settings) Validate(r *http.Request) error {
 	if p.SecretAccessKey == "" {
 		return errors.New("missing SecretAccessKe field")
 	}
-	if p.Region == "" {
-		return errors.New("missing Region field")
-	}
+
 	if p.BucketName == "" {
 		return errors.New("missing BucketName field")
 	}
@@ -82,7 +80,7 @@ func (h *Handler) restoreFromS3(w http.ResponseWriter, r *http.Request) *httperr
 		os.RemoveAll(filepath.Dir(backupFile.Name()))
 	}()
 
-	s3client := s3.NewClient(payload.Region, payload.AccessKeyID, payload.SecretAccessKey)
+	s3client := s3.NewClient(payload.Region, payload.AccessKeyID, payload.SecretAccessKey, payload.S3CompatibleHost)
 
 	if err = s3.Download(s3client, backupFile, payload.S3Location); err != nil {
 		log.Error().Err(err).Msg("failed downloading file from S3")

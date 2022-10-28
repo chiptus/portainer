@@ -12,6 +12,7 @@ import (
 	"github.com/portainer/portainer-ee/api/database/boltdb"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/offlinegate"
+	"github.com/portainer/portainer-ee/api/useractivity"
 	"github.com/portainer/portainer/api/archive"
 	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/filesystem"
@@ -41,11 +42,11 @@ func RestoreArchive(archive io.Reader, password string, filestorePath string, ga
 	defer unlock()
 
 	if err = datastore.Close(); err != nil {
-		return errors.Wrap(err, "Failed to stop db")
+		return errors.Wrap(err, "failed to stop db")
 	}
 
 	if err = userActivityStore.Close(); err != nil {
-		return errors.Wrap(err, "Failed to stop user activity store")
+		return errors.Wrap(err, "failed to stop user activity store")
 	}
 
 	if err = restoreFiles(restorePath, filestorePath); err != nil {
@@ -83,8 +84,19 @@ func restoreFiles(srcDir string, destinationDir string) error {
 	// Note: CopyPath does not return an error if the source file doesn't exist
 	err := filesystem.CopyPath(filepath.Join(srcDir, boltdb.EncryptedDatabaseFileName), destinationDir)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "could not restore %s", boltdb.EncryptedDatabaseFileName)
 	}
 
-	return filesystem.CopyPath(filepath.Join(srcDir, boltdb.DatabaseFileName), destinationDir)
+	err = filesystem.CopyPath(filepath.Join(srcDir, boltdb.DatabaseFileName), destinationDir)
+	if err != nil {
+		return errors.Wrapf(err, "could not restore %s", boltdb.DatabaseFileName)
+	}
+
+	// Restore useractivity.db
+	os.Remove(filepath.Join(destinationDir, useractivity.DatabaseFileName))
+	err = filesystem.CopyPath(filepath.Join(srcDir, useractivity.DatabaseFileName), destinationDir)
+	if err != nil {
+		return errors.Wrapf(err, "could not restore %s", useractivity.DatabaseFileName)
+	}
+	return nil
 }

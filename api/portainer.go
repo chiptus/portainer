@@ -971,12 +971,14 @@ type (
 		AccessKeyID string
 		// AWS secret access key
 		SecretAccessKey string
-		// AWS S3 region
-		Region string
+		// AWS S3 region. Default to "us-east-1"
+		Region string `example:"us-east-1"`
 		// AWS S3 bucket name
 		BucketName string
 		// Password to encrypt the backup with
 		Password string
+		// S3 compatible host
+		S3CompatibleHost string
 	}
 
 	// S3BackupStatus represents result of the scheduled s3 backup
@@ -991,12 +993,14 @@ type (
 		AccessKeyID string
 		// AWS secret access key
 		SecretAccessKey string
-		// AWS S3 region
-		Region string
+		// AWS S3 region. Default to "us-east-1"
+		Region string `example:"us-east-1"`
 		// AWS S3 bucket name
 		BucketName string
 		// AWS S3 filename in the bucket
 		Filename string
+		// S3 compatible host
+		S3CompatibleHost string
 	}
 
 	// Schedule represents a scheduled job.

@@ -28,11 +28,11 @@ type dbWrapper struct {
 	*storm.DB
 }
 
-const databaseFileName = "useractivity.db"
+const DatabaseFileName = "useractivity.db"
 
 // NewStore Creates a new store
 func NewStore(dataPath string, maxBatchSize int, maxBatchDelay time.Duration, initialMmapSize int) (*Store, error) {
-	databasePath := path.Join(dataPath, databaseFileName)
+	databasePath := path.Join(dataPath, DatabaseFileName)
 
 	db, err := storm.Open(databasePath, storm.Batch(),
 		storm.BoltOptions(0600, &bbolt.Options{InitialMmapSize: initialMmapSize}))

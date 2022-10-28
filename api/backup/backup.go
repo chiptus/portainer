@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/offlinegate"
 	"github.com/portainer/portainer-ee/api/s3"
+	"github.com/portainer/portainer-ee/api/useractivity"
 	"github.com/portainer/portainer/api/archive"
 	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/filesystem"
@@ -51,7 +52,7 @@ func BackupToS3(settings portaineree.S3BackupSettings, gate *offlinegate.Offline
 
 	archiveName := fmt.Sprintf("portainer-backup_%s", filepath.Base(archivePath))
 
-	s3client := s3.NewClient(settings.Region, settings.AccessKeyID, settings.SecretAccessKey)
+	s3client := s3.NewClient(settings.Region, settings.AccessKeyID, settings.SecretAccessKey, settings.S3CompatibleHost)
 
 	if err := s3.Upload(s3client, archiveReader, settings.BucketName, archiveName); err != nil {
 		log.Error().Err(err).Msg("failed to upload backup to S3")
@@ -115,7 +116,7 @@ func backupDb(backupDirPath string, datastore dataservices.DataStore) error {
 }
 
 func backupUserActivityStore(backupDirPath string, userActivityStore portaineree.UserActivityStore) error {
-	backupWriter, err := os.Create(filepath.Join(backupDirPath, "useractivity.db"))
+	backupWriter, err := os.Create(filepath.Join(backupDirPath, useractivity.DatabaseFileName))
 	if err != nil {
 		return err
 	}

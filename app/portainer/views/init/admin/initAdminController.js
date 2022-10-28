@@ -109,6 +109,7 @@ angular.module('portainer.app').controller('InitAdminController', [
         SecretAccessKey: $scope.formValues.SecretAccessKey,
         Region: $scope.formValues.Region,
         BucketName: $scope.formValues.BucketName,
+        S3CompatibleHost: $scope.formValues.S3CompatibleHost,
         Filename: $scope.formValues.Filename,
       };
 

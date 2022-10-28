@@ -61,6 +61,7 @@ angular.module('portainer.app').controller('SettingsController', [
       secretAccessKey: '',
       region: '',
       bucketName: '',
+      s3CompatibleHost: '',
       backupFormType: $scope.BACKUP_FORM_TYPES.FILE,
     };
 
@@ -186,6 +187,7 @@ angular.module('portainer.app').controller('SettingsController', [
         SecretAccessKey: $scope.formValues.secretAccessKey,
         Region: $scope.formValues.region,
         BucketName: $scope.formValues.bucketName,
+        S3CompatibleHost: $scope.formValues.s3CompatibleHost,
       };
     }
 
@@ -223,6 +225,7 @@ angular.module('portainer.app').controller('SettingsController', [
           $scope.formValues.secretAccessKey = data.SecretAccessKey;
           $scope.formValues.region = data.Region;
           $scope.formValues.bucketName = data.BucketName;
+          $scope.formValues.s3CompatibleHost = data.S3CompatibleHost;
 
           $scope.formValues.scheduleAutomaticBackups = $scope.formValues.cronRule ? true : false;
           $scope.formValues.passwordProtectS3 = $scope.formValues.passwordS3 ? true : false;

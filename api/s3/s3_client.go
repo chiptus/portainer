@@ -15,13 +15,30 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func NewClient(region string, accessKeyID string, secretAccessKey string) *s3.Client {
+func NewClient(region string, accessKeyID string, secretAccessKey string, s3Host string) *s3.Client {
+	if region == "" {
+		region = "us-east-1"
+	}
 
-	client := s3.New(s3.Options{
+	cfg := aws.Config{
 		Region:      region,
 		Credentials: aws.NewCredentialsCache(credentials.NewStaticCredentialsProvider(accessKeyID, secretAccessKey, "")),
-	})
+	}
 
+	if s3Host != "" {
+		resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...any) (aws.Endpoint, error) {
+			return aws.Endpoint{
+				PartitionID:       "aws",
+				URL:               s3Host,
+				SigningRegion:     region,
+				HostnameImmutable: true,
+			}, nil
+		})
+
+		cfg.EndpointResolverWithOptions = resolver
+	}
+
+	client := s3.NewFromConfig(cfg)
 	return client
 }
 

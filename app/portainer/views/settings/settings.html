@@ -341,23 +341,15 @@
                 <input
                   type="text"
                   class="form-control"
-                  placeholder="us-west-1"
+                  placeholder="default region is us-east-1 if leave empty"
                   id="region"
                   name="region"
                   ng-model="formValues.region"
-                  ng-required="formValues.scheduleAutomaticBackups"
                   limited-feature-dir="{{::s3BackupFeatureId}}"
                   limited-feature-disabled
                   limited-feature-class="limited-be"
                   data-cy="settings-backupRegionInput"
                 />
-              </div>
-            </div>
-            <div class="form-group col-md-12" ng-show="backupPortainerForm.region.$invalid">
-              <div class="small text-warning">
-                <div ng-messages="backupPortainerForm.region.$error">
-                  <p ng-message="required"> <pr-icon icon="'alert-triangle'" feather="true"></pr-icon> This field is required.</p>
-                </div>
               </div>
             </div>
             <!-- !Region -->
@@ -386,6 +378,27 @@
               </div>
             </div>
             <!-- !Bucket name -->
+            <!-- S3 compatible host -->
+            <div class="form-group">
+              <label for="s3-compatible-host" class="col-sm-3 col-lg-2 control-label text-left">
+                S3 compatible host
+                <portainer-tooltip message="'Hostname of a S3 service'"></portainer-tooltip>
+              </label>
+              <div class="col-sm-9 col-lg-10">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="leave empty for AWS S3"
+                  id="s3-compatible-host"
+                  name="s3-compatible-host"
+                  ng-model="formValues.s3CompatibleHost"
+                  limited-feature-dir="{{::s3BackupFeatureId}}"
+                  limited-feature-class="limited-be"
+                  data-cy="settings-backupS3CompatibleHostInput"
+                />
+              </div>
+            </div>
+            <!-- !S3 compatible host -->
             <div class="col-sm-12 form-section-title"> Security settings </div>
             <!-- Password protect S3 -->
             <div class="form-group">

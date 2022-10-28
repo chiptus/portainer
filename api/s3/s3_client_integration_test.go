@@ -53,6 +53,11 @@ func Test_upload_shouldFail_whenBucketIsMissing(t *testing.T) {
 	}
 }
 
+func Test_upload_shouldSuccess(t *testing.T) {
+	err := Upload(s3client, strings.NewReader("test"), existingBucket, key)
+	assert.NoError(t, err)
+}
+
 func Test_upload_shouldFail_whenBucketExists(t *testing.T) {
 
 	if err := Upload(s3client, strings.NewReader("test"), existingBucket, key); err != nil {

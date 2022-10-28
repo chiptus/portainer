@@ -33,8 +33,6 @@ func (payload *s3BackupPayload) Validate(r *http.Request) error {
 		return errors.New("missing AccessKeyID")
 	case payload.SecretAccessKey == "":
 		return errors.New("missing SecretAccessKey")
-	case payload.Region == "":
-		return errors.New("missing Region")
 	case payload.BucketName == "":
 		return errors.New("missing BucketName")
 	default:

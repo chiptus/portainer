@@ -28,9 +28,6 @@ func (p *backupSettings) Validate(r *http.Request) error {
 	if p.SecretAccessKey == "" {
 		return errors.New("missing SecretAccessKey")
 	}
-	if p.Region == "" {
-		return errors.New("missing Region")
-	}
 	if p.BucketName == "" {
 		return errors.New("missing BucketName")
 	}

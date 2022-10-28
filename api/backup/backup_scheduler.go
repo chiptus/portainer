@@ -106,7 +106,7 @@ func (s *BackupScheduler) startJob(settings portaineree.S3BackupSettings) error 
 }
 
 func canBeScheduled(s portaineree.S3BackupSettings) bool {
-	return s.AccessKeyID != "" && s.SecretAccessKey != "" && s.Region != "" && s.BucketName != "" && s.CronRule != ""
+	return s.AccessKeyID != "" && s.SecretAccessKey != "" && s.BucketName != "" && s.CronRule != ""
 }
 
 func (s *BackupScheduler) backup(settings portaineree.S3BackupSettings) func() {

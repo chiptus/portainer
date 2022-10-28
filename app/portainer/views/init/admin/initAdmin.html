@@ -225,11 +225,10 @@
                   <input
                     type="text"
                     class="form-control"
-                    placeholder="us-west-1"
+                    placeholder="default region is us-east-1 if leave empty"
                     id="backup-s3-region"
                     name="backup-s3-region"
                     ng-model="formValues.Region"
-                    required
                     data-cy="init-s3RegionInput"
                   />
                 </div>
@@ -243,6 +242,25 @@
                 </div>
               </div>
               <!-- !Bucket name -->
+              <!-- S3 Compatible Host -->
+              <div class="form-group">
+                <label for="s3-compatible-host" class="col-sm-3 control-label text-left">
+                  S3 Compatible Host
+                  <portainer-tooltip message="'Hostname of a S3 service'"></portainer-tooltip>
+                </label>
+                <div class="col-sm-9">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="s3-compatible-host"
+                    name="s3-compatible-host"
+                    ng-model="formValues.S3CompatibleHost"
+                    placeholder="leave empty for AWS S3"
+                    data-cy="init-s3CompatibleHostInput"
+                  />
+                </div>
+              </div>
+              <!-- !S3 Compatible Host -->
               <!-- Filename -->
               <div class="form-group">
                 <label for="backup-s3-filename" class="col-sm-3 control-label text-left">Filename</label>
