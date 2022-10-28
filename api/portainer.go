@@ -1691,7 +1691,7 @@ type (
 		ListAllocations(jobID, namespace string) (allocationsList []*nomad.AllocationListStub, err error)
 		DeleteJob(jobID, namespace string) error
 		TaskEvents(allocationID, taskName, namespace string) ([]*nomad.TaskEvent, error)
-		TaskLogs(refresh bool, allocationID, taskName, namespace, logType, origin string, offset int64) (<-chan *nomad.StreamFrame, error)
+		TaskLogs(refresh bool, allocationID, taskName, namespace, logType, origin string, offset int64) (<-chan *nomad.StreamFrame, <-chan error)
 	}
 
 	// KubernetesDeployer represents a service to deploy a manifest inside a Kubernetes environment(endpoint)

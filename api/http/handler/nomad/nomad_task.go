@@ -148,27 +148,29 @@ func (handler *Handler) getTaskLogs(w http.ResponseWriter, r *http.Request) *htt
 		return httperror.InternalServerError("Unable to establish communication with Nomad server", err)
 	}
 
-	frames, err := nomadClient.TaskLogs(refresh, allocationID, taskName, logType, origin, namespace, int64(offset))
-
-	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve Nomad task log channel", err)
-	}
+	frames, errCh := nomadClient.TaskLogs(refresh, allocationID, taskName, logType, origin, namespace, int64(offset))
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Transfer-Encoding", "chunked")
 	w.WriteHeader(http.StatusOK)
 
 	enc := json.NewEncoder(w)
+
+Loop:
 	for {
-		frame, ok := <-frames
-		if !ok {
-			break
+		select {
+		case frame, ok := <-frames:
+			if !ok {
+				break Loop
+			}
+			if frame.IsHeartbeat() {
+				continue
+			}
+			enc.Encode(string(frame.Data))
+			w.(http.Flusher).Flush()
+		case err := <-errCh:
+			return httperror.InternalServerError("Unable to retrieve Nomad task log channel", err)
 		}
-		if frame.IsHeartbeat() {
-			continue
-		}
-		enc.Encode(string(frame.Data))
-		w.(http.Flusher).Flush()
 	}
 	return nil
 }

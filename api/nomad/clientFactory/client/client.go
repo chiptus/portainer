@@ -166,16 +166,19 @@ func (c *NomadClient) TaskEvents(allocationID, taskName, namespace string) ([]*n
 }
 
 // TaskLogs return all the Nomad task logs
-func (c *NomadClient) TaskLogs(refresh bool, allocationID, taskName, logType, origin, namespace string, offset int64) (<-chan *nomad.StreamFrame, error) {
+func (c *NomadClient) TaskLogs(refresh bool, allocationID, taskName, logType, origin, namespace string, offset int64) (<-chan *nomad.StreamFrame, <-chan error) {
 	// retrieve allocation info
 	allocation, _, err := c.nomadApiClient.Allocations().Info(allocationID, &nomad.QueryOptions{Namespace: namespace})
 	if err != nil {
 		c.setTunnelStatusToIdle(err)
-		return nil, err
+		errCh := make(chan error, 1)
+		errCh <- err
+
+		return nil, errCh
 	}
 
 	// retrieve logs stream as a channel
-	logChan, _ := c.nomadApiClient.AllocFS().Logs(allocation, refresh, taskName, logType, origin, offset, nil, &nomad.QueryOptions{Namespace: namespace})
+	logChan, errCh := c.nomadApiClient.AllocFS().Logs(allocation, refresh, taskName, logType, origin, offset, nil, &nomad.QueryOptions{Namespace: namespace})
 
-	return logChan, nil
+	return logChan, errCh
 }
