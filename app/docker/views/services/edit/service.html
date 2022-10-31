@@ -236,7 +236,16 @@
     <div id="service-update-config" class="padding-top" ng-include="'app/docker/views/services/edit/includes/updateconfig.html'"></div>
     <div id="service-logging" class="padding-top" ng-include="'app/docker/views/services/edit/includes/logging.html'"></div>
     <div id="service-labels" class="padding-top" ng-include="'app/docker/views/services/edit/includes/servicelabels.html'"></div>
-    <div id="service-configs" class="padding-top" ng-include="'app/docker/views/services/edit/includes/configs.html'"></div>
+    <div id="service-configs" class="padding-top">
+      <service-configs
+        on-submit="(updateService)"
+        service="service"
+        on-change="(onChangeConfigs)"
+        has-changes="configsHaveChanges"
+        value="service.ServiceConfigs"
+        cancel-changes="cancelChanges"
+      ></service-configs>
+    </div>
     <div id="service-secrets" ng-if="applicationState.endpoint.apiVersion >= 1.25" class="padding-top" ng-include="'app/docker/views/services/edit/includes/secrets.html'"></div>
     <div id="service-tasks" class="padding-top" ng-include="'app/docker/views/services/edit/includes/tasks.html'"></div>
   </div>

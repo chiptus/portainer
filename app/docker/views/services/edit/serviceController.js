@@ -1,4 +1,3 @@
-require('./includes/configs.html');
 require('./includes/constraints.html');
 require('./includes/container-specs.html');
 require('./includes/containerlabels.html');
@@ -143,26 +142,6 @@ angular.module('portainer.docker').controller('ServiceController', [
       updateServiceArray(service, 'EnvironmentVariables', service.EnvironmentVariables);
     }
 
-    $scope.addConfig = function addConfig(service, config) {
-      if (
-        config &&
-        service.ServiceConfigs.filter(function (serviceConfig) {
-          return serviceConfig.Id === config.Id;
-        }).length === 0
-      ) {
-        service.ServiceConfigs.push({ Id: config.Id, Name: config.Name, FileName: config.Name, Uid: '0', Gid: '0', Mode: 292 });
-        updateServiceArray(service, 'ServiceConfigs', service.ServiceConfigs);
-      }
-    };
-    $scope.removeConfig = function removeSecret(service, index) {
-      var removedElement = service.ServiceConfigs.splice(index, 1);
-      if (removedElement !== null) {
-        updateServiceArray(service, 'ServiceConfigs', service.ServiceConfigs);
-      }
-    };
-    $scope.updateConfig = function updateConfig(service) {
-      updateServiceArray(service, 'ServiceConfigs', service.ServiceConfigs);
-    };
     $scope.addSecret = function addSecret(service, newSecret) {
       if (newSecret.secret) {
         var filename = newSecret.secret.Name;
@@ -381,6 +360,7 @@ angular.module('portainer.docker').controller('ServiceController', [
     };
 
     $scope.cancelChanges = async function cancelChanges(service, keys) {
+      service = service || $scope.service;
       if (keys) {
         // clean out the keys only from the list of modified keys
         for (const key of keys) {
@@ -399,6 +379,7 @@ angular.module('portainer.docker').controller('ServiceController', [
         keys = Object.keys(service);
         previousServiceValues = [];
       }
+      console.log({ keys, originalService, previousServiceValues });
       keys.forEach(function (attribute) {
         service[attribute] = originalService[attribute]; // reset service values
       });
@@ -574,9 +555,9 @@ angular.module('portainer.docker').controller('ServiceController', [
       $scope.state.pullImageValidity = validity;
     }
 
-    $scope.updateService = function updateService(service) {
-      let config = {};
-      service, (config = buildChanges(service));
+    $scope.updateService = function updateService() {
+      const service = $scope.service;
+      const config = buildChanges(service);
       ServiceService.update(service, config).then(
         function (data) {
           if (data.message && data.message.match(/^rpc error:/)) {
@@ -716,7 +697,6 @@ angular.module('portainer.docker').controller('ServiceController', [
             containers: agentProxy ? ContainerService.containers() : [],
             nodes: NodeService.nodes(),
             secrets: apiVersion >= 1.25 ? SecretService.secrets() : [],
-            configs: apiVersion >= 1.3 ? ConfigService.configs() : [],
             availableImages: ImageService.images(),
             availableLoggingDrivers: PluginService.loggingPlugins(apiVersion < 1.25),
             availableNetworks: NetworkService.networks(true, true, apiVersion >= 1.25),
@@ -725,7 +705,6 @@ angular.module('portainer.docker').controller('ServiceController', [
         })
         .then(async function success(data) {
           $scope.nodes = data.nodes;
-          $scope.configs = data.configs;
           $scope.secrets = data.secrets;
           $scope.availableImages = ImageService.getUniqueTagListFromImages(data.availableImages);
           $scope.availableLoggingDrivers = data.availableLoggingDrivers;
@@ -812,7 +791,6 @@ angular.module('portainer.docker').controller('ServiceController', [
         })
         .catch(function error(err) {
           $scope.secrets = [];
-          $scope.configs = [];
           Notifications.error('Failure', err, 'Unable to retrieve service details');
         });
     }
@@ -834,6 +812,15 @@ angular.module('portainer.docker').controller('ServiceController', [
       previousServiceValues.push(name);
       service.hasChanges = true;
     }
+
+    $scope.onChangeConfigs = function (configs) {
+      $scope.service.ServiceConfigs = configs;
+      updateServiceArray($scope.service, 'ServiceConfigs', configs);
+    };
+
+    $scope.configsHaveChanges = function () {
+      return $scope.hasChanges(this.service, ['ServiceConfigs']);
+    };
 
     initView();
   },
