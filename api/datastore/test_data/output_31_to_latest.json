@@ -86,6 +86,9 @@
       "Nomad": {
         "Snapshots": []
       },
+      "PostInitMigrations": {
+        "MigrateIngresses": true
+      },
       "PublicURL": "",
       "QueryDate": 0,
       "SecuritySettings": {

@@ -288,6 +288,7 @@ func (handler *Handler) updateKubernetesIngressControllers(w http.ResponseWriter
 			Type:      "custom",
 		})
 	}
+
 	var updatedClasses []portaineree.KubernetesIngressClassConfig
 	for i := range controllers {
 		controllers[i].Availability = true

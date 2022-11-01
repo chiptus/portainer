@@ -398,6 +398,9 @@ type (
 		// Whether the device has been trusted or not by the user
 		UserTrusted bool
 
+		// Whether we need to run any "post init migrations".
+		PostInitMigrations EndpointPostInitMigrations `json:"PostInitMigrations"`
+
 		// The check in interval for edge agent (in seconds)
 		EdgeCheckinInterval int `json:"EdgeCheckinInterval" example:"5"`
 
@@ -514,6 +517,11 @@ type (
 	EndpointRelation struct {
 		EndpointID EndpointID
 		EdgeStacks map[EdgeStackID]bool
+	}
+
+	// EndpointPostInitMigrations
+	EndpointPostInitMigrations struct {
+		MigrateIngresses bool `json:"MigrateIngresses"`
 	}
 
 	// Extension represents a deprecated Portainer extension
