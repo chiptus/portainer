@@ -142,8 +142,14 @@ func (a *CloudClusterInfoService) AzureFetchInfo(credentials models.CloudCredent
 				}
 			}
 			vcpu, err := strconv.Atoi(vCPUs)
-			// vCPUs less than 2 is not supported for Kubernetes
+			// vCPUs less than 2 are not supported for Kubernetes
 			if err != nil || vcpu < 2 {
+				continue
+			}
+
+			memNumber, err := strconv.Atoi(memory)
+			// memory less than 4GB is not supported for Kubernetes
+			if err != nil || memNumber < 4 {
 				continue
 			}
 
