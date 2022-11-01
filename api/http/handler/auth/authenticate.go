@@ -263,7 +263,6 @@ func (handler *Handler) addUserIntoTeams(user *portaineree.User, settings *porta
 
 	for _, team := range teams {
 		if teamExists(team.Name, userGroups) {
-
 			if teamMembershipExists(team.ID, userMemberships) {
 				continue
 			}
@@ -277,6 +276,14 @@ func (handler *Handler) addUserIntoTeams(user *portaineree.User, settings *porta
 			err := handler.DataStore.TeamMembership().Create(membership)
 			if err != nil {
 				return err
+			}
+		} else {
+			// If the user is deleted from LDAP group, he also needs to be removed from Portainer team
+			if teamMembershipExists(team.ID, userMemberships) {
+				err := handler.DataStore.TeamMembership().DeleteTeamMembershipByTeamIDAndUserID(team.ID, user.ID)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}

@@ -365,6 +365,7 @@ type (
 		DeleteTeamMembership(ID portaineree.TeamMembershipID) error
 		DeleteTeamMembershipByUserID(userID portaineree.UserID) error
 		DeleteTeamMembershipByTeamID(teamID portaineree.TeamID) error
+		DeleteTeamMembershipByTeamIDAndUserID(teamID portaineree.TeamID, userID portaineree.UserID) error
 		BucketName() string
 	}
 

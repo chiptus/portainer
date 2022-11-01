@@ -592,7 +592,6 @@ github.com/gogo/protobuf v1.3.0/go.mod h1:SlYgWuQ5SjCEi6WLHjHCa1yvBfUnHcTbrrZtXP
 github.com/gogo/protobuf v1.3.1/go.mod h1:SlYgWuQ5SjCEi6WLHjHCa1yvBfUnHcTbrrZtXPKa29o=
 github.com/gogo/protobuf v1.3.2 h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=
 github.com/gogo/protobuf v1.3.2/go.mod h1:P1XiOD3dCwIKUDQYPy72D8LYyHL2YPYrpS2s69NZV8Q=
-github.com/golang-jwt/jwt v3.2.2+incompatible h1:IfV12K8xAKAnZqdXVzCZ+TOjboZ2keLg81eXfW3O+oY=
 github.com/golang-jwt/jwt/v4 v4.0.0/go.mod h1:/xlHOz8bRuivTWchD4jCa+NbatV+wEUSzwAxVc6locg=
 github.com/golang-jwt/jwt/v4 v4.2.0 h1:besgBTC8w8HjP6NzQdxwKH9Z5oQMZ24ThTrHp3cZ8eU=
 github.com/golang-jwt/jwt/v4 v4.2.0/go.mod h1:/xlHOz8bRuivTWchD4jCa+NbatV+wEUSzwAxVc6locg=
@@ -1013,8 +1012,8 @@ github.com/portainer/libhttp v0.0.0-20220916153711-5d61e12f4b0a h1:BJ5V4EDNhg3Im
 github.com/portainer/libhttp v0.0.0-20220916153711-5d61e12f4b0a/go.mod h1:ckuHnoLA5kLuE5WkvPBXmrw63LUMdSH4aX71QRi9y10=
 github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91 h1:mtz7L81z05+CfJdB8Cgh9r8k3tSgLXZR++BgA/Y0PpQ=
 github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91/go.mod h1:6OSugUz07QF1WwrMmRNIMhgiq+drVMIZ98UTu5LVZP8=
-github.com/portainer/portainer/api v0.0.0-20221013141212-367f3dd6d4d0 h1:wuuLj4z2UUnMWxzmz2P4cHlvOnmhq5/VUAggzQwFhtM=
-github.com/portainer/portainer/api v0.0.0-20221013141212-367f3dd6d4d0/go.mod h1:8g2rn2EP3lLsCtq0gsStHeBVAP5LvQZa8imktJ1LUKM=
+github.com/portainer/portainer/api v0.0.0-20221101223144-9e1f80cf3794 h1:FN6iQUWYy2Q7tOvNbaL1iSxb2WKbrR9syCg5jaIRCS8=
+github.com/portainer/portainer/api v0.0.0-20221101223144-9e1f80cf3794/go.mod h1:ztTrizStP/hX7ySzn/7mjYCS3+9m1PB/ZPjNgTxUABg=
 github.com/posener/complete v1.1.1/go.mod h1:em0nMJCgc9GFtwrmVmEMR/ZL6WyhyjMBndrE9hABlRI=
 github.com/pquerna/cachecontrol v0.0.0-20171018203845-0dec1b30a021/go.mod h1:prYjPmNq4d1NPVmpShWobRqXY3q7Vp+80DqgxxUrUIA=
 github.com/proglottis/gpgme v0.1.1/go.mod h1:fPbW/EZ0LvwQtH8Hy7eixhp1eF3G39dtx7GUN+0Gmy0=

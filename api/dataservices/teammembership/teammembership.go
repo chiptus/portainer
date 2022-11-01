@@ -145,8 +145,9 @@ func (service *Service) DeleteTeamMembership(ID portaineree.TeamMembershipID) er
 func (service *Service) DeleteTeamMembershipByUserID(userID portaineree.UserID) error {
 	return service.connection.DeleteAllObjects(
 		BucketName,
+		&portaineree.TeamMembership{},
 		func(obj interface{}) (id int, ok bool) {
-			membership, ok := obj.(portaineree.TeamMembership)
+			membership, ok := obj.(*portaineree.TeamMembership)
 			if !ok {
 				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to TeamMembership object")
 				//return fmt.Errorf("Failed to convert to TeamMembership object: %s", obj)
@@ -165,8 +166,9 @@ func (service *Service) DeleteTeamMembershipByUserID(userID portaineree.UserID) 
 func (service *Service) DeleteTeamMembershipByTeamID(teamID portaineree.TeamID) error {
 	return service.connection.DeleteAllObjects(
 		BucketName,
+		&portaineree.TeamMembership{},
 		func(obj interface{}) (id int, ok bool) {
-			membership, ok := obj.(portaineree.TeamMembership)
+			membership, ok := obj.(*portaineree.TeamMembership)
 			if !ok {
 				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to TeamMembership object")
 				//return fmt.Errorf("Failed to convert to TeamMembership object: %s", obj)
@@ -174,6 +176,25 @@ func (service *Service) DeleteTeamMembershipByTeamID(teamID portaineree.TeamID) 
 			}
 
 			if membership.TeamID == teamID {
+				return int(membership.ID), true
+			}
+
+			return -1, false
+		})
+}
+
+func (service *Service) DeleteTeamMembershipByTeamIDAndUserID(teamID portaineree.TeamID, userID portaineree.UserID) error {
+	return service.connection.DeleteAllObjects(
+		BucketName,
+		&portaineree.TeamMembership{},
+		func(obj interface{}) (id int, ok bool) {
+			membership, ok := obj.(*portaineree.TeamMembership)
+			if !ok {
+				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to TeamMembership object")
+				return -1, false
+			}
+
+			if membership.TeamID == teamID && membership.UserID == userID {
 				return int(membership.ID), true
 			}
 
