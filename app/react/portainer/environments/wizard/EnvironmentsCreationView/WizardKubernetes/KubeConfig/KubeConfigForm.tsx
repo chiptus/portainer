@@ -15,7 +15,7 @@ import { TextTip } from '@@/Tip/TextTip';
 import { NameField } from '../../shared/NameField';
 import { MoreSettingsSection } from '../../shared/MoreSettingsSection';
 
-import { validation } from './KubeConfig.validation';
+import { useValidation } from './KubeConfig.validation';
 
 interface Props {
   onCreate(environment: Environment): void;
@@ -56,6 +56,7 @@ export function KubeConfigForm({ onCreate }: Props) {
   const [kubeConfigFile, setKubeConfigFile] = useState<File>();
 
   const mutation = useCreateKubeConfigEnvironmentMutation();
+  const validation = useValidation();
 
   async function handleFileUpload(
     file: File,

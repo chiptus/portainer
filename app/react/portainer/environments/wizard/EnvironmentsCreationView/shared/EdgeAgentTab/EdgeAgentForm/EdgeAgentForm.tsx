@@ -19,7 +19,7 @@ import { MoreSettingsSection } from '../../MoreSettingsSection';
 import { Hardware } from '../../Hardware/Hardware';
 
 import { EdgeAgentFieldset } from './EdgeAgentFieldset';
-import { validationSchema } from './EdgeAgentForm.validation';
+import { useValidationSchema } from './EdgeAgentForm.validation';
 import { FormValues } from './types';
 
 interface Props {
@@ -41,6 +41,7 @@ export function EdgeAgentForm({
   const createEdgeDevice = useCreateEdgeDeviceParam();
 
   const createMutation = useCreateEdgeAgentEnvironmentMutation();
+  const validation = useValidationSchema();
 
   if (!edgeSettingsQuery.data) {
     return null;
@@ -53,7 +54,7 @@ export function EdgeAgentForm({
       initialValues={initialValues}
       onSubmit={handleSubmit}
       validateOnMount
-      validationSchema={validationSchema}
+      validationSchema={validation}
     >
       {({ isValid, setFieldValue, values }) => (
         <Form>

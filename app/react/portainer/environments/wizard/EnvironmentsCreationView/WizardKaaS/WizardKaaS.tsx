@@ -21,7 +21,7 @@ import { AnalyticsStateKey } from '../types';
 import { KaasProvidersSelector } from './KaasProvidersSelector';
 import { sendKaasProvisionAnalytics } from './utils';
 import { useCloudProviderOptions, useCreateKaasCluster } from './queries';
-import { validationSchema } from './WizardKaaS.validation';
+import { useValidationSchema } from './WizardKaaS.validation';
 import { ProviderForm } from './ProviderForm';
 import { FormValues, KaasInfo } from './types';
 import { getPayloadParse } from './converter';
@@ -92,6 +92,8 @@ export function WizardKaaS({ onCreate }: Props) {
     [credentials, provider]
   );
 
+  const validation = useValidationSchema(provider, cloudOptionsQuery.data);
+
   const credentialsFound = providerCredentials.length > 0;
 
   return (
@@ -99,9 +101,7 @@ export function WizardKaaS({ onCreate }: Props) {
       <Formik
         initialValues={initialValues}
         onSubmit={handleSubmit}
-        validationSchema={() =>
-          validationSchema(provider, cloudOptionsQuery.data)
-        }
+        validationSchema={validation}
         validateOnMount
         enableReinitialize
       >

@@ -1,7 +1,7 @@
 import { number, object, string, mixed, SchemaOf } from 'yup';
 
 import { KaasProvider } from '@/react/portainer/settings/cloud/types';
-import { nameValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/NameField';
+import { useNameValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/NameField';
 import { metadataValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MetadataFieldset/validation';
 
 import { validationSchema as gkeValidation } from './GKECreateClusterForm/validation';
@@ -11,12 +11,12 @@ import { validationSchema as amazonValidation } from './EKSCreateClusterForm/val
 import { KaasInfo, KaaSFormType, FormValues } from './types';
 import { providerFormType } from './utils';
 
-export function validationSchema(
+export function useValidationSchema(
   provider: KaasProvider,
   kaasInfo?: KaasInfo | null
 ): SchemaOf<Omit<FormValues, 'api' | 'azure' | 'google' | 'amazon'>> {
   return object({
-    name: nameValidation()
+    name: useNameValidation()
       .matches(
         /^[a-z0-9-]+$/,
         'Name must only contain lowercase alphanumeric characters and hyphens.'
