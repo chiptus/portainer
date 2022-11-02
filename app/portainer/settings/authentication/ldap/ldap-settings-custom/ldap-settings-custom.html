@@ -35,7 +35,16 @@
   </label>
   <div class="col-sm-9 col-lg-10">
     <div ng-repeat="url in $ctrl.settings.URLs track by $index" style="display: flex; margin-bottom: 10px">
-      <input type="text" class="form-control" id="ldap_url" ng-model="$ctrl.settings.URLs[$index]" placeholder="e.g. 10.0.0.10:389 or myldap.domain.tld:389" required />
+      <!-- Attribute required will change the ng-model value to undefined if the input value is empty. Adding ng-model-options can solve the issue -->
+      <input
+        type="text"
+        class="form-control"
+        id="ldap_url"
+        ng-model="$ctrl.settings.URLs[$index]"
+        placeholder="e.g. 10.0.0.10:389 or myldap.domain.tld:389"
+        ng-model-options="{ allowInvalid: true }"
+        required
+      />
       <button ng-if="$index > 0" class="btn btn-sm btn-danger" type="button" ng-click="$ctrl.removeLDAPUrl($index)">
         <pr-icon icon="'trash-2'" feather="true" size="'md'"></pr-icon>
       </button>
