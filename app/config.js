@@ -17,7 +17,6 @@ export function configApp($urlRouterProvider, $httpProvider, localStorageService
   });
 
   $httpProvider.interceptors.push('jwtInterceptor');
-  $httpProvider.interceptors.push('EndpointStatusInterceptor');
 
   if (!$httpProvider.defaults.headers.get) {
     $httpProvider.defaults.headers.get = {};

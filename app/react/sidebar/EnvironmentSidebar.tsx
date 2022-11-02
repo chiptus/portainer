@@ -15,7 +15,7 @@ import {
 } from '@/react/portainer/environments/utils';
 import { useEnvironment } from '@/react/portainer/environments/queries/useEnvironment';
 import { useLocalStorage } from '@/portainer/hooks/useLocalStorage';
-import { EndpointProvider } from '@/portainer/services/types';
+import { EndpointProviderInterface } from '@/portainer/services/endpointProvider';
 
 import { Icon } from '@@/Icon';
 
@@ -143,8 +143,8 @@ function useCurrentEnvironment() {
   function clearEnvironment() {
     const $injector = angular.element(document).injector();
     $injector.invoke(
-      /* @ngInject */ (EndpointProvider: EndpointProvider) => {
-        EndpointProvider.setCurrentEndpoint(undefined);
+      /* @ngInject */ (EndpointProvider: EndpointProviderInterface) => {
+        EndpointProvider.setCurrentEndpoint(null);
         if (!params.endpointId) {
           document.title = 'Portainer';
         }

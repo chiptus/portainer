@@ -7,18 +7,7 @@ import { KubernetesApplicationTypes } from 'Kubernetes/models/application/models
 import { KubernetesPortainerApplicationStackNameLabel } from 'Kubernetes/models/application/models';
 class KubernetesApplicationsController {
   /* @ngInject */
-  constructor(
-    $async,
-    $state,
-    Notifications,
-    KubernetesApplicationService,
-    HelmService,
-    KubernetesConfigurationService,
-    ModalService,
-    LocalStorage,
-    EndpointProvider,
-    StackService
-  ) {
+  constructor($async, $state, Notifications, KubernetesApplicationService, HelmService, KubernetesConfigurationService, ModalService, LocalStorage, StackService) {
     this.$async = $async;
     this.$state = $state;
     this.Notifications = Notifications;
@@ -29,7 +18,6 @@ class KubernetesApplicationsController {
     this.ModalService = ModalService;
     this.LocalStorage = LocalStorage;
     this.StackService = StackService;
-    this.EndpointProvider = EndpointProvider;
 
     this.onInit = this.onInit.bind(this);
     this.getApplications = this.getApplications.bind(this);
