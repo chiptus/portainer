@@ -54,7 +54,7 @@ func GetHelmAppLabels(name, owner string) map[string]string {
 }
 
 // AddAppLabels adds required labels to "Resource"->metadata->labels.
-// It'll add those labels to all Resource (nodes with a kind property exluding a list) it can find in provided yaml.
+// It'll add those labels to all Resource (nodes with a kind property excluding a list) it can find in provided yaml.
 // Items in the yaml file could either be organised as a list or broken into multi documents.
 func AddAppLabels(manifestYaml []byte, appLabels map[string]string) ([]byte, error) {
 	if bytes.Equal(manifestYaml, []byte("")) {
@@ -181,4 +181,82 @@ func addLabels(obj map[string]interface{}, appLabels map[string]string) {
 
 	metadata["labels"] = labels
 	obj["metadata"] = metadata
+}
+
+// UpdateContainerEnv updates variables in "Resource"->spec->containers.
+// It will not add new environment variables
+func UpdateContainerEnv(manifestYaml []byte, env map[string]string) ([]byte, error) {
+	if bytes.Equal(manifestYaml, []byte("")) {
+		return manifestYaml, nil
+	}
+
+	postProcessYaml := func(yamlDoc interface{}) error {
+		updateContainerEnv(yamlDoc, env)
+		return nil
+	}
+
+	docs, err := ExtractDocuments(manifestYaml, postProcessYaml)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes.Join(docs, []byte("---\n")), nil
+}
+
+func updateContainerEnv(yamlDoc interface{}, env map[string]string) {
+	m, ok := yamlDoc.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	if containers, ok := m["containers"]; ok {
+		c := containers.([]interface{})
+		updateEnv(c, env)
+		return
+	}
+
+	for _, v := range m {
+		switch v.(type) {
+		case map[string]interface{}:
+			updateContainerEnv(v, env)
+		}
+	}
+}
+
+func updateEnv(containers []interface{}, env map[string]string) {
+	for _, c := range containers {
+		c, ok := c.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		if existingEnv, ok := c["env"]; ok {
+			v, ok := existingEnv.([]interface{})
+			if !ok {
+				continue
+			}
+
+			// What we have here is a slice of maps.  Each map contains a key value pair with the key
+			// names: "name" and "value".  We need to merge this with our env which is just a
+			// map of key value pairs.
+			for _, v := range v {
+				// Replace existing value with new value if it exists
+				v, ok := v.(map[string]interface{})
+				if !ok {
+					continue
+				}
+
+				k, ok := v["name"].(string)
+				if !ok {
+					continue
+				}
+
+				if _, exists := env[k]; exists {
+					v["value"] = env[k]
+				}
+			}
+
+			c["env"] = v
+		}
+	}
 }

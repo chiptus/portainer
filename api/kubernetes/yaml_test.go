@@ -1,6 +1,8 @@
 package kubernetes
 
 import (
+	"log"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -707,6 +709,145 @@ kind: Namespace
 			assert.NoError(t, err)
 			for i := range results {
 				assert.Equal(t, tt.want[i], string(results[i]))
+			}
+		})
+	}
+}
+
+func Test_AddAppEnvVars(t *testing.T) {
+	tests := []struct {
+		name       string
+		input      string
+		vars       map[string]string
+		wantOutput string
+	}{
+		{
+			name: "update existing env",
+			input: `apiVersion: v1
+kind: Pod
+metadata:
+  name: dependent-envars-demo
+spec:
+  containers:
+    - name: dependent-envars-demo
+      args:
+        - while true; do echo -en '\n'; printf UNCHANGED_REFERENCE=$UNCHANGED_REFERENCE'\n'; printf SERVICE_ADDRESS=$SERVICE_ADDRESS'\n';printf ESCAPED_REFERENCE=$ESCAPED_REFERENCE'\n'; sleep 30; done;
+      command:
+        - sh
+        - -c
+      image: busybox:1.28
+      env:
+        - name: SERVICE_PORT
+          value: "80"
+        - name: SERVICE_IP
+          value: "172.17.0.1"
+        - name: UNCHANGED_REFERENCE
+          value: "$(PROTOCOL)://$(SERVICE_IP):$(SERVICE_PORT)"
+        - name: PROTOCOL
+          value: "https"
+        - name: SERVICE_ADDRESS
+          value: "$(PROTOCOL)://$(SERVICE_IP):$(SERVICE_PORT)"
+        - name: ESCAPED_REFERENCE
+          value: "$$(PROTOCOL)://$(SERVICE_IP):$(SERVICE_PORT)"
+`,
+			vars: map[string]string{
+				"SERVICE_PORT": "8080",
+				"SERVICE_IP":   "192.168.1.1",
+			},
+			wantOutput: `apiVersion: v1
+kind: Pod
+metadata:
+  name: dependent-envars-demo
+spec:
+  containers:
+    - args:
+        - while true; do echo -en '\n'; printf UNCHANGED_REFERENCE=$UNCHANGED_REFERENCE'\n'; printf SERVICE_ADDRESS=$SERVICE_ADDRESS'\n';printf ESCAPED_REFERENCE=$ESCAPED_REFERENCE'\n'; sleep 30; done;
+      command:
+        - sh
+        - -c
+      env:
+        - name: SERVICE_PORT
+          value: "8080"
+        - name: SERVICE_IP
+          value: 192.168.1.1
+        - name: UNCHANGED_REFERENCE
+          value: $(PROTOCOL)://$(SERVICE_IP):$(SERVICE_PORT)
+        - name: PROTOCOL
+          value: https
+        - name: SERVICE_ADDRESS
+          value: $(PROTOCOL)://$(SERVICE_IP):$(SERVICE_PORT)
+        - name: ESCAPED_REFERENCE
+          value: $$(PROTOCOL)://$(SERVICE_IP):$(SERVICE_PORT)
+      image: busybox:1.28
+      name: dependent-envars-demo
+`,
+		},
+		{
+			name: "try to add new env",
+			input: `apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+`,
+			vars: map[string]string{
+				"SERVICE_PORT": "8080",
+				"SERVICE_IP":   "192.168.1.1",
+			},
+			wantOutput: `apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx
+  name: nginx-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - image: nginx:1.14.2
+          name: nginx
+          ports:
+            - containerPort: 80
+`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := UpdateContainerEnv([]byte(tt.input), tt.vars)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			assert.NoError(t, err)
+			if !assert.Equal(t, tt.wantOutput, string(result)) {
+				err = os.WriteFile("/tmp/failed-yaml.yaml", result, 0644)
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 		})
 	}

@@ -85,6 +85,16 @@ func (config *KubernetesStackDeploymentConfig) Deploy() error {
 			return errors.Wrap(err, "failed to add application labels")
 		}
 
+		env := map[string]string{}
+		for _, v := range config.stack.Env {
+			env[v.Name] = v.Value
+		}
+
+		manifestContent, err = k.UpdateContainerEnv(manifestContent, env)
+		if err != nil {
+			return errors.Wrap(err, "failed to add application vars")
+		}
+
 		// get resource namespace, fallback to provided namespace if not explicit on resource
 		resourceNamespace, err := kubernetes.GetNamespace(manifestContent)
 		if err != nil {
