@@ -50,6 +50,11 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
+	err = handler.DataStore.Snapshot().DeleteSnapshot(portaineree.EndpointID(endpointID))
+	if err != nil {
+		return httperror.InternalServerError("Unable to remove the snapshot from the database", err)
+	}
+
 	err = handler.DataStore.Endpoint().DeleteEndpoint(portaineree.EndpointID(endpointID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to remove environment from the database", err)

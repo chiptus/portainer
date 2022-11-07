@@ -120,12 +120,15 @@ func Test_licenseIsOverused(t *testing.T) {
 	store.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint1.ID, Docker: &portainer.DockerSnapshot{NodeCount: 10}})
 	store.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint2.ID, Docker: &portainer.DockerSnapshot{NodeCount: 1}})
 
-	snapshots, _ := store.Snapshot().Snapshots()
+	snapshot.FillSnapshotData(store, endpoint1)
+	snapshot.FillSnapshotData(store, endpoint2)
 
-	assert.True(t, licenseIsOverused(5, snapshots))
-	assert.True(t, licenseIsOverused(10, snapshots))
-	assert.False(t, licenseIsOverused(11, snapshots))
-	assert.False(t, licenseIsOverused(15, snapshots))
+	endpoints := []portaineree.Endpoint{*endpoint1, *endpoint2}
+
+	assert.True(t, licenseIsOverused(5, endpoints))
+	assert.True(t, licenseIsOverused(10, endpoints))
+	assert.False(t, licenseIsOverused(11, endpoints))
+	assert.False(t, licenseIsOverused(15, endpoints))
 }
 
 func Test_ShouldEnforceOveruse(t *testing.T) {

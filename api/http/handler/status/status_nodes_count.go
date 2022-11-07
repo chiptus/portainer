@@ -6,6 +6,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
 	statusutil "github.com/portainer/portainer-ee/api/internal/nodes"
+	"github.com/portainer/portainer-ee/api/internal/snapshot"
 )
 
 type nodesCountResponse struct {
@@ -23,11 +24,19 @@ type nodesCountResponse struct {
 // @failure 500 "Server error"
 // @router /status/nodes [get]
 func (handler *Handler) statusNodesCount(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	snapshots, err := handler.dataStore.Snapshot().Snapshots()
+	endpoints, err := handler.dataStore.Endpoint().Endpoints()
 	if err != nil {
-		return httperror.InternalServerError("Failed to get snapshot list", err)
+		return httperror.InternalServerError("Failed to get environment list", err)
 	}
 
-	nodes := statusutil.NodesCount(snapshots)
+	for i := range endpoints {
+		err = snapshot.FillSnapshotData(handler.dataStore, &endpoints[i])
+		if err != nil {
+			return httperror.InternalServerError("Unable to add snapshot data", err)
+		}
+	}
+
+	nodes := statusutil.NodesCount(endpoints)
+
 	return response.JSON(w, &nodesCountResponse{Nodes: nodes})
 }

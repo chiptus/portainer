@@ -136,32 +136,7 @@ func (service *Service) Create(snapshot portaineree.Snapshot) error {
 }
 
 func (service *Service) FillSnapshotData(endpoint *portaineree.Endpoint) error {
-	snapshot, err := service.dataStore.Snapshot().Snapshot(endpoint.ID)
-	if service.dataStore.IsErrObjectNotFound(err) {
-		endpoint.Snapshots = []portainer.DockerSnapshot{}
-		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{}
-		endpoint.Nomad.Snapshots = []portaineree.NomadSnapshot{}
-
-		return nil
-	}
-
-	if err != nil {
-		return err
-	}
-
-	if snapshot.Docker != nil {
-		endpoint.Snapshots = []portainer.DockerSnapshot{*snapshot.Docker}
-	}
-
-	if snapshot.Kubernetes != nil {
-		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{*snapshot.Kubernetes}
-	}
-
-	if snapshot.Nomad != nil {
-		endpoint.Nomad.Snapshots = []portaineree.NomadSnapshot{*snapshot.Nomad}
-	}
-
-	return nil
+	return FillSnapshotData(service.dataStore, endpoint)
 }
 
 func (service *Service) snapshotKubernetesEndpoint(endpoint *portaineree.Endpoint) error {
@@ -298,4 +273,33 @@ func FetchDockerID(snapshot portainer.DockerSnapshot) (string, error) {
 
 	clusterInfo := swarmInfo.Cluster
 	return clusterInfo.ID, nil
+}
+
+func FillSnapshotData(dataStore dataservices.DataStore, endpoint *portaineree.Endpoint) error {
+	snapshot, err := dataStore.Snapshot().Snapshot(endpoint.ID)
+	if dataStore.IsErrObjectNotFound(err) {
+		endpoint.Snapshots = []portainer.DockerSnapshot{}
+		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{}
+		endpoint.Nomad.Snapshots = []portaineree.NomadSnapshot{}
+
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if snapshot.Docker != nil {
+		endpoint.Snapshots = []portainer.DockerSnapshot{*snapshot.Docker}
+	}
+
+	if snapshot.Kubernetes != nil {
+		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{*snapshot.Kubernetes}
+	}
+
+	if snapshot.Nomad != nil {
+		endpoint.Nomad.Snapshots = []portaineree.NomadSnapshot{*snapshot.Nomad}
+	}
+
+	return nil
 }

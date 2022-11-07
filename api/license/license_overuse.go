@@ -10,6 +10,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	nodeutil "github.com/portainer/portainer-ee/api/internal/nodes"
+	"github.com/portainer/portainer-ee/api/internal/snapshot"
 )
 
 // NotOverused should be applied to a new endpoint provisioning,
@@ -25,13 +26,21 @@ func NotOverused(licenseService portaineree.LicenseService, dataStore dataservic
 		licenseInfo := licenseService.Info()
 		// license validation is only relevant for an Essential license
 		if licenseInfo.Type == liblicense.PortainerLicenseEssentials {
-			snapshots, err := dataStore.Snapshot().Snapshots()
+			endpoints, err := dataStore.Endpoint().Endpoints()
 			if err != nil {
 				next.ServeHTTP(rw, r)
 				return
 			}
 
-			if licenseIsAtTheLimit(licenseInfo.Nodes, snapshots) {
+			for i := range endpoints {
+				err = snapshot.FillSnapshotData(dataStore, &endpoints[i])
+				if err != nil {
+					next.ServeHTTP(rw, r)
+					return
+				}
+			}
+
+			if licenseIsAtTheLimit(licenseInfo.Nodes, endpoints) {
 				httperror.WriteError(rw, http.StatusPaymentRequired, "You have exceeded the node allowance of your current license. Please contact your administrator.", nil)
 				return
 			}
@@ -76,12 +85,19 @@ func (service *Service) getLicenseOveruseTimestamp(licenseType liblicense.Portai
 		return 0, nil
 	}
 
-	snapshots, err := service.dataStore.Snapshot().Snapshots()
+	endpoints, err := service.dataStore.Endpoint().Endpoints()
 	if err != nil {
 		return 0, nil
 	}
 
-	licenseOverused := licenseIsOverused(licensedNodesCount, snapshots)
+	for i := range endpoints {
+		err = service.snapshotService.FillSnapshotData(&endpoints[i])
+		if err != nil {
+			return 0, nil
+		}
+	}
+
+	licenseOverused := licenseIsOverused(licensedNodesCount, endpoints)
 
 	if licenseOveruseStartedTimestamp == 0 && licenseOverused {
 		licenseOveruseStartedTimestamp = time.Now().Unix()
@@ -95,16 +111,11 @@ func (service *Service) getLicenseOveruseTimestamp(licenseType liblicense.Portai
 }
 
 // licenseIsOverused returns true if the license node quota is exceeded
-func licenseIsOverused(allowedNodes int, snapshots []portaineree.Snapshot) bool {
-	return nodesInUse(snapshots) > allowedNodes
+func licenseIsOverused(allowedNodes int, endpoints []portaineree.Endpoint) bool {
+	return nodeutil.NodesCount(endpoints) > allowedNodes
 }
 
 // licenseIsAtTheLimit validates that the license is not at its node limit or over it.
-func licenseIsAtTheLimit(allowedNodes int, snapshots []portaineree.Snapshot) bool {
-	return nodesInUse(snapshots) >= allowedNodes
-}
-
-// nodesInUse returns the number of nodes that are currently provisioned
-func nodesInUse(snapshots []portaineree.Snapshot) int {
-	return nodeutil.NodesCount(snapshots)
+func licenseIsAtTheLimit(allowedNodes int, endpoints []portaineree.Endpoint) bool {
+	return nodeutil.NodesCount(endpoints) >= allowedNodes
 }
