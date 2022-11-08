@@ -353,7 +353,7 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 	select {
 	case err := <-errCh:
 		if err != nil {
-			return errors.Wrap(err, "An error occured while waiting for the deployment of the stack.")
+			return errors.Wrap(err, "An error occurred while waiting for the deployment of the stack.")
 		}
 	case <-statusCh:
 	}
@@ -371,7 +371,7 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 	}
 
 	if status.State.ExitCode != 0 {
-		return fmt.Errorf("An error occured while running unpacker container with exit code %d", status.State.ExitCode)
+		return fmt.Errorf("An error occurred while running unpacker container with exit code %d", status.State.ExitCode)
 	}
 
 	return nil

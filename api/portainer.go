@@ -1959,7 +1959,7 @@ const (
 	// EndpointStatusProvisioning is used to represent an environment which is
 	// being provisioned by a cloud provider.
 	EndpointStatusProvisioning
-	// EndpointStatusError represents a fatal error has occured in the endpoint
+	// EndpointStatusError represents a fatal error has occurred in the endpoint
 	// and it cannot be recovered.
 	EndpointStatusError
 )

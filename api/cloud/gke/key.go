@@ -13,7 +13,7 @@ type Key struct {
 }
 
 // extractKey decodes a base64 encoded apiKey and returns the key itself as
-// well as an extracted projectID or an error which occured.
+// well as an extracted projectID or an error which occurred.
 func ExtractKey(apiKey string) (Key, error) {
 	var k Key
 

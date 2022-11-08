@@ -782,7 +782,7 @@ func (handler *Handler) snapshotAndPersistEndpoint(endpoint *portaineree.Endpoin
 
 	err = handler.saveEndpointAndUpdateAuthorizations(endpoint)
 	if err != nil {
-		return httperror.InternalServerError("An error occured while trying to create the environment", err)
+		return httperror.InternalServerError("An error occurred while trying to create the environment", err)
 	}
 
 	return nil
