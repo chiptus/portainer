@@ -3,14 +3,9 @@ package stacks
 import (
 	"context"
 	"fmt"
-	"github.com/portainer/portainer-ee/api/docker/client"
 	"net/http"
 	"strings"
 	"sync"
-
-	"github.com/portainer/portainer-ee/api/internal/endpointutils"
-	"github.com/portainer/portainer-ee/api/stacks/deployments"
-	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 
 	"github.com/docker/docker/api/types"
 	"github.com/gorilla/mux"
@@ -18,11 +13,15 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/docker/client"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	"github.com/portainer/portainer-ee/api/scheduler"
+	"github.com/portainer/portainer-ee/api/stacks/deployments"
+	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -132,6 +131,12 @@ func (handler *Handler) userCanCreateStack(securityContext *security.RestrictedR
 
 // if stack management is disabled for non admins and the user isn't an admin, then return false. Otherwise return true
 func (handler *Handler) userCanManageStacks(securityContext *security.RestrictedRequestContext, endpoint *portaineree.Endpoint) (bool, error) {
+	// When the endpoint is deleted, stacks that the deleted endpoint created will be tagged as an orphan stack
+	// An orphan stack can be adopted by admins
+	if endpoint == nil {
+		return true, nil
+	}
+
 	if endpointutils.IsDockerEndpoint(endpoint) && !endpoint.SecuritySettings.AllowStackManagementForRegularUsers {
 		canCreate, err := handler.userCanCreateStack(securityContext, portaineree.EndpointID(endpoint.ID))
 
