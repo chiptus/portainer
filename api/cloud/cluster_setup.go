@@ -395,14 +395,6 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				}
 			}
 
-			log.Info().Int("state", task.State).Int("retries", task.Retries).Msg("checking for old portainer namespace")
-			err = kubeClient.DeletePortainerAgent()
-			if err != nil {
-				err = checkFatal(err)
-				task.Retries++
-				break
-			}
-
 			log.Info().
 				Str("version", kubecli.DefaultAgentVersion).
 				Str("provider", task.Provider).

@@ -1685,7 +1685,6 @@ type (
 		CreateRegistrySecret(registry *Registry, namespace string) error
 		IsRegistrySecret(namespace, secretName string) (bool, error)
 		ToggleSystemState(namespace string, isSystem bool) error
-		DeletePortainerAgent() error
 		DeployPortainerAgent() error
 		GetPortainerAgentIPOrHostname() (string, error)
 	}

@@ -34,33 +34,6 @@ func (kcl *KubeClient) GetPortainerAgentIPOrHostname() (string, error) {
 	return "", nil
 }
 
-func (kcl *KubeClient) DeletePortainerAgent() error {
-	// NAMESPACE
-	namespaceName := "portainer"
-
-	list, err := kcl.cli.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		return err
-	}
-
-	var found bool
-	for _, n := range list.Items {
-		if n.Name == namespaceName {
-			log.Info().Msg("attempting to delete old portainer namespace")
-			found = true
-		}
-	}
-
-	if found {
-		return kcl.cli.CoreV1().Namespaces().Delete(
-			context.TODO(),
-			namespaceName,
-			metav1.DeleteOptions{},
-		)
-	}
-	return err
-}
-
 // DeployPortainerAgent deploys the Portainer agent in the current Kubernetes
 // environment it is effectively the equivalent of
 // https://github.com/portainer/k8s/blob/master/deploy/manifests/agent/portainer-agent-k8s-lb.yaml
@@ -89,7 +62,7 @@ func (kcl *KubeClient) DeployPortainerAgent() error {
 	serviceAccountName := "portainer-sa-clusteradmin"
 
 	err = kcl.createUserServiceAccount(namespaceName, serviceAccountName)
-	if err != nil {
+	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err
 	}
 
@@ -223,8 +196,19 @@ func (kcl *KubeClient) DeployPortainerAgent() error {
 		},
 	}
 
-	_, err = kcl.cli.AppsV1().Deployments(namespaceName).Create(context.TODO(), deployment, metav1.CreateOptions{})
-	if err != nil && !k8serrors.IsAlreadyExists(err) {
+	if _, err = kcl.cli.AppsV1().Deployments(namespaceName).Get(context.TODO(), deploymentName, metav1.GetOptions{}); err == nil {
+		log.Info().Msg("Found existing portainer-agent. Attempting to delete old portainer-agent deployment.")
+		err = kcl.cli.AppsV1().Deployments(namespaceName).Delete(context.TODO(), deploymentName, metav1.DeleteOptions{})
+		if err != nil {
+			return err
+		}
+	}
+
+	if _, err = kcl.cli.AppsV1().Deployments(namespaceName).Create(
+		context.TODO(),
+		deployment,
+		metav1.CreateOptions{},
+	); err != nil {
 		return err
 	}
 
