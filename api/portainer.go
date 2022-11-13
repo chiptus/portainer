@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/containerservice/mgmt/containerservice"
 	"github.com/portainer/liblicense"
 	"github.com/portainer/portainer-ee/api/database/models"
+	kubeModels "github.com/portainer/portainer-ee/api/http/models/kubernetes"
 	portainer "github.com/portainer/portainer/api"
 	gittypes "github.com/portainer/portainer/api/git/types"
 
@@ -1656,21 +1657,21 @@ type (
 		GetServiceAccountBearerToken(userID int) (string, error)
 		CreateUserShellPod(ctx context.Context, serviceAccountName, shellPodImage string) (*KubernetesShellPod, error)
 		StartExecProcess(token string, useAdminToken bool, namespace, podName, containerName string, command []string, stdin io.Reader, stdout io.Writer, errChan chan error)
-		CreateNamespace(info models.K8sNamespaceDetails) error
-		UpdateNamespace(info models.K8sNamespaceDetails) error
+		CreateNamespace(info kubeModels.K8sNamespaceDetails) error
+		UpdateNamespace(info kubeModels.K8sNamespaceDetails) error
 		GetNamespaces() (map[string]K8sNamespaceInfo, error)
 		GetNamespace(string) (K8sNamespaceInfo, error)
 		DeleteNamespace(namespace string) error
-		GetConfigMapsAndSecrets(namespace string) ([]models.K8sConfigMapOrSecret, error)
-		CreateIngress(namespace string, info models.K8sIngressInfo) error
-		UpdateIngress(namespace string, info models.K8sIngressInfo) error
-		GetIngresses(namespace string) ([]models.K8sIngressInfo, error)
-		DeleteIngresses(reqs models.K8sIngressDeleteRequests) error
-		GetIngressControllers() (models.K8sIngressControllers, error)
-		CreateService(namespace string, service models.K8sServiceInfo) error
-		UpdateService(namespace string, service models.K8sServiceInfo) error
-		GetServices(namespace string) ([]models.K8sServiceInfo, error)
-		DeleteServices(reqs models.K8sServiceDeleteRequests) error
+		GetConfigMapsAndSecrets(namespace string) ([]kubeModels.K8sConfigMapOrSecret, error)
+		CreateIngress(namespace string, info kubeModels.K8sIngressInfo) error
+		UpdateIngress(namespace string, info kubeModels.K8sIngressInfo) error
+		GetIngresses(namespace string) ([]kubeModels.K8sIngressInfo, error)
+		DeleteIngresses(reqs kubeModels.K8sIngressDeleteRequests) error
+		GetIngressControllers() (kubeModels.K8sIngressControllers, error)
+		CreateService(namespace string, service kubeModels.K8sServiceInfo) error
+		UpdateService(namespace string, service kubeModels.K8sServiceInfo) error
+		GetServices(namespace string) ([]kubeModels.K8sServiceInfo, error)
+		DeleteServices(reqs kubeModels.K8sServiceDeleteRequests) error
 		GetNodesLimits() (K8sNodesLimits, error)
 		RemoveUserServiceAccount(userID int) error
 		RemoveUserNamespaceBindings(
