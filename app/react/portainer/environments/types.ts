@@ -1,6 +1,6 @@
 import { TagId } from '@/portainer/tags/types';
 import { EnvironmentGroupId } from '@/react/portainer/environments/environment-groups/types';
-import { Job } from '@/nomad/types';
+import { Job } from '@/react/nomad/types';
 
 export type EnvironmentId = number;
 

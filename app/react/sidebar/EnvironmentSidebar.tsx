@@ -15,6 +15,7 @@ import {
 } from '@/react/portainer/environments/utils';
 import { useEnvironment } from '@/react/portainer/environments/queries/useEnvironment';
 import { useLocalStorage } from '@/react/hooks/useLocalStorage';
+import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { EndpointProviderInterface } from '@/portainer/services/endpointProvider';
 
 import { Icon } from '@@/Icon';
@@ -98,7 +99,9 @@ function Content({ environment, onClear, isBrowsingSnapshot }: ContentProps) {
       showTitleWhenClosed
     >
       <div className="mt-2">
-        <Sidebar environmentId={environment.Id} environment={environment} />
+        {Sidebar && (
+          <Sidebar environmentId={environment.Id} environment={environment} />
+        )}
       </div>
     </SidebarSection>
   );
@@ -108,14 +111,14 @@ function Content({ environment, onClear, isBrowsingSnapshot }: ContentProps) {
       [key in PlatformType]: React.ComponentType<{
         environmentId: EnvironmentId;
         environment: Environment;
-      }>;
+      }> | null;
     } = {
       [PlatformType.Azure]: AzureSidebar,
       [PlatformType.Docker]: isBrowsingSnapshot
         ? EdgeDeviceAsyncSidebar
         : DockerSidebar,
       [PlatformType.Kubernetes]: KubernetesSidebar,
-      [PlatformType.Nomad]: NomadSidebar,
+      [PlatformType.Nomad]: isBE ? NomadSidebar : null,
     };
 
     return sidebar[platform];

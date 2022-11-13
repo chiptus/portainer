@@ -22,6 +22,7 @@ import { useTags } from '@/portainer/tags/queries';
 import { useAgentVersionsList } from '@/react/portainer/environments/queries/useAgentVersionsList';
 import { EnvironmentsQueryParams } from '@/react/portainer/environments/environment.service';
 import { useUser } from '@/react/hooks/useUser';
+import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 
 import { TableFooter } from '@@/datatables/TableFooter';
 import { TableActions, TableContainer, TableTitle } from '@@/datatables';
@@ -502,8 +503,14 @@ function getPlatformTypeOptions(connectionTypes: Filter<ConnectionType>[]) {
     { value: PlatformType.Docker, label: 'Docker' },
     { value: PlatformType.Azure, label: 'Azure' },
     { value: PlatformType.Kubernetes, label: 'Kubernetes' },
-    { value: PlatformType.Nomad, label: 'Nomad' },
   ];
+
+  if (isBE) {
+    platformDefaultOptions.push({
+      value: PlatformType.Nomad,
+      label: 'Nomad',
+    });
+  }
 
   if (connectionTypes.length === 0) {
     return platformDefaultOptions;
