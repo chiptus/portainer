@@ -3,7 +3,7 @@ import { useRowSelectColumn } from '@lineup-lite/hooks';
 import _ from 'lodash';
 
 import { Environment } from '@/react/portainer/environments/types';
-import { EnvironmentGroup } from '@/portainer/environment-groups/types';
+import { EnvironmentGroup } from '@/react/portainer/environments/environment-groups/types';
 
 import { PaginationControls } from '@@/PaginationControls';
 import {

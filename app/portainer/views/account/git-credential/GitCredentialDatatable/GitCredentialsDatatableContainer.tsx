@@ -1,4 +1,4 @@
-import { useUser } from '@/portainer/hooks/useUser';
+import { useUser } from '@/react/hooks/useUser';
 
 import { TableSettingsProvider } from '@@/datatables/useTableSettings';
 

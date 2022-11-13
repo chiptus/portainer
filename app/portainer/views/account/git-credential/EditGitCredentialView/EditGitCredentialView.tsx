@@ -1,6 +1,6 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
-import { useUser } from '@/portainer/hooks/useUser';
+import { useUser } from '@/react/hooks/useUser';
 
 import { FormSectionTitle } from '@@/form-components/FormSectionTitle';
 import { PageHeader } from '@@/PageHeader';

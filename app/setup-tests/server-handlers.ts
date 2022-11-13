@@ -5,7 +5,7 @@ import {
   LicenseInfo,
   LicenseType,
 } from '@/portainer/license-management/types';
-import { EnvironmentGroup } from '@/portainer/environment-groups/types';
+import { EnvironmentGroup } from '@/react/portainer/environments/environment-groups/types';
 import { Tag } from '@/portainer/tags/types';
 import { PublicSettingsResponse } from '@/react/portainer/settings/types';
 import { StatusResponse } from '@/portainer/services/api/status.service';

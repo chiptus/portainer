@@ -9,7 +9,7 @@ import {
 import { Box } from 'react-feather';
 
 import { NomadEvent } from '@/nomad/types';
-import { useDebounce } from '@/portainer/hooks/useDebounce';
+import { useDebounce } from '@/react/hooks/useDebounce';
 
 import { PaginationControls } from '@@/PaginationControls';
 import {

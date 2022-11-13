@@ -8,7 +8,7 @@ import {
   usePagination,
 } from 'react-table';
 
-import { useDebounce } from '@/portainer/hooks/useDebounce';
+import { useDebounce } from '@/react/hooks/useDebounce';
 
 import {
   TableActions,

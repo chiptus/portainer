@@ -1,7 +1,7 @@
 import { useField } from 'formik';
 import { PropsWithChildren } from 'react';
 
-import { useUser } from '@/portainer/hooks/useUser';
+import { useUser } from '@/react/hooks/useUser';
 
 import { TagSelector } from '@@/TagSelector';
 import { FormSection } from '@@/form-components/FormSection';

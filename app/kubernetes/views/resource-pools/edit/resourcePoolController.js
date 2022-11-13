@@ -13,7 +13,7 @@ import KubernetesResourceQuotaConverter from 'Kubernetes/converters/resourceQuot
 import KubernetesStorageClassConverter from 'Kubernetes/converters/storageClass';
 import KubernetesResourceQuotaHelper from 'Kubernetes/helpers/resourceQuotaHelper';
 import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
-import { FeatureId } from '@/portainer/feature-flags/enums';
+import { FeatureId } from '@/react/portainer/feature-flags/enums';
 import { updateIngressControllerClassMap, getIngressControllerClassMap } from '@/react/kubernetes/cluster/ingressClass/utils';
 
 class KubernetesResourcePoolController {

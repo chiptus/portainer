@@ -1,6 +1,6 @@
 import { useMutation } from 'react-query';
 
-import { useEnvironmentId } from '@/portainer/hooks/useEnvironmentId';
+import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { Job } from '@/nomad/types';
 import { confirmDeletionAsync } from '@/portainer/services/modal.service/confirm';
 

@@ -1,7 +1,7 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
 import { react2angular } from '@/react-tools/react2angular';
-import { useEnvironmentId } from '@/portainer/hooks/useEnvironmentId';
+import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useEvents } from '@/nomad/hooks/useEvents';
 import { EventsDatatable } from '@/nomad/Events/datatable/EventsDatatable';
 import { NomadEventsList } from '@/nomad/types';

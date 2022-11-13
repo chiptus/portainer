@@ -1,4 +1,4 @@
-import { Stat } from '@/portainer/home/EnvironmentList/EnvironmentItem/EnvironmentStatsItem';
+import { EnvironmentStatsItem } from '@@/EnvironmentStatsItem';
 
 interface Props {
   running: number;
@@ -9,7 +9,7 @@ export function RunningStatus({ running, stopped }: Props) {
   return (
     <div>
       <div>
-        <Stat
+        <EnvironmentStatsItem
           value={`${running || '-'} running`}
           icon="power"
           featherIcon
@@ -17,7 +17,7 @@ export function RunningStatus({ running, stopped }: Props) {
         />
       </div>
       <div>
-        <Stat
+        <EnvironmentStatsItem
           value={`${stopped || '-'} stopped`}
           icon="power"
           featherIcon

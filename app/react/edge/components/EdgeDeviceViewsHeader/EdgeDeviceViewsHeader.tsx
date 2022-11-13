@@ -6,9 +6,9 @@ import { get } from 'lodash';
 
 import { Environment } from '@/react/portainer/environments/types';
 import { DockerSnapshot } from '@/react/docker/snapshots/types';
-import { EnvironmentStatusBadge } from '@/portainer/home/EnvironmentList/EnvironmentItem/EnvironmentStatusBadge';
 import { useSettings } from '@/react/portainer/settings/queries';
 
+import { EnvironmentStatusBadge } from '@@/EnvironmentStatusBadge';
 import { PageHeaderProps, PageHeader } from '@@/PageHeader';
 import { DetailsTable } from '@@/DetailsTable';
 import { Icon } from '@@/Icon';

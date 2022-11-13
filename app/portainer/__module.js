@@ -1,13 +1,14 @@
 import _ from 'lodash-es';
 
+import featureFlagModule from '@/react/portainer/feature-flags';
+import { getEnvironments } from '@/react/portainer/environments/environment.service';
+
 import './rbac';
 import './registry-management';
-import { getEnvironments } from '@/react/portainer/environments/environment.service';
 import licenseManagementModule from './license-management';
 import settingsModule from './settings';
 import userActivityModule from './user-activity';
 import componentsModule from './components';
-import featureFlagModule from './feature-flags';
 import servicesModule from './services';
 import { reactModule } from './react';
 import { sidebarModule } from './react/views/sidebar';

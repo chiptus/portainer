@@ -1,6 +1,6 @@
 import { baseHref } from '@/portainer/helpers/pathHelper';
-import { FeatureId } from '@/portainer/feature-flags/enums';
-import { isLimitedToBE } from '@/portainer/feature-flags/feature-flags.service';
+import { FeatureId } from '@/react/portainer/feature-flags/enums';
+import { isLimitedToBE } from '@/react/portainer/feature-flags/feature-flags.service';
 
 import providers, { getProviderByUrl } from './providers';
 

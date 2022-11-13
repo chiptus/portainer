@@ -9,7 +9,7 @@ import '@reach/combobox/styles.css';
 import { ChangeEvent, useState } from 'react';
 import clsx from 'clsx';
 
-import { useDebounce } from '@/portainer/hooks/useDebounce';
+import { useDebounce } from '@/react/hooks/useDebounce';
 import { useSearch } from '@/react/portainer/gitops/queries/useSearch';
 
 import { FormControl } from '@@/form-components/FormControl';

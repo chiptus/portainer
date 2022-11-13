@@ -11,7 +11,7 @@ import { useRowSelectColumn } from '@lineup-lite/hooks';
 import { Box } from 'react-feather';
 
 import { Job } from '@/nomad/types';
-import { useDebounce } from '@/portainer/hooks/useDebounce';
+import { useDebounce } from '@/react/hooks/useDebounce';
 
 import { PaginationControls } from '@@/PaginationControls';
 import {

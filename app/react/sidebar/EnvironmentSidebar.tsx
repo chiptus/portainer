@@ -14,7 +14,7 @@ import {
   isEdgeDeviceAsync,
 } from '@/react/portainer/environments/utils';
 import { useEnvironment } from '@/react/portainer/environments/queries/useEnvironment';
-import { useLocalStorage } from '@/portainer/hooks/useLocalStorage';
+import { useLocalStorage } from '@/react/hooks/useLocalStorage';
 import { EndpointProviderInterface } from '@/portainer/services/endpointProvider';
 
 import { Icon } from '@@/Icon';
