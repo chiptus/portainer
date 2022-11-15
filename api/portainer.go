@@ -676,6 +676,7 @@ type (
 		IngressClasses                  []KubernetesIngressClassConfig `json:"IngressClasses"`
 		RestrictDefaultNamespace        bool                           `json:"RestrictDefaultNamespace"`
 		IngressAvailabilityPerNamespace bool                           `json:"IngressAvailabilityPerNamespace"`
+		RestrictStandardUserIngressW    bool                           `json:"RestrictStandardUserIngressW"`
 		AllowNoneIngressClass           bool                           `json:"AllowNoneIngressClass"`
 	}
 
@@ -1652,6 +1653,7 @@ type (
 			endpointRoleID RoleID,
 			namespaces map[string]K8sNamespaceInfo,
 			namespaceRoles map[string]Role,
+			clusterConfig KubernetesConfiguration,
 		) error
 		GetServiceAccount(tokendata *TokenData) (*v1.ServiceAccount, error)
 		GetServiceAccountBearerToken(userID int) (string, error)
@@ -1688,6 +1690,7 @@ type (
 		ToggleSystemState(namespace string, isSystem bool) error
 		DeployPortainerAgent() error
 		GetPortainerAgentIPOrHostname() (string, error)
+		UpsertPortainerK8sClusterRoles(clusterConfig KubernetesConfiguration) error
 	}
 
 	// NomadClient represents a service used to query a Nomad environment(endpoint)

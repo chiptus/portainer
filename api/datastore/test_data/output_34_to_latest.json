@@ -70,6 +70,7 @@
           "IngressClasses": [],
           "ResourceOverCommitPercentage": 0,
           "RestrictDefaultNamespace": false,
+          "RestrictStandardUserIngressW": false,
           "StorageClasses": [],
           "UseLoadBalancer": false,
           "UseServerMetrics": false

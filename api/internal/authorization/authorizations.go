@@ -573,6 +573,12 @@ func populateVolumeBrowsingAuthorizations(rolePointer *portaineree.Role) portain
 	return role
 }
 
+func populateDeployIngressAuthorizations(restricted bool, role portaineree.Role) *portaineree.Role {
+	role.Authorizations[portaineree.OperationK8sIngressesW] = !restricted
+
+	return &role
+}
+
 // RemoveTeamAccessPolicies will remove all existing access policies associated to the specified team
 func (service *Service) RemoveTeamAccessPolicies(teamID portaineree.TeamID) error {
 	endpoints, err := service.dataStore.Endpoint().Endpoints()
@@ -746,7 +752,6 @@ func (service *Service) updateUserAuthorizations(userID portaineree.UserID) erro
 	if err != nil {
 		return err
 	}
-
 	user.EndpointAuthorizations = endpointAuthorizations
 
 	return service.dataStore.User().UpdateUser(userID, user)
@@ -1294,6 +1299,10 @@ func getUserEndpointRole(user *portaineree.User, endpoint portaineree.Endpoint,
 		role = &newRole
 	}
 
+	if role != nil && role.ID == portaineree.RoleIDStandardUser {
+		role = populateDeployIngressAuthorizations(endpoint.Kubernetes.Configuration.RestrictStandardUserIngressW, *role)
+	}
+
 	return role
 }
 
@@ -1308,8 +1317,18 @@ func getUserEndpointRoles(user *portaineree.User, endpoints []portaineree.Endpoi
 		role := getUserEndpointRole(user, endpoint, groupUserAccessPolicies,
 			groupTeamAccessPolicies, roles, userMemberships)
 		if role != nil {
-			results[endpoint.ID] = *role
-			continue
+			var authorizations = make(map[portaineree.Authorization]bool, len(role.Authorizations))
+			for k, v := range role.Authorizations {
+				authorizations[k] = v
+			}
+			var newRole = portaineree.Role{
+				ID:             role.ID,
+				Name:           role.Name,
+				Authorizations: authorizations,
+				Description:    role.Description,
+				Priority:       role.Priority,
+			}
+			results[endpoint.ID] = newRole
 		}
 	}
 

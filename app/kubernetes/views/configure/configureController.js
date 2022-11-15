@@ -54,6 +54,7 @@ class KubernetesConfigureController {
     this.onToggleIngressAvailabilityPerNamespace = this.onToggleIngressAvailabilityPerNamespace.bind(this);
     this.onToggleAllowNoneIngressClass = this.onToggleAllowNoneIngressClass.bind(this);
     this.onChangeStorageClassAccessMode = this.onChangeStorageClassAccessMode.bind(this);
+    this.onToggleRestrictStandardUserIngressW = this.onToggleRestrictStandardUserIngressW.bind(this);
   }
   /* #endregion */
 
@@ -123,6 +124,7 @@ class KubernetesConfigureController {
     endpoint.Kubernetes.Configuration.ResourceOverCommitPercentage = this.formValues.ResourceOverCommitPercentage;
     endpoint.Kubernetes.Configuration.IngressClasses = ingressClasses;
     endpoint.Kubernetes.Configuration.RestrictDefaultNamespace = this.formValues.RestrictDefaultNamespace;
+    endpoint.Kubernetes.Configuration.RestrictStandardUserIngressW = this.formValues.RestrictStandardUserIngressW;
     endpoint.Kubernetes.Configuration.IngressAvailabilityPerNamespace = this.formValues.IngressAvailabilityPerNamespace;
     endpoint.Kubernetes.Configuration.AllowNoneIngressClass = this.formValues.AllowNoneIngressClass;
     endpoint.ChangeWindow = this.state.autoUpdateSettings;
@@ -272,6 +274,12 @@ class KubernetesConfigureController {
     });
   }
 
+  onToggleRestrictStandardUserIngressW() {
+    this.$scope.$evalAsync(() => {
+      this.formValues.RestrictStandardUserIngressW = !this.formValues.RestrictStandardUserIngressW;
+    });
+  }
+
   /* #region  ON INIT */
   async onInit() {
     this.state = {
@@ -301,6 +309,7 @@ class KubernetesConfigureController {
       RestrictDefaultNamespace: false,
       enableAutoUpdateTimeWindow: false,
       IngressAvailabilityPerNamespace: false,
+      RestrictStandardUserIngressW: false,
     };
 
     this.isIngressControllersLoading = true;
@@ -337,6 +346,7 @@ class KubernetesConfigureController {
         return ic;
       });
       this.formValues.IngressAvailabilityPerNamespace = this.endpoint.Kubernetes.Configuration.IngressAvailabilityPerNamespace;
+      this.formValues.RestrictStandardUserIngressW = this.endpoint.Kubernetes.Configuration.RestrictStandardUserIngressW;
       this.formValues.AllowNoneIngressClass = this.endpoint.Kubernetes.Configuration.AllowNoneIngressClass;
 
       this.oldFormValues = Object.assign({}, this.formValues);

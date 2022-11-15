@@ -1,9 +1,10 @@
 package endpoints
 
 import (
-	"github.com/portainer/portainer-ee/api/docker/client"
 	"net/http"
 	"time"
+
+	"github.com/portainer/portainer-ee/api/docker/client"
 
 	"github.com/gorilla/mux"
 	werrors "github.com/pkg/errors"
@@ -14,6 +15,7 @@ import (
 	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/proxy"
+	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/edge"
@@ -43,22 +45,23 @@ type requestBouncer interface {
 // Handler is the HTTP handler used to handle environment(endpoint) operations.
 type Handler struct {
 	*mux.Router
-	requestBouncer           requestBouncer
-	AuthorizationService     *authorization.Service
-	DataStore                dataservices.DataStore
-	demoService              *demo.Service
-	FileService              portainer.FileService
-	ProxyManager             *proxy.Manager
-	ReverseTunnelService     portaineree.ReverseTunnelService
-	SnapshotService          portaineree.SnapshotService
-	K8sClientFactory         *cli.ClientFactory
-	ComposeStackManager      portaineree.ComposeStackManager
-	DockerClientFactory      *client.ClientFactory
-	BindAddress              string
-	BindAddressHTTPS         string
-	userActivityService      portaineree.UserActivityService
-	edgeService              *edge.Service
-	cloudClusterSetupService *cloud.CloudClusterSetupService
+	requestBouncer              requestBouncer
+	AuthorizationService        *authorization.Service
+	DataStore                   dataservices.DataStore
+	demoService                 *demo.Service
+	FileService                 portainer.FileService
+	ProxyManager                *proxy.Manager
+	ReverseTunnelService        portaineree.ReverseTunnelService
+	SnapshotService             portaineree.SnapshotService
+	K8sClientFactory            *cli.ClientFactory
+	ComposeStackManager         portaineree.ComposeStackManager
+	DockerClientFactory         *client.ClientFactory
+	BindAddress                 string
+	BindAddressHTTPS            string
+	userActivityService         portaineree.UserActivityService
+	edgeService                 *edge.Service
+	cloudClusterSetupService    *cloud.CloudClusterSetupService
+	KubernetesTokenCacheManager *kubernetes.TokenCacheManager
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.

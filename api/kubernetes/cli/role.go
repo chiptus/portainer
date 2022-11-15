@@ -181,12 +181,12 @@ func getPortainerDefaultK8sRoles() map[portaineree.K8sRole]k8sRoleConfig {
 				},
 				{
 					Verbs:     []string{"create", "delete", "deletecollection", "patch", "update"},
-					Resources: []string{"daemonsets", "deployments", "deployments/rollback", "deployments/scale", "ingresses", "networkpolicies", "replicasets", "replicasets/scale", "replicationcontrollers/scale"},
+					Resources: []string{"daemonsets", "deployments", "deployments/rollback", "deployments/scale", "networkpolicies", "replicasets", "replicasets/scale", "replicationcontrollers/scale"},
 					APIGroups: []string{"extensions"},
 				},
 				{
 					Verbs:     []string{"create", "delete", "deletecollection", "patch", "update"},
-					Resources: []string{"ingresses", "networkpolicies"},
+					Resources: []string{"networkpolicies"},
 					APIGroups: []string{"networking.k8s.io"},
 				},
 				{
@@ -239,14 +239,38 @@ func getPortainerDefaultK8sRoles() map[portaineree.K8sRole]k8sRoleConfig {
 	}
 }
 
+func (kcl *KubeClient) UpsertPortainerK8sClusterRoles(clusterConfig portaineree.KubernetesConfiguration) error {
+	return kcl.upsertPortainerK8sClusterRoles(clusterConfig)
+}
+
 // create all portainer k8s roles (cluster and non-cluster)
 // update them if they already exist
-func (kcl *KubeClient) upsertPortainerK8sClusterRoles() error {
+func (kcl *KubeClient) upsertPortainerK8sClusterRoles(clusterConfig portaineree.KubernetesConfiguration) error {
+
 	for roleName, roleConfig := range getPortainerDefaultK8sRoles() {
 		// skip the system roles
 		if roleConfig.isSystem {
 			continue
 		}
+
+		if roleName == portaineree.K8sRolePortainerEdit {
+			if !clusterConfig.RestrictStandardUserIngressW {
+				rules := []rbacv1.PolicyRule{}
+				for _, rule := range roleConfig.rules {
+					for _, a := range rule.APIGroups {
+						if a == "extensions" {
+							rule.Resources = append(rule.Resources, "ingresses")
+						}
+						if a == "networking.k8s.io" {
+							rule.Resources = append(rule.Resources, "ingresses")
+						}
+					}
+					rules = append(rules, rule)
+				}
+				roleConfig.rules = rules
+			}
+		}
+
 		// creates roles as available across cluster.
 		// NOTE: the roles API are namespaced, thus use the clusterRoles instead.
 		clusterRole := &rbacv1.ClusterRole{

@@ -127,6 +127,9 @@ func (m *Migrator) MigrateCE() error {
 
 		// Portainer 2.16.1
 		newMigration(71, m.migrateDBVersionToDB71),
+
+		// Portainer 2.17
+		newMigration(80, m.refreshRBACRoles),
 	}
 
 	var lastDbVersion int

@@ -43,10 +43,11 @@ func (kcl *KubeClient) SetupUserServiceAccount(
 	endpointRoleID portaineree.RoleID,
 	namespaces map[string]portaineree.K8sNamespaceInfo,
 	namespaceRoles map[string]portaineree.Role,
+	clusterConfig portaineree.KubernetesConfiguration,
 ) error {
 	serviceAccountName := UserServiceAccountName(int(user.ID), kcl.instanceID)
 
-	err := kcl.upsertPortainerK8sClusterRoles()
+	err := kcl.upsertPortainerK8sClusterRoles(clusterConfig)
 	if err != nil {
 		return err
 	}

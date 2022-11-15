@@ -141,12 +141,12 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 	updateAuthorizations := false
 	if canK8sClusterSetup && payload.Kubernetes != nil {
-		endpoint.Kubernetes = *payload.Kubernetes
-
-		if payload.Kubernetes.Configuration.RestrictDefaultNamespace !=
-			endpoint.Kubernetes.Configuration.RestrictDefaultNamespace {
+		if payload.Kubernetes.Configuration.RestrictDefaultNamespace != endpoint.Kubernetes.Configuration.RestrictDefaultNamespace ||
+			payload.Kubernetes.Configuration.RestrictStandardUserIngressW != endpoint.Kubernetes.Configuration.RestrictStandardUserIngressW {
 			updateAuthorizations = true
 		}
+
+		endpoint.Kubernetes = *payload.Kubernetes
 	}
 
 	groupIDChanged := false
@@ -357,6 +357,20 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		if err != nil {
 			return httperror.InternalServerError("Unable to update user authorizations", err)
 		}
+
+		// Refresh token manager cache
+		kubeClient, err := handler.K8sClientFactory.GetKubeClient(endpoint)
+		if err != nil {
+			return httperror.InternalServerError("Unable to retrieve Kubernetes client", err)
+		}
+
+		err = kubeClient.UpsertPortainerK8sClusterRoles(endpoint.Kubernetes.Configuration)
+		if err != nil {
+			return httperror.InternalServerError("Unable to update Kubernetes cluster roles", err)
+		}
+
+		// Refresh token manager cache
+		handler.KubernetesTokenCacheManager.HandleUsersAuthUpdate()
 	}
 
 	if (endpointutils.IsEdgeEndpoint(endpoint)) && (groupIDChanged || tagsChanged) {

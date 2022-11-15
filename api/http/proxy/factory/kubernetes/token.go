@@ -105,7 +105,7 @@ func (manager *tokenManager) GetUserServiceAccountToken(
 		}
 
 		err = manager.kubecli.SetupUserServiceAccount(
-			*user, endpointRole.ID, namespaces, namespaceRoles,
+			*user, endpointRole.ID, namespaces, namespaceRoles, endpoint.Kubernetes.Configuration,
 		)
 		if err != nil {
 			return "", err

@@ -205,6 +205,7 @@ func (server *Server) Start() error {
 	endpointHandler.DockerClientFactory = server.DockerClientFactory
 	endpointHandler.BindAddress = server.BindAddress
 	endpointHandler.BindAddressHTTPS = server.BindAddressHTTPS
+	endpointHandler.KubernetesTokenCacheManager = server.KubernetesTokenCacheManager
 
 	var endpointEdgeHandler = endpointedge.NewHandler(requestBouncer, server.DataStore, server.FileService, server.ReverseTunnelService, server.EdgeService, server.LicenseService)
 

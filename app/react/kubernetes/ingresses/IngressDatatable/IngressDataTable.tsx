@@ -62,7 +62,7 @@ export function IngressDataTable() {
   function tableActions(selectedFlatRows: Ingress[]) {
     return (
       <div className="ingressDatatable-actions">
-        <Authorized authorizations="AzureContainerGroupDelete">
+        <Authorized authorizations="K8sIngressesW">
           <Button
             className="btn-wrapper"
             color="dangerlight"
