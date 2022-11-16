@@ -41,7 +41,7 @@ func (payload *attachPayload) Validate(r *http.Request) error {
 // @produce json
 // @param body body attachPayload true "list of licenses keys to attach"
 // @success 200 {object} attachResponse "Success license data will be in `body.Licenses`, Failures will be in `body.FailedKeys[key] = error`"
-// @router /licenses/attach [post]
+// @router /licenses [post]
 func (handler *Handler) licensesAttach(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	var payload attachPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
