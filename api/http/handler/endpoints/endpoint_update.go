@@ -52,6 +52,8 @@ type endpointUpdatePayload struct {
 	Kubernetes *portaineree.KubernetesData
 	// Whether automatic update time restrictions are enabled
 	ChangeWindow *portaineree.EndpointChangeWindow
+	// Hide manual deployment forms for an environment
+	DeploymentOptions *portaineree.DeploymentOptions `json:"DeploymentOptions"`
 	// The check in interval for edge agent (in seconds)
 	EdgeCheckinInterval *int `example:"5"`
 
@@ -345,6 +347,10 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 	if payload.ChangeWindow != nil {
 		endpoint.ChangeWindow = *payload.ChangeWindow
+	}
+
+	if endpoint.Type != portaineree.EdgeAgentOnNomadEnvironment && endpoint.Type != portaineree.AzureEnvironment {
+		endpoint.DeploymentOptions = payload.DeploymentOptions
 	}
 
 	err = handler.DataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)

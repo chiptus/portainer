@@ -88,6 +88,7 @@
 
               <!-- #region web editor -->
               <web-editor-form
+                read-only="ctrl.deploymentOptions.hideWebEditor"
                 ng-if="ctrl.state.appType === ctrl.KubernetesDeploymentTypes.CONTENT"
                 value="ctrl.stackFileContent"
                 yml="true"

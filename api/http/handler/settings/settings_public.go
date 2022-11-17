@@ -18,6 +18,8 @@ type publicSettingsResponse struct {
 	AuthenticationMethod portaineree.AuthenticationMethod `json:"AuthenticationMethod" example:"1"`
 	// The minimum required length for a password of any user when using internal auth mode
 	RequiredPasswordLength int `json:"RequiredPasswordLength" example:"1"`
+	// Deployment options for encouraging deployment as code
+	GlobalDeploymentOptions portaineree.GlobalDeploymentOptions `json:"GlobalDeploymentOptions"`
 	// Whether edge compute features are enabled
 	EnableEdgeComputeFeatures bool `json:"EnableEdgeComputeFeatures" example:"true"`
 	// Supported feature flags
@@ -79,6 +81,7 @@ func generatePublicSettings(appSettings *portaineree.Settings) *publicSettingsRe
 		AuthenticationMethod:      appSettings.AuthenticationMethod,
 		RequiredPasswordLength:    appSettings.InternalAuthSettings.RequiredPasswordLength,
 		EnableEdgeComputeFeatures: appSettings.EnableEdgeComputeFeatures,
+		GlobalDeploymentOptions:   appSettings.GlobalDeploymentOptions,
 		EnableTelemetry:           appSettings.EnableTelemetry,
 		KubeconfigExpiry:          appSettings.KubeconfigExpiry,
 		Features:                  appSettings.FeatureFlagSettings,

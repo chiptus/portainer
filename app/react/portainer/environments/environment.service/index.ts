@@ -3,6 +3,10 @@ import { type EnvironmentGroupId } from '@/react/portainer/environments/environm
 import { type TagId } from '@/portainer/tags/types';
 import { UserId } from '@/portainer/users/types';
 import { TeamId } from '@/react/portainer/users/teams/types';
+import {
+  getPublicSettings,
+  GlobalDeploymentOptions,
+} from '@/react/portainer/settings/settings.service';
 
 import type {
   Environment,
@@ -100,6 +104,19 @@ export async function snapshotEndpoints() {
   } catch (e) {
     throw parseAxiosError(e as Error);
   }
+}
+
+export async function getDeploymentOptions(environmentId: EnvironmentId) {
+  const publicSettings = await getPublicSettings();
+  const endpoint = await getEndpoint(environmentId);
+
+  if (
+    publicSettings.GlobalDeploymentOptions.perEnvOverride &&
+    endpoint.DeploymentOptions?.overrideGlobalOptions
+  ) {
+    return endpoint.DeploymentOptions;
+  }
+  return publicSettings.GlobalDeploymentOptions as GlobalDeploymentOptions;
 }
 
 export async function snapshotEndpoint(id: EnvironmentId) {

@@ -3,7 +3,9 @@
     <rd-widget-body classes="no-padding">
       <div class="toolBar vertical-center !gap-x-5 !gap-y-1 flex-wrap">
         <div class="toolBarTitle vertical-center">
-          <pr-icon icon="$ctrl.titleIcon" feather="true" class-name="'icon-nested-blue'" mode="'primary'"></pr-icon>
+          <div class="widget-icon space-right">
+            <pr-icon icon="$ctrl.titleIcon" feather="true"></pr-icon>
+          </div>
           Custom Templates
         </div>
         <div class="searchBar vertical-center !mr-0">
@@ -18,7 +20,7 @@
             ng-model-options="{ debounce: 300 }"
           />
         </div>
-        <div class="actionBar">
+        <div class="actionBar" ng-if="$ctrl.hideDeploymentOption === false">
           <button type="button" class="btn btn-sm btn-primary" ui-state="$ctrl.createPath">
             <pr-icon icon="'plus'" feather="true"></pr-icon>
             Add Custom Template
@@ -26,12 +28,13 @@
         </div>
       </div>
 
-      <div class="blocklist !px-[20px] gap-y-2 !pb-[20px]">
+      <div class="blocklist cursor-default !px-[20px] gap-y-2 !pb-[20px]">
         <template-item
           ng-repeat="template in $ctrl.templates | filter:$ctrl.state.textFilter"
           model="template"
           type-label="{{ $ctrl.typeLabel(template.Type) }}"
           on-select="($ctrl.onSelectClick)"
+          ng-class="$ctrl.hideDeploymentOption && '[&>.blocklist-item]:!cursor-default'"
         >
           <template-item-actions>
             <div ng-if="$ctrl.isEditAllowed(template)" class="vertical-center">

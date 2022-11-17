@@ -8,6 +8,8 @@ import KubernetesConfigurationConverter from 'Kubernetes/converters/configuratio
 import KubernetesEventHelper from 'Kubernetes/helpers/eventHelper';
 import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
 
+import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
+
 import { isConfigurationFormValid } from '../validation';
 
 class KubernetesConfigurationController {
@@ -17,6 +19,7 @@ class KubernetesConfigurationController {
     $state,
     $window,
     clipboard,
+    EndpointProvider,
     Notifications,
     LocalStorage,
     Authentication,
@@ -32,6 +35,7 @@ class KubernetesConfigurationController {
     this.$state = $state;
     this.$window = $window;
     this.clipboard = clipboard;
+    this.EndpointProvider = EndpointProvider;
     this.Notifications = Notifications;
     this.LocalStorage = LocalStorage;
     this.ModalService = ModalService;
@@ -266,6 +270,9 @@ class KubernetesConfigurationController {
         isDockerConfig: false,
         secretWarningMessage: '',
       };
+
+      const environmentId = this.EndpointProvider.endpointID();
+      this.deploymentOptions = await getDeploymentOptions(environmentId);
 
       this.state.activeTab = this.LocalStorage.getActiveTab('configuration');
 

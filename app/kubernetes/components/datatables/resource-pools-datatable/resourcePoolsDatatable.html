@@ -33,7 +33,14 @@
             >
               <pr-icon icon="'trash-2'" feather="true"></pr-icon>Remove
             </button>
-            <button type="button" class="btn btn-sm btn-secondary !ml-0" ui-sref="kubernetes.resourcePools.new" data-cy="k8sNamespace-addNamespaceWithFormButton">
+            <button
+              authorization="K8sResourcePoolDetailsW"
+              hide-deployment-option="form"
+              type="button"
+              class="btn btn-sm btn-secondary !ml-0"
+              ui-sref="kubernetes.resourcePools.new"
+              data-cy="k8sNamespace-addNamespaceWithFormButton"
+            >
               <pr-icon icon="'plus'" feather="true" class-name="'!h-3'"></pr-icon>Add with form
             </button>
             <button type="button" class="btn btn-sm btn-primary !ml-0" ui-sref="kubernetes.deploy" data-cy="k8sNamespace-deployFromManifestButton">

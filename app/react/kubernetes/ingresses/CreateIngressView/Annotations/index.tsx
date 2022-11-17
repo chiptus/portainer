@@ -15,6 +15,7 @@ interface Props {
   removeAnnotation: (index: number) => void;
   errors: Record<string, ReactNode>;
   placeholder: string[];
+  disabled?: boolean;
 }
 
 export function Annotations({
@@ -23,6 +24,7 @@ export function Annotations({
   removeAnnotation,
   errors,
   placeholder,
+  disabled,
 }: Props) {
   return (
     <>
@@ -40,6 +42,7 @@ export function Annotations({
                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   handleAnnotationChange(i, 'Key', e.target.value)
                 }
+                disabled={disabled}
               />
             </div>
             {errors[`annotations.key[${i}]`] && (
@@ -60,6 +63,7 @@ export function Annotations({
                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   handleAnnotationChange(i, 'Value', e.target.value)
                 }
+                disabled={disabled}
               />
             </div>
             {errors[`annotations.value[${i}]`] && (
@@ -68,15 +72,17 @@ export function Annotations({
               </FormError>
             )}
           </div>
-          <div className="col-sm-3 !pl-0 !m-0">
-            <button
-              className="btn btn-sm btn-dangerlight btn-only-icon !ml-0"
-              type="button"
-              onClick={() => removeAnnotation(i)}
-            >
-              <Icon icon="trash-2" size="md" feather />
-            </button>
-          </div>
+          {!disabled && (
+            <div className="col-sm-3 !pl-0 !m-0">
+              <button
+                className="btn btn-sm btn-dangerlight btn-only-icon !ml-0"
+                type="button"
+                onClick={() => removeAnnotation(i)}
+              >
+                <Icon icon="trash-2" size="md" feather />
+              </button>
+            </div>
+          )}
         </div>
       ))}
     </>

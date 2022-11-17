@@ -14,6 +14,7 @@ import { KubernetesServiceTypes } from 'Kubernetes/models/service/models';
 import { KubernetesPodNodeAffinityNodeSelectorRequirementOperators } from 'Kubernetes/pod/models';
 import { KubernetesPodContainerTypes } from 'Kubernetes/pod/models/index';
 import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
+import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 
 function computeTolerations(nodes, application) {
   const pod = application.Pods[0];
@@ -388,6 +389,11 @@ class KubernetesApplicationController {
     this.allNamespaces = resourcePools.map(({ Namespace }) => Namespace.Name);
 
     await this.getApplication();
+
+    this.deploymentOptions = await getDeploymentOptions(this.endpoint.Id);
+    if (this.application.ApplicationKind !== this.KubernetesDeploymentTypes.GIT && this.deploymentOptions.hideWebEditor) {
+      this.hideEditButton = true;
+    }
     await this.getEvents();
     this.updateApplicationKindText();
     this.state.viewReady = true;

@@ -217,7 +217,7 @@
           <div ng-if="!ctrl.isSystemNamespace()" style="margin-bottom: 15px">
             <button
               authorization="K8sApplicationDetailsW"
-              ng-if="!ctrl.isExternalApplication()"
+              ng-if="!ctrl.isExternalApplication() && !ctrl.hideEditButton"
               type="button"
               class="btn btn-sm btn-light vertical-center"
               ui-sref="kubernetes.applications.application.edit"
@@ -229,6 +229,7 @@
             <button
               authorization="K8sApplicationDetailsW"
               ng-if="ctrl.isExternalApplication()"
+              hide-deployment-option="form"
               type="button"
               class="btn btn-sm btn-light"
               ui-sref="kubernetes.applications.application.edit"
@@ -262,6 +263,7 @@
             </button>
             <a
               ng-if="ctrl.isStack() && ctrl.stackFileContent"
+              hide-deployment-option="webEditor"
               class="btn btn-sm btn-primary space-left"
               ui-sref="kubernetes.templates.custom.new({fileContent: ctrl.stackFileContent})"
             >

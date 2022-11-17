@@ -115,6 +115,52 @@
 
             <time-window-picker ng-show="ctrl.state.autoUpdateSettings.Enabled" time-window="ctrl.state.autoUpdateSettings" time-zone="ctrl.state.timeZone"></time-window-picker>
 
+            <div ng-if="ctrl.globalSettings.GlobalDeploymentOptions.perEnvOverride">
+              <div class="col-sm-12 form-section-title"> Deployment Options </div>
+              <div class="form-group">
+                <por-switch-field
+                  label="'Override global deployment options'"
+                  checked="ctrl.formValues.DeploymentOptions.overrideGlobalOptions"
+                  name="'toggle_overrideGlobalOptions'"
+                  on-change="(ctrl.onToggleOverrideGlobalOptions)"
+                  field-class="'col-sm-12'"
+                  label-class="'col-sm-5 col-lg-4 px-0 !m-0'"
+                  tooltip="'Set deployment options for this environment, overriding those from Portainer\'s global settings screen'"
+                ></por-switch-field>
+              </div>
+              <div ng-if="ctrl.formValues.DeploymentOptions.overrideGlobalOptions">
+                <div class="form-group">
+                  <por-switch-field
+                    label="'Enforce code-based deployment'"
+                    checked="ctrl.formValues.DeploymentOptions.hideAddWithForm"
+                    name="'toggle_hideAddWithForm'"
+                    on-change="(ctrl.onToggleAddWithForm)"
+                    field-class="'col-sm-12'"
+                    label-class="'col-sm-5 col-lg-4 !pl-4 !m-0'"
+                    tooltip="'Hides the \'Add with form\' buttons and prevents adding/editing of resources via forms'"
+                  ></por-switch-field>
+                </div>
+                <div class="form-group flex flex-col gap-y-1" ng-if="ctrl.formValues.DeploymentOptions.hideAddWithForm">
+                  <por-switch-field
+                    label="'Allow web editor use'"
+                    checked="!ctrl.formValues.DeploymentOptions.hideWebEditor"
+                    name="'toggle_hideWebEditor'"
+                    on-change="(ctrl.onToggleHideWebEditor)"
+                    field-class="'col-sm-12'"
+                    label-class="'col-sm-5 col-lg-4 !pl-8 !m-0'"
+                  ></por-switch-field>
+                  <por-switch-field
+                    label="'Allow file upload'"
+                    checked="!ctrl.formValues.DeploymentOptions.hideFileUpload"
+                    name="'toggle_hideFileUpload'"
+                    on-change="(ctrl.onToggleHideFileUpload)"
+                    field-class="'col-sm-12'"
+                    label-class="'col-sm-5 col-lg-4 !pl-8 !m-0'"
+                  ></por-switch-field>
+                </div>
+              </div>
+            </div>
+
             <!-- #region SECURITY -->
             <div class="col-sm-12 form-section-title"> Security </div>
 

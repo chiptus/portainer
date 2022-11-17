@@ -8,8 +8,10 @@
           <custom-template-common-fields form-values="$ctrl.formValues"></custom-template-common-fields>
 
           <web-editor-form
+            ng-if="!$ctrl.state.isLoading"
             identifier="template-editor"
             value="$ctrl.formValues.FileContent"
+            read-only="$ctrl.deploymentOptions.hideWebEditor"
             on-change="($ctrl.onChangeFileContent)"
             ng-required="true"
             yml="true"

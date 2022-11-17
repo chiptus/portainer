@@ -5,6 +5,7 @@ import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useNamespaces } from '@/react/kubernetes/namespaces/queries';
 import { useAuthorizations, Authorized } from '@/react/hooks/useUser';
 import { confirmDeletionAsync } from '@/portainer/services/modal.service/confirm';
+import { useIsDeploymentOptionHidden } from '@/react/hooks/useIsDeploymentOptionHidden';
 
 import { Datatable } from '@@/datatables';
 import { Button } from '@@/buttons';
@@ -33,6 +34,8 @@ export function IngressDataTable() {
     environmentId,
     Object.keys(nsResult?.data || {})
   );
+
+  const isAddIngressHidden = useIsDeploymentOptionHidden('form');
 
   const settings = useStore();
 
@@ -81,17 +84,19 @@ export function IngressDataTable() {
           </Button>
         </Authorized>
 
-        <Authorized authorizations="K8sIngressesW">
-          <Link to="kubernetes.ingresses.create" className="space-left">
-            <Button
-              icon={Plus}
-              className="btn-wrapper vertical-center"
-              color="secondary"
-            >
-              Add with form
-            </Button>
-          </Link>
-        </Authorized>
+        {!isAddIngressHidden && (
+          <Authorized authorizations="K8sIngressesW">
+            <Link to="kubernetes.ingresses.create" className="space-left">
+              <Button
+                icon={Plus}
+                className="btn-wrapper vertical-center"
+                color="secondary"
+              >
+                Add with form
+              </Button>
+            </Link>
+          </Authorized>
+        )}
         <Authorized authorizations="K8sIngressesW">
           <Link to="kubernetes.deploy" className="space-left">
             <Button icon={Plus} className="btn-wrapper">

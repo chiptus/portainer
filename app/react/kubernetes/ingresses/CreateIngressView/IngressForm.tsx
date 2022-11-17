@@ -30,7 +30,6 @@ interface Props {
   rule: Rule;
 
   errors: Record<string, ReactNode>;
-  isLoading: boolean;
   isEdit: boolean;
   namespace: string;
 
@@ -68,12 +67,12 @@ interface Props {
   ) => void;
 
   reloadTLSCerts: () => void;
+  hideForm: boolean;
 }
 
 export function IngressForm({
   environmentID,
   rule,
-  isLoading,
   isEdit,
   servicePorts,
   tlsOptions,
@@ -95,10 +94,8 @@ export function IngressForm({
   namespacesOptions,
   handleNamespaceChange,
   namespace,
+  hideForm,
 }: Props) {
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
   const hasNoHostRule = rule.Hosts?.some((host) => host.NoHost);
   const placeholderAnnotation =
     PlaceholderAnnotations[rule.IngressType || 'other'] ||
@@ -118,7 +115,7 @@ export function IngressForm({
               >
                 Namespace
               </label>
-              <div className="col-sm-4">
+              <div className={`col-sm-4 ${isEdit && 'control-label'}`}>
                 {isEdit ? (
                   namespace
                 ) : (
@@ -145,7 +142,7 @@ export function IngressForm({
                 >
                   Ingress name
                 </label>
-                <div className="col-sm-4">
+                <div className={`col-sm-4 ${isEdit && 'control-label'}`}>
                   {isEdit ? (
                     rule.IngressName
                   ) : (
@@ -181,6 +178,7 @@ export function IngressForm({
                     name="ingress_class"
                     className="form-control"
                     placeholder="Ingress name"
+                    disabled={hideForm}
                     defaultValue={rule.IngressClassName}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                       handleIngressChange('IngressClassName', e.target.value)
@@ -198,26 +196,28 @@ export function IngressForm({
 
             <div className="col-sm-12 px-0 text-muted !mb-0">
               <div className="mb-2">Annotations</div>
-              <p className="vertical-center text-muted small">
-                <Icon icon="info" mode="primary" feather />
-                <span>
-                  You can specify{' '}
-                  <a
-                    href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/"
-                    target="_black"
-                  >
-                    annotations
-                  </a>{' '}
-                  for the object. See further Kubernetes documentation on{' '}
-                  <a
-                    href="https://kubernetes.io/docs/reference/labels-annotations-taints/"
-                    target="_black"
-                  >
-                    well-known annotations
-                  </a>
-                  .
-                </span>
-              </p>
+              {!hideForm && (
+                <p className="vertical-center text-muted small">
+                  <Icon icon="info" mode="primary" feather />
+                  <span>
+                    You can specify{' '}
+                    <a
+                      href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/"
+                      target="_black"
+                    >
+                      annotations
+                    </a>{' '}
+                    for the object. See further Kubernetes documentation on{' '}
+                    <a
+                      href="https://kubernetes.io/docs/reference/labels-annotations-taints/"
+                      target="_black"
+                    >
+                      well-known annotations
+                    </a>
+                    .
+                  </span>
+                </p>
+              )}
             </div>
 
             {rule?.Annotations && (
@@ -227,55 +227,63 @@ export function IngressForm({
                 handleAnnotationChange={handleAnnotationChange}
                 removeAnnotation={removeAnnotation}
                 errors={errors}
+                disabled={hideForm}
               />
             )}
 
-            <div className="col-sm-12 p-0 anntation-actions">
-              <Button
-                className="btn btn-sm btn-light mb-2 !ml-0"
-                onClick={() => addNewAnnotation()}
-                icon={Plus}
-                title="Use annotations to configure options for an ingress. Review Nginx or Traefik documentation to find the annotations supported by your choice of ingress type."
-              >
-                {' '}
-                add annotation
-              </Button>
+            {rule?.Annotations?.length === 0 && hideForm && (
+              <div className="row">None</div>
+            )}
 
-              {rule.IngressType === 'nginx' && (
-                <>
-                  <Button
-                    className="btn btn-sm btn-light mb-2 ml-2"
-                    onClick={() => addNewAnnotation('rewrite')}
-                    icon={Plus}
-                    title="When the exposed URLs for your applications differ from the specified paths in the ingress, use the rewrite target annotation to denote the path to redirect to."
-                    data-cy="add-rewrite-annotation"
-                  >
-                    Add rewrite annotation
-                  </Button>
-
-                  <Button
-                    className="btn btn-sm btn-light mb-2 ml-2"
-                    onClick={() => addNewAnnotation('regex')}
-                    icon={Plus}
-                    title="When the exposed URLs for your applications differ from the specified paths in the ingress, use the rewrite target annotation to denote the path to redirect to."
-                    data-cy="add-regex-annotation"
-                  >
-                    Add regular expression annotation
-                  </Button>
-                </>
-              )}
-
-              {rule.IngressType === 'custom' && (
+            {!hideForm && (
+              <div className="col-sm-12 p-0 anntation-actions">
                 <Button
-                  className="btn btn-sm btn-light mb-2 ml-2"
-                  onClick={() => addNewAnnotation('ingressClass')}
+                  className="btn btn-sm btn-light mb-2 !ml-0"
+                  onClick={() => addNewAnnotation()}
                   icon={Plus}
-                  data-cy="add-ingress-class-annotation"
+                  title="Use annotations to configure options for an ingress. Review Nginx or Traefik documentation to find the annotations supported by your choice of ingress type."
                 >
-                  Add kubernetes.io/ingress.class annotation
+                  {' '}
+                  add annotation
                 </Button>
-              )}
-            </div>
+
+                {rule.IngressType === 'nginx' && (
+                  <>
+                    <Button
+                      className="btn btn-sm btn-light mb-2 ml-2"
+                      onClick={() => addNewAnnotation('rewrite')}
+                      icon={Plus}
+                      title="When the exposed URLs for your applications differ from the specified paths in the ingress, use the rewrite target annotation to denote the path to redirect to."
+                      data-cy="add-rewrite-annotation"
+                    >
+                      Add rewrite annotation
+                    </Button>
+
+                    <Button
+                      className="btn btn-sm btn-light mb-2 ml-2"
+                      onClick={() => addNewAnnotation('regex')}
+                      icon={Plus}
+                      title="When the exposed URLs for your applications differ from the specified paths in the ingress, use the rewrite target annotation to denote the path to redirect to."
+                      data-cy="add-regex-annotation"
+                    >
+                      Add regular expression annotation
+                    </Button>
+                  </>
+                )}
+
+                {rule.IngressType === 'custom' && (
+                  <Button
+                    className="btn btn-sm btn-light mb-2 ml-2"
+                    onClick={() => addNewAnnotation('ingressClass')}
+                    icon={Plus}
+                    data-cy="add-ingress-class-annotation"
+                    disabled={hideForm}
+                  >
+                    Add kubernetes.io/ingress.class annotation
+                  </Button>
+                )}
+              </div>
+            )}
 
             <div className="col-sm-12 px-0 text-muted">Rules</div>
           </div>
@@ -289,29 +297,32 @@ export function IngressForm({
                   <div className="col-sm-3 p-0">
                     {!host.NoHost ? 'Rule' : 'Fallback rule'}
                   </div>
-                  <div className="col-sm-9 p-0 text-right">
-                    {!host.NoHost && (
-                      <Button
-                        className="btn btn-light btn-sm"
-                        onClick={() => reloadTLSCerts()}
-                        icon={RefreshCw}
-                      >
-                        Reload TLS secrets
-                      </Button>
-                    )}
+                  {!hideForm && (
+                    <div className="col-sm-9 p-0 text-right">
+                      {!host.NoHost && (
+                        <Button
+                          className="btn btn-light btn-sm"
+                          onClick={() => reloadTLSCerts()}
+                          icon={RefreshCw}
+                          disabled={hideForm}
+                        >
+                          Reload TLS secrets
+                        </Button>
+                      )}
 
-                    <Button
-                      className="btn btn-sm ml-2"
-                      color="dangerlight"
-                      type="button"
-                      data-cy={`k8sAppCreate-rmHostButton_${hostIndex}`}
-                      onClick={() => removeIngressHost(hostIndex)}
-                      disabled={rule.Hosts.length === 1}
-                      icon={Trash2}
-                    >
-                      Remove rule
-                    </Button>
-                  </div>
+                      <Button
+                        className="btn btn-sm ml-2"
+                        color="dangerlight"
+                        type="button"
+                        data-cy={`k8sAppCreate-rmHostButton_${hostIndex}`}
+                        onClick={() => removeIngressHost(hostIndex)}
+                        disabled={rule.Hosts.length === 1}
+                        icon={Trash2}
+                      >
+                        Remove rule
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 {!host.NoHost && (
                   <div className="row">
@@ -329,6 +340,7 @@ export function IngressForm({
                           onChange={(e: ChangeEvent<HTMLInputElement>) =>
                             handleHostChange(hostIndex, e.target.value)
                           }
+                          disabled={hideForm}
                         />
                       </div>
                       {errors[`hosts[${hostIndex}].host`] && (
@@ -349,27 +361,30 @@ export function IngressForm({
                             handleTLSChange(hostIndex, e.target.value)
                           }
                           defaultValue={host.Secret}
+                          disabled={hideForm}
                         />
                       </div>
                     </div>
 
-                    <p className="vertical-center text-muted small whitespace-nowrap col-sm-12 !p-0">
-                      <Icon icon="info" mode="primary" size="md" feather />
-                      <span>
-                        Add a secret via{' '}
-                        <Link
-                          to="kubernetes.configurations"
-                          params={{ id: environmentID }}
-                          className="text-primary"
-                          target="_blank"
-                        >
-                          ConfigMaps &amp; Secrets
-                        </Link>
-                        {', '}
-                        then select &apos;Reload TLS secrets&apos; above to
-                        populate the dropdown with your changes.
-                      </span>
-                    </p>
+                    {!hideForm && (
+                      <p className="vertical-center text-muted small whitespace-nowrap col-sm-12 !p-0">
+                        <Icon icon="info" mode="primary" size="md" feather />
+                        <span>
+                          Add a secret via{' '}
+                          <Link
+                            to="kubernetes.configurations"
+                            params={{ id: environmentID }}
+                            className="text-primary"
+                            target="_blank"
+                          >
+                            ConfigMaps &amp; Secrets
+                          </Link>
+                          {', '}
+                          then select &apos;Reload TLS secrets&apos; above to
+                          populate the dropdown with your changes.
+                        </span>
+                      </p>
+                    )}
                   </div>
                 )}
                 {host.NoHost && (
@@ -409,6 +424,7 @@ export function IngressForm({
                             )
                           }
                           defaultValue={path.ServiceName}
+                          disabled={hideForm}
                         />
                       </div>
                       {errors[
@@ -454,6 +470,7 @@ export function IngressForm({
                                 )
                               }
                               defaultValue={path.ServicePort}
+                              disabled={hideForm}
                             />
                           </div>
                           {errors[
@@ -496,6 +513,7 @@ export function IngressForm({
                             )
                           }
                           defaultValue={path.PathType}
+                          disabled={hideForm}
                         />
                       </div>
                       {errors[
@@ -529,6 +547,7 @@ export function IngressForm({
                               e.target.value
                             )
                           }
+                          disabled={hideForm}
                         />
                       </div>
                       {errors[
@@ -544,57 +563,65 @@ export function IngressForm({
                       )}
                     </div>
 
-                    <div className="form-group !pl-0 col-sm-1 !m-0">
-                      <Button
-                        className="btn btn-sm btn-only-icon !ml-0 vertical-center"
-                        color="dangerlight"
-                        type="button"
-                        data-cy={`k8sAppCreate-rmPortButton_${hostIndex}-${pathIndex}`}
-                        onClick={() => removeIngressRoute(hostIndex, pathIndex)}
-                        disabled={host.Paths.length === 1}
-                        icon={Trash2}
-                      />
-                    </div>
+                    {!hideForm && (
+                      <div className="form-group !pl-0 col-sm-1 !m-0">
+                        <Button
+                          className="btn btn-sm btn-only-icon !ml-0 vertical-center"
+                          color="dangerlight"
+                          type="button"
+                          data-cy={`k8sAppCreate-rmPortButton_${hostIndex}-${pathIndex}`}
+                          onClick={() =>
+                            removeIngressRoute(hostIndex, pathIndex)
+                          }
+                          disabled={host.Paths.length === 1}
+                          icon={Trash2}
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
 
-                <div className="row mt-5">
-                  <Button
-                    className="btn btn-sm btn-light !ml-0"
-                    type="button"
-                    onClick={() => addNewIngressRoute(hostIndex)}
-                    icon={Plus}
-                  >
-                    Add path
-                  </Button>
-                </div>
+                {!hideForm && (
+                  <div className="row mt-5">
+                    <Button
+                      className="btn btn-sm btn-light !ml-0"
+                      type="button"
+                      onClick={() => addNewIngressRoute(hostIndex)}
+                      icon={Plus}
+                    >
+                      Add path
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
 
         {namespace && (
           <div className="row p-0 rules-action">
-            <div className="col-sm-12 p-0 vertical-center">
-              <Button
-                className="btn btn-sm btn-light !ml-0"
-                type="button"
-                onClick={() => addNewIngressHost()}
-                icon={Plus}
-              >
-                Add new host
-              </Button>
+            {!hideForm && (
+              <div className="col-sm-12 p-0 vertical-center">
+                <Button
+                  className="btn btn-sm btn-light !ml-0"
+                  type="button"
+                  onClick={() => addNewIngressHost()}
+                  icon={Plus}
+                >
+                  Add new host
+                </Button>
 
-              <Button
-                className="btn btn-sm btn-light ml-2"
-                type="button"
-                onClick={() => addNewIngressHost(true)}
-                disabled={hasNoHostRule}
-                icon={Plus}
-              >
-                Add fallback rule
-              </Button>
-              <Tooltip message="A fallback rule will be applied to all requests that do not match any of the defined hosts." />
-            </div>
+                <Button
+                  className="btn btn-sm btn-light ml-2"
+                  type="button"
+                  onClick={() => addNewIngressHost(true)}
+                  disabled={hasNoHostRule}
+                  icon={Plus}
+                >
+                  Add fallback rule
+                </Button>
+                <Tooltip message="A fallback rule will be applied to all requests that do not match any of the defined hosts." />
+              </div>
+            )}
           </div>
         )}
       </WidgetBody>

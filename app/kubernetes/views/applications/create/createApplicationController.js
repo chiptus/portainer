@@ -34,6 +34,7 @@ import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
 import { KubernetesNodeHelper } from 'Kubernetes/node/helper';
 import { updateIngress, getIngresses } from '@/react/kubernetes/ingresses/service';
 import { confirmUpdateAppIngress } from '@/portainer/services/modal.service/prompt';
+import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 
 class KubernetesCreateApplicationController {
   /* #region  CONSTRUCTOR */
@@ -56,11 +57,13 @@ class KubernetesCreateApplicationController {
     KubernetesVolumeService,
     RegistryService,
     StackService,
-    KubernetesNodesLimitsService
+    KubernetesNodesLimitsService,
+    EndpointProvider
   ) {
     this.$scope = $scope;
     this.$async = $async;
     this.$state = $state;
+    this.EndpointProvider = EndpointProvider;
     this.Notifications = Notifications;
     this.Authentication = Authentication;
     this.ModalService = ModalService;
@@ -1399,6 +1402,8 @@ class KubernetesCreateApplicationController {
 
         if (this.state.isEdit) {
           this.nodesLimits.excludesPods(this.application.Pods, this.formValues.CpuLimit, KubernetesResourceReservationHelper.bytesValue(this.formValues.MemoryLimit));
+          const endpoint = this.EndpointProvider.endpointID;
+          this.deploymentOptions = await getDeploymentOptions(endpoint.Id);
         }
 
         this.formValues.IsPublishingService = this.formValues.PublishedPorts.length > 0;

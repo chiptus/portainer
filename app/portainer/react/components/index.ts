@@ -195,6 +195,7 @@ export const componentsModule = angular
       'onChange',
       'visibleTooltip',
       'dataCy',
+      'disabled',
     ])
   )
   .component(

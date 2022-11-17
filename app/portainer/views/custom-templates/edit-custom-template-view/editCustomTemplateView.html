@@ -9,6 +9,7 @@
 
           <!-- web-editor -->
           <web-editor-form
+            ng-if="!$ctrl.state.isLoading"
             identifier="custom-template-creation-editor"
             value="$ctrl.formValues.FileContent"
             on-change="($ctrl.editorUpdate)"

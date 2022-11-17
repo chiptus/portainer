@@ -8,7 +8,7 @@
         <form class="form-horizontal">
           <!-- snapshot-interval -->
           <div class="form-group">
-            <label for="snapshot_interval" class="col-sm-2 control-label text-left">Snapshot interval</label>
+            <label for="snapshot_interval" class="col-sm-3 col-lg-2 control-label text-left">Snapshot interval</label>
             <div class="col-sm-8">
               <input type="text" class="form-control" ng-model="settings.SnapshotInterval" id="snapshot_interval" placeholder="e.g. 15m" />
             </div>
@@ -34,7 +34,7 @@
               disabled="state.isDemo"
               on-change="(onToggleCustomLogo)"
               field-class="'col-sm-12'"
-              label-class="'col-sm-2'"
+              label-class="'col-sm-3 col-lg-2'"
             ></por-switch-field>
             <div class="col-sm-12" ng-if="state.isDemo" style="margin-top: 10px">
               <span class="small text-muted">You cannot use this feature in the demo version of Portainer.</span>
@@ -46,7 +46,7 @@
               <span class="col-sm-12 text-muted small"> You can specify the URL to your logo here. For an optimal display, logo dimensions should be 155px by 55px. </span>
             </div>
             <div class="form-group">
-              <label for="logo_url" class="col-sm-2 control-label text-left"> URL </label>
+              <label for="logo_url" class="col-sm-3 col-lg-2 control-label text-left"> URL </label>
               <div class="col-sm-8">
                 <input type="text" class="form-control" ng-model="settings.LogoURL" id="logo_url" placeholder="https://mycompany.com/logo.png" />
               </div>
@@ -62,7 +62,7 @@
               on-change="(onToggleEnableTelemetry)"
               disabled="state.isDemo"
               field-class="'col-sm-12'"
-              label-class="'col-sm-2'"
+              label-class="'col-sm-3 col-lg-2'"
             ></por-switch-field>
             <div class="col-sm-12" ng-if="state.isDemo" style="margin-top: 10px">
               <span class="small text-muted">You cannot use this feature in the demo version of Portainer.</span>
@@ -82,7 +82,7 @@
               disabled="state.isDemo"
               on-change="(onToggleCustomLoginBanner)"
               field-class="'col-sm-12'"
-              label-class="'col-sm-2'"
+              label-class="'col-sm-3 col-lg-2'"
             ></por-switch-field>
             <div class="col-sm-12" ng-if="state.isDemo" style="margin-top: 10px">
               <span class="small text-muted">You cannot use this feature in the demo version of Portainer.</span>
@@ -92,7 +92,7 @@
 
           <div ng-if="formValues.customLoginBanner">
             <div class="form-group">
-              <label for="custom_login_banner" class="col-sm-2 control-label text-left required">Details</label>
+              <label for="custom_login_banner" class="col-sm-3 col-lg-2 control-label text-left required">Details</label>
               <div class="col-sm-8">
                 <textarea class="form-control" rows="5" ng-model="settings.CustomLoginBanner" id="custom_login_banner" placeholder="Banner details"></textarea>
               </div>
@@ -110,7 +110,7 @@
               </span>
             </div>
             <div class="form-group">
-              <label for="templates_url" class="col-sm-2 control-label text-left"> URL </label>
+              <label for="templates_url" class="col-sm-3 col-lg-2 control-label text-left"> URL </label>
               <div class="col-sm-8">
                 <input
                   type="text"
@@ -125,6 +125,49 @@
             </div>
           </div>
           <!-- !templates -->
+          <!-- actions -->
+          <div class="form-group">
+            <div class="col-sm-12">
+              <button
+                type="button"
+                class="btn btn-primary btn-sm !ml-0"
+                ng-click="saveApplicationSettings()"
+                ng-disabled="state.actionInProgress || !settings.TemplatesURL || (formValues.customLoginBanner && !settings.CustomLoginBanner)"
+                button-spinner="state.actionInProgress"
+                data-cy="settings-saveSettingsButton"
+              >
+                <span ng-hide="state.actionInProgress">Save application settings</span>
+                <span ng-show="state.actionInProgress">Saving...</span>
+              </button>
+            </div>
+          </div>
+          <!-- !actions -->
+        </form>
+      </rd-widget-body>
+    </rd-widget>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-sm-12">
+    <rd-widget>
+      <rd-widget-header icon="svg-kube" feather-icon="true" title-text="Kubernetes settings"></rd-widget-header>
+      <rd-widget-body>
+        <form class="form-horizontal">
+          <!-- kubeconfig -->
+          <div class="col-sm-12 form-section-title"> Kubeconfig </div>
+          <div class="form-group">
+            <label for="kubeconfig_expiry" class="col-sm-3 col-lg-2 control-label text-left"> Kubeconfig expiry </label>
+            <div class="col-sm-8">
+              <select
+                id="kubeconfig_expiry"
+                class="form-control"
+                ng-model="formValues.KubeconfigExpiry"
+                ng-options="opt.value as opt.key for opt in state.availableKubeconfigExpiryOptions"
+              ></select>
+            </div>
+          </div>
+          <!-- !kubeconfig -->
           <!-- helm charts -->
           <div class="col-sm-12 form-section-title"> Helm Repository </div>
           <div>
@@ -135,40 +178,69 @@
               </span>
             </div>
             <div class="form-group">
-              <label for="helmrepository_url" class="col-sm-2 control-label text-left"> URL </label>
+              <label for="helmrepository_url" class="col-sm-3 col-lg-2 control-label text-left"> URL </label>
               <div class="col-sm-8">
-                <input type="text" class="form-control" ng-model="settings.HelmRepositoryURL" id="helmrepository_url" placeholder="https://charts.bitnami.com/bitnami" />
+                <input type="text" class="form-control" ng-model="formValues.HelmRepositoryURL" id="helmrepository_url" placeholder="https://charts.bitnami.com/bitnami" />
               </div>
             </div>
           </div>
           <!-- !helm charts -->
-          <!-- kube -->
-          <div class="col-sm-12 form-section-title"> Kubernetes </div>
+          <!-- deployment options -->
+          <div class="col-sm-12 form-section-title text-sm"> Deployment Options </div>
           <div class="form-group">
-            <label for="kubeconfig_expiry" class="col-sm-2 control-label text-left"> Kubeconfig expiry </label>
-            <div class="col-sm-8">
-              <select
-                id="kubeconfig_expiry"
-                class="form-control"
-                ng-model="settings.KubeconfigExpiry"
-                ng-options="opt.value as opt.key for opt in state.availableKubeconfigExpiryOptions"
-              ></select>
-            </div>
+            <por-switch-field
+              label="'Enforce code-based deployment'"
+              checked="formValues.GlobalDeploymentOptions.hideAddWithForm"
+              name="'toggle_hideAddWithForm'"
+              on-change="(onToggleAddWithForm)"
+              field-class="'col-sm-12'"
+              label-class="'col-sm-3 col-lg-2'"
+              tooltip="'Hides the \'Add with form\' buttons and prevents adding/editing of resources via forms'"
+            ></por-switch-field>
           </div>
-          <!-- ! kube  -->
+          <div class="form-group flex flex-col gap-y-1" ng-if="formValues.GlobalDeploymentOptions.hideAddWithForm">
+            <por-switch-field
+              label="'Allow web editor use'"
+              checked="!formValues.GlobalDeploymentOptions.hideWebEditor"
+              name="'toggle_hideWebEditor'"
+              on-change="(onToggleHideWebEditor)"
+              field-class="'col-sm-12'"
+              label-class="'col-sm-3 col-lg-2 !pl-4'"
+            ></por-switch-field>
+            <por-switch-field
+              label="'Allow file upload'"
+              checked="!formValues.GlobalDeploymentOptions.hideFileUpload"
+              name="'toggle_hideFileUpload'"
+              on-change="(onToggleHideFileUpload)"
+              field-class="'col-sm-12'"
+              label-class="'col-sm-3 col-lg-2 !pl-4'"
+            ></por-switch-field>
+          </div>
+          <div class="form-group">
+            <por-switch-field
+              label="'Allow per environment override'"
+              checked="formValues.GlobalDeploymentOptions.perEnvOverride"
+              name="'toggle_perEnvOverride'"
+              on-change="(onTogglePerEnvOverride)"
+              field-class="'col-sm-12'"
+              label-class="'col-sm-3 col-lg-2'"
+              tooltip="'Allows overriding of deployment options in the Cluster setup screen of each environment'"
+            ></por-switch-field>
+          </div>
+          <!-- ! deployment options  -->
           <!-- actions -->
           <div class="form-group">
             <div class="col-sm-12">
               <button
                 type="button"
-                class="btn btn-primary btn-sm"
-                ng-click="saveApplicationSettings()"
-                ng-disabled="state.actionInProgress || !settings.TemplatesURL || (formValues.customLoginBanner && !settings.CustomLoginBanner)"
-                button-spinner="state.actionInProgress"
+                class="btn btn-primary btn-sm !ml-0"
+                ng-click="saveKubernetesSettings()"
+                ng-disabled="state.kubeSettingsActionInProgress"
+                button-spinner="state.kubeSettingsActionInProgress"
                 data-cy="settings-saveSettingsButton"
               >
-                <span ng-hide="state.actionInProgress">Save settings</span>
-                <span ng-show="state.actionInProgress">Saving...</span>
+                <span ng-hide="state.kubeSettingsActionInProgress">Save Kubernetes settings</span>
+                <span ng-show="state.kubeSettingsActionInProgress">Saving...</span>
               </button>
             </div>
           </div>
@@ -214,7 +286,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr ng-repeat="label in settings.BlackListedLabels">
+                  <tr ng-repeat="label in formValues.BlackListedLabels">
                     <td>{{ label.name }}</td>
                     <td>{{ label.value }}</td>
                     <td
@@ -223,10 +295,10 @@
                       ></td
                     >
                   </tr>
-                  <tr ng-if="settings.BlackListedLabels.length === 0">
+                  <tr ng-if="formValues.BlackListedLabels.length === 0">
                     <td colspan="3" class="text-center text-muted">No filter available.</td>
                   </tr>
-                  <tr ng-if="!settings.BlackListedLabels">
+                  <tr ng-if="!formValues.BlackListedLabels">
                     <td colspan="3" class="text-center text-muted">Loading...</td>
                   </tr>
                 </tbody>
@@ -259,14 +331,14 @@
                 feature-id="s3BackupFeatureId"
                 checked="formValues.scheduleAutomaticBackups"
                 field-class="'col-sm-12'"
-                label-class="'col-sm-2'"
+                label-class="'col-sm-3 col-lg-2'"
                 on-change="(onToggleAutoBackups)"
               ></por-switch-field>
             </div>
             <!-- !Schedule automatic backups -->
             <!-- Cron rule  -->
             <div class="form-group" ng-if="formValues.scheduleAutomaticBackups">
-              <label for="cron_rule" class="col-sm-2 col-lg-2 control-label text-left">Cron rule</label>
+              <label for="cron_rule" class="col-sm-3 col-lg-2 col-lg-2 control-label text-left">Cron rule</label>
               <div class="col-sm-10 col-lg-10">
                 <input
                   type="text"
@@ -295,7 +367,7 @@
             </div>
             <!-- Access key id  -->
             <div class="form-group">
-              <label for="access_key_id" class="col-sm-2 col-lg-2 control-label text-left">Access key ID</label>
+              <label for="access_key_id" class="col-sm-3 col-lg-2 col-lg-2 control-label text-left">Access key ID</label>
               <div class="col-sm-9 col-lg-10">
                 <input
                   type="text"
@@ -413,7 +485,7 @@
             <div class="col-sm-12 form-section-title"> Security settings </div>
             <!-- Password protect S3 -->
             <div class="form-group">
-              <label for="password_protect" class="col-sm-2 control-label text-left">Password protect</label>
+              <label for="password_protect" class="col-sm-3 col-lg-2 control-label text-left">Password protect</label>
               <div class="col-sm-8">
                 <label class="switch">
                   <input
@@ -429,7 +501,7 @@
             <!-- !Password protect S3 -->
             <!-- Password S3 -->
             <div class="form-group" ng-if="formValues.passwordProtectS3">
-              <label for="password" class="col-sm-2 control-label text-left">Password</label>
+              <label for="password" class="col-sm-3 col-lg-2 control-label text-left">Password</label>
               <div class="col-sm-3">
                 <input type="password" class="form-control" ng-model="formValues.passwordS3" id="password_S3" name="password_S3" required data-cy="settings-backups3pw" />
               </div>
@@ -480,8 +552,8 @@
             <div class="col-sm-12 form-section-title"> Security settings </div>
             <!-- Password protect -->
             <div class="form-group">
-              <label for="password_protect" class="col-sm-2 control-label text-left">Password protect</label>
-              <div class="col-sm-2">
+              <label for="password_protect" class="col-sm-3 col-lg-2 control-label text-left">Password protect</label>
+              <div class="col-sm-3 col-lg-2">
                 <label class="switch" data-cy="settings-passwordProtectLocal">
                   <input type="checkbox" id="password_protect" name="password_protect" ng-model="formValues.passwordProtect" /><span class="slider round"></span>
                 </label>
@@ -491,7 +563,7 @@
 
             <!-- Password -->
             <div class="form-group" ng-if="formValues.passwordProtect">
-              <label for="password" class="col-sm-2 control-label text-left">Password</label>
+              <label for="password" class="col-sm-3 col-lg-2 control-label text-left">Password</label>
               <div class="col-sm-3">
                 <input type="password" class="form-control" ng-model="formValues.password" id="password" name="password" required data-cy="settings-backupLocalPassword" />
               </div>
@@ -509,7 +581,7 @@
               <div class="col-sm-12">
                 <button
                   type="button"
-                  class="btn btn-primary btn-sm"
+                  class="btn btn-primary btn-sm !ml-0"
                   ng-click="downloadBackup()"
                   ng-disabled="backupPortainerForm.$invalid ||state.backupInProgress"
                   button-spinner="state.backupInProgress"

@@ -2,7 +2,10 @@ import _ from 'lodash';
 import { AccessControlFormData } from 'Portainer/components/accessControlForm/porAccessControlFormModel';
 import { TEMPLATE_NAME_VALIDATION_REGEX } from '@/constants';
 import { getTemplateVariables, intersectVariables } from '@/react/portainer/custom-templates/components/utils';
+import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
+import { editor, upload, git } from '@@/BoxSelector/common-options/build-methods';
+import { PortainerEndpointTypes } from '@/portainer/models/endpoint/models';
 
 class CreateCustomTemplateViewController {
   /* @ngInject */
@@ -10,6 +13,7 @@ class CreateCustomTemplateViewController {
     $async,
     $state,
     $window,
+    EndpointProvider,
     Authentication,
     ModalService,
     CustomTemplateService,
@@ -24,6 +28,7 @@ class CreateCustomTemplateViewController {
       $async,
       $state,
       $window,
+      EndpointProvider,
       Authentication,
       ModalService,
       CustomTemplateService,
@@ -281,6 +286,32 @@ class CreateCustomTemplateViewController {
       this.formValues.GitCredentials = await this.UserService.getGitCredentials(this.Authentication.getUserDetails().ID);
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to retrieve user saved git credentials');
+    }
+
+    try {
+      const endpoint = this.EndpointProvider.currentEndpoint();
+      if (
+        endpoint.Type === PortainerEndpointTypes.AgentOnKubernetesEnvironment ||
+        endpoint.Type === PortainerEndpointTypes.EdgeAgentOnKubernetesEnvironment ||
+        endpoint.Type === PortainerEndpointTypes.KubernetesLocalEnvironment
+      ) {
+        this.deploymentOptions = await getDeploymentOptions(endpoint.Id);
+        this.methodOptions = [git];
+        if (!this.deploymentOptions.hideWebEditor) {
+          this.methodOptions.push(editor);
+        }
+        if (!this.deploymentOptions.hideFileUpload) {
+          this.methodOptions.push(upload);
+        }
+        // the selected method must be available
+        if (!this.methodOptions.map((option) => option.value).includes(this.state.Method)) {
+          this.state.Method = this.methodOptions[0].value;
+        }
+      } else {
+        this.methodOptions = [git, editor, upload];
+      }
+    } catch (err) {
+      this.Notifications.error('Failure', err, 'Unable to get deployment options');
     }
 
     this.state.loading = false;

@@ -1,5 +1,7 @@
 import angular from 'angular';
 
+import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
+
 import { kubeCustomTemplatesView } from './kube-custom-templates-view';
 import { kubeEditCustomTemplateView } from './kube-edit-custom-template-view';
 import { kubeCreateCustomTemplateView } from './kube-create-custom-template-view';
@@ -40,6 +42,19 @@ function config($stateRegistryProvider) {
     },
     params: {
       fileContent: '',
+    },
+    onEnter: /* @ngInject */ function endpoint($async, $state, $transition$, Notifications) {
+      return $async(async () => {
+        try {
+          const endpointId = +$transition$.params().endpointId;
+          const deploymentOptions = await getDeploymentOptions(endpointId);
+          if (deploymentOptions.hideFileUpload && deploymentOptions.hideWebEditor) {
+            $state.go('kubernetes.templates.custom', { endpointId });
+          }
+        } catch (err) {
+          Notifications.error('Failed to get deployment options', err);
+        }
+      });
     },
   };
 

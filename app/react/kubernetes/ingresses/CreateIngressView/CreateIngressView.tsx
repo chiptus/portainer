@@ -7,6 +7,7 @@ import { useConfigurations } from '@/react/kubernetes/configs/queries';
 import { useNamespaces } from '@/react/kubernetes/namespaces/queries';
 import { useServices } from '@/react/kubernetes/networks/services/queries';
 import { notifySuccess } from '@/portainer/services/notifications';
+import { useIsDeploymentOptionHidden } from '@/react/hooks/useIsDeploymentOptionHidden';
 
 import { Link } from '@@/Link';
 import { PageHeader } from '@@/PageHeader';
@@ -61,6 +62,8 @@ export function CreateIngressView() {
 
   const createIngressMutation = useCreateIngress();
   const updateIngressMutation = useUpdateIngress();
+
+  const hideForm = useIsDeploymentOptionHidden('form');
 
   const isLoading =
     (servicesResults.isLoading &&
@@ -296,47 +299,50 @@ export function CreateIngressView() {
   return (
     <>
       <PageHeader
-        title={isEdit ? 'Edit ingress' : 'Add ingress'}
+        title={getIngressTitle(isEdit, hideForm, isLoading)}
         breadcrumbs={[
           {
             link: 'kubernetes.ingresses',
             label: 'Ingresses',
           },
           {
-            label: isEdit ? 'Edit ingress' : 'Add ingress',
+            label: getIngressTitle(isEdit, hideForm, isLoading),
           },
         ]}
       />
       <div className="row ingress-rules">
         <div className="col-sm-12">
-          <IngressForm
-            environmentID={environmentId}
-            isLoading={isLoading}
-            isEdit={isEdit}
-            rule={ingressRule}
-            ingressClassOptions={ingressClassOptions}
-            errors={errors}
-            servicePorts={servicePorts}
-            tlsOptions={tlsOptions}
-            serviceOptions={serviceOptions}
-            addNewIngressHost={addNewIngressHost}
-            handleTLSChange={handleTLSChange}
-            handleHostChange={handleHostChange}
-            handleIngressChange={handleIngressChange}
-            handlePathChange={handlePathChange}
-            addNewIngressRoute={addNewIngressRoute}
-            removeIngressHost={removeIngressHost}
-            removeIngressRoute={removeIngressRoute}
-            addNewAnnotation={addNewAnnotation}
-            removeAnnotation={removeAnnotation}
-            reloadTLSCerts={reloadTLSCerts}
-            handleAnnotationChange={handleAnnotationChange}
-            namespace={namespace}
-            handleNamespaceChange={handleNamespaceChange}
-            namespacesOptions={namespacesOptions}
-          />
+          {!isLoading && (
+            <IngressForm
+              environmentID={environmentId}
+              isEdit={isEdit}
+              rule={ingressRule}
+              ingressClassOptions={ingressClassOptions}
+              errors={errors}
+              servicePorts={servicePorts}
+              tlsOptions={tlsOptions}
+              serviceOptions={serviceOptions}
+              addNewIngressHost={addNewIngressHost}
+              handleTLSChange={handleTLSChange}
+              handleHostChange={handleHostChange}
+              handleIngressChange={handleIngressChange}
+              handlePathChange={handlePathChange}
+              addNewIngressRoute={addNewIngressRoute}
+              removeIngressHost={removeIngressHost}
+              removeIngressRoute={removeIngressRoute}
+              addNewAnnotation={addNewAnnotation}
+              removeAnnotation={removeAnnotation}
+              reloadTLSCerts={reloadTLSCerts}
+              handleAnnotationChange={handleAnnotationChange}
+              namespace={namespace}
+              handleNamespaceChange={handleNamespaceChange}
+              namespacesOptions={namespacesOptions}
+              hideForm={hideForm}
+            />
+          )}
+          {isLoading && <div>Loading...</div>}
         </div>
-        {namespace && !isLoading && (
+        {namespace && !isLoading && !hideForm && (
           <div className="col-sm-12">
             <Button
               onClick={() => handleCreateIngressRules()}
@@ -739,4 +745,21 @@ export function CreateIngressView() {
       );
     }
   }
+}
+
+function getIngressTitle(
+  isEdit: boolean,
+  hideForm: boolean,
+  isLoading: boolean
+) {
+  if (isLoading) {
+    return '';
+  }
+  if (!isEdit) {
+    return 'Add ingress';
+  }
+  if (hideForm) {
+    return 'Ingress details';
+  }
+  return 'Edit ingress';
 }

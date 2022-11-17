@@ -34,6 +34,8 @@ type settingsUpdatePayload struct {
 	SnapshotInterval *string `example:"5m"`
 	// URL to the templates that will be displayed in the UI when navigating to App Templates
 	TemplatesURL *string `example:"https://raw.githubusercontent.com/portainer/templates/master/templates.json"`
+	// Deployment options for encouraging deployment as code
+	GlobalDeploymentOptions *portaineree.GlobalDeploymentOptions
 	// Whether edge compute features are enabled
 	EnableEdgeComputeFeatures *bool `example:"true"`
 	// The duration of a user session
@@ -163,6 +165,21 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 
 	if payload.TemplatesURL != nil {
 		settings.TemplatesURL = *payload.TemplatesURL
+	}
+
+	// update the global deployment options, and the environment deployment options if they have changed
+	if payload.GlobalDeploymentOptions != nil {
+		oldPerEnvOverride := settings.GlobalDeploymentOptions.PerEnvOverride
+		newPerEnvOverride := payload.GlobalDeploymentOptions.PerEnvOverride
+
+		if oldPerEnvOverride != newPerEnvOverride {
+			httpErr := handler.updateEnvironmentDeploymentType()
+			if httpErr != nil {
+				return httpErr
+			}
+		}
+
+		settings.GlobalDeploymentOptions = *payload.GlobalDeploymentOptions
 	}
 
 	if payload.HelmRepositoryURL != nil {
@@ -348,6 +365,28 @@ func (handler *Handler) updateTLS(settings *portaineree.Settings) *httperror.Han
 		err := handler.FileService.DeleteTLSFiles(filesystem.LDAPStorePath)
 		if err != nil {
 			return httperror.InternalServerError("Unable to remove TLS files from disk", err)
+		}
+	}
+	return nil
+}
+
+// updateEnvironmentDeploymentType updates environment deployment options to nil when per env override global settings change
+func (handler *Handler) updateEnvironmentDeploymentType() *httperror.HandlerError {
+	endpoints, err := handler.DataStore.Endpoint().Endpoints()
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve the environments from the database", err)
+	}
+
+	for _, endpoint := range endpoints {
+		if endpoint.Type == portaineree.AgentOnKubernetesEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment || endpoint.Type == portaineree.KubeConfigEnvironment || endpoint.Type == portaineree.KubernetesLocalEnvironment {
+			// save database writes by only updating the envs that have deployment option values
+			if endpoint.DeploymentOptions != nil {
+				endpoint.DeploymentOptions = nil
+				err = handler.DataStore.Endpoint().UpdateEndpoint(endpoint.ID, &endpoint)
+				if err != nil {
+					return httperror.InternalServerError("Unable to update the deployment options for the environment", err)
+				}
+			}
 		}
 	}
 	return nil

@@ -54,6 +54,7 @@
       },
       "CloudProvider": null,
       "ComposeSyntaxMaxVersion": "",
+      "DeploymentOptions": null,
       "Edge": {
         "AsyncMode": false,
         "CommandInterval": 0,
@@ -832,6 +833,12 @@
     "EnableTelemetry": true,
     "EnforceEdgeID": false,
     "FeatureFlagSettings": null,
+    "GlobalDeploymentOptions": {
+      "hideAddWithForm": false,
+      "hideFileUpload": false,
+      "hideWebEditor": false,
+      "perEnvOverride": false
+    },
     "HelmRepositoryURL": "https://charts.bitnami.com/bitnami",
     "InternalAuthSettings": {
       "RequiredPasswordLength": 12

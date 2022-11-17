@@ -1,9 +1,11 @@
 import _ from 'lodash-es';
 
+import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
+
 export default class KubeCustomTemplatesViewController {
   /* @ngInject */
-  constructor($async, $state, Authentication, CustomTemplateService, FormValidator, ModalService, Notifications) {
-    Object.assign(this, { $async, $state, Authentication, CustomTemplateService, FormValidator, ModalService, Notifications });
+  constructor($async, $state, Authentication, EndpointProvider, CustomTemplateService, FormValidator, ModalService, Notifications) {
+    Object.assign(this, { $async, $state, Authentication, EndpointProvider, CustomTemplateService, FormValidator, ModalService, Notifications });
 
     this.state = {
       selectedTemplate: null,
@@ -22,10 +24,11 @@ export default class KubeCustomTemplatesViewController {
     this.validateForm = this.validateForm.bind(this);
     this.confirmDelete = this.confirmDelete.bind(this);
     this.selectTemplate = this.selectTemplate.bind(this);
+    this.onInit = this.onInit.bind(this);
   }
 
   selectTemplate(template) {
-    if (!this.state.allowedDeployment) {
+    if (!this.state.allowedDeployment || this.hideDeploymentOption) {
       return;
     }
 
@@ -75,6 +78,16 @@ export default class KubeCustomTemplatesViewController {
     });
   }
 
+  async onInit() {
+    try {
+      const endpoint = this.EndpointProvider.currentEndpoint();
+      const deploymentOptions = await getDeploymentOptions(endpoint.Id);
+      this.hideDeploymentOption = deploymentOptions.hideWebEditor && deploymentOptions.hideFileUpload;
+    } catch (err) {
+      this.Notifications.error('Failure', err, 'Failed to get deployment options');
+    }
+  }
+
   $onInit() {
     this.getTemplates();
 
@@ -83,5 +96,6 @@ export default class KubeCustomTemplatesViewController {
     this.currentUser.id = user.ID;
 
     this.state.allowedDeployment = this.Authentication.hasAuthorizations(['K8sApplicationsAdvancedDeploymentRW']);
+    return this.$async(this.onInit);
   }
 }

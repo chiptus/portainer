@@ -2,11 +2,12 @@ import { ResourceControlViewModel } from '@/react/portainer/access-control/model
 import { AccessControlFormData } from '@/portainer/components/accessControlForm/porAccessControlFormModel';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { getTemplateVariables, intersectVariables } from '@/react/portainer/custom-templates/components/utils';
+import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 
 class KubeEditCustomTemplateViewController {
   /* @ngInject */
-  constructor($async, $state, ModalService, Authentication, CustomTemplateService, FormValidator, Notifications, ResourceControlService) {
-    Object.assign(this, { $async, $state, ModalService, Authentication, CustomTemplateService, FormValidator, Notifications, ResourceControlService });
+  constructor($async, $state, EndpointProvider, ModalService, Authentication, CustomTemplateService, FormValidator, Notifications, ResourceControlService) {
+    Object.assign(this, { $async, $state, EndpointProvider, ModalService, Authentication, CustomTemplateService, FormValidator, Notifications, ResourceControlService });
 
     this.isTemplateVariablesEnabled = isBE;
 
@@ -15,6 +16,7 @@ class KubeEditCustomTemplateViewController {
       formValidationError: '',
       isEditorDirty: false,
       isTemplateValid: true,
+      isLoading: true,
     };
     this.templates = [];
 
@@ -145,10 +147,19 @@ class KubeEditCustomTemplateViewController {
       this.getTemplate();
 
       try {
+        const endpoint = this.EndpointProvider.currentEndpoint();
+        this.deploymentOptions = await getDeploymentOptions(endpoint.Id);
+      } catch (err) {
+        this.Notifications.error('Failure', err, 'Unable to retrieve deployment options');
+      }
+
+      try {
         this.templates = await this.CustomTemplateService.customTemplates();
       } catch (err) {
         this.Notifications.error('Failure loading', err, 'Failed loading custom templates');
       }
+
+      this.state.isLoading = false;
 
       window.addEventListener('beforeunload', this.onBeforeUnload);
     });

@@ -15,6 +15,7 @@ import KubernetesResourceQuotaHelper from 'Kubernetes/helpers/resourceQuotaHelpe
 import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
 import { FeatureId } from '@/react/portainer/feature-flags/enums';
 import { updateIngressControllerClassMap, getIngressControllerClassMap } from '@/react/kubernetes/cluster/ingressClass/utils';
+import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 
 class KubernetesResourcePoolController {
   /* #region  CONSTRUCTOR */
@@ -496,6 +497,8 @@ class KubernetesResourcePoolController {
         });
 
         await this.getRegistries();
+
+        this.deploymentOptions = await getDeploymentOptions(this.endpoint.Id);
 
         this.savedFormValues = angular.copy(this.formValues);
       } catch (err) {

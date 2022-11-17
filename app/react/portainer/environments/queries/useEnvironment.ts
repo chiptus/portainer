@@ -2,7 +2,7 @@ import { useQuery } from 'react-query';
 
 import { withError } from '@/react-tools/react-query';
 
-import { getEndpoint } from '../environment.service';
+import { getDeploymentOptions, getEndpoint } from '../environment.service';
 import { Environment, EnvironmentId } from '../types';
 
 export function useEnvironment<T = Environment | null>(
@@ -15,4 +15,15 @@ export function useEnvironment<T = Environment | null>(
     staleTime: 50,
     enabled: !!id,
   });
+}
+
+export function useEnvironmentDeploymentOptions(id: EnvironmentId) {
+  return useQuery(
+    ['environments', id, 'deploymentOptions'],
+    () => getDeploymentOptions(id),
+    {
+      enabled: !!id,
+      ...withError('Failed loading deployment options'),
+    }
+  );
 }

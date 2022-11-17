@@ -1,4 +1,5 @@
 import RcSlider from 'rc-slider';
+import clsx from 'clsx';
 
 import styles from './Slider.module.css';
 import 'rc-slider/assets/index.css';
@@ -12,6 +13,7 @@ export interface Props {
   // true if you want to always show the tooltip
   dataCy: string;
   visibleTooltip?: boolean;
+  disabled?: boolean;
 }
 
 export function Slider({
@@ -22,6 +24,7 @@ export function Slider({
   onChange,
   dataCy,
   visibleTooltip: visible,
+  disabled,
 }: Props) {
   const SliderWithTooltip = RcSlider.createSliderWithTooltip(RcSlider);
   // if the tooltip is always visible, hide the marks when tooltip value gets close to the edges
@@ -40,11 +43,15 @@ export function Slider({
         marks={marks}
         defaultValue={value}
         onAfterChange={onChange}
-        className={styles.slider}
+        className={clsx(
+          styles.slider,
+          disabled && 'opacity-30 th-highcontrast:opacity-75'
+        )}
         tipProps={{ visible }}
         railStyle={{ height: 8 }}
         trackStyle={{ height: 8 }}
         dotStyle={{ visibility: 'hidden' }}
+        disabled={disabled}
         data-cy={dataCy}
       />
     </div>

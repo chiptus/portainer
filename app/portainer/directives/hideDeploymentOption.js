@@ -1,20 +1,19 @@
 import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 
-angular.module('portainer.rbac').directive('authorization', [
-  'Authentication',
+angular.module('portainer.app').directive('hideDeploymentOption', [
   '$async',
   'EndpointProvider',
-  function (Authentication, $async, EndpointProvider) {
+  function ($async, EndpointProvider) {
     async function linkAsync(scope, elem, attrs) {
-      elem.hide();
-
-      var authorizations = attrs.authorization.split(',');
-      for (var i = 0; i < authorizations.length; i++) {
-        authorizations[i] = authorizations[i].trim();
+      // handle full auth logic in the authorization directive (deployment option logic is there too)
+      const { authorization, hideDeploymentOption } = attrs;
+      if (authorization) {
+        return;
       }
 
-      // Check authorizations based on the deployment option settings
-      const { hideDeploymentOption } = attrs;
+      // otherwise handle the hide-deployment-option logic here
+      elem.hide();
+
       // if there's a hide-deployment-option attribute, check if the alement should be hidden
       if (hideDeploymentOption) {
         const endpoint = EndpointProvider.currentEndpoint();
@@ -33,13 +32,7 @@ angular.module('portainer.rbac').directive('authorization', [
         }
       }
 
-      var hasAuthorizations = Authentication.hasAuthorizations(authorizations);
-      if (hasAuthorizations) {
-        elem.show();
-      } else if (!hasAuthorizations && elem[0].tagName === 'A') {
-        elem.show();
-        elem.addClass('portainer-disabled-link');
-      }
+      elem.show();
     }
 
     return {

@@ -24,6 +24,7 @@ export function SettingsViewModel(data) {
   this.EdgeAgentCheckinInterval = data.EdgeAgentCheckinInterval;
   this.Edge = new EdgeSettingsViewModel(data.Edge);
   this.DefaultRegistry = data.DefaultRegistry;
+  this.GlobalDeploymentOptions = data.GlobalDeploymentOptions;
 }
 
 export function PublicSettingsViewModel(settings) {
@@ -35,6 +36,7 @@ export function PublicSettingsViewModel(settings) {
   this.LogoURL = settings.LogoURL;
   this.CustomLoginBanner = settings.CustomLoginBanner;
   this.OAuthLoginURI = settings.OAuthLoginURI;
+  this.GlobalDeploymentOptions = settings.GlobalDeploymentOptions;
   this.EnableTelemetry = settings.EnableTelemetry;
   this.OAuthHideInternalAuth = settings.OAuthHideInternalAuth;
   this.OAuthLogoutURI = settings.OAuthLogoutURI;

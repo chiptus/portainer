@@ -4,11 +4,12 @@ import { ResourceControlViewModel } from '@/react/portainer/access-control/model
 import { AccessControlFormData } from 'Portainer/components/accessControlForm/porAccessControlFormModel';
 import { getTemplateVariables, intersectVariables } from '@/react/portainer/custom-templates/components/utils';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
+import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 
 class EditCustomTemplateViewController {
   /* @ngInject */
-  constructor($async, $state, $window, ModalService, Authentication, CustomTemplateService, FormValidator, Notifications, ResourceControlService) {
-    Object.assign(this, { $async, $state, $window, ModalService, Authentication, CustomTemplateService, FormValidator, Notifications, ResourceControlService });
+  constructor($async, $state, $window, ModalService, Authentication, CustomTemplateService, FormValidator, Notifications, ResourceControlService, EndpointProvider) {
+    Object.assign(this, { $async, $state, $window, ModalService, Authentication, CustomTemplateService, FormValidator, Notifications, ResourceControlService, EndpointProvider });
 
     this.isTemplateVariablesEnabled = isBE;
 
@@ -17,6 +18,7 @@ class EditCustomTemplateViewController {
       formValidationError: '',
       isEditorDirty: false,
       isTemplateValid: true,
+      isLoading: true,
     };
     this.templates = [];
 
@@ -151,19 +153,30 @@ class EditCustomTemplateViewController {
   }
 
   async $onInit() {
-    this.getTemplate();
+    return this.$async(async () => {
+      this.getTemplate();
 
-    try {
-      this.templates = await this.CustomTemplateService.customTemplates([1, 2]);
-    } catch (err) {
-      this.Notifications.error('Failure loading', err, 'Failed loading custom templates');
-    }
-
-    this.$window.onbeforeunload = () => {
-      if (this.formValues.FileContent !== this.oldFileContent && this.state.isEditorDirty) {
-        return '';
+      try {
+        this.templates = await this.CustomTemplateService.customTemplates([1, 2]);
+      } catch (err) {
+        this.Notifications.error('Failure loading', err, 'Failed loading custom templates');
       }
-    };
+
+      try {
+        const endpoint = await this.EndpointProvider.currentEndpoint();
+        this.deploymentOptions = await getDeploymentOptions(endpoint.Id);
+      } catch (err) {
+        this.Notifications.error('Failure loading', err, 'Failed loading deployment options');
+      }
+
+      this.state.isLoading = false;
+
+      this.$window.onbeforeunload = () => {
+        if (this.formValues.FileContent !== this.oldFileContent && this.state.isEditorDirty) {
+          return '';
+        }
+      };
+    });
   }
 
   $onDestroy() {

@@ -6,6 +6,7 @@ import stripAnsi from 'strip-ansi';
 import PortainerError from '@/portainer/error';
 import { KubernetesDeployManifestTypes, KubernetesDeployBuildMethods, KubernetesDeployRequestMethods, RepositoryMechanismTypes } from 'Kubernetes/models/deploy';
 import { renderTemplate } from '@/react/portainer/custom-templates/components/utils';
+import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { compose, kubernetes } from '@@/BoxSelector/common-options/deployment-methods';
 import { editor, git, template, url } from '@@/BoxSelector/common-options/build-methods';
@@ -45,12 +46,7 @@ class KubernetesDeployController {
       { ...compose, value: KubernetesDeployManifestTypes.COMPOSE },
     ];
 
-    this.methodOptions = [
-      { ...git, value: KubernetesDeployBuildMethods.GIT },
-      { ...editor, value: KubernetesDeployBuildMethods.WEB_EDITOR },
-      { ...url, value: KubernetesDeployBuildMethods.URL },
-      { ...template, description: 'Use custom template', value: KubernetesDeployBuildMethods.CUSTOM_TEMPLATE },
-    ];
+    this.methodOptions = [{ ...git, value: KubernetesDeployBuildMethods.GIT }];
 
     this.state = {
       DeployType: KubernetesDeployManifestTypes.KUBERNETES,
@@ -396,6 +392,21 @@ class KubernetesDeployController {
           this.state.BuildMethod = KubernetesDeployBuildMethods.CUSTOM_TEMPLATE;
           this.state.templateId = templateId;
         }
+      }
+
+      try {
+        this.deploymentOptions = await getDeploymentOptions(this.endpoint.Id);
+        if (!this.deploymentOptions.hideWebEditor) {
+          this.methodOptions.push({ ...editor, value: KubernetesDeployBuildMethods.WEB_EDITOR });
+        }
+        if (!this.deploymentOptions.hideFileUpload) {
+          this.methodOptions.push({ ...url, value: KubernetesDeployBuildMethods.URL });
+        }
+        if (!this.deploymentOptions.hideWebEditor || !this.deploymentOptions.hideFileUpload) {
+          this.methodOptions.push({ ...template, description: 'Use custom template', value: KubernetesDeployBuildMethods.CUSTOM_TEMPLATE });
+        }
+      } catch (err) {
+        this.Notifications.error('Failure', err, 'Unable to get deployment options');
       }
 
       this.state.viewReady = true;

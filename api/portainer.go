@@ -340,6 +340,17 @@ type (
 		EndTime   string `json:"EndTime" example:"02:00"`
 	}
 
+	// DeploymentOptions hides manual deployment forms for an environment
+	DeploymentOptions struct {
+		OverrideGlobalOptions bool `json:"overrideGlobalOptions"`
+		// Hide manual deploy forms in portainer
+		HideAddWithForm bool `json:"hideAddWithForm" example:"true"`
+		// Hide the webeditor in the remaining visible forms
+		HideWebEditor bool `json:"hideWebEditor" example:"false"`
+		// Hide the file upload option in the remaining visible forms
+		HideFileUpload bool `json:"hideFileUpload" example:"false"`
+	}
+
 	// Environment(Endpoint) represents a Docker environment(endpoint) with all the info required
 	// to connect to it
 	Endpoint struct {
@@ -422,6 +433,8 @@ type (
 
 		// Automatic update change window restriction for stacks and apps
 		ChangeWindow EndpointChangeWindow `json:"ChangeWindow"`
+		// Hide manual deployment forms for an environment
+		DeploymentOptions *DeploymentOptions `json:"DeploymentOptions"`
 
 		EnableImageNotification bool `json:"EnableImageNotification"`
 
@@ -1107,6 +1120,18 @@ type (
 		ResourceGroup string
 	}
 
+	// GlobalDeploymentOptions hides manual deployment forms globally, to enforce infrastructure as code practices
+	GlobalDeploymentOptions struct {
+		// Hide manual deploy forms in portainer
+		HideAddWithForm bool `json:"hideAddWithForm" example:"false"`
+		// Configure this per environment or globally
+		PerEnvOverride bool `json:"perEnvOverride" example:"false"`
+		// Hide the webeditor in the remaining visible forms
+		HideWebEditor bool `json:"hideWebEditor" example:"false"`
+		// Hide the file upload option in the remaining visible forms
+		HideFileUpload bool `json:"hideFileUpload" example:"false"`
+	}
+
 	// Settings represents the application settings
 	Settings struct {
 		// URL to a logo that will be displayed on the login page as well as on top of the sidebar. Will use default Portainer logo when value is empty string
@@ -1127,7 +1152,8 @@ type (
 		SnapshotInterval string `json:"SnapshotInterval" example:"5m"`
 		// URL to the templates that will be displayed in the UI when navigating to App Templates
 		TemplatesURL string `json:"TemplatesURL" example:"https://raw.githubusercontent.com/portainer/templates/master/templates.json"`
-
+		// Deployment options for encouraging git ops workflows
+		GlobalDeploymentOptions GlobalDeploymentOptions `json:"GlobalDeploymentOptions"`
 		// Whether edge compute features are enabled
 		EnableEdgeComputeFeatures bool `json:"EnableEdgeComputeFeatures"`
 		// The duration of a user session

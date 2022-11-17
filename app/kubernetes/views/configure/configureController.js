@@ -17,6 +17,7 @@ class KubernetesConfigureController {
     $async,
     $state,
     $scope,
+    SettingsService,
     Notifications,
     KubernetesStorageService,
     EndpointService,
@@ -30,6 +31,7 @@ class KubernetesConfigureController {
     this.$async = $async;
     this.$state = $state;
     this.$scope = $scope;
+    this.SettingsService = SettingsService;
     this.Notifications = Notifications;
     this.KubernetesStorageService = KubernetesStorageService;
     this.EndpointService = EndpointService;
@@ -54,6 +56,10 @@ class KubernetesConfigureController {
     this.onToggleIngressAvailabilityPerNamespace = this.onToggleIngressAvailabilityPerNamespace.bind(this);
     this.onToggleAllowNoneIngressClass = this.onToggleAllowNoneIngressClass.bind(this);
     this.onChangeStorageClassAccessMode = this.onChangeStorageClassAccessMode.bind(this);
+    this.onToggleAddWithForm = this.onToggleAddWithForm.bind(this);
+    this.onToggleHideWebEditor = this.onToggleHideWebEditor.bind(this);
+    this.onToggleHideFileUpload = this.onToggleHideFileUpload.bind(this);
+    this.onToggleOverrideGlobalOptions = this.onToggleOverrideGlobalOptions.bind(this);
     this.onToggleRestrictStandardUserIngressW = this.onToggleRestrictStandardUserIngressW.bind(this);
   }
   /* #endregion */
@@ -127,6 +133,7 @@ class KubernetesConfigureController {
     endpoint.Kubernetes.Configuration.RestrictStandardUserIngressW = this.formValues.RestrictStandardUserIngressW;
     endpoint.Kubernetes.Configuration.IngressAvailabilityPerNamespace = this.formValues.IngressAvailabilityPerNamespace;
     endpoint.Kubernetes.Configuration.AllowNoneIngressClass = this.formValues.AllowNoneIngressClass;
+    endpoint.DeploymentOptions = this.formValues.DeploymentOptions;
     endpoint.ChangeWindow = this.state.autoUpdateSettings;
   }
 
@@ -262,6 +269,44 @@ class KubernetesConfigureController {
     });
   }
 
+  onToggleOverrideGlobalOptions(checked) {
+    return this.$scope.$evalAsync(() => {
+      this.formValues.DeploymentOptions.overrideGlobalOptions = checked;
+      this.formValues.DeploymentOptions.hideAddWithForm = false;
+      this.formValues.DeploymentOptions.hideWebEditor = false;
+      this.formValues.DeploymentOptions.hideFileUpload = false;
+      if (checked) {
+        this.formValues.DeploymentOptions.hideAddWithForm = true;
+        this.formValues.DeploymentOptions.hideWebEditor = true;
+        this.formValues.DeploymentOptions.hideFileUpload = true;
+      }
+    });
+  }
+
+  onToggleAddWithForm(checked) {
+    return this.$scope.$evalAsync(() => {
+      this.formValues.DeploymentOptions.hideAddWithForm = checked;
+      this.formValues.DeploymentOptions.hideWebEditor = false;
+      this.formValues.DeploymentOptions.hideFileUpload = false;
+      if (checked) {
+        this.formValues.DeploymentOptions.hideWebEditor = true;
+        this.formValues.DeploymentOptions.hideFileUpload = true;
+      }
+    });
+  }
+
+  onToggleHideWebEditor(checked) {
+    return this.$scope.$evalAsync(() => {
+      this.formValues.DeploymentOptions.hideWebEditor = !checked;
+    });
+  }
+
+  onToggleHideFileUpload(checked) {
+    return this.$scope.$evalAsync(() => {
+      this.formValues.DeploymentOptions.hideFileUpload = !checked;
+    });
+  }
+
   onChangeStorageClassAccessMode(storageClassName, accessModes) {
     return this.$scope.$evalAsync(() => {
       const storageClass = this.StorageClasses.find((item) => item.Name === storageClassName);
@@ -308,18 +353,31 @@ class KubernetesConfigureController {
       IngressClasses: [],
       RestrictDefaultNamespace: false,
       enableAutoUpdateTimeWindow: false,
+      DeploymentOptions: {
+        overrideGlobalOptions: false,
+        hideAddWithForm: false,
+        hideWebEditor: false,
+        hideFileUpload: false,
+      },
       IngressAvailabilityPerNamespace: false,
       RestrictStandardUserIngressW: false,
     };
 
     this.isIngressControllersLoading = true;
     try {
-      [this.StorageClasses, this.endpoint] = await Promise.all([this.KubernetesStorageService.get(this.state.endpointId), this.EndpointService.endpoint(this.state.endpointId)]);
+      [this.StorageClasses, this.endpoint, this.globalSettings] = await Promise.all([
+        this.KubernetesStorageService.get(this.state.endpointId),
+        this.EndpointService.endpoint(this.state.endpointId),
+        this.SettingsService.publicSettings(),
+      ]);
 
       this.ingressControllers = await getIngressControllerClassMap({ environmentId: this.state.endpointId });
       this.originalIngressControllers = structuredClone(this.ingressControllers);
 
       this.state.autoUpdateSettings = this.endpoint.ChangeWindow;
+      if (this.endpoint.DeploymentOptions) {
+        this.formValues.DeploymentOptions = this.endpoint.DeploymentOptions;
+      }
 
       this.availableAccessModes = new KubernetesStorageClassAccessPolicies();
       _.forEach(this.StorageClasses, (item) => {

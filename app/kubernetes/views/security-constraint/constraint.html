@@ -20,9 +20,15 @@
           <form class="form-horizontal" name="k8sConstraintForm">
             <!--  Enable pod security constraints  -->
             <div class="form-group col-sm-12">
-              <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 px-0">Enable pod security constraints</label>
+              <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 px-0">
+                Enable pod security constraints
+                <portainer-tooltip
+                  ng-if="deploymentOptions.hideAddWithForm"
+                  message="'Disabled to enforce code-based deployment. To enable, set \'Enforce code-based deployment\' to off in the Portainer settings or Cluster setup.'"
+                ></portainer-tooltip>
+              </label>
               <label class="!mt-2 switch space-left m-0 col-sm-8">
-                <input type="checkbox" ng-model="formValues.enabled" />
+                <input disable-deployment-option="form" type="checkbox" ng-model="formValues.enabled" />
                 <span class="slider round"></span>
               </label>
             </div>
@@ -33,25 +39,33 @@
               <div class="form-group col-sm-12">
                 <div class="text-muted small">Controls whether any container in a pod can enable privileged mode</div>
                 <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 px-0">Restrict running privileged containers</label>
-                <label class="!mt-2 switch space-left"> <input type="checkbox" ng-model="formValues.privilegedContainers.enabled" /><span class="slider round"></span> </label>
+                <label class="!mt-2 switch space-left">
+                  <input disable-deployment-option="form" type="checkbox" ng-model="formValues.privilegedContainers.enabled" /><span class="slider round"></span>
+                </label>
               </div>
 
               <!--  Restrict host namespace  -->
               <div class="form-group col-sm-12 top-space-lg">
                 <div class="text-muted small">Controls whether the pod containers can share the process ID namespace and host IPC namespace</div>
                 <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 px-0">Restrict host namespace</label>
-                <label class="!mt-2 switch space-left col-sm-8"> <input type="checkbox" ng-model="formValues.hostNamespaces.enabled" /><span class="slider round"></span> </label>
+                <label class="!mt-2 switch space-left col-sm-8">
+                  <input disable-deployment-option="form" type="checkbox" ng-model="formValues.hostNamespaces.enabled" /><span class="slider round"></span>
+                </label>
               </div>
 
               <!--  Restrict host ports  -->
               <div class="form-group col-sm-12 top-space-lg">
                 <div class="text-muted small">Controls whether the pod may use networking ports</div>
                 <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 px-0">Restrict host networking ports</label>
-                <label class="!mt-2 switch space-left col-sm-8"> <input type="checkbox" ng-model="formValues.hostPorts.enabled" /><span class="slider round"></span> </label>
+                <label class="!mt-2 switch space-left col-sm-8">
+                  <input disable-deployment-option="form" type="checkbox" ng-model="formValues.hostPorts.enabled" /><span class="slider round"></span>
+                </label>
                 <div ng-if="formValues.hostPorts.enabled" class="form-group-inline-message row px-2">
                   <div class="col-sm-12 p-0 !mb-0 flex justify-start">
                     <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 !pl-0">Host network</label>
-                    <label class="!mt-2 switch ml-[2px] col-sm-8"> <input type="checkbox" ng-model="formValues.hostPorts.hostNetwork" /><span class="slider round"></span> </label>
+                    <label class="!mt-2 switch ml-[2px] col-sm-8">
+                      <input disable-deployment-option="form" type="checkbox" ng-model="formValues.hostPorts.hostNetwork" /><span class="slider round"></span>
+                    </label>
                   </div>
                   <div class="text-muted small top-space-sm col-sm-12 !mb-0 p-0">Range of allowable ports in the host network namespace</div>
                   <label class="control-label text-left col-sm-12 !mb-0 p-0">Host ports</label>
@@ -59,7 +73,16 @@
                     <div class="col-sm-4">
                       <div class="input-group input-group-sm">
                         <span class="input-group-addon">min</span>
-                        <input name="minPort" class="form-control" type="number" ng-model="formValues.hostPorts.min" ng-min="0" ng-max="formValues.hostPorts.max" required />
+                        <input
+                          disable-deployment-option="form"
+                          name="minPort"
+                          class="form-control"
+                          type="number"
+                          ng-model="formValues.hostPorts.min"
+                          ng-min="0"
+                          ng-max="formValues.hostPorts.max"
+                          required
+                        />
                       </div>
                       <div class="small text-warning mt-1" ng-class="{ invisible: !k8sConstraintForm['minPort'].$invalid }" ng-messages="k8sConstraintForm['minPort'].$error">
                         <p ng-message="required" class="vertical-center"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>Min port number is required.</p>
@@ -74,7 +97,16 @@
                     <div class="col-sm-4">
                       <div class="input-group input-group-sm">
                         <span class="input-group-addon">max</span>
-                        <input name="maxPort" class="form-control" type="number" ng-model="formValues.hostPorts.max" ng-min="formValues.hostPorts.min" ng-max="65535" required />
+                        <input
+                          disable-deployment-option="form"
+                          name="maxPort"
+                          class="form-control"
+                          type="number"
+                          ng-model="formValues.hostPorts.max"
+                          ng-min="formValues.hostPorts.min"
+                          ng-max="65535"
+                          required
+                        />
                       </div>
                       <div class="small text-warning mt-1" ng-class="{ invisible: !k8sConstraintForm['maxPort'].$invalid }" ng-messages="k8sConstraintForm['maxPort'].$error">
                         <p ng-message="required" class="vertical-center"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>Max port number is required.</p>
@@ -94,7 +126,9 @@
                 <div class="row">
                   <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 p-0 m-0">Restrict volume types</label>
                   <label class="!mt-2 switch space-left col-sm-8">
-                    <input type="checkbox" ng-model="formValues.volumeTypes.enabled" ng-change="updateDuplicated()" /><span class="slider round"></span>
+                    <input disable-deployment-option="form" type="checkbox" ng-model="formValues.volumeTypes.enabled" ng-change="updateDuplicated()" /><span
+                      class="slider round"
+                    ></span>
                   </label>
                 </div>
                 <div ng-if="formValues.volumeTypes.enabled" class="form-group-inline-message row px-2">
@@ -116,7 +150,12 @@
                     <div ng-repeat="volumeType in formValues.volumeTypes.allowedTypes track by $index" class="top-space-sm">
                       <div class="input-group input-group-sm">
                         <span class="input-group-addon">type</span>
-                        <select class="form-control" ng-model="volumeType" ng-change="updateItem(formValues.volumeTypes.allowedTypes, $index, volumeType)">
+                        <select
+                          disable-deployment-option="form"
+                          class="form-control"
+                          ng-model="volumeType"
+                          ng-change="updateItem(formValues.volumeTypes.allowedTypes, $index, volumeType)"
+                        >
                           <option value="*">All</option>
                           <option value="configMap">configMap</option>
                           <option value="downwardAPI">downwardAPI</option>
@@ -128,7 +167,7 @@
                           <option value="secret">secret</option>
                         </select>
                       </div>
-                      <button class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeItem(formValues.volumeTypes.allowedTypes, $index)">
+                      <button hide-deployment-option="form" class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeItem(formValues.volumeTypes.allowedTypes, $index)">
                         <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
                       </button>
                     </div>
@@ -145,7 +184,7 @@
                 <div class="row">
                   <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 p-0 m-0">Restrict host filesystem paths</label>
                   <label class="!mt-2 switch space-left col-sm-8 m-0">
-                    <input type="checkbox" ng-model="formValues.hostFilesystem.enabled" ng-change="updateDuplicated()" />
+                    <input disable-deployment-option="form" type="checkbox" ng-model="formValues.hostFilesystem.enabled" ng-change="updateDuplicated()" />
                     <span class="slider round"></span>
                   </label>
                 </div>
@@ -161,14 +200,14 @@
                     <div ng-repeat="allowedPath in formValues.hostFilesystem.allowedPaths" class="top-space-sm">
                       <div class="col-sm-6 input-group input-group-sm">
                         <span class="input-group-addon">path</span>
-                        <input class="form-control" ng-model="allowedPath.pathPrefix" ng-change="checkHostAllowedPathDuplicate()" required />
+                        <input disable-deployment-option="form" class="form-control" ng-model="allowedPath.pathPrefix" ng-change="checkHostAllowedPathDuplicate()" required />
                       </div>
                       <div class="input-group input-group-sm">
                         <div class="btn-group btn-group-sm">
                           <label class="btn btn-light" ng-model="allowedPath.readonly" uib-btn-radio="false">Writable</label>
                           <label class="btn btn-light" ng-model="allowedPath.readonly" uib-btn-radio="true">Read-only</label>
                         </div>
-                        <button class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeHostAllowedPath($index)">
+                        <button hide-deployment-option="form" class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeHostAllowedPath($index)">
                           <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
                         </button>
                       </div>
@@ -186,7 +225,9 @@
                 <div class="row">
                   <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 p-0 m-0">Restrict drivers</label>
                   <label class="!mt-2 switch space-left col-sm-8 m-0">
-                    <input type="checkbox" ng-model="formValues.allowFlexVolumes.enabled" ng-change="updateDuplicated()" /><span class="slider round"></span>
+                    <input disable-deployment-option="form" type="checkbox" ng-model="formValues.allowFlexVolumes.enabled" ng-change="updateDuplicated()" /><span
+                      class="slider round"
+                    ></span>
                   </label>
                 </div>
                 <div ng-if="formValues.allowFlexVolumes.enabled" class="form-group-inline-message row px-2">
@@ -201,9 +242,19 @@
                     <div ng-repeat="driver in formValues.allowFlexVolumes.allowedVolumes track by $index" class="top-space-sm">
                       <div class="input-group col-sm-6 input-group-sm">
                         <span class="input-group-addon">driver</span>
-                        <input class="form-control" ng-model="driver" ng-change="updateItem(formValues.allowFlexVolumes.allowedVolumes, $index, driver)" required />
+                        <input
+                          disable-deployment-option="form"
+                          class="form-control"
+                          ng-model="driver"
+                          ng-change="updateItem(formValues.allowFlexVolumes.allowedVolumes, $index, driver)"
+                          required
+                        />
                       </div>
-                      <button class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeItem(formValues.allowFlexVolumes.allowedVolumes, $index)">
+                      <button
+                        hide-deployment-option="form"
+                        class="btn btn-dangerlight btn-sm btn-only-icon"
+                        ng-click="removeItem(formValues.allowFlexVolumes.allowedVolumes, $index)"
+                      >
                         <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
                       </button>
                     </div>
@@ -220,7 +271,7 @@
                 <div class="row">
                   <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 p-0 m-0"> Require read-only root filesystem </label>
                   <label class="!mt-2 switch space-left col-sm-8">
-                    <input type="checkbox" ng-model="formValues.readOnlyRootFileSystem.enabled" />
+                    <input disable-deployment-option="form" type="checkbox" ng-model="formValues.readOnlyRootFileSystem.enabled" />
                     <span class="slider round"></span>
                   </label>
                 </div>
@@ -232,7 +283,7 @@
                 <div class="row">
                   <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 p-0 m-0"> Restrict User and group ids </label>
                   <label class="!mt-2 switch space-left col-sm-8">
-                    <input type="checkbox" ng-model="formValues.users.enabled" />
+                    <input disable-deployment-option="form" type="checkbox" ng-model="formValues.users.enabled" />
                     <span class="slider round"></span>
                   </label>
                 </div>
@@ -241,7 +292,12 @@
                   <div class="col-sm-12 p-0 !mb-1">
                     <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 !p-0"> Run as user </label>
                     <label class="!mt-2 switch space-left">
-                      <select class="form-control label select" ng-model="formValues.users.runAsUser.type" ng-change="switchPrivilege(formValues.users.runAsUser)">
+                      <select
+                        disable-deployment-option="form"
+                        class="form-control label select"
+                        ng-model="formValues.users.runAsUser.type"
+                        ng-change="switchPrivilege(formValues.users.runAsUser)"
+                      >
                         <option value="MustRunAs">MustRunAs</option>
                         <option value="MustRunAsNonRoot">MustRunAsNonRoot</option>
                         <option value="RunAsAny">RunAsAny</option>
@@ -263,7 +319,16 @@
                     <div class="col-sm-3 p-0 mr-1">
                       <div class="input-group input-group-sm">
                         <span class="input-group-addon">min id</span>
-                        <input class="form-control" type="number" ng-model="range.min" name="rsu_{{ $index }}_min" ng-min="0" ng-max="{{ range.max }}" required />
+                        <input
+                          disable-deployment-option="form"
+                          class="form-control"
+                          type="number"
+                          ng-model="range.min"
+                          name="rsu_{{ $index }}_min"
+                          ng-min="0"
+                          ng-max="{{ range.max }}"
+                          required
+                        />
                       </div>
                       <div
                         class="small vertical-center mt-1 text-warning"
@@ -278,7 +343,15 @@
                     <div class="col-sm-3 p-0 mr-1">
                       <div class="input-group input-group-sm">
                         <span class="input-group-addon">max id</span>
-                        <input class="form-control" type="number" ng-model="range.max" name="rsu_{{ $index }}_max" ng-min="{{ range.min }}" required />
+                        <input
+                          disable-deployment-option="form"
+                          class="form-control"
+                          type="number"
+                          ng-model="range.max"
+                          name="rsu_{{ $index }}_max"
+                          ng-min="{{ range.min }}"
+                          required
+                        />
                       </div>
                       <div
                         class="small text-warning"
@@ -290,6 +363,7 @@
                       </div>
                     </div>
                     <button
+                      hide-deployment-option="form"
                       class="btn btn-dangerlight btn-sm btn-only-icon"
                       ng-if="formValues.users.runAsUser.idrange.length > 1"
                       ng-click="removeItem(formValues.users.runAsUser.idrange, $index)"
@@ -302,7 +376,12 @@
                   <div class="col-sm-12 top-space-sm p-0 !mb-1">
                     <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 !p-0"> Run as group</label>
                     <label class="!mt-2 switch space-left">
-                      <select class="form-control label select" ng-model="formValues.users.runAsGroup.type" ng-change="switchPrivilege(formValues.users.runAsGroup)">
+                      <select
+                        disable-deployment-option="form"
+                        class="form-control label select"
+                        ng-model="formValues.users.runAsGroup.type"
+                        ng-change="switchPrivilege(formValues.users.runAsGroup)"
+                      >
                         <option value="MustRunAs">MustRunAs</option>
                         <option value="MayRunAs">MayRunAs</option>
                         <option value="RunAsAny">RunAsAny</option>
@@ -324,7 +403,16 @@
                     <div class="col-sm-3 p-0 mr-1">
                       <div class="input-group input-group-sm">
                         <span class="input-group-addon">min id</span>
-                        <input class="form-control" type="number" ng-model="range.min" name="rsg_{{ $index }}_min" ng-min="0" ng-max="{{ range.max }}" required />
+                        <input
+                          disable-deployment-option="form"
+                          class="form-control"
+                          type="number"
+                          ng-model="range.min"
+                          name="rsg_{{ $index }}_min"
+                          ng-min="0"
+                          ng-max="{{ range.max }}"
+                          required
+                        />
                       </div>
                       <div
                         class="small vertical-center mt-1 text-warning"
@@ -339,7 +427,15 @@
                     <div class="col-sm-3 p-0 mr-1">
                       <div class="input-group input-group-sm">
                         <span class="input-group-addon">max id</span>
-                        <input class="form-control" type="number" ng-model="range.max" name="rsg_{{ $index }}_max" ng-min="{{ range.min }}" required />
+                        <input
+                          disable-deployment-option="form"
+                          class="form-control"
+                          type="number"
+                          ng-model="range.max"
+                          name="rsg_{{ $index }}_max"
+                          ng-min="{{ range.min }}"
+                          required
+                        />
                       </div>
                       <div
                         class="small text-warning"
@@ -351,6 +447,7 @@
                       </div>
                     </div>
                     <button
+                      hide-deployment-option="form"
                       ng-if="formValues.users.runAsGroup.idrange.length > 1 || formValues.users.runAsGroup.type === 'MayRunAs'"
                       class="btn btn-dangerlight btn-sm btn-only-icon"
                       ng-click="removeItem(formValues.users.runAsGroup.idrange, $index)"
@@ -364,6 +461,7 @@
                     <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 !p-0">Supplemental group</label>
                     <label class="!mt-2 switch space-left">
                       <select
+                        disable-deployment-option="form"
                         class="form-control label select"
                         ng-model="formValues.users.supplementalGroups.type"
                         ng-change="switchPrivilege(formValues.users.supplementalGroups)"
@@ -389,7 +487,16 @@
                     <div class="col-sm-3 p-0 mr-1">
                       <div class="input-group input-group-sm">
                         <span class="input-group-addon">min id</span>
-                        <input class="form-control" type="number" ng-model="range.min" name="rss_{{ $index }}_min" ng-min="0" ng-max="{{ range.max }}" required />
+                        <input
+                          disable-deployment-option="form"
+                          class="form-control"
+                          type="number"
+                          ng-model="range.min"
+                          name="rss_{{ $index }}_min"
+                          ng-min="0"
+                          ng-max="{{ range.max }}"
+                          required
+                        />
                       </div>
                       <div
                         class="small vertical-center mt-1 text-warning"
@@ -404,7 +511,15 @@
                     <div class="col-sm-3 p-0 mr-1">
                       <div class="input-group input-group-sm">
                         <span class="input-group-addon">max id</span>
-                        <input class="form-control" type="number" ng-model="range.max" name="rss_{{ $index }}_max" ng-min="{{ range.min }}" required />
+                        <input
+                          disable-deployment-option="form"
+                          class="form-control"
+                          type="number"
+                          ng-model="range.max"
+                          name="rss_{{ $index }}_max"
+                          ng-min="{{ range.min }}"
+                          required
+                        />
                       </div>
                       <div
                         class="small text-warning"
@@ -416,6 +531,7 @@
                       </div>
                     </div>
                     <button
+                      hide-deployment-option="form"
                       ng-if="formValues.users.supplementalGroups.idrange.length > 1"
                       class="btn btn-dangerlight btn-sm btn-only-icon"
                       ng-click="removeItem(formValues.users.supplementalGroups.idrange, $index)"
@@ -428,7 +544,12 @@
                   <div class="col-sm-12 top-space-sm p-0 !mb-1">
                     <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 !p-0">fsGroup</label>
                     <label class="!mt-2 switch space-left">
-                      <select class="form-control label select" ng-model="formValues.users.fsGroups.type" ng-change="switchPrivilege(formValues.users.fsGroups)">
+                      <select
+                        disable-deployment-option="form"
+                        class="form-control label select"
+                        ng-model="formValues.users.fsGroups.type"
+                        ng-change="switchPrivilege(formValues.users.fsGroups)"
+                      >
                         <option value="MustRunAs">MustRunAs</option>
                         <option value="MayRunAs">MayRunAs</option>
                         <option value="RunAsAny">RunAsAny</option>
@@ -450,7 +571,16 @@
                     <div class="col-sm-3 p-0 mr-1">
                       <div class="input-group input-group-sm">
                         <span class="input-group-addon">min id</span>
-                        <input class="form-control" type="number" ng-model="range.min" name="rsf_{{ $index }}_min" ng-min="0" ng-max="{{ range.max }}" required />
+                        <input
+                          disable-deployment-option="form"
+                          class="form-control"
+                          type="number"
+                          ng-model="range.min"
+                          name="rsf_{{ $index }}_min"
+                          ng-min="0"
+                          ng-max="{{ range.max }}"
+                          required
+                        />
                       </div>
                       <div
                         class="small vertical-center mt-1 text-warning"
@@ -465,7 +595,15 @@
                     <div class="col-sm-3 p-0 mr-1">
                       <div class="input-group input-group-sm">
                         <span class="input-group-addon">max id</span>
-                        <input class="form-control" type="number" ng-model="range.max" name="rsf_{{ $index }}_max" ng-min="{{ range.min }}" required />
+                        <input
+                          disable-deployment-option="form"
+                          class="form-control"
+                          type="number"
+                          ng-model="range.max"
+                          name="rsf_{{ $index }}_max"
+                          ng-min="{{ range.min }}"
+                          required
+                        />
                       </div>
                       <div
                         class="small vertical-center mt-1 text-warning"
@@ -477,6 +615,7 @@
                       </div>
                     </div>
                     <button
+                      hide-deployment-option="form"
                       ng-if="formValues.users.fsGroups.idrange.length > 1"
                       class="btn btn-dangerlight btn-sm btn-only-icon"
                       ng-click="removeItem(formValues.users.fsGroups.idrange, $index)"
@@ -493,7 +632,7 @@
                 <div class="row">
                   <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 p-0 m-0">Restrict escalation to root privileges</label>
                   <label class="!mt-2 switch space-left col-sm-8">
-                    <input type="checkbox" ng-model="formValues.allowPrivilegeEscalation.enabled" />
+                    <input disable-deployment-option="form" type="checkbox" ng-model="formValues.allowPrivilegeEscalation.enabled" />
                     <span class="slider round"></span>
                   </label>
                 </div>
@@ -505,7 +644,7 @@
                 <div class="row">
                   <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 p-0 m-0"> Restrict Linux capabilities </label>
                   <label class="!mt-2 switch space-left col-sm-8">
-                    <input type="checkbox" ng-model="formValues.capabilities.enabled" ng-change="updateDuplicated()" />
+                    <input disable-deployment-option="form" type="checkbox" ng-model="formValues.capabilities.enabled" ng-change="updateDuplicated()" />
                     <span class="slider round"></span>
                   </label>
                 </div>
@@ -521,13 +660,18 @@
                         <div class="col-sm-6 input-group input-group-sm">
                           <span class="input-group-addon">capability</span>
                           <input
+                            disable-deployment-option="form"
                             class="form-control"
                             ng-model="allowedCapability"
                             ng-change="updateCapability(formValues.capabilities.allowedCapabilities, $index, allowedCapability)"
                             required
                           />
                         </div>
-                        <button class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeCapability(formValues.capabilities.allowedCapabilities, $index)">
+                        <button
+                          hide-deployment-option="form"
+                          class="btn btn-dangerlight btn-sm btn-only-icon"
+                          ng-click="removeCapability(formValues.capabilities.allowedCapabilities, $index)"
+                        >
                           <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
                         </button>
                       </div>
@@ -547,13 +691,18 @@
                         <div class="input-group col-sm-6 input-group-sm">
                           <span class="input-group-addon">capability</span>
                           <input
+                            disable-deployment-option="form"
                             class="form-control"
                             ng-model="capability"
                             ng-change="updateCapability(formValues.capabilities.requiredDropCapabilities, $index, capability)"
                             required
                           />
                         </div>
-                        <button class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeCapability(formValues.capabilities.requiredDropCapabilities, $index)">
+                        <button
+                          hide-deployment-option="form"
+                          class="btn btn-dangerlight btn-sm btn-only-icon"
+                          ng-click="removeCapability(formValues.capabilities.requiredDropCapabilities, $index)"
+                        >
                           <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
                         </button>
                       </div>
@@ -574,7 +723,9 @@
                 <div class="row">
                   <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 p-0 m-0"> Restrict SELinux security context </label>
                   <label class="!mt-2 switch space-left col-sm-8">
-                    <input type="checkbox" ng-model="formValues.selinux.enabled" ng-change="updateDuplicated()" /><span class="slider round"></span>
+                    <input disable-deployment-option="form" type="checkbox" ng-model="formValues.selinux.enabled" ng-change="updateDuplicated()" /><span
+                      class="slider round"
+                    ></span>
                   </label>
                 </div>
                 <div ng-if="formValues.selinux.enabled" class="form-group-inline-message row px-2">
@@ -587,21 +738,21 @@
                     <div ng-repeat="option in formValues.selinux.allowedCapabilities" class="top-space-sm">
                       <div class="input-group col-sm-2 input-group-sm">
                         <span class="input-group-addon">level</span>
-                        <input class="form-control" ng-model="option.level" required ng-change="checkSELinuxAllowedCapabilitiesDuplicate()" />
+                        <input disable-deployment-option="form" class="form-control" ng-model="option.level" required ng-change="checkSELinuxAllowedCapabilitiesDuplicate()" />
                       </div>
                       <div class="input-group col-sm-2 input-group-sm">
                         <span class="input-group-addon">role</span>
-                        <input class="form-control" ng-model="option.role" required ng-change="checkSELinuxAllowedCapabilitiesDuplicate()" />
+                        <input disable-deployment-option="form" class="form-control" ng-model="option.role" required ng-change="checkSELinuxAllowedCapabilitiesDuplicate()" />
                       </div>
                       <div class="input-group col-sm-2 input-group-sm">
                         <span class="input-group-addon">type</span>
-                        <input class="form-control" ng-model="option.type" required ng-change="checkSELinuxAllowedCapabilitiesDuplicate()" />
+                        <input disable-deployment-option="form" class="form-control" ng-model="option.type" required ng-change="checkSELinuxAllowedCapabilitiesDuplicate()" />
                       </div>
                       <div class="input-group col-sm-2 input-group-sm">
                         <span class="input-group-addon">user</span>
-                        <input class="form-control" ng-model="option.user" required ng-change="checkSELinuxAllowedCapabilitiesDuplicate()" />
+                        <input disable-deployment-option="form" class="form-control" ng-model="option.user" required ng-change="checkSELinuxAllowedCapabilitiesDuplicate()" />
                       </div>
-                      <button class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeSELinuxAllowedCapabilities($index)">
+                      <button hide-deployment-option="form" class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeSELinuxAllowedCapabilities($index)">
                         <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
                       </button>
                     </div>
@@ -617,12 +768,14 @@
                 <div class="text-muted small">Controls the type of proc mount to use for containers</div>
                 <div class="row">
                   <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 p-0 m-0"> Restrict Proc Mount types </label>
-                  <label class="!mt-2 switch space-left col-sm-8"> <input type="checkbox" ng-model="formValues.allowProcMount.enabled" /><span class="slider round"></span> </label>
+                  <label class="!mt-2 switch space-left col-sm-8">
+                    <input disable-deployment-option="form" type="checkbox" ng-model="formValues.allowProcMount.enabled" /><span class="slider round"></span>
+                  </label>
                 </div>
                 <div ng-if="formValues.allowProcMount.enabled" class="form-group-inline-message row px-2">
                   <label class="control-label text-left"> Allowed Proc Mount types </label>
                   <label class="space-left">
-                    <select class="form-control label select" ng-model="formValues.allowProcMount.procMountType">
+                    <select disable-deployment-option="form" class="form-control label select" ng-model="formValues.allowProcMount.procMountType">
                       <option value="Default">Default</option>
                       <option value="Unmasked">Unmasked</option>
                     </select>
@@ -640,7 +793,9 @@
                 <div class="row">
                   <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 p-0 m-0"> Restrict AppArmor profiles </label>
                   <label class="!mt-2 switch space-left col-sm-8">
-                    <input type="checkbox" ng-model="formValues.appArmor.enabled" ng-change="updateDuplicated()" /><span class="slider round"></span>
+                    <input disable-deployment-option="form" type="checkbox" ng-model="formValues.appArmor.enabled" ng-change="updateDuplicated()" /><span
+                      class="slider round"
+                    ></span>
                   </label>
                 </div>
                 <div ng-if="formValues.appArmor.enabled" class="form-group-inline-message row px-2">
@@ -653,9 +808,15 @@
                     <div ng-repeat="profile in formValues.appArmor.AppArmorType track by $index" class="top-space-sm">
                       <div class="input-group col-sm-6 input-group-sm">
                         <span class="input-group-addon">profile</span>
-                        <input class="form-control" ng-model="profile" ng-change="updateItem(formValues.appArmor.AppArmorType, $index, profile)" required />
+                        <input
+                          disable-deployment-option="form"
+                          class="form-control"
+                          ng-model="profile"
+                          ng-change="updateItem(formValues.appArmor.AppArmorType, $index, profile)"
+                          required
+                        />
                       </div>
-                      <button class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeItem(formValues.appArmor.AppArmorType, $index)">
+                      <button hide-deployment-option="form" class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeItem(formValues.appArmor.AppArmorType, $index)">
                         <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
                       </button>
                     </div>
@@ -672,7 +833,9 @@
                 <div class="row">
                   <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 p-0 m-0"> Restrict seccomp profiles </label>
                   <label class="!mt-2 switch space-left col-sm-8">
-                    <input type="checkbox" ng-model="formValues.secComp.enabled" ng-change="updateDuplicated()" /><span class="slider round"></span>
+                    <input disable-deployment-option="form" type="checkbox" ng-model="formValues.secComp.enabled" ng-change="updateDuplicated()" /><span
+                      class="slider round"
+                    ></span>
                   </label>
                 </div>
                 <div ng-if="formValues.secComp.enabled" class="form-group-inline-message row px-2">
@@ -685,9 +848,15 @@
                     <div ng-repeat="profile in formValues.secComp.secCompType track by $index" class="top-space-sm">
                       <div class="input-group col-sm-6 input-group-sm">
                         <span class="input-group-addon">profile</span>
-                        <input class="form-control" ng-model="profile" ng-change="updateItem(formValues.secComp.secCompType, $index, profile)" required />
+                        <input
+                          disable-deployment-option="form"
+                          class="form-control"
+                          ng-model="profile"
+                          ng-change="updateItem(formValues.secComp.secCompType, $index, profile)"
+                          required
+                        />
                       </div>
-                      <button class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeItem(formValues.secComp.secCompType, $index)">
+                      <button hide-deployment-option="form" class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeItem(formValues.secComp.secCompType, $index)">
                         <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
                       </button>
                     </div>
@@ -704,7 +873,9 @@
                 <div class="row">
                   <label class="!mt-1 control-label text-left col-sm-5 col-lg-4 p-0 m-0"> Restrict sysctl profiles </label>
                   <label class="!mt-2 switch space-left col-sm-8">
-                    <input type="checkbox" ng-model="formValues.forbiddenSysctlsList.enabled" ng-change="updateDuplicated()" /><span class="slider round"></span>
+                    <input disable-deployment-option="form" type="checkbox" ng-model="formValues.forbiddenSysctlsList.enabled" ng-change="updateDuplicated()" /><span
+                      class="slider round"
+                    ></span>
                   </label>
                 </div>
                 <div ng-if="formValues.forbiddenSysctlsList.enabled" class="form-group-inline-message row px-2">
@@ -717,9 +888,19 @@
                     <div ng-repeat="sysctl in formValues.forbiddenSysctlsList.requiredDropCapabilities  track by $index " class="top-space-sm">
                       <div class="input-group col-sm-6 input-group-sm">
                         <span class="input-group-addon">sysctl</span>
-                        <input class="form-control" ng-model="sysctl" ng-change="updateItem(formValues.forbiddenSysctlsList.requiredDropCapabilities, $index, sysctl)" required />
+                        <input
+                          disable-deployment-option="form"
+                          class="form-control"
+                          ng-model="sysctl"
+                          ng-change="updateItem(formValues.forbiddenSysctlsList.requiredDropCapabilities, $index, sysctl)"
+                          required
+                        />
                       </div>
-                      <button class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeItem(formValues.forbiddenSysctlsList.requiredDropCapabilities, $index)">
+                      <button
+                        hide-deployment-option="form"
+                        class="btn btn-dangerlight btn-sm btn-only-icon"
+                        ng-click="removeItem(formValues.forbiddenSysctlsList.requiredDropCapabilities, $index)"
+                      >
                         <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
                       </button>
                     </div>
@@ -737,6 +918,7 @@
             <div class="form-group">
               <div class="col-sm-12">
                 <button
+                  hide-deployment-option="form"
                   type="submit"
                   ng-disabled="k8sConstraintForm.$invalid || duplicated"
                   class="btn btn-primary btn-sm !ml-0"

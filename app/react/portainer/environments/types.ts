@@ -126,12 +126,20 @@ export interface EnvironmentSecuritySettings {
   enableHostManagementFeatures: boolean;
 }
 
+export type DeploymentOptions = {
+  overrideGlobalOptions: boolean;
+  hideAddWithForm: boolean;
+  hideWebEditor: boolean;
+  hideFileUpload: boolean;
+};
+
 export type Environment = {
   Agent: { Version: string };
   Id: EnvironmentId;
   Type: EnvironmentType;
   TagIds: TagId[];
   GroupId: EnvironmentGroupId;
+  DeploymentOptions: DeploymentOptions | null;
   EdgeID?: string;
   EdgeKey: string;
   EdgeCheckinInterval?: number;

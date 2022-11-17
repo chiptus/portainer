@@ -3,13 +3,14 @@ import { getTemplateVariables, intersectVariables } from '@/react/portainer/cust
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { editor, upload } from '@@/BoxSelector/common-options/build-methods';
 
+import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
+
 class KubeCreateCustomTemplateViewController {
   /* @ngInject */
-  constructor($async, $state, Authentication, CustomTemplateService, FormValidator, ModalService, Notifications, ResourceControlService) {
-    Object.assign(this, { $async, $state, Authentication, CustomTemplateService, FormValidator, ModalService, Notifications, ResourceControlService });
+  constructor($async, $state, EndpointProvider, Authentication, CustomTemplateService, FormValidator, ModalService, Notifications, ResourceControlService) {
+    Object.assign(this, { $async, $state, EndpointProvider, Authentication, CustomTemplateService, FormValidator, ModalService, Notifications, ResourceControlService });
 
-    this.methodOptions = [editor, upload];
-
+    this.methodOptions = [];
     this.templates = null;
     this.isTemplateVariablesEnabled = isBE;
 
@@ -177,6 +178,25 @@ class KubeCreateCustomTemplateViewController {
         this.templates = await this.CustomTemplateService.customTemplates(3);
       } catch (err) {
         this.Notifications.error('Failure loading', err, 'Failed loading custom templates');
+      }
+
+      try {
+        const endpoint = this.EndpointProvider.currentEndpoint();
+        this.deploymentOptions = await getDeploymentOptions(endpoint.Id);
+        // set the available methods based on deployment options
+        this.methodOptions = [];
+        if (!this.deploymentOptions.hideWebEditor) {
+          this.methodOptions.push(editor);
+        }
+        if (!this.deploymentOptions.hideFileUpload) {
+          this.methodOptions.push(upload);
+        }
+        // the selected method must be available
+        if (!this.methodOptions.map((option) => option.value).includes(this.state.method)) {
+          this.state.method = this.methodOptions[0].value;
+        }
+      } catch (err) {
+        this.Notifications.error('Failure', err, 'Unable to get deployment options');
       }
 
       this.state.loading = false;

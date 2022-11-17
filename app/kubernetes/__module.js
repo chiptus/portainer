@@ -1,3 +1,5 @@
+import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
+
 import registriesModule from './registries';
 import customTemplateModule from './custom-templates';
 import { reactModule } from './react';
@@ -84,6 +86,19 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
           component: 'kubernetesIngressesCreateView',
         },
       },
+      onEnter: /* @ngInject */ function endpoint($async, $state, $transition$, Notifications) {
+        return $async(async () => {
+          try {
+            const endpointId = +$transition$.params().endpointId;
+            const deploymentOptions = await getDeploymentOptions(endpointId);
+            if (deploymentOptions.hideAddWithForm) {
+              $state.go('kubernetes.ingresses', { endpointId });
+            }
+          } catch (err) {
+            Notifications.error('Failed to get deployment options', err);
+          }
+        });
+      },
     };
 
     const ingressesEdit = {
@@ -113,6 +128,19 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
         'content@': {
           component: 'kubernetesCreateApplicationView',
         },
+      },
+      onEnter: /* @ngInject */ function endpoint($async, $state, $transition$, Notifications) {
+        return $async(async () => {
+          try {
+            const endpointId = +$transition$.params().endpointId;
+            const deploymentOptions = await getDeploymentOptions(endpointId);
+            if (deploymentOptions.hideAddWithForm) {
+              $state.go('kubernetes.applications', { endpointId });
+            }
+          } catch (err) {
+            Notifications.error('Failed to get deployment options', err);
+          }
+        });
       },
     };
 
@@ -206,6 +234,19 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
           component: 'kubernetesCreateConfigurationView',
         },
       },
+      onEnter: /* @ngInject */ function endpoint($async, $state, $transition$, Notifications) {
+        return $async(async () => {
+          try {
+            const endpointId = +$transition$.params().endpointId;
+            const deploymentOptions = await getDeploymentOptions(endpointId);
+            if (deploymentOptions.hideAddWithForm) {
+              $state.go('kubernetes.configurations', { endpointId });
+            }
+          } catch (err) {
+            Notifications.error('Failed to get deployment options', err);
+          }
+        });
+      },
     };
 
     const configuration = {
@@ -288,6 +329,19 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
         'content@': {
           component: 'kubernetesCreateResourcePoolView',
         },
+      },
+      onEnter: /* @ngInject */ function endpoint($async, $state, $transition$, Notifications) {
+        return $async(async () => {
+          try {
+            const endpointId = +$transition$.params().endpointId;
+            const deploymentOptions = await getDeploymentOptions(endpointId);
+            if (deploymentOptions.hideAddWithForm) {
+              $state.go('kubernetes.resourcePools', { endpointId });
+            }
+          } catch (err) {
+            Notifications.error('Failed to get deployment options', err);
+          }
+        });
       },
     };
 

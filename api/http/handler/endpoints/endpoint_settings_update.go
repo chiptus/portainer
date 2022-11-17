@@ -36,6 +36,9 @@ type endpointSettingsUpdatePayload struct {
 	// Whether automatic update time restrictions are enabled
 	ChangeWindow *portaineree.EndpointChangeWindow `json:"changeWindow"`
 
+	// Hide manual deployment forms for an environment
+	DeploymentOptions *portaineree.DeploymentOptions `json:"deploymentOptions"`
+
 	EnableImageNotification *bool `json:"enableImageNotification" example:"false"`
 }
 
@@ -134,6 +137,10 @@ func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Re
 
 	if payload.ChangeWindow != nil {
 		endpoint.ChangeWindow = *payload.ChangeWindow
+	}
+
+	if endpoint.Type == portaineree.AgentOnKubernetesEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment || endpoint.Type == portaineree.KubeConfigEnvironment || endpoint.Type == portaineree.KubernetesLocalEnvironment {
+		endpoint.DeploymentOptions = payload.DeploymentOptions
 	}
 
 	if payload.EnableImageNotification != nil {

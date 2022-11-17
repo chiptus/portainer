@@ -50,6 +50,15 @@ angular.module('portainer.app').controller('SettingsController', [
     $scope.formValues = {
       customLogo: false,
       customLoginBanner: false,
+      GlobalDeploymentOptions: {
+        hideAddWithForm: false,
+        perEnvOverride: false,
+        hideWebEditor: false,
+        hideFileUpload: false,
+      },
+      KubeconfigExpiry: undefined,
+      HelmRepositoryURL: undefined,
+      BlackListedLabels: [],
       labelName: '',
       labelValue: '',
       enableTelemetry: false,
@@ -83,6 +92,36 @@ angular.module('portainer.app').controller('SettingsController', [
       });
     };
 
+    $scope.onToggleAddWithForm = function onToggleAddWithForm(checked) {
+      $scope.$evalAsync(() => {
+        $scope.formValues.GlobalDeploymentOptions.hideAddWithForm = checked;
+        $scope.formValues.GlobalDeploymentOptions.hideWebEditor = false;
+        $scope.formValues.GlobalDeploymentOptions.hideFileUpload = false;
+        if (checked) {
+          $scope.formValues.GlobalDeploymentOptions.hideWebEditor = true;
+          $scope.formValues.GlobalDeploymentOptions.hideFileUpload = true;
+        }
+      });
+    };
+
+    $scope.onTogglePerEnvOverride = function onTogglePerEnvOverride(checked) {
+      $scope.$evalAsync(() => {
+        $scope.formValues.GlobalDeploymentOptions.perEnvOverride = checked;
+      });
+    };
+
+    $scope.onToggleHideWebEditor = function onToggleHideWebEditor(checked) {
+      $scope.$evalAsync(() => {
+        $scope.formValues.GlobalDeploymentOptions.hideWebEditor = !checked;
+      });
+    };
+
+    $scope.onToggleHideFileUpload = function onToggleHideFileUpload(checked) {
+      $scope.$evalAsync(() => {
+        $scope.formValues.GlobalDeploymentOptions.hideFileUpload = !checked;
+      });
+    };
+
     $scope.onToggleAutoBackups = function onToggleAutoBackups(checked) {
       $scope.$evalAsync(() => {
         $scope.formValues.scheduleAutomaticBackups = checked;
@@ -102,21 +141,20 @@ angular.module('portainer.app').controller('SettingsController', [
     };
 
     $scope.removeFilteredContainerLabel = function (index) {
-      var settings = $scope.settings;
-      settings.BlackListedLabels.splice(index, 1);
-
-      updateSettings(settings);
+      const filteredSettings = $scope.formValues.BlackListedLabels.filter((_, i) => i !== index);
+      const filteredSettingsPayload = { BlackListedLabels: filteredSettings };
+      updateSettings(filteredSettingsPayload, 'Hidden container settings updated');
     };
 
     $scope.addFilteredContainerLabel = function () {
-      var settings = $scope.settings;
       var label = {
         name: $scope.formValues.labelName,
         value: $scope.formValues.labelValue,
       };
-      settings.BlackListedLabels.push(label);
 
-      updateSettings(settings);
+      const filteredSettings = [...$scope.formValues.BlackListedLabels, label];
+      const filteredSettingsPayload = { BlackListedLabels: filteredSettings };
+      updateSettings(filteredSettingsPayload, 'Hidden container settings updated');
     };
 
     $scope.downloadBackup = function () {
@@ -141,21 +179,30 @@ angular.module('portainer.app').controller('SettingsController', [
         });
     };
 
+    // only update the values from the app settings widget. In future separate the api endpoints
     $scope.saveApplicationSettings = function () {
-      var settings = $scope.settings;
-
-      if (!$scope.formValues.customLogo) {
-        settings.LogoURL = '';
-      }
-
-      if (!$scope.formValues.customLoginBanner) {
-        settings.CustomLoginBanner = '';
-      }
-
-      settings.EnableTelemetry = $scope.formValues.enableTelemetry;
+      const appSettingsPayload = {
+        SnapshotInterval: $scope.settings.SnapshotInterval,
+        LogoURL: $scope.formValues.customLogo ? $scope.settings.LogoURL : '',
+        EnableTelemetry: $scope.formValues.enableTelemetry,
+        CustomLoginBanner: $scope.formValues.customLoginBanner ? $scope.settings.CustomLoginBanner : '',
+        TemplatesURL: $scope.settings.TemplatesURL,
+      };
 
       $scope.state.actionInProgress = true;
-      updateSettings(settings);
+      updateSettings(appSettingsPayload, 'Application settings updated');
+    };
+
+    // only update the values from the kube settings widget. In future separate the api endpoints
+    $scope.saveKubernetesSettings = function () {
+      const kubeSettingsPayload = {
+        KubeconfigExpiry: $scope.formValues.KubeconfigExpiry,
+        HelmRepositoryURL: $scope.formValues.HelmRepositoryURL,
+        GlobalDeploymentOptions: $scope.formValues.GlobalDeploymentOptions,
+      };
+
+      $scope.state.kubeSettingsActionInProgress = true;
+      updateSettings(kubeSettingsPayload, 'Kubernetes settings updated');
     };
 
     $scope.saveS3BackupSettings = function () {
@@ -198,24 +245,25 @@ angular.module('portainer.app').controller('SettingsController', [
       };
     }
 
-    function updateSettings(settings) {
+    function updateSettings(settings, successMessage = 'Settings updated') {
       // ignore CloudApiKeys to avoid overriding them
       //
       // it is not ideal solution as API still accepts CloudAPIKeys
       // which may override the cloud provider API keys
       settings.CloudApiKeys = undefined;
       SettingsService.update(settings)
-        .then(function success() {
-          Notifications.success('Success', 'Settings updated');
+        .then(function success(response) {
+          Notifications.success('Success', successMessage);
           StateManager.updateLogo(settings.LogoURL);
           StateManager.updateSnapshotInterval(settings.SnapshotInterval);
           StateManager.updateEnableTelemetry(settings.EnableTelemetry);
-          $state.reload();
+          $scope.formValues.BlackListedLabels = response.BlackListedLabels;
         })
         .catch(function error(err) {
           Notifications.error('Failure', err, 'Unable to update settings');
         })
         .finally(function final() {
+          $scope.state.kubeSettingsActionInProgress = false;
           $scope.state.actionInProgress = false;
         });
     }
@@ -253,7 +301,15 @@ angular.module('portainer.app').controller('SettingsController', [
           if (settings.CustomLoginBanner !== '') {
             $scope.formValues.customLoginBanner = true;
           }
+
+          if (settings.GlobalDeploymentOptions) {
+            $scope.formValues.GlobalDeploymentOptions = settings.GlobalDeploymentOptions;
+          }
+
           $scope.formValues.enableTelemetry = settings.EnableTelemetry;
+          $scope.formValues.KubeconfigExpiry = settings.KubeconfigExpiry;
+          $scope.formValues.HelmRepositoryURL = settings.HelmRepositoryURL;
+          $scope.formValues.BlackListedLabels = settings.BlackListedLabels;
         })
         .catch(function error(err) {
           Notifications.error('Failure', err, 'Unable to retrieve application settings');

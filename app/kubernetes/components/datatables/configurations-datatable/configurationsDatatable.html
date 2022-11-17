@@ -34,7 +34,13 @@
             >
               <pr-icon icon="'trash-2'" feather="true"></pr-icon>Remove
             </button>
-            <button type="button" class="btn btn-sm btn-secondary !ml-0 vertical-center" ui-sref="kubernetes.configurations.new" data-cy="k8sConfig-addConfigWithFormButton">
+            <button
+              hide-deployment-option="form"
+              type="button"
+              class="btn btn-sm btn-secondary !ml-0 vertical-center"
+              ui-sref="kubernetes.configurations.new"
+              data-cy="k8sConfig-addConfigWithFormButton"
+            >
               <pr-icon icon="'plus'" feather="true" class-name="'!h-3'"></pr-icon>Add with form
             </button>
             <button type="button" class="btn btn-sm btn-primary !ml-0 vertical-center" ui-sref="kubernetes.deploy" data-cy="k8sConfig-deployFromManifestButton">

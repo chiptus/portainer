@@ -1,5 +1,6 @@
 import angular from 'angular';
 import './constraint.css';
+import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 
 angular.module('portainer.kubernetes').controller('KubernetesSecurityConstraintController', [
   '$scope',
@@ -284,6 +285,7 @@ angular.module('portainer.kubernetes').controller('KubernetesSecurityConstraintC
         Object.assign($scope.formValues, opaData.data);
         sanitizedForm();
       }
+      $scope.deploymentOptions = await getDeploymentOptions(endpointID);
       $scope.state.viewReady = true;
     }
 

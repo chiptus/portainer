@@ -81,10 +81,11 @@
                           ng-click="ctrl.state.increaseSize = true"
                           ng-if="ctrl.volume.PersistentVolumeClaim.StorageClass.AllowVolumeExpansion"
                           data-cy="k8sVolDetail-increaseSizeButton"
+                          hide-deployment-option="form"
                           >Increase size</button
                         >
                       </td>
-                      <td ng-if="ctrl.state.increaseSize" authorization="K8sVolumeDetailsW">
+                      <td ng-if="ctrl.state.increaseSize" authorization="K8sVolumeDetailsW" hide-deployment-option="form">
                         <form name="kubernetesVolumeUpdateForm">
                           <div class="form-inline">
                             <div class="input-group input-group-sm">
