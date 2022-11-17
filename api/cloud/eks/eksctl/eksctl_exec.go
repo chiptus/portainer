@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	DefaultEksCtlVersion              = "v0.101.0"
-	DefaultAwsIamAuthenticatorVersion = "v0.5.7"
+	DefaultEksCtlVersion              = "v0.118.0"
+	DefaultAwsIamAuthenticatorVersion = "v0.5.9"
 )
 
 const (

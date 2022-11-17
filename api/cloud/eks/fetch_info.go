@@ -12,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/pkg/errors"
 	log "github.com/rs/zerolog/log"
@@ -153,10 +152,7 @@ func FetchInfo(accessKeyId, secretAccessKey string) (*EksInfo, error) {
 		return nil, err
 	}
 
-	kubeVersions, err := getKubernetesVersions(cfg)
-	if err != nil {
-		return nil, err
-	}
+	kubeVersions := supportedVersions()
 	eksInfo.KubernetesVersions = append(eksInfo.KubernetesVersions, kubeVersions...)
 
 	eksInfo.AmiTypes = getAmiTypes()
@@ -292,34 +288,20 @@ func getInstanceTypesInput() *ec2.DescribeInstanceTypesInput {
 	}
 }
 
-func getKubernetesVersions(cfg aws.Config) ([]portaineree.Pair, error) {
-	// EKS does not provide an api to get kubernetes versions directly
-	// This is a hack to get it via the addons api
-	// We can look at the addons and versions and check the compatibile versions of kubernetes for these addons
-
-	versions := make(map[string]string, 0)
-
-	addonVersions, err := eks.NewFromConfig(cfg).DescribeAddonVersions(context.TODO(), &eks.DescribeAddonVersionsInput{})
-	if err != nil {
-		return nil, err
+// This list comes from eksctl which I can't import due to some dependency issues
+// When you upgrade eksctl, ensure this table matches what's in the release in this file:
+// See: https://github.com/weaveworks/eksctl/blob/main/pkg/apis/eksctl.io/v1alpha5/types.go
+func supportedVersions() []portaineree.Pair {
+	return []portaineree.Pair{
+		// display name, val
+		withValue("latest", ""),
+		withValue("1.23", "1.23"),
+		withValue("1.22", "1.22"),
+		withValue("1.21", "1.21"),
+		withValue("1.20", "1.20"),
 	}
+}
 
-	// Grab all the kube versions (will be several duplicates). Manage it with a map.
-	for _, versionInfo := range addonVersions.Addons {
-		for _, addonVer := range versionInfo.AddonVersions {
-			for _, compatVer := range addonVer.Compatibilities {
-				versions[*compatVer.ClusterVersion] = *compatVer.ClusterVersion
-			}
-		}
-	}
-
-	// Now change the map into the format we require
-	var kubeVersions []portaineree.Pair
-	for v := range versions {
-		kubeVersions = append(kubeVersions, portaineree.Pair{Name: v, Value: v})
-	}
-	sort.Sort(sort.Reverse(KubeByVersion(kubeVersions)))
-	kubeVersions = append([]portaineree.Pair{{Name: "latest", Value: ""}}, kubeVersions...)
-
-	return kubeVersions, nil
+func withValue(name, value string) portaineree.Pair {
+	return portaineree.Pair{Name: name, Value: value}
 }
