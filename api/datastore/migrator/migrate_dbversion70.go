@@ -1,6 +1,7 @@
 package migrator
 
 import (
+	"github.com/Masterminds/semver"
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
 
@@ -8,7 +9,7 @@ import (
 )
 
 func (m *Migrator) migrateDBVersionToDB70() error {
-	log.Info().Msg("- add IngressAvailabilityPerNamespace field")
+	log.Info().Msg("add IngressAvailabilityPerNamespace field")
 	if err := m.updateIngressFieldsForEnvDB70(); err != nil {
 		return err
 	}
@@ -42,12 +43,12 @@ func (m *Migrator) migrateDBVersionToDB70() error {
 		}
 
 		// set to nil old fields
-		log.Info().Msg("deleting snapshot from endpoint")
+		log.Info().Msgf("deleting snapshot from endpoint %d", endpoint.ID)
 		endpoint.Snapshots = []portainer.DockerSnapshot{}
 		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{}
 		endpoint.Nomad.Snapshots = []portaineree.NomadSnapshot{}
 
-		log.Info().Msg("- try to update the default value for Image notification toggle")
+		log.Info().Msg("update default image notification toggle")
 		if err = m.updateDefaultValueForImageNotificationToggleDb70(&endpoint); err != nil {
 			return err
 		}
@@ -62,14 +63,21 @@ func (m *Migrator) migrateDBVersionToDB70() error {
 }
 
 func (m *Migrator) updateDefaultValueForImageNotificationToggleDb70(endpoint *portaineree.Endpoint) error {
-	if m.Edition() == portaineree.PortainerCE {
+	if m.CurrentDBEdition() == portaineree.PortainerCE {
 		log.Info().Msg("skip image notification toggle migration for CE version")
 		return nil
 	}
-	if m.Version() >= 50 && m.Version() < 70 {
-		log.Info().Msgf("migrating from %d to 70, update the default value for image notification toggle", m.currentDBVersion)
+
+	constraint, err := semver.NewConstraint(">= 2.14, < 2.16")
+	if err != nil {
+		return err
+	}
+
+	if inRange, _ := constraint.Validate(m.CurrentSemanticDBVersion()); inRange {
+		log.Info().Msgf("migrating from %s to 2.17, update the default value for image notification toggle", m.CurrentDBVersion())
 		endpoint.EnableImageNotification = true
 	}
+
 	return nil
 }
 

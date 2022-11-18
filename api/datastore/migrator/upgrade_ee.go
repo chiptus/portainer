@@ -12,7 +12,7 @@ import (
 // UpgradeToEE will migrate the db from latest ce version to latest ee version
 // Latest version is v25 on 06/11/2020
 func (m *Migrator) UpgradeToEE() error {
-	log.Info().Int("ce_version", m.Version()).Int("ee_version", portaineree.DBVersion).Msg("migrating CE database EE")
+	log.Info().Msgf("upgrading database from CE to EE")
 
 	log.Info().Msg("upgrading LDAP settings to EE")
 	err := m.updateLdapSettingsToEE()
@@ -49,22 +49,19 @@ func (m *Migrator) UpgradeToEE() error {
 		return errors.Wrap(err, "while validating roles")
 	}
 
-	log.Info().Int("version", portaineree.DBVersionEE).Msg("setting DB version")
+	log.Info().Str("edition", portaineree.PortainerEE.GetEditionLabel()).Msg("set edition")
 
-	err = m.versionService.StoreDBVersion(portaineree.DBVersionEE)
+	v, err := m.versionService.Version()
 	if err != nil {
 		return err
 	}
 
-	log.Info().Str("edition", portaineree.PortainerEE.GetEditionLabel()).Msg("setting edition")
+	v.Edition = int(portaineree.PortainerEE)
 
-	err = m.versionService.StoreEdition(portaineree.PortainerEE)
+	err = m.versionService.UpdateVersion(v)
 	if err != nil {
 		return err
 	}
-
-	m.currentDBVersion = portaineree.DBVersionEE
-	m.currentEdition = portaineree.PortainerEE
 
 	return nil
 }

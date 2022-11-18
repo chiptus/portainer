@@ -7,6 +7,7 @@ import (
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/database/models"
 
 	"github.com/rs/zerolog/log"
 )
@@ -83,7 +84,7 @@ func (store *Store) copyDBFile(from string, to string) error {
 // BackupOptions provide a helper to inject backup options
 type BackupOptions struct {
 	Edition        portaineree.SoftwareEdition
-	Version        int
+	Version        string
 	BackupDir      string
 	BackupFileName string
 	BackupPath     string
@@ -93,17 +94,24 @@ func (store *Store) setupOptions(options *BackupOptions) *BackupOptions {
 	if options == nil {
 		options = &BackupOptions{}
 	}
+
+	v, err := store.VersionService.Version()
+	if options.Version == "" && err == nil {
+		options.Version = v.SchemaVersion
+	}
 	if options.Edition == 0 {
-		options.Edition = store.edition()
+		if err != nil {
+			options.Edition = portaineree.PortainerEE
+		} else {
+			options.Edition = portaineree.SoftwareEdition(v.Edition)
+		}
 	}
-	if options.Version == 0 {
-		options.Version, _ = store.version()
-	}
+
 	if options.BackupDir == "" {
 		options.BackupDir = store.editionBackupDir(options.Edition)
 	}
 	if options.BackupFileName == "" {
-		options.BackupFileName = fmt.Sprintf("%s.%s.%s", store.connection.GetDatabaseFileName(), fmt.Sprintf("%03d", options.Version), time.Now().Format("20060102150405"))
+		options.BackupFileName = fmt.Sprintf("%s.%s.%s", store.connection.GetDatabaseFileName(), options.Version, time.Now().Format("20060102150405"))
 	}
 	if options.BackupPath == "" {
 		options.BackupPath = path.Join(options.BackupDir, options.BackupFileName)
@@ -129,8 +137,14 @@ func (store *Store) listEditionBackups(edition portaineree.SoftwareEdition) ([]s
 	return fileNames, nil
 }
 
-func (store *Store) lastestEditionBackup() (string, error) {
-	edition := store.edition()
+func (store *Store) LatestEditionBackup() (string, error) {
+	var edition portaineree.SoftwareEdition
+	v, err := store.VersionService.Version()
+	if err != nil {
+		edition = portaineree.PortainerEE
+	} else {
+		edition = portaineree.SoftwareEdition(v.Edition)
+	}
 
 	files, err := store.listEditionBackups(edition)
 	if err != nil {
@@ -176,8 +190,15 @@ func (store *Store) backupWithOptions(options *BackupOptions) (string, error) {
 }
 
 // Backup current database with default options
-func (store *Store) Backup() (string, error) {
-	return store.backupWithOptions(nil)
+func (store *Store) Backup(version *models.Version) (string, error) {
+	if version == nil {
+		return store.backupWithOptions(nil)
+	}
+
+	return store.backupWithOptions(&BackupOptions{
+		Version: version.SchemaVersion,
+		Edition: portaineree.SoftwareEdition(version.Edition),
+	})
 }
 
 // RestoreWithOptions previously saved backup for the current Edition  with options
@@ -216,7 +237,7 @@ func (store *Store) restoreWithOptions(options *BackupOptions) error {
 func (store *Store) Restore() error {
 	var options = &BackupOptions{}
 	var err error
-	options.BackupFileName, err = store.lastestEditionBackup()
+	options.BackupFileName, err = store.LatestEditionBackup()
 	if err != nil {
 		return err
 	}

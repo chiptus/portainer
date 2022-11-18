@@ -7,12 +7,13 @@ import (
 	"testing"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/database/models"
 
 	"github.com/rs/zerolog/log"
 )
 
 func TestCreateBackupFolders(t *testing.T) {
-	_, store, teardown := MustNewTestStore(t, false, true)
+	_, store, teardown := MustNewTestStore(t, true, true)
 	defer teardown()
 
 	connection := store.GetConnection()
@@ -36,17 +37,17 @@ func TestStoreCreation(t *testing.T) {
 		t.Error("Expect to create a store")
 	}
 
-	if store.edition() != portaineree.PortainerEE {
-		t.Error("Expect to get EE Edition")
-	}
-
-	version, err := store.version()
+	v, err := store.VersionService.Version()
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
 	}
 
-	if version != portaineree.DBVersionEE {
-		t.Error("Expect to get EE DBVersion")
+	if portaineree.SoftwareEdition(v.Edition) != portaineree.PortainerEE {
+		t.Error("Expect to get EE Edition")
+	}
+
+	if v.SchemaVersion != portaineree.APIVersion {
+		t.Error("Expect to get APIVersion")
 	}
 }
 
@@ -57,18 +58,21 @@ func TestBackup(t *testing.T) {
 
 	tests := []struct {
 		edition portaineree.SoftwareEdition
-		version int
+		version string
 	}{
-		{edition: portaineree.PortainerCE, version: portaineree.DBVersion},
-		{edition: portaineree.PortainerEE, version: portaineree.DBVersionEE},
+		{edition: portaineree.PortainerCE, version: portaineree.APIVersion},
+		{edition: portaineree.PortainerEE, version: portaineree.APIVersion},
 	}
 
 	for _, tc := range tests {
-		backupFileName := fmt.Sprintf("%s/backups/%s/%s.%03d.*", store.connection.GetStorePath(), tc.edition.GetEditionLabel(), store.connection.GetDatabaseFileName(), tc.version)
+		backupFileName := fmt.Sprintf("%s/backups/%s/%s.%s.*", store.connection.GetStorePath(), tc.edition.GetEditionLabel(), store.connection.GetDatabaseFileName(), tc.version)
 		t.Run(fmt.Sprintf("Backup should create %s", backupFileName), func(t *testing.T) {
-			store.VersionService.StoreDBVersion(tc.version)
-			store.VersionService.StoreEdition(tc.edition)
-			store.Backup()
+			v := models.Version{
+				Edition:       int(tc.edition),
+				SchemaVersion: tc.version,
+			}
+			store.VersionService.UpdateVersion(&v)
+			store.Backup(nil)
 
 			if !isFileExist(backupFileName) {
 				t.Errorf("Expect backup file to be created %s", backupFileName)
@@ -76,8 +80,11 @@ func TestBackup(t *testing.T) {
 		})
 	}
 	t.Run("BackupWithOption should create a name specific backup", func(t *testing.T) {
-		store.VersionService.StoreEdition(portaineree.PortainerCE)
-		store.VersionService.StoreDBVersion(portaineree.DBVersion)
+		v := models.Version{
+			Edition:       int(portaineree.PortainerCE),
+			SchemaVersion: portaineree.APIVersion,
+		}
+		store.VersionService.UpdateVersion(&v)
 		store.backupWithOptions(&BackupOptions{
 			BackupFileName: beforePortainerUpgradeToEEBackup,
 			Edition:        portaineree.PortainerCE,
@@ -88,8 +95,11 @@ func TestBackup(t *testing.T) {
 		}
 	})
 	t.Run("BackupWithOption should create a name specific backup at common path", func(t *testing.T) {
-		store.VersionService.StoreEdition(portaineree.PortainerCE)
-		store.VersionService.StoreDBVersion(portaineree.DBVersion)
+		v := models.Version{
+			Edition:       int(portaineree.PortainerCE),
+			SchemaVersion: portaineree.APIVersion,
+		}
+		store.VersionService.UpdateVersion(&v)
 
 		store.backupWithOptions(&BackupOptions{
 			BackupFileName: beforePortainerVersionUpgradeBackup,
@@ -104,42 +114,39 @@ func TestBackup(t *testing.T) {
 
 func TestRestore(t *testing.T) {
 	editions := []portaineree.SoftwareEdition{portaineree.PortainerCE, portaineree.PortainerEE}
-	currentVersion := 0
 
 	_, store, teardown := MustNewTestStore(t, true, true)
 	defer teardown()
 
-	for i, e := range editions {
+	for _, e := range editions {
 		editionLabel := e.GetEditionLabel()
-		currentVersion = 10 ^ i + 1
 
 		t.Run(fmt.Sprintf("Basic Restore for %s", editionLabel), func(t *testing.T) {
 			// override and set initial db version and edition
 			updateEdition(store, e)
-			updateVersion(store, currentVersion)
+			updateVersion(store, "2.4")
 
-			store.Backup()
-			updateVersion(store, currentVersion+1)
-			testVersion(store, currentVersion+1, t)
+			store.Backup(nil)
+			updateVersion(store, "2.16")
+			testVersion(store, "2.16", t)
 			store.Restore()
 
 			// check if the restore is successful and the version is correct
-			testVersion(store, currentVersion, t)
+			testVersion(store, "2.4", t)
 		})
 		t.Run(fmt.Sprintf("Basic Restore After Multiple Backup for %s", editionLabel), func(t *testing.T) {
 			// override and set initial db version and edition
 			updateEdition(store, e)
-			updateVersion(store, currentVersion)
+			updateVersion(store, "2.4")
 
-			currentVersion = currentVersion + 5
-			updateVersion(store, currentVersion)
-			store.Backup()
-			updateVersion(store, currentVersion+2)
-			testVersion(store, currentVersion+2, t)
+			updateVersion(store, "2.14")
+			store.Backup(nil)
+			updateVersion(store, "2.16")
+			testVersion(store, "2.16", t)
 			store.Restore()
 
 			// check if the restore is successful and the version is correct
-			testVersion(store, currentVersion, t)
+			testVersion(store, "2.4", t)
 		})
 	}
 }

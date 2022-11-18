@@ -15,23 +15,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (store *Store) version() (int, error) {
-	version, err := store.VersionService.DBVersion()
-	if store.IsErrObjectNotFound(err) {
-		version = 0
-	}
-	return version, err
-}
-
-func (store *Store) edition() portaineree.SoftwareEdition {
-	edition, err := store.VersionService.Edition()
-	if store.IsErrObjectNotFound(err) {
-		// Portainer CE does not have an edition field, therefore this is CE
-		return portaineree.PortainerCE
-	}
-	return edition
-}
-
 // NewStore initializes a new Store and the associated services
 func NewStore(storePath string, fileService portainer.FileService, connection portainer.Connection) *Store {
 	return &Store{
@@ -43,8 +26,6 @@ func NewStore(storePath string, fileService portainer.FileService, connection po
 
 // Open opens and initializes the BoltDB database.
 func (store *Store) Open() (newStore bool, err error) {
-	newStore = true
-
 	encryptionReq, err := store.connection.NeedsEncryptionMigration()
 	if err != nil {
 		return false, err
@@ -67,23 +48,16 @@ func (store *Store) Open() (newStore bool, err error) {
 		return newStore, err
 	}
 
-	// if we have DBVersion in the database then ensure we flag this as NOT a new store
-	version, err := store.VersionService.DBVersion()
+	// if no settings object exists then we have a new store
+	_, err = store.SettingsService.Settings()
 	if err != nil {
 		if store.IsErrObjectNotFound(err) {
-			return newStore, nil
+			return true, nil
 		}
-
-		return newStore, err
+		return false, err
 	}
 
-	if version > 0 {
-		log.Debug().Int("version", version).Msg("opened existing store")
-
-		return false, nil
-	}
-
-	return newStore, nil
+	return false, nil
 }
 
 func (store *Store) Close() error {
@@ -98,7 +72,13 @@ func (store *Store) BackupTo(w io.Writer) error {
 
 // CheckCurrentEdition checks if current edition is community edition
 func (store *Store) CheckCurrentEdition() error {
-	if store.edition() == portaineree.PortainerCE {
+	edition := portaineree.PortainerCE
+	v, _ := store.VersionService.Version()
+	if v != nil {
+		edition = portaineree.SoftwareEdition(v.Edition)
+	}
+
+	if edition == portaineree.PortainerCE {
 		return dserrors.ErrWrongDBEdition
 	}
 	return nil

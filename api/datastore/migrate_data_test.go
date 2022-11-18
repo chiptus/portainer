@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	portaineree "github.com/portainer/portainer-ee/api"
-
 	"github.com/google/go-cmp/cmp"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/boltdb"
+	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/rs/zerolog/log"
 )
 
@@ -55,10 +55,7 @@ func TestMigrateData(t *testing.T) {
 			t.Error("Expect a new DB")
 		}
 
-		// not called for new stores
-		// store.MigrateData()
-
-		testVersion(store, portaineree.DBVersion, t)
+		testVersion(store, portaineree.APIVersion, t)
 		store.Close()
 
 		newStore, _ = store.Open()
@@ -71,25 +68,27 @@ func TestMigrateData(t *testing.T) {
 		_, store, teardown := MustNewTestStore(t, false, false)
 		defer teardown()
 
-		version := 17
-		store.VersionService.StoreDBVersion(version)
+		v := models.Version{
+			SchemaVersion: "2.14",
+		}
+
+		store.VersionService.UpdateVersion(&v)
 
 		store.MigrateData()
 
-		testVersion(store, version, t)
+		testVersion(store, v.SchemaVersion, t)
 	})
 
 	t.Run("MigrateData should create backup file upon update", func(t *testing.T) {
 		_, store, teardown := MustNewTestStore(t, true, false)
 		defer teardown()
-		store.VersionService.StoreDBVersion(0)
 
+		store.VersionService.UpdateVersion(&models.Version{SchemaVersion: "1.0"})
 		store.MigrateData()
 
-		options := store.setupOptions(getBackupRestoreOptions(store.commonBackupDir()))
-
-		if !isFileExist(options.BackupPath) {
-			t.Errorf("Backup file should exist; file=%s", options.BackupPath)
+		backupfile, err := store.LatestEditionBackup()
+		if err != nil && backupfile == "" {
+			t.Errorf("Backup file should exist")
 		}
 	})
 
@@ -101,10 +100,12 @@ func TestMigrateData(t *testing.T) {
 
 		store.MigrateData()
 
-		options := store.setupOptions(getBackupRestoreOptions(store.commonBackupDir()))
-
-		if isFileExist(options.BackupPath) {
-			t.Errorf("Backup file should not exist for dirty database; file=%s", options.BackupPath)
+		// If you get an error, it usually means that the backup folder doesn't exist (no backups). Expected!
+		// If the backup file is not blank, then it means a backup was created.  We don't want that because we
+		// only create a backup when the version changes.
+		backupfile, err := store.LatestEditionBackup()
+		if err == nil && backupfile != "" {
+			t.Errorf("Backup file should not exist for dirty database")
 		}
 	})
 
@@ -114,10 +115,12 @@ func TestMigrateData(t *testing.T) {
 
 		store.MigrateData()
 
-		options := store.setupOptions(getBackupRestoreOptions(store.commonBackupDir()))
-
-		if isFileExist(options.BackupPath) {
-			t.Errorf("Backup file should not exist for dirty database; file=%s", options.BackupPath)
+		// If you get an error, it usually means that the backup folder doesn't exist (no backups). Expected!
+		// If the backup file is not blank, then it means a backup was created.  We don't want that because we
+		// only create a backup when the version changes.
+		backupfile, err := store.LatestEditionBackup()
+		if err == nil && backupfile != "" {
+			t.Errorf("Backup file should not exist for dirty database")
 		}
 	})
 }
@@ -141,18 +144,24 @@ func Test_getBackupRestoreOptions(t *testing.T) {
 
 func TestRollback(t *testing.T) {
 	t.Run("Rollback should restore upgrade after backup", func(t *testing.T) {
-		version := 21
+		version := "2.11"
+
+		v := models.Version{
+			SchemaVersion: version,
+		}
+
 		_, store, teardown := MustNewTestStore(t, false, false)
 		defer teardown()
-		store.VersionService.StoreDBVersion(version)
+		store.VersionService.UpdateVersion(&v)
 
 		_, err := store.backupWithOptions(getBackupRestoreOptions(store.commonBackupDir()))
 		if err != nil {
 			log.Fatal().Err(err).Msg("")
 		}
 
+		v.SchemaVersion = "2.14"
 		// Change the current edition
-		err = store.VersionService.StoreDBVersion(version + 10)
+		err = store.VersionService.UpdateVersion(&v)
 		if err != nil {
 			log.Fatal().Err(err).Msg("")
 		}
@@ -161,7 +170,6 @@ func TestRollback(t *testing.T) {
 		if err != nil {
 			t.Logf("Rollback failed: %s", err)
 			t.Fail()
-
 			return
 		}
 
@@ -182,6 +190,11 @@ func migrateDBTestHelper(t *testing.T, srcPath, wantPath string) error {
 	// Parse source json to db.
 	_, store, teardown := MustNewTestStore(t, false, false)
 	defer teardown()
+
+	// need to remove new automatic addition of new version bucket before
+	// importing the old one to properly test the version bucket migration
+	store.connection.DeleteObject("version", []byte("VERSION"))
+
 	err = importJSON(t, bytes.NewReader(srcJSON), store)
 	if err != nil {
 		return err

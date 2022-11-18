@@ -2,7 +2,6 @@ package status
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -41,9 +40,17 @@ type BuildInfo struct {
 // @success 200 {object} versionResponse "Success"
 // @router /status/version [get]
 func (handler *Handler) version(w http.ResponseWriter, r *http.Request) {
+
+	dbVer := ""
+	vs := handler.dataStore.Version()
+	v, err := vs.Version()
+	if err == nil {
+		dbVer = v.SchemaVersion
+	}
+
 	result := &versionResponse{
 		ServerVersion:   portaineree.APIVersion,
-		DatabaseVersion: strconv.Itoa(portaineree.DBVersion),
+		DatabaseVersion: dbVer,
 		Build: BuildInfo{
 			BuildNumber:    build.BuildNumber,
 			ImageTag:       build.ImageTag,

@@ -390,14 +390,11 @@ type (
 
 	// VersionService represents a service for managing version data
 	VersionService interface {
-		DBVersion() (int, error)
-		Edition() (portaineree.SoftwareEdition, error)
 		InstanceID() (string, error)
-		StoreDBVersion(version int) error
-		StoreInstanceID(ID string) error
-		StoreEdition(portaineree.SoftwareEdition) error
-		PreviousDBVersion() (int, error)
-		BucketName() string
+		UpdateInstanceID(ID string) error
+		Edition() (portaineree.SoftwareEdition, error)
+		Version() (*models.Version, error)
+		UpdateVersion(*models.Version) error
 	}
 
 	// WebhookService represents a service for managing webhook data.

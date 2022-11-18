@@ -18,22 +18,51 @@ func isFileExist(path string) bool {
 	return len(matches) > 0
 }
 
-func updateVersion(store *Store, v int) {
-	err := store.VersionService.StoreDBVersion(v)
+func updateVersion(store *Store, v string) {
+	version, err := store.VersionService.Version()
+	if err != nil {
+		log.Fatal().Err(err).Msg("")
+	}
+
+	version.SchemaVersion = v
+
+	err = store.VersionService.UpdateVersion(version)
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
 	}
 }
 
 func updateEdition(store *Store, edition portaineree.SoftwareEdition) {
-	err := store.VersionService.StoreEdition(edition)
+	version, err := store.VersionService.Version()
+	if err != nil {
+		log.Fatal().Err(err).Msg("")
+	}
+
+	version.Edition = int(edition)
+
+	err = store.VersionService.UpdateVersion(version)
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
 	}
 }
 
-func testVersion(store *Store, versionWant int, t *testing.T) {
-	if v, _ := store.version(); v != versionWant {
-		t.Errorf("Expect store version to be %d but was %d", versionWant, v)
+// testVersion is a helper which tests current store version against wanted version
+func testVersion(store *Store, versionWant string, t *testing.T) {
+	v, err := store.VersionService.Version()
+	if err != nil {
+		log.Fatal().Err(err).Msg("")
+	}
+	if v.SchemaVersion != versionWant {
+		t.Errorf("Expect store version to be %s but was %s", versionWant, v.SchemaVersion)
+	}
+}
+
+func testEdition(store *Store, editionWant portaineree.SoftwareEdition, t *testing.T) {
+	v, err := store.VersionService.Version()
+	if err != nil {
+		log.Fatal().Err(err).Msg("")
+	}
+	if portaineree.SoftwareEdition(v.Edition) != editionWant {
+		t.Errorf("Expect store edition to be %s but was %s", editionWant.GetEditionLabel(), portaineree.SoftwareEdition(v.Edition).GetEditionLabel())
 	}
 }

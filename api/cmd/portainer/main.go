@@ -20,6 +20,7 @@ import (
 	"github.com/portainer/portainer-ee/api/cloud"
 	"github.com/portainer/portainer-ee/api/database"
 	"github.com/portainer/portainer-ee/api/database/boltdb"
+	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/demo"
@@ -50,6 +51,7 @@ import (
 	"github.com/portainer/portainer/api/git"
 	"github.com/portainer/portainer/api/hostmanagement/openamt"
 
+	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
@@ -145,18 +147,26 @@ func initDataStore(flags *portaineree.CLIFlags, secretKey []byte, fileService po
 	}
 
 	if isNew {
-		// from MigrateData
-		store.VersionService.StoreDBVersion(portaineree.DBVersion)
-		store.VersionService.StoreEdition(portaineree.PortainerEE)
+		instanceId, err := uuid.NewV4()
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed generating instance id")
+		}
 
-		err := updateSettingsFromFlags(store, flags)
+		v := models.Version{
+			SchemaVersion: portainer.APIVersion,
+			Edition:       int(portainer.PortainerEE),
+			InstanceID:    instanceId.String(),
+		}
+		store.VersionService.UpdateVersion(&v)
+
+		err = updateSettingsFromFlags(store, flags)
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed updating settings from flags")
 		}
 	} else {
 		err = store.MigrateData()
 		if err != nil {
-			log.Fatal().Err(err).Msg("failure during creation of new database")
+			log.Fatal().Err(err).Msg("failed migration")
 		}
 	}
 

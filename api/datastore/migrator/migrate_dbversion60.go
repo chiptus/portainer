@@ -27,12 +27,13 @@ func (m *Migrator) addGpuInputFieldDB60() error {
 	}
 
 	for _, endpoint := range endpoints {
-		endpoint.Gpus = []portaineree.Pair{}
-		err = m.endpointService.UpdateEndpoint(endpoint.ID, &endpoint)
-		if err != nil {
-			return err
+		if endpoint.Gpus == nil {
+			endpoint.Gpus = []portaineree.Pair{}
+			err = m.endpointService.UpdateEndpoint(endpoint.ID, &endpoint)
+			if err != nil {
+				return err
+			}
 		}
-
 	}
 
 	return nil

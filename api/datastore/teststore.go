@@ -5,6 +5,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database"
+	"github.com/portainer/portainer-ee/api/database/models"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 
@@ -18,6 +19,10 @@ func (store *Store) GetConnection() portainer.Connection {
 	return store.connection
 }
 
+// MustNewTestStore creates a new store for testing purposes.
+//
+//	init indicates the store should be initialised.
+//	secure indicates the store should be encrypted.
 func MustNewTestStore(t *testing.T, init, secure bool) (bool, *Store, func()) {
 	newStore, store, teardown, err := NewTestStore(t, init, secure)
 	if err != nil {
@@ -68,8 +73,11 @@ func NewTestStore(t *testing.T, init, secure bool) (bool, *Store, func(), error)
 
 	if newStore {
 		// from MigrateData
-		store.VersionService.StoreDBVersion(portaineree.DBVersion)
-		store.VersionService.StoreEdition(portaineree.PortainerEE)
+		v := models.Version{
+			SchemaVersion: portaineree.APIVersion,
+			Edition:       int(portaineree.PortainerEE),
+		}
+		store.VersionService.UpdateVersion(&v)
 		if err != nil {
 			return newStore, nil, nil, err
 		}
