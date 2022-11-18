@@ -39,6 +39,13 @@ type (
 	EdgeAsyncImageOperation     string
 	EdgeAsyncVolumeOperation    string
 
+	// EdgeRegistryCredentials holds the credentials for a Docker registry used by Edge Agent
+	EdgeRegistryCredential struct {
+		ServerURL string
+		Username  string
+		Secret    string
+	}
+
 	// EdgeAsyncCommand represents a command that is executed by an Edge Agent. Follows JSONPatch RFC https://datatracker.ietf.org/doc/html/rfc6902
 	EdgeAsyncCommand struct {
 		ID         int                       `json:"id"`

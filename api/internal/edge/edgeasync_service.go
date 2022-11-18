@@ -8,6 +8,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	portainer "github.com/portainer/portainer/api"
 
 	"github.com/docker/docker/api/types"
@@ -15,10 +16,11 @@ import (
 )
 
 type edgeStackData struct {
-	ID               portaineree.EdgeStackID
-	Version          int
-	StackFileContent string
-	Name             string
+	ID                  portaineree.EdgeStackID
+	Version             int
+	StackFileContent    string
+	Name                string
+	RegistryCredentials []portaineree.EdgeRegistryCredential
 }
 
 type edgeLogData struct {
@@ -108,11 +110,14 @@ func (service *Service) storeUpdateStackCommand(endpoint *portaineree.Endpoint, 
 		return err
 	}
 
+	registryCredentials := registryutils.GetRegistryCredentialsForEdgeStack(service.dataStore, edgeStack, endpoint)
+
 	stackStatus := edgeStackData{
-		StackFileContent: string(stackFileContent),
-		Name:             edgeStack.Name,
-		ID:               edgeStackID,
-		Version:          edgeStack.Version,
+		StackFileContent:    string(stackFileContent),
+		Name:                edgeStack.Name,
+		ID:                  edgeStackID,
+		Version:             edgeStack.Version,
+		RegistryCredentials: registryCredentials,
 	}
 
 	asyncCommand := &portaineree.EdgeAsyncCommand{
