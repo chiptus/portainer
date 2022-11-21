@@ -1,7 +1,6 @@
 import angular from 'angular';
 import _ from 'lodash';
 
-import { isOfflineEndpoint } from '@/portainer/helpers/endpointHelper';
 import { PortainerEndpointTypes } from 'Portainer/models/endpoint/models';
 import { useContainerStatusComponent } from '@/react/docker/DashboardView/ContainerStatus';
 import { useImagesTotalSizeComponent } from '@/react/docker/DashboardView/ImagesTotalSize';
@@ -41,7 +40,6 @@ angular.module('portainer.docker').controller('DashboardController', [
       StateManager.dismissInformationPanel(id);
     };
 
-    $scope.offlineMode = false;
     $scope.showStacks = false;
     $scope.showEnvUrl = endpoint.Type !== PortainerEndpointTypes.EdgeAgentOnDockerEnvironment && endpoint.Type !== PortainerEndpointTypes.EdgeAgentOnKubernetesEnvironment;
 
@@ -123,7 +121,6 @@ angular.module('portainer.docker').controller('DashboardController', [
                 ', '
               )
             : '-';
-          $scope.offlineMode = isOfflineEndpoint(endpoint);
         })
         .catch(function error(err) {
           Notifications.error('Failure', err, 'Unable to load dashboard data');

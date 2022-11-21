@@ -1,5 +1,3 @@
-import { isOfflineEndpoint } from '@/portainer/helpers/endpointHelper';
-
 angular.module('portainer.app').controller('StacksController', StacksController);
 
 /* @ngInject */
@@ -35,7 +33,6 @@ function StacksController($scope, $state, Notifications, StackService, ModalServ
     });
   }
 
-  $scope.offlineMode = false;
   $scope.createEnabled = false;
   $scope.enableImageNotification = endpoint.EnableImageNotification;
 
@@ -49,7 +46,6 @@ function StacksController($scope, $state, Notifications, StackService, ModalServ
     StackService.stacks(true, endpointMode.provider === 'DOCKER_SWARM_MODE' && endpointMode.role === 'MANAGER', endpointId, includeOrphanedStacks)
       .then(function success(stacks) {
         $scope.stacks = stacks;
-        $scope.offlineMode = isOfflineEndpoint(endpoint);
       })
       .catch(function error(err) {
         $scope.stacks = [];

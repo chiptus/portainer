@@ -3,10 +3,8 @@ import { useSref } from '@uirouter/react';
 
 import { ImageStatus } from '@/react/docker/components/ImageStatus';
 import type { DockerContainer } from '@/react/docker/containers/types';
-import { isOfflineEndpoint } from '@/portainer/helpers/endpointHelper';
 import { trimSHA } from '@/docker/filters/utils';
-
-import { useRowContext } from '../RowContext';
+import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 
 export const image: Column<DockerContainer> = {
   Header: 'Image',
@@ -28,15 +26,12 @@ function ImageCell({ value: imageName, row }: Props) {
   const linkProps = useSref('docker.images.image', { id: imageName });
   const shortImageName = trimSHA(imageName);
 
-  const { environment } = useRowContext();
+  const environmentId = useEnvironmentId();
 
-  if (isOfflineEndpoint(environment)) {
-    return <span>{shortImageName}</span>;
-  }
   return (
     <a href={linkProps.href} onClick={linkProps.onClick}>
       <ImageStatus
-        environmentId={environment.Id}
+        environmentId={environmentId}
         resourceId={row.original.Id}
         nodeName={row.original.NodeName}
       />
