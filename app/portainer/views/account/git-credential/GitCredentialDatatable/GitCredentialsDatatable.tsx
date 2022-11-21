@@ -8,7 +8,7 @@ import {
   usePagination,
 } from 'react-table';
 
-import { useDebounce } from '@/react/hooks/useDebounce';
+import { useDebouncedValue } from '@/react/hooks/useDebouncedValue';
 
 import {
   TableActions,
@@ -86,7 +86,7 @@ export function GitCredentialsDatatable({
     useRowSelectColumn
   );
 
-  const debouncedSearchValue = useDebounce(searchBarValue);
+  const debouncedSearchValue = useDebouncedValue(searchBarValue);
 
   const tableProps = getTableProps();
   const tbodyProps = getTableBodyProps();

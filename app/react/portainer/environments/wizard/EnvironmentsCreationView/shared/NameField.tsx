@@ -1,9 +1,9 @@
-import { Field, useField } from 'formik';
+import { useField } from 'formik';
 import { string } from 'yup';
 import { useRef } from 'react';
-import _ from 'lodash';
 
 import { getEnvironments } from '@/react/portainer/environments/environment.service';
+import { useDebounce } from '@/react/hooks/useDebounce';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { Input } from '@@/form-components/Input';
@@ -19,9 +19,11 @@ export function NameField({
   tooltip,
   placeholder = 'e.g. docker-prod01 / kubernetes-cluster01',
 }: Props) {
-  const [, meta] = useField('name');
+  const [{ value }, meta, { setValue }] = useField('name');
 
   const id = 'name-input';
+
+  const [debouncedValue, setDebouncedValue] = useDebounce(value, setValue);
 
   return (
     <FormControl
@@ -31,10 +33,11 @@ export function NameField({
       inputId={id}
       tooltip={tooltip}
     >
-      <Field
+      <Input
         id={id}
         name="name"
-        as={Input}
+        onChange={(e) => setDebouncedValue(e.target.value)}
+        value={debouncedValue}
         data-cy="endpointCreate-nameInput"
         placeholder={placeholder}
         readOnly={readonly}
@@ -53,25 +56,26 @@ export async function isNameUnique(name = '') {
       limit: 1,
       query: { name, excludeSnapshots: true },
     });
-    if (result.totalCount > 0) {
-      return false;
-    }
+    return (
+      result.totalCount === 0 || result.value.every((e) => e.Name !== name)
+    );
   } catch (e) {
     // if backend fails to respond, assume name is unique, name validation happens also in the backend
+    return true;
   }
-  return true;
 }
 
 function cacheTest(
   asyncValidate: (val?: string) => Promise<boolean> | undefined
 ) {
-  let valid = false;
+  let valid = true;
   let value = '';
 
   return async (newValue = '') => {
     if (newValue !== value) {
-      const response = await asyncValidate(newValue);
       value = newValue;
+
+      const response = await asyncValidate(newValue);
       valid = !!response;
     }
     return valid;
@@ -79,7 +83,7 @@ function cacheTest(
 }
 
 export function useNameValidation() {
-  const uniquenessTest = useRef(cacheTest(_.debounce(isNameUnique, 300)));
+  const uniquenessTest = useRef(cacheTest(isNameUnique));
 
   return string()
     .required('Name is required')

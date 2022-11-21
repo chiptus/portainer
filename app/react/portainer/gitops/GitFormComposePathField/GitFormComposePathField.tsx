@@ -9,7 +9,7 @@ import '@reach/combobox/styles.css';
 import { ChangeEvent, useState } from 'react';
 import clsx from 'clsx';
 
-import { useDebounce } from '@/react/hooks/useDebounce';
+import { useDebouncedValue } from '@/react/hooks/useDebouncedValue';
 import { useSearch } from '@/react/portainer/gitops/queries/useSearch';
 
 import { FormControl } from '@@/form-components/FormControl';
@@ -35,7 +35,7 @@ export function GitFormComposePathField({
   isDockerStandalone,
 }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
-  const debouncedSearchValue = useDebounce(searchTerm);
+  const debouncedSearchValue = useDebouncedValue(searchTerm);
 
   let creds = {};
   if (model.RepositoryAuthentication) {
