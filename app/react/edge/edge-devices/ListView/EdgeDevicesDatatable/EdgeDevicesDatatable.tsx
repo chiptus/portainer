@@ -25,8 +25,7 @@ import { TableFooter } from '@@/datatables/TableFooter';
 import { SelectedRowsCount } from '@@/datatables/SelectedRowsCount';
 import { TextTip } from '@@/Tip/TextTip';
 
-import { AMTDevicesDatatable } from '../AMTDevicesDatatable';
-
+import { AMTDevicesDatatable } from './AMTDevicesDatatable';
 import { EdgeDevicesDatatableActions } from './EdgeDevicesDatatableActions';
 import { EdgeDevicesDatatableSettings } from './EdgeDevicesDatatableSettings';
 import { RowProvider } from './columns/RowContext';
@@ -35,12 +34,12 @@ import styles from './EdgeDevicesDatatable.module.css';
 import { EdgeDeviceTableSettings, Pagination } from './types';
 
 export interface EdgeDevicesTableProps {
+  storageKey: string;
   isFdoEnabled: boolean;
   isOpenAmtEnabled: boolean;
   showWaitingRoomLink: boolean;
   mpsServer: string;
   dataset: Environment[];
-  storageKey: string;
   groups: EnvironmentGroup[];
   setLoadingMessage(message: string): void;
   pagination: Pagination;
@@ -124,7 +123,7 @@ export function EdgeDevicesDatatable({
     <div className="row">
       <div className="col-sm-12">
         <TableContainer>
-          <TableTitle icon="box" featherIcon label="Edge&nbsp;Devices">
+          <TableTitle icon="box" featherIcon label="Edge Devices">
             <SearchBar value={search} onChange={handleSearchBarChange} />
             <TableActions>
               <EdgeDevicesDatatableActions

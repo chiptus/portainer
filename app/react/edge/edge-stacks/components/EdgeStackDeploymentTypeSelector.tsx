@@ -1,5 +1,4 @@
-import { react2angular } from '@/react-tools/react2angular';
-import { EditorType } from '@/edge/types';
+import { EditorType } from '@/react/edge/edge-stacks/types';
 import NomadIcon from '@/assets/ico/vendor/nomad.svg?c';
 
 import { BoxSelector } from '@@/BoxSelector';
@@ -69,14 +68,3 @@ export function EdgeStackDeploymentTypeSelector({
     </>
   );
 }
-
-export const EdgeSTackDeploymentTypeSelectorAngular = react2angular(
-  EdgeStackDeploymentTypeSelector,
-  [
-    'value',
-    'onChange',
-    'hasDockerEndpoint',
-    'hasKubeEndpoint',
-    'hasNomadEndpoint',
-  ]
-);

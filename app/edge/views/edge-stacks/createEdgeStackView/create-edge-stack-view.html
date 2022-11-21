@@ -80,16 +80,16 @@
             on-change-git-credential="($ctrl.onChangeGitCredential)"
           ></edge-stacks-nomad-hcl-form>
 
-          <private-registry-view
+          <private-registry-fieldset
             method="$ctrl.state.Method"
             value="$ctrl.registryID"
             registries="$ctrl.formValues.RegistryOptions"
             on-change="($ctrl.matchRegistry)"
-            forminvalid="$ctrl.formIsInvalid()"
+            form-invalid="$ctrl.formIsInvalid()"
             error-message="$ctrl.errorMessage"
             on-select="($ctrl.selectedRegistry)"
             clear-registries="($ctrl.clearRegistries)"
-          ></private-registry-view>
+          ></private-registry-fieldset>
 
           <!-- actions -->
           <div class="col-sm-12 form-section-title"> Actions </div>

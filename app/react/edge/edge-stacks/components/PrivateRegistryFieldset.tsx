@@ -6,14 +6,13 @@ import { Select } from '@@/form-components/ReactSelect';
 import { FormControl } from '@@/form-components/FormControl';
 import { Button } from '@@/buttons';
 import { Tooltip } from '@@/Tip/Tooltip';
-
-import './PrivateRegistryView.css';
+import { FormError } from '@@/form-components/FormError';
 
 interface Props {
   value: number;
   registries: RegistryViewModel[];
   onChange: () => void;
-  forminvalid?: boolean;
+  formInvalid?: boolean;
   errorMessage: string;
   onSelect: () => void;
   isActive?: boolean;
@@ -21,11 +20,11 @@ interface Props {
   method: string;
 }
 
-export function PrivateRegistryView({
+export function PrivateRegistryFieldset({
   value,
   registries,
   onChange,
-  forminvalid,
+  formInvalid,
   errorMessage,
   onSelect,
   isActive,
@@ -65,8 +64,10 @@ export function PrivateRegistryView({
       <div className="col-sm-12 form-section-title"> Registry </div>
       <div className="form-group">
         <div className="col-sm-12 vertical-center">
-          <label className="registry-label control-label text-left !pt-0">
-            {' '}
+          <label
+            className="mr-5 control-label text-left !pt-0"
+            htmlFor="toggle-registry-slider"
+          >
             Use Credentials <Tooltip message={tooltipMessage} />
           </label>
           <label className="switch mb-0">
@@ -74,8 +75,9 @@ export function PrivateRegistryView({
               type="checkbox"
               name="toggle_registry"
               onChange={handleChange}
-              disabled={forminvalid}
+              disabled={formInvalid}
               defaultChecked={isActive}
+              id="toggle-registry-slider"
             />
             <span className="slider round" />
           </label>
@@ -109,12 +111,7 @@ export function PrivateRegistryView({
               />
             </FormControl>
           )}
-          {errorMessage && (
-            <div className="error-message col-sm-12 small text-warning">
-              <i className="fa fa-exclamation-triangle" />
-              {errorMessage}
-            </div>
-          )}
+          {errorMessage && <FormError>{errorMessage}</FormError>}
         </>
       )}
     </>

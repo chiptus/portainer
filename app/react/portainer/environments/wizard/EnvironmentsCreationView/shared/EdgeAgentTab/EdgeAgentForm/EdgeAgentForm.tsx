@@ -3,11 +3,11 @@ import { Formik, Form } from 'formik';
 import { Environment } from '@/react/portainer/environments/types';
 import { useCreateEdgeAgentEnvironmentMutation } from '@/react/portainer/environments/queries/useCreateEnvironmentMutation';
 import { baseHref } from '@/portainer/helpers/pathHelper';
-import { EdgeCheckinIntervalField } from '@/edge/components/EdgeCheckInIntervalField';
+import { EdgeCheckinIntervalField } from '@/react/edge/components/EdgeCheckInIntervalField';
 import {
   EdgeAsyncIntervalsForm,
   EDGE_ASYNC_INTERVAL_USE_DEFAULT,
-} from '@/edge/components/EdgeAsyncIntervalsForm';
+} from '@/react/edge/components/EdgeAsyncIntervalsForm';
 import { useSettings } from '@/react/portainer/settings/queries';
 import { useCreateEdgeDeviceParam } from '@/react/portainer/environments/wizard/hooks/useCreateEdgeDeviceParam';
 

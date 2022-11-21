@@ -2,7 +2,7 @@ import { Gpu } from '@/react/portainer/environments/wizard/EnvironmentsCreationV
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 import { type EnvironmentGroupId } from '@/react/portainer/environments/environment-groups/types';
 import { type TagId } from '@/portainer/tags/types';
-import { EdgeAsyncIntervalsValues } from '@/edge/components/EdgeAsyncIntervalsForm';
+import { EdgeAsyncIntervalsValues } from '@/react/edge/components/EdgeAsyncIntervalsForm';
 
 import { type Environment, EnvironmentCreationTypes } from '../types';
 

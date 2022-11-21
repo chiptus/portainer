@@ -6,7 +6,17 @@ export function validationSchema(isNomadTokenVisible?: boolean) {
   return object().shape({
     allowSelfSignedCertificates: boolean(),
     envVars: string(),
-    ...(isNomadTokenVisible ? nomadTokenValidation() : {}),
-    tlsEnabled: boolean().default(false),
+    ...nomadValidation(isNomadTokenVisible),
   });
+}
+
+function nomadValidation(isNomadTokenVisible?: boolean) {
+  if (!isNomadTokenVisible) {
+    return {};
+  }
+
+  return {
+    tlsEnabled: boolean().default(false),
+    ...nomadTokenValidation(),
+  };
 }

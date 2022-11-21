@@ -1,5 +1,5 @@
 import { PortainerEndpointTypes } from '@/portainer/models/endpoint/models';
-import { getValidEditorTypes } from '@/edge/utils';
+import { getValidEditorTypes } from '@/react/edge/edge-stacks/utils';
 
 export class EditEdgeStackFormController {
   /* @ngInject */

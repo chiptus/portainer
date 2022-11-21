@@ -1,1 +1,1 @@
-export { EdgeDevicesView } from './EdgeDevicesView';
+export { ListView } from './ListView';

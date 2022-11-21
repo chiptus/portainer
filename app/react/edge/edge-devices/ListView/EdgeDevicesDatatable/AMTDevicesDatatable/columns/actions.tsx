@@ -8,8 +8,8 @@ import { confirmAsync } from '@/portainer/services/modal.service/confirm';
 import { executeDeviceAction } from '@/portainer/hostmanagement/open-amt/open-amt.service';
 import * as notifications from '@/portainer/services/notifications';
 
-import { ActionsMenuTitle } from '@@/datatables/ActionsMenuTitle';
 import { ActionsMenu } from '@@/datatables/ActionsMenu';
+import { ActionsMenuTitle } from '@@/datatables/ActionsMenuTitle';
 
 import { useRowContext } from './RowContext';
 

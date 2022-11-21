@@ -1,6 +1,6 @@
 import { number, object, SchemaOf } from 'yup';
 
-import { edgeAsyncIntervalsValidation } from '@/edge/components/EdgeAsyncIntervalsForm';
+import { edgeAsyncIntervalsValidation } from '@/react/edge/components/EdgeAsyncIntervalsForm';
 import { gpusListValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/Hardware/GpusList';
 
 import { metadataValidation } from '../../MetadataFieldset/validation';

@@ -10,8 +10,8 @@ import * as notifications from '@/portainer/services/notifications';
 import { activateDevice } from '@/portainer/hostmanagement/open-amt/open-amt.service';
 import { deleteEndpoint } from '@/react/portainer/environments/environment.service';
 
-import { Link } from '@@/Link';
 import { Button } from '@@/buttons';
+import { Link } from '@@/Link';
 
 interface Props {
   selectedItems: Environment[];
@@ -82,6 +82,7 @@ export function EdgeDevicesDatatableActions({
         },
       },
     });
+
     if (!confirmed) {
       return;
     }

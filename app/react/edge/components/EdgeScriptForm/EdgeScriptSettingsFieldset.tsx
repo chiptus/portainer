@@ -47,19 +47,21 @@ export function EdgeScriptSettingsFieldset({
         </>
       )}
 
-      {isNomadTokenVisible && <NomadTokenField />}
-
       {isNomadTokenVisible && (
-        <div className="form-group">
-          <div className="col-sm-12">
-            <SwitchField
-              label="TLS"
-              labelClass="col-sm-3 col-lg-2"
-              checked={values.tlsEnabled}
-              onChange={(checked) => setFieldValue('tlsEnabled', checked)}
-            />
+        <>
+          <NomadTokenField />
+
+          <div className="form-group">
+            <div className="col-sm-12">
+              <SwitchField
+                label="TLS"
+                labelClass="col-sm-3 col-lg-2"
+                checked={values.tlsEnabled}
+                onChange={(checked) => setFieldValue('tlsEnabled', checked)}
+              />
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       <FormControl

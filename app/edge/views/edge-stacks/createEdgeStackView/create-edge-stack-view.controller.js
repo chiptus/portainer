@@ -1,6 +1,6 @@
-import { EditorType } from '@/edge/types';
-import { PortainerEndpointTypes } from 'Portainer/models/endpoint/models';
-import { getValidEditorTypes } from '@/edge/utils';
+import { EditorType } from '@/react/edge/edge-stacks/types';
+import { PortainerEndpointTypes } from '@/portainer/models/endpoint/models';
+import { getValidEditorTypes } from '@/react/edge/edge-stacks/utils';
 
 export default class CreateEdgeStackViewController {
   /* @ngInject */

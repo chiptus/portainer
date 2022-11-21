@@ -1,4 +1,4 @@
-import { EdgeAsyncIntervalsValues } from '@/edge/components/EdgeAsyncIntervalsForm';
+import { EdgeAsyncIntervalsValues } from '@/react/edge/components/EdgeAsyncIntervalsForm';
 import { Gpu } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/Hardware/GpusList';
 import { EnvironmentMetadata } from '@/react/portainer/environments/environment.service/create';
 

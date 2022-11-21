@@ -1,8 +1,5 @@
 import { number, object, SchemaOf } from 'yup';
 
-import { r2a } from '@/react-tools/react2angular';
-import { withReactQuery } from '@/react-tools/withReactQuery';
-
 import { FormControl } from '@@/form-components/FormControl';
 import { Select } from '@@/form-components/Input';
 
@@ -154,8 +151,3 @@ export function edgeAsyncIntervalsValidation(): SchemaOf<EdgeAsyncIntervalsValue
       .oneOf(intervals),
   });
 }
-
-export const EdgeAsyncIntervalsFormAngular = r2a(
-  withReactQuery(EdgeAsyncIntervalsForm),
-  ['values', 'onChange', 'isDefaultHidden', 'readonly', 'fieldSettings']
-);
