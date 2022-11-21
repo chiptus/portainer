@@ -1,4 +1,4 @@
-package eksctl
+package util
 
 import (
 	"archive/tar"
@@ -15,8 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func extractArchive(archiveFileName, destFolder string, delete bool) (err error) {
-
+func ExtractArchive(archiveFileName, destFolder string, delete bool) (err error) {
 	if _, err := os.Stat(destFolder); errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("can't extract archive %s. Destination folder (%s) does not exist.", archiveFileName, destFolder)
 	}
@@ -41,7 +40,6 @@ func extractArchive(archiveFileName, destFolder string, delete bool) (err error)
 }
 
 func extractTgz(archiveFile, destination string) error {
-
 	file, err := os.Open(archiveFile)
 	if err != nil {
 		return err
@@ -53,41 +51,50 @@ func extractTgz(archiveFile, destination string) error {
 	}
 
 	tarReader := tar.NewReader(uncompressedStream)
-
 	for {
 		header, err := tarReader.Next()
-
 		if err == io.EOF {
 			break
 		}
-
 		if err != nil {
 			return fmt.Errorf("ExtractTarGz: Next() failed: %v", err)
 		}
 
 		switch header.Typeflag {
-		case tar.TypeDir:
-			if err := os.Mkdir(path.Join(destination, header.Name), 0755); err != nil {
-				return fmt.Errorf("ExtractTarGz: Mkdir() failed: %s", err.Error())
+		case tar.TypeReg:
+			err := os.MkdirAll(path.Join(
+				destination,
+				filepath.Dir(header.Name),
+			), 0755)
+			if err != nil {
+				return fmt.Errorf(
+					"ExtractTarGz: Mkdir() failed: %s",
+					err.Error(),
+				)
 			}
 
-		case tar.TypeReg:
 			outFile, err := os.Create(path.Join(destination, header.Name))
-			defer outFile.Close()
 			if err != nil {
-				return fmt.Errorf("ExtractTarGz: Create() failed: %s", err.Error())
+				return fmt.Errorf(
+					"ExtractTarGz: Create() failed: %s",
+					err.Error(),
+				)
 			}
 			if _, err := io.Copy(outFile, tarReader); err != nil {
-				return fmt.Errorf("ExtractTarGz: Copy() failed: %s", err.Error())
+				return fmt.Errorf(
+					"ExtractTarGz: Copy() failed: %s",
+					err.Error(),
+				)
 			}
 
 			err = outFile.Chmod(0755)
 			if err != nil {
-				return fmt.Errorf("ExtractTarGz: Chmod() failed: %s", err.Error())
+				return fmt.Errorf(
+					"ExtractTarGz: Chmod() failed: %s",
+					err.Error(),
+				)
 			}
-
-		default:
-			return fmt.Errorf("ExtractTarGz: unknown type: %s in %s", string(header.Typeflag), header.Name)
+			outFile.Close()
 		}
 	}
 

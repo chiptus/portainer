@@ -1,4 +1,4 @@
-package eksctl
+package util
 
 import (
 	"os"
@@ -9,7 +9,7 @@ import (
 
 const pathKey = "PATH"
 
-func prependPathEnvironment(p string) {
+func PrependPathEnvironment(p string) {
 	pathEnv := os.Getenv(pathKey)
 
 	// does p exist in the path? very thorough check

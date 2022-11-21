@@ -274,7 +274,7 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 		cluster, err = LinodeGetCluster(credentials.Credentials["apiKey"], task.ClusterID)
 
 	case portaineree.CloudProviderGKE:
-		cluster, err = GKEGetCluster(credentials.Credentials["jsonKeyBase64"], task.ClusterID, task.Region)
+		cluster, err = service.GKEGetCluster(credentials.Credentials["jsonKeyBase64"], task.ClusterID, task.Region)
 
 	case portaineree.CloudProviderKubeConfig:
 		b64config, ok := credentials.Credentials["kubeconfig"]
@@ -523,7 +523,7 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 			NodeCount:         request.NodeCount,
 			KubernetesVersion: request.KubernetesVersion,
 		}
-		clusterID, provErr = GKEProvisionCluster(req)
+		clusterID, provErr = service.GKEProvisionCluster(req)
 
 	case portaineree.CloudProviderKubeConfig:
 		clusterID = "kubeconfig-" + strconv.Itoa(int(time.Now().Unix()))

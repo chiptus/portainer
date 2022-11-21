@@ -123,7 +123,7 @@ func (service *CloudClusterInfoService) GKEFetchInfo(apiKey string) (*gke.Info, 
 	return gkeInfo, nil
 }
 
-func GKEGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
+func (service *CloudClusterSetupService) GKEGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
 	log.Debug().
 		Str("provider", "GKE").
 		Str("cluster_id", clusterID).
@@ -135,6 +135,18 @@ func GKEGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
 		return nil, err
 	}
 
+	f, err := os.CreateTemp("", "portainer-gke")
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed using GKE authentication keys")
+	}
+	if _, err := f.Write(key.Bytes); err != nil {
+		log.Fatal().Err(err).Msg("failed using GKE authentication keys")
+	}
+	if err := f.Close(); err != nil {
+		log.Fatal().Err(err).Msg("failed using GKE authentication keys")
+	}
+	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", f.Name())
+
 	// Build the KubeConfig by manually by fetching some information about the
 	// cluster.
 	ctx := context.Background()
@@ -142,22 +154,6 @@ func GKEGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	f, err := os.CreateTemp("", "portainer-gke")
-	if err != nil {
-		log.Fatal().Err(err).Msg("")
-	}
-
-	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", f.Name())
-
-	if _, err := f.Write(key.Bytes); err != nil {
-		log.Fatal().Err(err).Msg("")
-	}
-
-	if err := f.Close(); err != nil {
-		log.Fatal().Err(err).Msg("")
-	}
-
 	kaasCluster := &KaasCluster{
 		Id:         clusterID,
 		Name:       clusterID,
@@ -168,7 +164,7 @@ func GKEGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
 	return kaasCluster, err
 }
 
-func GKEProvisionCluster(r gke.ProvisionRequest) (string, error) {
+func (service *CloudClusterSetupService) GKEProvisionCluster(r gke.ProvisionRequest) (string, error) {
 	log.Debug().
 		Str("provider", "GKE").
 		Str("cluster", r.ClusterName).

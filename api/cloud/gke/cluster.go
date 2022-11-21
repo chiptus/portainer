@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/container/v1"
 	"google.golang.org/api/option"
 	"gopkg.in/yaml.v2"
@@ -42,9 +43,7 @@ type ConfigUsers struct {
 }
 
 type ConfigUser struct {
-	AuthProvider struct {
-		Name string `yaml:"name"`
-	} `yaml:"auth-provider"`
+	Token string `yaml:"token"`
 }
 
 // BuildConfig builds a KubeConfig for a specific cluster by requesting the
@@ -109,14 +108,24 @@ func (k Key) BuildConfig(ctx context.Context, clusterID string) ([]byte, error) 
 	config.Contexts = contexts
 	config.CurrentContext = name
 
+	ts, err := google.DefaultTokenSource(
+		context.Background(),
+		"https://www.googleapis.com/auth/cloud-platform",
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed fetching GKE auth token")
+	}
+	tok, err := ts.Token()
+	if err != nil {
+		return nil, fmt.Errorf("failed reading GKE auth token")
+	}
+
 	// Finally, the users section. It's simple, but has a weird structure.
 	var users []ConfigUsers
 	users = append(users, ConfigUsers{
 		Name: name,
 		User: ConfigUser{
-			AuthProvider: struct {
-				Name string "yaml:\"name\""
-			}{Name: "gcp"},
+			Token: tok.AccessToken,
 		},
 	})
 	config.Users = users

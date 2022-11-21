@@ -1,21 +1,14 @@
 package eksctl
 
 import (
-	"bufio"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"path"
 	"runtime"
-	"strings"
 	"sync"
-	"time"
 
-	"github.com/cavaliergopher/grab/v3"
+	"github.com/portainer/portainer-ee/api/cloud/util"
 	"github.com/rs/zerolog/log"
 )
 
@@ -28,7 +21,7 @@ func ensureEksctl(outputPath string) error {
 	mu.Lock()
 	defer mu.Unlock()
 
-	prependPathEnvironment(outputPath)
+	util.PrependPathEnvironment(outputPath)
 
 	if _, err := os.Stat(path.Join(outputPath, Eksctl)); err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
@@ -58,13 +51,13 @@ func ensureEksctl(outputPath string) error {
 
 func downloadEksctl(outputPath string) error {
 	eksUrl, checksumFileUrl := getEksctlDownloadUrl()
-	checksum, err := getChecksum(checksumFileUrl, path.Base(eksUrl), 30)
+	checksum, err := util.GetChecksum(checksumFileUrl, path.Base(eksUrl), 30)
 	if err != nil {
 		log.Warn().Err(err).Msg("")
 	}
 
 	// Download the archive to temp and extract it to the cache directory
-	filename, err := downloadToFile(eksUrl, os.TempDir(), checksum)
+	filename, err := util.DownloadToFile(eksUrl, os.TempDir(), checksum)
 	if err != nil {
 		log.Error().Str("filename", filename).Err(err).Msg("failed to download file")
 
@@ -73,18 +66,18 @@ func downloadEksctl(outputPath string) error {
 
 	log.Debug().Str("filename", filename).Msg("downloaded archive")
 
-	return extractArchive(filename, outputPath, true)
+	return util.ExtractArchive(filename, outputPath, true)
 }
 
 func downloadAuthenticator(outputPath string) error {
 	authenticatorUrl, checksumFileUrl := getAuthenticatorDownloadUrl()
-	checksum, err := getChecksum(checksumFileUrl, path.Base(authenticatorUrl), 30)
+	checksum, err := util.GetChecksum(checksumFileUrl, path.Base(authenticatorUrl), 30)
 	if err != nil {
 		log.Warn().Err(err).Msg("")
 	}
 
 	// Download the archive to temp and extract it to the cache directory
-	filename, err := downloadToFile(authenticatorUrl, os.TempDir(), checksum)
+	filename, err := util.DownloadToFile(authenticatorUrl, os.TempDir(), checksum)
 	if err != nil {
 		log.Error().Str("filename", filename).Err(err).Msg("failed to download file")
 
@@ -96,89 +89,13 @@ func downloadAuthenticator(outputPath string) error {
 	authenticatorPath := path.Join(outputPath, AwsIamAuthenticator)
 
 	// Move authenticator to outputPath (which will exist)
-	err = moveFile(filename, authenticatorPath)
+	err = util.MoveFile(filename, authenticatorPath)
 	if err != nil {
 		return err
 	}
 
 	err = os.Chmod(authenticatorPath, 0755)
 	return err
-}
-
-func getChecksum(checksumFileUrl, filename string, timeout int) (string, error) {
-	// download checksum file which is in this format
-	// <hash>  <filename>
-
-	// checksum map filename => hash
-	checksums := map[string]string{}
-	checksumFile, err := downloadUrl(checksumFileUrl, timeout)
-	if err != nil {
-		return "", fmt.Errorf("error downloading checksum file (%s): %v", checksumFileUrl, err)
-	}
-
-	scanner := bufio.NewScanner(strings.NewReader(checksumFile))
-	for scanner.Scan() {
-		s := strings.Fields(scanner.Text())
-		if len(s) < 2 {
-			return "", fmt.Errorf("checksum file (%s) has incorrect format", checksumFileUrl)
-		}
-		checksums[s[1]] = s[0]
-	}
-
-	return checksums[filename], nil
-}
-
-func downloadUrl(url string, timeout int) (string, error) {
-	client := http.Client{}
-
-	if timeout > 0 {
-		client.Timeout = time.Duration(timeout) * time.Second
-	}
-
-	resp, err := client.Get(url)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("Failed to download file. Server responded: %d", resp.StatusCode)
-	}
-
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal().Err(err).Msg("")
-	}
-
-	return string(bodyBytes), nil
-}
-
-func downloadToFile(url, dest string, checksum string) (string, error) {
-	req, _ := grab.NewRequest(".", url)
-	req.Filename = dest
-
-	decodedChecksum, err := hex.DecodeString(checksum)
-	if err != nil {
-		return "", fmt.Errorf("invalid checksum bytes: %s", checksum)
-	}
-
-	req.SetChecksum(sha256.New(), decodedChecksum, false)
-
-	log.Info().Stringer("URL", req.URL()).Msg("downloading")
-
-	client := grab.NewClient()
-	resp := client.Do(req)
-
-	t := time.NewTicker(500 * time.Millisecond)
-	defer t.Stop()
-
-	for {
-		select {
-		case <-t.C:
-
-		case <-resp.Done:
-			return resp.Filename, resp.Err()
-		}
-	}
 }
 
 func getEksctlDownloadUrl() (eksctlUrl, checksumUrl string) {
@@ -231,32 +148,4 @@ func getAuthenticatorDownloadUrl() (authenticatorUrl, checksumUrl string) {
 	}
 
 	return authenticatorUrl, checksumUrl
-}
-
-func moveFile(sourcePath, destPath string) error {
-	inputFile, err := os.Open(sourcePath)
-	if err != nil {
-		return fmt.Errorf("could not open source file: %s", err)
-	}
-
-	outputFile, err := os.Create(destPath)
-	if err != nil {
-		inputFile.Close()
-		return fmt.Errorf("could not open dest file: %s", err)
-	}
-	defer outputFile.Close()
-
-	_, err = io.Copy(outputFile, inputFile)
-	inputFile.Close()
-	if err != nil {
-		return fmt.Errorf("writing to output file failed: %s", err)
-	}
-
-	// it's now safe to remove the original file
-	err = os.Remove(sourcePath)
-	if err != nil {
-		return fmt.Errorf("failed removing original file: %s", err)
-	}
-
-	return nil
 }
