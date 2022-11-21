@@ -364,19 +364,21 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 			return httperror.InternalServerError("Unable to update user authorizations", err)
 		}
 
-		// Refresh token manager cache
-		kubeClient, err := handler.K8sClientFactory.GetKubeClient(endpoint)
-		if err != nil {
-			return httperror.InternalServerError("Unable to retrieve Kubernetes client", err)
-		}
+		if endpointutils.IsKubernetesEndpoint(endpoint) {
+			// Refresh token manager cache
+			kubeClient, err := handler.K8sClientFactory.GetKubeClient(endpoint)
+			if err != nil {
+				return httperror.InternalServerError("Unable to retrieve Kubernetes client", err)
+			}
 
-		err = kubeClient.UpsertPortainerK8sClusterRoles(endpoint.Kubernetes.Configuration)
-		if err != nil {
-			return httperror.InternalServerError("Unable to update Kubernetes cluster roles", err)
-		}
+			err = kubeClient.UpsertPortainerK8sClusterRoles(endpoint.Kubernetes.Configuration)
+			if err != nil {
+				return httperror.InternalServerError("Unable to update Kubernetes cluster roles", err)
+			}
 
-		// Refresh token manager cache
-		handler.KubernetesTokenCacheManager.HandleUsersAuthUpdate()
+			// Refresh token manager cache
+			handler.KubernetesTokenCacheManager.HandleUsersAuthUpdate()
+		}
 	}
 
 	if (endpointutils.IsEdgeEndpoint(endpoint)) && (groupIDChanged || tagsChanged) {
