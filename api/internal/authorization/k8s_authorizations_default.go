@@ -43,6 +43,7 @@ func DefaultK8sClusterAuthorizations() map[portaineree.RoleID]portaineree.Author
 			portaineree.OperationK8sStorageClassDisabledR:            true,
 			portaineree.OperationK8sIngressesR:                       true,
 			portaineree.OperationK8sIngressesW:                       true,
+			portaineree.OperationK8sYAMLW:                            true,
 		},
 		portaineree.RoleIDOperator: {
 			portaineree.OperationK8sAccessUserNamespaces:     true,
@@ -62,6 +63,7 @@ func DefaultK8sClusterAuthorizations() map[portaineree.RoleID]portaineree.Author
 			portaineree.OperationK8sApplicationErrorDetailsR: true,
 			portaineree.OperationK8sStorageClassDisabledR:    true,
 			portaineree.OperationK8sIngressesR:               true,
+			portaineree.OperationK8sYAMLR:                    true,
 		},
 		portaineree.RoleIDHelpdesk: {
 			portaineree.OperationK8sAccessUserNamespaces:     true,
@@ -78,6 +80,7 @@ func DefaultK8sClusterAuthorizations() map[portaineree.RoleID]portaineree.Author
 			portaineree.OperationK8sApplicationErrorDetailsR: true,
 			portaineree.OperationK8sStorageClassDisabledR:    true,
 			portaineree.OperationK8sIngressesR:               true,
+			portaineree.OperationK8sYAMLR:                    true,
 		},
 		portaineree.RoleIDStandardUser: {
 			portaineree.OperationK8sResourcePoolsR:                   true,
@@ -99,6 +102,7 @@ func DefaultK8sClusterAuthorizations() map[portaineree.RoleID]portaineree.Author
 			portaineree.OperationK8sVolumeDetailsW:                   true,
 			portaineree.OperationK8sIngressesR:                       true,
 			portaineree.OperationK8sIngressesW:                       true,
+			portaineree.OperationK8sYAMLW:                            true,
 		},
 		portaineree.RoleIDReadonly: {
 			portaineree.OperationK8sResourcePoolsR:         true,
@@ -110,6 +114,7 @@ func DefaultK8sClusterAuthorizations() map[portaineree.RoleID]portaineree.Author
 			portaineree.OperationK8sVolumesR:               true,
 			portaineree.OperationK8sVolumeDetailsR:         true,
 			portaineree.OperationK8sIngressesR:             true,
+			portaineree.OperationK8sYAMLR:                  true,
 		},
 	}
 }

@@ -2487,6 +2487,9 @@ const (
 	OperationK8sIngressesR Authorization = "K8sIngressesR"
 	OperationK8sIngressesW Authorization = "K8sIngressesW"
 
+	OperationK8sYAMLR Authorization = "K8sYAMLR"
+	OperationK8sYAMLW Authorization = "K8sYAMLW"
+
 	// Helm operations
 	OperationHelmRepoList       Authorization = "HelmRepoList"
 	OperationHelmRepoCreate     Authorization = "HelmRepoCreate"

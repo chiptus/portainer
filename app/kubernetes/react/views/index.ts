@@ -7,6 +7,8 @@ import { withUIRouter } from '@/react-tools/withUIRouter';
 import { IngressesDatatableView } from '@/react/kubernetes/ingresses/IngressDatatable';
 import { CreateIngressView } from '@/react/kubernetes/ingresses/CreateIngressView';
 
+import { YAMLReplace } from './yamlReplace';
+
 export const viewsModule = angular
   .module('portainer.kubernetes.react.views', [])
   .component(
@@ -19,4 +21,11 @@ export const viewsModule = angular
   .component(
     'kubernetesIngressesCreateView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(CreateIngressView))), [])
+  )
+  .component(
+    'yamlReplace',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(YAMLReplace))), [
+      'yml',
+      'originalYml',
+    ])
   ).name;

@@ -1,5 +1,6 @@
 import _ from 'lodash-es';
 import angular from 'angular';
+
 import PortainerError from 'Portainer/error';
 
 import { KubernetesApplication, KubernetesApplicationDeploymentTypes, KubernetesApplicationTypes } from 'Kubernetes/models/application/models';
@@ -73,7 +74,6 @@ class KubernetesApplicationService {
     }
     return apiService;
   }
-
   /* #endregion */
 
   /* #region  GET */
@@ -112,7 +112,9 @@ class KubernetesApplicationService {
     const boundServices = KubernetesServiceHelper.findApplicationBoundServices(services, rootItem.value.Raw);
 
     const application = converterFunc(rootItem.value.Raw, pods.value, service.Raw, ingresses.value);
+
     application.Yaml = rootItem.value.Yaml;
+
     application.Raw = rootItem.value.Raw;
     application.Pods = _.map(application.Pods, (item) => KubernetesPodConverter.apiToModel(item));
     application.Containers = KubernetesApplicationHelper.associateContainersAndApplication(application);

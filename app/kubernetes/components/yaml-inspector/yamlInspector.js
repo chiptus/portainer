@@ -4,5 +4,7 @@ angular.module('portainer.kubernetes').component('kubernetesYamlInspector', {
   bindings: {
     key: '@',
     data: '<',
+    authorised: '<',
+    system: '<',
   },
 });

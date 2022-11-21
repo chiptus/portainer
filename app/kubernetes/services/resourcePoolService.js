@@ -26,6 +26,7 @@ export function KubernetesResourcePoolService(
     const namespace = await KubernetesNamespaceService.get(name);
     const [quotaAttempt] = await Promise.allSettled([KubernetesResourceQuotaService.get(name, KubernetesResourceQuotaHelper.generateResourceQuotaName(name))]);
     const pool = KubernetesResourcePoolConverter.apiToResourcePool(namespace);
+
     if (quotaAttempt.status === 'fulfilled') {
       pool.Quota = quotaAttempt.value;
       pool.Yaml += '---\n' + quotaAttempt.value.Yaml;
