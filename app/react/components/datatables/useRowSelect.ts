@@ -157,7 +157,7 @@ function reducer<D extends Record<string, unknown>>(
   if (action.type === actions.init) {
     return {
       ...state,
-      selectedRowIds: <Record<IdType<D>, boolean>>{},
+      selectedRowIds: instance?.initialState.selectedRowIds || {},
     };
   }
 

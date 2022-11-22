@@ -1,6 +1,6 @@
 import { PageHeader } from '@@/PageHeader';
 
-import { CredentialsDatatableContainer } from './CloudCredentialsDatatable/CredentialsDatatableContainer';
+import { CredentialsDatatable } from './CloudCredentialsDatatable/CredentialsDatatable';
 
 export function CloudView() {
   return (
@@ -13,11 +13,7 @@ export function CloudView() {
         ]}
       />
 
-      <div className="row">
-        <div className="col-sm-12">
-          <CredentialsDatatableContainer />
-        </div>
-      </div>
+      <CredentialsDatatable />
     </>
   );
 }

@@ -1,12 +1,3 @@
-import {
-  PaginationTableSettings,
-  SortableTableSettings,
-} from '@@/datatables/types-old';
-
-export interface CredentialTableSettings
-  extends SortableTableSettings,
-    PaginationTableSettings {}
-
 export enum KaasProvider {
   CIVO = 'civo',
   LINODE = 'linode',

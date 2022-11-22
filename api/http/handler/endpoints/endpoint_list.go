@@ -123,6 +123,10 @@ func paginateEndpoints(endpoints []portaineree.Endpoint, start, limit int) []por
 
 	endpointCount := len(endpoints)
 
+	if start < 0 {
+		start = 0
+	}
+
 	if start > endpointCount {
 		start = endpointCount
 	}

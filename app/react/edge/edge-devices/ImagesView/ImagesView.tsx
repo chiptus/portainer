@@ -1,9 +1,10 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
+import { List } from 'react-feather';
+import { useStore } from 'zustand';
 
 import { useEnvironment } from '@/react/portainer/environments/queries';
 import { Datatable } from '@/react/components/datatables/Datatable';
 import { useDockerSnapshot } from '@/react/docker/queries/useDockerSnapshot';
-import { createStore } from '@/react/docker/images/ListView/ImagesDatatable/datatable-store';
 import { RowProvider } from '@/react/docker/images/ListView/ImagesDatatable/RowContext';
 import { id } from '@/react/docker/images/ListView/ImagesDatatable/columns/id';
 import { tags } from '@/react/docker/images/ListView/ImagesDatatable/columns/tags';
@@ -12,14 +13,20 @@ import { created } from '@/react/docker/images/ListView/ImagesDatatable/columns/
 import { EdgeDeviceViewsHeader } from '@/react/edge/components/EdgeDeviceViewsHeader';
 import { NoSnapshotAvailablePanel } from '@/react/edge/components/NoSnapshotAvailablePanel';
 
-import { ImagesDatatableActions } from './ImagesDatatableActions';
+import { useSearchBarState } from '@@/datatables/SearchBar';
+import { createPersistedStore } from '@@/datatables/types';
 
-const storageKey = 'edge_stack_images';
-const useStore = createStore(storageKey);
+import { ImagesDatatableActions } from './ImagesDatatableActions';
 
 export const columns = [id, tags, size, created];
 
+const storageKey = 'edge_stack_images';
+const settingsStore = createPersistedStore(storageKey);
+
 export function ImagesView() {
+  const settings = useStore(settingsStore);
+  const [search, setSearch] = useSearchBarState(storageKey);
+
   const {
     params: { environmentId },
   } = useCurrentStateAndParams();
@@ -28,7 +35,6 @@ export function ImagesView() {
     throw new Error('Missing environmentId parameter');
   }
 
-  const settings = useStore();
   const { data: environment } = useEnvironment(environmentId);
   const { data: snapshot } = useDockerSnapshot(environmentId);
 
@@ -78,22 +84,24 @@ export function ImagesView() {
 
       <RowProvider context={{ environment }}>
         <Datatable
-          titleOptions={{
-            icon: 'fa-cubes',
-            title: 'Images',
-          }}
+          title="Images"
+          titleIcon={List}
           renderTableActions={(selectedRows) => (
             <ImagesDatatableActions
               selectedItems={selectedRows}
               endpointId={environment.Id}
             />
           )}
-          storageKey={storageKey}
           dataset={transformedImages}
           columns={columns}
-          settingsStore={settings}
           emptyContentLabel="No images found"
           isRowSelectable={(row) => !row.original.Used}
+          initialPageSize={settings.pageSize}
+          onPageSizeChange={settings.setPageSize}
+          initialSortBy={settings.sortBy}
+          onSortByChange={settings.setSortBy}
+          searchValue={search}
+          onSearchChange={setSearch}
         />
       </RowProvider>
     </>

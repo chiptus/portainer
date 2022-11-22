@@ -5,18 +5,16 @@ import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { withUIRouter } from '@/react-tools/withUIRouter';
 import { withReactQuery } from '@/react-tools/withReactQuery';
 
-import CredentialsDatatableContainer from './GitCredentialDatatable/GitCredentialsDatatableContainer';
 import EditGitCredentialView from './EditGitCredentialView/EditGitCredentialView';
 import CreateGitCredentialView from './CreateGitCredentialView/CreateGitCredentialView';
+import { GitCredentialsDatatable } from './GitCredentialDatatable';
 
 export const gitCredentialsModule = angular
   .module('portainer.account.git', [])
   .component(
     'gitCredentialsDatatable',
     r2a(
-      withUIRouter(
-        withReactQuery(withCurrentUser(CredentialsDatatableContainer))
-      ),
+      withUIRouter(withReactQuery(withCurrentUser(GitCredentialsDatatable))),
       []
     )
   )

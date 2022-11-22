@@ -1,4 +1,6 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
+import { useStore } from 'zustand';
+import { Box } from 'react-feather';
 
 import { useEnvironment } from '@/react/portainer/environments/queries';
 import { name } from '@/react/docker/containers/ListView/ContainersDatatable/columns/name';
@@ -7,7 +9,6 @@ import { created } from '@/react/docker/containers/ListView/ContainersDatatable/
 import { ip } from '@/react/docker/containers/ListView/ContainersDatatable/columns/ip';
 import { host } from '@/react/docker/containers/ListView/ContainersDatatable/columns/host';
 import { ports } from '@/react/docker/containers/ListView/ContainersDatatable/columns/ports';
-import { Datatable } from '@/react/components/datatables/Datatable';
 import { useDockerSnapshotContainers } from '@/react/docker/queries/useDockerSnapshotContainers';
 import { createStore } from '@/react/docker/containers/ListView/ContainersDatatable/datatable-store';
 import { RowProvider } from '@/react/docker/containers/ListView/ContainersDatatable/RowContext';
@@ -16,14 +17,16 @@ import { NoSnapshotAvailablePanel } from '@/react/edge/components/NoSnapshotAvai
 import { EdgeDeviceViewsHeader } from '@/react/edge/components/EdgeDeviceViewsHeader';
 import { useDockerSnapshot } from '@/react/docker/queries/useDockerSnapshot';
 
+import { Datatable } from '@@/datatables/Datatable';
 import { TextTip } from '@@/Tip/TextTip';
 import { Widget } from '@@/Widget';
+import { useSearchBarState } from '@@/datatables/SearchBar';
 
 import { image } from './image-column';
 import { ContainersDatatableActions } from './ContainersDatatableActions';
 
 const storageKey = 'edge_stack_containers';
-const useStore = createStore(storageKey);
+const settingsStore = createStore(storageKey);
 const columns = [name, state, image, created, ip, host, ports];
 
 export function ContainersView() {
@@ -31,9 +34,10 @@ export function ContainersView() {
     params: { environmentId, edgeStackId },
   } = useCurrentStateAndParams();
 
-  const settings = useStore();
-
   const environmentQuery = useEnvironment(environmentId);
+
+  const settings = useStore(settingsStore);
+  const [search, setSearch] = useSearchBarState(storageKey);
 
   const edgeStackQuery = useEdgeStack(edgeStackId);
 
@@ -108,20 +112,23 @@ export function ContainersView() {
 
       <RowProvider context={{ environment }}>
         <Datatable
-          titleOptions={{
-            icon: 'fa-cubes',
-            title: 'Containers',
-          }}
+          initialPageSize={settings.pageSize}
+          onPageSizeChange={settings.setPageSize}
+          initialSortBy={settings.sortBy}
+          onSortByChange={settings.setSortBy}
+          searchValue={search}
+          onSearchChange={setSearch}
+          titleIcon={Box}
+          title="Containers"
           renderTableActions={(selectedRows) => (
             <ContainersDatatableActions
               selectedItems={selectedRows}
               endpointId={environment.Id}
             />
           )}
-          storageKey={storageKey}
           dataset={containersQuery.data}
           columns={columns}
-          settingsStore={settings}
+          disableSelect
           emptyContentLabel="No containers found"
         />
       </RowProvider>

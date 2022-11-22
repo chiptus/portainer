@@ -1,9 +1,10 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
+import { useStore } from 'zustand';
+import { Database } from 'react-feather';
 
 import { useEnvironment } from '@/react/portainer/environments/queries';
 import { Datatable } from '@/react/components/datatables/Datatable';
 import { useDockerSnapshot } from '@/react/docker/queries/useDockerSnapshot';
-import { createStore } from '@/react/docker/volumes/ListView/VolumesDatatable/datatable-store';
 import { RowProvider } from '@/react/docker/volumes/ListView/VolumesDatatable/RowContext';
 import { id } from '@/react/docker/volumes/ListView/VolumesDatatable/columns/id';
 import { stackName } from '@/react/docker/volumes/ListView/VolumesDatatable/columns/stackName';
@@ -13,14 +14,20 @@ import { created } from '@/react/docker/volumes/ListView/VolumesDatatable/column
 import { EdgeDeviceViewsHeader } from '@/react/edge/components/EdgeDeviceViewsHeader';
 import { NoSnapshotAvailablePanel } from '@/react/edge/components/NoSnapshotAvailablePanel';
 
+import { useSearchBarState } from '@@/datatables/SearchBar';
+import { createPersistedStore } from '@@/datatables/types';
+
 import { VolumesDatatableActions } from './VolumesDatatableActions';
 
 const storageKey = 'edge_stack_volumes';
-const useStore = createStore(storageKey);
+const settingsStore = createPersistedStore(storageKey);
 
 export const columns = [id, stackName, driver, mountpoint, created];
 
 export function VolumesView() {
+  const settings = useStore(settingsStore);
+  const [search, setSearch] = useSearchBarState(storageKey);
+
   const {
     params: { environmentId },
   } = useCurrentStateAndParams();
@@ -29,7 +36,6 @@ export function VolumesView() {
     throw new Error('Missing environmentId parameter');
   }
 
-  const settings = useStore();
   const { data: environment } = useEnvironment(environmentId);
   const { data: snapshot } = useDockerSnapshot(environmentId);
 
@@ -79,22 +85,24 @@ export function VolumesView() {
 
       <RowProvider context={{ environment }}>
         <Datatable
-          titleOptions={{
-            icon: 'fa-cubes',
-            title: 'Volumes',
-          }}
+          title="Volumes"
+          titleIcon={Database}
           renderTableActions={(selectedRows) => (
             <VolumesDatatableActions
               selectedItems={selectedRows}
               endpointId={environment.Id}
             />
           )}
-          storageKey={storageKey}
           dataset={transformedVolumes}
           columns={columns}
-          settingsStore={settings}
           emptyContentLabel="No volumes found"
           isRowSelectable={(row) => !row.original.Used}
+          initialPageSize={settings.pageSize}
+          onPageSizeChange={settings.setPageSize}
+          initialSortBy={settings.sortBy}
+          onSortByChange={settings.setSortBy}
+          searchValue={search}
+          onSearchChange={setSearch}
         />
       </RowProvider>
     </>
