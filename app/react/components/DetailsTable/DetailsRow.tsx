@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { ReactNode } from 'react';
 
 interface Props {
@@ -15,7 +16,9 @@ export function DetailsRow({
 }: Props) {
   return (
     <tr className={className}>
-      <td className={colClassName}>{label}</td>
+      <td className={clsx(colClassName, '!break-normal min-w-[150px]')}>
+        {label}
+      </td>
       {children && (
         <td className={colClassName} data-cy={`detailsTable-${label}Value`}>
           {children}
