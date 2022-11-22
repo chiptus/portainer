@@ -52,15 +52,11 @@ func (manager *tokenManager) GetAdminServiceAccountToken() string {
 	return manager.adminToken
 }
 
-// setup a user's service account if not exist, then retrieve its token
+// GetUserServiceAccountToken setup a user's service account if does not exist, then retrieve its token
 func (manager *tokenManager) GetUserServiceAccountToken(
 	userID int, endpointID int,
 ) (string, error) {
-	manager.tokenCache.mutex.Lock()
-	defer manager.tokenCache.mutex.Unlock()
-
-	token, ok := manager.tokenCache.getToken(userID)
-	if !ok {
+	tokenFunc := func() (string, error) {
 		user, err := manager.dataStore.User().User(portaineree.UserID(userID))
 		if err != nil || user == nil {
 			return "", err
@@ -111,14 +107,8 @@ func (manager *tokenManager) GetUserServiceAccountToken(
 			return "", err
 		}
 
-		serviceAccountToken, err := manager.kubecli.GetServiceAccountBearerToken(userID)
-		if err != nil {
-			return "", err
-		}
-
-		manager.tokenCache.addToken(userID, serviceAccountToken)
-		token = serviceAccountToken
+		return manager.kubecli.GetServiceAccountBearerToken(userID)
 	}
 
-	return token, nil
+	return manager.tokenCache.getOrAddToken(portaineree.UserID(userID), tokenFunc)
 }

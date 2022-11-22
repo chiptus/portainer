@@ -1608,8 +1608,8 @@ type (
 	// AuthEventHandler represents an handler for an auth event
 	AuthEventHandler interface {
 		HandleUsersAuthUpdate()
-		HandleUserAuthDelete(userID int)
-		HandleEndpointAuthUpdate(endpointID int)
+		HandleUserAuthDelete(userID UserID)
+		HandleEndpointAuthUpdate(endpointID EndpointID)
 	}
 
 	// CLIService represents a service for managing CLI

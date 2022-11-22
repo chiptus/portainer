@@ -194,7 +194,7 @@ func (handler *Handler) getToken(request *http.Request, endpoint *portaineree.En
 		return "", false, err
 	}
 
-	tokenCache := handler.kubernetesTokenCacheManager.GetOrCreateTokenCache(int(endpoint.ID))
+	tokenCache := handler.kubernetesTokenCacheManager.GetOrCreateTokenCache(endpoint.ID)
 
 	tokenManager, err := kubernetes.NewTokenManager(kubecli, handler.DataStore, tokenCache, setLocalAdminToken, handler.authorizationService)
 	if err != nil {

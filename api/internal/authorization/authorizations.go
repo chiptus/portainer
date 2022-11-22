@@ -538,7 +538,7 @@ func (service *Service) RegisterEventHandler(id string, handler portaineree.Auth
 // event handlers (e.g. token cache manager)
 func (service *Service) TriggerEndpointAuthUpdate(endpointID int) {
 	for _, handler := range service.authEventHandlers {
-		handler.HandleEndpointAuthUpdate(endpointID)
+		handler.HandleEndpointAuthUpdate(portaineree.EndpointID(endpointID))
 	}
 }
 
@@ -554,7 +554,7 @@ func (service *Service) TriggerUsersAuthUpdate() {
 // event handlers (e.g. token cache manager)
 func (service *Service) TriggerUserAuthUpdate(userID int) {
 	for _, handler := range service.authEventHandlers {
-		handler.HandleUserAuthDelete(userID)
+		handler.HandleUserAuthDelete(portaineree.UserID(userID))
 	}
 }
 
