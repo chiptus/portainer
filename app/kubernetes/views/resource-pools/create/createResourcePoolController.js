@@ -181,7 +181,7 @@ class KubernetesCreateResourcePoolController {
         this.defaults = KubernetesResourceQuotaDefaults;
         this.formValues = new KubernetesResourcePoolFormValues(this.defaults);
         this.formValues.EndpointId = this.endpoint.Id;
-        this.formValues.HasQuota = true;
+        this.formValues.HasQuota = false;
         this.formValues.StorageClasses = KubernetesStorageClassConverter.storageClassesToResourcePoolFormValues(this.endpoint.Kubernetes.Configuration.StorageClasses);
 
         this.state = {
@@ -220,7 +220,7 @@ class KubernetesCreateResourcePoolController {
         this.state.sliderMaxCpu = sliderMaxResources.CPU;
         this.state.sliderMaxMemory = sliderMaxResources.Memory;
         if (this.state.resourceOverCommitEnabled) {
-          this.formValues.HasQuota = true;
+          this.formValues.HasQuota = false;
         }
 
         if (this.state.canUseIngress) {
