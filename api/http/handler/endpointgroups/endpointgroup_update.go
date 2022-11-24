@@ -82,7 +82,7 @@ func (handler *Handler) endpointGroupUpdate(w http.ResponseWriter, r *http.Reque
 			removeTags := tag.Difference(endpointGroupTagSet, payloadTagSet)
 
 			for tagID := range removeTags {
-				handler.DataStore.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
+				err = handler.DataStore.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
 					delete(tag.EndpointGroups, endpointGroup.ID)
 				})
 
@@ -95,7 +95,7 @@ func (handler *Handler) endpointGroupUpdate(w http.ResponseWriter, r *http.Reque
 
 			endpointGroup.TagIDs = payload.TagIDs
 			for _, tagID := range payload.TagIDs {
-				handler.DataStore.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
+				err = handler.DataStore.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
 					tag.EndpointGroups[endpointGroup.ID] = true
 				})
 

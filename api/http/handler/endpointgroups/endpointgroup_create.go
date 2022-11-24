@@ -91,7 +91,7 @@ func (handler *Handler) endpointGroupCreate(w http.ResponseWriter, r *http.Reque
 	}
 
 	for _, tagID := range endpointGroup.TagIDs {
-		handler.DataStore.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
+		err = handler.DataStore.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
 			tag.EndpointGroups[endpointGroup.ID] = true
 		})
 
