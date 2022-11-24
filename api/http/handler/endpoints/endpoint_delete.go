@@ -91,15 +91,12 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		return httperror.InternalServerError("Unable to retrieve edge groups from the database", err)
 	}
 
-	for idx := range edgeGroups {
-		edgeGroup := &edgeGroups[idx]
-		endpointIdx := findEndpointIndex(edgeGroup.Endpoints, endpoint.ID)
-		if endpointIdx != -1 {
-			edgeGroup.Endpoints = removeElement(edgeGroup.Endpoints, endpointIdx)
-			err = handler.DataStore.EdgeGroup().UpdateEdgeGroup(edgeGroup.ID, edgeGroup)
-			if err != nil {
-				return httperror.InternalServerError("Unable to update edge group", err)
-			}
+	for _, edgeGroup := range edgeGroups {
+		err = handler.DataStore.EdgeGroup().UpdateEdgeGroupFunc(edgeGroup.ID, func(g *portaineree.EdgeGroup) {
+			g.Endpoints = removeElement(g.Endpoints, endpoint.ID)
+		})
+		if err != nil {
+			return httperror.InternalServerError("Unable to update edge group", err)
 		}
 	}
 
@@ -145,22 +142,16 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 	return response.Empty(w)
 }
 
-func findEndpointIndex(tags []portaineree.EndpointID, searchEndpointID portaineree.EndpointID) int {
-	for idx, tagID := range tags {
-		if searchEndpointID == tagID {
-			return idx
+func removeElement(slice []portaineree.EndpointID, elem portaineree.EndpointID) []portaineree.EndpointID {
+	for i, id := range slice {
+		if id == elem {
+			slice[i] = slice[len(slice)-1]
+
+			return slice[:len(slice)-1]
 		}
 	}
-	return -1
-}
 
-func removeElement(arr []portaineree.EndpointID, index int) []portaineree.EndpointID {
-	if index < 0 {
-		return arr
-	}
-	lastTagIdx := len(arr) - 1
-	arr[index] = arr[lastTagIdx]
-	return arr[:lastTagIdx]
+	return slice
 }
 
 func (handler *Handler) deleteAccessPolicies(endpoint portaineree.Endpoint) error {
