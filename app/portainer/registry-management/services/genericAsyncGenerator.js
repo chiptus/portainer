@@ -10,8 +10,8 @@ function findBestStep(length) {
   return step;
 }
 
-export default async function* genericAsyncGenerator($q, list, func, params) {
-  const step = findBestStep(list.length);
+export default async function* genericAsyncGenerator($q, list, func, params, defaultStep = undefined) {
+  const step = defaultStep || findBestStep(list.length);
   let start = 0;
   let end = start + step;
   let results = [];

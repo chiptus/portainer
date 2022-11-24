@@ -38,6 +38,10 @@ class porImageRegistryController {
     if (registry.Type === RegistryTypes.GITLAB) {
       url = registry.URL + '/' + registry.Gitlab.ProjectPath;
     }
+    if (registry.Type === RegistryTypes.GITHUB) {
+      const namespace = registry.Github.UseOrganisation ? registry.Github.OrganisationName : registry.Username;
+      url = registry.URL + '/' + namespace;
+    }
     return url;
   }
 

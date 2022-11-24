@@ -22,6 +22,7 @@ type registryUpdatePayload struct {
 	Username         *string `json:",omitempty" example:"registry_user"`
 	Password         *string `json:",omitempty" example:"registry_password"`
 	Quay             *portaineree.QuayRegistryData
+	Github           *portaineree.GithubRegistryData
 	RegistryAccesses *portaineree.RegistryAccesses `json:",omitempty"`
 	Ecr              *portaineree.EcrData          `json:",omitempty" example:"\{\"Region\": \"ap-southeast-2\"\}"`
 }
@@ -129,6 +130,10 @@ func (handler *Handler) registryUpdate(w http.ResponseWriter, r *http.Request) *
 			registry.AccessToken = ""
 			registry.AccessTokenExpiry = 0
 		}
+	}
+
+	if payload.Github != nil {
+		registry.Github = *payload.Github
 	}
 
 	if payload.URL != nil {

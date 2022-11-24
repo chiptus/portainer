@@ -139,6 +139,10 @@
       "Ecr": {
         "Region": ""
       },
+      "Github": {
+        "OrganisationName": "",
+        "UseOrganisation": false
+      },
       "Gitlab": {
         "InstanceURL": "",
         "ProjectId": 0,

@@ -605,6 +605,12 @@ type (
 		OrganisationName string `json:"OrganisationName"`
 	}
 
+	// GithubRegistryData represents data required for Github registry to work
+	GithubRegistryData struct {
+		UseOrganisation  bool   `json:"UseOrganisation"`
+		OrganisationName string `json:"OrganisationName"`
+	}
+
 	// EcrData represents data required for ECR registry
 	EcrData struct {
 		Region string `json:"Region" example:"ap-southeast-2"`
@@ -851,8 +857,8 @@ type (
 	Registry struct {
 		// Registry Identifier
 		ID RegistryID `json:"Id" example:"1"`
-		// Registry Type (1 - Quay, 2 - Azure, 3 - Custom, 4 - Gitlab, 5 - ProGet, 6 - DockerHub, 7 - ECR)
-		Type RegistryType `json:"Type" enums:"1,2,3,4,5,6,7"`
+		// Registry Type (1 - Quay, 2 - Azure, 3 - Custom, 4 - Gitlab, 5 - ProGet, 6 - DockerHub, 7 - ECR, 8 - Github)
+		Type RegistryType `json:"Type" enums:"1,2,3,4,5,6,7,8"`
 		// Registry Name
 		Name string `json:"Name" example:"my-registry"`
 		// URL or IP address of the Docker registry
@@ -868,6 +874,7 @@ type (
 		ManagementConfiguration *RegistryManagementConfiguration `json:"ManagementConfiguration"`
 		Gitlab                  GitlabRegistryData               `json:"Gitlab"`
 		Quay                    QuayRegistryData                 `json:"Quay"`
+		Github                  GithubRegistryData               `json:"Github"`
 		Ecr                     EcrData                          `json:"Ecr"`
 		RegistryAccesses        RegistryAccesses                 `json:"RegistryAccesses"`
 
@@ -2067,6 +2074,8 @@ const (
 	DockerHubRegistry
 	// EcrRegistry represents an ECR registry
 	EcrRegistry
+	// Github container registry
+	GithubRegistry
 )
 
 const (

@@ -1,4 +1,5 @@
 import _ from 'lodash-es';
+import { RegistryTypes } from 'Portainer/models/registryTypes';
 import { RepositoryAddTagPayload, RepositoryShortTag } from '../models/repositoryTag';
 import { RegistryRepositoryViewModel } from '../models/registryRepository';
 import genericAsyncGenerator from './genericAsyncGenerator';
@@ -34,14 +35,21 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
      */
 
     function _getCatalogPage(params, deferred, repositories) {
-      RegistryCatalog.get(params).$promise.then(function (data) {
-        repositories = _.concat(repositories, data.repositories);
-        if (data.last && data.n) {
-          _getCatalogPage({ id: params.id, endpointId: params.endpointId, n: data.n, last: data.last }, deferred, repositories);
-        } else {
-          deferred.resolve(repositories);
-        }
-      });
+      RegistryCatalog.get(params)
+        .$promise.then(function (data) {
+          repositories = _.concat(repositories, data.repositories);
+          if (data.last && data.n) {
+            _getCatalogPage({ id: params.id, endpointId: params.endpointId, n: data.n, last: data.last }, deferred, repositories);
+          } else {
+            deferred.resolve(repositories);
+          }
+        })
+        .catch(function error(err) {
+          deferred.reject({
+            msg: 'Unable to retrieve repositories',
+            err: err,
+          });
+        });
     }
 
     function _getCatalog(id, endpointId) {
@@ -201,7 +209,9 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
     }
 
     async function* _addTagsWithProgress(registry, endpointId, repository, tagsList, progression = 0) {
-      for await (const partialResult of genericAsyncGenerator($q, tagsList, _addTagFromGenerator, [registry, endpointId, repository])) {
+      // ghcr.io does not support adding multiple tags simultaneity
+      const step = registry.Type === RegistryTypes.GITHUB ? 1 : undefined;
+      for await (const partialResult of genericAsyncGenerator($q, tagsList, _addTagFromGenerator, [registry, endpointId, repository], step)) {
         if (typeof partialResult === 'number') {
           yield progression + partialResult;
         } else {
@@ -229,7 +239,9 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
     }
 
     async function* _deleteManifestsWithProgress(registry, endpointId, repository, manifests) {
-      for await (const partialResult of genericAsyncGenerator($q, manifests, deleteManifest, [registry, endpointId, repository])) {
+      // ghcr.io does not support deleting multiple manifests simultaneity
+      const step = registry.Type === RegistryTypes.GITHUB ? 1 : undefined;
+      for await (const partialResult of genericAsyncGenerator($q, manifests, deleteManifest, [registry, endpointId, repository], step)) {
         yield partialResult;
       }
     }

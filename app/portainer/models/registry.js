@@ -14,6 +14,7 @@ export function RegistryViewModel(data) {
   this.Checked = false;
   this.Gitlab = data.Gitlab;
   this.Quay = data.Quay;
+  this.Github = data.Github;
   this.Ecr = data.Ecr;
 }
 
@@ -31,7 +32,11 @@ export function RegistryManagementConfigurationDefaultModel(registry) {
     this.TLSSkipVerify = true;
   }
 
-  if (registry.Type === RegistryTypes.QUAY || registry.Type === RegistryTypes.AZURE || registry.Type === RegistryTypes.ECR) {
+  if (registry.Type === RegistryTypes.GITHUB) {
+    this.TLSSkipVerify = true;
+  }
+
+  if (registry.Type === RegistryTypes.QUAY || registry.Type === RegistryTypes.GITHUB || registry.Type === RegistryTypes.AZURE || registry.Type === RegistryTypes.ECR) {
     this.Authentication = true;
     this.Username = registry.Username;
     this.TLS = true;
@@ -76,6 +81,12 @@ export function RegistryCreateRequest(model) {
     this.Quay = {
       useOrganisation: model.Quay.useOrganisation,
       organisationName: model.Quay.organisationName,
+    };
+  }
+  if (model.Type === RegistryTypes.GITHUB) {
+    this.Github = {
+      useOrganisation: model.Github.useOrganisation,
+      organisationName: model.Github.organisationName,
     };
   }
   if (model.Type === RegistryTypes.PROGET) {

@@ -118,6 +118,7 @@
             ng-if="
               $ctrl.registry.Type !== $ctrl.RegistryTypes.DOCKERHUB &&
               $ctrl.registry.Type !== $ctrl.RegistryTypes.QUAY &&
+              $ctrl.registry.Type !== $ctrl.RegistryTypes.GITHUB &&
               $ctrl.registry.Type !== $ctrl.RegistryTypes.PROGET &&
               $ctrl.registry.Type !== $ctrl.RegistryTypes.AZURE &&
               $ctrl.registry.Type !== $ctrl.RegistryTypes.GITLAB
@@ -225,6 +226,41 @@
                 <label for="organisation_name" class="col-sm-3 col-lg-2 control-label text-left required">Organisation name</label>
                 <div class="col-sm-9 col-lg-10">
                   <input type="text" class="form-control" id="organisation_name" name="organisation_name" ng-model="$ctrl.registry.Quay.OrganisationName" required />
+                </div>
+              </div>
+              <div class="form-group" ng-show="editRegistry.organisation_name.$invalid">
+                <div class="col-sm-12 small text-warning">
+                  <div ng-messages="editRegistry.organisation_name.$error">
+                    <p ng-message="required" class="vertical-center">
+                      <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>
+                      This field is required.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <!-- !organisation_name -->
+            </div>
+          </div>
+
+          <div ng-if="$ctrl.registry.Type == $ctrl.RegistryTypes.GITHUB">
+            <!-- organisation-checkbox -->
+            <div class="form-group">
+              <label class="col-sm-3 col-lg-2 control-label text-left"> Use organisation registry </label>
+              <div class="col-sm-9 col-lg-10">
+                <por-switch-field
+                  checked="$ctrl.registry.Github.UseOrganisation"
+                  on-change="($ctrl.toggleGithubUseOrganisation)"
+                  switch-values="{on:'Yes',off:'No'}"
+                ></por-switch-field>
+              </div>
+            </div>
+            <!-- !organisation-checkbox -->
+            <div ng-if="$ctrl.registry.Github.UseOrganisation">
+              <!-- organisation_name -->
+              <div class="form-group">
+                <label for="organisation_name" class="col-sm-3 col-lg-2 control-label text-left required">Organisation name</label>
+                <div class="col-sm-9 col-lg-10">
+                  <input type="text" class="form-control" id="organisation_name" name="organisation_name" ng-model="$ctrl.registry.Github.OrganisationName" required />
                 </div>
               </div>
               <div class="form-group" ng-show="editRegistry.organisation_name.$invalid">

@@ -42,6 +42,8 @@ func (service *Service) createProxy(key, uri string, config *portaineree.Registr
 	switch config.Type {
 	case portaineree.AzureRegistry, portaineree.EcrRegistry:
 		proxy, err = newTokenSecuredRegistryProxy(uri, config, NewLoggingTransport(service.userActivityService, transport))
+	case portaineree.GithubRegistry:
+		proxy, err = newGithubRegistryProxy(uri, config, NewLoggingTransport(service.userActivityService, transport))
 	case portaineree.GitlabRegistry:
 		if strings.Contains(key, "gitlab") {
 			proxy, err = newGitlabRegistryProxy(uri, config, NewLoggingTransport(service.userActivityService, transport))

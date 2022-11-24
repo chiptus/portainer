@@ -71,6 +71,7 @@ angular.module('portainer.registrymanagement').factory('RegistryManifestsJquery'
             'Content-Type': 'application/vnd.docker.distribution.manifest.v2+json',
           },
           data: transformRequest(data),
+          dataType: 'text', // workaround for ghcr.io responses empty body but with 'Content-Type: application/json' header
           success: (result) => resolve(result),
           error: (error) => reject(error),
         });

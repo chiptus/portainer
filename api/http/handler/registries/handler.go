@@ -87,6 +87,22 @@ func (handler *Handler) registriesHaveSameURLAndCredentials(r1, r2 *portaineree.
 	hasSameUrl := r1.URL == r2.URL
 	hasSameCredentials := r1.Authentication == r2.Authentication && (!r1.Authentication || (r1.Authentication && r1.Username == r2.Username))
 
+	if r1.Type == portaineree.GithubRegistry && r2.Type == portaineree.GithubRegistry {
+		org1 := ""
+		if r1.Github.UseOrganisation {
+			org1 = r1.Github.OrganisationName
+		}
+
+		org2 := ""
+		if r2.Github.UseOrganisation {
+			org2 = r2.Github.OrganisationName
+		}
+
+		hasSameOrg := org1 == org2
+
+		return hasSameUrl && hasSameCredentials && hasSameOrg
+	}
+
 	if r1.Type != portaineree.GitlabRegistry || r2.Type != portaineree.GitlabRegistry {
 		return hasSameUrl && hasSameCredentials
 	}

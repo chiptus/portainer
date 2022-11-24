@@ -1,6 +1,8 @@
 package registries
 
 import (
+	"github.com/gorilla/mux"
+	"github.com/portainer/portainer-ee/api/github/packages"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -58,6 +60,16 @@ func (handler *Handler) proxyRequestsToRegistryAPI(w http.ResponseWriter, r *htt
 	if registry.Type == portaineree.ProGetRegistry {
 		// replacePathRaw function does the following r.URL.RawPath = strings.Replace(r.URL.RawPath, "%2F", "/", -1)
 		proxy = replacePathRaw("%2F", "/", proxy)
+	}
+
+	if registry.Type == portaineree.GithubRegistry {
+		router := mux.NewRouter()
+		gpPackages := packages.NewPackages(registry)
+		router.Path("/v2/_catalog").Methods(http.MethodGet).Handler(proxyGithubRegistriesCatalog(gpPackages))
+		router.Path("/v2/{userName}/{packageName}/manifests/{reference}").Methods(http.MethodDelete).Handler(proxyGithubRegistriesDeleteManifest(gpPackages))
+		router.PathPrefix("/").Handler(proxy)
+		http.StripPrefix("/registries/"+key, router).ServeHTTP(w, r)
+		return nil
 	}
 
 	http.StripPrefix("/registries/"+key, proxy).ServeHTTP(w, r)

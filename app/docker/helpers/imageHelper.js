@@ -69,6 +69,8 @@ export function buildImageFullURI(imageModel) {
 
 function buildImageFullURIWithRegistry(imageModel) {
   switch (imageModel.Registry.Type) {
+    case RegistryTypes.GITHUB:
+      return buildImageURIForGithub(imageModel);
     case RegistryTypes.GITLAB:
       return buildImageURIForGitLab(imageModel);
     case RegistryTypes.QUAY:
@@ -77,6 +79,13 @@ function buildImageFullURIWithRegistry(imageModel) {
       return imageModel.Image;
     default:
       return buildImageURIForOtherRegistry(imageModel);
+  }
+
+  function buildImageURIForGithub(imageModel) {
+    const image = imageModel.Image.split('/').pop();
+    const registry = imageModel.Registry;
+    const namespace = registry.Github.UseOrganisation ? registry.Github.OrganisationName : registry.Username;
+    return `${registry.URL}/${namespace}/${image}`;
   }
 
   function buildImageURIForGitLab(imageModel) {

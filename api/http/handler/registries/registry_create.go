@@ -25,7 +25,8 @@ type registryCreatePayload struct {
 	//	5 (ProGet registry),
 	//	6 (DockerHub)
 	//	7 (ECR)
-	Type portaineree.RegistryType `example:"1" validate:"required" enums:"1,2,3,4,5,6,7"`
+	//	8 (Github registry)
+	Type portaineree.RegistryType `example:"1" validate:"required" enums:"1,2,3,4,5,6,7,8"`
 	// URL or IP address of the Docker registry
 	URL string `example:"registry.mydomain.tld:2375/feed" validate:"required"`
 	// BaseURL required for ProGet registry
@@ -40,6 +41,8 @@ type registryCreatePayload struct {
 	Gitlab portaineree.GitlabRegistryData
 	// Quay specific details, required when type = 1
 	Quay portaineree.QuayRegistryData
+	// Github specific details, required when type = 8
+	Github portaineree.GithubRegistryData
 	// ECR specific details, required when type = 7
 	Ecr portaineree.EcrData
 }
@@ -64,9 +67,9 @@ func (payload *registryCreatePayload) Validate(_ *http.Request) error {
 	}
 
 	switch payload.Type {
-	case portaineree.QuayRegistry, portaineree.AzureRegistry, portaineree.CustomRegistry, portaineree.GitlabRegistry, portaineree.ProGetRegistry, portaineree.DockerHubRegistry, portaineree.EcrRegistry:
+	case portaineree.QuayRegistry, portaineree.AzureRegistry, portaineree.CustomRegistry, portaineree.GitlabRegistry, portaineree.ProGetRegistry, portaineree.DockerHubRegistry, portaineree.EcrRegistry, portaineree.GithubRegistry:
 	default:
-		return errors.New("invalid registry type. Valid values are: 1 (Quay.io), 2 (Azure container registry), 3 (custom registry), 4 (Gitlab registry), 5 (ProGet registry), 6 (DockerHub), 7 (ECR)")
+		return errors.New("invalid registry type. Valid values are: 1 (Quay.io), 2 (Azure container registry), 3 (custom registry), 4 (Gitlab registry), 5 (ProGet registry), 6 (DockerHub), 7 (ECR), 8 (Github registry)")
 	}
 
 	if payload.Type == portaineree.ProGetRegistry && payload.BaseURL == "" {
@@ -115,6 +118,7 @@ func (handler *Handler) registryCreate(w http.ResponseWriter, r *http.Request) *
 		Password:         payload.Password,
 		Gitlab:           payload.Gitlab,
 		Quay:             payload.Quay,
+		Github:           payload.Github,
 		RegistryAccesses: portaineree.RegistryAccesses{},
 		Ecr:              payload.Ecr,
 	}

@@ -18,6 +18,7 @@ export default class RegistryController {
 
     this.toggleAuthentication = this.toggleAuthentication.bind(this);
     this.toggleQuayUseOrganisation = this.toggleQuayUseOrganisation.bind(this);
+    this.toggleGithubUseOrganisation = this.toggleGithubUseOrganisation.bind(this);
   }
 
   toggleAuthentication(newValue) {
@@ -29,6 +30,12 @@ export default class RegistryController {
   toggleQuayUseOrganisation(newValue) {
     this.$scope.$evalAsync(() => {
       this.registry.Quay.UseOrganisation = newValue;
+    });
+  }
+
+  toggleGithubUseOrganisation(newValue) {
+    this.$scope.$evalAsync(() => {
+      this.registry.Github.UseOrganisation = newValue;
     });
   }
 
@@ -74,7 +81,8 @@ export default class RegistryController {
       this.state.nameAlreadyExists ||
       !this.registry.Name ||
       !this.registry.URL ||
-      (this.registry.Type == this.RegistryTypes.QUAY && this.registry.Quay.UseOrganisation && !this.registry.Quay.OrganisationName)
+      (this.registry.Type == this.RegistryTypes.QUAY && this.registry.Quay.UseOrganisation && !this.registry.Quay.OrganisationName) ||
+      (this.registry.Type == this.RegistryTypes.GITHUB && this.registry.Github.UseOrganisation && !this.registry.Github.OrganisationName)
     );
   }
 
@@ -88,6 +96,8 @@ export default class RegistryController {
         return 'Custom';
       case RegistryTypes.GITLAB:
         return 'Gitlab';
+      case RegistryTypes.GITHUB:
+        return 'Github';
       case RegistryTypes.PROGET:
         return 'ProGet';
       case RegistryTypes.DOCKERHUB:

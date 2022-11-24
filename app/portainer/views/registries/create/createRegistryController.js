@@ -34,6 +34,7 @@ class CreateRegistryController {
     this.selectProGetRegistry = this.selectProGetRegistry.bind(this);
     this.selectAzureRegistry = this.selectAzureRegistry.bind(this);
     this.selectGitlabRegistry = this.selectGitlabRegistry.bind(this);
+    this.selectGithubRegistry = this.selectGithubRegistry.bind(this);
     this.selectCustomRegistry = this.selectCustomRegistry.bind(this);
 
     this.setRegistry = this.setRegistry.bind(this);
@@ -64,6 +65,14 @@ class CreateRegistryController {
     this.model.Gitlab = {};
     this.useDefaultGitlabConfiguration();
     this.model.Type = RegistryTypes.GITLAB;
+  }
+
+  selectGithubRegistry() {
+    this.model.Name = '';
+    this.model.URL = 'ghcr.io';
+    this.model.Authentication = true;
+    this.model.Type = RegistryTypes.GITHUB;
+    this.model.Github = {};
   }
 
   selectAzureRegistry() {
@@ -185,6 +194,9 @@ class CreateRegistryController {
         break;
       case '4':
         this.selectGitlabRegistry();
+        break;
+      case '8':
+        this.selectGithubRegistry();
         break;
       case '3':
         this.selectCustomRegistry();

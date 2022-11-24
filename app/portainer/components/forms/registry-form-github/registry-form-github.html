@@ -1,0 +1,125 @@
+<form class="form-horizontal" name="$ctrl.registryFormGithub" ng-submit="$ctrl.formAction()">
+  <div class="col-sm-12 form-section-title"> Important notice </div>
+  <div class="form-group">
+    <span class="col-sm-12 text-muted small">
+      <p>
+        For information on how to generate a Github Personal Access Token, follow the
+        <a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token" target="_blank"> github guide</a>.
+      </p>
+    </span>
+  </div>
+  <div class="col-sm-12 form-section-title"> Github container registry details </div>
+  <!-- name-input -->
+  <div class="form-group">
+    <label for="registry_name" class="col-sm-3 col-lg-2 control-label text-left required">Name</label>
+    <div class="col-sm-9 col-lg-10">
+      <input type="text" class="form-control" id="registry_name" name="registry_name" ng-model="$ctrl.model.Name" placeholder="github-registry" required />
+      <div class="help-block" ng-show="$ctrl.registryFormGithub.registry_name.$invalid">
+        <div class="small text-warning">
+          <div ng-messages="$ctrl.registryFormGithub.registry_name.$error">
+            <p ng-message="required" class="vertical-center">
+              <pr-icon icon="'alert-triangle'" feather="true"></pr-icon>
+              This field is required.
+            </p>
+            <p ng-message="used" class="vertical-center">
+              <pr-icon icon="'alert-triangle'" feather="true"></pr-icon>
+              A registry with the same name already exists.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- !name-input -->
+  <!-- credentials-user -->
+  <div class="form-group">
+    <label for="registry_username" class="col-sm-3 col-lg-2 control-label text-left required">Username</label>
+    <div class="col-sm-9 col-lg-10">
+      <input type="text" class="form-control" id="registry_username" name="registry_username" ng-model="$ctrl.model.Username" required />
+      <div class="help-block" ng-show="$ctrl.registryFormGithub.registry_username.$invalid">
+        <div class="small text-warning">
+          <div ng-messages="$ctrl.registryFormGithub.registry_username.$error">
+            <p ng-message="required" class="vertical-center">
+              <pr-icon icon="'alert-triangle'" feather="true"></pr-icon>
+              This field is required.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- !credentials-user -->
+  <!-- credentials-password -->
+  <div class="form-group">
+    <label for="registry_password" class="col-sm-3 col-lg-2 control-label text-left required">Personal Access Token</label>
+    <div class="col-sm-9 col-lg-10">
+      <input type="password" class="form-control" id="registry_password" name="registry_password" ng-model="$ctrl.model.Password" required />
+      <div class="help-block" ng-show="$ctrl.registryFormGithub.registry_password.$invalid">
+        <div class="small text-warning">
+          <div ng-messages="$ctrl.registryFormGithub.registry_password.$error">
+            <p ng-message="required" class="vertical-center">
+              <pr-icon icon="'alert-triangle'" feather="true"></pr-icon>
+              This field is required.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- !credentials-password -->
+
+  <!-- organization-checkbox -->
+  <div class="form-group">
+    <div class="col-sm-12">
+      <por-switch-field
+        label="'Use organisation registry'"
+        checked="$ctrl.model.Github.useOrganisation"
+        on-change="($ctrl.toggleOrganisation)"
+        label-class="'col-sm-2'"
+      ></por-switch-field>
+    </div>
+  </div>
+  <!-- !organisation-checkbox -->
+
+  <div ng-if="$ctrl.model.Github.useOrganisation">
+    <!-- organisation_name -->
+    <div class="form-group">
+      <label for="organisation_name" class="col-sm-3 col-lg-2 control-label text-left required">Organisation name</label>
+      <div class="col-sm-9 col-lg-10">
+        <input type="text" class="form-control" id="organisation_name" name="organisation_name" ng-model="$ctrl.model.Github.organisationName" required />
+        <div class="help-block" ng-show="$ctrl.registryFormGithub.organisation_name.$invalid">
+          <div class="small text-warning">
+            <div ng-messages="$ctrl.registryFormGithub.organisation_name.$error">
+              <p ng-message="required" class="vertical-center">
+                <pr-icon icon="'alert-triangle'" feather="true"></pr-icon>
+                This field is required.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- !organisation_name -->
+  </div>
+
+  <!-- actions -->
+  <div class="col-sm-12 form-section-title"> Actions </div>
+  <div class="form-group">
+    <div class="col-sm-12">
+      <button
+        type="submit"
+        class="btn btn-primary btn-sm"
+        ng-disabled="$ctrl.actionInProgress || !$ctrl.registryFormGithub.$valid"
+        button-spinner="$ctrl.actionInProgress"
+        analytics-on
+        analytics-category="portainer"
+        analytics-event="portainer-registry-creation"
+        analytics-properties="{ metadata: { type: 'github' } }"
+      >
+        <span ng-hide="$ctrl.actionInProgress">{{ $ctrl.formActionLabel }}</span>
+        <span ng-show="$ctrl.actionInProgress">In progress...</span>
+      </button>
+    </div>
+  </div>
+  <!-- !actions -->
+</form>

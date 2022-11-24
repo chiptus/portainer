@@ -6,6 +6,7 @@ import Quay from '@/assets/ico/vendor/quay.svg?c';
 import Proget from '@/assets/ico/vendor/proget.svg?c';
 import Azure from '@/assets/ico/vendor/azure.svg?c';
 import Gitlab from '@/assets/ico/vendor/gitlab.svg?c';
+import Github from '@/assets/ico/vendor/github.svg?c';
 
 import { BadgeIcon } from '@@/BadgeIcon';
 
@@ -51,6 +52,13 @@ export const options = [
     label: 'Gitlab',
     description: 'Gitlab container registry',
     value: '4',
+  },
+  {
+    id: 'registry_github',
+    icon: Github,
+    label: 'Github',
+    description: 'Github container registry',
+    value: '8',
   },
   {
     id: 'registry_custom',
