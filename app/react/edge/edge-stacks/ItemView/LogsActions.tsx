@@ -39,7 +39,6 @@ export function LogsActions({ environmentId, edgeStackId }: Props) {
             'file-text': !collecting,
             loader: collecting,
           })}
-          feather
         />
       </Button>
       <Button
@@ -53,7 +52,6 @@ export function LogsActions({ environmentId, edgeStackId }: Props) {
             'download-cloud': !downloadLogsMutation.isLoading,
             loader: downloadLogsMutation.isLoading,
           })}
-          feather
         />
       </Button>
       <Button
@@ -67,7 +65,6 @@ export function LogsActions({ environmentId, edgeStackId }: Props) {
             delete: !deleteLogsMutation.isLoading,
             loader: deleteLogsMutation.isLoading,
           })}
-          feather
         />
       </Button>
     </>

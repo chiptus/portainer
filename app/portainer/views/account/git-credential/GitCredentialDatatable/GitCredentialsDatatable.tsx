@@ -1,5 +1,5 @@
 import { useStore } from 'zustand';
-import { Key } from 'react-feather';
+import { Key } from 'lucide-react';
 
 import { useUser } from '@/react/hooks/useUser';
 

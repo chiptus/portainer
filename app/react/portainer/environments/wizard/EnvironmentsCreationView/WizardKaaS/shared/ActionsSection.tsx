@@ -1,4 +1,5 @@
 import { useFormikContext } from 'formik';
+import { Plus, RefreshCw } from 'lucide-react';
 
 import { LoadingButton } from '@@/buttons/LoadingButton';
 import { FormSection } from '@@/form-components/FormSection';
@@ -26,8 +27,8 @@ export function ActionsSection({
             disabled={!isValid}
             isLoading={isSubmitting}
             loadingText="Provision in progress..."
+            icon={Plus}
           >
-            <i className="fa fa-plus space-right" aria-hidden="true" />
             Provision environment
           </LoadingButton>
 
@@ -37,8 +38,8 @@ export function ActionsSection({
             onClick={onReloadClick}
             isLoading={isReloading}
             loadingText="Reloading details..."
+            icon={RefreshCw}
           >
-            <i className="fa fa-sync space-right" aria-hidden="true" />
             Reload cluster details
           </LoadingButton>
         </div>

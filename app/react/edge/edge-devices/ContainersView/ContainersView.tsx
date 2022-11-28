@@ -1,6 +1,6 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 import { useStore } from 'zustand';
-import { Box } from 'react-feather';
+import { Box } from 'lucide-react';
 
 import { useEnvironment } from '@/react/portainer/environments/queries';
 import { name } from '@/react/docker/containers/ListView/ContainersDatatable/columns/name';

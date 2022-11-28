@@ -1,5 +1,6 @@
 import { Form, Formik } from 'formik';
 import { useReducer, useState } from 'react';
+import { Plug2 } from 'lucide-react';
 
 import { useCreateKubeConfigEnvironmentMutation } from '@/react/portainer/environments/queries/useCreateEnvironmentMutation';
 import { notifySuccess } from '@/portainer/services/notifications';
@@ -9,7 +10,6 @@ import { CreateKubeConfigEnvironment } from '@/react/portainer/environments/envi
 import { FormControl } from '@@/form-components/FormControl';
 import { FileUploadField } from '@@/form-components/FileUpload/FileUploadField';
 import { LoadingButton } from '@@/buttons/LoadingButton';
-import { Icon } from '@@/Icon';
 import { TextTip } from '@@/Tip/TextTip';
 
 import { NameField } from '../../shared/NameField';
@@ -145,11 +145,8 @@ export function KubeConfigForm({ onCreate }: Props) {
                 loadingText="Connecting environment..."
                 isLoading={mutation.isLoading}
                 disabled={!dirty || !isValid}
+                icon={Plug2}
               >
-                <Icon
-                  icon="svg-plug"
-                  className="icon icon-sm vertical-center"
-                />{' '}
                 Connect
               </LoadingButton>
             </div>

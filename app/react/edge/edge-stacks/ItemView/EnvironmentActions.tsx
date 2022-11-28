@@ -1,3 +1,5 @@
+import { Search } from 'lucide-react';
+
 import { Environment } from '@/react/portainer/environments/types';
 
 import { Button } from '@@/buttons';
@@ -23,7 +25,7 @@ export function EnvironmentActions({ environment, edgeStackId }: Props) {
           className="!text-inherit hover:!no-underline"
         >
           <Button color="none" title="Browse Snapshot">
-            <Icon icon="search" feather className="searchIcon" />
+            <Icon icon={Search} className="searchIcon" />
           </Button>
         </Link>
       )}

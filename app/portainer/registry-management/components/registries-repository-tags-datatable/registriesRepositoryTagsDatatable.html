@@ -4,18 +4,18 @@
       <div class="toolBar vertical-center">
         <div class="toolBarTitle vertical-center">
           <div class="widget-icon space-right">
-            <pr-icon icon="$ctrl.titleIcon" feather="true"></pr-icon>
+            <pr-icon icon="$ctrl.titleIcon"></pr-icon>
           </div>
           {{ $ctrl.titleText }}
         </div>
         <div class="actionBar vertical-center" ng-if="$ctrl.advancedFeaturesAvailable">
           <button type="button" class="btn btn-sm btn-dangerlight" ng-disabled="$ctrl.state.selectedItemCount === 0" ng-click="$ctrl.removeAction($ctrl.state.selectedItems)">
-            <pr-icon icon="'trash-2'" feather="true"></pr-icon>
+            <pr-icon icon="'trash-2'"></pr-icon>
             Remove
           </button>
         </div>
         <div class="searchBar vertical-center">
-          <pr-icon icon="'search'" feather="true" class-name="'searchIcon'"></pr-icon>
+          <pr-icon icon="'search'" class-name="'searchIcon'"></pr-icon>
           <input
             type="text"
             class="searchInput"
@@ -79,7 +79,7 @@
               <td ng-if="$ctrl.advancedFeaturesAvailable">
                 <span ng-if="!item.Modified">
                   <a class="interactive vertical-center hyperlink" ng-click="item.Modified = true; item.NewName = item.Name; $event.stopPropagation();">
-                    <pr-icon icon="'tag'" feather="true" mode="'primary'"></pr-icon>
+                    <pr-icon icon="'tag'" mode="'primary'"></pr-icon>
                     Retag
                   </a>
                 </span>
@@ -89,10 +89,10 @@
                   ></portainer-tooltip>
                   <input class="input-sm" type="text" ng-model="item.NewName" on-enter-key="$ctrl.retagAction(item)" auto-focus ng-click="$event.stopPropagation();" />
                   <a class="interactive" ng-click="item.Modified = false; $event.stopPropagation();">
-                    <pr-icon icon="'x'" feather="true" mode="'primary'"></pr-icon>
+                    <pr-icon icon="'x'" mode="'primary'"></pr-icon>
                   </a>
                   <a class="interactive" ng-click="$ctrl.retagAction(item); $event.stopPropagation();">
-                    <pr-icon icon="'check'" feather="true" mode="'primary'"></pr-icon>
+                    <pr-icon icon="'check'" mode="'primary'"></pr-icon>
                   </a>
                 </span>
               </td>

@@ -1,10 +1,13 @@
 import clsx from 'clsx';
 import { useQuery } from 'react-query';
+import { Loader } from 'lucide-react';
 
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import { useEnvironment } from '@/react/portainer/environments/queries';
 import { getStackImagesStatus } from '@/portainer/services/api/stack.service';
 import { statusClass } from '@/react/docker/components/ImageStatus/helpers';
+
+import { Icon } from '@@/Icon';
 
 export interface Props {
   stackId: number;
@@ -12,9 +15,20 @@ export interface Props {
 }
 
 export function StackImageStatus({ stackId, environmentId }: Props) {
-  const { data, isLoading } = useStackImageNotification(stackId, environmentId);
+  const { data, isLoading, isError } = useStackImageNotification(
+    stackId,
+    environmentId
+  );
 
-  return <span className={clsx(statusClass(data, isLoading), 'space-right')} />;
+  if (isError) {
+    return null;
+  }
+
+  if (isLoading || !data) {
+    return <Icon icon={Loader} className="spin !mr-0.5" />;
+  }
+
+  return <span className={clsx(statusClass(data), 'space-right')} />;
 }
 
 export function useStackImageNotification(

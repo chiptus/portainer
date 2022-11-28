@@ -1,5 +1,5 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
-import { List } from 'react-feather';
+import { List } from 'lucide-react';
 import { useStore } from 'zustand';
 
 import { useEnvironment } from '@/react/portainer/environments/queries';

@@ -14,7 +14,7 @@
         <rd-widget-body classes="no-padding">
           <uib-tabset active="ctrl.state.activeTab" justified="true" type="pills">
             <uib-tab index="0" classes="btn-sm" select="ctrl.selectTab(0)">
-              <uib-tab-heading class="vertical-center"> <pr-icon icon="'layers'" feather="true"></pr-icon> Namespace </uib-tab-heading>
+              <uib-tab-heading class="vertical-center"> <pr-icon icon="'layers'"></pr-icon> Namespace </uib-tab-heading>
               <form class="form-horizontal" autocomplete="off" name="resourcePoolEditForm" style="padding: 20px; margin-top: 10px">
                 <!-- name-input -->
                 <div class="form-group">
@@ -38,14 +38,14 @@
                 <div authorization="K8sResourcePoolDetailsW" ng-if="ctrl.isEditable" class="form-group">
                   <div class="col-sm-12 small text-muted" ng-if="ctrl.state.resourceOverCommitEnabled">
                     <span class="vertical-center">
-                      <pr-icon icon="'info'" feather="true" mode="'primary'"></pr-icon>
+                      <pr-icon icon="'info'" mode="'primary'"></pr-icon>
                       A namespace is a logical abstraction of a Kubernetes cluster, to provide for more flexible management of resources. Best practice is to set a quota assignment
                       as this ensures greatest security/stability; alternatively, you can disable assigning a quota for unrestricted access (not recommended).
                     </span>
                   </div>
                   <div class="col-sm-12 small text-muted" ng-if="!ctrl.state.resourceOverCommitEnabled">
                     <span class="vertical-center">
-                      <pr-icon icon="'info'" feather="true" mode="'primary'"></pr-icon>
+                      <pr-icon icon="'info'" mode="'primary'"></pr-icon>
                       A namespace is a logical abstraction of a Kubernetes cluster, to provide for more flexible management of resources. Resource over-commit is disabled, please
                       assign a capped limit of resources to this pool.
                     </span>
@@ -67,7 +67,7 @@
                 <div class="form-group" ng-if="ctrl.formValues.HasQuota && ctrl.state.sliderMaxCpu <= 0 && ctrl.state.sliderMaxMemory <= 0">
                   <div class="col-sm-12 small text-warning">
                     <p class="vertical-center">
-                      <pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon>
+                      <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>
                       Not enough resources available in the cluster to apply a resource reservation.
                     </p>
                   </div>
@@ -75,7 +75,7 @@
                 <div class="form-group" authorization="K8sResourcePoolDetailsW" ng-if="ctrl.formValues.HasQuota && ctrl.isEditable && !ctrl.isQuotaValid()">
                   <span class="col-sm-12 text-warning small">
                     <p class="vertical-center">
-                      <pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon>
+                      <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>
                       At least a single limit must be set for the quota to be valid.
                     </p>
                   </span>
@@ -134,7 +134,7 @@
                       <div class="col-sm-8 small text-muted">
                         <div ng-messages="resourcePoolEditForm.pool_name.$error">
                           <p class="vertical-center">
-                            <pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> Value must be between {{ ctrl.ResourceQuotaDefaults.MemoryLimit }} and
+                            <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Value must be between {{ ctrl.ResourceQuotaDefaults.MemoryLimit }} and
                             {{ ctrl.state.sliderMaxMemory }}.
                           </p>
                         </div>
@@ -169,7 +169,7 @@
                     <div class="form-group">
                       <div class="col-sm-12 small text-muted">
                         <p class="vertical-center">
-                          <pr-icon icon="'info'" feather="true" mode="'primary'"></pr-icon>
+                          <pr-icon icon="'info'" mode="'primary'"></pr-icon>
                           You can set a quota on the amount of external load balancers that can be created inside this namespace. Set this quota to 0 to effectively disable the use
                           of load balancers in this namespace.
                         </p>
@@ -208,15 +208,15 @@
                       <div class="col-sm-12 small text-warning">
                         <div ng-messages="resourcePoolEditForm.max_load_balancers.$error">
                           <p class="vertical-center" ng-message="required">
-                            <pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon>
+                            <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>
                             Max load balancers value is required.
                           </p>
                           <p class="vertical-center" ng-message="min">
-                            <pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon>
+                            <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>
                             Max load balancers value must be a positive number.
                           </p>
                           <p class="vertical-center" ng-if="ctrl.state.loadBalancersUsed > ctrl.formValues.LoadBalancers && ctrl.formValues.LoadBalancers >= 0">
-                            <pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon>
+                            <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>
                             Max load balancers value must be greater than the existing number of load balancers inside this namespace.
                           </p>
                         </div>
@@ -266,7 +266,7 @@
                     <div class="form-group">
                       <div class="col-sm-12 small text-muted">
                         <p class="vertical-center">
-                          <pr-icon icon="'info'" mode="'primary'" feather="true"></pr-icon>
+                          <pr-icon icon="'info'" mode="'primary'"></pr-icon>
                           Define which registries can be used by users who have access to this namespace.
                         </p>
                       </div>
@@ -298,7 +298,7 @@
                   <div authorization="K8sResourcePoolDetailsW" class="form-group">
                     <div class="col-sm-12 small text-muted">
                       <p class="vertical-center">
-                        <pr-icon icon="'info'" feather="true" mode="'primary'"></pr-icon>
+                        <pr-icon icon="'info'" mode="'primary'"></pr-icon>
                         Quotas can be set on each storage option to prevent users from exceeding a specific threshold when deploying applications. You can set a quota to 0 to
                         effectively prevent the usage of a specific storage option inside this namespace.
                       </p>
@@ -343,11 +343,9 @@
                     <div class="form-group" ng-show="resourcePoolEditForm['storage_class_size_' + $index].$invalid">
                       <div class="col-sm-12 small text-muted">
                         <div ng-messages="resourcePoolEditForm['storage_class_size_' + $index].$error">
-                          <p class="vertical-center" ng-message="required"><pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> Size is required.</p>
-                          <p class="vertical-center" ng-message="number"><pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> Invalid number.</p>
-                          <p class="vertical-center" ng-message="min"
-                            ><pr-icon icon="'alert-triangle'" feather="true" mode="'warning'"></pr-icon> This value must be greater than zero.</p
-                          >
+                          <p class="vertical-center" ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Size is required.</p>
+                          <p class="vertical-center" ng-message="number"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Invalid number.</p>
+                          <p class="vertical-center" ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> This value must be greater than zero.</p>
                         </div>
                       </div>
                     </div>
@@ -404,15 +402,14 @@
             </uib-tab>
             <uib-tab index="1" classes="btn-sm" select="ctrl.selectTab(1)">
               <uib-tab-heading class="vertical-center">
-                <pr-icon icon="'svg-clockrewind'"></pr-icon> Events
+                <pr-icon icon="'history'"></pr-icon> Events
                 <div ng-if="ctrl.hasEventWarnings()">
-                  <pr-icon icon="'alert-triangle'" feather="true" mode="'warning'" class-name="'mr-0.5'"></pr-icon>
+                  <pr-icon icon="'alert-triangle'" mode="'warning'" class-name="'mr-0.5'"></pr-icon>
                   {{ ctrl.state.eventWarningCount }} warning(s)
                 </div>
               </uib-tab-heading>
               <kubernetes-events-datatable
                 title-text="Events"
-                title-icon="fa-history"
                 dataset="ctrl.events"
                 table-key="kubernetes.resourcepool.events"
                 order-by="Date"
@@ -422,7 +419,7 @@
               ></kubernetes-events-datatable>
             </uib-tab>
             <uib-tab index="2" ng-if="ctrl.pool.Yaml" select="ctrl.showEditor()" classes="btn-sm">
-              <uib-tab-heading class="vertical-center"><pr-icon icon="'code'" feather="true"></pr-icon> YAML </uib-tab-heading>
+              <uib-tab-heading class="vertical-center"><pr-icon icon="'code'"></pr-icon> YAML </uib-tab-heading>
               <div class="px-5" ng-if="ctrl.state.showEditorTab">
                 <kubernetes-yaml-inspector
                   key="resource-pool-yaml"

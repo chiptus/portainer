@@ -1,4 +1,5 @@
 import { useRouter } from '@uirouter/react';
+import { Plus, Trash2 } from 'lucide-react';
 
 import { confirmDestructiveAsync } from '@/portainer/services/modal.service/confirm';
 
@@ -24,7 +25,7 @@ export function GitCredentialsDatatableActions({ selectedItems }: Props) {
         onClick={() => onDeleteClick(selectedItems)}
         data-cy="credentials-deleteButton"
       >
-        <Icon icon="trash-2" feather className="vertical-center" />
+        <Icon icon={Trash2} className="vertical-center" />
         Remove
       </Button>
 
@@ -34,7 +35,7 @@ export function GitCredentialsDatatableActions({ selectedItems }: Props) {
         }
         data-cy="credentials-addButton"
       >
-        <Icon icon="plus" feather className="vertical-center" />
+        <Icon icon={Plus} className="vertical-center" />
         Add git credential
       </Button>
     </>

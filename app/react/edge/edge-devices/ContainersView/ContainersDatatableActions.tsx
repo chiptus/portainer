@@ -1,5 +1,5 @@
 import { useRouter } from '@uirouter/react';
-import { Play, RefreshCw, Slash, Square, Trash2 } from 'react-feather';
+import { Play, RefreshCw, Slash, Square, Trash2 } from 'lucide-react';
 
 import * as notifications from '@/portainer/services/notifications';
 import { confirmContainerDeletion } from '@/portainer/services/modal.service/prompt';

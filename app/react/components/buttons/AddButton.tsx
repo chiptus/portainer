@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import { PlusCircle } from 'lucide-react';
 
 import { Icon } from '@@/Icon';
 
@@ -26,7 +27,7 @@ export function AddButton({ label, onClick, className, disabled }: Props) {
       onClick={onClick}
       disabled={disabled}
     >
-      <Icon icon="plus-circle" feather />
+      <Icon icon={PlusCircle} />
       {label}
     </button>
   );

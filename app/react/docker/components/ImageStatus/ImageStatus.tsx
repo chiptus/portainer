@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import { useQuery } from 'react-query';
+import { Loader } from 'lucide-react';
 
 import {
   getContainerImagesStatus,
@@ -9,6 +10,8 @@ import { useEnvironment } from '@/react/portainer/environments/queries';
 import { statusClass } from '@/react/docker/components/ImageStatus/helpers';
 import { ResourceID, ResourceType } from '@/react/docker/images/types';
 import { EnvironmentId } from '@/react/portainer/environments/types';
+
+import { Icon } from '@@/Icon';
 
 export interface Props {
   environmentId: EnvironmentId;
@@ -28,7 +31,7 @@ export function ImageStatus({
     (environment) => environment?.EnableImageNotification
   );
 
-  const { data, isLoading } = useImageNotification(
+  const { data, isLoading, isError } = useImageNotification(
     environmentId,
     resourceId,
     resourceType,
@@ -36,11 +39,15 @@ export function ImageStatus({
     enableImageNotificationQuery.data
   );
 
-  if (!enableImageNotificationQuery.data) {
+  if (!enableImageNotificationQuery.data || isError) {
     return null;
   }
 
-  return <span className={clsx(statusClass(data, isLoading), 'space-right')} />;
+  if (isLoading || !data) {
+    return <Icon icon={Loader} className="spin !mr-0.5" />;
+  }
+
+  return <span className={clsx(statusClass(data), 'space-right')} />;
 }
 
 export function useImageNotification(

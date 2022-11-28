@@ -4,10 +4,10 @@
       <div class="license-input-wrapper">
         <div class="license-input">
           <input type="text" name="licenseInput" class="form-control" ng-model="$ctrl.value" required ng-change="$ctrl.onChange({license:$ctrl.value, index:$ctrl.index})" />
-          <i class="fa license-validation fa-check green-icon space-left" ng-if="$ctrl.keyValidation && $ctrl.keyValidation.status"></i>
+          <pr-icon ng-if="$ctrl.keyValidation && $ctrl.keyValidation.status" icon="'check'" mode="'success'" class="license-validation"></pr-icon>
         </div>
         <div class="small text-warning" style="margin-top: 5px" ng-if="$ctrl.isInvalid()">
-          <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>
+          <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>
           <span ng-if="$ctrl.keyValidation && !$ctrl.keyValidation.status"> {{ $ctrl.keyValidation.message }}</span>
 
           <span ng-if="$ctrl.form.licenseInput.$invalid">
@@ -19,7 +19,7 @@
         <div class="small text-warning" ng-show=""> </div>
       </div>
       <button class="btn btn-sm btn-dangerlight" ng-disabled="$first && $last" ng-click="$ctrl.onRemoveClick({index:$ctrl.index})">
-        <pr-icon icon="'trash-2'" feather="true"></pr-icon>
+        <pr-icon icon="'trash-2'"></pr-icon>
       </button>
     </div>
   </div>

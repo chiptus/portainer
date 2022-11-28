@@ -6,7 +6,7 @@ import {
   useMemo,
   useRef,
 } from 'react';
-import { RefreshCcw } from 'react-feather';
+import { RefreshCcw } from 'lucide-react';
 import { useQueryClient } from 'react-query';
 
 import { useCheckRepo } from '@/react/portainer/gitops/queries/useCheckRepo';

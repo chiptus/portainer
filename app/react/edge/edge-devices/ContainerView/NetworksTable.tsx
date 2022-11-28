@@ -1,3 +1,5 @@
+import { Network } from 'lucide-react';
+
 import { SummaryNetworkSettings } from '@/react/docker/containers/types/response';
 
 import { Widget, WidgetTitle, WidgetBody } from '@@/Widget';
@@ -18,7 +20,7 @@ export function NetworksTable({ networks = {} }: Props) {
     <div className="row">
       <div className="col-sm-12">
         <Widget>
-          <WidgetTitle title="Connected networks" icon="fa-sitemap" />
+          <WidgetTitle title="Connected networks" icon={Network} />
           <WidgetBody className="!p-0">
             <DetailsTable
               headers={['Network', 'IP Address', 'Gateway', 'MAC Address']}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Info } from 'lucide-react';
 
 import { RegistryViewModel } from '@/portainer/models/registry';
 
@@ -6,6 +7,7 @@ import { Select } from '@@/form-components/ReactSelect';
 import { FormControl } from '@@/form-components/FormControl';
 import { Button } from '@@/buttons';
 import { Tooltip } from '@@/Tip/Tooltip';
+import { Icon } from '@@/Icon';
 import { FormError } from '@@/form-components/FormError';
 
 interface Props {
@@ -88,10 +90,7 @@ export function PrivateRegistryFieldset({
           {method !== 'repository' && (
             <>
               <p className="text-muted small">
-                <i
-                  className="fa fa-info-circle blue-icon space-right"
-                  aria-hidden="true"
-                />
+                <Icon icon={Info} mode="primary" />
                 If you make any changes to the image urls in your yaml, please
                 reload or select registry manually
               </p>

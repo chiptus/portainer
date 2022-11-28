@@ -1,6 +1,6 @@
 import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import { useEffect } from 'react';
-import { X, Slash } from 'react-feather';
+import { X, Slash, History } from 'lucide-react';
 import clsx from 'clsx';
 import angular from 'angular';
 
@@ -72,7 +72,7 @@ export function EnvironmentSidebar() {
           <SidebarSectionTitle>
             <div className="flex items-center gap-1">
               <span>Environment:</span>
-              <Slash size="1em" className="text-xl text-gray-6" />
+              <Icon icon={Slash} className="text-xl !text-gray-6" />
               <span className="text-gray-6 text-sm">None selected</span>
             </div>
           </SidebarSectionTitle>
@@ -188,7 +188,7 @@ function SnapshotBrowseSection() {
         </span>
 
         <Icon
-          icon="svg-clockrewind"
+          icon={History}
           className="!ml-auto !mr-3 text-gray-5 be:text-gray-6"
         />
       </div>

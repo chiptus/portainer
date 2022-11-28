@@ -1,4 +1,5 @@
 import { useRouter } from '@uirouter/react';
+import { Trash2, Plus } from 'lucide-react';
 
 import { confirmDeletionAsync } from '@/portainer/services/modal.service/confirm';
 
@@ -24,12 +25,7 @@ export function CredentialsDatatableActions({ selectedItems }: Props) {
         onClick={() => onDeleteClick(selectedItems)}
         data-cy="credentials-deleteButton"
       >
-        <Icon
-          icon="trash-2"
-          feather
-          className="space-right"
-          aria-hidden="true"
-        />
+        <Icon icon={Trash2} className="space-right" aria-hidden="true" />
         Remove
       </Button>
 
@@ -39,7 +35,7 @@ export function CredentialsDatatableActions({ selectedItems }: Props) {
         }
         data-cy="credentials-addButton"
       >
-        <Icon icon="plus" feather className="space-right" />
+        <Icon icon={Plus} className="space-right" />
         Add credentials
       </Button>
     </>

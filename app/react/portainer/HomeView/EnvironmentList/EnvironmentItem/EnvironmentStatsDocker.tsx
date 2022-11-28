@@ -1,4 +1,15 @@
 import {
+  Layers,
+  Shuffle,
+  Database,
+  List,
+  HardDrive,
+  Box,
+  Power,
+  Heart,
+} from 'lucide-react';
+
+import {
   DockerSnapshot,
   EnvironmentType,
 } from '@/react/portainer/environments/types';
@@ -34,15 +45,13 @@ export function EnvironmentStatsDocker({
       <span className="blocklist-item-desc">
         <EnvironmentStatsItem
           value={addPlural(snapshot.StackCount, 'stack')}
-          icon="layers"
-          featherIcon
+          icon={Layers}
         />
 
         {!!snapshot.Swarm && (
           <EnvironmentStatsItem
             value={addPlural(snapshot.ServiceCount, 'service')}
-            icon="shuffle"
-            featherIcon
+            icon={Shuffle}
           />
         )}
 
@@ -54,13 +63,11 @@ export function EnvironmentStatsDocker({
         />
         <EnvironmentStatsItem
           value={addPlural(snapshot.VolumeCount, 'volume')}
-          icon="database"
-          featherIcon
+          icon={Database}
         />
         <EnvironmentStatsItem
           value={addPlural(snapshot.ImageCount, 'image')}
-          icon="list"
-          featherIcon
+          icon={List}
         />
       </span>
 
@@ -71,8 +78,7 @@ export function EnvironmentStatsDocker({
         {snapshot.Swarm && (
           <EnvironmentStatsItem
             value={addPlural(snapshot.NodeCount, 'node')}
-            icon="hard-drive"
-            featherIcon
+            icon={HardDrive}
           />
         )}
         <AgentVersionTag version={agentVersion} type={type} />
@@ -99,33 +105,28 @@ function ContainerStats({
   return (
     <EnvironmentStatsItem
       value={addPlural(containersCount, 'container')}
-      icon="box"
-      featherIcon
+      icon={Box}
     >
       {containersCount > 0 && (
         <span className="space-x-2 space-right">
           <EnvironmentStatsItem
             value={running}
-            icon="power"
-            featherIcon
+            icon={Power}
             iconClass="icon-success"
           />
           <EnvironmentStatsItem
             value={stopped}
-            icon="power"
-            featherIcon
+            icon={Power}
             iconClass="icon-danger"
           />
           <EnvironmentStatsItem
             value={healthy}
-            icon="heart"
-            featherIcon
+            icon={Heart}
             iconClass="icon-success"
           />
           <EnvironmentStatsItem
             value={unhealthy}
-            icon="heart"
-            featherIcon
+            icon={Heart}
             iconClass="icon-warning"
           />
         </span>

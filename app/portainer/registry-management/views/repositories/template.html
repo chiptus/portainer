@@ -28,7 +28,7 @@
   <information-panel ng-if="$ctrl.state.displayInvalidConfigurationMessage" title-text="Registry management configuration required">
     <span class="small text-muted">
       <p class="vertical-center">
-        <pr-icon icon="'alert-circle'" mode="'warning'" feather="true"></pr-icon>
+        <pr-icon icon="'alert-circle'" mode="'warning'"></pr-icon>
         Portainer was not able to use this registry management features. You might need to update the configuration used by Portainer to access this registry.
       </p>
       <p>
@@ -37,7 +37,7 @@
       </p>
       <div ng-if="$ctrl.isAdmin" style="margin-top: 7px">
         <a ui-sref="portainer.registries.registry.configure({id: $ctrl.registry.Id})" class="vertical-center">
-          <pr-icon icon="'tool'" feather="true"></pr-icon>
+          <pr-icon icon="'wrench'"></pr-icon>
           Configure this registry
         </a>
       </div>

@@ -1,4 +1,4 @@
-import { HelpCircle } from 'react-feather';
+import { HelpCircle } from 'lucide-react';
 import ReactTooltip from 'react-tooltip';
 
 interface Props {
@@ -12,7 +12,7 @@ export function LimitedToBeIndicator({ tooltipId }: Props) {
         <div className="mx-auto max-w-fit bg-warning-4 rounded-b-lg py-1 px-3 flex gap-1 text-sm items-center">
           <span className="text-warning-9">Pro Feature</span>
           <HelpCircle
-            className="feather !text-warning-7"
+            className="lucide !text-warning-7"
             data-tip
             data-for={tooltipId}
             tooltip-append-to-body="true"

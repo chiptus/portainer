@@ -1,5 +1,5 @@
 import { useRouter } from '@uirouter/react';
-import { Trash2 } from 'react-feather';
+import { Trash2 } from 'lucide-react';
 
 import * as notifications from '@/portainer/services/notifications';
 import type { EnvironmentId } from '@/react/portainer/environments/types';

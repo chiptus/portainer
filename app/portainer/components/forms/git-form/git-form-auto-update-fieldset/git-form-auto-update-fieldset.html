@@ -1,10 +1,10 @@
 <ng-form name="autoUpdateForm" class="form-group">
   <div class="small vertical-center" ng-if="$ctrl.model.RepositoryAutomaticUpdates">
-    <pr-icon icon="'info'" mode="'primary'" feather="true"></pr-icon>
+    <pr-icon icon="'info'" mode="'primary'"></pr-icon>
     <span class="text-muted">When the Automatic Updates setting is enabled, enforces automatic deployment at each interval or webhook invocation.</span>
   </div>
   <div class="small vertical-center" ng-if="!$ctrl.model.RepositoryAutomaticUpdates">
-    <pr-icon icon="'info'" mode="'primary'" feather="true"></pr-icon>
+    <pr-icon icon="'info'" mode="'primary'"></pr-icon>
     <span class="text-muted"
       >When the Automatic Updates setting is enabled, updates from the git repository will occur automatically at an interval or on calling of the webhook.</span
     >
@@ -22,7 +22,7 @@
     </div>
   </div>
   <div class="small vertical-center" ng-if="$ctrl.model.RepositoryAutomaticUpdates">
-    <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>
+    <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>
     <span class="text-warning">Any changes to this stack or application made locally in Portainer will be overridden, which may cause service interruption.</span>
   </div>
   <div class="form-group mt-2" ng-if="$ctrl.model.RepositoryAutomaticUpdates">
@@ -46,10 +46,10 @@
     <div class="col-sm-8">
       <span class="text-muted"> {{ $ctrl.model.RepositoryWebhookURL | truncatelr }} </span>
       <button type="button" class="btn btn-sm btn-light btn-sm space-left vertical-center" ng-if="$ctrl.model.RepositoryWebhookURL" ng-click="$ctrl.copyWebhook()">
-        <pr-icon icon="'copy'" size="'sm'" feather="true"></pr-icon> Copy link
+        <pr-icon icon="'copy'" size="'sm'"></pr-icon> Copy link
       </button>
       <span>
-        <pr-icon icon="'check'" mode="'success'" feather="true" style="display: none"></pr-icon>
+        <pr-icon icon="'check'" mode="'success'" style="display: none"></pr-icon>
       </span>
     </div>
   </div>
@@ -70,9 +70,9 @@
         <div class="form-group col-md-12" ng-show="autoUpdateForm.repository_fetch_interval.$touched && autoUpdateForm.repository_fetch_interval.$invalid">
           <div class="small text-warning">
             <div ng-messages="autoUpdateForm.repository_fetch_interval.$error">
-              <p ng-message="required"> <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> This field is required.</p>
-              <p ng-message="invalidIntervalFormat"> <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Please enter a valid time interval.</p>
-              <p ng-message="minimumInterval"> <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Minimum interval is 1m</p>
+              <p ng-message="required"> <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> This field is required.</p>
+              <p ng-message="invalidIntervalFormat"> <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Please enter a valid time interval.</p>
+              <p ng-message="minimumInterval"> <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Minimum interval is 1m</p>
             </div>
           </div>
         </div>

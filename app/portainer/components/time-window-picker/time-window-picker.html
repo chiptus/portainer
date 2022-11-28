@@ -29,11 +29,10 @@
     </div>
     <div class="time-window-warning">
       <span class="vertical-center text-warning"
-        ><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Automatic updates to stacks or applications outside the defined change window will not
-        occur.</span
+        ><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Automatic updates to stacks or applications outside the defined change window will not occur.</span
       >
       <div style="padding: 8px 0px" class="vertical-center text-warning" ng-show="$ctrl.state.timeError">
-        <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>
+        <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>
         The chosen time configuration is invalid
       </div>
     </div>
@@ -41,7 +40,7 @@
 </div>
 <div class="time-window-warning">
   <span class="vertical-center" ng-show="!$ctrl.state.changeWindow && $ctrl.state.timeSet"
-    ><pr-icon icon="'alert-circle'" mode="'warning'" feather="true"></pr-icon> Automatic updates to stacks or applications outside
+    ><pr-icon icon="'alert-circle'" mode="'warning'"></pr-icon> Automatic updates to stacks or applications outside
     <span style="font-weight: bold; color: var(--text-muted-color)">
       {{ $ctrl.state.utcStartTime | date: 'shortTime' }} - {{ $ctrl.state.utcEndTime | date: 'shortTime' }} UTC ({{ $ctrl.state.setStartTime | date: 'shortTime' }} -
       {{ $ctrl.state.setEndTime | date: 'shortTime' }} {{ $ctrl.state.dst ? 'DST' : '' }} {{ $ctrl.state.timeZoneSelected }})

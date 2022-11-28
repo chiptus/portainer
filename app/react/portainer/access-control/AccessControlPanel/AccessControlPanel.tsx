@@ -1,4 +1,5 @@
 import { useReducer } from 'react';
+import { Edit, Eye } from 'lucide-react';
 
 import { useUser } from '@/react/hooks/useUser';
 import { EnvironmentId } from '@/react/portainer/environments/types';
@@ -49,7 +50,7 @@ export function AccessControlPanel({
     <div className="row">
       <div className="col-sm-12">
         <TableContainer>
-          <TableTitle label="Access control" icon="eye" featherIcon />
+          <TableTitle label="Access control" icon={Eye} />
           <AccessControlPanelDetails
             resourceType={resourceType}
             resourceControl={resourceControl}
@@ -59,7 +60,7 @@ export function AccessControlPanel({
             <div className="row">
               <div>
                 <Button color="link" onClick={toggleEditMode}>
-                  <Icon icon="edit" className="space-right" feather />
+                  <Icon icon={Edit} className="space-right" />
                   Change ownership
                 </Button>
               </div>

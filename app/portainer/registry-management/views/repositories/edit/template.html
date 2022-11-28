@@ -41,7 +41,7 @@
   <information-panel ng-if="!state.tagsRetrieval.auto" title-text="Information regarding repository size">
     <span class="small text-muted">
       <p>
-        <pr-icon icon="'alert-circle'" mode="'warning'" feather="true"></pr-icon>
+        <pr-icon icon="'alert-circle'" mode="'warning'"></pr-icon>
         Portainer needs to retrieve additional information to enable <code>tags modifications (addition, removal, rename)</code> and <code>repository removal</code> features.<br />
         As this repository contains more than <code>{{ state.tagsRetrieval.limit }}</code> tags, the additional retrieval wasn't started automatically.<br />
         Once started you can still navigate this page, leaving the page will cancel the retrieval process.<br />
@@ -58,7 +58,7 @@
       </span>
 
       <span ng-if="!state.tagsRetrieval.running && state.tagsRetrieval.progression === '100'" class="vertical-center">
-        <pr-icon icon="'check'" mode="'success'" feather="true"></pr-icon>
+        <pr-icon icon="'check'" mode="'success'"></pr-icon>
         Retrieval completed in {{ state.tagsRetrieval.elapsedTime | number: 0 }}s
       </span>
     </div>
@@ -68,7 +68,7 @@
 <div class="row">
   <div class="col-sm-8">
     <rd-widget>
-      <rd-widget-header icon="info" feather-icon="true" title-text="Repository information"></rd-widget-header>
+      <rd-widget-header icon="info" title-text="Repository information"></rd-widget-header>
       <rd-widget-body classes="no-padding">
         <table class="table">
           <tbody>
@@ -84,7 +84,7 @@
                   ng-if="!state.tagsRetrieval.running && state.tagsRetrieval.progression !== 0"
                   ng-click="removeRepository()"
                 >
-                  <pr-icon icon="'trash-2'" feather="true"></pr-icon>
+                  <pr-icon icon="'trash-2'"></pr-icon>
                   Delete this repository
                 </button>
               </td>
@@ -107,7 +107,7 @@
 
   <div class="col-sm-4" ng-if="short.Images.length > 0" authorization="PortainerRegistryInternalUpdate">
     <rd-widget>
-      <rd-widget-header icon="plus" feather-icon="true" title-text="Add tag"></rd-widget-header>
+      <rd-widget-header icon="plus" title-text="Add tag"></rd-widget-header>
       <rd-widget-body>
         <form class="form-horizontal">
           <div class="form-group">

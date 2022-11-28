@@ -343,18 +343,6 @@ angular
         },
       };
 
-      var initEndpoint = {
-        name: 'portainer.init.endpoint',
-        url: '/endpoint',
-        views: {
-          'content@': {
-            templateUrl: './views/init/endpoint/initEndpoint.html',
-            controller: 'InitEndpointController',
-            controllerAs: 'ctrl',
-          },
-        },
-      };
-
       var registries = {
         name: 'portainer.registries',
         url: '/registries',
@@ -522,7 +510,6 @@ angular
       $stateRegistryProvider.register(groupCreation);
       $stateRegistryProvider.register(home);
       $stateRegistryProvider.register(init);
-      $stateRegistryProvider.register(initEndpoint);
       $stateRegistryProvider.register(initAdmin);
       $stateRegistryProvider.register(initLicense);
       $stateRegistryProvider.register(registries);

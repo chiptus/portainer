@@ -1,6 +1,6 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 import { useStore } from 'zustand';
-import { Database } from 'react-feather';
+import { Database } from 'lucide-react';
 
 import { useEnvironment } from '@/react/portainer/environments/queries';
 import { Datatable } from '@/react/components/datatables/Datatable';

@@ -1,3 +1,5 @@
+import { HardDrive } from 'lucide-react';
+
 import { DockerContainer } from '@/react/docker/containers/types';
 
 import { DetailsTable } from '@@/DetailsTable';
@@ -16,7 +18,7 @@ export function VolumesTable({ mounts = [] }: Props) {
     <div className="row">
       <div className="col-sm-12">
         <Widget>
-          <WidgetTitle title="Volumes" icon="fa-hdd" />
+          <WidgetTitle title="Volumes" icon={HardDrive} />
           <WidgetBody className="!p-0">
             <DetailsTable headers={['Host/Volume', 'Path in container']}>
               {mounts.map((mount) => {

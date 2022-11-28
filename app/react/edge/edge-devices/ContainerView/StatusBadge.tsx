@@ -1,6 +1,8 @@
-import clsx from 'clsx';
+import { HeartPulse } from 'lucide-react';
 
 import { ContainerStatus } from '@/react/docker/containers/types';
+
+import { Icon } from '@@/Icon';
 
 export function StatusBadge({
   status,
@@ -15,13 +17,11 @@ export function StatusBadge({
 
   return (
     <>
-      <i
-        className={clsx('fa fa-heartbeat space-right', {
-          'green-icon': isRunning,
-          'red-icon': !isRunning,
-        })}
+      <Icon
+        icon={HeartPulse}
+        mode={isRunning ? 'success' : 'warning'}
+        className="mr-1"
       />
-
       {state}
     </>
   );

@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { Award, AlertCircle, AlertTriangle, ArrowUpRight } from 'react-feather';
+import { Award, AlertCircle, AlertTriangle, ArrowUpRight } from 'lucide-react';
 import clsx from 'clsx';
 
 import { LicenseInfo, LicenseType } from '@/portainer/license-management/types';
@@ -97,8 +97,7 @@ function buildAlertWidget(licenseInfo: LicenseInfo, usedNodes: number) {
       <ProgressBar current={usedNodes} total={licenseInfo.nodes} />
       <div className={styles.alertExtra}>
         <Icon
-          icon="alert-circle"
-          feather
+          icon={AlertCircle}
           className={clsx('icon-danger', 'space-right')}
         />
         <span className={styles.alertExtraText}>

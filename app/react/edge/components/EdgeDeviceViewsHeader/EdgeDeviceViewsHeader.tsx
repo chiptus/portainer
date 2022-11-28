@@ -1,5 +1,5 @@
 import { PropsWithChildren } from 'react';
-import { ChevronDown } from 'react-feather';
+import { ChevronDown, History } from 'lucide-react';
 import { addSeconds } from 'date-fns';
 import { Menu, MenuButton, MenuPopover } from '@reach/menu-button';
 import { get } from 'lodash';
@@ -64,7 +64,7 @@ function SnapshotPanel({ environment, snapshot }: SnapshotPanelProps) {
     <div className="ml-5">
       <Menu>
         <MenuButton className="form-control flex items-center">
-          <Icon icon="svg-clockrewind" className="!mr-2" />
+          <Icon icon={History} className="!mr-2" />
           <span>Browsing snapshot</span>
           <ChevronDown className="ml-5" />
         </MenuButton>

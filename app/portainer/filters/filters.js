@@ -1,8 +1,12 @@
 import moment from 'moment';
 import _ from 'lodash-es';
 import filesize from 'filesize';
+import { Cloud, Eye, EyeOff, Users } from 'lucide-react';
 
-import { Eye, EyeOff, Users } from 'react-feather';
+import Kube from '@/assets/ico/kube.svg?c';
+import DockerIcon from '@/assets/ico/vendor/docker-icon.svg?c';
+import MicrosoftIcon from '@/assets/ico/vendor/microsoft-icon.svg?c';
+import NomadIcon from '@/assets/ico/vendor/nomad-icon.svg?c';
 import { ResourceControlOwnership as RCO } from '@/react/portainer/access-control/types';
 import { EnvironmentType } from '@/react/portainer/environments/types';
 
@@ -102,18 +106,18 @@ export function endpointTypeName(type) {
 export function environmentTypeIcon(type) {
   switch (type) {
     case EnvironmentType.Azure:
-      return 'fab fa-microsoft';
+      return MicrosoftIcon;
     case EnvironmentType.EdgeAgentOnDocker:
-      return 'fa fa-cloud';
+      return Cloud;
     case EnvironmentType.AgentOnKubernetes:
     case EnvironmentType.EdgeAgentOnKubernetes:
     case EnvironmentType.KubernetesLocal:
-      return 'fas fa-dharmachakra';
+      return Kube;
     case EnvironmentType.AgentOnDocker:
     case EnvironmentType.Docker:
-      return 'fab fa-docker';
+      return DockerIcon;
     case EnvironmentType.EdgeAgentOnNomad:
-      return 'nomad-icon';
+      return NomadIcon;
     default:
       throw new Error(`type ${type}-${EnvironmentType[type]} is not supported`);
   }

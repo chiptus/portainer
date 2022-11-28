@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { ChangeEvent, useMemo } from 'react';
+import { AlertCircle } from 'lucide-react';
 
 import { UserGitCredential } from '@/portainer/models/user';
 
@@ -80,7 +81,7 @@ export function GitFormAuthFieldset({
               className="small text-warning"
               style={{ margin: '5px 0 15px 0' }}
             >
-              <Icon feather icon="alert-circle" mode="warning" />
+              <Icon icon={AlertCircle} mode="warning" />
               <span className="text-muted space-left">
                 Enabling authentication will store the credentials and it is
                 advisable to use a git service account
@@ -174,7 +175,7 @@ export function GitFormAuthFieldset({
                   )}
                   {saveCredential && (
                     <div className="small text-warning">
-                      <Icon feather icon="alert-circle" mode="primary" />
+                      <Icon icon={AlertCircle} mode="primary" />
                       <span className="text-muted space-left">
                         This git credential can be managed through your account
                         page

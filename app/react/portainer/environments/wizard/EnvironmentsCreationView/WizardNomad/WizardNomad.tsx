@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Cloud } from 'lucide-react';
 
 import {
   Environment,
@@ -10,6 +11,7 @@ import {
 } from '@/react/edge/components/EdgeScriptForm/scripts';
 
 import { BoxSelector } from '@@/BoxSelector';
+import { BadgeIcon } from '@@/BadgeIcon';
 
 import { AnalyticsStateKey } from '../types';
 import { EdgeAgentTab } from '../shared/EdgeAgentTab';
@@ -30,7 +32,7 @@ const commands: CommandTab[] = [
 const defaultOptions = [
   {
     description: 'Portainer Edge Agent',
-    icon: 'svg-edgeagent',
+    icon: <BadgeIcon icon={Cloud} size="3xl" />,
     id: 'id',
     label: 'Edge Agent',
     value: EnvironmentCreationTypes.EdgeAgentEnvironment,

@@ -1,19 +1,8 @@
-import { ImageStatus } from '@/react/docker/images/types';
+import { ImageStatus } from '../../images/types';
 
 import style from './ImageStatus.module.css';
 
-export function statusClass(
-  status?: ImageStatus | null,
-  isLoading?: boolean
-): string {
-  if (isLoading) {
-    return 'fa fa-spinner fa-spin';
-  }
-
-  if (!status) {
-    return '';
-  }
-
+export function statusClass(status: ImageStatus) {
   switch (status.Status) {
     case 'outdated':
       return style.outdated;

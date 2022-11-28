@@ -4,13 +4,13 @@
       <div class="toolBar">
         <div class="toolBarTitle vertical-center">
           <div class="widget-icon space-right">
-            <pr-icon icon="$ctrl.titleIcon" feather="true"></pr-icon>
+            <pr-icon icon="$ctrl.titleIcon"></pr-icon>
           </div>
           {{ $ctrl.titleText }}
         </div>
 
         <div class="searchBar vertical-center">
-          <pr-icon icon="'search'" feather="true" class-name="'searchIcon'"></pr-icon>
+          <pr-icon icon="'search'" class-name="'searchIcon'"></pr-icon>
           <input
             type="text"
             class="searchInput"
@@ -28,7 +28,7 @@
             ng-disabled="$ctrl.state.selectedItemCount === 0"
             ng-click="$ctrl.removeAction($ctrl.state.selectedItems)"
           >
-            <pr-icon icon="'trash-2'" feather="true"></pr-icon>
+            <pr-icon icon="'trash-2'"></pr-icon>
             Remove
           </button>
         </div>
@@ -41,7 +41,7 @@
             ng-disabled="($ctrl.dataset | filter:{ Updated: true}).length === 0 "
             ng-click="$ctrl.updateAction()"
           >
-            <pr-icon icon="'check'" feather="true"></pr-icon>
+            <pr-icon icon="'check'"></pr-icon>
             Update
           </button>
         </div>
@@ -53,7 +53,7 @@
         </div>
         <div ng-if="$ctrl.inheritFrom"> Access tagged as <code>override</code> are overriding the group access for the related users/teams. </div>
         <div class="text-warning vertical-center" ng-if="$ctrl.showWarning">
-          <pr-icon icon="'alert-circle'" mode="'warning'" feather="true"></pr-icon>
+          <pr-icon icon="'alert-circle'" mode="'warning'"></pr-icon>
           Updating user access will require the affected user(s) to logout and login for the changes to be taken into account.
         </div>
       </div>
@@ -116,14 +116,14 @@
                 <span ng-if="!item.Updated">
                   {{ item.Role.Name }}
                   <a ng-if="!item.Inherited" class="interactive vertical-center" ng-click="item.Updated = true; item.OldRole = item.Role; $event.stopPropagation();">
-                    <pr-icon icon="'edit'" feather="true"></pr-icon>
+                    <pr-icon icon="'edit'"></pr-icon>
                     Edit
                   </a>
                 </span>
                 <span ng-if="item.Updated">
                   <select ng-model="item.Role" ng-options="role.Name for role in $ctrl.roles"> </select>
                   <a class="interactive" ng-click="item.Updated = false; item.Role = item.OldRole; item.OldRole = null; $event.stopPropagation();">
-                    <pr-icon icon="'x'" feather="true"></pr-icon>
+                    <pr-icon icon="'x'"></pr-icon>
                   </a>
                 </span>
               </td>

@@ -1,4 +1,5 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
+import { Server } from 'lucide-react';
 
 import { useEnvironment } from '@/react/portainer/environments/queries';
 import { useDockerSnapshotContainer } from '@/react/docker/queries/useDockerSnapshotContainer';
@@ -50,7 +51,7 @@ export function ContainerView() {
       <div className="row">
         <div className="col-sm-12">
           <Widget>
-            <WidgetTitle title="Container status" icon="fa-server" />
+            <WidgetTitle title="Container status" icon={Server} />
             <WidgetBody className="!p-0">
               <DetailsTable>
                 <DetailsTable.Row label="ID">{container.Id}</DetailsTable.Row>
@@ -73,7 +74,7 @@ export function ContainerView() {
       <div className="row">
         <div className="col-sm-12">
           <Widget>
-            <WidgetTitle title="Container details" icon="fa-server" />
+            <WidgetTitle title="Container details" icon={Server} />
             <WidgetBody className="!p-0">
               <DetailsTable>
                 <DetailsTable.Row label="Image">

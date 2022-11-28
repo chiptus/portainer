@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState } from 'react';
 import clsx from 'clsx';
-import { RefreshCcw } from 'react-feather';
+import { HardDrive, RefreshCcw } from 'lucide-react';
 import _ from 'lodash';
 
 import { usePaginationLimitState } from '@/react/hooks/usePaginationLimitState';
@@ -179,7 +179,7 @@ export function EnvironmentList({ onClickItem, onRefresh }: Props) {
       <div className="row">
         <div className="col-sm-12">
           <TableContainer>
-            <TableTitle icon="hard-drive" featherIcon label="Environments" />
+            <TableTitle icon={HardDrive} label="Environments" />
 
             <TableActions className={styles.actionBar}>
               <div className={styles.description}>
@@ -199,7 +199,7 @@ export function EnvironmentList({ onClickItem, onRefresh }: Props) {
                       )}
                     >
                       <RefreshCcw
-                        className="feather icon-sm icon-white"
+                        className="lucide icon-sm icon-white"
                         aria-hidden="true"
                       />
                       Refresh

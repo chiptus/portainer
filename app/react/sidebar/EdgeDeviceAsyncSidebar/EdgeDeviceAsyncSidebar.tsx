@@ -1,4 +1,4 @@
-import { Box, Database, Layout, List } from 'react-feather';
+import { Box, Database, Layout, List } from 'lucide-react';
 
 import { EnvironmentId } from '@/react/portainer/environments/types';
 

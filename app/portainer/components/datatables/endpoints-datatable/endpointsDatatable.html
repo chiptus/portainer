@@ -4,13 +4,13 @@
       <div class="toolBar">
         <div class="toolBarTitle vertical-center">
           <div class="widget-icon space-right">
-            <pr-icon icon="$ctrl.titleIcon" feather="true"></pr-icon>
+            <pr-icon icon="$ctrl.titleIcon"></pr-icon>
           </div>
 
           {{ $ctrl.titleText }}
         </div>
         <div class="searchBar vertical-center">
-          <pr-icon icon="'search'" feather="true" class="searchIcon"></pr-icon>
+          <pr-icon icon="'search'" class="searchIcon"></pr-icon>
           <input
             type="text"
             class="searchInput"
@@ -30,7 +30,7 @@
             ng-click="$ctrl.removeAction($ctrl.state.selectedItems)"
             data-cy="endpoint-removeEndpointButton"
           >
-            <pr-icon icon="'trash-2'" feather="true" class-name="'icon-white'"></pr-icon>
+            <pr-icon icon="'trash-2'" class-name="'icon-white'"></pr-icon>
             <span>Remove</span>
           </button>
           <button
@@ -40,7 +40,7 @@
             ui-sref="portainer.wizard.endpoints"
             data-cy="endpoint-addEndpointButton"
           >
-            <pr-icon icon="'plus'" feather="true" class-name="'icon-white'"></pr-icon>
+            <pr-icon icon="'plus'" class-name="'icon-white'"></pr-icon>
             <span>Add environment</span>
           </button>
         </div>
@@ -121,7 +121,7 @@
                 <span ng-if="item.Type !== 4 && item.Status !== 3">{{ item.URL | stripprotocol }}</span>
                 <span ng-if="item.Type === 4">-</span>
                 <span ng-if="item.Status === 3">
-                  <pr-icon icon="'fa-cog'" class-name="'fa-spin space-right'"></pr-icon>
+                  <pr-icon icon="'settings'" class-name="'spin space-right'"></pr-icon>
                   {{ item.StatusMessage.Summary }}
                 </span>
                 <span ng-if="item.Status === 4" style="color: var(--red-5)">
@@ -132,7 +132,7 @@
                     tooltip-class="portainer-tooltip"
                     uib-tooltip="{{ item.StatusMessage.Detail }}"
                   >
-                    <pr-icon icon="'alert-triangle'" feather="true" class-name="'icon-danger'"></pr-icon>
+                    <pr-icon icon="'alert-triangle'" class-name="'icon-danger'"></pr-icon>
                     <span class="small text-danger">{{ item.StatusMessage.Summary }}</span>
                   </span>
                 </span>
@@ -140,7 +140,7 @@
               <td>{{ item.GroupName }}</td>
               <td>
                 <a ng-if="item.Status <= 2" ui-sref="portainer.endpoints.endpoint.access({id: item.Id})">
-                  <pr-icon icon="'users'" feather="true"></pr-icon>
+                  <pr-icon icon="'users'"></pr-icon>
                   Manage access
                 </a>
                 <span ng-if="item.Status > 2">-</span>

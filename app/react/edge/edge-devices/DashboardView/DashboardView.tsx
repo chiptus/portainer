@@ -1,5 +1,5 @@
 import { find } from 'lodash';
-import { Box, Cpu, Database, List } from 'react-feather';
+import { Box, Cpu, Database, List, Gauge } from 'lucide-react';
 import { useCurrentStateAndParams } from '@uirouter/react';
 
 import { useEnvironment } from '@/react/portainer/environments/queries';
@@ -8,6 +8,7 @@ import { useTags } from '@/portainer/tags/queries';
 import { ContainerStatus } from '@/react/docker/DashboardView/ContainerStatus';
 import { ImagesTotalSize } from '@/react/docker/DashboardView/ImagesTotalSize';
 import { useDockerSnapshot } from '@/react/docker/queries/useDockerSnapshot';
+import Memory from '@/assets/ico/memory.svg?c';
 
 import { Widget } from '@@/Widget';
 import { DashboardGrid } from '@@/DashboardItem/DashboardGrid';
@@ -92,7 +93,7 @@ export function DashboardView() {
       <div className="row">
         <div className="col-sm-12">
           <Widget>
-            <Widget.Title icon="svg-tachometer" title="Environment info" />
+            <Widget.Title icon={Gauge} title="Environment info" />
             <Widget.Body className="no-padding !px-5">
               <table className="table">
                 <tbody>
@@ -101,8 +102,8 @@ export function DashboardView() {
                     <td>
                       {environment.Name}{' '}
                       <span className="small text-muted space-left">
-                        <Icon icon={Cpu} /> {totalCpu}{' '}
-                        <Icon icon="svg-memory" inline /> {totalMemory}
+                        <Icon icon={Cpu} /> {totalCpu} <Icon icon={Memory} />{' '}
+                        {totalMemory}
                       </span>
                       <span className="small text-muted">
                         {' '}

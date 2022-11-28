@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import _ from 'lodash';
+import { Trash2 } from 'lucide-react';
 
 import { useCreateTagMutation, useTags } from '@/portainer/tags/queries';
 import { TagId } from '@/portainer/tags/types';
@@ -74,7 +75,7 @@ export function TagSelector({ value, allowCreate = false, onChange }: Props) {
               key={tag.value}
             >
               {tag.label}
-              <Icon icon="trash-2" feather />
+              <Icon icon={Trash2} />
             </button>
           ))}
         </FormControl>

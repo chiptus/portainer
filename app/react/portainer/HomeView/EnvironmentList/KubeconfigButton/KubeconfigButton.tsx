@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download } from 'react-feather';
+import { Download } from 'lucide-react';
 
 import { Environment } from '@/react/portainer/environments/types';
 import { Query } from '@/react/portainer/environments/queries/useEnvironmentList';
@@ -29,8 +29,7 @@ export function KubeconfigButton({ environments, envQueryParams }: Props) {
   return (
     <>
       <Button onClick={handleClick} size="medium" className="!ml-3">
-        <Download className="feather icon-white" aria-hidden="true" />{' '}
-        Kubeconfig
+        <Download className="lucide icon-white" aria-hidden="true" /> Kubeconfig
       </Button>
       {prompt()}
     </>

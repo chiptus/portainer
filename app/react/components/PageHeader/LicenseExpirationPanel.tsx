@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import moment from 'moment';
 import clsx from 'clsx';
-import { AlertTriangle } from 'react-feather';
+import { AlertTriangle } from 'lucide-react';
 
 import { LicenseInfo } from '@/portainer/license-management/types';
 import { useLicenseInfo } from '@/portainer/license-management/use-license.service';

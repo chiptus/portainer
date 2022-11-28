@@ -15,7 +15,7 @@
   <div class="row">
     <div class="col-sm-12 datatable">
       <rd-widget>
-        <rd-widget-header icon="shield" feather-icon="true" title-text="Pod security constraints"></rd-widget-header>
+        <rd-widget-header icon="shield" title-text="Pod security constraints"></rd-widget-header>
         <rd-widget-body>
           <form class="form-horizontal" name="k8sConstraintForm">
             <!--  Enable pod security constraints  -->
@@ -85,12 +85,12 @@
                         />
                       </div>
                       <div class="small text-warning mt-1" ng-class="{ invisible: !k8sConstraintForm['minPort'].$invalid }" ng-messages="k8sConstraintForm['minPort'].$error">
-                        <p ng-message="required" class="vertical-center"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>Min port number is required.</p>
+                        <p ng-message="required" class="vertical-center"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>Min port number is required.</p>
                         <p ng-message="max" class="vertical-center"
-                          ><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>Min port number cannot be greater than max port number.</p
+                          ><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>Min port number cannot be greater than max port number.</p
                         >
                         <p ng-message="min" class="vertical-center"
-                          ><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>Min port number needs to be a positive integer number.</p
+                          ><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>Min port number needs to be a positive integer number.</p
                         >
                       </div>
                     </div>
@@ -109,10 +109,10 @@
                         />
                       </div>
                       <div class="small text-warning mt-1" ng-class="{ invisible: !k8sConstraintForm['maxPort'].$invalid }" ng-messages="k8sConstraintForm['maxPort'].$error">
-                        <p ng-message="required" class="vertical-center"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>Max port number is required.</p>
-                        <p ng-message="max" class="vertical-center"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>Max port number range is 0-65535.</p>
+                        <p ng-message="required" class="vertical-center"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>Max port number is required.</p>
+                        <p ng-message="max" class="vertical-center"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>Max port number range is 0-65535.</p>
                         <p ng-message="min" class="vertical-center"
-                          ><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon>Max port number cannot be less than min port number.</p
+                          ><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>Max port number cannot be less than min port number.</p
                         >
                       </div>
                     </div>
@@ -142,7 +142,7 @@
                       ng-if="!formValues.volumeTypes.allowedTypes.includes('*')"
                       ng-click="addItem(formValues.volumeTypes.allowedTypes, '*')"
                     >
-                      <pr-icon icon="'plus'" feather="true"></pr-icon>add type
+                      <pr-icon icon="'plus'"></pr-icon>add type
                     </span>
                   </div>
                   <!-- info message -->
@@ -168,11 +168,11 @@
                         </select>
                       </div>
                       <button hide-deployment-option="form" class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeItem(formValues.volumeTypes.allowedTypes, $index)">
-                        <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
+                        <pr-icon icon="'trash-2'" size="'sm'"></pr-icon>
                       </button>
                     </div>
                     <div class="form-group col-sm-12 small space-left text-warning vertical-center mt-1" ng-if="formValues.volumeTypes.allowedTypes.duplicated">
-                      <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Allowed volume types cannot be duplicated.
+                      <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Allowed volume types cannot be duplicated.
                     </div>
                   </div>
                 </div>
@@ -192,7 +192,7 @@
                   <div class="text-muted col-sm-12 p-0 !mb-1">
                     <label class="control-label text-left">Allowed host paths</label>
                     <span class="label label-default interactive space-left vertical-center" ng-click="addHostAllowedPath()">
-                      <pr-icon icon="'plus'" mode="'alt'" feather="true"></pr-icon>add path
+                      <pr-icon icon="'plus'" mode="'alt'"></pr-icon>add path
                     </span>
                   </div>
                   <!-- info message -->
@@ -208,12 +208,12 @@
                           <label class="btn btn-light" ng-model="allowedPath.readonly" uib-btn-radio="true">Read-only</label>
                         </div>
                         <button hide-deployment-option="form" class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeHostAllowedPath($index)">
-                          <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
+                          <pr-icon icon="'trash-2'" size="'sm'"></pr-icon>
                         </button>
                       </div>
                     </div>
                     <div class="form-group col-sm-12 small text-warning space-left vertical-center mt-1" ng-if="formValues.hostFilesystem.allowedPaths.duplicated">
-                      <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Allowed host paths cannot be duplicated.
+                      <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Allowed host paths cannot be duplicated.
                     </div>
                   </div>
                 </div>
@@ -234,7 +234,7 @@
                   <div class="text-muted col-sm-12 p-0 !mb-1">
                     <label class="control-label text-left">Allowed FlexVolume drivers</label>
                     <span class="label label-default interactive space-left vertical-center" ng-click="addItem(formValues.allowFlexVolumes.allowedVolumes, '')">
-                      <pr-icon icon="'plus'" feather="true"></pr-icon>add driver
+                      <pr-icon icon="'plus'"></pr-icon>add driver
                     </span>
                   </div>
                   <!-- info message -->
@@ -255,11 +255,11 @@
                         class="btn btn-dangerlight btn-sm btn-only-icon"
                         ng-click="removeItem(formValues.allowFlexVolumes.allowedVolumes, $index)"
                       >
-                        <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
+                        <pr-icon icon="'trash-2'" size="'sm'"></pr-icon>
                       </button>
                     </div>
                     <div class="form-group col-sm-12 small text-warning space-left" ng-if="formValues.allowFlexVolumes.allowedVolumes.duplicated">
-                      <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Allowed FlexVolume drivers cannot be duplicated.
+                      <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Allowed FlexVolume drivers cannot be duplicated.
                     </div>
                   </div>
                 </div>
@@ -308,7 +308,7 @@
                       class="label label-default interactive space-left"
                       ng-click="addItem(formValues.users.runAsUser.idrange, {max: 0, min:0})"
                     >
-                      <pr-icon icon="'plus'" feather="true"></pr-icon>Add range
+                      <pr-icon icon="'plus'"></pr-icon>Add range
                     </span>
                   </div>
                   <div
@@ -335,9 +335,9 @@
                         ng-class="{ invisible: !k8sConstraintForm['rsu' + '_' + $index + '_min'].$invalid }"
                         ng-messages="k8sConstraintForm['rsu' + '_' + $index + '_min'].$error"
                       >
-                        <p ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Min id number is required.</p>
-                        <p ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Min id number needs to be a positive integer number.</p>
-                        <p ng-message="max"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Min id number cannot be greater than max id number.</p>
+                        <p ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Min id number is required.</p>
+                        <p ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Min id number needs to be a positive integer number.</p>
+                        <p ng-message="max"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Min id number cannot be greater than max id number.</p>
                       </div>
                     </div>
                     <div class="col-sm-3 p-0 mr-1">
@@ -358,8 +358,8 @@
                         ng-class="{ invisible: !k8sConstraintForm['rsu' + '_' + $index + '_max'].$invalid }"
                         ng-messages="k8sConstraintForm['rsu' + '_' + $index + '_max'].$error"
                       >
-                        <p ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Max id number is required.</p>
-                        <p ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Max id number cannot be less than min id number.</p>
+                        <p ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Max id number is required.</p>
+                        <p ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Max id number cannot be less than min id number.</p>
                       </div>
                     </div>
                     <button
@@ -368,7 +368,7 @@
                       ng-if="formValues.users.runAsUser.idrange.length > 1"
                       ng-click="removeItem(formValues.users.runAsUser.idrange, $index)"
                     >
-                      <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
+                      <pr-icon icon="'trash-2'" size="'sm'"></pr-icon>
                     </button>
                   </div>
 
@@ -392,7 +392,7 @@
                       class="label label-default interactive space-left"
                       ng-click="addItem(formValues.users.runAsGroup.idrange, {max: 0, min: 0})"
                     >
-                      <pr-icon icon="'plus'" feather="true"></pr-icon>Add range
+                      <pr-icon icon="'plus'"></pr-icon>Add range
                     </span>
                   </div>
                   <div
@@ -419,9 +419,9 @@
                         ng-class="{ invisible: !k8sConstraintForm['rsg' + '_' + $index + '_min'].$invalid }"
                         ng-messages="k8sConstraintForm['rsg' + '_' + $index + '_min'].$error"
                       >
-                        <p ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Min id number is required.</p>
-                        <p ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Min id number needs to be a positive integer number.</p>
-                        <p ng-message="max"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Min id number cannot be greater than max id number.</p>
+                        <p ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Min id number is required.</p>
+                        <p ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Min id number needs to be a positive integer number.</p>
+                        <p ng-message="max"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Min id number cannot be greater than max id number.</p>
                       </div>
                     </div>
                     <div class="col-sm-3 p-0 mr-1">
@@ -442,8 +442,8 @@
                         ng-class="{ invisible: !k8sConstraintForm['rsg' + '_' + $index + '_max'].$invalid }"
                         ng-messages="k8sConstraintForm['rsg' + '_' + $index + '_max'].$error"
                       >
-                        <p ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Max id number is required.</p>
-                        <p ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Max id number cannot be less than min id number.</p>
+                        <p ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Max id number is required.</p>
+                        <p ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Max id number cannot be less than min id number.</p>
                       </div>
                     </div>
                     <button
@@ -452,7 +452,7 @@
                       class="btn btn-dangerlight btn-sm btn-only-icon"
                       ng-click="removeItem(formValues.users.runAsGroup.idrange, $index)"
                     >
-                      <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
+                      <pr-icon icon="'trash-2'" size="'sm'"></pr-icon>
                     </button>
                   </div>
 
@@ -476,7 +476,7 @@
                       class="label label-default interactive space-left"
                       ng-click="addItem(formValues.users.supplementalGroups.idrange, {max: 0, min:0})"
                     >
-                      <pr-icon icon="'plus'" feather="true"></pr-icon>Add range
+                      <pr-icon icon="'plus'"></pr-icon>Add range
                     </span>
                   </div>
                   <div
@@ -503,9 +503,9 @@
                         ng-class="{ invisible: !k8sConstraintForm['rss' + '_' + $index + '_min'].$invalid }"
                         ng-messages="k8sConstraintForm['rss' + '_' + $index + '_min'].$error"
                       >
-                        <p ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Min id number is required.</p>
-                        <p ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Min id number needs to be a positive integer number.</p>
-                        <p ng-message="max"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Min id number cannot be greater than max id number.</p>
+                        <p ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Min id number is required.</p>
+                        <p ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Min id number needs to be a positive integer number.</p>
+                        <p ng-message="max"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Min id number cannot be greater than max id number.</p>
                       </div>
                     </div>
                     <div class="col-sm-3 p-0 mr-1">
@@ -526,8 +526,8 @@
                         ng-class="{ invisible: !k8sConstraintForm['rss' + '_' + $index + '_max'].$invalid }"
                         ng-messages="k8sConstraintForm['rss' + '_' + $index + '_max'].$error"
                       >
-                        <p ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Max id number is required.</p>
-                        <p ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Max id number cannot be less than min id number.</p>
+                        <p ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Max id number is required.</p>
+                        <p ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Max id number cannot be less than min id number.</p>
                       </div>
                     </div>
                     <button
@@ -536,7 +536,7 @@
                       class="btn btn-dangerlight btn-sm btn-only-icon"
                       ng-click="removeItem(formValues.users.supplementalGroups.idrange, $index)"
                     >
-                      <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
+                      <pr-icon icon="'trash-2'" size="'sm'"></pr-icon>
                     </button>
                   </div>
 
@@ -560,7 +560,7 @@
                       class="label label-default interactive space-left"
                       ng-click="addItem(formValues.users.fsGroups.idrange, {max: 0, min: 0})"
                     >
-                      <pr-icon icon="'plus'" feather="true"></pr-icon> Add range
+                      <pr-icon icon="'plus'"></pr-icon> Add range
                     </span>
                   </div>
                   <div
@@ -587,9 +587,9 @@
                         ng-class="{ invisible: !k8sConstraintForm['rsf' + '_' + $index + '_min'].$invalid }"
                         ng-messages="k8sConstraintForm['rsf' + '_' + $index + '_min'].$error"
                       >
-                        <p ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Min id number is required.</p>
-                        <p ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Min id number needs to be a positive integer number.</p>
-                        <p ng-message="max"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Min id number cannot be greater than max id number.</p>
+                        <p ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Min id number is required.</p>
+                        <p ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Min id number needs to be a positive integer number.</p>
+                        <p ng-message="max"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Min id number cannot be greater than max id number.</p>
                       </div>
                     </div>
                     <div class="col-sm-3 p-0 mr-1">
@@ -610,8 +610,8 @@
                         ng-class="{ invisible: !k8sConstraintForm['rsf' + '_' + $index + '_max'].$invalid }"
                         ng-messages="k8sConstraintForm['rsf' + '_' + $index + '_max'].$error"
                       >
-                        <p ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Max id number is required.</p>
-                        <p ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Max id number cannot be less than min id number.</p>
+                        <p ng-message="required"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Max id number is required.</p>
+                        <p ng-message="min"><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Max id number cannot be less than min id number.</p>
                       </div>
                     </div>
                     <button
@@ -620,7 +620,7 @@
                       class="btn btn-dangerlight btn-sm btn-only-icon"
                       ng-click="removeItem(formValues.users.fsGroups.idrange, $index)"
                     >
-                      <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
+                      <pr-icon icon="'trash-2'" size="'sm'"></pr-icon>
                     </button>
                   </div>
                 </div>
@@ -653,7 +653,7 @@
                   <div class="col-sm-12 form-group-inline-message !m-0 !p-0">
                     <label class="control-label text-left">Allowed capabilities</label>
                     <span class="label label-default interactive space-left vertical-center" ng-click="addItem(formValues.capabilities.allowedCapabilities, '')">
-                      <pr-icon icon="'plus'" feather="true"></pr-icon>add capability
+                      <pr-icon icon="'plus'"></pr-icon>add capability
                     </span>
                     <div class="form-inline top-space-sm">
                       <div ng-repeat="allowedCapability in formValues.capabilities.allowedCapabilities track by $index" class="top-space-sm">
@@ -672,11 +672,11 @@
                           class="btn btn-dangerlight btn-sm btn-only-icon"
                           ng-click="removeCapability(formValues.capabilities.allowedCapabilities, $index)"
                         >
-                          <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
+                          <pr-icon icon="'trash-2'" size="'sm'"></pr-icon>
                         </button>
                       </div>
                       <div class="form-group col-sm-12 small vertical-center mt-1 text-warning space-left" ng-if="formValues.capabilities.allowedCapabilities.duplicated">
-                        <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Allowed capabilities cannot be duplicated.
+                        <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Allowed capabilities cannot be duplicated.
                       </div>
                     </div>
                   </div>
@@ -684,7 +684,7 @@
                   <div class="col-sm-12 form-group-inline-message !p-0 !m-0">
                     <label class="control-label text-left">Required drop capabilities</label>
                     <span class="label label-default interactive space-left vertical-center" ng-click="addItem(formValues.capabilities.requiredDropCapabilities, '')">
-                      <pr-icon icon="'plus'" feather="true"></pr-icon> add capability
+                      <pr-icon icon="'plus'"></pr-icon> add capability
                     </span>
                     <div class="form-inline top-space-sm">
                       <div ng-repeat="capability in formValues.capabilities.requiredDropCapabilities track by $index" class="top-space-sm">
@@ -703,14 +703,14 @@
                           class="btn btn-dangerlight btn-sm btn-only-icon"
                           ng-click="removeCapability(formValues.capabilities.requiredDropCapabilities, $index)"
                         >
-                          <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
+                          <pr-icon icon="'trash-2'" size="'sm'"></pr-icon>
                         </button>
                       </div>
                       <div class="form-group col-sm-12 small vertical-center mt-1 space-left text-warning" ng-if="formValues.capabilities.requiredDropCapabilities.duplicated">
-                        <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Required drop capabilities cannot be duplicated.
+                        <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Required drop capabilities cannot be duplicated.
                       </div>
                       <div class="form-group col-sm-12 small vertical-center mt-1 space-left text-warning" ng-if="formValues.capabilities.duplicated">
-                        <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Required drop capabilities must not be included in allowed capabilities
+                        <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Required drop capabilities must not be included in allowed capabilities
                       </div>
                     </div>
                   </div>
@@ -731,7 +731,7 @@
                 <div ng-if="formValues.selinux.enabled" class="form-group-inline-message row px-2">
                   <label class="control-label text-left">Allowed options</label>
                   <span class="label label-default interactive space-left vertical-center" ng-click="addItem(formValues.selinux.allowedCapabilities, {})">
-                    <pr-icon icon="'plus'" feather="true"></pr-icon> add option
+                    <pr-icon icon="'plus'"></pr-icon> add option
                   </span>
                   <!-- info message -->
                   <div class="form-inline top-space-sm !m-0">
@@ -753,11 +753,11 @@
                         <input disable-deployment-option="form" class="form-control" ng-model="option.user" required ng-change="checkSELinuxAllowedCapabilitiesDuplicate()" />
                       </div>
                       <button hide-deployment-option="form" class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeSELinuxAllowedCapabilities($index)">
-                        <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
+                        <pr-icon icon="'trash-2'" size="'sm'"></pr-icon>
                       </button>
                     </div>
                     <div class="form-group col-sm-12 small text-warning vertical-center mt-1 space-left" ng-if="formValues.selinux.allowedCapabilities.duplicated">
-                      <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Allowed options cannot be duplicated.
+                      <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Allowed options cannot be duplicated.
                     </div>
                   </div>
                 </div>
@@ -782,7 +782,7 @@
                   </label>
                   <!-- info message -->
                   <div class="form-group col-sm-12 small text-warning space-left !m-0" ng-if="formValues.allowProcMount.procMountType.$invalid">
-                    <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> {{ formValues.allowProcMount.procMountType.$error }}
+                    <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> {{ formValues.allowProcMount.procMountType.$error }}
                   </div>
                 </div>
               </div>
@@ -801,7 +801,7 @@
                 <div ng-if="formValues.appArmor.enabled" class="form-group-inline-message row px-2">
                   <label class="control-label text-left">Allowed profiles</label>
                   <span class="label label-default interactive space-left vertical-center" ng-click="addItem(formValues.appArmor.AppArmorType, '')">
-                    <pr-icon icon="'plus'" feather="true"></pr-icon> add profile
+                    <pr-icon icon="'plus'"></pr-icon> add profile
                   </span>
                   <!-- info message -->
                   <div class="form-inline top-space-sm !m-0">
@@ -817,11 +817,11 @@
                         />
                       </div>
                       <button hide-deployment-option="form" class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeItem(formValues.appArmor.AppArmorType, $index)">
-                        <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
+                        <pr-icon icon="'trash-2'" size="'sm'"></pr-icon>
                       </button>
                     </div>
                     <div class="form-group col-sm-12 small text-warning vertical-center mt-1 space-left" ng-if="formValues.appArmor.AppArmorType.duplicated">
-                      <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Allowed profiles cannot be duplicated.
+                      <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Allowed profiles cannot be duplicated.
                     </div>
                   </div>
                 </div>
@@ -841,7 +841,7 @@
                 <div ng-if="formValues.secComp.enabled" class="form-group-inline-message row px-2">
                   <label class="control-label text-left">Allowed profiles</label>
                   <span class="label label-default interactive space-left vertical-center" ng-click="addItem(formValues.secComp.secCompType, '')">
-                    <pr-icon icon="'plus'" feather="true"></pr-icon> add profile
+                    <pr-icon icon="'plus'"></pr-icon> add profile
                   </span>
                   <!-- info message -->
                   <div class="form-inline top-space-sm !m-0">
@@ -857,11 +857,11 @@
                         />
                       </div>
                       <button hide-deployment-option="form" class="btn btn-dangerlight btn-sm btn-only-icon" ng-click="removeItem(formValues.secComp.secCompType, $index)">
-                        <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
+                        <pr-icon icon="'trash-2'" size="'sm'"></pr-icon>
                       </button>
                     </div>
                     <div class="form-group col-sm-12 small text-warning vertical-center mt-1 space-left" ng-if="formValues.secComp.secCompType.duplicated">
-                      <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Allowed profiles cannot be duplicated.
+                      <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Allowed profiles cannot be duplicated.
                     </div>
                   </div>
                 </div>
@@ -881,7 +881,7 @@
                 <div ng-if="formValues.forbiddenSysctlsList.enabled" class="form-group-inline-message row px-2">
                   <label class="control-label text-left">Forbidden sysctls</label>
                   <span class="label label-default interactive vertical-center space-left" ng-click="addItem(formValues.forbiddenSysctlsList.requiredDropCapabilities, '')">
-                    <pr-icon icon="'plus'" feather="true"></pr-icon> add sysctl
+                    <pr-icon icon="'plus'"></pr-icon> add sysctl
                   </span>
                   <!-- info message -->
                   <div class="form-inline top-space-sm !m-0">
@@ -901,14 +901,14 @@
                         class="btn btn-dangerlight btn-sm btn-only-icon"
                         ng-click="removeItem(formValues.forbiddenSysctlsList.requiredDropCapabilities, $index)"
                       >
-                        <pr-icon icon="'trash-2'" size="'sm'" feather="true"></pr-icon>
+                        <pr-icon icon="'trash-2'" size="'sm'"></pr-icon>
                       </button>
                     </div>
                     <div
                       class="form-group col-sm-12 small text-warning vertical-center mt-1 space-left"
                       ng-if="formValues.forbiddenSysctlsList.requiredDropCapabilities.duplicated"
                     >
-                      <pr-icon icon="'alert-triangle'" mode="'warning'" feather="true"></pr-icon> Forbidden sysctls cannot be duplicated.
+                      <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Forbidden sysctls cannot be duplicated.
                     </div>
                   </div>
                 </div>

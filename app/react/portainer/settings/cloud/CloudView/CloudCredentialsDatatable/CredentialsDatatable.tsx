@@ -1,3 +1,4 @@
+import { Cloud } from 'lucide-react';
 import { useStore } from 'zustand';
 
 import { Datatable } from '@@/datatables';
@@ -22,7 +23,7 @@ export function CredentialsDatatable() {
 
   return (
     <Datatable
-      titleIcon="fa-cloud"
+      titleIcon={Cloud}
       title="Cloud provider credentials"
       initialPageSize={settings.pageSize}
       onPageSizeChange={settings.setPageSize}

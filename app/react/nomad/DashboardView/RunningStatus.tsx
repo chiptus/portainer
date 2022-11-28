@@ -1,3 +1,5 @@
+import { Power } from 'lucide-react';
+
 import { EnvironmentStatsItem } from '@@/EnvironmentStatsItem';
 
 interface Props {
@@ -11,16 +13,14 @@ export function RunningStatus({ running, stopped }: Props) {
       <div>
         <EnvironmentStatsItem
           value={`${running || '-'} running`}
-          icon="power"
-          featherIcon
+          icon={Power}
           iconClass="icon-success"
         />
       </div>
       <div>
         <EnvironmentStatsItem
           value={`${stopped || '-'} stopped`}
-          icon="power"
-          featherIcon
+          icon={Power}
           iconClass="icon-danger"
         />
       </div>

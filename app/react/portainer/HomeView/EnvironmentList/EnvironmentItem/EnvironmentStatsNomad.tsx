@@ -1,3 +1,5 @@
+import { List, Box, Power, HardDrive, Dice4 } from 'lucide-react';
+
 import {
   EnvironmentType,
   NomadSnapshot,
@@ -34,30 +36,26 @@ export function EnvironmentStatsNomad({
       <span className="blocklist-item-desc space-x-2 vertical-center">
         <EnvironmentStatsItem
           value={addPlural(snapshot.JobCount, 'job')}
-          icon="list"
-          featherIcon
+          icon={List}
         />
         <EnvironmentStatsItem
           value={addPlural(snapshot.GroupCount, 'group')}
-          icon="svg-objectgroup"
+          icon={Dice4}
         />
         <EnvironmentStatsItem
           value={addPlural(snapshot.TaskCount, 'task')}
-          icon="box"
-          featherIcon
+          icon={Box}
         >
           {snapshot.TaskCount > 0 && (
             <span className="space-x-2">
               <EnvironmentStatsItem
                 value={snapshot.RunningTaskCount}
-                icon="power"
-                featherIcon
+                icon={Power}
                 iconClass="icon-success"
               />
               <EnvironmentStatsItem
                 value={snapshot.TaskCount - snapshot.RunningTaskCount}
-                icon="power"
-                featherIcon
+                icon={Power}
                 iconClass="icon-danger"
               />
             </span>
@@ -69,8 +67,7 @@ export function EnvironmentStatsNomad({
         <span>Nomad</span>
         <EnvironmentStatsItem
           value={addPlural(snapshot.NodeCount, 'node')}
-          icon="hard-drive"
-          featherIcon
+          icon={HardDrive}
         />
         <AgentVersionTag type={type} version={agentVersion} />
       </span>

@@ -4,7 +4,7 @@
       <div class="toolBar vertical-center !gap-x-5 !gap-y-1 flex-wrap">
         <div class="toolBarTitle vertical-center">
           <div class="widget-icon space-right">
-            <pr-icon icon="'svg-clockrewind'"></pr-icon>
+            <pr-icon icon="'history'"></pr-icon>
           </div>
 
           Authentication Events
@@ -86,13 +86,8 @@
               <td>{{ item.username }}</td>
               <td>
                 {{ $ctrl.activityType(item.type) }}
-                <i
-                  class="fa"
-                  ng-class="{
-                    'fa-check text-success': $ctrl.isAuthSuccess(item.type),
-                    'fa-times text-danger': $ctrl.isAuthFailure(item.type)
-                  }"
-                ></i>
+                <pr-icon ng-if="$ctrl.isAuthSuccess(item.type)" icon="'check'" mode="'success'"></pr-icon>
+                <pr-icon ng-if="$ctrl.isAuthFailure(item.type)" icon="'x'" mode="'danger'"></pr-icon>
               </td>
             </tr>
             <tr ng-if="!$ctrl.logs">
