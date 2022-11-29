@@ -1,7 +1,6 @@
 package endpoints
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // @id EndpointDelete
@@ -53,6 +53,13 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 	err = handler.DataStore.Snapshot().DeleteSnapshot(portaineree.EndpointID(endpointID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to remove the snapshot from the database", err)
+	}
+
+	err = handler.deleteAccessPolicies(*endpoint)
+	if err != nil {
+		// log as an error because we still want to continue deletion steps
+		log.Error().Err(err).Msg("Unable to delete endpoint access policies - continuing environment deletion")
+		log.Warn().Msg("If the environment removed from Portainer still exists, Portainer access policies will remain")
 	}
 
 	err = handler.DataStore.Endpoint().DeleteEndpoint(portaineree.EndpointID(endpointID))
@@ -134,11 +141,6 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 
 	handler.AuthorizationService.TriggerUsersAuthUpdate()
 
-	err = handler.deleteAccessPolicies(*endpoint)
-	if err != nil {
-		return httperror.InternalServerError("Unable to delete endpoint access policies", err)
-	}
-
 	return response.Empty(w)
 }
 
@@ -165,16 +167,21 @@ func (handler *Handler) deleteAccessPolicies(endpoint portaineree.Endpoint) erro
 		return nil
 	}
 
-	kcl, err := handler.K8sClientFactory.GetKubeClient(&endpoint)
-	if err != nil {
-		return fmt.Errorf("Unable to get k8s environment access @ %d: %w", int(endpoint.ID), err)
-	}
+	// run as a non blocking function for deleting edge environment with long check in intervals
+	go func() {
+		log.Info().Msg("Starting to update access policies")
+		kcl, err := handler.K8sClientFactory.GetKubeClient(&endpoint)
+		if err != nil {
+			log.Error().Err(err).Msgf("Unable to get k8s environment access while deleting environment @ %d", int(endpoint.ID))
+			return
+		}
 
-	emptyPolicies := make(map[string]portaineree.K8sNamespaceAccessPolicy)
-	err = kcl.UpdateNamespaceAccessPolicies(emptyPolicies)
-	if err != nil {
-		return fmt.Errorf("Unable to update environment namespace access @ %d: %w", int(endpoint.ID), err)
-	}
+		emptyPolicies := make(map[string]portaineree.K8sNamespaceAccessPolicy)
+		err = kcl.UpdateNamespaceAccessPolicies(emptyPolicies)
+		if err != nil {
+			log.Error().Err(err).Msgf("Unable to update environment namespace access while deleting environment @ %d", int(endpoint.ID))
+		}
+	}()
 
 	return nil
 }
