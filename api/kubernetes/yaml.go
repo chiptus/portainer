@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/vmware-labs/yaml-jsonpath/pkg/yamlpath"
+	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"
 )
 
@@ -26,6 +28,12 @@ type KubeAppLabels struct {
 	StackName string
 	Owner     string
 	Kind      string
+}
+
+type KubeResource struct {
+	Kind      string
+	Name      string
+	Namespace string
 }
 
 // convert string to valid kubernetes label by replacing invalid characters with periods
@@ -135,6 +143,75 @@ func GetNamespace(manifestYaml []byte) (string, error) {
 	}
 
 	return "", nil
+}
+
+// GetImagesFromManifest returns a list of images referenced in a kubernetes manifest
+func GetImagesFromManifest(manifestYaml []byte) ([]string, error) {
+	var n yaml.Node
+	err := yaml.Unmarshal([]byte(manifestYaml), &n)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal yaml manifest when obtaining images")
+	}
+
+	p, err := yamlpath.NewPath("$..spec.containers[*].image")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create yamlpath when obtaining images")
+	}
+
+	q, err := p.Find(&n)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find images in yaml manifest")
+	}
+
+	images := make([]string, 0)
+	for _, v := range q {
+		images = append(images, v.Value)
+	}
+
+	return images, nil
+}
+
+// GetResourcesFromManifest returns a list of kubernetes resource kinds from a manifest optionally filtered by resource kind
+func GetResourcesFromManifest(manifestYaml []byte, filters []string) ([]KubeResource, error) {
+	kinds := make([]KubeResource, 0)
+
+	// ensure the filters are be lower case
+	for i := 0; i < len(filters); i++ {
+		filters[i] = strings.ToLower(filters[i])
+	}
+
+	postProcessYaml := func(yamlDoc interface{}) error {
+		kind := KubeResource{}
+
+		if val, ok := yamlDoc.(map[string]interface{})["kind"].(string); ok {
+			if len(filters) == 0 || slices.Contains(filters, strings.ToLower(val)) {
+				kind.Kind = strings.ToLower(val)
+			} else {
+				return nil
+			}
+		}
+
+		if m, ok := yamlDoc.(map[string]interface{}); ok {
+			if metadata, ok := m["metadata"].(map[string]interface{}); ok {
+				if name, ok := metadata["name"].(string); ok {
+					kind.Name = name
+				}
+				if name, ok := metadata["namespace"].(string); ok {
+					kind.Namespace = name
+				}
+			}
+		}
+
+		kinds = append(kinds, kind)
+		return nil
+	}
+
+	_, err := ExtractDocuments(manifestYaml, postProcessYaml)
+	if err != nil {
+		return nil, err
+	}
+
+	return kinds, nil
 }
 
 func addResourceLabels(yamlDoc interface{}, appLabels map[string]string) {

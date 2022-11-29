@@ -852,3 +852,164 @@ spec:
 		})
 	}
 }
+
+func Test_GetResourcesFromManifest(t *testing.T) {
+	tests := []struct {
+		name       string
+		input      string
+		wantOutput []KubeResource
+		filters    []string
+	}{
+		{
+			name: "simple deployment",
+			input: `apiVersion: v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx
+  name: nginx-deployment
+  namespace: default
+`,
+			wantOutput: []KubeResource{
+				{
+					Name:      "nginx-deployment",
+					Kind:      "deployment",
+					Namespace: "default",
+				},
+			},
+			filters: []string{"deployment"},
+		},
+		{
+			name: "simple daemonset",
+			input: `apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fluentd-elasticsearch
+  namespace: kube-system
+`,
+			wantOutput: []KubeResource{
+				{
+					Name:      "fluentd-elasticsearch",
+					Kind:      "daemonset",
+					Namespace: "kube-system",
+				},
+			},
+			filters: []string{"DaemonSet"},
+		},
+		{
+			name: "multifile deployment",
+			input: `apiVersion: v1
+kind: Namespace
+metadata:
+  name: portainer
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: portainer-sa-clusteradmin
+  namespace: portainer
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: portainer-crb-clusteradmin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: portainer-sa-clusteradmin
+  namespace: portainer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portainer
+  namespace: portainer
+  labels:
+    io.portainer.kubernetes.application.stack: portainer
+spec:
+  type: LoadBalancer
+  selector:
+    app: app-portainer
+  ports:
+    - name: http
+      protocol: TCP
+      port: 9000
+      targetPort: 9000
+    - name: edge
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portainer
+  namespace: portainer
+  labels:
+    io.portainer.kubernetes.application.stack: portainer    
+spec:
+  selector:
+    matchLabels:
+      app: app-portainer
+  template:
+    metadata:
+      labels:
+        app: app-portainer
+    spec:
+      serviceAccountName: portainer-sa-clusteradmin
+      containers:
+      - name: portainer
+        image: portainerci/portainer:develop
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9000
+          protocol: TCP
+        - containerPort: 8000
+          protocol: TCP
+`,
+			wantOutput: []KubeResource{
+				{
+					Kind:      "namespace",
+					Name:      "portainer",
+					Namespace: "",
+				},
+				{
+					Kind:      "serviceaccount",
+					Name:      "portainer-sa-clusteradmin",
+					Namespace: "portainer",
+				},
+				{
+					Kind:      "clusterrolebinding",
+					Name:      "portainer-crb-clusteradmin",
+					Namespace: "",
+				},
+				{
+					Kind:      "service",
+					Name:      "portainer",
+					Namespace: "portainer",
+				},
+				{
+					Kind:      "deployment",
+					Name:      "portainer",
+					Namespace: "portainer",
+				},
+			},
+			filters: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := GetResourcesFromManifest([]byte(tt.input), tt.filters)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tt.wantOutput, result)
+		})
+	}
+}

@@ -15,6 +15,10 @@ func (deployer *kubernetesMockDeployer) Deploy(userID portaineree.UserID, endpoi
 	return "", nil
 }
 
+func (deployer *kubernetesMockDeployer) Restart(userID portaineree.UserID, endpoint *portaineree.Endpoint, resourceList []string, namespace string) (string, error) {
+	return "", nil
+}
+
 func (deployer *kubernetesMockDeployer) Remove(userID portaineree.UserID, endpoint *portaineree.Endpoint, manifestFiles []string, namespace string) (string, error) {
 	return "", nil
 }

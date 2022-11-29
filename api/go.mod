@@ -64,6 +64,7 @@ require (
 	github.com/stretchr/testify v1.7.1
 	github.com/urfave/negroni v1.0.0
 	github.com/viney-shih/go-lock v1.1.1
+	github.com/vmware-labs/yaml-jsonpath v0.3.2
 	go.etcd.io/bbolt v1.3.6
 	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
@@ -83,6 +84,7 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
+	github.com/dprotaso/go-yit v0.0.0-20191028211022-135eb7262960 // indirect
 	github.com/emicklei/go-restful/v3 v3.8.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
@@ -98,7 +100,6 @@ require (
 require (
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
-	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
@@ -129,7 +130,6 @@ require (
 	github.com/containers/libtrust v0.0.0-20200511145503-9c3a6c22cd9a // indirect
 	github.com/containers/ocicrypt v1.1.3 // indirect
 	github.com/containers/storage v1.38.3-0.20220301151551-d06b0f81c0aa // indirect
-	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.6.4 // indirect
@@ -171,8 +171,6 @@ require (
 	github.com/klauspost/compress v1.15.1 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/mattn/go-colorable v0.1.12 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect

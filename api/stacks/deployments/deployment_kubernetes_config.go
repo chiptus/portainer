@@ -3,6 +3,7 @@ package deployments
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -12,6 +13,8 @@ import (
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	"github.com/portainer/portainer/api/filesystem"
+
+	"github.com/rs/zerolog/log"
 )
 
 type KubernetesStackDeploymentConfig struct {
@@ -52,7 +55,7 @@ func (config *KubernetesStackDeploymentConfig) GetUsername() string {
 func (config *KubernetesStackDeploymentConfig) Deploy() error {
 	fileNames := stackutils.GetStackFilePaths(config.stack, false)
 
-	manifestFilePaths := make([]string, len(fileNames))
+	manifestFilePaths := make([]string, 0, len(fileNames))
 
 	namespaces := map[string]bool{}
 	if config.stack.Namespace != "" {
@@ -63,7 +66,6 @@ func (config *KubernetesStackDeploymentConfig) Deploy() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to create temp kub deployment directory")
 	}
-
 	defer os.RemoveAll(tmpDir)
 
 	for _, fileName := range fileNames {
@@ -135,6 +137,118 @@ func (config *KubernetesStackDeploymentConfig) Deploy() error {
 	return nil
 }
 
+// Restart the following resources
+func (config *KubernetesStackDeploymentConfig) Restart(resourceList []string) error {
+
+	log.Debug().Msgf("Restarting stack")
+
+	fileNames := stackutils.GetStackFilePaths(config.stack, false)
+	resourceMap := make(map[string][]string)
+	namespaces := []string{}
+
+	tmpDir, err := os.MkdirTemp("", "kub_restart")
+	if err != nil {
+		return errors.Wrap(err, "failed to create temp kube directory")
+	}
+	defer os.RemoveAll(tmpDir)
+
+	for _, fileName := range fileNames {
+		manifestFilePath := filesystem.JoinPaths(tmpDir, fileName)
+		manifestContent, err := os.ReadFile(filesystem.JoinPaths(config.stack.ProjectPath, fileName))
+		if err != nil {
+			return errors.Wrap(err, "failed to read manifest file")
+		}
+
+		if config.stack.IsComposeFormat {
+			manifestContent, err = config.kuberneteDeployer.ConvertCompose(manifestContent)
+			if err != nil {
+				return errors.Wrap(err, "failed to convert docker compose file to a kube manifest")
+			}
+		}
+
+		filters := []string{"deployment", "statefulset", "daemonset"}
+		manifestResources, err := kubernetes.GetResourcesFromManifest(manifestContent, filters)
+		if err != nil {
+			return errors.Wrap(err, "failed to get resources")
+		}
+
+		err = filesystem.WriteToFile(manifestFilePath, []byte(manifestContent))
+		if err != nil {
+			return errors.Wrap(err, "failed to create temp manifest file")
+		}
+
+		for _, r := range manifestResources {
+			namespace := r.Namespace
+			if namespace == "" && config.stack.Namespace != "" {
+				namespace = config.stack.Namespace
+			}
+
+			resourceMap[namespace] = append(resourceMap[namespace], r.Kind+"/"+r.Name)
+		}
+	}
+
+	for ns := range resourceMap {
+		namespaces = append(namespaces, ns)
+	}
+
+	config.namespaces = namespaces
+
+	if config.authorizationService != nil && config.kubernetesClientFactory != nil {
+		err = config.checkEndpointPermission()
+		if err != nil {
+			return fmt.Errorf("user does not have permission to restart stack: %w", err)
+		}
+	}
+
+	log.Debug().Msgf("Restarting resources in namespaces: %v", namespaces)
+
+	// Now restart all the resources
+	err = nil
+	for namespace, resources := range resourceMap {
+		if resourceList != nil {
+			resources = filterResources(resources, resourceList)
+			if len(resources) == 0 {
+				continue
+			}
+		}
+
+		log.Debug().Msgf("Namespace: %s, Resources: %+v", namespace, resources)
+
+		output, e := config.kuberneteDeployer.Restart(config.tokenData.ID, config.endpoint, resources, namespace)
+		if e != nil {
+			log.Error().Err(err).Msgf("Failed to restart resources %v in namespace %v", resources, namespace)
+			err = fmt.Errorf("Some resources failed to restart, check Portainer log for more details")
+		}
+
+		if len(config.output) > 0 {
+			config.output += "\n---\n"
+		}
+		config.output += output
+	}
+
+	return err
+}
+
+// filterResources removes resources not in resourceList to prevent restarting resources we don't want to restart
+func filterResources(resources, resourceList []string) []string {
+	log.Debug().Msgf("Filtering resources: %v, resourceList %v", resources, resourceList)
+	if len(resourceList) == 0 {
+		return resourceList
+	}
+
+	filteredResources := []string{}
+	for _, r := range resources {
+		for _, rl := range resourceList {
+			if strings.EqualFold(r, rl) {
+				filteredResources = append(filteredResources, r)
+			}
+		}
+	}
+
+	log.Debug().Msgf("Filtered resources: %v", filteredResources)
+	return filteredResources
+}
+
 func (config *KubernetesStackDeploymentConfig) GetResponse() string {
 	return config.output
 }
@@ -178,7 +292,7 @@ func (config *KubernetesStackDeploymentConfig) checkEndpointPermission() error {
 
 	for _, namespace := range config.namespaces {
 		if auth, ok := namespaceAuthorizations[namespace]; !ok || !auth[portaineree.OperationK8sAccessNamespaceWrite] {
-			return errors.Wrap(permissionDeniedErr, "user does not have permission to access namespace")
+			return errors.Wrapf(permissionDeniedErr, "user does not have permission to access namespace: %s", namespace)
 		}
 	}
 

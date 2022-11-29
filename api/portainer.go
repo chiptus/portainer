@@ -1748,6 +1748,7 @@ type (
 	// KubernetesDeployer represents a service to deploy a manifest inside a Kubernetes environment(endpoint)
 	KubernetesDeployer interface {
 		Deploy(userID UserID, endpoint *Endpoint, manifestFiles []string, namespace string) (string, error)
+		Restart(userID UserID, endpoint *Endpoint, resourceList []string, namespace string) (string, error)
 		Remove(userID UserID, endpoint *Endpoint, manifestFiles []string, namespace string) (string, error)
 		ConvertCompose(data []byte) ([]byte, error)
 	}

@@ -53,8 +53,15 @@ func updateAllowed(endpoint *portaineree.Endpoint, clock Clock) (bool, error) {
 	return tw.Within(clock.Now()), nil
 }
 
+type RedeployOptions struct {
+	AdditionalEnvVars             []portaineree.Pair
+	PullDockerImage               *bool
+	RolloutRestartK8sAll          bool
+	RolloutRestartK8sResourceList []string
+}
+
 // RedeployWhenChanged pull and redeploy the stack when  git repo changed
-func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, datastore dataservices.DataStore, gitService portaineree.GitService, activityService portaineree.UserActivityService, additionalEnv []portaineree.Pair, pullImage *bool) error {
+func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, datastore dataservices.DataStore, gitService portaineree.GitService, activityService portaineree.UserActivityService, options *RedeployOptions) error {
 	log.Debug().Int("stack_id", int(stackID)).Msg("redeploying stack")
 
 	stack, err := datastore.Stack().Stack(stackID)
@@ -63,26 +70,28 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 	}
 
 	additionalEnvUpserted := false
-	for _, env := range additionalEnv {
-		exist := false
-		for index, stackEnv := range stack.Env {
-			if env.Name == stackEnv.Name {
-				stack.Env[index] = portaineree.Pair{
+	if options != nil {
+		for _, env := range options.AdditionalEnvVars {
+			exist := false
+			for index, stackEnv := range stack.Env {
+				if env.Name == stackEnv.Name {
+					stack.Env[index] = portaineree.Pair{
+						Name:  env.Name,
+						Value: env.Value,
+					}
+					exist = true
+					additionalEnvUpserted = true
+					break
+				}
+			}
+
+			if !exist {
+				stack.Env = append(stack.Env, portaineree.Pair{
 					Name:  env.Name,
 					Value: env.Value,
-				}
-				exist = true
+				})
 				additionalEnvUpserted = true
-				break
 			}
-		}
-
-		if !exist {
-			stack.Env = append(stack.Env, portaineree.Pair{
-				Name:  env.Name,
-				Value: env.Value,
-			})
-			additionalEnvUpserted = true
 		}
 	}
 
@@ -174,8 +183,8 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 	}
 
 	forcePullImage := func() bool {
-		if pullImage != nil {
-			return *pullImage
+		if options != nil && options.PullDockerImage != nil {
+			return *options.PullDockerImage
 		}
 
 		return stack.AutoUpdate == nil || stack.AutoUpdate.ForcePullImage
@@ -217,9 +226,18 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 			Int("stack_id", int(stackID)).
 			Msg("deploying a kube app")
 
-		err := deployer.DeployKubernetesStack(stack, endpoint, user)
+		action := "restart"
+		if options != nil && options.RolloutRestartK8sAll {
+			err = deployer.RestartKubernetesStack(stack, endpoint, user, nil)
+		} else if options != nil && len(options.RolloutRestartK8sResourceList) != 0 {
+			err = deployer.RestartKubernetesStack(stack, endpoint, user, options.RolloutRestartK8sResourceList)
+		} else {
+			err = deployer.DeployKubernetesStack(stack, endpoint, user)
+			action = "deploy"
+		}
+
 		if err != nil {
-			return errors.WithMessagef(err, "failed to deploy a kubternetes app stack %v", stackID)
+			return errors.WithMessagef(err, "failed to %s a kubternetes app stack %v", action, stackID)
 		}
 	default:
 		return errors.Errorf("cannot update stack, type %v is unsupported", stack.Type)

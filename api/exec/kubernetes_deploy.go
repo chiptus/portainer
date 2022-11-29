@@ -18,6 +18,7 @@ import (
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // KubernetesDeployer represents a service to deploy resources inside a Kubernetes environment(endpoint).
@@ -82,28 +83,38 @@ func (deployer *KubernetesDeployer) getToken(userID portaineree.UserID, endpoint
 
 // Deploy upserts Kubernetes resources defined in manifest(s)
 func (deployer *KubernetesDeployer) Deploy(userID portaineree.UserID, endpoint *portaineree.Endpoint, manifestFiles []string, namespace string) (string, error) {
-	return deployer.command("apply", userID, endpoint, manifestFiles, namespace)
+	return deployer.kubectl("apply", "", manifestFilesToArgs(manifestFiles), namespace, endpoint, userID)
+}
+
+// Restart calls restart a kubernetes resource. Valid resource types are: deployment, statefulset, daemonset
+// call with
+func (deployer *KubernetesDeployer) Restart(userID portaineree.UserID, endpoint *portaineree.Endpoint, resourceList []string, namespace string) (string, error) {
+	return deployer.kubectl("rollout", "restart", resourceList, namespace, endpoint, userID)
 }
 
 // Remove deletes Kubernetes resources defined in manifest(s)
 func (deployer *KubernetesDeployer) Remove(userID portaineree.UserID, endpoint *portaineree.Endpoint, manifestFiles []string, namespace string) (string, error) {
-	return deployer.command("delete", userID, endpoint, manifestFiles, namespace)
+	return deployer.kubectl("delete", "", manifestFilesToArgs(manifestFiles), namespace, endpoint, userID)
 }
 
-func (deployer *KubernetesDeployer) command(operation string, userID portaineree.UserID, endpoint *portaineree.Endpoint, manifestFiles []string, namespace string) (string, error) {
+func (deployer *KubernetesDeployer) kubectl(cmd, subcmd string, args []string, namespace string, endpoint *portaineree.Endpoint, userID portaineree.UserID) (string, error) {
+	kubectlCmd := path.Join(deployer.binaryPath, "kubectl")
+	if runtime.GOOS == "windows" {
+		kubectlCmd = path.Join(deployer.binaryPath, "kubectl.exe")
+	}
+
 	token, err := deployer.getToken(userID, endpoint, endpoint.Type == portaineree.KubernetesLocalEnvironment)
 	if err != nil {
 		return "", errors.Wrap(err, "failed generating a user token")
 	}
 
-	command := path.Join(deployer.binaryPath, "kubectl")
-	if runtime.GOOS == "windows" {
-		command = path.Join(deployer.binaryPath, "kubectl.exe")
+	cmdArgs := []string{}
+	if token != "" {
+		cmdArgs = append(cmdArgs, "--token", token)
 	}
 
-	args := []string{"--token", token}
 	if namespace != "" {
-		args = append(args, "--namespace", namespace)
+		cmdArgs = append(cmdArgs, "--namespace", namespace)
 	}
 
 	if endpoint.Type == portaineree.AgentOnKubernetesEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
@@ -111,33 +122,40 @@ func (deployer *KubernetesDeployer) command(operation string, userID portaineree
 		if err != nil {
 			return "", errors.WithMessage(err, "failed generating endpoint URL")
 		}
-
 		defer proxy.Close()
-		args = append(args, "--server", url)
-		args = append(args, "--insecure-skip-tls-verify")
+
+		cmdArgs = append(cmdArgs, "--server", url)
+		cmdArgs = append(cmdArgs, "--insecure-skip-tls-verify")
 	}
 
-	if operation == "delete" {
-		args = append(args, "--ignore-not-found=true")
+	cmdArgs = append(cmdArgs, cmd)
+	if subcmd != "" {
+		cmdArgs = append(cmdArgs, subcmd)
 	}
+	cmdArgs = append(cmdArgs, args...)
 
-	args = append(args, operation)
-	for _, path := range manifestFiles {
-		args = append(args, "-f", strings.TrimSpace(path))
-	}
+	log.Debug().Msgf("kubectl %+v\n", cmdArgs)
 
 	var stderr bytes.Buffer
-	cmd := exec.Command(command, args...)
-	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, "POD_NAMESPACE=default")
-	cmd.Stderr = &stderr
+	c := exec.Command(kubectlCmd, cmdArgs...)
+	c.Env = os.Environ()
+	c.Env = append(c.Env, "POD_NAMESPACE=default")
+	c.Stderr = &stderr
 
-	output, err := cmd.Output()
+	output, err := c.Output()
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to execute kubectl command: %q", stderr.String())
 	}
 
 	return string(output), nil
+}
+
+func manifestFilesToArgs(manifestFiles []string) []string {
+	args := []string{}
+	for _, path := range manifestFiles {
+		args = append(args, "-f", strings.TrimSpace(path))
+	}
+	return args
 }
 
 // ConvertCompose leverages the kompose binary to deploy a compose compliant manifest.

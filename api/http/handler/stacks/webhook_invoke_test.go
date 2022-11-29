@@ -59,42 +59,75 @@ func TestHandler_webhookInvoke(t *testing.T) {
 func Test_parseQuery(t *testing.T) {
 	t.Run("no query params returns no vars", func(t *testing.T) {
 		query, _ := url.ParseQuery("")
-		pullimage, envs := parseQuery(query)
-		assert.Equal(t, nilptr[bool](), pullimage)
-		assert.Equal(t, []portaineree.Pair{}, envs)
+		options, err := parseQuery(query)
+		assert.NoError(t, err)
+		assert.Equal(t, nilptr[bool](), options.PullDockerImage)
+		assert.Equal(t, []portaineree.Pair{}, options.AdditionalEnvVars)
 	})
 	t.Run("return query params as pairs", func(t *testing.T) {
 		query, _ := url.ParseQuery("first=1&second=2")
-		pullimage, envs := parseQuery(query)
-		assert.Equal(t, nilptr[bool](), pullimage)
+		options, err := parseQuery(query)
+		assert.NoError(t, err)
+		assert.Equal(t, nilptr[bool](), options.PullDockerImage)
 		assert.ElementsMatch(t, []portaineree.Pair{
 			{Name: "first", Value: "1"},
 			{Name: "second", Value: "2"},
-		}, envs)
+		}, options.AdditionalEnvVars)
 	})
 	t.Run("take last value if param is duplicated", func(t *testing.T) {
 		query, _ := url.ParseQuery("first=1&second=2&second=3")
-		pullimage, envs := parseQuery(query)
-		assert.Equal(t, nilptr[bool](), pullimage)
+		options, err := parseQuery(query)
+		assert.NoError(t, err)
+		assert.Equal(t, nilptr[bool](), options.PullDockerImage)
 		assert.ElementsMatch(t, []portaineree.Pair{
 			{Name: "first", Value: "1"},
 			{Name: "second", Value: "3"},
-		}, envs)
+		}, options.AdditionalEnvVars)
 	})
 	t.Run("pullimage is a special param", func(t *testing.T) {
 		query, _ := url.ParseQuery("first=1&second=2&pullimage=true")
-		pullimage, envs := parseQuery(query)
-		assert.Equal(t, true, *pullimage)
+		options, err := parseQuery(query)
+		assert.NoError(t, err)
+		assert.Equal(t, true, *options.PullDockerImage)
 		assert.ElementsMatch(t, []portaineree.Pair{
 			{Name: "first", Value: "1"},
 			{Name: "second", Value: "2"},
-		}, envs)
+		}, options.AdditionalEnvVars)
 	})
-	t.Run("pullimage is nil if value is incorrect bool", func(t *testing.T) {
-		query, _ := url.ParseQuery("pullimage=aye")
-		pullimage, envs := parseQuery(query)
-		assert.Equal(t, nilptr[bool](), pullimage)
-		assert.Equal(t, []portaineree.Pair{}, envs)
+	t.Run("pullimage is a not a bool", func(t *testing.T) {
+		query, _ := url.ParseQuery("first=1&second=2&pullimage=notbool")
+		_, err := parseQuery(query)
+		assert.Error(t, err)
+	})
+	t.Run("pullimage has no value", func(t *testing.T) {
+		query, _ := url.ParseQuery("first=1&second=2&pullimage")
+		_, err := parseQuery(query)
+		assert.Error(t, err)
+	})
+	t.Run("RolloutRestartK8sAll is true if rollout-restart=all", func(t *testing.T) {
+		query, _ := url.ParseQuery("rollout-restart=all")
+		options, err := parseQuery(query)
+		assert.NoError(t, err)
+		assert.Equal(t, true, options.RolloutRestartK8sAll)
+		assert.Equal(t, []string(nil), options.RolloutRestartK8sResourceList)
+	})
+	t.Run("RolloutRestartK8sResourceList is correct for single resource", func(t *testing.T) {
+		query, _ := url.ParseQuery("rollout-restart=deployment/nginx")
+		options, err := parseQuery(query)
+		assert.NoError(t, err)
+		assert.Equal(t, false, options.RolloutRestartK8sAll)
+		assert.ElementsMatch(t, []string{"deployment/nginx"}, options.RolloutRestartK8sResourceList)
+	})
+	t.Run("RolloutRestartK8sResourceList is correct for multiple resources", func(t *testing.T) {
+		query, _ := url.ParseQuery("rollout-restart=deployment/nginx,daemonset/helper,statefulset/redis")
+		options, err := parseQuery(query)
+		assert.NoError(t, err)
+		assert.Equal(t, false, options.RolloutRestartK8sAll)
+		assert.ElementsMatch(t, []string{
+			"deployment/nginx",
+			"daemonset/helper",
+			"statefulset/redis",
+		}, options.RolloutRestartK8sResourceList)
 	})
 }
 

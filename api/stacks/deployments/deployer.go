@@ -34,6 +34,7 @@ type StackDeployer interface {
 	UndeployRemoteComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error
 	UndeployRemoteSwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error
 	DeployKubernetesStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, user *portaineree.User) error
+	RestartKubernetesStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, user *portaineree.User, resourceList []string) error
 	StartRemoteSwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error
 	StopRemoteSwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error
 	StartRemoteComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error
@@ -188,6 +189,41 @@ func (d *stackDeployer) DeployKubernetesStack(stack *portaineree.Stack, endpoint
 	}
 
 	err = k8sDeploymentConfig.Deploy()
+	if err != nil {
+		return errors.Wrap(err, "failed to deploy kubernetes application")
+	}
+
+	return nil
+}
+
+// Restart Kubernetes Stack.  If the resource list is empty, use all the resources from the stack yaml files.
+// If the provided resources don't exist, don't pass them down to the cli
+func (d *stackDeployer) RestartKubernetesStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, user *portaineree.User, resourceList []string) error {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+
+	appLabels := k.KubeAppLabels{
+		StackID:   int(stack.ID),
+		StackName: stack.Name,
+		Owner:     user.Username,
+	}
+
+	if stack.GitConfig == nil {
+		appLabels.Kind = "content"
+	} else {
+		appLabels.Kind = "git"
+	}
+
+	tokenData := &portaineree.TokenData{
+		ID: user.ID,
+	}
+
+	k8sDeploymentConfig, err := CreateKubernetesStackDeploymentConfig(stack, d.kubernetesDeployer, appLabels, tokenData, endpoint, nil, nil)
+	if err != nil {
+		return errors.Wrap(err, "failed to create temp kub deployment files")
+	}
+
+	err = k8sDeploymentConfig.Restart(resourceList)
 	if err != nil {
 		return errors.Wrap(err, "failed to deploy kubernetes application")
 	}
