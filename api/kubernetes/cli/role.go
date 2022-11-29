@@ -130,7 +130,7 @@ func getPortainerDefaultK8sRoles() map[portaineree.K8sRole]k8sRoleConfig {
 			rules: []rbacv1.PolicyRule{
 				{
 					Verbs:     []string{"update"},
-					Resources: []string{"configmaps", "secrets"},
+					Resources: []string{"configmaps"},
 					APIGroups: []string{""},
 				},
 				{

@@ -2475,8 +2475,8 @@ const (
 	OperationK8sApplicationsAdvancedDeploymentRW Authorization = "K8sApplicationsAdvancedDeploymentRW"
 	OperationK8sConfigurationsR                  Authorization = "K8sConfigurationsR"
 	OperationK8sConfigurationsW                  Authorization = "K8sConfigurationsW"
-	OperationK8sConfigurationsDetailsR           Authorization = "K8sConfigurationsDetailsR"
-	OperationK8sConfigurationsDetailsW           Authorization = "K8sConfigurationsDetailsW"
+	OperationK8sConfigurationsDetailsR           Authorization = "K8sConfigurationsDetailsR" // ConfigMaps
+	OperationK8sConfigurationsDetailsW           Authorization = "K8sConfigurationsDetailsW" // ConfigMaps
 	OperationK8sRegistrySecretList               Authorization = "K8sRegistrySecretList"
 	OperationK8sRegistrySecretInspect            Authorization = "K8sRegistrySecretInspect"
 	OperationK8sRegistrySecretUpdate             Authorization = "K8sRegistrySecretUpdate"
@@ -2496,8 +2496,10 @@ const (
 	OperationK8sIngressesR Authorization = "K8sIngressesR"
 	OperationK8sIngressesW Authorization = "K8sIngressesW"
 
-	OperationK8sYAMLR Authorization = "K8sYAMLR"
-	OperationK8sYAMLW Authorization = "K8sYAMLW"
+	OperationK8sYAMLR    Authorization = "K8sYAMLR"
+	OperationK8sYAMLW    Authorization = "K8sYAMLW"
+	OperationK8sSecretsR Authorization = "K8sSecretsR" // Secrets
+	OperationK8sSecretsW Authorization = "K8sSecretsW" // Secrets
 
 	// Helm operations
 	OperationHelmRepoList       Authorization = "HelmRepoList"

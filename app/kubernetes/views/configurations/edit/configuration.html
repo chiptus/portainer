@@ -88,7 +88,13 @@
                 YAML
               </uib-tab-heading>
               <div class="!pt-5 px-5" ng-if="ctrl.state.showEditorTab">
-                <kubernetes-yaml-inspector key="configuration-yaml" data="ctrl.configuration.Yaml" system="ctrl.isSystemNamespace()" authorised="true"> </kubernetes-yaml-inspector>
+                <kubernetes-yaml-inspector
+                  key="configuration-yaml"
+                  data="ctrl.configuration.Yaml"
+                  system="ctrl.isSystemNamespace()"
+                  authorised="!ctrl.isSystemConfig() && (ctrl.state.isAuthorizedToEditConfigMaps || ctrl.state.isAuthorizedToEditSecrets)"
+                >
+                </kubernetes-yaml-inspector>
               </div>
             </uib-tab>
           </uib-tabset>
@@ -102,8 +108,7 @@
       <rd-widget>
         <rd-widget-body>
           <form
-            hide-deployment-option="form"
-            ng-if="!ctrl.isSystemConfig() && ctrl.state.isAuthorized"
+            ng-if="!ctrl.isSystemConfig() && (ctrl.state.isAuthorizedToEditConfigMaps || ctrl.state.isAuthorizedToEditSecrets)"
             class="form-horizontal"
             name="kubernetesConfigurationCreationForm"
             autocomplete="off"
@@ -150,7 +155,7 @@
             </div>
             <!-- !actions -->
           </form>
-          <div ng-if="ctrl.isSystemConfig() || !ctrl.state.isAuthorized || ctrl.deploymentOptions.hideAddWithForm">
+          <div ng-if="ctrl.isSystemConfig() || (!ctrl.state.isAuthorizedToEditConfigMaps && !ctrl.state.isAuthorizedToEditSecrets) || ctrl.deploymentOptions.hideAddWithForm">
             <div class="col-sm-12 form-section-title" style="margin-top: 10px"> Data </div>
             <table class="table">
               <tbody>

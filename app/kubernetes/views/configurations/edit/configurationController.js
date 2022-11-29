@@ -265,7 +265,8 @@ class KubernetesConfigurationController {
         activeTab: 0,
         currentName: this.$state.$current.name,
         isDataValid: true,
-        isAuthorized: this.Authentication.hasAuthorizations(['K8sConfigurationsDetailsW']),
+        isAuthorizedToEditConfigMaps: this.Authentication.hasAuthorizations(['K8sConfigurationsDetailsW']),
+        isAuthorizedToEditSecrets: this.Authentication.hasAuthorizations(['K8sSecretsW']),
         isEditorDirty: false,
         isDockerConfig: false,
         secretWarningMessage: '',
@@ -294,6 +295,11 @@ class KubernetesConfigurationController {
       ) {
         this.state.isDockerConfig = true;
       }
+
+      // Recalculate the authorizations after kind is set
+      this.state.isAuthorizedToEditConfigMaps = this.state.isAuthorizedToEditConfigMaps && this.formValues.Kind === this.KubernetesConfigurationKinds.CONFIGMAP;
+      this.state.isAuthorizedToEditSecrets = this.state.isAuthorizedToEditSecrets && this.formValues.Kind === this.KubernetesConfigurationKinds.SECRET;
+
       // convert the secret type to a human readable value
       if (this.formValues.Type) {
         const secretTypeValues = Object.values(this.KubernetesSecretTypeOptions);
