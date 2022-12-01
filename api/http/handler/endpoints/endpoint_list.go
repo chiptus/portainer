@@ -7,11 +7,14 @@ import (
 	"time"
 
 	"github.com/portainer/libhttp/request"
+	"golang.org/x/mod/semver"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/handler/edgeupdateschedules"
 	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 )
 
 const (
@@ -58,6 +61,8 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 	sortField, _ := request.RetrieveQueryParameter(r, "sort", true)
 	sortOrder, _ := request.RetrieveQueryParameter(r, "order", true)
 
+	updateInformation, _ := request.RetrieveBooleanQueryParameter(r, "updateInformation", true)
+
 	endpointGroups, err := handler.DataStore.EndpointGroup().EndpointGroups()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve environment groups from the database", err)
@@ -81,6 +86,12 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 	query, err := parseQuery(r)
 	if err != nil {
 		return httperror.BadRequest("Invalid query parameters", err)
+	}
+
+	var updateAvailable bool
+	if updateInformation {
+		updateAvailable = needsUpdate(endpoints)
+		w.Header().Set("X-Update-Available", strconv.FormatBool(updateAvailable))
 	}
 
 	filteredEndpoints := security.FilterEndpoints(endpoints, endpointGroups, securityContext)
@@ -113,6 +124,7 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 
 	w.Header().Set("X-Total-Count", strconv.Itoa(filteredEndpointCount))
 	w.Header().Set("X-Total-Available", strconv.Itoa(totalAvailableEndpoints))
+
 	return response.JSON(w, paginatedEndpoints)
 }
 
@@ -188,4 +200,20 @@ func getEndpointGroup(groupID portaineree.EndpointGroupID, groups []portaineree.
 		}
 	}
 	return endpointGroup
+}
+
+func needsUpdate(endpoints []portaineree.Endpoint) bool {
+	if len(edgeupdateschedules.Versions) == 0 {
+		return false
+	}
+
+	latestVersion := edgeupdateschedules.Versions[len(edgeupdateschedules.Versions)-1]
+
+	for _, endpoint := range endpoints {
+		if endpointutils.IsEdgeEndpoint(&endpoint) && (endpoint.Agent.Version == "" || semver.Compare(endpoint.Agent.Version, latestVersion) == -1) {
+			return true
+		}
+	}
+
+	return false
 }

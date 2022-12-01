@@ -13,7 +13,7 @@ import (
 	"github.com/portainer/portainer-ee/api/chisel"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
-	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer/api/filesystem"
 )
@@ -45,7 +45,7 @@ func setupGlobalKeyHandler(t *testing.T) (*Handler, func(), error) {
 		helper.NewTestRequestBouncer(),
 		helper.NewUserActivityService(),
 		store,
-		edge.NewService(store, fs),
+		edgeasync.NewService(store, fs),
 		nil,
 		nil,
 		nil,

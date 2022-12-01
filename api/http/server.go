@@ -66,7 +66,9 @@ import (
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
-	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
+	edgestackservice "github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
+	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	"github.com/portainer/portainer-ee/api/internal/ssl"
 	k8s "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
@@ -93,7 +95,8 @@ type Server struct {
 	CryptoService               portaineree.CryptoService
 	LicenseService              portaineree.LicenseService
 	SignatureService            portaineree.DigitalSignatureService
-	EdgeService                 edge.Service
+	EdgeAsyncService            *edgeasync.Service
+	EdgeStacksService           *edgestackservice.Service
 	SnapshotService             portaineree.SnapshotService
 	FileService                 portainer.FileService
 	DataStore                   dataservices.DataStore
@@ -179,14 +182,19 @@ func (server *Server) Start() error {
 	var edgeGroupsHandler = edgegroups.NewHandler(requestBouncer, server.UserActivityService)
 	edgeGroupsHandler.DataStore = server.DataStore
 
-	var edgeJobsHandler = edgejobs.NewHandler(requestBouncer, server.UserActivityService, &server.EdgeService)
+	var edgeJobsHandler = edgejobs.NewHandler(requestBouncer, server.UserActivityService, server.EdgeAsyncService)
 	edgeJobsHandler.DataStore = server.DataStore
 	edgeJobsHandler.FileService = server.FileService
 	edgeJobsHandler.ReverseTunnelService = server.ReverseTunnelService
 
-	edgeUpdateScheduleHandler := edgeupdateschedules.NewHandler(requestBouncer, server.DataStore)
+	edgeUpdateService, err := updateschedules.NewService(server.DataStore)
+	if err != nil {
+		return errors.WithMessage(err, "Unable to create EdgeUpdateService")
+	}
 
-	var edgeStacksHandler = edgestacks.NewHandler(requestBouncer, server.UserActivityService, server.DataStore, &server.EdgeService)
+	edgeUpdateScheduleHandler := edgeupdateschedules.NewHandler(requestBouncer, server.DataStore, server.FileService, server.AssetsPath, server.EdgeStacksService, edgeUpdateService)
+
+	var edgeStacksHandler = edgestacks.NewHandler(requestBouncer, server.UserActivityService, server.DataStore, server.EdgeAsyncService, server.EdgeStacksService, edgeUpdateService)
 	edgeStacksHandler.FileService = server.FileService
 	edgeStacksHandler.GitService = server.GitService
 	edgeStacksHandler.KubernetesDeployer = server.KubernetesDeployer
@@ -194,7 +202,7 @@ func (server *Server) Start() error {
 	var edgeTemplatesHandler = edgetemplates.NewHandler(requestBouncer)
 	edgeTemplatesHandler.DataStore = server.DataStore
 
-	var endpointHandler = endpoints.NewHandler(requestBouncer, server.UserActivityService, server.DataStore, &server.EdgeService, server.DemoService, server.CloudClusterSetupService, server.LicenseService)
+	var endpointHandler = endpoints.NewHandler(requestBouncer, server.UserActivityService, server.DataStore, server.EdgeAsyncService, server.DemoService, server.CloudClusterSetupService, server.LicenseService)
 	endpointHandler.AuthorizationService = server.AuthorizationService
 	endpointHandler.FileService = server.FileService
 	endpointHandler.ProxyManager = server.ProxyManager
@@ -207,7 +215,7 @@ func (server *Server) Start() error {
 	endpointHandler.BindAddressHTTPS = server.BindAddressHTTPS
 	endpointHandler.KubernetesTokenCacheManager = server.KubernetesTokenCacheManager
 
-	var endpointEdgeHandler = endpointedge.NewHandler(requestBouncer, server.DataStore, server.FileService, server.ReverseTunnelService, server.EdgeService, server.LicenseService)
+	var endpointEdgeHandler = endpointedge.NewHandler(requestBouncer, server.DataStore, server.FileService, server.ReverseTunnelService, server.EdgeAsyncService, server.LicenseService, edgeUpdateService)
 
 	var endpointGroupHandler = endpointgroups.NewHandler(requestBouncer, server.UserActivityService)
 	endpointGroupHandler.AuthorizationService = server.AuthorizationService

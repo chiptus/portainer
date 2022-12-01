@@ -3,7 +3,6 @@ package edgestacks
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -13,7 +12,9 @@ import (
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
-	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
+	edgestackservice "github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
+	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 )
@@ -30,18 +31,29 @@ type Handler struct {
 	FileService         portainer.FileService
 	GitService          portaineree.GitService
 	userActivityService portaineree.UserActivityService
-	edgeService         *edge.Service
+	edgeAsyncService    *edgeasync.Service
+	edgeStacksService   *edgestackservice.Service
+	edgeUpdateService   *updateschedules.Service
 	KubernetesDeployer  portaineree.KubernetesDeployer
 }
 
 // NewHandler creates a handler to manage environment(endpoint) group operations.
-func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService, dataStore dataservices.DataStore, edgeService *edge.Service) *Handler {
+func NewHandler(
+	bouncer *security.RequestBouncer,
+	userActivityService portaineree.UserActivityService,
+	dataStore dataservices.DataStore,
+	edgeAsyncService *edgeasync.Service,
+	edgeStacksService *edgestackservice.Service,
+	edgeUpdateService *updateschedules.Service,
+) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		DataStore:           dataStore,
 		requestBouncer:      bouncer,
 		userActivityService: userActivityService,
-		edgeService:         edgeService,
+		edgeAsyncService:    edgeAsyncService,
+		edgeStacksService:   edgeStacksService,
+		edgeUpdateService:   edgeUpdateService,
 	}
 
 	adminRouter := h.NewRoute().Subrouter()
@@ -71,33 +83,31 @@ func NewHandler(bouncer *security.RequestBouncer, userActivityService portainere
 	return h
 }
 
-func (handler *Handler) convertAndStoreKubeManifestIfNeeded(edgeStack *portaineree.EdgeStack, relatedEndpointIds []portaineree.EndpointID) error {
+func (handler *Handler) convertAndStoreKubeManifestIfNeeded(stackFolder string, projectPath, composePath string, relatedEndpointIds []portaineree.EndpointID) (manifestPath string, err error) {
 	hasKubeEndpoint, err := hasKubeEndpoint(handler.DataStore.Endpoint(), relatedEndpointIds)
 	if err != nil {
-		return fmt.Errorf("unable to check if edge stack has kube environments: %w", err)
+		return "", fmt.Errorf("unable to check if edge stack has kube environments: %w", err)
 	}
 
 	if !hasKubeEndpoint {
-		return nil
+		return "", nil
 	}
 
-	composeConfig, err := handler.FileService.GetFileContent(edgeStack.ProjectPath, edgeStack.EntryPoint)
+	composeConfig, err := handler.FileService.GetFileContent(projectPath, composePath)
 	if err != nil {
-		return fmt.Errorf("unable to retrieve Compose file from disk: %w", err)
+		return "", fmt.Errorf("unable to retrieve Compose file from disk: %w", err)
 	}
 
 	kompose, err := handler.KubernetesDeployer.ConvertCompose(composeConfig)
 	if err != nil {
-		return fmt.Errorf("failed converting compose file to kubernetes manifest: %w", err)
+		return "", fmt.Errorf("failed converting compose file to kubernetes manifest: %w", err)
 	}
 
-	KomposeFileName := filesystem.ManifestFileDefaultName
-	_, err = handler.FileService.StoreEdgeStackFileFromBytes(strconv.Itoa(int(edgeStack.ID)), KomposeFileName, kompose)
+	komposeFileName := filesystem.ManifestFileDefaultName
+	_, err = handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, komposeFileName, kompose)
 	if err != nil {
-		return fmt.Errorf("failed to store kube manifest file: %w", err)
+		return "", fmt.Errorf("failed to store kube manifest file: %w", err)
 	}
 
-	edgeStack.ManifestPath = KomposeFileName
-
-	return nil
+	return komposeFileName, nil
 }

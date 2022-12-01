@@ -8,7 +8,8 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
-	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
+	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	"github.com/portainer/portainer-ee/api/license"
 	portainer "github.com/portainer/portainer/api"
 
@@ -23,11 +24,12 @@ type Handler struct {
 	DataStore            dataservices.DataStore
 	FileService          portainer.FileService
 	ReverseTunnelService portaineree.ReverseTunnelService
-	EdgeService          edge.Service
+	EdgeService          *edgeasync.Service
+	edgeUpdateService    *updateschedules.Service
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.
-func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, fileService portainer.FileService, reverseTunnelService portaineree.ReverseTunnelService, edgeService edge.Service, licenseService portaineree.LicenseService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, fileService portainer.FileService, reverseTunnelService portaineree.ReverseTunnelService, edgeService *edgeasync.Service, licenseService portaineree.LicenseService, edgeUpdateService *updateschedules.Service) *Handler {
 	h := &Handler{
 		Router:               mux.NewRouter(),
 		requestBouncer:       bouncer,
@@ -35,6 +37,7 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 		FileService:          fileService,
 		ReverseTunnelService: reverseTunnelService,
 		EdgeService:          edgeService,
+		edgeUpdateService:    edgeUpdateService,
 	}
 
 	endpointRouter := h.PathPrefix("/{id}").Subrouter()

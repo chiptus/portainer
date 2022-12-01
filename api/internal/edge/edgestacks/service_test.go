@@ -5,7 +5,6 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,8 +22,9 @@ func Test_updateEndpointRelation_successfulRuns(t *testing.T) {
 
 	dataStore := testhelpers.NewDatastore(testhelpers.WithEndpointRelations(endpointRelations))
 
-	handler := NewHandler(nil, nil, dataStore, nil)
-	err := handler.updateEndpointRelations(edgeStackID, relatedIds)
+	service := NewService(dataStore, nil)
+
+	err := service.updateEndpointRelations(edgeStackID, relatedIds)
 
 	assert.NoError(t, err, "updateEndpointRelations should not fail")
 

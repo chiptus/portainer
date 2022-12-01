@@ -153,7 +153,7 @@ angular
       url: '/:environmentId/containers?edgeStackId',
       views: {
         'content@': {
-          component: 'edgeStackEnvironmentContainersView',
+          component: 'edgeDeviceContainersView',
         },
       },
     });
@@ -163,7 +163,7 @@ angular
       url: '/:containerId',
       views: {
         'content@': {
-          component: 'edgeStackEnvironmentContainerView',
+          component: 'edgeDeviceContainerView',
         },
       },
     });

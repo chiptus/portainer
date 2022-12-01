@@ -9,7 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
-	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -20,11 +20,11 @@ type Handler struct {
 	FileService          portainer.FileService
 	ReverseTunnelService portaineree.ReverseTunnelService
 	userActivityService  portaineree.UserActivityService
-	edgeService          *edge.Service
+	edgeService          *edgeasync.Service
 }
 
 // NewHandler creates a handler to manage Edge job operations.
-func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService, edgeService *edge.Service) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService, edgeService *edgeasync.Service) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		userActivityService: userActivityService,

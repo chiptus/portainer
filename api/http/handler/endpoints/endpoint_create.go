@@ -408,7 +408,12 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		for _, stackID := range relatedEdgeStacks {
 			relationObject.EdgeStacks[stackID] = true
 
-			err = handler.edgeService.AddStackCommand(endpoint, stackID)
+			edgeStack, err := handler.DataStore.EdgeStack().EdgeStack(stackID)
+			if err != nil {
+				return httperror.InternalServerError("Unable to retrieve edge stack from the database", err)
+			}
+
+			err = handler.edgeService.AddStackCommand(endpoint, stackID, edgeStack.ScheduledTime)
 			if err != nil {
 				return httperror.InternalServerError("Unable to store edge async command into the database", err)
 			}
@@ -578,6 +583,11 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 	err = handler.saveEndpointAndUpdateAuthorizations(endpoint)
 	if err != nil {
 		return nil, httperror.InternalServerError("An error occurred while trying to create the environment", err)
+	}
+
+	err = handler.DataStore.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint.ID})
+	if err != nil {
+		return nil, httperror.InternalServerError("Unable to create a snapshot object for the environment", err)
 	}
 
 	return endpoint, nil

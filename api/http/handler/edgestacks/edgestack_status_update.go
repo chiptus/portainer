@@ -9,24 +9,29 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	"github.com/rs/zerolog/log"
 )
 
 type updateStatusPayload struct {
 	Error      string
 	Status     *portaineree.EdgeStackStatusType
-	EndpointID *portaineree.EndpointID
+	EndpointID portaineree.EndpointID
 }
 
 func (payload *updateStatusPayload) Validate(r *http.Request) error {
 	if payload.Status == nil {
 		return errors.New("Invalid status")
 	}
-	if payload.EndpointID == nil {
+
+	if payload.EndpointID == 0 {
 		return errors.New("Invalid EnvironmentID")
 	}
+
 	if *payload.Status == portaineree.StatusError && govalidator.IsNull(payload.Error) {
 		return errors.New("Error message is mandatory when status is error")
 	}
+
 	return nil
 }
 
@@ -62,7 +67,12 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(*payload.EndpointID))
+	// if the stack represents a successful remote update - skip it
+	if endpointStatus, ok := stack.Status[payload.EndpointID]; ok && endpointStatus.Type == portaineree.EdgeStackStatusRemoteUpdateSuccess {
+		return response.JSON(w, stack)
+	}
+
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(payload.EndpointID)
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -74,10 +84,27 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 		return httperror.Forbidden("Permission denied to access environment", err)
 	}
 
-	stack.Status[*payload.EndpointID] = portaineree.EdgeStackStatus{
-		Type:       *payload.Status,
+	status := *payload.Status
+
+	if stack.EdgeUpdateID != 0 {
+		if status == portaineree.StatusError {
+			err := handler.edgeUpdateService.RemoveActiveSchedule(payload.EndpointID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
+			if err != nil {
+				log.Warn().
+					Err(err).
+					Msg("Failed to remove active schedule")
+			}
+		}
+
+		if status == portaineree.StatusOk {
+			handler.edgeUpdateService.EdgeStackDeployed(endpoint.ID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
+		}
+	}
+
+	stack.Status[payload.EndpointID] = portaineree.EdgeStackStatus{
+		Type:       status,
 		Error:      payload.Error,
-		EndpointID: *payload.EndpointID,
+		EndpointID: payload.EndpointID,
 	}
 
 	err = handler.DataStore.EdgeStack().UpdateEdgeStack(stack.ID, stack)

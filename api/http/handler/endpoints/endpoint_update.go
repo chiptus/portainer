@@ -409,7 +409,12 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		for _, edgeStackID := range currentEndpointEdgeStacks {
 			currentEdgeStackSet[edgeStackID] = true
 			if !existingEdgeStacks[edgeStackID] {
-				err = handler.edgeService.AddStackCommand(endpoint, edgeStackID)
+				edgeStack, err := handler.DataStore.EdgeStack().EdgeStack(edgeStackID)
+				if err != nil {
+					return httperror.InternalServerError("Unable to retrieve edge stack from the database", err)
+				}
+
+				err = handler.edgeService.AddStackCommand(endpoint, edgeStackID, edgeStack.ScheduledTime)
 				if err != nil {
 					return httperror.InternalServerError("Unable to store edge async command into the database", err)
 				}

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
+	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 )
 
@@ -14,14 +15,30 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @success 200 {array} edgetypes.UpdateSchedule
+// @success 200 {array} decoratedUpdateSchedule
 // @failure 500
 // @router /edge_update_schedules [get]
 func (handler *Handler) list(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	list, err := handler.dataStore.EdgeUpdateSchedule().List()
+	list, err := handler.updateService.Schedules()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve the edge update schedules list", err)
 	}
 
-	return response.JSON(w, list)
+	includeEdgeStacks, _ := request.RetrieveBooleanQueryParameter(r, "includeEdgeStacks", true)
+
+	if !includeEdgeStacks {
+		return response.JSON(w, list)
+
+	}
+
+	decoratedList := make([]decoratedUpdateSchedule, len(list))
+	for idx, item := range list {
+		decoratedItem, err := decorateSchedule(item, handler.dataStore.EdgeStack().EdgeStack, handler.dataStore.Endpoint().Endpoint)
+		if err != nil {
+			return httperror.InternalServerError("Unable to decorate the edge update schedule", err)
+		}
+
+		decoratedList[idx] = *decoratedItem
+	}
+	return response.JSON(w, decoratedList)
 }

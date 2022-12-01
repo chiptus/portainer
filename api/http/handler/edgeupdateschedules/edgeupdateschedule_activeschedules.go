@@ -6,11 +6,11 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type activeSchedulePayload struct {
-	EnvironmentIDs []portainer.EndpointID
+	EnvironmentIDs []portaineree.EndpointID
 }
 
 func (payload *activeSchedulePayload) Validate(r *http.Request) error {
@@ -26,7 +26,7 @@ func (payload *activeSchedulePayload) Validate(r *http.Request) error {
 // @accept json
 // @param body body activeSchedulePayload true "Active schedule query"
 // @produce json
-// @success 200 {array} edgetypes.UpdateSchedule
+// @success 200 {array} types.EndpointUpdateScheduleRelation
 // @failure 500
 // @router /edge_update_schedules/active [get]
 func (handler *Handler) activeSchedules(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
@@ -36,7 +36,7 @@ func (handler *Handler) activeSchedules(w http.ResponseWriter, r *http.Request) 
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	list := handler.dataStore.EdgeUpdateSchedule().ActiveSchedules(payload.EnvironmentIDs)
+	list := handler.updateService.ActiveSchedules(payload.EnvironmentIDs)
 
 	return response.JSON(w, list)
 }

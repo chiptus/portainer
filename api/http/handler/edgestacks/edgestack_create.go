@@ -4,21 +4,17 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
-	"time"
 
+	"github.com/asaskevich/govalidator"
+	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+
 	"github.com/portainer/portainer-ee/api/http/security"
-	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
-
-	"github.com/asaskevich/govalidator"
-	"github.com/pkg/errors"
 )
 
 const nomadJobFileDefaultName = "nomad-job.hcl"
@@ -95,8 +91,8 @@ type swarmStackFromFileContentPayload struct {
 	// Deployment type to deploy this stack
 	// Valid values are: 0 - 'compose', 1 - 'kubernetes', 2 - 'nomad'
 	// for compose stacks will use kompose to convert to kubernetes manifest for kubernetes environments(endpoints)
-	// kubernetes deploytype is enabled only for kubernetes environments(endpoints)
-	// nomad deploytype is enabled only for nomad environments(endpoints)
+	// kubernetes deploy type is enabled only for kubernetes environments(endpoints)
+	// nomad deploy type is enabled only for nomad environments(endpoints)
 	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1,2"`
 	// List of Registries to use for this stack
 	Registries []portaineree.RegistryID
@@ -112,6 +108,7 @@ func (payload *swarmStackFromFileContentPayload) Validate(r *http.Request) error
 	if payload.EdgeGroups == nil || len(payload.EdgeGroups) == 0 {
 		return &InvalidPayloadError{msg: "Edge Groups are mandatory for an Edge stack"}
 	}
+
 	return nil
 }
 
@@ -122,23 +119,13 @@ func (handler *Handler) createSwarmStackFromFileContent(r *http.Request, dryrun 
 		return nil, err
 	}
 
-	err = handler.validateUniqueName(payload.Name)
+	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "")
 	if err != nil {
-		return nil, err
-	}
-
-	stack := &portaineree.EdgeStack{
-		Name:           payload.Name,
-		DeploymentType: payload.DeploymentType,
-		CreationDate:   time.Now().Unix(),
-		EdgeGroups:     payload.EdgeGroups,
-		Status:         make(map[portaineree.EndpointID]portaineree.EdgeStackStatus),
-		Version:        1,
-		Registries:     payload.Registries,
+		return nil, errors.Wrap(err, "failed to create Edge stack object")
 	}
 
 	if len(payload.Registries) == 0 && dryrun {
-		err = handler.assignPrivateRegistriesToStack(stack, strings.NewReader(payload.StackFileContent))
+		err = handler.assignPrivateRegistriesToStack(stack, bytes.NewReader([]byte(payload.StackFileContent)))
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to assign private registries to stack")
 		}
@@ -148,82 +135,63 @@ func (handler *Handler) createSwarmStackFromFileContent(r *http.Request, dryrun 
 		return stack, nil
 	}
 
-	stack.ID = portaineree.EdgeStackID(handler.DataStore.EdgeStack().GetNextIdentifier())
+	return handler.edgeStacksService.PersistEdgeStack(stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (composePath string, manifestPath string, projectPath string, err error) {
+		return handler.storeFileContent(stackFolder, payload.DeploymentType, relatedEndpointIds, []byte(payload.StackFileContent))
+	})
 
-	relationConfig, err := fetchEndpointRelationsConfig(handler.DataStore)
-	if err != nil {
-		return nil, fmt.Errorf("unable to find environment relations in database: %w", err)
-	}
+}
 
-	relatedEndpointIds, err := edge.EdgeStackRelatedEndpoints(stack.EdgeGroups, relationConfig.endpoints, relationConfig.endpointGroups, relationConfig.edgeGroups)
-	if err != nil {
-		return nil, fmt.Errorf("unable to persist environment relation in database: %w", err)
-	}
+func (handler *Handler) storeFileContent(stackFolder string, deploymentType portaineree.EdgeStackDeploymentType, relatedEndpointIds []portaineree.EndpointID, fileContent []byte) (composePath, manifestPath, projectPath string, err error) {
+	if deploymentType == portaineree.EdgeStackDeploymentCompose {
+		composePath = filesystem.ComposeFileDefaultName
 
-	stackFolder := strconv.Itoa(int(stack.ID))
-	if stack.DeploymentType == portaineree.EdgeStackDeploymentCompose {
-		stack.EntryPoint = filesystem.ComposeFileDefaultName
-
-		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
+		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, composePath, fileContent)
 		if err != nil {
-			return nil, err
+			return "", "", "", err
 		}
-		stack.ProjectPath = projectPath
 
-		err = handler.convertAndStoreKubeManifestIfNeeded(stack, relatedEndpointIds)
+		manifestPath, err = handler.convertAndStoreKubeManifestIfNeeded(stackFolder, projectPath, composePath, relatedEndpointIds)
 		if err != nil {
-			return nil, fmt.Errorf("Failed creating and storing kube manifest: %w", err)
+			return "", "", "", fmt.Errorf("Failed creating and storing kube manifest: %w", err)
 		}
+
+		return composePath, manifestPath, projectPath, nil
 
 	}
 
-	if stack.DeploymentType == portaineree.EdgeStackDeploymentKubernetes {
-		hasDockerEndpoint, err := hasDockerEndpoint(handler.DataStore.Endpoint(), relatedEndpointIds)
-		if err != nil {
-			return nil, fmt.Errorf("unable to check for existence of docker environment: %w", err)
-		}
-
-		if hasDockerEndpoint {
-			return nil, fmt.Errorf("edge stack with docker environment cannot be deployed with kubernetes config")
-		}
-
-		stack.ManifestPath = filesystem.ManifestFileDefaultName
-
-		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.ManifestPath, []byte(payload.StackFileContent))
-		if err != nil {
-			return nil, err
-		}
-
-		stack.ProjectPath = projectPath
-	}
-
-	if stack.DeploymentType == portaineree.EdgeStackDeploymentNomad {
-		stack.EntryPoint = nomadJobFileDefaultName
-
-		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
-		if err != nil {
-			return nil, err
-		}
-
-		stack.ProjectPath = projectPath
-	}
-
-	err = handler.updateEndpointRelations(stack.ID, relatedEndpointIds)
+	hasDockerEndpoint, err := hasDockerEndpoint(handler.DataStore.Endpoint(), relatedEndpointIds)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to update environment relations: %w", err)
+		return "", "", "", fmt.Errorf("unable to check for existence of docker environment: %w", err)
 	}
 
-	err = handler.DataStore.EdgeStack().Create(stack.ID, stack)
-	if err != nil {
-		return nil, err
+	if hasDockerEndpoint {
+		return "", "", "", fmt.Errorf("edge stack with docker environment cannot be deployed with kubernetes or nomad config")
 	}
 
-	err = handler.createEdgeCommands(stack.ID, relatedEndpointIds)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to update environment relations: %w", err)
+	if deploymentType == portaineree.EdgeStackDeploymentKubernetes {
+
+		manifestPath = filesystem.ManifestFileDefaultName
+
+		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, manifestPath, fileContent)
+		if err != nil {
+			return "", "", "", err
+		}
+
+		return "", manifestPath, projectPath, nil
+
 	}
 
-	return stack, nil
+	if deploymentType == portaineree.EdgeStackDeploymentNomad {
+
+		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, nomadJobFileDefaultName, fileContent)
+		if err != nil {
+			return "", "", "", err
+		}
+
+		return nomadJobFileDefaultName, "", projectPath, nil
+	}
+
+	return "", "", "", fmt.Errorf("invalid deployment type: %d", deploymentType)
 }
 
 type swarmStackFromGitRepositoryPayload struct {
@@ -240,7 +208,7 @@ type swarmStackFromGitRepositoryPayload struct {
 	// Password used in basic authentication. Required when RepositoryAuthentication is true.
 	RepositoryPassword string `example:"myGitPassword"`
 	// GitCredentialID used to identify the binded git credential
-	RepositoryGitCredentialID int `example:"0"`
+	RepositoryGitCredentialID portaineree.GitCredentialID `example:"0"`
 	// Path to the Stack file inside the Git repository
 	FilePathInRepository string `example:"docker-compose.yml" default:"docker-compose.yml"`
 	// List of identifiers of EdgeGroups
@@ -248,8 +216,8 @@ type swarmStackFromGitRepositoryPayload struct {
 	// Deployment type to deploy this stack
 	// Valid values are: 0 - 'compose', 1 - 'kubernetes', 2 - 'nomad'
 	// for compose stacks will use kompose to convert to kubernetes manifest for kubernetes environments(endpoints)
-	// kubernetes deploytype is enabled only for kubernetes environments(endpoints)
-	// nomad deploytype is enabled only for nomad environments(endpoints)
+	// kubernetes deploy type is enabled only for kubernetes environments(endpoints)
+	// nomad deploy type is enabled only for nomad environments(endpoints)
 	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1,2"`
 	// List of Registries to use for this stack
 	Registries []portaineree.RegistryID
@@ -288,106 +256,30 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request, dryru
 		return nil, err
 	}
 
-	err = handler.validateUniqueName(payload.Name)
+	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "")
 	if err != nil {
-		return nil, err
-	}
-
-	stackID := handler.DataStore.EdgeStack().GetNextIdentifier()
-	stack := &portaineree.EdgeStack{
-		ID:             portaineree.EdgeStackID(stackID),
-		Name:           payload.Name,
-		CreationDate:   time.Now().Unix(),
-		EdgeGroups:     payload.EdgeGroups,
-		Status:         make(map[portaineree.EndpointID]portaineree.EdgeStackStatus),
-		DeploymentType: payload.DeploymentType,
-		Version:        1,
-		Registries:     payload.Registries,
+		return nil, errors.Wrap(err, "failed to create edge stack object")
 	}
 
 	if dryrun {
 		return stack, nil
 	}
 
-	stack.ID = portaineree.EdgeStackID(handler.DataStore.EdgeStack().GetNextIdentifier())
-	projectPath := handler.FileService.GetEdgeStackProjectPath(strconv.Itoa(int(stack.ID)))
-	stack.ProjectPath = projectPath
+	repoConfig := gittypes.RepoConfig{
+		URL:           payload.RepositoryURL,
+		ReferenceName: payload.RepositoryReferenceName,
+	}
 
-	repositoryUsername := ""
-	repositoryPassword := ""
 	if payload.RepositoryAuthentication {
-		if payload.RepositoryGitCredentialID != 0 {
-			credential, err := handler.DataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(payload.RepositoryGitCredentialID))
-			if err != nil {
-				return nil, fmt.Errorf("git credential not found: %w", err)
-			}
-
-			// When creating the stack with an existing git credential, the git credential must be owned by the calling user
-			if credential.UserID != userID {
-				return nil, fmt.Errorf("couldn't retrieve the git credential for another user: %w", err)
-			}
-
-			repositoryUsername = credential.Username
-			repositoryPassword = credential.Password
-		}
-
-		if payload.RepositoryPassword != "" {
-			repositoryUsername = payload.RepositoryUsername
-			repositoryPassword = payload.RepositoryPassword
+		repoConfig.Authentication = &gittypes.GitAuthentication{
+			Username: payload.RepositoryUsername,
+			Password: payload.RepositoryPassword,
 		}
 	}
 
-	relationConfig, err := fetchEndpointRelationsConfig(handler.DataStore)
-	if err != nil {
-		return nil, fmt.Errorf("failed fetching relations config: %w", err)
-	}
-
-	relatedEndpointIds, err := edge.EdgeStackRelatedEndpoints(stack.EdgeGroups, relationConfig.endpoints, relationConfig.endpointGroups, relationConfig.edgeGroups)
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve related environment: %w", err)
-	}
-
-	err = handler.GitService.CloneRepository(projectPath, payload.RepositoryURL, payload.RepositoryReferenceName, repositoryUsername, repositoryPassword)
-	if err != nil {
-		if err == gittypes.ErrAuthenticationFailure {
-			return nil, errInvalidGitCredential
-		}
-		return nil, err
-	}
-
-	if stack.DeploymentType == portaineree.EdgeStackDeploymentCompose {
-		stack.EntryPoint = payload.FilePathInRepository
-
-		err = handler.convertAndStoreKubeManifestIfNeeded(stack, relatedEndpointIds)
-		if err != nil {
-			return nil, fmt.Errorf("Failed creating and storing kube manifest: %w", err)
-		}
-	}
-
-	if stack.DeploymentType == portaineree.EdgeStackDeploymentKubernetes {
-		stack.ManifestPath = payload.FilePathInRepository
-	}
-
-	if stack.DeploymentType == portaineree.EdgeStackDeploymentNomad {
-		stack.EntryPoint = payload.FilePathInRepository
-	}
-
-	err = handler.updateEndpointRelations(stack.ID, relatedEndpointIds)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to update environment relations: %w", err)
-	}
-
-	err = handler.DataStore.EdgeStack().Create(stack.ID, stack)
-	if err != nil {
-		return nil, err
-	}
-
-	err = handler.createEdgeCommands(stack.ID, relatedEndpointIds)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to update environment relations: %w", err)
-	}
-
-	return stack, nil
+	return handler.edgeStacksService.PersistEdgeStack(stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (composePath string, manifestPath string, projectPath string, err error) {
+		return handler.storeManifestFromGitRepository(stackFolder, relatedEndpointIds, payload.DeploymentType, userID, payload.RepositoryGitCredentialID, repoConfig)
+	})
 }
 
 type swarmStackFromFileUploadPayload struct {
@@ -446,19 +338,9 @@ func (handler *Handler) createSwarmStackFromFileUpload(r *http.Request, dryrun b
 		return nil, err
 	}
 
-	err = handler.validateUniqueName(payload.Name)
+	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "")
 	if err != nil {
-		return nil, err
-	}
-
-	stack := &portaineree.EdgeStack{
-		Name:           payload.Name,
-		DeploymentType: payload.DeploymentType,
-		CreationDate:   time.Now().Unix(),
-		EdgeGroups:     payload.EdgeGroups,
-		Status:         make(map[portaineree.EndpointID]portaineree.EdgeStackStatus),
-		Version:        1,
-		Registries:     payload.Registries,
+		return nil, errors.Wrap(err, "failed to create edge stack object")
 	}
 
 	if len(payload.Registries) == 0 && dryrun {
@@ -472,119 +354,63 @@ func (handler *Handler) createSwarmStackFromFileUpload(r *http.Request, dryrun b
 		return stack, nil
 	}
 
-	stack.ID = portaineree.EdgeStackID(handler.DataStore.EdgeStack().GetNextIdentifier())
-
-	relationConfig, err := fetchEndpointRelationsConfig(handler.DataStore)
-	if err != nil {
-		return nil, fmt.Errorf("failed fetching relations config: %w", err)
-	}
-
-	relatedEndpointIds, err := edge.EdgeStackRelatedEndpoints(stack.EdgeGroups, relationConfig.endpoints, relationConfig.endpointGroups, relationConfig.edgeGroups)
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve related environment: %w", err)
-	}
-
-	stackFolder := strconv.Itoa(int(stack.ID))
-	if stack.DeploymentType == portaineree.EdgeStackDeploymentCompose {
-		stack.EntryPoint = filesystem.ComposeFileDefaultName
-
-		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
-		if err != nil {
-			return nil, err
-		}
-		stack.ProjectPath = projectPath
-
-		err = handler.convertAndStoreKubeManifestIfNeeded(stack, relatedEndpointIds)
-		if err != nil {
-			return nil, fmt.Errorf("Failed creating and storing kube manifest: %w", err)
-		}
-
-	}
-
-	if stack.DeploymentType == portaineree.EdgeStackDeploymentKubernetes {
-		stack.ManifestPath = filesystem.ManifestFileDefaultName
-
-		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.ManifestPath, []byte(payload.StackFileContent))
-		if err != nil {
-			return nil, err
-		}
-		stack.ProjectPath = projectPath
-	}
-
-	if stack.DeploymentType == portaineree.EdgeStackDeploymentNomad {
-		stack.EntryPoint = nomadJobFileDefaultName
-
-		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
-		if err != nil {
-			return nil, err
-		}
-
-		stack.ProjectPath = projectPath
-	}
-
-	err = handler.updateEndpointRelations(stack.ID, relatedEndpointIds)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to update environment relations: %w", err)
-	}
-
-	err = handler.DataStore.EdgeStack().Create(stack.ID, stack)
-	if err != nil {
-		return nil, err
-	}
-
-	err = handler.createEdgeCommands(stack.ID, relatedEndpointIds)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to update environment relations: %w", err)
-	}
-
-	return stack, nil
+	return handler.edgeStacksService.PersistEdgeStack(stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (composePath string, manifestPath string, projectPath string, err error) {
+		return handler.storeFileContent(stackFolder, payload.DeploymentType, relatedEndpointIds, payload.StackFileContent)
+	})
 }
 
-func (handler *Handler) validateUniqueName(name string) error {
-	edgeStacks, err := handler.DataStore.EdgeStack().EdgeStacks()
+func (handler *Handler) storeManifestFromGitRepository(stackFolder string, relatedEndpointIds []portaineree.EndpointID, deploymentType portaineree.EdgeStackDeploymentType, currentUserID portaineree.UserID, gitCredentialId portaineree.GitCredentialID, repositoryConfig gittypes.RepoConfig) (composePath, manifestPath, projectPath string, err error) {
+	projectPath = handler.FileService.GetEdgeStackProjectPath(stackFolder)
+	repositoryUsername := ""
+	repositoryPassword := ""
+	if repositoryConfig.Authentication != nil {
+		if gitCredentialId != 0 {
+			credential, err := handler.DataStore.GitCredential().GetGitCredential(gitCredentialId)
+			if err != nil {
+				return "", "", "", fmt.Errorf("git credential not found: %w", err)
+			}
+
+			// When creating the stack with an existing git credential, the git credential must be owned by the calling user
+			if credential.UserID != currentUserID {
+				return "", "", "", fmt.Errorf("couldn't retrieve the git credential for another user: %w", err)
+			}
+
+			repositoryUsername = credential.Username
+			repositoryPassword = credential.Password
+		}
+
+		if repositoryConfig.Authentication.Password != "" {
+			repositoryUsername = repositoryConfig.Authentication.Username
+			repositoryPassword = repositoryConfig.Authentication.Password
+		}
+	}
+
+	err = handler.GitService.CloneRepository(projectPath, repositoryConfig.URL, repositoryConfig.ReferenceName, repositoryUsername, repositoryPassword)
 	if err != nil {
-		return err
+		if err == gittypes.ErrAuthenticationFailure {
+			return "", "", "", errInvalidGitCredential
+		}
+		return "", "", "", err
 	}
 
-	for _, stack := range edgeStacks {
-		if strings.EqualFold(stack.Name, name) {
-			return errors.New("Edge stack name must be unique")
-		}
-	}
-	return nil
-}
+	if deploymentType == portaineree.EdgeStackDeploymentCompose {
+		composePath := repositoryConfig.ConfigFilePath
 
-// updateEndpointRelations adds a relation between the Edge Stack to the related environments(endpoints)
-func (handler *Handler) updateEndpointRelations(edgeStackID portaineree.EdgeStackID, relatedEndpointIds []portaineree.EndpointID) error {
-	for _, endpointID := range relatedEndpointIds {
-		relation, err := handler.DataStore.EndpointRelation().EndpointRelation(endpointID)
+		manifestPath, err := handler.convertAndStoreKubeManifestIfNeeded(stackFolder, projectPath, composePath, relatedEndpointIds)
 		if err != nil {
-			return fmt.Errorf("unable to find environment relation in database: %w", err)
+			return "", "", "", fmt.Errorf("Failed creating and storing kube manifest: %w", err)
 		}
 
-		relation.EdgeStacks[edgeStackID] = true
-
-		err = handler.DataStore.EndpointRelation().UpdateEndpointRelation(endpointID, relation)
-		if err != nil {
-			return fmt.Errorf("unable to persist environment relation in database: %w", err)
-		}
+		return composePath, manifestPath, projectPath, nil
 	}
 
-	return nil
-}
-
-func (handler *Handler) createEdgeCommands(edgeStackID portaineree.EdgeStackID, relatedEndpointIds []portaineree.EndpointID) error {
-	for _, endpointID := range relatedEndpointIds {
-		endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
-		if err != nil {
-			return err
-		}
-
-		err = handler.edgeService.AddStackCommand(endpoint, edgeStackID)
-		if err != nil {
-			return err
-		}
+	if deploymentType == portaineree.EdgeStackDeploymentKubernetes {
+		return "", repositoryConfig.ConfigFilePath, projectPath, nil
 	}
 
-	return nil
+	if deploymentType == portaineree.EdgeStackDeploymentNomad {
+		return repositoryConfig.ConfigFilePath, "", projectPath, nil
+	}
+
+	return "", "", "", fmt.Errorf("unknown deployment type: %d", deploymentType)
 }

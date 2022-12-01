@@ -46,3 +46,5 @@ GOOS=$1 GOARCH=$2 CGO_ENABLED=0 go build \
 	--ldflags "$ldflags" \
 	-o "../dist/portainer" \
 	./cmd/portainer/
+
+cp ../mustache-templates/edge-update.yml.mustache ../dist

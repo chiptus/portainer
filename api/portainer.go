@@ -48,14 +48,15 @@ type (
 
 	// EdgeAsyncCommand represents a command that is executed by an Edge Agent. Follows JSONPatch RFC https://datatracker.ietf.org/doc/html/rfc6902
 	EdgeAsyncCommand struct {
-		ID         int                       `json:"id"`
-		Type       EdgeAsyncCommandType      `json:"type"`
-		EndpointID EndpointID                `json:"endpointID"`
-		Timestamp  time.Time                 `json:"timestamp"`
-		Executed   bool                      `json:"executed"`
-		Operation  EdgeAsyncCommandOperation `json:"op"`
-		Path       string                    `json:"path"`
-		Value      interface{}               `json:"value"`
+		ID            int                       `json:"id"`
+		Type          EdgeAsyncCommandType      `json:"type"`
+		EndpointID    EndpointID                `json:"endpointID"`
+		Timestamp     time.Time                 `json:"timestamp"`
+		Executed      bool                      `json:"executed"`
+		Operation     EdgeAsyncCommandOperation `json:"op"`
+		Path          string                    `json:"path"`
+		Value         interface{}               `json:"value"`
+		ScheduledTime string                    `json:"scheduledTime"`
 	}
 
 	AuthActivityLog struct {
@@ -308,6 +309,10 @@ type (
 		Version        int                            `json:"Version"`
 		ManifestPath   string                         `json:"ManifestPath"`
 		DeploymentType EdgeStackDeploymentType        `json:"DeploymentType"`
+		// EdgeUpdateID represents the parent update ID, will be zero if this stack is not part of an update
+		EdgeUpdateID int
+		// Schedule represents the schedule of the Edge stack (optional, format - 'YYYY-MM-DD HH:mm:ss')
+		ScheduledTime string `example:"2020-11-13 14:53:00"`
 
 		// Deprecated
 		Prune bool `json:"Prune"`
@@ -437,6 +442,9 @@ type (
 		Agent struct {
 			Version string `example:"1.0.0"`
 		}
+
+		// LocalTimeZone is the local time zone of the endpoint
+		LocalTimeZone string
 
 		// Automatic update change window restriction for stacks and apps
 		ChangeWindow EndpointChangeWindow `json:"ChangeWindow"`
@@ -1893,6 +1901,10 @@ const (
 	PortainerAgentPublicKeyHeader = "X-PortainerAgent-PublicKey"
 	// PortainerAgentKubernetesSATokenHeader represent the name of the header containing a Kubernetes SA token
 	PortainerAgentKubernetesSATokenHeader = "X-PortainerAgent-SA-Token"
+	// PortainerAgentTimeZoneHeader is the name of the header containing the timezone
+	PortainerAgentTimeZoneHeader = "X-PortainerAgent-TimeZone"
+	// PortainerAgentEdgeUpdateIDHeader is the name of the header that will have the update ID that started this container
+	PortainerAgentEdgeUpdateIDHeader = "X-PortainerAgent-Update-ID"
 	// PortainerAgentSignatureMessage represents the message used to create a digital signature
 	// to be used when communicating with an agent
 	PortainerAgentSignatureMessage = "Portainer-App"
@@ -1914,14 +1926,12 @@ const (
 	WebSocketKeepAlive = 1 * time.Hour
 	// For parsing 24hr time
 	TimeFormat24 = "15:04"
+	// Date-Time format that we use in Portainer app
+	DateTimeFormat = "2006-01-02 15:04:05"
 )
 
-const FeatureFlagEdgeRemoteUpdate Feature = "edgeRemoteUpdate"
-
 // List of supported features
-var SupportedFeatureFlags = []Feature{
-	FeatureFlagEdgeRemoteUpdate,
-}
+var SupportedFeatureFlags = []Feature{}
 
 const (
 	_ AuthenticationMethod = iota
@@ -1981,7 +1991,8 @@ const (
 )
 
 const (
-	_ EdgeStackStatusType = iota
+	// EdgeStackStatusPending represents a pending edge stack
+	EdgeStackStatusPending EdgeStackStatusType = iota
 	//StatusOk represents a successfully deployed edge stack
 	StatusOk
 	//StatusError represents an edge environment(endpoint) which failed to deploy its edge stack
@@ -1990,6 +2001,8 @@ const (
 	StatusAcknowledged
 	//EdgeStackStatusRemove represents a removed edge stack (status isn't persisted)
 	EdgeStackStatusRemove
+	// StatusRemoteUpdateSuccess represents a successfully updated edge stack
+	EdgeStackStatusRemoteUpdateSuccess
 )
 
 const (

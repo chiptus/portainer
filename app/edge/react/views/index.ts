@@ -27,11 +27,11 @@ export const viewsModule = angular
     r2a(withUIRouter(withReactQuery(withCurrentUser(ListView))), [])
   )
   .component(
-    'edgeStackEnvironmentContainersView',
+    'edgeDeviceContainersView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(ContainersView))), [])
   )
   .component(
-    'edgeStackEnvironmentContainerView',
+    'edgeDeviceContainerView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(ContainerView))), [])
   )
   .component(

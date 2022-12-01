@@ -84,6 +84,7 @@
         "Snapshots": []
       },
       "LastCheckInDate": 0,
+      "LocalTimeZone": "",
       "Name": "docker",
       "Nomad": {
         "Snapshots": []

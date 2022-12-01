@@ -3,60 +3,50 @@ package edgeupdateschedules
 import (
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/edgetypes"
+	portaineree "github.com/portainer/portainer-ee/api"
+	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestPreviousVersions(t *testing.T) {
 
+	activeSchedulesMap := map[portaineree.EndpointID]*edgetypes.EndpointUpdateScheduleRelation{}
+
 	schedules := []edgetypes.UpdateSchedule{
 		{
 			ID:   1,
 			Type: edgetypes.UpdateScheduleUpdate,
-			Status: map[portainer.EndpointID]edgetypes.UpdateScheduleStatus{
-				1: {
-					TargetVersion:  "2.14.0",
-					CurrentVersion: "2.11.0",
-					Status:         edgetypes.UpdateScheduleStatusSuccess,
-				},
-				2: {
-					TargetVersion:  "2.13.0",
-					CurrentVersion: "2.12.0",
-					Status:         edgetypes.UpdateScheduleStatusSuccess,
-				},
+			EnvironmentsPreviousVersions: map[portaineree.EndpointID]string{
+				1: "2.11.0",
+
+				2: "2.12.0",
 			},
 			Created: 1500000000,
 		},
 		{
 			ID:   2,
 			Type: edgetypes.UpdateScheduleRollback,
-			Status: map[portainer.EndpointID]edgetypes.UpdateScheduleStatus{
-				1: {
-					TargetVersion:  "2.11.0",
-					CurrentVersion: "2.14.0",
-					Status:         edgetypes.UpdateScheduleStatusSuccess,
-				},
+			EnvironmentsPreviousVersions: map[portaineree.EndpointID]string{
+				1: "2.14.0",
 			},
 			Created: 1500000001,
 		},
 		{
 			ID:   3,
 			Type: edgetypes.UpdateScheduleUpdate,
-			Status: map[portainer.EndpointID]edgetypes.UpdateScheduleStatus{
-				2: {
-					TargetVersion:  "2.14.0",
-					CurrentVersion: "2.13.0",
-					Status:         edgetypes.UpdateScheduleStatusSuccess,
-				},
+			EnvironmentsPreviousVersions: map[portaineree.EndpointID]string{
+				2: "2.13.0",
 			},
 			Created: 1500000002,
 		},
 	}
 
-	actual := previousVersions(schedules)
+	actual := previousVersions(schedules, func(environmentID portaineree.EndpointID) *edgetypes.EndpointUpdateScheduleRelation {
+		return activeSchedulesMap[environmentID]
+	})
 
-	assert.Equal(t, map[portainer.EndpointID]string{
+	assert.Equal(t, map[portaineree.EndpointID]string{
 		2: "2.13.0",
 	}, actual)
 

@@ -14,7 +14,8 @@ import (
 	"github.com/portainer/portainer-ee/api/chisel"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/http/security"
-	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
+	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	"github.com/portainer/portainer-ee/api/jwt"
 	"github.com/portainer/portainer/api/filesystem"
 
@@ -112,15 +113,22 @@ func setupHandler(t *testing.T) (*Handler, func(), error) {
 		return nil, nil, fmt.Errorf("could not update settings: %w", err)
 	}
 
-	edgeService := edge.NewService(store, fs)
+	edgeService := edgeasync.NewService(store, fs)
+
+	updateService, err := updateschedules.NewService(store)
+	if err != nil {
+		teardown()
+		return nil, nil, fmt.Errorf("could not create update service: %w", err)
+	}
 
 	handler := NewHandler(
 		security.NewRequestBouncer(store, nil, jwtService, apiKeyService, nil),
 		store,
 		fs,
 		chisel.NewService(store, shutdownCtx),
-		*edgeService,
+		edgeService,
 		nil,
+		updateService,
 	)
 
 	handler.ReverseTunnelService = chisel.NewService(store, shutdownCtx)
@@ -328,7 +336,7 @@ func TestEdgeStackStatus(t *testing.T) {
 		ID:   edgeStackID,
 		Name: "test-edge-stack-17",
 		Status: map[portaineree.EndpointID]portaineree.EdgeStackStatus{
-			endpointID: {Type: portaineree.StatusOk, Error: "", EndpointID: endpoint.ID},
+			endpointID: {Type: portaineree.EdgeStackStatusPending, Error: "", EndpointID: endpoint.ID},
 		},
 		CreationDate:   time.Now().Unix(),
 		EdgeGroups:     []portaineree.EdgeGroupID{1, 2},

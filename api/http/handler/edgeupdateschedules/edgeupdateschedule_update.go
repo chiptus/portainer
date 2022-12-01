@@ -3,43 +3,42 @@ package edgeupdateschedules
 import (
 	"errors"
 	"net/http"
-	"time"
 
-	"github.com/asaskevich/govalidator"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"golang.org/x/exp/slices"
+
+	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+
 	"github.com/portainer/portainer-ee/api/http/middlewares"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/edgetypes"
 )
 
 type updatePayload struct {
-	Name         string
-	GroupIDs     []portainer.EdgeGroupID
-	Environments map[portaineree.EndpointID]string
-	Type         edgetypes.UpdateScheduleType
-	Time         int64
+	Name          *string
+	GroupIDs      []portaineree.EdgeGroupID
+	Type          *edgetypes.UpdateScheduleType
+	Version       *string
+	ScheduledTime *string
 }
 
 func (payload *updatePayload) Validate(r *http.Request) error {
-	if govalidator.IsNull(payload.Name) {
-		return errors.New("Invalid tag name")
+	if payload.Name != nil && *payload.Name == "" {
+		return errors.New("invalid name")
 	}
 
-	if len(payload.GroupIDs) == 0 {
-		return errors.New("Required to choose at least one group")
+	if payload.Type != nil && !slices.Contains([]edgetypes.UpdateScheduleType{edgetypes.UpdateScheduleRollback, edgetypes.UpdateScheduleUpdate}, *payload.Type) {
+		return errors.New("invalid schedule type")
 	}
 
-	if payload.Type != edgetypes.UpdateScheduleRollback && payload.Type != edgetypes.UpdateScheduleUpdate {
-		return errors.New("Invalid schedule type")
+	if payload.Version != nil && *payload.Version == "" {
+		return errors.New("Invalid version")
 	}
 
-	if len(payload.Environments) == 0 {
-		return errors.New("No Environment is scheduled for update")
+	if payload.ScheduledTime != nil && *payload.ScheduledTime == "" {
+		return errors.New("Scheduled time is required")
 	}
-
 	return nil
 }
 
@@ -67,40 +66,83 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	if payload.Name != item.Name {
-		err = handler.validateUniqueName(payload.Name, item.ID)
+	if payload.Name != nil && *payload.Name != item.Name {
+		err = handler.validateUniqueName(*payload.Name, item.ID)
 		if err != nil {
 			return httperror.NewError(http.StatusConflict, "Edge update schedule name already in use", err)
 		}
 
-		item.Name = payload.Name
+		item.Name = *payload.Name
 	}
 
-	// if scheduled time didn't passed, then can update the schedule
-	if item.Time > time.Now().Unix() {
-		item.GroupIDs = payload.GroupIDs
-		item.Time = payload.Time
-		item.Type = payload.Type
+	stack, err := handler.dataStore.EdgeStack().EdgeStack(item.EdgeStackID)
+	if err != nil {
+		return httperror.NewError(http.StatusInternalServerError, "Unable to retrieve Edge stack", err)
+	}
 
-		item.Status = map[portainer.EndpointID]edgetypes.UpdateScheduleStatus{}
-		for environmentID, version := range payload.Environments {
-			environment, err := handler.dataStore.Endpoint().Endpoint(environmentID)
-			if err != nil {
-				return httperror.InternalServerError("Unable to retrieve environment from the database", err)
-			}
+	shouldUpdate := payload.GroupIDs != nil || payload.Type != nil || payload.Version != nil || payload.ScheduledTime != nil
 
-			if environment.Type != portaineree.EdgeAgentOnDockerEnvironment {
-				return httperror.BadRequest("Only standalone docker Environments are supported for remote update", nil)
-			}
-
-			item.Status[portainer.EndpointID(environmentID)] = edgetypes.UpdateScheduleStatus{
-				TargetVersion:  version,
-				CurrentVersion: environment.Agent.Version,
+	if shouldUpdate {
+		canUpdate := true
+		for _, environmentStatus := range stack.Status {
+			if environmentStatus.Type != portaineree.EdgeStackStatusPending {
+				canUpdate = false
 			}
 		}
+
+		if !canUpdate {
+			return httperror.NewError(http.StatusBadRequest, "Unable to update Edge update schedule", errors.New("edge stack is not in pending state"))
+		}
+
+		newGroupIds := payload.GroupIDs
+		if newGroupIds == nil {
+			newGroupIds = stack.EdgeGroups
+		}
+
+		if payload.Type != nil {
+			item.Type = *payload.Type
+		}
+
+		if payload.Version != nil {
+			item.Version = *payload.Version
+		}
+
+		scheduledTime := stack.ScheduledTime
+		if payload.ScheduledTime != nil {
+			scheduledTime = *payload.ScheduledTime
+		}
+
+		err := handler.dataStore.EdgeStack().DeleteEdgeStack(item.EdgeStackID)
+		if err != nil {
+			return httperror.NewError(http.StatusInternalServerError, "Unable to delete Edge stack", err)
+		}
+
+		stackID, err := handler.createUpdateEdgeStack(item.ID, newGroupIds, item.Version, scheduledTime)
+		if err != nil {
+			return httperror.NewError(http.StatusInternalServerError, "Unable to create Edge stack", err)
+		}
+
+		item.EdgeStackID = stackID
+
+		relatedEnvironments, err := handler.fetchRelatedEnvironments(payload.GroupIDs)
+		if err != nil {
+			return httperror.InternalServerError("Unable to fetch related environments", err)
+		}
+
+		err = handler.validateRelatedEnvironments(relatedEnvironments)
+		if err != nil {
+			return httperror.BadRequest("Environment is not supported for update", nil)
+		}
+
+		previousVersions := handler.getPreviousVersions(relatedEnvironments)
+		if err != nil {
+			return httperror.InternalServerError("Unable to fetch previous versions for related endpoints", err)
+		}
+
+		item.EnvironmentsPreviousVersions = previousVersions
 	}
 
-	err = handler.dataStore.EdgeUpdateSchedule().Update(item.ID, item)
+	err = handler.updateService.UpdateSchedule(item.ID, item)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist the edge update schedule", err)
 	}

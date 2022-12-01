@@ -159,6 +159,7 @@ export type Environment = {
   SecuritySettings: EnvironmentSecuritySettings;
   Gpus: { name: string; value: string }[];
   EnableImageNotification: boolean;
+  LocalTimeZone?: string;
 };
 
 /**

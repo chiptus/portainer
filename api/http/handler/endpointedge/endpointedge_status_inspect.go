@@ -2,8 +2,10 @@ package endpointedge
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
+
+	"github.com/pkg/errors"
+
 	"net/http"
 	"strconv"
 	"time"
@@ -11,6 +13,8 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 )
 
@@ -85,6 +89,11 @@ func (handler *Handler) endpointEdgeStatusInspect(w http.ResponseWriter, r *http
 	}
 	endpoint.Type = agentPlatform
 
+	timeZone := r.Header.Get(portaineree.PortainerAgentTimeZoneHeader)
+	if timeZone != "" {
+		endpoint.LocalTimeZone = timeZone
+	}
+
 	version := r.Header.Get(portaineree.PortainerAgentHeader)
 	endpoint.Agent.Version = version
 
@@ -113,6 +122,20 @@ func (handler *Handler) endpointEdgeStatusInspect(w http.ResponseWriter, r *http
 		Credentials:     tunnel.Credentials,
 	}
 
+	updateID, err := parseEdgeUpdateID(r)
+	if err != nil {
+		return httperror.BadRequest("Unable to parse edge update id", err)
+	}
+
+	// check endpoint version, if it has the same version as the active schedule, then we can mark the edge stack as successfully deployed
+	activeUpdateSchedule := handler.edgeUpdateService.ActiveSchedule(endpoint.ID)
+	if activeUpdateSchedule != nil && activeUpdateSchedule.ScheduleID == updateID {
+		err := handler.handleSuccessfulUpdate(activeUpdateSchedule)
+		if err != nil {
+			return httperror.InternalServerError("Unable to handle successful update", err)
+		}
+	}
+
 	schedules, handlerErr := handler.buildSchedules(endpoint.ID, tunnel)
 	if handlerErr != nil {
 		return handlerErr
@@ -123,13 +146,31 @@ func (handler *Handler) endpointEdgeStatusInspect(w http.ResponseWriter, r *http
 		handler.ReverseTunnelService.SetTunnelStatusToActive(endpoint.ID)
 	}
 
-	edgeStacksStatus, handlerErr := handler.buildEdgeStacks(endpoint.ID)
+	location, err := parseLocation(endpoint)
+	if err != nil {
+		return httperror.InternalServerError("Unable to parse location", err)
+	}
+
+	edgeStacksStatus, handlerErr := handler.buildEdgeStacks(endpoint.ID, location)
 	if handlerErr != nil {
 		return handlerErr
 	}
 	statusResponse.Stacks = edgeStacksStatus
 
 	return response.JSON(w, statusResponse)
+}
+
+func parseLocation(endpoint *portaineree.Endpoint) (*time.Location, error) {
+	if endpoint.LocalTimeZone == "" {
+		return nil, nil
+	}
+
+	location, err := time.LoadLocation(endpoint.LocalTimeZone)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to load location")
+	}
+
+	return location, nil
 }
 
 func parseAgentPlatform(r *http.Request) (portaineree.EndpointType, error) {
@@ -157,6 +198,32 @@ func parseAgentPlatform(r *http.Request) (portaineree.EndpointType, error) {
 	}
 }
 
+func (handler *Handler) updateEdgeStackStatus(edgeStack *portaineree.EdgeStack, environmentID portaineree.EndpointID) error {
+	status, ok := edgeStack.Status[environmentID]
+	if !ok {
+		status = portaineree.EdgeStackStatus{
+			EndpointID: environmentID,
+		}
+	}
+
+	status.Type = portaineree.EdgeStackStatusRemoteUpdateSuccess
+	status.Error = ""
+
+	edgeStack.Status[environmentID] = status
+	return handler.DataStore.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack)
+}
+
+func (handler *Handler) handleSuccessfulUpdate(activeUpdateSchedule *edgetypes.EndpointUpdateScheduleRelation) error {
+	handler.edgeUpdateService.RemoveActiveSchedule(activeUpdateSchedule.EnvironmentID, activeUpdateSchedule.ScheduleID)
+
+	edgeStack, err := handler.DataStore.EdgeStack().EdgeStack(activeUpdateSchedule.EdgeStackID)
+	if err != nil {
+		return err
+	}
+
+	return handler.updateEdgeStackStatus(edgeStack, activeUpdateSchedule.EnvironmentID)
+}
+
 func (handler *Handler) buildSchedules(endpointID portaineree.EndpointID, tunnel portaineree.TunnelDetails) ([]edgeJobResponse, *httperror.HandlerError) {
 	schedules := []edgeJobResponse{}
 	for _, job := range tunnel.Jobs {
@@ -178,7 +245,7 @@ func (handler *Handler) buildSchedules(endpointID portaineree.EndpointID, tunnel
 	return schedules, nil
 }
 
-func (handler *Handler) buildEdgeStacks(endpointID portaineree.EndpointID) ([]stackStatusResponse, *httperror.HandlerError) {
+func (handler *Handler) buildEdgeStacks(endpointID portaineree.EndpointID, timeZone *time.Location) ([]stackStatusResponse, *httperror.HandlerError) {
 	relation, err := handler.DataStore.EndpointRelation().EndpointRelation(endpointID)
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to retrieve relation object from the database", err)
@@ -191,6 +258,20 @@ func (handler *Handler) buildEdgeStacks(endpointID portaineree.EndpointID) ([]st
 			return nil, httperror.InternalServerError("Unable to retrieve edge stack from the database", err)
 		}
 
+		// if the stack represents a successful remote update or failed - skip it
+		if endpointStatus, ok := stack.Status[endpointID]; ok && (endpointStatus.Type == portaineree.EdgeStackStatusRemoteUpdateSuccess || (stack.EdgeUpdateID != 0 && endpointStatus.Type == portaineree.StatusError)) {
+			continue
+		}
+
+		pastSchedule, err := shouldScheduleTrigger(stack.ScheduledTime, timeZone)
+		if err != nil {
+			return nil, httperror.InternalServerError("Unable to parse scheduled time", err)
+		}
+
+		if !pastSchedule {
+			continue
+		}
+
 		stackStatus := stackStatusResponse{
 			ID:      stack.ID,
 			Version: stack.Version,
@@ -199,4 +280,32 @@ func (handler *Handler) buildEdgeStacks(endpointID portaineree.EndpointID) ([]st
 		edgeStacksStatus = append(edgeStacksStatus, stackStatus)
 	}
 	return edgeStacksStatus, nil
+}
+
+func shouldScheduleTrigger(scheduledTime string, location *time.Location) (bool, error) {
+	if location == nil || scheduledTime == "" {
+		return true, nil
+	}
+
+	localScheduledTime, err := time.ParseInLocation(portaineree.DateTimeFormat, scheduledTime, location)
+	if err != nil {
+		return false, errors.WithMessage(err, "unable to parse scheduled time")
+	}
+
+	localTime := time.Now().In(location)
+	return localScheduledTime.Before(localTime), nil
+}
+
+func parseEdgeUpdateID(r *http.Request) (edgetypes.UpdateScheduleID, error) {
+	value := r.Header.Get(portaineree.PortainerAgentEdgeUpdateIDHeader)
+	if value == "" {
+		return 0, nil
+	}
+
+	updateID, err := strconv.Atoi(value)
+	if err != nil {
+		return 0, errors.WithMessage(err, "unable to parse edge update ID")
+	}
+
+	return edgetypes.UpdateScheduleID(updateID), nil
 }

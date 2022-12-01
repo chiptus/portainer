@@ -1,4 +1,4 @@
-package edge
+package edgeasync
 
 import (
 	"encoding/base64"
@@ -69,15 +69,15 @@ func NewService(dataStore dataservices.DataStore, fileService portainer.FileServ
 	}
 }
 
-func (service *Service) AddStackCommand(endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID) error {
-	return service.storeUpdateStackCommand(endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpAdd)
+func (service *Service) AddStackCommand(endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, scheduledTime string) error {
+	return service.storeUpdateStackCommand(endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpAdd, scheduledTime)
 }
 
 func (service *Service) ReplaceStackCommand(endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID) error {
-	return service.storeUpdateStackCommand(endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpReplace)
+	return service.storeUpdateStackCommand(endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpReplace, "")
 }
 
-func (service *Service) storeUpdateStackCommand(endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, commandOperation portaineree.EdgeAsyncCommandOperation) error {
+func (service *Service) storeUpdateStackCommand(endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, commandOperation portaineree.EdgeAsyncCommandOperation, scheduledTime string) error {
 	if !endpoint.Edge.AsyncMode {
 		return nil
 	}
@@ -121,12 +121,13 @@ func (service *Service) storeUpdateStackCommand(endpoint *portaineree.Endpoint, 
 	}
 
 	asyncCommand := &portaineree.EdgeAsyncCommand{
-		Type:       portaineree.EdgeAsyncCommandTypeStack,
-		EndpointID: endpoint.ID,
-		Timestamp:  time.Now(),
-		Operation:  commandOperation,
-		Path:       fmt.Sprintf("/edgestack/%d", edgeStackID),
-		Value:      stackStatus,
+		Type:          portaineree.EdgeAsyncCommandTypeStack,
+		EndpointID:    endpoint.ID,
+		Timestamp:     time.Now(),
+		Operation:     commandOperation,
+		Path:          fmt.Sprintf("/edgestack/%d", edgeStackID),
+		Value:         stackStatus,
+		ScheduledTime: scheduledTime,
 	}
 
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)

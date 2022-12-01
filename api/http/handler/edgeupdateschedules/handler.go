@@ -4,13 +4,15 @@ import (
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/gorilla/mux"
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
-	"github.com/portainer/portainer/api/edgetypes"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
+	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 )
 
 const contextKey = "edgeUpdateSchedule_item"
@@ -18,21 +20,28 @@ const contextKey = "edgeUpdateSchedule_item"
 // Handler is the HTTP handler used to handle edge environment update operations.
 type Handler struct {
 	*mux.Router
-	requestBouncer *security.RequestBouncer
-	dataStore      dataservices.DataStore
+	requestBouncer    *security.RequestBouncer
+	dataStore         dataservices.DataStore
+	fileService       portainer.FileService
+	updateService     *updateschedules.Service
+	assetsPath        string
+	edgeStacksService *edgestacks.Service
 }
 
 // NewHandler creates a handler to manage environment update operations.
-func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, fileService portainer.FileService, assetsPath string, edgeStacksService *edgestacks.Service, updateService *updateschedules.Service) *Handler {
 	h := &Handler{
-		Router:         mux.NewRouter(),
-		requestBouncer: bouncer,
-		dataStore:      dataStore,
+		Router:            mux.NewRouter(),
+		requestBouncer:    bouncer,
+		dataStore:         dataStore,
+		fileService:       fileService,
+		assetsPath:        assetsPath,
+		edgeStacksService: edgeStacksService,
+		updateService:     updateService,
 	}
 
 	router := h.PathPrefix("/edge_update_schedules").Subrouter()
 	router.Use(bouncer.AdminAccess)
-	router.Use(middlewares.FeatureFlag(dataStore.Settings(), portaineree.FeatureFlagEdgeRemoteUpdate))
 
 	router.Handle("",
 		httperror.LoggerHandler(h.list)).Methods(http.MethodGet)
@@ -50,9 +59,7 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 		httperror.LoggerHandler(h.previousVersions)).Methods(http.MethodGet)
 
 	itemRouter := router.PathPrefix("/{id}").Subrouter()
-	itemRouter.Use(middlewares.WithItem(func(id edgetypes.UpdateScheduleID) (*edgetypes.UpdateSchedule, error) {
-		return dataStore.EdgeUpdateSchedule().Item(id)
-	}, "id", contextKey))
+	itemRouter.Use(middlewares.WithItem(updateService.Schedule, "id", contextKey))
 
 	itemRouter.Handle("",
 		httperror.LoggerHandler(h.inspect)).Methods(http.MethodGet)

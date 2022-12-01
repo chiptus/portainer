@@ -7,10 +7,10 @@ import (
 	"github.com/portainer/liblicense"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
+	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	"github.com/portainer/portainer-ee/api/kubernetes/podsecurity"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices/errors"
-	"github.com/portainer/portainer/api/edgetypes"
 )
 
 type (
@@ -124,8 +124,6 @@ type (
 	}
 
 	EdgeUpdateScheduleService interface {
-		ActiveSchedule(environmentID portainer.EndpointID) *edgetypes.EndpointUpdateScheduleRelation
-		ActiveSchedules(environmentIDs []portainer.EndpointID) []edgetypes.EndpointUpdateScheduleRelation
 		List() ([]edgetypes.UpdateSchedule, error)
 		Item(ID edgetypes.UpdateScheduleID) (*edgetypes.UpdateSchedule, error)
 		Create(edgeUpdateSchedule *edgetypes.UpdateSchedule) error

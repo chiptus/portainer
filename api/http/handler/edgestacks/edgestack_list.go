@@ -5,6 +5,7 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 // @id EdgeStackList
@@ -25,5 +26,12 @@ func (handler *Handler) edgeStackList(w http.ResponseWriter, r *http.Request) *h
 		return httperror.InternalServerError("Unable to retrieve edge stacks from the database", err)
 	}
 
-	return response.JSON(w, edgeStacks)
+	filteredEdgeStacks := []portaineree.EdgeStack{}
+	for _, edgeStack := range edgeStacks {
+		if edgeStack.EdgeUpdateID == 0 {
+			filteredEdgeStacks = append(filteredEdgeStacks, edgeStack)
+		}
+	}
+
+	return response.JSON(w, filteredEdgeStacks)
 }

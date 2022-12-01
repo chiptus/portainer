@@ -4,10 +4,19 @@ import (
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
+	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
-	"github.com/portainer/portainer/api/edgetypes"
+	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 )
+
+type inspectResponse struct {
+	*edgetypes.UpdateSchedule
+	EdgeGroupIds  []portaineree.EdgeGroupID `json:"edgeGroupIds"`
+	ScheduledTime string                    `json:"scheduledTime"`
+	IsActive      bool                      `json:"isActive"`
+}
 
 // @id EdgeUpdateScheduleInspect
 // @summary Returns the Edge Update Schedule with the given ID
@@ -16,7 +25,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @success 200 {object} edgetypes.UpdateSchedule
+// @success 200 {object} decoratedUpdateSchedule
 // @failure 500
 // @router /edge_update_schedules/{id} [get]
 func (handler *Handler) inspect(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
@@ -25,5 +34,34 @@ func (handler *Handler) inspect(w http.ResponseWriter, r *http.Request) *httperr
 		return httperror.InternalServerError(err.Error(), err)
 	}
 
-	return response.JSON(w, item)
+	includeEdgeStack, _ := request.RetrieveBooleanQueryParameter(r, "includeEdgeStack", true)
+	if !includeEdgeStack {
+		return response.JSON(w, item)
+	}
+
+	edgeStack, err := handler.dataStore.EdgeStack().EdgeStack(item.EdgeStackID)
+	if err != nil {
+		return httperror.InternalServerError("unable to get edge stack", err)
+	}
+
+	isActive := false
+	for _, envStatus := range edgeStack.Status {
+		if envStatus.Type != portaineree.EdgeStackStatusPending {
+			isActive = true
+			break
+		}
+	}
+
+	decoratedItem := &inspectResponse{
+		UpdateSchedule: item,
+		EdgeGroupIds:   edgeStack.EdgeGroups,
+		IsActive:       isActive,
+		ScheduledTime:  edgeStack.ScheduledTime,
+	}
+
+	if err != nil {
+		return httperror.InternalServerError("Unable to decorate the edge update schedule", err)
+	}
+
+	return response.JSON(w, decoratedItem)
 }

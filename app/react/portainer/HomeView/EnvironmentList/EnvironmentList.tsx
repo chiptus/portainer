@@ -40,6 +40,7 @@ import { EnvironmentItem } from './EnvironmentItem';
 import { KubeconfigButton } from './KubeconfigButton';
 import { NoEnvironmentsInfoPanel } from './NoEnvironmentsInfoPanel';
 import styles from './EnvironmentList.module.css';
+import { UpdateBadge } from './UpdateBadge';
 
 interface Props {
   onClickItem(environment: Environment): void;
@@ -132,21 +133,27 @@ export function EnvironmentList({ onClickItem, onRefresh }: Props) {
     edgeDevice: false,
     tagsPartialMatch: true,
     agentVersions: agentVersions.map((a) => a.value),
+    updateInformation: true,
   };
 
   const tagsQuery = useTags();
 
-  const { isLoading, environments, totalCount, totalAvailable } =
-    useEnvironmentList(
-      {
-        page,
-        pageLimit,
-        sort: sortByFilter,
-        order: sortByDescending ? 'desc' : 'asc',
-        ...environmentsQueryParams,
-      },
-      refetchIfAnyOffline
-    );
+  const {
+    isLoading,
+    environments,
+    totalCount,
+    totalAvailable,
+    updateAvailable,
+  } = useEnvironmentList(
+    {
+      page,
+      pageLimit,
+      sort: sortByFilter,
+      order: sortByDescending ? 'desc' : 'asc',
+      ...environmentsQueryParams,
+    },
+    refetchIfAnyOffline
+  );
 
   const agentVersionsQuery = useAgentVersionsList();
 
@@ -179,7 +186,9 @@ export function EnvironmentList({ onClickItem, onRefresh }: Props) {
       <div className="row">
         <div className="col-sm-12">
           <TableContainer>
-            <TableTitle icon={HardDrive} label="Environments" />
+            <TableTitle icon={HardDrive} label="Environments">
+              {updateAvailable && <UpdateBadge />}
+            </TableTitle>
 
             <TableActions className={styles.actionBar}>
               <div className={styles.description}>

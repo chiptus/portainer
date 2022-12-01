@@ -53,7 +53,7 @@ func (handler *Handler) edgeStackLogsCollect(w http.ResponseWriter, r *http.Requ
 		return httperror.InternalServerError("Could not retrieve the edge stack from the database", err)
 	}
 
-	err = handler.edgeService.AddLogCommand(edgeStack, portaineree.EndpointID(endpointID), tail)
+	err = handler.edgeAsyncService.AddLogCommand(edgeStack, portaineree.EndpointID(endpointID), tail)
 	if err != nil {
 		return httperror.InternalServerError("Could not store the log collection request", err)
 	}

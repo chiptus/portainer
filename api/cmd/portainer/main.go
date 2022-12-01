@@ -33,6 +33,8 @@ import (
 	kubeproxy "github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
 	"github.com/portainer/portainer-ee/api/internal/snapshot"
 	"github.com/portainer/portainer-ee/api/internal/ssl"
 	"github.com/portainer/portainer-ee/api/jwt"
@@ -639,7 +641,9 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 
 	digitalSignatureService := initDigitalSignatureService()
 
-	edgeService := edge.NewService(dataStore, fileService)
+	edgeAsyncService := edgeasync.NewService(dataStore, fileService)
+
+	edgeStacksService := edgestacks.NewService(dataStore, edgeAsyncService)
 
 	sslService, err := initSSLService(*flags.AddrHTTPS, *flags.SSLCert, *flags.SSLKey, *flags.SSLCACert, fileService, dataStore, shutdownTrigger)
 	if err != nil {
@@ -657,11 +661,6 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	}
 
 	reverseTunnelService := chisel.NewService(dataStore, shutdownCtx)
-
-	instanceID, err = dataStore.Version().InstanceID()
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to get datastore version")
-	}
 
 	dockerClientFactory := initDockerClientFactory(digitalSignatureService, reverseTunnelService)
 	kubernetesClientFactory, err := initKubernetesClientFactory(digitalSignatureService, reverseTunnelService, dataStore, instanceID, *flags.AddrHTTPS, settings.UserSessionTimeout)
@@ -832,7 +831,8 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		HTTPEnabled:                 sslDBSettings.HTTPEnabled,
 		AssetsPath:                  *flags.Assets,
 		DataStore:                   dataStore,
-		EdgeService:                 *edgeService,
+		EdgeAsyncService:            edgeAsyncService,
+		EdgeStacksService:           edgeStacksService,
 		LicenseService:              licenseService,
 		SwarmStackManager:           swarmStackManager,
 		ComposeStackManager:         composeStackManager,

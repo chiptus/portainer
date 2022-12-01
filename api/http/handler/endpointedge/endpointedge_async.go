@@ -16,6 +16,7 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	portainer "github.com/portainer/portainer/api"
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
@@ -97,6 +98,9 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 	}
 
 	version := r.Header.Get(portaineree.PortainerAgentHeader)
+
+	timeZone := r.Header.Get(portaineree.PortainerAgentTimeZoneHeader)
+
 	if endpoint == nil {
 		log.Debug().Str("PortainerAgentEdgeIDHeader", edgeID).Msg("edge id not found in existing endpoints")
 
@@ -110,7 +114,7 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 			return httperror.Forbidden("Permission denied to access environment", err)
 		}
 
-		newEndpoint, createEndpointErr := handler.createAsyncEdgeAgentEndpoint(r, edgeID, agentPlatform, version)
+		newEndpoint, createEndpointErr := handler.createAsyncEdgeAgentEndpoint(r, edgeID, agentPlatform, version, timeZone)
 		if createEndpointErr != nil {
 			return createEndpointErr
 		}
@@ -127,11 +131,33 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 		return httperror.Forbidden("Permission denied to access environment", err)
 	}
 
+	updateID, err := parseEdgeUpdateID(r)
+	if err != nil {
+		return httperror.BadRequest("Unable to parse edge update id", err)
+	}
+
+	// check endpoint version, if it has the same version as the active schedule, then we can mark the edge stack as successfully deployed
+	activeUpdateSchedule := handler.edgeUpdateService.ActiveSchedule(endpoint.ID)
+	if activeUpdateSchedule != nil && activeUpdateSchedule.ScheduleID == updateID {
+		err := handler.handleSuccessfulUpdate(activeUpdateSchedule)
+		if err != nil {
+			return httperror.InternalServerError("Unable to handle successful update", err)
+		}
+
+		err = handler.EdgeService.RemoveStackCommand(endpoint.ID, activeUpdateSchedule.EdgeStackID)
+		if err != nil {
+			return httperror.InternalServerError("Unable to replace stack command", err)
+		}
+	}
+
 	var needFullSnapshot bool
 	if payload.Snapshot != nil {
 		handler.saveSnapshot(endpoint, payload.Snapshot, &needFullSnapshot)
 	}
 
+	if timeZone != "" {
+		endpoint.LocalTimeZone = timeZone
+	}
 	endpoint.LastCheckInDate = time.Now().Unix()
 	endpoint.Status = portaineree.EndpointStatusUp
 	endpoint.Edge.AsyncMode = true
@@ -171,7 +197,12 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 	}
 
 	if payload.CommandTimestamp != nil {
-		commands, err := handler.sendCommandsSince(endpoint, *payload.CommandTimestamp)
+		location, err := parseLocation(endpoint)
+		if err != nil {
+			return httperror.InternalServerError("Unable to parse location", err)
+		}
+
+		commands, err := handler.sendCommandsSince(endpoint, *payload.CommandTimestamp, location)
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve commands", err)
 		}
@@ -204,7 +235,7 @@ func parseBodyPayload(req *http.Request) (EdgeAsyncRequest, error) {
 	return payload, nil
 }
 
-func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID string, endpointType portaineree.EndpointType, version string) (*portaineree.Endpoint, *httperror.HandlerError) {
+func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID string, endpointType portaineree.EndpointType, version string, timeZone string) (*portaineree.Endpoint, *httperror.HandlerError) {
 	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
 
 	requestURL := fmt.Sprintf("https://%s", req.Host)
@@ -242,6 +273,7 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
 		},
+		LocalTimeZone: timeZone,
 		SecuritySettings: portaineree.EndpointSecuritySettings{
 			AllowVolumeBrowserForRegularUsers:         false,
 			EnableHostManagementFeatures:              false,
@@ -416,6 +448,26 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 			continue
 		}
 
+		// if the stack represents a successful remote update - skip it
+		if endpointStatus, ok := stack.Status[endpoint.ID]; ok && endpointStatus.Type == portaineree.EdgeStackStatusRemoteUpdateSuccess {
+			continue
+		}
+
+		if stack.EdgeUpdateID != 0 {
+			if status.Type == portaineree.StatusError {
+				err := handler.edgeUpdateService.RemoveActiveSchedule(endpoint.ID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
+				if err != nil {
+					log.Warn().
+						Err(err).
+						Msg("Failed to remove active schedule")
+				}
+			}
+
+			if status.Type == portaineree.StatusOk {
+				handler.edgeUpdateService.EdgeStackDeployed(endpoint.ID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
+			}
+		}
+
 		if status.Type == portaineree.EdgeStackStatusRemove {
 			delete(stack.Status, status.EndpointID)
 		} else {
@@ -488,7 +540,7 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 	}
 }
 
-func (handler *Handler) sendCommandsSince(endpoint *portaineree.Endpoint, commandTimestamp time.Time) ([]portaineree.EdgeAsyncCommand, error) {
+func (handler *Handler) sendCommandsSince(endpoint *portaineree.Endpoint, commandTimestamp time.Time, timeZone *time.Location) ([]portaineree.EdgeAsyncCommand, error) {
 	storedCommands, err := handler.DataStore.EdgeAsyncCommand().EndpointCommands(endpoint.ID)
 	if err != nil {
 		return nil, err
@@ -500,7 +552,23 @@ func (handler *Handler) sendCommandsSince(endpoint *portaineree.Endpoint, comman
 			continue
 		}
 
-		if !storedCommand.Timestamp.After(commandTimestamp) {
+		if storedCommand.ScheduledTime != "" {
+
+			pastSchedule, err := shouldScheduleTrigger(storedCommand.ScheduledTime, timeZone)
+			if err != nil {
+				return nil, err
+			}
+
+			if !pastSchedule {
+				continue
+			}
+
+			storedCommand.Executed = true
+			err = handler.DataStore.EdgeAsyncCommand().Update(storedCommand.ID, &storedCommand)
+			if err != nil {
+				return commandsResponse, err
+			}
+		} else if !storedCommand.Timestamp.After(commandTimestamp) { // not a scheduled command
 			storedCommand.Executed = true
 			err := handler.DataStore.EdgeAsyncCommand().Update(storedCommand.ID, &storedCommand)
 			if err != nil {

@@ -17,7 +17,9 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/http/security"
-	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
+	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
 	"github.com/portainer/portainer/api/filesystem"
@@ -84,11 +86,21 @@ func setupHandler(t *testing.T) (*Handler, string, func()) {
 		t.Fatal(err)
 	}
 
+	edgeAsyncService := edgeasync.NewService(store, fs)
+
+	edgeUpdateService, err := updateschedules.NewService(store)
+	if err != nil {
+		storeTeardown()
+		t.Fatal(err)
+	}
+
 	handler := NewHandler(
 		security.NewRequestBouncer(store, nil, jwtService, apiKeyService, nil),
 		helper.NewUserActivityService(),
 		store,
-		edge.NewService(store, fs),
+		edgeAsyncService,
+		edgestacks.NewService(store, edgeAsyncService),
+		edgeUpdateService,
 	)
 
 	handler.FileService = fs
@@ -835,7 +847,7 @@ func TestUpdateStatusAndInspect(t *testing.T) {
 	payload := updateStatusPayload{
 		Error:      "test-error",
 		Status:     &newStatus,
-		EndpointID: &endpoint.ID,
+		EndpointID: endpoint.ID,
 	}
 
 	jsonPayload, err := json.Marshal(payload)
@@ -885,7 +897,7 @@ func TestUpdateStatusAndInspect(t *testing.T) {
 		t.Fatalf(fmt.Sprintf("expected EdgeStackStatusError %s, found %s", payload.Error, data.Status[endpoint.ID].Error))
 	}
 
-	if data.Status[endpoint.ID].EndpointID != *payload.EndpointID {
+	if data.Status[endpoint.ID].EndpointID != payload.EndpointID {
 		t.Fatalf(fmt.Sprintf("expected EndpointID %d, found %d", payload.EndpointID, data.Status[endpoint.ID].EndpointID))
 	}
 }
@@ -906,11 +918,11 @@ func TestUpdateStatusWithInvalidPayload(t *testing.T) {
 		ExpectedStatusCode   int
 	}{
 		{
-			"Update with nil Status",
+			"Update with no Status",
 			updateStatusPayload{
 				Error:      "test-error",
 				Status:     nil,
-				EndpointID: &endpoint.ID,
+				EndpointID: endpoint.ID,
 			},
 			"Invalid status",
 			400,
@@ -920,17 +932,17 @@ func TestUpdateStatusWithInvalidPayload(t *testing.T) {
 			updateStatusPayload{
 				Error:      "",
 				Status:     &statusError,
-				EndpointID: &endpoint.ID,
+				EndpointID: endpoint.ID,
 			},
 			"Error message is mandatory when status is error",
 			400,
 		},
 		{
-			"Update with nil EndpointID",
+			"Update with missing EndpointID",
 			updateStatusPayload{
 				Error:      "",
 				Status:     &statusOk,
-				EndpointID: nil,
+				EndpointID: 0,
 			},
 			"Invalid EnvironmentID",
 			400,

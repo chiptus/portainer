@@ -1,47 +1,51 @@
 package edgeupdateschedules
 
 import (
-	"errors"
 	"net/http"
 	"time"
 
-	"github.com/asaskevich/govalidator"
+	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	"github.com/rs/zerolog/log"
+	"golang.org/x/exp/slices"
+
 	"github.com/portainer/portainer-ee/api/http/security"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/edgetypes"
+	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	"github.com/portainer/portainer-ee/api/internal/set"
 )
 
 type createPayload struct {
-	Name         string
-	GroupIDs     []portainer.EdgeGroupID
-	Environments map[portaineree.EndpointID]string
-	Type         edgetypes.UpdateScheduleType
-	Time         int64
+	Name          string
+	GroupIDs      []portaineree.EdgeGroupID
+	Type          edgetypes.UpdateScheduleType
+	Version       string
+	ScheduledTime string
 }
 
 func (payload *createPayload) Validate(r *http.Request) error {
-	if govalidator.IsNull(payload.Name) {
-		return errors.New("Invalid tag name")
+	if payload.Name == "" {
+		return errors.New("invalid name")
 	}
 
 	if len(payload.GroupIDs) == 0 {
-		return errors.New("Required to choose at least one group")
+		return errors.New("required to choose at least one group")
 	}
 
-	if len(payload.Environments) == 0 {
-		return errors.New("No Environment is scheduled for update")
+	if !slices.Contains([]edgetypes.UpdateScheduleType{edgetypes.UpdateScheduleRollback, edgetypes.UpdateScheduleUpdate}, payload.Type) {
+		return errors.New("invalid schedule type")
 	}
 
-	if payload.Type != edgetypes.UpdateScheduleRollback && payload.Type != edgetypes.UpdateScheduleUpdate {
-		return errors.New("Invalid schedule type")
+	if payload.Version == "" {
+		return errors.New("Invalid version")
 	}
 
-	if payload.Time < time.Now().Unix() {
-		return errors.New("Invalid time")
+	if payload.ScheduledTime == "" {
+		return errors.New("Scheduled time is required")
 	}
 
 	return nil
@@ -78,59 +82,155 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 		return httperror.InternalServerError("Unable to retrieve user information from token", err)
 	}
 
+	var edgeStackID portaineree.EdgeStackID
+	var scheduleID edgetypes.UpdateScheduleID
+	needCleanup := true
+	defer func() {
+		if !needCleanup {
+			return
+		}
+
+		if scheduleID != 0 {
+			err := handler.updateService.DeleteSchedule(scheduleID)
+			if err != nil {
+				log.Error().Err(err).Msg("Unable to cleanup edge update schedule")
+			}
+		}
+
+		if edgeStackID != 0 {
+			err = handler.edgeStacksService.DeleteEdgeStack(edgeStackID, payload.GroupIDs)
+
+			if err != nil {
+				log.Error().Err(err).Msg("Unable to cleanup edge stack")
+			}
+		}
+	}()
+
 	item := &edgetypes.UpdateSchedule{
-		Name:      payload.Name,
-		Time:      payload.Time,
-		GroupIDs:  payload.GroupIDs,
-		Status:    map[portainer.EndpointID]edgetypes.UpdateScheduleStatus{},
+		Name:    payload.Name,
+		Version: payload.Version,
+
 		Created:   time.Now().Unix(),
-		CreatedBy: portainer.UserID(tokenData.ID),
+		CreatedBy: tokenData.ID,
 		Type:      payload.Type,
 	}
 
-	schedules, err := handler.dataStore.EdgeUpdateSchedule().List()
+	relatedEnvironments, err := handler.fetchRelatedEnvironments(payload.GroupIDs)
 	if err != nil {
-		return httperror.InternalServerError("Unable to list edge update schedules", err)
+		return httperror.InternalServerError("Unable to fetch related environments", err)
 	}
 
-	prevVersions := map[portainer.EndpointID]string{}
-	if item.Type == edgetypes.UpdateScheduleRollback {
-		prevVersions = previousVersions(schedules)
+	err = handler.validateRelatedEnvironments(relatedEnvironments)
+	if err != nil {
+		return httperror.BadRequest("Environment is not supported for update", err)
 	}
 
-	for environmentID, version := range payload.Environments {
-		environment, err := handler.dataStore.Endpoint().Endpoint(environmentID)
-		if err != nil {
-			return httperror.InternalServerError("Unable to retrieve environment from the database", err)
-		}
-
-		// TODO check that env is standalone (snapshots)
-		if environment.Type != portaineree.EdgeAgentOnDockerEnvironment {
-			return httperror.BadRequest("Only standalone docker Environments are supported for remote update", nil)
-		}
-
-		// validate version id is valid for rollback
-		if item.Type == edgetypes.UpdateScheduleRollback {
-			prevVersion := prevVersions[portainer.EndpointID(environmentID)]
-			if prevVersion == "" {
-				return httperror.BadRequest("No previous version found for environment", nil)
-			}
-
-			if version != prevVersion {
-				return httperror.BadRequest("Rollback version must match previous version", nil)
-			}
-		}
-
-		item.Status[portainer.EndpointID(environmentID)] = edgetypes.UpdateScheduleStatus{
-			TargetVersion:  version,
-			CurrentVersion: environment.Agent.Version,
-		}
+	previousVersions := handler.getPreviousVersions(relatedEnvironments)
+	if err != nil {
+		return httperror.InternalServerError("Unable to fetch previous versions for related endpoints", err)
 	}
 
-	err = handler.dataStore.EdgeUpdateSchedule().Create(item)
+	item.EnvironmentsPreviousVersions = previousVersions
+
+	err = handler.updateService.CreateSchedule(item)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist the edge update schedule", err)
 	}
 
+	scheduleID = item.ID
+
+	edgeStackID, err = handler.createUpdateEdgeStack(item.ID, payload.GroupIDs, payload.Version, payload.ScheduledTime)
+	if err != nil {
+		return httperror.InternalServerError("Unable to create edge stack", err)
+	}
+
+	item.EdgeStackID = edgeStackID
+	err = handler.updateService.UpdateSchedule(item.ID, item)
+	if err != nil {
+		return httperror.InternalServerError("Unable to persist the edge update schedule", err)
+	}
+
+	needCleanup = false
 	return response.JSON(w, item)
+}
+
+func (handler *Handler) validateRelatedEnvironments(relatedEnvironments []portaineree.Endpoint) error {
+	if len(relatedEnvironments) == 0 {
+		return errors.New("No related environments")
+	}
+
+	for _, environment := range relatedEnvironments {
+		err := handler.isUpdateSupported(&environment)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (handler *Handler) fetchRelatedEnvironments(edgeGroupIds []portaineree.EdgeGroupID) ([]portaineree.Endpoint, error) {
+	relationConfig, err := edge.FetchEndpointRelationsConfig(handler.dataStore)
+	if err != nil {
+		return nil, errors.WithMessage(err, "unable to fetch environment relations config")
+	}
+
+	relatedEnvironmentsIds, err := edge.EdgeStackRelatedEndpoints(edgeGroupIds, relationConfig.Endpoints, relationConfig.EndpointGroups, relationConfig.EdgeGroups)
+	if err != nil {
+		return nil, errors.WithMessage(err, "unable to fetch related environments")
+	}
+
+	environments, err := handler.dataStore.Endpoint().Endpoints()
+	if err != nil {
+		return nil, errors.WithMessage(err, "unable to fetch environments")
+	}
+
+	relatedEnvironmentIdsSet := set.ToSet(relatedEnvironmentsIds)
+
+	relatedEnvironments := []portaineree.Endpoint{}
+
+	for _, environment := range environments {
+		if !relatedEnvironmentIdsSet.Contains(environment.ID) {
+			continue
+		}
+
+		relatedEnvironments = append(relatedEnvironments, environment)
+	}
+
+	return relatedEnvironments, nil
+}
+
+func (handler *Handler) getPreviousVersions(relatedEnvironments []portaineree.Endpoint) map[portaineree.EndpointID]string {
+	prevVersions := map[portaineree.EndpointID]string{}
+
+	for _, environment := range relatedEnvironments {
+		prevVersions[environment.ID] = environment.Agent.Version
+	}
+
+	return prevVersions
+}
+
+func (handler *Handler) isUpdateSupported(environment *portaineree.Endpoint) error {
+	if !endpointutils.IsEdgeEndpoint(environment) {
+		return errors.New("environment is not an edge endpoint, this feature is limited to edge endpoints")
+	}
+
+	if !endpointutils.IsDockerEndpoint(environment) {
+		return errors.New("environment is not a docker endpoint, this feature is limited to docker endpoints")
+	}
+
+	snapshot, err := handler.dataStore.Snapshot().Snapshot(environment.ID)
+	if err != nil {
+		return errors.WithMessage(err, "unable to fetch snapshot")
+	}
+
+	if snapshot.Docker == nil {
+		return errors.New("missing docker snapshot")
+	}
+
+	if snapshot.Docker.Swarm {
+		return errors.New("swarm is not supported")
+	}
+
+	return nil
 }

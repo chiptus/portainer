@@ -5,8 +5,9 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
-	"github.com/portainer/portainer/api/edgetypes"
-	"github.com/portainer/portainer/api/http/middlewares"
+	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+
+	"github.com/portainer/portainer-ee/api/http/middlewares"
 )
 
 // @id EdgeUpdateScheduleDelete
@@ -24,7 +25,17 @@ func (handler *Handler) delete(w http.ResponseWriter, r *http.Request) *httperro
 		return httperror.InternalServerError(err.Error(), err)
 	}
 
-	err = handler.dataStore.EdgeUpdateSchedule().Delete(item.ID)
+	edgeStack, err := handler.dataStore.EdgeStack().EdgeStack(item.EdgeStackID)
+	if err != nil {
+		return httperror.InternalServerError("failed fetching edge stack", err)
+	}
+
+	err = handler.edgeStacksService.DeleteEdgeStack(edgeStack.ID, edgeStack.EdgeGroups)
+	if err != nil {
+		return httperror.InternalServerError("failed deleting schedule edge stack", err)
+	}
+
+	err = handler.updateService.DeleteSchedule(item.ID)
 	if err != nil {
 		return httperror.InternalServerError("Unable to delete the edge update schedule", err)
 	}

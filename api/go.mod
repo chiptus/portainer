@@ -21,6 +21,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.11
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.27.1
 	github.com/cavaliergopher/grab/v3 v3.0.1
+	github.com/cbroglie/mustache v1.4.0
 	github.com/civo/civogo v0.2.67
 	github.com/containers/image/v5 v5.21.0
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
@@ -67,6 +68,7 @@ require (
 	github.com/vmware-labs/yaml-jsonpath v0.3.2
 	go.etcd.io/bbolt v1.3.6
 	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d
+	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 	google.golang.org/api v0.75.0

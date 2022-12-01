@@ -18,7 +18,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
-	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	"github.com/portainer/portainer-ee/api/license"
 	portainer "github.com/portainer/portainer/api"
@@ -59,7 +59,7 @@ type Handler struct {
 	BindAddress                 string
 	BindAddressHTTPS            string
 	userActivityService         portaineree.UserActivityService
-	edgeService                 *edge.Service
+	edgeService                 *edgeasync.Service
 	cloudClusterSetupService    *cloud.CloudClusterSetupService
 	KubernetesTokenCacheManager *kubernetes.TokenCacheManager
 }
@@ -69,7 +69,7 @@ func NewHandler(
 	bouncer requestBouncer,
 	userActivityService portaineree.UserActivityService,
 	dataStore dataservices.DataStore,
-	edgeService *edge.Service,
+	edgeService *edgeasync.Service,
 	demoService *demo.Service,
 	cloudClusterSetupService *cloud.CloudClusterSetupService,
 	licenseService portaineree.LicenseService,

@@ -9,10 +9,7 @@ import {
 } from 'lucide-react';
 
 import { usePublicSettings } from '@/react/portainer/settings/queries';
-import {
-  FeatureFlag,
-  useFeatureFlag,
-} from '@/react/portainer/feature-flags/useRedirectFeatureFlag';
+import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 
 import { SidebarItem } from './SidebarItem';
 import { SidebarSection } from './SidebarSection';
@@ -26,10 +23,6 @@ export function SettingsSidebar({ isAdmin, isTeamLeader }: Props) {
   const teamSyncQuery = usePublicSettings<boolean>({
     select: (settings) => settings.TeamSync,
   });
-
-  const isEdgeRemoteUpgradeEnabledQuery = useFeatureFlag(
-    FeatureFlag.EdgeRemoteUpdate
-  );
 
   const showUsersSection =
     !window.ddExtension && (isAdmin || (isTeamLeader && !teamSyncQuery.data));
@@ -77,7 +70,7 @@ export function SettingsSidebar({ isAdmin, isTeamLeader }: Props) {
               label="Tags"
               data-cy="portainerSidebar-environmentTags"
             />
-            {isEdgeRemoteUpgradeEnabledQuery.data && (
+            {isBE && (
               <SidebarItem
                 to="portainer.endpoints.updateSchedules"
                 label="Update & Rollback"
@@ -93,7 +86,7 @@ export function SettingsSidebar({ isAdmin, isTeamLeader }: Props) {
             data-cy="portainerSidebar-registries"
           />
 
-          {process.env.PORTAINER_EDITION !== 'CE' && (
+          {isBE && (
             <SidebarItem
               to="portainer.licenses"
               label="Licenses"
@@ -136,11 +129,13 @@ export function SettingsSidebar({ isAdmin, isTeamLeader }: Props) {
               data-cy="portainerSidebar-authentication"
             />
           )}
-          <SidebarItem
-            to="portainer.settings.cloud"
-            label="Cloud"
-            data-cy="portainerSidebar-cloud"
-          />
+          {isBE && (
+            <SidebarItem
+              to="portainer.settings.cloud"
+              label="Cloud"
+              data-cy="portainerSidebar-cloud"
+            />
+          )}
 
           <SidebarItem
             to="portainer.settings.edgeCompute"

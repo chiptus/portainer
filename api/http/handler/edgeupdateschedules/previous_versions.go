@@ -5,8 +5,9 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/edgetypes"
+	portaineree "github.com/portainer/portainer-ee/api"
+	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+
 	"golang.org/x/exp/slices"
 )
 
@@ -23,12 +24,12 @@ import (
 // @failure 500 "Server error"
 // @router /edge_update_schedules/agent_versions [get]
 func (handler *Handler) previousVersions(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	schedules, err := handler.dataStore.EdgeUpdateSchedule().List()
+	schedules, err := handler.updateService.Schedules()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve the edge update schedules list", err)
 	}
 
-	versionMap := previousVersions(schedules)
+	versionMap := previousVersions(schedules, handler.updateService.ActiveSchedule)
 
 	return response.JSON(w, versionMap)
 }
@@ -39,16 +40,16 @@ type EnvironmentVersionDetails struct {
 	skipReason string
 }
 
-func previousVersions(schedules []edgetypes.UpdateSchedule) map[portainer.EndpointID]string {
+func previousVersions(schedules []edgetypes.UpdateSchedule, activeScheduleGetter func(environmentID portaineree.EndpointID) *edgetypes.EndpointUpdateScheduleRelation) map[portaineree.EndpointID]string {
 
 	slices.SortFunc(schedules, func(a edgetypes.UpdateSchedule, b edgetypes.UpdateSchedule) bool {
 		return a.Created > b.Created
 	})
 
-	environmentMap := map[portainer.EndpointID]*EnvironmentVersionDetails{}
+	environmentMap := map[portaineree.EndpointID]*EnvironmentVersionDetails{}
 	// to all schedules[:schedule index -1].Created > schedule.Created
 	for _, schedule := range schedules {
-		for environmentId, status := range schedule.Status {
+		for environmentId, version := range schedule.EnvironmentsPreviousVersions {
 			props, ok := environmentMap[environmentId]
 			if !ok {
 				environmentMap[environmentId] = &EnvironmentVersionDetails{}
@@ -65,17 +66,19 @@ func previousVersions(schedules []edgetypes.UpdateSchedule) map[portainer.Endpoi
 				continue
 			}
 
-			if status.Status == edgetypes.UpdateScheduleStatusPending || status.Status == edgetypes.UpdateScheduleStatusError {
+			activeSchedule := activeScheduleGetter(environmentId)
+
+			if activeSchedule != nil {
 				props.skip = true
 				props.skipReason = "has active schedule"
 				continue
 			}
 
-			props.version = status.CurrentVersion
+			props.version = version
 		}
 	}
 
-	versionMap := map[portainer.EndpointID]string{}
+	versionMap := map[portaineree.EndpointID]string{}
 	for environmentId, props := range environmentMap {
 		if !props.skip {
 			versionMap[environmentId] = props.version

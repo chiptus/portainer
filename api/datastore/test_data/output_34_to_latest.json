@@ -79,6 +79,7 @@
         "Snapshots": []
       },
       "LastCheckInDate": 0,
+      "LocalTimeZone": "",
       "Name": "local",
       "Nomad": {
         "Snapshots": []
