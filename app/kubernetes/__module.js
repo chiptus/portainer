@@ -211,7 +211,7 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
       url: '/logs',
       views: {
         'content@': {
-          component: 'kubernetesStackLogsView',
+          component: 'kubernetesStackLogsViewAngular',
         },
       },
     };

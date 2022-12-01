@@ -1,4 +1,3 @@
-import { formatLogs } from '../helpers/logHelper';
 import { TaskViewModel } from '../models/task';
 
 angular.module('portainer.docker').factory('TaskService', [
@@ -35,30 +34,6 @@ angular.module('portainer.docker').factory('TaskService', [
         })
         .catch(function error(err) {
           deferred.reject({ msg: 'Unable to retrieve tasks', err: err });
-        });
-
-      return deferred.promise;
-    };
-
-    service.logs = function (id, stdout, stderr, timestamps, since, tail) {
-      var deferred = $q.defer();
-
-      var parameters = {
-        id: id,
-        stdout: stdout || 0,
-        stderr: stderr || 0,
-        timestamps: timestamps || 0,
-        since: since || 0,
-        tail: tail || 'all',
-      };
-
-      Task.logs(parameters)
-        .$promise.then(function success(data) {
-          var logs = formatLogs(data.logs, { stripHeaders: true, withTimestamps: !!timestamps });
-          deferred.resolve(logs);
-        })
-        .catch(function error(err) {
-          deferred.reject(err);
         });
 
       return deferred.promise;

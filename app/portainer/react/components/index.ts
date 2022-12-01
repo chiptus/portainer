@@ -93,7 +93,7 @@ export const componentsModule = angular
   )
   .component(
     'datatableSearchbar',
-    r2a(SearchBar, ['data-cy', 'onChange', 'value', 'placeholder'])
+    r2a(SearchBar, ['data-cy', 'onChange', 'value', 'placeholder', 'children'])
   )
   .component('badgeIcon', r2a(BadgeIcon, ['icon', 'size']))
   .component(

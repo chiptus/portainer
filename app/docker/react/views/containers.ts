@@ -6,6 +6,7 @@ import { ListView } from '@/react/docker/containers/ListView';
 import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
+import {LogView} from "@/react/docker/containers/LogView";
 
 export const containersModule = angular
   .module('portainer.docker.containers', [])
@@ -13,7 +14,10 @@ export const containersModule = angular
     'containersView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(ListView))), ['endpoint'])
   )
-
+  .component(
+    'containerLogView',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(LogView))), [])
+  )
   .config(config).name;
 
 /* @ngInject */
@@ -88,8 +92,7 @@ function config($stateRegistryProvider: StateRegistry) {
     url: '/logs',
     views: {
       'content@': {
-        templateUrl: '~@/docker/views/containers/logs/containerlogs.html',
-        controller: 'ContainerLogsController',
+        component: 'containerLogView',
       },
     },
   });

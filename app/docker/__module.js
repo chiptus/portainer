@@ -339,17 +339,6 @@ angular.module('portainer.docker', ['portainer.app', reactModule]).config([
       },
     };
 
-    var serviceLogs = {
-      name: 'docker.services.service.logs',
-      url: '/logs',
-      views: {
-        'content@': {
-          templateUrl: './views/services/logs/servicelogs.html',
-          controller: 'ServiceLogsController',
-        },
-      },
-    };
-
     var stacks = {
       name: 'docker.stacks',
       url: '/stacks',
@@ -429,17 +418,6 @@ angular.module('portainer.docker', ['portainer.app', reactModule]).config([
         'content@': {
           templateUrl: './views/tasks/edit/task.html',
           controller: 'TaskController',
-        },
-      },
-    };
-
-    var taskLogs = {
-      name: 'docker.tasks.task.logs',
-      url: '/logs',
-      views: {
-        'content@': {
-          templateUrl: './views/tasks/logs/tasklogs.html',
-          controller: 'TaskLogsController',
         },
       },
     };
@@ -587,7 +565,6 @@ angular.module('portainer.docker', ['portainer.app', reactModule]).config([
     $stateRegistryProvider.register(services);
     $stateRegistryProvider.register(service);
     $stateRegistryProvider.register(serviceCreation);
-    $stateRegistryProvider.register(serviceLogs);
     $stateRegistryProvider.register(stacks);
     $stateRegistryProvider.register(stack);
     $stateRegistryProvider.register(stackContainer);
@@ -596,7 +573,6 @@ angular.module('portainer.docker', ['portainer.app', reactModule]).config([
     $stateRegistryProvider.register(swarmVisualizer);
     $stateRegistryProvider.register(tasks);
     $stateRegistryProvider.register(task);
-    $stateRegistryProvider.register(taskLogs);
     $stateRegistryProvider.register(templates);
     $stateRegistryProvider.register(volumes);
     $stateRegistryProvider.register(volume);

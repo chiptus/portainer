@@ -11,7 +11,6 @@ import {
   recreateContainer,
 } from '@/react/docker/containers/containers.service';
 import { ContainerDetailsViewModel, ContainerStatsViewModel, ContainerViewModel } from '../models/container';
-import { formatLogs } from '../helpers/logHelper';
 
 angular.module('portainer.docker').factory('ContainerService', ContainerServiceFactory);
 
@@ -141,30 +140,6 @@ function ContainerServiceFactory($q, Container, $timeout, EndpointProvider) {
         } else {
           deferred.resolve(data);
         }
-      })
-      .catch(function error(err) {
-        deferred.reject(err);
-      });
-
-    return deferred.promise;
-  };
-
-  service.logs = function (id, stdout, stderr, timestamps, since, tail, stripHeaders) {
-    var deferred = $q.defer();
-
-    var parameters = {
-      id: id,
-      stdout: stdout || 0,
-      stderr: stderr || 0,
-      timestamps: timestamps || 0,
-      since: since || 0,
-      tail: tail || 'all',
-    };
-
-    Container.logs(parameters)
-      .$promise.then(function success(data) {
-        var logs = formatLogs(data.logs, { stripHeaders, withTimestamps: !!timestamps });
-        deferred.resolve(logs);
       })
       .catch(function error(err) {
         deferred.reject(err);

@@ -1,0 +1,22 @@
+pre.log-row {
+    display: flex;
+    border: unset;
+    background-color: unset;
+    padding: 0px 20px;
+    margin: unset;
+    overflow-x: hidden;
+    white-space: pre;
+    line-height: 25px;
+}
+
+.log-row-line-number {
+    user-select: none;
+    width: 40px;
+    border-right: #919191 2px solid;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+pre.log-row.wrap-line {
+    white-space: pre-wrap;
+}

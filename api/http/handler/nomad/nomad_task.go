@@ -1,7 +1,6 @@
 package nomad
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -138,9 +137,6 @@ func (handler *Handler) getTaskLogs(w http.ResponseWriter, r *http.Request) *htt
 	}
 
 	offset, err := request.RetrieveNumericQueryParameter(r, "offset", true)
-	if offset < 1 {
-		offset = 5000
-	}
 
 	nomadClient, err := handler.nomadClientFactory.GetClient(endpoint)
 
@@ -150,11 +146,9 @@ func (handler *Handler) getTaskLogs(w http.ResponseWriter, r *http.Request) *htt
 
 	frames, errCh := nomadClient.TaskLogs(refresh, allocationID, taskName, logType, origin, namespace, int64(offset))
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/text")
 	w.Header().Set("Transfer-Encoding", "chunked")
 	w.WriteHeader(http.StatusOK)
-
-	enc := json.NewEncoder(w)
 
 Loop:
 	for {
@@ -166,7 +160,7 @@ Loop:
 			if frame.IsHeartbeat() {
 				continue
 			}
-			enc.Encode(string(frame.Data))
+			w.Write(frame.Data)
 			w.(http.Flusher).Flush()
 		case err := <-errCh:
 			return httperror.InternalServerError("Unable to retrieve Nomad task log channel", err)

@@ -7,9 +7,11 @@ import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
 
 import { containersModule } from './containers';
+import { tasksModule } from './tasks';
+import { servicesModule } from './services';
 
 export const viewsModule = angular
-  .module('portainer.docker.react.views', [containersModule])
+  .module('portainer.docker.react.views', [containersModule, tasksModule, servicesModule])
 
   .component(
     'networkDetailsView',

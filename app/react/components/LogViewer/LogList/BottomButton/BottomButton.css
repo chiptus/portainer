@@ -1,0 +1,13 @@
+.bottom-button {
+    margin-bottom: 20px;
+    text-align: center;
+}
+.bottom-button .button {
+    padding: 4px 20px;
+    visibility: hidden;
+    border-radius: 50px;
+}
+
+.bottom-button .button.visible {
+    visibility: visible;
+}

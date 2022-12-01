@@ -59,22 +59,24 @@ class KubernetesPodService {
    * @param {string} podName
    * @param {string} containerName
    */
-  async logsAsync(namespace, podName, containerName) {
+  async logsAsync(namespace, podName, containerName, otherParams = {}) {
     try {
       const params = new KubernetesCommonParams();
       params.id = podName;
       if (containerName) {
         params.container = containerName;
       }
-      const data = await this.KubernetesPods(namespace).logs(params).$promise;
-      return data.logs;
+      const mergedParams = {...params, ...otherParams};
+
+      const data = await this.KubernetesPods(namespace).logs(mergedParams).$promise;
+      return data;
     } catch (err) {
       throw new PortainerError('Unable to retrieve pod logs', err);
     }
   }
 
-  logs(namespace, podName, containerName) {
-    return this.$async(this.logsAsync, namespace, podName, containerName);
+  logs(namespace, podName, containerName, otherParams = {}) {
+    return this.$async(this.logsAsync, namespace, podName, containerName, otherParams);
   }
 
   /**

@@ -78,6 +78,7 @@ export interface Health {
 
 export interface DockerContainerResponse {
   Id: string;
+  Name: string;
   Names: string[];
   Image: string;
   ImageID: string;
@@ -92,6 +93,9 @@ export interface DockerContainerResponse {
   HostConfig: {
     NetworkMode?: string;
   };
+  Config: {
+    Tty: boolean;
+  }
   NetworkSettings?: SummaryNetworkSettings;
   Mounts: MountPoint[];
   Portainer: PortainerMetadata;

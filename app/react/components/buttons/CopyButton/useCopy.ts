@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 
-export function useCopy(copyText: string, fadeDelay = 1000) {
+export type CopyTextType = string | (() => string);
+
+export function useCopy(copyText: CopyTextType, fadeDelay = 1000) {
   const [copiedSuccessfully, setCopiedSuccessfully] = useState(false);
 
   useEffect(() => {
@@ -15,14 +17,16 @@ export function useCopy(copyText: string, fadeDelay = 1000) {
   }, [copiedSuccessfully, fadeDelay]);
 
   function handleCopy() {
+    const text = (typeof copyText === 'function') ? copyText() : copyText;
+
     // https://developer.mozilla.org/en-US/docs/Web/API/Clipboard
     // https://caniuse.com/?search=clipboard
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(copyText);
+      navigator.clipboard.writeText(text);
     } else {
       // https://stackoverflow.com/a/57192718
       const inputEl = document.createElement('textarea');
-      inputEl.value = copyText;
+      inputEl.value = text;
       document.body.appendChild(inputEl);
       inputEl.select();
       document.execCommand('copy');

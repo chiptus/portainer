@@ -1,9 +1,11 @@
+import _ from 'lodash';
+
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import PortainerError from '@/portainer/error';
 import axios from '@/portainer/services/axios';
 import { genericHandler } from '@/docker/rest/response/handlers';
 
-import { ContainerId, DockerContainer } from './types';
+import { ContainerId, ContainerLogsParams, DockerContainer } from './types';
 
 export async function startContainer(
   environmentId: EnvironmentId,
@@ -92,6 +94,25 @@ export async function removeContainer(
     }
   } catch (e) {
     throw new PortainerError('Unable to remove container', e as Error);
+  }
+}
+
+export async function getContainerLogs(
+  environmentId: EnvironmentId,
+  containerId: ContainerId,
+  params?: ContainerLogsParams
+): Promise<string> {
+  try {
+    const { data } = await axios.get<string>(
+      urlBuilder(environmentId, containerId, 'logs'),
+      {
+        params: _.pickBy(params),
+      }
+    );
+
+    return data;
+  } catch (e) {
+    throw new PortainerError('Unable to get container logs', e as Error);
   }
 }
 

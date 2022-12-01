@@ -14,14 +14,17 @@ import { Environment } from '@/react/portainer/environments/types';
 import { StateManager } from '@/portainer/services/types';
 import { notifyError } from '@/portainer/services/notifications';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
+import { LogsView } from '@/react/nomad/jobs/LogsView';
 
 import { reactModule } from './react';
-import { logsModule } from './logs';
 
 export const nomadModule = angular
-  .module('portainer.nomad', [reactModule, logsModule])
+  .module('portainer.nomad', [reactModule])
   .config(config)
-
+  .component(
+    'nomadLogsView',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(LogsView))), [])
+  )
   .component(
     'nomadDashboardView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(DashboardView))), [])

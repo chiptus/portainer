@@ -1,13 +1,17 @@
-import { Search } from 'lucide-react';
+import React from 'react';
+import { Search, X } from 'lucide-react';
 
 import { useLocalStorage } from '@/react/hooks/useLocalStorage';
 import { AutomationTestingProps } from '@/types';
 import { useDebounce } from '@/react/hooks/useDebounce';
 
+import { Button } from '@@/buttons';
+
 interface Props extends AutomationTestingProps {
   value: string;
   placeholder?: string;
   onChange(value: string): void;
+  children?: React.ReactNode;
 }
 
 export function SearchBar({
@@ -15,8 +19,13 @@ export function SearchBar({
   placeholder = 'Search...',
   onChange,
   'data-cy': dataCy,
+  children,
 }: Props) {
   const [searchValue, setSearchValue] = useDebounce(value, onChange);
+
+  function onClear() {
+    setSearchValue('');
+  }
 
   return (
     <div className="searchBar items-center flex min-w-[90px]">
@@ -29,6 +38,8 @@ export function SearchBar({
         placeholder={placeholder}
         data-cy={dataCy}
       />
+      {children}
+      <Button onClick={onClear} icon={X} color="none" disabled={!searchValue} />
     </div>
   );
 }
