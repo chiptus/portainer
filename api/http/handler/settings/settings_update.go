@@ -36,6 +36,8 @@ type settingsUpdatePayload struct {
 	TemplatesURL *string `example:"https://raw.githubusercontent.com/portainer/templates/master/templates.json"`
 	// Deployment options for encouraging deployment as code
 	GlobalDeploymentOptions *portaineree.GlobalDeploymentOptions
+	// Show the Kompose build option (discontinued in 2.18)
+	ShowKomposeBuildOption *bool `json:"ShowKomposeBuildOption" example:"false"`
 	// Whether edge compute features are enabled
 	EnableEdgeComputeFeatures *bool `example:"true"`
 	// The duration of a user session
@@ -180,6 +182,10 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		}
 
 		settings.GlobalDeploymentOptions = *payload.GlobalDeploymentOptions
+	}
+
+	if payload.ShowKomposeBuildOption != nil {
+		settings.ShowKomposeBuildOption = *payload.ShowKomposeBuildOption
 	}
 
 	if payload.HelmRepositoryURL != nil {

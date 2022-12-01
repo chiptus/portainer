@@ -1168,6 +1168,8 @@ type (
 		TemplatesURL string `json:"TemplatesURL" example:"https://raw.githubusercontent.com/portainer/templates/master/templates.json"`
 		// Deployment options for encouraging git ops workflows
 		GlobalDeploymentOptions GlobalDeploymentOptions `json:"GlobalDeploymentOptions"`
+		// Show the Kompose build option (discontinued in 2.18)
+		ShowKomposeBuildOption bool `json:"ShowKomposeBuildOption" example:"false"`
 		// Whether edge compute features are enabled
 		EnableEdgeComputeFeatures bool `json:"EnableEdgeComputeFeatures"`
 		// The duration of a user session

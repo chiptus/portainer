@@ -227,6 +227,16 @@
               tooltip="'Allows overriding of deployment options in the Cluster setup screen of each environment'"
             ></por-switch-field>
           </div>
+          <div class="form-group">
+            <por-switch-field
+              label="'Allow docker-compose format Kubernetes manifests'"
+              checked="formValues.ShowKomposeBuildOption"
+              name="'toggle_showKomposeBuildOption'"
+              on-change="(onToggleShowKompose)"
+              field-class="'col-sm-12'"
+              label-class="'col-sm-3 col-lg-2'"
+            ></por-switch-field>
+          </div>
           <!-- ! deployment options  -->
           <!-- actions -->
           <div class="form-group">

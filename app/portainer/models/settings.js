@@ -25,6 +25,7 @@ export function SettingsViewModel(data) {
   this.Edge = new EdgeSettingsViewModel(data.Edge);
   this.DefaultRegistry = data.DefaultRegistry;
   this.GlobalDeploymentOptions = data.GlobalDeploymentOptions;
+  this.ShowKomposeBuildOption = data.ShowKomposeBuildOption;
 }
 
 export function PublicSettingsViewModel(settings) {
@@ -37,6 +38,7 @@ export function PublicSettingsViewModel(settings) {
   this.CustomLoginBanner = settings.CustomLoginBanner;
   this.OAuthLoginURI = settings.OAuthLoginURI;
   this.GlobalDeploymentOptions = settings.GlobalDeploymentOptions;
+  this.ShowKomposeBuildOption = settings.ShowKomposeBuildOption;
   this.EnableTelemetry = settings.EnableTelemetry;
   this.OAuthHideInternalAuth = settings.OAuthHideInternalAuth;
   this.OAuthLogoutURI = settings.OAuthLogoutURI;

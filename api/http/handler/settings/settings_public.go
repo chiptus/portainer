@@ -20,6 +20,8 @@ type publicSettingsResponse struct {
 	RequiredPasswordLength int `json:"RequiredPasswordLength" example:"1"`
 	// Deployment options for encouraging deployment as code
 	GlobalDeploymentOptions portaineree.GlobalDeploymentOptions `json:"GlobalDeploymentOptions"`
+	// Show the Kompose build option (discontinued in 2.18)
+	ShowKomposeBuildOption bool `json:"ShowKomposeBuildOption" example:"false"`
 	// Whether edge compute features are enabled
 	EnableEdgeComputeFeatures bool `json:"EnableEdgeComputeFeatures" example:"true"`
 	// Supported feature flags
@@ -82,6 +84,7 @@ func generatePublicSettings(appSettings *portaineree.Settings) *publicSettingsRe
 		RequiredPasswordLength:    appSettings.InternalAuthSettings.RequiredPasswordLength,
 		EnableEdgeComputeFeatures: appSettings.EnableEdgeComputeFeatures,
 		GlobalDeploymentOptions:   appSettings.GlobalDeploymentOptions,
+		ShowKomposeBuildOption:    appSettings.ShowKomposeBuildOption,
 		EnableTelemetry:           appSettings.EnableTelemetry,
 		KubeconfigExpiry:          appSettings.KubeconfigExpiry,
 		Features:                  appSettings.FeatureFlagSettings,
