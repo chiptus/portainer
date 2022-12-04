@@ -4,14 +4,14 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	dockerclient "github.com/portainer/portainer-ee/api/docker/client"
 	"os"
 	"path"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/portainer/libhelm"
+	dockerclient "github.com/portainer/portainer-ee/api/docker/client"
+
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/apikey"
 	"github.com/portainer/portainer-ee/api/build"
@@ -52,6 +52,7 @@ import (
 	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/git"
 	"github.com/portainer/portainer/api/hostmanagement/openamt"
+	"github.com/portainer/portainer/pkg/libhelm"
 
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"

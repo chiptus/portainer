@@ -3,12 +3,12 @@ package http
 import (
 	"context"
 	"crypto/tls"
-	"github.com/portainer/portainer-ee/api/docker/client"
 	"net/http"
 	"path/filepath"
 	"time"
 
-	"github.com/portainer/libhelm"
+	"github.com/portainer/portainer-ee/api/docker/client"
+
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/adminmonitor"
 	"github.com/portainer/portainer-ee/api/apikey"
@@ -77,6 +77,7 @@ import (
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
+	"github.com/portainer/portainer/pkg/libhelm"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
