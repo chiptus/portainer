@@ -5,7 +5,7 @@ import { r2a } from '@/react-tools/react2angular';
 import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
-import {LogView} from "@/react/docker/tasks/LogView";
+import { LogView } from '@/react/docker/tasks/LogView';
 
 export const tasksModule = angular
   .module('portainer.docker.tasks', [])

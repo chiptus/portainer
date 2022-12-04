@@ -17,7 +17,7 @@ export function useCopy(copyText: CopyTextType, fadeDelay = 1000) {
   }, [copiedSuccessfully, fadeDelay]);
 
   function handleCopy() {
-    const text = (typeof copyText === 'function') ? copyText() : copyText;
+    const text = typeof copyText === 'function' ? copyText() : copyText;
 
     // https://developer.mozilla.org/en-US/docs/Web/API/Clipboard
     // https://caniuse.com/?search=clipboard

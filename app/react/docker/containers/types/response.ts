@@ -95,7 +95,7 @@ export interface DockerContainerResponse {
   };
   Config: {
     Tty: boolean;
-  }
+  };
   NetworkSettings?: SummaryNetworkSettings;
   Mounts: MountPoint[];
   Portainer: PortainerMetadata;

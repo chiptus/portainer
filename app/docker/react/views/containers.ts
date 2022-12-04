@@ -6,7 +6,7 @@ import { ListView } from '@/react/docker/containers/ListView';
 import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
-import {LogView} from "@/react/docker/containers/LogView";
+import { LogView } from '@/react/docker/containers/LogView';
 
 export const containersModule = angular
   .module('portainer.docker.containers', [])

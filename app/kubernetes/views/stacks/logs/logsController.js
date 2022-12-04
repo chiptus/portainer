@@ -36,7 +36,7 @@ class KubernetesStackLogsController {
       const result = await $allSettled(promises);
       res.Pods = result.fulfilled;
       return res;
-    }
+    };
   }
 
   async getStackLogsAsync(params) {
@@ -53,11 +53,11 @@ class KubernetesStackLogsController {
             sectionName: pod.Pod.Name,
             sectionNameColor: colors[colorIndex % colors.length],
             logs: pod.Logs.logs,
-          }
+          };
         });
       });
 
-      return logs
+      return logs;
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to retrieve application logs');
     }

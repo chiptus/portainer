@@ -1,4 +1,4 @@
-import {LogInterface, LogSpanInterface} from "@@/LogViewer/types";
+import { LogInterface, LogSpanInterface } from '@@/LogViewer/types';
 
 const BEGIN = 'B';
 const MID = 'M';
@@ -10,20 +10,24 @@ function getMaskKeyword(keyword: string) {
   const begin = len >= 2 ? BEGIN : '';
   const mid = MID.repeat(len >= 2 ? len - 2 : len - 1);
 
-  return `${begin}${mid}${END}`
+  return `${begin}${mid}${END}`;
 }
 
 const KeywordStyle1 = {
   color: 'black',
   backgroundColor: '#f0ab01',
-}
+};
 
 const KeywordStyle2 = {
   color: 'black',
   backgroundColor: '#f9e0a2',
-}
+};
 
-export function highlightKeyword(log: LogInterface, keyword: string, focusedKeywordIndexInLine: number) {
+export function highlightKeyword(
+  log: LogInterface,
+  keyword: string,
+  focusedKeywordIndexInLine: number
+) {
   if (!keyword.length) {
     return log.spans;
   }
@@ -32,7 +36,9 @@ export function highlightKeyword(log: LogInterface, keyword: string, focusedKeyw
 
   const maskKeyword = getMaskKeyword(keyword);
 
-  let maskLine = log.line.toLowerCase().replaceAll(keyword.toLowerCase(), maskKeyword);
+  let maskLine = log.line
+    .toLowerCase()
+    .replaceAll(keyword.toLowerCase(), maskKeyword);
 
   const newSpans: LogSpanInterface[] = [];
   let newSpan: LogSpanInterface = {
@@ -51,8 +57,11 @@ export function highlightKeyword(log: LogInterface, keyword: string, focusedKeyw
 
     newSpan = {
       text: char,
-      style: keywordCount === focusedKeywordIndexInLine ? KeywordStyle1 : KeywordStyle2,
-    }
+      style:
+        keywordCount === focusedKeywordIndexInLine
+          ? KeywordStyle1
+          : KeywordStyle2,
+    };
 
     keywordCount += 1;
   }
@@ -69,12 +78,12 @@ export function highlightKeyword(log: LogInterface, keyword: string, focusedKeyw
       pushKeywordChar(char);
     }
     pushNewSpan();
-    newSpan = {text: '', style:{}};
+    newSpan = { text: '', style: {} };
   }
 
   function pushNormalChar(char: string, span: LogSpanInterface) {
     const newText = newSpan.text + char;
-    newSpan = {...span, text: newText}
+    newSpan = { ...span, text: newText };
   }
 
   for (let i = 0; i < log.spans.length; i += 1) {
@@ -83,7 +92,7 @@ export function highlightKeyword(log: LogInterface, keyword: string, focusedKeyw
 
     for (let j = 0; j < text.length; j += 1) {
       const char = text.charAt(j);
-      const maskChar = maskLine.charAt(0)
+      const maskChar = maskLine.charAt(0);
       maskLine = maskLine.substring(1);
 
       if (maskChar === BEGIN) {
@@ -99,7 +108,7 @@ export function highlightKeyword(log: LogInterface, keyword: string, focusedKeyw
 
     if (newSpan.style !== KeywordStyle1 && newSpan.style !== KeywordStyle2) {
       pushNewSpan();
-      newSpan = {text: '', style:{}};
+      newSpan = { text: '', style: {} };
     }
   }
 

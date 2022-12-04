@@ -66,7 +66,7 @@ class KubernetesPodService {
       if (containerName) {
         params.container = containerName;
       }
-      const mergedParams = {...params, ...otherParams};
+      const mergedParams = { ...params, ...otherParams };
 
       const data = await this.KubernetesPods(namespace).logs(mergedParams).$promise;
       return data;

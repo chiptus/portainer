@@ -1,5 +1,4 @@
-import {LogInterface} from "@@/LogViewer/types";
-
+import { LogInterface } from '@@/LogViewer/types';
 
 export function postProcessLogs(logs: LogInterface[]) {
   for (let i = 0; i < logs.length; i += 1) {

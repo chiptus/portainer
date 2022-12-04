@@ -11,7 +11,11 @@ import { tasksModule } from './tasks';
 import { servicesModule } from './services';
 
 export const viewsModule = angular
-  .module('portainer.docker.react.views', [containersModule, tasksModule, servicesModule])
+  .module('portainer.docker.react.views', [
+    containersModule,
+    tasksModule,
+    servicesModule,
+  ])
 
   .component(
     'networkDetailsView',
