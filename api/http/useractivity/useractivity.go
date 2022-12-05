@@ -13,7 +13,7 @@ import (
 	"github.com/portainer/portainer-ee/api/useractivity"
 
 	"github.com/rs/zerolog/log"
-	"github.com/urfave/negroni"
+	negroni "github.com/urfave/negroni/v3"
 )
 
 // LogUserActivity a user activity logging middleware
