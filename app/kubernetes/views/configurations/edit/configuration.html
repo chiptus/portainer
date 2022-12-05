@@ -108,6 +108,7 @@
       <rd-widget>
         <rd-widget-body>
           <form
+            hide-deployment-option="form"
             ng-if="!ctrl.isSystemConfig() && (ctrl.state.isAuthorizedToEditConfigMaps || ctrl.state.isAuthorizedToEditSecrets)"
             class="form-horizontal"
             name="kubernetesConfigurationCreationForm"

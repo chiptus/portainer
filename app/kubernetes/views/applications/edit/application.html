@@ -104,7 +104,7 @@
                               </button>
                             </div>
                           </div>
-                          <div class="form-group" ng-if="ctrl.state.expandedNote">
+                          <div class="form-group" ng-hide="!ctrl.state.expandedNote">
                             <div class="col-sm-12">
                               <textarea
                                 class="form-control"
@@ -113,6 +113,7 @@
                                 ng-model="ctrl.formValues.Note"
                                 rows="5"
                                 placeholder="Enter a note about this application..."
+                                disable-deployment-option="form"
                               ></textarea>
                             </div>
                           </div>
@@ -124,6 +125,7 @@
                                 type="button"
                                 ng-click="ctrl.updateApplication()"
                                 ng-disabled="ctrl.formValues.Note === ctrl.application.Note"
+                                disable-deployment-option="form"
                                 data-cy="k8sAppDetail-saveNoteButton"
                                 >{{ ctrl.application.Note ? 'Update' : 'Save' }} note</button
                               >

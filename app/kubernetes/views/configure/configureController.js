@@ -47,6 +47,8 @@ class KubernetesConfigureController {
     this.configureAsync = this.configureAsync.bind(this);
     this.areControllersChanged = this.areControllersChanged.bind(this);
     this.areFormValuesChanged = this.areFormValuesChanged.bind(this);
+    this.isTimeWindowChanged = this.isTimeWindowChanged.bind(this);
+    this.areStorageClassesChanged = this.areStorageClassesChanged.bind(this);
     this.onBeforeOnload = this.onBeforeOnload.bind(this);
     this.limitedFeature = FeatureId.K8S_SETUP_DEFAULT;
     this.limitedFeatureAutoWindow = FeatureId.HIDE_AUTO_UPDATE_WINDOW;
@@ -372,7 +374,7 @@ class KubernetesConfigureController {
       ]);
 
       this.ingressControllers = await getIngressControllerClassMap({ environmentId: this.state.endpointId });
-      this.originalIngressControllers = structuredClone(this.ingressControllers);
+      this.originalIngressControllers = structuredClone(this.ingressControllers) || [];
 
       this.state.autoUpdateSettings = this.endpoint.ChangeWindow;
       if (this.endpoint.DeploymentOptions) {
@@ -391,8 +393,6 @@ class KubernetesConfigureController {
         }
       });
 
-      this.oldStorageClasses = angular.copy(this.StorageClasses);
-
       this.formValues.UseLoadBalancer = this.endpoint.Kubernetes.Configuration.UseLoadBalancer;
       this.formValues.UseServerMetrics = this.endpoint.Kubernetes.Configuration.UseServerMetrics;
       this.formValues.EnableResourceOverCommit = this.endpoint.Kubernetes.Configuration.EnableResourceOverCommit;
@@ -407,7 +407,12 @@ class KubernetesConfigureController {
       this.formValues.RestrictStandardUserIngressW = this.endpoint.Kubernetes.Configuration.RestrictStandardUserIngressW;
       this.formValues.AllowNoneIngressClass = this.endpoint.Kubernetes.Configuration.AllowNoneIngressClass;
 
-      this.oldFormValues = Object.assign({}, this.formValues);
+      this.oldStorageClasses = angular.copy(this.StorageClasses);
+      this.oldAutoUpdateSettings = angular.copy(this.state.autoUpdateSettings);
+      // match the default values set in time-window-picker.controller.js defaultTimeWindow()
+      this.oldAutoUpdateSettings.StartTime = this.oldAutoUpdateSettings.StartTime || '00:00';
+      this.oldAutoUpdateSettings.EndTime = this.oldAutoUpdateSettings.EndTime || '00:00';
+      this.oldFormValues = angular.copy(this.formValues);
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to retrieve environment configuration');
     } finally {
@@ -435,15 +440,31 @@ class KubernetesConfigureController {
     return !_.isEqual(this.formValues, this.oldFormValues);
   }
 
+  areStorageClassesChanged() {
+    // angularjs is pesky and modifies this.StorageClasses (adds $$hashKey to each item)
+    // angular.toJson removes this to make the comparison work
+    const storageClassesWithoutHash = angular.toJson(this.StorageClasses);
+    const oldStorageClassesWithoutHash = angular.toJson(this.oldStorageClasses);
+    return !_.isEqual(storageClassesWithoutHash, oldStorageClassesWithoutHash);
+  }
+
+  isTimeWindowChanged() {
+    return !_.isEqual(this.state.autoUpdateSettings, this.oldAutoUpdateSettings);
+  }
+
   onBeforeOnload(event) {
-    if (!this.state.isSaving && (this.areControllersChanged() || this.areFormValuesChanged())) {
+    if (!this.state.isSaving && (this.areControllersChanged() || this.areFormValuesChanged() || this.isTimeWindowChanged() || this.areStorageClassesChanged())) {
       event.preventDefault();
       event.returnValue = '';
     }
   }
 
   uiCanExit() {
-    if (!this.state.isSaving && (this.areControllersChanged() || this.areFormValuesChanged()) && !this.isIngressControllersLoading) {
+    if (
+      !this.state.isSaving &&
+      (this.areControllersChanged() || this.areFormValuesChanged() || this.isTimeWindowChanged() || this.areStorageClassesChanged()) &&
+      !this.isIngressControllersLoading
+    ) {
       return this.ModalService.confirmAsync({
         title: 'Are you sure?',
         message: 'You currently have unsaved changes in the cluster setup view. Are you sure you want to leave?',
