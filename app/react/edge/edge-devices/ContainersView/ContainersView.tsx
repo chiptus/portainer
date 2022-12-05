@@ -21,6 +21,7 @@ import { Datatable } from '@@/datatables/Datatable';
 import { TextTip } from '@@/Tip/TextTip';
 import { Widget } from '@@/Widget';
 import { useSearchBarState } from '@@/datatables/SearchBar';
+import { TableSettingsProvider } from '@@/datatables/useTableSettings';
 
 import { image } from './image-column';
 import { ContainersDatatableActions } from './ContainersDatatableActions';
@@ -111,26 +112,28 @@ export function ContainersView() {
       )}
 
       <RowProvider context={{ environment }}>
-        <Datatable
-          initialPageSize={settings.pageSize}
-          onPageSizeChange={settings.setPageSize}
-          initialSortBy={settings.sortBy}
-          onSortByChange={settings.setSortBy}
-          searchValue={search}
-          onSearchChange={setSearch}
-          titleIcon={Box}
-          title="Containers"
-          renderTableActions={(selectedRows) => (
-            <ContainersDatatableActions
-              selectedItems={selectedRows}
-              endpointId={environment.Id}
-            />
-          )}
-          dataset={containersQuery.data}
-          columns={columns}
-          disableSelect
-          emptyContentLabel="No containers found"
-        />
+        <TableSettingsProvider settings={settingsStore}>
+          <Datatable
+            initialPageSize={settings.pageSize}
+            onPageSizeChange={settings.setPageSize}
+            initialSortBy={settings.sortBy}
+            onSortByChange={settings.setSortBy}
+            searchValue={search}
+            onSearchChange={setSearch}
+            titleIcon={Box}
+            title="Containers"
+            renderTableActions={(selectedRows) => (
+              <ContainersDatatableActions
+                selectedItems={selectedRows}
+                endpointId={environment.Id}
+              />
+            )}
+            dataset={containersQuery.data}
+            columns={columns}
+            disableSelect
+            emptyContentLabel="No containers found"
+          />
+        </TableSettingsProvider>
       </RowProvider>
     </>
   );
