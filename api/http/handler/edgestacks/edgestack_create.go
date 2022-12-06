@@ -266,8 +266,9 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request, dryru
 	}
 
 	repoConfig := gittypes.RepoConfig{
-		URL:           payload.RepositoryURL,
-		ReferenceName: payload.RepositoryReferenceName,
+		URL:            payload.RepositoryURL,
+		ReferenceName:  payload.RepositoryReferenceName,
+		ConfigFilePath: payload.FilePathInRepository,
 	}
 
 	if payload.RepositoryAuthentication {
