@@ -1,38 +1,37 @@
 import clsx from 'clsx';
 
-import { Select } from '@@/form-components/ReactSelect';
 import { TableHeaderSortIcons } from '@@/datatables/TableHeaderSortIcons';
+import { SingleSelect } from '@@/form-components/PortainerSelect';
 
 import { Filter } from './types';
 import styles from './SortbySelector.module.css';
 
 interface Props {
-  filterOptions: Filter[];
-  onChange: (filterOptions: Filter) => void;
-  onDescending: () => void;
+  filterOptions: Filter<string>[];
+  onChange: (filterOptions?: string) => void;
+  value?: string;
+  onDescendingChange: (desc: boolean) => void;
   placeHolder: string;
   sortByDescending: boolean;
-  sortByButton: boolean;
-  value?: Filter;
 }
 
-export function SortbySelector({
+export function SortSelector({
   filterOptions,
   onChange,
-  onDescending,
+  onDescendingChange,
   placeHolder,
   sortByDescending,
-  sortByButton,
+
   value,
 }: Props) {
-  const sorted = sortByButton && !!value;
+  const sorted = !!value;
   return (
     <div className={styles.sortByContainer}>
       <div className={styles.sortByElement}>
-        <Select
+        <SingleSelect
           placeholder={placeHolder}
           options={filterOptions}
-          onChange={(option) => onChange(option as Filter)}
+          onChange={(option) => onChange(option || undefined)}
           isClearable
           value={value}
         />
@@ -44,7 +43,7 @@ export function SortbySelector({
           disabled={!sorted}
           onClick={(e) => {
             e.preventDefault();
-            onDescending();
+            onDescendingChange(!sortByDescending);
           }}
         >
           <TableHeaderSortIcons sorted={sorted} descending={sortByDescending} />

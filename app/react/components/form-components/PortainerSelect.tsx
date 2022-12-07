@@ -1,11 +1,12 @@
 import { OptionsOrGroups } from 'react-select';
 import _ from 'lodash';
+import { ComponentProps } from 'react';
 
 import { AutomationTestingProps } from '@/types';
 
 import { Select as ReactSelect } from '@@/form-components/ReactSelect';
 
-interface Option<TValue> {
+export interface Option<TValue> {
   value: TValue;
   label: string;
 }
@@ -28,6 +29,7 @@ interface MultiProps<TValue> extends SharedProps {
   onChange(value: readonly TValue[]): void;
   options: Options<TValue>;
   isMulti: true;
+  components?: ComponentProps<typeof ReactSelect>['components'];
 }
 
 interface SingleProps<TValue> extends SharedProps {

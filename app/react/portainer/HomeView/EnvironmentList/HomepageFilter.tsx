@@ -2,18 +2,18 @@ import { components, OptionProps } from 'react-select';
 
 import { useLocalStorage } from '@/react/hooks/useLocalStorage';
 
-import { Select } from '@@/form-components/ReactSelect';
+import { MultiSelect } from '@@/form-components/PortainerSelect';
 
 import { Filter } from './types';
 
 interface Props<TValue = number> {
-  filterOptions?: Filter<TValue>[];
-  onChange: (filterOptions: Filter<TValue>[]) => void;
-  placeHolder: string;
-  value: Filter<TValue>[];
+  filterOptions?: Array<Filter<TValue>>;
+  onChange: (filterOptions: TValue[]) => void;
+  placeholder: string;
+  value: TValue[];
 }
 
-function Option<TValue = number>(props: OptionProps<Filter<TValue>, true>) {
+function Option<TValue = number>(props: OptionProps<TValue>) {
   const { isSelected, label } = props;
   return (
     <div>
@@ -31,16 +31,14 @@ function Option<TValue = number>(props: OptionProps<Filter<TValue>, true>) {
 export function HomepageFilter<TValue = number>({
   filterOptions = [],
   onChange,
-  placeHolder,
+  placeholder,
   value,
 }: Props<TValue>) {
   return (
-    <Select
-      closeMenuOnSelect={false}
-      placeholder={placeHolder}
+    <MultiSelect
+      placeholder={placeholder}
       options={filterOptions}
       value={value}
-      isMulti
       components={{ Option }}
       onChange={(option) => onChange([...option])}
     />
