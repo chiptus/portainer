@@ -11,7 +11,7 @@ import {
 } from '@/react/portainer/environments/types';
 import {
   getPlatformType,
-  isEdgeDeviceAsync,
+  isEdgeAsync,
 } from '@/react/portainer/environments/utils';
 import { useEnvironment } from '@/react/portainer/environments/queries/useEnvironment';
 import { useLocalStorage } from '@/react/hooks/useLocalStorage';
@@ -41,7 +41,7 @@ export function EnvironmentSidebar() {
   if (!isOpen && !environment) {
     return null;
   }
-  const isBrowsingSnapshot = isEdgeDeviceAsync(environment);
+  const isBrowsingSnapshot = isEdgeAsync(environment);
 
   return (
     <>

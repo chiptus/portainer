@@ -2,12 +2,12 @@ import { parseViewModel as parseContainer } from '../containers/utils';
 import { parseViewModel as parseImage } from '../images/utils';
 import { parseViewModel as parseVolume } from '../volumes/utils';
 
-import { DockerSnapshot } from './types';
+import { DockerSnapshotRaw } from './types';
 import { DockerSnapshotResponse } from './types/response';
 
 export function parseViewModel(
   response: DockerSnapshotResponse
-): DockerSnapshot {
+): DockerSnapshotRaw {
   return {
     Containers: response.Containers.map(parseContainer),
     Images: response.Images.map(parseImage),

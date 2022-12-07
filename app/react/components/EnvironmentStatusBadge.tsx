@@ -1,22 +1,21 @@
-import clsx from 'clsx';
+import { CheckCircle, XCircle } from 'lucide-react';
 
 import { EnvironmentStatus } from '@/react/portainer/environments/types';
+
+import { EnvironmentStatusBadgeItem } from './EnvironmentStatusBadgeItem';
 
 interface Props {
   status: EnvironmentStatus;
 }
 
 export function EnvironmentStatusBadge({ status }: Props) {
-  return (
-    <span className={clsx('label', `label-${environmentStatusBadge(status)}`)}>
-      {status === EnvironmentStatus.Up ? 'up' : 'down'}
-    </span>
+  return status === EnvironmentStatus.Up ? (
+    <EnvironmentStatusBadgeItem color="success" icon={CheckCircle}>
+      Up
+    </EnvironmentStatusBadgeItem>
+  ) : (
+    <EnvironmentStatusBadgeItem color="danger" icon={XCircle}>
+      Down
+    </EnvironmentStatusBadgeItem>
   );
-}
-
-function environmentStatusBadge(status: EnvironmentStatus) {
-  if (status === EnvironmentStatus.Down) {
-    return 'danger';
-  }
-  return 'success';
 }

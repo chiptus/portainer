@@ -52,8 +52,8 @@ export function isEdgeEnvironment(envType: EnvironmentType) {
   ].includes(envType);
 }
 
-export function isEdgeDeviceAsync(env?: Environment | null) {
-  return !!env && !!env.IsEdgeDevice && env.Edge.AsyncMode;
+export function isEdgeAsync(env?: Environment | null) {
+  return !!env && env.Edge.AsyncMode;
 }
 
 export function isUnassociatedEdgeEnvironment(env: Environment) {

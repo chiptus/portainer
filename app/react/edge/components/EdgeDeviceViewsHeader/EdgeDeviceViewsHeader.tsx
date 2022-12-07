@@ -5,7 +5,7 @@ import { Menu, MenuButton, MenuPopover } from '@reach/menu-button';
 import { get } from 'lodash';
 
 import { Environment } from '@/react/portainer/environments/types';
-import { DockerSnapshot } from '@/react/docker/snapshots/types';
+import { DockerSnapshotRaw } from '@/react/docker/snapshots/types';
 import { useSettings } from '@/react/portainer/settings/queries';
 
 import { EnvironmentStatusBadge } from '@@/EnvironmentStatusBadge';
@@ -18,7 +18,7 @@ import { IntervalColumn } from './IntervalColumn';
 
 type Props = {
   environment: Environment;
-  snapshot?: DockerSnapshot;
+  snapshot?: DockerSnapshotRaw;
 } & Omit<PageHeaderProps, 'reload'>;
 
 export function EdgeDeviceViewsHeader({
@@ -40,7 +40,7 @@ export function EdgeDeviceViewsHeader({
 
 interface SnapshotPanelProps {
   environment: Environment;
-  snapshot: DockerSnapshot;
+  snapshot: DockerSnapshotRaw;
 }
 
 function SnapshotPanel({ environment, snapshot }: SnapshotPanelProps) {
