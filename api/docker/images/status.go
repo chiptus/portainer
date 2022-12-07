@@ -11,7 +11,7 @@ import (
 	"github.com/patrickmn/go-cache"
 	portaineree "github.com/portainer/portainer-ee/api"
 	consts "github.com/portainer/portainer-ee/api/docker/consts"
-	"golang.org/x/exp/slices"
+	"github.com/portainer/portainer-ee/api/internal/slices"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"

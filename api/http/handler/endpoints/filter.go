@@ -11,7 +11,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
-	"golang.org/x/exp/slices"
+	"github.com/portainer/portainer-ee/api/internal/slices"
 )
 
 type EnvironmentsQuery struct {

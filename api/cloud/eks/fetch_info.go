@@ -14,8 +14,8 @@ import (
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/pkg/errors"
+	"github.com/portainer/portainer-ee/api/internal/slices"
 	log "github.com/rs/zerolog/log"
-	"golang.org/x/exp/slices"
 	"golang.org/x/sync/errgroup"
 )
 

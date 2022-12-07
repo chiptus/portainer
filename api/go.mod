@@ -65,7 +65,6 @@ require (
 	github.com/viney-shih/go-lock v1.1.1
 	github.com/vmware-labs/yaml-jsonpath v0.3.2
 	go.etcd.io/bbolt v1.3.6
-	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f

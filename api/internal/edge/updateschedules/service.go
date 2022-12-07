@@ -1,6 +1,7 @@
 package updateschedules
 
 import (
+	"sort"
 	"sync"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	"github.com/rs/zerolog/log"
-	"golang.org/x/exp/slices"
 )
 
 // Service manages schedules for edge device updates
@@ -29,8 +29,8 @@ func NewService(dataStore dataservices.DataStore) (*Service, error) {
 		return nil, errors.WithMessage(err, "Unable to list schedules")
 	}
 
-	slices.SortFunc(schedules, func(a edgetypes.UpdateSchedule, b edgetypes.UpdateSchedule) bool {
-		return a.Created > b.Created
+	sort.SliceStable(schedules, func(i, j int) bool {
+		return schedules[i].Created > schedules[j].Created
 	})
 
 	for _, schedule := range schedules {

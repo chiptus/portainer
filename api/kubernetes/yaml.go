@@ -10,8 +10,9 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/vmware-labs/yaml-jsonpath/pkg/yamlpath"
-	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"
+
+	"github.com/portainer/portainer-ee/api/internal/slices"
 )
 
 const (

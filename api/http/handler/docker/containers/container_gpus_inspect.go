@@ -10,7 +10,7 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
-	"golang.org/x/exp/slices"
+	"github.com/portainer/portainer-ee/api/internal/slices"
 )
 
 type containerGpusResponse struct {

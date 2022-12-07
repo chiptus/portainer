@@ -8,11 +8,9 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"golang.org/x/exp/slices"
-
-	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
-
 	"github.com/portainer/portainer-ee/api/http/middlewares"
+	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	"github.com/portainer/portainer-ee/api/internal/slices"
 )
 
 type updatePayload struct {

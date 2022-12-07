@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"golang.org/x/exp/slices"
+	"github.com/portainer/portainer-ee/api/internal/slices"
 )
 
 const pathKey = "PATH"

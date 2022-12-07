@@ -2,13 +2,12 @@ package edgeupdateschedules
 
 import (
 	"net/http"
+	"sort"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
-
-	"golang.org/x/exp/slices"
 )
 
 // @id EdgeUpdatePreviousVersions
@@ -42,8 +41,8 @@ type EnvironmentVersionDetails struct {
 
 func previousVersions(schedules []edgetypes.UpdateSchedule, activeScheduleGetter func(environmentID portaineree.EndpointID) *edgetypes.EndpointUpdateScheduleRelation) map[portaineree.EndpointID]string {
 
-	slices.SortFunc(schedules, func(a edgetypes.UpdateSchedule, b edgetypes.UpdateSchedule) bool {
-		return a.Created > b.Created
+	sort.SliceStable(schedules, func(i, j int) bool {
+		return schedules[i].Created > schedules[j].Created
 	})
 
 	environmentMap := map[portaineree.EndpointID]*EnvironmentVersionDetails{}
