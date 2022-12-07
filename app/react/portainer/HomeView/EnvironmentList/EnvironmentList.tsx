@@ -136,10 +136,9 @@ export function EnvironmentList({ onClickBrowse, onRefresh }: Props) {
     search: debouncedTextFilter,
     status: statusFilter,
     tagIds: tagFilter?.length ? tagFilter : undefined,
+    tagsPartialMatch: true,
     groupIds: groupFilter,
     provisioned: true,
-    edgeDevice: false,
-    tagsPartialMatch: true,
     agentVersions: agentVersions.map((a) => a.value),
     updateInformation: isBE,
   };
