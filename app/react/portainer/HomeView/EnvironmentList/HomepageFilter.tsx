@@ -1,6 +1,6 @@
 import { components, OptionProps } from 'react-select';
 
-import { MultiSelect } from '@@/form-components/PortainerSelect';
+import { Select as ReactSelect } from '@@/form-components/ReactSelect';
 
 import { Filter } from './types';
 
@@ -11,7 +11,7 @@ interface Props<TValue = number> {
   value: TValue[];
 }
 
-function Option<TValue = number>(props: OptionProps<TValue>) {
+function Option<TValue = number>(props: OptionProps<Filter<TValue>, true>) {
   const { isSelected, label } = props;
   return (
     <div>
@@ -32,13 +32,19 @@ export function HomepageFilter<TValue = number>({
   placeholder,
   value,
 }: Props<TValue>) {
+  const selectedValue = filterOptions.filter((option) =>
+    value.includes(option.value)
+  );
+
   return (
-    <MultiSelect
+    <ReactSelect
+      closeMenuOnSelect={false}
       placeholder={placeholder}
       options={filterOptions}
-      value={value}
+      value={selectedValue}
+      isMulti
       components={{ Option }}
-      onChange={(option) => onChange([...option])}
+      onChange={(option) => onChange(option.map((o) => o.value))}
     />
   );
 }
