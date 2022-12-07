@@ -141,7 +141,7 @@ export function EnvironmentList({ onClickBrowse, onRefresh }: Props) {
     edgeDevice: false,
     tagsPartialMatch: true,
     agentVersions: agentVersions.map((a) => a.value),
-    updateInformation: true,
+    updateInformation: isBE,
   };
 
   const tagsQuery = useTags();
