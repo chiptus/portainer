@@ -24,7 +24,14 @@
     <div class="form-group">
       <label class="col-sm-4 col-md-2 control-label text-left"> Group Base DN </label>
       <div class="col-sm-8 col-md-10">
-        {{ $ctrl.config.GroupBaseDN }}
+        <tag-button
+          ng-if="$ctrl.config.GroupBaseDN && $ctrl.config.GroupBaseDN === $ctrl.domainSuffix"
+          value="$ctrl.index"
+          label="$ctrl.config.GroupBaseDN"
+          title="'Remove group base DN'"
+          on-remove="($ctrl.onRemoveGroupBaseDN)"
+        ></tag-button>
+        <span class="space-left vertical-center" ng-if="$ctrl.config.GroupBaseDN !== $ctrl.domainSuffix">{{ $ctrl.config.GroupBaseDN }}</span>
       </div>
     </div>
 

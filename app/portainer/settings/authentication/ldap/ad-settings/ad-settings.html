@@ -81,6 +81,7 @@
         ng-model="$ctrl.settings.ReaderDN"
         placeholder="reader@domain.tld"
         ng-change="$ctrl.onAccountChange($ctrl.settings.ReaderDN)"
+        ng-keyup="$ctrl.onAccountChangeIfEmpty($ctrl.settings.ReaderDN)"
         limited-feature-dir="{{::$ctrl.limitedFeatureId}}"
         limited-feature-tabindex="-1"
       />

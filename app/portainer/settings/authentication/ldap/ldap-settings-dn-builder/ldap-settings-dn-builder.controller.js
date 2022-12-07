@@ -47,7 +47,9 @@ export default class LdapSettingsBaseDnBuilderController {
     let match = left.match(regex);
     while (match && left !== domainSuffix) {
       const [, type, value] = match;
-      ouValues.push({ type, value });
+      if (type === 'ou' || type === 'cn') {
+        ouValues.push({ type, value });
+      }
       left = left.replace(regex, '');
       match = left.match(/(\w+)=(\w+),?/);
     }

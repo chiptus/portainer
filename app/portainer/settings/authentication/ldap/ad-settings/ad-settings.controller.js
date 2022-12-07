@@ -16,17 +16,23 @@ export default class AdSettingsController {
     this.searchAdminGroups = this.searchAdminGroups.bind(this);
     this.parseDomainName = this.parseDomainName.bind(this);
     this.onAccountChange = this.onAccountChange.bind(this);
+    this.onAccountChangeIfEmpty = this.onAccountChangeIfEmpty.bind(this);
   }
 
   parseDomainName(account) {
     this.domainName = '';
 
     if (!account || !account.includes('@')) {
+      this.domainSuffix = '';
       return;
     }
 
     const [, domainName] = account.split('@');
     if (!domainName) {
+      // When domainName does not exist anymore, we should clean up the
+      // domainSuffix to overwrite the previous domainSuffix.
+      // The issue happens when deleting the character with Backspace one by one
+      this.domainSuffix = '';
       return;
     }
 
@@ -36,6 +42,14 @@ export default class AdSettingsController {
 
   onAccountChange(account) {
     this.parseDomainName(account);
+  }
+
+  // ng-keyup event
+  // This is helpful when user select all content and click Backspace to empty the field
+  onAccountChangeIfEmpty(account) {
+    if (account === '') {
+      this.parseDomainName(account);
+    }
   }
 
   searchUsers() {

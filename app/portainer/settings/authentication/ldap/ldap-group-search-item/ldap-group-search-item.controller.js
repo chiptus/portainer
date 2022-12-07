@@ -1,15 +1,31 @@
 export default class LdapSettingsAdGroupSearchItemController {
   /* @ngInject */
-  constructor(Notifications) {
-    Object.assign(this, { Notifications });
+  constructor($scope, Notifications) {
+    Object.assign(this, { $scope, Notifications });
 
     this.groups = [];
 
     this.onChangeBaseDN = this.onChangeBaseDN.bind(this);
+
+    this.onRemoveGroupBaseDN = this.onRemoveGroupBaseDN.bind(this);
+    this.defaultGroupBaseDNRemoved = false;
+    this.prevGroupBaseDN = '';
   }
 
   onChangeBaseDN(baseDN) {
+    // Prevent deleted group base DN from being rewritten again
+    if (this.defaultGroupBaseDNRemoved && this.prevGroupBaseDN === baseDN) {
+      return;
+    }
     this.config.GroupBaseDN = baseDN;
+    this.prevGroupBaseDN = baseDN;
+  }
+
+  onRemoveGroupBaseDN() {
+    return this.$scope.$evalAsync(() => {
+      this.config.GroupBaseDN = '';
+      this.defaultGroupBaseDNRemoved = true;
+    });
   }
 
   addGroup() {
@@ -47,5 +63,7 @@ export default class LdapSettingsAdGroupSearchItemController {
 
   $onInit() {
     this.parseGroupFilter();
+    this.defaultGroupBaseDNRemoved = false;
+    this.prevGroupBaseDN = this.domainSuffix;
   }
 }
