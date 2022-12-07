@@ -78,7 +78,7 @@ export function EnvironmentListFilters({
       <div className={styles.filterLeft}>
         <HomepageFilter
           filterOptions={statusOptions}
-          onChange={statusOnChange}
+          onChange={(status) => handleChange({ status })}
           placeholder="Status"
           value={value.status}
         />
@@ -86,7 +86,9 @@ export function EnvironmentListFilters({
       <div className={styles.filterLeft}>
         <HomepageFilter
           filterOptions={tagOptions}
-          onChange={tagOnChange}
+          onChange={(tagIds) =>
+            handleChange({ tagIds: tagIds.length > 0 ? tagIds : undefined })
+          }
           placeholder="Tags"
           value={value.tagIds || []}
         />
@@ -94,7 +96,7 @@ export function EnvironmentListFilters({
       <div className={styles.filterLeft}>
         <HomepageFilter
           filterOptions={groupOptions}
-          onChange={groupOnChange}
+          onChange={(groupIds) => handleChange({ groupIds })}
           placeholder="Groups"
           value={value.groupIds}
         />
@@ -131,18 +133,6 @@ export function EnvironmentListFilters({
     onChange({ ...value, ...newValue });
   }
 
-  function statusOnChange(status: number[]) {
-    handleChange({ status });
-  }
-
-  function groupOnChange(groupIds: number[]) {
-    handleChange({ groupIds });
-  }
-
-  function tagOnChange(tagIds: number[]) {
-    handleChange({ tagIds: tagIds.length > 0 ? tagIds : undefined });
-  }
-
   function clearFilter() {
     handleChange({
       platformTypes: [],
@@ -165,7 +155,7 @@ export function EnvironmentListFilters({
   }
 }
 
-function getConnectionTypeOptions(platformTypes: PlatformType[]) {
+function getConnectionTypeOptions(platformTypes: ReadonlyArray<PlatformType>) {
   const platformTypeConnectionType = {
     [PlatformType.Docker]: [
       ConnectionType.API,
@@ -199,7 +189,9 @@ function getConnectionTypeOptions(platformTypes: PlatformType[]) {
   );
 }
 
-function getPlatformTypeOptions(connectionTypes: ConnectionType[]) {
+function getPlatformTypeOptions(
+  connectionTypes: ReadonlyArray<ConnectionType>
+) {
   const platformDefaultOptions = [
     { value: PlatformType.Docker, label: 'Docker' },
     { value: PlatformType.Azure, label: 'Azure' },

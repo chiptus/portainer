@@ -1,7 +1,5 @@
 import { components, OptionProps } from 'react-select';
 
-import { useLocalStorage } from '@/react/hooks/useLocalStorage';
-
 import { MultiSelect } from '@@/form-components/PortainerSelect';
 
 import { Filter } from './types';
@@ -43,16 +41,4 @@ export function HomepageFilter<TValue = number>({
       onChange={(option) => onChange([...option])}
     />
   );
-}
-
-export function useHomePageFilter<T>(
-  key: string,
-  defaultValue: T
-): [T, (value: T) => void] {
-  const filterKey = keyBuilder(key);
-  return useLocalStorage(filterKey, defaultValue, sessionStorage);
-}
-
-function keyBuilder(key: string) {
-  return `datatable_home_filter_type_${key}`;
 }
