@@ -4,15 +4,29 @@ import { KubernetesPortainerConfigMapConfigName, KubernetesPortainerConfigMapNam
 import { UserAccessViewModel, TeamAccessViewModel } from 'Portainer/models/access';
 import KubernetesConfigMapHelper from 'Kubernetes/helpers/configMapHelper';
 import { RoleTypes } from 'Portainer/rbac/models/role';
+import { getIsRBACEnabled } from '@/react/kubernetes/cluster/service';
 
 class KubernetesResourcePoolAccessController {
   /* @ngInject */
-  constructor($async, $state, $scope, Notifications, EndpointService, KubernetesResourcePoolService, KubernetesConfigMapService, GroupService, AccessService, RoleService) {
+  constructor(
+    $async,
+    $state,
+    $scope,
+    Notifications,
+    EndpointService,
+    KubernetesResourcePoolService,
+    KubernetesConfigMapService,
+    GroupService,
+    AccessService,
+    RoleService,
+    EndpointProvider
+  ) {
     this.$async = $async;
     this.$state = $state;
     this.$scope = $scope;
     this.Notifications = Notifications;
     this.EndpointService = EndpointService;
+    this.EndpointProvider = EndpointProvider;
     this.KubernetesResourcePoolService = KubernetesResourcePoolService;
     this.KubernetesConfigMapService = KubernetesConfigMapService;
 
@@ -48,12 +62,16 @@ class KubernetesResourcePoolAccessController {
       multiselectOutput: [],
     };
 
+    // default to true if error is thrown
+    this.isRBACEnabled = true;
+
     try {
       const name = this.$transition$.params().id;
       let [pool, configMap] = await Promise.all([
         this.KubernetesResourcePoolService.get(name),
         this.KubernetesConfigMapService.getAccess(KubernetesPortainerConfigMapNamespace, KubernetesPortainerConfigMapConfigName),
       ]);
+      this.isRBACEnabled = await getIsRBACEnabled(this.EndpointProvider.endpointID());
       const group = await this.GroupService.group(endpoint.GroupId);
       const roles = await this.RoleService.roles();
       const endpointAccesses = await this.AccessService.accesses(endpoint, group, roles);

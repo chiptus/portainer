@@ -121,7 +121,7 @@
                 <span ng-if="item.Type !== 4 && item.Status !== 3">{{ item.URL | stripprotocol }}</span>
                 <span ng-if="item.Type === 4">-</span>
                 <span ng-if="item.Status === 3">
-                  <pr-icon icon="'settings'" class-name="'spin space-right'"></pr-icon>
+                  <pr-icon icon="'settings'" class-name="'animate-spin-slow space-right'"></pr-icon>
                   {{ item.StatusMessage.Summary }}
                 </span>
                 <span ng-if="item.Status === 4" style="color: var(--red-5)">

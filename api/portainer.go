@@ -1705,6 +1705,7 @@ type (
 			namespaceRoles map[string]Role,
 			clusterConfig KubernetesConfiguration,
 		) error
+		IsRBACEnabled() (bool, error)
 		GetServiceAccount(tokendata *TokenData) (*v1.ServiceAccount, error)
 		GetServiceAccountBearerToken(userID int) (string, error)
 		CreateUserShellPod(ctx context.Context, serviceAccountName, shellPodImage string) (*KubernetesShellPod, error)
