@@ -32,13 +32,14 @@ import {
 import { Button } from '@@/buttons';
 import { PaginationControls } from '@@/PaginationControls';
 
-import { ConnectionType, Filters } from './types';
+import { ConnectionType } from './types';
 import { EnvironmentItem } from './EnvironmentItem';
 import { KubeconfigButton } from './KubeconfigButton';
 import { NoEnvironmentsInfoPanel } from './NoEnvironmentsInfoPanel';
 import { UpdateBadge } from './UpdateBadge';
 import styles from './EnvironmentList.module.css';
 import { EnvironmentListFilters } from './EnvironmentListFilters';
+import { useFiltersStore } from './filters-store';
 
 interface Props {
   onClickBrowse(environment: Environment): void;
@@ -59,16 +60,7 @@ export function EnvironmentList({ onClickBrowse, onRefresh }: Props) {
   const [pageLimit, setPageLimit] = usePaginationLimitState(storageKey);
   const [page, setPage] = useState(1);
   const debouncedTextFilter = useDebouncedValue(searchBarValue);
-  const [filterValue, setFilterValue] = useState<Filters>({
-    agentVersions: [],
-    connectionTypes: [],
-    groupIds: [],
-    platformTypes: [],
-    sortDesc: false,
-    sort: undefined,
-    status: [],
-    tagIds: undefined,
-  });
+  const { value: filterValue } = useFiltersStore();
 
   const groupsQuery = useGroups();
 
@@ -161,10 +153,7 @@ export function EnvironmentList({ onClickBrowse, onRefresh }: Props) {
                 </div>
               </div>
             </TableActions>
-            <EnvironmentListFilters
-              value={filterValue}
-              onChange={setFilterValue}
-            />
+            <EnvironmentListFilters />
             <div className="blocklist" data-cy="home-endpointList">
               {renderItems(
                 isLoading,

@@ -12,7 +12,8 @@ import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { HomepageFilter } from './HomepageFilter';
 import { SortSelector } from './SortbySelector';
 import styles from './EnvironmentListFilters.module.css';
-import { ConnectionType, Filters } from './types';
+import { ConnectionType } from './types';
+import { useFiltersStore } from './filters-store';
 
 const statusOptions = [
   { value: EnvironmentStatus.Up, label: 'Up' },
@@ -24,13 +25,7 @@ const sortByOptions = ['Name', 'Group', 'Status'].map((v) => ({
   value: v,
 }));
 
-export function EnvironmentListFilters({
-  value,
-  onChange,
-}: {
-  value: Filters;
-  onChange: (value: Filters) => void;
-}) {
+export function EnvironmentListFilters() {
   const agentVersionsQuery = useAgentVersionsList();
   const agentVersionOptions =
     agentVersionsQuery.data?.map((v) => ({
@@ -53,6 +48,8 @@ export function EnvironmentListFilters({
       label,
     })
   );
+
+  const { value, clear, handleChange } = useFiltersStore();
 
   const connectionTypeOptions = getConnectionTypeOptions(value.platformTypes);
   const platformTypeOptions = getPlatformTypeOptions(value.connectionTypes);
@@ -109,18 +106,14 @@ export function EnvironmentListFilters({
           value={value.agentVersions}
         />
       </div>
-      <button
-        type="button"
-        className={styles.clearButton}
-        onClick={clearFilter}
-      >
+      <button type="button" className={styles.clearButton} onClick={clear}>
         Clear all
       </button>
       <div className={styles.filterRight}>
         <SortSelector
           filterOptions={sortByOptions}
-          onChange={sortOnchange}
-          onDescendingChange={sortOnDescending}
+          onChange={(sort) => handleChange({ sort })}
+          onDescendingChange={(sortDesc) => handleChange({ sortDesc })}
           placeHolder="Sort By"
           sortByDescending={value.sortDesc}
           value={value.sort}
@@ -128,34 +121,9 @@ export function EnvironmentListFilters({
       </div>
     </div>
   );
-
-  function handleChange(newValue: Partial<Filters>) {
-    onChange({ ...value, ...newValue });
-  }
-
-  function clearFilter() {
-    handleChange({
-      platformTypes: [],
-      connectionTypes: [],
-      status: [],
-      tagIds: undefined,
-      groupIds: undefined,
-      agentVersions: undefined,
-      sort: undefined,
-      sortDesc: false,
-    });
-  }
-
-  function sortOnchange(sort?: string) {
-    handleChange({ sort });
-  }
-
-  function sortOnDescending(sortDesc: boolean) {
-    handleChange({ sortDesc });
-  }
 }
 
-function getConnectionTypeOptions(platformTypes: ReadonlyArray<PlatformType>) {
+function getConnectionTypeOptions(platformTypes: Array<PlatformType>) {
   const platformTypeConnectionType = {
     [PlatformType.Docker]: [
       ConnectionType.API,
@@ -189,9 +157,7 @@ function getConnectionTypeOptions(platformTypes: ReadonlyArray<PlatformType>) {
   );
 }
 
-function getPlatformTypeOptions(
-  connectionTypes: ReadonlyArray<ConnectionType>
-) {
+function getPlatformTypeOptions(connectionTypes: Array<ConnectionType>) {
   const platformDefaultOptions = [
     { value: PlatformType.Docker, label: 'Docker' },
     { value: PlatformType.Azure, label: 'Azure' },
