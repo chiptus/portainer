@@ -2,8 +2,8 @@ import { FeatureId } from '@/react/portainer/feature-flags/enums';
 
 class GitFormAutoUpdateFieldsetController {
   /* @ngInject */
-  constructor($scope, clipboard) {
-    Object.assign(this, { $scope, clipboard });
+  constructor($scope, clipboard, StateManager) {
+    Object.assign(this, { $scope, clipboard, StateManager });
 
     this.onChangeAutoUpdate = this.onChangeField('RepositoryAutomaticUpdates');
     this.onChangeAutoUpdateForce = this.onChangeField('RepositoryAutomaticUpdatesForce');
@@ -30,6 +30,10 @@ class GitFormAutoUpdateFieldsetController {
         });
       });
     };
+  }
+
+  $onInit() {
+    this.environmentType = this.StateManager.getState().endpoint.mode.provider;
   }
 }
 
