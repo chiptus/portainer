@@ -6,11 +6,15 @@ export enum FeatureFlag {}
 
 export function useFeatureFlag(
   flag: FeatureFlag,
-  { onSuccess }: { onSuccess?: (isEnabled: boolean) => void } = {}
+  {
+    onSuccess,
+    enabled = true,
+  }: { onSuccess?: (isEnabled: boolean) => void; enabled?: boolean } = {}
 ) {
   return usePublicSettings<boolean>({
     select: (settings) => settings.Features[flag],
     onSuccess,
+    enabled,
   });
 }
 

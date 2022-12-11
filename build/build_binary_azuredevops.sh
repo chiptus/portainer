@@ -13,6 +13,8 @@ mkdir -p ${GOPATH}/src/github.com/portainer/portainer-ee
 
 cp -R api ${GOPATH}/src/github.com/portainer/portainer-ee/api
 
+cp -r "./mustache-templates" "./dist"
+
 cd 'api/cmd/portainer'
 
 go get -t -d -v ./...
@@ -47,4 +49,3 @@ else
     mv "$BUILD_SOURCESDIRECTORY/api/cmd/portainer/$binary" "$BUILD_SOURCESDIRECTORY/dist/portainer"
 fi
 
-cp "$BUILD_SOURCESDIRECTORY/mustache-templates/edge-update.yml.mustache" "$BUILD_SOURCESDIRECTORY/dist"

@@ -11,7 +11,7 @@ test('when user is using more nodes than allowed he should see message', async (
     rest.get('/api/licenses/info', (req, res, ctx) =>
       res(ctx.json({ nodes: allowed, type: LicenseType.Subscription }))
     ),
-    rest.get('/api/status/nodes', (req, res, ctx) =>
+    rest.get('/api/system/nodes', (req, res, ctx) =>
       res(ctx.json({ nodes: used }))
     )
   );
@@ -32,7 +32,7 @@ test("when user is using less nodes than allowed he shouldn't see message", asyn
     rest.get('/api/licenses/info', (req, res, ctx) =>
       res(ctx.json({ nodes: allowed, type: LicenseType.Subscription }))
     ),
-    rest.get('/api/status/nodes', (req, res, ctx) =>
+    rest.get('/api/system/nodes', (req, res, ctx) =>
       res(ctx.json({ nodes: used }))
     )
   );

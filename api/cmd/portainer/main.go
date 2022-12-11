@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	dockerclient "github.com/portainer/portainer-ee/api/docker/client"
-
+	libstack "github.com/portainer/docker-compose-wrapper"
+	"github.com/portainer/docker-compose-wrapper/compose"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/apikey"
 	"github.com/portainer/portainer-ee/api/build"
@@ -25,6 +25,7 @@ import (
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/docker"
+	dockerclient "github.com/portainer/portainer-ee/api/docker/client"
 	"github.com/portainer/portainer-ee/api/exec"
 	"github.com/portainer/portainer-ee/api/filesystem"
 	"github.com/portainer/portainer-ee/api/http"
@@ -182,8 +183,8 @@ func initDataStore(flags *portaineree.CLIFlags, secretKey []byte, fileService po
 	return store
 }
 
-func initComposeStackManager(assetsPath string, configPath string, reverseTunnelService portaineree.ReverseTunnelService, proxyManager *proxy.Manager) portaineree.ComposeStackManager {
-	composeWrapper, err := exec.NewComposeStackManager(assetsPath, configPath, proxyManager)
+func initComposeStackManager(composeDeployer libstack.Deployer, reverseTunnelService portaineree.ReverseTunnelService, proxyManager *proxy.Manager) portaineree.ComposeStackManager {
+	composeWrapper, err := exec.NewComposeStackManager(composeDeployer, proxyManager)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed creating compose manager")
 	}
@@ -702,7 +703,12 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 
 	dockerConfigPath := fileService.GetDockerConfigPath()
 
-	composeStackManager := initComposeStackManager(*flags.Assets, dockerConfigPath, reverseTunnelService, proxyManager)
+	composeDeployer, err := compose.NewComposeDeployer(*flags.Assets, dockerConfigPath)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed initializing compose deployer")
+	}
+
+	composeStackManager := initComposeStackManager(composeDeployer, reverseTunnelService, proxyManager)
 
 	swarmStackManager, err := initSwarmStackManager(*flags.Assets, dockerConfigPath, digitalSignatureService, fileService, reverseTunnelService, dataStore)
 	if err != nil {
@@ -723,7 +729,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 
 	err = updateLicenseKeyFromFlags(licenseService, flags.LicenseKey)
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed updating license key from flags")
+		log.Warn().Err(err).Msg("failed updating license key from flags")
 	}
 
 	err = edge.LoadEdgeJobs(dataStore, reverseTunnelService)

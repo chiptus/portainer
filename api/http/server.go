@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/portainer/portainer-ee/api/docker/client"
-
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/adminmonitor"
 	"github.com/portainer/portainer-ee/api/apikey"
@@ -18,6 +16,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/cloudcredential"
 	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/docker"
+	"github.com/portainer/portainer-ee/api/docker/client"
 	"github.com/portainer/portainer-ee/api/http/handler"
 	"github.com/portainer/portainer-ee/api/http/handler/auth"
 	"github.com/portainer/portainer-ee/api/http/handler/backup"
@@ -50,8 +49,8 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/settings"
 	sslhandler "github.com/portainer/portainer-ee/api/http/handler/ssl"
 	"github.com/portainer/portainer-ee/api/http/handler/stacks"
-	"github.com/portainer/portainer-ee/api/http/handler/status"
 	"github.com/portainer/portainer-ee/api/http/handler/storybook"
+	"github.com/portainer/portainer-ee/api/http/handler/system"
 	"github.com/portainer/portainer-ee/api/http/handler/tags"
 	"github.com/portainer/portainer-ee/api/http/handler/teammemberships"
 	"github.com/portainer/portainer-ee/api/http/handler/teams"
@@ -291,7 +290,7 @@ func (server *Server) Start() error {
 	stackHandler.ComposeStackManager = server.ComposeStackManager
 	stackHandler.StackDeployer = server.StackDeployer
 
-	var statusHandler = status.NewHandler(requestBouncer, server.Status, server.DemoService, server.DataStore)
+	var systemHandler = system.NewHandler(requestBouncer, server.Status, server.DemoService, server.DataStore)
 
 	var storybookHandler = storybook.NewHandler(server.AssetsPath)
 
@@ -367,7 +366,7 @@ func (server *Server) Start() error {
 		ResourceControlHandler:    resourceControlHandler,
 		SettingsHandler:           settingsHandler,
 		SSLHandler:                sslHandler,
-		StatusHandler:             statusHandler,
+		SystemHandler:             systemHandler,
 		StackHandler:              stackHandler,
 		StorybookHandler:          storybookHandler,
 		TagHandler:                tagHandler,

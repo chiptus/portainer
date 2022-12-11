@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/portainer/docker-compose-wrapper/compose"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 
@@ -48,7 +49,12 @@ func Test_UpAndDown(t *testing.T) {
 
 	stack, endpoint := setup(t)
 
-	w, err := NewComposeStackManager("", "", nil)
+	deployer, err := compose.NewComposeDeployer("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	w, err := NewComposeStackManager(deployer, nil)
 	if err != nil {
 		t.Fatalf("Failed creating manager: %s", err)
 	}

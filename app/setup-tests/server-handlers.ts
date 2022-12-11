@@ -8,7 +8,7 @@ import {
 import { EnvironmentGroup } from '@/react/portainer/environments/environment-groups/types';
 import { Tag } from '@/portainer/tags/types';
 import { PublicSettingsResponse } from '@/react/portainer/settings/types';
-import { StatusResponse } from '@/portainer/services/api/status.service';
+import { StatusResponse } from '@/react/portainer/system/useSystemStatus';
 import { createMockTeams } from '@/react-tools/test-mocks';
 import { UserId } from '@/portainer/users/types';
 

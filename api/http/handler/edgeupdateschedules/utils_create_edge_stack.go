@@ -3,7 +3,6 @@ package edgeupdateschedules
 import (
 	"fmt"
 	"os"
-	"path"
 	"strconv"
 
 	"github.com/cbroglie/mustache"
@@ -45,7 +44,7 @@ func (handler *Handler) createUpdateEdgeStack(scheduleID edgetypes.UpdateSchedul
 	stack.EdgeUpdateID = int(scheduleID)
 
 	_, err = handler.edgeStacksService.PersistEdgeStack(stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (composePath string, manifestPath string, projectPath string, err error) {
-		templateName := path.Join(handler.assetsPath, mustacheUpdateEdgeStackTemplateFile)
+		templateName := filesystem.JoinPaths(handler.assetsPath, "mustache-templates", mustacheUpdateEdgeStackTemplateFile)
 		skipPullAgentImage := ""
 		env := os.Getenv(skipPullAgentImageEnvVar)
 		if env != "" {

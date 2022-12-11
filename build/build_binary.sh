@@ -12,6 +12,10 @@ YARN_VERSION="0"
 WEBPACK_VERSION="0"
 GO_VERSION="0"
 
+# copy templates
+cp -r "./mustache-templates" "./dist"
+
+
 cd api
 # the go get adds 8 seconds
 go get -t -d -v ./...
@@ -46,5 +50,3 @@ GOOS=$1 GOARCH=$2 CGO_ENABLED=0 go build \
 	--ldflags "$ldflags" \
 	-o "../dist/portainer" \
 	./cmd/portainer/
-
-cp ../mustache-templates/edge-update.yml.mustache ../dist

@@ -173,7 +173,7 @@ export function AzureCreateClusterForm({
               label="Resource group"
               tooltip="A collection of Azure resources"
               inputId="kaas-resourceGroup"
-              classes="!mb-0"
+              className="!mb-0"
             >
               <div className="flex pb-0">
                 <label
@@ -213,7 +213,7 @@ export function AzureCreateClusterForm({
               <FormControl
                 label=""
                 inputId="kaas-resourceGroup"
-                classes="!mt-2"
+                className="!mt-2"
                 errors={
                   !resourceGroup
                     ? 'No resource groups available, please add a resource group.'
@@ -236,7 +236,7 @@ export function AzureCreateClusterForm({
                 label=""
                 inputId="kaas-resourceGroupName"
                 errors={errors.azure?.resourceGroupName}
-                classes="!mt-2"
+                className="!mt-2"
               >
                 <Field
                   name="azure.resourceGroupName"

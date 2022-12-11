@@ -1,4 +1,4 @@
-package status
+package system
 
 import (
 	"net/http"
@@ -7,6 +7,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/build"
 	portainerstatus "github.com/portainer/portainer/api/http/handler/status"
+	"github.com/rs/zerolog/log"
 )
 
 type versionResponse struct {
@@ -29,16 +30,16 @@ type BuildInfo struct {
 	GoVersion      string
 }
 
-// @id Version
+// @id systemVersion
 // @summary Check for portainer updates
 // @description Check if portainer has an update available
 // @description **Access policy**: authenticated
 // @security ApiKeyAuth
 // @security jwt
-// @tags status
+// @tags system
 // @produce json
 // @success 200 {object} versionResponse "Success"
-// @router /status/version [get]
+// @router /system/version [get]
 func (handler *Handler) version(w http.ResponseWriter, r *http.Request) {
 
 	dbVer := ""
@@ -68,4 +69,22 @@ func (handler *Handler) version(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.JSON(w, &result)
+}
+
+// @id Version
+// @summary Check for portainer updates
+// @deprecated
+// @description Deprecated: use the `/system/version` endpoint instead.
+// @description Check if portainer has an update available
+// @description **Access policy**: authenticated
+// @security ApiKeyAuth
+// @security jwt
+// @tags status
+// @produce json
+// @success 200 {object} versionResponse "Success"
+// @router /status/version [get]
+func (handler *Handler) versionDeprecated(w http.ResponseWriter, r *http.Request) {
+	log.Warn().Msg("The /status/version endpoint is deprecated, please use the /system/version endpoint instead")
+
+	handler.version(w, r)
 }
