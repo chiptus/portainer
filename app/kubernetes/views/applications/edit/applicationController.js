@@ -15,6 +15,7 @@ import { KubernetesPodNodeAffinityNodeSelectorRequirementOperators } from 'Kuber
 import { KubernetesPodContainerTypes } from 'Kubernetes/pod/models/index';
 import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
 import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
+import { rolloutRestartApplication } from './applicationService';
 
 function computeTolerations(nodes, application) {
   const pod = application.Pods[0];
@@ -253,6 +254,36 @@ class KubernetesApplicationController {
         return this.$async(this.redeployApplicationAsync);
       }
     });
+  }
+
+  /**
+   * RESTART
+   */
+  async restartApplication() {
+    console.log(this.application);
+    let namespace = this.application.ResourcePool;
+    let name = this.application.Name;
+    const appTypeMap = {
+      [KubernetesApplicationTypes.DEPLOYMENT]: 'deployment',
+      [KubernetesApplicationTypes.DAEMONSET]: 'daemonset',
+      [KubernetesApplicationTypes.STATEFULSET]: 'statefulset',
+    };
+    const kind = appTypeMap[this.application.ApplicationType];
+
+    this.ModalService.confirmUpdate(
+      'A rolling restart of the application will be performed, with pods replaced one by one, which should avoid downtime. However, there is still a chance of service interruption. Do you wish to continue?',
+      async (confirmed) => {
+        if (confirmed) {
+          try {
+            await rolloutRestartApplication(this.endpoint.Id, namespace, kind, name);
+            this.Notifications.success('Success', 'Application successfully restarted');
+            this.$state.reload(this.$state.current);
+          } catch (err) {
+            this.Notifications.error('Failure', err, 'Unable to restart the application');
+          }
+        }
+      }
+    );
   }
 
   /**

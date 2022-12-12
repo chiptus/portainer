@@ -241,6 +241,17 @@
               <pr-icon icon="'code'" class-name="'mr-1'"></pr-icon>Edit External application
             </button>
             <button
+              authorization="K8sPodRestart"
+              ng-if="ctrl.application.ApplicationType !== ctrl.KubernetesApplicationTypes.POD"
+              type="button"
+              class="btn btn-sm btn-light"
+              style="margin-left: 0"
+              ng-click="ctrl.restartApplication()"
+              data-cy="k8sAppDetail-restartButton"
+            >
+              <pr-icon icon="'refresh-cw'" class="'mr-1'" feather="true"></pr-icon>Rolling Restart
+            </button>
+            <button
               authorization="K8sPodDelete"
               ng-if="ctrl.application.ApplicationType !== ctrl.KubernetesApplicationTypes.POD"
               type="button"

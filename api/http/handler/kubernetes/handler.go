@@ -94,6 +94,8 @@ func NewHandler(bouncer *security.RequestBouncer, authorizationService *authoriz
 	namespaceRouter.Handle("/services", httperror.LoggerHandler(h.createKubernetesService)).Methods(http.MethodPost)
 	namespaceRouter.Handle("/services", httperror.LoggerHandler(h.updateKubernetesService)).Methods(http.MethodPut)
 	namespaceRouter.Handle("/services", httperror.LoggerHandler(h.getKubernetesServices)).Methods(http.MethodGet)
+	namespaceRouter.Handle("/applications", httperror.LoggerHandler(h.getKubernetesApplications)).Methods(http.MethodGet)
+	namespaceRouter.Handle("/applications/{kind}/{name}", httperror.LoggerHandler(h.getKubernetesApplication)).Methods(http.MethodGet)
 
 	return h
 }
