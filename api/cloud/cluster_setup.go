@@ -31,8 +31,9 @@ const (
 )
 
 const (
-	stateWaitTime      = 15 * time.Second
-	maxRequestFailures = 480
+	stateWaitTime            = 30 * time.Second
+	maxRequestFailures       = 240
+	maxRequestFailuresImport = 30
 )
 
 type (
@@ -186,7 +187,11 @@ func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 		_, err := service.dataStore.Endpoint().Endpoint(task.EndpointID)
 		if err != nil {
 			if service.dataStore.IsErrObjectNotFound(err) {
-				log.Info().Int("endpoint_id", int(task.EndpointID)).Msg("removing KaaS provisioning task for non-existent endpoint")
+				if task.Provider == portaineree.CloudProviderKubeConfig {
+					log.Info().Int("endpoint_id", int(task.EndpointID)).Msg("removing cluster import task for non-existent endpoint")
+				} else {
+					log.Info().Int("endpoint_id", int(task.EndpointID)).Msg("removing KaaS provisioning task for non-existent endpoint")
+				}
 
 				// Remove the task from the database because it's associated
 				// endpoint has been deleted
@@ -309,8 +314,8 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 	return cluster, err
 }
 
-// Wraps any fatal network error with FatalError type from clouderrors
-// which shortcuts exiting the privisioning loop
+// checkFatal wraps known fatal errors with clouderrors.FatalError which
+// shortcuts exiting the privisioning loop.
 func checkFatal(err error) error {
 	if _, ok := err.(net.Error); ok {
 		if strings.Contains(err.Error(), "TLS handshake error") ||
@@ -319,7 +324,7 @@ func checkFatal(err error) error {
 		}
 	}
 
-	return nil
+	return err
 }
 
 // provisionKaasClusterTask processes a provisioning task
@@ -330,6 +335,10 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 	var serviceIP string
 	var err error
 
+	maxAttempts := maxRequestFailures
+	if task.Provider == portaineree.CloudProviderKubeConfig {
+		maxAttempts = maxRequestFailuresImport
+	}
 	for {
 		var fatal *clouderrors.FatalError
 		if errors.As(err, &fatal) {
@@ -338,7 +347,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 
 		// Handle fatal provisioning errors (such as Quota reached etc)
 		// Also handle exceeding max retries in a single state.
-		if task.Err != nil || task.Retries >= maxRequestFailures {
+		if task.Err != nil || task.Retries >= maxAttempts {
 			if task.Err == nil {
 				task.Err = err
 			}
@@ -422,7 +431,6 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			if serviceIP == "" {
 				err = fmt.Errorf("could not get service ip or hostname: %v", err)
 			}
-
 			if err != nil {
 				err = checkFatal(err)
 				task.Retries++
@@ -474,7 +482,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			log.Info().
 				Int("state", task.State).
 				Int("attempt", task.Retries).
-				Int("max_attempts", maxRequestFailures).
+				Int("max_attempts", maxAttempts).
 				Msg("retrying")
 		}
 
@@ -580,7 +588,11 @@ func (service *CloudClusterSetupService) processResult(result *cloudPrevisioning
 	}
 
 	// Remove the task from the database
-	log.Info().Int("endpoint_id", int(result.endpointID)).Msg("removing KaaS provisioning task")
+	if result.provider == portaineree.CloudProviderKubeConfig {
+		log.Info().Int("endpoint_id", int(result.endpointID)).Msg("removing cluster import task")
+	} else {
+		log.Info().Int("endpoint_id", int(result.endpointID)).Msg("removing KaaS provisioning task")
+	}
 
 	err := service.dataStore.CloudProvisioning().Delete(result.taskID)
 	if err != nil {
