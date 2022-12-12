@@ -16,6 +16,7 @@ export interface Props {
   errors?: ReactNode;
   required?: boolean;
   className?: string;
+  setTooltipHtmlMessage?: boolean;
 }
 
 export function FormControl({
@@ -27,6 +28,7 @@ export function FormControl({
   errors,
   className,
   required = false,
+  setTooltipHtmlMessage,
 }: PropsWithChildren<Props>) {
   return (
     <div
@@ -44,7 +46,9 @@ export function FormControl({
 
         {required && <span className="text-danger">*</span>}
 
-        {tooltip && <Tooltip message={tooltip} />}
+        {tooltip && (
+          <Tooltip message={tooltip} setHtmlMessage={setTooltipHtmlMessage} />
+        )}
       </label>
 
       <div className={sizeClassChildren(size)}>
