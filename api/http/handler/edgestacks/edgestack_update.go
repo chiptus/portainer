@@ -21,6 +21,8 @@ type updateEdgeStackPayload struct {
 	EdgeGroups       []portaineree.EdgeGroupID
 	DeploymentType   portaineree.EdgeStackDeploymentType
 	Registries       []portaineree.RegistryID
+	// Uses the manifest's namespaces instead of the default one
+	UseManifestNamespaces bool
 }
 
 func (payload *updateEdgeStackPayload) Validate(r *http.Request) error {
@@ -188,6 +190,8 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 		if stack.ManifestPath == "" {
 			stack.ManifestPath = filesystem.ManifestFileDefaultName
 		}
+
+		stack.UseManifestNamespaces = payload.UseManifestNamespaces
 
 		hasDockerEndpoint, err := hasDockerEndpoint(handler.DataStore.Endpoint(), relatedEndpointIds)
 		if err != nil {

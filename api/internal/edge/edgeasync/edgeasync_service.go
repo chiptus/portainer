@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
+	"github.com/portainer/portainer-ee/api/kubernetes"
 	portainer "github.com/portainer/portainer/api"
 
 	"github.com/docker/docker/api/types"
@@ -21,6 +22,8 @@ type edgeStackData struct {
 	StackFileContent    string
 	Name                string
 	RegistryCredentials []portaineree.EdgeRegistryCredential
+	// Namespace to use for Kubernetes manifests, leave empty to use the namespaces defined in the manifest
+	Namespace string
 }
 
 type edgeLogData struct {
@@ -112,12 +115,18 @@ func (service *Service) storeUpdateStackCommand(endpoint *portaineree.Endpoint, 
 
 	registryCredentials := registryutils.GetRegistryCredentialsForEdgeStack(service.dataStore, edgeStack, endpoint)
 
+	namespace := ""
+	if !edgeStack.UseManifestNamespaces {
+		namespace = kubernetes.DefaultNamespace
+	}
+
 	stackStatus := edgeStackData{
 		StackFileContent:    string(stackFileContent),
 		Name:                edgeStack.Name,
 		ID:                  edgeStackID,
 		Version:             edgeStack.Version,
 		RegistryCredentials: registryCredentials,
+		Namespace:           namespace,
 	}
 
 	asyncCommand := &portaineree.EdgeAsyncCommand{

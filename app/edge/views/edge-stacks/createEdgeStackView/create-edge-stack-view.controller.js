@@ -30,6 +30,7 @@ export default class CreateEdgeStackViewController {
       DeploymentType: EditorType.Compose,
       RegistryOptions: [],
       Registries: [],
+      UseManifestNamespaces: false,
     };
 
     this.state = {
@@ -294,7 +295,7 @@ export default class CreateEdgeStackViewController {
   }
 
   createStackFromFileContent(name, dryrun) {
-    const { StackFileContent, Groups, DeploymentType, Registries } = this.formValues;
+    const { StackFileContent, Groups, DeploymentType, Registries, UseManifestNamespaces } = this.formValues;
     return this.EdgeStackService.createStackFromFileContent(
       {
         name,
@@ -302,19 +303,21 @@ export default class CreateEdgeStackViewController {
         EdgeGroups: Groups,
         DeploymentType,
         Registries: dryrun ? [] : Registries,
+        UseManifestNamespaces,
       },
       dryrun
     );
   }
 
   createStackFromFileUpload(name, dryrun) {
-    const { StackFile, Groups, DeploymentType, Registries } = this.formValues;
+    const { StackFile, Groups, DeploymentType, Registries, UseManifestNamespaces } = this.formValues;
     return this.EdgeStackService.createStackFromFileUpload(
       {
         Name: name,
         EdgeGroups: Groups,
         DeploymentType,
         Registries: dryrun ? [] : Registries,
+        UseManifestNamespaces,
       },
       StackFile,
       dryrun
@@ -322,7 +325,7 @@ export default class CreateEdgeStackViewController {
   }
 
   async createStackFromGitRepository(name) {
-    const { Groups, DeploymentType, Registries } = this.formValues;
+    const { Groups, DeploymentType, Registries, UseManifestNamespaces } = this.formValues;
 
     if (this.formValues.SaveCredential && this.formValues.NewCredentialName) {
       const userDetails = this.Authentication.getUserDetails();
@@ -350,6 +353,7 @@ export default class CreateEdgeStackViewController {
         EdgeGroups: Groups,
         DeploymentType,
         Registries: Registries,
+        UseManifestNamespaces,
       },
       repositoryOptions
     );

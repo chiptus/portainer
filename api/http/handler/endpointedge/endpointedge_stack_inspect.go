@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
+	"github.com/portainer/portainer-ee/api/kubernetes"
 	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
@@ -18,6 +19,8 @@ type configResponse struct {
 	StackFileContent    string
 	Name                string
 	RegistryCredentials []portaineree.EdgeRegistryCredential
+	// Namespace to use for Kubernetes manifests, leave empty to use the namespaces defined in the manifest
+	Namespace string
 }
 
 // @summary Inspect an Edge Stack for an Environment(Endpoint)
@@ -62,12 +65,18 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 		}
 	}
 
+	namespace := ""
+	if !edgeStack.UseManifestNamespaces {
+		namespace = kubernetes.DefaultNamespace
+	}
+
 	if endpointutils.IsKubernetesEndpoint(endpoint) {
 		fileName = edgeStack.ManifestPath
 
 		if fileName == "" {
 			return httperror.BadRequest("Kubernetes is not supported by this stack", errors.New("Kubernetes is not supported by this stack"))
 		}
+
 	}
 
 	stackFileContent, err := handler.FileService.GetFileContent(edgeStack.ProjectPath, fileName)
@@ -81,5 +90,6 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 		StackFileContent:    string(stackFileContent),
 		Name:                edgeStack.Name,
 		RegistryCredentials: registryCredentials,
+		Namespace:           namespace,
 	})
 }

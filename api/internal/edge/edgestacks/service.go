@@ -36,6 +36,7 @@ func (service *Service) BuildEdgeStack(name string,
 	edgeGroups []portaineree.EdgeGroupID,
 	registries []portaineree.RegistryID,
 	scheduledTime string,
+	useManifestNamespaces bool,
 ) (*portaineree.EdgeStack, error) {
 	edgeStacksService := service.dataStore.EdgeStack()
 
@@ -51,15 +52,16 @@ func (service *Service) BuildEdgeStack(name string,
 
 	stackID := edgeStacksService.GetNextIdentifier()
 	return &portaineree.EdgeStack{
-		ID:             portaineree.EdgeStackID(stackID),
-		Name:           name,
-		DeploymentType: deploymentType,
-		CreationDate:   time.Now().Unix(),
-		EdgeGroups:     edgeGroups,
-		Status:         make(map[portaineree.EndpointID]portaineree.EdgeStackStatus),
-		Version:        1,
-		Registries:     registries,
-		ScheduledTime:  scheduledTime,
+		ID:                    portaineree.EdgeStackID(stackID),
+		Name:                  name,
+		DeploymentType:        deploymentType,
+		CreationDate:          time.Now().Unix(),
+		EdgeGroups:            edgeGroups,
+		Status:                make(map[portaineree.EndpointID]portaineree.EdgeStackStatus),
+		Version:               1,
+		Registries:            registries,
+		ScheduledTime:         scheduledTime,
+		UseManifestNamespaces: useManifestNamespaces,
 	}, nil
 }
 

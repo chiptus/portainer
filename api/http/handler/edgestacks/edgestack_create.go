@@ -96,6 +96,8 @@ type swarmStackFromFileContentPayload struct {
 	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1,2"`
 	// List of Registries to use for this stack
 	Registries []portaineree.RegistryID
+	// Uses the manifest's namespaces instead of the default one
+	UseManifestNamespaces bool
 }
 
 func (payload *swarmStackFromFileContentPayload) Validate(r *http.Request) error {
@@ -119,7 +121,7 @@ func (handler *Handler) createSwarmStackFromFileContent(r *http.Request, dryrun 
 		return nil, err
 	}
 
-	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "")
+	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create Edge stack object")
 	}
@@ -221,6 +223,8 @@ type swarmStackFromGitRepositoryPayload struct {
 	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1,2"`
 	// List of Registries to use for this stack
 	Registries []portaineree.RegistryID
+	// Uses the manifest's namespaces instead of the default one
+	UseManifestNamespaces bool
 }
 
 func (payload *swarmStackFromGitRepositoryPayload) Validate(r *http.Request) error {
@@ -256,7 +260,7 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request, dryru
 		return nil, err
 	}
 
-	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "")
+	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create edge stack object")
 	}
@@ -294,6 +298,8 @@ type swarmStackFromFileUploadPayload struct {
 	// nomad deploytype is enabled only for nomad environments(endpoints)
 	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1,2"`
 	Registries     []portaineree.RegistryID
+	// Uses the manifest's namespaces instead of the default one
+	UseManifestNamespaces bool
 }
 
 func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error {
@@ -329,6 +335,9 @@ func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error 
 	}
 	payload.Registries = registries
 
+	useManifestNamespaces, _ := request.RetrieveBooleanMultiPartFormValue(r, "UseManifestNamespaces", true)
+	payload.UseManifestNamespaces = useManifestNamespaces
+
 	return nil
 }
 
@@ -339,7 +348,7 @@ func (handler *Handler) createSwarmStackFromFileUpload(r *http.Request, dryrun b
 		return nil, err
 	}
 
-	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "")
+	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create edge stack object")
 	}

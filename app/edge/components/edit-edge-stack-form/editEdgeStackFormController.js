@@ -39,10 +39,17 @@ export class EditEdgeStackFormController {
     this.onChangeDeploymentType = this.onChangeDeploymentType.bind(this);
     this.removeLineBreaks = this.removeLineBreaks.bind(this);
     this.onChangeFileContent = this.onChangeFileContent.bind(this);
+    this.onChangeUseManifestNamespaces = this.onChangeUseManifestNamespaces.bind(this);
   }
 
   checkRegistries(registries) {
     return registries.every((value) => value === registries[0]);
+  }
+
+  onChangeUseManifestNamespaces(value) {
+    this.$scope.$evalAsync(() => {
+      this.model.UseManifestNamespaces = value;
+    });
   }
 
   selectedRegistry(e) {

@@ -11,6 +11,7 @@ class KubeManifestFormController {
     this.onChangeFormValues = this.onChangeFormValues.bind(this);
     this.onChangeFile = this.onChangeFile.bind(this);
     this.onChangeMethod = this.onChangeMethod.bind(this);
+    this.onChangeUseManifestNamespaces = this.onChangeUseManifestNamespaces.bind(this);
   }
 
   onChangeFormValues(newValues) {
@@ -23,6 +24,10 @@ class KubeManifestFormController {
       this.formValues.NewCredentialNameExist = existGitCredential ? true : false;
       this.formValues.NewCredentialNameInvalid = this.formValues.NewCredentialName && !this.formValues.NewCredentialName.match(/^[-_a-z0-9]+$/) ? true : false;
     });
+  }
+
+  onChangeUseManifestNamespaces(value) {
+    this.onChangeFormValues({ UseManifestNamespaces: value });
   }
 
   onChangeFileContent(value) {

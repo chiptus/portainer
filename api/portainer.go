@@ -313,6 +313,8 @@ type (
 		EdgeUpdateID int
 		// Schedule represents the schedule of the Edge stack (optional, format - 'YYYY-MM-DD HH:mm:ss')
 		ScheduledTime string `example:"2020-11-13 14:53:00"`
+		// Uses the manifest's namespaces instead of the default one
+		UseManifestNamespaces bool
 
 		// Deprecated
 		Prune bool `json:"Prune"`
