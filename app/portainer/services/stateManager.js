@@ -51,6 +51,9 @@ function StateManagerFactory(
   };
 
   manager.resetPasswordChangeSkips = function (userID) {
+    if (!state.UI.timesPasswordChangeSkipped) {
+      return;
+    }
     if (state.UI.timesPasswordChangeSkipped[userID]) state.UI.timesPasswordChangeSkipped[userID] = 0;
     LocalStorage.storeUIState(state.UI);
   };
