@@ -121,10 +121,9 @@ func setupHandler(t *testing.T) (*Handler, string, func()) {
 	return handler, rawAPIKey, storeTeardown
 }
 
-func createEndpoint(t *testing.T, store dataservices.DataStore) portaineree.Endpoint {
+func createEndpointWithId(t *testing.T, store dataservices.DataStore, endpointID portaineree.EndpointID) portaineree.Endpoint {
 	t.Helper()
 
-	endpointID := portaineree.EndpointID(5)
 	endpoint := portaineree.Endpoint{
 		ID:              endpointID,
 		Name:            "test-endpoint-" + strconv.Itoa(int(endpointID)),
@@ -140,6 +139,10 @@ func createEndpoint(t *testing.T, store dataservices.DataStore) portaineree.Endp
 	}
 
 	return endpoint
+}
+
+func createEndpoint(t *testing.T, store dataservices.DataStore) portaineree.Endpoint {
+	return createEndpointWithId(t, store, 5)
 }
 
 func createEdgeStack(t *testing.T, store dataservices.DataStore, endpointID portaineree.EndpointID) portaineree.EdgeStack {
@@ -281,7 +284,7 @@ func TestCreateAndInspect(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf(fmt.Sprintf("expected a %d response, found: %d", http.StatusOK, rec.Code))
+		t.Fatalf("expected a %d response, found: %d", http.StatusOK, rec.Code)
 	}
 
 	data := portaineree.EdgeStack{}
@@ -301,7 +304,7 @@ func TestCreateAndInspect(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf(fmt.Sprintf("expected a %d response, found: %d", http.StatusOK, rec.Code))
+		t.Fatalf("expected a %d response, found: %d", http.StatusOK, rec.Code)
 	}
 
 	data = portaineree.EdgeStack{}
@@ -311,7 +314,7 @@ func TestCreateAndInspect(t *testing.T) {
 	}
 
 	if payload.Name != data.Name {
-		t.Fatalf(fmt.Sprintf("expected EdgeStack Name %s, found %s", payload.Name, data.Name))
+		t.Fatalf("expected EdgeStack Name %s, found %s", payload.Name, data.Name)
 	}
 }
 
@@ -439,7 +442,7 @@ func TestCreateWithInvalidPayload(t *testing.T) {
 			handler.ServeHTTP(rec, req)
 
 			if rec.Code != tc.ExpectedStatusCode {
-				t.Fatalf(fmt.Sprintf("expected a %d response, found: %d", tc.ExpectedStatusCode, rec.Code))
+				t.Fatalf("expected a %d response, found: %d", tc.ExpectedStatusCode, rec.Code)
 			}
 		})
 	}
@@ -465,7 +468,7 @@ func TestDeleteAndInspect(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf(fmt.Sprintf("expected a %d response, found: %d", http.StatusOK, rec.Code))
+		t.Fatalf("expected a %d response, found: %d", http.StatusOK, rec.Code)
 	}
 
 	data := portaineree.EdgeStack{}
@@ -475,7 +478,7 @@ func TestDeleteAndInspect(t *testing.T) {
 	}
 
 	if data.ID != edgeStack.ID {
-		t.Fatalf(fmt.Sprintf("expected EdgeStackID %d, found %d", int(edgeStack.ID), data.ID))
+		t.Fatalf("expected EdgeStackID %d, found %d", int(edgeStack.ID), data.ID)
 	}
 
 	// Delete
@@ -489,7 +492,7 @@ func TestDeleteAndInspect(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusNoContent {
-		t.Fatalf(fmt.Sprintf("expected a %d response, found: %d", http.StatusNoContent, rec.Code))
+		t.Fatalf("expected a %d response, found: %d", http.StatusNoContent, rec.Code)
 	}
 
 	// Inspect
@@ -503,7 +506,7 @@ func TestDeleteAndInspect(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusNotFound {
-		t.Fatalf(fmt.Sprintf("expected a %d response, found: %d", http.StatusNotFound, rec.Code))
+		t.Fatalf("expected a %d response, found: %d", http.StatusNotFound, rec.Code)
 	}
 }
 
@@ -532,7 +535,7 @@ func TestDeleteInvalidEdgeStack(t *testing.T) {
 			handler.ServeHTTP(rec, req)
 
 			if rec.Code != tc.ExpectedStatusCode {
-				t.Fatalf(fmt.Sprintf("expected a %d response, found: %d", tc.ExpectedStatusCode, rec.Code))
+				t.Fatalf("expected a %d response, found: %d", tc.ExpectedStatusCode, rec.Code)
 			}
 		})
 	}
@@ -603,14 +606,7 @@ func TestUpdateAndInspect(t *testing.T) {
 
 	// Update edge stack: create new Endpoint, EndpointRelation and EdgeGroup
 	endpointID := portaineree.EndpointID(6)
-	newEndpoint := portaineree.Endpoint{
-		ID:              endpointID,
-		Name:            "test-endpoint-" + strconv.Itoa(int(endpointID)),
-		Type:            portaineree.EdgeAgentOnDockerEnvironment,
-		URL:             "https://portainer.io:9443",
-		EdgeID:          "edge-id",
-		LastCheckInDate: time.Now().Unix(),
-	}
+	newEndpoint := createEndpointWithId(t, handler.DataStore, endpointID)
 
 	err = handler.DataStore.Endpoint().Create(&newEndpoint)
 	if err != nil {
@@ -666,7 +662,7 @@ func TestUpdateAndInspect(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf(fmt.Sprintf("expected a %d response, found: %d", http.StatusOK, rec.Code))
+		t.Fatalf("expected a %d response, found: %d", http.StatusOK, rec.Code)
 	}
 
 	// Get updated edge stack
@@ -680,7 +676,7 @@ func TestUpdateAndInspect(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf(fmt.Sprintf("expected a %d response, found: %d", http.StatusOK, rec.Code))
+		t.Fatalf("expected a %d response, found: %d", http.StatusOK, rec.Code)
 	}
 
 	data := portaineree.EdgeStack{}
@@ -769,7 +765,7 @@ func TestUpdateWithInvalidEdgeGroups(t *testing.T) {
 			handler.ServeHTTP(rec, req)
 
 			if rec.Code != tc.ExpectedStatusCode {
-				t.Fatalf(fmt.Sprintf("expected a %d response, found: %d", tc.ExpectedStatusCode, rec.Code))
+				t.Fatalf("expected a %d response, found: %d", tc.ExpectedStatusCode, rec.Code)
 			}
 		})
 	}
@@ -828,7 +824,7 @@ func TestUpdateWithInvalidPayload(t *testing.T) {
 			handler.ServeHTTP(rec, req)
 
 			if rec.Code != tc.ExpectedStatusCode {
-				t.Fatalf(fmt.Sprintf("expected a %d response, found: %d", tc.ExpectedStatusCode, rec.Code))
+				t.Fatalf("expected a %d response, found: %d", tc.ExpectedStatusCode, rec.Code)
 			}
 		})
 	}
@@ -866,7 +862,7 @@ func TestUpdateStatusAndInspect(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf(fmt.Sprintf("expected a %d response, found: %d", http.StatusOK, rec.Code))
+		t.Fatalf("expected a %d response, found: %d", http.StatusOK, rec.Code)
 	}
 
 	// Get updated edge stack
@@ -880,7 +876,7 @@ func TestUpdateStatusAndInspect(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf(fmt.Sprintf("expected a %d response, found: %d", http.StatusOK, rec.Code))
+		t.Fatalf("expected a %d response, found: %d", http.StatusOK, rec.Code)
 	}
 
 	data := portaineree.EdgeStack{}
@@ -890,15 +886,15 @@ func TestUpdateStatusAndInspect(t *testing.T) {
 	}
 
 	if data.Status[endpoint.ID].Type != *payload.Status {
-		t.Fatalf(fmt.Sprintf("expected EdgeStackStatusType %d, found %d", payload.Status, data.Status[endpoint.ID].Type))
+		t.Fatalf("expected EdgeStackStatusType %d, found %d", payload.Status, data.Status[endpoint.ID].Type)
 	}
 
 	if data.Status[endpoint.ID].Error != payload.Error {
-		t.Fatalf(fmt.Sprintf("expected EdgeStackStatusError %s, found %s", payload.Error, data.Status[endpoint.ID].Error))
+		t.Fatalf("expected EdgeStackStatusError %s, found %s", payload.Error, data.Status[endpoint.ID].Error)
 	}
 
 	if data.Status[endpoint.ID].EndpointID != payload.EndpointID {
-		t.Fatalf(fmt.Sprintf("expected EndpointID %d, found %d", payload.EndpointID, data.Status[endpoint.ID].EndpointID))
+		t.Fatalf("expected EndpointID %d, found %d", payload.EndpointID, data.Status[endpoint.ID].EndpointID)
 	}
 }
 func TestUpdateStatusWithInvalidPayload(t *testing.T) {
@@ -967,7 +963,7 @@ func TestUpdateStatusWithInvalidPayload(t *testing.T) {
 			handler.ServeHTTP(rec, req)
 
 			if rec.Code != tc.ExpectedStatusCode {
-				t.Fatalf(fmt.Sprintf("expected a %d response, found: %d", tc.ExpectedStatusCode, rec.Code))
+				t.Fatalf("expected a %d response, found: %d", tc.ExpectedStatusCode, rec.Code)
 			}
 		})
 	}
@@ -991,6 +987,6 @@ func TestDeleteStatus(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf(fmt.Sprintf("expected a %d response, found: %d", http.StatusOK, rec.Code))
+		t.Fatalf("expected a %d response, found: %d", http.StatusOK, rec.Code)
 	}
 }

@@ -138,6 +138,7 @@ type (
 		EdgeStack(ID portaineree.EdgeStackID) (*portaineree.EdgeStack, error)
 		Create(id portaineree.EdgeStackID, edgeStack *portaineree.EdgeStack) error
 		UpdateEdgeStack(ID portaineree.EdgeStackID, edgeStack *portaineree.EdgeStack) error
+		UpdateEdgeStackFunc(ID portaineree.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error
 		DeleteEdgeStack(ID portaineree.EdgeStackID) error
 		GetNextIdentifier() int
 		BucketName() string

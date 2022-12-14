@@ -83,10 +83,20 @@ func (service *Service) Create(id portaineree.EdgeStackID, edgeStack *portainere
 	)
 }
 
-// UpdateEdgeStack updates an Edge stack.
+// Deprecated: Use UpdateEdgeStackFunc instead.
 func (service *Service) UpdateEdgeStack(ID portaineree.EdgeStackID, edgeStack *portaineree.EdgeStack) error {
 	identifier := service.connection.ConvertToKey(int(ID))
 	return service.connection.UpdateObject(BucketName, identifier, edgeStack)
+}
+
+// UpdateEdgeStackFunc updates an Edge stack inside a transaction avoiding data races.
+func (service *Service) UpdateEdgeStackFunc(ID portaineree.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error {
+	id := service.connection.ConvertToKey(int(ID))
+	edgeStack := &portaineree.EdgeStack{}
+
+	return service.connection.UpdateObjectFunc(BucketName, id, edgeStack, func() {
+		updateFunc(edgeStack)
+	})
 }
 
 // DeleteEdgeStack deletes an Edge stack.

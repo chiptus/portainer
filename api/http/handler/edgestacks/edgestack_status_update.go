@@ -101,17 +101,20 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	stack.Status[payload.EndpointID] = portaineree.EdgeStackStatus{
-		Type:       status,
-		Error:      payload.Error,
-		EndpointID: payload.EndpointID,
-	}
+	err = handler.DataStore.EdgeStack().UpdateEdgeStackFunc(portaineree.EdgeStackID(stackID), func(edgeStack *portaineree.EdgeStack) {
+		edgeStack.Status[payload.EndpointID] = portaineree.EdgeStackStatus{
+			Type:       status,
+			Error:      payload.Error,
+			EndpointID: payload.EndpointID,
+		}
 
-	err = handler.DataStore.EdgeStack().UpdateEdgeStack(stack.ID, stack)
-	if err != nil {
+		stack = edgeStack
+	})
+	if handler.DataStore.IsErrObjectNotFound(err) {
+		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
+	} else if err != nil {
 		return httperror.InternalServerError("Unable to persist the stack changes inside the database", err)
 	}
 
 	return response.JSON(w, stack)
-
 }
