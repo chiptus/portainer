@@ -52,7 +52,7 @@ require (
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/portainer/docker-compose-wrapper v0.0.0-20221122145319-915b021aea84
+	github.com/portainer/docker-compose-wrapper v0.0.0-20221215210951-2c30d1b17a27
 	github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a
 	github.com/portainer/libhttp v0.0.0-20221121135534-76f46e09c9a9
 	github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91
