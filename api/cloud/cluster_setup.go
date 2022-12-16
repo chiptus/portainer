@@ -15,6 +15,7 @@ import (
 	"github.com/portainer/portainer-ee/api/cloud/gke"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	kubecli "github.com/portainer/portainer-ee/api/kubernetes/cli"
 	log "github.com/rs/zerolog/log"
 )
@@ -642,6 +643,24 @@ func (service *CloudClusterSetupService) updateEndpoint(endpointID portaineree.E
 			return err
 		}
 	}
+
+	// Run some initial detection. We do not care if these fail, it's just a
+	// best effort to enable some optional features if they're supported.
+	endpointutils.InitialIngressClassDetection(
+		endpoint,
+		service.dataStore.Endpoint(),
+		service.clientFactory,
+	)
+	endpointutils.InitialMetricsDetection(
+		endpoint,
+		service.dataStore.Endpoint(),
+		service.clientFactory,
+	)
+	endpointutils.InitialStorageDetection(
+		endpoint,
+		service.dataStore.Endpoint(),
+		service.clientFactory,
+	)
 
 	log.Info().
 		Int("endpoint_id", int(endpoint.ID)).

@@ -1725,6 +1725,8 @@ type (
 		GetIngresses(namespace string) ([]kubeModels.K8sIngressInfo, error)
 		DeleteIngresses(reqs kubeModels.K8sIngressDeleteRequests) error
 		GetIngressControllers() (kubeModels.K8sIngressControllers, error)
+		GetMetrics() (kubeModels.K8sMetrics, error)
+		GetStorage() ([]KubernetesStorageClassConfig, error)
 		CreateService(namespace string, service kubeModels.K8sServiceInfo) error
 		UpdateService(namespace string, service kubeModels.K8sServiceInfo) error
 		GetServices(namespace string) ([]kubeModels.K8sServiceInfo, error)

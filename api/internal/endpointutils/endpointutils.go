@@ -4,6 +4,9 @@ import (
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	log "github.com/rs/zerolog/log"
 )
 
 // IsLocalEndpoint returns true if this is a local environment(endpoint)
@@ -71,4 +74,83 @@ func EndpointSet(endpointIDs []portaineree.EndpointID) map[portaineree.EndpointI
 	}
 
 	return set
+}
+
+func InitialIngressClassDetection(endpoint *portaineree.Endpoint, endpointService dataservices.EndpointService, factory *cli.ClientFactory) {
+	log.Info().Msg("attempting to detect ingress classes in the cluster")
+	cli, err := factory.GetKubeClient(endpoint)
+	if err != nil {
+		log.Info().Err(err).Msg("unable to create kubernetes client for ingress class detection")
+		return
+	}
+	controllers, err := cli.GetIngressControllers()
+	if err != nil {
+		log.Info().Err(err).Msg("failed to fetch ingressclasses")
+		return
+	}
+
+	var updatedClasses []portaineree.KubernetesIngressClassConfig
+	for i := range controllers {
+		var updatedClass portaineree.KubernetesIngressClassConfig
+		updatedClass.Name = controllers[i].ClassName
+		updatedClass.Type = controllers[i].Type
+		updatedClasses = append(updatedClasses, updatedClass)
+	}
+
+	endpoint.Kubernetes.Configuration.IngressClasses = updatedClasses
+	err = endpointService.UpdateEndpoint(
+		portaineree.EndpointID(endpoint.ID),
+		endpoint,
+	)
+	if err != nil {
+		log.Info().Err(err).Msg("unable to store found IngressClasses inside the database")
+		return
+	}
+}
+
+func InitialMetricsDetection(endpoint *portaineree.Endpoint, endpointService dataservices.EndpointService, factory *cli.ClientFactory) {
+	log.Info().Msg("attempting to detect metrics api in the cluster")
+	cli, err := factory.GetKubeClient(endpoint)
+	if err != nil {
+		log.Info().Err(err).Msg("unable to create kubernetes client for initial metrics detection")
+		return
+	}
+	_, err = cli.GetMetrics()
+	if err != nil {
+		log.Info().Err(err).Msg("unable to fetch metrics: leaving metrics collection disabled.")
+		return
+	}
+	endpoint.Kubernetes.Configuration.UseServerMetrics = true
+	err = endpointService.UpdateEndpoint(
+		portaineree.EndpointID(endpoint.ID),
+		endpoint,
+	)
+	if err != nil {
+		log.Info().Err(err).Msg("unable to enable UseServerMetrics inside the database")
+		return
+	}
+}
+
+func InitialStorageDetection(endpoint *portaineree.Endpoint, endpointService dataservices.EndpointService, factory *cli.ClientFactory) {
+	log.Info().Msg("attempting to detect storage classes in the cluster")
+	cli, err := factory.GetKubeClient(endpoint)
+	if err != nil {
+		log.Info().Err(err).Msg("unable to create Kubernetes client for initial storage detection")
+		return
+	}
+
+	storage, err := cli.GetStorage()
+	if err != nil {
+		log.Info().Err(err).Msg("unable to fetch storage classes: leaving storage classes disabled")
+		return
+	}
+	endpoint.Kubernetes.Configuration.StorageClasses = storage
+	err = endpointService.UpdateEndpoint(
+		portaineree.EndpointID(endpoint.ID),
+		endpoint,
+	)
+	if err != nil {
+		log.Info().Err(err).Msg("unable to enable storage class inside the database")
+		return
+	}
 }

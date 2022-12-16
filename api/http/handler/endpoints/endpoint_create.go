@@ -418,6 +418,22 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 				return httperror.InternalServerError("Unable to store edge async command into the database", err)
 			}
 		}
+	} else if endpointutils.IsKubernetesEndpoint(endpoint) {
+		endpointutils.InitialIngressClassDetection(
+			endpoint,
+			handler.DataStore.Endpoint(),
+			handler.K8sClientFactory,
+		)
+		endpointutils.InitialMetricsDetection(
+			endpoint,
+			handler.DataStore.Endpoint(),
+			handler.K8sClientFactory,
+		)
+		endpointutils.InitialStorageDetection(
+			endpoint,
+			handler.DataStore.Endpoint(),
+			handler.K8sClientFactory,
+		)
 	}
 
 	err = handler.DataStore.EndpointRelation().Create(relationObject)
