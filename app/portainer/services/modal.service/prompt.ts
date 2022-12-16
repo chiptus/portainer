@@ -126,7 +126,7 @@ export function confirmContainerRecreation(
     inputType: 'checkbox',
     inputOptions: [
       {
-        text: 'Pull latest image<i></i>',
+        text: 'Re-pull image<i></i>',
         value: '1',
       },
     ],
@@ -154,7 +154,7 @@ export function confirmContainerRecreation(
     formCheck.prop('style', 'height: 45px;');
     const cannotPullImageMessage = `<pr-icon icon="'alert-triangle'"  mode="'warning'"/>
                <div class="inline-text text-warning">
-                   <span>Cannot pull latest as the image is inaccessible - either it no longer exists or the tag or name is no longer correct.
+                   <span>Cannot re-pull as the image is inaccessible - either it no longer exists or the tag or name is no longer correct.
                    </span>
                </div>`;
     formCheck.append(`${cannotPullImageMessage}`);
@@ -172,7 +172,7 @@ export function confirmServiceForceUpdate(
     inputType: 'checkbox',
     inputOptions: [
       {
-        text: 'Pull latest image version<i></i>',
+        text: 'Re-pull image<i></i>',
         value: '1',
       },
     ],
