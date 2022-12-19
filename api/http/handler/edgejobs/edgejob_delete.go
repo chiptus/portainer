@@ -8,6 +8,8 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/maps"
 )
 
 // @id EdgeJobDelete
@@ -43,7 +45,22 @@ func (handler *Handler) edgeJobDelete(w http.ResponseWriter, r *http.Request) *h
 
 	handler.ReverseTunnelService.RemoveEdgeJob(edgeJob.ID)
 
-	for endpointID := range edgeJob.Endpoints {
+	var endpointsMap map[portaineree.EndpointID]portaineree.EdgeJobEndpointMeta
+	if len(edgeJob.EdgeGroups) > 0 {
+		endpoints, err := edge.GetEndpointsFromEdgeGroups(edgeJob.EdgeGroups, handler.DataStore)
+		if err != nil {
+			return httperror.InternalServerError("Unable to get Endpoints from EdgeGroups", err)
+		}
+
+		endpointsMap = handler.convertEndpointsToMetaObject(endpoints)
+		maps.Copy(endpointsMap, edgeJob.Endpoints)
+	} else {
+		endpointsMap = edgeJob.Endpoints
+	}
+
+	for endpointID := range endpointsMap {
+		handler.ReverseTunnelService.RemoveEdgeJobFromEndpoint(endpointID, edgeJob.ID)
+
 		err = handler.edgeService.RemoveJobCommand(endpointID, edgeJob.ID)
 		if err != nil {
 			return httperror.InternalServerError("Unable to delete edge async command from the database", err)

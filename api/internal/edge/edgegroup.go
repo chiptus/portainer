@@ -2,6 +2,7 @@ package edge
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/tag"
 )
@@ -32,6 +33,40 @@ func EdgeGroupRelatedEndpoints(edgeGroup *portaineree.EdgeGroup, endpoints []por
 	}
 
 	return endpointIDs
+}
+
+func EdgeGroupSet(edgeGroupIDs []portaineree.EdgeGroupID) map[portaineree.EdgeGroupID]bool {
+	set := map[portaineree.EdgeGroupID]bool{}
+
+	for _, edgeGroupID := range edgeGroupIDs {
+		set[edgeGroupID] = true
+	}
+
+	return set
+}
+
+func GetEndpointsFromEdgeGroups(edgeGroupIDs []portaineree.EdgeGroupID, datastore dataservices.DataStore) ([]portaineree.EndpointID, error) {
+	endpoints, err := datastore.Endpoint().Endpoints()
+	if err != nil {
+		return nil, err
+	}
+
+	endpointGroups, err := datastore.EndpointGroup().EndpointGroups()
+	if err != nil {
+		return nil, err
+	}
+
+	var response []portaineree.EndpointID
+	for _, edgeGroupID := range edgeGroupIDs {
+		edgeGroup, err := datastore.EdgeGroup().EdgeGroup(edgeGroupID)
+		if err != nil {
+			return nil, err
+		}
+
+		response = append(response, EdgeGroupRelatedEndpoints(edgeGroup, endpoints, endpointGroups)...)
+	}
+
+	return response, nil
 }
 
 // edgeGroupRelatedToEndpoint returns true is edgeGroup is associated with environment(endpoint)

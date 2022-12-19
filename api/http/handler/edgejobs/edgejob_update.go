@@ -9,7 +9,10 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	"github.com/portainer/portainer-ee/api/internal/maps"
+	"github.com/portainer/portainer-ee/api/internal/slices"
 
 	"github.com/asaskevich/govalidator"
 )
@@ -19,12 +22,13 @@ type edgeJobUpdatePayload struct {
 	CronExpression *string
 	Recurring      *bool
 	Endpoints      []portaineree.EndpointID
+	EdgeGroups     []portaineree.EdgeGroupID
 	FileContent    *string
 }
 
 func (payload *edgeJobUpdatePayload) Validate(r *http.Request) error {
 	if payload.Name != nil && !govalidator.Matches(*payload.Name, `^[a-zA-Z0-9][a-zA-Z0-9_.-]+$`) {
-		return errors.New("Invalid Edge job name format. Allowed characters are: [a-zA-Z0-9_.-]")
+		return errors.New("invalid Edge job name format. Allowed characters are: [a-zA-Z0-9_.-]")
 	}
 	return nil
 }
@@ -115,6 +119,66 @@ func (handler *Handler) updateEdgeSchedule(edgeJob *portaineree.EdgeJob, payload
 		edgeJob.Endpoints = endpointsMap
 	}
 
+	if len(payload.EdgeGroups) == 0 && len(edgeJob.EdgeGroups) > 0 {
+		endpoints, err := edge.GetEndpointsFromEdgeGroups(edgeJob.EdgeGroups, handler.DataStore)
+		if err != nil {
+			return errors.New("unable to get endpoints from edge groups")
+		}
+
+		for _, endpointID := range endpoints {
+			endpointsToRemove[portaineree.EndpointID(endpointID)] = true
+		}
+
+		edgeJob.EdgeGroups = nil
+	}
+
+	edgeGroupsToAdd := []portaineree.EdgeGroupID{}
+	edgeGroupsToRemove := []portaineree.EdgeGroupID{}
+	endpointsFromGroupsToAddMap := map[portaineree.EndpointID]portaineree.EdgeJobEndpointMeta{}
+
+	if len(payload.EdgeGroups) > 0 {
+		for _, edgeGroupID := range payload.EdgeGroups {
+			_, err := handler.DataStore.EdgeGroup().EdgeGroup(edgeGroupID)
+			if err != nil {
+				return err
+			}
+
+			if !slices.Contains(edgeJob.EdgeGroups, edgeGroupID) {
+				edgeGroupsToAdd = append(edgeGroupsToAdd, edgeGroupID)
+			}
+		}
+
+		endpointsFromGroupsToAdd, err := edge.GetEndpointsFromEdgeGroups(edgeGroupsToAdd, handler.DataStore)
+		if err != nil {
+			return errors.New("unable to get endpoints from edge groups")
+		}
+		endpointsFromGroupsToAddMap = handler.convertEndpointsToMetaObject(endpointsFromGroupsToAdd)
+
+		for endpointID := range endpointsFromGroupsToAddMap {
+			endpointsToAdd[endpointID] = true
+		}
+
+		newEdgeGroups := edge.EdgeGroupSet(payload.EdgeGroups)
+		for _, edgeGroupID := range edgeJob.EdgeGroups {
+			if !newEdgeGroups[edgeGroupID] {
+				edgeGroupsToRemove = append(edgeGroupsToRemove, edgeGroupID)
+			}
+		}
+
+		endpointsFromGroupsToRemove, err := edge.GetEndpointsFromEdgeGroups(edgeGroupsToRemove, handler.DataStore)
+		if err != nil {
+			return errors.New("unable to get endpoints from edge groups")
+		}
+
+		endpointsToRemoveMap := handler.convertEndpointsToMetaObject(endpointsFromGroupsToRemove)
+
+		for endpointID := range endpointsToRemoveMap {
+			endpointsToRemove[endpointID] = true
+		}
+
+		edgeJob.EdgeGroups = payload.EdgeGroups
+	}
+
 	updateVersion := false
 	if payload.CronExpression != nil && *payload.CronExpression != edgeJob.CronExpression {
 		edgeJob.CronExpression = *payload.CronExpression
@@ -145,7 +209,9 @@ func (handler *Handler) updateEdgeSchedule(edgeJob *portaineree.EdgeJob, payload
 		edgeJob.Version++
 	}
 
-	for endpointID := range edgeJob.Endpoints {
+	maps.Copy(endpointsFromGroupsToAddMap, edgeJob.Endpoints)
+
+	for endpointID := range endpointsFromGroupsToAddMap {
 		handler.ReverseTunnelService.AddEdgeJob(endpointID, edgeJob)
 
 		needsAddOperation := endpointsToAdd[endpointID]
@@ -159,6 +225,8 @@ func (handler *Handler) updateEdgeSchedule(edgeJob *portaineree.EdgeJob, payload
 	}
 
 	for endpointID := range endpointsToRemove {
+		handler.ReverseTunnelService.RemoveEdgeJobFromEndpoint(endpointID, edgeJob.ID)
+
 		err := handler.edgeService.RemoveJobCommand(endpointID, edgeJob.ID)
 		if err != nil {
 			return err

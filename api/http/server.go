@@ -179,8 +179,9 @@ func (server *Server) Start() error {
 	customTemplatesHandler.FileService = server.FileService
 	customTemplatesHandler.GitService = server.GitService
 
-	var edgeGroupsHandler = edgegroups.NewHandler(requestBouncer, server.UserActivityService)
+	var edgeGroupsHandler = edgegroups.NewHandler(requestBouncer, server.UserActivityService, server.EdgeAsyncService)
 	edgeGroupsHandler.DataStore = server.DataStore
+	edgeGroupsHandler.ReverseTunnelService = server.ReverseTunnelService
 
 	var edgeJobsHandler = edgejobs.NewHandler(requestBouncer, server.UserActivityService, server.EdgeAsyncService)
 	edgeJobsHandler.DataStore = server.DataStore

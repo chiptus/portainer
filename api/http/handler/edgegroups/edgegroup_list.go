@@ -8,11 +8,13 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/internal/slices"
 )
 
 type decoratedEdgeGroup struct {
 	portaineree.EdgeGroup
 	HasEdgeStack  bool `json:"HasEdgeStack"`
+	HasEdgeGroup  bool `json:"HasEdgeGroup"`
 	EndpointTypes []portaineree.EndpointType
 }
 
@@ -46,8 +48,21 @@ func (handler *Handler) edgeGroupList(w http.ResponseWriter, r *http.Request) *h
 		}
 	}
 
+	edgeJobs, err := handler.DataStore.EdgeJob().EdgeJobs()
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve Edge jobs from the database", err)
+	}
+
 	decoratedEdgeGroups := []decoratedEdgeGroup{}
 	for _, orgEdgeGroup := range edgeGroups {
+		usedByEdgeJob := false
+		for _, edgeJob := range edgeJobs {
+			if slices.Contains(edgeJob.EdgeGroups, portaineree.EdgeGroupID(orgEdgeGroup.ID)) {
+				usedByEdgeJob = true
+				break
+			}
+		}
+
 		edgeGroup := decoratedEdgeGroup{
 			EdgeGroup:     orgEdgeGroup,
 			EndpointTypes: []portaineree.EndpointType{},
@@ -69,6 +84,8 @@ func (handler *Handler) edgeGroupList(w http.ResponseWriter, r *http.Request) *h
 		edgeGroup.EndpointTypes = endpointTypes
 
 		edgeGroup.HasEdgeStack = usedEdgeGroups[edgeGroup.ID]
+
+		edgeGroup.HasEdgeGroup = usedByEdgeJob
 
 		decoratedEdgeGroups = append(decoratedEdgeGroups, edgeGroup)
 	}

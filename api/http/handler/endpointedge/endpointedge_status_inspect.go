@@ -227,10 +227,17 @@ func (handler *Handler) handleSuccessfulUpdate(activeUpdateSchedule *edgetypes.E
 func (handler *Handler) buildSchedules(endpointID portaineree.EndpointID, tunnel portaineree.TunnelDetails) ([]edgeJobResponse, *httperror.HandlerError) {
 	schedules := []edgeJobResponse{}
 	for _, job := range tunnel.Jobs {
+		var collectLogs bool
+		if _, ok := job.GroupLogsCollection[endpointID]; ok {
+			collectLogs = job.GroupLogsCollection[endpointID].CollectLogs
+		} else {
+			collectLogs = job.Endpoints[endpointID].CollectLogs
+		}
+
 		schedule := edgeJobResponse{
 			ID:             job.ID,
 			CronExpression: job.CronExpression,
-			CollectLogs:    job.Endpoints[endpointID].CollectLogs,
+			CollectLogs:    collectLogs,
 			Version:        job.Version,
 		}
 

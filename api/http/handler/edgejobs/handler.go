@@ -45,3 +45,13 @@ func NewHandler(bouncer *security.RequestBouncer, userActivityService portainere
 	h.Handle("/edge_jobs/{id}/tasks/{taskID}/logs", httperror.LoggerHandler(h.edgeJobTasksClear)).Methods(http.MethodDelete)
 	return h
 }
+
+func (handler *Handler) convertEndpointsToMetaObject(endpoints []portaineree.EndpointID) map[portaineree.EndpointID]portaineree.EdgeJobEndpointMeta {
+	endpointsMap := map[portaineree.EndpointID]portaineree.EdgeJobEndpointMeta{}
+
+	for _, endpointID := range endpoints {
+		endpointsMap[endpointID] = portaineree.EdgeJobEndpointMeta{}
+	}
+
+	return endpointsMap
+}

@@ -259,10 +259,14 @@ type (
 		Created        int64                              `json:"Created"`
 		CronExpression string                             `json:"CronExpression"`
 		Endpoints      map[EndpointID]EdgeJobEndpointMeta `json:"Endpoints"`
+		EdgeGroups     []EdgeGroupID                      `json:"EdgeGroups"`
 		Name           string                             `json:"Name"`
 		ScriptPath     string                             `json:"ScriptPath"`
 		Recurring      bool                               `json:"Recurring"`
 		Version        int                                `json:"Version"`
+
+		// Field used for log collection of Endpoints belonging to EdgeGroups
+		GroupLogsCollection map[EndpointID]EdgeJobEndpointMeta
 	}
 
 	// EdgeJobStatus represents an Edge job status
@@ -1844,6 +1848,7 @@ type (
 		GetActiveTunnel(endpoint *Endpoint) (TunnelDetails, error)
 		AddEdgeJob(endpointID EndpointID, edgeJob *EdgeJob)
 		RemoveEdgeJob(edgeJobID EdgeJobID)
+		RemoveEdgeJobFromEndpoint(endpointID EndpointID, edgeJobID EdgeJobID)
 	}
 
 	// S3BackupService represents a storage service for managing S3 backup settings and status

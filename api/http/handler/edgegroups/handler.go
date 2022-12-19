@@ -10,20 +10,24 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 )
 
 // Handler is the HTTP handler used to handle environment(endpoint) group operations.
 type Handler struct {
 	*mux.Router
-	DataStore           dataservices.DataStore
-	userActivityService portaineree.UserActivityService
+	DataStore            dataservices.DataStore
+	userActivityService  portaineree.UserActivityService
+	ReverseTunnelService portaineree.ReverseTunnelService
+	edgeAsyncService     *edgeasync.Service
 }
 
 // NewHandler creates a handler to manage environment(endpoint) group operations.
-func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService, edgeAsyncService *edgeasync.Service) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		userActivityService: userActivityService,
+		edgeAsyncService:    edgeAsyncService,
 	}
 
 	h.Use(bouncer.AdminAccess, bouncer.EdgeComputeOperation, useractivity.LogUserActivity(h.userActivityService))
