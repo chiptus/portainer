@@ -6,6 +6,7 @@ import { success as notifySuccess } from '@/portainer/services/notifications';
 import {
   CreateCredentialPayload,
   Credential,
+  CustomTemplate,
   UpdateCredentialPayload,
 } from './types';
 
@@ -23,6 +24,17 @@ export async function getCloudCredentials() {
     return data;
   } catch (e) {
     throw parseAxiosError(e as Error, 'Unable to get credentials');
+  }
+}
+
+export async function getCustomTemplates() {
+  try {
+    const { data } = await axios.get<CustomTemplate[]>(
+      buildCustomTemplateUrl()
+    );
+    return data;
+  } catch (e) {
+    throw parseAxiosError(e as Error, 'Unable to get custom templates');
   }
 }
 
@@ -147,4 +159,24 @@ function buildUrl(credentialId?: number) {
     url += `/${credentialId}`;
   }
   return url;
+}
+
+function buildCustomTemplateUrl(customTemplateId?: number) {
+  let url = 'custom_templates';
+  if (customTemplateId) {
+    url += `/${customTemplateId}`;
+  }
+  return url;
+}
+
+export function useCustomTemplates() {
+  return useQuery('customtemplates', () => getCustomTemplates(), {
+    staleTime: 20,
+    meta: {
+      error: {
+        title: 'Failure',
+        message: 'Unable to retrieve custom templates',
+      },
+    },
+  });
 }

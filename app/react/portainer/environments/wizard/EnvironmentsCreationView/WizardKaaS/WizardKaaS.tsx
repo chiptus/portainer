@@ -7,7 +7,10 @@ import {
   Credential,
   providerTitles,
 } from '@/react/portainer/settings/cloud/types';
-import { useCloudCredentials } from '@/react/portainer/settings/cloud/cloudSettings.service';
+import {
+  useCloudCredentials,
+  useCustomTemplates,
+} from '@/react/portainer/settings/cloud/cloudSettings.service';
 import { Environment } from '@/react/portainer/environments/types';
 import { useSettings } from '@/react/portainer/settings/queries';
 import { CredentialsForm } from '@/react/portainer/settings/cloud/CreateCredentialsView/CredentialsForm';
@@ -68,6 +71,13 @@ const initialValues: FormValues = {
     instanceType: '',
     nodeVolumeSize: 20,
   },
+  microk8s: {
+    nodeIP1: '',
+    nodeIP2: '',
+    nodeIP3: '',
+    addons: [],
+    customTemplateId: 0,
+  },
 };
 
 export function WizardKaaS({ onCreate }: Props) {
@@ -78,6 +88,7 @@ export function WizardKaaS({ onCreate }: Props) {
   const [credential, setCredential] = useState<Credential | null>(null);
 
   const credentialsQuery = useCloudCredentials();
+  const customTemplatesQuery = useCustomTemplates();
 
   const cloudOptionsQuery = useCloudProviderOptions<KaasInfo>(
     provider,
@@ -93,6 +104,8 @@ export function WizardKaaS({ onCreate }: Props) {
   );
 
   const validation = useValidationSchema(provider, cloudOptionsQuery.data);
+  const customTemplates =
+    customTemplatesQuery.data?.filter((t) => t.Type === 3) || [];
 
   const credentialsFound = providerCredentials.length > 0;
 
@@ -115,6 +128,7 @@ export function WizardKaaS({ onCreate }: Props) {
               provider={provider}
               onChangeSelectedCredential={setCredential}
               credentials={providerCredentials}
+              customTemplates={customTemplates}
               isSubmitting={createKaasClusterMutation.isLoading}
             />
           )}
@@ -125,7 +139,7 @@ export function WizardKaaS({ onCreate }: Props) {
         <>
           <TextTip color="orange">
             No API key found for {providerTitles[provider]}. Save your{' '}
-            {providerTitles[provider]} credentials below, or in the
+            {providerTitles[provider]} credentials below, or in the{' '}
             <Link
               to="portainer.settings.cloud"
               title="cloud settings"

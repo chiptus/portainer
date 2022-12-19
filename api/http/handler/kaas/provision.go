@@ -57,6 +57,10 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 		var p providers.DefaultProvisionPayload
 		err = request.DecodeAndValidateJSONPayload(r, &p)
 		payload = &p
+	case portaineree.CloudProviderMicrok8s:
+		var p providers.Microk8sProvisionPayload
+		err = request.DecodeAndValidateJSONPayload(r, &p)
+		payload = &p
 	default:
 		return httperror.BadRequest("Invalid request payload", fmt.Errorf("Invalid cloud provider: %s", provider))
 	}

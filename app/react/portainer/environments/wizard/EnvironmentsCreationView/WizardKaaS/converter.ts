@@ -14,6 +14,7 @@ import {
   CreateEksClusterPayload,
   CreateGKEClusterPayload,
   FormValues,
+  CreateMicrok8sClusterPayload,
 } from './types';
 
 function buildOption(value: string, label?: string): Option<string> {
@@ -86,8 +87,38 @@ export function getPayloadParse(provider: KaasProvider) {
       return azurePayload;
     case KaasProvider.AWS:
       return amazonPayload;
+    case KaasProvider.MICROK8S:
+      return microk8sPayload;
     default:
       throw new Error('Unsupported provider');
+  }
+
+  function microk8sPayload({
+    amazon,
+    azure,
+    google,
+    api,
+    microk8s: { nodeIP1, nodeIP2, nodeIP3, addons, customTemplateId },
+    ...values
+  }: FormValues): CreateMicrok8sClusterPayload {
+    const NodeIPs: string[] = [nodeIP1];
+    if (values.nodeCount > 1) {
+      if (nodeIP2 !== '') {
+        NodeIPs.push(nodeIP2);
+      }
+
+      if (nodeIP3 !== '') {
+        NodeIPs.push(nodeIP3);
+      }
+    }
+
+    const Addons = addons.map((a) => a.Name);
+    return {
+      ...values,
+      NodeIPs,
+      Addons,
+      customTemplateId,
+    };
   }
 
   function googlePayload({

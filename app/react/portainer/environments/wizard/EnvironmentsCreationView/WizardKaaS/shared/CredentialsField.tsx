@@ -24,7 +24,7 @@ export function CredentialsField({ credentials }: Props) {
   return (
     <FormControl
       label="Credentials"
-      tooltip="Credentials to create your cluster"
+      tooltip="Credentials to create your cluster."
       inputId="kaas-credential"
       errors={meta.error}
     >

@@ -2,8 +2,7 @@ package cli
 
 import (
 	"context"
-
-	portaineree "github.com/portainer/portainer-ee/api"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 	appsv1 "k8s.io/api/apps/v1"
@@ -14,10 +13,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-var DefaultAgentVersion = portaineree.APIVersion
+// TODO: REVIEW-POC-MICROK8S
+// This is overriden here just for development purposes
+var DefaultAgentVersion = "2.15.1"
 
 // GetPortainerAgentIP checks whether there is an IP address associated to the agent service and returns it.
-func (kcl *KubeClient) GetPortainerAgentIPOrHostname() (string, error) {
+func (kcl *KubeClient) GetPortainerAgentIPOrHostname(nodeIPs []string) (string, error) {
 	service, err := kcl.cli.CoreV1().Services("portainer").Get(context.TODO(), "portainer-agent", metav1.GetOptions{})
 	if err != nil {
 		return "", err
@@ -28,6 +29,15 @@ func (kcl *KubeClient) GetPortainerAgentIPOrHostname() (string, error) {
 			return service.Status.LoadBalancer.Ingress[0].IP, nil
 		}
 		return service.Status.LoadBalancer.Ingress[0].Hostname, nil
+	}
+
+	// TODO: REVIEW-POC-MICROK8S
+	// For microk8s, we simply return the first node IP
+	// Might need something more elaborate in the future
+	if len(nodeIPs) > 0 {
+		if len(service.Spec.Ports) > 0 {
+			return fmt.Sprintf("%s:%d", nodeIPs[0], service.Spec.Ports[0].NodePort), nil
+		}
 	}
 
 	return "", nil

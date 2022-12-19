@@ -8,13 +8,16 @@ import { validationSchema as gkeValidation } from './GKECreateClusterForm/valida
 import { validationSchema as apiValidation } from './ApiCreateClusterForm/validation';
 import { validationSchema as azureValidation } from './AzureCreateClusterForm/validation';
 import { validationSchema as amazonValidation } from './EKSCreateClusterForm/validation';
+import { validationSchema as microk8sValidation } from './Microk8sCreateClusterForm/validation';
 import { KaasInfo, KaaSFormType, FormValues } from './types';
 import { providerFormType } from './utils';
 
 export function useValidationSchema(
   provider: KaasProvider,
   kaasInfo?: KaasInfo | null
-): SchemaOf<Omit<FormValues, 'api' | 'azure' | 'google' | 'amazon'>> {
+): SchemaOf<
+  Omit<FormValues, 'api' | 'azure' | 'google' | 'amazon' | 'microk8s'>
+> {
   return object({
     name: useNameValidation()
       .matches(
@@ -55,6 +58,10 @@ export function useValidationSchema(
     amazon:
       providerFormType(provider) === KaaSFormType.EKS
         ? amazonValidation()
+        : mixed(),
+    microk8s:
+      providerFormType(provider) === KaaSFormType.MICROK8S
+        ? microk8sValidation()
         : mixed(),
   });
 }

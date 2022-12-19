@@ -93,6 +93,8 @@ export function providerFormType(provider: KaasProvider) {
       return KaaSFormType.EKS;
     case KaasProvider.AZURE:
       return KaaSFormType.AZURE;
+    case KaasProvider.MICROK8S:
+      return KaaSFormType.MICROK8S;
     case KaasProvider.DIGITAL_OCEAN:
     case KaasProvider.LINODE:
     case KaasProvider.CIVO:

@@ -18,6 +18,7 @@ import { APICredentialsForm } from '../components/APICredentialsForm';
 import { GCPCredentialsForm } from '../components/GCPCredentialsForm';
 import { AWSCredentialsForm } from '../components/AWSCredentialsForm';
 import { AzureCredentialsForm } from '../components/AzureCredentialsForm';
+import { Microk8sCredentialsForm } from '../components/Microk8sCredentialsForm';
 import { trimObject } from '../utils';
 
 type Props = {
@@ -92,6 +93,9 @@ function getForm(provider: KaasProvider) {
 
     case KaasProvider.AZURE:
       return AzureCredentialsForm;
+
+    case KaasProvider.MICROK8S:
+      return Microk8sCredentialsForm;
 
     case KaasProvider.CIVO:
     case KaasProvider.DIGITAL_OCEAN:

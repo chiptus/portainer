@@ -1121,6 +1121,15 @@ type (
 		AmiType        string
 		InstanceType   string
 		NodeVolumeSize int
+
+		// Microk8S specific fields
+		NodeIPs []string
+		Addons  []string
+
+		// TODO: REVIEW-POC-MICROK8S
+		// Even though this was considered for the scope of the POC
+		// I believe that it would add value to make it generic so that this feature could be used with all cloud providers
+		CustomTemplateID CustomTemplateID
 	}
 
 	// CloudProvisioningID represents a cloud provisioning identifier
@@ -1142,6 +1151,10 @@ type (
 
 		// AZURE specific fields
 		ResourceGroup string
+
+		// Microk8s specific fields
+		NodeIPs          []string
+		CustomTemplateID CustomTemplateID
 	}
 
 	// GlobalDeploymentOptions hides manual deployment forms globally, to enforce infrastructure as code practices
@@ -1746,8 +1759,8 @@ type (
 		IsRegistrySecret(namespace, secretName string) (bool, error)
 		ToggleSystemState(namespace string, isSystem bool) error
 		DeployPortainerAgent() error
-		GetPortainerAgentIPOrHostname() (string, error)
 		UpsertPortainerK8sClusterRoles(clusterConfig KubernetesConfiguration) error
+		GetPortainerAgentIPOrHostname(nodeIPs []string) (string, error)
 	}
 
 	// NomadClient represents a service used to query a Nomad environment(endpoint)
@@ -1766,6 +1779,7 @@ type (
 	KubernetesDeployer interface {
 		Deploy(userID UserID, endpoint *Endpoint, manifestFiles []string, namespace string) (string, error)
 		Restart(userID UserID, endpoint *Endpoint, resourceList []string, namespace string) (string, error)
+		DeployViaKubeConfig(kubeConfig string, clusterID string, manifestFile string) error
 		Remove(userID UserID, endpoint *Endpoint, manifestFiles []string, namespace string) (string, error)
 		ConvertCompose(data []byte) ([]byte, error)
 	}
@@ -1937,8 +1951,12 @@ const (
 	DateTimeFormat = "2006-01-02 15:04:05"
 )
 
+const microk8s Feature = "microk8s"
+
 // List of supported features
-var SupportedFeatureFlags = []Feature{}
+var SupportedFeatureFlags = []Feature{
+	microk8s,
+}
 
 const (
 	_ AuthenticationMethod = iota
@@ -2562,4 +2580,5 @@ const (
 	CloudProviderKubeConfig   = "kubeconfig"
 	CloudProviderAzure        = "azure"
 	CloudProviderAmazon       = "amazon"
+	CloudProviderMicrok8s     = "microk8s"
 )

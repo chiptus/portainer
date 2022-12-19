@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -47,6 +48,7 @@ type (
 		snapshotService      portaineree.SnapshotService
 		authorizationService *authorization.Service
 		clientFactory        *kubecli.ClientFactory
+		kubernetesDeployer   portaineree.KubernetesDeployer
 	}
 
 	cloudPrevisioningResult struct {
@@ -59,7 +61,7 @@ type (
 	}
 )
 
-func NewCloudClusterSetupService(dataStore dataservices.DataStore, fileService portaineree.FileService, clientFactory *kubecli.ClientFactory, snapshotService portaineree.SnapshotService, authorizationService *authorization.Service, shutdownCtx context.Context) *CloudClusterSetupService {
+func NewCloudClusterSetupService(dataStore dataservices.DataStore, fileService portaineree.FileService, clientFactory *kubecli.ClientFactory, snapshotService portaineree.SnapshotService, authorizationService *authorization.Service, shutdownCtx context.Context, kubernetesDeployer portaineree.KubernetesDeployer) *CloudClusterSetupService {
 	requests := make(chan *portaineree.CloudProvisioningRequest, 10)
 	result := make(chan *cloudPrevisioningResult, 10)
 
@@ -72,6 +74,7 @@ func NewCloudClusterSetupService(dataStore dataservices.DataStore, fileService p
 		snapshotService:      snapshotService,
 		authorizationService: authorizationService,
 		clientFactory:        clientFactory,
+		kubernetesDeployer:   kubernetesDeployer,
 	}
 }
 
@@ -105,13 +108,15 @@ func (service *CloudClusterSetupService) Request(r *portaineree.CloudProvisionin
 // createClusterSetupTask transforms a provisioning request into a task and adds it to the db
 func (service *CloudClusterSetupService) createClusterSetupTask(request *portaineree.CloudProvisioningRequest, clusterID, resourceGroup string) (portaineree.CloudProvisioningTask, error) {
 	task := portaineree.CloudProvisioningTask{
-		Provider:      request.Provider,
-		ClusterID:     clusterID,
-		EndpointID:    request.EndpointID,
-		Region:        request.Region,
-		State:         request.StartingState,
-		CreatedAt:     time.Now(),
-		ResourceGroup: resourceGroup,
+		Provider:         request.Provider,
+		ClusterID:        clusterID,
+		EndpointID:       request.EndpointID,
+		Region:           request.Region,
+		State:            request.StartingState,
+		CreatedAt:        time.Now(),
+		ResourceGroup:    resourceGroup,
+		CustomTemplateID: request.CustomTemplateID,
+		NodeIPs:          request.NodeIPs,
 	}
 
 	return task, service.dataStore.CloudProvisioning().Create(&task)
@@ -257,6 +262,26 @@ func (service *CloudClusterSetupService) setStatus(id portaineree.EndpointID, st
 	return nil
 }
 
+func (service *CloudClusterSetupService) seedCluster(task *portaineree.CloudProvisioningTask) (err error) {
+	// TODO: REVIEW-POC-MICROK8S
+	// For now, only microk8s is supported
+	if task.Provider != portaineree.CloudProviderMicrok8s {
+		return nil
+	}
+
+	customTemplate, err := service.dataStore.CustomTemplate().CustomTemplate(portaineree.CustomTemplateID(task.CustomTemplateID))
+	if err != nil {
+		return err
+	}
+
+	cluster, err := service.getKaasCluster(task)
+	if err != nil {
+		return err
+	}
+
+	return service.kubernetesDeployer.DeployViaKubeConfig(cluster.KubeConfig, task.ClusterID, filepath.Join(customTemplate.ProjectPath, customTemplate.EntryPoint))
+}
+
 // getKaasCluster gets the kaasCluster object for the task from the associated cloud provider
 func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudProvisioningTask) (cluster *KaasCluster, err error) {
 	endpoint, err := service.dataStore.Endpoint().Endpoint(task.EndpointID)
@@ -270,6 +295,9 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 	}
 
 	switch task.Provider {
+	case portaineree.CloudProviderMicrok8s:
+		cluster, err = Microk8sGetCluster(credentials.Credentials["username"], credentials.Credentials["password"], task.ClusterID, task.NodeIPs)
+
 	case portaineree.CloudProviderCivo:
 		cluster, err = CivoGetCluster(credentials.Credentials["apiKey"], task.ClusterID, task.Region)
 
@@ -391,6 +419,16 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				service.changeState(&task, ProvisioningStateAgentSetup, "Deploying Portainer agent")
 			}
 
+			// TODO: REVIEW-POC-MICROK8S
+			// This should probably be in a separated state
+			if task.Provider == portaineree.CloudProviderMicrok8s {
+				err = service.seedCluster(&task)
+				if err != nil {
+					task.Retries++
+					break
+				}
+			}
+
 			log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Msg("waiting for cluster")
 
 		case ProvisioningStateAgentSetup:
@@ -414,6 +452,9 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 
 			err = kubeClient.DeployPortainerAgent()
 			if err != nil {
+				log.Info().
+					Err(err).
+					Msg("failed to deploy portainer agent")
 				err = checkFatal(err)
 				task.Retries++
 				break
@@ -428,9 +469,12 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				Int("endpoint_id", int(task.EndpointID)).
 				Msg("waiting for portainer agent")
 
-			serviceIP, err = kubeClient.GetPortainerAgentIPOrHostname()
+			serviceIP, err = kubeClient.GetPortainerAgentIPOrHostname(task.NodeIPs)
 			if serviceIP == "" {
 				err = fmt.Errorf("could not get service ip or hostname: %v", err)
+				log.Debug().
+					Err(err).
+					Msg("failed to get service ip or hostname")
 			}
 			if err != nil {
 				err = checkFatal(err)
@@ -449,7 +493,15 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 		case ProvisioningStateUpdatingEndpoint:
 			log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Msg("updating environment")
 
-			err = service.updateEndpoint(task.EndpointID, fmt.Sprintf("%s:9001", serviceIP))
+			// TODO: REVIEW-POC-MICROK8S
+			// This is another hack around the fact that microk8s is using nodePort and that the serviceIP
+			// returned previously is already containing the agent port
+			agentServiceIP := fmt.Sprintf("%s:9001", serviceIP)
+			if task.Provider == portaineree.CloudProviderMicrok8s {
+				agentServiceIP = serviceIP
+			}
+
+			err = service.updateEndpoint(task.EndpointID, agentServiceIP)
 			if err != nil {
 				task.Retries++
 				break
@@ -458,7 +510,9 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			service.changeState(&task, ProvisioningStateDone, "Connecting")
 
 		case ProvisioningStateDone:
-			if err != nil {
+			// TODO: REVIEW-POC-MICROK8S
+			// Are we expecting an error here?
+			if err == nil {
 				log.Info().
 					Str("provider", task.Provider).
 					Int("endpoint_id", int(task.EndpointID)).
@@ -510,6 +564,9 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 	// it appearing twice in the portainer logs.
 
 	switch request.Provider {
+	case portaineree.CloudProviderMicrok8s:
+		clusterID, provErr = Microk8sProvisionCluster(credentials.Credentials["username"], credentials.Credentials["password"], request.NodeIPs, request.Addons)
+
 	case portaineree.CloudProviderCivo:
 		clusterID, provErr = CivoProvisionCluster(credentials.Credentials["apiKey"], request.Region, request.Name, request.NodeSize, request.NetworkID, request.NodeCount, request.KubernetesVersion)
 

@@ -19,6 +19,10 @@ func (deployer *kubernetesMockDeployer) Restart(userID portaineree.UserID, endpo
 	return "", nil
 }
 
+func (deployer *kubernetesMockDeployer) DeployViaKubeConfig(kubeConfig string, clusterID string, manifestFile string) error {
+	return nil
+}
+
 func (deployer *kubernetesMockDeployer) Remove(userID portaineree.UserID, endpoint *portaineree.Endpoint, manifestFiles []string, namespace string) (string, error) {
 	return "", nil
 }

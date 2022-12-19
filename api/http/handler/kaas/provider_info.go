@@ -47,6 +47,12 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 	}
 
 	switch provider {
+	// TODO: REVIEW-POC-MICROK8S
+	// This was just added to avoid errors in the frontend
+	// A FE engineer might have a better solution around this
+	case portaineree.CloudProviderMicrok8s:
+		return response.JSON(w, map[string]interface{}{})
+
 	case portaineree.CloudProviderCivo:
 		civoInfo, err := handler.cloudClusterInfoService.CivoGetInfo(credential, force)
 		if err != nil {

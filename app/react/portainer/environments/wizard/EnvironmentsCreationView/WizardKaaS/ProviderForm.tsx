@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import {
   KaasProvider,
   Credential,
+  CustomTemplate,
 } from '@/react/portainer/settings/cloud/types';
 
 import { FormValues } from './types';
@@ -11,11 +12,13 @@ import { GKECreateClusterForm } from './GKECreateClusterForm/GKECreateClusterFor
 import { ApiCreateClusterForm } from './ApiCreateClusterForm/ApiCreateClusterForm';
 import { AzureCreateClusterForm } from './AzureCreateClusterForm/AzureCreateClusterForm';
 import { EKSCreateClusterForm } from './EKSCreateClusterForm/EKSCreateClusterForm';
+import { Microk8sCreateClusterForm } from './Microk8sCreateClusterForm/Microk8sCreateClusterForm';
 
 interface Props {
   provider: KaasProvider;
   onChangeSelectedCredential: (credential: Credential | null) => void;
   credentials: Credential[];
+  customTemplates: CustomTemplate[];
   isSubmitting: boolean;
 }
 
@@ -23,7 +26,7 @@ export function ProviderForm({
   provider,
   onChangeSelectedCredential,
   credentials,
-
+  customTemplates,
   isSubmitting,
 }: Props) {
   useSelectedCredentials(credentials, onChangeSelectedCredential);
@@ -38,6 +41,7 @@ export function ProviderForm({
     <Form
       provider={provider}
       credentials={credentials}
+      customTemplates={customTemplates}
       isSubmitting={isSubmitting}
     />
   );
@@ -56,6 +60,8 @@ function getForm(provider: KaasProvider) {
       return AzureCreateClusterForm;
     case KaasProvider.AWS:
       return EKSCreateClusterForm;
+    case KaasProvider.MICROK8S:
+      return Microk8sCreateClusterForm;
     default:
       throw new Error(`Provider ${provider} not supported`);
   }

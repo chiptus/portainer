@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	"github.com/portainer/portainer/api/filesystem"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -79,6 +81,37 @@ func (deployer *KubernetesDeployer) getToken(userID portaineree.UserID, endpoint
 	}
 
 	return token, nil
+}
+
+func (deployer *KubernetesDeployer) DeployViaKubeConfig(kubeConfig string, clusterID string, manifestFile string) error {
+	kubeConfigPath := filepath.Join(os.TempDir(), clusterID)
+	err := filesystem.WriteToFile(kubeConfigPath, []byte(kubeConfig))
+	if err != nil {
+		return err
+	}
+
+	command := path.Join(deployer.binaryPath, "kubectl")
+	if runtime.GOOS == "windows" {
+		command = path.Join(deployer.binaryPath, "kubectl.exe")
+	}
+
+	args := []string{"--kubeconfig", kubeConfigPath}
+	args = append(args, "apply", "-f", strings.TrimSpace(manifestFile))
+
+	var stderr bytes.Buffer
+	cmd := exec.Command(command, args...)
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, "POD_NAMESPACE=default")
+	cmd.Stderr = &stderr
+
+	output, err := cmd.Output()
+	if err != nil {
+		return errors.Wrapf(err, "failed to execute kubectl command: %q", stderr.String())
+	}
+
+	fmt.Println(string(output))
+
+	return nil
 }
 
 // Deploy upserts Kubernetes resources defined in manifest(s)

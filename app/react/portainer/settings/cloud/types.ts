@@ -5,6 +5,7 @@ export enum KaasProvider {
   GOOGLE_CLOUD = 'gke',
   AWS = 'amazon',
   AZURE = 'azure',
+  MICROK8S = 'microk8s',
 }
 
 export const providerTitles: Record<KaasProvider, string> = {
@@ -14,6 +15,7 @@ export const providerTitles: Record<KaasProvider, string> = {
   gke: 'Google Cloud',
   amazon: 'AWS',
   azure: 'Azure',
+  microk8s: 'MicroK8s',
 };
 
 export const providerHelpLinks: Record<KaasProvider, string> = {
@@ -23,6 +25,9 @@ export const providerHelpLinks: Record<KaasProvider, string> = {
   gke: 'https://docs.portainer.io/admin/settings/cloud/gke',
   amazon: 'https://docs.portainer.io/admin/settings/cloud/eks',
   azure: 'https://docs.portainer.io/admin/settings/cloud/aks',
+  // TODO: REVIEW-POC-MICROK8S
+  // We should have this documented on our docs portal
+  microk8s: 'https://docs.portainer.io',
 };
 
 export type APICredentials = {
@@ -45,6 +50,11 @@ export type AzureCredentials = {
   subscriptionID: string;
 };
 
+export type UsernamePasswordCredentials = {
+  username: string;
+  password: string;
+};
+
 export interface APIFormValues {
   name: string;
   credentials: APICredentials;
@@ -65,11 +75,17 @@ export interface AzureFormValues {
   credentials: AzureCredentials;
 }
 
+export interface UsernamePasswordFormValues {
+  name: string;
+  credentials: UsernamePasswordCredentials;
+}
+
 export type CredentialDetails =
   | APICredentials
   | AccessKeyCredentials
   | ServiceAccountCredentials
-  | AzureCredentials;
+  | AzureCredentials
+  | UsernamePasswordCredentials;
 
 export type GenericFormValues = {
   name: string;
@@ -95,4 +111,12 @@ export type Credential = {
   name: string;
   provider: KaasProvider;
   credentials: CredentialDetails;
+};
+
+// TODO: REVIEW-POC-MICROK8S
+// Should probably be relocated in its own file
+export type CustomTemplate = {
+  Id: number;
+  Title: string;
+  Type: number;
 };

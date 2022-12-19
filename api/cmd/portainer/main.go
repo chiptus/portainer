@@ -685,12 +685,6 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	authorizationService := authorization.NewService(dataStore)
 	authorizationService.K8sClientFactory = kubernetesClientFactory
 
-	cloudClusterSetupService := cloud.NewCloudClusterSetupService(dataStore, fileService, kubernetesClientFactory, snapshotService, authorizationService, shutdownCtx)
-	cloudClusterSetupService.Start()
-
-	cloudClusterInfoService := cloud.NewCloudInfoService(dataStore, shutdownCtx)
-	cloudClusterInfoService.Start()
-
 	kubernetesTokenCacheManager := kubeproxy.NewTokenCacheManager()
 
 	kubeClusterAccessService := kubernetes.NewKubeClusterAccessService(*flags.BaseURL, *flags.AddrHTTPS, sslSettings.CertPath)
@@ -700,6 +694,14 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	proxyManager := proxy.NewManager(dataStore, digitalSignatureService, reverseTunnelService, dockerClientFactory, kubernetesClientFactory, kubernetesTokenCacheManager, authorizationService, userActivityService, gitService)
 
 	reverseTunnelService.ProxyManager = proxyManager
+
+	kubernetesDeployer := initKubernetesDeployer(authorizationService, kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, reverseTunnelService, digitalSignatureService, proxyManager, *flags.Assets)
+
+	cloudClusterSetupService := cloud.NewCloudClusterSetupService(dataStore, fileService, kubernetesClientFactory, snapshotService, authorizationService, shutdownCtx, kubernetesDeployer)
+	cloudClusterSetupService.Start()
+
+	cloudClusterInfoService := cloud.NewCloudInfoService(dataStore, shutdownCtx)
+	cloudClusterInfoService.Start()
 
 	dockerConfigPath := fileService.GetDockerConfigPath()
 
@@ -714,8 +716,6 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed initializing swarm stack manager")
 	}
-
-	kubernetesDeployer := initKubernetesDeployer(authorizationService, kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, reverseTunnelService, digitalSignatureService, proxyManager, *flags.Assets)
 
 	helmPackageManager, err := initHelmPackageManager(*flags.Assets)
 	if err != nil {

@@ -5,6 +5,7 @@ import {
   AccessKeyFormValues,
   APIFormValues,
   AzureFormValues,
+  UsernamePasswordFormValues,
   Credential,
   CreateCredentialPayload,
   GenericFormValues,
@@ -16,6 +17,7 @@ import { APICredentialsForm } from '../components/APICredentialsForm';
 import { GCPCredentialsForm } from '../components/GCPCredentialsForm';
 import { AWSCredentialsForm } from '../components/AWSCredentialsForm';
 import { AzureCredentialsForm } from '../components/AzureCredentialsForm';
+import { Microk8sCredentialsForm } from '../components/Microk8sCredentialsForm';
 import { sensitiveFieldChanged, sensitiveFields, trimObject } from '../utils';
 import {
   useCloudCredentials,
@@ -31,6 +33,7 @@ enum FormTypes {
   SERVICE_ACCOUNT = 'service-account',
   ACCESS_KEY = 'access-key',
   AZURE = 'azure',
+  USERNAME_PASSWORD = 'username-password',
 }
 
 export function EditCredentialForm({ credential }: Props) {
@@ -126,6 +129,23 @@ export function EditCredentialForm({ credential }: Props) {
             placeholderText="*******"
           />
         )}
+      {formType === FormTypes.USERNAME_PASSWORD &&
+        'password' in credential.credentials && (
+          <Microk8sCredentialsForm
+            selectedProvider={provider}
+            isEditing
+            isLoading={updateCredentialMutation.isLoading}
+            onSubmit={onSubmit}
+            credentialNames={credentialNames}
+            initialValues={
+              {
+                ...initialValues,
+                credentials: { ...initialValues.credentials, password: '' },
+              } as UsernamePasswordFormValues
+            }
+            placeholderText="*******"
+          />
+        )}
     </>
   );
 
@@ -160,6 +180,9 @@ function getFormType(provider: KaasProvider) {
 
     case KaasProvider.AZURE:
       return FormTypes.AZURE;
+
+    case KaasProvider.MICROK8S:
+      return FormTypes.USERNAME_PASSWORD;
 
     case KaasProvider.CIVO:
     case KaasProvider.DIGITAL_OCEAN:

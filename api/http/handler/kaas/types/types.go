@@ -38,4 +38,8 @@ var CloudProvidersMap CloudProviders = CloudProviders{
 		Name: "Amazon",
 		URL:  "https://console.aws.amazon.com",
 	},
+	portaineree.CloudProviderMicrok8s: {
+		Name: "Microk8s",
+		URL:  "https://microk8s.io/",
+	},
 }

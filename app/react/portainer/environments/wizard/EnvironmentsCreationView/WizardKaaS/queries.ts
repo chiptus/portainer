@@ -43,6 +43,10 @@ async function kaasInfoFetcher<T extends KaasInfo>(
     return null;
   }
 
+  if (credential.provider === KaasProvider.MICROK8S) {
+    return null;
+  }
+
   const info = await getKaasInfo(credential, force);
 
   return validator(info) ? info : null;

@@ -7,6 +7,11 @@ export enum KaaSFormType {
   EKS = 'eks',
   GKE = 'gke',
   AZURE = 'azure',
+  MICROK8S = 'microk8s',
+}
+
+export interface Microk8sAddOn {
+  Name: string;
 }
 
 interface CreateBaseClusterFormValues {
@@ -46,6 +51,14 @@ export interface CreateEKSClusterFormValues {
   nodeVolumeSize: number;
 }
 
+export interface CreateMicrok8sClusterFormValues {
+  nodeIP1: string;
+  nodeIP2: string;
+  nodeIP3: string;
+  addons: Microk8sAddOn[];
+  customTemplateId: number;
+}
+
 export interface FormValues extends CreateBaseClusterFormValues {
   name: string;
   meta: EnvironmentMetadata;
@@ -54,6 +67,7 @@ export interface FormValues extends CreateBaseClusterFormValues {
   google: CreateGKEClusterFormValues;
   api: CreateApiClusterFormValues;
   amazon: CreateEKSClusterFormValues;
+  microk8s: CreateMicrok8sClusterFormValues;
 }
 
 // Create KaaS cluster payloads
@@ -75,11 +89,19 @@ export interface CreateEksClusterPayload extends CreateEKSClusterFormValues {
   name: string;
 }
 
+export interface CreateMicrok8sClusterPayload {
+  name: string;
+  NodeIPs: string[];
+  Addons: string[];
+  customTemplateId: number;
+}
+
 export type CreateClusterPayload =
   | CreateApiClusterPayload
   | CreateEksClusterPayload
   | CreateAzureClusterPayload
-  | CreateGKEClusterPayload;
+  | CreateGKEClusterPayload
+  | CreateMicrok8sClusterPayload;
 
 // Kaas info response
 type KaasNetwork = {
@@ -237,6 +259,10 @@ export interface GKEKaasInfo extends BaseKaasInfo {
 export interface EKSKaasInfo extends BaseKaasInfo {
   amiTypes: Array<Option<string>>;
   instanceTypes: InstanceTypeRegions;
+}
+
+export interface Microk8sKaasInfo extends BaseKaasInfo {
+  nodeIP1: string;
 }
 
 export type KaasInfo = APIKaasInfo | AzureKaasInfo | GKEKaasInfo | EKSKaasInfo;

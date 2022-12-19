@@ -7,11 +7,13 @@ import { Icon } from '@@/Icon';
 type Color = 'orange' | 'blue';
 
 export interface Props {
+  icon?: React.ReactNode;
   color?: Color;
 }
 
 export function TextTip({
   color = 'orange',
+  icon = AlertCircle,
   children,
 }: PropsWithChildren<Props>) {
   let iconClass: string;
@@ -30,10 +32,7 @@ export function TextTip({
   return (
     <p className="small vertical-center">
       <i className="icon-container">
-        <Icon
-          icon={AlertCircle}
-          className={clsx(`${iconClass}`, 'space-right')}
-        />
+        <Icon icon={icon} className={clsx(`${iconClass}`, 'space-right')} />
       </i>
       <span className="text-muted">{children}</span>
     </p>
