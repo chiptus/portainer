@@ -130,33 +130,74 @@
               </div>
               <div ng-if="ctrl.formValues.DeploymentOptions.overrideGlobalOptions">
                 <div class="form-group">
-                  <por-switch-field
-                    label="'Enforce code-based deployment'"
-                    checked="ctrl.formValues.DeploymentOptions.hideAddWithForm"
-                    name="'toggle_hideAddWithForm'"
-                    on-change="(ctrl.onToggleAddWithForm)"
-                    field-class="'col-sm-12'"
-                    label-class="'col-sm-5 col-lg-4 !pl-4 !m-0'"
-                    tooltip="'Hides the \'Add with form\' buttons and prevents adding/editing of resources via forms'"
-                  ></por-switch-field>
+                  <div class="col-sm-12">
+                    <label class="control-label text-left col-sm-5 col-lg-4 pr-0 !pl-4" for="hideAddWithForm">
+                      Enforce code-based deployment
+                      <portainer-tooltip message="'Hides the \'Add with form\' buttons and prevents adding/editing of resources via forms'"></portainer-tooltip
+                    ></label>
+                    <div class="switch col-sm-8">
+                      <por-switch
+                        id="'hideAddWithForm'"
+                        checked="ctrl.formValues.DeploymentOptions.hideAddWithForm"
+                        name="'toggle_hideAddWithForm'"
+                        on-change="(ctrl.onToggleAddWithForm)"
+                        class-name="'slider round'"
+                        data-cy="'kubesetup-hideAddWithForm'"
+                      ></por-switch>
+                      <em class="pl-10 control-label h-full align-middle !pt-0 w-max text-[0.9em]"
+                        >{{
+                          ctrl.formValues.DeploymentOptions.hideAddWithForm === ctrl.globalSettings.GlobalDeploymentOptions.hideAddWithForm
+                            ? 'same as global setting: '
+                            : 'overriding global setting: '
+                        }}
+                        {{ ctrl.globalSettings.GlobalDeploymentOptions.hideAddWithForm ? 'ON' : 'OFF' }}</em
+                      >
+                    </div>
+                  </div>
                 </div>
                 <div class="form-group flex flex-col gap-y-1" ng-if="ctrl.formValues.DeploymentOptions.hideAddWithForm">
-                  <por-switch-field
-                    label="'Allow web editor use'"
-                    checked="!ctrl.formValues.DeploymentOptions.hideWebEditor"
-                    name="'toggle_hideWebEditor'"
-                    on-change="(ctrl.onToggleHideWebEditor)"
-                    field-class="'col-sm-12'"
-                    label-class="'col-sm-5 col-lg-4 !pl-8 !m-0'"
-                  ></por-switch-field>
-                  <por-switch-field
-                    label="'Allow file upload'"
-                    checked="!ctrl.formValues.DeploymentOptions.hideFileUpload"
-                    name="'toggle_hideFileUpload'"
-                    on-change="(ctrl.onToggleHideFileUpload)"
-                    field-class="'col-sm-12'"
-                    label-class="'col-sm-5 col-lg-4 !pl-8 !m-0'"
-                  ></por-switch-field>
+                  <div class="col-sm-12">
+                    <label class="control-label text-left col-sm-5 col-lg-4 pr-0 !pl-8" for="hideWebEditor">Allow web editor use</label>
+                    <div class="switch col-sm-8">
+                      <por-switch
+                        id="'hideWebEditor'"
+                        checked="!ctrl.formValues.DeploymentOptions.hideWebEditor"
+                        name="'toggle_hideWebEditor'"
+                        on-change="(ctrl.onToggleHideWebEditor)"
+                        class-name="'slider round'"
+                        data-cy="'kubesetup-allowWebEditor'"
+                      ></por-switch>
+                      <em class="pl-10 control-label h-full align-middle !pt-0 w-max text-[0.9em]"
+                        >{{
+                          ctrl.formValues.DeploymentOptions.hideWebEditor === ctrl.globalSettings.GlobalDeploymentOptions.hideWebEditor
+                            ? 'same as global setting: '
+                            : 'overriding global setting: '
+                        }}
+                        {{ !ctrl.globalSettings.GlobalDeploymentOptions.hideWebEditor || !ctrl.globalSettings.GlobalDeploymentOptions.hideWebEditor ? 'ON' : 'OFF' }}</em
+                      >
+                    </div>
+                  </div>
+                  <div class="col-sm-12">
+                    <label class="control-label text-left col-sm-5 col-lg-4 pr-0 !pl-8" for="hideFileUpload">Allow file upload</label>
+                    <div class="switch col-sm-8">
+                      <por-switch
+                        id="'hideFileUpload'"
+                        checked="!ctrl.formValues.DeploymentOptions.hideFileUpload"
+                        name="'toggle_hideFileUpload'"
+                        on-change="(ctrl.onToggleHideFileUpload)"
+                        class-name="'slider round'"
+                        data-cy="'kubesetup-allowFileUpload'"
+                      ></por-switch>
+                      <em class="pl-10 control-label h-full align-middle !pt-0 w-max text-[0.9em]"
+                        >{{
+                          ctrl.formValues.DeploymentOptions.hideFileUpload === ctrl.globalSettings.GlobalDeploymentOptions.hideFileUpload
+                            ? 'same as global setting: '
+                            : 'overriding global setting: '
+                        }}
+                        {{ !ctrl.globalSettings.GlobalDeploymentOptions.hideAddWithForm || !ctrl.globalSettings.GlobalDeploymentOptions.hideFileUpload ? 'ON' : 'OFF' }}</em
+                      >
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

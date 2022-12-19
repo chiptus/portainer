@@ -35,6 +35,7 @@ import { TeamsSelector } from '@@/TeamsSelector';
 import { PortainerSelect } from '@@/form-components/PortainerSelect';
 import { Slider } from '@@/form-components/Slider';
 import { TagButton } from '@@/TagButton';
+import { Switch } from '@@/form-components/SwitchField/Switch';
 
 import { fileUploadField } from './file-upload-field';
 import { switchField } from './switch-field';
@@ -57,6 +58,19 @@ export const componentsModule = angular
   .component('badge', r2a(Badge, ['type', 'className']))
   .component('fileUploadField', fileUploadField)
   .component('porSwitchField', switchField)
+  .component(
+    'porSwitch',
+    r2a(Switch, [
+      'name',
+      'checked',
+      'id',
+      'disabled',
+      'dataCy',
+      'onChange',
+      'featureId',
+      'className',
+    ])
+  )
   .component(
     'passwordCheckHint',
     r2a(withReactQuery(PasswordCheckHint), [
