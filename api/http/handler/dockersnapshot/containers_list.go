@@ -2,14 +2,15 @@ package dockersnapshot
 
 import (
 	"fmt"
-	"github.com/portainer/portainer-ee/api/docker/consts"
 	"net/http"
 
 	"github.com/docker/docker/api/types"
+
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/docker/consts"
 	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 

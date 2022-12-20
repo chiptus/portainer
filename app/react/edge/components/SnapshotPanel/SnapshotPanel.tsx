@@ -5,45 +5,50 @@ import { Menu, MenuButton, MenuPopover } from '@reach/menu-button';
 import { get } from 'lodash';
 
 import { Environment } from '@/react/portainer/environments/types';
-import { DockerSnapshotRaw } from '@/react/docker/snapshots/types';
 import { useSettings } from '@/react/portainer/settings/queries';
+import { useDockerSnapshot } from '@/react/docker/queries/useDockerSnapshot';
+import {
+  isDockerEnvironment,
+  isEdgeAsync,
+} from '@/react/portainer/environments/utils';
 
 import { EnvironmentStatusBadge } from '@@/EnvironmentStatusBadge';
-import { PageHeaderProps, PageHeader } from '@@/PageHeader';
 import { DetailsTable } from '@@/DetailsTable';
 import { Icon } from '@@/Icon';
 
 import { DateColumn } from './DateColumn';
 import { IntervalColumn } from './IntervalColumn';
 
-type Props = {
-  environment: Environment;
-  snapshot?: DockerSnapshotRaw;
-} & Omit<PageHeaderProps, 'reload'>;
-
-export function EdgeDeviceViewsHeader({
+export function DockerSnapshotPanel({
   environment,
-  snapshot,
-  title,
-  breadcrumbs,
-  ...props
-}: Props) {
+}: {
+  environment: Environment;
+}) {
+  const isDocker = isDockerEnvironment(environment.Type);
+  const isBrowsingSnapshot = isEdgeAsync(environment);
+
+  const snapshotQuery = useDockerSnapshot(environment.Id, {
+    enabled: isDocker && isBrowsingSnapshot,
+  });
+  const snapshot = snapshotQuery.data;
+  if (!isDocker || !isBrowsingSnapshot || !snapshot) {
+    return null;
+  }
+
   return (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <PageHeader {...props} title={title} breadcrumbs={breadcrumbs} reload>
-      {snapshot && (
-        <SnapshotPanel environment={environment} snapshot={snapshot} />
-      )}
-    </PageHeader>
+    <SnapshotPanel
+      environment={environment}
+      lastSnapshotTime={snapshot.SnapshotTime}
+    />
   );
 }
 
 interface SnapshotPanelProps {
   environment: Environment;
-  snapshot: DockerSnapshotRaw;
+  lastSnapshotTime: string;
 }
 
-function SnapshotPanel({ environment, snapshot }: SnapshotPanelProps) {
+function SnapshotPanel({ environment, lastSnapshotTime }: SnapshotPanelProps) {
   const { data: defaultSnapshotInterval } = useSettings((settings): number =>
     get(settings, 'Edge.SnapshotInterval', 0)
   );
@@ -53,7 +58,7 @@ function SnapshotPanel({ environment, snapshot }: SnapshotPanelProps) {
       ? environment.Edge.SnapshotInterval
       : defaultSnapshotInterval || 0;
 
-  const lastSnapshotDate = new Date(snapshot.SnapshotTime);
+  const lastSnapshotDate = new Date(lastSnapshotTime);
   const now = new Date();
   const nextSnapshotDate = addSeconds(lastSnapshotDate, snapshotInterval);
   const snapshotIntervalEnd = addSeconds(now, snapshotInterval);

@@ -80,7 +80,6 @@ export function VolumesView() {
         title="Volumes"
         breadcrumbs={breadcrumbs}
         environment={environment}
-        snapshot={snapshot}
       />
 
       <RowProvider context={{ environment }}>

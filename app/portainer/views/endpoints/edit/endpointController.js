@@ -264,7 +264,7 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
     EndpointService.updateEndpoint(endpoint.Id, payload).then(
       function success() {
         Notifications.success('Environment updated', $scope.endpoint.Name);
-        $state.go('portainer.endpoints', {}, { reload: true });
+        $state.go($state.params.redirectTo || 'portainer.endpoints', {}, { reload: true });
       },
       function error(err) {
         Notifications.error('Failure', err, 'Unable to update environment');

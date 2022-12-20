@@ -93,7 +93,6 @@ export function ContainersView() {
         title="Containers"
         breadcrumbs={breadcrumbs}
         environment={environment}
-        snapshot={snapshot}
       />
 
       {edgeStackQuery.data && (

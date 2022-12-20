@@ -8,12 +8,16 @@ import { parseViewModel } from '@/react/docker/snapshots/utils';
 
 import { buildDockerSnapshotUrl, queryKeys } from './utils';
 
-export function useDockerSnapshot(environmentId: Environment['Id']) {
+export function useDockerSnapshot(
+  environmentId: Environment['Id'],
+  { enabled }: { enabled?: boolean } = {}
+) {
   return useQuery(
     queryKeys.snapshotQuery(environmentId),
     () => getEnvironmentSnapshot(environmentId),
     {
       ...withError('Failed loading snapshot'),
+      enabled,
     }
   );
 }

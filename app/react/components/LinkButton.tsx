@@ -10,27 +10,24 @@ export function LinkButton({
   disabled,
   className,
   children,
+  title = '',
   ...props
 }: ComponentProps<typeof Button> & ComponentProps<typeof Link>) {
-  const button = (
+  return (
     <Button
+      title={title}
+      size="medium"
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
-      className={clsx(className, '!m-0')}
-      size="medium"
+      className={clsx(className, '!m-0 no-link')}
       disabled={disabled}
+      as={disabled ? 'span' : Link}
+      props={{
+        to,
+        params,
+      }}
     >
       {children}
     </Button>
-  );
-
-  if (disabled) {
-    return button;
-  }
-
-  return (
-    <Link to={to} params={params} className="text-inherit hover:no-underline">
-      {button}
-    </Link>
   );
 }

@@ -87,7 +87,6 @@ export function DashboardView() {
         title="Dashboard"
         breadcrumbs={breadcrumbs}
         environment={environment}
-        snapshot={snapshot}
       />
 
       <div className="row">

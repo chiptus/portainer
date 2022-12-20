@@ -79,7 +79,6 @@ export function ImagesView() {
         title="Images"
         breadcrumbs={breadcrumbs}
         environment={environment}
-        snapshot={snapshot}
       />
 
       <RowProvider context={{ environment }}>

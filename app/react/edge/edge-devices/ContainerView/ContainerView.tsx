@@ -9,6 +9,8 @@ import { PageHeader } from '@@/PageHeader';
 import { DetailsTable } from '@@/DetailsTable';
 import { Widget, WidgetTitle, WidgetBody } from '@@/Widget';
 
+import { DockerSnapshotPanel } from '../../components/SnapshotPanel';
+
 import { NetworksTable } from './NetworksTable';
 import { VolumesTable } from './VolumesTable';
 import { LabelsRow } from './LabelsRow';
@@ -46,7 +48,9 @@ export function ContainerView() {
           { label: 'Containers', link: '^' },
           { label: name },
         ]}
-      />
+      >
+        <DockerSnapshotPanel environment={environment} />
+      </PageHeader>
 
       <div className="row">
         <div className="col-sm-12">

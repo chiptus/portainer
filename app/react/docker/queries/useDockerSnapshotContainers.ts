@@ -30,11 +30,11 @@ export async function getEnvironmentSnapshotContainers(
   params: ContainersQueryParams
 ) {
   try {
-    const { data } = await axios.get<DockerContainerResponse[]>(
+    const { data } = await axios.get<null | DockerContainerResponse[]>(
       buildDockerSnapshotContainersUrl(environmentId),
       { params }
     );
-    return data.map((c) => parseViewModel(c));
+    return data && data.map((c) => parseViewModel(c));
   } catch (e) {
     throw parseAxiosError(e as Error);
   }

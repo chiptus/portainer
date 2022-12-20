@@ -46,6 +46,8 @@ export function PublicSettingsViewModel(settings) {
   this.Features = settings.Features;
   this.Edge = new EdgeSettingsViewModel(settings.Edge);
   this.DefaultRegistry = settings.DefaultRegistry;
+  this.IsAMTEnabled = settings.IsAMTEnabled;
+  this.IsFDOEnabled = settings.IsFDOEnabled;
 }
 
 export function InternalAuthSettingsViewModel(data) {

@@ -39,6 +39,11 @@ type publicSettingsResponse struct {
 	// Whether team sync is enabled
 	TeamSync bool `json:"TeamSync" example:"true"`
 
+	// Whether FDO is enabled
+	IsFDOEnabled bool
+	// Whether AMT is enabled
+	IsAMTEnabled bool
+
 	DefaultRegistry struct {
 		Hide bool `json:"Hide" example:"false"`
 	}
@@ -89,6 +94,8 @@ func generatePublicSettings(appSettings *portaineree.Settings) *publicSettingsRe
 		KubeconfigExpiry:          appSettings.KubeconfigExpiry,
 		Features:                  appSettings.FeatureFlagSettings,
 		DefaultRegistry:           appSettings.DefaultRegistry,
+		IsFDOEnabled:              appSettings.EnableEdgeComputeFeatures && appSettings.FDOConfiguration.Enabled,
+		IsAMTEnabled:              appSettings.EnableEdgeComputeFeatures && appSettings.OpenAMTConfiguration.Enabled,
 	}
 
 	publicSettings.Edge.AsyncMode = appSettings.Edge.AsyncMode
