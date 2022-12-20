@@ -1737,7 +1737,7 @@ type (
 		GetConfigMapsAndSecrets(namespace string) ([]kubeModels.K8sConfigMapOrSecret, error)
 		GetApplications(namespace, kind string) ([]kubeModels.K8sApplication, error)
 		GetApplication(namespace, kind, name string) (kubeModels.K8sApplication, error)
-		CreateIngress(namespace string, info kubeModels.K8sIngressInfo) error
+		CreateIngress(namespace string, info kubeModels.K8sIngressInfo, owner string) error
 		UpdateIngress(namespace string, info kubeModels.K8sIngressInfo) error
 		GetIngresses(namespace string) ([]kubeModels.K8sIngressInfo, error)
 		DeleteIngresses(reqs kubeModels.K8sIngressDeleteRequests) error
