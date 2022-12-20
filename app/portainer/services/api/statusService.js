@@ -1,4 +1,5 @@
 import { getSystemStatus } from '@/react/portainer/system/useSystemStatus';
+import { getNodesCount } from '@/react/portainer/system/useNodesCount';
 import { StatusViewModel } from '../../models/status';
 
 angular.module('portainer.app').factory('StatusService', StatusServiceFactory);
@@ -21,6 +22,12 @@ function StatusServiceFactory($q) {
       });
 
     return deferred.promise;
+  };
+
+  service.nodesCount = async function nodesCount() {
+    const usedNodes = await getNodesCount();
+
+    return usedNodes;
   };
 
   return service;

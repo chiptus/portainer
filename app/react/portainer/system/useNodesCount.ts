@@ -12,7 +12,7 @@ export interface NodesCountResponse {
   nodes: number;
 }
 
-async function getNodesCount() {
+export async function getNodesCount() {
   try {
     const { data } = await axios.get<NodesCountResponse>(buildUrl('nodes'));
     return data.nodes;
