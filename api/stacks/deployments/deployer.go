@@ -5,15 +5,18 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"math/rand"
+	"os"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/swarm"
+	dockerclient "github.com/docker/docker/client"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/docker/client"
@@ -22,8 +25,9 @@ import (
 )
 
 var (
-	DefaultUnpackerImage = "portainer/compose-unpacker:latest"
-	composePathPrefix    = "portainer-compose-unpacker"
+	defaultUnpackerImage       = "portainer/compose-unpacker:latest"
+	composeUnpackerImageEnvVar = "COMPOSE_UNPACKER_IMAGE"
+	composePathPrefix          = "portainer-compose-unpacker"
 )
 
 type StackDeployer interface {
@@ -231,14 +235,21 @@ func (d *stackDeployer) RestartKubernetesStack(stack *portaineree.Stack, endpoin
 	return nil
 }
 
+// remoteStack is used to deploy a stack on a remote endpoint based on the supplied `maps` of arguments
+//
+// it deploys a container of https://github.com/portainer/compose-unpacker on the remote endpoint with a set of command arguments
 func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, maps map[string]interface{}) error {
-	cli, err := d.ClientFactory.CreateClient(endpoint, "", nil)
-	if err != nil {
-		return errors.Wrap(err, "unable to create Docker client")
-	}
-
 	ctx := context.TODO()
-	reader, err := cli.ImagePull(ctx, DefaultUnpackerImage, types.ImagePullOptions{})
+
+	cli, err := d.createDockerClient(ctx, endpoint)
+	if err != nil {
+		return errors.WithMessage(err, "unable to create docker client")
+	}
+	defer cli.Close()
+
+	image := getUnpackerImage()
+
+	reader, err := cli.ImagePull(ctx, image, types.ImagePullOptions{})
 	if err != nil {
 		return errors.Wrap(err, "unable to pull unpacker image")
 	}
@@ -251,7 +262,7 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 		return errors.Wrap(err, "unable to get agent info")
 	}
 
-	composeDestination := stack.ProjectPath
+	var composeDestination string
 	if stack.FilesystemPath != "" {
 		composeDestination = filesystem.JoinPaths(stack.FilesystemPath, composePathPrefix)
 	} else {
@@ -267,6 +278,8 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 	cmd := []string{}
 	switch stackOperation {
 	case "deploy", "undeploy":
+		// deploy [-u username -p password] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
+		// undeploy [-u username -p password] [-k] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
 		cmd = append(cmd, stackOperation)
 		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Username) != 0 && len(stack.GitConfig.Authentication.Password) != 0 {
 			cmd = append(cmd, "-u")
@@ -274,11 +287,19 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 			cmd = append(cmd, "-p")
 			cmd = append(cmd, stack.GitConfig.Authentication.Password)
 		}
+		if stackOperation == "deploy" {
+			cmd = append(cmd, getEnv(stack.Env)...)
+		}
+
 		cmd = append(cmd, stack.GitConfig.URL)
 		cmd = append(cmd, stack.Name)
 		cmd = append(cmd, composeDestination)
 		cmd = append(cmd, stack.EntryPoint)
+		for i := 0; i < len(stack.AdditionalFiles); i++ {
+			cmd = append(cmd, stack.AdditionalFiles[i])
+		}
 	case "compose-start":
+		// deploy [-u username -p password] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
 		cmd = append(cmd, "deploy")
 		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Username) != 0 && len(stack.GitConfig.Authentication.Password) != 0 {
 			cmd = append(cmd, "-u")
@@ -287,11 +308,16 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 			cmd = append(cmd, stack.GitConfig.Authentication.Password)
 		}
 		cmd = append(cmd, "-k")
+		cmd = append(cmd, getEnv(stack.Env)...)
 		cmd = append(cmd, stack.GitConfig.URL)
 		cmd = append(cmd, stack.Name)
 		cmd = append(cmd, composeDestination)
 		cmd = append(cmd, stack.EntryPoint)
+		for i := 0; i < len(stack.AdditionalFiles); i++ {
+			cmd = append(cmd, stack.AdditionalFiles[i])
+		}
 	case "compose-stop":
+		// undeploy [-u username -p password] [-k] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
 		cmd = append(cmd, "undeploy")
 		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Username) != 0 && len(stack.GitConfig.Authentication.Password) != 0 {
 			cmd = append(cmd, "-u")
@@ -304,7 +330,11 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 		cmd = append(cmd, stack.Name)
 		cmd = append(cmd, composeDestination)
 		cmd = append(cmd, stack.EntryPoint)
+		for i := 0; i < len(stack.AdditionalFiles); i++ {
+			cmd = append(cmd, stack.AdditionalFiles[i])
+		}
 	case "swarm-deploy":
+		// deploy [-u username -p password] [-f] [-r] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
 		cmd = append(cmd, stackOperation)
 		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Username) != 0 && len(stack.GitConfig.Authentication.Password) != 0 {
 			cmd = append(cmd, "-u")
@@ -320,55 +350,49 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 		if prune {
 			cmd = append(cmd, "-r")
 		}
-		if len(stack.Env) > 0 {
-			env := "--env=\""
-			for _, pair := range stack.Env {
-				env += pair.Name + "=" + pair.Value + ";"
-			}
-			env = env[0 : len(env)-1]
-			env += "\""
-			cmd = append(cmd, env)
-		}
+		cmd = append(cmd, getEnv(stack.Env)...)
 		cmd = append(cmd, stack.GitConfig.URL)
 		cmd = append(cmd, stack.Name)
 		cmd = append(cmd, composeDestination)
 		cmd = append(cmd, stack.EntryPoint)
+		for i := 0; i < len(stack.AdditionalFiles); i++ {
+			cmd = append(cmd, stack.AdditionalFiles[i])
+		}
 	case "swarm-undeploy":
+		// undeploy [-k] <project-name> <destination>
 		cmd = append(cmd, stackOperation)
 		cmd = append(cmd, stack.Name)
 		cmd = append(cmd, composeDestination)
 	case "swarm-stop":
+		// undeploy [-k] <project-name> <destination>
 		cmd = append(cmd, "swarm-undeploy")
 		cmd = append(cmd, "-k")
 		cmd = append(cmd, stack.Name)
 		cmd = append(cmd, composeDestination)
 	case "swarm-start":
+		// deploy [-u username -p password] [-f] [-r] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
 		cmd = append(cmd, "swarm-deploy")
 		cmd = append(cmd, "-k")
 		cmd = append(cmd, "-f")
 		cmd = append(cmd, "-r")
-		if len(stack.Env) > 0 {
-			env := "--env=\""
-			for _, pair := range stack.Env {
-				env += pair.Name + "=" + pair.Value + ";"
-			}
-			env = env[0 : len(env)-1]
-			env += "\""
-			cmd = append(cmd, env)
-		}
+		cmd = append(cmd, getEnv(stack.Env)...)
 		cmd = append(cmd, stack.GitConfig.URL)
 		cmd = append(cmd, stack.Name)
 		cmd = append(cmd, composeDestination)
 		cmd = append(cmd, stack.EntryPoint)
+		for i := 0; i < len(stack.AdditionalFiles); i++ {
+			cmd = append(cmd, stack.AdditionalFiles[i])
+		}
 	}
 
-	for i := 0; i < len(stack.AdditionalFiles); i++ {
-		cmd = append(cmd, stack.AdditionalFiles[i])
-	}
+	log.Debug().
+		Str("image", image).
+		Str("cmd", strings.Join(cmd, " ")).
+		Msg("running unpacker")
 
 	rand.Seed(time.Now().UnixNano())
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
-		Image: DefaultUnpackerImage,
+		Image: image,
 		Cmd:   cmd,
 	}, &container.HostConfig{
 		Binds: []string{
@@ -376,7 +400,9 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 			fmt.Sprintf("%s:%s", targetSocketBind, targetSocketBind),
 		},
 	}, nil, nil, fmt.Sprintf("portainer-unpacker-%d-%s-%d", stack.ID, stack.Name, rand.Intn(100)))
+
 	defer cli.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions{})
+
 	if err != nil {
 		return errors.Wrap(err, "unable to create unpacker container")
 	}
@@ -393,11 +419,18 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 		}
 	case <-statusCh:
 	}
+
 	out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
-	if err == nil {
+	if err != nil {
+		log.Error().Err(err).Msg("unable to get logs from unpacker container")
+	} else {
 		outputBytes, err := ioutil.ReadAll(out)
-		if err == nil {
-			log.Printf(string(outputBytes))
+		if err != nil {
+			log.Error().Err(err).Msg("unable to parse logs from unpacker container")
+		} else {
+			log.Info().
+				Str("output", string(outputBytes)).
+				Msg("Stack deployment output")
 		}
 	}
 
@@ -411,4 +444,67 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 	}
 
 	return nil
+}
+
+func (d *stackDeployer) createDockerClient(ctx context.Context, endpoint *portaineree.Endpoint) (*dockerclient.Client, error) {
+	cli, err := d.ClientFactory.CreateClient(endpoint, "", nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to create Docker client")
+	}
+
+	// only for swarm
+	info, err := cli.Info(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get agent info")
+	}
+
+	// if swarm - create client for swarm leader
+	if info.Swarm.LocalNodeState == swarm.LocalNodeStateInactive {
+		return cli, nil
+	}
+	nodes, err := cli.NodeList(ctx, types.NodeListOptions{})
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to list nodes")
+	}
+
+	if len(nodes) == 0 {
+		return nil, errors.New("no nodes available")
+	}
+
+	var managerNode swarm.Node
+	for _, node := range nodes {
+		if node.ManagerStatus != nil && node.ManagerStatus.Leader {
+			managerNode = node
+			break
+		}
+	}
+
+	if managerNode.ID == "" {
+		return nil, errors.New("no leader node available")
+	}
+
+	cli.Close()
+	return d.ClientFactory.CreateClient(endpoint, managerNode.Description.Hostname, nil)
+}
+
+func getEnv(env []portaineree.Pair) []string {
+	if len(env) == 0 {
+		return nil
+	}
+
+	cmd := []string{}
+	for _, pair := range env {
+		cmd = append(cmd, fmt.Sprintf(`--env=%s=%s`, pair.Name, pair.Value))
+	}
+
+	return cmd
+}
+
+func getUnpackerImage() string {
+	image := os.Getenv(composeUnpackerImageEnvVar)
+	if image == "" {
+		image = defaultUnpackerImage
+	}
+
+	return image
 }
