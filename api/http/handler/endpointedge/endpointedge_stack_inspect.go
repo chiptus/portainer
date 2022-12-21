@@ -20,7 +20,9 @@ type configResponse struct {
 	Name                string
 	RegistryCredentials []portaineree.EdgeRegistryCredential
 	// Namespace to use for Kubernetes manifests, leave empty to use the namespaces defined in the manifest
-	Namespace string
+	Namespace    string
+	PrePullImage bool
+	RePullImage  bool
 }
 
 // @summary Inspect an Edge Stack for an Environment(Endpoint)
@@ -91,5 +93,7 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 		Name:                edgeStack.Name,
 		RegistryCredentials: registryCredentials,
 		Namespace:           namespace,
+		PrePullImage:        edgeStack.PrePullImage,
+		RePullImage:         edgeStack.RePullImage,
 	})
 }

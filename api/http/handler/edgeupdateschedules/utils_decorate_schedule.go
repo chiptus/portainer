@@ -50,15 +50,15 @@ func aggregateStatus(relatedEnvironmentsIDs map[portaineree.EndpointID]string, e
 		envStatus, ok := edgeStack.Status[environmentID]
 
 		// if edge stack reported ok, the update either failed (and we have no way to know) or it's still pending
-		if !ok || envStatus.Type == portaineree.EdgeStackStatusPending || envStatus.Type == portaineree.StatusOk {
+		if !ok || envStatus.Details.Pending || envStatus.Details.Ok {
 			hasPending = true
 		}
 
-		if envStatus.Type == portaineree.StatusError {
+		if envStatus.Details.Error {
 			return edgetypes.UpdateScheduleStatusError, fmt.Sprintf("Error on environment %d: %s", environmentID, envStatus.Error)
 		}
 
-		if envStatus.Type == portaineree.StatusAcknowledged {
+		if envStatus.Details.Acknowledged {
 			hasSent = true
 			break
 		}

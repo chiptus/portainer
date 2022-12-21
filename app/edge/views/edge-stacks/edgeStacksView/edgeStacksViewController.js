@@ -38,9 +38,26 @@ export class EdgeStacksViewController {
     this.$state.reload();
   }
 
+  aggregateStatus() {
+    if (this.stacks) {
+      this.stacks.forEach((stack) => {
+        const aggregateStatus = { ok: 0, error: 0, acknowledged: 0, imagesPulled: 0 };
+        for (let endpointId in stack.Status) {
+          const { Details } = stack.Status[endpointId];
+          aggregateStatus.ok += Number(Details.Ok);
+          aggregateStatus.error += Number(Details.Error);
+          aggregateStatus.acknowledged += Number(Details.Acknowledged);
+          aggregateStatus.imagesPulled += Number(Details.ImagesPulled);
+        }
+        stack.aggregateStatus = aggregateStatus;
+      });
+    }
+  }
+
   async getStacks() {
     try {
       this.stacks = await this.EdgeStackService.stacks();
+      this.aggregateStatus();
     } catch (err) {
       this.stacks = [];
       this.Notifications.error('Failure', err, 'Unable to retrieve stacks');

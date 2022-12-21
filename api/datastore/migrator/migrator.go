@@ -3,6 +3,7 @@ package migrator
 import (
 	"github.com/Masterminds/semver"
 	"github.com/pkg/errors"
+	"github.com/portainer/portainer-ee/api/dataservices/edgestack"
 	"github.com/rs/zerolog/log"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -58,6 +59,7 @@ type (
 		authorizationService    *authorization.Service
 		dockerhubService        *dockerhub.Service
 		cloudCredentialService  *cloudcredential.Service
+		edgeStackService        *edgestack.Service
 	}
 
 	// MigratorParameters represents the required parameters to create a new Migrator instance.
@@ -85,11 +87,12 @@ type (
 		DockerhubService         *dockerhub.Service
 		PodSecurityService       *podsecurity.Service
 		CloudCredentialService   *cloudcredential.Service
+		EdgeStackService         *edgestack.Service
 	}
 
 	Migrations struct {
-		version        *semver.Version
-		migrationFuncs MigrationFuncs
+		Version        *semver.Version
+		MigrationFuncs MigrationFuncs
 	}
 
 	MigrationFuncs []func() error
@@ -119,6 +122,7 @@ func NewMigrator(parameters *MigratorParameters) *Migrator {
 		authorizationService:    parameters.AuthorizationService,
 		dockerhubService:        parameters.DockerhubService,
 		cloudCredentialService:  parameters.CloudCredentialService,
+		edgeStackService:        parameters.EdgeStackService,
 	}
 
 	migrator.initMigrations()
@@ -144,12 +148,12 @@ func (m *Migrator) CurrentSemanticDBVersion() *semver.Version {
 
 func (m *Migrator) addMigrations(v string, funcs ...func() error) {
 	m.migrations = append(m.migrations, Migrations{
-		version:        semver.MustParse(v),
-		migrationFuncs: funcs,
+		Version:        semver.MustParse(v),
+		MigrationFuncs: funcs,
 	})
 }
 
-func (m *Migrator) latestMigrations() Migrations {
+func (m *Migrator) LatestMigrations() Migrations {
 	return m.migrations[len(m.migrations)-1]
 }
 
@@ -220,6 +224,7 @@ func (m *Migrator) initMigrations() {
 	m.addMigrations("2.15", m.migrateDBVersionToDB60)
 	m.addMigrations("2.16", m.migrateDBVersionToDB70)
 	m.addMigrations("2.16.1", m.migrateDBVersionToDB71)
+	m.addMigrations("2.17", m.migrateDBVersionToDB80)
 
 	// Add new migrations below...
 	// One function per migration, each versions migration funcs in the same file.

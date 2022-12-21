@@ -6,7 +6,7 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/build"
-	portainerstatus "github.com/portainer/portainer/api/http/handler/status"
+	system "github.com/portainer/portainer/api/http/handler/system"
 	"github.com/rs/zerolog/log"
 )
 
@@ -62,8 +62,8 @@ func (handler *Handler) version(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	latestVersion := portainerstatus.GetLatestVersion()
-	if portainerstatus.HasNewerVersion(portaineree.APIVersion, latestVersion) {
+	latestVersion := system.GetLatestVersion()
+	if system.HasNewerVersion(portaineree.APIVersion, latestVersion) {
 		result.UpdateAvailable = true
 		result.LatestVersion = latestVersion
 	}

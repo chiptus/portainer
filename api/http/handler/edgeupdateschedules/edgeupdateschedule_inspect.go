@@ -46,7 +46,7 @@ func (handler *Handler) inspect(w http.ResponseWriter, r *http.Request) *httperr
 
 	isActive := false
 	for _, envStatus := range edgeStack.Status {
-		if envStatus.Type != portaineree.EdgeStackStatusPending {
+		if !envStatus.Details.Pending {
 			isActive = true
 			break
 		}

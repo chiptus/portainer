@@ -14,6 +14,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/boltdb"
 	"github.com/portainer/portainer-ee/api/database/models"
+	"github.com/portainer/portainer-ee/api/datastore/migrator"
 	"github.com/rs/zerolog/log"
 )
 
@@ -113,6 +114,17 @@ func TestMigrateData(t *testing.T) {
 		_, store, teardown := MustNewTestStore(t, true, false)
 		defer teardown()
 
+		// Set migrator the count to match our migrations array (simulate no changes).
+		// Should not create a backup
+		v, err := store.VersionService.Version()
+
+		migratorParams := store.newMigratorParameters(v)
+		m := migrator.NewMigrator(migratorParams)
+		latestMigrations := m.LatestMigrations()
+		v.MigratorCount = len(latestMigrations.MigrationFuncs)
+
+		store.VersionService.UpdateVersion(v)
+
 		store.MigrateData()
 
 		// If you get an error, it usually means that the backup folder doesn't exist (no backups). Expected!
@@ -121,6 +133,32 @@ func TestMigrateData(t *testing.T) {
 		backupfile, err := store.LatestEditionBackup()
 		if err == nil && backupfile != "" {
 			t.Errorf("Backup file should not exist for dirty database")
+		}
+	})
+
+	t.Run("MigrateData should create backup on startup if portainer version matches db and migrationFuncs counts differ", func(t *testing.T) {
+		_, store, teardown := MustNewTestStore(t, true, false)
+		defer teardown()
+
+		// Set migrator the count to match our migrations array (simulate no changes).
+		// Should not create a backup
+		v, err := store.VersionService.Version()
+
+		migratorParams := store.newMigratorParameters(v)
+		m := migrator.NewMigrator(migratorParams)
+		latestMigrations := m.LatestMigrations()
+		v.MigratorCount = len(latestMigrations.MigrationFuncs) + 1
+
+		store.VersionService.UpdateVersion(v)
+
+		store.MigrateData()
+
+		// If you get an error, it usually means that the backup folder doesn't exist (no backups). Expected!
+		// If the backup file is not blank, then it means a backup was created.  We don't want that because we
+		// only create a backup when the version changes.
+		backupfile, err := store.LatestEditionBackup()
+		if err == nil && backupfile == "" {
+			t.Errorf("Backup file should exist database")
 		}
 	})
 }

@@ -2,6 +2,7 @@ package edgestacks
 
 import (
 	"fmt"
+	portainer "github.com/portainer/portainer/api"
 	"strconv"
 	"strings"
 	"time"
@@ -37,6 +38,8 @@ func (service *Service) BuildEdgeStack(name string,
 	registries []portaineree.RegistryID,
 	scheduledTime string,
 	useManifestNamespaces bool,
+	prePullImage bool,
+	rePullImage bool,
 ) (*portaineree.EdgeStack, error) {
 	edgeStacksService := service.dataStore.EdgeStack()
 
@@ -57,11 +60,13 @@ func (service *Service) BuildEdgeStack(name string,
 		DeploymentType:        deploymentType,
 		CreationDate:          time.Now().Unix(),
 		EdgeGroups:            edgeGroups,
-		Status:                make(map[portaineree.EndpointID]portaineree.EdgeStackStatus),
+		Status:                make(map[portaineree.EndpointID]portainer.EdgeStackStatus),
 		Version:               1,
 		Registries:            registries,
 		ScheduledTime:         scheduledTime,
 		UseManifestNamespaces: useManifestNamespaces,
+		PrePullImage:          prePullImage,
+		RePullImage:           rePullImage,
 	}, nil
 }
 
@@ -122,6 +127,7 @@ func (service *Service) PersistEdgeStack(
 	stack.ManifestPath = manifestPath
 	stack.ProjectPath = projectPath
 	stack.EntryPoint = composePath
+	stack.NumDeployments = len(relatedEndpointIds)
 
 	err = service.updateEndpointRelations(stack.ID, relatedEndpointIds)
 	if err != nil {

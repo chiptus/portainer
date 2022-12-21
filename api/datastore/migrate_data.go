@@ -129,6 +129,7 @@ func (store *Store) newMigratorParameters(version *models.Version) *migrator.Mig
 		DockerhubService:         store.DockerHubService,
 		CloudCredentialService:   store.CloudCredentialService,
 		AuthorizationService:     authorization.NewService(store),
+		EdgeStackService:         store.EdgeStackService,
 	}
 }
 

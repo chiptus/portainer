@@ -10,12 +10,13 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 )
 
 type updateStatusPayload struct {
 	Error      string
-	Status     *portaineree.EdgeStackStatusType
+	Status     *portainer.EdgeStackStatusType
 	EndpointID portaineree.EndpointID
 }
 
@@ -28,7 +29,7 @@ func (payload *updateStatusPayload) Validate(r *http.Request) error {
 		return errors.New("Invalid EnvironmentID")
 	}
 
-	if *payload.Status == portaineree.StatusError && govalidator.IsNull(payload.Error) {
+	if *payload.Status == portainer.EdgeStackStatusError && govalidator.IsNull(payload.Error) {
 		return errors.New("Error message is mandatory when status is error")
 	}
 
@@ -68,7 +69,7 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 	}
 
 	// if the stack represents a successful remote update - skip it
-	if endpointStatus, ok := stack.Status[payload.EndpointID]; ok && endpointStatus.Type == portaineree.EdgeStackStatusRemoteUpdateSuccess {
+	if endpointStatus, ok := stack.Status[payload.EndpointID]; ok && endpointStatus.Details.RemoteUpdateSuccess {
 		return response.JSON(w, stack)
 	}
 
@@ -87,7 +88,7 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 	status := *payload.Status
 
 	if stack.EdgeUpdateID != 0 {
-		if status == portaineree.StatusError {
+		if status == portainer.EdgeStackStatusError {
 			err := handler.edgeUpdateService.RemoveActiveSchedule(payload.EndpointID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
 			if err != nil {
 				log.Warn().
@@ -96,16 +97,31 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 			}
 		}
 
-		if status == portaineree.StatusOk {
+		if status == portainer.EdgeStackStatusOk {
 			handler.edgeUpdateService.EdgeStackDeployed(endpoint.ID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
 		}
 	}
 
 	err = handler.DataStore.EdgeStack().UpdateEdgeStackFunc(portaineree.EdgeStackID(stackID), func(edgeStack *portaineree.EdgeStack) {
-		edgeStack.Status[payload.EndpointID] = portaineree.EdgeStackStatus{
-			Type:       status,
+		details := edgeStack.Status[payload.EndpointID].Details
+		details.Pending = false
+		switch status {
+		case portainer.EdgeStackStatusOk:
+			details.Ok = true
+		case portainer.EdgeStackStatusError:
+			details.Error = true
+		case portainer.EdgeStackStatusAcknowledged:
+			details.Acknowledged = true
+		case portainer.EdgeStackStatusRemove:
+			details.Remove = true
+		case portainer.EdgeStackStatusImagesPulled:
+			details.ImagesPulled = true
+		}
+
+		edgeStack.Status[payload.EndpointID] = portainer.EdgeStackStatus{
+			Details:    details,
 			Error:      payload.Error,
-			EndpointID: payload.EndpointID,
+			EndpointID: portainer.EndpointID(payload.EndpointID),
 		}
 
 		stack = edgeStack

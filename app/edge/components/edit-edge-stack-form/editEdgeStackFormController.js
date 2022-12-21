@@ -1,5 +1,6 @@
 import { PortainerEndpointTypes } from '@/portainer/models/endpoint/models';
 import { getValidEditorTypes } from '@/react/edge/edge-stacks/utils';
+import { EditorType } from '@/react/edge/edge-stacks/types';
 
 export class EditEdgeStackFormController {
   /* @ngInject */
@@ -22,6 +23,8 @@ export class EditEdgeStackFormController {
 
     this.isActive = false;
 
+    this.EditorType = EditorType;
+
     this.matchRegistry = this.matchRegistry.bind(this);
     this.selectedRegistry = this.selectedRegistry.bind(this);
     this.dryrunFromFileContent = this.dryrunFromFileContent.bind(this);
@@ -40,6 +43,7 @@ export class EditEdgeStackFormController {
     this.removeLineBreaks = this.removeLineBreaks.bind(this);
     this.onChangeFileContent = this.onChangeFileContent.bind(this);
     this.onChangeUseManifestNamespaces = this.onChangeUseManifestNamespaces.bind(this);
+    this.onChangePrePullImage = this.onChangePrePullImage.bind(this);
   }
 
   checkRegistries(registries) {
@@ -187,6 +191,12 @@ export class EditEdgeStackFormController {
   getRegistriesOptions() {
     return this.$async(async () => {
       this.formValues.RegistryOptions = await this.RegistryService.registries();
+    });
+  }
+
+  onChangePrePullImage(value) {
+    return this.$scope.$evalAsync(() => {
+      this.model.PrePullImage = value;
     });
   }
 

@@ -60,21 +60,21 @@
           </div>
 
           <edge-stacks-docker-compose-form
-            ng-if="$ctrl.formValues.DeploymentType == 0"
+            ng-if="$ctrl.formValues.DeploymentType == $ctrl.EditorType.Compose"
             form-values="$ctrl.formValues"
             state="$ctrl.state"
             on-change-git-credential="($ctrl.onChangeGitCredential)"
           ></edge-stacks-docker-compose-form>
 
           <edge-stacks-kube-manifest-form
-            ng-if="$ctrl.formValues.DeploymentType == 1"
+            ng-if="$ctrl.formValues.DeploymentType == $ctrl.EditorType.Kubernetes"
             form-values="$ctrl.formValues"
             state="$ctrl.state"
             on-change-git-credential="($ctrl.onChangeGitCredential)"
           ></edge-stacks-kube-manifest-form>
 
           <edge-stacks-nomad-hcl-form
-            ng-if="$ctrl.formValues.DeploymentType == 2"
+            ng-if="$ctrl.formValues.DeploymentType == $ctrl.EditorType.Nomad"
             form-values="$ctrl.formValues"
             state="$ctrl.state"
             on-change-git-credential="($ctrl.onChangeGitCredential)"
@@ -90,6 +90,16 @@
             on-select="($ctrl.selectedRegistry)"
             clear-registries="($ctrl.clearRegistries)"
           ></private-registry-fieldset>
+
+          <por-switch-field
+            ng-if="$ctrl.formValues.DeploymentType == $ctrl.EditorType.Compose"
+            checked="$ctrl.formValues.PrePullImage"
+            name="'prePullImage'"
+            label="'Pre-pull images'"
+            tooltip="'When enabled, deployment will be executed when image(s) is pulled successfully'"
+            label-class="'col-sm-3 col-lg-2'"
+            on-change="($ctrl.onChangePrePullImage)"
+          ></por-switch-field>
 
           <!-- actions -->
           <div class="col-sm-12 form-section-title"> Actions </div>

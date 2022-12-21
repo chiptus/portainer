@@ -31,7 +31,10 @@ export default class CreateEdgeStackViewController {
       RegistryOptions: [],
       Registries: [],
       UseManifestNamespaces: false,
+      PrePullImage: false,
     };
+
+    this.EditorType = EditorType;
 
     this.state = {
       Method: 'editor',
@@ -59,6 +62,7 @@ export default class CreateEdgeStackViewController {
     this.hasNomadEndpoint = this.hasNomadEndpoint.bind(this);
     this.onChangeDeploymentType = this.onChangeDeploymentType.bind(this);
     this.onChangeGitCredential = this.onChangeGitCredential.bind(this);
+    this.onChangePrePullImage = this.onChangePrePullImage.bind(this);
   }
 
   buildAnalyticsProperties() {
@@ -295,7 +299,7 @@ export default class CreateEdgeStackViewController {
   }
 
   createStackFromFileContent(name, dryrun) {
-    const { StackFileContent, Groups, DeploymentType, Registries, UseManifestNamespaces } = this.formValues;
+    const { StackFileContent, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage } = this.formValues;
     return this.EdgeStackService.createStackFromFileContent(
       {
         name,
@@ -304,13 +308,14 @@ export default class CreateEdgeStackViewController {
         DeploymentType,
         Registries: dryrun ? [] : Registries,
         UseManifestNamespaces,
+        PrePullImage,
       },
       dryrun
     );
   }
 
   createStackFromFileUpload(name, dryrun) {
-    const { StackFile, Groups, DeploymentType, Registries, UseManifestNamespaces } = this.formValues;
+    const { StackFile, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage } = this.formValues;
     return this.EdgeStackService.createStackFromFileUpload(
       {
         Name: name,
@@ -318,6 +323,7 @@ export default class CreateEdgeStackViewController {
         DeploymentType,
         Registries: dryrun ? [] : Registries,
         UseManifestNamespaces,
+        PrePullImage,
       },
       StackFile,
       dryrun
@@ -325,7 +331,7 @@ export default class CreateEdgeStackViewController {
   }
 
   async createStackFromGitRepository(name) {
-    const { Groups, DeploymentType, Registries, UseManifestNamespaces } = this.formValues;
+    const { Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage } = this.formValues;
 
     if (this.formValues.SaveCredential && this.formValues.NewCredentialName) {
       const userDetails = this.Authentication.getUserDetails();
@@ -354,6 +360,7 @@ export default class CreateEdgeStackViewController {
         DeploymentType,
         Registries: Registries,
         UseManifestNamespaces,
+        PrePullImage,
       },
       repositoryOptions
     );
@@ -364,6 +371,12 @@ export default class CreateEdgeStackViewController {
       this.formValues.DeploymentType = deploymentType;
       this.state.Method = 'editor';
       this.formValues.StackFileContent = '';
+    });
+  }
+
+  onChangePrePullImage(value) {
+    return this.$scope.$evalAsync(() => {
+      this.formValues.PrePullImage = value;
     });
   }
 

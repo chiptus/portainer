@@ -23,7 +23,9 @@ type edgeStackData struct {
 	Name                string
 	RegistryCredentials []portaineree.EdgeRegistryCredential
 	// Namespace to use for Kubernetes manifests, leave empty to use the namespaces defined in the manifest
-	Namespace string
+	Namespace    string
+	PrePullImage bool
+	RePullImage  bool
 }
 
 type edgeLogData struct {
@@ -127,6 +129,8 @@ func (service *Service) storeUpdateStackCommand(endpoint *portaineree.Endpoint, 
 		Version:             edgeStack.Version,
 		RegistryCredentials: registryCredentials,
 		Namespace:           namespace,
+		PrePullImage:        edgeStack.PrePullImage,
+		RePullImage:         edgeStack.RePullImage,
 	}
 
 	asyncCommand := &portaineree.EdgeAsyncCommand{

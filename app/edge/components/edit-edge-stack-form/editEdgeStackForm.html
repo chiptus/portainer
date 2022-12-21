@@ -34,7 +34,7 @@
   </div>
 
   <web-editor-form
-    ng-if="$ctrl.model.DeploymentType === 0"
+    ng-if="$ctrl.model.DeploymentType === $ctrl.EditorType.Compose"
     value="$ctrl.model.StackFileContent"
     yml="true"
     identifier="compose-editor"
@@ -50,7 +50,7 @@
     </editor-description>
   </web-editor-form>
 
-  <div ng-if="$ctrl.model.DeploymentType === 1">
+  <div ng-if="$ctrl.model.DeploymentType === $ctrl.EditorType.Kubernetes">
     <div class="form-group">
       <div class="col-sm-12">
         <por-switch-field
@@ -79,7 +79,7 @@
   </div>
 
   <web-editor-form
-    ng-if="$ctrl.model.DeploymentType === 2"
+    ng-if="$ctrl.model.DeploymentType === $ctrl.EditorType.Nomad"
     value="$ctrl.model.StackFileContent"
     yml="true"
     identifier="kube-manifest-editor"
@@ -105,6 +105,16 @@
     clear-registries="($ctrl.clearRegistries)"
   >
   </private-registry-fieldset>
+
+  <por-switch-field
+    ng-if="$ctrl.formValues.DeploymentType == $ctrl.EditorType.Compose"
+    checked="$ctrl.model.PrePullImage"
+    name="'prePullImage'"
+    label="'Pre-pull images'"
+    tooltip="'When enabled, redeployment will be executed when image(s) is pulled successfully'"
+    label-class="'col-sm-3 col-lg-2'"
+    on-change="($ctrl.onChangePrePullImage)"
+  ></por-switch-field>
 
   <!-- actions -->
   <div class="col-sm-12 form-section-title"> Actions </div>

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	portainer "github.com/portainer/portainer/api"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -335,8 +336,8 @@ func TestEdgeStackStatus(t *testing.T) {
 	edgeStack := portaineree.EdgeStack{
 		ID:   edgeStackID,
 		Name: "test-edge-stack-17",
-		Status: map[portaineree.EndpointID]portaineree.EdgeStackStatus{
-			endpointID: {Type: portaineree.EdgeStackStatusPending, Error: "", EndpointID: endpoint.ID},
+		Status: map[portaineree.EndpointID]portainer.EdgeStackStatus{
+			endpointID: {Details: portainer.EdgeStackStatusDetails{Pending: true}, Error: "", EndpointID: portainer.EndpointID(endpoint.ID)},
 		},
 		CreationDate:   time.Now().Unix(),
 		EdgeGroups:     []portaineree.EdgeGroupID{1, 2},

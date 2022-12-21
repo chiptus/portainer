@@ -43,9 +43,9 @@ type snapshot struct {
 	KubernetesPatch jsonpatch.Patch                 `json:"kubernetesPatch,omitempty"`
 	KubernetesHash  *uint32                         `json:"kubernetesHash,omitempty"`
 
-	StackLogs   []portaineree.EdgeStackLog                              `json:"stackLogs,omitempty"`
-	StackStatus map[portaineree.EdgeStackID]portaineree.EdgeStackStatus `json:"stackStatus,omitempty"`
-	JobsStatus  map[portaineree.EdgeJobID]portaineree.EdgeJobStatus     `json:"jobsStatus:,omitempty"`
+	StackLogs   []portaineree.EdgeStackLog                            `json:"stackLogs,omitempty"`
+	StackStatus map[portaineree.EdgeStackID]portainer.EdgeStackStatus `json:"stackStatus,omitempty"`
+	JobsStatus  map[portaineree.EdgeJobID]portaineree.EdgeJobStatus   `json:"jobsStatus:,omitempty"`
 }
 
 func (payload *EdgeAsyncRequest) Validate(r *http.Request) error {
@@ -449,12 +449,12 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 		}
 
 		// if the stack represents a successful remote update - skip it
-		if endpointStatus, ok := stack.Status[endpoint.ID]; ok && endpointStatus.Type == portaineree.EdgeStackStatusRemoteUpdateSuccess {
+		if endpointStatus, ok := stack.Status[endpoint.ID]; ok && endpointStatus.Details.RemoteUpdateSuccess {
 			continue
 		}
 
 		if stack.EdgeUpdateID != 0 {
-			if status.Type == portaineree.StatusError {
+			if status.Details.Error {
 				err := handler.edgeUpdateService.RemoveActiveSchedule(endpoint.ID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
 				if err != nil {
 					log.Warn().
@@ -463,17 +463,17 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 				}
 			}
 
-			if status.Type == portaineree.StatusOk {
+			if status.Details.Ok {
 				handler.edgeUpdateService.EdgeStackDeployed(endpoint.ID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
 			}
 		}
 
-		if status.Type == portaineree.EdgeStackStatusRemove {
-			delete(stack.Status, status.EndpointID)
+		if status.Details.Remove {
+			delete(stack.Status, portaineree.EndpointID(status.EndpointID))
 		} else {
-			stack.Status[status.EndpointID] = portaineree.EdgeStackStatus{
+			stack.Status[portaineree.EndpointID(status.EndpointID)] = portainer.EdgeStackStatus{
 				EndpointID: status.EndpointID,
-				Type:       status.Type,
+				Details:    status.Details,
 				Error:      status.Error,
 			}
 		}

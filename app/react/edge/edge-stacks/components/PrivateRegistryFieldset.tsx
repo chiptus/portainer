@@ -67,7 +67,7 @@ export function PrivateRegistryFieldset({
       <div className="form-group">
         <div className="col-sm-12 vertical-center">
           <label
-            className="mr-5 control-label text-left !pt-0"
+            className="col-sm-3 col-lg-2 control-label text-left !pt-0 !pl-0"
             htmlFor="toggle-registry-slider"
           >
             Use Credentials <Tooltip message={tooltipMessage} />
@@ -91,8 +91,10 @@ export function PrivateRegistryFieldset({
             <>
               <p className="text-muted small">
                 <Icon icon={Info} mode="primary" />
-                If you make any changes to the image urls in your yaml, please
-                reload or select registry manually
+                <span className="ml-1">
+                  If you make any changes to the image urls in your yaml, please
+                  reload or select registry manually
+                </span>
               </p>
               <Button onClick={reload}>Reload</Button>
             </>

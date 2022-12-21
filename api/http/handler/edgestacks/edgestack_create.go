@@ -98,6 +98,8 @@ type swarmStackFromFileContentPayload struct {
 	Registries []portaineree.RegistryID
 	// Uses the manifest's namespaces instead of the default one
 	UseManifestNamespaces bool
+	// Pre Pull image
+	PrePullImage bool `example:"false"`
 }
 
 func (payload *swarmStackFromFileContentPayload) Validate(r *http.Request) error {
@@ -121,7 +123,7 @@ func (handler *Handler) createSwarmStackFromFileContent(r *http.Request, dryrun 
 		return nil, err
 	}
 
-	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces)
+	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create Edge stack object")
 	}
@@ -140,7 +142,6 @@ func (handler *Handler) createSwarmStackFromFileContent(r *http.Request, dryrun 
 	return handler.edgeStacksService.PersistEdgeStack(stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (composePath string, manifestPath string, projectPath string, err error) {
 		return handler.storeFileContent(stackFolder, payload.DeploymentType, relatedEndpointIds, []byte(payload.StackFileContent))
 	})
-
 }
 
 func (handler *Handler) storeFileContent(stackFolder string, deploymentType portaineree.EdgeStackDeploymentType, relatedEndpointIds []portaineree.EndpointID, fileContent []byte) (composePath, manifestPath, projectPath string, err error) {
@@ -158,7 +159,6 @@ func (handler *Handler) storeFileContent(stackFolder string, deploymentType port
 		}
 
 		return composePath, manifestPath, projectPath, nil
-
 	}
 
 	hasDockerEndpoint, err := hasDockerEndpoint(handler.DataStore.Endpoint(), relatedEndpointIds)
@@ -225,6 +225,8 @@ type swarmStackFromGitRepositoryPayload struct {
 	Registries []portaineree.RegistryID
 	// Uses the manifest's namespaces instead of the default one
 	UseManifestNamespaces bool
+	// Pre Pull image
+	PrePullImage bool `example:"false"`
 }
 
 func (payload *swarmStackFromGitRepositoryPayload) Validate(r *http.Request) error {
@@ -260,7 +262,7 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request, dryru
 		return nil, err
 	}
 
-	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces)
+	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create edge stack object")
 	}
@@ -300,6 +302,8 @@ type swarmStackFromFileUploadPayload struct {
 	Registries     []portaineree.RegistryID
 	// Uses the manifest's namespaces instead of the default one
 	UseManifestNamespaces bool
+	// Pre Pull image
+	PrePullImage bool `example:"false"`
 }
 
 func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error {
@@ -338,6 +342,9 @@ func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error 
 	useManifestNamespaces, _ := request.RetrieveBooleanMultiPartFormValue(r, "UseManifestNamespaces", true)
 	payload.UseManifestNamespaces = useManifestNamespaces
 
+	prePullImage, _ := request.RetrieveBooleanMultiPartFormValue(r, "PrePullImage", true)
+	payload.PrePullImage = prePullImage
+
 	return nil
 }
 
@@ -348,7 +355,7 @@ func (handler *Handler) createSwarmStackFromFileUpload(r *http.Request, dryrun b
 		return nil, err
 	}
 
-	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces)
+	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create edge stack object")
 	}

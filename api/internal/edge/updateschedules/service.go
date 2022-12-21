@@ -46,7 +46,7 @@ func NewService(dataStore dataservices.DataStore) (*Service, error) {
 
 			// check if schedule is active
 			status := edgeStack.Status[endpointId]
-			if status.Type == portaineree.EdgeStackStatusPending || status.Type == portaineree.StatusAcknowledged {
+			if status.Details.Pending || status.Details.Acknowledged {
 				idxActiveSchedules[endpointId] = &edgetypes.EndpointUpdateScheduleRelation{
 					EnvironmentID: endpointId,
 					ScheduleID:    schedule.ID,

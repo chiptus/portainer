@@ -302,23 +302,28 @@ type (
 	//EdgeStack represents an edge stack
 	EdgeStack struct {
 		// EdgeStack Identifier
-		ID             EdgeStackID                    `json:"Id" example:"1"`
-		Name           string                         `json:"Name"`
-		Status         map[EndpointID]EdgeStackStatus `json:"Status"`
-		CreationDate   int64                          `json:"CreationDate"`
-		EdgeGroups     []EdgeGroupID                  `json:"EdgeGroups"`
-		Registries     []RegistryID                   `json:"Registries"`
-		ProjectPath    string                         `json:"ProjectPath"`
-		EntryPoint     string                         `json:"EntryPoint"`
-		Version        int                            `json:"Version"`
-		ManifestPath   string                         `json:"ManifestPath"`
-		DeploymentType EdgeStackDeploymentType        `json:"DeploymentType"`
+		ID             EdgeStackID                              `json:"Id" example:"1"`
+		Name           string                                   `json:"Name"`
+		Status         map[EndpointID]portainer.EdgeStackStatus `json:"Status"`
+		CreationDate   int64                                    `json:"CreationDate"`
+		EdgeGroups     []EdgeGroupID                            `json:"EdgeGroups"`
+		Registries     []RegistryID                             `json:"Registries"`
+		ProjectPath    string                                   `json:"ProjectPath"`
+		EntryPoint     string                                   `json:"EntryPoint"`
+		Version        int                                      `json:"Version"`
+		NumDeployments int                                      `json:"NumDeployments"`
+		ManifestPath   string                                   `json:"ManifestPath"`
+		DeploymentType EdgeStackDeploymentType                  `json:"DeploymentType"`
 		// EdgeUpdateID represents the parent update ID, will be zero if this stack is not part of an update
 		EdgeUpdateID int
 		// Schedule represents the schedule of the Edge stack (optional, format - 'YYYY-MM-DD HH:mm:ss')
 		ScheduledTime string `example:"2020-11-13 14:53:00"`
 		// Uses the manifest's namespaces instead of the default one
 		UseManifestNamespaces bool
+		// Pre Pull Image
+		PrePullImage bool `json:"PrePullImage"`
+		// Re-Pull Image
+		RePullImage bool `json:"RePullImage"`
 
 		// Deprecated
 		Prune bool `json:"Prune"`
@@ -340,16 +345,6 @@ type (
 		EndpointID  EndpointID    `json:"endpointID,omitempty"`
 		Logs        []EndpointLog `json:"logs,omitempty"`
 	}
-
-	//EdgeStackStatus represents an edge stack status
-	EdgeStackStatus struct {
-		Type       EdgeStackStatusType `json:"Type"`
-		Error      string              `json:"Error"`
-		EndpointID EndpointID          `json:"EndpointID"`
-	}
-
-	//EdgeStackStatusType represents an edge stack status type
-	EdgeStackStatusType int
 
 	// EndpointChangeWindow determine when automatic stack/app updates may occur
 	EndpointChangeWindow struct {
@@ -2018,21 +2013,6 @@ const (
 	EdgeStackDeploymentKubernetes
 	// EdgeStackDeploymentNomad represent an edge stack deployed using a nomad hcl job file
 	EdgeStackDeploymentNomad
-)
-
-const (
-	// EdgeStackStatusPending represents a pending edge stack
-	EdgeStackStatusPending EdgeStackStatusType = iota
-	//StatusOk represents a successfully deployed edge stack
-	StatusOk
-	//StatusError represents an edge environment(endpoint) which failed to deploy its edge stack
-	StatusError
-	//StatusAcknowledged represents an acknowledged edge stack
-	StatusAcknowledged
-	//EdgeStackStatusRemove represents a removed edge stack (status isn't persisted)
-	EdgeStackStatusRemove
-	// StatusRemoteUpdateSuccess represents a successfully updated edge stack
-	EdgeStackStatusRemoteUpdateSuccess
 )
 
 const (

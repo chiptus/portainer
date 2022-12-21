@@ -83,7 +83,7 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 	if shouldUpdate {
 		canUpdate := true
 		for _, environmentStatus := range stack.Status {
-			if environmentStatus.Type != portaineree.EdgeStackStatusPending {
+			if !environmentStatus.Details.Pending {
 				canUpdate = false
 			}
 		}

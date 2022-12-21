@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	portainer "github.com/portainer/portainer/api"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -166,8 +167,8 @@ func createEdgeStack(t *testing.T, store dataservices.DataStore, endpointID port
 	edgeStack := portaineree.EdgeStack{
 		ID:   edgeStackID,
 		Name: "test-edge-stack-" + strconv.Itoa(int(edgeStackID)),
-		Status: map[portaineree.EndpointID]portaineree.EdgeStackStatus{
-			endpointID: {Type: portaineree.StatusOk, Error: "", EndpointID: endpointID},
+		Status: map[portaineree.EndpointID]portainer.EdgeStackStatus{
+			endpointID: {Details: portainer.EdgeStackStatusDetails{Ok: true}, Error: "", EndpointID: portainer.EndpointID(endpointID)},
 		},
 		CreationDate:   time.Now().Unix(),
 		EdgeGroups:     []portaineree.EdgeGroupID{edgeGroup.ID},
@@ -839,7 +840,7 @@ func TestUpdateStatusAndInspect(t *testing.T) {
 	edgeStack := createEdgeStack(t, handler.DataStore, endpoint.ID)
 
 	// Update edge stack status
-	newStatus := portaineree.StatusError
+	newStatus := portainer.EdgeStackStatusError
 	payload := updateStatusPayload{
 		Error:      "test-error",
 		Status:     &newStatus,
@@ -885,15 +886,15 @@ func TestUpdateStatusAndInspect(t *testing.T) {
 		t.Fatal("error decoding response:", err)
 	}
 
-	if data.Status[endpoint.ID].Type != *payload.Status {
-		t.Fatalf("expected EdgeStackStatusType %d, found %d", payload.Status, data.Status[endpoint.ID].Type)
+	if !data.Status[endpoint.ID].Details.Error {
+		t.Fatalf("expected EdgeStackStatusType %d, found %t", payload.Status, data.Status[endpoint.ID].Details.Error)
 	}
 
 	if data.Status[endpoint.ID].Error != payload.Error {
 		t.Fatalf("expected EdgeStackStatusError %s, found %s", payload.Error, data.Status[endpoint.ID].Error)
 	}
 
-	if data.Status[endpoint.ID].EndpointID != payload.EndpointID {
+	if data.Status[endpoint.ID].EndpointID != portainer.EndpointID(payload.EndpointID) {
 		t.Fatalf("expected EndpointID %d, found %d", payload.EndpointID, data.Status[endpoint.ID].EndpointID)
 	}
 }
@@ -905,8 +906,8 @@ func TestUpdateStatusWithInvalidPayload(t *testing.T) {
 	edgeStack := createEdgeStack(t, handler.DataStore, endpoint.ID)
 
 	// Update edge stack status
-	statusError := portaineree.StatusError
-	statusOk := portaineree.StatusOk
+	statusError := portainer.EdgeStackStatusError
+	statusOk := portainer.EdgeStackStatusOk
 	cases := []struct {
 		Name                 string
 		Payload              updateStatusPayload

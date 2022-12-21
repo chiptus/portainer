@@ -1040,6 +1040,10 @@ github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91 h1:mtz7L81z05
 github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91/go.mod h1:6OSugUz07QF1WwrMmRNIMhgiq+drVMIZ98UTu5LVZP8=
 github.com/portainer/portainer/api v0.0.0-20221204214756-a61b18dd933e h1:xiCkFiHW9UvDI80+Kr1aTmLhjcyttS6BFlUtVloOsJA=
 github.com/portainer/portainer/api v0.0.0-20221204214756-a61b18dd933e/go.mod h1:KM/Vubz9O0kt2bqVCgCV6zrV0R4N40v9oVvJZSY5rFU=
+github.com/portainer/portainer/api v0.0.0-20221218040023-bfb92b5f957f h1:AZa2+M/Vjm5ZpNan/8wCs2f7T1cosvOlKpwAsrKbUzI=
+github.com/portainer/portainer/api v0.0.0-20221218040023-bfb92b5f957f/go.mod h1:tBui6pqdzXkk2DY0ambtjtRbNsrvnNNnEkDe0aXUeeU=
+github.com/portainer/portainer/api v0.0.0-20221221001851-919a854d9366 h1:t6K8jUJDfg58r6MB5fY/S5GhONCCNMMy0GpacPeReVM=
+github.com/portainer/portainer/api v0.0.0-20221221001851-919a854d9366/go.mod h1:zxnTNvI31lLoceLYyjHCfrLlNNZ5uECGkdWzAlc6pxY=
 github.com/portainer/portainer/pkg/libhelm v0.0.0-20221201012749-4fee35924724 h1:FZrRVMpxXdUV+p5VSCAy9Uz7RzAeEJr2ytlctvMrsHY=
 github.com/portainer/portainer/pkg/libhelm v0.0.0-20221201012749-4fee35924724/go.mod h1:WUdwNVH9GMffP4qf4U2ea2qCYfti2V7S+IhGpO8Sxv0=
 github.com/portainer/portainer/third_party/digest v0.0.0-20221201002639-8fd0efa34f73 h1:7bPOnwucE0nor0so1BQJxQKCL5t+vCWO4nAz/S0lci0=

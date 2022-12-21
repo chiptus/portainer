@@ -1,5 +1,6 @@
 import _ from 'lodash-es';
 import { getEnvironments } from '@/react/portainer/environments/environment.service';
+import { EditorType } from '@/react/edge/edge-stacks/types';
 // import { environmentTypeIcon } from '@/portainer/filters/filters';
 
 export class EditEdgeStackViewController {
@@ -47,6 +48,7 @@ export class EditEdgeStackViewController {
           Name: this.stack.Name,
           Registries: this.stack.Registries,
           UseManifestNamespaces: this.stack.UseManifestNamespaces,
+          PrePullImage: this.stack.PrePullImage,
         };
         this.oldFileContent = this.formValues.StackFileContent;
       } catch (err) {
@@ -81,7 +83,18 @@ export class EditEdgeStackViewController {
   }
 
   deployStack() {
-    return this.$async(this.deployStackAsync);
+    if (this.formValues.DeploymentType == EditorType.Compose) {
+      const that = this;
+      const defaultToggle = this.formValues.PrePullImage;
+      this.ModalService.confirmStackUpdate('Do you want to force an update of the stack?', defaultToggle, null, function (result) {
+        if (result) {
+          that.formValues.RePullImage = !!result[0];
+          return that.$async(that.deployStackAsync);
+        }
+      });
+    } else {
+      return this.$async(this.deployStackAsync);
+    }
   }
 
   async deployStackAsync() {
@@ -90,7 +103,9 @@ export class EditEdgeStackViewController {
       if (
         this.originalFileContent != this.formValues.StackFileContent ||
         this.formValues.Registries[0] !== this.stack.Registries[0] ||
-        this.formValues.UseManifestNamespaces !== this.stack.UseManifestNamespaces
+        this.formValues.UseManifestNamespaces !== this.stack.UseManifestNamespaces ||
+        this.formValues.PrePullImage !== this.stack.PrePullImage ||
+        this.formValues.RePullImage
       ) {
         this.formValues.Version = this.stack.Version + 1;
       }

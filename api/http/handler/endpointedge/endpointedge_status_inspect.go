@@ -3,6 +3,7 @@ package endpointedge
 import (
 	"encoding/base64"
 	"fmt"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/pkg/errors"
 
@@ -201,12 +202,13 @@ func parseAgentPlatform(r *http.Request) (portaineree.EndpointType, error) {
 func (handler *Handler) updateEdgeStackStatus(edgeStack *portaineree.EdgeStack, environmentID portaineree.EndpointID) error {
 	status, ok := edgeStack.Status[environmentID]
 	if !ok {
-		status = portaineree.EdgeStackStatus{
-			EndpointID: environmentID,
+		status = portainer.EdgeStackStatus{
+			EndpointID: portainer.EndpointID(environmentID),
 		}
 	}
 
-	status.Type = portaineree.EdgeStackStatusRemoteUpdateSuccess
+	status.Details.RemoteUpdateSuccess = true
+	status.Details.Pending = false
 	status.Error = ""
 
 	edgeStack.Status[environmentID] = status
@@ -266,7 +268,7 @@ func (handler *Handler) buildEdgeStacks(endpointID portaineree.EndpointID, timeZ
 		}
 
 		// if the stack represents a successful remote update or failed - skip it
-		if endpointStatus, ok := stack.Status[endpointID]; ok && (endpointStatus.Type == portaineree.EdgeStackStatusRemoteUpdateSuccess || (stack.EdgeUpdateID != 0 && endpointStatus.Type == portaineree.StatusError)) {
+		if endpointStatus, ok := stack.Status[endpointID]; ok && (endpointStatus.Details.RemoteUpdateSuccess || (stack.EdgeUpdateID != 0 && endpointStatus.Details.Error)) {
 			continue
 		}
 

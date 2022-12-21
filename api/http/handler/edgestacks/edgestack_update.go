@@ -2,6 +2,7 @@ package edgestacks
 
 import (
 	"errors"
+	portainer "github.com/portainer/portainer/api"
 	"net/http"
 	"strconv"
 
@@ -23,6 +24,8 @@ type updateEdgeStackPayload struct {
 	Registries       []portaineree.RegistryID
 	// Uses the manifest's namespaces instead of the default one
 	UseManifestNamespaces bool
+	PrePullImage          bool
+	RePullImage           bool
 }
 
 func (payload *updateEdgeStackPayload) Validate(r *http.Request) error {
@@ -226,6 +229,12 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 
 	// Assign a potentially new registries to the stack
 	stack.Registries = payload.Registries
+
+	stack.PrePullImage = payload.PrePullImage
+	stack.RePullImage = payload.RePullImage
+
+	stack.NumDeployments = len(relatedEndpointIds)
+	stack.Status = make(map[portaineree.EndpointID]portainer.EdgeStackStatus)
 
 	err = handler.DataStore.EdgeStack().UpdateEdgeStack(stack.ID, stack)
 	if err != nil {

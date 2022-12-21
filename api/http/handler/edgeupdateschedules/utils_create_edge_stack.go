@@ -36,7 +36,17 @@ func (handler *Handler) createUpdateEdgeStack(scheduleID edgetypes.UpdateSchedul
 
 	agentImage := fmt.Sprintf("%s:%s", agentImagePrefix, version)
 
-	stack, err := handler.edgeStacksService.BuildEdgeStack(buildEdgeStackName(scheduleID), portaineree.EdgeStackDeploymentCompose, groupIDs, []portaineree.RegistryID{}, scheduledTime, false)
+	stack, err := handler.edgeStacksService.BuildEdgeStack(
+		buildEdgeStackName(scheduleID),
+		portaineree.EdgeStackDeploymentCompose,
+		groupIDs,
+		[]portaineree.RegistryID{},
+		scheduledTime,
+		false,
+		false,
+		false,
+	)
+
 	if err != nil {
 		return 0, err
 	}
