@@ -39,5 +39,6 @@ export const viewsModule = angular
     r2a(withUIRouter(withReactQuery(withCurrentUser(YAMLReplace))), [
       'yml',
       'originalYml',
+      'disabled',
     ])
   ).name;

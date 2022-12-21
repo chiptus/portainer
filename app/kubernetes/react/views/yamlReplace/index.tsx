@@ -14,9 +14,10 @@ import { ApplyPatch } from '../../proxy/service';
 interface Props {
   yml: string;
   originalYml: string;
+  disabled: boolean;
 }
 
-export function YAMLReplace({ yml, originalYml }: Props) {
+export function YAMLReplace({ yml, originalYml, disabled }: Props) {
   const environmentId = useEnvironmentId();
   const { params } = useCurrentStateAndParams();
   const router = useRouter();
@@ -104,7 +105,7 @@ export function YAMLReplace({ yml, originalYml }: Props) {
           color="primary"
           size="small"
           onClick={replaceYAML}
-          disabled={originalYml === yml}
+          disabled={originalYml === yml || disabled}
         >
           Apply changes
         </Button>

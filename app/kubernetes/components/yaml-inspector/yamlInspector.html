@@ -23,6 +23,6 @@
       <pr-icon class="vertical-center" icon="'check'" size="'md'" mode="'success'"></pr-icon> copied
     </span>
 
-    <yaml-replace ng-if="$ctrl.isAuthorized" original-yml="$ctrl.data" yml="$ctrl.yaml"></yaml-replace>
+    <yaml-replace original-yml="$ctrl.data" yml="$ctrl.yaml" disabled="!$ctrl.isAuthorized"></yaml-replace>
   </div>
 </div>
