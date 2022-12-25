@@ -56,7 +56,7 @@ require (
 	github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a
 	github.com/portainer/libhttp v0.0.0-20221121135534-76f46e09c9a9
 	github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91
-	github.com/portainer/portainer/api v0.0.0-20221221001851-919a854d9366
+	github.com/portainer/portainer/api v0.0.0-20221225084721-afb024d2a446
 	github.com/portainer/portainer/pkg/libhelm v0.0.0-20221201012749-4fee35924724
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.28.0
@@ -199,7 +199,7 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
-	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
+	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
 	golang.org/x/net v0.2.0 // indirect
 	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/term v0.2.0 // indirect
