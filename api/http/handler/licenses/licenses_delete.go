@@ -21,7 +21,7 @@ type (
 )
 
 func (payload *deletePayload) Validate(r *http.Request) error {
-	if payload.LicenseKeys == nil || len(payload.LicenseKeys) == 0 {
+	if len(payload.LicenseKeys) == 0 {
 		return errors.New("Missing licenses keys")
 	}
 

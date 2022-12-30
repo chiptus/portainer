@@ -285,7 +285,7 @@ func (bouncer *RequestBouncer) mwCheckPortainerAuthorizations(next http.Handler)
 		}
 
 		user, err := bouncer.dataStore.User().User(tokenData.ID)
-		if err != nil && bouncer.dataStore.IsErrObjectNotFound(err) {
+		if bouncer.dataStore.IsErrObjectNotFound(err) {
 			httperror.WriteError(w, http.StatusUnauthorized, "Unauthorized", httperrors.ErrUnauthorized)
 			return
 		} else if err != nil {

@@ -178,5 +178,5 @@ func IsDanglingImage(image types.ImageInspect) bool {
 
 // IsNoTagImage returns whether the given image is damaged, has no tags
 func IsNoTagImage(image types.ImageInspect) bool {
-	return image.RepoTags == nil || len(image.RepoTags) == 0
+	return len(image.RepoTags) == 0
 }

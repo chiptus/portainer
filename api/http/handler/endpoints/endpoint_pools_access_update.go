@@ -92,7 +92,7 @@ func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http
 
 	// for users been added, we just refresh his token cache
 	// frontend will handle the configmap update
-	if payload.UsersToAdd != nil && len(payload.UsersToAdd) > 0 {
+	if len(payload.UsersToAdd) > 0 {
 		for _, userID := range payload.UsersToAdd {
 			// make sure the user has a role in the current environment(endpoint), thus is managed
 			// by the current environment(endpoint) admin
@@ -109,7 +109,7 @@ func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http
 
 	// for users been removed, we refresh his token cache and remove his role bindings
 	// in the namespaces of the specified environment(endpoint). frontend will handle the configmap update
-	if payload.UsersToRemove != nil && len(payload.UsersToRemove) > 0 {
+	if len(payload.UsersToRemove) > 0 {
 		kcl, err := handler.K8sClientFactory.GetKubeClient(endpoint)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("Unable to get k8s environment access @ %d: %w", endpointID, err).Error())
@@ -133,8 +133,7 @@ func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http
 		}
 	}
 
-	if (payload.TeamsToAdd != nil && len(payload.TeamsToAdd) > 0) ||
-		(payload.TeamsToRemove != nil && len(payload.TeamsToRemove) > 0) {
+	if len(payload.TeamsToAdd) > 0 || len(payload.TeamsToRemove) > 0 {
 		handler.AuthorizationService.TriggerEndpointAuthUpdate(endpointID)
 	}
 

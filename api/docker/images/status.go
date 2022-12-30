@@ -246,7 +246,7 @@ func EvictImageStatus(resourceID string) {
 }
 
 func contains(statuses []Status, status Status) bool {
-	if statuses == nil && len(statuses) == 0 {
+	if len(statuses) == 0 {
 		return false
 	}
 
@@ -259,7 +259,7 @@ func contains(statuses []Status, status Status) bool {
 }
 
 func allMatch(statuses []Status, status Status) bool {
-	if statuses == nil && len(statuses) == 0 {
+	if len(statuses) == 0 {
 		return false
 	}
 

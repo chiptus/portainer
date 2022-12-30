@@ -47,7 +47,7 @@ func (m *Migrator) updateLdapSettingsEE() error {
 		return err
 	}
 
-	if settings.LDAPSettings.URLs == nil || len(settings.LDAPSettings.URLs) == 0 {
+	if len(settings.LDAPSettings.URLs) == 0 {
 		settings.LDAPSettings.URLs = []string{}
 		if url := settings.LDAPSettings.URL; url != "" {
 			settings.LDAPSettings.URLs = append(settings.LDAPSettings.URLs, url)

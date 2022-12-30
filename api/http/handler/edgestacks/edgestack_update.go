@@ -2,9 +2,10 @@ package edgestacks
 
 import (
 	"errors"
-	portainer "github.com/portainer/portainer/api"
 	"net/http"
 	"strconv"
+
+	portainer "github.com/portainer/portainer/api"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -32,7 +33,7 @@ func (payload *updateEdgeStackPayload) Validate(r *http.Request) error {
 	if payload.StackFileContent == "" {
 		return errors.New("Invalid file content")
 	}
-	if payload.EdgeGroups != nil && len(payload.EdgeGroups) == 0 {
+	if len(payload.EdgeGroups) == 0 {
 		return errors.New("edge groups are mandatory for an Edge stack")
 	}
 	return nil

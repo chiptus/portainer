@@ -156,7 +156,7 @@ func (a *CloudClusterInfoService) AzureFetchInfo(credentials models.CloudCredent
 			// Zones
 			var zones []string
 			for _, l := range *sku.LocationInfo {
-				if l.Zones != nil && len(*l.Zones) > 0 {
+				if len(*l.Zones) > 0 {
 					zones = *l.Zones
 					sort.Strings(zones)
 					break

@@ -51,10 +51,7 @@ func (service *Service) CleanNAPWithOverridePolicies(
 	}
 
 	if hasChange {
-		err = kubecli.UpdateNamespaceAccessPolicies(accessPolicies)
-		if err != nil {
-			return err
-		}
+		return kubecli.UpdateNamespaceAccessPolicies(accessPolicies)
 	}
 
 	return nil

@@ -109,7 +109,7 @@ func (payload *swarmStackFromFileContentPayload) Validate(r *http.Request) error
 	if govalidator.IsNull(payload.StackFileContent) {
 		return &InvalidPayloadError{msg: "Invalid stack file content"}
 	}
-	if payload.EdgeGroups == nil || len(payload.EdgeGroups) == 0 {
+	if len(payload.EdgeGroups) == 0 {
 		return &InvalidPayloadError{msg: "Edge Groups are mandatory for an Edge stack"}
 	}
 
@@ -249,7 +249,7 @@ func (payload *swarmStackFromGitRepositoryPayload) Validate(r *http.Request) err
 			payload.FilePathInRepository = nomadJobFileDefaultName
 		}
 	}
-	if payload.EdgeGroups == nil || len(payload.EdgeGroups) == 0 {
+	if len(payload.EdgeGroups) == 0 {
 		return &InvalidPayloadError{msg: "Edge Groups are mandatory for an Edge stack"}
 	}
 	return nil
