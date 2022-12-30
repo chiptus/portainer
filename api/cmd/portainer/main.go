@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"math/rand"
 	"os"
 	"path"
 	"strconv"
@@ -875,6 +876,8 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 }
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
+
 	configureLogger()
 	setLoggingMode("PRETTY")
 
