@@ -28,7 +28,7 @@ const (
 )
 
 var (
-	_statusCache  = cache.New(5*time.Minute, 5*time.Minute)
+	_statusCache  = cache.New(24*time.Hour, 24*time.Hour)
 	_remoteDigest = cache.New(5*time.Second, 5*time.Second)
 	_swarmID2Name = cache.New(5*time.Second, 5*time.Second)
 )
@@ -157,6 +157,15 @@ func (c *DigestClient) ServiceImageStatus(ctx context.Context, serviceID string,
 	for _, container := range containers {
 		if container.State == "exited" || container.State == "stopped" {
 			continue
+		}
+
+		// When there is a container with the state "Created" under the service, it
+		// indicates that the Docker Swarm is replacing the existing task with
+		// a new task. At the moment, the state of the new task is "Created", and
+		// the state of the old task is "Running".
+		// Until the new task runs up, the image status should be set "Preparing"
+		if container.State == "created" {
+			return Preparing, nil
 		}
 		nonExistedOrStoppedContainers = append(nonExistedOrStoppedContainers, container)
 	}
