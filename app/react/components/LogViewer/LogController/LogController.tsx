@@ -1,13 +1,7 @@
-import { useContext } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { File, RefreshCw } from 'lucide-react';
 
 import { Button } from '@@/buttons';
-import { TableTitle } from '@@/datatables';
 import { SearchBar } from '@@/datatables/SearchBar';
-import {
-  LogViewerContext,
-  LogViewerContextInterface,
-} from '@@/LogViewer/types';
 import { Checkbox } from '@@/form-components/Checkbox';
 import { SwitchField } from '@@/form-components/SwitchField';
 import { Input, Select } from '@@/form-components/Input';
@@ -16,8 +10,11 @@ import { FullScreenButton } from '@@/LogViewer/LogController/FullScreenButton/Fu
 import { CopyLogsButton } from '@@/LogViewer/LogController/CopyLogsButton/CopyLogsButton';
 import { DownloadLogsButton } from '@@/LogViewer/LogController/DownloadLogsButton/DownloadLogsButton';
 import { SearchStatus } from '@@/LogViewer/LogController/SearchStatus/SearchStatus';
+import { WidgetTitle } from '@@/Widget';
 
 import './LogController.css';
+
+import { useLogViewerContext } from '../context';
 
 export function LogController() {
   const {
@@ -27,7 +24,7 @@ export function LogController() {
     hideLines,
     hideTimestamp,
     logsQuery,
-  } = useContext(LogViewerContext) as LogViewerContextInterface;
+  } = useLogViewerContext();
 
   const {
     keyword,
@@ -50,7 +47,7 @@ export function LogController() {
 
   return (
     <>
-      <TableTitle icon="file" label="Logs">
+      <WidgetTitle icon={File} title="Logs">
         <div className="tool-bar-segment">
           <SearchBar value={keyword} onChange={setKeyword}>
             {controllerStates.keyword && (
@@ -71,7 +68,7 @@ export function LogController() {
 
           <DownloadLogsButton />
         </div>
-      </TableTitle>
+      </WidgetTitle>
 
       <div className="tool-bar">
         <div className="tool-bar-segment">
@@ -133,9 +130,7 @@ export function LogController() {
               <span>Show timestamp</span>
             </div>
           )}
-        </div>
 
-        <div className="tool-bar-segment">
           <div className="vertical-center">
             <Checkbox
               id="showLineNumber"
@@ -153,7 +148,9 @@ export function LogController() {
             />
             <span>Wrap line</span>
           </div>
+        </div>
 
+        <div className="tool-bar-segment">
           <FullScreenButton />
         </div>
       </div>

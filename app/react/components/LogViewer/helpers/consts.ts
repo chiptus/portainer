@@ -56,11 +56,7 @@ export const SpaceSpan = { style: {}, text: ' ' };
 
 export const TIMESTAMP_LENGTH = 30;
 
-export const AUTO_REFRESH_INTERVAL = 5000;
-
 const MAC_OR_LIN = navigator.userAgent.indexOf('Mac') > -1 ? 'mac' : 'lin';
 const BROWSER_OS_PLATFORM =
   navigator.userAgent.indexOf('Windows') > -1 ? 'win' : MAC_OR_LIN;
 export const NEW_LINE_BREAKER = BROWSER_OS_PLATFORM === 'win' ? '\r\n' : '\n';
-
-export const DEFAULT_ROW_SIZE = 25;

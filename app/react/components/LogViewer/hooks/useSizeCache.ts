@@ -1,13 +1,16 @@
 import { useCallback, useRef } from 'react';
 
-import { SizeMapInterface } from '@@/LogViewer/types';
-import { DEFAULT_ROW_SIZE } from '@@/LogViewer/helpers/consts';
+interface SizeMapInterface {
+  [key: number]: number;
+}
+
+const DEFAULT_ROW_SIZE = 25;
 
 export function useSizeCache(listReset: () => void) {
   const sizeCache = useRef<SizeMapInterface>({});
 
   const setSize = useCallback(
-    (index, size) => {
+    (index: number, size: number) => {
       sizeCache.current = { ...sizeCache.current, [index]: size };
       listReset();
     },

@@ -1,10 +1,7 @@
 import { VariableSizeList } from 'react-window';
-import { RefObject, useCallback, useContext, useEffect, useState } from 'react';
+import { RefObject, useCallback, useEffect, useState } from 'react';
 
-import {
-  LogViewerContext,
-  LogViewerContextInterface,
-} from '@@/LogViewer/types';
+import { useLogViewerContext } from '../context';
 
 export function useKeepAtBottom(
   outerRef: RefObject<HTMLDivElement>,
@@ -13,9 +10,7 @@ export function useKeepAtBottom(
   const [isScrollAtBottom, setIsScrollAtBottom] = useState(false);
   const [keepAtBottom, setKeepAtBottom] = useState(false);
 
-  const { logs, setVisibleStartIndex } = useContext(
-    LogViewerContext
-  ) as LogViewerContextInterface;
+  const { logs, setVisibleStartIndex } = useLogViewerContext();
 
   const checkIsScrollAtBottom = useCallback(() => {
     const ref = outerRef.current;

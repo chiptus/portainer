@@ -1,17 +1,14 @@
 import { Check, Copy } from 'lucide-react';
-import { useCallback, useContext } from 'react';
+import { useCallback } from 'react';
 
 import { Icon } from '@@/Icon';
 import { Button } from '@@/buttons';
-import {
-  LogViewerContext,
-  LogViewerContextInterface,
-} from '@@/LogViewer/types';
 import { useCopy } from '@@/buttons/CopyButton/useCopy';
 import { NEW_LINE_BREAKER } from '@@/LogViewer/helpers/consts';
+import { useLogViewerContext } from '@@/LogViewer/context';
 
 export function CopyLogsButton() {
-  const { logs } = useContext(LogViewerContext) as LogViewerContextInterface;
+  const { logs } = useLogViewerContext();
 
   const copyText = useCallback(
     () => logs.logs.map((log) => log.line + NEW_LINE_BREAKER).join(''),

@@ -1,19 +1,13 @@
-import { useContext } from 'react';
 import { saveAs } from 'file-saver';
 import { Download } from 'lucide-react';
 
 import { Icon } from '@@/Icon';
 import { Button } from '@@/buttons';
-import {
-  LogViewerContext,
-  LogViewerContextInterface,
-} from '@@/LogViewer/types';
 import { NEW_LINE_BREAKER } from '@@/LogViewer/helpers/consts';
+import { useLogViewerContext } from '@@/LogViewer/context';
 
 export function DownloadLogsButton() {
-  const { logs, resourceName } = useContext(
-    LogViewerContext
-  ) as LogViewerContextInterface;
+  const { logs, resourceName } = useLogViewerContext();
 
   function onClick() {
     const data = logs.logs.map((log) => log.line + NEW_LINE_BREAKER);

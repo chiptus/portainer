@@ -10,9 +10,11 @@ import {
   LogInterface,
 } from '@@/LogViewer/types';
 
+const AUTO_REFRESH_INTERVAL = 5000;
+
 export function useLogsQuery(
   getLogsFn: GetLogsFnType,
-  { tail, showTimestamp, since }: ControllerStatesInterface,
+  { tail, showTimestamp, since, autoRefresh }: ControllerStatesInterface,
   resourceType: string,
   resourceName: string
 ) {
@@ -30,11 +32,11 @@ export function useLogsQuery(
   }
 
   const logsQuery = useQuery(['logs', resourceType, resourceName], queryFn, {
-    refetchOnWindowFocus: false,
     onSuccess: (logs) => {
       const formattedLogs = formatLogs(logs);
       setOriginalLogs(formattedLogs);
     },
+    refetchInterval: () => (autoRefresh ? AUTO_REFRESH_INTERVAL : false),
   });
 
   return { logsQuery, originalLogs };

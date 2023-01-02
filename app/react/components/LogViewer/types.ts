@@ -1,4 +1,4 @@
-import { createContext, CSSProperties, RefObject } from 'react';
+import { CSSProperties, RefObject } from 'react';
 import { UseQueryResult } from 'react-query';
 
 import { SearchStatusInterface } from '@@/LogViewer/LogController/SearchStatus/SearchStatus';
@@ -85,14 +85,6 @@ export interface LogViewerContextInterface {
   logsQuery: UseQueryResult;
   searchStatus: SearchStatusInterface;
   resourceName: string;
-}
-
-export const LogViewerContext = createContext<null | LogViewerContextInterface>(
-  null
-);
-
-export interface SizeMapInterface {
-  [key: number]: number;
 }
 
 export interface LevelSpansInterface {

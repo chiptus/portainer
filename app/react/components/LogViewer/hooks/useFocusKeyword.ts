@@ -1,17 +1,14 @@
 import { VariableSizeList } from 'react-window';
-import { RefObject, useContext, useEffect } from 'react';
+import { RefObject, useEffect } from 'react';
 
-import {
-  LogViewerContext,
-  LogViewerContextInterface,
-} from '@@/LogViewer/types';
+import { useLogViewerContext } from '../context';
 
 // scroll to focused keyword
 export function useFocusKeyword(listRef: RefObject<VariableSizeList>) {
   const {
     logs,
     searchStatus: { focusedKeywordIndex },
-  } = useContext(LogViewerContext) as LogViewerContextInterface;
+  } = useLogViewerContext();
   const { lineNumber } = logs.keywordIndexes[focusedKeywordIndex] || {};
 
   useEffect(() => {

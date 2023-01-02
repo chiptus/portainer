@@ -1,16 +1,11 @@
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Icon } from '@@/Icon';
 import { Button } from '@@/buttons';
-import {
-  LogViewerContext,
-  LogViewerContextInterface,
-} from '@@/LogViewer/types';
+import { useLogViewerContext } from '@@/LogViewer/context';
 
 export function FullScreenButton() {
-  const { logViewerRef } = useContext(
-    LogViewerContext
-  ) as LogViewerContextInterface;
+  const { logViewerRef } = useLogViewerContext();
 
   const [isFullScreen, setIsFullScreen] = useState(false);
 

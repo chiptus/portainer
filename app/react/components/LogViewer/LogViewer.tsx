@@ -2,19 +2,16 @@ import { useMemo, useRef, useState } from 'react';
 
 import { LogList } from '@@/LogViewer/LogList/LogList';
 import { LogController } from '@@/LogViewer/LogController/LogController';
-import {
-  GetLogsFnType,
-  LogViewerContext,
-  LogViewerContextInterface,
-} from '@@/LogViewer/types';
-import { TableContainer } from '@@/datatables';
-import { useSearchStatus } from '@@/LogViewer/hooks/useSearchStatus';
-import { useSearchLogs } from '@@/LogViewer/hooks/useSearchLogs';
-import { useFilterLogs } from '@@/LogViewer/hooks/useFilterLogs';
-import { useAutoRefresh } from '@@/LogViewer/hooks/useAutoRefresh';
-import { useFetchLogs } from '@@/LogViewer/hooks/usFetchLogs';
-import { useLogsQuery } from '@@/LogViewer/hooks/useLogsQuery';
-import { useControllerStates } from '@@/LogViewer/hooks/useControllerStates';
+import { GetLogsFnType, LogViewerContextInterface } from '@@/LogViewer/types';
+import { Widget } from '@@/Widget';
+
+import { useSearchStatus } from './hooks/useSearchStatus';
+import { useSearchLogs } from './hooks/useSearchLogs';
+import { useFilterLogs } from './hooks/useFilterLogs';
+import { useFetchLogs } from './hooks/usFetchLogs';
+import { useLogsQuery } from './hooks/useLogsQuery';
+import { useControllerStates } from './hooks/useControllerStates';
+import { LogViewerProvider } from './context';
 
 interface Props {
   getLogsFn: GetLogsFnType;
@@ -43,8 +40,6 @@ export function LogViewer({
     resourceType,
     resourceName
   );
-
-  useAutoRefresh(controllerStates.autoRefresh, logsQuery);
 
   const { searchedLogs } = useSearchLogs(
     originalLogs,
@@ -90,13 +85,15 @@ export function LogViewer({
   );
 
   return (
-    <LogViewerContext.Provider value={context}>
+    <LogViewerProvider value={context}>
       <div className="col-sm-12" ref={logViewerRef}>
-        <TableContainer>
+        <Widget className="h-full">
           <LogController />
-          <LogList logs={filteredLogs} />
-        </TableContainer>
+          <Widget.Body className="no-padding">
+            <LogList logs={filteredLogs} />
+          </Widget.Body>
+        </Widget>
       </div>
-    </LogViewerContext.Provider>
+    </LogViewerProvider>
   );
 }

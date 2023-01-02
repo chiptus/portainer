@@ -1,6 +1,6 @@
 import { useResizeDetector } from 'react-resize-detector';
 import { VariableSizeList } from 'react-window';
-import { useCallback, useEffect, useRef } from 'react';
+import { CSSProperties, useCallback, useEffect, useRef } from 'react';
 
 import { BottomButton } from '@@/LogViewer/LogList/BottomButton/BottomButton';
 import { ProcessedLogsInterface } from '@@/LogViewer/types';
@@ -10,6 +10,7 @@ import { useFocusKeyword } from '@@/LogViewer/hooks/useFocusKeyword';
 import { useKeepAtBottom } from '@@/LogViewer/hooks/useKeepAtBottom';
 
 import './LogList.css';
+import { SetSizeProvider } from './useSetSize';
 
 interface Props {
   logs: ProcessedLogsInterface;
@@ -35,25 +36,30 @@ export function LogList({ logs }: Props) {
 
   return (
     <>
-      <VariableSizeList
-        height={750}
-        itemCount={logs.logs.length}
-        itemSize={getSize}
-        width="100%"
-        onScroll={onScroll}
-        onItemsRendered={onItemsRendered}
-        ref={listRef}
-        outerRef={outerRef}
-        className="log-list"
-      >
-        {({ index, style }) => (
-          <div style={{ ...style, width: 'unset' }}>
-            <LogRow lineIndex={index} setSize={setSize} />
-          </div>
-        )}
-      </VariableSizeList>
-
+      <SetSizeProvider setSize={setSize}>
+        <VariableSizeList
+          height={750}
+          itemCount={logs.logs.length}
+          itemSize={getSize}
+          width="100%"
+          onScroll={onScroll}
+          onItemsRendered={onItemsRendered}
+          ref={listRef}
+          outerRef={outerRef}
+          className="log-list"
+        >
+          {renderItem}
+        </VariableSizeList>
+      </SetSizeProvider>
       <BottomButton visible={!isScrollAtBottom} onClick={scrollToBottom} />
     </>
+  );
+}
+
+function renderItem({ index, style }: { index: number; style: CSSProperties }) {
+  return (
+    <div style={{ ...style, width: 'unset' }}>
+      <LogRow lineIndex={index} />
+    </div>
   );
 }

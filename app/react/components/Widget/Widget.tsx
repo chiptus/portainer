@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { createContext, PropsWithChildren, useContext } from 'react';
 
 const Context = createContext<null | boolean>(null);
@@ -11,10 +12,13 @@ export function useWidgetContext() {
   }
 }
 
-export function Widget({ children }: PropsWithChildren<unknown>) {
+export function Widget({
+  children,
+  className,
+}: PropsWithChildren<{ className?: string }>) {
   return (
     <Context.Provider value>
-      <div className="widget">{children}</div>
+      <div className={clsx('widget', className)}>{children}</div>
     </Context.Provider>
   );
 }
