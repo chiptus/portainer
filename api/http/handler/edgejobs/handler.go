@@ -46,7 +46,7 @@ func NewHandler(bouncer *security.RequestBouncer, userActivityService portainere
 	return h
 }
 
-func (handler *Handler) convertEndpointsToMetaObject(endpoints []portaineree.EndpointID) map[portaineree.EndpointID]portaineree.EdgeJobEndpointMeta {
+func convertEndpointsToMetaObject(endpoints []portaineree.EndpointID) map[portaineree.EndpointID]portaineree.EdgeJobEndpointMeta {
 	endpointsMap := map[portaineree.EndpointID]portaineree.EdgeJobEndpointMeta{}
 
 	for _, endpointID := range endpoints {
