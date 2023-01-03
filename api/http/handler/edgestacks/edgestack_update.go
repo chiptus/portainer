@@ -13,7 +13,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
-	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 	"github.com/portainer/portainer/api/filesystem"
 )
 
@@ -61,10 +60,8 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 	}
 
 	stack, err := handler.DataStore.EdgeStack().EdgeStack(portaineree.EdgeStackID(stackID))
-	if err == portainerDsErrors.ErrObjectNotFound {
-		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
-	} else if err != nil {
-		return httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
+	if err != nil {
+		return handler.handlerDBErr(err, "Unable to find a stack with the specified identifier inside the database")
 	}
 
 	if stack.EdgeUpdateID != 0 {

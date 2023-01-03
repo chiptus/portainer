@@ -56,10 +56,8 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 	}
 
 	stack, err := handler.DataStore.EdgeStack().EdgeStack(portaineree.EdgeStackID(stackID))
-	if handler.DataStore.IsErrObjectNotFound(err) {
-		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
-	} else if err != nil {
-		return httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
+	if err != nil {
+		return handler.handlerDBErr(err, "Unable to find a stack with the specified identifier inside the database")
 	}
 
 	var payload updateStatusPayload
@@ -74,10 +72,8 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(payload.EndpointID)
-	if handler.DataStore.IsErrObjectNotFound(err) {
-		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
-	} else if err != nil {
-		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
+	if err != nil {
+		return handler.handlerDBErr(err, "Unable to find an environment with the specified identifier inside the database")
 	}
 
 	err = handler.requestBouncer.AuthorizedEdgeEndpointOperation(r, endpoint)
@@ -126,10 +122,8 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 
 		stack = edgeStack
 	})
-	if handler.DataStore.IsErrObjectNotFound(err) {
-		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
-	} else if err != nil {
-		return httperror.InternalServerError("Unable to persist the stack changes inside the database", err)
+	if err != nil {
+		return handler.handlerDBErr(err, "Unable to persist the stack changes inside the database")
 	}
 
 	return response.JSON(w, stack)
