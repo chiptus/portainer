@@ -292,6 +292,7 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 		}
 
 		cmd = append(cmd, stack.GitConfig.URL)
+		cmd = append(cmd, stack.GitConfig.ReferenceName)
 		cmd = append(cmd, stack.Name)
 		cmd = append(cmd, composeDestination)
 		cmd = append(cmd, stack.EntryPoint)
@@ -334,7 +335,7 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 			cmd = append(cmd, stack.AdditionalFiles[i])
 		}
 	case "swarm-deploy":
-		// deploy [-u username -p password] [-f] [-r] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
+		// deploy [-u username -p password] [-f] [-r] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <git-ref> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
 		cmd = append(cmd, stackOperation)
 		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Username) != 0 && len(stack.GitConfig.Authentication.Password) != 0 {
 			cmd = append(cmd, "-u")
@@ -352,6 +353,7 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 		}
 		cmd = append(cmd, getEnv(stack.Env)...)
 		cmd = append(cmd, stack.GitConfig.URL)
+		cmd = append(cmd, stack.GitConfig.ReferenceName)
 		cmd = append(cmd, stack.Name)
 		cmd = append(cmd, composeDestination)
 		cmd = append(cmd, stack.EntryPoint)

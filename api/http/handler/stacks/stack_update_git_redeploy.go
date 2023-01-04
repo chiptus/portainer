@@ -142,12 +142,6 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	backupProjectPath := fmt.Sprintf("%s-old", stack.ProjectPath)
-	err = filesystem.MoveDirectory(stack.ProjectPath, backupProjectPath)
-	if err != nil {
-		return httperror.InternalServerError("Unable to move git repository directory", err)
-	}
-
 	repositoryUsername := ""
 	repositoryPassword := ""
 	repositoryGitCredentialID := 0
@@ -190,26 +184,35 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	err = handler.GitService.CloneRepository(stack.ProjectPath, stack.GitConfig.URL, payload.RepositoryReferenceName, repositoryUsername, repositoryPassword)
-	if err != nil {
-		restoreError := filesystem.MoveDirectory(backupProjectPath, stack.ProjectPath)
-		if restoreError != nil {
-			log.Warn().Err(restoreError).Msg("failed restoring backup folder")
-		}
-
-		if err == gittypes.ErrAuthenticationFailure {
-			return httperror.InternalServerError(stackutils.ErrInvalidGitCredential.Error(), err)
-		}
-
-		return httperror.InternalServerError("Unable to clone git repository", err)
-	}
-
-	defer func() {
-		err = handler.FileService.RemoveDirectory(backupProjectPath)
+	if !isRelativePathEnabled(stack) {
+		// If relative path feature is enabled, the git clone operation will be executed in portainer-unpacker
+		backupProjectPath := fmt.Sprintf("%s-old", stack.ProjectPath)
+		err = filesystem.MoveDirectory(stack.ProjectPath, backupProjectPath)
 		if err != nil {
-			log.Warn().Err(err).Msg("unable to remove git repository directory")
+			return httperror.InternalServerError("Unable to move git repository directory", err)
 		}
-	}()
+
+		err = handler.GitService.CloneRepository(stack.ProjectPath, stack.GitConfig.URL, payload.RepositoryReferenceName, repositoryUsername, repositoryPassword)
+		if err != nil {
+			restoreError := filesystem.MoveDirectory(backupProjectPath, stack.ProjectPath)
+			if restoreError != nil {
+				log.Warn().Err(restoreError).Msg("failed restoring backup folder")
+			}
+
+			if err == gittypes.ErrAuthenticationFailure {
+				return httperror.InternalServerError(stackutils.ErrInvalidGitCredential.Error(), err)
+			}
+
+			return httperror.InternalServerError("Unable to clone git repository", err)
+		}
+
+		defer func() {
+			err = handler.FileService.RemoveDirectory(backupProjectPath)
+			if err != nil {
+				log.Warn().Err(err).Msg("unable to remove git repository directory")
+			}
+		}()
+	}
 
 	log.Debug().Bool("pull_image_flag", payload.PullImage).Msg("")
 
@@ -264,6 +267,30 @@ func (handler *Handler) deployStack(r *http.Request, stack *portaineree.Stack, p
 			return httperror.InternalServerError("Unable to retrieve info from request context", err)
 		}
 
+		// When the relative path feature is enabled in the docker swarm environment,
+		// redeployment can be skipped if both of conditions below are met:
+		// 1. If the pull image is not enforced
+		// 2. If git repository has no changes since last deployment
+		// The reason is that Docker swarm needs to forcibly recreate a docker container in
+		// every redeployment in order to mount the relative path, this check will avoid
+		// unnecessary docker container recreation.
+		if isRelativePathEnabled(stack) && !pullImage {
+			repositoryName := ""
+			repositoryPwd := ""
+			if stack.GitConfig.Authentication != nil {
+				repositoryName = stack.GitConfig.Authentication.Username
+				repositoryPwd = stack.GitConfig.Authentication.Password
+			}
+			newHash, err := handler.GitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, repositoryName, repositoryPwd)
+			if err != nil {
+				return httperror.InternalServerError("Unable get latest commit id", errors.WithMessagef(err, "failed to fetch latest commit id of the remote swarm stack %v", stack.ID))
+			}
+			if stack.GitConfig.ConfigHash == newHash {
+				// Skip the swarm stack redeployment
+				return nil
+			}
+		}
+
 		deploymentConfiger, err = deployments.CreateSwarmStackDeploymentConfig(securityContext, stack, endpoint, handler.DataStore, handler.FileService, handler.StackDeployer, prune, pullImage)
 		if err != nil {
 			return httperror.InternalServerError(err.Error(), err)
@@ -308,4 +335,8 @@ func (handler *Handler) deployStack(r *http.Request, stack *portaineree.Stack, p
 		return httperror.InternalServerError(err.Error(), err)
 	}
 	return nil
+}
+
+func isRelativePathEnabled(stack *portaineree.Stack) bool {
+	return stack.SupportRelativePath && stack.FilesystemPath != ""
 }
