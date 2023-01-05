@@ -34,7 +34,7 @@ func (store *Store) cleanupLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ticker.C:
-			log.Debug().Msg("cleaning logs]")
+			log.Debug().Msg("cleaning logs")
 
 			err := store.cleanLogs()
 			if err != nil {

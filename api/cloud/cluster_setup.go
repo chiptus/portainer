@@ -164,7 +164,7 @@ func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 
 	for _, task := range tasks {
 		if task.CreatedAt.Before(time.Now().Add(-time.Hour * 24 * 7)) {
-			log.Info().Msg("removing provisioning task, too old]")
+			log.Info().Msg("removing provisioning task, too old")
 
 			// Get the associated endpoint and set it's status to error and error detail to timed out
 			err := service.setStatus(task.EndpointID, 4)
@@ -620,7 +620,7 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 }
 
 func (service *CloudClusterSetupService) processResult(result *cloudPrevisioningResult) {
-	log.Info().Msg("cluster creation request completed]")
+	log.Info().Msg("cluster creation request completed")
 
 	if result.err != nil {
 		log.Error().Err(result.err).Msg("unable to provision cluster")
