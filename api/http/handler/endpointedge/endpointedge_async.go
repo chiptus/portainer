@@ -15,7 +15,6 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/internal/edge"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	portainer "github.com/portainer/portainer/api"
 
@@ -591,12 +590,18 @@ func (handler *Handler) sendCommandsSince(endpoint *portaineree.Endpoint, comman
 
 func (handler *Handler) getEndpoint(endpointID portaineree.EndpointID, edgeID string) (*portaineree.Endpoint, error) {
 	if endpointID == 0 {
-		endpoints, err := handler.DataStore.Endpoint().Endpoints()
+		var ok bool
+		endpointID, ok = handler.DataStore.Endpoint().EndpointIDByEdgeID(edgeID)
+		if !ok {
+			return nil, errors.New("Unable to retrieve environments from database")
+		}
+
+		endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
 		if err != nil {
 			return nil, errors.WithMessage(err, "Unable to retrieve environments from database")
 		}
 
-		return edge.EdgeEndpoint(endpoints, edgeID), nil
+		return endpoint, nil
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)

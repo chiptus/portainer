@@ -9,11 +9,8 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 
-	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
-
-var errTempDir = errors.New("can't create a temp dir")
 
 func (store *Store) GetConnection() portainer.Connection {
 	return store.connection
@@ -23,20 +20,16 @@ func (store *Store) GetConnection() portainer.Connection {
 //
 //	init indicates the store should be initialised.
 //	secure indicates the store should be encrypted.
-func MustNewTestStore(t *testing.T, init, secure bool) (bool, *Store, func()) {
+func MustNewTestStore(t testing.TB, init, secure bool) (bool, *Store, func()) {
 	newStore, store, teardown, err := NewTestStore(t, init, secure)
 	if err != nil {
-		if !errors.Is(err, errTempDir) && teardown != nil {
-			teardown()
-		}
-
 		log.Fatal().Err(err).Msg("")
 	}
 
 	return newStore, store, teardown
 }
 
-func NewTestStore(t *testing.T, init, secure bool) (bool, *Store, func(), error) {
+func NewTestStore(t testing.TB, init, secure bool) (bool, *Store, func(), error) {
 	// Creates unique temp directory in a concurrency friendly manner.
 	storePath := t.TempDir()
 	fileService, err := filesystem.NewService(storePath, "")
@@ -84,15 +77,11 @@ func NewTestStore(t *testing.T, init, secure bool) (bool, *Store, func(), error)
 	}
 
 	teardown := func() {
-		teardown(store)
+		err := store.Close()
+		if err != nil {
+			log.Fatal().Err(err).Msg("")
+		}
 	}
 
 	return newStore, store, teardown, nil
-}
-
-func teardown(store *Store) {
-	err := store.Close()
-	if err != nil {
-		log.Fatal().Err(err).Msg("")
-	}
 }

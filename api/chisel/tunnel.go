@@ -7,9 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dchest/uniuri"
 	"github.com/portainer/libcrypto"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/edge/cache"
+
+	"github.com/dchest/uniuri"
 )
 
 const (
@@ -47,6 +49,8 @@ func (service *Service) getTunnelDetails(endpointID portaineree.EndpointID) *por
 	}
 
 	service.tunnelDetailsMap[endpointID] = tunnel
+
+	cache.Del(endpointID)
 
 	return tunnel
 }
@@ -98,6 +102,8 @@ func (service *Service) SetTunnelStatusToActive(endpointID portaineree.EndpointI
 	tunnel.Credentials = ""
 	tunnel.LastActivity = time.Now()
 	service.mu.Unlock()
+
+	cache.Del(endpointID)
 }
 
 // SetTunnelStatusToIdle update the status of the tunnel associated to the specified environment(endpoint).
@@ -120,6 +126,8 @@ func (service *Service) SetTunnelStatusToIdle(endpointID portaineree.EndpointID)
 	service.ProxyManager.DeleteEndpointProxy(endpointID)
 
 	service.mu.Unlock()
+
+	cache.Del(endpointID)
 }
 
 // SetTunnelStatusToRequired update the status of the tunnel associated to the specified environment(endpoint).
@@ -128,6 +136,8 @@ func (service *Service) SetTunnelStatusToIdle(endpointID portaineree.EndpointID)
 // and generate temporary credentials that can be used to establish a reverse tunnel on that port.
 // Credentials are encrypted using the Edge ID associated to the environment(endpoint).
 func (service *Service) SetTunnelStatusToRequired(endpointID portaineree.EndpointID) error {
+	defer cache.Del(endpointID)
+
 	tunnel := service.getTunnelDetails(endpointID)
 
 	service.mu.Lock()

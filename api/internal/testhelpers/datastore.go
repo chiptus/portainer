@@ -2,6 +2,7 @@ package testhelpers
 
 import (
 	"io"
+	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database"
@@ -292,6 +293,34 @@ func (s *stubEndpointService) Endpoint(ID portaineree.EndpointID) (*portaineree.
 	}
 
 	return nil, errors.ErrObjectNotFound
+}
+
+func (s *stubEndpointService) EndpointIDByEdgeID(edgeID string) (portaineree.EndpointID, bool) {
+	for _, endpoint := range s.endpoints {
+		if endpoint.EdgeID == edgeID {
+			return endpoint.ID, true
+		}
+	}
+
+	return 0, false
+}
+
+func (s *stubEndpointService) Heartbeat(endpointID portaineree.EndpointID) (int64, bool) {
+	for i, endpoint := range s.endpoints {
+		if endpoint.ID == endpointID {
+			return s.endpoints[i].LastCheckInDate, true
+		}
+	}
+
+	return 0, false
+}
+
+func (s *stubEndpointService) UpdateHeartbeat(endpointID portaineree.EndpointID) {
+	for i, endpoint := range s.endpoints {
+		if endpoint.ID == endpointID {
+			s.endpoints[i].LastCheckInDate = time.Now().Unix()
+		}
+	}
 }
 
 func (s *stubEndpointService) Endpoints() ([]portaineree.Endpoint, error) {

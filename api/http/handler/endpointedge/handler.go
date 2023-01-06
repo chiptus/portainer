@@ -2,6 +2,7 @@ package endpointedge
 
 import (
 	"net/http"
+	"time"
 
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/patrickmn/go-cache"
 )
 
 // Handler is the HTTP handler used to handle edge environment(endpoint) operations.
@@ -26,6 +28,7 @@ type Handler struct {
 	ReverseTunnelService portaineree.ReverseTunnelService
 	EdgeService          *edgeasync.Service
 	edgeUpdateService    *updateschedules.Service
+	edgeStackCache       *cache.Cache
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.
@@ -38,13 +41,19 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 		ReverseTunnelService: reverseTunnelService,
 		EdgeService:          edgeService,
 		edgeUpdateService:    edgeUpdateService,
+		edgeStackCache: cache.New(
+			portaineree.DefaultEdgeAgentCheckinIntervalInSeconds*time.Second,
+			time.Minute,
+		),
 	}
 
-	endpointRouter := h.PathPrefix("/{id}").Subrouter()
-	endpointRouter.Use(middlewares.WithEndpoint(dataStore.Endpoint(), "id"))
+	h.Handle("/api/endpoints/{id}/edge/status", bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeStatusInspect))).Methods(http.MethodGet)
 
-	endpointRouter.PathPrefix("/edge/status").Handler(
-		bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeStatusInspect))).Methods(http.MethodGet)
+	h.Handle("/api/endpoints/edge/async", handlers.CompressHandler(bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeAsync)))).Methods(http.MethodPost)
+	h.Handle("/api/endpoints/edge/generate-key", bouncer.AdminAccess(httperror.LoggerHandler(h.endpointEdgeGenerateKey))).Methods(http.MethodPost)
+
+	endpointRouter := h.PathPrefix("/api/endpoints/{id}").Subrouter()
+	endpointRouter.Use(middlewares.WithEndpoint(dataStore.Endpoint(), "id"))
 
 	endpointRouter.PathPrefix("/edge/stacks/{stackId}").Handler(
 		bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeStackInspect))).Methods(http.MethodGet)
@@ -53,9 +62,6 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 		bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeJobsLogs))).Methods(http.MethodPost)
 
 	endpointRouter.PathPrefix("/edge/trust").Handler(bouncer.AdminAccess(license.RecalculateLicenseUsage(licenseService, httperror.LoggerHandler(h.endpointTrust)))).Methods(http.MethodPost)
-
-	h.Handle("/edge/async", handlers.CompressHandler(bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeAsync)))).Methods(http.MethodPost)
-	h.Handle("/edge/generate-key", bouncer.AdminAccess(httperror.LoggerHandler(h.endpointEdgeGenerateKey))).Methods(http.MethodPost)
 
 	endpointRouter.Handle("/edge/async/commands/container", bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.createContainerCommand))).Methods(http.MethodPost)
 	endpointRouter.Handle("/edge/async/commands/image", bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.createImageCommand))).Methods(http.MethodPost)

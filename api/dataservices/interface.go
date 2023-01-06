@@ -136,6 +136,7 @@ type (
 	EdgeStackService interface {
 		EdgeStacks() ([]portaineree.EdgeStack, error)
 		EdgeStack(ID portaineree.EdgeStackID) (*portaineree.EdgeStack, error)
+		EdgeStackVersion(ID portaineree.EdgeStackID) (int, bool)
 		Create(id portaineree.EdgeStackID, edgeStack *portaineree.EdgeStack) error
 		UpdateEdgeStack(ID portaineree.EdgeStackID, edgeStack *portaineree.EdgeStack) error
 		UpdateEdgeStackFunc(ID portaineree.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error
@@ -154,6 +155,9 @@ type (
 	// EndpointService represents a service for managing environment(endpoint) data
 	EndpointService interface {
 		Endpoint(ID portaineree.EndpointID) (*portaineree.Endpoint, error)
+		EndpointIDByEdgeID(edgeID string) (portaineree.EndpointID, bool)
+		Heartbeat(endpointID portaineree.EndpointID) (int64, bool)
+		UpdateHeartbeat(endpointID portaineree.EndpointID)
 		Endpoints() ([]portaineree.Endpoint, error)
 		Create(endpoint *portaineree.Endpoint) error
 		UpdateEndpoint(ID portaineree.EndpointID, endpoint *portaineree.Endpoint) error

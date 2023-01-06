@@ -161,38 +161,39 @@ func (handler *Handler) filterEndpointsByQuery(filteredEndpoints []portaineree.E
 }
 
 func filterEndpointsByGroupIDs(endpoints []portaineree.Endpoint, endpointGroupIDs []portaineree.EndpointGroupID) []portaineree.Endpoint {
-	filteredEndpoints := make([]portaineree.Endpoint, 0)
-
+	n := 0
 	for _, endpoint := range endpoints {
 		if slices.Contains(endpointGroupIDs, endpoint.GroupID) {
-			filteredEndpoints = append(filteredEndpoints, endpoint)
+			endpoints[n] = endpoint
+			n++
 		}
 	}
 
-	return filteredEndpoints
+	return endpoints[:n]
 }
 
 func filterEndpointsBySearchCriteria(endpoints []portaineree.Endpoint, endpointGroups []portaineree.EndpointGroup, tagsMap map[portaineree.TagID]string, searchCriteria string) []portaineree.Endpoint {
-	filteredEndpoints := make([]portaineree.Endpoint, 0)
-
+	n := 0
 	for _, endpoint := range endpoints {
 		endpointTags := convertTagIDsToTags(tagsMap, endpoint.TagIDs)
 		if endpointMatchSearchCriteria(&endpoint, endpointTags, searchCriteria) {
-			filteredEndpoints = append(filteredEndpoints, endpoint)
+			endpoints[n] = endpoint
+			n++
+
 			continue
 		}
 
 		if endpointGroupMatchSearchCriteria(&endpoint, endpointGroups, tagsMap, searchCriteria) {
-			filteredEndpoints = append(filteredEndpoints, endpoint)
+			endpoints[n] = endpoint
+			n++
 		}
 	}
 
-	return filteredEndpoints
+	return endpoints[:n]
 }
 
 func filterEndpointsByStatuses(endpoints []portaineree.Endpoint, statuses []portaineree.EndpointStatus, settings *portaineree.Settings) []portaineree.Endpoint {
-	filteredEndpoints := make([]portaineree.Endpoint, 0)
-
+	n := 0
 	for _, endpoint := range endpoints {
 		status := endpoint.Status
 		if endpointutils.IsEdgeEndpoint(&endpoint) {
@@ -213,11 +214,12 @@ func filterEndpointsByStatuses(endpoints []portaineree.Endpoint, statuses []port
 		}
 
 		if slices.Contains(statuses, status) {
-			filteredEndpoints = append(filteredEndpoints, endpoint)
+			endpoints[n] = endpoint
+			n++
 		}
 	}
 
-	return filteredEndpoints
+	return endpoints[:n]
 }
 
 func endpointMatchSearchCriteria(endpoint *portaineree.Endpoint, tags []string, searchCriteria string) bool {
@@ -234,6 +236,7 @@ func endpointMatchSearchCriteria(endpoint *portaineree.Endpoint, tags []string, 
 	} else if endpoint.Status == portaineree.EndpointStatusDown && searchCriteria == "down" {
 		return true
 	}
+
 	for _, tag := range tags {
 		if strings.Contains(strings.ToLower(tag), searchCriteria) {
 			return true
@@ -249,6 +252,7 @@ func endpointGroupMatchSearchCriteria(endpoint *portaineree.Endpoint, endpointGr
 			if strings.Contains(strings.ToLower(group.Name), searchCriteria) {
 				return true
 			}
+
 			tags := convertTagIDsToTags(tagsMap, group.TagIDs)
 			for _, tag := range tags {
 				if strings.Contains(strings.ToLower(tag), searchCriteria) {
@@ -262,30 +266,32 @@ func endpointGroupMatchSearchCriteria(endpoint *portaineree.Endpoint, endpointGr
 }
 
 func filterEndpointsByTypes(endpoints []portaineree.Endpoint, endpointTypes []portaineree.EndpointType) []portaineree.Endpoint {
-	filteredEndpoints := make([]portaineree.Endpoint, 0)
-
 	typeSet := map[portaineree.EndpointType]bool{}
 	for _, endpointType := range endpointTypes {
 		typeSet[portaineree.EndpointType(endpointType)] = true
 	}
 
+	n := 0
 	for _, endpoint := range endpoints {
 		if typeSet[endpoint.Type] {
-			filteredEndpoints = append(filteredEndpoints, endpoint)
+			endpoints[n] = endpoint
+			n++
 		}
 	}
-	return filteredEndpoints
+
+	return endpoints[:n]
 }
 
 func filterEndpointsByEdgeDevice(endpoints []portaineree.Endpoint, edgeDevice bool, untrusted bool) []portaineree.Endpoint {
-	filteredEndpoints := make([]portaineree.Endpoint, 0)
-
+	n := 0
 	for _, endpoint := range endpoints {
 		if shouldReturnEdgeDevice(endpoint, edgeDevice, untrusted) {
-			filteredEndpoints = append(filteredEndpoints, endpoint)
+			endpoints[n] = endpoint
+			n++
 		}
 	}
-	return filteredEndpoints
+
+	return endpoints[:n]
 }
 
 func shouldReturnEdgeDevice(endpoint portaineree.Endpoint, edgeDeviceParam bool, untrustedParam bool) bool {
@@ -301,31 +307,33 @@ func shouldReturnEdgeDevice(endpoint portaineree.Endpoint, edgeDeviceParam bool,
 }
 
 func convertTagIDsToTags(tagsMap map[portaineree.TagID]string, tagIDs []portaineree.TagID) []string {
-	tags := make([]string, 0)
+	tags := make([]string, 0, len(tagIDs))
+
 	for _, tagID := range tagIDs {
 		tags = append(tags, tagsMap[tagID])
 	}
+
 	return tags
 }
 
 func filteredNonProvisionedEndpoints(endpoints []portaineree.Endpoint) []portaineree.Endpoint {
-
-	filteredEndpoints := make([]portaineree.Endpoint, 0)
-
+	n := 0
 	for _, endpoint := range endpoints {
 		if endpoint.Status < portaineree.EndpointStatusProvisioning {
-			filteredEndpoints = append(filteredEndpoints, endpoint)
+			endpoints[n] = endpoint
+			n++
 		}
 	}
-	return filteredEndpoints
+
+	return endpoints[:n]
 }
 
 func filteredEndpointsByTags(endpoints []portaineree.Endpoint, tagIDs []portaineree.TagID, endpointGroups []portaineree.EndpointGroup, partialMatch bool) []portaineree.Endpoint {
-	filteredEndpoints := make([]portaineree.Endpoint, 0)
-
+	n := 0
 	for _, endpoint := range endpoints {
 		endpointGroup := getEndpointGroup(endpoint.GroupID, endpointGroups)
 		endpointMatched := false
+
 		if partialMatch {
 			endpointMatched = endpointPartialMatchTags(endpoint, endpointGroup, tagIDs)
 		} else {
@@ -333,27 +341,33 @@ func filteredEndpointsByTags(endpoints []portaineree.Endpoint, tagIDs []portaine
 		}
 
 		if endpointMatched {
-			filteredEndpoints = append(filteredEndpoints, endpoint)
+			endpoints[n] = endpoint
+			n++
 		}
 	}
-	return filteredEndpoints
+
+	return endpoints[:n]
 }
 
 func endpointPartialMatchTags(endpoint portaineree.Endpoint, endpointGroup portaineree.EndpointGroup, tagIDs []portaineree.TagID) bool {
-	tagSet := make(map[portaineree.TagID]bool)
+	tagSet := make(map[portaineree.TagID]bool, len(tagIDs))
+
 	for _, tagID := range tagIDs {
 		tagSet[tagID] = true
 	}
+
 	for _, tagID := range endpoint.TagIDs {
 		if tagSet[tagID] {
 			return true
 		}
 	}
+
 	for _, tagID := range endpointGroup.TagIDs {
 		if tagSet[tagID] {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -362,34 +376,37 @@ func endpointFullMatchTags(endpoint portaineree.Endpoint, endpointGroup portaine
 	for _, tagID := range tagIDs {
 		missingTags[tagID] = true
 	}
+
 	for _, tagID := range endpoint.TagIDs {
 		if missingTags[tagID] {
 			delete(missingTags, tagID)
 		}
 	}
+
 	for _, tagID := range endpointGroup.TagIDs {
 		if missingTags[tagID] {
 			delete(missingTags, tagID)
 		}
 	}
+
 	return len(missingTags) == 0
 }
 
 func filteredEndpointsByIds(endpoints []portaineree.Endpoint, ids []portaineree.EndpointID) []portaineree.Endpoint {
-	filteredEndpoints := make([]portaineree.Endpoint, 0)
-
-	idsSet := make(map[portaineree.EndpointID]bool)
+	idsSet := make(map[portaineree.EndpointID]bool, len(ids))
 	for _, id := range ids {
 		idsSet[id] = true
 	}
 
+	n := 0
 	for _, endpoint := range endpoints {
 		if idsSet[endpoint.ID] {
-			filteredEndpoints = append(filteredEndpoints, endpoint)
+			endpoints[n] = endpoint
+			n++
 		}
 	}
 
-	return filteredEndpoints
+	return endpoints[:n]
 
 }
 
@@ -398,25 +415,27 @@ func filterEndpointsByName(endpoints []portaineree.Endpoint, name string) []port
 		return endpoints
 	}
 
-	filteredEndpoints := make([]portaineree.Endpoint, 0)
-
+	n := 0
 	for _, endpoint := range endpoints {
 		if endpoint.Name == name {
-			filteredEndpoints = append(filteredEndpoints, endpoint)
+			endpoints[n] = endpoint
+			n++
 		}
 	}
-	return filteredEndpoints
+
+	return endpoints[:n]
 }
 
 func filter(endpoints []portaineree.Endpoint, predicate func(endpoint portaineree.Endpoint) bool) []portaineree.Endpoint {
-	filteredEndpoints := make([]portaineree.Endpoint, 0)
-
+	n := 0
 	for _, endpoint := range endpoints {
 		if predicate(endpoint) {
-			filteredEndpoints = append(filteredEndpoints, endpoint)
+			endpoints[n] = endpoint
+			n++
 		}
 	}
-	return filteredEndpoints
+
+	return endpoints[:n]
 }
 
 func getArrayQueryParameter(r *http.Request, parameter string) []string {

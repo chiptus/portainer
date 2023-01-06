@@ -132,7 +132,7 @@ func Test_Filter_edgeDeviceFilter(t *testing.T) {
 func runTests(tests []filterTest, t *testing.T, handler *Handler, endpoints []portaineree.Endpoint) {
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
-			runTest(t, test, handler, endpoints)
+			runTest(t, test, handler, append([]portaineree.Endpoint{}, endpoints...))
 		})
 	}
 }

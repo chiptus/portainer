@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/edge/cache"
 	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
@@ -72,17 +73,26 @@ func (service *Service) EndpointRelation(endpointID portaineree.EndpointID) (*po
 
 // CreateEndpointRelation saves endpointRelation
 func (service *Service) Create(endpointRelation *portaineree.EndpointRelation) error {
-	return service.connection.CreateObjectWithId(BucketName, int(endpointRelation.EndpointID), endpointRelation)
+	err := service.connection.CreateObjectWithId(BucketName, int(endpointRelation.EndpointID), endpointRelation)
+	cache.Del(endpointRelation.EndpointID)
+
+	return err
 }
 
 // UpdateEndpointRelation updates an Environment(Endpoint) relation object
-func (service *Service) UpdateEndpointRelation(EndpointID portaineree.EndpointID, endpointRelation *portaineree.EndpointRelation) error {
-	identifier := service.connection.ConvertToKey(int(EndpointID))
-	return service.connection.UpdateObject(BucketName, identifier, endpointRelation)
+func (service *Service) UpdateEndpointRelation(endpointID portaineree.EndpointID, endpointRelation *portaineree.EndpointRelation) error {
+	identifier := service.connection.ConvertToKey(int(endpointID))
+	err := service.connection.UpdateObject(BucketName, identifier, endpointRelation)
+	cache.Del(endpointID)
+
+	return err
 }
 
 // DeleteEndpointRelation deletes an Environment(Endpoint) relation object
-func (service *Service) DeleteEndpointRelation(EndpointID portaineree.EndpointID) error {
-	identifier := service.connection.ConvertToKey(int(EndpointID))
-	return service.connection.DeleteObject(BucketName, identifier)
+func (service *Service) DeleteEndpointRelation(endpointID portaineree.EndpointID) error {
+	identifier := service.connection.ConvertToKey(int(endpointID))
+	err := service.connection.DeleteObject(BucketName, identifier)
+	cache.Del(endpointID)
+
+	return err
 }

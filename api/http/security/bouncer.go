@@ -57,8 +57,7 @@ func NewRequestBouncer(dataStore dataservices.DataStore, licenseService portaine
 // PublicAccess defines a security check for public API environments(endpoints).
 // No authentication is required to access these environments(endpoints).
 func (bouncer *RequestBouncer) PublicAccess(h http.Handler) http.Handler {
-	h = mwSecureHeaders(h)
-	return h
+	return mwSecureHeaders(h)
 }
 
 // AdminAccess is an alias for RestrictedAddress
@@ -475,8 +474,8 @@ func extractAPIKey(r *http.Request) (apikey string, ok bool) {
 // mwSecureHeaders provides secure headers middleware for handlers.
 func mwSecureHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("X-XSS-Protection", "1; mode=block")
-		w.Header().Add("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
 		next.ServeHTTP(w, r)
 	})
 }

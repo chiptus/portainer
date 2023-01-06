@@ -24,12 +24,3 @@ func EndpointRelatedEdgeStacks(endpoint *portaineree.Endpoint, endpointGroup *po
 
 	return relatedEdgeStacks
 }
-
-func EdgeEndpoint(endpoints []portaineree.Endpoint, edgeIdentifier string) *portaineree.Endpoint {
-	for _, endpoint := range endpoints {
-		if endpoint.EdgeID == edgeIdentifier {
-			return &endpoint
-		}
-	}
-	return nil
-}
