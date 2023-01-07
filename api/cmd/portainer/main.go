@@ -158,8 +158,8 @@ func initDataStore(flags *portaineree.CLIFlags, secretKey []byte, fileService po
 		}
 
 		v := models.Version{
-			SchemaVersion: portainer.APIVersion,
-			Edition:       int(portainer.PortainerEE),
+			SchemaVersion: portaineree.APIVersion,
+			Edition:       int(portaineree.PortainerEE),
 			InstanceID:    instanceId.String(),
 		}
 		store.VersionService.UpdateVersion(&v)
@@ -889,7 +889,7 @@ func main() {
 	for {
 		server := buildServer(flags)
 		log.Info().
-			Str("version", portainer.APIVersion).
+			Str("version", portaineree.APIVersion).
 			Str("build_number", build.BuildNumber).
 			Str("image_tag", build.ImageTag).
 			Str("nodejs_version", build.NodejsVersion).
