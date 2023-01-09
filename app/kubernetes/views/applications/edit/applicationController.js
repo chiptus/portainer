@@ -228,7 +228,7 @@ class KubernetesApplicationController {
   }
 
   rollbackApplication() {
-    this.ModalService.confirmUpdate('Rolling back the application to a previous configuration may cause a service interruption. Do you wish to continue?', (confirmed) => {
+    this.ModalService.confirmUpdate('Rolling back the application to a previous configuration may cause service interruption. Do you wish to continue?', (confirmed) => {
       if (confirmed) {
         return this.$async(this.rollbackApplicationAsync);
       }
@@ -238,6 +238,15 @@ class KubernetesApplicationController {
    * REDEPLOY
    */
   async redeployApplicationAsync() {
+    const confirmed = await this.ModalService.confirmAsync({
+      title: 'Are you sure?',
+      message: 'Terminating and restarting the application will cause service interruption. Do you wish to continue?',
+      buttons: { confirm: { label: 'Terminate and restart', className: 'btn-primary' } },
+    });
+    if (!confirmed) {
+      return;
+    }
+
     try {
       const promises = _.map(this.application.Pods, (item) => this.KubernetesPodService.delete(item));
       await Promise.all(promises);
@@ -249,11 +258,7 @@ class KubernetesApplicationController {
   }
 
   redeployApplication() {
-    this.ModalService.confirmUpdate('Redeploying the application may cause a service interruption. Do you wish to continue?', (confirmed) => {
-      if (confirmed) {
-        return this.$async(this.redeployApplicationAsync);
-      }
-    });
+    return this.$async(this.redeployApplicationAsync);
   }
 
   /**
@@ -270,20 +275,22 @@ class KubernetesApplicationController {
     };
     const kind = appTypeMap[this.application.ApplicationType];
 
-    this.ModalService.confirmUpdate(
-      'A rolling restart of the application will be performed, with pods replaced one by one, which should avoid downtime. However, there is still a chance of service interruption. Do you wish to continue?',
-      async (confirmed) => {
-        if (confirmed) {
-          try {
-            await rolloutRestartApplication(this.endpoint.Id, namespace, kind, name);
-            this.Notifications.success('Success', 'Application successfully restarted');
-            this.$state.reload(this.$state.current);
-          } catch (err) {
-            this.Notifications.error('Failure', err, 'Unable to restart the application');
-          }
-        }
-      }
-    );
+    const confirmed = await this.ModalService.confirmAsync({
+      title: 'Are you sure?',
+      message: 'A rolling restart of the application will be performed, with pods replaced one by one, which should avoid downtime. Do you wish to continue?',
+      buttons: { confirm: { label: 'Rolling restart', className: 'btn-primary' } },
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await rolloutRestartApplication(this.endpoint.Id, namespace, kind, name);
+      this.Notifications.success('Success', 'Application successfully restarted');
+      this.$state.reload(this.$state.current);
+    } catch (err) {
+      this.Notifications.error('Failure', err, 'Unable to restart the application');
+    }
   }
 
   /**
