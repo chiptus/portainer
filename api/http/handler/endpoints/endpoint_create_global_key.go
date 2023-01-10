@@ -47,7 +47,6 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 
 	p := &endpointCreatePayload{
 		Name:                 edgeID,
-		URL:                  "https://" + r.Host,
 		EndpointCreationType: edgeAgentEnvironment,
 		GroupID:              1,
 		TagIDs:               []portaineree.TagID{},

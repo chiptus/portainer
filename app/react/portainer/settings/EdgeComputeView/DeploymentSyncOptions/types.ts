@@ -4,6 +4,7 @@ export interface FormValues {
     SnapshotInterval: number;
     CommandInterval: number;
     AsyncMode: boolean;
+    TunnelServerAddress: string;
   };
   EdgeAgentCheckinInterval: number;
 }

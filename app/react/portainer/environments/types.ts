@@ -85,6 +85,7 @@ export type EnvironmentEdge = {
   PingInterval: number;
   SnapshotInterval: number;
   CommandInterval: number;
+  TunnelServerAddr: string;
 };
 
 export interface EnvironmentSecuritySettings {

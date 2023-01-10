@@ -100,4 +100,5 @@ export function EdgeSettingsViewModel(data = {}) {
   this.SnapshotInterval = data.SnapshotInterval;
   this.CommandInterval = data.CommandInterval;
   this.AsyncMode = data.AsyncMode;
+  this.TunnelServerAddress = data.TunnelServerAddress;
 }

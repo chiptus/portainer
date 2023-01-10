@@ -3,7 +3,7 @@ import { Plug2 } from 'lucide-react';
 
 import { Environment } from '@/react/portainer/environments/types';
 import { useCreateEdgeAgentEnvironmentMutation } from '@/react/portainer/environments/queries/useCreateEnvironmentMutation';
-import { baseHref } from '@/portainer/helpers/pathHelper';
+import { Settings } from '@/react/portainer/settings/types';
 import { EdgeCheckinIntervalField } from '@/react/edge/components/EdgeCheckInIntervalField';
 import {
   EdgeAsyncIntervalsForm,
@@ -11,6 +11,8 @@ import {
 } from '@/react/edge/components/EdgeAsyncIntervalsForm';
 import { useSettings } from '@/react/portainer/settings/queries';
 import { useCreateEdgeDeviceParam } from '@/react/portainer/environments/wizard/hooks/useCreateEdgeDeviceParam';
+import { buildDefaultValue as buildTunnelDefaultValue } from '@/react/portainer/common/PortainerTunnelAddrField';
+import { buildDefaultValue as buildApiUrlDefaultValue } from '@/react/portainer/common/PortainerUrlField';
 
 import { FormSection } from '@@/form-components/FormSection';
 import { LoadingButton } from '@@/buttons/LoadingButton';
@@ -29,25 +31,26 @@ interface Props {
   hideAsyncMode?: boolean;
 }
 
-const initialValues = buildInitialValues();
-
 export function EdgeAgentForm({
   onCreate,
   readonly,
   hideAsyncMode,
   showGpus = false,
 }: Props) {
-  const edgeSettingsQuery = useSettings((settings) => settings.Edge);
+  const settingsQuery = useSettings();
   const createEdgeDevice = useCreateEdgeDeviceParam();
 
   const createMutation = useCreateEdgeAgentEnvironmentMutation();
   const validation = useValidationSchema();
 
-  if (!edgeSettingsQuery.data) {
+  if (!settingsQuery.data) {
     return null;
   }
 
-  const edgeSettings = edgeSettingsQuery.data;
+  const settings = settingsQuery.data;
+  const edgeSettings = settings.Edge;
+
+  const initialValues = buildInitialValues(settings);
 
   return (
     <Formik<FormValues>
@@ -115,10 +118,12 @@ export function EdgeAgentForm({
   }
 }
 
-export function buildInitialValues(): FormValues {
+export function buildInitialValues(settings: Settings): FormValues {
   return {
     name: '',
-    portainerUrl: defaultPortainerUrl(),
+    portainerUrl: settings.EdgePortainerUrl || buildApiUrlDefaultValue(),
+    tunnelServerAddr:
+      settings.Edge.TunnelServerAddress || buildTunnelDefaultValue(),
     pollFrequency: 0,
     meta: {
       groupId: 1,
@@ -131,9 +136,4 @@ export function buildInitialValues(): FormValues {
     },
     gpus: [],
   };
-
-  function defaultPortainerUrl() {
-    const baseHREF = baseHref();
-    return window.location.origin + (baseHREF !== '/' ? baseHREF : '');
-  }
 }

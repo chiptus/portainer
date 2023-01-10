@@ -1,4 +1,4 @@
-import { boolean, number, object, SchemaOf } from 'yup';
+import { boolean, number, object, string, SchemaOf } from 'yup';
 
 import { options as asyncIntervalOptions } from '@/react/edge/components/EdgeAsyncIntervalsForm';
 
@@ -20,6 +20,7 @@ export function validationSchema(): SchemaOf<FormValues> {
         .required('This field is required.')
         .oneOf(intervals),
       AsyncMode: boolean().default(false),
+      TunnelServerAddress: string().required('This field is required.'),
     }),
   });
 }

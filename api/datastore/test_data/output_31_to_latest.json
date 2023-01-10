@@ -841,7 +841,8 @@
       "AsyncMode": false,
       "CommandInterval": 0,
       "PingInterval": 0,
-      "SnapshotInterval": 0
+      "SnapshotInterval": 0,
+      "TunnelServerAddress": ""
     },
     "EdgeAgentCheckinInterval": 5,
     "EdgePortainerUrl": "",

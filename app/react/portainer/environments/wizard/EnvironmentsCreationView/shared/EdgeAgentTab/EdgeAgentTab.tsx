@@ -41,6 +41,8 @@ export function EdgeAgentTab({
 
       {edgeInfo && (
         <>
+          <hr />
+
           <EdgeScriptForm
             edgeInfo={edgeInfo}
             commands={commands}

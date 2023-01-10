@@ -41,6 +41,23 @@ func setupGlobalKeyHandler(t *testing.T) (*Handler, func(), error) {
 		return nil, nil, fmt.Errorf("could not start a new filesystem service: %w", err)
 	}
 
+	err = store.Settings().UpdateSettings(&portaineree.Settings{
+		EdgePortainerURL: "https://portainer.domain.tld:9443",
+		Edge: struct {
+			CommandInterval     int "json:\"CommandInterval\" example:\"5\""
+			PingInterval        int "json:\"PingInterval\" example:\"5\""
+			SnapshotInterval    int "json:\"SnapshotInterval\" example:\"5\""
+			AsyncMode           bool
+			TunnelServerAddress string "json:\"TunnelServerAddress\" example:\"portainer.domain.tld\""
+		}{
+			TunnelServerAddress: "portainer.domain.tld:8000",
+		},
+	})
+	if err != nil {
+		teardown()
+		return nil, nil, fmt.Errorf("could not update settings: %w", err)
+	}
+
 	handler := NewHandler(
 		helper.NewTestRequestBouncer(),
 		helper.NewUserActivityService(),
@@ -65,12 +82,12 @@ func TestGlobalKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	portainerURL := "portainer.io"
+	portainerURL := "https://portainer.domain.tld:9443"
 
 	doRequest := func() *endpointCreateGlobalKeyResponse {
 		edgeID := "test-edge-id"
 
-		req, err := http.NewRequest(http.MethodPost, "https://"+portainerURL+":9443/endpoints/global-key", nil)
+		req, err := http.NewRequest(http.MethodPost, portainerURL+"/endpoints/global-key", nil)
 		if err != nil {
 			t.Fatal("request error:", err)
 		}

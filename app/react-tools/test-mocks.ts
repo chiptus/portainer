@@ -87,6 +87,7 @@ export function createMockEnvironment(): Environment {
       PingInterval: 0,
       CommandInterval: 0,
       SnapshotInterval: 0,
+      TunnelServerAddr: 'portainer.domain.tld:8000',
     },
     SecuritySettings: {
       allowBindMountsForRegularUsers: false,

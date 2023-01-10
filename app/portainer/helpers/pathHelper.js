@@ -1,7 +1,7 @@
 /**
  * calculates baseHref
  *
- * return [string]
+ * return {string} [base href]
  *
  */
 export function baseHref() {

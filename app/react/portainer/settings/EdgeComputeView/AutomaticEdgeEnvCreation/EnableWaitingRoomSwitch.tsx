@@ -12,6 +12,7 @@ export function EnabledWaitingRoomSwitch() {
     <FormControl
       inputId="edge_waiting_room"
       label="Disable Edge Environment Waiting Room"
+      size="medium"
       errors={meta.error}
     >
       <Switch

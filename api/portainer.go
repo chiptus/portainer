@@ -1231,6 +1231,8 @@ type (
 			SnapshotInterval int `json:"SnapshotInterval" example:"5"`
 			// EdgeAsyncMode enables edge async mode by default
 			AsyncMode bool
+			// The address where the tunneling server can be reached by Edge agents
+			TunnelServerAddress string `json:"TunnelServerAddress" example:"portainer.domain.tld"`
 		}
 
 		// Deprecated fields
@@ -1834,7 +1836,7 @@ type (
 	ReverseTunnelService interface {
 		StartTunnelServer(addr, port string, snapshotService SnapshotService) error
 		StopTunnelServer() error
-		GenerateEdgeKey(url, host string, endpointIdentifier int) string
+		GenerateEdgeKey(apiURL, tunnelAddr string, endpointIdentifier int) string
 		SetTunnelStatusToActive(endpointID EndpointID)
 		SetTunnelStatusToRequired(endpointID EndpointID) error
 		SetTunnelStatusToIdle(endpointID EndpointID)

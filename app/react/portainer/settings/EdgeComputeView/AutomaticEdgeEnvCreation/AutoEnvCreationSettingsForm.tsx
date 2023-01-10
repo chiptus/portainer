@@ -1,56 +1,28 @@
-import { Field, Form, Formik } from 'formik';
+import { Form, Formik } from 'formik';
 import * as yup from 'yup';
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 
-import { baseHref } from '@/portainer/helpers/pathHelper';
 import { notifySuccess } from '@/portainer/services/notifications';
 import { useUpdateSettingsMutation } from '@/react/portainer/settings/queries';
 import { Settings } from '@/react/portainer/settings/types';
 
 import { LoadingButton } from '@@/buttons/LoadingButton';
-import { FormControl } from '@@/form-components/FormControl';
-import { FormSectionTitle } from '@@/form-components/FormSectionTitle';
-import { Input } from '@@/form-components/Input';
 
 import { EnabledWaitingRoomSwitch } from './EnableWaitingRoomSwitch';
 
 interface FormValues {
-  EdgePortainerUrl: string;
   TrustOnFirstConnect: boolean;
 }
 const validation = yup.object({
   TrustOnFirstConnect: yup.boolean(),
-  EdgePortainerUrl: yup
-    .string()
-    .test(
-      'url',
-      'URL should be a valid URI and cannot include localhost',
-      (value) => {
-        if (!value) {
-          return false;
-        }
-        try {
-          const url = new URL(value);
-          return !!url.hostname && url.hostname !== 'localhost';
-        } catch {
-          return false;
-        }
-      }
-    )
-    .required('URL is required'),
 });
 
 interface Props {
   settings: Settings;
 }
 
-const defaultUrl = buildDefaultUrl();
-
 export function AutoEnvCreationSettingsForm({ settings }: Props) {
-  const url = settings.EdgePortainerUrl;
-
   const initialValues = {
-    EdgePortainerUrl: url || defaultUrl,
     TrustOnFirstConnect: settings.TrustOnFirstConnect,
   };
 
@@ -72,12 +44,6 @@ export function AutoEnvCreationSettingsForm({ settings }: Props) {
     [updateSettings]
   );
 
-  useEffect(() => {
-    if (!url && validation.isValidSync({ EdgePortainerUrl: defaultUrl })) {
-      updateSettings({ EdgePortainerUrl: defaultUrl });
-    }
-  }, [updateSettings, url]);
-
   return (
     <Formik<FormValues>
       initialValues={initialValues}
@@ -86,19 +52,8 @@ export function AutoEnvCreationSettingsForm({ settings }: Props) {
       validateOnMount
       enableReinitialize
     >
-      {({ errors, isValid, dirty }) => (
+      {({ isValid, dirty }) => (
         <Form className="form-horizontal">
-          <FormSectionTitle>Configuration</FormSectionTitle>
-
-          <FormControl
-            label="Portainer URL"
-            tooltip="URL of the Portainer instance that the agent will use to initiate the communications."
-            inputId="url-input"
-            errors={errors.EdgePortainerUrl}
-          >
-            <Field as={Input} id="url-input" name="EdgePortainerUrl" />
-          </FormControl>
-
           <EnabledWaitingRoomSwitch />
 
           <div className="form-group">
@@ -116,9 +71,4 @@ export function AutoEnvCreationSettingsForm({ settings }: Props) {
       )}
     </Formik>
   );
-}
-
-function buildDefaultUrl() {
-  const baseHREF = baseHref();
-  return window.location.origin + (baseHREF !== '/' ? baseHREF : '');
 }

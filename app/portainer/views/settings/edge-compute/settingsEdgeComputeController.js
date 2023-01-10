@@ -1,5 +1,6 @@
 import angular from 'angular';
-
+import { buildDefaultValue as buildTunnelDefaultValue } from '@/react/portainer/common/PortainerTunnelAddrField';
+import { buildDefaultValue as buildApiUrlDefaultValue } from '@/react/portainer/common/PortainerUrlField';
 import { configureFDO } from '@/portainer/hostmanagement/fdo/fdo.service';
 import { configureAMT } from 'Portainer/hostmanagement/open-amt/open-amt.service';
 
@@ -43,7 +44,18 @@ export default function SettingsEdgeComputeController($q, $async, $state, Notifi
   function initView() {
     $async(async () => {
       try {
-        ctrl.settings = await SettingsService.settings();
+        const defaultApiServerURL = buildApiUrlDefaultValue();
+        const defaultTunnelServerAddress = buildTunnelDefaultValue();
+
+        const settings = await SettingsService.settings();
+        ctrl.settings = {
+          ...settings,
+          EdgePortainerUrl: settings.EdgePortainerUrl || defaultApiServerURL,
+          Edge: {
+            ...settings.Edge,
+            TunnelServerAddress: settings.Edge.TunnelServerAddress || defaultTunnelServerAddress,
+          },
+        };
       } catch (err) {
         Notifications.error('Failure', err, 'Unable to retrieve application settings');
       }

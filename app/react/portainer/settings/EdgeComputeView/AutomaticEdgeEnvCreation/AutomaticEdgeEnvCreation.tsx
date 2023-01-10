@@ -7,6 +7,7 @@ import { EdgeScriptForm } from '@/react/edge/components/EdgeScriptForm';
 import { commandsTabs } from '@/react/edge/components/EdgeScriptForm/scripts';
 
 import { Widget, WidgetBody, WidgetTitle } from '@@/Widget';
+import { TextTip } from '@@/Tip/TextTip';
 
 import { useSettings } from '../../queries';
 
@@ -29,34 +30,54 @@ export function AutomaticEdgeEnvCreation() {
 
   const url = settingsQuery.data?.EdgePortainerUrl;
 
+  const settings = settingsQuery.data;
+  const edgeKey = edgeKeyMutation.data;
+  const edgeComputeConfigurationOK = !!(
+    settings &&
+    settings.EnableEdgeComputeFeatures &&
+    settings.EdgePortainerUrl &&
+    settings.Edge.TunnelServerAddress
+  );
+
   useEffect(() => {
-    if (url) {
+    if (edgeComputeConfigurationOK) {
       generateKey();
     }
-  }, [generateKey, url]);
+  }, [generateKey, edgeComputeConfigurationOK]);
 
   if (!settingsQuery.data) {
     return null;
   }
 
-  const edgeKey = edgeKeyMutation.data;
-
   return (
     <Widget>
       <WidgetTitle icon={Laptop} title="Automatic Edge Environment Creation" />
       <WidgetBody>
-        <AutoEnvCreationSettingsForm settings={settingsQuery.data} />
-
-        {edgeKeyMutation.isLoading ? (
-          <div>Generating key for {url} ... </div>
+        {!edgeComputeConfigurationOK ? (
+          <TextTip color="orange">
+            In order to use this feature, please make sure that Edge Compute
+            features are turned on and that you have properly configured the
+            Portainer API server URL and tunnel server address.
+          </TextTip>
         ) : (
-          edgeKey && (
-            <EdgeScriptForm
-              edgeInfo={{ key: edgeKey }}
-              commands={commands}
-              isNomadTokenVisible
-            />
-          )
+          <>
+            <AutoEnvCreationSettingsForm settings={settings} />
+
+            {edgeKeyMutation.isLoading ? (
+              <div>Generating key for {url} ... </div>
+            ) : (
+              edgeKey && (
+                <>
+                  <hr />
+                  <EdgeScriptForm
+                    edgeInfo={{ key: edgeKey }}
+                    commands={commands}
+                    isNomadTokenVisible
+                  />
+                </>
+              )
+            )}
+          </>
         )}
       </WidgetBody>
     </Widget>

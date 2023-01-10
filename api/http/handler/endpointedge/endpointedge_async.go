@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
-	"net"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 
@@ -237,23 +235,25 @@ func parseBodyPayload(req *http.Request) (EdgeAsyncRequest, error) {
 func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID string, endpointType portaineree.EndpointType, version string, timeZone string) (*portaineree.Endpoint, *httperror.HandlerError) {
 	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
 
-	requestURL := fmt.Sprintf("https://%s", req.Host)
-	portainerURL, err := url.Parse(requestURL)
+	settings, err := handler.DataStore.Settings().Settings()
 	if err != nil {
-		return nil, httperror.BadRequest("Invalid environment URL", err)
-	}
-	portainerHost, _, err := net.SplitHostPort(portainerURL.Host)
-	if err != nil {
-		portainerHost = portainerURL.Host
+		return nil, httperror.InternalServerError("Unable to retrieve the settings", err)
 	}
 
-	edgeKey := handler.ReverseTunnelService.GenerateEdgeKey(requestURL, portainerHost, endpointID)
+	if settings.EdgePortainerURL == "" {
+		return nil, httperror.InternalServerError("Portainer API server URL is not set in Edge Compute settings", errors.New("Portainer API server URL is not set in Edge Compute settings"))
+	}
+
+	if settings.Edge.TunnelServerAddress == "" {
+		return nil, httperror.InternalServerError("Tunnel server address is not set in Edge Compute settings", errors.New("Tunnel server address is not set in Edge Compute settings"))
+	}
+
+	edgeKey := handler.ReverseTunnelService.GenerateEdgeKey(settings.EdgePortainerURL, settings.Edge.TunnelServerAddress, endpointID)
 
 	endpoint := &portaineree.Endpoint{
 		ID:     portaineree.EndpointID(endpointID),
 		EdgeID: edgeID,
 		Name:   edgeID,
-		URL:    requestURL,
 		Type:   endpointType,
 		TLSConfig: portaineree.TLSConfiguration{
 			TLS: false,
@@ -287,11 +287,6 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 	}
 
 	endpoint.Agent.Version = version
-
-	settings, err := handler.DataStore.Settings().Settings()
-	if err != nil {
-		return nil, httperror.InternalServerError("Unable to retrieve the settings", err)
-	}
 
 	endpoint.Edge.AsyncMode = true
 	endpoint.Edge.PingInterval = settings.Edge.PingInterval

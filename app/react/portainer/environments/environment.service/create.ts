@@ -135,6 +135,7 @@ export interface EnvironmentOptions {
   pollFrequency?: number;
   edge?: EdgeAsyncIntervalsValues;
   asyncMode?: boolean;
+  tunnelServerAddr?: string;
 }
 
 interface CreateRemoteEnvironment {
@@ -188,6 +189,7 @@ export function createAgentEnvironment({
 interface CreateEdgeAgentEnvironment {
   name: string;
   portainerUrl: string;
+  tunnelServerAddr: string;
   meta?: EnvironmentMetadata;
   pollFrequency: number;
   gpus?: Gpu[];
@@ -199,6 +201,7 @@ interface CreateEdgeAgentEnvironment {
 export function createEdgeAgentEnvironment({
   name,
   portainerUrl,
+  tunnelServerAddr,
   meta = { tagIds: [] },
   gpus = [],
   isEdgeDevice,
@@ -217,6 +220,7 @@ export function createEdgeAgentEnvironment({
       edge,
       asyncMode,
       meta,
+      tunnelServerAddr,
     }
   );
 }
@@ -244,6 +248,7 @@ async function createEnvironment(
       IsEdgeDevice: options.isEdgeDevice,
       Gpus: arrayToJson(options.gpus),
       KubeConfig: options.kubeConfig,
+      EdgeTunnelServerAddress: options.tunnelServerAddr,
     };
 
     const { tls, azure, asyncMode } = options;

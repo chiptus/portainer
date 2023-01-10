@@ -12,7 +12,6 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/internal/edge"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/pkg/libhelm"
@@ -68,6 +67,8 @@ type settingsUpdatePayload struct {
 		CommandInterval *int `json:"CommandInterval" example:"5"`
 		// AsyncMode enables edge agent to run in async mode by default
 		AsyncMode *bool
+		// The address where the tunneling server can be reached by Edge agents
+		TunnelServerAddress *string
 	}
 }
 
@@ -109,13 +110,6 @@ func (payload *settingsUpdatePayload) Validate(r *http.Request) error {
 		}
 		if !payload.LDAPSettings.AdminAutoPopulate && len(payload.LDAPSettings.AdminGroups) > 0 {
 			payload.LDAPSettings.AdminGroups = []string{}
-		}
-	}
-
-	if payload.EdgePortainerURL != nil && *payload.EdgePortainerURL != "" {
-		_, err := edge.ParseHostForEdge(*payload.EdgePortainerURL)
-		if err != nil {
-			return err
 		}
 	}
 
@@ -320,6 +314,10 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 
 	if payload.Edge.AsyncMode != nil {
 		settings.Edge.AsyncMode = *payload.Edge.AsyncMode
+	}
+
+	if payload.Edge.TunnelServerAddress != nil {
+		settings.Edge.TunnelServerAddress = *payload.Edge.TunnelServerAddress
 	}
 
 	if payload.KubeconfigExpiry != nil {

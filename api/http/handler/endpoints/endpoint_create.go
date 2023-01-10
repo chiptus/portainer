@@ -62,9 +62,10 @@ type endpointCreatePayload struct {
 	EdgeCheckinInterval    int
 	IsEdgeDevice           bool
 	Edge                   struct {
-		PingInterval     int
-		SnapshotInterval int
-		CommandInterval  int
+		PingInterval        int
+		SnapshotInterval    int
+		CommandInterval     int
+		TunnelServerAddress string
 	}
 
 	KubeConfig string
@@ -170,16 +171,6 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 		}
 		payload.AzureAuthenticationKey = azureAuthenticationKey
 
-	case edgeAgentEnvironment:
-		endpointURL, err := request.RetrieveMultiPartFormValue(r, "URL", false)
-		if err != nil || strings.EqualFold("", strings.Trim(endpointURL, " ")) {
-			return errors.New("URL cannot be empty")
-		}
-		payload.URL = endpointURL
-
-		publicURL, _ := request.RetrieveMultiPartFormValue(r, "PublicURL", true)
-		payload.PublicURL = publicURL
-
 	default:
 		endpointURL, err := request.RetrieveMultiPartFormValue(r, "URL", true)
 		if err != nil {
@@ -207,6 +198,7 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 	payload.Edge.PingInterval, _ = request.RetrieveNumericMultiPartFormValue(r, "EdgePingInterval", true)
 	payload.Edge.SnapshotInterval, _ = request.RetrieveNumericMultiPartFormValue(r, "EdgeSnapshotInterval", true)
 	payload.Edge.CommandInterval, _ = request.RetrieveNumericMultiPartFormValue(r, "EdgeCommandInterval", true)
+	payload.Edge.TunnelServerAddress, _ = request.RetrieveMultiPartFormValue(r, "EdgeTunnelServerAddress", true)
 
 	return nil
 }
@@ -541,17 +533,35 @@ func (handler *Handler) createAzureEndpoint(payload *endpointCreatePayload) (*po
 func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
 	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
 
-	portainerHost, err := edge.ParseHostForEdge(payload.URL)
+	settings, err := handler.DataStore.Settings().Settings()
 	if err != nil {
-		return nil, httperror.BadRequest("Unable to parse host", err)
+		return nil, httperror.InternalServerError("Unable to retrieve the settings from the database", err)
 	}
 
-	edgeKey := handler.ReverseTunnelService.GenerateEdgeKey(payload.URL, portainerHost, endpointID)
+	apiServerURL := payload.URL
+	if apiServerURL == "" {
+		if settings.EdgePortainerURL == "" {
+			return nil, httperror.InternalServerError("API server URL not set in Edge Compute settings", err)
+		}
+
+		apiServerURL = settings.EdgePortainerURL
+	}
+
+	tunnelServerAddr := payload.Edge.TunnelServerAddress
+	if tunnelServerAddr == "" {
+		if settings.Edge.TunnelServerAddress == "" {
+			return nil, httperror.InternalServerError("Tunnel server address not set in Edge Compute settings", err)
+		}
+
+		tunnelServerAddr = settings.Edge.TunnelServerAddress
+	}
+
+	edgeKey := handler.ReverseTunnelService.GenerateEdgeKey(apiServerURL, tunnelServerAddr, endpointID)
 
 	endpoint := &portaineree.Endpoint{
 		ID:      portaineree.EndpointID(endpointID),
 		Name:    payload.Name,
-		URL:     portainerHost,
+		URL:     apiServerURL,
 		Type:    portaineree.EdgeAgentOnDockerEnvironment,
 		GroupID: portaineree.EndpointGroupID(payload.GroupID),
 		Gpus:    payload.Gpus,
@@ -573,11 +583,6 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
 		},
-	}
-
-	settings, err := handler.DataStore.Settings().Settings()
-	if err != nil {
-		return nil, httperror.InternalServerError("Unable to retrieve the settings from the database", err)
 	}
 
 	if payload.IsEdgeDevice && settings.Edge.AsyncMode {

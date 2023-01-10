@@ -2,6 +2,8 @@ import { Formik, Form } from 'formik';
 import { Laptop } from 'lucide-react';
 
 import { EdgeCheckinIntervalField } from '@/react/edge/components/EdgeCheckInIntervalField';
+import { PortainerTunnelAddrField } from '@/react/portainer/common/PortainerTunnelAddrField';
+import { PortainerUrlField } from '@/react/portainer/common/PortainerUrlField';
 
 import { Switch } from '@@/form-components/SwitchField/Switch';
 import { FormControl } from '@@/form-components/FormControl';
@@ -66,9 +68,20 @@ export function EdgeComputeSettings({ settings, onSubmit }: Props) {
                 </FormControl>
 
                 <TextTip color="blue">
-                  When enabled, this will enable Portainer to execute Edge
-                  Device features.
+                  Enable this setting to use Portainer Edge Compute
+                  capabilities.
                 </TextTip>
+
+                {values.EnableEdgeComputeFeatures && (
+                  <>
+                    <PortainerUrlField
+                      fieldName="EdgePortainerUrl"
+                      tooltip="URL of this Portainer instance that will be used by Edge agents to initiate the communications."
+                    />
+
+                    <PortainerTunnelAddrField fieldName="Edge.TunnelServerAddress" />
+                  </>
+                )}
 
                 <FormControl
                   inputId="edge_enforce_id"

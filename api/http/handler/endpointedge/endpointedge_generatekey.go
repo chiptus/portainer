@@ -5,7 +5,6 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
-	"github.com/portainer/portainer-ee/api/internal/edge"
 )
 
 type generateKeyResponse struct {
@@ -32,18 +31,19 @@ func (handler *Handler) endpointEdgeGenerateKey(w http.ResponseWriter, r *http.R
 		return httperror.InternalServerError("Unable to retrieve settings from the database", err)
 	}
 
-	url := settings.EdgePortainerURL
+	apiURL := settings.EdgePortainerURL
 
-	if url == "" {
-		return httperror.BadRequest("Edge Portainer URL is not set", nil)
+	if apiURL == "" {
+		return httperror.BadRequest("Portainer API server URL is not set in Edge Compute settings", nil)
 	}
 
-	portainerHost, err := edge.ParseHostForEdge(url)
-	if err != nil {
-		return httperror.BadRequest("Unable to parse host", err)
+	tunnelAddr := settings.Edge.TunnelServerAddress
+
+	if tunnelAddr == "" {
+		return httperror.BadRequest("Tunnel server address is not set in Edge Compute settings", nil)
 	}
 
-	edgeKey := handler.ReverseTunnelService.GenerateEdgeKey(url, portainerHost, 0)
+	edgeKey := handler.ReverseTunnelService.GenerateEdgeKey(apiURL, tunnelAddr, 0)
 	if err != nil {
 		return httperror.InternalServerError("Unable to generate edge key", err)
 	}
