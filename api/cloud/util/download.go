@@ -56,7 +56,7 @@ func downloadUrl(url string, timeout int) (string, error) {
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal().Err(err).Msg("")
+		return "", err
 	}
 
 	return string(bodyBytes), nil

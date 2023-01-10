@@ -11,8 +11,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-
-	"github.com/rs/zerolog/log"
 )
 
 func ExtractArchive(archiveFileName, destFolder string, delete bool) (err error) {
@@ -47,7 +45,7 @@ func extractTgz(archiveFile, destination string) error {
 
 	uncompressedStream, err := gzip.NewReader(file)
 	if err != nil {
-		log.Fatal().Msg("NewReader failed")
+		return fmt.Errorf("NewReader failed")
 	}
 
 	tarReader := tar.NewReader(uncompressedStream)

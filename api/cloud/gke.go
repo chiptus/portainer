@@ -137,13 +137,13 @@ func (service *CloudClusterSetupService) GKEGetCluster(apiKey, clusterID, region
 
 	f, err := os.CreateTemp("", "portainer-gke")
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed using GKE authentication keys")
+		return nil, fmt.Errorf("failed using GKE authentication keys")
 	}
 	if _, err := f.Write(key.Bytes); err != nil {
-		log.Fatal().Err(err).Msg("failed using GKE authentication keys")
+		return nil, fmt.Errorf("failed using GKE authentication keys")
 	}
 	if err := f.Close(); err != nil {
-		log.Fatal().Err(err).Msg("failed using GKE authentication keys")
+		return nil, fmt.Errorf("failed using GKE authentication keys")
 	}
 	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", f.Name())
 
