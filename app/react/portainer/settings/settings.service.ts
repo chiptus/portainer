@@ -1,21 +1,13 @@
-import { PublicSettingsViewModel } from '@/portainer/models/settings';
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 
 import { PublicSettingsResponse, DefaultRegistry, Settings } from './types';
-
-export interface GlobalDeploymentOptions {
-  perEnvOverride: boolean;
-  hideAddWithForm: boolean;
-  hideWebEditor: boolean;
-  hideFileUpload: boolean;
-}
 
 export async function getPublicSettings() {
   try {
     const { data } = await axios.get<PublicSettingsResponse>(
       buildUrl('public')
     );
-    return new PublicSettingsViewModel(data);
+    return data;
   } catch (e) {
     throw parseAxiosError(
       e as Error,
@@ -25,15 +17,8 @@ export async function getPublicSettings() {
 }
 
 export async function getGlobalDeploymentOptions() {
-  try {
-    const { data } = await axios.get<PublicSettingsResponse>(
-      buildUrl('public')
-    );
-    return new PublicSettingsViewModel(data)
-      .GlobalDeploymentOptions as GlobalDeploymentOptions;
-  } catch (e) {
-    throw parseAxiosError(e as Error, 'Unable to retrieve deployment options');
-  }
+  const publicSettings = await getPublicSettings();
+  return publicSettings.GlobalDeploymentOptions;
 }
 
 export async function getSettings() {
