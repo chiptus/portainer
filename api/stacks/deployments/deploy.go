@@ -190,7 +190,7 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 		return stack.AutoUpdate == nil || stack.AutoUpdate.ForcePullImage
 	}()
 
-	if !forcePullImage && !gitCommitChangedOrForceUpdate && !additionalEnvUpserted {
+	if !forcePullImage && !gitCommitChangedOrForceUpdate && !additionalEnvUpserted && !isRollingRestart(options) {
 		return nil
 	}
 
@@ -257,6 +257,18 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 	}
 
 	return nil
+}
+
+func isRollingRestart(options *RedeployOptions) bool {
+	if options == nil {
+		return false
+	}
+
+	if options.RolloutRestartK8sAll || len(options.RolloutRestartK8sResourceList) > 0 {
+		return true
+	}
+
+	return false
 }
 
 func getUserRegistries(datastore dataservices.DataStore, user *portaineree.User, endpointID portaineree.EndpointID) ([]portaineree.Registry, error) {
