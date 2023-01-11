@@ -29,7 +29,7 @@ export default angular
   .component('gitFormRefField', r2a(withUIRouter(withReactQuery(withCurrentUser(withControlledInput(GitFormRefField)))), ['value', 'onChange', 'model']))
   .component(
     'gitFormUrlField',
-    r2a(withUIRouter(withReactQuery(withCurrentUser(withControlledInput(GitFormUrlField)))), ['value', 'onChange', 'onChangeRepositoryValid', 'onRefreshGitopsCache', 'model'])
+    r2a(withUIRouter(withReactQuery(withCurrentUser(GitFormUrlField))), ['value', 'onChange', 'onChangeRepositoryValid', 'onRefreshGitopsCache', 'model'])
   )
   .component(
     'gitFormAuthFieldset',
