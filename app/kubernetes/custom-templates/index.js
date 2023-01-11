@@ -29,6 +29,19 @@ function config($stateRegistryProvider) {
         component: 'kubeCustomTemplatesView',
       },
     },
+    onEnter: /* @ngInject */ function endpoint($async, $state, $transition$, Notifications) {
+      return $async(async () => {
+        try {
+          const endpointId = +$transition$.params().endpointId;
+          const deploymentOptions = await getDeploymentOptions(endpointId);
+          if (deploymentOptions.hideFileUpload && deploymentOptions.hideWebEditor) {
+            $state.go('kubernetes.dashboard', { endpointId });
+          }
+        } catch (err) {
+          Notifications.error('Failed to get deployment options', err);
+        }
+      });
+    },
   };
 
   const customTemplatesNew = {
@@ -66,6 +79,19 @@ function config($stateRegistryProvider) {
       'content@': {
         component: 'kubeEditCustomTemplateView',
       },
+    },
+    onEnter: /* @ngInject */ function endpoint($async, $state, $transition$, Notifications) {
+      return $async(async () => {
+        try {
+          const endpointId = +$transition$.params().endpointId;
+          const deploymentOptions = await getDeploymentOptions(endpointId);
+          if (deploymentOptions.hideFileUpload && deploymentOptions.hideWebEditor) {
+            $state.go('kubernetes.dashboard', { endpointId });
+          }
+        } catch (err) {
+          Notifications.error('Failed to get deployment options', err);
+        }
+      });
     },
   };
 

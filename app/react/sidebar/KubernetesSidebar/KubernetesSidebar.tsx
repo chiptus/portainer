@@ -1,9 +1,12 @@
+import { useEffect } from 'react';
 import { Box, Edit, Layers, Lock, Server } from 'lucide-react';
+import { useQueryClient } from 'react-query';
 
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import { Authorized } from '@/react/hooks/useUser';
 import Helm from '@/assets/ico/vendor/helm.svg?c';
 import Route from '@/assets/ico/route.svg?c';
+import { useEnvironmentDeploymentOptions } from '@/react/portainer/environments/queries/useEnvironment';
 
 import { DashboardLink } from '../items/DashboardLink';
 import { SidebarItem } from '../SidebarItem';
@@ -18,6 +21,33 @@ interface Props {
 
 export function KubernetesSidebar({ environmentId }: Props) {
   const { isOpen } = useSidebarState();
+  const queryClient = useQueryClient();
+
+  const { data: deploymentOptions } =
+    useEnvironmentDeploymentOptions(environmentId);
+  const showCustomTemplates =
+    deploymentOptions &&
+    (!deploymentOptions?.hideFileUpload || !deploymentOptions?.hideWebEditor);
+
+  // use an event listener to check when to invalidate the useEnvironmentDeploymentOptions query and update the side bar
+  // this is a workaround for not being able to invalidate the query from the (angular based) settings and kube configure views
+  useEffect(() => {
+    document.addEventListener('portainer:deploymentOptionsUpdated', () => {
+      // invalidate the query to update the sidebar
+      queryClient.invalidateQueries([
+        'environments',
+        environmentId,
+        'deploymentOptions',
+      ]);
+    });
+    return () => {
+      document.removeEventListener(
+        'portainer:deploymentOptionsUpdated',
+        () => {}
+      );
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
@@ -33,13 +63,15 @@ export function KubernetesSidebar({ environmentId }: Props) {
         data-cy="k8sSidebar-dashboard"
       />
 
-      <SidebarItem
-        to="kubernetes.templates.custom"
-        params={{ endpointId: environmentId }}
-        icon={Edit}
-        label="Custom Templates"
-        data-cy="k8sSidebar-customTemplates"
-      />
+      {showCustomTemplates && (
+        <SidebarItem
+          to="kubernetes.templates.custom"
+          params={{ endpointId: environmentId }}
+          icon={Edit}
+          label="Custom Templates"
+          data-cy="k8sSidebar-customTemplates"
+        />
+      )}
 
       <SidebarItem
         to="kubernetes.resourcePools"

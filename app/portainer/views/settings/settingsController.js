@@ -300,6 +300,9 @@ angular.module('portainer.app').controller('SettingsController', [
           $scope.initialFormValues.ShowKomposeBuildOption = response.ShowKomposeBuildOption;
           $scope.initialFormValues.enableTelemetry = response.EnableTelemetry;
           $scope.formValues.BlackListedLabels = response.BlackListedLabels;
+          // trigger an event to update the deployment options for the react based sidebar
+          const event = new CustomEvent('portainer:deploymentOptionsUpdated');
+          document.dispatchEvent(event);
         })
         .catch(function error(err) {
           Notifications.error('Failure', err, 'Unable to update settings');
