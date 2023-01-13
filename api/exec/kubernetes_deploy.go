@@ -169,6 +169,14 @@ func (deployer *KubernetesDeployer) kubectl(cmd, subcmd string, args []string, n
 
 	log.Debug().Msgf("kubectl %+v\n", cmdArgs)
 
+	// Add --ignore-not-found=true to delete command to match CE codebase
+	for _, arg := range cmdArgs {
+		if arg == "delete" {
+			cmdArgs = append(cmdArgs, "--ignore-not-found=true")
+			break
+		}
+	}
+
 	var stderr bytes.Buffer
 	c := exec.Command(kubectlCmd, cmdArgs...)
 	c.Env = os.Environ()
