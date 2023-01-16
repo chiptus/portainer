@@ -154,9 +154,9 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 		}
 	}
 
-	err = handler.addUserIntoTeams(user, ldapSettings)
+	err = handler.syncUserTeamsWithLDAPGroups(user, ldapSettings)
 	if err != nil {
-		log.Warn().Err(err).Msg("unable to automatically add user into teams")
+		log.Warn().Err(err).Msg("unable to automatically sync user teams with ldap")
 	}
 
 	err = handler.AuthorizationService.UpdateUserAuthorizations(user.ID)
@@ -245,7 +245,12 @@ func (handler *Handler) persistAndWriteToken(w http.ResponseWriter, tokenData *p
 
 }
 
-func (handler *Handler) addUserIntoTeams(user *portaineree.User, settings *portaineree.LDAPSettings) error {
+func (handler *Handler) syncUserTeamsWithLDAPGroups(user *portaineree.User, settings *portaineree.LDAPSettings) error {
+	// only sync if there is a group base DN
+	if len(settings.GroupSearchSettings) == 0 || len(settings.GroupSearchSettings[0].GroupBaseDN) == 0 {
+		return nil
+	}
+
 	teams, err := handler.DataStore.Team().Teams()
 	if err != nil {
 		return err
