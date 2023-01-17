@@ -277,9 +277,8 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 	stackOperation := maps["operation"].(string)
 	cmd := []string{}
 	switch stackOperation {
-	case "deploy", "undeploy":
-		// deploy [-u username -p password] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
-		// undeploy [-u username -p password] [-k] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
+	// deploy [-u username -p password] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <ref> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
+	case "deploy":
 		cmd = append(cmd, stackOperation)
 		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Username) != 0 && len(stack.GitConfig.Authentication.Password) != 0 {
 			cmd = append(cmd, "-u")
@@ -287,12 +286,26 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 			cmd = append(cmd, "-p")
 			cmd = append(cmd, stack.GitConfig.Authentication.Password)
 		}
-		if stackOperation == "deploy" {
-			cmd = append(cmd, getEnv(stack.Env)...)
-		}
+		cmd = append(cmd, getEnv(stack.Env)...)
 
 		cmd = append(cmd, stack.GitConfig.URL)
 		cmd = append(cmd, stack.GitConfig.ReferenceName)
+		cmd = append(cmd, stack.Name)
+		cmd = append(cmd, composeDestination)
+		cmd = append(cmd, stack.EntryPoint)
+		for i := 0; i < len(stack.AdditionalFiles); i++ {
+			cmd = append(cmd, stack.AdditionalFiles[i])
+		}
+	// undeploy [-u username -p password] [-k] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
+	case "undeploy":
+		cmd = append(cmd, stackOperation)
+		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Username) != 0 && len(stack.GitConfig.Authentication.Password) != 0 {
+			cmd = append(cmd, "-u")
+			cmd = append(cmd, stack.GitConfig.Authentication.Username)
+			cmd = append(cmd, "-p")
+			cmd = append(cmd, stack.GitConfig.Authentication.Password)
+		}
+		cmd = append(cmd, stack.GitConfig.URL)
 		cmd = append(cmd, stack.Name)
 		cmd = append(cmd, composeDestination)
 		cmd = append(cmd, stack.EntryPoint)
