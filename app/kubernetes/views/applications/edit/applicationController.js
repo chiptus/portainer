@@ -240,8 +240,8 @@ class KubernetesApplicationController {
   async redeployApplicationAsync() {
     const confirmed = await this.ModalService.confirmAsync({
       title: 'Are you sure?',
-      message: 'Terminating and restarting the application will cause service interruption. Do you wish to continue?',
-      buttons: { confirm: { label: 'Terminate and restart', className: 'btn-primary' } },
+      message: 'Redeploying terminates and restarts the application, which will cause service interruption. Do you wish to continue?',
+      buttons: { confirm: { label: 'Redeploy', className: 'btn-primary' } },
     });
     if (!confirmed) {
       return;
