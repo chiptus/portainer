@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/rs/zerolog/log"
 )
 
@@ -140,6 +141,28 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 	}
 
 	handler.AuthorizationService.TriggerUsersAuthUpdate()
+
+	if !endpointutils.IsEdgeEndpoint(endpoint) {
+		return response.Empty(w)
+	}
+
+	edgeJobs, err := handler.DataStore.EdgeJob().EdgeJobs()
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve edge jobs from the database", err)
+	}
+
+	for idx := range edgeJobs {
+		edgeJob := &edgeJobs[idx]
+		if _, ok := edgeJob.Endpoints[endpoint.ID]; ok {
+			err = handler.DataStore.EdgeJob().UpdateEdgeJobFunc(edgeJob.ID, func(j *portaineree.EdgeJob) {
+				delete(j.Endpoints, endpoint.ID)
+			})
+
+			if err != nil {
+				return httperror.InternalServerError("Unable to update edge job", err)
+			}
+		}
+	}
 
 	return response.Empty(w)
 }

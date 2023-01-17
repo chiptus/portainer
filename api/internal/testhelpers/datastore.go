@@ -197,6 +197,9 @@ func (s *stubEdgeJobService) Create(ID portaineree.EdgeJobID, edgeJob *portainer
 func (s *stubEdgeJobService) UpdateEdgeJob(ID portaineree.EdgeJobID, edgeJob *portaineree.EdgeJob) error {
 	return nil
 }
+func (s *stubEdgeJobService) UpdateEdgeJobFunc(ID portaineree.EdgeJobID, updateFunc func(edgeJob *portaineree.EdgeJob)) error {
+	return nil
+}
 func (s *stubEdgeJobService) DeleteEdgeJob(ID portaineree.EdgeJobID) error { return nil }
 func (s *stubEdgeJobService) GetNextIdentifier() int                       { return 0 }
 
