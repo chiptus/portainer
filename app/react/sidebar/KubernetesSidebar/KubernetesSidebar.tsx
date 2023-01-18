@@ -26,8 +26,7 @@ export function KubernetesSidebar({ environmentId }: Props) {
   const { data: deploymentOptions } =
     useEnvironmentDeploymentOptions(environmentId);
   const showCustomTemplates =
-    deploymentOptions &&
-    (!deploymentOptions?.hideFileUpload || !deploymentOptions?.hideWebEditor);
+    deploymentOptions && !deploymentOptions?.hideWebEditor;
 
   // use an event listener to check when to invalidate the useEnvironmentDeploymentOptions query and update the side bar
   // this is a workaround for not being able to invalidate the query from the (angular based) settings and kube configure views

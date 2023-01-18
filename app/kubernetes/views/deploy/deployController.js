@@ -400,7 +400,7 @@ class KubernetesDeployController {
         if (!this.deploymentOptions.hideFileUpload) {
           this.methodOptions.push({ ...url, value: KubernetesDeployBuildMethods.URL });
         }
-        if (!this.deploymentOptions.hideWebEditor || !this.deploymentOptions.hideFileUpload) {
+        if (!this.deploymentOptions.hideWebEditor) {
           this.methodOptions.push({ ...template, description: 'Use custom template', value: KubernetesDeployBuildMethods.CUSTOM_TEMPLATE });
         }
       } catch (err) {
