@@ -43,11 +43,19 @@ func aggregateStatus(relatedEnvironmentsIDs map[portaineree.EndpointID]string, e
 
 	// if has no related environment
 	if len(relatedEnvironmentsIDs) == 0 {
-		return edgetypes.UpdateScheduleStatusPending, ""
+		return edgetypes.UpdateScheduleStatusSuccess, ""
 	}
 
 	for environmentID := range relatedEnvironmentsIDs {
 		envStatus, ok := edgeStack.Status[environmentID]
+		if !ok {
+			hasPending = true
+			continue
+		}
+
+		if envStatus.Details.RemoteUpdateSuccess {
+			continue
+		}
 
 		// if edge stack reported ok, the update either failed (and we have no way to know) or it's still pending
 		if !ok || envStatus.Details.Pending || envStatus.Details.Ok {

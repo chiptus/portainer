@@ -3,7 +3,7 @@ version: "3"
 services:
   updater:
     image: {{updater_image}}{{^updater_image}}portainer/portainer-updater:latest{{/updater_image}}
-    command: ["agent-update", "{{agent_image_name}}{{^agent_image_name}}portainer/agent:latest{{/agent_image_name}}", "{{schedule_id}}"]
+    command: ["agent", "--env-type", "standalone", "{{schedule_id}}", "{{agent_image_name}}{{^agent_image_name}}portainer/agent:latest{{/agent_image_name}}"]
     {{#skip_pull_agent_image}}
     environment:
       - SKIP_PULL=1

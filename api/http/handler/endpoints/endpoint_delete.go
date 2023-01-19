@@ -63,6 +63,27 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		log.Warn().Msg("If the environment removed from Portainer still exists, Portainer access policies will remain")
 	}
 
+	// if edge endpoint, remove from edge update schedules
+	if endpointutils.IsEdgeEndpoint(endpoint) {
+		edgeUpdates, err := handler.DataStore.EdgeUpdateSchedule().List()
+		if err != nil {
+			// skip
+			log.Warn().Err(err).Msg("Unable to retrieve edge update schedules from the database")
+		} else {
+			for i := range edgeUpdates {
+				edgeUpdate := edgeUpdates[i]
+				if edgeUpdate.EnvironmentsPreviousVersions[endpoint.ID] != "" {
+					delete(edgeUpdate.EnvironmentsPreviousVersions, endpoint.ID)
+					err = handler.DataStore.EdgeUpdateSchedule().Update(edgeUpdate.ID, &edgeUpdate)
+					if err != nil {
+						// skip
+						log.Warn().Err(err).Msg("Unable to update edge update schedule")
+					}
+				}
+			}
+		}
+	}
+
 	err = handler.DataStore.Endpoint().DeleteEndpoint(portaineree.EndpointID(endpointID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to remove environment from the database", err)
