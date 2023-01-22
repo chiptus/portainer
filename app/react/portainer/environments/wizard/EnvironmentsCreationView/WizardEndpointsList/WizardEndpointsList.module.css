@@ -16,7 +16,7 @@
 .wizard-list-edge-status {
   grid-area: edgeStatus;
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
 }
 
