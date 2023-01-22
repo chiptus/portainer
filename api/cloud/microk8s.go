@@ -9,20 +9,28 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/sync/errgroup"
 )
 
-type microk8sClusterJoinInfo struct {
-	Token string   `json:"token"`
-	URLS  []string `json:"urls"`
-}
+type (
+	microk8sClusterJoinInfo struct {
+		Token string   `json:"token"`
+		URLS  []string `json:"urls"`
+	}
 
-func Microk8sProvisionCluster(sshUser, sshPassword string, nodeIps, addons []string) (string, error) {
+	Microk8sProvisioningClusterRequest struct {
+		Credentials     *models.CloudCredential
+		NodeIps, Addons []string
+	}
+)
+
+func (service *CloudClusterSetupService) Microk8sProvisionCluster(req Microk8sProvisioningClusterRequest) (string, error) {
 	log.Debug().
 		Str("provider", "microk8s").
-		Int("node_count", len(nodeIps)).
+		Int("node_count", len(req.NodeIps)).
 		Msg("sending KaaS cluster provisioning request")
 
 	// TODO: REVIEW-POC-MICROK8S
@@ -39,9 +47,18 @@ func Microk8sProvisionCluster(sshUser, sshPassword string, nodeIps, addons []str
 	// See: https://cs.opensource.google/go/x/sync/+/7f9b1623:errgroup/errgroup.go;l=66
 	var g errgroup.Group
 
+	sshUser, ok := req.Credentials.Credentials["username"]
+	sshPassword, ok1 := req.Credentials.Credentials["password"]
+	if !ok || !ok1 {
+		log.Debug().
+			Str("provider", "microk8s").
+			Msg("credentials are missing ssh username or ssh password")
+		return "", fmt.Errorf("invalid credentials")
+	}
+
 	// The first step is to install microk8s on all nodes
 	// This is done concurrently
-	for _, nodeIp := range nodeIps {
+	for _, nodeIp := range req.NodeIps {
 		func(user, password, ip string) {
 			g.Go(func() error {
 				return installMicrok8sOnNode(user, password, ip)
@@ -54,7 +71,7 @@ func Microk8sProvisionCluster(sshUser, sshPassword string, nodeIps, addons []str
 		return "", err
 	}
 
-	if len(nodeIps) > 1 {
+	if len(req.NodeIps) > 1 {
 		// If we have more than one node, we need them to form a cluster
 		// Note that only 3 node topology is supported at the moment (hardcoded)
 
@@ -65,7 +82,7 @@ func Microk8sProvisionCluster(sshUser, sshPassword string, nodeIps, addons []str
 		// Right now, we extract the hostname/IP from all the nodes after the first
 		// and we setup the /etc/hosts file on the first node (where the microk8s add-node command will be run)
 		// To be determined whether that is an infrastructure requirement and not something that Portainer should orchestrate.
-		err = setupHostEntries(sshUser, sshPassword, nodeIps)
+		err = setupHostEntries(sshUser, sshPassword, req.NodeIps)
 		if err != nil {
 			return "", err
 		}
@@ -76,25 +93,25 @@ func Microk8sProvisionCluster(sshUser, sshPassword string, nodeIps, addons []str
 
 		// Once all nodes are ready, we just pick the first as the "master" where the original microk8s add node command will be executed
 		// and we retrieve the first token
-		joinInfoNode2, err := retrieveClusterJoinInformation(sshUser, sshPassword, nodeIps[0])
+		joinInfoNode2, err := retrieveClusterJoinInformation(sshUser, sshPassword, req.NodeIps[0])
 		if err != nil {
 			return "", err
 		}
 
 		// We join the cluster on node 2
-		err = executeJoinClusterCommandOnNode(sshUser, sshPassword, nodeIps[1], joinInfoNode2)
+		err = executeJoinClusterCommandOnNode(sshUser, sshPassword, req.NodeIps[1], joinInfoNode2)
 		if err != nil {
 			return "", err
 		}
 
 		// We retrieve another token
-		joinInfoNode3, err := retrieveClusterJoinInformation(sshUser, sshPassword, nodeIps[0])
+		joinInfoNode3, err := retrieveClusterJoinInformation(sshUser, sshPassword, req.NodeIps[0])
 		if err != nil {
 			return "", err
 		}
 
 		// We join the cluster on node 3
-		err = executeJoinClusterCommandOnNode(sshUser, sshPassword, nodeIps[2], joinInfoNode3)
+		err = executeJoinClusterCommandOnNode(sshUser, sshPassword, req.NodeIps[2], joinInfoNode3)
 		if err != nil {
 			return "", err
 		}
@@ -102,8 +119,8 @@ func Microk8sProvisionCluster(sshUser, sshPassword string, nodeIps, addons []str
 	}
 
 	// We activate addons on the master node
-	if len(addons) > 0 {
-		err = enableMicrok8sAddonsOnNode(sshUser, sshPassword, nodeIps[0], addons)
+	if len(req.Addons) > 0 {
+		err = enableMicrok8sAddonsOnNode(sshUser, sshPassword, req.NodeIps[0], req.Addons)
 		if err != nil {
 			return "", err
 		}
@@ -113,7 +130,7 @@ func Microk8sProvisionCluster(sshUser, sshPassword string, nodeIps, addons []str
 }
 
 // Microk8sGetCluster simply connects to the first node IP and retrieves the cluster information (kubeconfig)
-func Microk8sGetCluster(sshUser, sshPassword, clusterID string, nodeIps []string) (*KaasCluster, error) {
+func (service *CloudClusterSetupService) Microk8sGetCluster(sshUser, sshPassword, clusterID string, nodeIps []string) (*KaasCluster, error) {
 	log.Debug().
 		Str("provider", "microk8s").
 		Str("cluster_id", clusterID).

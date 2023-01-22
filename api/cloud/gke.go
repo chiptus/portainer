@@ -18,6 +18,8 @@ import (
 )
 
 func (service *CloudClusterInfoService) GKEGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
+	log.Info().Str("provider", portaineree.CloudProviderGKE).Msg("processing get info request")
+
 	apiKey, ok := credential.Credentials["jsonKeyBase64"]
 	if !ok {
 		return nil, errors.New("missing API key for GKE")
@@ -45,6 +47,8 @@ func (service *CloudClusterInfoService) GKEGetInfo(credential *models.CloudCrede
 }
 
 func (service *CloudClusterInfoService) gkeFetchRefresh(apiKey, cacheKey string) error {
+	log.Info().Str("provider", portaineree.CloudProviderGKE).Msg("processing fetch info request")
+
 	info, err := service.GKEFetchInfo(apiKey)
 	if err != nil {
 		return err

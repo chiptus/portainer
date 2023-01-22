@@ -6,9 +6,12 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/cloud/eks"
 	"github.com/portainer/portainer-ee/api/database/models"
+	"github.com/rs/zerolog/log"
 )
 
 func (service *CloudClusterInfoService) AmazonEksGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
+	log.Debug().Str("provider", portaineree.CloudProviderAmazon).Msg("cluster get info request started")
+
 	cacheKey := fmt.Sprintf("%s_%d", portaineree.CloudProviderAmazon, credential.ID)
 	accessKeyId, ok := credential.Credentials["accessKeyId"]
 	if !ok {
@@ -57,6 +60,8 @@ func (service *CloudClusterInfoService) AmazonEksFetchInfo(accessKeyId, secretAc
 }
 
 func (service *CloudClusterSetupService) AmazonEksGetCluster(credentials models.CloudCredentialMap, name, region string) (*KaasCluster, error) {
+	log.Info().Str("provider", portaineree.CloudProviderAmazon).Str("name", name).Str("region", region).Msg("eks get cluster request received")
+
 	accessKeyId := credentials["accessKeyId"]
 	secretAccessKey := credentials["secretAccessKey"]
 

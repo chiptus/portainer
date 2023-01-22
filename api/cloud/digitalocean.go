@@ -22,6 +22,8 @@ type DigitalOceanInfo struct {
 }
 
 func (service *CloudClusterInfoService) DigitalOceanGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
+	log.Info().Str("provider", portaineree.CloudProviderDigitalOcean).Msg("processing get info request")
+
 	apiKey, ok := credential.Credentials["apiKey"]
 	if !ok {
 		return nil, errors.New("missing API key in the credentials")
@@ -48,6 +50,8 @@ func (service *CloudClusterInfoService) DigitalOceanGetInfo(credential *models.C
 }
 
 func (service *CloudClusterInfoService) digitalOceanFetchRefresh(apiKey, cacheKey string) error {
+	log.Info().Str("provider", portaineree.CloudProviderDigitalOcean).Msg("processing fetch info request")
+
 	info, err := service.DigitalOceanFetchInfo(apiKey)
 	if err != nil {
 		return err
@@ -144,7 +148,7 @@ func (service *CloudClusterInfoService) DigitalOceanFetchInfo(apiKey string) (*D
 	return digitalOceanInfo, nil
 }
 
-func DigitalOceanGetCluster(apiKey, clusterID string) (*KaasCluster, error) {
+func (service *CloudClusterSetupService) DigitalOceanGetCluster(apiKey, clusterID string) (*KaasCluster, error) {
 	log.Debug().Str("provider", "digitalocean").Str("cluster_id", clusterID).Msg("sending KaaS cluster details request")
 
 	client := godo.NewFromToken(apiKey)
@@ -176,26 +180,30 @@ func DigitalOceanGetCluster(apiKey, clusterID string) (*KaasCluster, error) {
 	return kaasCluster, nil
 }
 
-func DigitalOceanProvisionCluster(apiKey, region, clusterName, nodeSize string, nodeCount int, kubernetesVersion string) (string, error) {
+func (service *CloudClusterSetupService) DigitalOceanProvisionCluster(req CloudProvisioningRequest) (string, error) {
 	log.Debug().
 		Str("provider", "digitalocean").
-		Str("cluster", clusterName).
-		Str("node_size", nodeSize).
-		Int("node_count", nodeCount).
-		Str("region", region).
+		Str("cluster", req.ClusterName).
+		Str("node_size", req.NodeSize).
+		Int("node_count", req.NodeCount).
+		Str("region", req.Region).
 		Msg("sending KaaS cluster provisioning request")
 
+	apiKey, ok := req.Credentials.Credentials["apiKey"]
+	if !ok {
+		return "", errors.New("apiKey not found in credentials")
+	}
 	client := godo.NewFromToken(apiKey)
 
 	clusterConfig := godo.KubernetesClusterCreateRequest{
-		Name:        strings.ToLower(clusterName),
-		RegionSlug:  region,
-		VersionSlug: kubernetesVersion,
+		Name:        strings.ToLower(req.ClusterName),
+		RegionSlug:  req.Region,
+		VersionSlug: req.KubernetesVersion,
 		NodePools: []*godo.KubernetesNodePoolCreateRequest{
 			{
 				Name:  "default-pool",
-				Count: nodeCount,
-				Size:  nodeSize,
+				Count: req.NodeCount,
+				Size:  req.NodeSize,
 			},
 		},
 	}

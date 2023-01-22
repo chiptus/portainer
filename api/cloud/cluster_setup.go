@@ -14,6 +14,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	clouderrors "github.com/portainer/portainer-ee/api/cloud/errors"
 	"github.com/portainer/portainer-ee/api/cloud/gke"
+	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
@@ -58,6 +59,12 @@ type (
 		err        error
 		taskID     portaineree.CloudProvisioningTaskID
 		provider   string
+	}
+
+	CloudProvisioningRequest struct {
+		Credentials                                                 *models.CloudCredential
+		Region, ClusterName, NodeSize, NetworkID, KubernetesVersion string
+		NodeCount                                                   int
 	}
 )
 
@@ -296,16 +303,16 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 
 	switch task.Provider {
 	case portaineree.CloudProviderMicrok8s:
-		cluster, err = Microk8sGetCluster(credentials.Credentials["username"], credentials.Credentials["password"], task.ClusterID, task.NodeIPs)
+		cluster, err = service.Microk8sGetCluster(credentials.Credentials["username"], credentials.Credentials["password"], task.ClusterID, task.NodeIPs)
 
 	case portaineree.CloudProviderCivo:
-		cluster, err = CivoGetCluster(credentials.Credentials["apiKey"], task.ClusterID, task.Region)
+		cluster, err = service.CivoGetCluster(credentials.Credentials["apiKey"], task.ClusterID, task.Region)
 
 	case portaineree.CloudProviderDigitalOcean:
-		cluster, err = DigitalOceanGetCluster(credentials.Credentials["apiKey"], task.ClusterID)
+		cluster, err = service.DigitalOceanGetCluster(credentials.Credentials["apiKey"], task.ClusterID)
 
 	case portaineree.CloudProviderLinode:
-		cluster, err = LinodeGetCluster(credentials.Credentials["apiKey"], task.ClusterID)
+		cluster, err = service.LinodeGetCluster(credentials.Credentials["apiKey"], task.ClusterID)
 
 	case portaineree.CloudProviderGKE:
 		cluster, err = service.GKEGetCluster(credentials.Credentials["jsonKeyBase64"], task.ClusterID, task.Region)
@@ -326,7 +333,7 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 		}
 
 	case portaineree.CloudProviderAzure:
-		cluster, err = AzureGetCluster(credentials.Credentials, task.ResourceGroup, task.ClusterID)
+		cluster, err = service.AzureGetCluster(credentials.Credentials, task.ResourceGroup, task.ClusterID)
 
 	case portaineree.CloudProviderAmazon:
 		cluster, err = service.AmazonEksGetCluster(credentials.Credentials, task.ClusterID, task.Region)
@@ -546,7 +553,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 }
 
 func (service *CloudClusterSetupService) processRequest(request *portaineree.CloudProvisioningRequest) {
-	log.Info().Str("agent_version", kubecli.DefaultAgentVersion).Msg("new cluster creation request received")
+	log.Info().Str("provider", request.Provider).Str("agent_version", kubecli.DefaultAgentVersion).Msg("new cluster creation request received")
 
 	credentials, err := service.dataStore.CloudCredential().GetByID(request.CredentialID)
 	if err != nil {
@@ -565,16 +572,46 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 
 	switch request.Provider {
 	case portaineree.CloudProviderMicrok8s:
-		clusterID, provErr = Microk8sProvisionCluster(credentials.Credentials["username"], credentials.Credentials["password"], request.NodeIPs, request.Addons)
+		req := Microk8sProvisioningClusterRequest{
+			Credentials: credentials,
+			NodeIps:     request.NodeIPs,
+			Addons:      request.Addons,
+		}
+		clusterID, provErr = service.Microk8sProvisionCluster(req)
 
 	case portaineree.CloudProviderCivo:
-		clusterID, provErr = CivoProvisionCluster(credentials.Credentials["apiKey"], request.Region, request.Name, request.NodeSize, request.NetworkID, request.NodeCount, request.KubernetesVersion)
+		req := CloudProvisioningRequest{
+			Credentials:       credentials,
+			Region:            request.Region,
+			ClusterName:       request.Name,
+			NodeSize:          request.NodeSize,
+			NetworkID:         request.NetworkID,
+			NodeCount:         request.NodeCount,
+			KubernetesVersion: request.KubernetesVersion,
+		}
+		clusterID, provErr = service.CivoProvisionCluster(req)
 
 	case portaineree.CloudProviderDigitalOcean:
-		clusterID, provErr = DigitalOceanProvisionCluster(credentials.Credentials["apiKey"], request.Region, request.Name, request.NodeSize, request.NodeCount, request.KubernetesVersion)
+		req := CloudProvisioningRequest{
+			Credentials:       credentials,
+			Region:            request.Region,
+			ClusterName:       request.Name,
+			NodeSize:          request.NodeSize,
+			NodeCount:         request.NodeCount,
+			KubernetesVersion: request.KubernetesVersion,
+		}
+		clusterID, provErr = service.DigitalOceanProvisionCluster(req)
 
 	case portaineree.CloudProviderLinode:
-		clusterID, provErr = LinodeProvisionCluster(credentials.Credentials["apiKey"], request.Region, request.Name, request.NodeSize, request.NodeCount, request.KubernetesVersion)
+		req := CloudProvisioningRequest{
+			Credentials:       credentials,
+			Region:            request.Region,
+			ClusterName:       request.Name,
+			NodeSize:          request.NodeSize,
+			NodeCount:         request.NodeCount,
+			KubernetesVersion: request.KubernetesVersion,
+		}
+		clusterID, provErr = service.LinodeProvisionCluster(req)
 
 	case portaineree.CloudProviderGKE:
 		req := gke.ProvisionRequest{
@@ -595,11 +632,13 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 		clusterID = "kubeconfig-" + strconv.Itoa(int(time.Now().Unix()))
 
 	case portaineree.CloudProviderAzure:
-		clusterID, clusterResourceGroup, provErr = AzureProvisionCluster(credentials.Credentials, request)
+		clusterID, clusterResourceGroup, provErr = service.AzureProvisionCluster(credentials.Credentials, request)
 
 	case portaineree.CloudProviderAmazon:
 		clusterID, provErr = service.AmazonEksProvisionCluster(credentials.Credentials, request)
 	}
+
+	log.Info().Str("provider", request.Provider).Str("cluster-id", clusterID).Msg("creating cluster setup task")
 
 	// Even though there could be a provisioning error above, we still need to continue
 	// with the setup task here to properly set the error state of the endpoint
@@ -616,6 +655,7 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 		log.Error().Err(err).Msg("failed to create cluster setup task")
 	}
 
+	log.Info().Str("provider", request.Provider).Str("cluster-id", clusterID).Msg("provisioning kaas cluster")
 	go service.provisionKaasClusterTask(task)
 }
 

@@ -36,6 +36,7 @@ type (
 )
 
 func (service *CloudClusterInfoService) AzureGetInfo(credentials *models.CloudCredential, force bool) (interface{}, error) {
+	log.Info().Str("provider", portaineree.CloudProviderAzure).Msg("get info started")
 	if len(credentials.Credentials) == 0 {
 		return nil, fmt.Errorf("missing credentials in the database")
 	}
@@ -58,6 +59,7 @@ func (service *CloudClusterInfoService) AzureGetInfo(credentials *models.CloudCr
 		}
 	}
 
+	log.Info().Str("provider", portaineree.CloudProviderAzure).Msg("get info request completed")
 	return &info, nil
 }
 
@@ -75,7 +77,7 @@ func (service *CloudClusterInfoService) azureFetchRefresh(c *models.CloudCredent
 }
 
 func (a *CloudClusterInfoService) AzureFetchInfo(credentials models.CloudCredentialMap) (*AzureInfo, error) {
-	log.Debug().Msg("sending cloud provider info request")
+	log.Debug().Str("provider", portaineree.CloudProviderAzure).Msg("processing cloud provider info request")
 
 	conn, err := azure.NewCredentials(credentials).GetConnection()
 	if err != nil {
@@ -117,7 +119,7 @@ func (a *CloudClusterInfoService) AzureFetchInfo(credentials models.CloudCredent
 		return nil, err
 	}
 
-	log.Info().Int("count", len(skus.Values())).Msg("total resource skus")
+	log.Info().Str("provider", portaineree.CloudProviderAzure).Int("count", len(skus.Values())).Msg("total resource skus")
 
 	nodesBR := make(nodesByRegion, 0)
 	for _, sku := range skus.Values() {
@@ -175,7 +177,7 @@ func (a *CloudClusterInfoService) AzureFetchInfo(credentials models.CloudCredent
 		return nil, err
 	}
 
-	log.Info().Int("count", len(*locations.Value)).Msg("number of locations")
+	log.Info().Str("provider", portaineree.CloudProviderAzure).Int("count", len(*locations.Value)).Msg("number of locations")
 	if len(*locations.Value) == 0 {
 		return nil, fmt.Errorf("AKS failed to return any locations")
 	}
@@ -208,7 +210,7 @@ func (a *CloudClusterInfoService) AzureFetchInfo(credentials models.CloudCredent
 	return azureInfo, nil
 }
 
-func AzureProvisionCluster(credentials models.CloudCredentialMap, params *portaineree.CloudProvisioningRequest) (string, string, error) {
+func (service *CloudClusterSetupService) AzureProvisionCluster(credentials models.CloudCredentialMap, params *portaineree.CloudProvisioningRequest) (string, string, error) {
 	log.Debug().
 		Str("provider", "azure").
 		Str("cluster_name", params.Name).
@@ -225,7 +227,7 @@ func AzureProvisionCluster(credentials models.CloudCredentialMap, params *portai
 
 	// Resource Groups
 	if params.ResourceGroupName != "" && params.ResourceGroup == "" {
-		log.Info().Str("resource_group", params.ResourceGroupName).Msg("using existing resource group")
+		log.Info().Str("provider", portaineree.CloudProviderAzure).Str("resource_group", params.ResourceGroupName).Msg("using existing resource group")
 
 		groupClient := conn.GetGroupsClient()
 		rg, err := groupClient.CreateOrUpdate(context.TODO(), params.ResourceGroupName, resources.Group{
@@ -233,7 +235,7 @@ func AzureProvisionCluster(credentials models.CloudCredentialMap, params *portai
 			Location: &params.Region,
 		})
 
-		log.Info().Str("resource_group", *rg.Name).Msg("using existing resource group")
+		log.Info().Str("provider", portaineree.CloudProviderAzure).Str("resource_group", *rg.Name).Msg("using existing resource group")
 
 		if err != nil {
 			return "", "", fmt.Errorf("while creating resource group: %w", err)
@@ -328,7 +330,7 @@ func AzureProvisionCluster(credentials models.CloudCredentialMap, params *portai
 	return *managedCluster.Name, params.ResourceGroup, nil
 }
 
-func AzureGetCluster(credentials models.CloudCredentialMap, resourceGroup, resourceName string) (*KaasCluster, error) {
+func (service *CloudClusterSetupService) AzureGetCluster(credentials models.CloudCredentialMap, resourceGroup, resourceName string) (*KaasCluster, error) {
 	conn, err := azure.NewCredentials(credentials).GetConnection()
 	if err != nil {
 		return nil, fmt.Errorf("while getting connection: %w", err)
@@ -359,6 +361,7 @@ func AzureGetCluster(credentials models.CloudCredentialMap, resourceGroup, resou
 
 	if cluster.ManagedClusterProperties != nil && cluster.ManagedClusterProperties.Fqdn != nil {
 		log.Info().
+			Str("provider", portaineree.CloudProviderAzure).
 			Str("cluster", *cluster.Name).
 			Str("FQDN", *cluster.ManagedClusterProperties.Fqdn).
 			Str("azure_portal_FQDN", *cluster.ManagedClusterProperties.AzurePortalFQDN).

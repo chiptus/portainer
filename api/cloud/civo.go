@@ -35,6 +35,8 @@ type (
 )
 
 func (service *CloudClusterInfoService) CivoGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
+	log.Debug().Str("provider", portaineree.CloudProviderCivo).Msg("processing get info request")
+
 	apiKey, ok := credential.Credentials["apiKey"]
 	if !ok {
 		return nil, errors.New("missing API key in the credentials")
@@ -75,7 +77,7 @@ func (service *CloudClusterInfoService) civoFetchRefresh(apiKey, cacheKey string
 }
 
 func (service *CloudClusterInfoService) CivoFetchInfo(apiKey string) (*CivoInfo, error) {
-	log.Debug().Str("provider", "civo").Msg("sending cloud provider info request")
+	log.Info().Str("provider", "civo").Msg("processing fetch info request")
 
 	client, err := civogo.NewClient(apiKey, "")
 	if err != nil {
@@ -207,10 +209,11 @@ func (service *CloudClusterInfoService) CivoFetchInfo(apiKey string) (*CivoInfo,
 		KubernetesVersions: versionPairs,
 	}
 
+	log.Info().Str("provider", "civo").Msg("finished processing fetch info request")
 	return civoInfo, nil
 }
 
-func CivoGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
+func (service *CloudClusterSetupService) CivoGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
 	log.Debug().
 		Str("provider", "civo").
 		Str("cluster_id", clusterID).
@@ -241,27 +244,32 @@ func CivoGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
 	return kaasCluster, nil
 }
 
-func CivoProvisionCluster(apiKey, region, clusterName, nodeSize, networkID string, nodeCount int, kubernetesVersion string) (string, error) {
+func (service *CloudClusterSetupService) CivoProvisionCluster(req CloudProvisioningRequest) (string, error) {
 	log.Debug().
 		Str("provider", "civo").
-		Str("cluster", clusterName).
-		Str("node_size", nodeSize).
-		Int("node_count", nodeCount).
-		Str("region", region).
+		Str("cluster", req.ClusterName).
+		Str("node_size", req.NodeSize).
+		Int("node_count", req.NodeCount).
+		Str("region", req.Region).
 		Msg("sending KaaS cluster provisioning request")
 
-	client, err := civogo.NewClient(apiKey, region)
+	apiKey, ok := req.Credentials.Credentials["apiKey"]
+	if !ok {
+		return "", errors.New("apiKey not found in credentials")
+	}
+
+	client, err := civogo.NewClient(apiKey, req.Region)
 	if err != nil {
 		return "", err
 	}
 
 	clusterConfig := civogo.KubernetesClusterConfig{
-		Name:              clusterName,
-		Region:            region,
-		NumTargetNodes:    nodeCount,
-		TargetNodesSize:   nodeSize,
-		NetworkID:         networkID,
-		KubernetesVersion: kubernetesVersion,
+		Name:              req.ClusterName,
+		Region:            req.Region,
+		NumTargetNodes:    req.NodeCount,
+		TargetNodesSize:   req.NodeSize,
+		NetworkID:         req.NetworkID,
+		KubernetesVersion: req.KubernetesVersion,
 		FirewallRule:      "all",
 	}
 

@@ -26,6 +26,8 @@ type LinodeInfo struct {
 }
 
 func (service *CloudClusterInfoService) LinodeGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
+	log.Info().Str("provider", portaineree.CloudProviderLinode).Msg("processing get info request")
+
 	apiKey, ok := credential.Credentials["apiKey"]
 	if !ok {
 		return nil, errors.New("missing API key in the credentials")
@@ -52,6 +54,8 @@ func (service *CloudClusterInfoService) LinodeGetInfo(credential *models.CloudCr
 }
 
 func (service *CloudClusterInfoService) linodeFetchRefresh(apiKey, cacheKey string) error {
+	log.Info().Str("provider", portaineree.CloudProviderLinode).Msg("processing fetch info request")
+
 	info, err := service.LinodeFetchInfo(apiKey)
 	if err != nil {
 		return err
@@ -148,7 +152,7 @@ func (service *CloudClusterInfoService) LinodeFetchInfo(apiKey string) (*LinodeI
 	return linodeInfo, nil
 }
 
-func LinodeGetCluster(apiKey, clusterID string) (*KaasCluster, error) {
+func (service *CloudClusterSetupService) LinodeGetCluster(apiKey, clusterID string) (*KaasCluster, error) {
 	log.Debug().Str("provider", "linode").Str("cluster_id", clusterID).Msg("sending KaaS cluster details request")
 
 	id, err := strconv.Atoi(clusterID)
@@ -197,15 +201,19 @@ func LinodeGetCluster(apiKey, clusterID string) (*KaasCluster, error) {
 	return kaasCluster, nil
 }
 
-func LinodeProvisionCluster(apiKey, region, clusterName, nodeSize string, nodeCount int, kubernetesVersion string) (string, error) {
+func (service *CloudClusterSetupService) LinodeProvisionCluster(req CloudProvisioningRequest) (string, error) {
 	log.Debug().
 		Str("provider", "linode").
-		Str("cluster_name", clusterName).
-		Str("node_size", nodeSize).
-		Int("node_count", nodeCount).
-		Str("region", region).
+		Str("cluster_name", req.ClusterName).
+		Str("node_size", req.NodeSize).
+		Int("node_count", req.NodeCount).
+		Str("region", req.Region).
 		Msg("sending KaaS cluster provisioning request")
 
+	apiKey, ok := req.Credentials.Credentials["apiKey"]
+	if !ok {
+		return "", errors.New("apiKey not found in credentials")
+	}
 	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: apiKey})
 
 	oauth2Client := &http.Client{
@@ -219,13 +227,13 @@ func LinodeProvisionCluster(apiKey, region, clusterName, nodeSize string, nodeCo
 	// Both DigitalOcean and Civo supports a way to use "latest" but not Linode
 	// Also cluster name is lowercased because Linode has a strict validation rule
 	clusterConfig := linodego.LKEClusterCreateOptions{
-		Label:      strings.ToLower(clusterName),
-		Region:     region,
-		K8sVersion: kubernetesVersion,
+		Label:      strings.ToLower(req.ClusterName),
+		Region:     req.Region,
+		K8sVersion: req.KubernetesVersion,
 		NodePools: []linodego.LKENodePoolCreateOptions{
 			{
-				Count: nodeCount,
-				Type:  nodeSize,
+				Count: req.NodeCount,
+				Type:  req.NodeSize,
 			},
 		},
 	}
