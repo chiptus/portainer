@@ -280,7 +280,7 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 	// deploy [-u username -p password] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <ref> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
 	case "deploy":
 		cmd = append(cmd, stackOperation)
-		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Username) != 0 && len(stack.GitConfig.Authentication.Password) != 0 {
+		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Password) != 0 {
 			cmd = append(cmd, "-u")
 			cmd = append(cmd, stack.GitConfig.Authentication.Username)
 			cmd = append(cmd, "-p")
@@ -299,7 +299,7 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 	// undeploy [-u username -p password] [-k] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
 	case "undeploy":
 		cmd = append(cmd, stackOperation)
-		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Username) != 0 && len(stack.GitConfig.Authentication.Password) != 0 {
+		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Password) != 0 {
 			cmd = append(cmd, "-u")
 			cmd = append(cmd, stack.GitConfig.Authentication.Username)
 			cmd = append(cmd, "-p")
@@ -315,7 +315,7 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 	case "compose-start":
 		// deploy [-u username -p password] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
 		cmd = append(cmd, "deploy")
-		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Username) != 0 && len(stack.GitConfig.Authentication.Password) != 0 {
+		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Password) != 0 {
 			cmd = append(cmd, "-u")
 			cmd = append(cmd, stack.GitConfig.Authentication.Username)
 			cmd = append(cmd, "-p")
@@ -333,7 +333,7 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 	case "compose-stop":
 		// undeploy [-u username -p password] [-k] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
 		cmd = append(cmd, "undeploy")
-		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Username) != 0 && len(stack.GitConfig.Authentication.Password) != 0 {
+		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Password) != 0 {
 			cmd = append(cmd, "-u")
 			cmd = append(cmd, stack.GitConfig.Authentication.Username)
 			cmd = append(cmd, "-p")
@@ -350,7 +350,7 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 	case "swarm-deploy":
 		// deploy [-u username -p password] [-f] [-r] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <git-ref> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
 		cmd = append(cmd, stackOperation)
-		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Username) != 0 && len(stack.GitConfig.Authentication.Password) != 0 {
+		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Password) != 0 {
 			cmd = append(cmd, "-u")
 			cmd = append(cmd, stack.GitConfig.Authentication.Username)
 			cmd = append(cmd, "-p")
