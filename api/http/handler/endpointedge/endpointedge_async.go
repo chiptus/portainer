@@ -588,12 +588,12 @@ func (handler *Handler) getEndpoint(endpointID portaineree.EndpointID, edgeID st
 		var ok bool
 		endpointID, ok = handler.DataStore.Endpoint().EndpointIDByEdgeID(edgeID)
 		if !ok {
-			return nil, errors.New("Unable to retrieve environments from database")
+			return nil, nil
 		}
 
 		endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
 		if err != nil {
-			return nil, errors.WithMessage(err, "Unable to retrieve environments from database")
+			return nil, errors.WithMessage(err, "Unable to retrieve environment")
 		}
 
 		return endpoint, nil
