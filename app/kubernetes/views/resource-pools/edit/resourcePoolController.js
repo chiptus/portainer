@@ -73,6 +73,7 @@ class KubernetesResourcePoolController {
     this.onRegistriesChange = this.onRegistriesChange.bind(this);
     this.handleMemoryLimitChange = this.handleMemoryLimitChange.bind(this);
     this.handleCpuLimitChange = this.handleCpuLimitChange.bind(this);
+    this.onToggleResourceQuota = this.onToggleResourceQuota.bind(this);
   }
   /* #endregion */
 
@@ -91,6 +92,12 @@ class KubernetesResourcePoolController {
   onToggleStorageQuota(storageClassName, enabled) {
     this.$scope.$evalAsync(() => {
       this.formValues.StorageClasses = this.formValues.StorageClasses.map((sClass) => (sClass.Name !== storageClassName ? sClass : { ...sClass, Selected: enabled }));
+    });
+  }
+
+  onToggleResourceQuota(enabled) {
+    this.$scope.$evalAsync(() => {
+      this.formValues.HasQuota = enabled;
     });
   }
 

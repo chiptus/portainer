@@ -47,21 +47,19 @@
                     <span class="vertical-center">
                       <pr-icon icon="'info'" mode="'primary'"></pr-icon>
                       A namespace is a logical abstraction of a Kubernetes cluster, to provide for more flexible management of resources. Resource over-commit is disabled, please
-                      assign a capped limit of resources to this pool.
+                      assign a capped limit of resources to this namespace.
                     </span>
                   </div>
-                  <div class="col-sm-12 mt-2" ng-if="ctrl.state.resourceOverCommitEnabled">
-                    <div class="form-group">
-                      <div class="col-sm-3 col-lg-2">
-                        <label class="control-label text-left"> Resource assignment </label>
-                      </div>
-                      <div class="col-sm-9 pt-2">
-                        <label class="switch">
-                          <input type="checkbox" ng-model="ctrl.formValues.HasQuota" disable-deployment-option="form" />
-                          <span class="slider round"></span>
-                        </label>
-                      </div>
-                    </div>
+                  <div class="col-sm-12 pt-3">
+                    <por-switch-field
+                      data-cy="'k8sNamespaceEdit-resourceAssignmentToggle'"
+                      label="'Resource assignment'"
+                      label-class="'col-sm-3 col-lg-2'"
+                      name="'k8s-resourcepool-resourcequota'"
+                      checked="ctrl.formValues.HasQuota"
+                      on-change="(ctrl.onToggleResourceQuota)"
+                      disabled="!ctrl.state.resourceOverCommitEnabled"
+                    ></por-switch-field>
                   </div>
                 </div>
                 <div class="form-group" ng-if="ctrl.formValues.HasQuota && ctrl.state.sliderMaxCpu <= 0 && ctrl.state.sliderMaxMemory <= 0">
@@ -71,14 +69,6 @@
                       Not enough resources available in the cluster to apply a resource reservation.
                     </p>
                   </div>
-                </div>
-                <div class="form-group" authorization="K8sResourcePoolDetailsW" ng-if="ctrl.formValues.HasQuota && ctrl.isEditable && !ctrl.isQuotaValid()">
-                  <span class="col-sm-12 text-warning small">
-                    <p class="vertical-center">
-                      <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>
-                      At least a single limit must be set for the quota to be valid.
-                    </p>
-                  </span>
                 </div>
                 <div ng-if="ctrl.formValues.HasQuota && (ctrl.formValues.CpuLimit || ctrl.formValues.MemoryLimit)">
                   <kubernetes-resource-reservation
@@ -98,6 +88,14 @@
                 <div authorization="K8sResourcePoolDetailsW" ng-if="ctrl.formValues.HasQuota && ctrl.isEditable">
                   <div class="col-sm-12 form-section-title"> Resource limits </div>
                   <div>
+                    <div class="form-group" authorization="K8sResourcePoolDetailsW" ng-if="ctrl.formValues.HasQuota && ctrl.isEditable && !ctrl.isQuotaValid()">
+                      <span class="col-sm-12 text-warning small">
+                        <p class="vertical-center">
+                          <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>
+                          At least a single limit must be set for the quota to be valid.
+                        </p>
+                      </span>
+                    </div>
                     <!-- memory-limit-input -->
                     <div class="form-group flex">
                       <label for="memory-limit" class="col-sm-3 col-lg-2 control-label text-left vertical-center"> Memory limit (MB) </label>
