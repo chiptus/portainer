@@ -34,7 +34,7 @@ export function TooltipWithChildren({
           <span>{heading}</span>
         </div>
       )}
-      <div>{message}</div>
+      <div className={styles.tooltipMessage}>{message}</div>
     </div>
   );
 

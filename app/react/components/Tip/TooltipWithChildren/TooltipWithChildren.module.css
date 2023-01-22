@@ -20,3 +20,7 @@
   padding: 8px 10px !important;
   font-size: 12px !important;
 }
+
+.tooltip-message a {
+  color: var(--blue-15) !important;
+}
