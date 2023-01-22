@@ -204,6 +204,7 @@ class KubernetesCreateResourcePoolController {
         };
 
         const nodes = await this.KubernetesNodeService.get();
+        await this.getResourcePools();
 
         this.ingressControllers = [];
         if (this.state.ingressAvailabilityPerNamespace) {
@@ -219,8 +220,9 @@ class KubernetesCreateResourcePoolController {
         );
         this.state.sliderMaxCpu = sliderMaxResources.CPU;
         this.state.sliderMaxMemory = sliderMaxResources.Memory;
-        if (this.state.resourceOverCommitEnabled) {
-          this.formValues.HasQuota = false;
+        // force the toggle on if resource overcommit is disabled (resource quotas are mandatory)
+        if (!this.state.resourceOverCommitEnabled) {
+          this.formValues.HasQuota = true;
         }
 
         if (this.state.canUseIngress) {

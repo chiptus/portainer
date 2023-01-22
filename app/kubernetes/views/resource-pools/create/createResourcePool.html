@@ -72,7 +72,7 @@
                   assign a capped limit of resources to this namespace.
                 </span>
               </div>
-              <div class="col-sm-12 pt-3" ng-if="$ctrl.state.resourceOverCommitEnabled">
+              <div class="col-sm-12 pt-3">
                 <por-switch-field
                   data-cy="'k8sNamespaceCreate-resourceAssignmentToggle'"
                   label="'Resource assignment'"
@@ -80,6 +80,7 @@
                   name="'k8s-resourcepool-resourcequota'"
                   checked="$ctrl.formValues.HasQuota"
                   on-change="($ctrl.onToggleResourceQuota)"
+                  disabled="!$ctrl.state.resourceOverCommitEnabled"
                 ></por-switch-field>
               </div>
             </div>
