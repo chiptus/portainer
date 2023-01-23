@@ -88,7 +88,7 @@
                 ></git-form>
                 <!-- !repository -->
 
-                <div ng-show="ctrl.state.BuildMethod === ctrl.BuildMethods.CUSTOM_TEMPLATE">
+                <div ng-show="ctrl.state.BuildMethod === ctrl.BuildMethods.CUSTOM_TEMPLATE && !ctrl.deploymentOptions.hideWebEditor">
                   <custom-template-selector
                     new-template-path="kubernetes.templates.custom.new"
                     stack-type="3"
@@ -105,7 +105,7 @@
                 </div>
 
                 <!-- editor -->
-                <div class="mt-4">
+                <div class="mt-4" ng-hide="ctrl.deploymentOptions.hideWebEditor">
                   <web-editor-form
                     ng-if="ctrl.state.BuildMethod === ctrl.BuildMethods.WEB_EDITOR || (ctrl.state.BuildMethod === ctrl.BuildMethods.CUSTOM_TEMPLATE && ctrl.state.templateId)"
                     identifier="kubernetes-deploy-editor"

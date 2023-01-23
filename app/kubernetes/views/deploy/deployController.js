@@ -384,27 +384,32 @@ class KubernetesDeployController {
       this.formValues.namespace_toggle = false;
       await this.getNamespaces();
 
-      if (this.$state.params.templateId) {
-        const templateId = parseInt(this.$state.params.templateId, 10);
-        if (templateId && !Number.isNaN(templateId)) {
-          this.state.BuildMethod = KubernetesDeployBuildMethods.CUSTOM_TEMPLATE;
-          this.state.templateId = templateId;
-        }
-      }
-
       try {
         this.deploymentOptions = await getDeploymentOptions(this.endpoint.Id);
         if (!this.deploymentOptions.hideWebEditor) {
-          this.methodOptions.push({ ...editor, value: KubernetesDeployBuildMethods.WEB_EDITOR });
+          this.methodOptions.push(
+            { ...editor, value: KubernetesDeployBuildMethods.WEB_EDITOR },
+            { ...template, description: 'Use custom template', value: KubernetesDeployBuildMethods.CUSTOM_TEMPLATE }
+          );
         }
         if (!this.deploymentOptions.hideFileUpload) {
           this.methodOptions.push({ ...url, value: KubernetesDeployBuildMethods.URL });
         }
-        if (!this.deploymentOptions.hideWebEditor) {
-          this.methodOptions.push({ ...template, description: 'Use custom template', value: KubernetesDeployBuildMethods.CUSTOM_TEMPLATE });
+
+        // the selected method must be available
+        if (!this.methodOptions.map((option) => option.value).includes(this.state.Method)) {
+          this.state.Method = this.methodOptions[0].value;
         }
       } catch (err) {
         this.Notifications.error('Failure', err, 'Unable to get deployment options');
+      }
+
+      if (this.$state.params.templateId) {
+        const templateId = parseInt(this.$state.params.templateId, 10);
+        if (templateId && !Number.isNaN(templateId) && !this.deploymentOptions.hideWebEditor) {
+          this.state.BuildMethod = KubernetesDeployBuildMethods.CUSTOM_TEMPLATE;
+          this.state.templateId = templateId;
+        }
       }
 
       try {
