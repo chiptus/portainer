@@ -81,6 +81,9 @@
           "UseLoadBalancer": false,
           "UseServerMetrics": false
         },
+        "Flags": {
+          "IsServerMetricsDetected": false
+        },
         "Snapshots": []
       },
       "LastCheckInDate": 0,

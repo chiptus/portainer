@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	portainer "github.com/portainer/portainer/api"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	portainer "github.com/portainer/portainer/api"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/apikey"

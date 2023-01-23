@@ -121,6 +121,7 @@ func InitialMetricsDetection(endpoint *portaineree.Endpoint, endpointService dat
 		return
 	}
 	endpoint.Kubernetes.Configuration.UseServerMetrics = true
+	endpoint.Kubernetes.Flags.IsServerMetricsDetected = true
 	err = endpointService.UpdateEndpoint(
 		portaineree.EndpointID(endpoint.ID),
 		endpoint,

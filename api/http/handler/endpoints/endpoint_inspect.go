@@ -7,6 +7,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 )
 
 // @id EndpointInspect
@@ -49,6 +50,15 @@ func (handler *Handler) endpointInspect(w http.ResponseWriter, r *http.Request) 
 		if err != nil {
 			return httperror.InternalServerError("Unable to add snapshot data", err)
 		}
+	}
+
+	isServerMetricsDetected := endpoint.Kubernetes.Flags.IsServerMetricsDetected
+	if !isServerMetricsDetected && handler.K8sClientFactory != nil {
+		endpointutils.InitialMetricsDetection(
+			endpoint,
+			handler.DataStore.Endpoint(),
+			handler.K8sClientFactory,
+		)
 	}
 
 	return response.JSON(w, endpoint)
