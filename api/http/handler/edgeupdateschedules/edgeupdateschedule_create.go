@@ -44,10 +44,6 @@ func (payload *createPayload) Validate(r *http.Request) error {
 		return errors.New("Invalid version")
 	}
 
-	if payload.ScheduledTime == "" {
-		return errors.New("Scheduled time is required")
-	}
-
 	return nil
 }
 
