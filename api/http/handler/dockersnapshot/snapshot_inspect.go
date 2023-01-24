@@ -43,7 +43,7 @@ func (handler *Handler) snapshotInspect(w http.ResponseWriter, r *http.Request) 
 	environmentId, _ := request.RetrieveNumericRouteVariableValue(r, "id")
 
 	environmentSnapshot, err := handler.dataStore.Snapshot().Snapshot(portaineree.EndpointID(environmentId))
-	if err != nil || environmentSnapshot == nil {
+	if err != nil || environmentSnapshot == nil || environmentSnapshot.Docker == nil {
 		return httperror.NotFound("Unable to find a snapshot", err)
 	}
 
