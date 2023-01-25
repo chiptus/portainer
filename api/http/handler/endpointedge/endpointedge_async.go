@@ -254,6 +254,7 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 		ID:     portaineree.EndpointID(endpointID),
 		EdgeID: edgeID,
 		Name:   edgeID,
+		URL:    settings.EdgePortainerURL,
 		Type:   endpointType,
 		TLSConfig: portaineree.TLSConfiguration{
 			TLS: false,
