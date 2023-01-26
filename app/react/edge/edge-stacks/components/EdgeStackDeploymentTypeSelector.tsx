@@ -27,10 +27,10 @@ export function EdgeStackDeploymentTypeSelector({
     {
       ...compose,
       value: EditorType.Compose,
-      disabled: () => hasNomadEndpoint,
+      disabled: () => hasNomadEndpoint || hasKubeEndpoint,
       tooltip: () =>
-        hasNomadEndpoint
-          ? 'Cannot use this option with Edge Nomad endpoints'
+        hasNomadEndpoint || hasKubeEndpoint
+          ? 'Cannot use this option with Edge Kubernetes or Edge Nomad environments'
           : '',
     },
     {
@@ -39,7 +39,7 @@ export function EdgeStackDeploymentTypeSelector({
       disabled: () => hasDockerEndpoint || hasNomadEndpoint,
       tooltip: () =>
         hasDockerEndpoint || hasNomadEndpoint
-          ? 'Cannot use this option with Edge Docker or Edge Nomad endpoints'
+          ? 'Cannot use this option with Edge Docker or Edge Nomad environments'
           : '',
     },
     {
@@ -51,7 +51,7 @@ export function EdgeStackDeploymentTypeSelector({
       disabled: () => hasDockerEndpoint || hasKubeEndpoint,
       tooltip: () =>
         hasDockerEndpoint || hasKubeEndpoint
-          ? 'Cannot use this option with Edge Docker or Edge Kubernetes endpoints'
+          ? 'Cannot use this option with Edge Docker or Edge Kubernetes environments'
           : '',
     },
   ];

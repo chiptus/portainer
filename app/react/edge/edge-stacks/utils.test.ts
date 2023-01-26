@@ -18,8 +18,8 @@ describe('getValidEditorTypes', () => {
     },
     {
       endpointTypes: [EnvironmentType.EdgeAgentOnKubernetes],
-      expected: [EditorType.Compose, EditorType.Kubernetes],
-      title: 'should return compose and kubernetes for kubernetes envs',
+      expected: [EditorType.Kubernetes],
+      title: 'should return kubernetes for kubernetes envs',
     },
     {
       endpointTypes: [EnvironmentType.EdgeAgentOnNomad],
@@ -31,8 +31,8 @@ describe('getValidEditorTypes', () => {
         EnvironmentType.EdgeAgentOnDocker,
         EnvironmentType.EdgeAgentOnKubernetes,
       ],
-      expected: [EditorType.Compose],
-      title: 'should return compose for docker and kubernetes envs',
+      expected: [],
+      title: 'should return empty for docker and kubernetes envs',
     },
     {
       endpointTypes: [
