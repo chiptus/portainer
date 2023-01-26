@@ -3,11 +3,12 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { highlightKeyword } from '@@/LogViewer/helpers/highlightKeyword';
 import { KeywordIndexInterface, LogInterface } from '@@/LogViewer/types';
-import { LogSpan } from '@@/LogViewer/LogList/LogRow/LogSpan/LogSpan';
 import { useLogViewerContext } from '@@/LogViewer/context';
 
-import './LogRow.css';
 import { useSetSizeContext } from '../useSetSize';
+
+import { LogSpan } from './LogSpan';
+import styles from './LogRow.module.css';
 
 interface Props {
   lineIndex: number;
@@ -46,13 +47,16 @@ export function LogRow({ lineIndex }: Props) {
   );
 
   return (
-    <pre className={clsx('log-row', { 'wrap-line': wrapLine })}>
+    <pre
+      className={clsx(styles.logRow, {
+        'whitespace-pre-wrap': wrapLine,
+        'whitespace-pre': !wrapLine,
+      })}
+    >
       {showLineNumbers && (
-        <div className="log-row-line-number">{log.lineNumber}</div>
+        <div className={styles.lineNumber}>{log.lineNumber}</div>
       )}
-      <div ref={rowRef} className={clsx('log-row-content')}>
-        {spans.map(LogSpan)}
-      </div>
+      <div ref={rowRef}>{spans.map(LogSpan)}</div>
     </pre>
   );
 }

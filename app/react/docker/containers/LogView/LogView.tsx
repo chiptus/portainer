@@ -45,13 +45,13 @@ export function LogView() {
   ];
 
   return (
-    <div>
+    <>
       <PageHeader title="Container logs" breadcrumbs={breadcrumbs} />
       <LogViewer
         resourceType="docker-container"
         resourceName={containerName}
         getLogsFn={getLogsFn}
       />
-    </div>
+    </>
   );
 }

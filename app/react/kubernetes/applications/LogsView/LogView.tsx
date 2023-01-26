@@ -62,13 +62,13 @@ export function LogView() {
   ];
 
   return (
-    <div>
+    <>
       <PageHeader title="Application logs" breadcrumbs={breadcrumbs} />
       <LogViewer
         resourceType="kube-pod"
         resourceName={podID}
         getLogsFn={getLogsFn}
       />
-    </div>
+    </>
   );
 }

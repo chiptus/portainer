@@ -1,15 +1,15 @@
 import { useResizeDetector } from 'react-resize-detector';
 import { VariableSizeList } from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
 import { CSSProperties, useCallback, useEffect, useRef } from 'react';
 
-import { BottomButton } from '@@/LogViewer/LogList/BottomButton/BottomButton';
+import { BottomButton } from '@@/LogViewer/LogList/BottomButton';
 import { ProcessedLogsInterface } from '@@/LogViewer/types';
 import { LogRow } from '@@/LogViewer/LogList/LogRow/LogRow';
 import { useSizeCache } from '@@/LogViewer/hooks/useSizeCache';
 import { useFocusKeyword } from '@@/LogViewer/hooks/useFocusKeyword';
 import { useKeepAtBottom } from '@@/LogViewer/hooks/useKeepAtBottom';
 
-import './LogList.css';
 import { SetSizeProvider } from './useSetSize';
 
 interface Props {
@@ -36,21 +36,25 @@ export function LogList({ logs }: Props) {
 
   return (
     <>
-      <SetSizeProvider setSize={setSize}>
-        <VariableSizeList
-          height={750}
-          itemCount={logs.logs.length}
-          itemSize={getSize}
-          width="100%"
-          onScroll={onScroll}
-          onItemsRendered={onItemsRendered}
-          ref={listRef}
-          outerRef={outerRef}
-          className="log-list"
-        >
-          {renderItem}
-        </VariableSizeList>
-      </SetSizeProvider>
+      <AutoSizer defaultHeight={750} disableWidth className="h-full">
+        {({ height }) => (
+          <SetSizeProvider setSize={setSize}>
+            <VariableSizeList
+              height={height}
+              itemCount={logs.logs.length}
+              itemSize={getSize}
+              width="100%"
+              onScroll={onScroll}
+              onItemsRendered={onItemsRendered}
+              ref={listRef}
+              outerRef={outerRef}
+              className="log-list"
+            >
+              {renderItem}
+            </VariableSizeList>
+          </SetSizeProvider>
+        )}
+      </AutoSizer>
       <BottomButton visible={!isScrollAtBottom} onClick={scrollToBottom} />
     </>
   );

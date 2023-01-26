@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import clsx from 'clsx';
 
 import { LogList } from '@@/LogViewer/LogList/LogList';
 import { LogController } from '@@/LogViewer/LogController/LogController';
@@ -12,6 +13,7 @@ import { useFetchLogs } from './hooks/usFetchLogs';
 import { useLogsQuery } from './hooks/useLogsQuery';
 import { useControllerStates } from './hooks/useControllerStates';
 import { LogViewerProvider } from './context';
+import styles from './LogViewer.module.css';
 
 interface Props {
   getLogsFn: GetLogsFnType;
@@ -86,14 +88,15 @@ export function LogViewer({
 
   return (
     <LogViewerProvider value={context}>
-      <div className="col-sm-12" ref={logViewerRef}>
-        <Widget className="h-full">
-          <LogController />
-          <Widget.Body className="no-padding">
-            <LogList logs={filteredLogs} />
-          </Widget.Body>
-        </Widget>
-      </div>
+      <Widget
+        className={clsx(styles.logViewerWidget, 'flex flex-col mx-4')}
+        mRef={logViewerRef}
+      >
+        <LogController />
+        <Widget.Body className="no-padding flex-auto">
+          <LogList logs={filteredLogs} />
+        </Widget.Body>
+      </Widget>
     </LogViewerProvider>
   );
 }

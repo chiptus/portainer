@@ -1,10 +1,6 @@
-import clsx from 'clsx';
 import { ChevronDown } from 'lucide-react';
 
 import { Button } from '@@/buttons';
-import { Icon } from '@@/Icon';
-
-import './BottomButton.css';
 
 interface Props {
   visible: boolean;
@@ -12,13 +8,17 @@ interface Props {
 }
 
 export function BottomButton({ visible, onClick }: Props) {
+  if (!visible) {
+    return null;
+  }
+
   return (
-    <div className="bottom-button">
+    <div className="absolute bottom-5 w-full text-center">
       <Button
         onClick={onClick}
-        className={clsx('vertical-center', 'button', { visible })}
+        className="rounded-3xl px-5 py-1"
+        icon={ChevronDown}
       >
-        <Icon icon={ChevronDown} />
         <span>Jump to Bottom</span>
       </Button>
     </div>

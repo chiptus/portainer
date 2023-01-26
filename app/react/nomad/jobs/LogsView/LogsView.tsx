@@ -65,7 +65,7 @@ export function LogsView() {
   ];
 
   return (
-    <div>
+    <>
       <PageHeader title="Task logs" breadcrumbs={breadcrumbs} />
       <LogViewer
         resourceType="nomad-task"
@@ -75,6 +75,6 @@ export function LogsView() {
         hideLines
         hideTimestamp
       />
-    </div>
+    </>
   );
 }

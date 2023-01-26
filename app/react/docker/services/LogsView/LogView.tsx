@@ -46,13 +46,13 @@ export function LogView() {
   ];
 
   return (
-    <div>
+    <>
       <PageHeader title="Service logs" breadcrumbs={breadcrumbs} />
       <LogViewer
         resourceType="docker-service"
         resourceName={serviceName}
         getLogsFn={getLogsFn}
       />
-    </div>
+    </>
   );
 }

@@ -52,13 +52,13 @@ export function LogView() {
   ];
 
   return (
-    <div>
+    <>
       <PageHeader title="Task logs" breadcrumbs={breadcrumbs} />
       <LogViewer
         resourceType="docker-task"
         resourceName={taskID}
         getLogsFn={getLogsFn}
       />
-    </div>
+    </>
   );
 }

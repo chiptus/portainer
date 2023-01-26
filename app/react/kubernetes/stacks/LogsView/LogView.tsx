@@ -44,13 +44,13 @@ export function LogView({ getLogsFn }: Props) {
   ];
 
   return (
-    <div>
+    <>
       <PageHeader title="Stack logs" breadcrumbs={breadcrumbs} />
       <LogViewer
         resourceType="kube-stack"
         resourceName={name}
         getLogsFn={getLogsWithParamsFn}
       />
-    </div>
+    </>
   );
 }
