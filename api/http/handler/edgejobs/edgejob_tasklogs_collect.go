@@ -81,7 +81,7 @@ func (handler *Handler) edgeJobTasksCollect(w http.ResponseWriter, r *http.Reque
 			return httperror.InternalServerError("Unable to persist edge job changes to the database", err)
 		}
 	} else {
-		handler.ReverseTunnelService.AddEdgeJob(endpointID, edgeJob)
+		handler.ReverseTunnelService.AddEdgeJob(endpoint, edgeJob)
 	}
 
 	return response.Empty(w)

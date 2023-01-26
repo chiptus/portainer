@@ -2,6 +2,7 @@ package chisel
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"math/rand"
 	"strings"
@@ -65,6 +66,10 @@ func (service *Service) GetTunnelDetails(endpointID portaineree.EndpointID) port
 
 // GetActiveTunnel retrieves an active tunnel which allows communicating with edge agent
 func (service *Service) GetActiveTunnel(endpoint *portaineree.Endpoint) (portaineree.TunnelDetails, error) {
+	if endpoint.Edge.AsyncMode {
+		return portaineree.TunnelDetails{}, errors.New("cannot open tunnel on async endpoint")
+	}
+
 	tunnel := service.GetTunnelDetails(endpoint.ID)
 
 	if tunnel.Status == portaineree.EdgeAgentActive {

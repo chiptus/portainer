@@ -6,9 +6,13 @@ import (
 )
 
 // AddEdgeJob register an EdgeJob inside the tunnel details associated to an environment(endpoint).
-func (service *Service) AddEdgeJob(endpointID portaineree.EndpointID, edgeJob *portaineree.EdgeJob) {
+func (service *Service) AddEdgeJob(endpoint *portaineree.Endpoint, edgeJob *portaineree.EdgeJob) {
+	if endpoint.Edge.AsyncMode {
+		return
+	}
+
 	service.mu.Lock()
-	tunnel := service.getTunnelDetails(endpointID)
+	tunnel := service.getTunnelDetails(endpoint.ID)
 
 	existingJobIndex := -1
 	for idx, existingJob := range tunnel.Jobs {
@@ -24,7 +28,7 @@ func (service *Service) AddEdgeJob(endpointID portaineree.EndpointID, edgeJob *p
 		tunnel.Jobs[existingJobIndex] = *edgeJob
 	}
 
-	cache.Del(endpointID)
+	cache.Del(endpoint.ID)
 
 	service.mu.Unlock()
 }

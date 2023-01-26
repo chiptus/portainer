@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/cloudcredential"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudprovisioning"
 	"github.com/portainer/portainer-ee/api/dataservices/dockerhub"
+	"github.com/portainer/portainer-ee/api/dataservices/edgejob"
 	"github.com/portainer/portainer-ee/api/dataservices/endpoint"
 	"github.com/portainer/portainer-ee/api/dataservices/endpointgroup"
 	"github.com/portainer/portainer-ee/api/dataservices/endpointrelation"
@@ -60,6 +61,7 @@ type (
 		dockerhubService        *dockerhub.Service
 		cloudCredentialService  *cloudcredential.Service
 		edgeStackService        *edgestack.Service
+		edgeJobService          *edgejob.Service
 	}
 
 	// MigratorParameters represents the required parameters to create a new Migrator instance.
@@ -88,6 +90,7 @@ type (
 		PodSecurityService       *podsecurity.Service
 		CloudCredentialService   *cloudcredential.Service
 		EdgeStackService         *edgestack.Service
+		EdgeJobService           *edgejob.Service
 	}
 
 	Migrations struct {
@@ -123,6 +126,7 @@ func NewMigrator(parameters *MigratorParameters) *Migrator {
 		dockerhubService:        parameters.DockerhubService,
 		cloudCredentialService:  parameters.CloudCredentialService,
 		edgeStackService:        parameters.EdgeStackService,
+		edgeJobService:          parameters.EdgeJobService,
 	}
 
 	migrator.initMigrations()
@@ -225,7 +229,7 @@ func (m *Migrator) initMigrations() {
 	m.addMigrations("2.16", m.migrateDBVersionToDB70)
 	m.addMigrations("2.16.1", m.migrateDBVersionToDB71)
 	m.addMigrations("2.17", m.migrateDBVersionToDB80)
-	m.addMigrations("2.18")
+	m.addMigrations("2.18", m.migrateDBVersionToDB81)
 
 	// Add new migrations below...
 	// One function per migration, each versions migration funcs in the same file.
