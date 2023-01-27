@@ -127,9 +127,10 @@ export class EditEdgeStackFormController {
   }
 
   onChangeGroups(groups) {
-    this.model.EdgeGroups = groups;
-
-    this.checkEndpointTypes(groups);
+    this.$scope.$evalAsync(() => {
+      this.model.EdgeGroups = groups;
+      this.checkEndpointTypes(groups);
+    });
   }
 
   isFormValid() {
