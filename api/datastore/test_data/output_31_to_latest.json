@@ -82,7 +82,8 @@
           "UseServerMetrics": false
         },
         "Flags": {
-          "IsServerMetricsDetected": false
+          "IsServerMetricsDetected": false,
+          "IsServerStorageDetected": false
         },
         "Snapshots": []
       },

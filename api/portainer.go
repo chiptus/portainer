@@ -658,6 +658,7 @@ type (
 
 	KubernetesFlags struct {
 		IsServerMetricsDetected bool `json:"IsServerMetricsDetected"`
+		IsServerStorageDetected bool `json:"IsServerStorageDetected"`
 	}
 
 	// KubernetesSnapshot represents a snapshot of a specific Kubernetes environment(endpoint) at a specific time
