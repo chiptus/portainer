@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/portainer/libhttp/request"
@@ -207,13 +208,27 @@ func needsUpdate(endpoints []portaineree.Endpoint) bool {
 		return false
 	}
 
-	latestVersion := edgeupdateschedules.Versions[len(edgeupdateschedules.Versions)-1]
+	latestVersion := canonicalizeSemver(edgeupdateschedules.Versions[len(edgeupdateschedules.Versions)-1])
 
 	for _, endpoint := range endpoints {
-		if endpointutils.IsEdgeEndpoint(&endpoint) && (endpoint.Agent.Version == "" || semver.Compare(endpoint.Agent.Version, latestVersion) == -1) {
+		isUserTrusted := endpoint.UserTrusted
+		agentVersion := canonicalizeSemver(endpoint.Agent.Version)
+		isEdge := endpointutils.IsEdgeEndpoint(&endpoint)
+
+		if isUserTrusted && isEdge && (endpoint.Agent.Version == "" || semver.Compare(agentVersion, latestVersion) == -1) {
 			return true
 		}
 	}
 
 	return false
+}
+
+func canonicalizeSemver(v string) string {
+	v = strings.TrimSpace(v)
+
+	if v == "" || strings.HasPrefix(v, "v") {
+		return v
+	}
+
+	return "v" + v
 }
