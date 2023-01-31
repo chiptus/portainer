@@ -128,8 +128,10 @@ export function ContainersView() {
               />
             )}
             dataset={containersQuery.data}
+            isRowSelectable={(row) =>
+              !row.original.Labels['io.portainer.agent']
+            }
             columns={columns}
-            disableSelect
             emptyContentLabel="No containers found"
           />
         </TableSettingsProvider>

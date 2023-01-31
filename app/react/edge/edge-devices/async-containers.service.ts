@@ -74,7 +74,7 @@ export async function removeContainer(
 ) {
   const payload: CreateContainerCommandRequest = {
     ContainerName: container.Id,
-    ContainerOperation: 'remove',
+    ContainerOperation: 'delete',
     ContainerRemoveOptions: {
       RemoveVolumes: removeVolumes,
       RemoveLinks: false,
