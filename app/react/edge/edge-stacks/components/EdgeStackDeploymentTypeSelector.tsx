@@ -14,6 +14,7 @@ interface Props {
   hasDockerEndpoint: boolean;
   hasKubeEndpoint: boolean;
   hasNomadEndpoint: boolean;
+  allowKubeToSelectCompose?: boolean;
 }
 
 export function EdgeStackDeploymentTypeSelector({
@@ -22,12 +23,16 @@ export function EdgeStackDeploymentTypeSelector({
   hasDockerEndpoint,
   hasKubeEndpoint,
   hasNomadEndpoint,
+  allowKubeToSelectCompose,
 }: Props) {
   const deploymentOptions: BoxSelectorOption<number>[] = [
     {
       ...compose,
       value: EditorType.Compose,
-      disabled: () => hasNomadEndpoint || hasKubeEndpoint,
+      disabled: () =>
+        allowKubeToSelectCompose
+          ? hasNomadEndpoint
+          : hasNomadEndpoint || hasKubeEndpoint,
       tooltip: () =>
         hasNomadEndpoint || hasKubeEndpoint
           ? 'Cannot use this option with Edge Kubernetes or Edge Nomad environments'

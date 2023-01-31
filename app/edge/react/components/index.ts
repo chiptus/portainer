@@ -68,6 +68,7 @@ export const componentsModule = angular
       'hasDockerEndpoint',
       'hasKubeEndpoint',
       'hasNomadEndpoint',
+      'allowKubeToSelectCompose',
     ])
   )
   .component(
