@@ -232,7 +232,10 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 	stack.RePullImage = payload.RePullImage
 
 	stack.NumDeployments = len(relatedEndpointIds)
-	stack.Status = make(map[portaineree.EndpointID]portainer.EdgeStackStatus)
+
+	if versionUpdated {
+		stack.Status = make(map[portaineree.EndpointID]portainer.EdgeStackStatus)
+	}
 
 	err = handler.DataStore.EdgeStack().UpdateEdgeStack(stack.ID, stack)
 	if err != nil {
