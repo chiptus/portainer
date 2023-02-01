@@ -96,3 +96,19 @@ func (service *Service) DeleteEndpointRelation(endpointID portaineree.EndpointID
 
 	return err
 }
+
+func (service *Service) InvalidateEdgeCacheForEdgeStack(edgeStackID portaineree.EdgeStackID) {
+	rels, err := service.EndpointRelations()
+	if err != nil {
+		log.Error().Err(err).Msg("cannot retrieve endpoint relations")
+		return
+	}
+
+	for _, rel := range rels {
+		for id := range rel.EdgeStacks {
+			if edgeStackID == id {
+				cache.Del(rel.EndpointID)
+			}
+		}
+	}
+}
