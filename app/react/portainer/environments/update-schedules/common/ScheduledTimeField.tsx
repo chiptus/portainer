@@ -37,7 +37,11 @@ export function ScheduledTimeField({ disabled }: Props) {
           <DateTimePicker
             format="y-MM-dd HH:mm:ss"
             className="form-control [&>div]:border-0"
-            onChange={(date) => setValue(isoDate(date.valueOf()))}
+            onChange={(date) => {
+              const dateToSave =
+                date || new Date(Date.now() + 24 * 60 * 60 * 1000);
+              setValue(isoDate(dateToSave.valueOf()));
+            }}
             name={name}
             value={dateValue}
             calendarIcon={<Calendar className="lucide" />}
