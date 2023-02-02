@@ -17,11 +17,16 @@ const (
 
 // Service represents a service for managing environment(endpoint) relation data.
 type Service struct {
-	connection portainer.Connection
+	connection    portainer.Connection
+	updateStackFn func(ID portaineree.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error
 }
 
 func (service *Service) BucketName() string {
 	return BucketName
+}
+
+func (service *Service) RegisterUpdateStackFunction(updateFunc func(ID portaineree.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error) {
+	service.updateStackFn = updateFunc
 }
 
 // NewService creates a new instance of a service.
@@ -81,20 +86,36 @@ func (service *Service) Create(endpointRelation *portaineree.EndpointRelation) e
 
 // UpdateEndpointRelation updates an Environment(Endpoint) relation object
 func (service *Service) UpdateEndpointRelation(endpointID portaineree.EndpointID, endpointRelation *portaineree.EndpointRelation) error {
+	previousRelationState, _ := service.EndpointRelation(endpointID)
+
 	identifier := service.connection.ConvertToKey(int(endpointID))
 	err := service.connection.UpdateObject(BucketName, identifier, endpointRelation)
 	cache.Del(endpointID)
+	if err != nil {
+		return err
+	}
 
-	return err
+	updatedRelationState, _ := service.EndpointRelation(endpointID)
+
+	service.updateEdgeStacksAfterRelationChange(previousRelationState, updatedRelationState)
+
+	return nil
 }
 
 // DeleteEndpointRelation deletes an Environment(Endpoint) relation object
 func (service *Service) DeleteEndpointRelation(endpointID portaineree.EndpointID) error {
+	deletedRelation, _ := service.EndpointRelation(endpointID)
+
 	identifier := service.connection.ConvertToKey(int(endpointID))
 	err := service.connection.DeleteObject(BucketName, identifier)
 	cache.Del(endpointID)
+	if err != nil {
+		return err
+	}
 
-	return err
+	service.updateEdgeStacksAfterRelationChange(deletedRelation, nil)
+
+	return nil
 }
 
 func (service *Service) InvalidateEdgeCacheForEdgeStack(edgeStackID portaineree.EdgeStackID) {
@@ -109,6 +130,53 @@ func (service *Service) InvalidateEdgeCacheForEdgeStack(edgeStackID portaineree.
 			if edgeStackID == id {
 				cache.Del(rel.EndpointID)
 			}
+		}
+	}
+}
+
+func (service *Service) updateEdgeStacksAfterRelationChange(previousRelationState *portaineree.EndpointRelation, updatedRelationState *portaineree.EndpointRelation) {
+	relations, _ := service.EndpointRelations()
+
+	stacksToUpdate := map[portaineree.EdgeStackID]bool{}
+
+	if previousRelationState != nil {
+		for stackId, enabled := range previousRelationState.EdgeStacks {
+			// flag stack for update if stack is not in the updated relation state
+			// = stack has been removed for this relation
+			// or this relation has been deleted
+			if enabled && (updatedRelationState == nil || !updatedRelationState.EdgeStacks[stackId]) {
+				stacksToUpdate[stackId] = true
+			}
+		}
+	}
+
+	if updatedRelationState != nil {
+		for stackId, enabled := range updatedRelationState.EdgeStacks {
+			// flag stack for update if stack is not in the previous relation state
+			// = stack has been added for this relation
+			if enabled && (previousRelationState == nil || !previousRelationState.EdgeStacks[stackId]) {
+				stacksToUpdate[stackId] = true
+			}
+		}
+	}
+
+	// for each stack referenced by the updated relation
+	// list how many time this stack is referenced in all relations
+	// in order to update the stack deployments count
+	for refStackId, refStackEnabled := range stacksToUpdate {
+		if refStackEnabled {
+			numDeployments := 0
+			for _, r := range relations {
+				for sId, enabled := range r.EdgeStacks {
+					if enabled && sId == refStackId {
+						numDeployments += 1
+					}
+				}
+			}
+
+			service.updateStackFn(refStackId, func(edgeStack *portaineree.EdgeStack) {
+				edgeStack.NumDeployments = numDeployments
+			})
 		}
 	}
 }
