@@ -214,8 +214,10 @@ func needsUpdate(endpoints []portaineree.Endpoint) bool {
 		isUserTrusted := endpoint.UserTrusted
 		agentVersion := canonicalizeSemver(endpoint.Agent.Version)
 		isEdge := endpointutils.IsEdgeEndpoint(&endpoint)
+		isAssociated := endpoint.EdgeID != ""
+		isCurrentVersionBelowLatest := semver.Compare(agentVersion, latestVersion) == -1
 
-		if isUserTrusted && isEdge && (endpoint.Agent.Version == "" || semver.Compare(agentVersion, latestVersion) == -1) {
+		if isUserTrusted && isEdge && isAssociated && (endpoint.Agent.Version == "" || isCurrentVersionBelowLatest) {
 			return true
 		}
 	}
