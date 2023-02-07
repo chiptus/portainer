@@ -576,7 +576,7 @@ function run($transitions, UserService, Authentication, LicenseService, Notifica
     try {
       const endpoints = await getEnvironments({ start: 0, limit: 1 });
       if (endpoints.value.length === 0) {
-        return to.name !== 'portainer.init.endpoint' ? stateService.target('portainer.init.endpoint') : true;
+        return to.name !== 'portainer.wizard' ? stateService.target('portainer.wizard') : true;
       }
 
       return stateService.target('portainer.home');

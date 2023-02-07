@@ -1,54 +1,71 @@
 import { FeatureId } from '@/react/portainer/feature-flags/enums';
-import DockerIcon from '@/assets/ico/vendor/docker-icon.svg?c';
-import Kube from '@/assets/ico/kube.svg?c';
-import MicrosoftIcon from '@/assets/ico/vendor/microsoft-icon.svg?c';
-import NomadIcon from '@/assets/ico/vendor/nomad-icon.svg?c';
+import Docker from '@/assets/ico/vendor/docker.svg?c';
+import Kubernetes from '@/assets/ico/vendor/kubernetes.svg?c';
+import Azure from '@/assets/ico/vendor/azure.svg?c';
+import Nomad from '@/assets/ico/vendor/nomad.svg?c';
 
 import KaaSIcon from './kaas-icon.svg?c';
 
 export const environmentTypes = [
   {
     id: 'dockerStandalone',
-    title: 'Docker Standalone',
-    formTitle: 'Connect to your Docker Standalone environment',
-    icon: DockerIcon,
+    value: 'dockerStandalone',
+    label: 'Docker Standalone',
+    icon: Docker,
+    iconType: 'logo',
     description: 'Connect to Docker Standalone via URL/IP, API or Socket',
   },
   {
     id: 'dockerSwarm',
-    title: 'Docker Swarm',
-    formTitle: 'Connect to your Docker Swarm environment',
-    icon: DockerIcon,
+    value: 'dockerSwarm',
+    label: 'Docker Swarm',
+    icon: Docker,
+    iconType: 'logo',
     description: 'Connect to Docker Swarm via URL/IP, API or Socket',
   },
   {
     id: 'kubernetes',
-    title: 'Kubernetes',
-    formTitle: 'Connect to your Kubernetes environment',
-    icon: Kube,
+    value: 'kubernetes',
+    label: 'Kubernetes',
+    icon: Kubernetes,
+    iconType: 'logo',
     description: 'Connect to a kubernetes environment via URL/IP',
   },
   {
     id: 'aci',
-    title: 'ACI',
-    formTitle: 'Connect to your ACI environment',
+    value: 'aci',
+    label: 'ACI',
     description: 'Connect to ACI environment via API',
-    icon: MicrosoftIcon,
+    iconType: 'logo',
+    icon: Azure,
   },
   {
     id: 'nomad',
-    title: 'Nomad',
-    formTitle: 'Connect to your Nomad environment',
+    value: 'nomad',
+    label: 'Nomad',
     description: 'Connect to HashiCorp Nomad environment via API',
-    icon: NomadIcon,
-    featureId: FeatureId.NOMAD,
+    icon: Nomad,
+    iconType: 'logo',
+    feature: FeatureId.NOMAD,
+    disabledWhenLimited: true,
   },
   {
     id: 'kaas',
-    title: 'KaaS',
-    formTitle: 'Provision a KaaS environment',
+    value: 'kaas',
+    label: 'KaaS',
     description: 'Provision a Kubernetes environment with a cloud provider',
     icon: KaaSIcon,
-    featureId: FeatureId.KAAS_PROVISIONING,
+    iconType: 'logo',
+    feature: FeatureId.KAAS_PROVISIONING,
+    disabledWhenLimited: true,
   },
 ] as const;
+
+export const formTitles = {
+  dockerStandalone: 'Connect to your Docker Standalone environment',
+  dockerSwarm: 'Connect to your Docker Swarm environment',
+  kubernetes: 'Connect to your Kubernetes environment',
+  aci: 'Connect to your ACI environment',
+  nomad: 'Connect to your Nomad environment',
+  kaas: 'Provision a KaaS environment',
+};

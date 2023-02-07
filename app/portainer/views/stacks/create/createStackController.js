@@ -6,6 +6,7 @@ import { STACK_NAME_VALIDATION_REGEX } from '@/constants';
 import { RepositoryMechanismTypes } from '@/kubernetes/models/deploy';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { renderTemplate } from '@/react/portainer/custom-templates/components/utils';
+import { editor, upload, git, customTemplate } from '@@/BoxSelector/common-options/build-methods';
 
 angular
   .module('portainer.app')
@@ -36,7 +37,7 @@ angular
       $scope.onChangeTemplateVariables = onChangeTemplateVariables;
       $scope.isTemplateVariablesEnabled = isBE;
       $scope.buildAnalyticsProperties = buildAnalyticsProperties;
-
+      $scope.buildMethods = [editor, upload, git, customTemplate];
       $scope.STACK_NAME_VALIDATION_REGEX = STACK_NAME_VALIDATION_REGEX;
       $scope.isAdmin = Authentication.isAdmin();
       $scope.isDockerStandalone = $scope.applicationState.endpoint.mode.provider === 'DOCKER_STANDALONE';
@@ -98,6 +99,13 @@ angular
 
       $scope.onChangeFormValues = onChangeFormValues;
       $scope.onChangeGitCredential = onChangeGitCredential;
+      $scope.onBuildMethodChange = onBuildMethodChange;
+
+      function onBuildMethodChange(value) {
+        $scope.$evalAsync(() => {
+          $scope.state.Method = value;
+        });
+      }
 
       $scope.onEnableWebhookChange = function (enable) {
         $scope.$evalAsync(() => {

@@ -9,7 +9,7 @@ import { renderTemplate } from '@/react/portainer/custom-templates/components/ut
 import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { kubernetes } from '@@/BoxSelector/common-options/deployment-methods';
-import { editor, git, template, url } from '@@/BoxSelector/common-options/build-methods';
+import { editor, git, customTemplate, url } from '@@/BoxSelector/common-options/build-methods';
 
 class KubernetesDeployController {
   /* @ngInject */
@@ -386,10 +386,7 @@ class KubernetesDeployController {
       try {
         this.deploymentOptions = await getDeploymentOptions(this.endpoint.Id);
         if (!this.deploymentOptions.hideWebEditor) {
-          this.methodOptions.push(
-            { ...editor, value: KubernetesDeployBuildMethods.WEB_EDITOR },
-            { ...template, description: 'Use custom template', value: KubernetesDeployBuildMethods.CUSTOM_TEMPLATE }
-          );
+          this.methodOptions.push({ ...editor, value: KubernetesDeployBuildMethods.WEB_EDITOR }, { ...customTemplate, value: KubernetesDeployBuildMethods.CUSTOM_TEMPLATE });
         }
         if (!this.deploymentOptions.hideFileUpload) {
           this.methodOptions.push({ ...url, value: KubernetesDeployBuildMethods.URL });

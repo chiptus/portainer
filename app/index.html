@@ -35,13 +35,10 @@
     <div
       id="page-wrapper"
       ng-class="{
-        open:
-          isSidebarOpen() &&
-          ['portainer.auth', 'portainer.internal-auth', 'portainer.init.admin', 'portainer.init.endpoint', 'portainer.init.license'].indexOf($state.current.name) === -1,
+        open: isSidebarOpen() && ['portainer.auth', 'portainer.internal-auth', 'portainer.init.admin', 'portainer.init.license'].indexOf($state.current.name) === -1,
         nopadding:
-          ['portainer.auth', 'portainer.internal-auth', 'portainer.init.admin', 'portainer.init.endpoint', 'portainer.init.license', 'portainer.logout'].indexOf(
-            $state.current.name
-          ) > -1 || applicationState.loading
+          ['portainer.auth', 'portainer.internal-auth', 'portainer.init.admin', 'portainer.init.license', 'portainer.logout'].indexOf($state.current.name) > -1 ||
+          applicationState.loading
       }"
       ng-cloak
     >

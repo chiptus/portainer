@@ -18,7 +18,10 @@ import { Button } from '@@/buttons';
 import { FormSection } from '@@/form-components/FormSection';
 import { Icon } from '@@/Icon';
 
-import { environmentTypes } from '../EnvironmentTypeSelectView/environment-types';
+import {
+  environmentTypes,
+  formTitles,
+} from '../EnvironmentTypeSelectView/environment-types';
 import { EnvironmentSelectorValue } from '../EnvironmentTypeSelectView/EnvironmentSelector';
 
 import { WizardDocker } from './WizardDocker';
@@ -79,7 +82,7 @@ export function EnvironmentCreationView() {
             <Stepper steps={steps} currentStep={currentStepIndex + 1} />
 
             <div className="mt-12">
-              <FormSection title={currentStep.formTitle}>
+              <FormSection title={formTitles[currentStep.id]}>
                 <Component
                   onCreate={handleCreateEnvironment}
                   isDockerStandalone={isDockerStandalone}

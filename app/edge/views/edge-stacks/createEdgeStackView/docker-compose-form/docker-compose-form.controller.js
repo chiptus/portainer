@@ -1,11 +1,11 @@
-import { editor, git, template, upload } from '@@/BoxSelector/common-options/build-methods';
+import { editor, git, edgeStackTemplate, upload } from '@@/BoxSelector/common-options/build-methods';
 
 class DockerComposeFormController {
   /* @ngInject */
   constructor($async, EdgeTemplateService, Notifications, UserService, Authentication) {
     Object.assign(this, { $async, EdgeTemplateService, Notifications, UserService, Authentication });
 
-    this.methodOptions = [editor, upload, git, template];
+    this.methodOptions = [editor, upload, git, edgeStackTemplate];
 
     this.selectedTemplate = null;
 

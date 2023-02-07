@@ -5,13 +5,14 @@ import { getTemplateVariables, intersectVariables } from '@/react/portainer/cust
 import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { editor, upload, git } from '@@/BoxSelector/common-options/build-methods';
-import { PortainerEndpointTypes } from '@/portainer/models/endpoint/models';
+import { EnvironmentType } from '@/react/portainer/environments/types';
 
 class CreateCustomTemplateViewController {
   /* @ngInject */
   constructor(
     $async,
     $state,
+    $scope,
     $window,
     EndpointProvider,
     Authentication,
@@ -28,6 +29,7 @@ class CreateCustomTemplateViewController {
       $async,
       $state,
       $window,
+      $scope,
       EndpointProvider,
       Authentication,
       ModalService,
@@ -39,6 +41,8 @@ class CreateCustomTemplateViewController {
       StateManager,
       UserService,
     });
+
+    this.buildMethods = [editor, upload, git];
 
     this.isTemplateVariablesEnabled = isBE;
 
@@ -116,10 +120,13 @@ class CreateCustomTemplateViewController {
     return this.$async(this.createCustomTemplateAsync);
   }
 
-  onChangeMethod() {
-    this.formValues.FileContent = '';
-    this.formValues.Variables = [];
-    this.selectedTemplate = null;
+  onChangeMethod(method) {
+    return this.$scope.$evalAsync(() => {
+      this.formValues.FileContent = '';
+      this.formValues.Variables = [];
+      this.selectedTemplate = null;
+      this.state.Method = method;
+    });
   }
 
   onChangeGitCredential(selectedGitCredential) {
@@ -290,11 +297,7 @@ class CreateCustomTemplateViewController {
 
     try {
       const endpoint = this.EndpointProvider.currentEndpoint();
-      if (
-        endpoint.Type === PortainerEndpointTypes.AgentOnKubernetesEnvironment ||
-        endpoint.Type === PortainerEndpointTypes.EdgeAgentOnKubernetesEnvironment ||
-        endpoint.Type === PortainerEndpointTypes.KubernetesLocalEnvironment
-      ) {
+      if (endpoint.Type === EnvironmentType.AgentOnKubernetes || endpoint.Type === EnvironmentType.EdgeAgentOnKubernetes || endpoint.Type === EnvironmentType.KubernetesLocal) {
         this.deploymentOptions = await getDeploymentOptions(endpoint.Id);
         this.methodOptions = [git];
         if (!this.deploymentOptions.hideWebEditor) {

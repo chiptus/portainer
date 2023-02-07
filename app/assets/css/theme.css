@@ -113,7 +113,6 @@
   --bg-input-group-addon-color: var(--ui-gray-3);
   --bg-btn-default-color: var(--ui-gray-9);
   --bg-blocklist-hover-color: var(--ui-blue-2);
-  --bg-boxselector-color: var(--ui-gray-2);
   --bg-table-color: var(--white-color);
   --bg-md-checkbox-color: var(--grey-12);
   --bg-form-control-disabled-color: var(--grey-11);
@@ -153,7 +152,6 @@
   --bg-input-autofill-color: var(--bg-inputbox);
   --bg-btn-default-hover-color: var(--ui-gray-7);
   --bg-btn-focus: var(--grey-59);
-  --bg-boxselector-disabled-color: var(--white-color);
   --bg-small-select-color: var(--white-color);
   --bg-stepper-item-active: var(--white-color);
   --bg-stepper-item-counter: var(--grey-61);
@@ -215,8 +213,6 @@
   --text-button-group-color: var(--ui-gray-9);
   --text-button-dangerlight-color: var(--ui-error-5);
   --text-stepper-active-color: var(--ui-blue-8);
-  --text-boxselector-header: var(--ui-black);
-
   --border-color: var(--grey-42);
   --border-widget-color: var(--grey-43);
   --border-sidebar-color: var(--ui-gray-8);
@@ -227,7 +223,6 @@
   --border-datatable-top-color: var(--grey-10);
   --border-input-group-addon-color: var(--grey-44);
   --border-btn-default-color: var(--grey-44);
-  --border-boxselector-color: var(--grey-6);
   --border-md-checkbox-color: var(--grey-19);
   --border-modal-header-color: var(--grey-45);
   --border-navtabs-color: var(--ui-white);
@@ -284,7 +279,6 @@
   --bg-body-color: var(--grey-2);
   --bg-btn-default-color: var(--grey-3);
   --bg-blocklist-hover-color: var(--ui-gray-iron-10);
-  --bg-boxselector-color: var(--ui-gray-iron-10);
   --bg-blocklist-item-selected-color: var(--grey-3);
   --bg-card-color: var(--grey-1);
   --bg-checkbox-border-color: var(--grey-8);
@@ -336,7 +330,6 @@
   --bg-input-autofill-color: var(--bg-inputbox);
   --bg-btn-default-hover-color: var(--grey-4);
   --bg-btn-focus: var(--grey-3);
-  --bg-boxselector-disabled-color: var(--grey-54);
   --bg-small-select-color: var(--grey-2);
   --bg-stepper-item-active: var(--grey-1);
   --bg-stepper-item-counter: var(--grey-7);
@@ -384,7 +377,6 @@
   --text-pagination-span-color: var(--ui-white);
   --text-pagination-span-hover-color: var(--ui-white);
   --text-summary-color: var(--white-color);
-  --text-boxselector-wrapper-color: var(--white-color);
   --text-tooltip-color: var(--white-color);
   --text-rzslider-color: var(--white-color);
   --text-rzslider-limit-color: var(--white-color);
@@ -398,8 +390,6 @@
   --text-button-group-color: var(--ui-white);
   --text-button-dangerlight-color: var(--ui-error-7);
   --text-stepper-active-color: var(--ui-white);
-  --text-boxselector-header: var(--ui-white);
-
   --border-color: var(--grey-3);
   --border-widget-color: var(--grey-1);
   --border-sidebar-color: var(--ui-gray-8);
@@ -410,7 +400,6 @@
   --border-datatable-top-color: var(--grey-3);
   --border-input-group-addon-color: var(--grey-38);
   --border-btn-default-color: var(--grey-38);
-  --border-boxselector-color: var(--grey-1);
   --border-md-checkbox-color: var(--grey-41);
   --border-modal-header-color: var(--grey-1);
   --border-navtabs-color: var(--grey-38);
@@ -516,8 +505,6 @@
   --bg-code-color: var(--ui-black);
   --bg-btn-default-hover-color: var(--grey-4);
   --bg-btn-focus: var(--black-color);
-  --bg-boxselector-color: var(--black-color);
-  --bg-boxselector-disabled-color: var(--black-color);
   --bg-small-select-color: var(--black-color);
   --bg-stepper-item-active: var(--black-color);
   --bg-stepper-item-counter: var(--grey-3);
@@ -541,7 +528,6 @@
   --text-code-color: var(--red-7);
   --text-form-control-color: var(--white-color);
   --text-blocklist-hover-color: var(--blue-11);
-  --text-boxselector-wrapper-color: var(--white-color);
   --text-dashboard-item-color: var(--blue-12);
   --text-muted-color: var(--white-color);
   --text-tooltip-color: var(--white-color);
@@ -571,7 +557,6 @@
   --text-bootbox: var(--white-color);
   --text-pagination-span-hover-color: var(--ui-white);
   --text-stepper-active-color: var(--ui-white);
-  --text-boxselector-header: var(--ui-white);
 
   --border-color: var(--grey-55);
   --border-widget-color: var(--white-color);
