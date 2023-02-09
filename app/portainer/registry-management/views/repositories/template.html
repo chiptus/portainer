@@ -2,7 +2,7 @@
   ng-if="$ctrl.isAdmin"
   title="'Registry repositories'"
   breadcrumbs="[
-    { label:'Registries', link:'portainer.registries' },
+    { label:'Registries', link: $ctrl.getRegistriesLink(), linkParams:{endpointId: $ctrl.endpointId} },
     {
       label:$ctrl.registry.Name,
       link: 'portainer.registries.registry',
@@ -16,11 +16,9 @@
   ng-if="!$ctrl.isAdmin"
   title="'Registry repositories'"
   breadcrumbs="[
-    {
-      label: 'Registries',
-      link: 'portainer.registries',
-      linkParams:{endpointId: $ctrl.endpointId}
-    }, $ctrl.registry.Name, 'Repositories']"
+    { label:'Registries', link: $ctrl.getRegistriesLink(), linkParams:{endpointId: $ctrl.endpointId} }, 
+    $ctrl.registry.Name, 'Repositories'
+  ]"
 >
 </page-header>
 

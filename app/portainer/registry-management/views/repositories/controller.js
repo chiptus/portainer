@@ -1,11 +1,13 @@
 import _ from 'lodash-es';
 
 import { RegistryTypes } from 'Portainer/models/registryTypes';
+import EndpointHelper from '@/portainer/helpers/endpointHelper';
+import { getInfo } from '@/docker/services/system.service';
 
 export class RegistryRepositoriesController {
   /* @ngInject */
-  constructor($async, $state, RegistryService, RegistryServiceSelector, Notifications, Authentication) {
-    Object.assign(this, { $async, $state, RegistryService, RegistryServiceSelector, Notifications, Authentication });
+  constructor($async, $state, EndpointService, RegistryService, RegistryServiceSelector, Notifications, Authentication) {
+    Object.assign(this, { $async, $state, EndpointService, RegistryService, RegistryServiceSelector, Notifications, Authentication });
 
     this.state = {
       displayInvalidConfigurationMessage: false,
@@ -14,7 +16,21 @@ export class RegistryRepositoriesController {
 
     this.paginationAction = this.paginationAction.bind(this);
     this.paginationActionAsync = this.paginationActionAsync.bind(this);
+    this.endpointProviderType = this.endpointProviderType.bind(this);
     this.$onInit = this.$onInit.bind(this);
+  }
+
+  getRegistriesLink() {
+    switch (this.endpointProviderType) {
+      case 'swarm':
+        return 'docker.swarm.registries';
+      case 'docker':
+        return 'docker.host.registries';
+      case 'kubernetes':
+        return 'kubernetes.registries';
+      default:
+        return 'portainer.registries';
+    }
   }
 
   paginationAction(repositories) {
@@ -43,11 +59,35 @@ export class RegistryRepositoriesController {
     }
   }
 
+  // decide the endpoint provider type to decide the registry list link
+  async endpointProviderType(endpointId) {
+    // if the endpoint is not in the query params, then we are in the main registries view
+    if (!endpointId) {
+      return '';
+    }
+
+    // otherwise return the environment provider type
+    const endpoint = await this.EndpointService.endpoint(endpointId);
+    const isDockerOrSwarmEndpoint = EndpointHelper.isDockerEndpoint(endpoint);
+    if (isDockerOrSwarmEndpoint) {
+      const endpointInfo = await getInfo(endpoint.Id);
+      if (endpointInfo.Swarm.NodeID) {
+        return 'swarm';
+      }
+      return 'docker';
+    }
+    if (EndpointHelper.isKubernetesEndpoint(endpoint)) {
+      return 'kubernetes';
+    }
+    return '';
+  }
+
   async $onInit() {
     const registryId = this.$state.params.id;
 
     this.isAdmin = this.Authentication.isAdmin();
     this.endpointId = this.$state.params.endpointId;
+    this.endpointProviderType = await this.endpointProviderType(this.endpointId);
 
     try {
       this.registry = await this.RegistryService.registry(registryId, this.endpointId);

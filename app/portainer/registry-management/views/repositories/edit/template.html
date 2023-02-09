@@ -2,7 +2,7 @@
   ng-if="!endpointId"
   title="'Repository'"
   breadcrumbs="[
-    { label:'Registries', link:'portainer.registries' },
+    { label:'Registries', link: getRegistriesLink(), linkParams:{endpointId: endpointId} },
     {
       label:registry.Name,
       link: 'portainer.registries.registry.repositories',
@@ -20,10 +20,7 @@
   ng-if="endpointId"
   title="'Repository'"
   breadcrumbs="[
-    { label:'Registries',
-    link:'portainer.registries',
-    linkParams:{ endpointId: endpointId }
-    },
+    { label:'Registries', link: getRegistriesLink(), linkParams:{endpointId: endpointId} },
     {
       label:registry.Name,
       link: 'portainer.registries.registry.repositories',

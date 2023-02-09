@@ -2,7 +2,7 @@
   ng-if="!$ctrl.context.endpointId"
   title="'Tag'"
   breadcrumbs="[
-    { label:'Registries', link:'portainer.registries' },
+    { label:'Registries', link: $ctrl.getRegistriesLink() },
     {
       label:$ctrl.registry.Name,
       link: 'portainer.registries.registry.repositories'
@@ -21,7 +21,7 @@
   title="'Tag'"
   breadcrumbs="[
     { label:'Registries',
-    link:'portainer.registries',
+    link: $ctrl.getRegistriesLink(),
     linkParams:{endpointId: $ctrl.context.endpointId}
     },
     {

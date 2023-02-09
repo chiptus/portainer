@@ -2,6 +2,8 @@ import _ from 'lodash-es';
 import { RegistryTypes } from 'Portainer/models/registryTypes';
 import { RepositoryShortTag, RepositoryTagViewModel } from '@/portainer/registry-management/models/repositoryTag';
 import { trimSHA } from '@/docker/filters/utils';
+import EndpointHelper from '@/portainer/helpers/endpointHelper';
+import { getInfo } from '@/docker/services/system.service';
 
 angular.module('portainer.app').controller('RegistryRepositoryController', RegistryRepositoryController);
 
@@ -13,6 +15,7 @@ function RegistryRepositoryController(
   $uibModal,
   $interval,
   $state,
+  EndpointService,
   RegistryServiceSelector,
   RegistryService,
   ModalService,
@@ -75,6 +78,42 @@ function RegistryRepositoryController(
       resolve: resolve,
     });
   }
+
+  $scope.getRegistriesLink = function () {
+    switch (this.endpointProviderType) {
+      case 'swarm':
+        return 'docker.swarm.registries';
+      case 'docker':
+        return 'docker.host.registries';
+      case 'kubernetes':
+        return 'kubernetes.registries';
+      default:
+        return 'portainer.registries';
+    }
+  };
+
+  // decide the endpoint provider type to decide the registry list link
+  $scope.endpointProviderType = async function (endpointId) {
+    // if the endpoint is not in the query params, then we are in the main registries view
+    if (!endpointId) {
+      return '';
+    }
+
+    // otherwise return the environment provider type
+    const endpoint = await EndpointService.endpoint(endpointId);
+    const isDockerOrSwarmEndpoint = EndpointHelper.isDockerEndpoint(endpoint);
+    if (isDockerOrSwarmEndpoint) {
+      const endpointInfo = await getInfo(endpoint.Id);
+      if (endpointInfo.Swarm.NodeID) {
+        return 'swarm';
+      }
+      return 'docker';
+    }
+    if (EndpointHelper.isKubernetesEndpoint(endpoint)) {
+      return 'kubernetes';
+    }
+    return '';
+  };
 
   $scope.paginationAction = function (tags) {
     $scope.state.loading = true;
@@ -467,7 +506,8 @@ function RegistryRepositoryController(
   });
 
   this.$onInit = function () {
-    return $async(initView).then(() => {
+    return $async(initView).then(async () => {
+      $scope.endpointProviderType = await $scope.endpointProviderType($scope.endpointId);
       if ($scope.state.tagsRetrieval.auto) {
         $scope.startStopRetrieval();
       }

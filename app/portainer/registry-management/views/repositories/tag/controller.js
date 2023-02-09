@@ -1,22 +1,62 @@
 import _ from 'lodash-es';
 import { RegistryImageLayerViewModel } from '@/portainer/registry-management/models/registryImageLayer';
 import { RegistryImageDetailsViewModel } from '@/portainer/registry-management/models/registryImageDetails';
+import EndpointHelper from '@/portainer/helpers/endpointHelper';
+import { getInfo } from '@/docker/services/system.service';
 
 export class RegistryRepositoryTagController {
   /* @ngInject */
-  constructor($state, $async, Notifications, RegistryService, RegistryServiceSelector, imagelayercommandFilter) {
-    Object.assign(this, { $state, $async, Notifications, RegistryService, RegistryServiceSelector, imagelayercommandFilter });
+  constructor($state, $async, Notifications, RegistryService, RegistryServiceSelector, imagelayercommandFilter, EndpointService) {
+    Object.assign(this, { $state, $async, Notifications, RegistryService, RegistryServiceSelector, imagelayercommandFilter, EndpointService });
 
     this.context = {};
 
     this.$onInit = this.$onInit.bind(this);
     this.$onInitAsync = this.$onInitAsync.bind(this);
+    this.getEndpointProviderType = this.getEndpointProviderType.bind(this);
+    this.getRegistriesLink = this.getRegistriesLink.bind(this);
   }
 
   toggleLayerCommand(layerId) {
     $('#layer-command-expander' + layerId + ' span').toggleClass('glyphicon-plus-sign glyphicon-minus-sign');
     $('#layer-command-' + layerId + '-short').toggle();
     $('#layer-command-' + layerId + '-full').toggle();
+  }
+
+  getRegistriesLink() {
+    console.log(this.endpointProviderType);
+    switch (this.endpointProviderType) {
+      case 'swarm':
+        return 'docker.swarm.registries';
+      case 'docker':
+        return 'docker.host.registries';
+      case 'kubernetes':
+        return 'kubernetes.registries';
+      default:
+        return 'portainer.registries';
+    }
+  }
+
+  async getEndpointProviderType(endpointId) {
+    // if the endpoint is not in the query params, then we are in the main registries view
+    if (!endpointId) {
+      return '';
+    }
+
+    // otherwise return the environment provider type
+    const endpoint = await this.EndpointService.endpoint(endpointId);
+    const isDockerOrSwarmEndpoint = EndpointHelper.isDockerEndpoint(endpoint);
+    if (isDockerOrSwarmEndpoint) {
+      const endpointInfo = await getInfo(endpoint.Id);
+      if (endpointInfo.Swarm.NodeID) {
+        return 'swarm';
+      }
+      return 'docker';
+    }
+    if (EndpointHelper.isKubernetesEndpoint(endpoint)) {
+      return 'kubernetes';
+    }
+    return '';
   }
 
   order(sortType) {
@@ -32,6 +72,7 @@ export class RegistryRepositoryTagController {
     this.context.repository = this.$state.params.repository;
     this.context.tag = this.$state.params.tag;
     this.context.endpointId = this.$state.params.endpointId;
+    this.endpointProviderType = await this.getEndpointProviderType(this.context.endpointId);
     this.Sort = {
       Type: 'Order',
       Reverse: false,
