@@ -149,9 +149,6 @@ func (s *stubSettingsService) UpdateSettings(settings *portaineree.Settings) err
 	s.settings = settings
 	return nil
 }
-func (s *stubSettingsService) IsFeatureFlagEnabled(feature portaineree.Feature) bool {
-	return false
-}
 func WithSettingsService(settings *portaineree.Settings) datastoreOption {
 	return func(d *testDatastore) {
 		d.settings = &stubSettingsService{

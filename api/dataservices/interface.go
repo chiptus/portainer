@@ -296,7 +296,6 @@ type (
 	SettingsService interface {
 		Settings() (*portaineree.Settings, error)
 		UpdateSettings(settings *portaineree.Settings) error
-		IsFeatureFlagEnabled(feature portaineree.Feature) bool
 		BucketName() string
 	}
 

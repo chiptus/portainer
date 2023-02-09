@@ -4,8 +4,6 @@ import (
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 type pairListBool []portaineree.Pair
@@ -36,10 +34,4 @@ func (l *pairListBool) String() string {
 // IsCumulative implementation for a list of pair
 func (l *pairListBool) IsCumulative() bool {
 	return true
-}
-
-func BoolPairs(s kingpin.Settings) (target *[]portaineree.Pair) {
-	target = new([]portaineree.Pair)
-	s.SetValue((*pairListBool)(target))
-	return
 }

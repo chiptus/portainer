@@ -3,11 +3,9 @@ package main
 import (
 	"context"
 	"crypto/sha256"
-	"fmt"
 	"math/rand"
 	"os"
 	"path"
-	"strconv"
 	"strings"
 	"time"
 
@@ -54,6 +52,7 @@ import (
 	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/git"
 	"github.com/portainer/portainer/api/hostmanagement/openamt"
+	"github.com/portainer/portainer/pkg/featureflags"
 	"github.com/portainer/portainer/pkg/libhelm"
 
 	"github.com/gofrs/uuid"
@@ -356,45 +355,6 @@ func updateSettingsFromFlags(dataStore dataservices.DataStore, flags *portainere
 	return dataStore.SSLSettings().UpdateSettings(sslSettings)
 }
 
-// enableFeaturesFromFlags turns on or off feature flags
-// e.g.  portainer --feat open-amt --feat fdo=true ... (defaults to true)
-// note, settings are persisted to the DB. To turn off `--feat open-amt=false`
-func enableFeaturesFromFlags(dataStore dataservices.DataStore, flags *portaineree.CLIFlags) error {
-	settings, err := dataStore.Settings().Settings()
-	if err != nil {
-		return err
-	}
-
-	if settings.FeatureFlagSettings == nil {
-		settings.FeatureFlagSettings = make(map[portaineree.Feature]bool)
-	}
-
-	// loop through feature flags to check if they are supported
-	for _, feat := range *flags.FeatureFlags {
-		var correspondingFeature *portaineree.Feature
-		for i, supportedFeat := range portaineree.SupportedFeatureFlags {
-			if strings.EqualFold(feat.Name, string(supportedFeat)) {
-				correspondingFeature = &portaineree.SupportedFeatureFlags[i]
-			}
-		}
-
-		if correspondingFeature == nil {
-			return fmt.Errorf("unknown feature flag '%s'", feat.Name)
-		}
-
-		featureState, err := strconv.ParseBool(feat.Value)
-		if err != nil {
-			return fmt.Errorf("feature flag's '%s' value should be true or false", feat.Name)
-		}
-
-		log.Info().Str("feature", string(*correspondingFeature)).Bool("state", featureState).Msg("")
-
-		settings.FeatureFlagSettings[*correspondingFeature] = featureState
-	}
-
-	return dataStore.Settings().UpdateSettings(settings)
-}
-
 func loadAndParseKeyPair(fileService portainer.FileService, signatureService portaineree.DigitalSignatureService) error {
 	private, public, err := fileService.LoadKeyPair()
 	if err != nil {
@@ -602,6 +562,10 @@ func loadEncryptionSecretKey(keyfilename string) []byte {
 func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	shutdownCtx, shutdownTrigger := context.WithCancel(context.Background())
 
+	if flags.FeatureFlags != nil {
+		featureflags.Parse(*flags.FeatureFlags, portaineree.SupportedFeatureFlags)
+	}
+
 	fileService := initFileService(*flags.Data)
 	encryptionKey := loadEncryptionSecretKey(*flags.SecretKeyName)
 	if encryptionKey == nil {
@@ -625,11 +589,6 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	jwtService, err := initJWTService(settings.UserSessionTimeout, dataStore)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed initializing JWT service")
-	}
-
-	err = enableFeaturesFromFlags(dataStore, flags)
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed enabling feature flag")
 	}
 
 	ldapService := initLDAPService()

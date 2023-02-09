@@ -48,17 +48,3 @@ func (service *Service) Settings() (*portaineree.Settings, error) {
 func (service *Service) UpdateSettings(settings *portaineree.Settings) error {
 	return service.connection.UpdateObject(BucketName, []byte(settingsKey), settings)
 }
-
-func (service *Service) IsFeatureFlagEnabled(feature portaineree.Feature) bool {
-	settings, err := service.Settings()
-	if err != nil {
-		return false
-	}
-
-	featureFlagSetting, ok := settings.FeatureFlagSettings[feature]
-	if ok {
-		return featureFlagSetting
-	}
-
-	return false
-}

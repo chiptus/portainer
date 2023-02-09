@@ -854,7 +854,6 @@
     "EnableHostManagementFeatures": false,
     "EnableTelemetry": true,
     "EnforceEdgeID": false,
-    "FeatureFlagSettings": null,
     "GlobalDeploymentOptions": {
       "hideAddWithForm": false,
       "hideFileUpload": false,

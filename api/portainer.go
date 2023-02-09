@@ -11,6 +11,7 @@ import (
 	kubeModels "github.com/portainer/portainer-ee/api/http/models/kubernetes"
 	portainer "github.com/portainer/portainer/api"
 	gittypes "github.com/portainer/portainer/api/git/types"
+	"github.com/portainer/portainer/pkg/featureflags"
 
 	nomad "github.com/hashicorp/nomad/api"
 	v1 "k8s.io/api/core/v1"
@@ -165,7 +166,7 @@ type (
 		AdminPasswordFile         *string
 		Assets                    *string
 		Data                      *string
-		FeatureFlags              *[]Pair
+		FeatureFlags              *[]string
 		DemoEnvironment           *bool
 		EnableEdgeComputeFeatures *bool
 		EndpointURL               *string
@@ -585,9 +586,6 @@ type (
 		Expiration string `json:"Expiration,omitempty"`
 		Valid      bool   `json:"Valid,omitempty"`
 	}
-
-	// Feature represents a feature that can be enabled or disabled via feature flags
-	Feature string
 
 	// GitlabRegistryData represents data required for gitlab registry to work
 	GitlabRegistryData struct {
@@ -1189,7 +1187,6 @@ type (
 		OAuthSettings        OAuthSettings                  `json:"OAuthSettings"`
 		OpenAMTConfiguration portainer.OpenAMTConfiguration `json:"openAMTConfiguration"`
 		FDOConfiguration     FDOConfiguration               `json:"fdoConfiguration"`
-		FeatureFlagSettings  map[Feature]bool               `json:"FeatureFlagSettings"`
 		// The interval in which environment(endpoint) snapshots are created
 		SnapshotInterval string `json:"SnapshotInterval" example:"5m"`
 		// URL to the templates that will be displayed in the UI when navigating to App Templates
@@ -1959,10 +1956,10 @@ const (
 	DateTimeFormat = "2006-01-02 15:04:05"
 )
 
-const microk8s Feature = "microk8s"
+const microk8s featureflags.Feature = "microk8s"
 
 // List of supported features
-var SupportedFeatureFlags = []Feature{
+var SupportedFeatureFlags = []featureflags.Feature{
 	microk8s,
 }
 
