@@ -1041,6 +1041,8 @@ github.com/portainer/portainer/api v0.0.0-20221225084721-afb024d2a446 h1:JhZ1/xt
 github.com/portainer/portainer/api v0.0.0-20221225084721-afb024d2a446/go.mod h1:zxnTNvI31lLoceLYyjHCfrLlNNZ5uECGkdWzAlc6pxY=
 github.com/portainer/portainer/pkg/featureflags v0.0.0-20230109024249-d32444a12099 h1:TVlzqC9YNaREWxKs+zK/rowoTsf0+gvtsuDjfDjgOg8=
 github.com/portainer/portainer/pkg/featureflags v0.0.0-20230109024249-d32444a12099/go.mod h1:T37rFZMg+PhRhT9n/z9cLSj9khJSdwHj3/Ac5PZQgKI=
+github.com/portainer/portainer/pkg/featureflags v0.0.0-20230209041819-f9bbe000fbe0 h1:H7XUrjZwqVTgSB3IhW6h2jaQ0TpebskbkrNNSU/+uQk=
+github.com/portainer/portainer/pkg/featureflags v0.0.0-20230209041819-f9bbe000fbe0/go.mod h1:T37rFZMg+PhRhT9n/z9cLSj9khJSdwHj3/Ac5PZQgKI=
 github.com/portainer/portainer/pkg/libhelm v0.0.0-20221201012749-4fee35924724 h1:FZrRVMpxXdUV+p5VSCAy9Uz7RzAeEJr2ytlctvMrsHY=
 github.com/portainer/portainer/pkg/libhelm v0.0.0-20221201012749-4fee35924724/go.mod h1:WUdwNVH9GMffP4qf4U2ea2qCYfti2V7S+IhGpO8Sxv0=
 github.com/portainer/portainer/third_party/digest v0.0.0-20221201002639-8fd0efa34f73 h1:7bPOnwucE0nor0so1BQJxQKCL5t+vCWO4nAz/S0lci0=
