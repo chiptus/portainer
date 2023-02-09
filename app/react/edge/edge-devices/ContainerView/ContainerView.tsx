@@ -36,7 +36,7 @@ export function ContainerView() {
   const { data: environment } = environmentQuery;
   const { data: container } = containerQuery;
 
-  const name = container.Names[0].substring(1);
+  const name = container.Names[0];
 
   return (
     <>
