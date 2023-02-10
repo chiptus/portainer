@@ -434,7 +434,11 @@ class KubernetesResourcePoolController {
 
         const name = this.$state.params.id;
 
-        const [nodes, pools, pool] = await Promise.all([this.KubernetesNodeService.get(), this.KubernetesResourcePoolService.get(), this.KubernetesResourcePoolService.get(name)]);
+        const [nodes, pools, pool] = await Promise.all([
+          this.KubernetesNodeService.get(),
+          this.KubernetesResourcePoolService.get('', { getQuota: true }),
+          this.KubernetesResourcePoolService.get(name),
+        ]);
 
         this.ingressControllers = [];
         if (this.state.ingressAvailabilityPerNamespace) {

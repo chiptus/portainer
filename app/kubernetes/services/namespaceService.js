@@ -67,11 +67,14 @@ class KubernetesNamespaceService {
 
   async getAllAsync() {
     try {
+      // get the list of all namespaces (RBAC allows users to see the list of namespaces)
       const data = await this.KubernetesNamespaces().get().$promise;
-      const promises = _.map(data.items, (item) => this.KubernetesNamespaces().status({ id: item.metadata.name }).$promise);
+      // get the status of each namespace (RBAC will give permission denied for status of unauthorised namespaces)
+      const promises = data.items.map((item) => this.KubernetesNamespaces().status({ id: item.metadata.name }).$promise);
       const namespaces = await $allSettled(promises);
       const hasK8sAccessSystemNamespaces = this.Authentication.hasAuthorizations(['K8sAccessSystemNamespaces']);
-      const visibleNamespaces = _.map(namespaces.fulfilled, (item) => {
+      // only return namespaces if the user has access to namespaces
+      const visibleNamespaces = namespaces.fulfilled.map((item) => {
         const namespace = KubernetesNamespaceConverter.apiToNamespace(item);
         if (KubernetesNamespaceHelper.isSystemNamespace(namespace)) {
           if (hasK8sAccessSystemNamespaces) {
