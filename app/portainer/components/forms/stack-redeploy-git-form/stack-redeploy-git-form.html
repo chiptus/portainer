@@ -85,7 +85,7 @@
   <button
     class="btn btn-sm btn-primary"
     ng-click="$ctrl.saveGitSettings()"
-    ng-disabled="$ctrl.isSubmitButtonDisabled() || !$ctrl.state.hasUnsavedChanges || !$ctrl.redeployGitForm.$valid || ($ctrl.formValues.RepositoryAuthentication && (!$ctrl.formValues.RepositoryPassword && $ctrl.formValues.RepositoryGitCredentialID===0)) || ($ctrl.formValues.RepositoryAuthentication && $ctrl.formValues.RepositoryPassword && $ctrl.formValues.SaveCredential && (!$ctrl.formValues.NewCredentialName || $ctrl.formValues.NewCredentialNameExist || $ctrl.formValues.NewCredentialNameInvalid))"
+    ng-disabled="$ctrl.isSubmitButtonDisabled() || !$ctrl.state.hasUnsavedChanges || !$ctrl.redeployGitForm.$valid || ($ctrl.formValues.RepositoryAuthentication && (!$ctrl.formValues.RepositoryPassword && $ctrl.formValues.RepositoryGitCredentialID===0 && !$ctrl.formValues.StackID===0)) || ($ctrl.formValues.RepositoryAuthentication && $ctrl.formValues.RepositoryPassword && $ctrl.formValues.SaveCredential && (!$ctrl.formValues.NewCredentialName || $ctrl.formValues.NewCredentialNameExist || $ctrl.formValues.NewCredentialNameInvalid))"
     style="margin-top: 7px; margin-left: 0"
     button-spinner="$ctrl.state.inProgress"
     analytics-on

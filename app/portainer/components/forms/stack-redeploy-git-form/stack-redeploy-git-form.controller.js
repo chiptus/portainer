@@ -49,6 +49,7 @@ class StackRedeployGitFormController {
         RepositoryWebhookURL: '',
         ForcePullImage: false,
       },
+      StackID: 0,
     };
 
     this.onChange = this.onChange.bind(this);
@@ -301,6 +302,11 @@ class StackRedeployGitFormController {
           this.formValues.RepositoryUsername = this.formValues.SelectedGitCredential.username;
           this.formValues.RepositoryPassword = '';
         }
+      } else if (!this.formValues.RepositoryPassword) {
+        // If the git password is emtpy when the git authentication is enabled
+        // and git credential ID is not provided, stackID should be passed. It
+        // is because the value of the password field will be reset to empty by API
+        this.formValues.StackID = this.stack.Id;
       }
     }
     this.savedFormValues = angular.copy(this.formValues);

@@ -8,13 +8,15 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type repositoryReferenceListPayload struct {
-	Repository      string `validate:"required" json:"repository"`
-	Username        string `json:"username"`
-	Password        string `json:"password"`
-	GitCredentialID int    `json:"gitCredentialID"`
+	Repository      string              `validate:"required" json:"repository"`
+	Username        string              `json:"username"`
+	Password        string              `json:"password"`
+	StackID         portaineree.StackID `json:"stackID"`
+	GitCredentialID int                 `json:"gitCredentialID"`
 }
 
 func (payload *repositoryReferenceListPayload) Validate(r *http.Request) error {
@@ -47,9 +49,32 @@ func (handler *Handler) gitOperationRepoRefs(w http.ResponseWriter, r *http.Requ
 
 	hardRefresh, _ := request.RetrieveBooleanQueryParameter(r, "force", true)
 
-	repositoryUsername, repositoryPassword, httpErr := handler.extractGitCredential(payload.Username, payload.Password, payload.GitCredentialID)
-	if httpErr != nil {
-		return httpErr
+	repositoryUsername := ""
+	repositoryPassword := ""
+	if payload.StackID != 0 {
+		stack, err := handler.dataStore.Stack().Stack(portaineree.StackID(payload.StackID))
+		if handler.dataStore.IsErrObjectNotFound(err) {
+			return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
+		} else if err != nil {
+			return httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
+		} else if stack.GitConfig == nil {
+			msg := "No Git config in the found stack"
+			return httperror.InternalServerError(msg, errors.New(msg))
+		} else if stack.GitConfig.Authentication == nil {
+			msg := "No Git credential in the found stack"
+			return httperror.InternalServerError(msg, errors.New(msg))
+		}
+
+		repositoryUsername = stack.GitConfig.Authentication.Username
+		repositoryPassword = stack.GitConfig.Authentication.Password
+
+	} else {
+		username, password, httpErr := handler.extractGitCredential(payload.Username, payload.Password, payload.GitCredentialID)
+		if httpErr != nil {
+			return httpErr
+		}
+		repositoryUsername = username
+		repositoryPassword = password
 	}
 
 	refs, err := handler.GitService.ListRefs(payload.Repository, repositoryUsername, repositoryPassword, hardRefresh)

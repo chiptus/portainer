@@ -9,4 +9,5 @@ export interface GitFormModel {
   RepositoryUsername?: string;
   RepositoryPassword?: string;
   SelectedGitCredential?: UserGitCredential;
+  StackID: number;
 }

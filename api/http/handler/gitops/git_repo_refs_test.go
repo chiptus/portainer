@@ -2,8 +2,8 @@ package gitops
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,10 +16,26 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
-	"github.com/portainer/portainer/api/git"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/stretchr/testify/assert"
 )
+
+const (
+	testRepo     string = "https://github.com/portainer/git-test.git"
+	testUsername string = "test-username"
+	testPassword string = "test-password"
+)
+
+type TestGitService struct {
+	portaineree.GitService
+}
+
+func (g *TestGitService) ListRefs(repositoryURL, username, password string, hardRefresh bool) ([]string, error) {
+	if repositoryURL == testRepo && testUsername == username && testPassword == password {
+		return []string{"refs/head/main", "refs/head/test"}, nil
+	}
+	return nil, errors.New("Authentication failed, please ensure that the git credentials are correct.")
+}
 
 func Test_gitOperationRepoRefs(t *testing.T) {
 	is := assert.New(t)
@@ -32,12 +48,25 @@ func Test_gitOperationRepoRefs(t *testing.T) {
 	err := store.User().Create(user)
 	is.NoError(err, "error creating user")
 
+	// create git credential
+	gitCredential := &portaineree.GitCredential{ID: 1, UserID: user.ID, Name: "test-name", Username: testUsername, Password: testPassword}
+	err = store.GitCredentialService.Create(gitCredential)
+	is.NoError(err, "error creating git credential")
+
+	// create stack
+	stack := &portaineree.Stack{ID: 1, GitConfig: &gittypes.RepoConfig{Authentication: &gittypes.GitAuthentication{
+		Username: testUsername,
+		Password: testPassword,
+	}}}
+	err = store.StackService.Create(stack)
+	is.NoError(err, "error creating stack")
+
 	// setup services
 	jwtService, err := jwt.NewService("1h", store)
 	is.NoError(err, "Error initiating jwt service")
 	requestBouncer := security.NewRequestBouncer(store, testhelpers.Licenseservice{}, jwtService, nil, nil)
 
-	gitService := git.NewService(context.TODO())
+	gitService := &TestGitService{}
 
 	h := NewHandler(requestBouncer, store, gitService)
 
@@ -64,7 +93,7 @@ func Test_gitOperationRepoRefs(t *testing.T) {
 
 	t.Run("fail to authenticate git credential", func(t *testing.T) {
 		data := repositoryReferenceListPayload{
-			Repository: "https://github.com/portainer/portainer-ee.git",
+			Repository: testRepo,
 		}
 		payload, err := json.Marshal(data)
 		is.NoError(err)
@@ -85,10 +114,11 @@ func Test_gitOperationRepoRefs(t *testing.T) {
 		is.Equal(gittypes.ErrAuthenticationFailure.Error(), resp.Details)
 	})
 
-	t.Run("authenticated user can list refs of a specific git repository", func(t *testing.T) {
+	t.Run("authenticated user can list refs with username/password", func(t *testing.T) {
 		data := repositoryReferenceListPayload{
-			// Test with the public git repository
-			Repository: "https://github.com/portainer/portainer.git",
+			Repository: testRepo,
+			Username:   testUsername,
+			Password:   testPassword,
 		}
 		payload, err := json.Marshal(data)
 		is.NoError(err)
@@ -110,4 +140,53 @@ func Test_gitOperationRepoRefs(t *testing.T) {
 		is.GreaterOrEqual(len(resp), 1)
 	})
 
+	t.Run("authenticated user can list refs with git credential ID", func(t *testing.T) {
+		data := repositoryReferenceListPayload{
+			Repository:      testRepo,
+			GitCredentialID: 1,
+		}
+		payload, err := json.Marshal(data)
+		is.NoError(err)
+		req := httptest.NewRequest(http.MethodPost, "/gitops/repo/refs", bytes.NewBuffer(payload))
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwt))
+
+		rr := httptest.NewRecorder()
+		h.ServeHTTP(rr, req)
+
+		is.Equal(http.StatusOK, rr.Code)
+
+		body, err := io.ReadAll(rr.Body)
+		is.NoError(err, "ReadAll should not return error")
+
+		var resp []string
+		err = json.Unmarshal(body, &resp)
+		is.NoError(err, "response should be list json")
+
+		is.GreaterOrEqual(len(resp), 1)
+	})
+
+	t.Run("authenticated user can list refs with stack ID", func(t *testing.T) {
+		data := repositoryReferenceListPayload{
+			Repository: testRepo,
+			StackID:    1,
+		}
+		payload, err := json.Marshal(data)
+		is.NoError(err)
+		req := httptest.NewRequest(http.MethodPost, "/gitops/repo/refs", bytes.NewBuffer(payload))
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwt))
+
+		rr := httptest.NewRecorder()
+		h.ServeHTTP(rr, req)
+
+		is.Equal(http.StatusOK, rr.Code)
+
+		body, err := io.ReadAll(rr.Body)
+		is.NoError(err, "ReadAll should not return error")
+
+		var resp []string
+		err = json.Unmarshal(body, &resp)
+		is.NoError(err, "response should be list json")
+
+		is.GreaterOrEqual(len(resp), 1)
+	})
 }

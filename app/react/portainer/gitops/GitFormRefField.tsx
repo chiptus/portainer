@@ -28,13 +28,15 @@ export function GitFormRefField({ value, onChange, model }: Props) {
         password: model.RepositoryPassword,
       };
     } else if (model.SelectedGitCredential) {
-      creds = { gitCredentialId: model.SelectedGitCredential.id };
+      creds = { gitCredentialID: model.SelectedGitCredential.id };
     }
   }
   const payload = {
     repository: model.RepositoryURL,
     ...creds,
+    stackID: model.StackID,
   };
+
   const enabled = Boolean(model.RepositoryURL && model.RepositoryURLValid);
   const { data: refs } = useGitRefs(payload, enabled, (refs) => {
     let options = [{ value: 'refs/heads/main', label: 'refs/heads/main' }];
