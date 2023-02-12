@@ -1956,7 +1956,9 @@ const (
 	DateTimeFormat = "2006-01-02 15:04:05"
 )
 
-const microk8s featureflags.Feature = "microk8s"
+const (
+	microk8s featureflags.Feature = "microk8s"
+)
 
 // List of supported features
 var SupportedFeatureFlags = []featureflags.Feature{

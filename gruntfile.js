@@ -128,7 +128,7 @@ gruntConfig.shell = {
 };
 
 function shell_storybook(env) {
-  if (env === 'production') {
+  if (env === 'prod') {
     return '';
   }
 
