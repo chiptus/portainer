@@ -15,7 +15,7 @@ export function LabelsRow({ labels = {} }: Props) {
 
   return (
     <DetailsRow label="Labels">
-      <table className="table table-bordered table-condensed">
+      <table className="table-bordered table-condensed table">
         <tbody>
           {labelList.map(([label, value]) => (
             <tr key={label}>

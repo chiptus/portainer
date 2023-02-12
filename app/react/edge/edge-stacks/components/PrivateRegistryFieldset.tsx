@@ -67,7 +67,7 @@ export function PrivateRegistryFieldset({
       <div className="form-group">
         <div className="col-sm-12 vertical-center">
           <label
-            className="col-sm-3 col-lg-2 control-label text-left !pt-0 !pl-0"
+            className="col-sm-3 col-lg-2 control-label !pt-0 !pl-0 text-left"
             htmlFor="toggle-registry-slider"
           >
             Use Credentials <Tooltip message={tooltipMessage} />

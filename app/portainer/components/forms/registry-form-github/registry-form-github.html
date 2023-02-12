@@ -11,7 +11,7 @@
   <div class="col-sm-12 form-section-title"> Github container registry details </div>
   <!-- name-input -->
   <div class="form-group">
-    <label for="registry_name" class="col-sm-3 col-lg-2 control-label text-left required">Name</label>
+    <label for="registry_name" class="col-sm-3 col-lg-2 control-label required text-left">Name</label>
     <div class="col-sm-9 col-lg-10">
       <input type="text" class="form-control" id="registry_name" name="registry_name" ng-model="$ctrl.model.Name" placeholder="github-registry" required />
       <div class="help-block" ng-show="$ctrl.registryFormGithub.registry_name.$invalid">
@@ -33,7 +33,7 @@
   <!-- !name-input -->
   <!-- credentials-user -->
   <div class="form-group">
-    <label for="registry_username" class="col-sm-3 col-lg-2 control-label text-left required">Username</label>
+    <label for="registry_username" class="col-sm-3 col-lg-2 control-label required text-left">Username</label>
     <div class="col-sm-9 col-lg-10">
       <input type="text" class="form-control" id="registry_username" name="registry_username" ng-model="$ctrl.model.Username" required />
       <div class="help-block" ng-show="$ctrl.registryFormGithub.registry_username.$invalid">
@@ -51,7 +51,7 @@
   <!-- !credentials-user -->
   <!-- credentials-password -->
   <div class="form-group">
-    <label for="registry_password" class="col-sm-3 col-lg-2 control-label text-left required">Personal Access Token</label>
+    <label for="registry_password" class="col-sm-3 col-lg-2 control-label required text-left">Personal Access Token</label>
     <div class="col-sm-9 col-lg-10">
       <input type="password" class="form-control" id="registry_password" name="registry_password" ng-model="$ctrl.model.Password" required />
       <div class="help-block" ng-show="$ctrl.registryFormGithub.registry_password.$invalid">
@@ -84,7 +84,7 @@
   <div ng-if="$ctrl.model.Github.useOrganisation">
     <!-- organisation_name -->
     <div class="form-group">
-      <label for="organisation_name" class="col-sm-3 col-lg-2 control-label text-left required">Organisation name</label>
+      <label for="organisation_name" class="col-sm-3 col-lg-2 control-label required text-left">Organisation name</label>
       <div class="col-sm-9 col-lg-10">
         <input type="text" class="form-control" id="organisation_name" name="organisation_name" ng-model="$ctrl.model.Github.organisationName" required />
         <div class="help-block" ng-show="$ctrl.registryFormGithub.organisation_name.$invalid">

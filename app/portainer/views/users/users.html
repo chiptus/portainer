@@ -8,7 +8,7 @@
         <form name="form" class="form-horizontal">
           <!-- name-input -->
           <div class="form-group">
-            <label for="username" class="col-sm-3 col-lg-2 control-label text-left required">
+            <label for="username" class="col-sm-3 col-lg-2 control-label required text-left">
               Username
               <portainer-tooltip ng-if="AuthenticationMethod === 2" message="'Username must exactly match username defined in external LDAP source.'"></portainer-tooltip>
             </label>
@@ -34,7 +34,7 @@
           <!-- !name-input -->
           <!-- new-password-input -->
           <div class="form-group" ng-if="AuthenticationMethod === 1">
-            <label for="password" class="col-sm-3 col-lg-2 control-label text-left required">Password</label>
+            <label for="password" class="col-sm-3 col-lg-2 control-label required text-left">Password</label>
             <div class="col-sm-8">
               <input
                 type="password"
@@ -50,7 +50,7 @@
           <!-- !new-password-input -->
           <!-- confirm-password-input -->
           <div class="form-group" ng-if="AuthenticationMethod === 1">
-            <label for="confirm_password" class="col-sm-3 col-lg-2 control-label text-left required">Confirm password</label>
+            <label for="confirm_password" class="col-sm-3 col-lg-2 control-label required text-left">Confirm password</label>
             <div class="col-sm-8">
               <div class="input-group">
                 <input
@@ -103,7 +103,7 @@
           <!-- !admin-checkbox -->
           <!-- teams -->
           <div class="form-group" ng-if="!formValues.Administrator">
-            <label class="control-label text-left col-sm-3 col-lg-2" for="teams-selector"> Add to team(s) </label>
+            <label class="control-label col-sm-3 col-lg-2 text-left" for="teams-selector"> Add to team(s) </label>
             <div class="col-sm-8">
               <span class="small text-muted" ng-if="teams.length === 0">
                 You don't seem to have any teams to add users into. Head over to the <a ui-sref="portainer.teams">Teams view</a> to create some.

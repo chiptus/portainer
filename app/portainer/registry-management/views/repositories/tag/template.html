@@ -133,7 +133,7 @@
             <tr ng-if="$ctrl.details.Env.length > 0">
               <td>ENV</td>
               <td>
-                <table class="table table-bordered table-condensed">
+                <table class="table-bordered table-condensed table">
                   <tr ng-repeat="var in $ctrl.details.Env">
                     <td>{{ var|key: '=' }}</td>
                     <td>{{ var|value: '=' }}</td>
@@ -185,7 +185,7 @@
                     {{ layer.CreatedBy }}
                   </span>
                   <span id="layer-command-{{ $index }}-short">
-                    {{ layer.CreatedBy | truncate: 130 }}
+                    {{ layer.CreatedBy | truncate : 130 }}
                     <span ng-if="layer.CreatedBy.length > 130" style="margin-left: 5px">
                       <a id="layer-command-expander{{ $index }}" class="btn" ng-click="$ctrl.toggleLayerCommand($index)">
                         <pr-icon icon="'plus-circle'"></pr-icon>

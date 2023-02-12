@@ -4,8 +4,8 @@
       <pr-icon icon="'alert-circle'" mode="'warning'"></pr-icon>
       A change window is enabled, automatic updates will not occur outside of
       <span style="font-weight: bold"
-        >{{ $ctrl.state.startTimeUtc | date: 'shortTime' }} - {{ $ctrl.state.endTimeUtc | date: 'shortTime' }} UTC ({{ $ctrl.state.startTimeUser | date: 'shortTime' }} -
-        {{ $ctrl.state.endTimeUser | date: 'shortTime' }} {{ $ctrl.state.dst ? 'DST' : '' }} {{ $ctrl.state.timezone }})</span
+        >{{ $ctrl.state.startTimeUtc | date : 'shortTime' }} - {{ $ctrl.state.endTimeUtc | date : 'shortTime' }} UTC ({{ $ctrl.state.startTimeUser | date : 'shortTime' }} -
+        {{ $ctrl.state.endTimeUser | date : 'shortTime' }} {{ $ctrl.state.dst ? 'DST' : '' }} {{ $ctrl.state.timezone }})</span
       >.
     </p>
   </span>

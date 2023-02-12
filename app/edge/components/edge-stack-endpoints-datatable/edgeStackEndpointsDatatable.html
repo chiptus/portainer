@@ -17,7 +17,7 @@
         </div>
       </div>
       <div class="table-responsive">
-        <table class="table table-hover nowrap-cells">
+        <table class="table-hover nowrap-cells table">
           <thead>
             <tr>
               <th>
@@ -64,10 +64,10 @@
               <td><edge-stack-action-status environment-id="item.Id" edge-stack-id="$ctrl.edgeStackId"></edge-stack-action-status></td>
             </tr>
             <tr ng-if="$ctrl.state.loading">
-              <td colspan="5" class="text-center text-muted">Loading...</td>
+              <td colspan="5" class="text-muted text-center">Loading...</td>
             </tr>
             <tr ng-if="!$ctrl.state.loading && $ctrl.state.filteredDataSet.length === 0">
-              <td colspan="5" class="text-center text-muted">No environment available.</td>
+              <td colspan="5" class="text-muted text-center">No environment available.</td>
             </tr>
           </tbody>
         </table>

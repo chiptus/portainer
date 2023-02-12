@@ -192,7 +192,7 @@ export function AzureCreateClusterForm({
                   </span>
                 </label>
                 <label
-                  className="inline-flex items-center ml-12 pt-3"
+                  className="ml-12 inline-flex items-center pt-3"
                   htmlFor="radioInput"
                 >
                   <Field

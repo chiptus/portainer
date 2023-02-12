@@ -42,8 +42,8 @@
   <span class="vertical-center" ng-show="!$ctrl.state.changeWindow && $ctrl.state.timeSet"
     ><pr-icon icon="'alert-circle'" mode="'warning'"></pr-icon> Automatic updates to stacks or applications outside
     <span style="font-weight: bold; color: var(--text-muted-color)">
-      {{ $ctrl.state.utcStartTime | date: 'shortTime' }} - {{ $ctrl.state.utcEndTime | date: 'shortTime' }} UTC ({{ $ctrl.state.setStartTime | date: 'shortTime' }} -
-      {{ $ctrl.state.setEndTime | date: 'shortTime' }} {{ $ctrl.state.dst ? 'DST' : '' }} {{ $ctrl.state.timeZoneSelected }})
+      {{ $ctrl.state.utcStartTime | date : 'shortTime' }} - {{ $ctrl.state.utcEndTime | date : 'shortTime' }} UTC ({{ $ctrl.state.setStartTime | date : 'shortTime' }} -
+      {{ $ctrl.state.setEndTime | date : 'shortTime' }} {{ $ctrl.state.dst ? 'DST' : '' }} {{ $ctrl.state.timeZoneSelected }})
     </span>
     will not occur.
   </span>

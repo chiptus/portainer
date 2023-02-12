@@ -24,7 +24,7 @@ export function SearchStatus({
   },
 }: Props) {
   return (
-    <div className="flex shrink-0 ml-2">
+    <div className="ml-2 flex shrink-0">
       <div className="text-xs">
         <span>
           {totalKeywords && focusedKeywordIndex !== undefined

@@ -89,7 +89,7 @@ export function LogViewer({
   return (
     <LogViewerProvider value={context}>
       <Widget
-        className={clsx(styles.logViewerWidget, 'flex flex-col mx-4')}
+        className={clsx(styles.logViewerWidget, 'mx-4 flex flex-col')}
         mRef={logViewerRef}
       >
         <LogController />

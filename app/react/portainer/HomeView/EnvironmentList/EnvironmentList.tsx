@@ -154,9 +154,9 @@ export function EnvironmentList({ onClickBrowse, onRefresh }: Props) {
                   </div>
                 }
               >
-                <div className="flex gap-4 items-center">
+                <div className="flex items-center gap-4">
                   <SearchBar
-                    className="!bg-transparent !m-0 min-w-[350px]"
+                    className="!m-0 min-w-[350px] !bg-transparent"
                     value={searchBarValue}
                     onChange={setSearchBarValue}
                     placeholder="Search by name, group, tag, status, URL..."
@@ -210,7 +210,7 @@ export function EnvironmentList({ onClickBrowse, onRefresh }: Props) {
                 />
               </div>
               <div
-                className="blocklist !p-0 mt-5 !space-y-2"
+                className="blocklist mt-5 !space-y-2 !p-0"
                 data-cy="home-endpointList"
               >
                 {renderItems(
@@ -393,7 +393,7 @@ function renderItems(
 ) {
   if (isLoading) {
     return (
-      <div className="text-center text-muted" data-cy="home-loadingEndpoints">
+      <div className="text-muted text-center" data-cy="home-loadingEndpoints">
         Loading...
       </div>
     );
@@ -401,7 +401,7 @@ function renderItems(
 
   if (!totalCount) {
     return (
-      <div className="text-center text-muted" data-cy="home-noEndpoints">
+      <div className="text-muted text-center" data-cy="home-noEndpoints">
         No environments available.
       </div>
     );
