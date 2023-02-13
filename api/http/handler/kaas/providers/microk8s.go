@@ -3,6 +3,7 @@ package providers
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/asaskevich/govalidator"
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -45,6 +46,14 @@ func (payload *Microk8sProvisionPayload) GetCloudProvider(_ string) (*portainere
 
 	cloudProvider.CredentialID = payload.CredentialID
 	cloudProvider.NodeCount = payload.NodeCount
+	if payload.Addons != nil {
+		addons := strings.Join(payload.Addons, ", ")
+		cloudProvider.Addons = &addons
+	}
+	if payload.NodeIPs != nil {
+		addons := strings.Join(payload.NodeIPs, ", ")
+		cloudProvider.NodeIPs = &addons
+	}
 	return &cloudProvider, nil
 }
 

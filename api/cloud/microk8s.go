@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/ssh"
@@ -16,6 +18,11 @@ import (
 )
 
 type (
+	MicroK8sInfo struct {
+		NodeIPs []string `json:"nodeIPs"`
+		Addons  []string `json:"addons"`
+	}
+
 	microk8sClusterJoinInfo struct {
 		Token string   `json:"token"`
 		URLS  []string `json:"urls"`
@@ -26,6 +33,35 @@ type (
 		NodeIps, Addons []string
 	}
 )
+
+func (service *CloudClusterInfoService) Microk8sGetAddons(credential *models.CloudCredential, nodeIP string) (interface{}, error) {
+	log.Debug().Str("provider", portaineree.CloudProviderMicrok8s).Msg("processing get info request")
+
+	// Gather current addon list.
+	config := &ssh.ClientConfig{
+		User: credential.Credentials["username"],
+		Auth: []ssh.AuthMethod{
+			ssh.Password(credential.Credentials["password"]),
+		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         time.Duration(5) * time.Second,
+	}
+
+	conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:22", nodeIP), config)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	resp, err := runSSHCommandAndGetOutput(conn, credential.Credentials["password"], "microk8s status")
+	if err != nil {
+		return nil, err
+	}
+	addons := parseAddonResponse(resp)
+	return &MicroK8sInfo{
+		Addons: addons,
+	}, nil
+}
 
 func (service *CloudClusterSetupService) Microk8sProvisionCluster(req Microk8sProvisioningClusterRequest) (string, error) {
 	log.Debug().
@@ -425,4 +461,36 @@ func runSSHCommandAndGetOutput(conn *ssh.Client, sshPassword, command string) (s
 	}
 
 	return buff.String(), nil
+}
+
+// parseAddonResponse reads the command line response of `microk8s status` and
+// returns a list of installed addons.
+func parseAddonResponse(s string) []string {
+	// A regular expressiong to match everything between "enabled:" and
+	// "disabled:" which is a list of the enabled addons.
+	enabledRegex := regexp.MustCompile(`(?s)enabled:\n(.*).*disabled:`)
+	match := enabledRegex.FindStringSubmatch(s)
+
+	var addons []string
+	var buf bytes.Buffer
+	var comment bool
+	// Loop over each line to build a list of enabled addons.
+	for _, c := range match[1] {
+		switch c {
+		case '#':
+			// We skip comments by enabling "comment mode".
+			comment = true
+		case ' ':
+			continue
+		case '\n':
+			addons = append(addons, buf.String())
+			buf.Reset()
+			comment = false
+		default:
+			if !comment {
+				buf.WriteRune(c)
+			}
+		}
+	}
+	return addons
 }

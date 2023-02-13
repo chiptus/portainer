@@ -154,6 +154,10 @@ type (
 		AmiType        *string `json:"AmiType"`
 		InstanceType   *string `json:"InstanceType"`
 		NodeVolumeSize *int    `json:"NodeVolumeSize"`
+
+		// MicroK8S specific fields
+		Addons  *string `json:"Addons"`
+		NodeIPs *string `json:"NodeIPs"`
 	}
 
 	// CLIFlags represents the available flags on the CLI

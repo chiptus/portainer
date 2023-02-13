@@ -116,19 +116,31 @@
                 <a type="button" class="btn btn-xs btn-primary" href="{{ endpoint.CloudProvider.URL }}" target="_blank" style="margin-left: 5px">Go to portal</a>
               </td>
             </tr>
-            <tr>
+            <tr ng-if="endpoint.CloudProvider.Region">
               <td>Region</td>
               <td>
                 {{ endpoint.CloudProvider.Region }}
               </td>
             </tr>
-            <tr>
+            <tr ng-if="endpoint.CloudProvider.Size">
               <td> Node Size</td>
               <td>{{ endpoint.CloudProvider.Size }}</td>
             </tr>
             <tr ng-if="endpoint.CloudProvider.NetworkID">
               <td>Network Id</td>
               <td>{{ endpoint.CloudProvider.NetworkID }}</td>
+            </tr>
+            <tr ng-if="endpoint.CloudProvider.Addons">
+              <td>Addons</td>
+              <td>
+                {{ endpoint.CloudProvider.Addons }}
+              </td>
+            </tr>
+            <tr ng-if="endpoint.CloudProvider.NodeIPs">
+              <td>Node IPs</td>
+              <td>
+                {{ endpoint.CloudProvider.NodeIPs }}
+              </td>
             </tr>
           </tbody>
         </table>

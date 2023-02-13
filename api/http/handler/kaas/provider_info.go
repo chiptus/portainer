@@ -47,11 +47,17 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 	}
 
 	switch provider {
-	// TODO: REVIEW-POC-MICROK8S
-	// This was just added to avoid errors in the frontend
-	// A FE engineer might have a better solution around this
 	case portaineree.CloudProviderMicrok8s:
-		return response.JSON(w, map[string]interface{}{})
+		nodeIP, _ := request.RetrieveQueryParameter(r, "nodeip", true)
+		if nodeIP == "" {
+			return httperror.BadRequest("Missing required nodeip parameter", errors.New(request.ErrInvalidQueryParameter))
+		}
+		microK8sInfo, err := handler.cloudClusterInfoService.Microk8sGetAddons(credential, nodeIP)
+		if err != nil {
+			return httperror.InternalServerError("Unable to retrieve MicroK8s information", err)
+		}
+
+		return response.JSON(w, microK8sInfo)
 
 	case portaineree.CloudProviderCivo:
 		civoInfo, err := handler.cloudClusterInfoService.CivoGetInfo(credential, force)
