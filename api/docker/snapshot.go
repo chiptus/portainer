@@ -2,10 +2,11 @@ package docker
 
 import (
 	"context"
-	portainerdocker "github.com/portainer/portainer-ee/api/docker/client"
-	"github.com/portainer/portainer-ee/api/docker/consts"
 	"strings"
 	"time"
+
+	portainerdocker "github.com/portainer/portainer-ee/api/docker/client"
+	"github.com/portainer/portainer-ee/api/docker/consts"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
@@ -170,22 +171,29 @@ func snapshotContainers(snapshot *portainer.DockerSnapshot, cli *client.Client) 
 			// snapshot GPUs
 			response, err := cli.ContainerInspect(context.Background(), container.ID)
 			if err != nil {
-				return err
-			}
-
-			var gpuOptions *_container.DeviceRequest = nil
-			for _, deviceRequest := range response.HostConfig.Resources.DeviceRequests {
-				if deviceRequest.Driver == "nvidia" || deviceRequest.Capabilities[0][0] == "gpu" {
-					gpuOptions = &deviceRequest
+				// Inspect a container will fail when the container runs on a different
+				// Swarm node, so it is better to log the error instead of return error
+				// when the Swarm mode is enabled
+				if !snapshot.Swarm {
+					return err
+				} else {
+					log.Info().Str("container", container.ID).Err(err).Msg("unable to inspect container in other Swarm nodes")
 				}
-			}
-
-			if gpuOptions != nil {
-				if gpuOptions.Count == -1 {
-					gpuUseAll = true
+			} else {
+				var gpuOptions *_container.DeviceRequest = nil
+				for _, deviceRequest := range response.HostConfig.Resources.DeviceRequests {
+					if deviceRequest.Driver == "nvidia" || deviceRequest.Capabilities[0][0] == "gpu" {
+						gpuOptions = &deviceRequest
+					}
 				}
-				for _, id := range gpuOptions.DeviceIDs {
-					gpuUseSet[id] = struct{}{}
+
+				if gpuOptions != nil {
+					if gpuOptions.Count == -1 {
+						gpuUseAll = true
+					}
+					for _, id := range gpuOptions.DeviceIDs {
+						gpuUseSet[id] = struct{}{}
+					}
 				}
 			}
 		}
