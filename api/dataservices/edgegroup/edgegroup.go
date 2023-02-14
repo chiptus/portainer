@@ -1,12 +1,8 @@
 package edgegroup
 
 import (
-	"fmt"
-
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
-
-	"github.com/rs/zerolog/log"
 )
 
 // BucketName represents the name of the bucket where this service stores data.
@@ -33,41 +29,40 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}, nil
 }
 
-// EdgeGroups return an array containing all the Edge groups.
+func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
+	return ServiceTx{
+		service: service,
+		tx:      tx,
+	}
+}
+
+// EdgeGroups return a slice containing all the Edge groups.
 func (service *Service) EdgeGroups() ([]portaineree.EdgeGroup, error) {
-	var groups = make([]portaineree.EdgeGroup, 0)
+	var groups []portaineree.EdgeGroup
+	var err error
 
-	err := service.connection.GetAllWithJsoniter(
-		BucketName,
-		&portaineree.EdgeGroup{},
-		func(obj interface{}) (interface{}, error) {
-			group, ok := obj.(*portaineree.EdgeGroup)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to EdgeGroup object")
-				return nil, fmt.Errorf("Failed to convert to EdgeGroup object: %s", obj)
-			}
-			groups = append(groups, *group)
-
-			return &portaineree.EdgeGroup{}, nil
-		})
+	err = service.connection.ViewTx(func(tx portainer.Transaction) error {
+		groups, err = service.Tx(tx).EdgeGroups()
+		return err
+	})
 
 	return groups, err
 }
 
 // EdgeGroup returns an Edge group by ID.
 func (service *Service) EdgeGroup(ID portaineree.EdgeGroupID) (*portaineree.EdgeGroup, error) {
-	var group portaineree.EdgeGroup
-	identifier := service.connection.ConvertToKey(int(ID))
+	var group *portaineree.EdgeGroup
+	var err error
 
-	err := service.connection.GetObject(BucketName, identifier, &group)
-	if err != nil {
-		return nil, err
-	}
+	err = service.connection.ViewTx(func(tx portainer.Transaction) error {
+		group, err = service.Tx(tx).EdgeGroup(ID)
+		return err
+	})
 
-	return &group, nil
+	return group, err
 }
 
-// Deprecated: Use UpdateEdgeGroupFunc instead.
+// UpdateEdgeGroup updates an edge group.
 func (service *Service) UpdateEdgeGroup(ID portaineree.EdgeGroupID, group *portaineree.EdgeGroup) error {
 	identifier := service.connection.ConvertToKey(int(ID))
 	return service.connection.UpdateObject(BucketName, identifier, group)
@@ -85,17 +80,14 @@ func (service *Service) UpdateEdgeGroupFunc(ID portaineree.EdgeGroupID, updateFu
 
 // DeleteEdgeGroup deletes an Edge group.
 func (service *Service) DeleteEdgeGroup(ID portaineree.EdgeGroupID) error {
-	identifier := service.connection.ConvertToKey(int(ID))
-	return service.connection.DeleteObject(BucketName, identifier)
+	return service.connection.UpdateTx(func(tx portainer.Transaction) error {
+		return service.Tx(tx).DeleteEdgeGroup(ID)
+	})
 }
 
 // CreateEdgeGroup assign an ID to a new Edge group and saves it.
 func (service *Service) Create(group *portaineree.EdgeGroup) error {
-	return service.connection.CreateObject(
-		BucketName,
-		func(id uint64) (int, interface{}) {
-			group.ID = portaineree.EdgeGroupID(id)
-			return int(group.ID), group
-		},
-	)
+	return service.connection.UpdateTx(func(tx portainer.Transaction) error {
+		return service.Tx(tx).Create(group)
+	})
 }

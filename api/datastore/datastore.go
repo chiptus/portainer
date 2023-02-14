@@ -8,6 +8,7 @@ import (
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	dserrors "github.com/portainer/portainer-ee/api/dataservices/errors"
 	portainer "github.com/portainer/portainer/api"
 	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
@@ -62,6 +63,24 @@ func (store *Store) Open() (newStore bool, err error) {
 
 func (store *Store) Close() error {
 	return store.connection.Close()
+}
+
+func (store *Store) UpdateTx(fn func(dataservices.DataStoreTx) error) error {
+	return store.connection.UpdateTx(func(tx portainer.Transaction) error {
+		return fn(&StoreTx{
+			store: store,
+			tx:    tx,
+		})
+	})
+}
+
+func (store *Store) ViewTx(fn func(dataservices.DataStoreTx) error) error {
+	return store.connection.ViewTx(func(tx portainer.Transaction) error {
+		return fn(&StoreTx{
+			store: store,
+			tx:    tx,
+		})
+	})
 }
 
 // BackupTo backs up db to a provided writer.

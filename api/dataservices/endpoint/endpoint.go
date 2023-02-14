@@ -1,21 +1,15 @@
 package endpoint
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/internal/edge/cache"
 	portainer "github.com/portainer/portainer/api"
-
-	"github.com/rs/zerolog/log"
 )
 
-const (
-	// BucketName represents the name of the bucket where this service stores data.
-	BucketName = "endpoints"
-)
+// BucketName represents the name of the bucket where this service stores data.
+const BucketName = "endpoints"
 
 // Service represents a service for managing environment(endpoint) data.
 type Service struct {
@@ -57,83 +51,54 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	return s, nil
 }
 
+func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
+	return ServiceTx{
+		service: service,
+		tx:      tx,
+	}
+}
+
 // Endpoint returns an environment(endpoint) by ID.
 func (service *Service) Endpoint(ID portaineree.EndpointID) (*portaineree.Endpoint, error) {
-	var endpoint portaineree.Endpoint
-	identifier := service.connection.ConvertToKey(int(ID))
+	var endpoint *portaineree.Endpoint
+	var err error
 
-	err := service.connection.GetObject(BucketName, identifier, &endpoint)
+	err = service.connection.ViewTx(func(tx portainer.Transaction) error {
+		endpoint, err = service.Tx(tx).Endpoint(ID)
+		return err
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	endpoint.LastCheckInDate, _ = service.Heartbeat(ID)
 
-	return &endpoint, nil
+	return endpoint, nil
 }
 
 // UpdateEndpoint updates an environment(endpoint).
 func (service *Service) UpdateEndpoint(ID portaineree.EndpointID, endpoint *portaineree.Endpoint) error {
-	identifier := service.connection.ConvertToKey(int(ID))
-
-	err := service.connection.UpdateObject(BucketName, identifier, endpoint)
-	if err != nil {
-		return err
-	}
-
-	service.mu.Lock()
-	if len(endpoint.EdgeID) > 0 {
-		service.idxEdgeID[endpoint.EdgeID] = ID
-	}
-	service.heartbeats.Store(ID, endpoint.LastCheckInDate)
-	service.mu.Unlock()
-
-	cache.Del(endpoint.ID)
-
-	return nil
+	return service.connection.UpdateTx(func(tx portainer.Transaction) error {
+		return service.Tx(tx).UpdateEndpoint(ID, endpoint)
+	})
 }
 
 // DeleteEndpoint deletes an environment(endpoint).
 func (service *Service) DeleteEndpoint(ID portaineree.EndpointID) error {
-	identifier := service.connection.ConvertToKey(int(ID))
-	err := service.connection.DeleteObject(BucketName, identifier)
-	if err != nil {
-		return err
-	}
-
-	service.mu.Lock()
-	for edgeID, endpointID := range service.idxEdgeID {
-		if endpointID == ID {
-			delete(service.idxEdgeID, edgeID)
-			break
-		}
-	}
-	service.heartbeats.Delete(ID)
-	service.mu.Unlock()
-
-	cache.Del(ID)
-
-	return nil
+	return service.connection.UpdateTx(func(tx portainer.Transaction) error {
+		return service.Tx(tx).DeleteEndpoint(ID)
+	})
 }
 
 // Endpoints return an array containing all the environments(endpoints).
 func (service *Service) Endpoints() ([]portaineree.Endpoint, error) {
-	var endpoints = make([]portaineree.Endpoint, 0)
+	var endpoints []portaineree.Endpoint
+	var err error
 
-	err := service.connection.GetAllWithJsoniter(
-		BucketName,
-		&portaineree.Endpoint{},
-		func(obj interface{}) (interface{}, error) {
-			endpoint, ok := obj.(*portaineree.Endpoint)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Endpoint object")
-				return nil, fmt.Errorf("failed to convert to Endpoint object: %s", obj)
-			}
-
-			endpoints = append(endpoints, *endpoint)
-
-			return &portaineree.Endpoint{}, nil
-		})
+	err = service.connection.ViewTx(func(tx portainer.Transaction) error {
+		endpoints, err = service.Tx(tx).Endpoints()
+		return err
+	})
 
 	if err != nil {
 		return endpoints, err
@@ -170,22 +135,20 @@ func (service *Service) UpdateHeartbeat(endpointID portaineree.EndpointID) {
 
 // CreateEndpoint assign an ID to a new environment(endpoint) and saves it.
 func (service *Service) Create(endpoint *portaineree.Endpoint) error {
-	err := service.connection.CreateObjectWithId(BucketName, int(endpoint.ID), endpoint)
-	if err != nil {
-		return err
-	}
-
-	service.mu.Lock()
-	if len(endpoint.EdgeID) > 0 {
-		service.idxEdgeID[endpoint.EdgeID] = endpoint.ID
-	}
-	service.heartbeats.Store(endpoint.ID, endpoint.LastCheckInDate)
-	service.mu.Unlock()
-
-	return nil
+	return service.connection.UpdateTx(func(tx portainer.Transaction) error {
+		return service.Tx(tx).Create(endpoint)
+	})
 }
 
 // GetNextIdentifier returns the next identifier for an environment(endpoint).
 func (service *Service) GetNextIdentifier() int {
-	return service.connection.GetNextIdentifier(BucketName)
+	var identifier int
+
+	service.connection.UpdateTx(func(tx portainer.Transaction) error {
+		identifier = service.Tx(tx).GetNextIdentifier()
+
+		return nil
+	})
+
+	return identifier
 }

@@ -14,19 +14,8 @@ import (
 )
 
 type (
-	// DataStore defines the interface to manage the data
-	DataStore interface {
-		Open() (newStore bool, err error)
-		Init() error
-		Close() error
-		MigrateData() error
-		Rollback(force bool) error
-		RollbackToCE() error
-		CheckCurrentEdition() error
-		BackupTo(w io.Writer) error
-		Export(filename string) (err error)
+	DataStoreTx interface {
 		IsErrObjectNotFound(err error) bool
-		Connection() portainer.Connection
 		CloudProvisioning() CloudProvisioningService
 		CustomTemplate() CustomTemplateService
 		EdgeAsyncCommand() EdgeAsyncCommandService
@@ -61,6 +50,23 @@ type (
 		Version() VersionService
 		Webhook() WebhookService
 		CloudCredential() CloudCredentialService
+	}
+
+	DataStore interface {
+		Connection() portainer.Connection
+		Open() (newStore bool, err error)
+		Init() error
+		Close() error
+		UpdateTx(func(DataStoreTx) error) error
+		ViewTx(func(DataStoreTx) error) error
+		MigrateData() error
+		Rollback(force bool) error
+		RollbackToCE() error
+		CheckCurrentEdition() error
+		BackupTo(w io.Writer) error
+		Export(filename string) (err error)
+
+		DataStoreTx
 	}
 
 	// CustomTemplateService represents a service to manage custom templates

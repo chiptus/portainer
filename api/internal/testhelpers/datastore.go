@@ -55,14 +55,16 @@ func (d *testDatastore) CloudProvisioning() dataservices.CloudProvisioningServic
 func (d *testDatastore) CloudCredential() dataservices.CloudCredentialService {
 	return d.cloudCredential
 }
-func (d *testDatastore) Open() (bool, error)                                { return false, nil }
-func (d *testDatastore) Init() error                                        { return nil }
-func (d *testDatastore) Close() error                                       { return nil }
-func (d *testDatastore) CheckCurrentEdition() error                         { return nil }
-func (d *testDatastore) MigrateData() error                                 { return nil }
-func (d *testDatastore) Rollback(force bool) error                          { return nil }
-func (d *testDatastore) RollbackToCE() error                                { return nil }
-func (d *testDatastore) CustomTemplate() dataservices.CustomTemplateService { return d.customTemplate }
+func (d *testDatastore) Open() (bool, error)                                 { return false, nil }
+func (d *testDatastore) Init() error                                         { return nil }
+func (d *testDatastore) Close() error                                        { return nil }
+func (d *testDatastore) UpdateTx(func(dataservices.DataStoreTx) error) error { return nil }
+func (d *testDatastore) ViewTx(func(dataservices.DataStoreTx) error) error   { return nil }
+func (d *testDatastore) CheckCurrentEdition() error                          { return nil }
+func (d *testDatastore) MigrateData() error                                  { return nil }
+func (d *testDatastore) Rollback(force bool) error                           { return nil }
+func (d *testDatastore) RollbackToCE() error                                 { return nil }
+func (d *testDatastore) CustomTemplate() dataservices.CustomTemplateService  { return d.customTemplate }
 func (d *testDatastore) EdgeAsyncCommand() dataservices.EdgeAsyncCommandService {
 	return d.edgeAsyncCommand
 }
