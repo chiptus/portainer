@@ -1,3 +1,5 @@
+import { confirmDelete } from '@@/modals/confirm';
+
 angular.module('portainer.docker').controller('VolumesController', [
   '$q',
   '$scope',
@@ -7,11 +9,9 @@ angular.module('portainer.docker').controller('VolumesController', [
   'VolumeHelper',
   'Notifications',
   'HttpRequestHelper',
-  'ModalService',
-  'endpoint',
-  function ($q, $scope, $state, VolumeService, ServiceService, VolumeHelper, Notifications, HttpRequestHelper, ModalService) {
+  function ($q, $scope, $state, VolumeService, ServiceService, VolumeHelper, Notifications, HttpRequestHelper) {
     $scope.removeAction = function (selectedItems) {
-      ModalService.confirmDeletion('Do you want to remove the selected volume(s)?', (confirmed) => {
+      confirmDelete('Do you want to remove the selected volume(s)?').then((confirmed) => {
         if (confirmed) {
           var actionCount = selectedItems.length;
           angular.forEach(selectedItems, function (volume) {

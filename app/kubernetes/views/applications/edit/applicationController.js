@@ -15,6 +15,9 @@ import { KubernetesPodNodeAffinityNodeSelectorRequirementOperators } from 'Kuber
 import { KubernetesPodContainerTypes } from 'Kubernetes/pod/models/index';
 import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
 import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
+import { confirmUpdate, confirm } from '@@/modals/confirm';
+import { buildConfirmButton } from '@@/modals/utils';
+import { ModalType } from '@@/modals';
 import { rolloutRestartApplication } from './applicationService';
 
 function computeTolerations(nodes, application) {
@@ -109,7 +112,6 @@ class KubernetesApplicationController {
     clipboard,
     Notifications,
     LocalStorage,
-    ModalService,
     KubernetesResourcePoolService,
     Authentication,
     KubernetesApplicationService,
@@ -124,7 +126,6 @@ class KubernetesApplicationController {
     this.clipboard = clipboard;
     this.Notifications = Notifications;
     this.LocalStorage = LocalStorage;
-    this.ModalService = ModalService;
     this.KubernetesResourcePoolService = KubernetesResourcePoolService;
     this.Authentication = Authentication;
     this.StackService = StackService;
@@ -228,7 +229,7 @@ class KubernetesApplicationController {
   }
 
   rollbackApplication() {
-    this.ModalService.confirmUpdate('Rolling back the application to a previous configuration may cause service interruption. Do you wish to continue?', (confirmed) => {
+    confirmUpdate('Rolling back the application to a previous configuration may cause service interruption. Do you wish to continue?', (confirmed) => {
       if (confirmed) {
         return this.$async(this.rollbackApplicationAsync);
       }
@@ -238,10 +239,11 @@ class KubernetesApplicationController {
    * REDEPLOY
    */
   async redeployApplicationAsync() {
-    const confirmed = await this.ModalService.confirmAsync({
+    const confirmed = await confirm({
+      modalType: ModalType.Warn,
       title: 'Are you sure?',
       message: 'Redeploying terminates and restarts the application, which will cause service interruption. Do you wish to continue?',
-      buttons: { confirm: { label: 'Redeploy', className: 'btn-primary' } },
+      confirmButton: buildConfirmButton('Redeploy'),
     });
     if (!confirmed) {
       return;
@@ -274,10 +276,11 @@ class KubernetesApplicationController {
     };
     const kind = appTypeMap[this.application.ApplicationType];
 
-    const confirmed = await this.ModalService.confirmAsync({
+    const confirmed = await confirm({
       title: 'Are you sure?',
       message: 'A rolling restart of the application will be performed, with pods replaced one by one, which should avoid downtime. Do you wish to continue?',
-      buttons: { confirm: { label: 'Rolling restart', className: 'btn-primary' } },
+      modalType: ModalType.Warn,
+      confirmButton: buildConfirmButton('Rolling restart'),
     });
     if (!confirmed) {
       return;

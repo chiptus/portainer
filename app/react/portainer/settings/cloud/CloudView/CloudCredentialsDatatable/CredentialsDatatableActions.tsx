@@ -1,8 +1,7 @@
 import { useRouter } from '@uirouter/react';
 import { Trash2, Plus } from 'lucide-react';
 
-import { confirmDeletionAsync } from '@/portainer/services/modal.service/confirm';
-
+import { confirmDelete } from '@@/modals/confirm';
 import { Button } from '@@/buttons';
 import { Icon } from '@@/Icon';
 
@@ -42,7 +41,7 @@ export function CredentialsDatatableActions({ selectedItems }: Props) {
   );
 
   async function onDeleteClick(selectedItems: Credential[]) {
-    const confirmed = await confirmDeletionAsync(
+    const confirmed = await confirmDelete(
       `Are you sure you want to remove the selected credentials?`
     );
 

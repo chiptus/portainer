@@ -1,11 +1,12 @@
 import { EditorType } from '@/react/edge/edge-stacks/types';
 import { PortainerEndpointTypes } from '@/portainer/models/endpoint/models';
 import { getValidEditorTypes } from '@/react/edge/edge-stacks/utils';
+import { confirmWebEditorDiscard } from '@@/modals/confirm';
 
 export default class CreateEdgeStackViewController {
   /* @ngInject */
-  constructor($state, $window, ModalService, EdgeStackService, EdgeGroupService, Notifications, $async, $scope, RegistryService, UserService, Authentication) {
-    Object.assign(this, { $state, $window, ModalService, EdgeStackService, EdgeGroupService, Notifications, $async, RegistryService, $scope, UserService, Authentication });
+  constructor($state, $window, EdgeStackService, EdgeGroupService, Notifications, $async, $scope, RegistryService, UserService, Authentication) {
+    Object.assign(this, { $state, $window, EdgeStackService, EdgeGroupService, Notifications, $async, RegistryService, $scope, UserService, Authentication });
 
     this.formValues = {
       Name: '',
@@ -91,7 +92,7 @@ export default class CreateEdgeStackViewController {
 
   async uiCanExit() {
     if (this.state.Method === 'editor' && this.formValues.StackFileContent && this.state.isEditorDirty) {
-      return this.ModalService.confirmWebEditorDiscard();
+      return confirmWebEditorDiscard();
     }
   }
 

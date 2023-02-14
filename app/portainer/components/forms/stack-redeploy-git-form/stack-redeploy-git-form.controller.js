@@ -1,12 +1,13 @@
 import uuidv4 from 'uuid/v4';
 import { RepositoryMechanismTypes } from 'Kubernetes/models/deploy';
+import { confirmStackUpdate } from '@/react/docker/stacks/common/confirm-stack-update';
+
 class StackRedeployGitFormController {
   /* @ngInject */
-  constructor($async, $state, StackService, ModalService, UserService, Authentication, Notifications, WebhookHelper, FormHelper) {
+  constructor($async, $state, StackService, UserService, Authentication, Notifications, WebhookHelper, FormHelper) {
     this.$async = $async;
     this.$state = $state;
     this.StackService = StackService;
-    this.ModalService = ModalService;
     this.UserService = UserService;
     this.Authentication = Authentication;
     this.Notifications = Notifications;
@@ -165,47 +166,42 @@ class StackRedeployGitFormController {
   async submit() {
     const isSwarmStack = this.stack.Type === 1;
     const that = this;
-    this.ModalService.confirmStackUpdate(
-      'Any changes to this stack or application made locally in Portainer will be overridden, which may cause service interruption. Do you wish to continue',
-      isSwarmStack,
-      'btn-warning',
-      async function (result) {
-        if (!result) {
-          return;
-        }
-        try {
-          that.state.redeployInProgress = true;
-
-          // save git credential
-          if (that.formValues.SaveCredential && that.formValues.NewCredentialName) {
-            const userDetails = this.Authentication.getUserDetails();
-            await that.UserService.saveGitCredential(
-              userDetails.ID,
-              that.formValues.NewCredentialName,
-              that.formValues.RepositoryUsername,
-              that.formValues.RepositoryPassword
-            ).then(function success(data) {
-              that.formValues.RepositoryGitCredentialID = data.gitCredential.id;
-            });
-          }
-
-          await that.StackService.updateGit(
-            that.stack.Id,
-            that.stack.EndpointId,
-            that.FormHelper.removeInvalidEnvVars(that.formValues.Env),
-            that.formValues.Option.Prune,
-            that.formValues,
-            !!result[0]
-          );
-          that.Notifications.success('Success', 'Pulled and redeployed stack successfully');
-          that.$state.reload();
-        } catch (err) {
-          that.Notifications.error('Failure', err, 'Failed redeploying stack');
-        } finally {
-          that.state.redeployInProgress = false;
-        }
+    confirmStackUpdate(
+      'Any changes to this stack or application made locally in Portainer will be overridden, which may cause service interruption. Do you wish to continue?',
+      isSwarmStack
+    ).then(async function (result) {
+      if (!result) {
+        return;
       }
-    );
+      try {
+        that.state.redeployInProgress = true;
+
+        // save git credential
+        if (that.formValues.SaveCredential && that.formValues.NewCredentialName) {
+          const userDetails = this.Authentication.getUserDetails();
+          await that.UserService.saveGitCredential(userDetails.ID, that.formValues.NewCredentialName, that.formValues.RepositoryUsername, that.formValues.RepositoryPassword).then(
+            function success(data) {
+              that.formValues.RepositoryGitCredentialID = data.gitCredential.id;
+            }
+          );
+        }
+
+        await that.StackService.updateGit(
+          that.stack.Id,
+          that.stack.EndpointId,
+          that.FormHelper.removeInvalidEnvVars(that.formValues.Env),
+          that.formValues.Option.Prune,
+          that.formValues,
+          result.pullImage
+        );
+        that.Notifications.success('Success', 'Pulled and redeployed stack successfully');
+        that.$state.reload();
+      } catch (err) {
+        that.Notifications.error('Failure', err, 'Failed redeploying stack');
+      } finally {
+        that.state.redeployInProgress = false;
+      }
+    });
   }
 
   async saveGitSettings() {

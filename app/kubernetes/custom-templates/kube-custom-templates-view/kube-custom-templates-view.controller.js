@@ -1,11 +1,12 @@
 import _ from 'lodash-es';
+import { confirmDelete } from '@@/modals/confirm';
 
 import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 
 export default class KubeCustomTemplatesViewController {
   /* @ngInject */
-  constructor($async, $state, Authentication, EndpointProvider, CustomTemplateService, FormValidator, ModalService, Notifications) {
-    Object.assign(this, { $async, $state, Authentication, EndpointProvider, CustomTemplateService, FormValidator, ModalService, Notifications });
+  constructor($async, $state, Authentication, EndpointProvider, CustomTemplateService, FormValidator, Notifications) {
+    Object.assign(this, { $async, $state, Authentication, EndpointProvider, CustomTemplateService, FormValidator, Notifications });
 
     this.state = {
       selectedTemplate: null,
@@ -62,7 +63,7 @@ export default class KubeCustomTemplatesViewController {
 
   confirmDelete(templateId) {
     return this.$async(async () => {
-      const confirmed = await this.ModalService.confirmDeletionAsync('Are you sure that you want to delete this template?');
+      const confirmed = await confirmDelete('Are you sure that you want to delete this template?');
       if (!confirmed) {
         return;
       }

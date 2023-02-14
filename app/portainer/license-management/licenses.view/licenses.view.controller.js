@@ -1,13 +1,13 @@
 import moment from 'moment';
+import { confirmDelete } from '@@/modals/confirm';
 
 export default class LicensesViewController {
   /* @ngInject */
-  constructor($async, $state, StatusService, LicenseService, ModalService, Notifications, clipboard) {
+  constructor($async, $state, StatusService, LicenseService, Notifications, clipboard) {
     this.$async = $async;
     this.$state = $state;
     this.StatusService = StatusService;
     this.LicenseService = LicenseService;
-    this.ModalService = ModalService;
     this.Notifications = Notifications;
     this.clipboard = clipboard;
 
@@ -36,7 +36,7 @@ export default class LicensesViewController {
           }
         }
 
-        if (!(await this.ModalService.confirmDeletionAsync('Are you sure you want to remove these licenses?'))) {
+        if (!(await confirmDelete('Are you sure you want to remove these licenses?'))) {
           return;
         }
 

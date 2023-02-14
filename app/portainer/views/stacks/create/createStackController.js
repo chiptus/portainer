@@ -7,6 +7,7 @@ import { RepositoryMechanismTypes } from '@/kubernetes/models/deploy';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { renderTemplate } from '@/react/portainer/custom-templates/components/utils';
 import { editor, upload, git, customTemplate } from '@@/BoxSelector/common-options/build-methods';
+import { confirmWebEditorDiscard } from '@@/modals/confirm';
 
 angular
   .module('portainer.app')
@@ -17,7 +18,6 @@ angular
       $state,
       $async,
       $window,
-      ModalService,
       StackService,
       Authentication,
       Notifications,
@@ -418,7 +418,7 @@ angular
 
       this.uiCanExit = async function () {
         if ($scope.state.Method === 'editor' && $scope.formValues.StackFileContent && $scope.state.isEditorDirty) {
-          return ModalService.confirmWebEditorDiscard();
+          return confirmWebEditorDiscard();
         }
       };
 

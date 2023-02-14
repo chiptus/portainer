@@ -5,17 +5,17 @@ import KubernetesApplicationHelper from 'Kubernetes/helpers/application';
 import KubernetesConfigurationHelper from 'Kubernetes/helpers/configurationHelper';
 import { KubernetesApplicationTypes } from 'Kubernetes/models/application/models';
 import { KubernetesPortainerApplicationStackNameLabel } from 'Kubernetes/models/application/models';
+import { confirmDelete } from '@@/modals/confirm';
+
 class KubernetesApplicationsController {
   /* @ngInject */
-  constructor($async, $state, Notifications, KubernetesApplicationService, HelmService, KubernetesConfigurationService, ModalService, LocalStorage, StackService) {
+  constructor($async, $state, Notifications, KubernetesApplicationService, HelmService, KubernetesConfigurationService, LocalStorage, StackService) {
     this.$async = $async;
     this.$state = $state;
     this.Notifications = Notifications;
     this.KubernetesApplicationService = KubernetesApplicationService;
     this.HelmService = HelmService;
     this.KubernetesConfigurationService = KubernetesConfigurationService;
-
-    this.ModalService = ModalService;
     this.LocalStorage = LocalStorage;
     this.StackService = StackService;
 
@@ -63,14 +63,11 @@ class KubernetesApplicationsController {
   }
 
   removeStacksAction(selectedItems) {
-    this.ModalService.confirmDeletion(
-      'Are you sure that you want to remove the selected stack(s) ? This will remove all the applications associated to the stack(s).',
-      (confirmed) => {
-        if (confirmed) {
-          return this.$async(this.removeStacksActionAsync, selectedItems);
-        }
+    confirmDelete('Are you sure that you want to remove the selected stack(s) ? This will remove all the applications associated to the stack(s).').then((confirmed) => {
+      if (confirmed) {
+        return this.$async(this.removeStacksActionAsync, selectedItems);
       }
-    );
+    });
   }
 
   async removeActionAsync(selectedItems) {
@@ -110,7 +107,7 @@ class KubernetesApplicationsController {
   }
 
   removeAction(selectedItems) {
-    this.ModalService.confirmDeletion('Do you want to remove the selected application(s)?', (confirmed) => {
+    confirmDelete('Do you want to remove the selected application(s)?').then((confirmed) => {
       if (confirmed) {
         return this.$async(this.removeActionAsync, selectedItems);
       }

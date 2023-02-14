@@ -1,13 +1,15 @@
 import uuidv4 from 'uuid/v4';
 import { RepositoryMechanismTypes } from 'Kubernetes/models/deploy';
+import { confirm } from '@@/modals/confirm';
+import { buildConfirmButton } from '@@/modals/utils';
+import { ModalType } from '@@/modals';
 class KubernetesRedeployAppGitFormController {
   /* @ngInject */
-  constructor($async, $state, $analytics, StackService, ModalService, UserService, Authentication, Notifications, WebhookHelper) {
+  constructor($async, $state, $analytics, StackService, UserService, Authentication, Notifications, WebhookHelper) {
     this.$async = $async;
     this.$state = $state;
     this.$analytics = $analytics;
     this.StackService = StackService;
-    this.ModalService = ModalService;
     this.UserService = UserService;
     this.Authentication = Authentication;
     this.Notifications = Notifications;
@@ -146,19 +148,16 @@ class KubernetesRedeployAppGitFormController {
     const that = this;
     return this.$async(async () => {
       try {
-        const confirmed = await this.ModalService.confirmAsync({
+        const confirmed = await confirm({
           title: 'Are you sure?',
           message: 'Any changes to this application will be overridden by the definition in git and may cause a service interruption. Do you wish to continue?',
-          buttons: {
-            confirm: {
-              label: 'Update',
-              className: 'btn-warning',
-            },
-          },
+          confirmButton: buildConfirmButton('Update', 'warning'),
+          modalType: ModalType.Warn,
         });
         if (!confirmed) {
           return;
         }
+
         this.state.redeployInProgress = true;
         // save git credential
         if (that.formValues.SaveCredential && that.formValues.NewCredentialName) {

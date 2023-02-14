@@ -2,7 +2,10 @@ import _ from 'lodash-es';
 
 import { PorImageRegistryModel } from 'Docker/models/porImageRegistry';
 
+import { confirmDestructive } from '@@/modals/confirm';
 import * as envVarsUtils from '@/portainer/helpers/env-vars';
+import { buildConfirmButton } from '@@/modals/utils';
+
 import { ContainerCapabilities, ContainerCapability } from '../../../models/containerCapabilities';
 import { AccessControlFormData } from '../../../../portainer/components/accessControlForm/porAccessControlFormModel';
 import { ContainerDetailsViewModel } from '../../../models/container';
@@ -28,7 +31,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
   'ContainerService',
   'ImageService',
   'FormValidator',
-  'ModalService',
   'RegistryService',
   'SystemService',
   'PluginService',
@@ -54,7 +56,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
     ContainerService,
     ImageService,
     FormValidator,
-    ModalService,
     RegistryService,
     SystemService,
     PluginService,
@@ -1032,18 +1033,12 @@ angular.module('portainer.docker').controller('CreateContainerController', [
         function showConfirmationModal() {
           var deferred = $q.defer();
 
-          ModalService.confirmDestructive({
-            title: 'Are you sure ?',
+          confirmDestructive({
+            title: 'Are you sure?',
             message: 'A container with the same name already exists. Portainer can automatically remove it and re-create one. Do you want to replace it?',
-            buttons: {
-              confirm: {
-                label: 'Replace',
-                className: 'btn-danger',
-              },
-            },
-            callback: function onConfirm(confirmed) {
-              deferred.resolve(confirmed);
-            },
+            confirmButton: buildConfirmButton('Replace', 'danger'),
+          }).then(function onConfirm(confirmed) {
+            deferred.resolve(confirmed);
           });
 
           return deferred.promise;

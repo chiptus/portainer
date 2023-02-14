@@ -4,6 +4,7 @@ import { RepositoryShortTag, RepositoryTagViewModel } from '@/portainer/registry
 import { trimSHA } from '@/docker/filters/utils';
 import EndpointHelper from '@/portainer/helpers/endpointHelper';
 import { getInfo } from '@/docker/services/system.service';
+import { confirmDelete } from '@@/modals/confirm';
 
 angular.module('portainer.app').controller('RegistryRepositoryController', RegistryRepositoryController);
 
@@ -18,7 +19,6 @@ function RegistryRepositoryController(
   EndpointService,
   RegistryServiceSelector,
   RegistryService,
-  ModalService,
   Notifications,
   ImageHelper,
   Authentication
@@ -399,11 +399,12 @@ function RegistryRepositoryController(
   }
 
   $scope.removeTags = function (selectedItems) {
-    ModalService.confirmDeletion('Are you sure you want to remove the selected tags ?', (confirmed) => {
+    return $async(async () => {
+      const confirmed = await confirmDelete('Are you sure you want to remove the selected tags ?');
       if (!confirmed) {
         return;
       }
-      return $async(removeTagsAsync, selectedItems);
+      return removeTagsAsync(selectedItems);
     });
   };
   /**
@@ -431,15 +432,14 @@ function RegistryRepositoryController(
   }
 
   $scope.removeRepository = function () {
-    ModalService.confirmDeletion(
-      'This action will only remove the manifests linked to this repository. You need to manually trigger a garbage collector pass on your registry to remove orphan layers and really remove the images content. THIS ACTION CAN NOT BE UNDONE',
-      function onConfirm(confirmed) {
-        if (!confirmed) {
-          return;
-        }
-        return $async(removeRepositoryAsync);
+    confirmDelete(
+      'This action will only remove the manifests linked to this repository. You need to manually trigger a garbage collector pass on your registry to remove orphan layers and really remove the images content. THIS ACTION CAN NOT BE UNDONE'
+    ).then((confirmed) => {
+      if (!confirmed) {
+        return;
       }
-    );
+      return $async(removeRepositoryAsync);
+    });
   };
   /**
    * !END REMOVE REPOSITORY SECTION

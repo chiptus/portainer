@@ -5,10 +5,10 @@ import { useStore } from 'zustand';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useNamespaces } from '@/react/kubernetes/namespaces/queries';
 import { useAuthorizations, Authorized } from '@/react/hooks/useUser';
-import { confirmDeletionAsync } from '@/portainer/services/modal.service/confirm';
 import Route from '@/assets/ico/route.svg?c';
 import { useIsDeploymentOptionHidden } from '@/react/hooks/useIsDeploymentOptionHidden';
 
+import { confirmDelete } from '@@/modals/confirm';
 import { Datatable } from '@@/datatables';
 import { Button } from '@@/buttons';
 import { Link } from '@@/Link';
@@ -115,7 +115,7 @@ export function IngressDatatable() {
   }
 
   async function handleRemoveClick(ingresses: SelectedIngress[]) {
-    const confirmed = await confirmDeletionAsync(
+    const confirmed = await confirmDelete(
       'Are you sure you want to delete the selected ingresses?'
     );
     if (!confirmed) {

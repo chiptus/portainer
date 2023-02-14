@@ -1,8 +1,7 @@
 import { useRouter } from '@uirouter/react';
 import { Plus, Trash2 } from 'lucide-react';
 
-import { confirmDestructiveAsync } from '@/portainer/services/modal.service/confirm';
-
+import { confirmDestructive } from '@@/modals/confirm';
 import { Icon } from '@@/Icon';
 import { Button } from '@@/buttons';
 
@@ -42,21 +41,11 @@ export function GitCredentialsDatatableActions({ selectedItems }: Props) {
   );
 
   async function onDeleteClick(selectedItems: GitCredential[]) {
-    const confirmed = await confirmDestructiveAsync({
+    const confirmed = await confirmDestructive({
       title: 'Confirm action',
       message: `Are you sure you want to remove the selected git ${
         selectedItems.length > 1 ? 'credentials' : 'credential'
       }?`,
-      buttons: {
-        cancel: {
-          label: 'Cancel',
-          className: 'btn-default',
-        },
-        confirm: {
-          label: 'Confirm',
-          className: 'btn-primary',
-        },
-      },
     });
 
     if (!confirmed) {

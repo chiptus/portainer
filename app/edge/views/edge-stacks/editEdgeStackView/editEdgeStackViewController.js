@@ -1,15 +1,15 @@
 import _ from 'lodash-es';
 import { getEnvironments } from '@/react/portainer/environments/environment.service';
 import { EditorType } from '@/react/edge/edge-stacks/types';
-// import { environmentTypeIcon } from '@/portainer/filters/filters';
+import { confirmWebEditorDiscard } from '@@/modals/confirm';
+import { confirmStackUpdate } from '@/react/docker/stacks/common/confirm-stack-update';
 
 export class EditEdgeStackViewController {
   /* @ngInject */
-  constructor($async, $state, $window, ModalService, EdgeGroupService, EdgeStackService, Notifications) {
+  constructor($async, $state, $window, EdgeGroupService, EdgeStackService, Notifications) {
     this.$async = $async;
     this.$state = $state;
     this.$window = $window;
-    this.ModalService = ModalService;
     this.EdgeGroupService = EdgeGroupService;
     this.EdgeStackService = EdgeStackService;
     this.Notifications = Notifications;
@@ -73,7 +73,7 @@ export class EditEdgeStackViewController {
       this.formValues.StackFileContent.replace(/(\r\n|\n|\r)/gm, '') !== this.oldFileContent.replace(/(\r\n|\n|\r)/gm, '') &&
       this.state.isEditorDirty
     ) {
-      return this.ModalService.confirmWebEditorDiscard();
+      return confirmWebEditorDiscard();
     }
   }
 
@@ -88,12 +88,11 @@ export class EditEdgeStackViewController {
 
   deployStack() {
     if (this.formValues.DeploymentType == EditorType.Compose) {
-      const that = this;
       const defaultToggle = this.formValues.PrePullImage;
-      this.ModalService.confirmStackUpdate('Do you want to force an update of the stack?', defaultToggle, null, function (result) {
+      confirmStackUpdate('Do you want to force an update of the stack?', defaultToggle).then((result) => {
         if (result) {
-          that.formValues.RePullImage = !!result[0];
-          return that.$async(that.deployStackAsync);
+          this.formValues.RePullImage = result.pullImage;
+          return this.$async(this.deployStackAsync);
         }
       });
     } else {

@@ -1,9 +1,11 @@
 import { useRouter } from '@uirouter/react';
 import { Plus } from 'lucide-react';
-
-import { promptAsync } from '@/portainer/services/modal.service/prompt';
+import { useState } from 'react';
 
 import { Button } from '@@/buttons';
+import { Dialog } from '@@/modals/Dialog';
+import { buildCancelButton, buildConfirmButton } from '@@/modals/utils';
+import { OnSubmit, openModal } from '@@/modals';
 
 import { usePublicSettings } from '../../queries';
 
@@ -42,30 +44,73 @@ export function AddDeviceButton() {
     }
   }
 
-  function getDeployType(): Promise<DeployType> {
+  function getDeployType() {
     if (!isFDOEnabled) {
       return Promise.resolve(DeployType.MANUAL);
     }
 
-    return promptAsync({
-      title: 'How would you like to add an Edge Device?',
-      inputType: 'radio',
-      inputOptions: [
-        {
-          text: 'Provision bare-metal using Intel FDO',
-          value: DeployType.FDO,
-        },
-        {
-          text: 'Deploy agent manually',
-          value: DeployType.MANUAL,
-        },
-      ],
-      buttons: {
-        confirm: {
-          label: 'Confirm',
-          className: 'btn-primary',
-        },
-      },
-    }) as Promise<DeployType>;
+    return askForDeployType();
   }
+}
+
+function askForDeployType() {
+  return openModal(AddDeviceDialog, {});
+}
+
+function AddDeviceDialog({ onSubmit }: { onSubmit: OnSubmit<DeployType> }) {
+  const [deployType, setDeployType] = useState<DeployType>(DeployType.FDO);
+  return (
+    <Dialog
+      title="How would you like to add an Edge Device?"
+      message={
+        <>
+          <RadioInput
+            name="deployType"
+            value={DeployType.FDO}
+            label="Provision bare-metal using Intel FDO"
+            groupValue={deployType}
+            onChange={setDeployType}
+          />
+
+          <RadioInput
+            name="deployType"
+            value={DeployType.MANUAL}
+            onChange={setDeployType}
+            groupValue={deployType}
+            label="Deploy agent manually"
+          />
+        </>
+      }
+      buttons={[buildCancelButton(), buildConfirmButton()]}
+      onSubmit={(confirm) => onSubmit(confirm ? deployType : undefined)}
+    />
+  );
+}
+
+function RadioInput<T extends number | string>({
+  value,
+  onChange,
+  label,
+  groupValue,
+  name,
+}: {
+  value: T;
+  onChange: (value: T) => void;
+  label: string;
+  groupValue: T;
+  name: string;
+}) {
+  return (
+    <label className="flex items-center gap-2">
+      <input
+        className="!m-0"
+        type="radio"
+        name={name}
+        value={value}
+        checked={groupValue === value}
+        onChange={() => onChange(value)}
+      />
+      {label}
+    </label>
+  );
 }

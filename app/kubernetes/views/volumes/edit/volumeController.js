@@ -5,6 +5,7 @@ import KubernetesVolumeHelper from 'Kubernetes/helpers/volumeHelper';
 import KubernetesEventHelper from 'Kubernetes/helpers/eventHelper';
 import { KubernetesStorageClassAccessPolicies } from 'Kubernetes/models/storage-class/models';
 import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
+import { confirmRedeploy } from '@/react/kubernetes/volumes/ItemView/ConfirmRedeployModal';
 
 class KubernetesVolumeController {
   /* @ngInject */
@@ -18,7 +19,6 @@ class KubernetesVolumeController {
     KubernetesApplicationService,
     KubernetesPersistentVolumeClaimService,
     KubernetesResourcePoolService,
-    ModalService,
     KubernetesPodService
   ) {
     this.$async = $async;
@@ -31,7 +31,6 @@ class KubernetesVolumeController {
     this.KubernetesApplicationService = KubernetesApplicationService;
     this.KubernetesPersistentVolumeClaimService = KubernetesPersistentVolumeClaimService;
     this.KubernetesResourcePoolService = KubernetesResourcePoolService;
-    this.ModalService = ModalService;
     this.KubernetesPodService = KubernetesPodService;
 
     this.onInit = this.onInit.bind(this);
@@ -119,12 +118,9 @@ class KubernetesVolumeController {
 
   updateVolume() {
     if (KubernetesVolumeHelper.isUsed(this.volume)) {
-      this.ModalService.confirmRedeploy(
-        'One or multiple applications are currently using this volume.</br> For the change to be taken into account these applications will need to be redeployed. Do you want us to reschedule it now?',
-        (redeploy) => {
-          return this.$async(this.updateVolumeAsync, redeploy);
-        }
-      );
+      confirmRedeploy().then((redeploy) => {
+        return this.$async(this.updateVolumeAsync, redeploy);
+      });
     } else {
       return this.$async(this.updateVolumeAsync, false);
     }

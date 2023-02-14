@@ -6,6 +6,7 @@ import { getDeploymentOptions } from '@/react/portainer/environments/environment
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { editor, upload, git } from '@@/BoxSelector/common-options/build-methods';
 import { EnvironmentType } from '@/react/portainer/environments/types';
+import { confirmWebEditorDiscard } from '@@/modals/confirm';
 
 class CreateCustomTemplateViewController {
   /* @ngInject */
@@ -16,7 +17,6 @@ class CreateCustomTemplateViewController {
     $window,
     EndpointProvider,
     Authentication,
-    ModalService,
     CustomTemplateService,
     FormValidator,
     Notifications,
@@ -32,7 +32,6 @@ class CreateCustomTemplateViewController {
       $scope,
       EndpointProvider,
       Authentication,
-      ModalService,
       CustomTemplateService,
       FormValidator,
       Notifications,
@@ -332,7 +331,7 @@ class CreateCustomTemplateViewController {
 
   async uiCanExit() {
     if (this.state.Method === 'editor' && this.formValues.FileContent && this.state.isEditorDirty) {
-      return this.ModalService.confirmWebEditorDiscard();
+      return confirmWebEditorDiscard();
     }
   }
 }

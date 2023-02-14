@@ -3,6 +3,7 @@ import filesizeParser from 'filesize-parser';
 import angular from 'angular';
 import KubernetesVolumeHelper from 'Kubernetes/helpers/volumeHelper';
 import KubernetesResourceQuotaHelper from 'Kubernetes/helpers/resourceQuotaHelper';
+import { confirmDelete } from '@@/modals/confirm';
 
 function buildStorages(storages, volumes) {
   _.forEach(storages, (s) => {
@@ -21,11 +22,10 @@ function computeSize(volumes) {
 
 class KubernetesVolumesController {
   /* @ngInject */
-  constructor($async, $state, Notifications, ModalService, LocalStorage, Authentication, KubernetesStorageService, KubernetesVolumeService, KubernetesApplicationService) {
+  constructor($async, $state, Notifications, LocalStorage, Authentication, KubernetesStorageService, KubernetesVolumeService, KubernetesApplicationService) {
     this.$async = $async;
     this.$state = $state;
     this.Notifications = Notifications;
-    this.ModalService = ModalService;
     this.LocalStorage = LocalStorage;
     this.Authentication = Authentication;
     this.KubernetesStorageService = KubernetesStorageService;
@@ -63,7 +63,7 @@ class KubernetesVolumesController {
   }
 
   removeAction(selectedItems) {
-    this.ModalService.confirmDeletion('Do you want to remove the selected volume(s)?', (confirmed) => {
+    confirmDelete('Do you want to remove the selected volume(s)?').then((confirmed) => {
       if (confirmed) {
         return this.$async(this.removeActionAsync, selectedItems);
       }
