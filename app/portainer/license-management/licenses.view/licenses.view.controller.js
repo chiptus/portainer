@@ -1,6 +1,8 @@
 import moment from 'moment';
 import { confirmDelete } from '@@/modals/confirm';
 
+import { LicenseType } from '@/portainer/license-management/types';
+
 export default class LicensesViewController {
   /* @ngInject */
   constructor($async, $state, StatusService, LicenseService, Notifications, clipboard) {
@@ -76,7 +78,7 @@ export default class LicensesViewController {
 
       try {
         this.info = await this.LicenseService.info();
-        if (this.usedNodes > this.info.nodes) {
+        if (this.usedNodes > this.info.nodes && this.info.type != LicenseType.Trial) {
           this.template = 'alert';
         }
 

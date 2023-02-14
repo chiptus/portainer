@@ -50,7 +50,7 @@ function buildInfoWidget(licenseInfo: LicenseInfo, usedNodes: number) {
     <div className={styles.extra}>
       <AlertTriangle className="icon icon-sm icon-warning" />
       <span className={styles.extraLessTwoMonths}>
-        One or more your licenses will expire on <i>{expiredAtStr}</i>
+        One or more of your licenses will expire on <i>{expiredAtStr}</i>
       </span>
     </div>
   );
@@ -59,7 +59,7 @@ function buildInfoWidget(licenseInfo: LicenseInfo, usedNodes: number) {
     licenseExpiredInfo = (
       <div className={styles.extra}>
         <span className="text-muted">
-          One or more your licenses will expire on <i>{expiredAtStr}</i>
+          One or more of your licenses will expire on <i>{expiredAtStr}</i>
         </span>
       </div>
     );
@@ -95,16 +95,18 @@ function buildAlertWidget(licenseInfo: LicenseInfo, usedNodes: number) {
         </b>
       </div>
       <ProgressBar current={usedNodes} total={licenseInfo.nodes} />
-      <div className={styles.alertExtra}>
-        <Icon
-          icon={AlertCircle}
-          className={clsx('icon-danger', 'space-right')}
-        />
-        <span className={styles.alertExtraText}>
-          You have exceeded the node allowance of your current license. Please
-          contact Portainer to upgrade your license.
-        </span>
-      </div>
+      {licenseInfo.type !== LicenseType.Trial && (
+        <div className={styles.alertExtra}>
+          <Icon
+            icon={AlertCircle}
+            className={clsx('icon-danger', 'space-right')}
+          />
+          <span className={styles.alertExtraText}>
+            You have exceeded the node allowance of your current license. Please
+            contact Portainer to upgrade your license.
+          </span>
+        </div>
+      )}
     </div>
   );
 }
