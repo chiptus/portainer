@@ -38,24 +38,6 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
     edgeEndpoint: false,
     edgeAssociated: false,
     allowCreate: Authentication.isAdmin(),
-    availableEdgeAgentCheckinOptions: [
-      { key: 'Use default interval', value: 0 },
-      {
-        key: '5 seconds',
-        value: 5,
-      },
-      {
-        key: '10 seconds',
-        value: 10,
-      },
-      {
-        key: '30 seconds',
-        value: 30,
-      },
-      { key: '5 minutes', value: 300 },
-      { key: '1 hour', value: 3600 },
-      { key: '1 day', value: 86400 },
-    ],
     allowSelfSignedCerts: true,
     showAMTInfo: false,
     showNomad: isBE,
@@ -112,11 +94,6 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
   function onChangeEdgeSettings(value) {
     setFieldValue('Edge', value);
   }
-
-  $scope.copyEdgeAgentKey = function () {
-    clipboard.copyText($scope.endpoint.EdgeKey);
-    $('#copyNotificationEdgeKey').show().fadeOut(2500);
-  };
 
   $scope.onDisassociateEndpoint = async function () {
     confirmDisassociate().then((confirmed) => {
@@ -328,8 +305,6 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
 
           $scope.state.edgeAssociated = !!endpoint.EdgeID;
           endpoint.EdgeID = endpoint.EdgeID || uuidv4();
-
-          $scope.state.availableEdgeAgentCheckinOptions[0].key += ` (${settings.EdgeAgentCheckinInterval} seconds)`;
         }
 
         $scope.endpoint = endpoint;
