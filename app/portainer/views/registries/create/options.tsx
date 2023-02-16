@@ -49,15 +49,15 @@ export const options = [
   {
     id: 'registry_gitlab',
     icon: Gitlab,
-    label: 'Gitlab',
-    description: 'Gitlab container registry',
+    label: 'GitLab',
+    description: 'GitLab container registry',
     value: '4',
   },
   {
     id: 'registry_github',
     icon: Github,
-    label: 'Github',
-    description: 'Github container registry',
+    label: 'GitHub',
+    description: 'GitHub container registry',
     value: '8',
   },
   {

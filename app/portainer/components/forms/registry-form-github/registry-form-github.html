@@ -3,12 +3,12 @@
   <div class="form-group">
     <span class="col-sm-12 text-muted small">
       <p>
-        For information on how to generate a Github Personal Access Token, follow the
-        <a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token" target="_blank"> github guide</a>.
+        For information on how to generate a GitHub Personal Access Token, follow the
+        <a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token" target="_blank"> GitHub guide</a>.
       </p>
     </span>
   </div>
-  <div class="col-sm-12 form-section-title"> Github container registry details </div>
+  <div class="col-sm-12 form-section-title"> GitHub container registry details </div>
   <!-- name-input -->
   <div class="form-group">
     <label for="registry_name" class="col-sm-3 col-lg-2 control-label required text-left">Name</label>
@@ -72,7 +72,7 @@
   <div class="form-group">
     <div class="col-sm-12">
       <por-switch-field
-        label="'Use organisation registry'"
+        label="'Use organization registry'"
         checked="$ctrl.model.Github.useOrganisation"
         on-change="($ctrl.toggleOrganisation)"
         label-class="'col-sm-2'"
@@ -84,7 +84,7 @@
   <div ng-if="$ctrl.model.Github.useOrganisation">
     <!-- organisation_name -->
     <div class="form-group">
-      <label for="organisation_name" class="col-sm-3 col-lg-2 control-label required text-left">Organisation name</label>
+      <label for="organisation_name" class="col-sm-3 col-lg-2 control-label required text-left">Organization name</label>
       <div class="col-sm-9 col-lg-10">
         <input type="text" class="form-control" id="organisation_name" name="organisation_name" ng-model="$ctrl.model.Github.organisationName" required />
         <div class="help-block" ng-show="$ctrl.registryFormGithub.organisation_name.$invalid">
