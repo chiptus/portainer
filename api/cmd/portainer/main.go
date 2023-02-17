@@ -52,6 +52,7 @@ import (
 	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/git"
 	"github.com/portainer/portainer/api/hostmanagement/openamt"
+	"github.com/portainer/portainer/api/platform"
 	"github.com/portainer/portainer/pkg/featureflags"
 	"github.com/portainer/portainer/pkg/libhelm"
 
@@ -559,6 +560,17 @@ func loadEncryptionSecretKey(keyfilename string) []byte {
 	return hash[:]
 }
 
+func cleanUpGhostUpdaterStacks(ctx context.Context) {
+	// retry three times to make sure that the updater container exits by itself.
+	// It is because if the updater container is forced to remove, the previous agent
+	// container can be skipped to be removed by updater container, which will result
+	// in the previous ce container being a ghost container.
+	err := docker.Retry(ctx, 3, 30*time.Second, docker.ScanAndCleanUpGhostUpdaterContainers)
+	if err != nil {
+		log.Warn().Err(err).Msg("unable to clean up ghost updater stack")
+	}
+}
+
 func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	shutdownCtx, shutdownTrigger := context.WithCancel(context.Background())
 
@@ -787,6 +799,19 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	err = kubernetesClientFactory.PostInitMigrateIngresses()
 	if err != nil {
 		log.Fatal().Err(err).Msg("failure during post init migrations")
+	}
+
+	currentPlatform, err := platform.DetermineContainerPlatform()
+	if err != nil {
+		log.Warn().Err(err).Msg("failed to determine the current container platform")
+	} else {
+		switch currentPlatform {
+		case platform.PlatformDockerStandalone, platform.PlatformDockerSwarm:
+			// if the current container is upgraded from CE version, the below goroutine
+			// will try to remove the ghost updater stack. Otherwise, it will exit automatically
+			go cleanUpGhostUpdaterStacks(shutdownCtx)
+			break
+		}
 	}
 
 	return &http.Server{

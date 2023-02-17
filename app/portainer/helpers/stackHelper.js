@@ -19,7 +19,9 @@ angular.module('portainer.app').factory('StackHelper', [
 
     function getExternalStacksFromLabel(items, label, type) {
       return _.uniqBy(
-        items.filter((item) => item.Labels && item.Labels[label]).map((item) => new ExternalStackViewModel(item.Labels[label], type, item.Created)),
+        items
+          .filter((item) => item.Labels && item.Labels[label] && !item.Labels['io.portainer.hideStack'])
+          .map((item) => new ExternalStackViewModel(item.Labels[label], type, item.Created)),
         'Name'
       );
     }
