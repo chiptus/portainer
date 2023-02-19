@@ -91,7 +91,7 @@ angular.module('portainer.app').factory('Authentication', [
       user.portainerAuthorizations = data.PortainerAuthorizations;
 
       // Initialize user theme base on UserTheme from database
-      const userTheme = data.UserTheme;
+      const userTheme = data.ThemeSettings ? data.ThemeSettings.color : 'auto';
       if (userTheme === 'auto' || !userTheme) {
         ThemeManager.autoTheme();
       } else {

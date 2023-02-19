@@ -1571,13 +1571,17 @@ type (
 		ID       UserID `json:"Id" example:"1"`
 		Username string `json:"Username" example:"bob"`
 		Password string `json:"Password,omitempty" swaggerignore:"true"`
-		// User Theme
-		UserTheme string `example:"dark"`
 		// User role (1 for administrator account and 2 for regular account)
 		Role                    UserRole               `json:"Role" example:"1"`
 		TokenIssueAt            int64                  `json:"TokenIssueAt" example:"1639408208"`
 		PortainerAuthorizations Authorizations         `json:"PortainerAuthorizations"`
 		EndpointAuthorizations  EndpointAuthorizations `json:"EndpointAuthorizations"`
+		ThemeSettings           UserThemeSettings
+
+		// Deprecated fields
+
+		// Deprecated
+		UserTheme string `example:"dark"`
 	}
 
 	// UserAccessPolicies represent the association of an access policy and a user
@@ -1620,6 +1624,14 @@ type (
 	// UserRole represents the role of a user. It can be either an administrator
 	// or a regular user
 	UserRole int
+
+	// UserThemeSettings represents the theme settings for a user
+	UserThemeSettings struct {
+		// Color represents the color theme of the UI
+		Color string `json:"color" example:"dark" enums:"dark,light,highcontrast,auto"`
+		// SubtleUpgradeButton indicates if the upgrade banner should be displayed in a subtle way
+		SubtleUpgradeButton bool `json:"subtleUpgradeButton"`
+	}
 
 	// Webhook represents a url webhook that can be used to update a service
 	Webhook struct {
