@@ -9,9 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const (
-	BucketName = "snapshots"
-)
+const BucketName = "snapshots"
 
 type Service struct {
 	connection portainer.Connection
@@ -30,6 +28,13 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	return &Service{
 		connection: connection,
 	}, nil
+}
+
+func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
+	return ServiceTx{
+		service: service,
+		tx:      tx,
+	}
 }
 
 func (service *Service) Snapshot(endpointID portaineree.EndpointID) (*portaineree.Snapshot, error) {

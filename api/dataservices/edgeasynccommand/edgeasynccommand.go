@@ -4,16 +4,13 @@ import (
 	"fmt"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/database/boltdb"
 	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
 )
 
-const (
-	// BucketName represents the name of the bucket where this service stores data.
-	BucketName = "edge_async_command"
-)
+// BucketName represents the name of the bucket where this service stores data.
+const BucketName = "edge_async_command"
 
 // Service represents a service for managing Edge Async Commands data.
 type Service struct {
@@ -34,6 +31,13 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	return &Service{
 		connection: connection,
 	}, nil
+}
+
+func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
+	return ServiceTx{
+		service: service,
+		tx:      tx,
+	}
 }
 
 func (service *Service) generateKey(cmd *portaineree.EdgeAsyncCommand) []byte {
@@ -59,7 +63,7 @@ func (service *Service) Update(id int, cmd *portaineree.EdgeAsyncCommand) error 
 func (service *Service) EndpointCommands(endpointID portaineree.EndpointID) ([]portaineree.EdgeAsyncCommand, error) {
 	var cmds = make([]portaineree.EdgeAsyncCommand, 0)
 
-	err := service.connection.(*boltdb.DbConnection).GetAllWithKeyPrefix(
+	err := service.connection.GetAllWithKeyPrefix(
 		BucketName,
 		service.connection.ConvertToKey(int(endpointID)),
 		&portaineree.EdgeAsyncCommand{},
