@@ -76,7 +76,7 @@
                   <div class="pt-0.5 pr-1">
                     <pr-icon icon="$ctrl.state.errorExpansions[item.Id] ? 'chevron-down' : 'chevron-right'"></pr-icon>
                   </div>
-                  <div class="whitespace-normal overflow-hidden" ng-class="{ 'h-[1.5em]': !$ctrl.state.errorExpansions[item.Id] }">
+                  <div class="overflow-hidden whitespace-normal" ng-class="{ 'h-[1.5em]': !$ctrl.state.errorExpansions[item.Id] }">
                     {{ $ctrl.endpointStatusError(item.Id) }}
                   </div>
                 </div>
