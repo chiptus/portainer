@@ -118,7 +118,11 @@ func (c *ContainerService) Recreate(ctx context.Context, endpoint *portaineree.E
 
 	// 5. network connect with bridge(not sure)
 	log.Debug().Str("container_id", newContainerId).Msg("starting to connect network to container")
-	err = cli.NetworkConnect(ctx, container.HostConfig.NetworkMode.NetworkName(), newContainerId, nil)
+	networkName := container.HostConfig.NetworkMode.NetworkName()
+	if networkName == "default" {
+		networkName = "bridge"
+	}
+	err = cli.NetworkConnect(ctx, networkName, newContainerId, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "connect container network error")
 	}
