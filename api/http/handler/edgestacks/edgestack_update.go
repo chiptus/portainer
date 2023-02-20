@@ -26,6 +26,7 @@ type updateEdgeStackPayload struct {
 	UseManifestNamespaces bool
 	PrePullImage          bool
 	RePullImage           bool
+	RetryDeploy           bool
 }
 
 func (payload *updateEdgeStackPayload) Validate(r *http.Request) error {
@@ -230,6 +231,7 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 
 	stack.PrePullImage = payload.PrePullImage
 	stack.RePullImage = payload.RePullImage
+	stack.RetryDeploy = payload.RetryDeploy
 
 	stack.NumDeployments = len(relatedEndpointIds)
 

@@ -118,28 +118,36 @@
                 </a>
               </td>
               <td class="text-center">
-                <span class="edge-stack-status status-acknowledged">
-                  &bull;
-                  {{ item.aggregateStatus.acknowledged }}
-                </span>
+                <a class="hover:no-underline" ui-sref="edge.stacks.edit({ stackId: item.Id, tab: 1, status: 'Acknowledged' })">
+                  <span class="edge-stack-status status-acknowledged">
+                    &bull;
+                    {{ item.aggregateStatus.acknowledged }}
+                  </span>
+                </a>
               </td>
               <td class="text-center">
-                <span class="edge-stack-status status-images-pulled">
-                  &bull;
-                  {{ item.aggregateStatus.imagesPulled }}
-                </span>
+                <a class="hover:no-underline" ui-sref="edge.stacks.edit({ stackId: item.Id, tab: 1, status: 'ImagesPulled' })">
+                  <span class="edge-stack-status status-images-pulled">
+                    &bull;
+                    {{ item.aggregateStatus.imagesPulled }}
+                  </span>
+                </a>
               </td>
               <td class="text-center">
-                <span class="edge-stack-status status-ok">
-                  &bull;
-                  {{ item.aggregateStatus.ok }}
-                </span>
+                <a class="hover:no-underline" ui-sref="edge.stacks.edit({ stackId: item.Id, tab: 1, status: 'Ok' })">
+                  <span class="edge-stack-status status-ok">
+                    &bull;
+                    {{ item.aggregateStatus.ok }}
+                  </span>
+                </a>
               </td>
               <td class="text-center">
-                <span class="edge-stack-status status-error">
-                  &bull;
-                  {{ item.aggregateStatus.error }}
-                </span>
+                <a class="hover:no-underline" ui-sref="edge.stacks.edit({ stackId: item.Id, tab: 1, status: 'Error' })">
+                  <span class="edge-stack-status status-error">
+                    &bull;
+                    {{ item.aggregateStatus.error }}
+                  </span>
+                </a>
               </td>
               <td class="text-center">
                 <span class="edge-stack-status status-total">

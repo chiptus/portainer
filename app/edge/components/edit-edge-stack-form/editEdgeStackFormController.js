@@ -46,6 +46,7 @@ export class EditEdgeStackFormController {
     this.onChangeUseManifestNamespaces = this.onChangeUseManifestNamespaces.bind(this);
     this.onChangePrePullImage = this.onChangePrePullImage.bind(this);
     this.selectValidDeploymentType = this.selectValidDeploymentType.bind(this);
+    this.onChangeRetryDeploy = this.onChangeRetryDeploy.bind(this);
   }
 
   checkRegistries(registries) {
@@ -201,6 +202,12 @@ export class EditEdgeStackFormController {
   onChangePrePullImage(value) {
     return this.$scope.$evalAsync(() => {
       this.model.PrePullImage = value;
+    });
+  }
+
+  onChangeRetryDeploy(value) {
+    return this.$scope.$evalAsync(() => {
+      this.model.RetryDeploy = value;
     });
   }
 

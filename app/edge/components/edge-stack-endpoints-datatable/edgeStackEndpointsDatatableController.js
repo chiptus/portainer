@@ -2,7 +2,7 @@ import angular from 'angular';
 
 export class EdgeStackEndpointsDatatableController {
   /* @ngInject */
-  constructor($async, $scope, $controller, DatatableService, PaginationService, Notifications) {
+  constructor($state, $async, $scope, $controller, DatatableService, PaginationService, Notifications) {
     this.extendGenericController($controller, $scope);
     this.DatatableService = DatatableService;
     this.PaginationService = PaginationService;
@@ -15,11 +15,15 @@ export class EdgeStackEndpointsDatatableController {
       filteredDataSet: [],
       totalFilteredDataset: 0,
       pageNumber: 1,
+      statusFilter: $state.params.status || '',
+      errorExpansions: [],
     });
 
+    this.onStatusFilterChange = this.onStatusFilterChange.bind(this);
     this.onPageChange = this.onPageChange.bind(this);
     this.paginationChanged = this.paginationChanged.bind(this);
     this.paginationChangedAsync = this.paginationChangedAsync.bind(this);
+    this.toggleErrorExpansion = this.toggleErrorExpansion.bind(this);
   }
 
   extendGenericController($controller, $scope) {
@@ -41,7 +45,15 @@ export class EdgeStackEndpointsDatatableController {
     const status = this.getEndpointStatus(endpointId);
     const details = (status && status.Details) || {};
 
-    return (details.Error && 'Error') || (details.Ok && 'Ok') || (details.ImagesPulled && 'Images pre-pulled') || (details.Acknowledged && 'Acknowledged') || 'Pending';
+    const labels = [];
+
+    if (details.Acknowledged) labels.push('Acknowledged');
+    if (details.ImagesPulled) labels.push('Images pre-pulled');
+    if (details.Ok) labels.push('Deployed');
+    if (details.Error) labels.push('Failed');
+    if (!labels.length) labels.push('Pending');
+
+    return labels.join(', ');
   }
 
   endpointStatusError(endpointId) {
@@ -90,6 +102,14 @@ export class EdgeStackEndpointsDatatableController {
     this.paginationChanged();
   }
 
+  onStatusFilterChange() {
+    this.paginationChanged();
+  }
+
+  toggleErrorExpansion(endpointId) {
+    this.state.errorExpansions[endpointId] = !this.state.errorExpansions[endpointId];
+  }
+
   /**
    * Overridden
    */
@@ -108,7 +128,7 @@ export class EdgeStackEndpointsDatatableController {
     this.state.filteredDataSet = [];
     const start = (this.state.pageNumber - 1) * this.state.paginatedItemLimit + 1;
     try {
-      const { endpoints, totalCount } = await this.retrievePage(start, this.state.paginatedItemLimit, this.state.textFilter);
+      const { endpoints, totalCount } = await this.retrievePage(start, this.state.paginatedItemLimit, this.state.textFilter, this.state.statusFilter);
       this.state.filteredDataSet = endpoints;
       this.state.totalFilteredDataSet = totalCount;
     } catch (err) {

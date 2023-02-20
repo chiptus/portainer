@@ -329,6 +329,8 @@ type (
 		PrePullImage bool `json:"PrePullImage"`
 		// Re-Pull Image
 		RePullImage bool `json:"RePullImage"`
+		// Retry deploy
+		RetryDeploy bool `example:"false"`
 
 		// Deprecated
 		Prune bool `json:"Prune"`

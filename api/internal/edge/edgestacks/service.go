@@ -40,6 +40,7 @@ func (service *Service) BuildEdgeStack(name string,
 	useManifestNamespaces bool,
 	prePullImage bool,
 	rePullImage bool,
+	RetryDeploy bool,
 ) (*portaineree.EdgeStack, error) {
 	edgeStacksService := service.dataStore.EdgeStack()
 
@@ -67,6 +68,7 @@ func (service *Service) BuildEdgeStack(name string,
 		UseManifestNamespaces: useManifestNamespaces,
 		PrePullImage:          prePullImage,
 		RePullImage:           rePullImage,
+		RetryDeploy:           RetryDeploy,
 	}, nil
 }
 

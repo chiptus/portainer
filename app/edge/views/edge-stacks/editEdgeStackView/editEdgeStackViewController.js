@@ -49,6 +49,7 @@ export class EditEdgeStackViewController {
           Registries: this.stack.Registries,
           UseManifestNamespaces: this.stack.UseManifestNamespaces,
           PrePullImage: this.stack.PrePullImage,
+          RetryDeploy: this.stack.RetryDeploy,
         };
         this.oldFileContent = this.formValues.StackFileContent;
       } catch (err) {
@@ -108,6 +109,7 @@ export class EditEdgeStackViewController {
         this.formValues.Registries[0] !== this.stack.Registries[0] ||
         this.formValues.UseManifestNamespaces !== this.stack.UseManifestNamespaces ||
         this.formValues.PrePullImage !== this.stack.PrePullImage ||
+        this.formValues.RetryDeploy !== this.stack.RetryDeploy ||
         this.formValues.RePullImage
       ) {
         this.formValues.Version = this.stack.Version + 1;
@@ -127,13 +129,25 @@ export class EditEdgeStackViewController {
     return this.$async(this.getPaginatedEndpointsAsync, ...args);
   }
 
-  async getPaginatedEndpointsAsync(lastId, limit, search) {
+  filterEndpointsStatus(stack, stackEndpointIds, statusFilter) {
+    if (!statusFilter) {
+      return stackEndpointIds;
+    }
+
+    return _.filter(stackEndpointIds, (endpointId) => {
+      return stack.Status[endpointId] && stack.Status[endpointId].Details[statusFilter];
+    });
+  }
+
+  async getPaginatedEndpointsAsync(lastId, limit, search, statusFilter) {
     try {
-      if (this.stackEndpointIds.length === 0) {
+      const filteredStackEndpiontIds = this.filterEndpointsStatus(this.stack, this.stackEndpointIds, statusFilter);
+
+      if (filteredStackEndpiontIds.length === 0) {
         return { endpoints: [], totalCount: 0 };
       }
 
-      const query = { search, endpointIds: this.stackEndpointIds };
+      const query = { search, endpointIds: filteredStackEndpiontIds };
       const { value, totalCount } = await getEnvironments({ start: lastId, limit, query });
 
       return { endpoints: value, totalCount };

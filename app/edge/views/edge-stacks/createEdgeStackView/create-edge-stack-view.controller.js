@@ -33,6 +33,7 @@ export default class CreateEdgeStackViewController {
       Registries: [],
       UseManifestNamespaces: false,
       PrePullImage: false,
+      RetryDeploy: false,
     };
 
     this.EditorType = EditorType;
@@ -64,6 +65,7 @@ export default class CreateEdgeStackViewController {
     this.onChangeDeploymentType = this.onChangeDeploymentType.bind(this);
     this.onChangeGitCredential = this.onChangeGitCredential.bind(this);
     this.onChangePrePullImage = this.onChangePrePullImage.bind(this);
+    this.onChangeRetryDeploy = this.onChangeRetryDeploy.bind(this);
   }
 
   buildAnalyticsProperties() {
@@ -300,7 +302,7 @@ export default class CreateEdgeStackViewController {
   }
 
   createStackFromFileContent(name, dryrun) {
-    const { StackFileContent, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage } = this.formValues;
+    const { StackFileContent, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy } = this.formValues;
     return this.EdgeStackService.createStackFromFileContent(
       {
         name,
@@ -310,13 +312,14 @@ export default class CreateEdgeStackViewController {
         Registries: dryrun ? [] : Registries,
         UseManifestNamespaces,
         PrePullImage,
+        RetryDeploy,
       },
       dryrun
     );
   }
 
   createStackFromFileUpload(name, dryrun) {
-    const { StackFile, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage } = this.formValues;
+    const { StackFile, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy } = this.formValues;
     return this.EdgeStackService.createStackFromFileUpload(
       {
         Name: name,
@@ -325,6 +328,7 @@ export default class CreateEdgeStackViewController {
         Registries: dryrun ? [] : Registries,
         UseManifestNamespaces,
         PrePullImage,
+        RetryDeploy,
       },
       StackFile,
       dryrun
@@ -332,7 +336,7 @@ export default class CreateEdgeStackViewController {
   }
 
   async createStackFromGitRepository(name) {
-    const { Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage } = this.formValues;
+    const { Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy } = this.formValues;
 
     if (this.formValues.SaveCredential && this.formValues.NewCredentialName) {
       const userDetails = this.Authentication.getUserDetails();
@@ -362,6 +366,7 @@ export default class CreateEdgeStackViewController {
         Registries: Registries,
         UseManifestNamespaces,
         PrePullImage,
+        RetryDeploy,
       },
       repositoryOptions
     );
@@ -378,6 +383,12 @@ export default class CreateEdgeStackViewController {
   onChangePrePullImage(value) {
     return this.$scope.$evalAsync(() => {
       this.formValues.PrePullImage = value;
+    });
+  }
+
+  onChangeRetryDeploy(value) {
+    return this.$scope.$evalAsync(() => {
+      this.formValues.RetryDeploy = value;
     });
   }
 

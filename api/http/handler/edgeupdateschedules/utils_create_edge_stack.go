@@ -45,6 +45,7 @@ func (handler *Handler) createUpdateEdgeStack(scheduleID edgetypes.UpdateSchedul
 		false,
 		false,
 		false,
+		false,
 	)
 
 	if err != nil {

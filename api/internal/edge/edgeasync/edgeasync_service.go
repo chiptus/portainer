@@ -26,6 +26,7 @@ type edgeStackData struct {
 	Namespace    string
 	PrePullImage bool
 	RePullImage  bool
+	RetryDeploy  bool
 }
 
 type edgeLogData struct {
@@ -131,6 +132,7 @@ func (service *Service) storeUpdateStackCommand(endpoint *portaineree.Endpoint, 
 		Namespace:           namespace,
 		PrePullImage:        edgeStack.PrePullImage,
 		RePullImage:         edgeStack.RePullImage,
+		RetryDeploy:         edgeStack.RetryDeploy,
 	}
 
 	asyncCommand := &portaineree.EdgeAsyncCommand{

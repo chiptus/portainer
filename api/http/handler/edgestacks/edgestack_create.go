@@ -100,6 +100,8 @@ type swarmStackFromFileContentPayload struct {
 	UseManifestNamespaces bool
 	// Pre Pull image
 	PrePullImage bool `example:"false"`
+	// Retry deploy
+	RetryDeploy bool `example:"false"`
 }
 
 func (payload *swarmStackFromFileContentPayload) Validate(r *http.Request) error {
@@ -123,7 +125,7 @@ func (handler *Handler) createSwarmStackFromFileContent(r *http.Request, dryrun 
 		return nil, err
 	}
 
-	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false)
+	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false, payload.RetryDeploy)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create Edge stack object")
 	}
@@ -227,6 +229,8 @@ type swarmStackFromGitRepositoryPayload struct {
 	UseManifestNamespaces bool
 	// Pre Pull image
 	PrePullImage bool `example:"false"`
+	// Retry deploy
+	RetryDeploy bool `example:"false"`
 }
 
 func (payload *swarmStackFromGitRepositoryPayload) Validate(r *http.Request) error {
@@ -262,7 +266,7 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request, dryru
 		return nil, err
 	}
 
-	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false)
+	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false, payload.RetryDeploy)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create edge stack object")
 	}
@@ -304,6 +308,8 @@ type swarmStackFromFileUploadPayload struct {
 	UseManifestNamespaces bool
 	// Pre Pull image
 	PrePullImage bool `example:"false"`
+	// Retry deploy
+	RetryDeploy bool `example:"false"`
 }
 
 func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error {
@@ -345,6 +351,9 @@ func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error 
 	prePullImage, _ := request.RetrieveBooleanMultiPartFormValue(r, "PrePullImage", true)
 	payload.PrePullImage = prePullImage
 
+	retryDeploy, _ := request.RetrieveBooleanMultiPartFormValue(r, "RetryDeploy", true)
+	payload.RetryDeploy = retryDeploy
+
 	return nil
 }
 
@@ -355,7 +364,7 @@ func (handler *Handler) createSwarmStackFromFileUpload(r *http.Request, dryrun b
 		return nil, err
 	}
 
-	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false)
+	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false, payload.RetryDeploy)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create edge stack object")
 	}

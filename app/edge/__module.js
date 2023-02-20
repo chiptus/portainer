@@ -74,6 +74,7 @@ angular
       },
       params: {
         tab: 0,
+        status: '',
       },
     };
 
