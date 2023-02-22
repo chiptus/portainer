@@ -57,21 +57,18 @@
             ng-if="$ctrl.formValues.DeploymentType == $ctrl.EditorType.Compose"
             form-values="$ctrl.formValues"
             state="$ctrl.state"
-            on-change-git-credential="($ctrl.onChangeGitCredential)"
           ></edge-stacks-docker-compose-form>
 
           <edge-stacks-kube-manifest-form
             ng-if="$ctrl.formValues.DeploymentType == $ctrl.EditorType.Kubernetes"
             form-values="$ctrl.formValues"
             state="$ctrl.state"
-            on-change-git-credential="($ctrl.onChangeGitCredential)"
           ></edge-stacks-kube-manifest-form>
 
           <edge-stacks-nomad-hcl-form
             ng-if="$ctrl.formValues.DeploymentType == $ctrl.EditorType.Nomad"
             form-values="$ctrl.formValues"
             state="$ctrl.state"
-            on-change-git-credential="($ctrl.onChangeGitCredential)"
           ></edge-stacks-nomad-hcl-form>
 
           <private-registry-fieldset

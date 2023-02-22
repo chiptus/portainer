@@ -18,8 +18,6 @@ export default class CreateEdgeStackViewController {
       RepositoryAuthentication: false,
       RepositoryUsername: '',
       RepositoryPassword: '',
-      SelectedGitCredential: null,
-      GitCredentials: [],
       SaveCredential: true,
       RepositoryGitCredentialID: 0,
       NewCredentialName: '',
@@ -63,7 +61,6 @@ export default class CreateEdgeStackViewController {
     this.hasKubeEndpoint = this.hasKubeEndpoint.bind(this);
     this.hasNomadEndpoint = this.hasNomadEndpoint.bind(this);
     this.onChangeDeploymentType = this.onChangeDeploymentType.bind(this);
-    this.onChangeGitCredential = this.onChangeGitCredential.bind(this);
     this.onChangePrePullImage = this.onChangePrePullImage.bind(this);
     this.onChangeRetryDeploy = this.onChangeRetryDeploy.bind(this);
   }
@@ -113,12 +110,6 @@ export default class CreateEdgeStackViewController {
       this.Notifications.error('Failure', err, 'Unable to retrieve Edge groups');
     }
 
-    try {
-      this.formValues.GitCredentials = await this.UserService.getGitCredentials(this.Authentication.getUserDetails().ID);
-    } catch (err) {
-      this.Notifications.error('Failure', err, 'Unable to retrieve user saved git credentials');
-    }
-
     this.$window.onbeforeunload = () => {
       if (this.state.Method === 'editor' && this.formValues.StackFileContent && this.state.isEditorDirty) {
         return '';
@@ -128,23 +119,6 @@ export default class CreateEdgeStackViewController {
 
   $onDestroy() {
     this.state.isEditorDirty = false;
-  }
-
-  onChangeGitCredential(selectedGitCredential) {
-    return this.$async(async () => {
-      if (selectedGitCredential) {
-        this.formValues.SelectedGitCredential = selectedGitCredential;
-        this.formValues.RepositoryGitCredentialID = Number(selectedGitCredential.id);
-        this.formValues.RepositoryUsername = selectedGitCredential.username;
-        this.formValues.SaveGitCredential = false;
-        this.formValues.NewCredentialName = '';
-      } else {
-        this.formValues.SelectedGitCredential = null;
-        this.formValues.RepositoryUsername = '';
-        this.formValues.RepositoryPassword = '';
-        this.formValues.RepositoryGitCredentialID = 0;
-      }
-    });
   }
 
   checkRegistries(registries) {

@@ -55,8 +55,6 @@ class CreateCustomTemplateViewController {
       RepositoryAuthentication: false,
       RepositoryUsername: '',
       RepositoryPassword: '',
-      SelectedGitCredential: null,
-      GitCredentials: [],
       SaveCredential: true,
       RepositoryGitCredentialID: 0,
       NewCredentialName: '',
@@ -94,7 +92,6 @@ class CreateCustomTemplateViewController {
     this.editorUpdate = this.editorUpdate.bind(this);
     this.onChangeMethod = this.onChangeMethod.bind(this);
     this.onVariablesChange = this.onVariablesChange.bind(this);
-    this.onChangeGitCredential = this.onChangeGitCredential.bind(this);
     this.handleChange = this.handleChange.bind(this);
   }
 
@@ -108,10 +105,6 @@ class CreateCustomTemplateViewController {
         ...this.formValues,
         ...values,
       };
-
-      const existGitCredential = this.formValues.GitCredentials.find((x) => x.name === this.formValues.NewCredentialName);
-      this.formValues.NewCredentialNameExist = existGitCredential ? true : false;
-      this.formValues.NewCredentialNameInvalid = this.formValues.NewCredentialName && !this.formValues.NewCredentialName.match(/^[-_a-z0-9]+$/) ? true : false;
     });
   }
 
@@ -125,23 +118,6 @@ class CreateCustomTemplateViewController {
       this.formValues.Variables = [];
       this.selectedTemplate = null;
       this.state.Method = method;
-    });
-  }
-
-  onChangeGitCredential(selectedGitCredential) {
-    return this.$async(async () => {
-      if (selectedGitCredential) {
-        this.formValues.SelectedGitCredential = selectedGitCredential;
-        this.formValues.RepositoryGitCredentialID = Number(selectedGitCredential.id);
-        this.formValues.RepositoryUsername = selectedGitCredential.username;
-        this.formValues.SaveGitCredential = false;
-        this.formValues.NewCredentialName = '';
-      } else {
-        this.formValues.SelectedGitCredential = null;
-        this.formValues.RepositoryUsername = '';
-        this.formValues.RepositoryPassword = '';
-        this.formValues.RepositoryGitCredentialID = 0;
-      }
     });
   }
 
@@ -269,6 +245,7 @@ class CreateCustomTemplateViewController {
     this.state.endpointMode = applicationState.endpoint.mode;
     let stackType = 0;
     if (this.state.endpointMode.provider === 'DOCKER_STANDALONE') {
+      this.isDockerStandalone = true;
       stackType = 2;
     } else if (this.state.endpointMode.provider === 'DOCKER_SWARM_MODE') {
       stackType = 1;
@@ -286,12 +263,6 @@ class CreateCustomTemplateViewController {
       this.templates = await this.CustomTemplateService.customTemplates([1, 2]);
     } catch (err) {
       this.Notifications.error('Failure loading', err, 'Failed loading custom templates');
-    }
-
-    try {
-      this.formValues.GitCredentials = await this.UserService.getGitCredentials(this.Authentication.getUserDetails().ID);
-    } catch (err) {
-      this.Notifications.error('Failure', err, 'Unable to retrieve user saved git credentials');
     }
 
     try {

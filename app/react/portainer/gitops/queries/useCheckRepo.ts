@@ -3,34 +3,51 @@ import { useQuery } from 'react-query';
 
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 
-interface CheckPayload {
-  repository: string;
+interface Creds {
   username?: string;
   password?: string;
+  gitCredentialId?: number;
 }
 
-export function useCheckRepo(payload: CheckPayload, enabled: boolean) {
-  return useQuery<string[], Error>(
-    ['git_repo_valid', { payload }],
-    () => checkRepo(payload),
+export function useCheckRepo(
+  url: string,
+  creds: Creds,
+  force: boolean,
+  {
+    enabled,
+    onSettled,
+  }: { enabled?: boolean; onSettled?(isValid?: boolean): void } = {}
+) {
+  return useQuery(
+    ['git_repo_valid', url, creds, force],
+    () => checkRepo(url, creds, force),
     {
-      enabled,
+      enabled: !!url && enabled,
+      onSettled,
       retry: false,
     }
   );
 }
 
-export async function checkRepo(payload: CheckPayload) {
+export async function checkRepo(
+  repository: string,
+  creds: Creds,
+  force: boolean
+): Promise<boolean> {
   try {
-    const { data } = await axios.post<string[]>('/gitops/repo/refs', payload);
-    return data;
+    await axios.post<string[]>(
+      '/gitops/repo/refs',
+      { repository, ...creds },
+      force ? { params: { force } } : {}
+    );
+    return true;
   } catch (error) {
     throw parseAxiosError(error as Error, '', (axiosError: AxiosError) => {
       let details = axiosError.response?.data.details;
 
       // If no credentials were provided alter error from git to indicate repository is not found or is private
       if (
-        !(payload.username && payload.password) &&
+        !(creds.username && creds.password) &&
         details ===
           'Authentication failed, please ensure that the git credentials are correct.'
       ) {

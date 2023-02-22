@@ -1,4 +1,4 @@
-import { PropsWithChildren, ReactNode } from 'react';
+import { ComponentProps, PropsWithChildren, ReactNode } from 'react';
 import clsx from 'clsx';
 
 import { Tooltip } from '@@/Tip/Tooltip';
@@ -11,12 +11,12 @@ export interface Props {
   inputId?: string;
   label: ReactNode;
   size?: Size;
-  tooltip?: string;
+  tooltip?: ComponentProps<typeof Tooltip>['message'];
+  setTooltipHtmlMessage?: ComponentProps<typeof Tooltip>['setHtmlMessage'];
   children: ReactNode;
   errors?: ReactNode;
   required?: boolean;
   className?: string;
-  setTooltipHtmlMessage?: boolean;
 }
 
 export function FormControl({
@@ -53,11 +53,7 @@ export function FormControl({
 
       <div className={sizeClassChildren(size)}>
         {children}
-        {errors && (
-          <span className="help-block">
-            <FormError>{errors}</FormError>
-          </span>
-        )}
+        {errors && <FormError>{errors}</FormError>}
       </div>
     </div>
   );

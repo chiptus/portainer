@@ -13,6 +13,8 @@ import servicesModule from './services';
 import { reactModule } from './react';
 import { sidebarModule } from './react/views/sidebar';
 import { gitCredentialsModule } from './views/account/git-credential';
+import environmentsModule from './environments';
+import { helpersModule } from './helpers';
 
 async function initAuthentication(authManager, Authentication, $rootScope, $state) {
   authManager.checkAuthOnRefresh();
@@ -45,6 +47,8 @@ angular
     reactModule,
     sidebarModule,
     gitCredentialsModule,
+    environmentsModule,
+    helpersModule,
   ])
   .config([
     '$stateRegistryProvider',

@@ -102,7 +102,9 @@ function DeployCode({
         </p>
       )}
       <Code>{code}</Code>
-      <CopyButton copyText={code}>Copy command</CopyButton>
+      <div className="mt-2">
+        <CopyButton copyText={code}>Copy command</CopyButton>
+      </div>
     </>
   );
 }

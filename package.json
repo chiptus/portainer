@@ -188,7 +188,7 @@
     "@types/sanitize-html": "^2.6.2",
     "@types/semver-compare": "^1.0.1",
     "@types/toastr": "^2.1.39",
-    "@types/uuid": "^8.3.4",
+    "@types/uuid": "^3.3.2",
     "@typescript-eslint/eslint-plugin": "^5.7.0",
     "@typescript-eslint/parser": "^5.7.0",
     "auto-ngtemplate-loader": "^2.0.1",

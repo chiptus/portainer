@@ -20,6 +20,7 @@ import { nomadModule } from './nomad';
 
 import { onStartupAngular } from './app';
 import { configApp } from './config';
+import { constantsModule } from './ng-constants';
 
 initFeatureService(Edition[process.env.PORTAINER_EDITION]);
 
@@ -51,6 +52,7 @@ angular
     'moment-picker',
     'angulartics',
     analyticsModule,
+    constantsModule,
   ])
   .run(onStartupAngular)
   .config(configApp);

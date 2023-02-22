@@ -1,72 +1,55 @@
-import _ from 'lodash';
-import {
-  ChangeEvent,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-} from 'react';
+import { ChangeEvent, useState } from 'react';
 import { RefreshCcw } from 'lucide-react';
 import { useQueryClient } from 'react-query';
+import { string, StringSchema } from 'yup';
 
-import { useCheckRepo } from '@/react/portainer/gitops/queries/useCheckRepo';
+import {
+  checkRepo,
+  useCheckRepo,
+} from '@/react/portainer/gitops/queries/useCheckRepo';
+import { useDebounce } from '@/react/hooks/useDebounce';
+import { isPortainerError } from '@/portainer/error';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { Input } from '@@/form-components/Input';
 import { TextTip } from '@@/Tip/TextTip';
 import { Button } from '@@/buttons';
+import { useCachedValidation } from '@@/form-components/useCachedTest';
 
 import { GitFormModel } from './types';
+import { getAuthentication } from './utils';
 
 interface Props {
   value: string;
   onChange(value: string): void;
   onChangeRepositoryValid(value: boolean): void;
-  onRefreshGitopsCache(): void;
   model: GitFormModel;
+  errors?: string;
 }
 
 export function GitFormUrlField({
   value,
   onChange,
   onChangeRepositoryValid,
-  onRefreshGitopsCache,
   model,
+  errors,
 }: Props) {
   const queryClient = useQueryClient();
 
-  const handleChangeRef = useRef(onChangeRepositoryValid);
-  useLayoutEffect(() => {
-    handleChangeRef.current = onChangeRepositoryValid;
+  const creds = getAuthentication(model);
+  const [force, setForce] = useState(false);
+  const repoStatusQuery = useCheckRepo(value, creds, force, {
+    onSettled(isValid) {
+      onChangeRepositoryValid(!!isValid);
+      setForce(false);
+    },
   });
 
-  let creds = {};
-  if (model.RepositoryAuthentication) {
-    if (model.RepositoryPassword) {
-      creds = {
-        username: model.RepositoryUsername,
-        password: model.RepositoryPassword,
-      };
-    } else if (model.SelectedGitCredential) {
-      creds = { gitCredentialId: model.SelectedGitCredential.id };
-    }
-  }
-  const payload = {
-    repository: value,
-    ...creds,
-  };
-  const enabled = !!(value && value.length > 0);
-  const repoStatusQuery = useCheckRepo(payload, enabled);
+  const [debouncedValue, debouncedOnChange] = useDebounce(value, onChange);
 
-  useEffect(() => {
-    if (!repoStatusQuery.isLoading && enabled)
-      handleChangeRef.current(!repoStatusQuery.isError);
-  }, [repoStatusQuery.isError, repoStatusQuery.isLoading, enabled]);
-
-  const debouncedOnChange = useMemo(
-    () => _.debounce(onChange, 500),
-    [onChange]
-  );
+  const errorMessage = isPortainerError(repoStatusQuery.error)
+    ? repoStatusQuery.error.message
+    : undefined;
 
   return (
     <div className="form-group">
@@ -77,12 +60,12 @@ export function GitFormUrlField({
         <FormControl
           label="Repository URL"
           inputId="stack_repository_url"
-          errors={repoStatusQuery.error?.message}
+          errors={errorMessage || errors}
           required
         >
           <span className="flex">
             <Input
-              defaultValue={value}
+              value={debouncedValue}
               type="text"
               name="repoUrlField"
               className="form-control"
@@ -112,7 +95,28 @@ export function GitFormUrlField({
   }
 
   function onRefresh() {
-    onRefreshGitopsCache();
+    setForce(true);
     queryClient.invalidateQueries(['git_repo_refs', 'git_repo_search_results']);
   }
+}
+
+// Todo: once git form is used only in react, it should be used for validation instead of L40-52
+export function useUrlValidation(force: boolean) {
+  const existenceTest = useCachedValidation<string, GitFormModel>(
+    (url, context) => {
+      if (!url) {
+        return Promise.resolve(true);
+      }
+
+      const model = context.parent as GitFormModel;
+
+      const creds = getAuthentication(model);
+      return checkRepo(url, creds, force);
+    }
+  );
+
+  return (string() as StringSchema<string, GitFormModel>)
+    .url('Invalid Url')
+    .required('Repository URL is required')
+    .test('repo-exists', 'Repository does not exist', existenceTest);
 }

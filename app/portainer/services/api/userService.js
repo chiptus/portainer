@@ -1,5 +1,5 @@
 import _ from 'lodash-es';
-import { UserTokenModel, UserViewModel, UserGitCredential } from '@/portainer/models/user';
+import { UserTokenModel, UserViewModel } from '@/portainer/models/user';
 import { getUsers } from '@/portainer/users/user.service';
 
 import { getUser } from '@/portainer/users/queries/useUser';
@@ -167,21 +167,6 @@ export function UserService($q, Users, TeamService, TeamMembershipService) {
         deferred.reject({ msg: 'Unable to verify administrator account existence', err: err });
       });
 
-    return deferred.promise;
-  };
-
-  service.getGitCredentials = function (id) {
-    var deferred = $q.defer();
-    Users.getGitCredentials({ id })
-      .$promise.then(function success(data) {
-        const gitCreds = data.map(function (item) {
-          return new UserGitCredential(item);
-        });
-        deferred.resolve(gitCreds);
-      })
-      .catch(function error(err) {
-        deferred.reject({ msg: 'Unable to retrieve git credentials', err: err });
-      });
     return deferred.promise;
   };
 

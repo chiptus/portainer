@@ -64,9 +64,9 @@
           <!-- repository -->
           <git-form
             ng-if="$ctrl.state.Method === 'repository'"
-            model="$ctrl.formValues"
+            value="$ctrl.formValues"
             on-change="($ctrl.handleChange)"
-            on-select-git-credential="($ctrl.onChangeGitCredential)"
+            is-docker-standalone="$ctrl.isDockerStandalone"
           ></git-form>
 
           <div class="form-group" ng-if="!$ctrl.state.isTemplateValid">

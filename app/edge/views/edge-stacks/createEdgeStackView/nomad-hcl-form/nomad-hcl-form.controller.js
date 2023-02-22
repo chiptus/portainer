@@ -19,9 +19,6 @@ class NomadHclFormController {
         ...this.formValues,
         ...newValues,
       };
-      const existGitCredential = this.formValues.GitCredentials.find((x) => x.name === this.formValues.NewCredentialName);
-      this.formValues.NewCredentialNameExist = existGitCredential ? true : false;
-      this.formValues.NewCredentialNameInvalid = this.formValues.NewCredentialName && !this.formValues.NewCredentialName.match(/^[-_a-z0-9]+$/) ? true : false;
     });
   }
 
@@ -36,7 +33,9 @@ class NomadHclFormController {
   }
 
   onChangeMethod(method) {
-    this.state.Method = method;
+    return this.$async(async () => {
+      this.state.Method = method;
+    });
   }
 }
 

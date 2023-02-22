@@ -116,6 +116,15 @@ export type DeploymentOptions = {
   hideFileUpload: boolean;
 };
 
+/**
+ *  EndpointChangeWindow determine when automatic stack/app updates may occur
+ */
+interface EndpointChangeWindow {
+  Enabled: boolean;
+  StartTime: string;
+  EndTime: string;
+}
+
 export type Environment = {
   Agent: { Version: string };
   Id: EnvironmentId;
@@ -143,6 +152,9 @@ export type Environment = {
   Gpus: { name: string; value: string }[];
   EnableImageNotification: boolean;
   LocalTimeZone?: string;
+
+  /** Automatic update change window restriction for stacks and apps */
+  ChangeWindow: EndpointChangeWindow;
 };
 
 /**

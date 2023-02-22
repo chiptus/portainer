@@ -5,7 +5,12 @@
       <p> Pull the latest manifest from git and redeploy the application. </p>
     </div>
   </div>
-  <git-form-auto-update-fieldset model="$ctrl.formValues.AutoUpdate" on-change="($ctrl.onChangeAutoUpdate)"></git-form-auto-update-fieldset>
+  <git-form-auto-update-fieldset
+    value="$ctrl.formValues.AutoUpdate"
+    on-change="($ctrl.onChangeAutoUpdate)"
+    environment-type="KUBERNETES"
+    base-webhook-url="{{ $ctrl.state.baseWebhookUrl }}"
+  ></git-form-auto-update-fieldset>
   <time-window-display></time-window-display>
 
   <div class="form-group">
@@ -19,28 +24,14 @@
       </p>
     </div>
   </div>
-  <git-form-ref-field ng-if="$ctrl.state.showConfig" value="$ctrl.formValues.RefName" on-change="($ctrl.onChangeRef)" model="$ctrl.formValues"></git-form-ref-field>
 
-  <git-form-auth-fieldset
+  <git-form-ref-field
     ng-if="$ctrl.state.showConfig"
-    is-edit="$ctrl.state.isEdit"
-    repository-authentication="$ctrl.formValues.RepositoryAuthentication"
-    repository-username="$ctrl.formValues.RepositoryUsername"
-    repository-password="$ctrl.formValues.RepositoryPassword"
-    git-credentials="$ctrl.formValues.GitCredentials"
-    selected-git-credential="$ctrl.formValues.SelectedGitCredential"
-    save-credential="$ctrl.formValues.SaveCredential"
-    new-credential-name="$ctrl.formValues.NewCredentialName"
-    new-credential-name-exist="$ctrl.formValues.NewCredentialNameExist"
-    new-credential-name-exist="$ctrl.formValues.NewCredentialNameInvalid"
-    on-select-git-credential="($ctrl.onSelectGitCredential)"
-    on-change-repository-Authentication="($ctrl.onChangeRepositoryAuthentication)"
-    on-change-save-credential="($ctrl.onChangeSaveCredential)"
-    on-change-repository-username="($ctrl.onChangeRepositoryUsername)"
-    on-change-repository-password="($ctrl.onChangeRepositoryPassword)"
-    on-change-new-credential-name="($ctrl.onChangeNewCredentialName)"
-    show-auth-explanation="true"
-  ></git-form-auth-fieldset>
+    value="$ctrl.formValues.RefName"
+    on-change="($ctrl.onChangeRef)"
+    model="$ctrl.formValues"
+    is-url-valid="true"
+  ></git-form-ref-field>
 
   <div class="col-sm-12 form-section-title"> Actions </div>
   <!-- #Git buttons -->

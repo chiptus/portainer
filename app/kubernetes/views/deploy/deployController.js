@@ -1,5 +1,4 @@
 import angular from 'angular';
-import uuidv4 from 'uuid/v4';
 import _ from 'lodash-es';
 import stripAnsi from 'strip-ansi';
 
@@ -11,10 +10,12 @@ import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { kubernetes } from '@@/BoxSelector/common-options/deployment-methods';
 import { editor, git, customTemplate, url } from '@@/BoxSelector/common-options/build-methods';
 import { confirmWebEditorDiscard } from '@@/modals/confirm';
+import { parseAutoUpdateResponse, transformAutoUpdateViewModel } from '@/react/portainer/gitops/AutoUpdateFieldset/utils';
+import { baseStackWebhookUrl } from '@/portainer/helpers/webhookHelper';
 
 class KubernetesDeployController {
   /* @ngInject */
-  constructor($async, $state, $window, Authentication, CustomTemplateService, Notifications, KubernetesResourcePoolService, StackService, WebhookHelper, UserService) {
+  constructor($async, $state, $window, Authentication, CustomTemplateService, Notifications, KubernetesResourcePoolService, StackService, UserService) {
     this.$async = $async;
     this.$state = $state;
     this.$window = $window;
@@ -23,9 +24,7 @@ class KubernetesDeployController {
     this.Notifications = Notifications;
     this.KubernetesResourcePoolService = KubernetesResourcePoolService;
     this.StackService = StackService;
-    this.WebhookHelper = WebhookHelper;
     this.UserService = UserService;
-    this.DeployMethod = 'manifest';
 
     this.isTemplateVariablesEnabled = isBE;
 
@@ -42,6 +41,7 @@ class KubernetesDeployController {
       isEditorDirty: false,
       templateId: null,
       template: null,
+      baseWebhookUrl: baseStackWebhookUrl(),
     };
 
     this.formValues = {
@@ -52,21 +52,13 @@ class KubernetesDeployController {
       RepositoryAuthentication: false,
       RepositoryUsername: '',
       RepositoryPassword: '',
-      SelectedGitCredential: null,
-      GitCredentials: [],
       SaveCredential: true,
       RepositoryGitCredentialID: 0,
       NewCredentialName: '',
-      NewCredentialNameExist: false,
-      NewCredentialNameInvalid: false,
       AdditionalFiles: [],
       ComposeFilePathInRepository: '',
-      RepositoryAutomaticUpdates: false,
-      RepositoryAutomaticUpdatesForce: false,
-      RepositoryMechanism: RepositoryMechanismTypes.INTERVAL,
-      RepositoryFetchInterval: '5m',
-      RepositoryWebhookURL: WebhookHelper.returnStackWebhookUrl(uuidv4()),
       Variables: {},
+      AutoUpdate: parseAutoUpdateResponse(),
     };
 
     this.ManifestDeployTypes = KubernetesDeployManifestTypes;
@@ -81,7 +73,6 @@ class KubernetesDeployController {
     this.onChangeMethod = this.onChangeMethod.bind(this);
     this.onChangeDeployType = this.onChangeDeployType.bind(this);
     this.onChangeTemplateVariables = this.onChangeTemplateVariables.bind(this);
-    this.onChangeGitCredential = this.onChangeGitCredential.bind(this);
   }
 
   onChangeTemplateVariables(value) {
@@ -156,36 +147,25 @@ class KubernetesDeployController {
   }
 
   onChangeMethod(method) {
-    this.state.BuildMethod = method;
+    return this.$async(async () => {
+      this.state.BuildMethod = method;
+    });
   }
 
   onChangeDeployType(type) {
-    this.state.DeployType = type;
-    if (type == this.ManifestDeployTypes.COMPOSE) {
-      this.DeployMethod = 'compose';
-    } else {
-      this.DeployMethod = 'manifest';
-    }
+    return this.$async(async () => {
+      this.state.DeployType = type;
+    });
   }
 
   disableDeploy() {
-    const isGitFormInvalid =
-      this.state.BuildMethod === KubernetesDeployBuildMethods.GIT &&
-      (!this.formValues.RepositoryURL ||
-        !this.formValues.ComposeFilePathInRepository ||
-        (this.formValues.RepositoryAuthentication && !this.formValues.RepositoryPassword && this.formValues.RepositoryGitCredentialID === 0) ||
-        (this.formValues.RepositoryAuthentication &&
-          this.formValues.RepositoryPassword &&
-          this.formValues.SaveCredential &&
-          (!this.formValues.NewCredentialName || this.formValues.NewCredentialNameExist)));
-
     const isWebEditorInvalid =
       this.state.BuildMethod === KubernetesDeployBuildMethods.WEB_EDITOR && _.isEmpty(this.formValues.EditorContent) && _.isEmpty(this.formValues.Namespace);
     const isURLFormInvalid = this.state.BuildMethod == KubernetesDeployBuildMethods.WEB_EDITOR.URL && _.isEmpty(this.formValues.ManifestURL);
 
     const isNamespaceInvalid = _.isEmpty(this.formValues.Namespace);
 
-    return !this.formValues.StackName || isGitFormInvalid || isWebEditorInvalid || isURLFormInvalid || this.state.actionInProgress || isNamespaceInvalid;
+    return !this.formValues.StackName || isWebEditorInvalid || isURLFormInvalid || this.state.actionInProgress || isNamespaceInvalid;
   }
 
   onChangeFormValues(newValues) {
@@ -194,9 +174,6 @@ class KubernetesDeployController {
         ...this.formValues,
         ...newValues,
       };
-      const existGitCredential = this.formValues.GitCredentials.find((x) => x.name === this.formValues.NewCredentialName);
-      this.formValues.NewCredentialNameExist = existGitCredential ? true : false;
-      this.formValues.NewCredentialNameInvalid = this.formValues.NewCredentialName && !this.formValues.NewCredentialName.match(/^[-_a-z0-9]+$/) ? true : false;
     });
   }
 
@@ -298,16 +275,7 @@ class KubernetesDeployController {
         }
         payload.ManifestFile = this.formValues.ComposeFilePathInRepository;
         payload.AdditionalFiles = this.formValues.AdditionalFiles;
-        if (this.formValues.RepositoryAutomaticUpdates) {
-          payload.AutoUpdate = {
-            ForceUpdate: this.formValues.RepositoryAutomaticUpdatesForce,
-          };
-          if (this.formValues.RepositoryMechanism === RepositoryMechanismTypes.INTERVAL) {
-            payload.AutoUpdate.Interval = this.formValues.RepositoryFetchInterval;
-          } else if (this.formValues.RepositoryMechanism === RepositoryMechanismTypes.WEBHOOK) {
-            payload.AutoUpdate.Webhook = this.formValues.RepositoryWebhookURL.split('/').reverse()[0];
-          }
-        }
+        payload.AutoUpdate = transformAutoUpdateViewModel(this.formValues.AutoUpdate);
       } else if (method === KubernetesDeployRequestMethods.STRING) {
         payload.StackFileContent = this.formValues.EditorContent;
       } else {
@@ -403,35 +371,11 @@ class KubernetesDeployController {
           return '';
         }
       };
-
-      try {
-        this.formValues.GitCredentials = await this.UserService.getGitCredentials(this.Authentication.getUserDetails().ID);
-      } catch (err) {
-        this.Notifications.error('Failure', err, 'Unable to retrieve user saved git credentials');
-      }
     });
   }
 
   $onDestroy() {
     this.state.isEditorDirty = false;
-  }
-
-  onChangeGitCredential(selectedGitCredential) {
-    return this.$async(async () => {
-      if (selectedGitCredential) {
-        this.formValues.SelectedGitCredential = selectedGitCredential;
-        this.formValues.RepositoryGitCredentialID = Number(selectedGitCredential.id);
-        this.formValues.RepositoryUsername = selectedGitCredential.username;
-        this.formValues.SaveGitCredential = false;
-        this.formValues.NewCredentialName = '';
-      } else {
-        this.formValues.SelectedGitCredential = null;
-        this.formValues.RepositoryUsername = '';
-        this.formValues.RepositoryGitCredentialID = 0;
-      }
-
-      this.formValues.RepositoryPassword = '';
-    });
   }
 }
 

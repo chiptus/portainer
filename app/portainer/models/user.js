@@ -22,10 +22,3 @@ export function UserTokenModel(data) {
   this.dateCreated = data.dateCreated;
   this.lastUsed = data.lastUsed;
 }
-
-export function UserGitCredential(data) {
-  this.id = data.id;
-  this.userId = data.userId;
-  this.name = data.name;
-  this.username = data.username;
-}
