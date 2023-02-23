@@ -158,8 +158,8 @@ function BuildImageController($scope, $async, $window, BuildService, Notificatio
     $scope.formValues.AdditionalFiles = files;
   };
 
-  $scope.editorUpdate = function (cm) {
-    $scope.formValues.DockerFileContent = cm.getValue();
+  $scope.editorUpdate = function (value) {
+    $scope.formValues.DockerFileContent = value;
     $scope.state.isEditorDirty = true;
   };
 

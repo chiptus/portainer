@@ -1,7 +1,7 @@
 <ng-form name="$ctrl.webEditorForm">
   <div class="web-editor overflow-x-hidden">
-    <div ng-if="!$ctrl.hideTitle" class="col-sm-12 form-section-title pr-0"
-      >Web editor
+    <div ng-if="!$ctrl.hideTitle" class="col-sm-12 form-section-title pr-0">
+      Web editor
       <div class="text-muted small vertical-center float-right mt-0">
         <span ng-if="$ctrl.BROWSER_OS_PLATFORM !== 'mac'" class="vertical-center">Ctrl+F for search</span>
         <span ng-if="$ctrl.BROWSER_OS_PLATFORM === 'mac'" class="vertical-center">Cmd+F for search</span>
@@ -13,7 +13,7 @@
           Ctrl+Shift+F - Replace <br />
           Ctrl+Shift+R - Replace all <br />
           Alt+G - Jump to line <br />
-          Alt+F - Persistent search: <br />
+          Persistent search: <br />
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enter - Find next <br />
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Shift+Enter - Find previous <br />'"
           class-name="'[&>span]:!text-left'"
@@ -28,7 +28,7 @@
           Cmd+Option+F - Replace <br />
           Cmd+Option+R - Replace all <br />
           Option+G - Jump to line <br />
-          Option+F - Persistent search: <br />
+          Persistent search: <br />
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enter - Find next <br />
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Shift+Enter - Find previous <br />'"
           class-name="'[&>span]:!text-left'"
@@ -46,7 +46,7 @@
           read-only="$ctrl.readOnly"
           yml="$ctrl.yml"
           value="$ctrl.value"
-          on-change="($ctrl.editorUpdate)"
+          on-change="($ctrl.onChange)"
         ></code-editor>
       </div>
     </div>
