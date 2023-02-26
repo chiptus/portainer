@@ -112,7 +112,7 @@ func (service *Service) RemoveActiveSchedule(environmentID portaineree.EndpointI
 }
 
 // EdgeStackDeployed marks an active schedule as deployed
-// After this call, if the schedule will not be removed from the active schedules after a minute, it means the stack have failed
+// After this call, if the schedule will not be removed from the active schedules after three minute, it means the stack have failed
 // Edge agents mark a stack as failed if the exit status of `docker-compose up` or `docker stack deploy` is not 0,
 // which only happens if something failed in deployment (e.g pull failed), while ignoring failures in the run of the container, resulting in "ok" edge stack but failed update
 func (service *Service) EdgeStackDeployed(environmentID portaineree.EndpointID, updateID edgetypes.UpdateScheduleID) {
@@ -125,7 +125,8 @@ func (service *Service) EdgeStackDeployed(environmentID portaineree.EndpointID, 
 	}
 
 	go func() {
-		time.Sleep(1 * time.Minute)
+		// 3 mins is safer
+		time.Sleep(3 * time.Minute)
 		err := service.RemoveActiveSchedule(environmentID, updateID)
 		if err != nil {
 			log.Error().

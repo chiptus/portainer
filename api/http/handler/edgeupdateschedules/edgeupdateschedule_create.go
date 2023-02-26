@@ -116,9 +116,9 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 		return httperror.InternalServerError("Unable to fetch related environments", err)
 	}
 
-	err = handler.validateRelatedEnvironments(relatedEnvironments)
+	edgeEnvironmentType, err := handler.validateRelatedEnvironments(relatedEnvironments)
 	if err != nil {
-		return httperror.BadRequest("Environment is not supported for update", err)
+		return httperror.BadRequest("Fail to validate related environment", err)
 	}
 
 	previousVersions := handler.getPreviousVersions(relatedEnvironments)
@@ -135,7 +135,7 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 
 	scheduleID = item.ID
 
-	edgeStackID, err = handler.createUpdateEdgeStack(item.ID, payload.GroupIDs, payload.Version, payload.ScheduledTime)
+	edgeStackID, err = handler.createUpdateEdgeStack(item.ID, payload.GroupIDs, payload.Version, payload.ScheduledTime, edgeEnvironmentType)
 	if err != nil {
 		return httperror.InternalServerError("Unable to create edge stack", err)
 	}
@@ -150,19 +150,25 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 	return response.JSON(w, item)
 }
 
-func (handler *Handler) validateRelatedEnvironments(relatedEnvironments []portaineree.Endpoint) error {
+func (handler *Handler) validateRelatedEnvironments(relatedEnvironments []portaineree.Endpoint) (portaineree.EndpointType, error) {
 	if len(relatedEnvironments) == 0 {
-		return errors.New("No related environments")
+		return 0, errors.New("No related environments")
 	}
 
+	first := relatedEnvironments[0].Type
 	for _, environment := range relatedEnvironments {
 		err := handler.isUpdateSupported(&environment)
 		if err != nil {
-			return err
+			return 0, err
+		}
+
+		// Make sure that all environments in one edge group are same type
+		if environment.Type != first {
+			return 0, errors.New("Environment type is not unified")
 		}
 	}
 
-	return nil
+	return first, nil
 }
 
 func (handler *Handler) fetchRelatedEnvironments(edgeGroupIds []portaineree.EdgeGroupID) ([]portaineree.Endpoint, error) {
@@ -211,22 +217,26 @@ func (handler *Handler) isUpdateSupported(environment *portaineree.Endpoint) err
 		return errors.New("environment is not an edge endpoint, this feature is limited to edge endpoints")
 	}
 
-	if !endpointutils.IsDockerEndpoint(environment) {
-		return errors.New("environment is not a docker endpoint, this feature is limited to docker endpoints")
+	if endpointutils.IsNomadEndpoint(environment) {
+		// Nomad does not need to check snapshot
+		return nil
 	}
 
-	snapshot, err := handler.dataStore.Snapshot().Snapshot(environment.ID)
-	if err != nil {
-		return errors.WithMessage(err, "unable to fetch snapshot")
+	if endpointutils.IsDockerEndpoint(environment) {
+		snapshot, err := handler.dataStore.Snapshot().Snapshot(environment.ID)
+		if err != nil {
+			return errors.WithMessage(err, "unable to fetch snapshot")
+		}
+
+		if snapshot.Docker == nil {
+			return errors.New("missing docker snapshot")
+		}
+
+		if snapshot.Docker.Swarm {
+			return errors.New("swarm is not supported")
+		}
+		return nil
 	}
 
-	if snapshot.Docker == nil {
-		return errors.New("missing docker snapshot")
-	}
-
-	if snapshot.Docker.Swarm {
-		return errors.New("swarm is not supported")
-	}
-
-	return nil
+	return errors.New("environment is not a docker/nomad endpoint, this feature is limited to docker/nomad endpoints")
 }

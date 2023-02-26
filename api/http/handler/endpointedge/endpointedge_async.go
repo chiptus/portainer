@@ -103,7 +103,7 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 
 		agentPlatform, agentPlatformErr := parseAgentPlatform(r)
 		if agentPlatformErr != nil {
-			return httperror.BadRequest("agent platform header is not valid", err)
+			return httperror.BadRequest("agent platform header is not valid", agentPlatformErr)
 		}
 
 		validateCertsErr := handler.requestBouncer.AuthorizedClientTLSConn(r)

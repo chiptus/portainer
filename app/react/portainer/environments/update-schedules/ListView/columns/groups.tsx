@@ -7,7 +7,7 @@ import { useEdgeGroups } from '@/react/edge/edge-groups/queries/useEdgeGroups';
 import { EdgeUpdateListItemResponse } from '../../queries/list';
 
 export const groups: Column<EdgeUpdateListItemResponse> = {
-  Header: 'Groups',
+  Header: 'Edge Groups',
   accessor: 'edgeGroupIds',
   Cell: GroupsCell,
   disableFilters: true,

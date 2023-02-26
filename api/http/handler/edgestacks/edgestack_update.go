@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	eefs "github.com/portainer/portainer-ee/api/filesystem"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer/api/filesystem"
@@ -212,7 +213,7 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 
 	if payload.DeploymentType == portaineree.EdgeStackDeploymentNomad {
 		if stack.EntryPoint == "" {
-			stack.EntryPoint = nomadJobFileDefaultName
+			stack.EntryPoint = eefs.NomadJobFileDefaultName
 		}
 
 		_, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))

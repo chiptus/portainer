@@ -30,6 +30,11 @@ func IsDockerEndpoint(endpoint *portaineree.Endpoint) bool {
 		endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment
 }
 
+// IsNomadEndpoint returns true if this is a nomad environment(endpoint)
+func IsNomadEndpoint(endpoint *portaineree.Endpoint) bool {
+	return endpoint.Type == portaineree.EdgeAgentOnNomadEnvironment
+}
+
 // IsEdgeEndpoint returns true if endpoint is an Edge Endpoint
 func IsEdgeEndpoint(endpoint *portaineree.Endpoint) bool {
 	return endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment ||

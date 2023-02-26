@@ -6,7 +6,12 @@ import (
 	"github.com/portainer/portainer/api/filesystem"
 )
 
-const KaasPath = "kaas"
+const (
+	KaasPath = "kaas"
+
+	// NomadJobFileDefaultName represents the default name of a nomad job file.
+	NomadJobFileDefaultName = "nomad-job.hcl"
+)
 
 type Service struct {
 	fileStorePath string

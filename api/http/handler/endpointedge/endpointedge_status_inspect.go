@@ -108,7 +108,7 @@ func (handler *Handler) endpointEdgeStatusInspect(w http.ResponseWriter, r *http
 
 	agentPlatform, agentPlatformErr := parseAgentPlatform(r)
 	if agentPlatformErr != nil {
-		return httperror.BadRequest("agent platform header is not valid", err)
+		return httperror.BadRequest("agent platform header is not valid", agentPlatformErr)
 	}
 	endpoint.Type = agentPlatform
 
@@ -124,7 +124,7 @@ func (handler *Handler) endpointEdgeStatusInspect(w http.ResponseWriter, r *http
 
 	err = handler.DataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
 	if err != nil {
-		return httperror.InternalServerError("Unable to Unable to persist environment changes inside the database", err)
+		return httperror.InternalServerError("Unable to persist environment changes inside the database", err)
 	}
 
 	checkinInterval := endpoint.EdgeCheckinInterval

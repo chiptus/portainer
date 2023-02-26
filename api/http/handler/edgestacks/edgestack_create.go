@@ -12,12 +12,11 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 
+	eefs "github.com/portainer/portainer-ee/api/filesystem"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
 )
-
-const nomadJobFileDefaultName = "nomad-job.hcl"
 
 type InvalidPayloadError struct {
 	msg string
@@ -141,7 +140,7 @@ func (handler *Handler) createSwarmStackFromFileContent(r *http.Request, dryrun 
 		return stack, nil
 	}
 
-	return handler.edgeStacksService.PersistEdgeStack(stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (composePath string, manifestPath string, projectPath string, err error) {
+	return handler.edgeStacksService.PersistEdgeStack(stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
 		return handler.storeFileContent(stackFolder, payload.DeploymentType, relatedEndpointIds, []byte(payload.StackFileContent))
 	})
 }
@@ -187,12 +186,12 @@ func (handler *Handler) storeFileContent(stackFolder string, deploymentType port
 
 	if deploymentType == portaineree.EdgeStackDeploymentNomad {
 
-		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, nomadJobFileDefaultName, fileContent)
+		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, eefs.NomadJobFileDefaultName, fileContent)
 		if err != nil {
 			return "", "", "", err
 		}
 
-		return nomadJobFileDefaultName, "", projectPath, nil
+		return eefs.NomadJobFileDefaultName, "", projectPath, nil
 	}
 
 	return "", "", "", fmt.Errorf("invalid deployment type: %d", deploymentType)
@@ -250,7 +249,7 @@ func (payload *swarmStackFromGitRepositoryPayload) Validate(r *http.Request) err
 		case portaineree.EdgeStackDeploymentKubernetes:
 			payload.FilePathInRepository = filesystem.ManifestFileDefaultName
 		case portaineree.EdgeStackDeploymentNomad:
-			payload.FilePathInRepository = nomadJobFileDefaultName
+			payload.FilePathInRepository = eefs.NomadJobFileDefaultName
 		}
 	}
 	if len(payload.EdgeGroups) == 0 {
@@ -288,7 +287,7 @@ func (handler *Handler) createSwarmStackFromGitRepository(r *http.Request, dryru
 		}
 	}
 
-	return handler.edgeStacksService.PersistEdgeStack(stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (composePath string, manifestPath string, projectPath string, err error) {
+	return handler.edgeStacksService.PersistEdgeStack(stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
 		return handler.storeManifestFromGitRepository(stackFolder, relatedEndpointIds, payload.DeploymentType, userID, payload.RepositoryGitCredentialID, repoConfig)
 	})
 }
@@ -380,7 +379,7 @@ func (handler *Handler) createSwarmStackFromFileUpload(r *http.Request, dryrun b
 		return stack, nil
 	}
 
-	return handler.edgeStacksService.PersistEdgeStack(stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (composePath string, manifestPath string, projectPath string, err error) {
+	return handler.edgeStacksService.PersistEdgeStack(stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
 		return handler.storeFileContent(stackFolder, payload.DeploymentType, relatedEndpointIds, payload.StackFileContent)
 	})
 }

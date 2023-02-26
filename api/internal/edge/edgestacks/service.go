@@ -2,10 +2,11 @@ package edgestacks
 
 import (
 	"fmt"
-	portainer "github.com/portainer/portainer/api"
 	"strconv"
 	"strings"
 	"time"
+
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -121,14 +122,14 @@ func (service *Service) PersistEdgeStack(
 	}
 
 	stackFolder := strconv.Itoa(int(stack.ID))
-	composePath, manifestPath, projectPath, err := storeManifest(stackFolder, relatedEndpointIds)
+	configPath, manifestPath, projectPath, err := storeManifest(stackFolder, relatedEndpointIds)
 	if err != nil {
 		return nil, fmt.Errorf("unable to store manifest: %w", err)
 	}
 
 	stack.ManifestPath = manifestPath
 	stack.ProjectPath = projectPath
-	stack.EntryPoint = composePath
+	stack.EntryPoint = configPath
 	stack.NumDeployments = len(relatedEndpointIds)
 
 	err = service.updateEndpointRelations(stack.ID, relatedEndpointIds)

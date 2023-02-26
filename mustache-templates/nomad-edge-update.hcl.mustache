@@ -1,0 +1,31 @@
+job "portainer-updater"{
+  datacenters = ["dc1"]
+  type = "batch"
+
+  group "portainer-updater" { 
+	restart {
+	  attempts = 0 
+    } 
+
+    reschedule {
+	  attempts = 0 
+	  unlimited = false
+    } 
+
+    task "portainer-updater" { 
+	  env = {  
+		{{#skip_pull_agent_image}}SKIP_PULL=1{{/skip_pull_agent_image}}
+		PORTAINER_UPDATER=1
+	  } 
+	  driver = "docker" 
+
+	  config { 
+	    image = "{{updater_image}}{{^updater_image}}portainer/portainer-updater:latest{{/updater_image}}"
+	    args = ["agent", 
+	      "--env-type", "nomad", 
+	      "{{schedule_id}}", "{{agent_image_name}}{{^agent_image_name}}portainer/agent:latest{{/agent_image_name}}", 
+	    ] 
+      } 
+    } 
+  } 
+}

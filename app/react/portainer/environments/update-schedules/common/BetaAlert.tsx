@@ -5,8 +5,8 @@ export function BetaAlert() {
   return (
     <InformationPanel title="Limited Feature">
       <TextTip>
-        This feature is currently in beta and is limited to standalone linux
-        edge devices.
+        This feature is currently in beta and is limited to standalone linux and
+        nomad edge devices.
       </TextTip>
     </InformationPanel>
   );

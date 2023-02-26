@@ -65,7 +65,7 @@ function CreateView() {
               <TextTip color="blue">
                 Devices need to be allocated to an Edge group, visit the{' '}
                 <Link to="edge.groups">Edge Groups</Link> page to assign
-                environments and create groups.
+                environments and create edge groups.
               </TextTip>
 
               <Formik
@@ -83,13 +83,6 @@ function CreateView() {
                       onBlur={handleBlur}
                       error={errors.groupIds}
                     />
-
-                    <TextTip color="blue">
-                      You can upgrade from any agent version to 2.17 or later
-                      only. You can not upgrade to an agent version prior to
-                      2.17 . The ability to rollback to originating version is
-                      for 2.15.0+ only.
-                    </TextTip>
 
                     <ScheduleTypeSelector />
 

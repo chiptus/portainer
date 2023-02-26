@@ -75,7 +75,7 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 
 	stack, err := handler.dataStore.EdgeStack().EdgeStack(item.EdgeStackID)
 	if err != nil {
-		return httperror.NewError(http.StatusInternalServerError, "Unable to retrieve Edge stack", err)
+		return httperror.InternalServerError("Unable to retrieve Edge stack", err)
 	}
 
 	shouldUpdate := payload.GroupIDs != nil || payload.Type != nil || payload.Version != nil || payload.ScheduledTime != nil
@@ -89,7 +89,7 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 		}
 
 		if !canUpdate {
-			return httperror.NewError(http.StatusBadRequest, "Unable to update Edge update schedule", errors.New("edge stack is not in pending state"))
+			return httperror.BadRequest("Unable to update Edge update schedule", errors.New("edge stack is not in pending state"))
 		}
 
 		newGroupIds := payload.GroupIDs
@@ -112,24 +112,17 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 
 		err := handler.dataStore.EdgeStack().DeleteEdgeStack(item.EdgeStackID)
 		if err != nil {
-			return httperror.NewError(http.StatusInternalServerError, "Unable to delete Edge stack", err)
+			return httperror.InternalServerError("Unable to delete Edge stack", err)
 		}
-
-		stackID, err := handler.createUpdateEdgeStack(item.ID, newGroupIds, item.Version, scheduledTime)
-		if err != nil {
-			return httperror.NewError(http.StatusInternalServerError, "Unable to create Edge stack", err)
-		}
-
-		item.EdgeStackID = stackID
 
 		relatedEnvironments, err := handler.fetchRelatedEnvironments(payload.GroupIDs)
 		if err != nil {
 			return httperror.InternalServerError("Unable to fetch related environments", err)
 		}
 
-		err = handler.validateRelatedEnvironments(relatedEnvironments)
+		edgeEnvironmentType, err := handler.validateRelatedEnvironments(relatedEnvironments)
 		if err != nil {
-			return httperror.BadRequest("Environment is not supported for update", nil)
+			return httperror.BadRequest("Fail to validate related environment", err)
 		}
 
 		previousVersions := handler.getPreviousVersions(relatedEnvironments)
@@ -138,6 +131,13 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 		}
 
 		item.EnvironmentsPreviousVersions = previousVersions
+
+		stackID, err := handler.createUpdateEdgeStack(item.ID, newGroupIds, item.Version, scheduledTime, edgeEnvironmentType)
+		if err != nil {
+			return httperror.InternalServerError("Unable to create Edge stack", err)
+		}
+
+		item.EdgeStackID = stackID
 	}
 
 	err = handler.updateService.UpdateSchedule(item.ID, item)
