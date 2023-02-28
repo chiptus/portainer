@@ -195,15 +195,19 @@ func (service *Service) AddLogCommand(edgeStack *portaineree.EdgeStack, endpoint
 }
 
 func (service *Service) AddJobCommand(endpointID portaineree.EndpointID, edgeJob portaineree.EdgeJob, fileContent []byte) error {
-	return service.storeUpdateJobCommand(endpointID, edgeJob, fileContent, portaineree.EdgeAsyncCommandOpAdd)
+	return service.storeUpdateJobCommand(service.dataStore, endpointID, edgeJob, fileContent, portaineree.EdgeAsyncCommandOpAdd)
 }
 
 func (service *Service) ReplaceJobCommand(endpointID portaineree.EndpointID, edgeJob portaineree.EdgeJob, fileContent []byte) error {
-	return service.storeUpdateJobCommand(endpointID, edgeJob, fileContent, portaineree.EdgeAsyncCommandOpReplace)
+	return service.storeUpdateJobCommand(service.dataStore, endpointID, edgeJob, fileContent, portaineree.EdgeAsyncCommandOpReplace)
 }
 
-func (service *Service) storeUpdateJobCommand(endpointID portaineree.EndpointID, edgeJob portaineree.EdgeJob, fileContent []byte, commandOperation portaineree.EdgeAsyncCommandOperation) error {
-	endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
+func (service *Service) ReplaceJobCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeJob portaineree.EdgeJob, fileContent []byte) error {
+	return service.storeUpdateJobCommand(tx, endpointID, edgeJob, fileContent, portaineree.EdgeAsyncCommandOpReplace)
+}
+
+func (service *Service) storeUpdateJobCommand(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeJob portaineree.EdgeJob, fileContent []byte, commandOperation portaineree.EdgeAsyncCommandOperation) error {
+	endpoint, err := tx.Endpoint().Endpoint(endpointID)
 	if err != nil || !endpoint.Edge.AsyncMode {
 		return err
 	}
@@ -226,7 +230,7 @@ func (service *Service) storeUpdateJobCommand(endpointID portaineree.EndpointID,
 		Value:      edgeJobData,
 	}
 
-	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
+	return tx.EdgeAsyncCommand().Create(asyncCommand)
 }
 
 func (service *Service) RemoveJobCommand(endpointID portaineree.EndpointID, edgeJobID portaineree.EdgeJobID) error {
