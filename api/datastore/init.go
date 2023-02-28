@@ -48,8 +48,7 @@ func (store *Store) checkOrCreateDefaultSettings() error {
 				TeamMemberships: portaineree.TeamMemberships{
 					OAuthClaimMappings: make([]portaineree.OAuthClaimMappings, 0),
 				},
-				SSO:              true,
-				HideInternalAuth: true,
+				SSO: true,
 			},
 			SnapshotInterval:         portaineree.DefaultSnapshotInterval,
 			EdgeAgentCheckinInterval: portaineree.DefaultEdgeAgentCheckinIntervalInSeconds,
