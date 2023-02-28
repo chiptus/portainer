@@ -8,11 +8,10 @@ import { getAMTInfo } from 'Portainer/hostmanagement/open-amt/open-amt.service';
 import { confirmDestructive } from '@@/modals/confirm';
 import { getPlatformTypeName, isAgentEnvironment, isEdgeEnvironment } from '@/react/portainer/environments/utils';
 import { commandsTabs } from '@/react/edge/components/EdgeScriptForm/scripts';
-import { GpusListAngular } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/Hardware/GpusList';
 import { confirmDisassociate } from '@/react/portainer/environments/ItemView/ConfirmDisassociateModel';
 import { buildConfirmButton } from '@@/modals/utils';
 
-angular.module('portainer.app').component('gpusList', GpusListAngular).controller('EndpointController', EndpointController);
+angular.module('portainer.app').controller('EndpointController', EndpointController);
 
 /* @ngInject */
 function EndpointController($async, $scope, $state, $transition$, $filter, clipboard, EndpointService, GroupService, Notifications, Authentication, SettingsService) {

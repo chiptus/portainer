@@ -3,8 +3,8 @@ import moment from 'moment';
 import clsx from 'clsx';
 import { AlertTriangle } from 'lucide-react';
 
-import { LicenseInfo } from '@/portainer/license-management/types';
-import { useLicenseInfo } from '@/portainer/license-management/use-license.service';
+import { useLicenseInfo } from '@/react/portainer/licenses/use-license.service';
+import { LicenseInfo } from '@/react/portainer/licenses/types';
 
 import styles from './LicenseExpirationPanel.module.css';
 

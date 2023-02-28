@@ -1,8 +1,8 @@
 import _ from 'lodash-es';
 
-import featureFlagModule from '@/react/portainer/feature-flags';
 import { getEnvironments } from '@/react/portainer/environments/environment.service';
 
+import { featureFlagsModule } from './feature-flags';
 import './rbac';
 import './registry-management';
 import licenseManagementModule from './license-management';
@@ -12,7 +12,7 @@ import componentsModule from './components';
 import servicesModule from './services';
 import { reactModule } from './react';
 import { sidebarModule } from './react/views/sidebar';
-import { gitCredentialsModule } from './views/account/git-credential';
+import { gitCredentialsModule } from './react/views/git-credentials';
 import environmentsModule from './environments';
 import { helpersModule } from './helpers';
 
@@ -41,7 +41,7 @@ angular
     componentsModule,
     settingsModule,
     userActivityModule,
-    featureFlagModule,
+    featureFlagsModule,
     'portainer.shared.datatable',
     servicesModule,
     reactModule,
@@ -438,7 +438,7 @@ angular
         url: '/git-credential/new',
         views: {
           'content@': {
-            component: 'createGitCredentialViewAngular',
+            component: 'createGitCredentialView',
           },
         },
       };
@@ -448,7 +448,7 @@ angular
         url: '/git-credential/:id',
         views: {
           'content@': {
-            component: 'editGitCredentialViewAngular',
+            component: 'editGitCredentialView',
           },
         },
       };

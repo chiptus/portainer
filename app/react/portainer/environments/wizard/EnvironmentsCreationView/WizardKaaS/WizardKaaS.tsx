@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Form, Formik } from 'formik';
 
-import { react2angular } from '@/react-tools/react2angular';
 import {
   KaasProvider,
   Credential,
@@ -186,7 +185,6 @@ export function WizardKaaS({ onCreate }: Props) {
   }
 }
 
-export const KaasFormGroupAngular = react2angular(WizardKaaS, ['onCreate']);
 function isKaasInfo(value: KaasInfo): value is KaasInfo {
   return true;
 }

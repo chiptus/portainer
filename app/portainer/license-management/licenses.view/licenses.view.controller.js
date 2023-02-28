@@ -1,7 +1,6 @@
 import moment from 'moment';
 import { confirmDelete } from '@@/modals/confirm';
-
-import { LicenseType } from '@/portainer/license-management/types';
+import { LicenseType } from '@/react/portainer/licenses/types';
 
 export default class LicensesViewController {
   /* @ngInject */

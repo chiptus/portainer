@@ -7,7 +7,7 @@ import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
 import { FeatureId } from '@/react/portainer/feature-flags/enums';
 
 import { getIngressControllerClassMap, updateIngressControllerClassMap } from '@/react/kubernetes/cluster/ingressClass/utils';
-import { getIsRBACEnabled } from '@/react/kubernetes/cluster/service';
+import { getIsRBACEnabled } from '@/react/kubernetes/cluster/getIsRBACEnabled';
 import { buildConfirmButton } from '@@/modals/utils';
 import { confirm } from '@@/modals/confirm';
 

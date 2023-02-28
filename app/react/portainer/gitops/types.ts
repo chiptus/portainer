@@ -1,4 +1,4 @@
-import { GitCredential } from '@/portainer/views/account/git-credential/types';
+import { GitCredential } from '@/react/portainer/account/git-credentials/types';
 
 export type AutoUpdateMechanism = 'Webhook' | 'Interval';
 

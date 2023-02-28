@@ -1,8 +1,5 @@
 import { array, object, string } from 'yup';
 
-import { r2a } from '@/react-tools/react2angular';
-import { withControlledInput } from '@/react-tools/withControlledInput';
-
 import { InputList } from '@@/form-components/InputList';
 import { ItemProps } from '@@/form-components/InputList/InputList';
 import { InputGroup } from '@@/form-components/InputGroup';
@@ -15,6 +12,19 @@ export interface Gpu {
 interface Props {
   value: Gpu[];
   onChange(value: Gpu[]): void;
+}
+
+export function GpusList({ value, onChange }: Props) {
+  return (
+    <InputList<Gpu>
+      label="GPU"
+      value={value}
+      onChange={onChange}
+      itemBuilder={() => ({ value: '', name: '' })}
+      addLabel="add"
+      item={Item}
+    />
+  );
 }
 
 function Item({ item, onChange }: ItemProps<Gpu>) {
@@ -45,19 +55,6 @@ function Item({ item, onChange }: ItemProps<Gpu>) {
   );
 }
 
-export function GpusList({ value, onChange }: Props) {
-  return (
-    <InputList<Gpu>
-      label="GPU"
-      value={value}
-      onChange={onChange}
-      itemBuilder={() => ({ value: '', name: '' })}
-      addLabel="add"
-      item={Item}
-    />
-  );
-}
-
 export function gpusListValidation() {
   const gpuShape = object().shape({
     name: string().required(),
@@ -65,8 +62,3 @@ export function gpusListValidation() {
   });
   return array().of(gpuShape).default([]);
 }
-
-export const GpusListAngular = r2a(withControlledInput(GpusList), [
-  'value',
-  'onChange',
-]);

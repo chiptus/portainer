@@ -1,0 +1,28 @@
+import { PageHeader } from '@@/PageHeader';
+import { Widget, WidgetBody } from '@@/Widget';
+
+import { CreateGitCredentialForm } from './CreateGitCredentialsForm';
+
+export function CreateGitCredentialsView() {
+  return (
+    <>
+      <PageHeader
+        title="Create git authentication"
+        breadcrumbs={[
+          { label: 'My account', link: 'portainer.account' },
+          { label: 'Create git authentication' },
+        ]}
+      />
+
+      <div className="row">
+        <div className="col-sm-12">
+          <Widget>
+            <WidgetBody>
+              <CreateGitCredentialForm routeOnSuccess="portainer.account" />
+            </WidgetBody>
+          </Widget>
+        </div>
+      </div>
+    </>
+  );
+}

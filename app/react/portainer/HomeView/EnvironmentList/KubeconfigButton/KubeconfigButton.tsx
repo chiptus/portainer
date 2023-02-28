@@ -4,11 +4,12 @@ import { Download } from 'lucide-react';
 import { Environment } from '@/react/portainer/environments/types';
 import { Query } from '@/react/portainer/environments/queries/useEnvironmentList';
 import { isKubernetesEnvironment } from '@/react/portainer/environments/utils';
-import { trackEvent } from '@/angulartics.matomo/analytics-services';
+import { useAnalytics } from '@/react/hooks/useAnalytics';
 
 import { Button } from '@@/buttons';
 
 import { KubeconfigPrompt } from './KubeconfigPrompt';
+
 import '@reach/dialog/styles.css';
 
 export interface Props {
@@ -17,6 +18,7 @@ export interface Props {
 }
 export function KubeconfigButton({ environments, envQueryParams }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const { trackEvent } = useAnalytics();
 
   const kubeEnvs = environments.filter((env) =>
     isKubernetesEnvironment(env.Type)

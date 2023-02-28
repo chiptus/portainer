@@ -39,7 +39,7 @@ import { confirm, confirmUpdate, confirmWebEditorDiscard } from '@@/modals/confi
 import { buildConfirmButton } from '@@/modals/utils';
 import { ModalType } from '@@/modals';
 
-import { placementOptions } from './placementTypes';
+import { placementOptions } from '@/react/kubernetes/applications/CreateView/placementTypes';
 
 class KubernetesCreateApplicationController {
   /* #region  CONSTRUCTOR */

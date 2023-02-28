@@ -1,6 +1,5 @@
-import { useIntegratedLicenseInfo } from '@/portainer/license-management/use-license.service';
-
-import { LicenseInfoPanel } from '@@/LicenseInfoPanel/LicenseInfoPanel';
+import { LicenseInfoPanel } from '../licenses/components/LicenseInfoPanel';
+import { useIntegratedLicenseInfo } from '../licenses/use-license.service';
 
 export function LicenseNodePanel() {
   const integratedInfo = useIntegratedLicenseInfo();

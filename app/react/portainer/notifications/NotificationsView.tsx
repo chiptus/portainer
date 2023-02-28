@@ -2,11 +2,7 @@ import { Bell, Trash2 } from 'lucide-react';
 import { useStore } from 'zustand';
 import { useCurrentStateAndParams } from '@uirouter/react';
 
-import { withCurrentUser } from '@/react-tools/withCurrentUser';
-import { react2angular } from '@/react-tools/react2angular';
 import { useUser } from '@/react/hooks/useUser';
-import { withUIRouter } from '@/react-tools/withUIRouter';
-import { withReactQuery } from '@/react-tools/withReactQuery';
 
 import { PageHeader } from '@@/PageHeader';
 import { Datatable } from '@@/datatables';
@@ -86,8 +82,3 @@ function TableActions({ selectedRows }: { selectedRows: ToastNotification[] }) {
     removeNotifications(user.Id, ids);
   }
 }
-
-export const NotificationsViewAngular = react2angular(
-  withUIRouter(withReactQuery(withCurrentUser(NotificationsView))),
-  []
-);

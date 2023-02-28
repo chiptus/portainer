@@ -1,13 +1,13 @@
 import { confirmWebEditorDiscard } from '@@/modals/confirm';
 
-import { options } from './options';
+import { editor, upload, url } from '@@/BoxSelector/common-options/build-methods';
 
 angular.module('portainer.docker').controller('BuildImageController', BuildImageController);
 
 /* @ngInject */
 function BuildImageController($scope, $async, $window, BuildService, Notifications, HttpRequestHelper, endpoint) {
   $scope.endpoint = endpoint;
-  $scope.options = options;
+  $scope.options = [editor, upload, url];
 
   $scope.state = {
     BuildType: 'editor',

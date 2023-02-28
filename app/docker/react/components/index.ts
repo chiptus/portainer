@@ -5,8 +5,8 @@ import { StackContainersDatatable } from '@/react/docker/stacks/ItemView/StackCo
 import { StackImageStatus } from '@/react/docker/stacks/ListView/StackImageStatus';
 import { ContainerQuickActions } from '@/react/docker/containers/components/ContainerQuickActions';
 import { ImageStatus } from '@/react/docker/components/ImageStatus';
-import { TemplateListDropdownAngular } from '@/react/docker/app-templates/TemplateListDropdown';
-import { TemplateListSortAngular } from '@/react/docker/app-templates/TemplateListSort';
+import { TemplateListDropdown } from '@/react/docker/app-templates/TemplateListDropdown';
+import { TemplateListSort } from '@/react/docker/app-templates/TemplateListSort';
 import { Gpu } from '@/react/docker/containers/CreateView/Gpu';
 import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { withReactQuery } from '@/react-tools/withReactQuery';
@@ -41,8 +41,22 @@ export const componentsModule = angular
       'nodeName',
     ])
   )
-  .component('templateListDropdown', TemplateListDropdownAngular)
-  .component('templateListSort', TemplateListSortAngular)
+  .component(
+    'templateListDropdown',
+    r2a(TemplateListDropdown, ['options', 'onChange', 'placeholder', 'value'])
+  )
+  .component(
+    'templateListSort',
+    r2a(TemplateListSort, [
+      'options',
+      'onChange',
+      'onDescending',
+      'placeholder',
+      'sortByDescending',
+      'sortByButton',
+      'value',
+    ])
+  )
   .component(
     'stackContainersDatatable',
     r2a(

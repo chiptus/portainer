@@ -3,8 +3,8 @@ import { useMutation, useQueryClient } from 'react-query';
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 import { promiseSequence } from '@/portainer/helpers/promise-utils';
-import { useIntegratedLicenseInfo } from '@/portainer/license-management/use-license.service';
-import { LicenseType } from '@/portainer/license-management/types';
+import { useIntegratedLicenseInfo } from '@/react/portainer/licenses/use-license.service';
+import { LicenseType } from '@/react/portainer/licenses/types';
 
 export function useAssociateDeviceMutation() {
   const queryClient = useQueryClient();

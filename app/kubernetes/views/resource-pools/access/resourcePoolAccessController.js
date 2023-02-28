@@ -4,7 +4,7 @@ import { KubernetesPortainerConfigMapConfigName, KubernetesPortainerConfigMapNam
 import { UserAccessViewModel, TeamAccessViewModel } from 'Portainer/models/access';
 import KubernetesConfigMapHelper from 'Kubernetes/helpers/configMapHelper';
 import { RoleTypes } from 'Portainer/rbac/models/role';
-import { getIsRBACEnabled } from '@/react/kubernetes/cluster/service';
+import { getIsRBACEnabled } from '@/react/kubernetes/cluster/getIsRBACEnabled';
 
 class KubernetesResourcePoolAccessController {
   /* @ngInject */

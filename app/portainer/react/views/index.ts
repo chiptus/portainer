@@ -11,16 +11,19 @@ import { CloudView } from '@/react/portainer/settings/cloud/CloudView';
 import { CreateCredentialView } from '@/react/portainer/settings/cloud/CreateCredentialsView';
 import { EditCredentialView } from '@/react/portainer/settings/cloud/EditCredentialView';
 import { withI18nSuspense } from '@/react-tools/withI18nSuspense';
+import { NotificationsView } from '@/react/portainer/notifications/NotificationsView';
 
 import { wizardModule } from './wizard';
 import { teamsModule } from './teams';
 import { updateSchedulesModule } from './update-schedules';
+import { gitCredentialsModule } from './git-credentials';
 
 export const viewsModule = angular
   .module('portainer.app.react.views', [
     wizardModule,
     teamsModule,
     updateSchedulesModule,
+    gitCredentialsModule,
   ])
   .component(
     'homeView',
@@ -51,4 +54,8 @@ export const viewsModule = angular
   .component(
     'editCloudCredentialView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(EditCredentialView))), [])
+  )
+  .component(
+    'notifications',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(NotificationsView))), [])
   ).name;
