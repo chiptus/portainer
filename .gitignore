@@ -19,3 +19,4 @@ __debug_bin
 api/docs
 .env
 /.vscode/
+go.work.sum

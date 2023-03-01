@@ -3,14 +3,15 @@ import { useQuery } from 'react-query';
 import { withError } from '@/react-tools/react-query';
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 import { Environment } from '@/react/portainer/environments/types';
-import { DockerContainerResponse } from '@/react/docker/containers/types/response';
-import { parseViewModel } from '@/react/docker/containers/utils';
+
+import { DockerContainerSnapshotResponse } from '../snapshots/types/response';
+import { parseDockerContainerSnapshot } from '../snapshots/utils';
 
 import { buildDockerSnapshotContainersUrl, queryKeys } from './utils';
 
 export function useDockerSnapshotContainer(
   environmentId: Environment['Id'],
-  containerId: DockerContainerResponse['Id']
+  containerId: DockerContainerSnapshotResponse['Id']
 ) {
   return useQuery(
     queryKeys.container(environmentId, containerId),
@@ -23,13 +24,13 @@ export function useDockerSnapshotContainer(
 
 export async function getEnvironmentSnapshotContainers(
   environmentId: Environment['Id'],
-  containerId: DockerContainerResponse['Id']
+  containerId: DockerContainerSnapshotResponse['Id']
 ) {
   try {
-    const { data } = await axios.get<DockerContainerResponse>(
+    const { data } = await axios.get<DockerContainerSnapshotResponse>(
       buildDockerSnapshotContainersUrl(environmentId, containerId)
     );
-    return parseViewModel(data);
+    return parseDockerContainerSnapshot(data);
   } catch (e) {
     throw parseAxiosError(e as Error);
   }

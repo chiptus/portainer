@@ -66,6 +66,7 @@
               {
                 "Command": "/opt/bitnami/scripts/redis/entrypoint.sh /opt/bitnami/scripts/redis/run.sh",
                 "Created": 1648161564,
+                "Env": null,
                 "HostConfig": {
                   "NetworkMode": "default"
                 },

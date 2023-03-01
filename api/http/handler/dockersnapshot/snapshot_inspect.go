@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type snapshotInfo struct {
@@ -21,7 +22,7 @@ type snapshotInfo struct {
 }
 
 type snapshotResponse struct {
-	Containers []types.Container
+	Containers []portainer.DockerContainerSnapshot
 	Volumes    volume.VolumeListOKBody
 	Images     []types.ImageSummary
 	Info       snapshotInfo

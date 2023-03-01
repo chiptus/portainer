@@ -224,7 +224,12 @@ func snapshotContainers(snapshot *portainer.DockerSnapshot, cli *client.Client) 
 	snapshot.HealthyContainerCount = healthyContainers
 	snapshot.UnhealthyContainerCount = unhealthyContainers
 	snapshot.StackCount += len(stacks)
-	snapshot.SnapshotRaw.Containers = containers
+	for _, container := range containers {
+		// skip saving the Env per container for socket/API envs as we only use the Env for async edge agent snapshots
+		// if we later want to save the container's envs in the snapshot
+		// we will have to query all the containers details and inject their `.Config.Env` in the snapshot
+		snapshot.SnapshotRaw.Containers = append(snapshot.SnapshotRaw.Containers, portainer.DockerContainerSnapshot{Container: container})
+	}
 	return nil
 }
 

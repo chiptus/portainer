@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/docker/docker/api/types"
-
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/docker/consts"
+	portainer "github.com/portainer/portainer/api"
 	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
@@ -24,7 +23,7 @@ import (
 // @produce json
 // @param environmentId path int true "Environment identifier"
 // @param edgeStackId query int false "Edge stack identifier, will return only containers for this edge stack"
-// @success 200 {object} types.Container[] "Success"
+// @success 200 {object} portainer.DockerContainerSnapshot[] "Success"
 // @failure 404 "Environment not found"
 // @router /docker/{environmentId}/snapshot/containers [get]
 func (handler *Handler) containersList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
@@ -56,9 +55,9 @@ func (handler *Handler) containersList(w http.ResponseWriter, r *http.Request) *
 	return response.JSON(w, containers)
 }
 
-func filterContainersByEdgeStack(containers []types.Container, edgeStack *portaineree.EdgeStack) []types.Container {
+func filterContainersByEdgeStack(containers []portainer.DockerContainerSnapshot, edgeStack *portaineree.EdgeStack) []portainer.DockerContainerSnapshot {
 	stackName := fmt.Sprintf("edge_%s", edgeStack.Name)
-	filteredContainers := []types.Container{}
+	filteredContainers := []portainer.DockerContainerSnapshot{}
 
 	for _, container := range containers {
 		if container.Labels[consts.ComposeStackNameLabel] == stackName || container.Labels[consts.SwarmStackNameLabel] == stackName {

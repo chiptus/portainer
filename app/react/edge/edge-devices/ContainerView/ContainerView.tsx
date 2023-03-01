@@ -15,6 +15,7 @@ import { NetworksTable } from './NetworksTable';
 import { VolumesTable } from './VolumesTable';
 import { LabelsRow } from './LabelsRow';
 import { StatusBadge } from './StatusBadge';
+import { EnvRow } from './EnvRow';
 
 export function ContainerView() {
   const {
@@ -87,6 +88,7 @@ export function ContainerView() {
                 <DetailsTable.Row label="CMD">
                   {container.Command}
                 </DetailsTable.Row>
+                <EnvRow env={container.Env} />
                 <LabelsRow labels={container.Labels} />
               </DetailsTable>
             </WidgetBody>

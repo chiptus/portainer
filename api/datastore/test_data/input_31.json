@@ -73,6 +73,7 @@
               {
                 "Command": "docker-entrypoint.sh /bin/bash",
                 "Created": 1648696214,
+                "Env": null,
                 "HostConfig": {
                   "NetworkMode": "bridge"
                 },
@@ -108,6 +109,7 @@
               {
                 "Command": "/docker-entrypoint.sh nginx -g 'daemon off;'",
                 "Created": 1648696019,
+                "Env": null,
                 "HostConfig": {
                   "NetworkMode": "nginx_default"
                 },
@@ -166,6 +168,7 @@
               {
                 "Command": "redis-server /etc/redis/redis.conf",
                 "Created": 1648695854,
+                "Env": null,
                 "HostConfig": {
                   "NetworkMode": "redis_default"
                 },
@@ -234,6 +237,7 @@
               {
                 "Command": "/entrypoint.sh /bin/sh -c /run.sh",
                 "Created": 1648695854,
+                "Env": null,
                 "HostConfig": {
                   "NetworkMode": "redis_default"
                 },
@@ -302,6 +306,7 @@
               {
                 "Command": "apache2-foreground",
                 "Created": 1648695853,
+                "Env": null,
                 "HostConfig": {
                   "NetworkMode": "redis_default"
                 },
@@ -360,6 +365,7 @@
               {
                 "Command": "httpd-foreground",
                 "Created": 1647381304,
+                "Env": null,
                 "HostConfig": {
                   "NetworkMode": "bridge"
                 },

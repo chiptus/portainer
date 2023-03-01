@@ -2,8 +2,12 @@ import { DockerContainerResponse } from '@/react/docker/containers/types/respons
 import { DockerImageResponse } from '@/react/docker/images/types/response';
 import { DockerVolumeResponse } from '@/react/docker/volumes/types/response';
 
+export type DockerContainerSnapshotResponse = DockerContainerResponse & {
+  Env?: string[];
+};
+
 export type DockerSnapshotResponse = {
-  Containers: DockerContainerResponse[];
+  Containers: DockerContainerSnapshotResponse[];
   Images: DockerImageResponse[];
   Info: { SystemTime: string };
   Volumes: { Volumes: DockerVolumeResponse[] };
