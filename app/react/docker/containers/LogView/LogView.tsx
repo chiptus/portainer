@@ -39,7 +39,7 @@ export function LogView() {
     {
       label: containerName,
       link: 'docker.containers.container',
-      linkParams: { containerId },
+      linkParams: { id: containerId },
     },
     'Logs',
   ];
