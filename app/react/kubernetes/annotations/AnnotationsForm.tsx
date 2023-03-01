@@ -1,9 +1,11 @@
 import { ChangeEvent, ReactNode } from 'react';
 import { Trash2 } from 'lucide-react';
+import clsx from 'clsx';
 
 import { FormError } from '@@/form-components/FormError';
 import { Button } from '@@/buttons';
 
+import { ReadOnly } from './ReadOnly';
 import { Annotation } from './types';
 
 interface Props {
@@ -17,23 +19,36 @@ interface Props {
   errors: Record<string, ReactNode>;
   placeholder: string[];
   disabled?: boolean;
+  screen?: string;
 }
 
-export function Annotations({
+export function AnnotationsForm({
   annotations,
   handleAnnotationChange,
   removeAnnotation,
   errors,
   placeholder,
   disabled,
+  screen,
 }: Props) {
+  if (disabled && screen !== 'ingress') {
+    return <ReadOnly annotations={annotations} />;
+  }
+
   return (
     <>
       {annotations.map((annotation, i) => (
-        <div className="row" key={annotation.ID}>
+        <div className="row mt-4" key={annotation.ID}>
           <div className="form-group col-sm-4 !m-0 !pl-0">
             <div className="input-group input-group-sm">
-              <span className="input-group-addon required">Key</span>
+              <span
+                className={clsx(
+                  'input-group-addon',
+                  disabled ? '' : 'required'
+                )}
+              >
+                Key
+              </span>
               <input
                 name={`annotation_key_${i}`}
                 type="text"
@@ -54,7 +69,14 @@ export function Annotations({
           </div>
           <div className="form-group col-sm-4 !m-0 !pl-0">
             <div className="input-group input-group-sm">
-              <span className="input-group-addon required">Value</span>
+              <span
+                className={clsx(
+                  'input-group-addon',
+                  disabled ? '' : 'required'
+                )}
+              >
+                Value
+              </span>
               <input
                 name={`annotation_value_${i}`}
                 type="text"

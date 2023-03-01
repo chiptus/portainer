@@ -65,6 +65,22 @@ class KubernetesNamespaceService {
     }
   }
 
+  async patchAsync(oldNS, newNS) {
+    try {
+      let res;
+      if (Object.keys(oldNS.Annotations).length === 0) {
+        delete oldNS.Annotations;
+      }
+      const payload = KubernetesNamespaceConverter.patchPayload(oldNS, newNS);
+      if (!payload.length) {
+        return res;
+      }
+      return await this.KubernetesNamespaces().patch({ id: newNS.Name, action: 'status' }, payload).$promise;
+    } catch (err) {
+      throw new PortainerError('Unable to update namespace', err);
+    }
+  }
+
   async getAllAsync() {
     try {
       // get the list of all namespaces (RBAC allows users to see the list of namespaces)

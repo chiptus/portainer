@@ -32,6 +32,16 @@
                     </table>
                   </div>
                 </div>
+
+                <div class="col-sm-12 annotations mb-4 p-0">
+                  <annotations
+                    initial-annotations="ctrl.formValues.Annotations"
+                    handle-update-annotations="ctrl.handleUpdateAnnotations"
+                    errors="ctrl.state.annotationsErrors"
+                    hide-form="!ctrl.canEdit"
+                  ></annotations>
+                </div>
+
                 <!-- !name-input -->
                 <div authorization="K8sResourcePoolDetailsW" ng-if="ctrl.isEditable" class="col-sm-12 form-section-title">Resource quota</div>
                 <!-- quotas-switch -->
@@ -374,7 +384,7 @@
                       type="button"
                       ng-if="!ctrl.isSystem"
                       class="btn btn-primary btn-sm !ml-0 mr-1"
-                      ng-disabled="!resourcePoolEditForm.$valid || ctrl.isUpdateButtonDisabled()"
+                      ng-disabled="!resourcePoolEditForm.$valid || ctrl.isUpdateButtonDisabled() || !ctrl.isAnnotationsValid()"
                       ng-click="ctrl.updateResourcePool()"
                       button-spinner="ctrl.state.actionInProgress"
                     >

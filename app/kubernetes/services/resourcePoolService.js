@@ -87,8 +87,8 @@ export function KubernetesResourcePoolService(
 
   function patch(oldFormValues, newFormValues) {
     return $async(async () => {
-      const [, oldQuota, oldIngresses, oldRegistries] = KubernetesResourcePoolConverter.formValuesToResourcePool(oldFormValues);
-      const [, newQuota, newIngresses, newRegistries] = KubernetesResourcePoolConverter.formValuesToResourcePool(newFormValues);
+      const [oldNamespace, oldQuota, oldIngresses, oldRegistries] = KubernetesResourcePoolConverter.formValuesToResourcePool(oldFormValues);
+      const [newNamespace, newQuota, newIngresses, newRegistries] = KubernetesResourcePoolConverter.formValuesToResourcePool(newFormValues);
 
       if (oldQuota && newQuota) {
         await KubernetesResourceQuotaService.patch(oldQuota, newQuota);
@@ -96,6 +96,10 @@ export function KubernetesResourcePoolService(
         await KubernetesResourceQuotaService.create(newQuota);
       } else if (oldQuota && !newQuota) {
         await KubernetesResourceQuotaService.delete(oldQuota);
+      }
+
+      if (oldNamespace && newNamespace) {
+        await KubernetesNamespaceService.patchAsync(oldNamespace, newNamespace);
       }
 
       const create = _.filter(newIngresses, (ing) => !_.find(oldIngresses, { Name: ing.Name }));

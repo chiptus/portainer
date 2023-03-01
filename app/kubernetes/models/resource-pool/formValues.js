@@ -12,6 +12,7 @@ export function KubernetesResourcePoolFormValues(defaults) {
   this.EndpointId = 0;
   this.Registries = []; // RegistryViewModel
   this.IsSystem = false;
+  this.Annotations = [];
 }
 
 /**

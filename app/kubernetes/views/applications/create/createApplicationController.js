@@ -39,6 +39,7 @@ import { confirm, confirmUpdate, confirmWebEditorDiscard } from '@@/modals/confi
 import { buildConfirmButton } from '@@/modals/utils';
 import { ModalType } from '@@/modals';
 
+import KubernetesAnnotationsUtils from '@/kubernetes/converters/annotations';
 import { placementOptions } from '@/react/kubernetes/applications/CreateView/placementTypes';
 
 class KubernetesCreateApplicationController {
@@ -148,6 +149,8 @@ class KubernetesCreateApplicationController {
       isEdit: false,
       persistedFoldersUseExistingVolumes: false,
       pullImageValidity: false,
+
+      annotationsErrors: {},
     };
 
     this.isAdmin = false;
@@ -171,6 +174,9 @@ class KubernetesCreateApplicationController {
     this.onChangeDeploymentType = this.onChangeDeploymentType.bind(this);
     this.supportGlobalDeployment = this.supportGlobalDeployment.bind(this);
     this.onChangePlacementType = this.onChangePlacementType.bind(this);
+
+    this.handleUpdateAnnotations = this.handleUpdateAnnotations.bind(this);
+    this.isAnnotationsValid = this.isAnnotationsValid.bind(this);
   }
   /* #endregion */
 
@@ -1333,6 +1339,18 @@ class KubernetesCreateApplicationController {
   }
   /* #endregion */
 
+  /** Annotations */
+  handleUpdateAnnotations(annotations) {
+    return this.$async(async () => {
+      this.formValues.Annotations = annotations;
+      this.state.annotationsErrors = KubernetesAnnotationsUtils.validateAnnotations(annotations);
+    });
+  }
+
+  isAnnotationsValid() {
+    return Object.keys(this.state.annotationsErrors).length === 0;
+  }
+
   /* #region  ON INIT */
   $onInit() {
     return this.$async(async () => {
@@ -1441,7 +1459,6 @@ class KubernetesCreateApplicationController {
       }
     });
   }
-
   /* #endregion */
 }
 

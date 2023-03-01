@@ -1,6 +1,6 @@
-import { Option } from '@@/form-components/Input/Select';
+import { Annotation } from '@/react/kubernetes/annotations/types';
 
-import { Annotation } from './Annotations/types';
+import { Option } from '@@/form-components/Input/Select';
 
 export interface Path {
   Key: string;

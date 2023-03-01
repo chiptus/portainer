@@ -14,6 +14,7 @@ import KubernetesResourceReservationHelper from 'Kubernetes/helpers/resourceRese
 import KubernetesCommonHelper from 'Kubernetes/helpers/commonHelper';
 import { buildImageFullURI } from 'Docker/helpers/imageHelper';
 import KubernetesPersistentVolumeClaimConverter from './persistentVolumeClaim';
+import KubernetesAnnotationsUtils from './annotations';
 
 class KubernetesStatefulSetConverter {
   /**
@@ -35,6 +36,7 @@ class KubernetesStatefulSetConverter {
     KubernetesApplicationHelper.generateVolumesFromPersistentVolumClaims(res, volumeClaims);
     KubernetesApplicationHelper.generateEnvOrVolumesFromConfigurations(res, formValues.Configurations);
     KubernetesApplicationHelper.generateAffinityFromPlacements(res, formValues);
+    res.Annotations = formValues.Annotations;
     return res;
   }
 
@@ -49,6 +51,7 @@ class KubernetesStatefulSetConverter {
     payload.metadata.labels[KubernetesPortainerApplicationStackNameLabel] = statefulSet.StackName;
     payload.metadata.labels[KubernetesPortainerApplicationNameLabel] = statefulSet.ApplicationName;
     payload.metadata.labels[KubernetesPortainerApplicationOwnerLabel] = statefulSet.ApplicationOwner;
+    payload.metadata.annotations = KubernetesAnnotationsUtils.formValuesToKubeAnnotations(statefulSet);
     payload.metadata.annotations[KubernetesPortainerApplicationNote] = statefulSet.Note;
     payload.spec.replicas = statefulSet.ReplicaCount;
     payload.spec.serviceName = statefulSet.ServiceName;
@@ -57,7 +60,7 @@ class KubernetesStatefulSetConverter {
     payload.spec.template.metadata.labels.app = statefulSet.Name;
     payload.spec.template.metadata.labels[KubernetesPortainerApplicationNameLabel] = statefulSet.ApplicationName;
     payload.spec.template.spec.containers[0].name = statefulSet.Name;
-    if (statefulSet.ImageModel.Image) {
+    if (statefulSet.ImageModel && statefulSet.ImageModel.Image) {
       payload.spec.template.spec.containers[0].image = buildImageFullURI(statefulSet.ImageModel);
       if (statefulSet.ImageModel.Registry && statefulSet.ImageModel.Registry.Authentication) {
         payload.spec.template.spec.imagePullSecrets = [{ name: `registry-${statefulSet.ImageModel.Registry.Id}` }];

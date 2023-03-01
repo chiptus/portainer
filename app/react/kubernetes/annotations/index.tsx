@@ -1,0 +1,167 @@
+import { ReactNode, useEffect, useState, useRef } from 'react';
+import { Plus } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
+import { debounce } from 'lodash';
+
+import { Button } from '@@/buttons';
+import { Tooltip } from '@@/Tip/Tooltip';
+
+import { Annotation } from './types';
+import { IngressActions } from './IngressActions';
+import { AnnotationsForm } from './AnnotationsForm';
+
+interface Props {
+  initialAnnotations: Annotation[];
+  errors?: Record<string, ReactNode>;
+  placeholder?: string[];
+  handleUpdateAnnotations?: (annotations: Annotation[]) => void;
+
+  hideForm?: boolean;
+  ingressType?: string;
+
+  screen?: string;
+}
+
+export function Annotations({
+  initialAnnotations,
+  hideForm,
+  errors = {},
+  placeholder = ['e.g. app.kubernetes.io/name', 'e.g. examplename'],
+  ingressType,
+  handleUpdateAnnotations = () => {},
+  screen,
+}: Props) {
+  const [annotations, setAnnotations] =
+    useState<Annotation[]>(initialAnnotations);
+
+  const debouncedHandleUpdateAnnotations = useRef(
+    debounce(handleUpdateAnnotations, 300)
+  );
+
+  useEffect(() => {
+    debouncedHandleUpdateAnnotations.current(annotations);
+  }, [annotations]);
+
+  return (
+    <>
+      <div className="col-sm-12 text-muted vertical-center mb-2 block px-0">
+        <div className="control-label !mb-2 text-left font-medium">
+          Annotations
+          {!hideForm && (
+            <Tooltip
+              message={
+                <div className="vertical-center">
+                  <span>
+                    You can specify{' '}
+                    <a
+                      href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/"
+                      target="_black"
+                    >
+                      annotations
+                    </a>{' '}
+                    for the object. See further Kubernetes documentation on{' '}
+                    <a
+                      href="https://kubernetes.io/docs/reference/labels-annotations-taints/"
+                      target="_black"
+                    >
+                      well-known annotations
+                    </a>
+                    .
+                  </span>
+                </div>
+              }
+              setHtmlMessage
+            />
+          )}
+        </div>
+      </div>
+
+      {annotations && (
+        <AnnotationsForm
+          placeholder={placeholder}
+          annotations={annotations}
+          handleAnnotationChange={handleAnnotationChange}
+          removeAnnotation={removeAnnotation}
+          errors={errors}
+          disabled={hideForm}
+          screen={screen}
+        />
+      )}
+
+      {!hideForm && screen === 'ingress' && (
+        <IngressActions
+          addNewAnnotation={addNewAnnotation}
+          ingressType={ingressType}
+          hideForm={hideForm}
+        />
+      )}
+
+      {!hideForm && !screen && (
+        <div className="col-sm-12 mt-4 p-0">
+          <Button
+            className="btn btn-sm btn-light mb-2 !ml-0"
+            onClick={() => addNewAnnotation()}
+            icon={Plus}
+          >
+            Add annotation
+          </Button>
+        </div>
+      )}
+    </>
+  );
+
+  function addNewAnnotation(type?: 'rewrite' | 'regex' | 'ingressClass') {
+    const newAnnotations = [...annotations];
+    const annotation: Annotation = {
+      Key: '',
+      Value: '',
+      ID: uuidv4(),
+    };
+    switch (type) {
+      case 'rewrite':
+        annotation.Key = 'nginx.ingress.kubernetes.io/rewrite-target';
+        annotation.Value = '/$1';
+        break;
+      case 'regex':
+        annotation.Key = 'nginx.ingress.kubernetes.io/use-regex';
+        annotation.Value = 'true';
+        break;
+      case 'ingressClass':
+        annotation.Key = 'kubernetes.io/ingress.class';
+        annotation.Value = '';
+        break;
+      default:
+        break;
+    }
+    newAnnotations?.push(annotation);
+    setAnnotations(newAnnotations);
+  }
+
+  function removeAnnotation(index: number) {
+    const newAnnotations = [...annotations];
+
+    if (index > -1) {
+      newAnnotations?.splice(index, 1);
+    }
+
+    setAnnotations(newAnnotations);
+  }
+
+  function handleAnnotationChange(
+    index: number,
+    key: 'Key' | 'Value',
+    val: string
+  ) {
+    setAnnotations((prevAnnotations) => {
+      const oldAnnotations = [...prevAnnotations];
+
+      oldAnnotations[index] = oldAnnotations[index] || {
+        Key: '',
+        Value: '',
+      };
+      oldAnnotations[index][key] = val;
+
+      return oldAnnotations;
+    });
+  }
+}

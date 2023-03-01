@@ -4,6 +4,7 @@ export const KubernetesSystem_RevisionHistoryAnnotation = 'deployment.kubernetes
 export const KubernetesSystem_ChangeCauseAnnotation = 'kubernetes.io/change-cause';
 export const KubernetesSystem_DesiredReplicasAnnotation = 'deployment.kubernetes.io/desired-replicas';
 export const KubernetesSystem_MaxReplicasAnnotation = 'deployment.kubernetes.io/max-replicas';
+export const KubernetesSystem_DepricatedDeamonsetTemplateAnnotation = 'deprecated.daemonset.template.generation';
 
 // annotationsToSkip lists the annotations that should be preserved from the deployment and not
 // copied from the replicaset when rolling a deployment back
@@ -29,4 +30,5 @@ export const KubernetesSystem_AnnotationsToSkip = {
   [KubernetesSystem_DesiredReplicasAnnotation]: true,
   [KubernetesSystem_MaxReplicasAnnotation]: true,
   [DeprecatedRollbackTo]: true,
+  [KubernetesSystem_DepricatedDeamonsetTemplateAnnotation]: true,
 };

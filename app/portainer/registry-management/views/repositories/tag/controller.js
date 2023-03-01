@@ -24,7 +24,6 @@ export class RegistryRepositoryTagController {
   }
 
   getRegistriesLink() {
-    console.log(this.endpointProviderType);
     switch (this.endpointProviderType) {
       case 'swarm':
         return 'docker.swarm.registries';

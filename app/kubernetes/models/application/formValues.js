@@ -29,6 +29,7 @@ export function KubernetesApplicationFormValues() {
   this.Placements = []; // KubernetesApplicationPlacementFormValue lis;
   this.OriginalIngresses = undefined;
   this.IsPublishingService = false;
+  this.Annotations = [];
 }
 
 export const KubernetesApplicationConfigurationFormValueOverridenKeyTypes = Object.freeze({

@@ -726,3 +726,7 @@ input[style*='background-image: url("data:image/png'] {
 input:-webkit-autofill {
   @apply caret-[--grey-25] th-highcontrast:caret-white th-dark:caret-white;
 }
+
+.border-top {
+  border-top: 1px solid var(--border-table-top-color);
+}

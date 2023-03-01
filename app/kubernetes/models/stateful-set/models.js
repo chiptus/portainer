@@ -19,6 +19,7 @@ const _KubernetesStatefulSet = Object.freeze({
   ApplicationOwner: '',
   Note: '',
   Affinity: undefined, // KubernetesPodAffinity
+  Annotations: [],
 });
 
 export class KubernetesStatefulSet {

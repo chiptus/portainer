@@ -3,6 +3,7 @@ import { KubernetesConfigMap, KubernetesPortainerAccessConfigMap } from 'Kuberne
 import { KubernetesConfigMapCreatePayload, KubernetesConfigMapUpdatePayload } from 'Kubernetes/models/config-map/payloads';
 import { KubernetesPortainerConfigurationOwnerLabel } from 'Kubernetes/models/configuration/models';
 import { KubernetesConfigurationFormValuesEntry } from 'Kubernetes/models/configuration/formvalues';
+import KubernetesAnnotationsUtils from './annotations';
 
 class KubernetesConfigMapConverter {
   static apiToPortainerAccessConfigMap(data) {
@@ -55,6 +56,8 @@ class KubernetesConfigMapConverter {
       })
     );
 
+    res.Annotations = data.metadata.annotations ? KubernetesAnnotationsUtils.apiToFormValueAnnotations(data.metadata.annotations) : [];
+
     return res;
   }
 
@@ -88,6 +91,8 @@ class KubernetesConfigMapConverter {
       }
     });
 
+    res.metadata.annotations = KubernetesAnnotationsUtils.formValuesToKubeAnnotations(data);
+
     return res;
   }
 
@@ -107,6 +112,7 @@ class KubernetesConfigMapConverter {
         res.data[entry.Key] = entry.Value;
       }
     });
+    res.metadata.annotations = KubernetesAnnotationsUtils.formValuesToKubeAnnotations(data);
     return res;
   }
 
@@ -117,6 +123,7 @@ class KubernetesConfigMapConverter {
     res.Namespace = formValues.ResourcePool.Namespace.Name;
     res.ConfigurationOwner = formValues.ConfigurationOwner;
     res.Data = formValues.Data;
+    res.Annotations = formValues.Annotations;
     return res;
   }
 }

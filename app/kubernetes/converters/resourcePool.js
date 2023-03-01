@@ -4,6 +4,7 @@ import { KubernetesResourcePool } from 'Kubernetes/models/resource-pool/models';
 import { KubernetesNamespace } from 'Kubernetes/models/namespace/models';
 import { KubernetesIngressConverter } from 'Kubernetes/ingress/converter';
 import KubernetesResourceQuotaConverter from './resourceQuota';
+import KubernetesAnnotationsUtils from './annotations';
 
 class KubernetesResourcePoolConverter {
   static apiToResourcePool(namespace) {
@@ -19,6 +20,8 @@ class KubernetesResourcePoolConverter {
     namespace.ResourcePoolName = formValues.Name;
     namespace.ResourcePoolOwner = formValues.Owner;
     namespace.IsSystem = formValues.IsSystem;
+
+    namespace.Annotations = KubernetesAnnotationsUtils.formValuesToKubeAnnotations(formValues);
 
     const quota = KubernetesResourceQuotaConverter.resourcePoolFormValuesToResourceQuota(formValues);
 

@@ -8,6 +8,7 @@ import { KubernetesIngressClassTypes } from 'Kubernetes/ingress/constants';
 import KubernetesStorageClassConverter from 'Kubernetes/converters/storageClass';
 import { FeatureId } from '@/react/portainer/feature-flags/enums';
 import { getIngressControllerClassMap, updateIngressControllerClassMap } from '@/react/kubernetes/cluster/ingressClass/utils';
+import KubernetesAnnotationsUtils from '@/kubernetes/converters/annotations';
 
 class KubernetesCreateResourcePoolController {
   /* #region  CONSTRUCTOR */
@@ -35,6 +36,8 @@ class KubernetesCreateResourcePoolController {
     this.onRegistriesChange = this.onRegistriesChange.bind(this);
     this.handleMemoryLimitChange = this.handleMemoryLimitChange.bind(this);
     this.handleCpuLimitChange = this.handleCpuLimitChange.bind(this);
+    this.handleUpdateAnnotations = this.handleUpdateAnnotations.bind(this);
+    this.isAnnotationsValid = this.isAnnotationsValid.bind(this);
   }
   /* #endregion */
 
@@ -172,6 +175,18 @@ class KubernetesCreateResourcePoolController {
   }
   /* #endregion */
 
+  /** Annotations */
+  handleUpdateAnnotations(annotations) {
+    return this.$async(async () => {
+      this.formValues.Annotations = annotations;
+      this.state.annotationsErrors = KubernetesAnnotationsUtils.validateAnnotations(annotations);
+    });
+  }
+
+  isAnnotationsValid() {
+    return Object.keys(this.state.annotationsErrors).length === 0;
+  }
+
   /* #region  ON INIT */
   $onInit() {
     return this.$async(async () => {
@@ -201,6 +216,9 @@ class KubernetesCreateResourcePoolController {
           },
           isAdmin: this.Authentication.isAdmin(),
           ingressAvailabilityPerNamespace: endpoint.Kubernetes.Configuration.IngressAvailabilityPerNamespace,
+
+          annotations: [],
+          annotationsErrors: {},
         };
 
         const nodes = await this.KubernetesNodeService.get();

@@ -11,6 +11,7 @@ const _KubernetesApplication = Object.freeze({
   ApplicationKind: '',
   ApplicationOwner: '',
   ApplicationName: '',
+  Annotations: [],
   ResourcePool: '',
   Image: '',
   CreationDate: 0,

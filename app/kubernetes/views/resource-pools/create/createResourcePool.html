@@ -12,7 +12,7 @@
     <div class="col-lg-12 col-md-12 col-xs-12">
       <rd-widget>
         <rd-widget-body>
-          <form class="form-horizontal" autocomplete="off" name="resourcePoolCreationForm">
+          <form class="form-horizontal resourcePoolCreationForm" autocomplete="off" name="resourcePoolCreationForm">
             <!-- #region NAME INPUT -->
             <div class="form-group">
               <label for="pool_name" class="col-sm-3 col-lg-2 control-label required text-left">Name</label>
@@ -50,6 +50,14 @@
                   </div>
                 </span>
               </div>
+            </div>
+
+            <div class="col-sm-12 annotations mb-4 p-0">
+              <annotations
+                initial-annotations="$ctrl.state.annotations"
+                handle-update-annotations="$ctrl.handleUpdateAnnotations"
+                errors="$ctrl.state.annotationsErrors"
+              ></annotations>
             </div>
 
             <!-- #endregion -->
@@ -331,7 +339,7 @@
                 <button
                   type="button"
                   class="btn btn-primary btn-sm !ml-0"
-                  ng-disabled="!resourcePoolCreationForm.$valid || $ctrl.isCreateButtonDisabled()"
+                  ng-disabled="!resourcePoolCreationForm.$valid || $ctrl.isCreateButtonDisabled() || !$ctrl.isAnnotationsValid()"
                   ng-click="$ctrl.createResourcePool()"
                   button-spinner="$ctrl.state.actionInProgress"
                 >

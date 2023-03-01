@@ -5,6 +5,7 @@ import { KubernetesConfigurationKinds, KubernetesSecretTypeOptions } from 'Kuber
 import KubernetesConfigurationHelper from 'Kubernetes/helpers/configurationHelper';
 import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
 import { getServiceAccounts } from 'Kubernetes/rest/serviceAccount';
+import KubernetesAnnotationsUtils from 'Kubernetes/converters/annotations';
 import { typeOptions } from '@/react/kubernetes/configs/CreateView/options';
 
 import { confirmWebEditorDiscard } from '@@/modals/confirm';
@@ -33,6 +34,8 @@ class KubernetesCreateConfigurationController {
     this.onResourcePoolSelectionChangeAsync = this.onResourcePoolSelectionChangeAsync.bind(this);
     this.onSecretTypeChange = this.onSecretTypeChange.bind(this);
     this.onChangeKind = this.onChangeKind.bind(this);
+    this.handleUpdateAnnotations = this.handleUpdateAnnotations.bind(this);
+    this.isAnnotationsValid = this.isAnnotationsValid.bind(this);
   }
 
   onChangeName() {
@@ -180,6 +183,18 @@ class KubernetesCreateConfigurationController {
     }
   }
 
+  /** Annotations */
+  handleUpdateAnnotations(annotations) {
+    return this.$async(async () => {
+      this.formValues.Annotations = annotations;
+      this.state.annotationsErrors = KubernetesAnnotationsUtils.validateAnnotations(annotations);
+    });
+  }
+
+  isAnnotationsValid() {
+    return Object.keys(this.state.annotationsErrors).length === 0;
+  }
+
   async onInit() {
     this.Authentication.redirectIfUnauthorized(['K8sConfigurationsDetailsW']);
     this.state = {
@@ -190,6 +205,8 @@ class KubernetesCreateConfigurationController {
       isEditorDirty: false,
       isDockerConfig: false,
       secretWarningMessage: '',
+
+      annotationsErrors: {},
     };
 
     this.formValues = new KubernetesConfigurationFormValues();

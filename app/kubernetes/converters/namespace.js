@@ -1,4 +1,5 @@
 import _ from 'lodash-es';
+import * as JsonPatch from 'fast-json-patch';
 import { KubernetesNamespace } from 'Kubernetes/models/namespace/models';
 import { KubernetesNamespaceCreatePayload } from 'Kubernetes/models/namespace/payloads';
 import {
@@ -7,6 +8,7 @@ import {
   KubernetesPortainerNamespaceSystemLabel,
 } from 'Kubernetes/models/resource-pool/models';
 import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
+import KubernetesAnnotationsUtils from './annotations';
 
 export default class KubernetesNamespaceConverter {
   static apiToNamespace(data, yaml) {
@@ -18,6 +20,8 @@ export default class KubernetesNamespaceConverter {
     res.Yaml = yaml ? yaml.data : '';
     res.ResourcePoolName = data.metadata.labels ? data.metadata.labels[KubernetesPortainerResourcePoolNameLabel] : '';
     res.ResourcePoolOwner = data.metadata.labels ? data.metadata.labels[KubernetesPortainerResourcePoolOwnerLabel] : '';
+
+    res.Annotations = KubernetesAnnotationsUtils.apiToFormValueAnnotations(data.metadata.annotations || {});
 
     res.IsSystem = KubernetesNamespaceHelper.isDefaultSystemNamespace(data.metadata.name);
     if (data.metadata.labels) {
@@ -38,6 +42,16 @@ export default class KubernetesNamespaceConverter {
       const resourcePoolOwner = _.truncate(namespace.ResourcePoolOwner, { length: 63, omission: '' });
       res.metadata.labels[KubernetesPortainerResourcePoolOwnerLabel] = resourcePoolOwner;
     }
+
+    res.metadata.annotations = namespace.Annotations;
+
     return res;
+  }
+
+  static patchPayload(oldNamespace, newNamespace) {
+    const oldPayload = KubernetesNamespaceConverter.createPayload(oldNamespace);
+    const newPayload = KubernetesNamespaceConverter.createPayload(newNamespace);
+    const payload = JsonPatch.compare(oldPayload, newPayload);
+    return payload;
   }
 }

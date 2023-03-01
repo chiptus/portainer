@@ -5,6 +5,8 @@ import { KubernetesPortainerConfigurationDataAnnotation } from 'Kubernetes/model
 import { KubernetesPortainerConfigurationOwnerLabel } from 'Kubernetes/models/configuration/models';
 import { KubernetesConfigurationFormValuesEntry } from 'Kubernetes/models/configuration/formvalues';
 import { KubernetesSecretTypeOptions } from 'Kubernetes/models/configuration/models';
+import KubernetesAnnotationsUtils from './annotations';
+
 class KubernetesSecretConverter {
   static createPayload(secret) {
     const res = new KubernetesSecretCreatePayload();
@@ -23,13 +25,12 @@ class KubernetesSecretConverter {
         res.stringData[entry.Key] = entry.Value;
       }
     });
+
+    res.metadata.annotations = KubernetesAnnotationsUtils.formValuesToKubeAnnotations(secret);
+
     if (annotation !== '') {
       res.metadata.annotations[KubernetesPortainerConfigurationDataAnnotation] = annotation;
     }
-
-    _.forEach(secret.Annotations, (entry) => {
-      res.metadata.annotations[entry.name] = entry.value;
-    });
 
     return res;
   }
@@ -50,13 +51,12 @@ class KubernetesSecretConverter {
         res.stringData[entry.Key] = entry.Value;
       }
     });
+
+    res.metadata.annotations = KubernetesAnnotationsUtils.formValuesToKubeAnnotations(secret);
+
     if (annotation !== '') {
       res.metadata.annotations[KubernetesPortainerConfigurationDataAnnotation] = annotation;
     }
-
-    _.forEach(secret.Annotations, (entry) => {
-      res.metadata.annotations[entry.name] = entry.value;
-    });
 
     return res;
   }
@@ -69,7 +69,7 @@ class KubernetesSecretConverter {
     res.Type = payload.type;
     res.ConfigurationOwner = payload.metadata.labels ? payload.metadata.labels[KubernetesPortainerConfigurationOwnerLabel] : '';
     res.CreationDate = payload.metadata.creationTimestamp;
-    res.Annotations = payload.metadata.annotations;
+    res.Annotations = payload.metadata.annotations ? KubernetesAnnotationsUtils.apiToFormValueAnnotations(payload.metadata.annotations) : [];
 
     res.IsRegistrySecret = payload.metadata.annotations && !!payload.metadata.annotations['portainer.io/registry.id'];
 
@@ -105,8 +105,12 @@ class KubernetesSecretConverter {
     if (formValues.Type === KubernetesSecretTypeOptions.CUSTOM.value) {
       res.Type = formValues.customType;
     }
+    res.Annotations = formValues.Annotations;
     if (formValues.Type === KubernetesSecretTypeOptions.SERVICEACCOUNTTOKEN.value) {
-      res.Annotations = [{ name: 'kubernetes.io/service-account.name', value: formValues.ServiceAccountName }];
+      const serviceAccountAnnotation = formValues.Annotations.find((a) => a.Key === 'kubernetes.io/service-account.name');
+      if (!serviceAccountAnnotation) {
+        res.Annotations.push({ Key: 'kubernetes.io/service-account.name', Value: formValues.ServiceAccountName });
+      }
     }
     return res;
   }

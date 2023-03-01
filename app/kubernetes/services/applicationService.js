@@ -133,6 +133,7 @@ class KubernetesApplicationService {
     if (scaler && scaler.Yaml) {
       application.Yaml += '---\n' + scaler.Yaml;
     }
+
     // TODO: refactor @LP
     // append ingress yaml ?
     return application;

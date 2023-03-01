@@ -8,6 +8,7 @@ export class KubernetesNamespace {
     this.ResourcePoolName = '';
     this.ResourcePoolOwner = '';
     this.IsSystem = false;
+    this.Annotations = [];
   }
 }
 

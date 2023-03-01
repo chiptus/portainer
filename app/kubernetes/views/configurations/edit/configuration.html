@@ -114,6 +114,14 @@
             name="kubernetesConfigurationCreationForm"
             autocomplete="off"
           >
+            <div class="col-sm-12 annotations mb-4 p-0">
+              <annotations
+                initial-annotations="ctrl.formValues.Annotations"
+                handle-update-annotations="ctrl.handleUpdateAnnotations"
+                errors="ctrl.state.annotationsErrors"
+              ></annotations>
+            </div>
+
             <kubernetes-configuration-data
               ng-if="ctrl.formValues"
               form-values="ctrl.formValues"
@@ -144,7 +152,7 @@
                 <button
                   type="button"
                   class="btn btn-primary btn-sm !ml-0"
-                  ng-disabled="!ctrl.isFormValid() || !kubernetesConfigurationCreationForm.$valid || ctrl.state.actionInProgress"
+                  ng-disabled="!ctrl.isFormValid() || !kubernetesConfigurationCreationForm.$valid || ctrl.state.actionInProgress || !ctrl.isAnnotationsValid()"
                   ng-click="ctrl.updateConfiguration()"
                   button-spinner="ctrl.state.actionInProgress"
                   data-cy="k8sConfigDetail-updateConfig"
@@ -157,6 +165,15 @@
             <!-- !actions -->
           </form>
           <div ng-if="ctrl.isSystemConfig() || (!ctrl.state.isAuthorizedToEditConfigMaps && !ctrl.state.isAuthorizedToEditSecrets) || ctrl.deploymentOptions.hideAddWithForm">
+            <div class="col-sm-12 annotations mb-4 p-0">
+              <annotations
+                initial-annotations="ctrl.formValues.Annotations"
+                handle-update-annotations="ctrl.handleUpdateAnnotations"
+                errors="ctrl.state.annotationsErrors"
+                hide-form="true"
+              ></annotations>
+            </div>
+
             <div class="col-sm-12 form-section-title" style="margin-top: 10px"> Data </div>
             <table class="table">
               <tbody>

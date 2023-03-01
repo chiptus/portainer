@@ -12,6 +12,7 @@ import KubernetesApplicationHelper from 'Kubernetes/helpers/application';
 import KubernetesResourceReservationHelper from 'Kubernetes/helpers/resourceReservationHelper';
 import KubernetesCommonHelper from 'Kubernetes/helpers/commonHelper';
 import { buildImageFullURI } from 'Docker/helpers/imageHelper';
+import KubernetesAnnotationsUtils from './annotations';
 
 class KubernetesDeploymentConverter {
   /**
@@ -48,6 +49,7 @@ class KubernetesDeploymentConverter {
     payload.metadata.labels[KubernetesPortainerApplicationStackNameLabel] = deployment.StackName;
     payload.metadata.labels[KubernetesPortainerApplicationNameLabel] = deployment.ApplicationName;
     payload.metadata.labels[KubernetesPortainerApplicationOwnerLabel] = deployment.ApplicationOwner;
+    payload.metadata.annotations = KubernetesAnnotationsUtils.formValuesToKubeAnnotations(deployment);
     payload.metadata.annotations[KubernetesPortainerApplicationNote] = deployment.Note;
     payload.spec.replicas = deployment.ReplicaCount;
     payload.spec.selector.matchLabels.app = deployment.Name;

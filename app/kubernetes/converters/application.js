@@ -30,6 +30,7 @@ import KubernetesPersistentVolumeClaimConverter from 'Kubernetes/converters/pers
 import PortainerError from 'Portainer/error';
 import { KubernetesIngressHelper } from 'Kubernetes/ingress/helper';
 import KubernetesCommonHelper from 'Kubernetes/helpers/commonHelper';
+import KubernetesAnnotationsUtils from './annotations';
 
 function _apiPortsToPublishedPorts(pList, pRefs) {
   const ports = _.map(pList, (item) => {
@@ -66,6 +67,8 @@ class KubernetesApplicationConverter {
       res.ApplicationOwner = labels[KubernetesPortainerApplicationOwnerLabel] || '';
       res.ApplicationName = labels[KubernetesPortainerApplicationNameLabel] || res.Name;
     }
+
+    res.Annotations = data.metadata.annotations || {};
 
     res.Note = data.metadata.annotations ? data.metadata.annotations[KubernetesPortainerApplicationNote] || '' : '';
     res.ResourcePool = data.metadata.namespace;
@@ -298,6 +301,7 @@ class KubernetesApplicationConverter {
     res.AutoScaler = KubernetesApplicationHelper.generateAutoScalerFormValueFromHorizontalPodAutoScaler(app.AutoScaler, res.ReplicaCount);
     res.PublishedPorts = KubernetesApplicationHelper.generatePublishedPortsFormValuesFromPublishedPorts(app.ServiceType, app.PublishedPorts, ingresses);
     res.Containers = app.Containers;
+    res.Annotations = KubernetesAnnotationsUtils.apiToFormValueAnnotations(app.Annotations);
 
     const isIngress = _.filter(res.PublishedPorts, (p) => p.IngressName).length;
     if (app.ServiceType === KubernetesServiceTypes.LOAD_BALANCER) {
@@ -349,6 +353,8 @@ class KubernetesApplicationConverter {
     } else {
       throw new PortainerError('Unable to determine which association to use to convert form');
     }
+
+    app.Annotations = formValues.Annotations;
 
     let headlessService;
     if (statefulSet) {

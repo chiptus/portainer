@@ -18,6 +18,7 @@ import { getDeploymentOptions } from '@/react/portainer/environments/environment
 import { confirmUpdate, confirm } from '@@/modals/confirm';
 import { buildConfirmButton } from '@@/modals/utils';
 import { ModalType } from '@@/modals';
+import KubernetesAnnotationsUtils from '@/kubernetes/converters/annotations';
 import { rolloutRestartApplication } from './applicationService';
 
 function computeTolerations(nodes, application) {
@@ -385,6 +386,8 @@ class KubernetesApplicationController {
         const file = await this.StackService.getStackFile(application.StackId);
         this.stackFileContent = file;
       }
+
+      this.formValues.Annotations = KubernetesAnnotationsUtils.apiToFormValueAnnotations(application.Annotations);
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to retrieve application details');
     } finally {
@@ -426,6 +429,7 @@ class KubernetesApplicationController {
     this.formValues = {
       Note: '',
       SelectedRevision: undefined,
+      Annotations: [],
     };
 
     const resourcePools = await this.KubernetesResourcePoolService.get();

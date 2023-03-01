@@ -1,17 +1,17 @@
 import { ChangeEvent, ReactNode } from 'react';
 import { Info, Plus, RefreshCw, Trash2 } from 'lucide-react';
 
-import Route from '@/assets/ico/route.svg?c';
+import { Annotations } from '@/react/kubernetes/annotations';
+import { Annotation } from '@/react/kubernetes/annotations/types';
 
 import { Link } from '@@/Link';
 import { Icon } from '@@/Icon';
 import { Select, Option } from '@@/form-components/Input/Select';
 import { FormError } from '@@/form-components/FormError';
-import { Widget, WidgetBody, WidgetTitle } from '@@/Widget';
+import { Widget, WidgetBody } from '@@/Widget';
 import { Tooltip } from '@@/Tip/Tooltip';
 import { Button } from '@@/buttons';
 
-import { Annotations } from './Annotations';
 import { Rule, ServicePorts } from './types';
 
 import '../style.css';
@@ -43,11 +43,9 @@ interface Props {
 
   removeIngressRoute: (hostIndex: number, pathIndex: number) => void;
   removeIngressHost: (hostIndex: number) => void;
-  removeAnnotation: (index: number) => void;
 
   addNewIngressHost: (noHost?: boolean) => void;
   addNewIngressRoute: (hostIndex: number) => void;
-  addNewAnnotation: (type?: 'rewrite' | 'regex' | 'ingressClass') => void;
 
   handleNamespaceChange: (val: string) => void;
   handleHostChange: (hostIndex: number, val: string) => void;
@@ -56,11 +54,7 @@ interface Props {
     key: 'IngressName' | 'IngressClassName',
     value: string
   ) => void;
-  handleAnnotationChange: (
-    index: number,
-    key: 'Key' | 'Value',
-    val: string
-  ) => void;
+  handleUpdateAnnotations: (annotations: Annotation[]) => void;
   handlePathChange: (
     hostIndex: number,
     pathIndex: number,
@@ -87,16 +81,14 @@ export function IngressForm({
   addNewIngressRoute,
   removeIngressRoute,
   removeIngressHost,
-  addNewAnnotation,
-  removeAnnotation,
   reloadTLSCerts,
-  handleAnnotationChange,
   ingressClassOptions,
   errors,
   namespacesOptions,
   handleNamespaceChange,
   namespace,
   hideForm,
+  handleUpdateAnnotations,
 }: Props) {
   const hasNoHostRule = rule.Hosts?.some((host) => host.NoHost);
   const placeholderAnnotation =
@@ -106,7 +98,6 @@ export function IngressForm({
 
   return (
     <Widget>
-      <WidgetTitle icon={Route} title="Ingress" />
       <WidgetBody key={rule.Key + rule.Namespace}>
         <div className="row">
           <div className="form-horizontal">
@@ -142,7 +133,7 @@ export function IngressForm({
                   className="control-label text-muted col-sm-3 col-lg-2 required"
                   htmlFor="ingress_name"
                 >
-                  Ingress name
+                  Name
                 </label>
                 <div className={`col-sm-4 ${isEdit && 'control-label'}`}>
                   {isEdit ? (
@@ -187,7 +178,7 @@ export function IngressForm({
                     }
                     options={ingressClassOptions}
                   />
-                  {errors.className && (
+                  {!hideForm && errors.className && (
                     <FormError className="error-inline mt-1">
                       {errors.className}
                     </FormError>
@@ -196,96 +187,15 @@ export function IngressForm({
               </div>
             </div>
 
-            <div className="col-sm-12 text-muted !mb-0 px-0">
-              <div className="mb-2">Annotations</div>
-              {!hideForm && (
-                <p className="vertical-center text-muted small">
-                  <Icon icon={Info} mode="primary" />
-                  <span>
-                    You can specify{' '}
-                    <a
-                      href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/"
-                      target="_black"
-                    >
-                      annotations
-                    </a>{' '}
-                    for the object. See further Kubernetes documentation on{' '}
-                    <a
-                      href="https://kubernetes.io/docs/reference/labels-annotations-taints/"
-                      target="_black"
-                    >
-                      well-known annotations
-                    </a>
-                    .
-                  </span>
-                </p>
-              )}
-            </div>
-
-            {rule?.Annotations && (
-              <Annotations
-                placeholder={placeholderAnnotation}
-                annotations={rule.Annotations}
-                handleAnnotationChange={handleAnnotationChange}
-                removeAnnotation={removeAnnotation}
-                errors={errors}
-                disabled={hideForm}
-              />
-            )}
-
-            {rule?.Annotations?.length === 0 && hideForm && (
-              <div className="row">None</div>
-            )}
-
-            {!hideForm && (
-              <div className="col-sm-12 anntation-actions p-0">
-                <Button
-                  className="btn btn-sm btn-light mb-2 !ml-0"
-                  onClick={() => addNewAnnotation()}
-                  icon={Plus}
-                  title="Use annotations to configure options for an ingress. Review Nginx or Traefik documentation to find the annotations supported by your choice of ingress type."
-                >
-                  {' '}
-                  add annotation
-                </Button>
-
-                {rule.IngressType === 'nginx' && (
-                  <>
-                    <Button
-                      className="btn btn-sm btn-light mb-2 ml-2"
-                      onClick={() => addNewAnnotation('rewrite')}
-                      icon={Plus}
-                      title="When the exposed URLs for your applications differ from the specified paths in the ingress, use the rewrite target annotation to denote the path to redirect to."
-                      data-cy="add-rewrite-annotation"
-                    >
-                      Add rewrite annotation
-                    </Button>
-
-                    <Button
-                      className="btn btn-sm btn-light mb-2 ml-2"
-                      onClick={() => addNewAnnotation('regex')}
-                      icon={Plus}
-                      title="When the exposed URLs for your applications differ from the specified paths in the ingress, use the rewrite target annotation to denote the path to redirect to."
-                      data-cy="add-regex-annotation"
-                    >
-                      Add regular expression annotation
-                    </Button>
-                  </>
-                )}
-
-                {rule.IngressType === 'custom' && (
-                  <Button
-                    className="btn btn-sm btn-light mb-2 ml-2"
-                    onClick={() => addNewAnnotation('ingressClass')}
-                    icon={Plus}
-                    data-cy="add-ingress-class-annotation"
-                    disabled={hideForm}
-                  >
-                    Add kubernetes.io/ingress.class annotation
-                  </Button>
-                )}
-              </div>
-            )}
+            <Annotations
+              placeholder={placeholderAnnotation}
+              initialAnnotations={rule.Annotations || []}
+              errors={errors}
+              hideForm={hideForm}
+              handleUpdateAnnotations={handleUpdateAnnotations}
+              ingressType={rule.IngressType}
+              screen="ingress"
+            />
 
             <div className="col-sm-12 text-muted px-0">Rules</div>
           </div>
@@ -602,7 +512,7 @@ export function IngressForm({
         {namespace && (
           <div className="row rules-action p-0">
             {!hideForm && (
-              <div className="col-sm-12 vertical-center p-0">
+              <div className="col-sm-12 vertical-center !mb-0 p-0">
                 <Button
                   className="btn btn-sm btn-light !ml-0"
                   type="button"

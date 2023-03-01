@@ -17,6 +17,7 @@ import { FeatureId } from '@/react/portainer/feature-flags/enums';
 import { updateIngressControllerClassMap, getIngressControllerClassMap } from '@/react/kubernetes/cluster/ingressClass/utils';
 import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 import { confirmUpdate } from '@@/modals/confirm';
+import KubernetesAnnotationsUtils from '@/kubernetes/converters/annotations';
 
 class KubernetesResourcePoolController {
   /* #region  CONSTRUCTOR */
@@ -73,6 +74,9 @@ class KubernetesResourcePoolController {
     this.handleMemoryLimitChange = this.handleMemoryLimitChange.bind(this);
     this.handleCpuLimitChange = this.handleCpuLimitChange.bind(this);
     this.onToggleResourceQuota = this.onToggleResourceQuota.bind(this);
+
+    this.handleUpdateAnnotations = this.handleUpdateAnnotations.bind(this);
+    this.isAnnotationsValid = this.isAnnotationsValid.bind(this);
   }
   /* #endregion */
 
@@ -392,6 +396,18 @@ class KubernetesResourcePoolController {
     }
   }
 
+  /** Annotations */
+  handleUpdateAnnotations(annotations) {
+    return this.$async(async () => {
+      this.formValues.Annotations = annotations;
+      this.state.annotationsErrors = KubernetesAnnotationsUtils.validateAnnotations(annotations);
+    });
+  }
+
+  isAnnotationsValid() {
+    return Object.keys(this.state.annotationsErrors).length === 0;
+  }
+
   /* #region  ON INIT */
   $onInit() {
     return this.$async(async () => {
@@ -427,6 +443,8 @@ class KubernetesResourcePoolController {
             ingressHosts: new KubernetesFormValidationReferences(),
           },
           ingressAvailabilityPerNamespace: this.endpoint.Kubernetes.Configuration.IngressAvailabilityPerNamespace,
+
+          annotationsErrors: {},
         };
 
         this.state.activeTab = this.LocalStorage.getActiveTab('resourcePool');
@@ -449,6 +467,7 @@ class KubernetesResourcePoolController {
         this.formValues.Name = this.pool.Namespace.Name;
         this.formValues.EndpointId = this.endpoint.Id;
         this.formValues.IsSystem = this.pool.Namespace.IsSystem;
+        this.formValues.Annotations = this.pool.Namespace.Annotations;
 
         const sliderMaxResources = KubernetesResourceReservationHelper.computeSliderMaxResources(
           nodes,
@@ -465,6 +484,7 @@ class KubernetesResourcePoolController {
           this.oldQuota = angular.copy(quota);
           this.formValues = KubernetesResourceQuotaConverter.quotaToResourcePoolFormValues(quota);
           this.formValues.EndpointId = this.endpoint.Id;
+          this.formValues.Annotations = this.pool.Namespace.Annotations;
 
           this.state.resourceReservation.CPU = quota.CpuLimitUsed;
           this.state.resourceReservation.Memory = KubernetesResourceReservationHelper.megaBytesValue(quota.MemoryLimitUsed);

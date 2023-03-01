@@ -15,6 +15,7 @@ const _KubernetesConfiguration = Object.freeze({
   Applications: [],
   Data: {},
   SecretType: '',
+  Annotations: [],
 });
 
 export class KubernetesConfiguration {

@@ -18,8 +18,10 @@ class KubernetesConfigurationConverter {
     res.IsRegistrySecret = secret.IsRegistrySecret;
     res.SecretType = secret.SecretType;
     if (secret.Annotations) {
-      res.ServiceAccountName = secret.Annotations['kubernetes.io/service-account.name'];
+      const serviceAccountAnnotation = secret.Annotations.find((a) => a.Key === 'kubernetes.io/service-account.name');
+      res.ServiceAccountName = serviceAccountAnnotation ? serviceAccountAnnotation.Value : undefined;
     }
+    res.Annotations = secret.Annotations;
     return res;
   }
 
@@ -35,6 +37,7 @@ class KubernetesConfigurationConverter {
       res.Data[entry.Key] = entry.Value;
     });
     res.ConfigurationOwner = configMap.ConfigurationOwner;
+    res.Annotations = configMap.Annotations;
     return res;
   }
 }

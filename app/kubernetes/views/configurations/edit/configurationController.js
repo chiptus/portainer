@@ -1,6 +1,7 @@
 import angular from 'angular';
 import _ from 'lodash-es';
 
+import KubernetesAnnotationsUtils from 'kubernetes/converters/annotations';
 import { KubernetesConfigurationFormValues } from 'Kubernetes/models/configuration/formvalues';
 import { KubernetesConfigurationKinds, KubernetesSecretTypeOptions } from 'Kubernetes/models/configuration/models';
 import KubernetesConfigurationHelper from 'Kubernetes/helpers/configurationHelper';
@@ -57,6 +58,9 @@ class KubernetesConfigurationController {
     this.getConfigurationsAsync = this.getConfigurationsAsync.bind(this);
     this.updateConfiguration = this.updateConfiguration.bind(this);
     this.updateConfigurationAsync = this.updateConfigurationAsync.bind(this);
+
+    this.handleUpdateAnnotations = this.handleUpdateAnnotations.bind(this);
+    this.isAnnotationsValid = this.isAnnotationsValid.bind(this);
   }
 
   isSystemNamespace() {
@@ -251,6 +255,18 @@ class KubernetesConfigurationController {
     }
   }
 
+  /** Annotations */
+  handleUpdateAnnotations(annotations) {
+    return this.$async(async () => {
+      this.formValues.Annotations = annotations;
+      this.state.annotationsErrors = KubernetesAnnotationsUtils.validateAnnotations(annotations);
+    });
+  }
+
+  isAnnotationsValid() {
+    return Object.keys(this.state.annotationsErrors).length === 0;
+  }
+
   async onInit() {
     try {
       this.state = {
@@ -269,6 +285,7 @@ class KubernetesConfigurationController {
         isEditorDirty: false,
         isDockerConfig: false,
         secretWarningMessage: '',
+        annotationsErrors: {},
       };
 
       const environmentId = this.EndpointProvider.endpointID();
@@ -311,6 +328,8 @@ class KubernetesConfigurationController {
       if (this.formValues.Type === this.KubernetesSecretTypeOptions.SERVICEACCOUNTTOKEN.value) {
         this.formValues.ServiceAccountName = configuration.ServiceAccountName;
       }
+
+      this.formValues.Annotations = configuration.Annotations;
 
       this.tagUsedDataKeys();
     } catch (err) {
