@@ -44,12 +44,13 @@ func setupGlobalKeyHandler(t *testing.T) (*Handler, func(), error) {
 	err = store.Settings().UpdateSettings(&portaineree.Settings{
 		EdgePortainerURL: "https://portainer.domain.tld:9443",
 		Edge: struct {
-			CommandInterval     int "json:\"CommandInterval\" example:\"5\""
-			PingInterval        int "json:\"PingInterval\" example:\"5\""
-			SnapshotInterval    int "json:\"SnapshotInterval\" example:\"5\""
-			AsyncMode           bool
+			CommandInterval     int    "json:\"CommandInterval\" example:\"5\""
+			PingInterval        int    "json:\"PingInterval\" example:\"5\""
+			SnapshotInterval    int    "json:\"SnapshotInterval\" example:\"5\""
 			TunnelServerAddress string "json:\"TunnelServerAddress\" example:\"portainer.domain.tld\""
+			AsyncMode           bool
 		}{
+
 			TunnelServerAddress: "portainer.domain.tld:8000",
 		},
 	})

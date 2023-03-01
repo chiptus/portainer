@@ -97,6 +97,5 @@ export function EdgeSettingsViewModel(data = {}) {
   this.PingInterval = data.PingInterval;
   this.SnapshotInterval = data.SnapshotInterval;
   this.CommandInterval = data.CommandInterval;
-  this.AsyncMode = data.AsyncMode;
   this.TunnelServerAddress = data.TunnelServerAddress;
 }

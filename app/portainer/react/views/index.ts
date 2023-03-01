@@ -12,6 +12,7 @@ import { CreateCredentialView } from '@/react/portainer/settings/cloud/CreateCre
 import { EditCredentialView } from '@/react/portainer/settings/cloud/EditCredentialView';
 import { withI18nSuspense } from '@/react-tools/withI18nSuspense';
 import { NotificationsView } from '@/react/portainer/notifications/NotificationsView';
+import { EdgeAutoCreateScriptView } from '@/react/portainer/environments/EdgeAutoCreateScriptView';
 
 import { wizardModule } from './wizard';
 import { teamsModule } from './teams';
@@ -28,6 +29,13 @@ export const viewsModule = angular
   .component(
     'homeView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(HomeView))), [])
+  )
+  .component(
+    'edgeAutoCreateScriptView',
+    r2a(
+      withUIRouter(withReactQuery(withCurrentUser(EdgeAutoCreateScriptView))),
+      []
+    )
   )
   .component(
     'createAccessToken',

@@ -10,7 +10,6 @@ import {
   EDGE_ASYNC_INTERVAL_USE_DEFAULT,
 } from '@/react/edge/components/EdgeAsyncIntervalsForm';
 import { useSettings } from '@/react/portainer/settings/queries';
-import { useCreateEdgeDeviceParam } from '@/react/portainer/environments/wizard/hooks/useCreateEdgeDeviceParam';
 import { buildDefaultValue as buildTunnelDefaultValue } from '@/react/portainer/common/PortainerTunnelAddrField';
 import { buildDefaultValue as buildApiUrlDefaultValue } from '@/react/portainer/common/PortainerUrlField';
 
@@ -28,27 +27,25 @@ interface Props {
   onCreate(environment: Environment): void;
   readonly: boolean;
   showGpus?: boolean;
-  hideAsyncMode?: boolean;
+  asyncMode: boolean;
 }
 
 export function EdgeAgentForm({
   onCreate,
   readonly,
-  hideAsyncMode,
+  asyncMode,
   showGpus = false,
 }: Props) {
   const settingsQuery = useSettings();
-  const createEdgeDevice = useCreateEdgeDeviceParam();
 
   const createMutation = useCreateEdgeAgentEnvironmentMutation();
-  const validation = useValidationSchema();
+  const validation = useValidationSchema(asyncMode);
 
   if (!settingsQuery.data) {
     return null;
   }
 
   const settings = settingsQuery.data;
-  const edgeSettings = settings.Edge;
 
   const initialValues = buildInitialValues(settings);
 
@@ -61,11 +58,11 @@ export function EdgeAgentForm({
     >
       {({ isValid, setFieldValue, values }) => (
         <Form>
-          <EdgeAgentFieldset readonly={readonly} />
+          <EdgeAgentFieldset readonly={readonly} asyncMode={asyncMode} />
 
           <MoreSettingsSection>
             <FormSection title="Check-in Intervals">
-              {!hideAsyncMode && edgeSettings.AsyncMode && createEdgeDevice ? (
+              {asyncMode ? (
                 <EdgeAsyncIntervalsForm
                   values={values.edge}
                   readonly={readonly}
@@ -106,8 +103,10 @@ export function EdgeAgentForm({
     createMutation.mutate(
       {
         ...values,
-        isEdgeDevice: createEdgeDevice,
-        asyncMode: edgeSettings.AsyncMode,
+        edge: {
+          ...values.edge,
+          asyncMode,
+        },
       },
       {
         onSuccess(environment) {

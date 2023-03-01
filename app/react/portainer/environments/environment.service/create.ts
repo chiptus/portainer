@@ -123,6 +123,10 @@ interface TLSSettings {
   keyFile?: File;
 }
 
+interface EdgeSettings extends EdgeAsyncIntervalsValues {
+  asyncMode: boolean;
+}
+
 export interface EnvironmentOptions {
   url?: string;
   publicUrl?: string;
@@ -133,8 +137,7 @@ export interface EnvironmentOptions {
   isEdgeDevice?: boolean;
   kubeConfig?: string;
   pollFrequency?: number;
-  edge?: EdgeAsyncIntervalsValues;
-  asyncMode?: boolean;
+  edge?: EdgeSettings;
   tunnelServerAddr?: string;
 }
 
@@ -189,13 +192,12 @@ export function createAgentEnvironment({
 interface CreateEdgeAgentEnvironment {
   name: string;
   portainerUrl: string;
-  tunnelServerAddr: string;
+  tunnelServerAddr?: string;
   meta?: EnvironmentMetadata;
   pollFrequency: number;
   gpus?: Gpu[];
   isEdgeDevice?: boolean;
-  edge?: EdgeAsyncIntervalsValues;
-  asyncMode?: boolean;
+  edge: EdgeSettings;
 }
 
 export function createEdgeAgentEnvironment({
@@ -207,7 +209,6 @@ export function createEdgeAgentEnvironment({
   isEdgeDevice,
   pollFrequency,
   edge,
-  asyncMode,
 }: CreateEdgeAgentEnvironment) {
   return createEnvironment(
     name,
@@ -218,7 +219,6 @@ export function createEdgeAgentEnvironment({
       isEdgeDevice,
       pollFrequency,
       edge,
-      asyncMode,
       meta,
       tunnelServerAddr,
     }
@@ -251,7 +251,7 @@ async function createEnvironment(
       EdgeTunnelServerAddress: options.tunnelServerAddr,
     };
 
-    const { tls, azure, asyncMode } = options;
+    const { tls, azure } = options;
 
     if (tls) {
       payload = {
@@ -274,9 +274,10 @@ async function createEnvironment(
       };
     }
 
-    if (asyncMode) {
+    if (options.edge?.asyncMode) {
       payload = {
         ...payload,
+        EdgeAsyncMode: true,
         EdgePingInterval: options.edge?.PingInterval,
         EdgeSnapshotInterval: options.edge?.SnapshotInterval,
         EdgeCommandInterval: options.edge?.CommandInterval,

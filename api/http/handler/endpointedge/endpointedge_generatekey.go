@@ -32,16 +32,11 @@ func (handler *Handler) endpointEdgeGenerateKey(w http.ResponseWriter, r *http.R
 	}
 
 	apiURL := settings.EdgePortainerURL
-
 	if apiURL == "" {
 		return httperror.BadRequest("Portainer API server URL is not set in Edge Compute settings", nil)
 	}
 
 	tunnelAddr := settings.Edge.TunnelServerAddress
-
-	if tunnelAddr == "" {
-		return httperror.BadRequest("Tunnel server address is not set in Edge Compute settings", nil)
-	}
 
 	edgeKey := handler.ReverseTunnelService.GenerateEdgeKey(apiURL, tunnelAddr, 0)
 	if err != nil {

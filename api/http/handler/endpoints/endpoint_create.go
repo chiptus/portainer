@@ -62,6 +62,7 @@ type endpointCreatePayload struct {
 	EdgeCheckinInterval    int
 	IsEdgeDevice           bool
 	Edge                   struct {
+		AsyncMode           bool
 		PingInterval        int
 		SnapshotInterval    int
 		CommandInterval     int
@@ -192,8 +193,8 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 	checkinInterval, _ := request.RetrieveNumericMultiPartFormValue(r, "CheckinInterval", true)
 	payload.EdgeCheckinInterval = checkinInterval
 
-	isEdgeDevice, _ := request.RetrieveBooleanMultiPartFormValue(r, "IsEdgeDevice", true)
-	payload.IsEdgeDevice = isEdgeDevice
+	asyncMode, _ := request.RetrieveBooleanMultiPartFormValue(r, "EdgeAsyncMode", true)
+	payload.Edge.AsyncMode = asyncMode
 
 	payload.Edge.PingInterval, _ = request.RetrieveNumericMultiPartFormValue(r, "EdgePingInterval", true)
 	payload.Edge.SnapshotInterval, _ = request.RetrieveNumericMultiPartFormValue(r, "EdgeSnapshotInterval", true)
@@ -351,7 +352,7 @@ func validateKubeConfigEnvironment(r *http.Request) (string, error) {
 // @param TagIDs formData []int false "List of tag identifiers to which this environment(endpoint) is associated"
 // @param EdgeCheckinInterval formData int false "The check in interval for edge agent (in seconds)"
 // @param EdgeTunnelServerAddress formData string true "URL or IP address that will be used to establish a reverse tunnel"
-// @param IsEdgeDevice formData bool false "Is Edge Device"
+// @param EdgeAsyncMode formData bool false "Enable async mode for edge agent"
 // @param Gpus formData array false "List of GPUs"
 // @success 200 {object} portaineree.Endpoint "Success"
 // @failure 400 "Invalid request"
@@ -588,7 +589,7 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 		},
 	}
 
-	if payload.IsEdgeDevice && settings.Edge.AsyncMode {
+	if payload.Edge.AsyncMode {
 		endpoint.Edge.AsyncMode = true
 		endpoint.Edge.PingInterval = payload.Edge.PingInterval
 		endpoint.Edge.SnapshotInterval = payload.Edge.SnapshotInterval

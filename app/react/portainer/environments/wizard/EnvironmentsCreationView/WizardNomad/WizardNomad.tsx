@@ -58,7 +58,9 @@ export function WizardNomad({ onCreate }: Props) {
 
       <EdgeAgentTab
         commands={commands}
-        onCreate={(environment) => onCreate(environment, 'nomadEdgeAgent')}
+        onCreate={(environment) =>
+          onCreate(environment, 'nomadEdgeAgentStandard')
+        }
         isNomadTokenVisible
       />
     </div>

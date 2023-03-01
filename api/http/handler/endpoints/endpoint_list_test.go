@@ -104,59 +104,58 @@ func Test_EndpointList_AgentVersion(t *testing.T) {
 	}
 }
 
-func Test_endpointList_edgeDeviceFilter(t *testing.T) {
+func Test_endpointList_edgeFilter(t *testing.T) {
 
-	trustedEdgeDevice := portaineree.Endpoint{ID: 1, UserTrusted: true, IsEdgeDevice: true, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
-	untrustedEdgeDevice := portaineree.Endpoint{ID: 2, UserTrusted: false, IsEdgeDevice: true, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
-	regularUntrustedEdgeEndpoint := portaineree.Endpoint{ID: 3, UserTrusted: false, IsEdgeDevice: false, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
-	regularTrustedEdgeEndpoint := portaineree.Endpoint{ID: 4, UserTrusted: true, IsEdgeDevice: false, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
-	regularEndpoint := portaineree.Endpoint{ID: 5, UserTrusted: false, IsEdgeDevice: false, GroupID: 1, Type: portaineree.DockerEnvironment}
+	trustedEdgeAsync := portaineree.Endpoint{ID: 1, UserTrusted: true, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: true}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	untrustedEdgeAsync := portaineree.Endpoint{ID: 2, UserTrusted: false, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: true}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	regularUntrustedEdgeStandard := portaineree.Endpoint{ID: 3, UserTrusted: false, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: false}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	regularTrustedEdgeStandard := portaineree.Endpoint{ID: 4, UserTrusted: true, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: false}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	regularEndpoint := portaineree.Endpoint{ID: 5, GroupID: 1, Type: portaineree.DockerEnvironment}
 
 	handler, teardown := setup(t, []portaineree.Endpoint{
-		trustedEdgeDevice,
-		untrustedEdgeDevice,
-		regularUntrustedEdgeEndpoint,
-		regularTrustedEdgeEndpoint,
+		trustedEdgeAsync,
+		untrustedEdgeAsync,
+		regularUntrustedEdgeStandard,
+		regularTrustedEdgeStandard,
 		regularEndpoint,
 	})
 
 	defer teardown()
 
-	type endpointListEdgeDeviceTest struct {
+	type endpointListEdgeTest struct {
 		endpointListTest
-		edgeDevice          *bool
+		edgeAsync           *bool
 		edgeDeviceUntrusted bool
 	}
 
-	tests := []endpointListEdgeDeviceTest{
+	tests := []endpointListEdgeTest{
 		{
 			endpointListTest: endpointListTest{
 				"should show all endpoints expect of the untrusted devices",
-				[]portaineree.EndpointID{trustedEdgeDevice.ID, regularUntrustedEdgeEndpoint.ID, regularTrustedEdgeEndpoint.ID, regularEndpoint.ID},
+				[]portaineree.EndpointID{trustedEdgeAsync.ID, regularTrustedEdgeStandard.ID, regularEndpoint.ID},
 			},
-			edgeDevice: nil,
 		},
 		{
 			endpointListTest: endpointListTest{
-				"should show only trusted edge devices and regular endpoints",
-				[]portaineree.EndpointID{trustedEdgeDevice.ID, regularEndpoint.ID},
+				"should show only trusted edge async agents and regular endpoints",
+				[]portaineree.EndpointID{trustedEdgeAsync.ID, regularEndpoint.ID},
 			},
-			edgeDevice: BoolAddr(true),
+			edgeAsync: BoolAddr(true),
 		},
 		{
 			endpointListTest: endpointListTest{
 				"should show only untrusted edge devices and regular endpoints",
-				[]portaineree.EndpointID{untrustedEdgeDevice.ID, regularEndpoint.ID},
+				[]portaineree.EndpointID{untrustedEdgeAsync.ID, regularEndpoint.ID},
 			},
-			edgeDevice:          BoolAddr(true),
+			edgeAsync:           BoolAddr(true),
 			edgeDeviceUntrusted: true,
 		},
 		{
 			endpointListTest: endpointListTest{
 				"should show no edge devices",
-				[]portaineree.EndpointID{regularEndpoint.ID, regularUntrustedEdgeEndpoint.ID, regularTrustedEdgeEndpoint.ID},
+				[]portaineree.EndpointID{regularEndpoint.ID, regularTrustedEdgeStandard.ID},
 			},
-			edgeDevice: BoolAddr(false),
+			edgeAsync: BoolAddr(false),
 		},
 	}
 
@@ -165,8 +164,8 @@ func Test_endpointList_edgeDeviceFilter(t *testing.T) {
 			is := assert.New(t)
 
 			query := fmt.Sprintf("edgeDeviceUntrusted=%v&", test.edgeDeviceUntrusted)
-			if test.edgeDevice != nil {
-				query += fmt.Sprintf("edgeDevice=%v&", *test.edgeDevice)
+			if test.edgeAsync != nil {
+				query += fmt.Sprintf("edgeAsync=%v&", *test.edgeAsync)
 			}
 
 			req := buildEndpointListRequest(query)

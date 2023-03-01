@@ -1,13 +1,15 @@
 import { PortainerUrlField } from '@/react/portainer/common/PortainerUrlField';
 import { PortainerTunnelAddrField } from '@/react/portainer/common/PortainerTunnelAddrField';
+import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 
 import { NameField } from '../../NameField';
 
 interface EdgeAgentFormProps {
   readonly?: boolean;
+  asyncMode?: boolean;
 }
 
-export function EdgeAgentFieldset({ readonly }: EdgeAgentFormProps) {
+export function EdgeAgentFieldset({ readonly, asyncMode }: EdgeAgentFormProps) {
   return (
     <>
       <NameField readonly={readonly} />
@@ -16,11 +18,13 @@ export function EdgeAgentFieldset({ readonly }: EdgeAgentFormProps) {
         readonly={readonly}
         required
       />
-      <PortainerTunnelAddrField
-        fieldName="tunnelServerAddr"
-        readonly={readonly}
-        required
-      />
+      {isBE && !asyncMode && (
+        <PortainerTunnelAddrField
+          fieldName="tunnelServerAddr"
+          readonly={readonly}
+          required
+        />
+      )}
     </>
   );
 }

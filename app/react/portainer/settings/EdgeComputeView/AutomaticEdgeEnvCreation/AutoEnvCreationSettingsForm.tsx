@@ -11,10 +11,10 @@ import { LoadingButton } from '@@/buttons/LoadingButton';
 import { EnabledWaitingRoomSwitch } from './EnableWaitingRoomSwitch';
 
 interface FormValues {
-  TrustOnFirstConnect: boolean;
+  EnableWaitingRoom: boolean;
 }
 const validation = yup.object({
-  TrustOnFirstConnect: yup.boolean(),
+  EnableWaitingRoom: yup.boolean(),
 });
 
 interface Props {
@@ -22,8 +22,8 @@ interface Props {
 }
 
 export function AutoEnvCreationSettingsForm({ settings }: Props) {
-  const initialValues = {
-    TrustOnFirstConnect: settings.TrustOnFirstConnect,
+  const initialValues: FormValues = {
+    EnableWaitingRoom: !settings.TrustOnFirstConnect,
   };
 
   const mutation = useUpdateSettingsMutation();
@@ -32,14 +32,17 @@ export function AutoEnvCreationSettingsForm({ settings }: Props) {
 
   const handleSubmit = useCallback(
     (variables: Partial<FormValues>) => {
-      updateSettings(variables, {
-        onSuccess() {
-          notifySuccess(
-            'Success',
-            'Successfully updated Automatic Environment Creation settings'
-          );
-        },
-      });
+      updateSettings(
+        { TrustOnFirstConnect: !variables.EnableWaitingRoom },
+        {
+          onSuccess() {
+            notifySuccess(
+              'Success',
+              'Successfully updated Automatic Environment Creation settings'
+            );
+          },
+        }
+      );
     },
     [updateSettings]
   );
@@ -62,6 +65,7 @@ export function AutoEnvCreationSettingsForm({ settings }: Props) {
                 loadingText="generating..."
                 isLoading={mutation.isLoading}
                 disabled={!isValid || !dirty}
+                className="!ml-0"
               >
                 Save settings
               </LoadingButton>

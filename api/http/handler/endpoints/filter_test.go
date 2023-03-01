@@ -6,7 +6,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
-	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -74,19 +73,19 @@ func Test_Filter_AgentVersion(t *testing.T) {
 	runTests(tests, t, handler, endpoints)
 }
 
-func Test_Filter_edgeDeviceFilter(t *testing.T) {
+func Test_Filter_edgeFilter(t *testing.T) {
 
-	trustedEdgeDevice := portaineree.Endpoint{ID: 1, UserTrusted: true, IsEdgeDevice: true, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
-	untrustedEdgeDevice := portaineree.Endpoint{ID: 2, UserTrusted: false, IsEdgeDevice: true, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
-	regularUntrustedEdgeEndpoint := portaineree.Endpoint{ID: 3, UserTrusted: false, IsEdgeDevice: false, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
-	regularTrustedEdgeEndpoint := portaineree.Endpoint{ID: 4, UserTrusted: true, IsEdgeDevice: false, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	trustedEdgeAsync := portaineree.Endpoint{ID: 1, UserTrusted: true, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: true}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	untrustedEdgeAsync := portaineree.Endpoint{ID: 2, UserTrusted: false, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: true}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	regularUntrustedEdgeStandard := portaineree.Endpoint{ID: 3, UserTrusted: false, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: false}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	regularTrustedEdgeStandard := portaineree.Endpoint{ID: 4, UserTrusted: true, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: false}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
 	regularEndpoint := portaineree.Endpoint{ID: 5, GroupID: 1, Type: portaineree.DockerEnvironment}
 
 	endpoints := []portaineree.Endpoint{
-		trustedEdgeDevice,
-		untrustedEdgeDevice,
-		regularUntrustedEdgeEndpoint,
-		regularTrustedEdgeEndpoint,
+		trustedEdgeAsync,
+		untrustedEdgeAsync,
+		regularUntrustedEdgeStandard,
+		regularTrustedEdgeStandard,
 		regularEndpoint,
 	}
 
@@ -96,32 +95,32 @@ func Test_Filter_edgeDeviceFilter(t *testing.T) {
 
 	tests := []filterTest{
 		{
-			"should show all edge endpoints except of the untrusted devices",
-			[]portaineree.EndpointID{trustedEdgeDevice.ID, regularUntrustedEdgeEndpoint.ID, regularTrustedEdgeEndpoint.ID},
+			"should show all edge endpoints except of the untrusted edge",
+			[]portaineree.EndpointID{trustedEdgeAsync.ID, regularTrustedEdgeStandard.ID},
 			EnvironmentsQuery{
 				types: []portaineree.EndpointType{portaineree.EdgeAgentOnDockerEnvironment, portaineree.EdgeAgentOnKubernetesEnvironment, portaineree.EdgeAgentOnNomadEnvironment},
 			},
 		},
 		{
 			"should show only trusted edge devices and other regular endpoints",
-			[]portaineree.EndpointID{trustedEdgeDevice.ID, regularEndpoint.ID},
+			[]portaineree.EndpointID{trustedEdgeAsync.ID, regularEndpoint.ID},
 			EnvironmentsQuery{
-				edgeDevice: BoolAddr(true),
+				edgeAsync: BoolAddr(true),
 			},
 		},
 		{
 			"should show only untrusted edge devices and other regular endpoints",
-			[]portaineree.EndpointID{untrustedEdgeDevice.ID, regularEndpoint.ID},
+			[]portaineree.EndpointID{untrustedEdgeAsync.ID, regularEndpoint.ID},
 			EnvironmentsQuery{
-				edgeDevice:          BoolAddr(true),
+				edgeAsync:           BoolAddr(true),
 				edgeDeviceUntrusted: true,
 			},
 		},
 		{
 			"should show no edge devices",
-			[]portaineree.EndpointID{regularEndpoint.ID, regularUntrustedEdgeEndpoint.ID, regularTrustedEdgeEndpoint.ID},
+			[]portaineree.EndpointID{regularEndpoint.ID, regularTrustedEdgeStandard.ID},
 			EnvironmentsQuery{
-				edgeDevice: BoolAddr(false),
+				edgeAsync: BoolAddr(false),
 			},
 		},
 	}
@@ -168,8 +167,8 @@ func setupFilterTest(t *testing.T, endpoints []portaineree.Endpoint) (handler *H
 	err := store.User().Create(&portaineree.User{Username: "admin", Role: portaineree.AdministratorRole})
 	is.NoError(err, "error creating a user")
 
-	bouncer := helper.NewTestRequestBouncer()
-	handler = NewHandler(bouncer, helper.NewUserActivityService(), store, nil, nil, nil, nil)
+	bouncer := testhelpers.NewTestRequestBouncer()
+	handler = NewHandler(bouncer, testhelpers.NewUserActivityService(), store, nil, nil, nil, nil)
 	handler.ComposeStackManager = testhelpers.NewComposeStackManager()
 
 	return handler, teardown

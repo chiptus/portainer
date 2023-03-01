@@ -1,7 +1,6 @@
 import { Formik, Form } from 'formik';
 import { Laptop } from 'lucide-react';
 
-import { EdgeCheckinIntervalField } from '@/react/edge/components/EdgeCheckInIntervalField';
 import { PortainerTunnelAddrField } from '@/react/portainer/common/PortainerTunnelAddrField';
 import { PortainerUrlField } from '@/react/portainer/common/PortainerUrlField';
 
@@ -13,7 +12,6 @@ import { TextTip } from '@@/Tip/TextTip';
 
 import { validationSchema } from './EdgeComputeSettings.validation';
 import { FormValues } from './types';
-import { AddDeviceButton } from './AddDeviceButton';
 
 interface Props {
   settings?: FormValues;
@@ -31,22 +29,13 @@ export function EdgeComputeSettings({ settings, onSubmit }: Props) {
     Edge: {
       TunnelServerAddress: settings.Edge.TunnelServerAddress,
     },
-    EdgeAgentCheckinInterval: settings.EdgeAgentCheckinInterval,
     EnforceEdgeID: settings.EnforceEdgeID,
   };
 
   return (
     <div className="row">
       <Widget>
-        <WidgetTitle
-          icon={Laptop}
-          title={
-            <>
-              <span className="mr-3">Edge Compute settings</span>
-              {settings.EnableEdgeComputeFeatures && <AddDeviceButton />}
-            </>
-          }
-        />
+        <WidgetTitle icon={Laptop} title="Edge Compute settings" />
 
         <WidgetBody>
           <Formik
@@ -120,18 +109,6 @@ export function EdgeComputeSettings({ settings, onSubmit }: Props) {
                     }
                   />
                 </FormControl>
-
-                {process.env.PORTAINER_EDITION !== 'BE' && (
-                  <EdgeCheckinIntervalField
-                    value={values.EdgeAgentCheckinInterval}
-                    onChange={(value) =>
-                      setFieldValue('EdgeAgentCheckinInterval', value)
-                    }
-                    isDefaultHidden
-                    label="Edge agent default poll frequency"
-                    tooltip="Interval used by default by each Edge agent to check in with the Portainer instance. Affects Edge environment management and Edge compute features."
-                  />
-                )}
 
                 <div className="form-group mt-5">
                   <div className="col-sm-12">

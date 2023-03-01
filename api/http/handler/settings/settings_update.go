@@ -65,8 +65,6 @@ type settingsUpdatePayload struct {
 		SnapshotInterval *int `json:"SnapshotInterval" example:"5"`
 		// The command list interval for edge agent - used in edge async mode (in seconds)
 		CommandInterval *int `json:"CommandInterval" example:"5"`
-		// AsyncMode enables edge agent to run in async mode by default
-		AsyncMode *bool
 		// The address where the tunneling server can be reached by Edge agents
 		TunnelServerAddress *string
 	}
@@ -310,10 +308,6 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 
 	if payload.Edge.CommandInterval != nil {
 		settings.Edge.CommandInterval = *payload.Edge.CommandInterval
-	}
-
-	if payload.Edge.AsyncMode != nil {
-		settings.Edge.AsyncMode = *payload.Edge.AsyncMode
 	}
 
 	if payload.Edge.TunnelServerAddress != nil {

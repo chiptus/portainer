@@ -5,7 +5,6 @@ import { Environment } from '@/react/portainer/environments/types';
 import { EdgeScriptForm } from '@/react/edge/components/EdgeScriptForm';
 import { CommandTab } from '@/react/edge/components/EdgeScriptForm/scripts';
 import { OS, EdgeInfo } from '@/react/edge/components/EdgeScriptForm/types';
-import { useCreateEdgeDeviceParam } from '@/react/portainer/environments/wizard/hooks/useCreateEdgeDeviceParam';
 import { EdgeKeyDisplay } from '@/react/portainer/environments/ItemView/EdgeKeyDisplay';
 
 import { Button } from '@@/buttons';
@@ -17,6 +16,7 @@ interface Props {
   commands: CommandTab[] | Partial<Record<OS, CommandTab[]>>;
   isNomadTokenVisible?: boolean;
   showGpus?: boolean;
+  asyncMode?: boolean;
 }
 
 export function EdgeAgentTab({
@@ -24,11 +24,10 @@ export function EdgeAgentTab({
   commands,
   isNomadTokenVisible,
   showGpus = false,
+  asyncMode = false,
 }: Props) {
   const [edgeInfo, setEdgeInfo] = useState<EdgeInfo>();
   const [formKey, clearForm] = useReducer((state) => state + 1, 0);
-
-  const createEdgeDevice = useCreateEdgeDeviceParam();
 
   return (
     <>
@@ -37,7 +36,7 @@ export function EdgeAgentTab({
         readonly={!!edgeInfo}
         key={formKey}
         showGpus={showGpus}
-        hideAsyncMode={false}
+        asyncMode={asyncMode}
       />
 
       {edgeInfo && (
@@ -54,7 +53,7 @@ export function EdgeAgentTab({
             edgeInfo={edgeInfo}
             commands={commands}
             isNomadTokenVisible={isNomadTokenVisible}
-            hideAsyncMode={!createEdgeDevice}
+            asyncMode={asyncMode}
           />
 
           <hr />

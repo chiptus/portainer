@@ -1,4 +1,4 @@
-import { number, object, SchemaOf } from 'yup';
+import { number, object, SchemaOf, string } from 'yup';
 
 import { edgeAsyncIntervalsValidation } from '@/react/edge/components/EdgeAsyncIntervalsForm';
 import { gpusListValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/Hardware/GpusList';
@@ -10,13 +10,13 @@ import { useNameValidation } from '../../NameField';
 
 import { FormValues } from './types';
 
-export function useValidationSchema(): SchemaOf<FormValues> {
+export function useValidationSchema(asyncMode: boolean): SchemaOf<FormValues> {
   const nameValidation = useNameValidation();
 
   return object().shape({
     name: nameValidation,
     portainerUrl: urlValidation(),
-    tunnelServerAddr: addressValidation(),
+    tunnelServerAddr: asyncMode ? string() : addressValidation(),
     pollFrequency: number().required(),
     meta: metadataValidation(),
     gpus: gpusListValidation(),

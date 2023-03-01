@@ -1,4 +1,5 @@
 import _ from 'lodash-es';
+import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 
 angular.module('portainer.app').controller('EndpointsDatatableController', [
   '$scope',
@@ -8,6 +9,8 @@ angular.module('portainer.app').controller('EndpointsDatatableController', [
   'PaginationService',
   function ($scope, $controller, $interval, DatatableService, PaginationService) {
     angular.extend(this, $controller('GenericDatatableController', { $scope: $scope }));
+
+    this.isBE = isBE;
 
     this.state = Object.assign(this.state, {
       allowSelection: this.allowSelection,

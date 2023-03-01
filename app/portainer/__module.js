@@ -223,6 +223,16 @@ angular
         },
       };
 
+      const edgeAutoCreateScript = {
+        name: 'portainer.endpoints.edgeAutoCreateScript',
+        url: '/aeec',
+        views: {
+          'content@': {
+            component: 'edgeAutoCreateScriptView',
+          },
+        },
+      };
+
       var addFDOProfile = {
         name: 'portainer.endpoints.profile',
         url: '/profile',
@@ -508,6 +518,7 @@ angular
       $stateRegistryProvider.register(endpoint);
       $stateRegistryProvider.register(endpointAccess);
       $stateRegistryProvider.register(endpointKVM);
+      $stateRegistryProvider.register(edgeAutoCreateScript);
       $stateRegistryProvider.register(deviceImport);
       $stateRegistryProvider.register(addFDOProfile);
       $stateRegistryProvider.register(editFDOProfile);

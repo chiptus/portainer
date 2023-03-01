@@ -6,7 +6,7 @@ export interface FormValues {
   name: string;
 
   portainerUrl: string;
-  tunnelServerAddr: string;
+  tunnelServerAddr?: string;
   pollFrequency: number;
   meta: EnvironmentMetadata;
   gpus: Gpu[];

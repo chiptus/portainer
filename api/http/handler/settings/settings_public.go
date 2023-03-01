@@ -50,8 +50,6 @@ type publicSettingsResponse struct {
 	}
 
 	Edge struct {
-		// Whether the device has been started in edge async mode
-		AsyncMode bool
 		// The ping interval for edge agent - used in edge async mode [seconds]
 		PingInterval int `json:"PingInterval" example:"60"`
 		// The snapshot interval for edge agent - used in edge async mode [seconds]
@@ -99,7 +97,6 @@ func generatePublicSettings(appSettings *portaineree.Settings) *publicSettingsRe
 		IsAMTEnabled:              appSettings.EnableEdgeComputeFeatures && appSettings.OpenAMTConfiguration.Enabled,
 	}
 
-	publicSettings.Edge.AsyncMode = appSettings.Edge.AsyncMode
 	publicSettings.Edge.PingInterval = appSettings.Edge.PingInterval
 	publicSettings.Edge.SnapshotInterval = appSettings.Edge.SnapshotInterval
 	publicSettings.Edge.CommandInterval = appSettings.Edge.CommandInterval

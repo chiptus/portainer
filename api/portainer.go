@@ -436,16 +436,7 @@ type (
 		// The check in interval for edge agent (in seconds)
 		EdgeCheckinInterval int `json:"EdgeCheckinInterval" example:"5"`
 
-		Edge struct {
-			// Whether the device has been started in edge async mode
-			AsyncMode bool
-			// The ping interval for edge agent - used in edge async mode [seconds]
-			PingInterval int `json:"PingInterval" example:"60"`
-			// The snapshot interval for edge agent - used in edge async mode [seconds]
-			SnapshotInterval int `json:"SnapshotInterval" example:"60"`
-			// The command list interval for edge agent - used in edge async mode [seconds]
-			CommandInterval int `json:"CommandInterval" example:"60"`
-		}
+		Edge EnvironmentEdgeSettings
 
 		Agent struct {
 			Version string `example:"1.0.0"`
@@ -474,6 +465,17 @@ type (
 
 		// Deprecated in DBVersion == 22
 		Tags []string `json:"Tags"`
+	}
+
+	EnvironmentEdgeSettings struct {
+		// Whether the device has been started in edge async mode
+		AsyncMode bool
+		// The ping interval for edge agent - used in edge async mode [seconds]
+		PingInterval int `json:"PingInterval" example:"60"`
+		// The snapshot interval for edge agent - used in edge async mode [seconds]
+		SnapshotInterval int `json:"SnapshotInterval" example:"60"`
+		// The command list interval for edge agent - used in edge async mode [seconds]
+		CommandInterval int `json:"CommandInterval" example:"60"`
 	}
 
 	// EndpointAuthorizations represents the authorizations associated to a set of environments(endpoints)
@@ -1238,10 +1240,11 @@ type (
 			PingInterval int `json:"PingInterval" example:"5"`
 			// The snapshot interval for edge agent - used in edge async mode (in seconds)
 			SnapshotInterval int `json:"SnapshotInterval" example:"5"`
-			// EdgeAsyncMode enables edge async mode by default
-			AsyncMode bool
 			// The address where the tunneling server can be reached by Edge agents
 			TunnelServerAddress string `json:"TunnelServerAddress" example:"portainer.domain.tld"`
+
+			// Deprecated 2.18
+			AsyncMode bool
 		}
 
 		// Deprecated fields
