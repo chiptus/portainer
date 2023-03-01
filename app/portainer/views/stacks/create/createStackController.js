@@ -1,7 +1,7 @@
 import angular from 'angular';
 
 import { AccessControlFormData } from '@/portainer/components/accessControlForm/porAccessControlFormModel';
-import { STACK_NAME_VALIDATION_REGEX } from '@/constants';
+import { STACK_NAME_VALIDATION_REGEX } from '@/react/constants';
 import { RepositoryMechanismTypes } from '@/kubernetes/models/deploy';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { renderTemplate } from '@/react/portainer/custom-templates/components/utils';
