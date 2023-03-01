@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	portainer "github.com/portainer/portainer/api"
+	"github.com/rs/zerolog/log"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -161,7 +162,7 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 		// deployment type was changed - need to delete the old file
 		err = handler.FileService.RemoveDirectory(stack.ProjectPath)
 		if err != nil {
-			return httperror.InternalServerError("Unable to clear old files", err)
+			log.Warn().Err(err).Msg("Unable to clear old files")
 		}
 
 		stack.EntryPoint = ""
