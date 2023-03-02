@@ -47,7 +47,7 @@ class CreateConfigController {
     try {
       let data = await this.ConfigService.config(this.$transition$.params().id);
       this.formValues.Name = data.Name + '_copy';
-      this.formValues.Data = data.Data;
+      this.formValues.ConfigContent = data.Data;
       let labels = _.keys(data.Labels);
       for (let i = 0; i < labels.length; i++) {
         let labelName = labels[i];
@@ -144,7 +144,6 @@ class CreateConfigController {
       this.$state.go('docker.configs', {}, { reload: true });
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to create config');
-      this.state.isEditorDirty = true;
     }
   }
 
