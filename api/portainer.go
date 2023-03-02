@@ -1779,7 +1779,7 @@ type (
 		GetStorage() ([]KubernetesStorageClassConfig, error)
 		CreateService(namespace string, service kubeModels.K8sServiceInfo) error
 		UpdateService(namespace string, service kubeModels.K8sServiceInfo) error
-		GetServices(namespace string) ([]kubeModels.K8sServiceInfo, error)
+		GetServices(namespace string, lookupApplications bool) ([]kubeModels.K8sServiceInfo, error)
 		DeleteServices(reqs kubeModels.K8sServiceDeleteRequests) error
 		GetNodesLimits() (K8sNodesLimits, error)
 		RemoveUserServiceAccount(userID int) error
@@ -2566,6 +2566,9 @@ const (
 	OperationK8sYAMLW    Authorization = "K8sYAMLW"
 	OperationK8sSecretsR Authorization = "K8sSecretsR" // Secrets
 	OperationK8sSecretsW Authorization = "K8sSecretsW" // Secrets
+
+	OperationK8sServiceR Authorization = "K8sServiceR"
+	OperationK8sServiceW Authorization = "K8sServiceW"
 
 	// Helm operations
 	OperationHelmRepoList       Authorization = "HelmRepoList"

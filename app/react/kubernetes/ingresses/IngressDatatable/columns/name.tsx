@@ -12,7 +12,7 @@ export const name: Column<Ingress> = {
   Cell: ({ row }: CellProps<Ingress>) => (
     <Authorized
       authorizations="K8sIngressesW"
-      childrenUnauthorised={row.original.Name}
+      childrenUnauthorized={row.original.Name}
     >
       <Link
         to="kubernetes.ingresses.edit"

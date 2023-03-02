@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Box, Edit, Layers, Lock, Server } from 'lucide-react';
+import { Box, Edit, Layers, Lock, Server, Shuffle } from 'lucide-react';
 import { useQueryClient } from 'react-query';
 
 import { EnvironmentId } from '@/react/portainer/environments/types';
@@ -99,6 +99,14 @@ export function KubernetesSidebar({ environmentId }: Props) {
         icon={Box}
         label="Applications"
         data-cy="k8sSidebar-applications"
+      />
+
+      <SidebarItem
+        to="kubernetes.services"
+        params={{ endpointId: environmentId }}
+        label="Services"
+        data-cy="k8sSidebar-services"
+        icon={Shuffle}
       />
 
       <SidebarItem

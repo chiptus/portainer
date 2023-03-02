@@ -2,10 +2,10 @@ package models
 
 type (
 	K8sApplication struct {
-		UID       string
-		Name      string
-		Namespace string
-		Kind      string
-		Labels    map[string]string
+		UID       string            `json:",omitempty"`
+		Name      string            `json:""`
+		Namespace string            `json:",omitempty"`
+		Kind      string            `json:",omitempty"`
+		Labels    map[string]string `json:",omitempty"`
 	}
 )
