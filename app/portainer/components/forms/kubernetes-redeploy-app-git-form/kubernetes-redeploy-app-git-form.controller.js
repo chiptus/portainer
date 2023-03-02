@@ -3,7 +3,7 @@ import { confirm } from '@@/modals/confirm';
 import { buildConfirmButton } from '@@/modals/utils';
 import { ModalType } from '@@/modals';
 import { parseAutoUpdateResponse } from '@/react/portainer/gitops/AutoUpdateFieldset/utils';
-import { baseStackWebhookUrl } from '@/portainer/helpers/webhookHelper';
+import { baseStackWebhookUrl, createWebhookId } from '@/portainer/helpers/webhookHelper';
 
 class KubernetesRedeployAppGitFormController {
   /* @ngInject */
@@ -23,6 +23,7 @@ class KubernetesRedeployAppGitFormController {
       isEdit: false,
       hasUnsavedChanges: false,
       baseWebhookUrl: baseStackWebhookUrl(),
+      webhookId: createWebhookId(),
     };
 
     this.formValues = {
@@ -151,7 +152,7 @@ class KubernetesRedeployAppGitFormController {
           );
         }
 
-        await this.StackService.updateKubeStack({ EndpointId: this.stack.EndpointId, Id: this.stack.Id }, null, this.formValues);
+        await this.StackService.updateKubeStack({ EndpointId: this.stack.EndpointId, Id: this.stack.Id }, { gitConfig: this.formValues, webhookId: this.state.webhookId });
         this.savedFormValues = angular.copy(this.formValues);
         this.state.hasUnsavedChanges = false;
         this.Notifications.success('Success', 'Save stack settings successfully');
@@ -175,6 +176,10 @@ class KubernetesRedeployAppGitFormController {
     this.formValues.RefName = this.stack.GitConfig.ReferenceName;
 
     this.formValues.AutoUpdate = parseAutoUpdateResponse(this.stack.AutoUpdate);
+
+    if (this.stack.AutoUpdate.Webhook) {
+      this.state.webhookId = this.stack.AutoUpdate.Webhook;
+    }
 
     if (this.stack.GitConfig && this.stack.GitConfig.Authentication) {
       this.formValues.RepositoryUsername = this.stack.GitConfig.Authentication.Username;

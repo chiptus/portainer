@@ -27,7 +27,7 @@ func TestHandler_webhookInvoke(t *testing.T) {
 	webhookID := newGuidString(t)
 	store.StackService.Create(&portaineree.Stack{
 		ID: 1,
-		AutoUpdate: &portaineree.StackAutoUpdate{
+		AutoUpdate: &portaineree.AutoUpdateSettings{
 			Webhook: webhookID,
 		},
 		CreatedBy: "admin",

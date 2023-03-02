@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/git/update"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
@@ -18,7 +19,7 @@ import (
 )
 
 type stackGitUpdatePayload struct {
-	AutoUpdate                *portaineree.StackAutoUpdate
+	AutoUpdate                *portaineree.AutoUpdateSettings
 	Env                       []portaineree.Pair
 	Prune                     bool
 	RepositoryReferenceName   string
@@ -29,7 +30,7 @@ type stackGitUpdatePayload struct {
 }
 
 func (payload *stackGitUpdatePayload) Validate(r *http.Request) error {
-	if err := stackutils.ValidateStackAutoUpdate(payload.AutoUpdate); err != nil {
+	if err := update.ValidateAutoUpdateSettings(payload.AutoUpdate); err != nil {
 		return err
 	}
 	return nil

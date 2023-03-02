@@ -1,7 +1,6 @@
 package stacks
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -10,13 +9,13 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/git"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	k "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
-	"github.com/portainer/portainer/api/filesystem"
 
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/rs/zerolog/log"
@@ -184,34 +183,14 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
+	// If relative path feature is enabled, the git clone operation will be executed in portainer-unpacker
 	if !isRelativePathEnabled(stack) {
-		// If relative path feature is enabled, the git clone operation will be executed in portainer-unpacker
-		backupProjectPath := fmt.Sprintf("%s-old", stack.ProjectPath)
-		err = filesystem.MoveDirectory(stack.ProjectPath, backupProjectPath)
+		clean, err := git.CloneWithBackup(handler.GitService, handler.FileService, git.CloneOptions{ProjectPath: stack.ProjectPath, URL: stack.GitConfig.URL, ReferenceName: stack.GitConfig.ReferenceName, Username: repositoryUsername, Password: repositoryPassword})
 		if err != nil {
-			return httperror.InternalServerError("Unable to move git repository directory", err)
+			return httperror.InternalServerError("Unable to clone git repository directory", err)
 		}
 
-		err = handler.GitService.CloneRepository(stack.ProjectPath, stack.GitConfig.URL, payload.RepositoryReferenceName, repositoryUsername, repositoryPassword)
-		if err != nil {
-			restoreError := filesystem.MoveDirectory(backupProjectPath, stack.ProjectPath)
-			if restoreError != nil {
-				log.Warn().Err(restoreError).Msg("failed restoring backup folder")
-			}
-
-			if err == gittypes.ErrAuthenticationFailure {
-				return httperror.InternalServerError(stackutils.ErrInvalidGitCredential.Error(), err)
-			}
-
-			return httperror.InternalServerError("Unable to clone git repository", err)
-		}
-
-		defer func() {
-			err = handler.FileService.RemoveDirectory(backupProjectPath)
-			if err != nil {
-				log.Warn().Err(err).Msg("unable to remove git repository directory")
-			}
-		}()
+		defer clean()
 	}
 
 	log.Debug().Bool("pull_image_flag", payload.PullImage).Msg("")

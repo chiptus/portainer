@@ -1,9 +1,6 @@
 package stackutils
 
 import (
-	"time"
-
-	"github.com/asaskevich/govalidator"
 	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/cli/compose/types"
 	"github.com/pkg/errors"
@@ -65,21 +62,6 @@ func IsValidStackFile(stackFileContent []byte, securitySettings *portaineree.End
 		}
 	}
 
-	return nil
-}
-
-func ValidateStackAutoUpdate(autoUpdate *portaineree.StackAutoUpdate) error {
-	if autoUpdate == nil {
-		return nil
-	}
-	if autoUpdate.Webhook != "" && !govalidator.IsUUID(autoUpdate.Webhook) {
-		return errors.New("invalid Webhook format")
-	}
-	if autoUpdate.Interval != "" {
-		if _, err := time.ParseDuration(autoUpdate.Interval); err != nil {
-			return errors.New("invalid Interval format")
-		}
-	}
 	return nil
 }
 

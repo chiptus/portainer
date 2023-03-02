@@ -18,7 +18,7 @@ type StackPayload struct {
 	// A list of environment(endpoint) variables used during stack deployment
 	Env []portaineree.Pair
 	// Optional auto update configuration
-	AutoUpdate *portaineree.StackAutoUpdate
+	AutoUpdate *portaineree.AutoUpdateSettings
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
 	// Kubernetes stack name

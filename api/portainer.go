@@ -34,6 +34,20 @@ type (
 		Authorizations Authorizations
 	}
 
+	//AutoUpdateSettings represents the git auto sync config for stack deployment
+	AutoUpdateSettings struct {
+		// Auto update interval
+		Interval string `example:"1m30s"`
+		// A UUID generated from client
+		Webhook string `example:"05de31a2-79fa-4644-9c12-faa67e5c49f0"`
+		// Autoupdate job id
+		JobID string `example:"15"`
+		// Force update ignores repo changes
+		ForceUpdate bool `example:"false"`
+		// Pull latest image
+		ForcePullImage bool `example:"false"`
+	}
+
 	EdgeAsyncCommandType        string
 	EdgeAsyncCommandOperation   string
 	EdgeAsyncContainerOperation string
@@ -1310,7 +1324,7 @@ type (
 		// Only applies when deploying stack with multiple files
 		AdditionalFiles []string `json:"AdditionalFiles"`
 		// The auto update settings of a git stack
-		AutoUpdate *StackAutoUpdate `json:"AutoUpdate"`
+		AutoUpdate *AutoUpdateSettings `json:"AutoUpdate"`
 		// The stack deployment option
 		Option *StackOption `json:"Option"`
 		// The git configuration of a git stack
@@ -1327,20 +1341,6 @@ type (
 		SupportRelativePath bool `example:"false"`
 		// Network(Swarm) or local(Standalone) filesystem path
 		FilesystemPath string `example:"/tmp"`
-	}
-
-	//StackAutoUpdate represents the git auto sync config for stack deployment
-	StackAutoUpdate struct {
-		// Auto update interval
-		Interval string `example:"1m30s"`
-		// A UUID generated from client
-		Webhook string `example:"05de31a2-79fa-4644-9c12-faa67e5c49f0"`
-		// Autoupdate job id
-		JobID string `example:"15"`
-		// Force update ignores repo changes
-		ForceUpdate bool `example:"false"`
-		// Pull latest image
-		ForcePullImage bool `example:"false"`
 	}
 
 	// StackOption represents the options for stack deployment

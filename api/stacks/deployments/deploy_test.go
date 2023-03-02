@@ -187,7 +187,7 @@ func Test_redeployWhenChanged_ForceUpdateOn_WithAdditionalEnv(t *testing.T) {
 			ReferenceName: "ref",
 			ConfigHash:    "oldHash",
 		},
-		AutoUpdate: &portaineree.StackAutoUpdate{
+		AutoUpdate: &portaineree.AutoUpdateSettings{
 			ForceUpdate: true,
 		},
 	}
@@ -259,7 +259,7 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff(t *testing.T) {
 			ReferenceName: "ref",
 			ConfigHash:    "oldHash",
 		},
-		AutoUpdate: &portaineree.StackAutoUpdate{
+		AutoUpdate: &portaineree.AutoUpdateSettings{
 			ForceUpdate: false,
 		},
 	})
@@ -300,7 +300,7 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff_ForePullImageEnable(
 			ReferenceName: "ref",
 			ConfigHash:    "oldHash",
 		},
-		AutoUpdate: &portaineree.StackAutoUpdate{
+		AutoUpdate: &portaineree.AutoUpdateSettings{
 			ForceUpdate:    false,
 			ForcePullImage: true,
 		},
@@ -339,7 +339,7 @@ func Test_redeployWhenChanged_RepoChanged_ForceUpdateOff(t *testing.T) {
 			ReferenceName: "ref",
 			ConfigHash:    "oldHash",
 		},
-		AutoUpdate: &portaineree.StackAutoUpdate{
+		AutoUpdate: &portaineree.AutoUpdateSettings{
 			ForceUpdate: false,
 		},
 	}

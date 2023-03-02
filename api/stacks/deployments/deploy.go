@@ -3,11 +3,11 @@ package deployments
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/git/update"
 	"github.com/portainer/portainer-ee/api/http/security"
 	consts "github.com/portainer/portainer-ee/api/useractivity"
 
@@ -131,54 +131,16 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 	}
 
 	var gitCommitChangedOrForceUpdate bool
-	if stack.GitConfig != nil && !stack.FromAppTemplate {
-		log.Debug().Int("stack_id", int(stackID)).Msg("the stack has a git config, try to poll from git repository")
-
-		username, password := "", ""
-		if stack.GitConfig.Authentication != nil {
-			if stack.GitConfig.Authentication.GitCredentialID != 0 {
-				credential, err := datastore.GitCredential().GetGitCredential(portaineree.GitCredentialID(stack.GitConfig.Authentication.GitCredentialID))
-				if err != nil {
-					return errors.WithMessagef(err, "failed to get credential associated to the stack %v", stack.ID)
-				}
-				username, password = credential.Username, credential.Password
-
-				// update stack git credential accordingly when associated git credential is changed from account setting
-				if credential.Username != stack.GitConfig.Authentication.Username || credential.Password != stack.GitConfig.Authentication.Password {
-					stack.GitConfig.Authentication.Username = credential.Username
-					stack.GitConfig.Authentication.Password = credential.Password
-				}
-			} else {
-				username, password = stack.GitConfig.Authentication.Username, stack.GitConfig.Authentication.Password
-			}
-
-		}
-
-		newHash, err := gitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, username, password)
+	if !stack.FromAppTemplate {
+		updated, newHash, err := update.UpdateGitObject(gitService, datastore, fmt.Sprintf("stack:%d", stackID), stack.GitConfig, stack.AutoUpdate, stack.ProjectPath)
 		if err != nil {
-			return errors.WithMessagef(err, "failed to fetch latest commit id of the stack %v", stack.ID)
+			return err
 		}
 
-		if !strings.EqualFold(newHash, string(stack.GitConfig.ConfigHash)) || (stack.AutoUpdate != nil && stack.AutoUpdate.ForceUpdate) {
-			cloneParams := &cloneRepositoryParameters{
-				url:   stack.GitConfig.URL,
-				ref:   stack.GitConfig.ReferenceName,
-				toDir: stack.ProjectPath,
-			}
-			if stack.GitConfig.Authentication != nil {
-				cloneParams.auth = &gitAuth{
-					username: username,
-					password: password,
-				}
-			}
-
-			if err := cloneGitRepository(gitService, cloneParams); err != nil {
-				return errors.WithMessagef(err, "failed to do a fresh clone of the stack %v", stack.ID)
-			}
-
-			stack.UpdateDate = time.Now().Unix()
+		if updated {
 			stack.GitConfig.ConfigHash = newHash
-			gitCommitChangedOrForceUpdate = true
+			stack.UpdateDate = time.Now().Unix()
+			gitCommitChangedOrForceUpdate = updated
 		}
 	}
 
@@ -294,24 +256,4 @@ func getUserRegistries(datastore dataservices.DataStore, user *portaineree.User,
 	}
 
 	return filteredRegistries, nil
-}
-
-type cloneRepositoryParameters struct {
-	url   string
-	ref   string
-	toDir string
-	auth  *gitAuth
-}
-
-type gitAuth struct {
-	username string
-	password string
-}
-
-func cloneGitRepository(gitService portaineree.GitService, cloneParams *cloneRepositoryParameters) error {
-	if cloneParams.auth != nil {
-		return gitService.CloneRepository(cloneParams.toDir, cloneParams.url, cloneParams.ref, cloneParams.auth.username, cloneParams.auth.password)
-	}
-
-	return gitService.CloneRepository(cloneParams.toDir, cloneParams.url, cloneParams.ref, "", "")
 }

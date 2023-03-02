@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/git/update"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	k "github.com/portainer/portainer-ee/api/kubernetes"
@@ -47,10 +48,10 @@ type kubernetesGitDeploymentPayload struct {
 	RepositoryGitCredentialID int
 	ManifestFile              string
 	AdditionalFiles           []string
-	AutoUpdate                *portaineree.StackAutoUpdate
+	AutoUpdate                *portaineree.AutoUpdateSettings
 }
 
-func createStackPayloadFromK8sGitPayload(name, repoUrl, repoReference, repoUsername, repoPassword string, repoGitCredentialID int, repoAuthentication, composeFormat bool, namespace, manifest string, additionalFiles []string, autoUpdate *portaineree.StackAutoUpdate) stackbuilders.StackPayload {
+func createStackPayloadFromK8sGitPayload(name, repoUrl, repoReference, repoUsername, repoPassword string, repoGitCredentialID int, repoAuthentication, composeFormat bool, namespace, manifest string, additionalFiles []string, autoUpdate *portaineree.AutoUpdateSettings) stackbuilders.StackPayload {
 	return stackbuilders.StackPayload{
 		StackName: name,
 		RepositoryConfigPayload: stackbuilders.RepositoryConfigPayload{
@@ -105,7 +106,7 @@ func (payload *kubernetesGitDeploymentPayload) Validate(r *http.Request) error {
 	if govalidator.IsNull(payload.ManifestFile) {
 		return errors.New("Invalid manifest file in repository")
 	}
-	if err := stackutils.ValidateStackAutoUpdate(payload.AutoUpdate); err != nil {
+	if err := update.ValidateAutoUpdateSettings(payload.AutoUpdate); err != nil {
 		return err
 	}
 	if govalidator.IsNull(payload.StackName) {

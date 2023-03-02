@@ -1,7 +1,7 @@
 import { RepositoryMechanismTypes } from 'Kubernetes/models/deploy';
 import { confirmStackUpdate } from '@/react/docker/stacks/common/confirm-stack-update';
 import { parseAutoUpdateResponse } from '@/react/portainer/gitops/AutoUpdateFieldset/utils';
-import { baseStackWebhookUrl } from '@/portainer/helpers/webhookHelper';
+import { baseStackWebhookUrl, createWebhookId } from '@/portainer/helpers/webhookHelper';
 
 class StackRedeployGitFormController {
   /* @ngInject */
@@ -21,6 +21,7 @@ class StackRedeployGitFormController {
       isEdit: false,
       hasUnsavedChanges: false,
       baseWebhookUrl: baseStackWebhookUrl(),
+      webhookId: createWebhookId(),
     };
 
     this.formValues = {
@@ -157,7 +158,8 @@ class StackRedeployGitFormController {
           this.stack.Id,
           this.stack.EndpointId,
           this.FormHelper.removeInvalidEnvVars(this.formValues.Env),
-          this.formValues
+          this.formValues,
+          this.state.webhookId
         );
         this.savedFormValues = angular.copy(this.formValues);
         this.state.hasUnsavedChanges = false;
@@ -208,6 +210,10 @@ class StackRedeployGitFormController {
     }
 
     this.formValues.AutoUpdate = parseAutoUpdateResponse(this.stack.AutoUpdate);
+
+    if (this.stack.AutoUpdate.Webhook) {
+      this.state.webhookId = this.stack.AutoUpdate.Webhook;
+    }
 
     if (this.stack.GitConfig && this.stack.GitConfig.Authentication) {
       this.formValues.RepositoryUsername = this.stack.GitConfig.Authentication.Username;

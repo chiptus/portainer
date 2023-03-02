@@ -8,7 +8,7 @@ import { renderTemplate } from '@/react/portainer/custom-templates/components/ut
 import { editor, upload, git, customTemplate } from '@@/BoxSelector/common-options/build-methods';
 import { confirmWebEditorDiscard } from '@@/modals/confirm';
 import { parseAutoUpdateResponse, transformAutoUpdateViewModel } from '@/react/portainer/gitops/AutoUpdateFieldset/utils';
-import { baseStackWebhookUrl } from '@/portainer/helpers/webhookHelper';
+import { baseStackWebhookUrl, createWebhookId } from '@/portainer/helpers/webhookHelper';
 
 angular
   .module('portainer.app')
@@ -76,6 +76,7 @@ angular
         selectedTemplate: null,
         selectedTemplateId: null,
         baseWebhookUrl: baseStackWebhookUrl(),
+        webhookId: createWebhookId(),
       };
 
       $window.onbeforeunload = () => {
@@ -169,7 +170,7 @@ angular
       function createSwarmStack(name, method) {
         var env = FormHelper.removeInvalidEnvVars($scope.formValues.Env);
         const endpointId = +$state.params.endpointId;
-        const webhook = $scope.formValues.EnableWebhook ? $scope.formValues.RepositoryWebhookId : '';
+        const webhook = $scope.formValues.EnableWebhook ? $scope.state.webhookId : '';
         if (method === 'template' || method === 'editor') {
           var stackFileContent = $scope.formValues.StackFileContent;
           return StackService.createSwarmStackFromFileContent(name, stackFileContent, env, endpointId, webhook);
@@ -193,7 +194,7 @@ angular
             ForcePullImage: $scope.formValues.ForcePullImage,
             SupportRelativePath: $scope.formValues.SupportRelativePath,
             FilesystemPath: $scope.formValues.FilesystemPath,
-            AutoUpdate: transformAutoUpdateViewModel($scope.formValues.AutoUpdate),
+            AutoUpdate: transformAutoUpdateViewModel($scope.formValues.AutoUpdate, $scope.state.webhookId),
           };
 
           return StackService.createSwarmStackFromGitRepository(name, repositoryOptions, env, endpointId);
@@ -203,7 +204,7 @@ angular
       function createComposeStack(name, method) {
         var env = FormHelper.removeInvalidEnvVars($scope.formValues.Env);
         const endpointId = +$state.params.endpointId;
-        const webhook = $scope.formValues.EnableWebhook ? $scope.formValues.RepositoryWebhookId : '';
+        const webhook = $scope.formValues.EnableWebhook ? $scope.state.webhookId : '';
 
         if (method === 'editor' || method === 'template') {
           var stackFileContent = $scope.formValues.StackFileContent;
@@ -224,7 +225,7 @@ angular
             ForcePullImage: $scope.formValues.ForcePullImage,
             SupportRelativePath: $scope.formValues.SupportRelativePath,
             FilesystemPath: $scope.formValues.FilesystemPath,
-            AutoUpdate: transformAutoUpdateViewModel($scope.formValues.AutoUpdate),
+            AutoUpdate: transformAutoUpdateViewModel($scope.formValues.AutoUpdate, $scope.state.webhookId),
           };
 
           return StackService.createComposeStackFromGitRepository(name, repositoryOptions, env, endpointId);
