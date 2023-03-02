@@ -1,5 +1,7 @@
 import { TeamId } from '@/react/portainer/users/teams/types';
 
+import { MTLSCertOptions } from './EdgeComputeView/DeploymentSyncOptions/types';
+
 export interface FDOConfiguration {
   enabled: boolean;
   ownerURL: string;
@@ -134,6 +136,7 @@ export interface Settings {
     SnapshotInterval: number;
     CommandInterval: number;
     AsyncMode: boolean;
+    MTLS: MTLSCertOptions;
     TunnelServerAddress: string;
   };
 }

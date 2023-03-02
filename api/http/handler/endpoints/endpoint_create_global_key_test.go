@@ -41,19 +41,9 @@ func setupGlobalKeyHandler(t *testing.T) (*Handler, func(), error) {
 		return nil, nil, fmt.Errorf("could not start a new filesystem service: %w", err)
 	}
 
-	err = store.Settings().UpdateSettings(&portaineree.Settings{
-		EdgePortainerURL: "https://portainer.domain.tld:9443",
-		Edge: struct {
-			CommandInterval     int    "json:\"CommandInterval\" example:\"5\""
-			PingInterval        int    "json:\"PingInterval\" example:\"5\""
-			SnapshotInterval    int    "json:\"SnapshotInterval\" example:\"5\""
-			TunnelServerAddress string "json:\"TunnelServerAddress\" example:\"portainer.domain.tld\""
-			AsyncMode           bool
-		}{
-
-			TunnelServerAddress: "portainer.domain.tld:8000",
-		},
-	})
+	settings := &portaineree.Settings{EdgePortainerURL: "https://portainer.domain.tld:9443"}
+	settings.Edge.TunnelServerAddress = "portainer.domain.tld:8000"
+	err = store.Settings().UpdateSettings(settings)
 	if err != nil {
 		teardown()
 		return nil, nil, fmt.Errorf("could not update settings: %w", err)

@@ -766,6 +766,12 @@
     "Edge": {
       "AsyncMode": false,
       "CommandInterval": 0,
+      "MTLS": {
+        "CaCertFile": "",
+        "CertFile": "",
+        "KeyFile": "",
+        "UseSeparateCert": false
+      },
       "PingInterval": 0,
       "SnapshotInterval": 0,
       "TunnelServerAddress": ""

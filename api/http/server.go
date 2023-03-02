@@ -268,6 +268,7 @@ func (server *Server) Start() error {
 	settingsHandler.JWTService = server.JWTService
 	settingsHandler.LDAPService = server.LDAPService
 	settingsHandler.SnapshotService = server.SnapshotService
+	settingsHandler.SSLService = server.SSLService
 
 	var sslHandler = sslhandler.NewHandler(requestBouncer)
 	sslHandler.SSLService = server.SSLService
@@ -409,7 +410,13 @@ func (server *Server) Start() error {
 	}
 
 	httpsServer.TLSConfig = crypto.CreateTLSConfiguration()
-	httpsServer.TLSConfig.GetCertificate = func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
+	httpsServer.TLSConfig.GetCertificate = func(chi *tls.ClientHelloInfo) (*tls.Certificate, error) {
+		if mTLSCert := server.SSLService.GetRawMTLSCertificate(); mTLSCert != nil {
+			if err := chi.SupportsCertificate(mTLSCert); err == nil {
+				return mTLSCert, nil
+			}
+		}
+
 		return server.SSLService.GetRawCertificate(), nil
 	}
 

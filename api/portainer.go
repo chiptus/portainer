@@ -203,6 +203,9 @@ type (
 		SSLCert                   *string
 		SSLKey                    *string
 		SSLCACert                 *string
+		MTLSCert                  *string
+		MTLSKey                   *string
+		MTLSCACert                *string
 		Rollback                  *bool
 		RollbackToCE              *bool
 		SnapshotInterval          *string
@@ -688,6 +691,13 @@ type (
 		NodeCount         int    `json:"NodeCount"`
 		TotalCPU          int64  `json:"TotalCPU"`
 		TotalMemory       int64  `json:"TotalMemory"`
+	}
+
+	MTLSSettings struct {
+		UseSeparateCert bool   `json:"UseSeparateCert"`
+		CaCertFile      string `json:"CaCertFile"`
+		CertFile        string `json:"CertFile"`
+		KeyFile         string `json:"KeyFile"`
 	}
 
 	// NomadData contains all the Nomad related environment(endpoint) information
@@ -1254,6 +1264,8 @@ type (
 			PingInterval int `json:"PingInterval" example:"5"`
 			// The snapshot interval for edge agent - used in edge async mode (in seconds)
 			SnapshotInterval int `json:"SnapshotInterval" example:"5"`
+
+			MTLS MTLSSettings
 			// The address where the tunneling server can be reached by Edge agents
 			TunnelServerAddress string `json:"TunnelServerAddress" example:"portainer.domain.tld"`
 

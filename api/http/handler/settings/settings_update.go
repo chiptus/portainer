@@ -17,6 +17,13 @@ import (
 	"github.com/portainer/portainer/pkg/libhelm"
 )
 
+type mTLSPayload struct {
+	UseSeparateCert *bool
+	CaCert          *string
+	Cert            *string
+	Key             *string
+}
+
 type settingsUpdatePayload struct {
 	// URL to a logo that will be displayed on the login page as well as on top of the sidebar. Will use default Portainer logo when value is empty string
 	LogoURL *string `example:"https://mycompany.mydomain.tld/logo.png"`
@@ -65,6 +72,10 @@ type settingsUpdatePayload struct {
 		SnapshotInterval *int `json:"SnapshotInterval" example:"5"`
 		// The command list interval for edge agent - used in edge async mode (in seconds)
 		CommandInterval *int `json:"CommandInterval" example:"5"`
+		// AsyncMode enables edge agent to run in async mode by default
+		AsyncMode *bool
+
+		MTLS mTLSPayload
 		// The address where the tunneling server can be reached by Edge agents
 		TunnelServerAddress *string
 	}
@@ -108,6 +119,20 @@ func (payload *settingsUpdatePayload) Validate(r *http.Request) error {
 		}
 		if !payload.LDAPSettings.AdminAutoPopulate && len(payload.LDAPSettings.AdminGroups) > 0 {
 			payload.LDAPSettings.AdminGroups = []string{}
+		}
+	}
+
+	if payload.Edge.MTLS.UseSeparateCert != nil && *payload.Edge.MTLS.UseSeparateCert {
+		if payload.Edge.MTLS.Cert == nil {
+			return errors.New("Missing mTLS certificate")
+		}
+
+		if payload.Edge.MTLS.Key == nil {
+			return errors.New("Missing mTLS key")
+		}
+
+		if payload.Edge.MTLS.CaCert == nil {
+			return errors.New("Missing mTLS CA certificate")
 		}
 	}
 
@@ -339,6 +364,17 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		settings.KubectlShellImage = *payload.KubectlShellImage
 	}
 
+	if payload.Edge.MTLS.UseSeparateCert != nil {
+		settings.Edge.MTLS.UseSeparateCert = *payload.Edge.MTLS.UseSeparateCert
+	}
+
+	if payload.Edge.MTLS.UseSeparateCert != nil {
+		err = handler.saveCertificates(payload.Edge.MTLS)
+		if err != nil {
+			return httperror.InternalServerError("Unable to persist mTLS certificates", err)
+		}
+	}
+
 	err = handler.DataStore.Settings().UpdateSettings(settings)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist settings changes inside the database", err)
@@ -387,5 +423,27 @@ func (handler *Handler) updateEnvironmentDeploymentType() *httperror.HandlerErro
 			}
 		}
 	}
+	return nil
+}
+
+func (handler *Handler) saveCertificates(payload mTLSPayload) error {
+	if *payload.UseSeparateCert {
+		if *payload.Cert == "" && *payload.CaCert == "" && *payload.Key == "" {
+			return nil
+		}
+
+		_, _, _, err := handler.FileService.StoreMTLSCertificates(
+			[]byte(*payload.Cert),
+			[]byte(*payload.CaCert),
+			[]byte(*payload.Key))
+		if err != nil {
+			return err
+		}
+
+		return handler.SSLService.SetMTLSCertificates([]byte(*payload.CaCert), []byte(*payload.Cert), []byte(*payload.Key))
+	}
+
+	handler.SSLService.DisableMTLS()
+
 	return nil
 }

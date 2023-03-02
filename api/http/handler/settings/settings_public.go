@@ -58,6 +58,8 @@ type publicSettingsResponse struct {
 		CommandInterval int `json:"CommandInterval" example:"60"`
 		// The check in interval for edge agent (in seconds) - used in non async mode [seconds]
 		CheckinInterval int `example:"60"`
+
+		MTLS portaineree.MTLSSettings
 	}
 }
 

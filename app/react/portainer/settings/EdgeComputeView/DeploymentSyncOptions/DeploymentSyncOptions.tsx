@@ -4,7 +4,8 @@ import { Laptop } from 'lucide-react';
 
 import { EdgeCheckinIntervalField } from '@/react/edge/components/EdgeCheckInIntervalField';
 import { EdgeAsyncIntervalsForm } from '@/react/edge/components/EdgeAsyncIntervalsForm';
-import { notifySuccess } from '@/portainer/services/notifications';
+import { notifyError, notifySuccess } from '@/portainer/services/notifications';
+import { MTLSOptions } from '@/react/edge/components/MTLSOptions';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 
 import { Widget, WidgetBody, WidgetTitle } from '@@/Widget';
@@ -47,6 +48,7 @@ export function DeploymentSyncOptions() {
       CommandInterval: settingsQuery.data.Edge.CommandInterval,
       PingInterval: settingsQuery.data.Edge.PingInterval,
       SnapshotInterval: settingsQuery.data.Edge.SnapshotInterval,
+      MTLS: settingsQuery.data.Edge.MTLS,
     },
     EdgeAgentCheckinInterval: settingsQuery.data.EdgeAgentCheckinInterval,
   };
@@ -91,17 +93,26 @@ export function DeploymentSyncOptions() {
                   </FormSection>
                 )}
 
-                <div className="form-group mt-5">
-                  <div className="col-sm-12">
-                    <LoadingButton
-                      disabled={!isValid || !dirty}
-                      className="!ml-0"
-                      data-cy="settings-deploySyncOptionsButton"
-                      isLoading={settingsMutation.isLoading}
-                      loadingText="Saving settings..."
-                    >
-                      Save settings
-                    </LoadingButton>
+                <FormSection title="mTLS Certificate">
+                  <MTLSOptions
+                    values={values.Edge.MTLS}
+                    onChange={(value) => setFieldValue('Edge.MTLS', value)}
+                  />
+                </FormSection>
+
+                <div>
+                  <div className="form-group mt-5">
+                    <div className="col-sm-12">
+                      <LoadingButton
+                        disabled={!isValid || !dirty}
+                        className="!ml-0"
+                        data-cy="settings-deploySyncOptionsButton"
+                        isLoading={settingsMutation.isLoading}
+                        loadingText="Saving settings..."
+                      >
+                        Save settings
+                      </LoadingButton>
+                    </div>
                   </div>
                 </div>
               </Form>
@@ -112,16 +123,48 @@ export function DeploymentSyncOptions() {
     </div>
   );
 
-  function handleSubmit(values: FormValues) {
+  async function handleSubmit(values: FormValues) {
+    let mtlsValues = {
+      UseSeparateCert: false,
+      CaCert: '',
+      Cert: '',
+      Key: '',
+    };
+
+    if (values.Edge.MTLS.UseSeparateCert) {
+      const caCert = values.Edge.MTLS.CaCertFile
+        ? values.Edge.MTLS.CaCertFile.text()
+        : '';
+      const cert = values.Edge.MTLS.CertFile
+        ? values.Edge.MTLS.CertFile.text()
+        : '';
+      const key = values.Edge.MTLS.KeyFile
+        ? values.Edge.MTLS.KeyFile.text()
+        : '';
+
+      mtlsValues = {
+        ...values.Edge.MTLS,
+        CaCert: await caCert,
+        Cert: await cert,
+        Key: await key,
+      };
+    }
+
     settingsMutation.mutate(
       {
-        Edge: values.Edge,
+        Edge: {
+          ...values.Edge,
+          MTLS: mtlsValues,
+        },
         EdgeAgentCheckinInterval: values.EdgeAgentCheckinInterval,
       },
       {
         onSuccess() {
           notifySuccess('Success', 'Settings updated successfully');
           resetForm();
+        },
+        onError(error) {
+          notifyError('Failure', error as Error, 'Unable to update settings');
         },
       }
     );

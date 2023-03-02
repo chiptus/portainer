@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/internal/ssl"
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -18,6 +19,9 @@ func hideFields(settings *portaineree.Settings) {
 	settings.LDAPSettings.Password = ""
 	settings.OAuthSettings.ClientSecret = ""
 	settings.OAuthSettings.KubeSecretKey = nil
+	settings.Edge.MTLS.CaCertFile = ""
+	settings.Edge.MTLS.CertFile = ""
+	settings.Edge.MTLS.KeyFile = ""
 }
 
 // Handler is the HTTP handler used to handle settings operations.
@@ -29,6 +33,7 @@ type Handler struct {
 	JWTService           portaineree.JWTService
 	LDAPService          portaineree.LDAPService
 	SnapshotService      portaineree.SnapshotService
+	SSLService           *ssl.Service
 	userActivityService  portaineree.UserActivityService
 	demoService          *demo.Service
 }

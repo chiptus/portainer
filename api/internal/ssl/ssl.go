@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/portainer/libcrypto"
@@ -22,8 +23,11 @@ type Service struct {
 	fileService     portainer.FileService
 	dataStore       dataservices.DataStore
 	rawCert         *tls.Certificate
+	mtlsRawCert     *tls.Certificate
+	certPool        *x509.CertPool
 	shutdownTrigger context.CancelFunc
 	crlService      *revoke.Service
+	mu              sync.RWMutex
 }
 
 // NewService returns a pointer to a new Service
@@ -37,7 +41,7 @@ func NewService(fileService portainer.FileService, dataStore dataservices.DataSt
 }
 
 // Init initializes the service
-func (service *Service) Init(host, certPath, keyPath, caCertPath string) error {
+func (service *Service) Init(host, certPath, keyPath, caCertPath, mTLSCertPath, mTLSKeyPath, mTLSCACertPath string) error {
 	certSupplied := certPath != "" && keyPath != ""
 	caCertSupplied := caCertPath != ""
 
@@ -80,7 +84,7 @@ func (service *Service) Init(host, certPath, keyPath, caCertPath string) error {
 		}
 	}
 
-	// path not supplied and certificates doesn't exist - generate self-signed
+	// path not supplied and certificates don't exist - generate self-signed
 	certPath, keyPath = service.fileService.GetDefaultSSLCertsPath()
 
 	err = generateSelfSignedCertificates(host, certPath, keyPath)
@@ -88,7 +92,49 @@ func (service *Service) Init(host, certPath, keyPath, caCertPath string) error {
 		return errors.Wrap(err, "failed generating self signed certs")
 	}
 
-	return service.cacheInfo(certPath, keyPath, &caCertPath, true)
+	err = service.cacheInfo(certPath, keyPath, &caCertPath, true)
+	if err != nil {
+		return err
+	}
+
+	// mTLS
+	mtlsSettings, err := service.dataStore.Settings().Settings()
+	if err != nil {
+		return errors.Wrap(err, "unable to retrieve the mTLS settings")
+	}
+
+	if mtlsSettings.Edge.MTLS.UseSeparateCert && mTLSCACertPath != "" && mTLSCertPath != "" && mTLSKeyPath != "" {
+		ca, err := os.ReadFile(mTLSCACertPath)
+		if err != nil {
+			return errors.Wrap(err, "failed reading the mTLS CA certificate")
+		}
+
+		cert, err := os.ReadFile(mTLSCertPath)
+		if err != nil {
+			return errors.Wrap(err, "failed reading the mTLS certificate")
+		}
+
+		key, err := os.ReadFile(mTLSKeyPath)
+		if err != nil {
+			return errors.Wrap(err, "failed reading the mTLS key")
+		}
+
+		_, _, _, err = service.fileService.StoreMTLSCertificates(cert, ca, key)
+		if err != nil {
+			return errors.Wrap(err, "failed storing the mTLS files")
+		}
+
+		err = service.SetMTLSCertificates(ca, cert, key)
+		if err != nil {
+			return errors.Wrap(err, "unable to initialize mTLS")
+		}
+
+		if service.GetCACertificatePool() == nil {
+			return errors.Wrap(err, "unable to initialize the mTLS CA certificate pool")
+		}
+	}
+
+	return nil
 }
 
 func generateSelfSignedCertificates(ip, certPath, keyPath string) error {
@@ -103,7 +149,17 @@ func generateSelfSignedCertificates(ip, certPath, keyPath string) error {
 
 // GetRawCertificate gets the raw certificate
 func (service *Service) GetRawCertificate() *tls.Certificate {
+	service.mu.RLock()
+	defer service.mu.RUnlock()
+
 	return service.rawCert
+}
+
+func (service *Service) GetRawMTLSCertificate() *tls.Certificate {
+	service.mu.RLock()
+	defer service.mu.RUnlock()
+
+	return service.mtlsRawCert
 }
 
 // GetSSLSettings gets the certificate info
@@ -122,9 +178,15 @@ func (service *Service) SetCertificates(certData, keyData []byte) error {
 		return err
 	}
 
-	certPath, keyPath, err := service.fileService.StoreSSLCertPair(certData, keyData)
-	if err != nil {
-		return err
+	var certPath, keyPath string
+	{
+		service.mu.Lock()
+		defer service.mu.Unlock()
+
+		certPath, keyPath, err = service.fileService.StoreSSLCertPair(certData, keyData)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = service.cacheInfo(certPath, keyPath, nil, false)
@@ -139,10 +201,25 @@ func (service *Service) SetCertificates(certData, keyData []byte) error {
 
 // GetCACertificatePool gets the CA Certificate pem file and returns it as a CertPool
 func (service *Service) GetCACertificatePool() *x509.CertPool {
-	settings, _ := service.GetSSLSettings()
+	{
+		service.mu.RLock()
+		defer service.mu.RUnlock()
+
+		if service.certPool != nil {
+			return service.certPool
+		}
+	}
+
+	settings, err := service.GetSSLSettings()
+	if err != nil {
+		log.Error().Err(err).Msg("unable to retrieve the TLS settings")
+		return nil
+	}
+
 	if settings.CACertPath == "" {
 		return nil
 	}
+
 	caCert, err := os.ReadFile(settings.CACertPath)
 	if err != nil {
 		log.Debug().Str("path", settings.CACertPath).Err(err).Msg("error reading CA cert")
@@ -216,7 +293,7 @@ func (service *Service) ValidateCACert(tlsConn *tls.ConnectionState) error {
 	}
 
 	log.Debug().
-		Str("subject", agentCert.Subject.String()).
+		Stringer("subject", agentCert.Subject).
 		Strs("dns_names", agentCert.DNSNames).
 		Msg("successfully validated TLS Client Chain")
 
@@ -235,6 +312,9 @@ func (service *Service) cacheCertificate(certPath, keyPath string) error {
 }
 
 func (service *Service) cacheInfo(certPath string, keyPath string, caCertPath *string, selfSigned bool) error {
+	service.mu.Lock()
+	defer service.mu.Unlock()
+
 	err := service.cacheCertificate(certPath, keyPath)
 	if err != nil {
 		return err
@@ -253,4 +333,36 @@ func (service *Service) cacheInfo(certPath string, keyPath string, caCertPath *s
 	}
 
 	return service.dataStore.SSLSettings().UpdateSettings(settings)
+}
+
+func (service *Service) SetMTLSCertificates(ca []byte, cert []byte, key []byte) error {
+	service.mu.Lock()
+	defer service.mu.Unlock()
+
+	tlsCert, err := tls.X509KeyPair(cert, key)
+	if err != nil {
+		return err
+	}
+
+	tlsCert.Leaf, err = x509.ParseCertificate(tlsCert.Certificate[0])
+	if err != nil {
+		return err
+	}
+
+	certPool := x509.NewCertPool()
+	if ok := certPool.AppendCertsFromPEM(ca); !ok {
+		return errors.New("could not parse the mTLS CA certificate")
+	}
+
+	service.mtlsRawCert = &tlsCert
+	service.certPool = certPool
+
+	return nil
+}
+
+func (service *Service) DisableMTLS() {
+	service.mu.Lock()
+	service.mtlsRawCert = nil
+	service.certPool = nil
+	service.mu.Unlock()
 }
