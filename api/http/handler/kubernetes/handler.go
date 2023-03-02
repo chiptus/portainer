@@ -176,6 +176,7 @@ func (handler *Handler) kubeClient(next http.Handler) http.Handler {
 			)
 			return
 		}
+
 		bearerToken, err := handler.JwtService.GenerateTokenForKubeconfig(tokenData)
 		if err != nil {
 			httperror.WriteError(
@@ -186,6 +187,7 @@ func (handler *Handler) kubeClient(next http.Handler) http.Handler {
 			)
 			return
 		}
+
 		singleEndpointList := []portaineree.Endpoint{
 			*endpoint,
 		}
@@ -253,6 +255,7 @@ func (handler *Handler) kubeClient(next http.Handler) http.Handler {
 		}
 
 		handler.KubernetesClientFactory.SetProxyKubeClient(strconv.Itoa(int(endpoint.ID)), r.Header.Get("Authorization"), kubeCli)
+
 		next.ServeHTTP(w, r)
 	})
 }
