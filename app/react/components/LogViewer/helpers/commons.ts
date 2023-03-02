@@ -73,12 +73,15 @@ export function newLogService(log: LogInterface) {
 
   function pushPairs(pairs: Pair[]) {
     pairs.forEach(([key, value], index) => {
-      if (!index) {
+      const strValue =
+        typeof value === 'string' ? value : JSON.stringify(value);
+
+      if (!index && newLog.line) {
         pushSpan('|', JSONColors.Magenta);
       }
 
       pushSpan(`${key}=`, JSONColors.Blue, false);
-      pushSpan(value, key === 'error' ? JSONColors.Red : JSONColors.Magenta);
+      pushSpan(strValue, key === 'error' ? JSONColors.Red : JSONColors.Magenta);
     });
   }
 

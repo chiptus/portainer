@@ -27,7 +27,11 @@ function formatMainLog(
   logService.pushTimeSpan(time);
   logService.pushLevelSpan(level);
   logService.pushCallerSpan(caller);
-  logService.pushSpan(message, JSONColors.Magenta);
+
+  if (message) {
+    logService.pushSpan(message, JSONColors.Magenta);
+  }
+
   logService.pushPairs(Object.entries(restJson) as Pair[]);
 
   newLogs.push(log);
