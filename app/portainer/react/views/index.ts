@@ -7,9 +7,9 @@ import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
 import { CreateAccessToken } from '@/react/portainer/account/CreateAccessTokenView';
 import { EdgeComputeSettingsView } from '@/react/portainer/settings/EdgeComputeView/EdgeComputeSettingsView';
-import { CloudView } from '@/react/portainer/settings/cloud/CloudView';
-import { CreateCredentialView } from '@/react/portainer/settings/cloud/CreateCredentialsView';
-import { EditCredentialView } from '@/react/portainer/settings/cloud/EditCredentialView';
+import { CloudView } from '@/react/portainer/settings/sharedCredentials/CloudView';
+import { CreateCredentialView } from '@/react/portainer/settings/sharedCredentials/CreateCredentialsView';
+import { EditCredentialView } from '@/react/portainer/settings/sharedCredentials/EditCredentialView';
 import { withI18nSuspense } from '@/react-tools/withI18nSuspense';
 import { NotificationsView } from '@/react/portainer/notifications/NotificationsView';
 import { EdgeAutoCreateScriptView } from '@/react/portainer/environments/EdgeAutoCreateScriptView';
@@ -52,15 +52,15 @@ export const viewsModule = angular
     )
   )
   .component(
-    'settingsCloudView',
+    'settingsSharedCredentialsView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(CloudView))), [])
   )
   .component(
-    'addCloudCredentialView',
+    'addSharedCredentialsView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(CreateCredentialView))), [])
   )
   .component(
-    'editCloudCredentialView',
+    'editSharedCredentialsView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(EditCredentialView))), [])
   )
   .component(

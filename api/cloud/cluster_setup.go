@@ -24,9 +24,11 @@ import (
 
 type ProvisioningState int
 
+//go:generate stringer -type=ProvisioningState -trimprefix=ProvisioningState
 const (
 	ProvisioningStatePending ProvisioningState = iota
 	ProvisioningStateWaitingForCluster
+	ProvisiongStateSeedingCluster
 	ProvisioningStateAgentSetup
 	ProvisioningStateWaitingForAgent
 	ProvisioningStateUpdatingEndpoint
@@ -225,14 +227,14 @@ func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 func (service *CloudClusterSetupService) changeState(task *portaineree.CloudProvisioningTask, newState ProvisioningState, message string) {
 	log.Debug().
 		Str("cluster_id", task.ClusterID).
-		Int("state", int(newState)).
+		Str("state", newState.String()).
 		Msg("changed state of cluster setup task")
 
 	err := service.setMessage(task.EndpointID, message, "")
 	if err != nil {
 		log.Error().
 			Str("cluster_id", task.ClusterID).
-			Int("state", int(ProvisioningState(task.State))).
+			Str("state", ProvisioningState(task.State).String()).
 			Err(err).
 			Msg("unable to update endpoint status message in database")
 	}
@@ -270,15 +272,9 @@ func (service *CloudClusterSetupService) setStatus(id portaineree.EndpointID, st
 }
 
 func (service *CloudClusterSetupService) seedCluster(task *portaineree.CloudProvisioningTask) (err error) {
-	// TODO: REVIEW-POC-MICROK8S
-	// For now, only microk8s is supported
-	if task.Provider != portaineree.CloudProviderMicrok8s {
-		return nil
-	}
-
 	customTemplate, err := service.dataStore.CustomTemplate().CustomTemplate(portaineree.CustomTemplateID(task.CustomTemplateID))
 	if err != nil {
-		return err
+		return clouderrors.NewFatalError("error getting custom template with id: %d error: %v", task.CustomTemplateID, err)
 	}
 
 	cluster, err := service.getKaasCluster(task)
@@ -303,7 +299,14 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 
 	switch task.Provider {
 	case portaineree.CloudProviderMicrok8s:
-		cluster, err = service.Microk8sGetCluster(credentials.Credentials["username"], credentials.Credentials["password"], task.ClusterID, task.NodeIPs)
+		cluster, err = service.Microk8sGetCluster(
+			credentials.Credentials["username"],
+			credentials.Credentials["password"],
+			credentials.Credentials["passphrase"],
+			credentials.Credentials["privateKey"],
+			task.ClusterID,
+			task.NodeIPs,
+		)
 
 	case portaineree.CloudProviderCivo:
 		cluster, err = service.CivoGetCluster(credentials.Credentials["apiKey"], task.ClusterID, task.Region)
@@ -398,13 +401,13 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			return
 		}
 
-		switch ProvisioningState(task.State) {
+		switch state := ProvisioningState(task.State); state {
 		case ProvisioningStatePending:
 			log.Info().
 				Str("provider", task.Provider).
 				Str("cluster_id", task.ClusterID).
 				Int("endpoint_id", int(task.EndpointID)).
-				Int("state", task.State).
+				Str("state", state.String()).
 				Msg("starting provisionKaasClusterTask")
 
 			msg := "Creating KaaS cluster"
@@ -423,23 +426,25 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			}
 
 			if cluster.Ready {
-				service.changeState(&task, ProvisioningStateAgentSetup, "Deploying Portainer agent")
+				service.changeState(&task, ProvisiongStateSeedingCluster, "Seeding cluster")
 			}
 
-			// TODO: REVIEW-POC-MICROK8S
-			// This should probably be in a separated state
-			if task.Provider == portaineree.CloudProviderMicrok8s {
+			log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Msg("waiting for cluster")
+
+		case ProvisiongStateSeedingCluster:
+			if task.CustomTemplateID != 0 {
 				err = service.seedCluster(&task)
 				if err != nil {
 					task.Retries++
 					break
 				}
+				log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Msg("seeding cluster")
 			}
 
-			log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Msg("waiting for cluster")
+			service.changeState(&task, ProvisioningStateAgentSetup, "Deploying Portainer agent")
 
 		case ProvisioningStateAgentSetup:
-			log.Info().Int("state", task.State).Int("retries", task.Retries).Msg("process state")
+			log.Info().Str("state", state.String()).Int("retries", task.Retries).Msg("process state")
 
 			if kubeClient == nil {
 				kubeClient, err = service.clientFactory.CreateKubeClientFromKubeConfig(task.ClusterID, []byte(cluster.KubeConfig))
@@ -517,8 +522,6 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			service.changeState(&task, ProvisioningStateDone, "Connecting")
 
 		case ProvisioningStateDone:
-			// TODO: REVIEW-POC-MICROK8S
-			// Are we expecting an error here?
 			if err == nil {
 				log.Info().
 					Str("provider", task.Provider).
@@ -539,10 +542,11 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 
 		// Print state errors and retry counter.
 		if err != nil {
-			log.Error().Int("state", task.State).Err(err).Msg("failure in state")
+			stateStr := ProvisioningState(task.State).String()
+			log.Error().Str("state", stateStr).Err(err).Msg("failure in state")
 
 			log.Info().
-				Int("state", task.State).
+				Str("state", stateStr).
 				Int("attempt", task.Retries).
 				Int("max_attempts", maxAttempts).
 				Msg("retrying")
@@ -573,9 +577,10 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 	switch request.Provider {
 	case portaineree.CloudProviderMicrok8s:
 		req := Microk8sProvisioningClusterRequest{
-			Credentials: credentials,
-			NodeIps:     request.NodeIPs,
-			Addons:      request.Addons,
+			Credentials:       credentials,
+			NodeIps:           request.NodeIPs,
+			Addons:            request.Addons,
+			KubernetesVersion: request.KubernetesVersion,
 		}
 		clusterID, provErr = service.Microk8sProvisionCluster(req)
 

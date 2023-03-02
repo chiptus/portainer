@@ -96,7 +96,7 @@ export function SettingsSidebar({ isAdmin, isTeamLeader }: Props) {
           )}
 
           <SidebarItem
-            label="Authentication logs"
+            label="Authentication Logs"
             to="portainer.authLogs"
             icon={FileText}
             data-cy="portainerSidebar-authLogs"
@@ -131,8 +131,8 @@ export function SettingsSidebar({ isAdmin, isTeamLeader }: Props) {
           )}
           {isBE && (
             <SidebarItem
-              to="portainer.settings.cloud"
-              label="Cloud"
+              to="portainer.settings.sharedcredentials"
+              label="Shared Credentials"
               data-cy="portainerSidebar-cloud"
             />
           )}

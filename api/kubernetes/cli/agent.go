@@ -3,7 +3,9 @@ package cli
 import (
 	"context"
 	"fmt"
+	"os"
 
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/rs/zerolog/log"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -13,9 +15,17 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-// TODO: REVIEW-POC-MICROK8S
-// This is overriden here just for development purposes
-var DefaultAgentVersion = "2.15.1"
+var DefaultAgentVersion = portaineree.APIVersion
+
+func KaasAgentVersion() string {
+	// override the default agent version if the KAAS_AGENT_VERSION environment variable is set
+	ver := os.Getenv("KAAS_AGENT_VERSION")
+	if ver != "" {
+		return ver
+	}
+
+	return DefaultAgentVersion
+}
 
 // GetPortainerAgentIP checks whether there is an IP address associated to the agent service and returns it.
 func (kcl *KubeClient) GetPortainerAgentIPOrHostname(nodeIPs []string) (string, error) {
@@ -150,6 +160,9 @@ func (kcl *KubeClient) DeployPortainerAgent() error {
 
 	// DEPLOYMENT
 	deploymentName := "portainer-agent"
+	image := "portainer/agent:" + KaasAgentVersion()
+
+	log.Info().Str("image", image).Msg("Deploying Portainer agent to KaaS cluster")
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -172,7 +185,7 @@ func (kcl *KubeClient) DeployPortainerAgent() error {
 					Containers: []v1.Container{
 						{
 							Name:            "portainer-agent",
-							Image:           "portainer/agent:" + DefaultAgentVersion,
+							Image:           image,
 							ImagePullPolicy: v1.PullAlways,
 							Env: []v1.EnvVar{
 								{

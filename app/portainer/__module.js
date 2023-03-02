@@ -414,31 +414,31 @@ angular
       };
 
       const settingsCloud = {
-        name: 'portainer.settings.cloud',
+        name: 'portainer.settings.sharedcredentials',
         url: '/cloud',
         views: {
           'content@': {
-            component: 'settingsCloudView',
+            component: 'settingsSharedCredentialsView',
           },
         },
       };
 
       const addCloudCredential = {
-        name: 'portainer.settings.cloud.addCredential',
+        name: 'portainer.settings.sharedcredentials.addCredential',
         url: '/credentials/new',
         views: {
           'content@': {
-            component: 'addCloudCredentialView',
+            component: 'addSharedCredentialsView',
           },
         },
       };
 
       const editCloudCredential = {
-        name: 'portainer.settings.cloud.credential',
+        name: 'portainer.settings.sharedcredentials.credential',
         url: '/credentials/:id',
         views: {
           'content@': {
-            component: 'editCloudCredentialView',
+            component: 'editSharedCredentialsView',
           },
         },
       };

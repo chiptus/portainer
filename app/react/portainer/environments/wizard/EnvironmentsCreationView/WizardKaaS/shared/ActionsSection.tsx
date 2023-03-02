@@ -21,28 +21,28 @@ export function ActionsSection({
 
   return (
     <FormSection title="Actions">
-      <div className="form-group">
-        <div className="col-sm-12">
-          <LoadingButton
-            disabled={!isValid}
-            isLoading={isSubmitting}
-            loadingText="Provision in progress..."
-            icon={Plus}
-          >
-            Provision environment
-          </LoadingButton>
+      <div className="mb-3 flex w-full flex-wrap gap-2">
+        <LoadingButton
+          disabled={!isValid}
+          isLoading={isSubmitting}
+          loadingText="Provision in progress..."
+          icon={Plus}
+          className="!ml-0"
+        >
+          Provision environment
+        </LoadingButton>
 
-          <LoadingButton
-            type="button"
-            color="default"
-            onClick={onReloadClick}
-            isLoading={isReloading}
-            loadingText="Reloading details..."
-            icon={RefreshCw}
-          >
-            Reload cluster details
-          </LoadingButton>
-        </div>
+        <LoadingButton
+          type="button"
+          color="default"
+          onClick={onReloadClick}
+          isLoading={isReloading}
+          loadingText="Reloading details..."
+          icon={RefreshCw}
+          className="!ml-0"
+        >
+          Reload cluster details
+        </LoadingButton>
       </div>
     </FormSection>
   );

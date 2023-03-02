@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { ChangeEvent, createRef } from 'react';
 import { XCircle } from 'lucide-react';
 
@@ -13,6 +14,8 @@ export interface Props {
   title?: string;
   required?: boolean;
   inputId: string;
+  dataCy?: string;
+  className?: string;
 }
 
 export function FileUploadField({
@@ -22,6 +25,8 @@ export function FileUploadField({
   title = 'Select a file',
   required = false,
   inputId,
+  dataCy,
+  className,
 }: Props) {
   const fileRef = createRef<HTMLInputElement>();
 
@@ -41,7 +46,8 @@ export function FileUploadField({
         size="small"
         color="primary"
         onClick={handleButtonClick}
-        className={styles.fileButton}
+        className={clsx(styles.fileButton, className)}
+        data-cy={dataCy}
       >
         {title}
       </Button>

@@ -2,9 +2,12 @@ import angular from 'angular';
 
 import { r2a } from '@/react-tools/react2angular';
 import { IngressClassDatatable } from '@/react/kubernetes/cluster/ingressClass/IngressClassDatatable';
+import { withReactQuery } from '@/react-tools/withReactQuery';
 import { NamespacesSelector } from '@/react/kubernetes/cluster/RegistryAccessView/NamespacesSelector';
+import { withUIRouter } from '@/react-tools/withUIRouter';
 import { StorageAccessModeSelector } from '@/react/kubernetes/cluster/ConfigureView/StorageAccessModeSelector';
 import { NamespaceAccessUsersSelector } from '@/react/kubernetes/namespaces/AccessView/NamespaceAccessUsersSelector';
+import { Microk8sAddons } from '@/react/kubernetes/cluster/ClusterView/MicroK8sAddons';
 import { CreateNamespaceRegistriesSelector } from '@/react/kubernetes/namespaces/CreateView/CreateNamespaceRegistriesSelector';
 import { KubeApplicationAccessPolicySelector } from '@/react/kubernetes/applications/CreateView/KubeApplicationAccessPolicySelector';
 import { KubeApplicationDeploymentTypeSelector } from '@/react/kubernetes/applications/CreateView/KubeApplicationDeploymentTypeSelector';
@@ -57,6 +60,10 @@ export const componentsModule = angular
       'placeholder',
       'name',
     ])
+  )
+  .component(
+    'microk8sAddons',
+    r2a(withUIRouter(withReactQuery(Microk8sAddons)), [])
   )
   .component(
     'createNamespaceRegistriesSelector',

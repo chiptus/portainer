@@ -1,7 +1,7 @@
 import { useField } from 'formik';
 import { ChangeEvent } from 'react';
 
-import { Credential } from '@/react/portainer/settings/cloud/types';
+import { Credential } from '@/react/portainer/settings/sharedCredentials/types';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { Select, Option } from '@@/form-components/Input/Select';
@@ -27,6 +27,7 @@ export function CredentialsField({ credentials }: Props) {
       tooltip="Credentials to create your cluster."
       inputId="kaas-credential"
       errors={meta.error}
+      required
     >
       <Select
         name={fieldProps.name}

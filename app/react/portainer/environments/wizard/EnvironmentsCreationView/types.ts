@@ -7,6 +7,7 @@ export interface AnalyticsState {
   kubernetesEdgeAgentStandard: number;
   kubernetesEdgeAgentAsync: number;
   kaasAgent: number;
+  k8sInstallAgent: number;
   aciApi: number;
   localEndpoint: number;
   nomadEdgeAgentStandard: number;

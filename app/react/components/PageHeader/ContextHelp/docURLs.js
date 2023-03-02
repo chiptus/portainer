@@ -294,6 +294,12 @@ const docURLs = [
     examples: ['#!/endpoints', '#!/endpoints/10', '#!/endpoints/10/access'],
   },
   {
+    desc: 'Settings / Environments / Create',
+    docURL: 'https://docs.portainer.io/admin/environments/add',
+    locationRegex: /#!\/wizard\/endpoints/,
+    examples: ['#!/wizard/endpoints'],
+  },
+  {
     desc: 'Settings / Environments / Groups',
     docURL: 'https://docs.portainer.io/admin/environments/groups',
     locationRegex: /#!\/groups/,
@@ -350,8 +356,8 @@ const docURLs = [
     examples: ['#!/notifications'],
   },
   {
-    desc: 'Settings / Settings / Cloud settings',
-    docURL: 'https://docs.portainer.io/admin/settings/cloud',
+    desc: 'Settings / Settings / Credentials',
+    docURL: 'https://docs.portainer.io/admin/settings/credentials',
     locationRegex: /#!\/settings\/cloud/,
     examples: ['#!/settings/cloud', '#!/settings/cloud/credentials/new', '#!/settings/cloud/credentials/1'],
   },

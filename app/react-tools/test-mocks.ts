@@ -112,6 +112,7 @@ export function createMockEnvironment(): Environment {
     Gpus: [],
     Agent: { Version: '1.0.0' },
     EnableImageNotification: false,
+    CloudProvider: {},
     ChangeWindow: {
       Enabled: false,
       EndTime: '',

@@ -2,27 +2,25 @@ import { useMemo, useState } from 'react';
 import { Form, Formik } from 'formik';
 
 import {
-  KaasProvider,
   Credential,
-  providerTitles,
-} from '@/react/portainer/settings/cloud/types';
-import {
-  useCloudCredentials,
-  useCustomTemplates,
-} from '@/react/portainer/settings/cloud/cloudSettings.service';
+  credentialTypeToProvidersMap,
+  providerToCredentialTypeMap,
+} from '@/react/portainer/settings/sharedCredentials/types';
+import { useCloudCredentials } from '@/react/portainer/settings/sharedCredentials/cloudSettings.service';
 import { Environment } from '@/react/portainer/environments/types';
 import { useSettings } from '@/react/portainer/settings/queries';
-import { CredentialsForm } from '@/react/portainer/settings/cloud/CreateCredentialsView/CredentialsForm';
+import { CredentialsForm } from '@/react/portainer/settings/sharedCredentials/CreateCredentialsView/CredentialsForm';
 
 import { Loading } from '@@/Widget/Loading';
 import { Link } from '@@/Link';
 import { TextTip } from '@@/Tip/TextTip';
 
 import { AnalyticsStateKey } from '../types';
+import { KaasProvider, providerTitles } from '../WizardK8sInstall/types';
 
 import { KaasProvidersSelector } from './KaasProvidersSelector';
 import { sendKaasProvisionAnalytics } from './utils';
-import { useCloudProviderOptions, useCreateKaasCluster } from './queries';
+import { useCloudProviderOptions, useCreateCluster } from './queries';
 import { useValidationSchema } from './WizardKaaS.validation';
 import { ProviderForm } from './ProviderForm';
 import { FormValues, KaasInfo } from './types';
@@ -70,41 +68,35 @@ const initialValues: FormValues = {
     instanceType: '',
     nodeVolumeSize: 20,
   },
-  microk8s: {
-    nodeIP1: '',
-    nodeIP2: '',
-    nodeIP3: '',
-    addons: [],
-    customTemplateId: 0,
-  },
 };
 
 export function WizardKaaS({ onCreate }: Props) {
   const settingsQuery = useSettings();
-  const createKaasClusterMutation = useCreateKaasCluster();
+  const createKaasClusterMutation = useCreateCluster();
 
   const [provider, setProvider] = useState<KaasProvider>(KaasProvider.CIVO);
-  const [credential, setCredential] = useState<Credential | null>(null);
+  const [credentialType, setCredentialType] = useState<Credential | null>(null);
 
   const credentialsQuery = useCloudCredentials();
-  const customTemplatesQuery = useCustomTemplates();
 
   const cloudOptionsQuery = useCloudProviderOptions<KaasInfo>(
     provider,
     isKaasInfo,
-    credential
+    credentialType
   );
 
   const credentials = credentialsQuery.data;
 
   const providerCredentials = useMemo(
-    () => credentials?.filter((c) => c.provider === provider) || [],
+    () =>
+      credentials?.filter((c) =>
+        // use only the credentials that have a type that support the selected provider
+        credentialTypeToProvidersMap[c.provider]?.includes(provider)
+      ) || [],
     [credentials, provider]
   );
 
   const validation = useValidationSchema(provider, cloudOptionsQuery.data);
-  const customTemplates =
-    customTemplatesQuery.data?.filter((t) => t.Type === 3) || [];
 
   const credentialsFound = providerCredentials.length > 0;
 
@@ -125,9 +117,8 @@ export function WizardKaaS({ onCreate }: Props) {
           ) : (
             <ProviderForm
               provider={provider}
-              onChangeSelectedCredential={setCredential}
+              onChangeSelectedCredential={setCredentialType}
               credentials={providerCredentials}
-              customTemplates={customTemplates}
               isSubmitting={createKaasClusterMutation.isLoading}
             />
           )}
@@ -140,14 +131,16 @@ export function WizardKaaS({ onCreate }: Props) {
             No API key found for {providerTitles[provider]}. Save your{' '}
             {providerTitles[provider]} credentials below, or in the{' '}
             <Link
-              to="portainer.settings.cloud"
-              title="cloud settings"
+              to="portainer.settings.sharedcredentials"
+              title="shared credential settings"
               className="hyperlink"
             >
-              cloud settings.
+              shared credential settings.
             </Link>
           </TextTip>
-          <CredentialsForm selectedProvider={provider} />
+          <CredentialsForm
+            credentialType={providerToCredentialTypeMap[provider]}
+          />
         </>
       )}
     </>
@@ -160,7 +153,7 @@ export function WizardKaaS({ onCreate }: Props) {
     }: {
       setFieldValue: (
         field: string,
-        value: string,
+        value: string | string[],
         shouldValidate?: boolean
       ) => void;
     }
@@ -179,6 +172,7 @@ export function WizardKaaS({ onCreate }: Props) {
         onSuccess: (environment) => {
           onCreate(environment, 'kaasAgent');
           setFieldValue('name', '');
+          setFieldValue('microk8s.nodeIPs', ['']);
         },
       }
     );

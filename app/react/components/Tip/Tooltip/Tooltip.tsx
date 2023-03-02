@@ -1,5 +1,5 @@
 import { HelpCircle } from 'lucide-react';
-import { ReactNode, useMemo } from 'react';
+import { useMemo, ReactNode } from 'react';
 import sanitize from 'sanitize-html';
 
 import { TooltipWithChildren, Position } from '../TooltipWithChildren';

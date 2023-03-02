@@ -116,6 +116,28 @@ export type DeploymentOptions = {
   hideFileUpload: boolean;
 };
 
+type CloudProviderSettings = {
+  Name: string;
+  URL: string;
+  Region: string | null;
+  Size: number | null;
+  NodeCount: number;
+  CPU: number | null;
+  Addons: string | null;
+  AmiType: number | null;
+  CredentialID: number;
+  DNSPrefix: string;
+  HDD: number | null;
+  InstanceType: string | null;
+  KubernetesVersion: string;
+  NetworkID: number | null;
+  NodeIPs: string;
+  NodeVolumeSize: number | null;
+  PoolName: string;
+  RAM: number | null;
+  ResourceGroup: string;
+  Tier: string;
+};
 /**
  *  EndpointChangeWindow determine when automatic stack/app updates may occur
  */
@@ -131,6 +153,7 @@ export type Environment = {
   Type: EnvironmentType;
   TagIds: TagId[];
   GroupId: EnvironmentGroupId;
+  CloudProvider: Partial<CloudProviderSettings>;
   DeploymentOptions: DeploymentOptions | null;
   EdgeID?: string;
   EdgeKey: string;

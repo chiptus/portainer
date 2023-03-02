@@ -1,5 +1,6 @@
 import { trackEvent } from '@/angulartics.matomo/analytics-services';
-import { KaasProvider } from '@/react/portainer/settings/cloud/types';
+
+import { KaasProvider } from '../WizardK8sInstall/types';
 
 import { FormValues, KaaSFormType } from './types';
 
@@ -93,8 +94,6 @@ export function providerFormType(provider: KaasProvider) {
       return KaaSFormType.EKS;
     case KaasProvider.AZURE:
       return KaaSFormType.AZURE;
-    case KaasProvider.MICROK8S:
-      return KaaSFormType.MICROK8S;
     case KaasProvider.DIGITAL_OCEAN:
     case KaasProvider.LINODE:
     case KaasProvider.CIVO:

@@ -3,9 +3,11 @@ import { useCurrentStateAndParams } from '@uirouter/react';
 import { EnvironmentId } from '@/react/portainer/environments/types';
 
 export function useEnvironmentId(force = true): EnvironmentId {
-  const {
-    params: { endpointId: environmentId },
-  } = useCurrentStateAndParams();
+  const stateAndParams = useCurrentStateAndParams();
+  const environmentIdParam = stateAndParams.params.endpointId;
+  const environmentIdPath = stateAndParams.params.id;
+
+  const environmentId = environmentIdParam || environmentIdPath;
 
   if (!environmentId) {
     if (!force) {

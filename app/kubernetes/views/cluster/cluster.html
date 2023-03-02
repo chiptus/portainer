@@ -50,6 +50,8 @@
     </div>
   </div>
 
+  <microk8s-addons ng-if="ctrl.endpoint.CloudProvider.Name === ctrl.k8sInstallTitles.microk8s"></microk8s-addons>
+
   <div class="row">
     <div class="col-sm-12">
       <kubernetes-nodes-datatable

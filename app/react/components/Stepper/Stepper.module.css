@@ -1,27 +1,16 @@
 .stepper-wrapper {
-  width: 60%;
+  width: fit-content;
   margin-top: auto;
   display: flex;
   justify-content: space-between;
   margin-bottom: 20px;
-  margin-left: 50px;
 }
 .step-wrapper {
   position: relative;
   display: flex;
+  align-items: center;
   flex-direction: column;
-  align-items: stretch;
   flex: 1;
-}
-
-.step-wrapper::before {
-  position: absolute;
-  content: '';
-  width: 100%;
-  top: 15px;
-  left: -100%;
-  z-index: 2;
-  border-bottom: 3px solid var(--border-stepper-color);
 }
 
 .step-wrapper::after {
@@ -30,14 +19,23 @@
   border-bottom: 3px solid var(--border-stepper-color);
   width: 100%;
   top: 15px;
-  left: 0;
+  left: 50%;
   z-index: 2;
 }
 
-.step .step-name {
+.step-wrapper.completed::after {
   position: absolute;
-  bottom: -25px;
-  min-width: max-content;
+  content: '';
+  border-bottom: 3px solid var(--ui-blue-8);
+  width: 100%;
+  top: 15px;
+  left: 50%;
+  z-index: 2;
+}
+
+.step-name {
+  padding: 0 4px;
+  text-align: center;
 }
 
 .step-wrapper .step {
@@ -76,20 +74,6 @@
 
 .step-wrapper.completed .step-counter {
   color: var(--text-stepper-active-color);
-}
-
-.step-wrapper.completed::after {
-  position: absolute;
-  content: '';
-  border-bottom: 3px solid var(--ui-blue-8);
-  width: 100%;
-  top: 15px;
-  left: 0;
-  z-index: 3;
-}
-
-.step-wrapper:first-child::before {
-  content: none;
 }
 
 .step-wrapper:last-child::after {

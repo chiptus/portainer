@@ -47,6 +47,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/resourcecontrols"
 	"github.com/portainer/portainer-ee/api/http/handler/roles"
 	"github.com/portainer/portainer-ee/api/http/handler/settings"
+	"github.com/portainer/portainer-ee/api/http/handler/sshkey"
 	sslhandler "github.com/portainer/portainer-ee/api/http/handler/ssl"
 	"github.com/portainer/portainer-ee/api/http/handler/stacks"
 	"github.com/portainer/portainer-ee/api/http/handler/storybook"
@@ -338,6 +339,8 @@ func (server *Server) Start() error {
 	var cloudCredHandler = cloudcredentials.NewHandler(requestBouncer, server.UserActivityService)
 	cloudCredHandler.DataStore = server.DataStore
 
+	var sshKeyHandler = sshkey.NewHandler(requestBouncer, server.UserActivityService)
+
 	server.Handler = &handler.Handler{
 		RoleHandler:               roleHandler,
 		AuthHandler:               authHandler,
@@ -382,6 +385,7 @@ func (server *Server) Start() error {
 		WebhookHandler:            webhookHandler,
 		NomadHandler:              nomadHandler,
 		CloudCredentialsHandler:   cloudCredHandler,
+		SSHKeyHandler:             sshKeyHandler,
 	}
 
 	handler := adminMonitor.WithRedirect(offlineGate.WaitingMiddleware(time.Minute, server.Handler))

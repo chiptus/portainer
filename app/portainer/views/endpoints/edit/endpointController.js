@@ -8,6 +8,7 @@ import { getAMTInfo } from 'Portainer/hostmanagement/open-amt/open-amt.service';
 import { confirmDestructive } from '@@/modals/confirm';
 import { getPlatformTypeName, isAgentEnvironment, isEdgeEnvironment } from '@/react/portainer/environments/utils';
 import { commandsTabs } from '@/react/edge/components/EdgeScriptForm/scripts';
+import { k8sInstallTitles } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/types';
 import { confirmDisassociate } from '@/react/portainer/environments/ItemView/ConfirmDisassociateModel';
 import { buildConfirmButton } from '@@/modals/utils';
 
@@ -19,6 +20,7 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
   $scope.setFieldValue = setFieldValue;
   $scope.onChangeTags = onChangeTags;
   $scope.onChangeEdgeSettings = onChangeEdgeSettings;
+  $scope.k8sInstallTitles = k8sInstallTitles;
 
   const isBE = process.env.PORTAINER_EDITION === 'BE';
 

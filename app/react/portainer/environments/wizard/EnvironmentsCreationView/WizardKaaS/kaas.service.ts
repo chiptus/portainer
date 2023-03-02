@@ -1,20 +1,19 @@
 import axios, { parseAxiosError } from '@/portainer/services/axios';
-import {
-  KaasProvider,
-  Credential,
-} from '@/react/portainer/settings/cloud/types';
+import { Credential } from '@/react/portainer/settings/sharedCredentials/types';
 import { Environment } from '@/react/portainer/environments/types';
+
+import { ProvisionOption } from '../WizardK8sInstall/types';
 
 import { KaasInfoResponse, CreateClusterPayload } from './types';
 import { parseKaasInfoResponse } from './converter';
 
-function buildUrl(provider: KaasProvider, action: string) {
+function buildUrl(provider: ProvisionOption, action: string) {
   return `/cloud/${provider}/${action}`;
 }
 
 export async function createKaasEnvironment(
   payload: CreateClusterPayload,
-  provider: KaasProvider
+  provider: ProvisionOption
 ) {
   try {
     const { data } = await axios.post<Environment>(
@@ -28,7 +27,8 @@ export async function createKaasEnvironment(
 }
 
 export async function getKaasInfo(
-  { provider, id }: Credential,
+  provider: ProvisionOption,
+  { id }: Credential,
   force?: boolean
 ) {
   try {

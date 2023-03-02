@@ -4,12 +4,12 @@ import { Check, Copy } from 'lucide-react';
 
 import { Icon } from '@@/Icon';
 
-import { Button } from '../Button';
+import { Button, type Props as ButtonProps } from '../Button';
 
 import styles from './CopyButton.module.css';
 import { useCopy } from './useCopy';
 
-export interface Props {
+export interface Props extends ButtonProps {
   copyText: string;
   fadeDelay?: number;
   displayText?: string;
@@ -22,19 +22,24 @@ export function CopyButton({
   fadeDelay = 1000,
   displayText = 'copied',
   className,
+  size = 'small',
   color,
+  title = 'Copy Value',
   children,
+  ...rest
 }: PropsWithChildren<Props>) {
   const { handleCopy, copiedSuccessfully } = useCopy(copyText, fadeDelay);
 
   return (
     <div className={styles.container}>
       <Button
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...rest}
         className={className}
-        color={color}
-        size="small"
+        size={size}
         onClick={handleCopy}
-        title="Copy Value"
+        title={title}
+        color={color}
         type="button"
         icon={Copy}
       >

@@ -8,8 +8,10 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/cloud"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/providers"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/types"
+	"github.com/portainer/portainer-ee/api/internal/sshtest"
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -58,9 +60,20 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 		err = request.DecodeAndValidateJSONPayload(r, &p)
 		payload = &p
 	case portaineree.CloudProviderMicrok8s:
+		var testssh bool
+		err = request.RetrieveJSONQueryParameter(r, "testssh", &testssh, true)
+		if err != nil {
+			return httperror.BadRequest("query parameter error", err)
+		}
+
+		if testssh {
+			return handler.sshTestNodeIPs(w, r)
+		}
+
 		var p providers.Microk8sProvisionPayload
 		err = request.DecodeAndValidateJSONPayload(r, &p)
 		payload = &p
+
 	default:
 		return httperror.BadRequest("Invalid request payload", fmt.Errorf("Invalid cloud provider: %s", provider))
 	}
@@ -89,6 +102,11 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 func (handler *Handler) createEndpoint(name string, provider portaineree.CloudProvider, metadata types.EnvironmentMetadata) (*portaineree.Endpoint, error) {
 	endpointID := handler.dataStore.Endpoint().GetNextIdentifier()
 
+	summaryMessage := "Waiting for cloud provider"
+	if provider.Name == types.CloudProvidersMap[portaineree.CloudProviderMicrok8s].Name {
+		summaryMessage = "Waiting for nodes"
+	}
+
 	endpoint := &portaineree.Endpoint{
 		ID:      portaineree.EndpointID(endpointID),
 		Name:    name,
@@ -103,7 +121,7 @@ func (handler *Handler) createEndpoint(name string, provider portaineree.CloudPr
 		TagIDs:             metadata.TagIds,
 		Status:             portaineree.EndpointStatusProvisioning,
 		StatusMessage: portaineree.EndpointStatusMessage{
-			Summary: "Waiting for cloud provider",
+			Summary: summaryMessage,
 		},
 		CloudProvider: &provider,
 		Snapshots:     []portainer.DockerSnapshot{},
@@ -120,4 +138,30 @@ func (handler *Handler) createEndpoint(name string, provider portaineree.CloudPr
 	}
 
 	return endpoint, nil
+}
+
+func (handler *Handler) sshTestNodeIPs(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+	var payload providers.Microk8sTestSSHPayload
+	err := request.DecodeAndValidateJSONPayload(r, &payload)
+	if err != nil {
+		return httperror.BadRequest("Invalid request payload", err)
+	}
+
+	credentials, err := handler.dataStore.CloudCredential().GetByID(payload.CredentialID)
+	if err != nil {
+		return httperror.InternalServerError("unable to read credentials from the database", err)
+	}
+
+	// get ip ranges and run ssh tests
+	config, err := cloud.NewSSHConfig(
+		credentials.Credentials["username"],
+		credentials.Credentials["password"],
+		credentials.Credentials["passphrase"],
+		credentials.Credentials["privateKey"],
+	)
+	if err != nil {
+		return httperror.InternalServerError("unable to create ssh config with given credentials", err)
+	}
+	results := sshtest.SSHTest(config, payload.NodeIPs)
+	return response.JSON(w, results)
 }

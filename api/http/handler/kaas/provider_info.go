@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -41,6 +42,9 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 		return httperror.InternalServerError("Missing credential id in the query parameter", err)
 	}
 
+	// Only used for MicroK8s.
+	environmentID, _ := request.RetrieveQueryParameter(r, "environmentID", true)
+
 	credential, err := handler.dataStore.CloudCredential().GetByID(models.CloudCredentialID(credentialId))
 	if err != nil {
 		return httperror.InternalServerError(fmt.Sprintf("Unable to retrieve %s information", provider), err)
@@ -48,11 +52,11 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 
 	switch provider {
 	case portaineree.CloudProviderMicrok8s:
-		nodeIP, _ := request.RetrieveQueryParameter(r, "nodeip", true)
-		if nodeIP == "" {
-			return httperror.BadRequest("Missing required nodeip parameter", errors.New(request.ErrInvalidQueryParameter))
+		id, err := strconv.Atoi(environmentID)
+		if err != nil {
+			return httperror.InternalServerError("Failed to parse environmentID", err)
 		}
-		microK8sInfo, err := handler.cloudClusterInfoService.Microk8sGetAddons(credential, nodeIP)
+		microK8sInfo, err := handler.cloudClusterInfoService.Microk8sGetAddons(credential, id)
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve MicroK8s information", err)
 		}

@@ -9,6 +9,8 @@ const (
 
 var blackList = map[string]struct{}{
 	"apikey":                 {},
+	"passphrase":             {},
+	"privatekey":             {},
 	"azureauthenticationkey": {},
 	"binarydata":             {},
 	"clientsecret":           {},

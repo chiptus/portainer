@@ -2,39 +2,42 @@ import { useMutation, useQuery, useQueryClient } from 'react-query';
 
 import {
   Credential,
-  KaasProvider,
-  providerTitles,
-} from '@/react/portainer/settings/cloud/types';
+  CredentialType,
+  providerToCredentialTypeMap,
+} from '@/react/portainer/settings/sharedCredentials/types';
 import { success as notifySuccess } from '@/portainer/services/notifications';
+
+import { ProvisionOption } from '../WizardK8sInstall/types';
 
 import { getKaasInfo, createKaasEnvironment } from './kaas.service';
 import { CreateClusterPayload, KaasInfo } from './types';
 
 export function useCloudProviderOptions<T extends KaasInfo>(
-  provider: KaasProvider,
+  provider: ProvisionOption,
   validator: (info: KaasInfo) => info is T,
   credential?: Credential | null,
   force = false
 ) {
   return useQuery(
-    ['cloud', credential?.provider, 'info', credential?.id, { force }],
-    () => kaasInfoFetcher(validator, credential, force),
+    ['cloud', provider, 'info', credential?.id, { force }],
+    () => kaasInfoFetcher(provider, validator, credential, force),
     {
       meta: {
         error: {
-          title:
-            credential &&
-            `Failed to get ${providerTitles[credential.provider]} info`,
+          title: credential && `Failed to get ${provider} info`,
           message: '',
         },
       },
-      enabled: !!credential && credential.provider === provider,
+      enabled:
+        !!credential &&
+        credential.provider === providerToCredentialTypeMap[provider],
       retry: 1,
     }
   );
 }
 
 async function kaasInfoFetcher<T extends KaasInfo>(
+  provider: ProvisionOption,
   validator: (info: KaasInfo) => info is T,
   credential?: Credential | null,
   force = false
@@ -43,16 +46,16 @@ async function kaasInfoFetcher<T extends KaasInfo>(
     return null;
   }
 
-  if (credential.provider === KaasProvider.MICROK8S) {
+  if (credential.provider === CredentialType.SSH) {
     return null;
   }
 
-  const info = await getKaasInfo(credential, force);
+  const info = await getKaasInfo(provider, credential, force);
 
   return validator(info) ? info : null;
 }
 
-export function useCreateKaasCluster() {
+export function useCreateCluster() {
   const client = useQueryClient();
   return useMutation(
     ({
@@ -60,7 +63,7 @@ export function useCreateKaasCluster() {
       provider,
     }: {
       payload: CreateClusterPayload;
-      provider: KaasProvider;
+      provider: ProvisionOption;
     }) => createKaasEnvironment(payload, provider),
     {
       onSuccess: (_, { provider }) => {

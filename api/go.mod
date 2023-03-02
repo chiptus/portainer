@@ -53,6 +53,7 @@ require (
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
+	github.com/pkg/sftp v1.13.5
 	github.com/portainer/docker-compose-wrapper v0.0.0-20230301083819-3dbc6abf1ce7
 	github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a
 	github.com/portainer/libhttp v0.0.0-20230206214615-dabd58de9f44
@@ -90,6 +91,7 @@ require (
 	github.com/go-openapi/swag v0.19.14 // indirect
 	github.com/google/gnostic v0.5.7-v3refs // indirect
 	github.com/josharian/intern v1.0.0 // indirect
+	github.com/kr/fs v0.1.0 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect

@@ -24,8 +24,8 @@ export function Stepper({ currentStep, steps }: Props) {
         >
           <div className={styles.step}>
             <div className={styles.stepCounter}>{index + 1}</div>
-            <div className={styles.stepName}>{step.label}</div>
           </div>
+          <div className={styles.stepName}>{step.label}</div>
         </div>
       ))}
     </div>

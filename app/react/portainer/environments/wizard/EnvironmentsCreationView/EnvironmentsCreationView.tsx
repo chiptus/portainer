@@ -19,10 +19,10 @@ import { FormSection } from '@@/form-components/FormSection';
 import { Icon } from '@@/Icon';
 
 import {
+  EnvironmentOptionValue,
   environmentTypes,
   formTitles,
 } from '../EnvironmentTypeSelectView/environment-types';
-import { EnvironmentSelectorValue } from '../EnvironmentTypeSelectView/EnvironmentSelector';
 
 import { WizardDocker } from './WizardDocker';
 import { WizardAzure } from './WizardAzure';
@@ -31,6 +31,7 @@ import { WizardNomad } from './WizardNomad';
 import { AnalyticsState, AnalyticsStateKey } from './types';
 import { WizardEndpointsList } from './WizardEndpointsList';
 import { WizardKaaS } from './WizardKaaS';
+import { WizardK8sInstall } from './WizardK8sInstall';
 import styles from './EnvironmentsCreationView.module.css';
 
 export function EnvironmentCreationView() {
@@ -140,7 +141,7 @@ export function EnvironmentCreationView() {
   }
 }
 
-function useParamEnvironmentTypes(): EnvironmentSelectorValue[] {
+function useParamEnvironmentTypes(): EnvironmentOptionValue[] {
   const {
     params: { envType },
   } = useCurrentStateAndParams();
@@ -187,7 +188,7 @@ function useStepper(
     setCurrentStepIndex(currentStepIndex - 1);
   }
 
-  function getComponent(id: EnvironmentSelectorValue) {
+  function getComponent(id: EnvironmentOptionValue) {
     switch (id) {
       case 'dockerStandalone':
       case 'dockerSwarm':
@@ -200,6 +201,8 @@ function useStepper(
         return WizardKaaS;
       case 'nomad':
         return WizardNomad;
+      case 'k8sInstall':
+        return WizardK8sInstall;
       default:
         throw new Error(`Unknown environment type ${id}`);
     }
@@ -214,6 +217,7 @@ function useAnalyticsState() {
     kubernetesEdgeAgentAsync: 0,
     kubernetesEdgeAgentStandard: 0,
     kaasAgent: 0,
+    k8sInstallAgent: 0,
     aciApi: 0,
     localEndpoint: 0,
     nomadEdgeAgentStandard: 0,

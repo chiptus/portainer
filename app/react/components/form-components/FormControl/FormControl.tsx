@@ -1,4 +1,4 @@
-import { ComponentProps, PropsWithChildren, ReactNode } from 'react';
+import { PropsWithChildren, ReactNode } from 'react';
 import clsx from 'clsx';
 
 import { Tooltip } from '@@/Tip/Tooltip';
@@ -11,8 +11,8 @@ export interface Props {
   inputId?: string;
   label: ReactNode;
   size?: Size;
-  tooltip?: ComponentProps<typeof Tooltip>['message'];
-  setTooltipHtmlMessage?: ComponentProps<typeof Tooltip>['setHtmlMessage'];
+  tooltip?: ReactNode;
+  setTooltipHtmlMessage?: boolean;
   children: ReactNode;
   errors?: ReactNode;
   required?: boolean;

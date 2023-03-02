@@ -1,11 +1,7 @@
 import { Field, useFormikContext } from 'formik';
 import { useEffect, useMemo, useState } from 'react';
 
-import {
-  Credential,
-  KaasProvider,
-  providerTitles,
-} from '@/react/portainer/settings/cloud/types';
+import { Credential } from '@/react/portainer/settings/sharedCredentials/types';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { Input, Select } from '@@/form-components/Input';
@@ -21,6 +17,7 @@ import { ActionsSection } from '../shared/ActionsSection';
 import { MoreSettingsSection } from '../../shared/MoreSettingsSection';
 import { KaaSInfoText } from '../shared/KaaSInfoText';
 import { NameField } from '../../shared/NameField';
+import { KaasProvider, providerTitles } from '../../WizardK8sInstall/types';
 
 import { maxGKERam, minGKERam } from './validation';
 
@@ -117,12 +114,12 @@ export function GKECreateClusterForm({
         <TextTip color="orange">
           Error getting {providerTitles[provider]} info. Go to
           <Link
-            to="portainer.settings.cloud.credential"
+            to="portainer.settings.sharedcredentials.credential"
             params={{ id: credentialId }}
-            title="cloud settings"
+            title="shared credential settings"
             className="mx-1"
           >
-            cloud settings
+            shared credential settings
           </Link>
           to ensure the API key is valid.
         </TextTip>

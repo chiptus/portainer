@@ -3,6 +3,7 @@ import _ from 'lodash-es';
 import filesizeParser from 'filesize-parser';
 import KubernetesResourceReservationHelper from 'Kubernetes/helpers/resourceReservationHelper';
 import { KubernetesResourceReservation } from 'Kubernetes/models/resource-reservation/models';
+import { k8sInstallTitles } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/types';
 
 class KubernetesClusterController {
   /* @ngInject */
@@ -26,6 +27,7 @@ class KubernetesClusterController {
     this.KubernetesMetricsService = KubernetesMetricsService;
     this.KubernetesApplicationService = KubernetesApplicationService;
     this.KubernetesEndpointService = KubernetesEndpointService;
+    this.k8sInstallTitles = k8sInstallTitles;
 
     this.onInit = this.onInit.bind(this);
     this.getNodes = this.getNodes.bind(this);

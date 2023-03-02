@@ -1,14 +1,14 @@
 import { number, object, string, mixed, SchemaOf } from 'yup';
 
-import { KaasProvider } from '@/react/portainer/settings/cloud/types';
 import { useNameValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/NameField';
 import { metadataValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MetadataFieldset/validation';
+
+import { KaasProvider } from '../WizardK8sInstall/types';
 
 import { validationSchema as gkeValidation } from './GKECreateClusterForm/validation';
 import { validationSchema as apiValidation } from './ApiCreateClusterForm/validation';
 import { validationSchema as azureValidation } from './AzureCreateClusterForm/validation';
 import { validationSchema as amazonValidation } from './EKSCreateClusterForm/validation';
-import { validationSchema as microk8sValidation } from './Microk8sCreateClusterForm/validation';
 import { KaasInfo, KaaSFormType, FormValues } from './types';
 import { providerFormType } from './utils';
 
@@ -58,10 +58,6 @@ export function useValidationSchema(
     amazon:
       providerFormType(provider) === KaaSFormType.EKS
         ? amazonValidation()
-        : mixed(),
-    microk8s:
-      providerFormType(provider) === KaaSFormType.MICROK8S
-        ? microk8sValidation()
         : mixed(),
   });
 }

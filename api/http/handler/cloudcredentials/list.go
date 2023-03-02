@@ -11,7 +11,18 @@ import (
 	"github.com/portainer/portainer-ee/api/database/models"
 )
 
-var redactedKeys = []string{"jsonKeyBase64", "apiKey", "secretAccessKey", "clientSecret", "kubeconfig", "password"}
+var (
+	redactedKeys = []string{
+		"jsonKeyBase64",
+		"apiKey",
+		"secretAccessKey",
+		"clientSecret",
+		"kubeconfig",
+		"password",
+		"passphrase",
+		"privateKey",
+	}
+)
 
 func redactCredentials(credential models.CloudCredentialMap) models.CloudCredentialMap {
 	if credential == nil {

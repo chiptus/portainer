@@ -33,6 +33,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/resourcecontrols"
 	"github.com/portainer/portainer-ee/api/http/handler/roles"
 	"github.com/portainer/portainer-ee/api/http/handler/settings"
+	"github.com/portainer/portainer-ee/api/http/handler/sshkey"
 	"github.com/portainer/portainer-ee/api/http/handler/ssl"
 	"github.com/portainer/portainer-ee/api/http/handler/stacks"
 	"github.com/portainer/portainer-ee/api/http/handler/storybook"
@@ -93,6 +94,7 @@ type Handler struct {
 	WebhookHandler            *webhooks.Handler
 	NomadHandler              *nomad.Handler
 	CloudCredentialsHandler   *cloudcredentials.Handler
+	SSHKeyHandler             *sshkey.Handler
 }
 
 // @title PortainerEE API
@@ -200,6 +202,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.CloudCredentialsHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/cloud"):
 		http.StripPrefix("/api", h.KaasHandler).ServeHTTP(w, r)
+	case strings.HasPrefix(r.URL.Path, "/api/sshkeygen"):
+		http.StripPrefix("/api", h.SSHKeyHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/kubernetes"):
 		http.StripPrefix("/api", h.KubernetesHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/docker"):

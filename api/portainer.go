@@ -1161,9 +1161,6 @@ type (
 		NodeIPs []string
 		Addons  []string
 
-		// TODO: REVIEW-POC-MICROK8S
-		// Even though this was considered for the scope of the POC
-		// I believe that it would add value to make it generic so that this feature could be used with all cloud providers
 		CustomTemplateID CustomTemplateID
 	}
 
@@ -1989,14 +1986,8 @@ const (
 	DateTimeFormat = "2006-01-02 15:04:05"
 )
 
-const (
-	microk8s featureflags.Feature = "microk8s"
-)
-
 // List of supported features
-var SupportedFeatureFlags = []featureflags.Feature{
-	microk8s,
-}
+var SupportedFeatureFlags = []featureflags.Feature{}
 
 const (
 	_ AuthenticationMethod = iota
