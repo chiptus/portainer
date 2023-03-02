@@ -37,7 +37,9 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
     function _getCatalogPage(params, deferred, repositories) {
       RegistryCatalog.get(params)
         .$promise.then(function (data) {
-          repositories = _.concat(repositories, data.repositories);
+          if (data.repositories) {
+            repositories = _.concat(repositories, data.repositories);
+          }
           if (data.last && data.n) {
             _getCatalogPage({ id: params.id, endpointId: params.endpointId, n: data.n, last: data.last }, deferred, repositories);
           } else {

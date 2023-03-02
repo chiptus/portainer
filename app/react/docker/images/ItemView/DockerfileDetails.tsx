@@ -29,7 +29,7 @@ export function DockerfileDetails({ image }: Props) {
               <code>{joinCommand(image.Command)}</code>
             </DetailsTable.Row>
 
-            {image.Entrypoint && (
+            {image.Entrypoint.length > 0 && (
               <DetailsTable.Row label="ENTRYPOINT">
                 <code>{joinCommand(image.Entrypoint)}</code>
               </DetailsTable.Row>
