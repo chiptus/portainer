@@ -19,7 +19,9 @@ import (
 	"github.com/rs/zerolog/log"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/docker/client"
+	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	k "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer/api/filesystem"
 )
@@ -51,17 +53,19 @@ type stackDeployer struct {
 	composeStackManager portaineree.ComposeStackManager
 	kubernetesDeployer  portaineree.KubernetesDeployer
 	ClientFactory       *client.ClientFactory
+	dataStore           dataservices.DataStore
 }
 
 // NewStackDeployer inits a stackDeployer struct with a SwarmStackManager, a ComposeStackManager and a KubernetesDeployer
 func NewStackDeployer(swarmStackManager portaineree.SwarmStackManager, composeStackManager portaineree.ComposeStackManager,
-	kubernetesDeployer portaineree.KubernetesDeployer, clientFactory *client.ClientFactory) *stackDeployer {
+	kubernetesDeployer portaineree.KubernetesDeployer, clientFactory *client.ClientFactory, dataStore dataservices.DataStore) *stackDeployer {
 	return &stackDeployer{
 		lock:                &sync.Mutex{},
 		swarmStackManager:   swarmStackManager,
 		composeStackManager: composeStackManager,
 		kubernetesDeployer:  kubernetesDeployer,
 		ClientFactory:       clientFactory,
+		dataStore:           dataStore,
 	}
 }
 
@@ -86,7 +90,7 @@ func (d *stackDeployer) DeployRemoteSwarmStack(stack *portaineree.Stack, endpoin
 	args["operation"] = "swarm-deploy"
 	args["pullImage"] = pullImage
 	args["prune"] = prune
-	return d.remoteStack(stack, endpoint, args)
+	return d.remoteStack(stack, endpoint, args, registries)
 }
 
 func (d *stackDeployer) UndeployRemoteSwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
@@ -94,19 +98,19 @@ func (d *stackDeployer) UndeployRemoteSwarmStack(stack *portaineree.Stack, endpo
 	defer d.lock.Unlock()
 	args := make(map[string]interface{})
 	args["operation"] = "swarm-undeploy"
-	return d.remoteStack(stack, endpoint, args)
+	return d.remoteStack(stack, endpoint, args, nil)
 }
 
 func (d *stackDeployer) StartRemoteSwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
 	args := make(map[string]interface{})
 	args["operation"] = "swarm-start"
-	return d.remoteStack(stack, endpoint, args)
+	return d.remoteStack(stack, endpoint, args, nil)
 }
 
 func (d *stackDeployer) StopRemoteSwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
 	args := make(map[string]interface{})
 	args["operation"] = "swarm-stop"
-	return d.remoteStack(stack, endpoint, args)
+	return d.remoteStack(stack, endpoint, args, nil)
 }
 
 func (d *stackDeployer) DeployComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry, forcePullImage bool, forceRereate bool) error {
@@ -144,7 +148,7 @@ func (d *stackDeployer) DeployRemoteComposeStack(stack *portaineree.Stack, endpo
 	}
 	args := make(map[string]interface{})
 	args["operation"] = "deploy"
-	return d.remoteStack(stack, endpoint, args)
+	return d.remoteStack(stack, endpoint, args, registries)
 }
 
 func (d *stackDeployer) UndeployRemoteComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
@@ -152,19 +156,19 @@ func (d *stackDeployer) UndeployRemoteComposeStack(stack *portaineree.Stack, end
 	defer d.lock.Unlock()
 	args := make(map[string]interface{})
 	args["operation"] = "undeploy"
-	return d.remoteStack(stack, endpoint, args)
+	return d.remoteStack(stack, endpoint, args, nil)
 }
 
 func (d *stackDeployer) StartRemoteComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
 	args := make(map[string]interface{})
 	args["operation"] = "compose-start"
-	return d.remoteStack(stack, endpoint, args)
+	return d.remoteStack(stack, endpoint, args, nil)
 }
 
 func (d *stackDeployer) StopRemoteComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
 	args := make(map[string]interface{})
 	args["operation"] = "compose-stop"
-	return d.remoteStack(stack, endpoint, args)
+	return d.remoteStack(stack, endpoint, args, nil)
 }
 
 func (d *stackDeployer) DeployKubernetesStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, user *portaineree.User) error {
@@ -238,7 +242,7 @@ func (d *stackDeployer) RestartKubernetesStack(stack *portaineree.Stack, endpoin
 // remoteStack is used to deploy a stack on a remote endpoint based on the supplied `maps` of arguments
 //
 // it deploys a container of https://github.com/portainer/compose-unpacker on the remote endpoint with a set of command arguments
-func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, maps map[string]interface{}) error {
+func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, maps map[string]interface{}, registries []portaineree.Registry) error {
 	ctx := context.TODO()
 
 	cli, err := d.createDockerClient(ctx, endpoint)
@@ -287,7 +291,7 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 			cmd = append(cmd, stack.GitConfig.Authentication.Password)
 		}
 		cmd = append(cmd, getEnv(stack.Env)...)
-
+		cmd = append(cmd, getRegistry(registries, d.dataStore)...)
 		cmd = append(cmd, stack.GitConfig.URL)
 		cmd = append(cmd, stack.GitConfig.ReferenceName)
 		cmd = append(cmd, stack.Name)
@@ -365,6 +369,7 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 			cmd = append(cmd, "-r")
 		}
 		cmd = append(cmd, getEnv(stack.Env)...)
+		cmd = append(cmd, getRegistry(registries, d.dataStore)...)
 		cmd = append(cmd, stack.GitConfig.URL)
 		cmd = append(cmd, stack.GitConfig.ReferenceName)
 		cmd = append(cmd, stack.Name)
@@ -513,6 +518,25 @@ func getEnv(env []portaineree.Pair) []string {
 	}
 
 	return cmd
+}
+
+func getRegistry(registries []portaineree.Registry, dataStore dataservices.DataStore) []string {
+	cmds := []string{}
+
+	for _, registry := range registries {
+		if registry.Authentication {
+			err := registryutils.EnsureRegTokenValid(dataStore, &registry)
+			if err == nil {
+				username, password, err := registryutils.GetRegEffectiveCredential(&registry)
+				if err == nil {
+					cmd := fmt.Sprintf("--registry=%s:%s:%s", username, password, registry.URL)
+					cmds = append(cmds, cmd)
+				}
+			}
+		}
+	}
+
+	return cmds
 }
 
 func getUnpackerImage() string {

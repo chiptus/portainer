@@ -776,7 +776,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	}
 
 	scheduler := scheduler.NewScheduler(shutdownCtx)
-	stackDeployer := deployments.NewStackDeployer(swarmStackManager, composeStackManager, kubernetesDeployer, dockerClientFactory)
+	stackDeployer := deployments.NewStackDeployer(swarmStackManager, composeStackManager, kubernetesDeployer, dockerClientFactory, dataStore)
 	deployments.StartStackSchedules(scheduler, stackDeployer, dataStore, gitService, userActivityService)
 
 	sslDBSettings, err := dataStore.SSLSettings().Settings()
