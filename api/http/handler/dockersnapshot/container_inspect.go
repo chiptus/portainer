@@ -36,12 +36,11 @@ func (handler *Handler) containerInspect(w http.ResponseWriter, r *http.Request)
 		return httperror.NotFound("Unable to find a snapshot", err)
 	}
 
-	if environmentSnapshot == nil {
+	if environmentSnapshot == nil || environmentSnapshot.Docker == nil {
 		return response.JSON(w, []string{})
 	}
 
-	snapshot := environmentSnapshot.Docker
-	containers := snapshot.SnapshotRaw.Containers
+	containers := environmentSnapshot.Docker.SnapshotRaw.Containers
 
 	for _, container := range containers {
 		if container.ID == containerId {

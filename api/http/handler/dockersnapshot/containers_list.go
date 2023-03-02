@@ -31,12 +31,11 @@ func (handler *Handler) containersList(w http.ResponseWriter, r *http.Request) *
 	environmentId, _ := request.RetrieveNumericRouteVariableValue(r, "id")
 
 	environmentSnapshot, err := handler.dataStore.Snapshot().Snapshot(portaineree.EndpointID(environmentId))
-	if err != nil {
+	if err != nil || environmentSnapshot == nil || environmentSnapshot.Docker == nil {
 		return response.JSON(w, []string{})
 	}
 
-	snapshot := environmentSnapshot.Docker
-	containers := snapshot.SnapshotRaw.Containers
+	containers := environmentSnapshot.Docker.SnapshotRaw.Containers
 
 	if edgeStackId != 0 {
 		edgeStack, err := handler.dataStore.EdgeStack().EdgeStack(portaineree.EdgeStackID(edgeStackId))
