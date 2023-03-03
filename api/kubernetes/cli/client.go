@@ -9,7 +9,6 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/rs/zerolog/log"
 
 	cmap "github.com/orcaman/concurrent-map"
 	"github.com/patrickmn/go-cache"
@@ -222,27 +221,7 @@ func buildLocalClient() (*kubernetes.Clientset, error) {
 	return kubernetes.NewForConfig(config)
 }
 
-func (factory *ClientFactory) PostInitMigrateIngresses() error {
-	endpoints, err := factory.dataStore.Endpoint().Endpoints()
-	if err != nil {
-		return err
-	}
-	for i := range endpoints {
-		// Early exit if we do not need to migrate!
-		if endpoints[i].PostInitMigrations.MigrateIngresses == false {
-			return nil
-		}
-
-		err := factory.migrateEndpointIngresses(&endpoints[i])
-		if err != nil {
-			log.Debug().Err(err).Msg("failure migrating endpoint ingresses")
-		}
-	}
-
-	return nil
-}
-
-func (factory *ClientFactory) migrateEndpointIngresses(e *portaineree.Endpoint) error {
+func (factory *ClientFactory) MigrateEndpointIngresses(e *portaineree.Endpoint) error {
 	// classes is a list of controllers which have been manually added to the
 	// cluster setup view. These need to all be allowed globally, but then
 	// blocked in specific namespaces which they were not previously allowed in.

@@ -14,19 +14,6 @@ interface Props {
   onChange(value: Gpu[]): void;
 }
 
-export function GpusList({ value, onChange }: Props) {
-  return (
-    <InputList<Gpu>
-      label="GPU"
-      value={value}
-      onChange={onChange}
-      itemBuilder={() => ({ value: '', name: '' })}
-      addLabel="add"
-      item={Item}
-    />
-  );
-}
-
 function Item({ item, onChange }: ItemProps<Gpu>) {
   return (
     <div className="flex flex-grow gap-2">
@@ -52,6 +39,20 @@ function Item({ item, onChange }: ItemProps<Gpu>) {
         />
       </InputGroup>
     </div>
+  );
+}
+
+export function GpusList({ value, onChange }: Props) {
+  return (
+    <InputList<Gpu>
+      label="GPUs"
+      tooltip="You may optionally set up the GPUs that will be selectable against containers, although 'All GPUs' will always be available."
+      value={value}
+      onChange={onChange}
+      itemBuilder={() => ({ value: '', name: '' })}
+      addLabel="Add GPU"
+      item={Item}
+    />
   );
 }
 

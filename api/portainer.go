@@ -469,6 +469,8 @@ type (
 
 		EnableImageNotification bool `json:"EnableImageNotification"`
 
+		EnableGPUManagement bool `json:"EnableGPUManagement"`
+
 		// Deprecated fields
 		// Deprecated in DBVersion == 4
 		TLS           bool   `json:"TLS,omitempty"`
@@ -578,6 +580,7 @@ type (
 	// EndpointPostInitMigrations
 	EndpointPostInitMigrations struct {
 		MigrateIngresses bool `json:"MigrateIngresses"`
+		MigrateGPUs      bool `json:"MigrateGPUs"`
 	}
 
 	// Extension represents a deprecated Portainer extension

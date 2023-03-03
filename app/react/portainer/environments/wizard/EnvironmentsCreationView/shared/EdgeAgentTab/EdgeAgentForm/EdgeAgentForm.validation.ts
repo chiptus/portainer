@@ -1,7 +1,6 @@
 import { number, object, SchemaOf, string } from 'yup';
 
 import { edgeAsyncIntervalsValidation } from '@/react/edge/components/EdgeAsyncIntervalsForm';
-import { gpusListValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/Hardware/GpusList';
 import { validation as urlValidation } from '@/react/portainer/common/PortainerUrlField';
 import { validation as addressValidation } from '@/react/portainer/common/PortainerTunnelAddrField';
 
@@ -19,7 +18,6 @@ export function useValidationSchema(asyncMode: boolean): SchemaOf<FormValues> {
     tunnelServerAddr: asyncMode ? string() : addressValidation(),
     pollFrequency: number().required(),
     meta: metadataValidation(),
-    gpus: gpusListValidation(),
     edge: edgeAsyncIntervalsValidation(),
   });
 }

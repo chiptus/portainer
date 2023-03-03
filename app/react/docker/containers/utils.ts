@@ -3,6 +3,7 @@ import _ from 'lodash';
 import { ResourceControlViewModel } from '@/react/portainer/access-control/models/ResourceControlViewModel';
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import { useInfo } from '@/docker/services/system.service';
+import { useEnvironment } from '@/react/portainer/environments/queries';
 
 import { DockerContainer, ContainerStatus } from './types';
 import { DockerContainerResponse } from './types/response';
@@ -95,10 +96,13 @@ function createStatus(statusText = ''): ContainerStatus {
 }
 
 export function useShowGPUsColumn(environmentID: EnvironmentId) {
-  const envInfoQuery = useInfo(
+  const isDockerStandaloneQuery = useInfo(
     environmentID,
-    (info) => !!info.Swarm?.NodeID && !!info.Swarm?.ControlAvailable
+    (info) => !(!!info.Swarm?.NodeID && !!info.Swarm?.ControlAvailable) // is not a swarm environment, therefore docker standalone
   );
-
-  return envInfoQuery.data !== true && !envInfoQuery.isLoading;
+  const enableGPUManagementQuery = useEnvironment(
+    environmentID,
+    (env) => env?.EnableGPUManagement
+  );
+  return isDockerStandaloneQuery.data && enableGPUManagementQuery.data;
 }

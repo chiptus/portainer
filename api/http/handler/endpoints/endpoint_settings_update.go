@@ -40,6 +40,10 @@ type endpointSettingsUpdatePayload struct {
 	DeploymentOptions *portaineree.DeploymentOptions `json:"deploymentOptions"`
 
 	EnableImageNotification *bool `json:"enableImageNotification" example:"false"`
+
+	EnableGPUManagement *bool `json:"enableGPUManagement" example:"false"`
+
+	Gpus []portaineree.Pair `json:"gpus"`
 }
 
 func (payload *endpointSettingsUpdatePayload) Validate(_ *http.Request) error {
@@ -145,6 +149,14 @@ func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Re
 
 	if payload.EnableImageNotification != nil {
 		endpoint.EnableImageNotification = *payload.EnableImageNotification
+	}
+
+	if payload.EnableGPUManagement != nil {
+		endpoint.EnableGPUManagement = *payload.EnableGPUManagement
+	}
+
+	if payload.Gpus != nil {
+		endpoint.Gpus = payload.Gpus
 	}
 
 	err = handler.DataStore.Endpoint().UpdateEndpoint(portaineree.EndpointID(endpointID), endpoint)

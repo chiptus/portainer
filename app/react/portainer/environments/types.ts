@@ -153,6 +153,7 @@ export type Environment = {
   Type: EnvironmentType;
   TagIds: TagId[];
   GroupId: EnvironmentGroupId;
+  EnableGPUManagement: boolean;
   CloudProvider: Partial<CloudProviderSettings>;
   DeploymentOptions: DeploymentOptions | null;
   EdgeID?: string;

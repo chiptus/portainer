@@ -15,7 +15,7 @@ import { buildConfirmButton } from '@@/modals/utils';
 angular.module('portainer.app').controller('EndpointController', EndpointController);
 
 /* @ngInject */
-function EndpointController($async, $scope, $state, $transition$, $filter, clipboard, EndpointService, GroupService, Notifications, Authentication, SettingsService) {
+function EndpointController($async, $scope, $state, $transition$, $filter, clipboard, EndpointService, GroupService, StateManager, Notifications, Authentication, SettingsService) {
   $scope.onChangeCheckInInterval = onChangeCheckInInterval;
   $scope.setFieldValue = setFieldValue;
   $scope.onChangeTags = onChangeTags;
@@ -136,8 +136,6 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
     });
   }
 
-  $scope.onGpusChange = onGpusChange;
-
   Array.prototype.indexOf = function (val) {
     for (var i = 0; i < this.length; i++) {
       if (this[i] == val) return i;
@@ -150,21 +148,6 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
       this.splice(index, 1);
     }
   };
-
-  function onGpusChange(value) {
-    return $async(async () => {
-      $scope.endpoint.Gpus = value;
-    });
-  }
-
-  function verifyGpus() {
-    var i = ($scope.endpoint.Gpus || []).length;
-    while (i--) {
-      if ($scope.endpoint.Gpus[i].name === '' || $scope.endpoint.Gpus[i].name === null) {
-        $scope.endpoint.Gpus.splice(i, 1);
-      }
-    }
-  }
 
   $scope.updateEndpoint = async function () {
     var endpoint = $scope.endpoint;
@@ -186,7 +169,6 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
       }
     }
 
-    verifyGpus();
     var payload = {
       Name: endpoint.Name,
       PublicURL: endpoint.PublicURL,
@@ -288,6 +270,9 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
     return $async(async () => {
       try {
         const [endpoint, groups, settings] = await Promise.all([EndpointService.endpoint($transition$.params().id), GroupService.groups(), SettingsService.settings()]);
+
+        const applicationState = StateManager.getState();
+        $scope.isDockerStandaloneEnv = applicationState.endpoint.mode.provider === 'DOCKER_STANDALONE';
 
         if (endpoint.URL.indexOf('unix://') === 0 || endpoint.URL.indexOf('npipe://') === 0) {
           $scope.endpointType = 'local';

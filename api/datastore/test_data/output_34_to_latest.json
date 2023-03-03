@@ -58,6 +58,7 @@
       },
       "EdgeCheckinInterval": 0,
       "EdgeKey": "",
+      "EnableGPUManagement": false,
       "EnableImageNotification": false,
       "Gpus": [],
       "GroupId": 1,
@@ -89,6 +90,7 @@
         "Snapshots": []
       },
       "PostInitMigrations": {
+        "MigrateGPUs": true,
         "MigrateIngresses": true
       },
       "PublicURL": "",

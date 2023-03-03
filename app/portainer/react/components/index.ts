@@ -27,6 +27,7 @@ import { Slider } from '@@/form-components/Slider';
 import { TagButton } from '@@/TagButton';
 import { Switch } from '@@/form-components/SwitchField/Switch';
 import { CodeEditor } from '@@/CodeEditor';
+import { InsightsBox } from '@@/InsightsBox';
 
 import { fileUploadField } from './file-upload-field';
 import { switchField } from './switch-field';
@@ -34,6 +35,7 @@ import { customTemplatesModule } from './custom-templates';
 import { gitFormModule } from './git-form';
 import { settingsModule } from './settings';
 import { accessControlModule } from './access-control';
+import { environmentsModule } from './envronments';
 import { envListModule } from './enviroments-list-view-components';
 
 export const componentsModule = angular
@@ -42,6 +44,7 @@ export const componentsModule = angular
     gitFormModule,
     settingsModule,
     accessControlModule,
+    environmentsModule,
     envListModule,
   ])
   .component(
@@ -76,6 +79,10 @@ export const componentsModule = angular
       'featureId',
       'className',
     ])
+  )
+  .component(
+    'insightsBox',
+    r2a(InsightsBox, ['header', 'content', 'setHtmlContent', 'insightCloseId'])
   )
   .component(
     'passwordCheckHint',

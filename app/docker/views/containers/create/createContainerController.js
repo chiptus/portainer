@@ -20,6 +20,7 @@ angular.module('portainer.docker').controller('CreateContainerController', [
   '$timeout',
   '$transition$',
   '$filter',
+  '$analytics',
   'Container',
   'ContainerHelper',
   'ImageHelper',
@@ -33,6 +34,7 @@ angular.module('portainer.docker').controller('CreateContainerController', [
   'FormValidator',
   'RegistryService',
   'SystemService',
+  'SettingsService',
   'PluginService',
   'HttpRequestHelper',
   'endpoint',
@@ -45,6 +47,7 @@ angular.module('portainer.docker').controller('CreateContainerController', [
     $timeout,
     $transition$,
     $filter,
+    $analytics,
     Container,
     ContainerHelper,
     ImageHelper,
@@ -58,6 +61,7 @@ angular.module('portainer.docker').controller('CreateContainerController', [
     FormValidator,
     RegistryService,
     SystemService,
+    SettingsService,
     PluginService,
     HttpRequestHelper,
     endpoint,
@@ -1074,6 +1078,18 @@ angular.module('portainer.docker').controller('CreateContainerController', [
         });
       }
 
+      async function sendAnalytics() {
+        const publicSettings = await SettingsService.publicSettings();
+        const analyticsAllowed = publicSettings.EnableTelemetry;
+        const image = `${$scope.formValues.RegistryModel.Registry.URL}/${$scope.formValues.RegistryModel.Image}`;
+        if (analyticsAllowed && $scope.formValues.GPU.enabled) {
+          $analytics.eventTrack('gpuContainerCreated', {
+            category: 'docker',
+            metadata: { gpu: $scope.formValues.GPU, containerImage: image },
+          });
+        }
+      }
+
       function applyResourceControl(newContainer) {
         const userId = Authentication.getUserDetails().ID;
         const resourceControl = newContainer.Portainer.ResourceControl;
@@ -1133,7 +1149,8 @@ angular.module('portainer.docker').controller('CreateContainerController', [
         return validateForm(accessControlData, $scope.isAdmin);
       }
 
-      function onSuccess() {
+      async function onSuccess() {
+        await sendAnalytics();
         Notifications.success('Success', 'Container successfully created');
         $state.go('docker.containers', {}, { reload: true });
       }
