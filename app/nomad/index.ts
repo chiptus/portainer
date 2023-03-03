@@ -12,7 +12,6 @@ import { JobsView } from '@/react/nomad/jobs/JobsView';
 import { getLeader } from '@/react/nomad/nomad.service';
 import { Environment } from '@/react/portainer/environments/types';
 import { StateManager } from '@/portainer/services/types';
-import { notifyError } from '@/portainer/services/notifications';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { LogsView } from '@/react/nomad/jobs/LogsView';
 
@@ -67,10 +66,13 @@ function config($stateRegistryProvider: StateRegistry) {
           await getLeader(endpoint.Id);
           await StateManager.updateEndpointState(endpoint);
         } catch (e) {
-          notifyError(
-            'Unable to contact Edge agent, please ensure that the agent is properly running on the remote environment.'
-          );
-          $state.go('portainer.home', {}, { reload: true });
+          const params = {
+            redirect: true,
+            environmentId: endpoint.Id,
+            environmentName: endpoint.Name,
+            route: 'nomad.dashboard',
+          };
+          $state.go('portainer.home', params, { reload: true, inherit: false });
         }
       });
     },

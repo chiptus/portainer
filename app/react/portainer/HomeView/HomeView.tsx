@@ -1,5 +1,5 @@
-import { useRouter } from '@uirouter/react';
-import { useState } from 'react';
+import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
+import { useEffect, useState } from 'react';
 import { useStore } from 'zustand';
 
 import { Environment } from '@/react/portainer/environments/types';
@@ -12,6 +12,7 @@ import { environmentStore } from '@/react/hooks/current-environment-store';
 import { confirm } from '@@/modals/confirm';
 import { PageHeader } from '@@/PageHeader';
 import { ModalType } from '@@/modals';
+import { buildConfirmButton } from '@@/modals/utils';
 
 import { useEnvironment } from '../environments/queries';
 
@@ -25,10 +26,37 @@ export function HomeView() {
   const { environmentId: currentEnvironmentId } = useStore(environmentStore);
   const environmentQuery = useEnvironment(currentEnvironmentId);
 
-  const [connectingToEdgeEndpoint, setConnectingToEdgeEndpoint] =
-    useState(false);
+  const { params } = useCurrentStateAndParams();
+  const [connectingToEdgeEndpoint, setConnectingToEdgeEndpoint] = useState(
+    !!params.redirect
+  );
 
   const router = useRouter();
+
+  useEffect(() => {
+    async function redirect() {
+      const options = {
+        title: `Failed connecting to ${params.environmentName}`,
+        message: `There was an issue connecting to edge agent via tunnel. Click 'Retry' below to retry now, or wait 10 seconds to automatically retry.`,
+        confirmButton: buildConfirmButton('Retry', 'primary', 10),
+        modalType: ModalType.Destructive,
+      };
+
+      if (await confirm(options)) {
+        setConnectingToEdgeEndpoint(true);
+        router.stateService.go(params.route, {
+          endpointId: params.environmentId,
+        });
+      } else {
+        router.stateService.go('portainer.home', {}, { inherit: false });
+      }
+    }
+
+    if (params.redirect) {
+      redirect();
+    }
+  }, [params, setConnectingToEdgeEndpoint, router]);
+
   const environment = environmentQuery.data;
   return (
     <>
