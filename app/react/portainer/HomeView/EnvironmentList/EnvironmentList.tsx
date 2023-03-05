@@ -185,7 +185,7 @@ export function EnvironmentList({ onClickBrowse, onRefresh }: Props) {
                     envQueryParams={queryWithSort}
                   />
 
-                  {updateAvailable && <UpdateBadge />}
+                  {isAdmin && updateAvailable && <UpdateBadge />}
                 </div>
               </TableTitle>
               <div className="-mt-3">

@@ -41,24 +41,29 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 	}
 
 	router := h.PathPrefix("/edge_update_schedules").Subrouter()
-	router.Use(bouncer.AdminAccess)
 
-	router.Handle("",
-		httperror.LoggerHandler(h.list)).Methods(http.MethodGet)
+	authenticatedRouter := router.NewRoute().Subrouter()
+	authenticatedRouter.Use(bouncer.AuthenticatedAccess)
 
-	router.Handle("",
-		httperror.LoggerHandler(h.create)).Methods(http.MethodPost)
-
-	router.Handle("/active",
-		httperror.LoggerHandler(h.activeSchedules)).Methods(http.MethodPost)
-
-	router.Handle("/agent_versions",
+	authenticatedRouter.Handle("/agent_versions",
 		httperror.LoggerHandler(h.agentVersions)).Methods(http.MethodGet)
 
-	router.Handle("/previous_versions",
+	adminRouter := router.NewRoute().Subrouter()
+	adminRouter.Use(bouncer.AdminAccess)
+
+	adminRouter.Handle("",
+		httperror.LoggerHandler(h.list)).Methods(http.MethodGet)
+
+	adminRouter.Handle("",
+		httperror.LoggerHandler(h.create)).Methods(http.MethodPost)
+
+	adminRouter.Handle("/active",
+		httperror.LoggerHandler(h.activeSchedules)).Methods(http.MethodPost)
+
+	adminRouter.Handle("/previous_versions",
 		httperror.LoggerHandler(h.previousVersions)).Methods(http.MethodGet)
 
-	itemRouter := router.PathPrefix("/{id}").Subrouter()
+	itemRouter := adminRouter.PathPrefix("/{id}").Subrouter()
 	itemRouter.Use(middlewares.WithItem(updateService.Schedule, "id", contextKey))
 
 	itemRouter.Handle("",

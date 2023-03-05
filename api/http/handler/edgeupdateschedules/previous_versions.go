@@ -13,7 +13,7 @@ import (
 // @id EdgeUpdatePreviousVersions
 // @summary Fetches the previous versions of updated agents
 // @description
-// @description **Access policy**: authenticated
+// @description **Access policy**: administrator
 // @tags edge_update_schedules
 // @security ApiKeyAuth
 // @security jwt
@@ -21,7 +21,7 @@ import (
 // @success 200 {array} string
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
-// @router /edge_update_schedules/agent_versions [get]
+// @router /edge_update_schedules/previous_versions [get]
 func (handler *Handler) previousVersions(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	schedules, err := handler.updateService.Schedules()
 	if err != nil {
