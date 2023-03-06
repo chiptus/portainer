@@ -2,6 +2,10 @@ module github.com/portainer/portainer-ee/api
 
 go 1.18
 
+// this temporary replace can be removed when this fix is merged:
+//    https://github.com/civo/civogo/pull/139 or the bug otherwise fixed
+replace github.com/civo/civogo => github.com/hookenz/civogo v0.0.0-20230305210337-4ca44eed5219
+
 require (
 	cloud.google.com/go/compute v1.6.1
 	github.com/Azure/azure-sdk-for-go v63.4.0+incompatible
@@ -22,7 +26,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.27.1
 	github.com/cavaliergopher/grab/v3 v3.0.1
 	github.com/cbroglie/mustache v1.4.0
-	github.com/civo/civogo v0.2.67
+	github.com/civo/civogo v0.3.24
 	github.com/containers/image/v5 v5.21.0
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
 	github.com/digitalocean/godo v1.75.0
@@ -155,7 +159,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/go-querystring v1.0.0 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/googleapis/gax-go/v2 v2.3.0 // indirect

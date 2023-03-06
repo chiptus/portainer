@@ -11,7 +11,6 @@ import (
 	"github.com/portainer/portainer-ee/api/database/models"
 
 	"github.com/civo/civogo"
-	"github.com/fvbommel/sortorder"
 	"github.com/rs/zerolog/log"
 )
 
@@ -187,20 +186,22 @@ func (service *CloudClusterInfoService) CivoFetchInfo(apiKey string) (*CivoInfo,
 		return nil, err
 	}
 
-	kvs := make([]string, 0)
-	for _, version := range kubeVersions {
-		kvs = append(kvs, version.Version)
-	}
-	sort.Sort(sort.Reverse(sortorder.Natural(kvs)))
-
 	versionPairs := make([]portaineree.Pair, 0)
-	for _, v := range kvs {
+	for _, v := range kubeVersions {
+		if v.Type != "stable" {
+			continue
+		}
+
 		pair := portaineree.Pair{
-			Name:  v,
-			Value: v,
+			Name:  v.Version,
+			Value: v.Version,
 		}
 		versionPairs = append(versionPairs, pair)
 	}
+
+	sort.SliceStable(versionPairs, func(i, j int) bool {
+		return versionPairs[i].Name > versionPairs[j].Name
+	})
 
 	civoInfo := &CivoInfo{
 		Regions:            rs,
@@ -263,6 +264,11 @@ func (service *CloudClusterSetupService) CivoProvisionCluster(req CloudProvision
 		return "", err
 	}
 
+	clusterType := "talos"
+	if strings.Contains(req.KubernetesVersion, "k3s") {
+		clusterType = "k3s"
+	}
+
 	clusterConfig := civogo.KubernetesClusterConfig{
 		Name:              req.ClusterName,
 		Region:            req.Region,
@@ -270,6 +276,7 @@ func (service *CloudClusterSetupService) CivoProvisionCluster(req CloudProvision
 		TargetNodesSize:   req.NodeSize,
 		NetworkID:         req.NetworkID,
 		KubernetesVersion: req.KubernetesVersion,
+		ClusterType:       clusterType,
 		FirewallRule:      "all",
 	}
 
