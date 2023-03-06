@@ -7,6 +7,7 @@
     read-only="!$ctrl.isAuthorized || $ctrl.system || $ctrl.deploymentOptions.hideWebEditor"
     hide-title="true"
     on-change="($ctrl.onChange)"
+    height="{{ $ctrl.expanded ? '800px' : '500px' }}"
   >
   </web-editor-form>
   <div class="py-5">
