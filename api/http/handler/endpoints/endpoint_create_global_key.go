@@ -1,13 +1,30 @@
 package endpoints
 
 import (
-	"errors"
 	"net/http"
 
+	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
+	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/rs/zerolog/log"
 )
+
+type endpointCreateGlobalKeyPayload struct {
+	EdgeGroupsIDs      []portaineree.EdgeGroupID
+	EnvironmentGroupID portaineree.EndpointGroupID
+	TagsIDs            []portaineree.TagID
+}
+
+func (payload *endpointCreateGlobalKeyPayload) Validate(request *http.Request) error {
+	if payload.EnvironmentGroupID == 0 {
+		payload.EnvironmentGroupID = 1
+	}
+
+	return nil
+}
 
 type endpointCreateGlobalKeyResponse struct {
 	EndpointID portaineree.EndpointID `json:"endpointID"`
@@ -38,18 +55,53 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 		return response.JSON(w, endpointCreateGlobalKeyResponse{endpointID})
 	}
 
+	payload, err := request.GetPayload[endpointCreateGlobalKeyPayload](r)
+	if err != nil {
+		return httperror.BadRequest("Invalid request payload", err)
+	}
+
 	settings, err := handler.DataStore.Settings().Settings()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve the settings from the database", err)
 	}
 
-	// Create a new endpoint if none was found
+	// validate the environment group
+	_, err = handler.DataStore.EndpointGroup().EndpointGroup(payload.EnvironmentGroupID)
+	if err != nil {
+		log.Warn().Err(err).Msg("Unable to retrieve the environment group from the database")
+		payload.EnvironmentGroupID = 1
+	}
 
+	// validate tags
+	tagsIDs := []portaineree.TagID{}
+	for _, tagID := range payload.TagsIDs {
+		_, err := handler.DataStore.Tag().Tag(tagID)
+		if err != nil {
+			log.Warn().Err(err).Msg("Unable to retrieve the tag from the database")
+			continue
+		}
+
+		tagsIDs = append(tagsIDs, tagID)
+	}
+
+	// validate edge groups
+	var edgeGroupsIDs []portaineree.EdgeGroupID
+	for _, edgeGroupID := range payload.EdgeGroupsIDs {
+		_, err := handler.DataStore.EdgeGroup().EdgeGroup(edgeGroupID)
+		if err != nil {
+			log.Warn().Err(err).Msg("Unable to retrieve the edge group from the database")
+			continue
+		}
+
+		edgeGroupsIDs = append(edgeGroupsIDs, edgeGroupID)
+	}
+
+	// Create a new endpoint if none was found
 	p := &endpointCreatePayload{
 		Name:                 edgeID,
 		EndpointCreationType: edgeAgentEnvironment,
-		GroupID:              1,
-		TagIDs:               []portaineree.TagID{},
+		GroupID:              int(payload.EnvironmentGroupID),
+		TagIDs:               tagsIDs,
 		EdgeCheckinInterval:  settings.EdgeAgentCheckinInterval,
 		IsEdgeDevice:         true,
 	}
@@ -67,14 +119,9 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 		return httperror.InternalServerError("Unable to persist environment changes inside the database", err)
 	}
 
-	relationObject := &portaineree.EndpointRelation{
-		EndpointID: portaineree.EndpointID(endpoint.ID),
-		EdgeStacks: map[portaineree.EdgeStackID]bool{},
-	}
-
-	err = handler.DataStore.EndpointRelation().Create(relationObject)
+	err = edge.AddEnvironmentToEdgeGroups(handler.DataStore, endpoint, edgeGroupsIDs)
 	if err != nil {
-		return httperror.InternalServerError("Unable to persist the relation object inside the database", err)
+		return httperror.InternalServerError("Unable to add environment to edge groups", err)
 	}
 
 	handler.AuthorizationService.TriggerUsersAuthUpdate()

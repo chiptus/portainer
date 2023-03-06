@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -78,7 +79,7 @@ func TestGlobalKey(t *testing.T) {
 	doRequest := func() *endpointCreateGlobalKeyResponse {
 		edgeID := "test-edge-id"
 
-		req, err := http.NewRequest(http.MethodPost, portainerURL+"/endpoints/global-key", nil)
+		req, err := http.NewRequest(http.MethodPost, portainerURL+"/endpoints/global-key", bytes.NewReader([]byte("{}")))
 		if err != nil {
 			t.Fatal("request error:", err)
 		}
@@ -133,7 +134,7 @@ func TestEmptyGlobalKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, "https://portainer.io:9443/endpoints/global-key", nil)
+	req, err := http.NewRequest(http.MethodPost, "https://portainer.io:9443/endpoints/global-key", bytes.NewReader([]byte("{}")))
 	if err != nil {
 		t.Fatal("request error:", err)
 	}

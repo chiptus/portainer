@@ -35,11 +35,11 @@ export function DashboardView() {
   const { data: environment } = environmentQuery;
   const { data: snapshot } = snapshotQuery;
 
-  if (!environment || !tagsQuery.tags) {
+  if (!environment || !tagsQuery.data) {
     return null;
   }
 
-  const { tags } = tagsQuery;
+  const { data: tags } = tagsQuery;
 
   const tagsString = environment.TagIds.length
     ? environment.TagIds.map((id) => find(tags, { Id: id }))

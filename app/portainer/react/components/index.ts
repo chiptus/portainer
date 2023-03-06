@@ -164,6 +164,7 @@ export const componentsModule = angular
       'options',
       'isMulti',
       'isClearable',
+      'components',
     ])
   )
   .component(

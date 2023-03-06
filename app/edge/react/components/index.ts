@@ -27,7 +27,13 @@ export const componentsModule = angular
   )
   .component(
     'edgeGroupsSelector',
-    r2a(EdgeGroupsSelector, ['items', 'onChange', 'value'])
+    r2a(withReactQuery(EdgeGroupsSelector), [
+      'onChange',
+      'value',
+      'error',
+      'horizontal',
+      'isGroupVisible',
+    ])
   )
   .component(
     'edgeScriptForm',
@@ -36,6 +42,7 @@ export const componentsModule = angular
       'commands',
       'isNomadTokenVisible',
       'asyncMode',
+      'showMetaFields',
     ])
   )
   .component(

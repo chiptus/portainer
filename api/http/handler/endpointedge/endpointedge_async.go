@@ -13,6 +13,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/edge"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	portainer "github.com/portainer/portainer/api"
 
@@ -21,10 +22,17 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type MetaFields struct {
+	EdgeGroupsIDs      []portaineree.EdgeGroupID   `json:"edgeGroupsIds"`
+	TagsIDs            []portaineree.TagID         `json:"tagsIds"`
+	EnvironmentGroupID portaineree.EndpointGroupID `json:"environmentGroupId"`
+}
+
 type EdgeAsyncRequest struct {
 	CommandTimestamp *time.Time             `json:"commandTimestamp"`
 	Snapshot         *snapshot              `json:"snapshot"`
 	EndpointID       portaineree.EndpointID `json:"endpointId"`
+	MetaFields       *MetaFields            `json:"metaFields"`
 }
 
 const (
@@ -111,7 +119,7 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 			return httperror.Forbidden("Permission denied to access environment", err)
 		}
 
-		newEndpoint, createEndpointErr := handler.createAsyncEdgeAgentEndpoint(r, edgeID, agentPlatform, version, timeZone)
+		newEndpoint, createEndpointErr := handler.createAsyncEdgeAgentEndpoint(r, edgeID, agentPlatform, version, timeZone, payload.MetaFields)
 		if createEndpointErr != nil {
 			return createEndpointErr
 		}
@@ -232,7 +240,7 @@ func parseBodyPayload(req *http.Request) (EdgeAsyncRequest, error) {
 	return payload, nil
 }
 
-func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID string, endpointType portaineree.EndpointType, version string, timeZone string) (*portaineree.Endpoint, *httperror.HandlerError) {
+func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID string, endpointType portaineree.EndpointType, version string, timeZone string, metaFields *MetaFields) (*portaineree.Endpoint, *httperror.HandlerError) {
 	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
 
 	settings, err := handler.DataStore.Settings().Settings()
@@ -242,10 +250,6 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 
 	if settings.EdgePortainerURL == "" {
 		return nil, httperror.InternalServerError("Portainer API server URL is not set in Edge Compute settings", errors.New("Portainer API server URL is not set in Edge Compute settings"))
-	}
-
-	if settings.Edge.TunnelServerAddress == "" {
-		return nil, httperror.InternalServerError("Tunnel server address is not set in Edge Compute settings", errors.New("Tunnel server address is not set in Edge Compute settings"))
 	}
 
 	edgeKey := handler.ReverseTunnelService.GenerateEdgeKey(settings.EdgePortainerURL, settings.Edge.TunnelServerAddress, endpointID)
@@ -287,6 +291,41 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 		},
 	}
 
+	var edgeGroupsIDs []portaineree.EdgeGroupID
+	if metaFields != nil {
+		// validate the environment group
+		_, err = handler.DataStore.EndpointGroup().EndpointGroup(metaFields.EnvironmentGroupID)
+		if err != nil {
+			log.Warn().Err(err).Msg("Unable to retrieve the environment group from the database")
+			metaFields.EnvironmentGroupID = 1
+		}
+		endpoint.GroupID = metaFields.EnvironmentGroupID
+
+		// validate tags
+		tagsIDs := []portaineree.TagID{}
+		for _, tagID := range metaFields.TagsIDs {
+			_, err := handler.DataStore.Tag().Tag(tagID)
+			if err != nil {
+				log.Warn().Err(err).Msg("Unable to retrieve the tag from the database")
+				continue
+			}
+
+			tagsIDs = append(tagsIDs, tagID)
+		}
+		endpoint.TagIDs = tagsIDs
+
+		// validate edge groups
+		for _, edgeGroupID := range metaFields.EdgeGroupsIDs {
+			_, err := handler.DataStore.EdgeGroup().EdgeGroup(edgeGroupID)
+			if err != nil {
+				log.Warn().Err(err).Msg("Unable to retrieve the edge group from the database")
+				continue
+			}
+
+			edgeGroupsIDs = append(edgeGroupsIDs, edgeGroupID)
+		}
+	}
+
 	endpoint.Agent.Version = version
 
 	endpoint.Edge.AsyncMode = true
@@ -300,14 +339,9 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 		return nil, httperror.InternalServerError("An error occurred while trying to create the environment", err)
 	}
 
-	relationObject := &portaineree.EndpointRelation{
-		EndpointID: endpoint.ID,
-		EdgeStacks: map[portaineree.EdgeStackID]bool{},
-	}
-
-	err = handler.DataStore.EndpointRelation().Create(relationObject)
+	err = edge.AddEnvironmentToEdgeGroups(handler.DataStore, endpoint, edgeGroupsIDs)
 	if err != nil {
-		return nil, httperror.InternalServerError("Unable to persist the relation object inside the database", err)
+		return nil, httperror.InternalServerError("Unable to add environment to edge groups", err)
 	}
 
 	return endpoint, nil
