@@ -39,7 +39,7 @@ type endpointSettingsUpdatePayload struct {
 	// Hide manual deployment forms for an environment
 	DeploymentOptions *portaineree.DeploymentOptions `json:"deploymentOptions"`
 
-	EnableImageNotification *bool `json:"enableImageNotification" example:"false"`
+	EnableImageNotification *bool `json:"enableImageNotification" example:"true"`
 
 	EnableGPUManagement *bool `json:"enableGPUManagement" example:"false"`
 

@@ -587,6 +587,7 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
 		},
+		EnableImageNotification: true,
 	}
 
 	if payload.Edge.AsyncMode {
@@ -650,6 +651,7 @@ func (handler *Handler) createUnsecuredEndpoint(payload *endpointCreatePayload) 
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
 		},
+		EnableImageNotification: true,
 	}
 
 	err := handler.snapshotAndPersistEndpoint(endpoint)
@@ -788,6 +790,7 @@ func (handler *Handler) createTLSSecuredEndpoint(payload *endpointCreatePayload,
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
 		},
+		EnableImageNotification: true,
 	}
 
 	endpoint.Agent.Version = agentVersion

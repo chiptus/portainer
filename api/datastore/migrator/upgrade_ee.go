@@ -63,6 +63,11 @@ func (m *Migrator) UpgradeToEE() error {
 		return err
 	}
 
+	log.Info().Msg("setting default image up to date to true")
+	if err := m.defaultImageUpToDateOn(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -169,6 +174,25 @@ func (m *Migrator) updateUserAuthorizationToEE() error {
 		}
 	}
 
+	return nil
+}
+
+func (m *Migrator) defaultImageUpToDateOn() error {
+	// get all environments
+	environments, err := m.endpointService.Endpoints()
+	if err != nil {
+		return err
+	}
+
+	for _, environment := range environments {
+		// update environment to enable image notification
+		if environment.Type == portaineree.DockerEnvironment || environment.Type == portaineree.EdgeAgentOnDockerEnvironment {
+			environment.EnableImageNotification = true
+			if err := m.endpointService.UpdateEndpoint(environment.ID, &environment); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
