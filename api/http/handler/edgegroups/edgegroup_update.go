@@ -27,12 +27,15 @@ func (payload *edgeGroupUpdatePayload) Validate(r *http.Request) error {
 	if govalidator.IsNull(payload.Name) {
 		return errors.New("invalid Edge group name")
 	}
+
 	if payload.Dynamic && len(payload.TagIDs) == 0 {
 		return errors.New("tagIDs is mandatory for a dynamic Edge group")
 	}
+
 	if !payload.Dynamic && len(payload.Endpoints) == 0 {
 		return errors.New("environments is mandatory for a static Edge group")
 	}
+
 	return nil
 }
 
@@ -74,6 +77,7 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve Edge groups from the database", err)
 		}
+
 		for _, edgeGroup := range edgeGroups {
 			if edgeGroup.Name == payload.Name && edgeGroup.ID != portaineree.EdgeGroupID(edgeGroupID) {
 				return httperror.BadRequest("Edge group name must be unique", errors.New("edge group name must be unique"))
@@ -82,6 +86,7 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 
 		edgeGroup.Name = payload.Name
 	}
+
 	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve environments from database", err)
@@ -130,7 +135,16 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 	}
 
 	for _, endpointID := range endpointsToUpdate {
-		err = handler.updateEndpointStacks(endpointID)
+		var operation string
+		if slices.Contains(newRelatedEndpoints, endpointID) {
+			operation = "add"
+		} else if slices.Contains(oldRelatedEndpoints, endpointID) {
+			operation = "remove"
+		} else {
+			continue
+		}
+
+		err = handler.updateEndpointStacks(endpointID, operation)
 		if err != nil {
 			return httperror.InternalServerError("Unable to persist Environment relation changes inside the database", err)
 		}
@@ -144,15 +158,6 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 			continue
 		}
 
-		var operation string
-		if slices.Contains(newRelatedEndpoints, endpointID) {
-			operation = "add"
-		} else if slices.Contains(oldRelatedEndpoints, endpointID) {
-			operation = "remove"
-		} else {
-			continue
-		}
-
 		err = handler.updateEndpointEdgeJobs(edgeGroup.ID, endpoint, edgeJobs, operation)
 		if err != nil {
 			return httperror.InternalServerError("Unable to persist Environment Edge Jobs changes inside the database", err)
@@ -162,7 +167,7 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 	return response.JSON(w, edgeGroup)
 }
 
-func (handler *Handler) updateEndpointStacks(endpointID portaineree.EndpointID) error {
+func (handler *Handler) updateEndpointStacks(endpointID portaineree.EndpointID, operation string) error {
 	relation, err := handler.DataStore.EndpointRelation().EndpointRelation(endpointID)
 	if err != nil {
 		return err
@@ -196,6 +201,23 @@ func (handler *Handler) updateEndpointStacks(endpointID portaineree.EndpointID) 
 	}
 
 	relation.EdgeStacks = edgeStackSet
+
+	switch operation {
+	case "add":
+		for edgeStackID := range edgeStackSet {
+			err := handler.edgeAsyncService.AddStackCommand(endpoint, edgeStackID, "")
+			if err != nil {
+				return err
+			}
+		}
+	case "remove":
+		for edgeStackID := range edgeStackSet {
+			err := handler.edgeAsyncService.RemoveStackCommand(endpoint.ID, edgeStackID)
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	return handler.DataStore.EndpointRelation().UpdateEndpointRelation(endpoint.ID, relation)
 }
