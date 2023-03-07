@@ -21,6 +21,8 @@ angular.module('portainer.docker').controller('KubernetesApplicationsDatatableCo
     this.state = Object.assign(this.state, {
       expandAll: false,
       expandedItems: [],
+      namespace: '',
+      namespaces: [],
     });
 
     this.filters = {
@@ -70,6 +72,8 @@ angular.module('portainer.docker').controller('KubernetesApplicationsDatatableCo
     };
 
     this.onSettingsShowSystemChange = function () {
+      this.updateNamespace();
+      this.setSystemResources(this.settings.showSystem);
       DatatableService.setDataTableSettings(this.tableKey, this.settings);
     };
 
@@ -135,6 +139,44 @@ angular.module('portainer.docker').controller('KubernetesApplicationsDatatableCo
       this.filters.state.values = _.uniqBy(availableTypeFilters, 'type');
     };
 
+    this.onChangeNamespace = function () {
+      this.onChangeNamespaceDropdown(this.state.namespace);
+    };
+
+    this.updateNamespace = function () {
+      if (this.namespaces) {
+        const namespaces = [{ Name: 'All namespaces', Value: '', IsSystem: false }];
+        this.namespaces.find((ns) => {
+          if (!this.settings.showSystem && ns.IsSystem) {
+            return false;
+          }
+          namespaces.push({ Name: ns.Name, Value: ns.Name, IsSystem: ns.IsSystem });
+        });
+        this.state.namespaces = namespaces;
+
+        if (this.state.namespace && !this.state.namespaces.find((ns) => ns.Name === this.state.namespace)) {
+          if (this.state.namespaces.length > 1) {
+            let defaultNS = this.state.namespaces.find((ns) => ns.Name === 'default');
+            defaultNS = defaultNS || this.state.namespaces[1];
+            this.state.namespace = defaultNS.Value;
+          } else {
+            this.state.namespace = this.state.namespaces[0].Value;
+          }
+          this.onChangeNamespaceDropdown(this.state.namespace);
+        }
+      }
+    };
+
+    this.$onChanges = function () {
+      if (typeof this.isSystemResources !== 'undefined') {
+        this.settings.showSystem = this.isSystemResources;
+        DatatableService.setDataTableSettings(this.settingsKey, this.settings);
+      }
+      this.state.namespace = this.namespace;
+      this.updateNamespace();
+      this.prepareTableFromDataset();
+    };
+
     this.$onInit = function () {
       this.KubernetesApplicationDeploymentTypes = KubernetesApplicationDeploymentTypes;
       this.KubernetesApplicationTypes = KubernetesApplicationTypes;
@@ -171,11 +213,21 @@ angular.module('portainer.docker').controller('KubernetesApplicationsDatatableCo
       if (storedSettings !== null) {
         this.settings = storedSettings;
         this.settings.open = false;
+
+        this.setSystemResources && this.setSystemResources(this.settings.showSystem);
       }
+
+      // Set the default selected namespace
+      if (!this.state.namespace) {
+        this.state.namespace = this.namespace;
+      }
+
       if (!Authentication.hasAuthorizations(['K8sAccessSystemNamespaces']) && this.settings.showSystem) {
         this.settings.showSystem = false;
         DatatableService.setDataTableSettings(this.settingsKey, this.settings);
       }
+
+      this.updateNamespace();
       this.onSettingsRepeaterChange();
     };
   },

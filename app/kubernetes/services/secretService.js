@@ -6,9 +6,14 @@ import { KubernetesCommonParams } from 'Kubernetes/models/common/params';
 
 class KubernetesSecretService {
   /* @ngInject */
-  constructor($async, KubernetesSecrets) {
+  constructor($async, $state, KubernetesSecrets, KubernetesNamespaceService, Authentication, Notifications) {
     this.$async = $async;
+    this.$state = $state;
+    this.Authentication = Authentication;
     this.KubernetesSecrets = KubernetesSecrets;
+    this.Notifications = Notifications;
+
+    this.KubernetesNamespaceService = KubernetesNamespaceService;
 
     this.getAsync = this.getAsync.bind(this);
     this.getAllAsync = this.getAllAsync.bind(this);
@@ -37,6 +42,14 @@ class KubernetesSecretService {
       const data = await this.KubernetesSecrets(namespace).get().$promise;
       return _.map(data.items, (item) => KubernetesSecretConverter.apiToSecret(item));
     } catch (err) {
+      if (err.status === 403) {
+        this.Notifications.error('Failure', new Error('Reloading page, as your permissions for namespace ' + namespace + ' appear to have been revoked.'));
+        await this.KubernetesNamespaceService.refreshCacheAsync().catch(() => {
+          this.Authentication.logout();
+          this.$state.go('portainer.logout');
+        });
+        this.$state.reload();
+      }
       throw new PortainerError('Unable to retrieve secrets', err);
     }
   }

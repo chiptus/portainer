@@ -5,7 +5,7 @@ import { KubernetesCommonParams } from 'Kubernetes/models/common/params';
 import KubernetesResourceQuotaConverter from 'Kubernetes/converters/resourceQuota';
 
 /* @ngInject */
-export function KubernetesResourceQuotaService($async, KubernetesResourceQuotas) {
+export function KubernetesResourceQuotaService($async, $state, KubernetesResourceQuotas, Notifications, KubernetesNamespaceService, Authentication) {
   return {
     get,
     create,
@@ -29,6 +29,15 @@ export function KubernetesResourceQuotaService($async, KubernetesResourceQuotas)
       const data = await KubernetesResourceQuotas(namespace).get().$promise;
       return _.map(data.items, (item) => KubernetesResourceQuotaConverter.apiToResourceQuota(item));
     } catch (err) {
+      if (err.status === 403) {
+        Notifications.error('Failure', new Error('Reloading page, as your permissions for namespace ' + namespace + ' appear to have been revoked.'));
+        await KubernetesNamespaceService.refreshCacheAsync().catch(() => {
+          Authentication.logout();
+          $state.go('portainer.logout');
+        });
+        $state.reload();
+        return;
+      }
       throw new PortainerError('Unable to retrieve resource quotas', err);
     }
   }
