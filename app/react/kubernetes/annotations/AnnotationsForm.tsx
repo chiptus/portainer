@@ -38,7 +38,7 @@ export function AnnotationsForm({
   return (
     <>
       {annotations.map((annotation, i) => (
-        <div className="row mt-4" key={annotation.ID}>
+        <div className="row mb-4" key={annotation.ID}>
           <div className="form-group col-sm-4 !m-0 !pl-0">
             <div className="input-group input-group-sm">
               <span

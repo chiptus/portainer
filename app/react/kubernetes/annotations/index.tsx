@@ -97,7 +97,7 @@ export function Annotations({
       )}
 
       {!hideForm && !screen && (
-        <div className="col-sm-12 mt-4 p-0">
+        <div className="col-sm-12 p-0">
           <Button
             className="btn btn-sm btn-light mb-2 !ml-0"
             onClick={() => addNewAnnotation()}
