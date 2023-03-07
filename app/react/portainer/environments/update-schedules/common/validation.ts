@@ -1,4 +1,4 @@
-import { array, object, SchemaOf, string } from 'yup';
+import { array, object, SchemaOf, string, number } from 'yup';
 
 import { parseIsoDate } from '@/portainer/filters/filters';
 
@@ -28,5 +28,6 @@ export function validation(
         // rollback
         otherwise: (schema) => schema.required('No rollback options available'),
       }),
+    registryId: number().default(0),
   });
 }

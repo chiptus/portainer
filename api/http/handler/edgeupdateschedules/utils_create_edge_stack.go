@@ -36,12 +36,19 @@ const (
 	updaterImageEnvVar = "EDGE_UPDATE_UPDATER_IMAGE"
 )
 
-func (handler *Handler) createUpdateEdgeStack(scheduleID edgetypes.UpdateScheduleID, groupIDs []portaineree.EdgeGroupID, version string, scheduledTime string, endpointType portaineree.EndpointType) (portaineree.EdgeStackID, error) {
+func (handler *Handler) createUpdateEdgeStack(
+	scheduleID edgetypes.UpdateScheduleID,
+	groupIDs []portaineree.EdgeGroupID,
+	registry *portaineree.Registry,
+	version, scheduledTime string,
+	endpointType portaineree.EndpointType) (portaineree.EdgeStackID, error) {
 	agentImagePrefix := os.Getenv(agentImagePrefixEnvVar)
 	if agentImagePrefix == "" {
 		agentImagePrefix = "portainer/agent"
+		if registry.URL != "" {
+			agentImagePrefix = fmt.Sprintf("%s/agent", registry.URL)
+		}
 	}
-
 	agentImage := fmt.Sprintf("%s:%s", agentImagePrefix, version)
 
 	deploymentConfig, err := getDeploymentConfig(endpointType, handler.assetsPath)
@@ -49,15 +56,24 @@ func (handler *Handler) createUpdateEdgeStack(scheduleID edgetypes.UpdateSchedul
 		return 0, err
 	}
 
+	prePullImage := false
+	rePullimage := false
+	registries := []portaineree.RegistryID{}
+	if registry != nil {
+		prePullImage = true
+		rePullimage = true
+		registries = append(registries, registry.ID)
+	}
+
 	stack, err := handler.edgeStacksService.BuildEdgeStack(
 		buildEdgeStackName(scheduleID),
 		deploymentConfig.Type,
 		groupIDs,
-		[]portaineree.RegistryID{},
+		registries,
 		scheduledTime,
 		false,
-		false,
-		false,
+		prePullImage,
+		rePullimage,
 		false,
 	)
 	if err != nil {
@@ -73,11 +89,16 @@ func (handler *Handler) createUpdateEdgeStack(scheduleID edgetypes.UpdateSchedul
 			skipPullAgentImage = "1"
 		}
 
+		updaterImage := os.Getenv(updaterImageEnvVar)
+		if updaterImage == "" && registry.URL != "" {
+			updaterImage = fmt.Sprintf("%s/portainer-updater:latest", registry.URL)
+		}
+
 		deploymentFile, err := mustache.RenderFile(deploymentConfig.TemplatePath, map[string]string{
 			"agent_image_name":      agentImage,
 			"schedule_id":           strconv.Itoa(int(scheduleID)),
 			"skip_pull_agent_image": skipPullAgentImage,
-			"updater_image":         os.Getenv(updaterImageEnvVar),
+			"updater_image":         updaterImage,
 		})
 
 		if err != nil {

@@ -22,6 +22,7 @@ import { NameField } from '../common/NameField';
 import { EdgeGroupsField } from '../common/EdgeGroupsField';
 import { BetaAlert } from '../common/BetaAlert';
 import { defaultValue } from '../common/ScheduledTimeField';
+import { AdvancedSettings } from '../common/AdvancedSettings';
 
 export default withLimitToBE(CreateView);
 
@@ -33,6 +34,7 @@ function CreateView() {
       type: ScheduleType.Update,
       version: '',
       scheduledTime: defaultValue(),
+      registryId: 0,
     }),
     []
   );
@@ -85,6 +87,13 @@ function CreateView() {
                     />
 
                     <ScheduleTypeSelector />
+
+                    <AdvancedSettings
+                      onBlur={handleBlur}
+                      value={values.registryId}
+                      onChange={(value) => setFieldValue('registryId', value)}
+                      imageVersion={values.version}
+                    />
 
                     <div className="form-group">
                       <div className="col-sm-12">

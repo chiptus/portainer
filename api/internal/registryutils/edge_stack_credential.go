@@ -15,32 +15,10 @@ func GetRegistryCredentialsForEdgeStack(dataStore dataservices.DataStore, stack 
 	registries := []portaineree.EdgeRegistryCredential{}
 	for _, id := range stack.Registries {
 		registry, _ := dataStore.Registry().Registry(id)
-		if registry != nil {
-			var username string
-			var password string
 
-			if registry.Type == portaineree.EcrRegistry {
-				config := portaineree.RegistryManagementConfiguration{
-					Type: portaineree.EcrRegistry,
-					Ecr:  registry.Ecr,
-				}
-				config.Username, config.Password, _ = GetManagementCredential(registry)
-				EnsureManageTokenValid(&config)
-
-				// Now split the token into username and password (separator is :)
-				s := strings.Split(config.AccessToken, ":")
-				username = s[0]
-				password = s[1]
-			} else {
-				username = registry.Username
-				password = registry.Password
-			}
-
-			registries = append(registries, portaineree.EdgeRegistryCredential{
-				ServerURL: registry.URL,
-				Username:  username,
-				Secret:    password,
-			})
+		registryCredential := GetRegistryCredential(registry)
+		if registryCredential != nil {
+			registries = append(registries, *registryCredential)
 		}
 	}
 
@@ -62,6 +40,37 @@ func GetRegistryCredentialsForEdgeStack(dataStore dataservices.DataStore, stack 
 	}
 
 	return registries
+}
+
+func GetRegistryCredential(registry *portaineree.Registry) *portaineree.EdgeRegistryCredential {
+	registryCredential := &portaineree.EdgeRegistryCredential{}
+	if registry != nil {
+		var username string
+		var password string
+
+		if registry.Type == portaineree.EcrRegistry {
+			config := portaineree.RegistryManagementConfiguration{
+				Type: portaineree.EcrRegistry,
+				Ecr:  registry.Ecr,
+			}
+			config.Username, config.Password, _ = GetManagementCredential(registry)
+			EnsureManageTokenValid(&config)
+
+			// Now split the token into username and password (separator is :)
+			s := strings.Split(config.AccessToken, ":")
+			username = s[0]
+			password = s[1]
+		} else {
+			username = registry.Username
+			password = registry.Password
+		}
+
+		registryCredential.ServerURL = registry.URL
+		registryCredential.Username = username
+		registryCredential.Secret = password
+		return registryCredential
+	}
+	return nil
 }
 
 // secureEndpoint returns true if the endpoint is secure, false otherwise

@@ -23,6 +23,7 @@ import { EdgeUpdateSchedule } from '../types';
 import { FormValues } from '../common/types';
 import { ScheduleTypeSelector } from '../common/ScheduleTypeSelector';
 import { BetaAlert } from '../common/BetaAlert';
+import { AdvancedSettings } from '../common/AdvancedSettings';
 
 export default withLimitToBE(ItemView);
 
@@ -61,6 +62,7 @@ function ItemView() {
     type: item.type,
     version: item.version,
     scheduledTime: item.scheduledTime,
+    registryId: item.registryId,
   };
 
   const environmentsCount = Object.keys(
@@ -140,6 +142,18 @@ function ItemView() {
                     ) : (
                       <ScheduleTypeSelector />
                     )}
+
+                    <AdvancedSettings
+                      onBlur={handleBlur}
+                      value={
+                        isScheduleActive
+                          ? item.registryId
+                          : values.registryId || 0
+                      }
+                      onChange={(value) => setFieldValue('registryId', value)}
+                      imageVersion={item.version}
+                      disabled={isScheduleActive}
+                    />
 
                     <div className="form-group">
                       <div className="col-sm-12">

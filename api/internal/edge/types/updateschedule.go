@@ -33,6 +33,8 @@ type (
 		Created int64 `json:"created" example:"1564897200"`
 		// Created by user id
 		CreatedBy portaineree.UserID `json:"createdBy" example:"1"`
+		// ID of registry
+		RegistryID portaineree.RegistryID `json:"registryId" example:"1"`
 
 		EnvironmentsPreviousVersions map[portaineree.EndpointID]string `json:"environmentsPreviousVersions"`
 	}
