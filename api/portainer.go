@@ -1990,7 +1990,9 @@ const (
 )
 
 // List of supported features
-var SupportedFeatureFlags = []featureflags.Feature{}
+var SupportedFeatureFlags = []featureflags.Feature{
+	"fdo",
+}
 
 const (
 	_ AuthenticationMethod = iota
