@@ -8,6 +8,7 @@ import { IngressesDatatableView } from '@/react/kubernetes/ingresses/IngressData
 import { CreateIngressView } from '@/react/kubernetes/ingresses/CreateIngressView';
 import { LogView as ApplicationLogView } from '@/react/kubernetes/applications/LogsView';
 import { LogView as StackLogView } from '@/react/kubernetes/stacks/LogsView';
+import { DashboardView } from '@/react/kubernetes/DashboardView';
 import { ServicesView } from '@/react/kubernetes/ServicesView';
 
 export const viewsModule = angular
@@ -36,4 +37,8 @@ export const viewsModule = angular
   .component(
     'kubernetesIngressesCreateView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(CreateIngressView))), [])
+  )
+  .component(
+    'kubernetesDashboardView',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(DashboardView))), [])
   ).name;
