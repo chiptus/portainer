@@ -11,11 +11,12 @@ import { commandsTabs } from '@/react/edge/components/EdgeScriptForm/scripts';
 import { k8sInstallTitles } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/types';
 import { confirmDisassociate } from '@/react/portainer/environments/ItemView/ConfirmDisassociateModel';
 import { buildConfirmButton } from '@@/modals/utils';
+import { getInfo } from '@/docker/services/system.service';
 
 angular.module('portainer.app').controller('EndpointController', EndpointController);
 
 /* @ngInject */
-function EndpointController($async, $scope, $state, $transition$, $filter, clipboard, EndpointService, GroupService, StateManager, Notifications, Authentication, SettingsService) {
+function EndpointController($async, $scope, $state, $transition$, $filter, clipboard, EndpointService, GroupService, Notifications, Authentication, SettingsService) {
   $scope.onChangeCheckInInterval = onChangeCheckInInterval;
   $scope.setFieldValue = setFieldValue;
   $scope.onChangeTags = onChangeTags;
@@ -271,8 +272,17 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
       try {
         const [endpoint, groups, settings] = await Promise.all([EndpointService.endpoint($transition$.params().id), GroupService.groups(), SettingsService.settings()]);
 
-        const applicationState = StateManager.getState();
-        $scope.isDockerStandaloneEnv = applicationState.endpoint.mode.provider === 'DOCKER_STANDALONE';
+        // Check if the environment is docker standalone, to decide whether to show the GPU insights box
+        const isDockerEnvironment = endpoint.Type === PortainerEndpointTypes.DockerEnvironment;
+        if (isDockerEnvironment) {
+          try {
+            const dockerInfo = await getInfo(endpoint.Id);
+            const isDockerSwarmEnv = dockerInfo.Swarm && dockerInfo.Swarm.NodeID;
+            $scope.isDockerStandaloneEnv = !isDockerSwarmEnv;
+          } catch (err) {
+            // $scope.isDockerStandaloneEnv is only used to show the "GPU insights box", so fail quietly on error
+          }
+        }
 
         if (endpoint.URL.indexOf('unix://') === 0 || endpoint.URL.indexOf('npipe://') === 0) {
           $scope.endpointType = 'local';
