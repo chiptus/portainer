@@ -2,15 +2,15 @@ package docker
 
 import (
 	"context"
-	dockerclient "github.com/portainer/portainer-ee/api/docker/client"
 	"strings"
+
+	dockerclient "github.com/portainer/portainer-ee/api/docker/client"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/docker/images"
 
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -102,7 +102,7 @@ func (c *ContainerService) Recreate(ctx context.Context, endpoint *portaineree.E
 
 	// 4. create a new container
 	log.Debug().Str("container", strings.Split(container.Name, "/")[1]).Msg("starting to create a new container")
-	create, err := cli.ContainerCreate(ctx, container.Config, container.HostConfig, &network.NetworkingConfig{EndpointsConfig: container.NetworkSettings.Networks}, nil, container.Name)
+	create, err := cli.ContainerCreate(ctx, container.Config, container.HostConfig, nil, nil, container.Name)
 
 	c.sr.push(func() {
 		log.Debug().Str("container_id", create.ID).Msg("removing the new container")
@@ -116,15 +116,16 @@ func (c *ContainerService) Recreate(ctx context.Context, endpoint *portaineree.E
 
 	newContainerId := create.ID
 
-	// 5. network connect with bridge(not sure)
-	log.Debug().Str("container_id", newContainerId).Msg("starting to connect network to container")
-	networkName := container.HostConfig.NetworkMode.NetworkName()
-	if networkName == "default" {
-		networkName = "bridge"
-	}
-	err = cli.NetworkConnect(ctx, networkName, newContainerId, nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "connect container network error")
+	// 5. connect to networks
+	// docker can connect to only one network at creation, so we need to connect to networks after creation
+	// see https://github.com/moby/moby/issues/17750
+	log.Debug().Str("container_id", newContainerId).Msg("connecting networks to container")
+	networks := container.NetworkSettings.Networks
+	for _, network := range networks {
+		err = cli.NetworkConnect(ctx, network.NetworkID, newContainerId, network)
+		if err != nil {
+			return nil, errors.Wrap(err, "connect container network error")
+		}
 	}
 
 	// 6. start the new container
