@@ -231,8 +231,14 @@ func (m *Migrator) initMigrations() {
 	m.addMigrations("2.17", m.migrateDBVersionToDB80)
 	m.addMigrations("2.18", m.migrateDBVersionToDB90)
 
-	// Add new migrations below...
-	// One function per migration, each versions migration funcs in the same file.
+	// Add new migrations above...
+
+	// !NOTE: One function per migration, each versions migration funcs should be placed in the same file.
+	// Don't create one function called from here that calls many other migration functions for the same version.
+	// A pattern we have done in the past.
+	// i.e.
+	// This => m.addMigrations("2.18", migrationFunc1, migrationFunc2, migrationFunc3 ...)
+	// Not  => m.addMigrations("2.18", migrationFunc1And2And3)
 
 	// !NOTE: refreshRBACRoles is now always called (see Always below)
 	// !      there is no need to add it to the migrations list above

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Masterminds/semver"
 	"github.com/google/go-cmp/cmp"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/boltdb"
@@ -74,7 +75,6 @@ func TestMigrateData(t *testing.T) {
 		}
 
 		store.VersionService.UpdateVersion(&v)
-
 		store.MigrateData()
 
 		testVersion(store, v.SchemaVersion, t)
@@ -121,9 +121,11 @@ func TestMigrateData(t *testing.T) {
 		migratorParams := store.newMigratorParameters(v)
 		m := migrator.NewMigrator(migratorParams)
 		latestMigrations := m.LatestMigrations()
-		v.MigratorCount = len(latestMigrations.MigrationFuncs)
 
-		store.VersionService.UpdateVersion(v)
+		if latestMigrations.Version.Equal(semver.MustParse(portaineree.APIVersion)) {
+			v.MigratorCount = len(latestMigrations.MigrationFuncs)
+			store.VersionService.UpdateVersion(v)
+		}
 
 		store.MigrateData()
 
@@ -131,7 +133,7 @@ func TestMigrateData(t *testing.T) {
 		// If the backup file is not blank, then it means a backup was created.  We don't want that because we
 		// only create a backup when the version changes.
 		backupfile, err := store.LatestEditionBackup()
-		if err == nil && backupfile != "" {
+		if err == nil || backupfile != "" {
 			t.Errorf("Backup file should not exist for dirty database")
 		}
 	})
@@ -140,25 +142,19 @@ func TestMigrateData(t *testing.T) {
 		_, store, teardown := MustNewTestStore(t, true, false)
 		defer teardown()
 
-		// Set migrator the count to match our migrations array (simulate no changes).
+		// Set migrator count very large to simulate changes
 		// Should not create a backup
 		v, err := store.VersionService.Version()
-
-		migratorParams := store.newMigratorParameters(v)
-		m := migrator.NewMigrator(migratorParams)
-		latestMigrations := m.LatestMigrations()
-		v.MigratorCount = len(latestMigrations.MigrationFuncs) + 1
-
+		v.MigratorCount = 1000
 		store.VersionService.UpdateVersion(v)
-
 		store.MigrateData()
 
 		// If you get an error, it usually means that the backup folder doesn't exist (no backups). Expected!
 		// If the backup file is not blank, then it means a backup was created.  We don't want that because we
 		// only create a backup when the version changes.
 		backupfile, err := store.LatestEditionBackup()
-		if err == nil && backupfile == "" {
-			t.Errorf("Backup file should exist database")
+		if err != nil && backupfile == "" {
+			t.Errorf("DB backup should exist and there should be no error")
 		}
 	})
 }
