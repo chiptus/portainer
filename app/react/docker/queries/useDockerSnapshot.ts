@@ -1,4 +1,5 @@
 import { useQuery } from 'react-query';
+import { AxiosError } from 'axios';
 
 import { withError } from '@/react-tools/react-query';
 import axios, { parseAxiosError } from '@/portainer/services/axios';
@@ -29,6 +30,16 @@ export async function getEnvironmentSnapshot(environmentId: Environment['Id']) {
     );
     return parseViewModel(data);
   } catch (e) {
+    const statusCode = parseStatusCode(e as AxiosError);
+
+    if (statusCode === 404) {
+      return null;
+    }
+
     throw parseAxiosError(e as Error);
   }
+}
+
+function parseStatusCode(e: AxiosError) {
+  return e.response?.status;
 }
