@@ -27,7 +27,7 @@ export const componentsModule = angular
   )
   .component(
     'edgeGroupsSelector',
-    r2a(withReactQuery(EdgeGroupsSelector), [
+    r2a(withUIRouter(withReactQuery(EdgeGroupsSelector)), [
       'onChange',
       'value',
       'error',
