@@ -52,7 +52,7 @@ export function Annotations({
               message={
                 <div className="vertical-center">
                   <span>
-                    You can specify{' '}
+                    Allows specifying of{' '}
                     <a
                       href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/"
                       target="_black"
@@ -70,7 +70,6 @@ export function Annotations({
                   </span>
                 </div>
               }
-              setHtmlMessage
             />
           )}
         </div>
