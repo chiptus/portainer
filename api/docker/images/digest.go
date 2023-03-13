@@ -2,21 +2,17 @@ package images
 
 import (
 	"context"
-	"github.com/docker/docker/api/types"
-	"github.com/portainer/portainer-ee/api/docker/client"
-	"github.com/rs/zerolog/log"
 	"strings"
 	"time"
 
+	"github.com/portainer/portainer-ee/api/docker/client"
+
 	"github.com/containers/image/v5/docker"
 	imagetypes "github.com/containers/image/v5/types"
+	"github.com/docker/docker/api/types"
 	"github.com/opencontainers/go-digest"
-	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
-)
-
-var (
-	_imageLocalDigestCache = cache.New(5*time.Second, 5*time.Second)
+	"github.com/rs/zerolog/log"
 )
 
 // Options holds docker registry object options
@@ -80,7 +76,9 @@ func (c *DigestClient) RemoteDigest(image Image) (digest.Digest, error) {
 				return rmDigest, nil
 			}
 		}
+
 		log.Debug().Err(err).Msg("get remote digest error")
+
 		return "", errors.Wrap(err, "Cannot get image digest from HEAD request")
 	}
 
@@ -91,6 +89,7 @@ func ParseLocalImage(inspect types.ImageInspect) (*Image, error) {
 	if IsLocalImage(inspect) || IsDanglingImage(inspect) {
 		return nil, errors.New("the image is not regular")
 	}
+
 	fromRepoDigests, err := ParseImage(ParseImageOptions{
 		// including image name but no tag
 		Name: inspect.RepoDigests[0],
@@ -102,6 +101,7 @@ func ParseLocalImage(inspect types.ImageInspect) (*Image, error) {
 	if IsNoTagImage(inspect) {
 		return &fromRepoDigests, nil
 	}
+
 	fromRepoTags, err := ParseImage(ParseImageOptions{
 		Name: inspect.RepoTags[0],
 	})
@@ -110,6 +110,7 @@ func ParseLocalImage(inspect types.ImageInspect) (*Image, error) {
 	}
 
 	fromRepoDigests.Tag = fromRepoTags.Tag
+
 	return &fromRepoDigests, nil
 }
 
@@ -123,6 +124,7 @@ func ParseRepoDigests(repoDigests []string) []digest.Digest {
 
 		digests = append(digests, d)
 	}
+
 	return digests
 }
 
@@ -130,12 +132,11 @@ func ParseRepoTags(repoTags []string) []*Image {
 	images := make([]*Image, 0)
 	for _, repoTag := range repoTags {
 		image := ParseRepoTag(repoTag)
-		if image == nil {
-			continue
+		if image != nil {
+			images = append(images, image)
 		}
-
-		images = append(images, image)
 	}
+
 	return images
 }
 
@@ -147,8 +148,10 @@ func ParseRepoDigest(repoDigest string) digest.Digest {
 	d, err := digest.Parse(strings.Split(repoDigest, "@")[1])
 	if err != nil {
 		log.Warn().Msgf("Skip invalid repo digest item: %s [error: %v]", repoDigest, err)
+
 		return ""
 	}
+
 	return d
 }
 
@@ -156,21 +159,26 @@ func ParseRepoTag(repoTag string) *Image {
 	if repoTag == "" {
 		return nil
 	}
+
 	image, err := ParseImage(ParseImageOptions{
 		Name: repoTag,
 	})
 	if err != nil {
 		log.Warn().Err(err).Str("repoTag", repoTag).Msg("RepoTag cannot be parsed.")
+
 		return nil
 	}
+
 	return &image
 }
 
 func (c *DigestClient) timeoutContext() (context.Context, context.CancelFunc) {
 	ctx := context.Background()
 	var cancel context.CancelFunc = func() {}
+
 	if c.opts.Timeout > 0 {
 		ctx, cancel = context.WithTimeout(ctx, c.opts.Timeout)
 	}
+
 	return ctx, cancel
 }

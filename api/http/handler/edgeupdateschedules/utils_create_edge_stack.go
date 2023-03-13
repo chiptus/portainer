@@ -141,13 +141,11 @@ func getDeploymentConfig(endpointType portaineree.EndpointType, assetsPath strin
 		config.Type = portaineree.EdgeStackDeploymentCompose
 		config.TemplatePath = path.Join(assetsPath, mustacheTemplateDir, mustacheUpdateEdgeStackTemplateFile)
 		config.Path = filesystem.ComposeFileDefaultName
-		break
 
 	case portaineree.EdgeAgentOnNomadEnvironment:
 		config.Type = portaineree.EdgeStackDeploymentNomad
 		config.TemplatePath = path.Join(assetsPath, mustacheTemplateDir, mustacheUpdateNomadEdgeStackTemplateFile)
 		config.Path = eefs.NomadJobFileDefaultName
-		break
 
 	default:
 		return config, errors.New("endpoint type is not supported")

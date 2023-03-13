@@ -37,17 +37,19 @@ func NewClientFactory(signatureService portaineree.DigitalSignatureService, reve
 // a specific environment(endpoint) configuration. The nodeName parameter can be used
 // with an agent enabled environment(endpoint) to target a specific node in an agent cluster.
 func (factory *ClientFactory) CreateClient(endpoint *portaineree.Endpoint, nodeName string, timeout *time.Duration) (*client.Client, error) {
-	if endpoint.Type == portaineree.AzureEnvironment {
+	switch endpoint.Type {
+	case portaineree.AzureEnvironment:
 		return nil, errUnsupportedEnvironmentType
-	} else if endpoint.Type == portaineree.AgentOnDockerEnvironment {
+	case portaineree.AgentOnDockerEnvironment:
 		return createAgentClient(endpoint, factory.signatureService, nodeName, timeout)
-	} else if endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment {
+	case portaineree.EdgeAgentOnDockerEnvironment:
 		return createEdgeClient(endpoint, factory.signatureService, factory.reverseTunnelService, nodeName, timeout)
 	}
 
 	if strings.HasPrefix(endpoint.URL, "unix://") || strings.HasPrefix(endpoint.URL, "npipe://") {
 		return createLocalClient(endpoint)
 	}
+
 	return createTCPClient(endpoint, timeout)
 }
 

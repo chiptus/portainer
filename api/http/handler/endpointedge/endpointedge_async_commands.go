@@ -111,8 +111,7 @@ func (handler *Handler) createImageCommand(w http.ResponseWriter, r *http.Reques
 		return httperror.BadRequest("Invalid request payload", nil)
 	}
 
-	switch payload.ImageOperation {
-	case portaineree.EdgeAsyncImageOperationDelete:
+	if payload.ImageOperation == portaineree.EdgeAsyncImageOperationDelete {
 		handler.EdgeService.DeleteImageCommand(endpoint.ID, payload.ImageName, payload.ImageRemoveOptions)
 	}
 
@@ -135,8 +134,7 @@ func (handler *Handler) createVolumeCommand(w http.ResponseWriter, r *http.Reque
 		return httperror.BadRequest("Invalid request payload", nil)
 	}
 
-	switch payload.VolumeOperation {
-	case portaineree.EdgeAsyncVolumeOperationDelete:
+	if payload.VolumeOperation == portaineree.EdgeAsyncVolumeOperationDelete {
 		err = handler.EdgeService.DeleteVolumeCommand(endpoint.ID, payload.VolumeName, payload.ForceRemove)
 	}
 

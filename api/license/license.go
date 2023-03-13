@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/portainer/liblicense"
 	"github.com/portainer/liblicense/master"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -115,6 +115,7 @@ func (service *Service) AddLicense(licenseKey string) (*liblicense.PortainerLice
 	}
 
 	service.info = service.aggregateLicenses(licenses)
+
 	return license, nil
 }
 
@@ -223,10 +224,11 @@ func (service *Service) aggregateLicenses(licenses []liblicense.PortainerLicense
 		return &portaineree.LicenseInfo{Valid: false}
 	}
 
-	nodes := 0
 	var expiresAt time.Time
-	company := ""
 	var licenseType liblicense.PortainerLicenseType
+
+	nodes := 0
+	company := ""
 	hasValidLicenses := false
 
 	for _, license := range licenses {
@@ -235,13 +237,14 @@ func (service *Service) aggregateLicenses(licenses []liblicense.PortainerLicense
 		if isExpiredOrRevoked(l) {
 			continue
 		}
+
 		hasValidLicenses = true
 
 		if l.Company != "" {
 			company = l.Company
 		}
 
-		nodes = nodes + l.Nodes
+		nodes += l.Nodes
 
 		licenseExpiresAt := licenseExpiresAt(l)
 		if licenseExpiresAt.Before(expiresAt) || expiresAt.IsZero() {

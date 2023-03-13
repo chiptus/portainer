@@ -4,7 +4,8 @@ import "time"
 
 type (
 	PodSecurityRuleID int
-	PodSecurityRule   struct {
+
+	PodSecurityRule struct {
 		ID                       PodSecurityRuleID                   `json:"id"`
 		Enabled                  bool                                `json:"enabled"`
 		EndpointID               int                                 `json:"endPointID"`
@@ -24,15 +25,19 @@ type (
 		SecComp                  PodSecuritySecComp                  `json:"secComp"`
 		ForbiddenSysctlsList     PodSecurityForbiddenSysctlsList     `json:"forbiddenSysctlsList"`
 	}
+
 	PodSecurityAllowPrivilegeEscalation struct {
 		Enabled bool `json:"enabled"`
 	}
+
 	PodSecurityReadOnlyRootFileSystem struct {
 		Enabled bool `json:"enabled"`
 	}
+
 	PodSecurityPrivilegedContainers struct {
 		Enabled bool `json:"enabled"`
 	}
+
 	PodSecurityHostNamespaces struct {
 		Enabled bool `json:"enabled"`
 	}
@@ -43,6 +48,7 @@ type (
 		Max         int  `json:"max"`
 		Min         int  `json:"min"`
 	}
+
 	PodSecurityVolumeTypes struct {
 		Enabled      bool     `json:"enabled"`
 		AllowedTypes []FSType `json:"allowedTypes"`
@@ -54,40 +60,48 @@ type (
 		PathPrefix string `json:"pathPrefix"`
 		Readonly   bool   `json:"readonly"`
 	}
+
 	PodSecurityHostFilesystem struct {
 		Enabled      bool                      `json:"enabled"`
 		AllowedPaths []PodSecurityAllowedPaths `json:"allowedPaths"`
 	}
+
 	PodSecurityAllowFlexVolumes struct {
 		Enabled        bool     `json:"enabled"`
 		AllowedVolumes []string `json:"allowedVolumes"`
 	}
+
 	PodSecurityRunAsUser struct {
 		Type    RunAsUserStrategy    `json:"type"`
 		Idrange []PodSecurityIdrange `json:"idrange"`
 	}
+
 	PodSecurityIdrange struct {
 		Max int `json:"max"`
 		Min int `json:"min"`
 	}
+
 	RunAsUserStrategy string
 
 	PodSecurityRunAsGroup struct {
 		Type    RunAsGroupStrategy   `json:"type"`
 		Idrange []PodSecurityIdrange `json:"idrange"`
 	}
+
 	RunAsGroupStrategy string
 
 	PodSecuritySupplementalGroups struct {
 		Type    SupplementalGroupsStrategyType `json:"type"`
 		Idrange []PodSecurityIdrange           `json:"idrange"`
 	}
+
 	SupplementalGroupsStrategyType string
 
 	PodSecurityFsGroups struct {
 		Type    FSGroupStrategyType  `json:"type"`
 		Idrange []PodSecurityIdrange `json:"idrange"`
 	}
+
 	FSGroupStrategyType string
 
 	PodSecurityUsers struct {
@@ -97,37 +111,45 @@ type (
 		SupplementalGroups PodSecuritySupplementalGroups `json:"supplementalGroups"`
 		FsGroups           PodSecurityFsGroups           `json:"fsGroups"`
 	}
+
 	PodSecurityCapabilities struct {
 		Enabled                  bool     `json:"enabled"`
 		AllowedCapabilities      []string `json:"allowedCapabilities"`
 		RequiredDropCapabilities []string `json:"requiredDropCapabilities"`
 	}
+
 	PodSecurityAllowedCapabilities struct {
 		Level string `json:"level"`
 		Role  string `json:"role"`
 		Type  string `json:"type"`
 		User  string `json:"user"`
 	}
+
 	PodSecuritySelinux struct {
 		Enabled             bool                             `json:"enabled"`
 		AllowedCapabilities []PodSecurityAllowedCapabilities `json:"allowedCapabilities"`
 	}
+
 	PodSecurityAllowProcMount struct {
 		Enabled       bool   `json:"enabled"`
 		ProcMountType string `json:"procMountType"`
 	}
+
 	PodSecurityAppArmour struct {
 		Enabled       bool     `json:"enabled"`
 		AppArmourType []string `json:"AppArmorType"`
 	}
+
 	PodSecuritySecComp struct {
 		Enabled     bool     `json:"enabled"`
 		SecCompType []string `json:"secCompType"`
 	}
+
 	PodSecurityForbiddenSysctlsList struct {
 		Enabled                  bool     `json:"enabled"`
 		RequiredDropCapabilities []string `json:"requiredDropCapabilities"`
 	}
+
 	PodSecurityConstraintCommon struct {
 		APIVersion string `yaml:"apiVersion"`
 		Kind       string `yaml:"kind"`
@@ -179,6 +201,7 @@ const (
 	Ephemeral             FSType = "ephemeral"
 	All                   FSType = "*"
 )
+
 const (
 	// RunAsUserStrategyMustRunAs means that container must run as a particular uid.
 	RunAsUserStrategyMustRunAs RunAsUserStrategy = "MustRunAs"
@@ -187,6 +210,7 @@ const (
 	// RunAsUserStrategyRunAsAny means that container may make requests for any uid.
 	RunAsUserStrategyRunAsAny RunAsUserStrategy = "RunAsAny"
 )
+
 const (
 	// FSGroupStrategyMayRunAs means that container does not need to have FSGroup of X applied.
 	// However, when FSGroups are specified, they have to fall in the defined range.
@@ -196,6 +220,7 @@ const (
 	// FSGroupStrategyRunAsAny means that container may make requests for any FSGroup labels.
 	FSGroupStrategyRunAsAny FSGroupStrategyType = "RunAsAny"
 )
+
 const (
 	// RunAsGroupStrategyMayRunAs means that container does not need to run with a particular gid.
 	// However, when RunAsGroup are specified, they have to fall in the defined range.
@@ -205,6 +230,7 @@ const (
 	// RunAsUserStrategyRunAsAny means that container may make requests for any gid.
 	RunAsGroupStrategyRunAsAny RunAsGroupStrategy = "RunAsAny"
 )
+
 const (
 	// SupplementalGroupsStrategyMayRunAs means that container does not need to run with a particular gid.
 	// However, when gids are specified, they have to fall in the defined range.
@@ -231,9 +257,10 @@ var PodSecurityConstraintsMap = map[string]string{
 	"K8sPSPSeccomp":                "seccomp",
 	"K8sPSPSELinuxV2":              "selinux",
 	"K8sPSPAllowedUsers":           "users",
-	"K8sPSPVolumeTypes":            "volumes"}
+	"K8sPSPVolumeTypes":            "volumes",
+}
 
-var (
+const (
 	GateKeeperFile                   = "gatekeeper.yaml"
 	GateKeeperExcludedNamespacesFile = "excluded-namespaces.yaml"
 	GateKeeperNameSpace              = "gatekeeper-system"

@@ -28,9 +28,9 @@ const (
 )
 
 var (
-	_statusCache  = cache.New(24*time.Hour, 24*time.Hour)
-	_remoteDigest = cache.New(5*time.Second, 5*time.Second)
-	_swarmID2Name = cache.New(5*time.Second, 5*time.Second)
+	statusCache       = cache.New(24*time.Hour, 24*time.Hour)
+	remoteDigestCache = cache.New(5*time.Second, 5*time.Second)
+	swarmID2NameCache = cache.New(5*time.Second, 5*time.Second)
 )
 
 // Status holds Docker image  analysis
@@ -47,15 +47,16 @@ func (c *DigestClient) ContainersImageStatus(ctx context.Context, containers []t
 	for i, ct := range containers {
 		var nodeName string
 		if swarmNodeId := ct.Labels[consts.SwarmNodeIdLabel]; swarmNodeId != "" {
-			if swarmNodeName, ok := _swarmID2Name.Get(swarmNodeId); ok {
+			if swarmNodeName, ok := swarmID2NameCache.Get(swarmNodeId); ok {
 				nodeName, _ = swarmNodeName.(string)
 			} else {
 				node, _, err := cli.NodeInspectWithRaw(ctx, ct.Labels[consts.SwarmNodeIdLabel])
 				if err != nil {
 					return Error
 				}
+
 				nodeName = node.Description.Hostname
-				_swarmID2Name.Set(swarmNodeId, nodeName, 0)
+				swarmID2NameCache.Set(swarmNodeId, nodeName, 0)
 			}
 		}
 
@@ -63,13 +64,17 @@ func (c *DigestClient) ContainersImageStatus(ctx context.Context, containers []t
 		if err != nil {
 			statuses[i] = Error
 			log.Warn().Str("containerId", ct.ID).Err(err).Msg("error when fetching image status for container")
+
 			continue
 		}
+
 		statuses[i] = s
+
 		if s == Outdated || s == Processing {
 			break
 		}
 	}
+
 	return FigureOut(statuses)
 }
 
@@ -77,9 +82,11 @@ func FigureOut(statuses []Status) Status {
 	if allMatch(statuses, Skipped) {
 		return Skipped
 	}
+
 	if allMatch(statuses, Preparing) {
 		return Preparing
 	}
+
 	if contains(statuses, Outdated) {
 		return Outdated
 	} else if contains(statuses, Processing) {
@@ -87,6 +94,7 @@ func FigureOut(statuses []Status) Status {
 	} else if contains(statuses, Error) {
 		return Error
 	}
+
 	return Updated
 }
 
@@ -106,6 +114,7 @@ func (c *DigestClient) ContainerImageStatus(ctx context.Context, containerID str
 	if strings.Contains(container.Image, "sha256") {
 		imageID = container.Image[strings.Index(container.Image, "sha256"):]
 	}
+
 	if imageID == "" {
 		return Skipped, nil
 	}
@@ -125,6 +134,7 @@ func (c *DigestClient) ContainerImageStatus(ctx context.Context, containerID str
 	if len(imageInspect.RepoDigests) > 0 {
 		digs = append(digs, ParseRepoDigests(imageInspect.RepoDigests)...)
 	}
+
 	if len(imageInspect.RepoTags) > 0 {
 		images = append(images, ParseRepoTags(imageInspect.RepoTags)...)
 	}
@@ -135,7 +145,8 @@ func (c *DigestClient) ContainerImageStatus(ctx context.Context, containerID str
 		return Error, err
 	}
 
-	_statusCache.Set(imageID, s, 0)
+	statusCache.Set(imageID, s, 0)
+
 	return s, err
 }
 
@@ -153,6 +164,7 @@ func (c *DigestClient) ServiceImageStatus(ctx context.Context, serviceID string,
 		log.Warn().Err(err).Str("serviceID", serviceID).Msg("cannot list container for the service")
 		return Error, err
 	}
+
 	nonExistedOrStoppedContainers := make([]types.Container, 0)
 	for _, container := range containers {
 		if container.State == "exited" || container.State == "stopped" {
@@ -169,9 +181,11 @@ func (c *DigestClient) ServiceImageStatus(ctx context.Context, serviceID string,
 		}
 		nonExistedOrStoppedContainers = append(nonExistedOrStoppedContainers, container)
 	}
+
 	if len(nonExistedOrStoppedContainers) == 0 {
 		return Preparing, nil
 	}
+
 	return c.ContainersImageStatus(ctx, nonExistedOrStoppedContainers, endpoint), nil
 }
 
@@ -179,6 +193,7 @@ func (c *DigestClient) checkStatus(images []*Image, digests []digest.Digest) (St
 	if digests == nil {
 		digests = make([]digest.Digest, 0)
 	}
+
 	for _, img := range images {
 		if img.Digest != "" && !slices.Contains(digests, img.Digest) {
 			log.Info().Str("localDigest", img.Domain).Msg("incoming local digest is not nil")
@@ -195,7 +210,7 @@ func (c *DigestClient) checkStatus(images []*Image, digests []digest.Digest) (St
 	for _, img := range images {
 		var remoteDigest digest.Digest
 		var err error
-		if rd, ok := _remoteDigest.Get(img.FullName()); ok {
+		if rd, ok := remoteDigestCache.Get(img.FullName()); ok {
 			remoteDigest, _ = rd.(digest.Digest)
 		}
 		if remoteDigest == "" {
@@ -205,7 +220,7 @@ func (c *DigestClient) checkStatus(images []*Image, digests []digest.Digest) (St
 				return Error, err
 			}
 		}
-		_remoteDigest.Set(img.FullName(), remoteDigest, 0)
+		remoteDigestCache.Set(img.FullName(), remoteDigest, 0)
 
 		log.Debug().Str("image", img.FullName()).Stringer("remote_digest", remoteDigest).
 			Int("local_digest_size", len(digests)).
@@ -228,30 +243,34 @@ func (c *DigestClient) checkStatus(images []*Image, digests []digest.Digest) (St
 			}
 		}
 	}
+
 	imageStatus = Outdated
+
 	return imageStatus, nil
 }
 
 func CachedResourceImageStatus(resourceID string) (Status, error) {
-	if s, ok := _statusCache.Get(resourceID); ok {
+	if s, ok := statusCache.Get(resourceID); ok {
 		return s.(Status), nil
 	}
+
 	return "", errors.Errorf("no image found in cache: %s", resourceID)
 }
 
 func CacheResourceImageStatus(resourceID string, status Status) {
-	_statusCache.Set(resourceID, status, 0)
+	statusCache.Set(resourceID, status, 0)
 }
 
 func CachedImageDigest(resourceID string) (Status, error) {
-	if s, ok := _statusCache.Get(resourceID); ok {
+	if s, ok := statusCache.Get(resourceID); ok {
 		return s.(Status), nil
 	}
+
 	return "", errors.Errorf("no image found in cache: %s", resourceID)
 }
 
 func EvictImageStatus(resourceID string) {
-	_statusCache.Delete(resourceID)
+	statusCache.Delete(resourceID)
 }
 
 func contains(statuses []Status, status Status) bool {
@@ -264,6 +283,7 @@ func contains(statuses []Status, status Status) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -277,5 +297,6 @@ func allMatch(statuses []Status, status Status) bool {
 			return false
 		}
 	}
+
 	return true
 }

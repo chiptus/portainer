@@ -137,8 +137,6 @@ func (service *Service) EdgeStackDeployed(environmentID portaineree.EndpointID, 
 		}
 
 	}()
-
-	return
 }
 
 // Schedules returns all schedules
@@ -200,7 +198,6 @@ func (service *Service) cleanRelation(id edgetypes.UpdateScheduleID) {
 			delete(service.idxActiveSchedules, endpointId)
 		}
 	}
-
 }
 
 func (service *Service) hasActiveSchedule(item *edgetypes.UpdateSchedule) bool {

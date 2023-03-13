@@ -14,16 +14,16 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
-	dockerclient "github.com/docker/docker/client"
-	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
-
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/docker/client"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	k "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer/api/filesystem"
+
+	dockerclient "github.com/docker/docker/client"
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -259,7 +259,7 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 	}
 
 	defer reader.Close()
-	io.Copy(ioutil.Discard, reader)
+	io.Copy(io.Discard, reader)
 
 	info, err := cli.Info(ctx)
 	if err != nil {

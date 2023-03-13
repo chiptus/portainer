@@ -23,6 +23,7 @@ func EdgeGroupRelatedEndpoints(edgeGroup *portaineree.EdgeGroup, endpoints []por
 		for _, group := range endpointGroups {
 			if endpoint.GroupID == group.ID {
 				endpointGroup = group
+
 				break
 			}
 		}
@@ -77,6 +78,7 @@ func edgeGroupRelatedToEndpoint(edgeGroup *portaineree.EdgeGroup, endpoint *port
 				return true
 			}
 		}
+
 		return false
 	}
 
@@ -84,10 +86,12 @@ func edgeGroupRelatedToEndpoint(edgeGroup *portaineree.EdgeGroup, endpoint *port
 	if endpointGroup.TagIDs != nil {
 		endpointTags = tag.Union(endpointTags, tag.Set(endpointGroup.TagIDs))
 	}
+
 	edgeGroupTags := tag.Set(edgeGroup.TagIDs)
 
 	if edgeGroup.PartialMatch {
 		intersection := tag.Intersection(endpointTags, edgeGroupTags)
+
 		return len(intersection) != 0
 	}
 

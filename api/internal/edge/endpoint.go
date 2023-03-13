@@ -74,7 +74,7 @@ func AddEnvironmentToEdgeGroups(dataStore dataservices.DataStore, endpoint *port
 		return errors.WithMessage(err, "Unable to retrieve edge stacks from database")
 	}
 
-	environmentGroup, err := dataStore.EndpointGroup().EndpointGroup(portaineree.EndpointGroupID(endpoint.GroupID))
+	environmentGroup, err := dataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
 	if err != nil {
 		return errors.WithMessage(err, "Unable to retrieve environment group from database")
 	}

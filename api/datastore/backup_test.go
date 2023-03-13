@@ -34,7 +34,7 @@ func TestStoreCreation(t *testing.T) {
 	defer teardown()
 
 	if store == nil {
-		t.Error("Expect to create a store")
+		t.Fatal("Expect to create a store")
 	}
 
 	v, err := store.VersionService.Version()

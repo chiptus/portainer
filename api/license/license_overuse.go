@@ -3,7 +3,6 @@ package license
 import (
 	"net/http"
 
-	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/liblicense"
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -11,6 +10,8 @@ import (
 	nodeutil "github.com/portainer/portainer-ee/api/internal/nodes"
 	"github.com/portainer/portainer-ee/api/internal/snapshot"
 	"github.com/portainer/portainer/pkg/libhelm/time"
+
+	"github.com/pkg/errors"
 )
 
 // NotOverused should be applied to a new endpoint provisioning,

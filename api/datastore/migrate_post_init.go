@@ -3,11 +3,12 @@ package datastore
 import (
 	"context"
 
-	"github.com/docker/docker/api/types"
 	portainer "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	dockerClient "github.com/portainer/portainer-ee/api/docker/client"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+
+	"github.com/docker/docker/api/types"
 	"github.com/rs/zerolog/log"
 )
 
@@ -17,11 +18,7 @@ type PostInitMigrator struct {
 	dataStore     dataservices.DataStore
 }
 
-func NewPostInitMigrator(
-	kubeFactory *cli.ClientFactory,
-	dockerFactory *dockerClient.ClientFactory,
-	dataStore dataservices.DataStore,
-) *PostInitMigrator {
+func NewPostInitMigrator(kubeFactory *cli.ClientFactory, dockerFactory *dockerClient.ClientFactory, dataStore dataservices.DataStore) *PostInitMigrator {
 	return &PostInitMigrator{
 		kubeFactory:   kubeFactory,
 		dockerFactory: dockerFactory,
@@ -44,9 +41,10 @@ func (migrator *PostInitMigrator) PostInitMigrateIngresses() error {
 	if err != nil {
 		return err
 	}
+
 	for i := range endpoints {
 		// Early exit if we do not need to migrate!
-		if endpoints[i].PostInitMigrations.MigrateIngresses == false {
+		if !endpoints[i].PostInitMigrations.MigrateIngresses {
 			return nil
 		}
 
@@ -67,10 +65,11 @@ func (migrator *PostInitMigrator) PostInitMigrateGPUs() {
 		log.Err(err).Msg("failure getting endpoints")
 		return
 	}
+
 	for i := range environments {
 		if environments[i].Type == portainer.DockerEnvironment {
-			// // Early exit if we do not need to migrate!
-			if environments[i].PostInitMigrations.MigrateGPUs == false {
+			// Early exit if we do not need to migrate!
+			if !environments[i].PostInitMigrations.MigrateGPUs {
 				return
 			}
 
@@ -102,6 +101,7 @@ func (migrator *PostInitMigrator) PostInitMigrateGPUs() {
 					log.Err(err).Msg("failed to inspect container")
 					return
 				}
+
 				deviceRequests := containerDetails.HostConfig.Resources.DeviceRequests
 				for _, deviceRequest := range deviceRequests {
 					if deviceRequest.Driver == "nvidia" {

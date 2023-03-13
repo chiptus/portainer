@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-var DefaultAgentVersion = portaineree.APIVersion
+const DefaultAgentVersion = portaineree.APIVersion
 
 func KaasAgentVersion() string {
 	// override the default agent version if the KAAS_AGENT_VERSION environment variable is set
@@ -226,13 +226,11 @@ func (kcl *KubeClient) DeployPortainerAgent() error {
 		}
 	}
 
-	if _, err = kcl.cli.AppsV1().Deployments(namespaceName).Create(
+	_, err = kcl.cli.AppsV1().Deployments(namespaceName).Create(
 		context.TODO(),
 		deployment,
 		metav1.CreateOptions{},
-	); err != nil {
-		return err
-	}
+	)
 
-	return nil
+	return err
 }

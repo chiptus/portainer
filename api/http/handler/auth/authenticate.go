@@ -282,13 +282,10 @@ func (handler *Handler) syncUserTeamsWithLDAPGroups(user *portaineree.User, sett
 			if err != nil {
 				return err
 			}
-		} else {
-			// If the user is deleted from LDAP group, he also needs to be removed from Portainer team
-			if teamMembershipExists(team.ID, userMemberships) {
-				err := handler.DataStore.TeamMembership().DeleteTeamMembershipByTeamIDAndUserID(team.ID, user.ID)
-				if err != nil {
-					return err
-				}
+		} else if teamMembershipExists(team.ID, userMemberships) { // If the user is deleted from LDAP group, he also needs to be removed from Portainer team
+			err := handler.DataStore.TeamMembership().DeleteTeamMembershipByTeamIDAndUserID(team.ID, user.ID)
+			if err != nil {
+				return err
 			}
 		}
 	}

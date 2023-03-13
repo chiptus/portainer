@@ -23,9 +23,7 @@ var (
 	errAdminPassExcludeAdminPassFile = errors.New("Cannot use --admin-password with --admin-password-file")
 )
 
-var (
-	envVarLicenseKey = "PORTAINER_LICENSE_KEY"
-)
+const envVarLicenseKey = "PORTAINER_LICENSE_KEY"
 
 // ParseFlags parse the CLI flags and return a portaineree.Flags struct
 func (*Service) ParseFlags(version string) (*portaineree.CLIFlags, error) {
@@ -82,6 +80,7 @@ func (*Service) ParseFlags(version string) (*portaineree.CLIFlags, error) {
 		if err != nil {
 			panic(err)
 		}
+
 		*flags.Assets = filepath.Join(filepath.Dir(ex), *flags.Assets)
 	}
 
@@ -90,7 +89,6 @@ func (*Service) ParseFlags(version string) (*portaineree.CLIFlags, error) {
 
 // ValidateFlags validates the values of the flags.
 func (*Service) ValidateFlags(flags *portaineree.CLIFlags) error {
-
 	displayDeprecationWarnings(flags)
 
 	err := validateEndpointURL(*flags.EndpointURL)
@@ -121,31 +119,38 @@ func displayDeprecationWarnings(flags *portaineree.CLIFlags) {
 }
 
 func validateEndpointURL(endpointURL string) error {
-	if endpointURL != "" {
-		if !strings.HasPrefix(endpointURL, "unix://") && !strings.HasPrefix(endpointURL, "tcp://") && !strings.HasPrefix(endpointURL, "npipe://") {
-			return errInvalidEndpointProtocol
-		}
+	if endpointURL == "" {
+		return nil
+	}
 
-		if strings.HasPrefix(endpointURL, "unix://") || strings.HasPrefix(endpointURL, "npipe://") {
-			socketPath := strings.TrimPrefix(endpointURL, "unix://")
-			socketPath = strings.TrimPrefix(socketPath, "npipe://")
-			if _, err := os.Stat(socketPath); err != nil {
-				if os.IsNotExist(err) {
-					return errSocketOrNamedPipeNotFound
-				}
-				return err
+	if !strings.HasPrefix(endpointURL, "unix://") && !strings.HasPrefix(endpointURL, "tcp://") && !strings.HasPrefix(endpointURL, "npipe://") {
+		return errInvalidEndpointProtocol
+	}
+
+	if strings.HasPrefix(endpointURL, "unix://") || strings.HasPrefix(endpointURL, "npipe://") {
+		socketPath := strings.TrimPrefix(endpointURL, "unix://")
+		socketPath = strings.TrimPrefix(socketPath, "npipe://")
+		if _, err := os.Stat(socketPath); err != nil {
+			if os.IsNotExist(err) {
+				return errSocketOrNamedPipeNotFound
 			}
+
+			return err
 		}
 	}
+
 	return nil
 }
 
 func validateSnapshotInterval(snapshotInterval string) error {
-	if snapshotInterval != "" {
-		_, err := time.ParseDuration(snapshotInterval)
-		if err != nil {
-			return errInvalidSnapshotInterval
-		}
+	if snapshotInterval == "" {
+		return nil
 	}
+
+	_, err := time.ParseDuration(snapshotInterval)
+	if err != nil {
+		return errInvalidSnapshotInterval
+	}
+
 	return nil
 }
