@@ -16,6 +16,10 @@ func (m *Migrator) migrateDBVersionToDB90() error {
 		return err
 	}
 
+	if err := m.updateCloudCredentials(); err != nil {
+		return err
+	}
+
 	return m.updateEdgeStackStatusForDB90()
 }
 
@@ -88,5 +92,24 @@ func (m *Migrator) updateEnableGpuManagementFeatures() error {
 			}
 		}
 	}
+	return nil
+}
+
+// updateCloudCredentials updates credentials with provider name 'microk8s' to have provider name 'ssh'
+func (m *Migrator) updateCloudCredentials() error {
+	cloudCredentials, err := m.cloudCredentialService.GetAll()
+	if err != nil {
+		return err
+	}
+
+	for _, cloudCredential := range cloudCredentials {
+		if credentialProvider := cloudCredential.Provider; credentialProvider == "microk8s" {
+			cloudCredential.Provider = "ssh"
+			if err := m.cloudCredentialService.Update(cloudCredential.ID, &cloudCredential); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
