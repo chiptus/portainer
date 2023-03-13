@@ -211,7 +211,7 @@ class StackRedeployGitFormController {
 
     this.formValues.AutoUpdate = parseAutoUpdateResponse(this.stack.AutoUpdate);
 
-    if (this.stack.AutoUpdate.Webhook) {
+    if (this.stack.AutoUpdate && this.stack.AutoUpdate.Webhook) {
       this.state.webhookId = this.stack.AutoUpdate.Webhook;
     }
 
@@ -221,17 +221,8 @@ class StackRedeployGitFormController {
       this.state.isEdit = true;
 
       if (this.stack.GitConfig.Authentication.GitCredentialID > 0) {
-        const selectedGitCredential = this.formValues.GitCredentials.find((x) => x.id === this.stack.GitConfig.Authentication.GitCredentialID);
-        if (selectedGitCredential) {
-          this.formValues.RepositoryGitCredentialID = selectedGitCredential.id;
-          this.formValues.RepositoryUsername = selectedGitCredential.username;
-          this.formValues.RepositoryPassword = '';
-        } else if (!this.formValues.RepositoryPassword) {
-          // If the git password is empty when the git authentication is enabled
-          // and git credential ID is not provided, stackID should be passed. It
-          // is because the value of the password field will be reset to empty by API
-          this.gitStackId = this.stack.Id;
-        }
+        this.gitStackId = this.stack.Id;
+        this.formValues.RepositoryGitCredentialID = this.stack.GitConfig.Authentication.GitCredentialID;
       }
     }
     this.savedFormValues = angular.copy(this.formValues);
