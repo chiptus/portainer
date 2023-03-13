@@ -10,7 +10,7 @@ export function DefaultRegistryDomain() {
   return (
     <span
       className={clsx({
-        'cm-strikethrough': settingsQuery.isSuccess && settingsQuery.data,
+        'line-through': settingsQuery.isSuccess && settingsQuery.data,
       })}
     >
       docker.io

@@ -10,7 +10,7 @@ export function DefaultRegistryName() {
   return (
     <span
       className={clsx({
-        'cm-strikethrough': settingsQuery.isSuccess && settingsQuery.data,
+        'line-through': settingsQuery.isSuccess && settingsQuery.data,
       })}
     >
       Docker Hub (anonymous)
