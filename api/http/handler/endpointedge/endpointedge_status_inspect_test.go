@@ -34,7 +34,7 @@ var endpointTestCases = []endpointTestCase{
 	{
 		portaineree.Endpoint{},
 		portaineree.EndpointRelation{},
-		http.StatusNotFound,
+		http.StatusForbidden,
 	},
 	{
 		portaineree.Endpoint{
@@ -47,7 +47,7 @@ var endpointTestCases = []endpointTestCase{
 		portaineree.EndpointRelation{
 			EndpointID: -1,
 		},
-		http.StatusNotFound,
+		http.StatusForbidden,
 	},
 	{
 		portaineree.Endpoint{
