@@ -10,7 +10,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 
-	cmap "github.com/orcaman/concurrent-map"
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
@@ -30,16 +29,17 @@ type (
 		reverseTunnelService portaineree.ReverseTunnelService
 		signatureService     portaineree.DigitalSignatureService
 		instanceID           string
-		endpointClients      cmap.ConcurrentMap
+		endpointClients      map[string]*KubeClient
 		endpointProxyClients *cache.Cache
 		AddrHTTPS            string
+		mu                   sync.Mutex
 	}
 
 	// KubeClient represent a service used to execute Kubernetes operations
 	KubeClient struct {
 		cli        kubernetes.Interface
 		instanceID string
-		lock       *sync.Mutex
+		mu         sync.Mutex
 	}
 )
 
@@ -58,7 +58,7 @@ func NewClientFactory(signatureService portaineree.DigitalSignatureService, reve
 		signatureService:     signatureService,
 		reverseTunnelService: reverseTunnelService,
 		instanceID:           instanceID,
-		endpointClients:      cmap.New(),
+		endpointClients:      make(map[string]*KubeClient),
 		endpointProxyClients: cache.New(timeout, timeout),
 		AddrHTTPS:            addrHTTPS,
 	}, nil
@@ -70,50 +70,57 @@ func (factory *ClientFactory) GetInstanceID() (instanceID string) {
 
 // Remove the cached kube client so a new one can be created
 func (factory *ClientFactory) RemoveKubeClient(endpointID portaineree.EndpointID) {
-	factory.endpointClients.Remove(strconv.Itoa(int(endpointID)))
+	factory.mu.Lock()
+	delete(factory.endpointClients, strconv.Itoa(int(endpointID)))
+	factory.mu.Unlock()
 }
 
 // GetKubeClient checks if an existing client is already registered for the environment(endpoint) and returns it if one is found.
 // If no client is registered, it will create a new client, register it, and returns it.
-func (factory *ClientFactory) GetKubeClient(endpoint *portaineree.Endpoint) (portaineree.KubeClient, error) {
+func (factory *ClientFactory) GetKubeClient(endpoint *portaineree.Endpoint) (*KubeClient, error) {
+	factory.mu.Lock()
+	defer factory.mu.Unlock()
+
 	key := strconv.Itoa(int(endpoint.ID))
-	client, ok := factory.endpointClients.Get(key)
+	client, ok := factory.endpointClients[key]
 	if !ok {
-		client, err := factory.createCachedAdminKubeClient(endpoint)
+		var err error
+
+		client, err = factory.createCachedAdminKubeClient(endpoint)
 		if err != nil {
 			return nil, err
 		}
 
-		factory.endpointClients.Set(key, client)
-		return client, nil
+		factory.endpointClients[key] = client
 	}
 
-	return client.(portaineree.KubeClient), nil
+	return client, nil
 }
 
 // GetProxyKubeClient retrieves a KubeClient from the cache. You should be
 // calling SetProxyKubeClient before first. It is normally, called the
 // kubernetes middleware.
-func (factory *ClientFactory) GetProxyKubeClient(endpointID, token string) (portaineree.KubeClient, bool) {
+func (factory *ClientFactory) GetProxyKubeClient(endpointID, token string) (*KubeClient, bool) {
 	client, ok := factory.endpointProxyClients.Get(endpointID + "." + token)
 	if !ok {
 		return nil, false
 	}
-	return client.(portaineree.KubeClient), true
+	return client.(*KubeClient), true
 }
 
 // SetProxyKubeClient stores a kubeclient in the cache.
-func (factory *ClientFactory) SetProxyKubeClient(endpointID, token string, cli portaineree.KubeClient) {
+func (factory *ClientFactory) SetProxyKubeClient(endpointID, token string, cli *KubeClient) {
 	factory.endpointProxyClients.Set(endpointID+"."+token, cli, 0)
 }
 
 // CreateKubeClientFromKubeConfig creates a KubeClient from a clusterID, and
 // Kubernetes config.
-func (factory *ClientFactory) CreateKubeClientFromKubeConfig(clusterID string, kubeConfig []byte) (portaineree.KubeClient, error) {
+func (factory *ClientFactory) CreateKubeClientFromKubeConfig(clusterID string, kubeConfig []byte) (*KubeClient, error) {
 	config, err := clientcmd.NewClientConfigFromBytes([]byte(kubeConfig))
 	if err != nil {
 		return nil, err
 	}
+
 	cliConfig, err := config.ClientConfig()
 	if err != nil {
 		return nil, err
@@ -127,28 +134,22 @@ func (factory *ClientFactory) CreateKubeClientFromKubeConfig(clusterID string, k
 		return nil, err
 	}
 
-	kubecli := &KubeClient{
+	return &KubeClient{
 		cli:        cli,
 		instanceID: factory.instanceID,
-		lock:       &sync.Mutex{},
-	}
-
-	return kubecli, nil
+	}, nil
 }
 
-func (factory *ClientFactory) createCachedAdminKubeClient(endpoint *portaineree.Endpoint) (portaineree.KubeClient, error) {
+func (factory *ClientFactory) createCachedAdminKubeClient(endpoint *portaineree.Endpoint) (*KubeClient, error) {
 	cli, err := factory.CreateClient(endpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	kubecli := &KubeClient{
+	return &KubeClient{
 		cli:        cli,
 		instanceID: factory.instanceID,
-		lock:       &sync.Mutex{},
-	}
-
-	return kubecli, nil
+	}, nil
 }
 
 // CreateClient returns a pointer to a new Clientset instance

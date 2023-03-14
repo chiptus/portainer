@@ -12,8 +12,8 @@ import (
 )
 
 func (kcl *KubeClient) NamespaceAccessPoliciesDeleteNamespace(ns string) error {
-	kcl.lock.Lock()
-	defer kcl.lock.Unlock()
+	kcl.mu.Lock()
+	defer kcl.mu.Unlock()
 
 	policies, err := kcl.GetNamespaceAccessPolicies()
 	if err != nil {
@@ -44,6 +44,7 @@ func (kcl *KubeClient) GetNamespaceAccessPolicies() (map[string]portaineree.K8sN
 	if err != nil {
 		return nil, err
 	}
+
 	return policies, nil
 }
 

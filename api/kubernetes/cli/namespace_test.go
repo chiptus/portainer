@@ -3,7 +3,6 @@ package cli
 import (
 	"context"
 	"strconv"
-	"sync"
 	"testing"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -22,7 +21,6 @@ func Test_ToggleSystemState(t *testing.T) {
 		kcl := &KubeClient{
 			cli:        kfake.NewSimpleClientset(&core.Namespace{ObjectMeta: meta.ObjectMeta{Name: nsName}}),
 			instanceID: "instance",
-			lock:       &sync.Mutex{},
 		}
 
 		err := kcl.ToggleSystemState(nsName, true)
@@ -40,12 +38,10 @@ func Test_ToggleSystemState(t *testing.T) {
 		kcl := &KubeClient{
 			cli:        kfake.NewSimpleClientset(),
 			instanceID: "instance",
-			lock:       &sync.Mutex{},
 		}
 
 		err := kcl.ToggleSystemState(nsName, true)
 		assert.Error(t, err)
-
 	})
 
 	t.Run("if called with the same state, should skip (exit without error)", func(t *testing.T) {
@@ -64,7 +60,6 @@ func Test_ToggleSystemState(t *testing.T) {
 						systemNamespaceLabel: strconv.FormatBool(test.isSystem),
 					}}}),
 					instanceID: "instance",
-					lock:       &sync.Mutex{},
 				}
 
 				err := kcl.ToggleSystemState(nsName, test.isSystem)
@@ -84,7 +79,6 @@ func Test_ToggleSystemState(t *testing.T) {
 		kcl := &KubeClient{
 			cli:        kfake.NewSimpleClientset(&core.Namespace{ObjectMeta: meta.ObjectMeta{Name: nsName}}),
 			instanceID: "instance",
-			lock:       &sync.Mutex{},
 		}
 
 		err := kcl.ToggleSystemState(nsName, true)
@@ -105,7 +99,6 @@ func Test_ToggleSystemState(t *testing.T) {
 		kcl := &KubeClient{
 			cli:        kfake.NewSimpleClientset(&core.Namespace{ObjectMeta: meta.ObjectMeta{Name: nsName}}),
 			instanceID: "instance",
-			lock:       &sync.Mutex{},
 		}
 
 		err := kcl.ToggleSystemState(nsName, false)
@@ -128,7 +121,6 @@ func Test_ToggleSystemState(t *testing.T) {
 				systemNamespaceLabel: "true",
 			}}}),
 			instanceID: "instance",
-			lock:       &sync.Mutex{},
 		}
 
 		err := kcl.ToggleSystemState(nsName, false)
@@ -162,7 +154,6 @@ func Test_ToggleSystemState(t *testing.T) {
 		kcl := &KubeClient{
 			cli:        kfake.NewSimpleClientset(namespace, config),
 			instanceID: "instance",
-			lock:       &sync.Mutex{},
 		}
 
 		err := kcl.ToggleSystemState(nsName, true)
@@ -178,9 +169,9 @@ func Test_ToggleSystemState(t *testing.T) {
 		expectedPolicies := map[string]portaineree.K8sNamespaceAccessPolicy{
 			"ns2": {UserAccessPolicies: portaineree.UserAccessPolicies{2: {RoleID: 0}}},
 		}
+
 		actualPolicies, err := kcl.GetNamespaceAccessPolicies()
 		assert.NoError(t, err, "failed to fetch policies")
 		assert.Equal(t, expectedPolicies, actualPolicies)
-
 	})
 }
