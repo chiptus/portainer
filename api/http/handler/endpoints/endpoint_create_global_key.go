@@ -55,9 +55,18 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 		return response.JSON(w, endpointCreateGlobalKeyResponse{endpointID})
 	}
 
-	payload, err := request.GetPayload[endpointCreateGlobalKeyPayload](r)
-	if err != nil {
-		return httperror.BadRequest("Invalid request payload", err)
+	var payload *endpointCreateGlobalKeyPayload
+	if r.Body != nil && r.ContentLength > 0 {
+		payload, err = request.GetPayload[endpointCreateGlobalKeyPayload](r)
+		if err != nil {
+			return httperror.BadRequest("Invalid request payload", err)
+		}
+	} else {
+		payload = &endpointCreateGlobalKeyPayload{
+			EnvironmentGroupID: 1,
+			EdgeGroupsIDs:      []portaineree.EdgeGroupID{},
+			TagsIDs:            []portaineree.TagID{},
+		}
 	}
 
 	settings, err := handler.DataStore.Settings().Settings()
