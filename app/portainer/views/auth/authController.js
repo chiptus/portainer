@@ -134,7 +134,7 @@ class AuthenticationController {
 
   async checkForEndpointsAsync() {
     try {
-      const endpoints = await getEnvironments({ limit: 1 });
+      const endpoints = await getEnvironments({ limit: 1, query: { excludeSnapshots: true } });
 
       if (endpoints.value.length === 0) {
         return 'portainer.wizard';
