@@ -2,7 +2,11 @@ import { useEffect, useState } from 'react';
 
 export type CopyTextType = string | (() => string);
 
-export function useCopy(copyText: CopyTextType, fadeDelay = 1000) {
+export function useCopy(
+  copyText: CopyTextType,
+  fadeDelay = 1000,
+  context: HTMLElement = document.body
+) {
   const [copiedSuccessfully, setCopiedSuccessfully] = useState(false);
 
   useEffect(() => {
@@ -27,11 +31,11 @@ export function useCopy(copyText: CopyTextType, fadeDelay = 1000) {
       // https://stackoverflow.com/a/57192718
       const inputEl = document.createElement('textarea');
       inputEl.value = text;
-      document.body.appendChild(inputEl);
+      context.appendChild(inputEl);
       inputEl.select();
       document.execCommand('copy');
       inputEl.hidden = true;
-      document.body.removeChild(inputEl);
+      context.removeChild(inputEl);
     }
     setCopiedSuccessfully(true);
   }

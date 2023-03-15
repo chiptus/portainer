@@ -1,4 +1,4 @@
-import { ComponentProps, PropsWithChildren } from 'react';
+import { ComponentProps, PropsWithChildren, useRef } from 'react';
 import clsx from 'clsx';
 import { Check, Copy } from 'lucide-react';
 
@@ -28,10 +28,15 @@ export function CopyButton({
   children,
   ...rest
 }: PropsWithChildren<Props>) {
-  const { handleCopy, copiedSuccessfully } = useCopy(copyText, fadeDelay);
+  const myRef = useRef(null);
+  const { handleCopy, copiedSuccessfully } = useCopy(
+    copyText,
+    fadeDelay,
+    myRef.current || undefined
+  );
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} ref={myRef}>
       <Button
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...rest}
