@@ -75,20 +75,25 @@ func NewService(dataStore dataservices.DataStore, fileService portainer.FileServ
 	}
 }
 
+// Deprecated: use AddStackCommandTx instead.
 func (service *Service) AddStackCommand(endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, scheduledTime string) error {
-	return service.storeUpdateStackCommand(endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpAdd, scheduledTime)
+	return service.storeUpdateStackCommand(service.dataStore, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpAdd, scheduledTime)
+}
+
+func (service *Service) AddStackCommandTx(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, scheduledTime string) error {
+	return service.storeUpdateStackCommand(tx, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpAdd, scheduledTime)
 }
 
 func (service *Service) ReplaceStackCommand(endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID) error {
-	return service.storeUpdateStackCommand(endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpReplace, "")
+	return service.storeUpdateStackCommand(service.dataStore, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpReplace, "")
 }
 
-func (service *Service) storeUpdateStackCommand(endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, commandOperation portaineree.EdgeAsyncCommandOperation, scheduledTime string) error {
+func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, commandOperation portaineree.EdgeAsyncCommandOperation, scheduledTime string) error {
 	if !endpoint.Edge.AsyncMode {
 		return nil
 	}
 
-	edgeStack, err := service.dataStore.EdgeStack().EdgeStack(edgeStackID)
+	edgeStack, err := tx.EdgeStack().EdgeStack(edgeStackID)
 	if err != nil {
 		return err
 	}
@@ -116,7 +121,7 @@ func (service *Service) storeUpdateStackCommand(endpoint *portaineree.Endpoint, 
 		return err
 	}
 
-	registryCredentials := registryutils.GetRegistryCredentialsForEdgeStack(service.dataStore, edgeStack, endpoint)
+	registryCredentials := registryutils.GetRegistryCredentialsForEdgeStack(tx, edgeStack, endpoint)
 
 	namespace := ""
 	if !edgeStack.UseManifestNamespaces {
@@ -145,16 +150,21 @@ func (service *Service) storeUpdateStackCommand(endpoint *portaineree.Endpoint, 
 		ScheduledTime: scheduledTime,
 	}
 
-	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
+	return tx.EdgeAsyncCommand().Create(asyncCommand)
 }
 
+// Deprecated: use RemoveStackCommandTx instead.
 func (service *Service) RemoveStackCommand(endpointID portaineree.EndpointID, edgeStackID portaineree.EdgeStackID) error {
-	endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
+	return service.RemoveJobCommandTx(service.dataStore, endpointID, portaineree.EdgeJobID(edgeStackID))
+}
+
+func (service *Service) RemoveStackCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeStackID portaineree.EdgeStackID) error {
+	endpoint, err := tx.Endpoint().Endpoint(endpointID)
 	if err != nil || !endpoint.Edge.AsyncMode {
 		return err
 	}
 
-	edgeStack, err := service.dataStore.EdgeStack().EdgeStack(edgeStackID)
+	edgeStack, err := tx.EdgeStack().EdgeStack(edgeStackID)
 	if err != nil {
 		return err
 	}
@@ -174,7 +184,7 @@ func (service *Service) RemoveStackCommand(endpointID portaineree.EndpointID, ed
 		Value:      stackStatus,
 	}
 
-	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
+	return tx.EdgeAsyncCommand().Create(asyncCommand)
 }
 
 func (service *Service) AddLogCommand(edgeStack *portaineree.EdgeStack, endpointID portaineree.EndpointID, tail int) error {
@@ -194,8 +204,13 @@ func (service *Service) AddLogCommand(edgeStack *portaineree.EdgeStack, endpoint
 	return service.dataStore.EdgeAsyncCommand().Create(cmd)
 }
 
+// Deprecated: use AddJobCommandTx instead
 func (service *Service) AddJobCommand(endpointID portaineree.EndpointID, edgeJob portaineree.EdgeJob, fileContent []byte) error {
 	return service.storeUpdateJobCommand(service.dataStore, endpointID, edgeJob, fileContent, portaineree.EdgeAsyncCommandOpAdd)
+}
+
+func (service *Service) AddJobCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeJob portaineree.EdgeJob, fileContent []byte) error {
+	return service.storeUpdateJobCommand(tx, endpointID, edgeJob, fileContent, portaineree.EdgeAsyncCommandOpAdd)
 }
 
 func (service *Service) ReplaceJobCommand(endpointID portaineree.EndpointID, edgeJob portaineree.EdgeJob, fileContent []byte) error {
@@ -233,6 +248,7 @@ func (service *Service) storeUpdateJobCommand(tx dataservices.DataStoreTx, endpo
 	return tx.EdgeAsyncCommand().Create(asyncCommand)
 }
 
+// Deprecated: use RemoveJobCommandTx instead
 func (service *Service) RemoveJobCommand(endpointID portaineree.EndpointID, edgeJobID portaineree.EdgeJobID) error {
 	endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
 	if err != nil || !endpoint.Edge.AsyncMode {
@@ -248,6 +264,23 @@ func (service *Service) RemoveJobCommand(endpointID portaineree.EndpointID, edge
 	}
 
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
+}
+
+func (service *Service) RemoveJobCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeJobID portaineree.EdgeJobID) error {
+	endpoint, err := tx.Endpoint().Endpoint(endpointID)
+	if err != nil || !endpoint.Edge.AsyncMode {
+		return err
+	}
+
+	asyncCommand := &portaineree.EdgeAsyncCommand{
+		Type:       portaineree.EdgeAsyncCommandTypeJob,
+		EndpointID: endpointID,
+		Timestamp:  time.Now(),
+		Operation:  portaineree.EdgeAsyncCommandOpRemove,
+		Path:       fmt.Sprintf("/edgejob/%d", edgeJobID),
+	}
+
+	return tx.EdgeAsyncCommand().Create(asyncCommand)
 }
 
 func (service *Service) StartContainerCommand(endpointID portaineree.EndpointID, name string, startOptions types.ContainerStartOptions) error {

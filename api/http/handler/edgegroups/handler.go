@@ -3,14 +3,15 @@ package edgegroups
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
-
+	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
+
+	"github.com/gorilla/mux"
 )
 
 // Handler is the HTTP handler used to handle environment(endpoint) group operations.
@@ -38,4 +39,16 @@ func NewHandler(bouncer *security.RequestBouncer, userActivityService portainere
 	h.Handle("/edge_groups/{id}", httperror.LoggerHandler(h.edgeGroupUpdate)).Methods(http.MethodPut)
 	h.Handle("/edge_groups/{id}", httperror.LoggerHandler(h.edgeGroupDelete)).Methods(http.MethodDelete)
 	return h
+}
+
+func txResponse(w http.ResponseWriter, r any, err error) *httperror.HandlerError {
+	if err != nil {
+		if httpErr, ok := err.(*httperror.HandlerError); ok {
+			return httpErr
+		}
+
+		return httperror.InternalServerError("Unexpected error", err)
+	}
+
+	return response.JSON(w, r)
 }

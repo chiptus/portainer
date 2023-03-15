@@ -11,7 +11,7 @@ import (
 	log "github.com/rs/zerolog/log"
 )
 
-func GetRegistryCredentialsForEdgeStack(dataStore dataservices.DataStore, stack *portaineree.EdgeStack, endpoint *portaineree.Endpoint) []portaineree.EdgeRegistryCredential {
+func GetRegistryCredentialsForEdgeStack(dataStore dataservices.DataStoreTx, stack *portaineree.EdgeStack, endpoint *portaineree.Endpoint) []portaineree.EdgeRegistryCredential {
 	registries := []portaineree.EdgeRegistryCredential{}
 	for _, id := range stack.Registries {
 		registry, _ := dataStore.Registry().Registry(id)
