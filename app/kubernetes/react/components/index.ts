@@ -12,6 +12,8 @@ import { CreateNamespaceRegistriesSelector } from '@/react/kubernetes/namespaces
 import { KubeApplicationAccessPolicySelector } from '@/react/kubernetes/applications/CreateView/KubeApplicationAccessPolicySelector';
 import { KubeApplicationDeploymentTypeSelector } from '@/react/kubernetes/applications/CreateView/KubeApplicationDeploymentTypeSelector';
 import { Annotations } from '@/react/kubernetes/annotations';
+import { YAMLReplace } from '@/react/kubernetes/common/YAMLReplace';
+import { withUserProvider } from '@/react/test-utils/withUserProvider';
 
 export const componentsModule = angular
   .module('portainer.kubernetes.react.components', [])
@@ -101,5 +103,13 @@ export const componentsModule = angular
       'ingressType',
       'handleUpdateAnnotations',
       'screen',
+    ])
+  )
+  .component(
+    'yamlReplace',
+    r2a(withUIRouter(withReactQuery(withUserProvider(YAMLReplace))), [
+      'yml',
+      'originalYml',
+      'disabled',
     ])
   ).name;
