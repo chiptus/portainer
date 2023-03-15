@@ -48,13 +48,14 @@ func (service *CloudClusterInfoService) Microk8sGetAddons(credential *models.Clo
 	nodeIP, _, _ := strings.Cut(endpoint.URL, ":")
 
 	// Gather current addon list.
-	config := &ssh.ClientConfig{
-		User: credential.Credentials["username"],
-		Auth: []ssh.AuthMethod{
-			ssh.Password(credential.Credentials["password"]),
-		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		Timeout:         time.Duration(5) * time.Second,
+	config, err := NewSSHConfig(
+		credential.Credentials["username"],
+		credential.Credentials["password"],
+		credential.Credentials["passphrase"],
+		credential.Credentials["privateKey"],
+	)
+	if err != nil {
+		log.Debug().Err(err).Msg("failed creating ssh credentials")
 	}
 
 	conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:22", nodeIP), config)
