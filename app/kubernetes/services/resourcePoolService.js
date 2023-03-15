@@ -39,8 +39,8 @@ export function KubernetesResourcePoolService(
   }
 
   // getting the quota for all namespaces is costly, so disable getting it by default
-  async function getAll({ getQuota = false }) {
-    const namespaces = await KubernetesNamespaceService.get();
+  async function getAll({ getQuota = false, refreshCache = false }) {
+    const namespaces = await KubernetesNamespaceService.get('', refreshCache);
     const pools = await Promise.all(
       _.map(namespaces, async (namespace) => {
         const name = namespace.Name;
