@@ -3,10 +3,8 @@ import { useMemo, useState } from 'react';
 import { AlertCircle, ArrowLeftRight, CheckCircle, Info } from 'lucide-react';
 import { partition } from 'lodash';
 
-import {
-  Credential,
-  CustomTemplate,
-} from '@/react/portainer/settings/sharedCredentials/types';
+import { Credential } from '@/react/portainer/settings/sharedCredentials/types';
+import { CustomTemplate } from '@/react/portainer/custom-templates/types';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { TextTip } from '@@/Tip/TextTip';
@@ -85,7 +83,11 @@ export function Microk8sCreateClusterForm({
 
   return (
     <>
-      <TextTip color="blue" icon={Info}>
+      <TextTip
+        color="blue"
+        icon={Info}
+        className="mt-2 !items-start [&>svg]:mt-0.5"
+      >
         <p>
           This will allow you to install MicroK8s Kubernetes to your own
           existing nodes, and will then deploy the Portainer agent to it.
@@ -116,7 +118,11 @@ export function Microk8sCreateClusterForm({
         // reduce the bottom gap so that the test connection button is closer to the input (but still below the front end validation errors)
         className="!mb-0 [&>div>.help-block>p]:!mb-0 [&>div>.help-block]:!mb-0"
       >
-        <TextTip color="blue" className="mt-2" icon={Info}>
+        <TextTip
+          color="blue"
+          className="mt-2 !items-start [&>svg]:mt-0.5"
+          icon={Info}
+        >
           Add a list of comma or line separated IP addresses. You can also add
           IP ranges by separating with a hyphen e.g. 192.168.1.1 - 192.168.1.10,
           192.168.100.1
@@ -159,7 +165,7 @@ export function Microk8sCreateClusterForm({
                   addressResults={addressResults}
                 />
               ) : (
-                'All nodes are reachable.'
+                `${addressResults.length} out of ${addressResults.length} nodes are reachable.`
               )}
             </TextTip>
           )}
@@ -170,7 +176,6 @@ export function Microk8sCreateClusterForm({
         tooltip="Kubernetes version running on the cluster."
         inputId="microk8s-kubernetesVersion"
         errors={errors.microk8s?.kubernetesVersion}
-        required
       >
         <Field
           name="microk8s.kubernetesVersion"

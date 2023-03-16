@@ -6,9 +6,13 @@ import { success as notifySuccess } from '@/portainer/services/notifications';
 import {
   CreateCredentialPayload,
   Credential,
-  CustomTemplate,
   UpdateCredentialPayload,
 } from './types';
+
+const queryKeys = {
+  allCredentials: 'cloudcredentials',
+  credential: (id: number) => ['cloudcredentials', `${id}`],
+};
 
 export async function createCredential(credential: CreateCredentialPayload) {
   try {
@@ -24,17 +28,6 @@ export async function getCloudCredentials() {
     return data;
   } catch (e) {
     throw parseAxiosError(e as Error, 'Unable to get credentials');
-  }
-}
-
-export async function getCustomTemplates() {
-  try {
-    const { data } = await axios.get<CustomTemplate[]>(
-      buildCustomTemplateUrl()
-    );
-    return data;
-  } catch (e) {
-    throw parseAxiosError(e as Error, 'Unable to get custom templates');
   }
 }
 
@@ -67,24 +60,19 @@ export async function updateCredential(
   }
 }
 
-export function useUpdateCredentialMutation() {
+export function useUpdateCredentialMutation(id: number) {
   const queryClient = useQueryClient();
 
   return useMutation(
-    ({
-      credential,
-      id,
-    }: {
-      credential: Partial<UpdateCredentialPayload>;
-      id: number;
-    }) => updateCredential(credential, id),
+    ({ credential }: { credential: Partial<UpdateCredentialPayload> }) =>
+      updateCredential(credential, id),
     {
       onSuccess: (_, data) => {
         notifySuccess(
           'Credentials updated successfully',
           data.credential.name || ''
         );
-        return queryClient.invalidateQueries(['cloudcredentials']);
+        return queryClient.invalidateQueries(queryKeys.credential(id));
       },
       meta: {
         error: {
@@ -102,7 +90,7 @@ export function useDeleteCredentialMutation() {
   return useMutation(deleteCredential, {
     onSuccess: (_, credential) => {
       notifySuccess('Credentials deleted successfully', credential.name);
-      return queryClient.invalidateQueries(['cloudcredentials']);
+      return queryClient.invalidateQueries(queryKeys.allCredentials);
     },
     meta: {
       error: {
@@ -114,7 +102,8 @@ export function useDeleteCredentialMutation() {
 }
 
 export function useCloudCredential(id: number) {
-  return useQuery(['cloudcredentials', id], () => getCloudCredential(id), {
+  return useQuery(queryKeys.credential(id), () => getCloudCredential(id), {
+    cacheTime: 0, // don't cache to make sure the Use SSH key authentication is correctly set
     meta: {
       error: {
         title: 'Failure',
@@ -125,7 +114,7 @@ export function useCloudCredential(id: number) {
 }
 
 export function useCloudCredentials() {
-  return useQuery('cloudcredentials', () => getCloudCredentials(), {
+  return useQuery(queryKeys.allCredentials, () => getCloudCredentials(), {
     staleTime: 20,
     meta: {
       error: {
@@ -159,24 +148,4 @@ function buildUrl(credentialId?: number) {
     url += `/${credentialId}`;
   }
   return url;
-}
-
-function buildCustomTemplateUrl(customTemplateId?: number) {
-  let url = 'custom_templates';
-  if (customTemplateId) {
-    url += `/${customTemplateId}`;
-  }
-  return url;
-}
-
-export function useCustomTemplates() {
-  return useQuery('customtemplates', () => getCustomTemplates(), {
-    staleTime: 20,
-    meta: {
-      error: {
-        title: 'Failure',
-        message: 'Unable to retrieve custom templates',
-      },
-    },
-  });
 }

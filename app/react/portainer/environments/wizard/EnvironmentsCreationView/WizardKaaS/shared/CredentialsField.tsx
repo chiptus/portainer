@@ -27,7 +27,6 @@ export function CredentialsField({ credentials }: Props) {
       tooltip="Credentials to create your cluster."
       inputId="kaas-credential"
       errors={meta.error}
-      required
     >
       <Select
         name={fieldProps.name}

@@ -1,7 +1,7 @@
 import { useField } from 'formik';
 import { ChangeEvent, useMemo } from 'react';
 
-import { CustomTemplate } from '@/react/portainer/settings/sharedCredentials/types';
+import { CustomTemplate } from '@/react/portainer/custom-templates/types';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { Select, Option } from '@@/form-components/Input/Select';

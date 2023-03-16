@@ -46,7 +46,8 @@ export const existingEnvironmentTypes: EnvironmentOption[] = [
     label: 'Kubernetes',
     icon: Kubernetes,
     iconType: 'logo',
-    description: 'Connect to a kubernetes environment via URL/IP',
+    description:
+      'Connect to a Kubernetes environment via URL/IP or via kubeconfig import',
   },
   {
     id: 'aci',

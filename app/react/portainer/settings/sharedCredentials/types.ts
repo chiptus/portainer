@@ -147,11 +147,3 @@ export type Credential = {
   provider: CredentialType;
   credentials: CredentialDetails;
 };
-
-// TODO: REVIEW-POC-MICROK8S
-// Should probably be relocated in its own file
-export type CustomTemplate = {
-  Id: number;
-  Title: string;
-  Type: number;
-};

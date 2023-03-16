@@ -12,7 +12,9 @@ export function trimObject<T extends Record<string, unknown>>(obj: T) {
   });
 }
 
-export const sensitiveFields = [
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+
+export const sensitiveFields: KeysOfUnion<CredentialDetails>[] = [
   'jsonKeyBase64',
   'apiKey',
   'secretAccessKey',
@@ -22,13 +24,12 @@ export const sensitiveFields = [
   'passphrase',
 ];
 
-export function sensitiveFieldChanged(credentials: CredentialDetails) {
+export function getUnchangedSensitiveFields(credentials: CredentialDetails) {
   const newCredentialsSensitive = _.pick(credentials, sensitiveFields);
 
-  return Object.values(newCredentialsSensitive).some((sensitiveValue) => {
-    if (sensitiveValue.trim().length === 0) {
-      return false;
-    }
-    return true;
-  });
+  const sensitiveKeysThatHaveChanged = Object.entries(newCredentialsSensitive)
+    .filter(([, value]) => value.trim().length === 0)
+    .map(([key]) => key);
+
+  return sensitiveKeysThatHaveChanged;
 }

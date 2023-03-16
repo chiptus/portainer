@@ -18,7 +18,7 @@ import { GCPCredentialsForm } from '../components/GCPCredentialsForm';
 import { AWSCredentialsForm } from '../components/AWSCredentialsForm';
 import { AzureCredentialsForm } from '../components/AzureCredentialsForm';
 import { SSHCredentialsForm } from '../components/SSHCredentialsForm/SSHCredentialsForm';
-import { sensitiveFieldChanged, sensitiveFields, trimObject } from '../utils';
+import { getUnchangedSensitiveFields, trimObject } from '../utils';
 import {
   useCloudCredentials,
   useUpdateCredentialMutation,
@@ -49,7 +49,7 @@ export function EditCredentialForm({ credential }: Props) {
       )
       .map((c: CreateCredentialPayload) => c.name) || [];
 
-  const updateCredentialMutation = useUpdateCredentialMutation();
+  const updateCredentialMutation = useUpdateCredentialMutation(credential.id);
 
   const initialValues = {
     name: credential.name,
@@ -162,13 +162,16 @@ export function EditCredentialForm({ credential }: Props) {
       name: values.name.trim(),
       provider: credentialType,
     };
-    if (sensitiveFieldChanged(values.credentials)) {
-      newCredentials.credentials = trimObject(values.credentials);
-    } else {
-      const visibleCredentials = _.omit(values.credentials, sensitiveFields);
-      if (Object.keys(visibleCredentials).length > 0) {
-        newCredentials.credentials = trimObject(visibleCredentials);
-      }
+    const unchangedSensitiveFields = getUnchangedSensitiveFields(
+      values.credentials
+    );
+    // keep the unchanged sensitive fields out of put request payload
+    const visibleCredentials = _.omit(
+      values.credentials,
+      unchangedSensitiveFields
+    );
+    if (Object.keys(visibleCredentials).length > 0) {
+      newCredentials.credentials = trimObject(visibleCredentials);
     }
     // base64 encode the private key
     if (
@@ -182,7 +185,6 @@ export function EditCredentialForm({ credential }: Props) {
     }
     updateCredentialMutation.mutate({
       credential: newCredentials,
-      id: credential.id,
     });
     router.stateService.go('portainer.settings.sharedcredentials');
   }

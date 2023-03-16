@@ -5,13 +5,11 @@ import {
   credentialTypeToProvidersMap,
   CredentialType,
 } from '@/react/portainer/settings/sharedCredentials/types';
-import {
-  useCloudCredentials,
-  useCustomTemplates,
-} from '@/react/portainer/settings/sharedCredentials/cloudSettings.service';
+import { useCloudCredentials } from '@/react/portainer/settings/sharedCredentials/cloudSettings.service';
 import { Environment } from '@/react/portainer/environments/types';
 import { CredentialsForm } from '@/react/portainer/settings/sharedCredentials/CreateCredentialsView/CredentialsForm';
 import Microk8s from '@/assets/ico/vendor/microk8s.svg?c';
+import { useCustomTemplates } from '@/react/portainer/custom-templates/service';
 
 import { Link } from '@@/Link';
 import { TextTip } from '@@/Tip/TextTip';
