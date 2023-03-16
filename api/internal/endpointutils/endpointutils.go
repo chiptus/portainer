@@ -84,6 +84,16 @@ func EndpointSet(endpointIDs []portaineree.EndpointID) map[portaineree.EndpointI
 }
 
 func InitialIngressClassDetection(endpoint *portaineree.Endpoint, endpointService dataservices.EndpointService, factory *cli.ClientFactory) {
+	if endpoint.Kubernetes.Flags.IsServerIngressClassDetected {
+		return
+	}
+	defer func() {
+		endpoint.Kubernetes.Flags.IsServerIngressClassDetected = true
+		endpointService.UpdateEndpoint(
+			portaineree.EndpointID(endpoint.ID),
+			endpoint,
+		)
+	}()
 	log.Info().Msg("attempting to detect ingress classes in the cluster")
 	cli, err := factory.GetKubeClient(endpoint)
 	if err != nil {
@@ -116,6 +126,16 @@ func InitialIngressClassDetection(endpoint *portaineree.Endpoint, endpointServic
 }
 
 func InitialMetricsDetection(endpoint *portaineree.Endpoint, endpointService dataservices.EndpointService, factory *cli.ClientFactory) {
+	if endpoint.Kubernetes.Flags.IsServerMetricsDetected {
+		return
+	}
+	defer func() {
+		endpoint.Kubernetes.Flags.IsServerMetricsDetected = true
+		endpointService.UpdateEndpoint(
+			portaineree.EndpointID(endpoint.ID),
+			endpoint,
+		)
+	}()
 	log.Info().Msg("attempting to detect metrics api in the cluster")
 	cli, err := factory.GetKubeClient(endpoint)
 	if err != nil {
@@ -128,11 +148,6 @@ func InitialMetricsDetection(endpoint *portaineree.Endpoint, endpointService dat
 		return
 	}
 	endpoint.Kubernetes.Configuration.UseServerMetrics = true
-	endpoint.Kubernetes.Flags.IsServerMetricsDetected = true
-	err = endpointService.UpdateEndpoint(
-		portaineree.EndpointID(endpoint.ID),
-		endpoint,
-	)
 	if err != nil {
 		log.Info().Err(err).Msg("unable to enable UseServerMetrics inside the database")
 		return
@@ -140,6 +155,16 @@ func InitialMetricsDetection(endpoint *portaineree.Endpoint, endpointService dat
 }
 
 func storageDetect(endpoint *portaineree.Endpoint, endpointService dataservices.EndpointService, factory *cli.ClientFactory) error {
+	if endpoint.Kubernetes.Flags.IsServerStorageDetected {
+		return nil
+	}
+	defer func() {
+		endpoint.Kubernetes.Flags.IsServerStorageDetected = true
+		endpointService.UpdateEndpoint(
+			portaineree.EndpointID(endpoint.ID),
+			endpoint,
+		)
+	}()
 	cli, err := factory.GetKubeClient(endpoint)
 	if err != nil {
 		log.Info().Err(err).Msg("unable to create Kubernetes client for initial storage detection")
@@ -156,11 +181,6 @@ func storageDetect(endpoint *portaineree.Endpoint, endpointService dataservices.
 		return fmt.Errorf("zero storage classes found: they may be still building, retrying in 30 seconds")
 	}
 	endpoint.Kubernetes.Configuration.StorageClasses = storage
-	endpoint.Kubernetes.Flags.IsServerStorageDetected = true
-	err = endpointService.UpdateEndpoint(
-		portaineree.EndpointID(endpoint.ID),
-		endpoint,
-	)
 	if err != nil {
 		log.Info().Err(err).Msg("unable to enable storage class inside the database")
 		return err
