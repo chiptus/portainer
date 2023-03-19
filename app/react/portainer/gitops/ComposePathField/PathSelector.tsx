@@ -1,3 +1,4 @@
+import { useState, ChangeEvent } from 'react';
 import {
   Combobox,
   ComboboxInput,
@@ -6,13 +7,10 @@ import {
   ComboboxPopover,
 } from '@reach/combobox';
 import '@reach/combobox/styles.css';
-import { ChangeEvent } from 'react';
 import clsx from 'clsx';
 
 import { useSearch } from '@/react/portainer/gitops/queries/useSearch';
 import { useDebounce } from '@/react/hooks/useDebounce';
-
-import { useCaretPosition } from '@@/form-components/useCaretPosition';
 
 import { getAuthentication } from '../utils';
 import { GitFormModel } from '../types';
@@ -30,7 +28,8 @@ export function PathSelector({
   placeholder: string;
   model: GitFormModel;
 }) {
-  const [searchTerm, setSearchTerm] = useDebounce('', () => {});
+  const [searchTerm, setSearchTerm] = useDebounce(value, onChange);
+  const [selected, setSelected] = useState(false);
 
   const creds = getAuthentication(model);
   const payload = {
@@ -43,7 +42,6 @@ export function PathSelector({
     model.RepositoryURL && model.RepositoryURLValid && searchTerm
   );
   const { data: searchResults } = useSearch(payload, enabled);
-  const { ref, updateCaret } = useCaretPosition();
 
   return (
     <Combobox
@@ -53,13 +51,12 @@ export function PathSelector({
       data-cy="component-gitComposeInput"
     >
       <ComboboxInput
-        ref={ref}
+        value={searchTerm}
         className="form-control"
         onChange={handleChange}
         placeholder={placeholder}
-        value={value}
       />
-      {searchResults && searchResults.length > 0 && (
+      {!selected && searchResults && searchResults.length > 0 && (
         <ComboboxPopover>
           <ComboboxList>
             {searchResults.map((result: string, index: number) => (
@@ -81,12 +78,11 @@ export function PathSelector({
 
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
     setSearchTerm(e.target.value);
-    onChange(e.target.value);
-    updateCaret();
+    setSelected(false);
   }
 
   function onSelect(value: string) {
-    setSearchTerm('');
     onChange(value);
+    setSelected(true);
   }
 }
