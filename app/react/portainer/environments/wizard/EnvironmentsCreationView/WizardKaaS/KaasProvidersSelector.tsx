@@ -21,6 +21,7 @@ const cloudProviderOptions: BoxSelectorOption<KaasProvider>[] = [
     label: 'Civo',
     description: 'Civo Kubernetes',
     value: KaasProvider.CIVO,
+    iconType: 'logo',
   },
   {
     id: KaasProvider.LINODE,
@@ -28,6 +29,7 @@ const cloudProviderOptions: BoxSelectorOption<KaasProvider>[] = [
     label: 'Linode',
     description: 'Linode Kubernetes Engine (LKE)',
     value: KaasProvider.LINODE,
+    iconType: 'logo',
   },
   {
     id: KaasProvider.DIGITAL_OCEAN,
@@ -35,6 +37,7 @@ const cloudProviderOptions: BoxSelectorOption<KaasProvider>[] = [
     label: 'DigitalOcean',
     description: 'DigitalOcean Kubernetes (DOKS)',
     value: KaasProvider.DIGITAL_OCEAN,
+    iconType: 'logo',
   },
   {
     id: KaasProvider.GOOGLE_CLOUD,
@@ -42,6 +45,7 @@ const cloudProviderOptions: BoxSelectorOption<KaasProvider>[] = [
     label: 'Google Cloud',
     description: 'Google Kubernetes Engine (GKE)',
     value: KaasProvider.GOOGLE_CLOUD,
+    iconType: 'logo',
   },
   {
     id: KaasProvider.AWS,
@@ -49,6 +53,7 @@ const cloudProviderOptions: BoxSelectorOption<KaasProvider>[] = [
     label: 'Amazon Web Services (AWS)',
     description: 'Elastic Kubernetes Service (EKS)',
     value: KaasProvider.AWS,
+    iconType: 'logo',
   },
   {
     id: KaasProvider.AZURE,
@@ -56,6 +61,7 @@ const cloudProviderOptions: BoxSelectorOption<KaasProvider>[] = [
     label: 'Microsoft Azure',
     description: 'Azure Kubernetes Service (AKS)',
     value: KaasProvider.AZURE,
+    iconType: 'logo',
   },
 ];
 

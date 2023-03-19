@@ -54,8 +54,9 @@ const k8sInstallOptions = [
     label: 'MicroK8s',
     description: 'Lightweight Kubernetes',
     value: K8sDistributionType.MICROK8S,
+    iconType: 'logo',
   },
-];
+] as const;
 
 export function WizardK8sInstall({ onCreate }: Props) {
   const [isSSHTestSuccessful, setIsSSHTestSuccessful] = useState<

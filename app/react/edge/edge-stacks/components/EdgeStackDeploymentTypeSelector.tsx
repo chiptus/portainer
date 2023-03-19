@@ -58,6 +58,7 @@ export function EdgeStackDeploymentTypeSelector({
         hasDockerEndpoint || hasKubeEndpoint
           ? 'Cannot use this option with Edge Docker or Edge Kubernetes environments'
           : '',
+      iconType: 'logo',
     },
   ];
 

@@ -8,7 +8,6 @@ import Aws from '@/assets/ico/vendor/aws.svg?c';
 import Azure from '@/assets/ico/vendor/azure.svg?c';
 
 import { BoxSelector, BoxSelectorOption } from '@@/BoxSelector';
-import { BadgeIcon } from '@@/BadgeIcon';
 
 import { CredentialType } from '../types';
 
@@ -24,6 +23,7 @@ const providerOptions: BoxSelectorOption<CredentialType>[] = [
     label: 'Civo',
     description: 'Civo Kubernetes',
     value: CredentialType.CIVO,
+    iconType: 'logo',
   },
   {
     id: CredentialType.LINODE,
@@ -31,6 +31,7 @@ const providerOptions: BoxSelectorOption<CredentialType>[] = [
     label: 'Linode',
     description: 'Linode Kubernetes Engine (LKE)',
     value: CredentialType.LINODE,
+    iconType: 'logo',
   },
   {
     id: CredentialType.DIGITAL_OCEAN,
@@ -38,6 +39,7 @@ const providerOptions: BoxSelectorOption<CredentialType>[] = [
     label: 'DigitalOcean',
     description: 'DigitalOcean Kubernetes (DOKS)',
     value: CredentialType.DIGITAL_OCEAN,
+    iconType: 'logo',
   },
   {
     id: CredentialType.GOOGLE_CLOUD,
@@ -45,6 +47,7 @@ const providerOptions: BoxSelectorOption<CredentialType>[] = [
     label: 'Google Cloud',
     description: 'Google Kubernetes Engine (GKE)',
     value: CredentialType.GOOGLE_CLOUD,
+    iconType: 'logo',
   },
   {
     id: CredentialType.AWS,
@@ -52,6 +55,7 @@ const providerOptions: BoxSelectorOption<CredentialType>[] = [
     label: 'Amazon Web Services (AWS)',
     description: 'Elastic Kubernetes Service (EKS)',
     value: CredentialType.AWS,
+    iconType: 'logo',
   },
   {
     id: CredentialType.AZURE,
@@ -59,10 +63,12 @@ const providerOptions: BoxSelectorOption<CredentialType>[] = [
     label: 'Microsoft Azure',
     description: 'Azure Kubernetes Service (AKS)',
     value: CredentialType.AZURE,
+    iconType: 'logo',
   },
   {
     id: CredentialType.SSH,
-    icon: <BadgeIcon icon={Terminal} />,
+    icon: Terminal,
+    iconType: 'badge',
     label: 'SSH',
     description:
       'Provision a Kubernetes cluster and install Portainer using SSH',
