@@ -217,6 +217,7 @@ export function Microk8sCreateClusterForm({
         isSubmitting={isSubmitting}
         handleTestConnection={handleTestConnection}
         testedAddressList={testedAddressList}
+        addressResults={addressResults}
         isSSHTestSuccessful={isSSHTestSuccessful}
       />
     </>

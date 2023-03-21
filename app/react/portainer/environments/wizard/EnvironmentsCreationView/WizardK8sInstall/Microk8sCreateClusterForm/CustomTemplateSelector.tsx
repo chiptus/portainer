@@ -21,7 +21,7 @@ export function CustomTemplateSelector({ customTemplates }: Props) {
       value: c.Id,
       label: c.Title,
     }));
-    return [{ value: 0, label: 'Select a Custom Template seed' }, ...options];
+    return [{ value: 0, label: 'Select a Custom Template' }, ...options];
   }, [customTemplates]);
 
   const [fieldProps, meta, helpers] = useField<number>(
@@ -35,7 +35,7 @@ export function CustomTemplateSelector({ customTemplates }: Props) {
 
   return (
     <FormControl
-      label="Custom Template seed"
+      label="Custom Template"
       tooltip={
         <>
           <div>

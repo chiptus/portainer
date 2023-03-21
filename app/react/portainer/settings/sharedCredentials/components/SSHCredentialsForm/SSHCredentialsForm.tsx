@@ -104,7 +104,7 @@ export function SSHCredentialsForm({
                 id="ssh_username"
                 maxLength={200}
                 value={values.credentials.username}
-                placeholder="e.g. ssh-builder"
+                placeholder="e.g. ssh_builder"
                 data-cy="cloudSettings-SshUsername"
               />
             </FormControl>

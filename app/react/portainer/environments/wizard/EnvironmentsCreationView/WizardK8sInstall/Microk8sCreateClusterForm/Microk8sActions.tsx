@@ -10,11 +10,13 @@ import { LoadingButton } from '@@/buttons/LoadingButton';
 import { FormSection } from '@@/form-components/FormSection';
 
 import { K8sDistributionType, K8sInstallFormValues } from '../types';
+import { TestSSHConnectionResponse } from '../../WizardKaaS/types';
 
 interface Props {
   isSubmitting: boolean;
   handleTestConnection: () => Promise<[boolean, number]>;
   testedAddressList: string[];
+  addressResults: TestSSHConnectionResponse;
   isSSHTestSuccessful: boolean | undefined;
 }
 
@@ -23,6 +25,7 @@ export function Microk8sActions({
   isSubmitting,
   handleTestConnection,
   testedAddressList,
+  addressResults,
   isSSHTestSuccessful,
 }: Props) {
   const settingsQuery = usePublicSettings();
@@ -52,6 +55,7 @@ export function Microk8sActions({
           onClick={async () => {
             // if already tested and successful, submit form
             if (isCurrentValuesTested && isSSHTestSuccessful) {
+              sendAnalytics(addressResults.length);
               submitForm();
               return;
             }
