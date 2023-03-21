@@ -11,7 +11,6 @@ import (
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	"github.com/portainer/portainer-ee/api/internal/slices"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type updatePayload struct {
@@ -20,7 +19,7 @@ type updatePayload struct {
 	Type          *edgetypes.UpdateScheduleType
 	Version       *string
 	ScheduledTime *string
-	RegistryID    portaineree.RegistryID
+	RegistryID    *portaineree.RegistryID
 }
 
 func (payload *updatePayload) Validate(r *http.Request) error {
@@ -112,15 +111,8 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 			scheduledTime = *payload.ScheduledTime
 		}
 
-		var registry *portaineree.Registry = nil
-		if payload.RegistryID != 0 {
-			registry, err = handler.dataStore.Registry().Registry(payload.RegistryID)
-			if err == bolterrors.ErrObjectNotFound {
-				return httperror.NotFound("Unable to find a registry with the specified identifier inside the database", err)
-			} else if err != nil {
-				return httperror.InternalServerError("Unable to find a registry with the specified identifier inside the database", err)
-			}
-			item.RegistryID = payload.RegistryID
+		if payload.RegistryID != nil {
+			item.RegistryID = *payload.RegistryID
 		}
 
 		err := handler.dataStore.EdgeStack().DeleteEdgeStack(item.EdgeStackID)
@@ -145,7 +137,7 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 
 		item.EnvironmentsPreviousVersions = previousVersions
 
-		stackID, err := handler.createUpdateEdgeStack(item.ID, newGroupIds, registry, item.Version, scheduledTime, edgeEnvironmentType)
+		stackID, err := handler.createUpdateEdgeStack(item.ID, newGroupIds, *payload.RegistryID, item.Version, scheduledTime, edgeEnvironmentType)
 		if err != nil {
 			return httperror.InternalServerError("Unable to create Edge stack", err)
 		}

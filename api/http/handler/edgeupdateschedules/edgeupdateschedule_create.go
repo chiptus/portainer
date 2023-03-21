@@ -10,7 +10,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 	"github.com/rs/zerolog/log"
 
 	"github.com/portainer/portainer-ee/api/http/security"
@@ -80,16 +79,6 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 		return httperror.InternalServerError("Unable to retrieve user information from token", err)
 	}
 
-	var registry *portaineree.Registry = nil
-	if payload.RegistryID != 0 {
-		registry, err = handler.dataStore.Registry().Registry(payload.RegistryID)
-		if err == bolterrors.ErrObjectNotFound {
-			return httperror.NotFound("Unable to find a registry with the specified identifier inside the database", err)
-		} else if err != nil {
-			return httperror.InternalServerError("Unable to find a registry with the specified identifier inside the database", err)
-		}
-	}
-
 	var edgeStackID portaineree.EdgeStackID
 	var scheduleID edgetypes.UpdateScheduleID
 	needCleanup := true
@@ -148,7 +137,7 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 
 	scheduleID = item.ID
 
-	edgeStackID, err = handler.createUpdateEdgeStack(item.ID, payload.GroupIDs, registry, payload.Version, payload.ScheduledTime, edgeEnvironmentType)
+	edgeStackID, err = handler.createUpdateEdgeStack(item.ID, payload.GroupIDs, payload.RegistryID, payload.Version, payload.ScheduledTime, edgeEnvironmentType)
 	if err != nil {
 		return httperror.InternalServerError("Unable to create edge stack", err)
 	}

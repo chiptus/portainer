@@ -39,30 +39,37 @@ const (
 func (handler *Handler) createUpdateEdgeStack(
 	scheduleID edgetypes.UpdateScheduleID,
 	groupIDs []portaineree.EdgeGroupID,
-	registry *portaineree.Registry,
+	registryID portaineree.RegistryID,
 	version, scheduledTime string,
 	endpointType portaineree.EndpointType) (portaineree.EdgeStackID, error) {
+
 	agentImagePrefix := os.Getenv(agentImagePrefixEnvVar)
 	if agentImagePrefix == "" {
 		agentImagePrefix = "portainer/agent"
-		if registry.URL != "" {
-			agentImagePrefix = fmt.Sprintf("%s/agent", registry.URL)
-		}
 	}
+
+	prePullImage := false
+	rePullImage := false
+	registries := []portaineree.RegistryID{}
+	var registry *portaineree.Registry
+	if registryID != 0 {
+		prePullImage = true
+		rePullImage = true
+		registries = append(registries, registryID)
+
+		registry, err := handler.dataStore.Registry().Registry(registryID)
+		if err != nil {
+			return 0, errors.WithMessage(err, "failed to retrieve registry")
+		}
+
+		agentImagePrefix = fmt.Sprintf("%s/agent", registry.URL)
+	}
+
 	agentImage := fmt.Sprintf("%s:%s", agentImagePrefix, version)
 
 	deploymentConfig, err := getDeploymentConfig(endpointType, handler.assetsPath)
 	if err != nil {
 		return 0, err
-	}
-
-	prePullImage := false
-	rePullimage := false
-	registries := []portaineree.RegistryID{}
-	if registry != nil {
-		prePullImage = true
-		rePullimage = true
-		registries = append(registries, registry.ID)
 	}
 
 	stack, err := handler.edgeStacksService.BuildEdgeStack(
@@ -73,7 +80,7 @@ func (handler *Handler) createUpdateEdgeStack(
 		scheduledTime,
 		false,
 		prePullImage,
-		rePullimage,
+		rePullImage,
 		false,
 	)
 	if err != nil {
@@ -90,7 +97,7 @@ func (handler *Handler) createUpdateEdgeStack(
 		}
 
 		updaterImage := os.Getenv(updaterImageEnvVar)
-		if updaterImage == "" && registry.URL != "" {
+		if updaterImage == "" && registry != nil && registry.URL != "" {
 			updaterImage = fmt.Sprintf("%s/portainer-updater:latest", registry.URL)
 		}
 
