@@ -221,6 +221,7 @@ function useAnalyticsState() {
     aciApi: 0,
     localEndpoint: 0,
     nomadEdgeAgentStandard: 0,
+    nomadEdgeAgentAsync: 0,
     dockerEdgeAgentAsync: 0,
     dockerEdgeAgentStandard: 0,
   });

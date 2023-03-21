@@ -106,13 +106,13 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 
 	timeZone := r.Header.Get(portaineree.PortainerAgentTimeZoneHeader)
 
+	agentPlatform, agentPlatformErr := parseAgentPlatform(r)
+	if agentPlatformErr != nil {
+		return httperror.BadRequest("agent platform header is not valid", agentPlatformErr)
+	}
+
 	if endpoint == nil {
 		log.Debug().Str("PortainerAgentEdgeIDHeader", edgeID).Msg("edge id not found in existing endpoints")
-
-		agentPlatform, agentPlatformErr := parseAgentPlatform(r)
-		if agentPlatformErr != nil {
-			return httperror.BadRequest("agent platform header is not valid", agentPlatformErr)
-		}
 
 		validateCertsErr := handler.requestBouncer.AuthorizedClientTLSConn(r)
 		if validateCertsErr != nil {
@@ -130,6 +130,8 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 
 		return response.JSON(w, asyncResponse)
 	}
+
+	endpoint.Type = agentPlatform
 
 	err = handler.requestBouncer.AuthorizedEdgeEndpointOperation(r, endpoint)
 	if err != nil {

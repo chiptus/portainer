@@ -1,6 +1,8 @@
 import { Formik } from 'formik';
 import { PropsWithChildren } from 'react';
 
+import { TextTip } from '@@/Tip/TextTip';
+
 import { OsSelector } from './OsSelector';
 import { CommandTab } from './scripts';
 import { ScriptTabs } from './ScriptTabs';
@@ -75,6 +77,12 @@ export function EdgeScriptForm({
                 }
                 asyncMode={asyncMode}
               />
+              {isNomadTokenVisible && asyncMode && (
+                <TextTip color="blue" className="mt-1">
+                  Please note that Edge Agent Async in Nomad environment is
+                  currently in the experimental stage.
+                </TextTip>
+              )}
             </div>
           </>
         )}

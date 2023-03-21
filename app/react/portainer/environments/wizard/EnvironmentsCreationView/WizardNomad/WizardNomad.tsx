@@ -1,68 +1,82 @@
 import { useState } from 'react';
-import { Cloud } from 'lucide-react';
+import _ from 'lodash';
 
-import {
-  Environment,
-  EnvironmentCreationTypes,
-} from '@/react/portainer/environments/types';
-import {
-  buildLinuxNomadCommand,
-  CommandTab,
-} from '@/react/edge/components/EdgeScriptForm/scripts';
+import { Environment } from '@/react/portainer/environments/types';
+import { commandsTabs } from '@/react/edge/components/EdgeScriptForm/scripts';
+import EdgeAgentStandardIcon from '@/react/edge/components/edge-agent-standard.svg?c';
+import EdgeAgentAsyncIcon from '@/react/edge/components/edge-agent-async.svg?c';
 
-import { BoxSelector } from '@@/BoxSelector';
+import { BoxSelector, type BoxSelectorOption } from '@@/BoxSelector';
 import { BadgeIcon } from '@@/BadgeIcon';
 
 import { AnalyticsStateKey } from '../types';
 import { EdgeAgentTab } from '../shared/EdgeAgentTab';
-import { useFilterEdgeOptionsIfNeeded } from '../useOnlyEdgeOptions';
 
 interface Props {
   onCreate(environment: Environment, analytics: AnalyticsStateKey): void;
 }
 
-const commands: CommandTab[] = [
+const defaultOptions: BoxSelectorOption<
+  'edgeAgentStandard' | 'edgeAgentAsync'
+>[] = _.compact([
   {
-    id: 'nomad',
-    label: 'Linux',
-    command: buildLinuxNomadCommand,
+    id: 'edgeAgentStandard',
+    icon: <BadgeIcon icon={EdgeAgentStandardIcon} size="3xl" />,
+    label: 'Edge Agent Standard',
+    description: '',
+    value: 'edgeAgentStandard',
   },
-];
-
-const defaultOptions = [
   {
-    description: 'Portainer Edge Agent',
-    icon: <BadgeIcon icon={Cloud} size="3xl" />,
-    id: 'id',
-    label: 'Edge Agent',
-    value: EnvironmentCreationTypes.EdgeAgentEnvironment,
+    id: 'edgeAgentAsync',
+    icon: <BadgeIcon icon={EdgeAgentAsyncIcon} size="3xl" />,
+    label: 'Edge Agent Async',
+    description: '',
+    value: 'edgeAgentAsync',
   },
-];
+]);
 
 export function WizardNomad({ onCreate }: Props) {
-  const options = useFilterEdgeOptionsIfNeeded(
-    defaultOptions,
-    EnvironmentCreationTypes.EdgeAgentEnvironment
-  );
+  const [creationType, setCreationType] = useState(defaultOptions[0].value);
 
-  const [selected, setSelected] = useState(options[0].value);
+  const tab = getTab(creationType);
 
   return (
     <div className="form-horizontal">
       <BoxSelector
-        onChange={(value) => setSelected(value)}
-        options={options}
-        value={selected}
+        onChange={(v) => setCreationType(v)}
+        options={defaultOptions}
+        value={creationType}
         radioName="creation-type"
       />
-
-      <EdgeAgentTab
-        commands={commands}
-        onCreate={(environment) =>
-          onCreate(environment, 'nomadEdgeAgentStandard')
-        }
-        isNomadTokenVisible
-      />
+      {tab}
     </div>
   );
+
+  function getTab(creationType: 'edgeAgentStandard' | 'edgeAgentAsync') {
+    switch (creationType) {
+      case 'edgeAgentStandard':
+        return (
+          <EdgeAgentTab
+            isNomadTokenVisible
+            onCreate={(environment) =>
+              onCreate(environment, 'nomadEdgeAgentStandard')
+            }
+            commands={[commandsTabs.nomadLinux]}
+          />
+        );
+      case 'edgeAgentAsync':
+        return (
+          <EdgeAgentTab
+            isNomadTokenVisible
+            asyncMode
+            onCreate={(environment) =>
+              onCreate(environment, 'nomadEdgeAgentAsync')
+            }
+            commands={[commandsTabs.nomadLinux]}
+          />
+        );
+      default:
+        return null;
+    }
+  }
 }
