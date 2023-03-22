@@ -5,6 +5,7 @@ import { RegistryId } from '@/react/portainer/registries/types/registry';
 
 import { Option } from '@@/form-components/PortainerSelect';
 import { FormSection } from '@@/form-components/FormSection';
+import { TextTip } from '@@/Tip/TextTip';
 
 import {
   listRegistryCatalogs,
@@ -17,7 +18,7 @@ import { RegistrySelector } from './RegistrySelector';
 
 const defaultRegistry: Option<RegistryId> = {
   value: 0,
-  label: '[Default]',
+  label: 'Docker Hub (anonymous)',
 };
 
 interface Props {
@@ -58,6 +59,12 @@ export function AdvancedSettings({
         disabled={disabled}
         registries={options}
       />
+      <TextTip className="mb-2" color="blue">
+        Please make sure that you have the required version of the agent image
+        for upgrading, along with the portainer-updater image, available in your
+        private registry for the airgap environment. These images will be pulled
+        from the selected registry.
+      </TextTip>
     </FormSection>
   );
 }

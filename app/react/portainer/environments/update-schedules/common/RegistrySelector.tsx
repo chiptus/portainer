@@ -25,10 +25,9 @@ export function RegistrySelector({
 }: Props) {
   return (
     <FormControl
-      label="Private registry"
+      label="Registry"
       errors={errorMessage}
       inputId="registry-select"
-      tooltip="When upgrading on airgapped networks, you can select your registry to deploy from"
     >
       <Select
         name="registryId"
