@@ -158,9 +158,18 @@ func (service *CloudClusterSetupService) Microk8sProvisionCluster(req Microk8sPr
 
 	// We activate addons on the master node
 	if len(req.Addons) > 0 {
-		err = enableMicrok8sAddonsOnNode(user, password, passphrase, privateKey, req.NodeIps[0], req.Addons)
-		if err != nil {
-			return "", err
+		errCount := 0
+		for _, addon := range req.Addons {
+			err = enableMicrok8sAddonsOnNode(user, password, passphrase, privateKey, req.NodeIps[0], addon)
+			if err != nil {
+				// Rather than fail the whole thing.  Warn the user and allow them to manually try to enable the addon
+				log.Warn().AnErr("error", err).Msgf("failed to enable microk8s addon %s on node. error: ", addon)
+				errCount++
+			}
+		}
+
+		if errCount > 0 {
+			log.Error().Msgf("failed to enable %d microk8s addons on node.  Please enable these manually", errCount)
 		}
 	}
 
@@ -198,7 +207,7 @@ func (service *CloudClusterSetupService) Microk8sGetCluster(user, password, pass
 	}, nil
 }
 
-func enableMicrok8sAddonsOnNode(user, password, passphrase, privateKey, nodeIp string, addons []string) error {
+func enableMicrok8sAddonsOnNode(user, password, passphrase, privateKey, nodeIp string, addon string) error {
 	config, err := NewSSHConfig(user, password, passphrase, privateKey)
 	if err != nil {
 		return err
@@ -210,7 +219,7 @@ func enableMicrok8sAddonsOnNode(user, password, passphrase, privateKey, nodeIp s
 	}
 	defer conn.Close()
 
-	command := "microk8s enable " + strings.Join(addons, " ")
+	command := "microk8s enable " + addon
 	return runSSHCommand(conn, password, command)
 }
 
@@ -245,7 +254,9 @@ func installMicrok8sOnNode(user, password, passphrase, privateKey, nodeIp, kuber
 	}
 
 	// Default set of addons.
-	return runSSHCommand(conn, password, "microk8s enable dns rbac helm helm3 ha-cluster")
+	// Note: helm3 is an alias for helm and recently seems to be enabled by default. Leaving helm in here anyway.
+	// ha-cluster is automatically enabled when adding more master nodes to the cluster
+	return runSSHCommand(conn, password, "microk8s enable dns rbac helm")
 }
 
 func executeJoinClusterCommandOnNode(user, password, passphrase, privateKey, nodeIp string, joinInfo *microk8sClusterJoinInfo, asWorkerNode bool) error {
