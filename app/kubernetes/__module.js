@@ -1,5 +1,6 @@
 import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 import { EnvironmentStatus } from '@/react/portainer/environments/types';
+import { getSelfSubjectAccessReview } from '@/react/kubernetes/namespaces/service';
 
 import { PortainerEndpointTypes } from 'Portainer/models/endpoint/models';
 
@@ -48,7 +49,13 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
               throw new Error('Unable to contact Edge agent, please ensure that the agent is properly running on the remote environment.');
             }
 
-            await KubernetesNamespaceService.get();
+            // use selfsubject access review to check if we can connect to the kubernetes environment
+            // because it's gets a fast response, and is accessible to all users
+            try {
+              await getSelfSubjectAccessReview(endpoint.Id, 'default');
+            } catch (e) {
+              throw new Error('Environment is unreachable.');
+            }
           } catch (e) {
             let params = {};
 
