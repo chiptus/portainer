@@ -467,7 +467,8 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 }
 
 func (d *stackDeployer) createDockerClient(ctx context.Context, endpoint *portaineree.Endpoint) (*dockerclient.Client, error) {
-	cli, err := d.ClientFactory.CreateClient(endpoint, "", nil)
+	timeout := 3600 * time.Second
+	cli, err := d.ClientFactory.CreateClient(endpoint, "", &timeout)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create Docker client")
 	}
@@ -504,7 +505,7 @@ func (d *stackDeployer) createDockerClient(ctx context.Context, endpoint *portai
 	}
 
 	cli.Close()
-	return d.ClientFactory.CreateClient(endpoint, managerNode.Description.Hostname, nil)
+	return d.ClientFactory.CreateClient(endpoint, managerNode.Description.Hostname, &timeout)
 }
 
 func getEnv(env []portaineree.Pair) []string {
