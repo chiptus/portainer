@@ -24,6 +24,7 @@ type configResponse struct {
 	PrePullImage bool
 	RePullImage  bool
 	RetryDeploy  bool
+	EdgeUpdateID int
 }
 
 // @summary Inspect an Edge Stack for an Environment(Endpoint)
@@ -97,5 +98,6 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 		PrePullImage:        edgeStack.PrePullImage,
 		RePullImage:         edgeStack.RePullImage,
 		RetryDeploy:         edgeStack.RetryDeploy,
+		EdgeUpdateID:        edgeStack.EdgeUpdateID,
 	})
 }
