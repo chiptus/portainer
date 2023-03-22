@@ -50,6 +50,12 @@ export function prettifyJSONLog(
     return false;
   }
 
+  // EE-5224 : `json = JSON.parse("null")` results in `json = null`
+  // e.g. string literal "null" results in json var assigned a null value
+  if (!json) {
+    return false;
+  }
+
   formatMainLog(newLogs, timestamp, json);
   formatStackTraceLog(newLogs, timestamp, json.stack_trace);
   return true;
