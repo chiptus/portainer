@@ -484,12 +484,16 @@ func NewSSHConfig(user, password, passphrase, privateKey string) (*ssh.ClientCon
 // parseAddonResponse reads the command line response of `microk8s status` and
 // returns a list of installed addons.
 func parseAddonResponse(s string) []string {
+	var addons []string
+
 	// A regular expressiong to match everything between "enabled:" and
 	// "disabled:" which is a list of the enabled addons.
 	enabledRegex := regexp.MustCompile(`(?s)enabled:\n(.*).*disabled:`)
 	match := enabledRegex.FindStringSubmatch(s)
+	if match == nil {
+		return addons
+	}
 
-	var addons []string
 	var buf bytes.Buffer
 	var comment bool
 	// Loop over each line to build a list of enabled addons.
@@ -501,7 +505,7 @@ func parseAddonResponse(s string) []string {
 		case ' ':
 			continue
 		case '\n':
-			addons = append(addons, buf.String())
+			addons = append(addons, strings.TrimSpace(buf.String()))
 			buf.Reset()
 			comment = false
 		default:
