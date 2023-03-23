@@ -1051,6 +1051,10 @@ github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91 h1:mtz7L81z05
 github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91/go.mod h1:6OSugUz07QF1WwrMmRNIMhgiq+drVMIZ98UTu5LVZP8=
 github.com/portainer/portainer/api v0.0.0-20230301163340-bc6a667a6b7d h1:i/OfhKeKMHe0fHIjngH0SABcQi2tpiVhLin02A8BDTg=
 github.com/portainer/portainer/api v0.0.0-20230301163340-bc6a667a6b7d/go.mod h1:Y8a6I+Dpc8fA4fIOJ2AdUipUffegOCSj3KMAoLxPjL0=
+github.com/portainer/portainer/api v0.0.0-20230321213640-98c41ba4a4eb h1:46qqhCpSLb2e/Qzq2TwQMwn0O9nGt8AxI2tIxGf3vvM=
+github.com/portainer/portainer/api v0.0.0-20230321213640-98c41ba4a4eb/go.mod h1:Y8a6I+Dpc8fA4fIOJ2AdUipUffegOCSj3KMAoLxPjL0=
+github.com/portainer/portainer/api v0.0.0-20230323163032-3635df89dc7f h1:NNzklLQgNDsDPq8GzsZDkr4hI9Mrgd/qZFt4mWk2Qx0=
+github.com/portainer/portainer/api v0.0.0-20230323163032-3635df89dc7f/go.mod h1:Y8a6I+Dpc8fA4fIOJ2AdUipUffegOCSj3KMAoLxPjL0=
 github.com/portainer/portainer/pkg/featureflags v0.0.0-20230209201943-d73622ed9cd4 h1:gnXwaF0GnFUIlynRq994WFOtqOULTKZks4aSWuonlhA=
 github.com/portainer/portainer/pkg/featureflags v0.0.0-20230209201943-d73622ed9cd4/go.mod h1:T37rFZMg+PhRhT9n/z9cLSj9khJSdwHj3/Ac5PZQgKI=
 github.com/portainer/portainer/pkg/libhelm v0.0.0-20221201012749-4fee35924724 h1:FZrRVMpxXdUV+p5VSCAy9Uz7RzAeEJr2ytlctvMrsHY=
