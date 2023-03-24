@@ -11,13 +11,13 @@ export function ReadOnly({ annotations }: Props) {
   return (
     <>
       <div className="row font-sm text-muted small font-medium">
-        <div className="col-sm-3 col-md-1 p-0">Key</div>
-        <div className="col-sm-9 col-md-6 p-0">Value</div>
+        <div className="col-sm-4 p-0">Key</div>
+        <div className="col-sm-8 p-0">Value</div>
       </div>
       {annotations.map((a) => (
         <div className="row border-top">
-          <div className="col-sm-3 col-md-1 px-0 py-2">{a.Key}</div>
-          <div className="col-sm-9 col-md-6 px-0 py-2">{a.Value}</div>
+          <div className="col-sm-4 px-0 py-2">{a.Key}</div>
+          <div className="col-sm-8 px-0 py-2">{a.Value}</div>
         </div>
       ))}
     </>
