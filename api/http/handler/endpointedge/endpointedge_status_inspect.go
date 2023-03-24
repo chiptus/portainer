@@ -172,7 +172,11 @@ func (handler *Handler) endpointEdgeStatusInspect(w http.ResponseWriter, r *http
 		return httperror.InternalServerError("Unable to parse location", err)
 	}
 
-	edgeStacksStatus, handlerErr := handler.buildEdgeStacks(endpoint.ID, location)
+	skipCache := false
+	if updateID > 0 {
+		skipCache = true
+	}
+	edgeStacksStatus, handlerErr := handler.buildEdgeStacks(endpoint.ID, location, skipCache)
 	if handlerErr != nil {
 		return handlerErr
 	}
@@ -274,7 +278,7 @@ func (handler *Handler) buildSchedules(endpointID portaineree.EndpointID, tunnel
 	return schedules, nil
 }
 
-func (handler *Handler) buildEdgeStacks(endpointID portaineree.EndpointID, timeZone *time.Location) ([]stackStatusResponse, *httperror.HandlerError) {
+func (handler *Handler) buildEdgeStacks(endpointID portaineree.EndpointID, timeZone *time.Location, skipCache bool) ([]stackStatusResponse, *httperror.HandlerError) {
 	relation, err := handler.DataStore.EndpointRelation().EndpointRelation(endpointID)
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to retrieve relation object from the database", err)
@@ -289,20 +293,36 @@ func (handler *Handler) buildEdgeStacks(endpointID portaineree.EndpointID, timeZ
 
 		var stack *portaineree.EdgeStack
 
-		cacheKey := strconv.Itoa(int(stackID))
-		cachedStack, ok := handler.edgeStackCache.Get(cacheKey)
-		if ok {
-			stack, ok = cachedStack.(*portaineree.EdgeStack)
-			if !ok {
-				return nil, httperror.InternalServerError("", errors.New(""))
-			}
-		} else {
+		if skipCache {
+			// If the edge stack is intended for the updater, there is a potential issue with the cachedStack.
+			// For instance, if a group of 5 agents is scheduled for an update and all 5 agents are updated successfully,
+			// the first newly added agent will query the "/endpoints/{id}/edge/status" API endpoint, as specified in this
+			// file, and set the corresponding RemoteUpdateSuccess value in EdgeStack.Status to true. The updated edge
+			// stack copy is then added to the edgeStackCache, with an expiration time of 5 seconds. If another new agent
+			// spins up and queries the API within the 5-second window, its RemoteUpdateSuccess value will also be updated
+			// to "true," but instead of using the new value, its previous value of "false" stored in the edgeStackCache will
+			// be used in the API call. As a result, the new agent will deploy the update schedule for the new agent again,
+			// leading to a chain of incorrect behavior.
 			stack, err = handler.DataStore.EdgeStack().EdgeStack(stackID)
 			if err != nil {
 				return nil, httperror.InternalServerError("Unable to retrieve an edge stack from the database", err)
 			}
+		} else {
+			cacheKey := strconv.Itoa(int(stackID))
+			cachedStack, ok := handler.edgeStackCache.Get(cacheKey)
+			if ok {
+				stack, ok = cachedStack.(*portaineree.EdgeStack)
+				if !ok {
+					return nil, httperror.InternalServerError("", errors.New(""))
+				}
+			} else {
+				stack, err = handler.DataStore.EdgeStack().EdgeStack(stackID)
+				if err != nil {
+					return nil, httperror.InternalServerError("Unable to retrieve an edge stack from the database", err)
+				}
 
-			_ = handler.edgeStackCache.Add(cacheKey, stack, portaineree.DefaultEdgeAgentCheckinIntervalInSeconds*time.Second)
+				_ = handler.edgeStackCache.Add(cacheKey, stack, portaineree.DefaultEdgeAgentCheckinIntervalInSeconds*time.Second)
+			}
 		}
 
 		// if the stack represents a successful remote update or failed - skip it

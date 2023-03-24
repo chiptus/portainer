@@ -90,7 +90,7 @@ func BenchmarkBuildEdgeStacks(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		h.buildEdgeStacks(portaineree.EndpointID(1), time.UTC)
+		h.buildEdgeStacks(portaineree.EndpointID(1), time.UTC, false)
 	}
 }
 
@@ -112,7 +112,7 @@ func BenchmarkBuildEdgeStacksParallel(b *testing.B) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			h.buildEdgeStacks(portaineree.EndpointID(1), time.UTC)
+			h.buildEdgeStacks(portaineree.EndpointID(1), time.UTC, false)
 		}
 	})
 }

@@ -5,6 +5,7 @@ services:
     image: {{updater_image}}{{^updater_image}}portainer/portainer-updater:latest{{/updater_image}}
     labels:
       - io.portainer.hideStack=true 
+      - io.portainer.updater=true 
     command: ["agent", "--env-type", "standalone", "{{schedule_id}}", "{{agent_image_name}}{{^agent_image_name}}portainer/agent:latest{{/agent_image_name}}"]
     {{#skip_pull_agent_image}}
     environment:
