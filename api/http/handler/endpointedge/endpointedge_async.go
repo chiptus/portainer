@@ -346,6 +346,15 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 		return nil, httperror.InternalServerError("Unable to add environment to edge groups", err)
 	}
 
+	for _, tagID := range endpoint.TagIDs {
+		err = handler.DataStore.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
+			tag.Endpoints[endpoint.ID] = true
+		})
+		if err != nil {
+			return endpoint, httperror.InternalServerError("Unable to associate the environment to the specified tag", err)
+		}
+	}
+
 	return endpoint, nil
 }
 
