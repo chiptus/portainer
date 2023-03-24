@@ -256,6 +256,22 @@ func initSSLService(addr, certPath, keyPath, caCertPath, mTLSCertPath, mTLSKeyPa
 		host = "0.0.0.0"
 	}
 
+	if mTLSCertPath != "" && mTLSKeyPath != "" && mTLSCaCertPath != "" {
+		err := dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+			settings, err := tx.Settings().Settings()
+			if err != nil {
+				return err
+			}
+
+			settings.Edge.MTLS.UseSeparateCert = true
+
+			return tx.Settings().UpdateSettings(settings)
+		})
+		if err != nil {
+			log.Error().Err(err).Msg("could not update the settings")
+		}
+	}
+
 	sslService := ssl.NewService(fileService, dataStore, shutdownTrigger)
 
 	err := sslService.Init(host, certPath, keyPath, caCertPath, mTLSCertPath, mTLSKeyPath, mTLSCaCertPath)

@@ -32,6 +32,13 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}, nil
 }
 
+func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
+	return ServiceTx{
+		service: service,
+		tx:      tx,
+	}
+}
+
 // Settings retrieve the settings object.
 func (service *Service) Settings() (*portaineree.Settings, error) {
 	var settings portaineree.Settings

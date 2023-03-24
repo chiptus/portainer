@@ -60,7 +60,10 @@ func (tx *StoreTx) Role() dataservices.RoleService                             {
 func (tx *StoreTx) APIKeyRepository() dataservices.APIKeyRepository            { return nil }
 func (tx *StoreTx) GitCredential() dataservices.GitCredential                  { return nil }
 func (tx *StoreTx) S3Backup() dataservices.S3BackupService                     { return nil }
-func (tx *StoreTx) Settings() dataservices.SettingsService                     { return nil }
+
+func (tx *StoreTx) Settings() dataservices.SettingsService {
+	return tx.store.SettingsService.Tx(tx.tx)
+}
 
 func (tx *StoreTx) Snapshot() dataservices.SnapshotService {
 	return tx.store.SnapshotService.Tx(tx.tx)
