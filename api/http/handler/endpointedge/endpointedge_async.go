@@ -111,13 +111,13 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 		return httperror.BadRequest("agent platform header is not valid", agentPlatformErr)
 	}
 
+	err = handler.requestBouncer.AuthorizedClientTLSConn(r)
+	if err != nil {
+		return httperror.Forbidden("Permission denied to access environment", err)
+	}
+
 	if endpoint == nil {
 		log.Debug().Str("PortainerAgentEdgeIDHeader", edgeID).Msg("edge id not found in existing endpoints")
-
-		validateCertsErr := handler.requestBouncer.AuthorizedClientTLSConn(r)
-		if validateCertsErr != nil {
-			return httperror.Forbidden("Permission denied to access environment", err)
-		}
 
 		newEndpoint, createEndpointErr := handler.createAsyncEdgeAgentEndpoint(r, edgeID, agentPlatform, version, timeZone, payload.MetaFields)
 		if createEndpointErr != nil {

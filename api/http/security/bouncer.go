@@ -153,12 +153,7 @@ func (bouncer *RequestBouncer) AuthorizedEndpointOperation(r *http.Request, endp
 }
 
 func (bouncer *RequestBouncer) AuthorizedClientTLSConn(r *http.Request) error {
-	sslSettings, err := bouncer.dataStore.SSLSettings().Settings()
-	if err != nil {
-		return fmt.Errorf("could not retrieve the TLS settings: %w", err)
-	}
-
-	if sslSettings.CACertPath == "" {
+	if bouncer.sslService.GetCACertificatePool() == nil {
 		return nil
 	}
 

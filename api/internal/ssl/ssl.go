@@ -201,6 +201,10 @@ func (service *Service) SetCertificates(certData, keyData []byte) error {
 
 // GetCACertificatePool gets the CA Certificate pem file and returns it as a CertPool
 func (service *Service) GetCACertificatePool() *x509.CertPool {
+	if service == nil {
+		return nil
+	}
+
 	{
 		service.mu.RLock()
 		defer service.mu.RUnlock()
