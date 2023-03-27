@@ -15,7 +15,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-const DefaultAgentVersion = portaineree.APIVersion
+// This var gets overridden in our build scripts, it must be a var so that it can be overridden
+var DefaultAgentVersion = portaineree.APIVersion
 
 func KaasAgentVersion() string {
 	// override the default agent version if the KAAS_AGENT_VERSION environment variable is set
