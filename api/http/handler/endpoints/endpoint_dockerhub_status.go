@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -142,7 +143,9 @@ func getDockerHubLimits(httpClient *client.HTTPClient, token string) (*dockerhub
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+
+	io.Copy(io.Discard, resp.Body)
+	resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.New("failed fetching dockerhub limits")

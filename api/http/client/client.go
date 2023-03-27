@@ -57,6 +57,7 @@ func (client *HTTPClient) ExecuteAzureAuthenticationRequest(credentials *portain
 	if err != nil {
 		return nil, err
 	}
+	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
 		return nil, errors.New("Invalid Azure credentials")

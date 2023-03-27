@@ -185,10 +185,10 @@ func login() (token string) {
 	}
 
 	v, err := io.ReadAll(response.Body)
+	response.Body.Close()
 	if err != nil {
 		return ``
 	}
-	response.Body.Close()
 
 	if response.StatusCode != 200 {
 		fmt.Printf("Login failed. Response: %s, Status: %v\n", v, response.StatusCode)
@@ -223,10 +223,10 @@ func lastLogEntry(token string) *logEntry {
 	}
 
 	v, err := io.ReadAll(response.Body)
+	response.Body.Close()
 	if err != nil {
 		return nil
 	}
-	response.Body.Close()
 
 	if response.StatusCode != 200 {
 		fmt.Printf("Log fetch failed. Response: %s, Status: %v\n", v, response.StatusCode)
@@ -275,10 +275,10 @@ func post(token string, path string, payload []byte, headers ...header) (reply [
 	}
 
 	body, err := io.ReadAll(response.Body)
+	response.Body.Close()
 	if err != nil {
 		return nil, false
 	}
-	response.Body.Close()
 
 	if response.StatusCode != 200 {
 		fmt.Printf("Request failed. Response: %s, Status: %v\n", body, response.StatusCode)

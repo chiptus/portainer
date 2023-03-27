@@ -54,6 +54,7 @@ func Test_backupHandlerWithoutPassword_shouldCreateATarballArchive(t *testing.T)
 
 	response := w.Result()
 	body, _ := io.ReadAll(response.Body)
+	response.Body.Close()
 
 	tmpdir := t.TempDir()
 
@@ -90,6 +91,7 @@ func Test_backupHandlerWithPassword_shouldCreateEncryptedATarballArchive(t *test
 
 	response := w.Result()
 	body, _ := io.ReadAll(response.Body)
+	response.Body.Close()
 
 	tmpdir := t.TempDir()
 

@@ -24,11 +24,10 @@ func CopyRequestBody(r *http.Request) []byte {
 	// the implementation is a bit naive as we intend to read the whole body in-memory
 	// that might be problematic in case of large payloads, but in a general case shouldn't be a problem
 	body, err := io.ReadAll(r.Body)
+	r.Body.Close()
 	if err != nil {
 		log.Debug().Err(err).Msg("failed to read request body")
 	}
-
-	r.Body.Close()
 
 	r.Body = io.NopCloser(bytes.NewBuffer(body))
 

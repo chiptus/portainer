@@ -168,6 +168,8 @@ func Test_FindInJsonBodyField(t *testing.T) {
 			assert.Equal(t, tt.hasError, err != nil, "err: %s", err)
 
 			b, err := io.ReadAll(r.Body)
+			r.Body.Close()
+
 			assert.NoError(t, err)
 			assert.Equal(t, []byte(tt.body), b, "request body shouldn't be changed by the find")
 		})
