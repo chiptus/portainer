@@ -48,6 +48,7 @@ const microk8sOptions: Option<Microk8sK8sVersion>[] = [
   { label: 'latest/stable', value: 'latest/stable' },
   { label: '1.26/stable', value: '1.26/stable' },
   { label: '1.25/stable', value: '1.25/stable' },
+  { label: '1.24/stable', value: '1.24/stable' },
 ];
 
 export function Microk8sCreateClusterForm({
@@ -97,9 +98,9 @@ export function Microk8sCreateClusterForm({
           supported (although other distributions and versions may work).
         </p>
         <p>
-          Tested with MicroK8s versions 1.25 to 1.26. Note that if you select
-          &apos;latest/stable&apos; and it has moved on from those tested, we
-          cannot guarantee support.
+          Tested with MicroK8s versions 1.24, 1.25 and 1.26. Note that if you
+          select &apos;latest/stable&apos; and it has moved on from those
+          tested, we cannot guarantee support.
         </p>
       </TextTip>
       <NameField
