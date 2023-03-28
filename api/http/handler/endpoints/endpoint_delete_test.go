@@ -54,7 +54,6 @@ func TestConcurrentEndpointDelete(t *testing.T) {
 			EndpointCreationType: edgeAgentEnvironment,
 			GroupID:              1,
 			TagIDs:               []portaineree.TagID{tagID},
-			IsEdgeDevice:         true,
 		}
 
 		endpoint, hErr := handler.createEndpoint(p)

@@ -60,7 +60,6 @@ type endpointCreatePayload struct {
 	AzureAuthenticationKey string
 	TagIDs                 []portaineree.TagID
 	EdgeCheckinInterval    int
-	IsEdgeDevice           bool
 	Edge                   struct {
 		AsyncMode           bool
 		PingInterval        int
@@ -582,7 +581,6 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 		EdgeKey:             edgeKey,
 		EdgeCheckinInterval: payload.EdgeCheckinInterval,
 		Kubernetes:          portaineree.KubernetesDefault(),
-		IsEdgeDevice:        payload.IsEdgeDevice,
 		UserTrusted:         true,
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
@@ -647,7 +645,6 @@ func (handler *Handler) createUnsecuredEndpoint(payload *endpointCreatePayload) 
 		Status:             portaineree.EndpointStatusUp,
 		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portaineree.KubernetesDefault(),
-		IsEdgeDevice:       payload.IsEdgeDevice,
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
 		},
@@ -786,7 +783,6 @@ func (handler *Handler) createTLSSecuredEndpoint(payload *endpointCreatePayload,
 		Status:             portaineree.EndpointStatusUp,
 		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portaineree.KubernetesDefault(),
-		IsEdgeDevice:       payload.IsEdgeDevice,
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
 		},

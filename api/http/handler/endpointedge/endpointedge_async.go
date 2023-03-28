@@ -275,7 +275,6 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 		Snapshots:          []portainer.DockerSnapshot{},
 		EdgeKey:            edgeKey,
 		Kubernetes:         portaineree.KubernetesDefault(),
-		IsEdgeDevice:       true,
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
 		},

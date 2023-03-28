@@ -293,30 +293,6 @@ func filterEndpointsByTypes(endpoints []portaineree.Endpoint, endpointTypes []po
 	return endpoints[:n]
 }
 
-func filterEndpointsByEdgeDevice(endpoints []portaineree.Endpoint, edgeDevice bool, untrusted bool) []portaineree.Endpoint {
-	n := 0
-	for _, endpoint := range endpoints {
-		if shouldReturnEdgeDevice(endpoint, edgeDevice, untrusted) {
-			endpoints[n] = endpoint
-			n++
-		}
-	}
-
-	return endpoints[:n]
-}
-
-func shouldReturnEdgeDevice(endpoint portaineree.Endpoint, edgeDeviceParam bool, untrustedParam bool) bool {
-	if !endpointutils.IsEdgeEndpoint(&endpoint) {
-		return true
-	}
-
-	if !edgeDeviceParam {
-		return !endpoint.IsEdgeDevice
-	}
-
-	return endpoint.IsEdgeDevice && endpoint.UserTrusted == !untrustedParam
-}
-
 func convertTagIDsToTags(tagsMap map[portaineree.TagID]string, tagIDs []portaineree.TagID) []string {
 	tags := make([]string, 0, len(tagIDs))
 

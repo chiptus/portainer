@@ -157,7 +157,6 @@ angular.module('portainer.app').factory('FileUploadService', [
       TLSCertFile,
       TLSKeyFile,
       checkinInterval,
-      isEdgeDevice,
       EdgePingInterval,
       EdgeSnapshotInterval,
       EdgeCommandInterval
@@ -178,7 +177,6 @@ angular.module('portainer.app').factory('FileUploadService', [
           TLSCertFile: TLSCertFile,
           TLSKeyFile: TLSKeyFile,
           CheckinInterval: checkinInterval,
-          IsEdgeDevice: isEdgeDevice,
           EdgePingInterval: EdgePingInterval,
           EdgeSnapshotInterval: EdgeSnapshotInterval,
           EdgeCommandInterval: EdgeCommandInterval,

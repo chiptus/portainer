@@ -126,7 +126,6 @@ func (handler *Handler) createEndpoint(name string, provider portaineree.CloudPr
 		CloudProvider: &provider,
 		Snapshots:     []portainer.DockerSnapshot{},
 		Kubernetes:    portaineree.KubernetesDefault(),
-		IsEdgeDevice:  false,
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
 		},

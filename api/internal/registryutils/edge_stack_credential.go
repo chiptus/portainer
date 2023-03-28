@@ -27,9 +27,6 @@ func GetRegistryCredentialsForEdgeStack(dataStore dataservices.DataStoreTx, stac
 	// failure can be seen rather than having the stack sit in deploying state forever
 	if len(registries) > 0 && !secureEndpoint(endpoint) {
 		environmentType := "environment"
-		if endpoint.IsEdgeDevice {
-			environmentType = "edge device"
-		}
 
 		log.Warn().
 			Str("type", environmentType).

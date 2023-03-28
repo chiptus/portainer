@@ -91,7 +91,6 @@ angular.module('portainer.app').factory('EndpointService', [
       TLSCertFile,
       TLSKeyFile,
       checkinInterval,
-      isEdgeDevice,
       EdgePingInterval,
       EdgeSnapshotInterval,
       EdgeCommandInterval
@@ -117,7 +116,6 @@ angular.module('portainer.app').factory('EndpointService', [
         TLSCertFile,
         TLSKeyFile,
         checkinInterval,
-        isEdgeDevice,
         EdgePingInterval,
         EdgeSnapshotInterval,
         EdgeCommandInterval

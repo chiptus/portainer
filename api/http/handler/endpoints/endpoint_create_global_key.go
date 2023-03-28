@@ -112,7 +112,6 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 		GroupID:              int(payload.EnvironmentGroupID),
 		TagIDs:               tagsIDs,
 		EdgeCheckinInterval:  settings.EdgeAgentCheckinInterval,
-		IsEdgeDevice:         true,
 	}
 
 	endpoint, hErr := handler.createEndpoint(p)
