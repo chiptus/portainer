@@ -42,6 +42,44 @@ func NewService(fileService portainer.FileService, dataStore dataservices.DataSt
 
 // Init initializes the service
 func (service *Service) Init(host, certPath, keyPath, caCertPath, mTLSCertPath, mTLSKeyPath, mTLSCACertPath string) error {
+	// mTLS
+	mtlsSettings, err := service.dataStore.Settings().Settings()
+	if err != nil {
+		return errors.Wrap(err, "unable to retrieve the mTLS settings")
+	}
+
+	if mtlsSettings.Edge.MTLS.UseSeparateCert && mTLSCACertPath != "" && mTLSCertPath != "" && mTLSKeyPath != "" {
+		ca, err := os.ReadFile(mTLSCACertPath)
+		if err != nil {
+			return errors.Wrap(err, "failed reading the mTLS CA certificate")
+		}
+
+		cert, err := os.ReadFile(mTLSCertPath)
+		if err != nil {
+			return errors.Wrap(err, "failed reading the mTLS certificate")
+		}
+
+		key, err := os.ReadFile(mTLSKeyPath)
+		if err != nil {
+			return errors.Wrap(err, "failed reading the mTLS key")
+		}
+
+		_, _, _, err = service.fileService.StoreMTLSCertificates(cert, ca, key)
+		if err != nil {
+			return errors.Wrap(err, "failed storing the mTLS files")
+		}
+
+		err = service.SetMTLSCertificates(ca, cert, key)
+		if err != nil {
+			return errors.Wrap(err, "unable to initialize mTLS")
+		}
+
+		if service.GetCACertificatePool() == nil {
+			return errors.Wrap(err, "unable to initialize the mTLS CA certificate pool")
+		}
+	}
+
+	// TLS
 	certSupplied := certPath != "" && keyPath != ""
 	caCertSupplied := caCertPath != ""
 
@@ -92,49 +130,7 @@ func (service *Service) Init(host, certPath, keyPath, caCertPath, mTLSCertPath, 
 		return errors.Wrap(err, "failed generating self signed certs")
 	}
 
-	err = service.cacheInfo(certPath, keyPath, &caCertPath, true)
-	if err != nil {
-		return err
-	}
-
-	// mTLS
-	mtlsSettings, err := service.dataStore.Settings().Settings()
-	if err != nil {
-		return errors.Wrap(err, "unable to retrieve the mTLS settings")
-	}
-
-	if mtlsSettings.Edge.MTLS.UseSeparateCert && mTLSCACertPath != "" && mTLSCertPath != "" && mTLSKeyPath != "" {
-		ca, err := os.ReadFile(mTLSCACertPath)
-		if err != nil {
-			return errors.Wrap(err, "failed reading the mTLS CA certificate")
-		}
-
-		cert, err := os.ReadFile(mTLSCertPath)
-		if err != nil {
-			return errors.Wrap(err, "failed reading the mTLS certificate")
-		}
-
-		key, err := os.ReadFile(mTLSKeyPath)
-		if err != nil {
-			return errors.Wrap(err, "failed reading the mTLS key")
-		}
-
-		_, _, _, err = service.fileService.StoreMTLSCertificates(cert, ca, key)
-		if err != nil {
-			return errors.Wrap(err, "failed storing the mTLS files")
-		}
-
-		err = service.SetMTLSCertificates(ca, cert, key)
-		if err != nil {
-			return errors.Wrap(err, "unable to initialize mTLS")
-		}
-
-		if service.GetCACertificatePool() == nil {
-			return errors.Wrap(err, "unable to initialize the mTLS CA certificate pool")
-		}
-	}
-
-	return nil
+	return service.cacheInfo(certPath, keyPath, &caCertPath, true)
 }
 
 func generateSelfSignedCertificates(ip, certPath, keyPath string) error {
