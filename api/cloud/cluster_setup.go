@@ -410,13 +410,15 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				Str("state", state.String()).
 				Msg("starting provisionKaasClusterTask")
 
-			msg := "Creating KaaS cluster"
-			if task.Provider == portaineree.CloudProviderKubeConfig {
-				msg = "Importing Kubeconfig"
+			switch task.Provider {
+			case portaineree.CloudProviderMicrok8s:
+				// pendingState logic is completed outside of this function, but this is the initial state
+				service.changeState(&task, ProvisioningStateWaitingForCluster, "Waiting for MicroK8s cluster to become available")
+			case portaineree.CloudProviderKubeConfig:
+				service.changeState(&task, ProvisioningStateWaitingForCluster, "Importing Kubeconfig")
+			default:
+				service.changeState(&task, ProvisioningStateWaitingForCluster, "Creating KaaS cluster")
 			}
-
-			// pendingState logic is completed outside of this function, but this is the initial state
-			service.changeState(&task, ProvisioningStateWaitingForCluster, msg)
 
 		case ProvisioningStateWaitingForCluster:
 			cluster, err = service.getKaasCluster(&task)
@@ -483,12 +485,21 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 
 			serviceIP, err = kubeClient.GetPortainerAgentIPOrHostname(task.NodeIPs)
 			if serviceIP == "" {
+				service.setMessage(task.EndpointID, "Waiting for agent response", "Waiting for the Portainer agent service to be ready (attempt "+strconv.Itoa(task.Retries+1)+" of "+strconv.Itoa(maxAttempts)+")")
 				err = fmt.Errorf("could not get service ip or hostname: %v", err)
 				log.Debug().
 					Err(err).
 					Msg("failed to get service ip or hostname")
 			}
 			if err != nil {
+				service.setMessage(task.EndpointID, "Waiting for agent response", "Waiting for the Portainer agent service to be ready (attempt "+strconv.Itoa(task.Retries+1)+" of "+strconv.Itoa(maxAttempts)+")")
+				err = checkFatal(err)
+				task.Retries++
+				break
+			}
+			err = kubeClient.CheckRunningPortainerAgentDeployment(task.NodeIPs)
+			if err != nil {
+				service.setMessage(task.EndpointID, "Waiting for agent response", "Waiting for the Portainer agent deployment to be ready (attempt "+strconv.Itoa(task.Retries+1)+" of "+strconv.Itoa(maxAttempts)+")")
 				err = checkFatal(err)
 				task.Retries++
 				break
@@ -577,6 +588,7 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 	switch request.Provider {
 	case portaineree.CloudProviderMicrok8s:
 		req := Microk8sProvisioningClusterRequest{
+			EnvironmentID:     request.EndpointID,
 			Credentials:       credentials,
 			NodeIps:           request.NodeIPs,
 			Addons:            request.Addons,

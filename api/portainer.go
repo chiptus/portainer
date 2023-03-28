@@ -1801,6 +1801,7 @@ type (
 		DeployPortainerAgent() error
 		UpsertPortainerK8sClusterRoles(clusterConfig KubernetesConfiguration) error
 		GetPortainerAgentIPOrHostname(nodeIPs []string) (string, error)
+		CheckRunningPortainerAgentDeployment(nodeIPs []string) error
 	}
 
 	// NomadClient represents a service used to query a Nomad environment(endpoint)

@@ -30,6 +30,7 @@ type (
 	}
 
 	Microk8sProvisioningClusterRequest struct {
+		EnvironmentID     portaineree.EndpointID `json:"environmentID"`
 		Credentials       *models.CloudCredential
 		NodeIps, Addons   []string
 		KubernetesVersion string `json:"kubernetesVersion"`
@@ -113,6 +114,7 @@ func (service *CloudClusterSetupService) Microk8sProvisionCluster(req Microk8sPr
 	}
 
 	// The first step is to install microk8s on all nodes concurrently.
+	service.setMessage(req.EnvironmentID, "Creating MicroK8s cluster", "Installing MicroK8s on each node")
 	for _, nodeIp := range req.NodeIps {
 		func(user, password, passphrase, privateKey, ip string) {
 			g.Go(func() error {
@@ -136,11 +138,13 @@ func (service *CloudClusterSetupService) Microk8sProvisionCluster(req Microk8sPr
 		// Right now, we extract the hostname/IP from all the nodes after the first
 		// and we setup the /etc/hosts file on the first node (where the microk8s add-node command will be run)
 		// To be determined whether that is an infrastructure requirement and not something that Portainer should orchestrate.
+		service.setMessage(req.EnvironmentID, "Creating MicroK8s cluster", "Adding host entries to all nodes")
 		err = setupHostEntries(user, password, passphrase, privateKey, req.NodeIps)
 		if err != nil {
 			return "", err
 		}
 
+		service.setMessage(req.EnvironmentID, "Creating MicroK8s cluster", "Joining nodes to the cluster")
 		for i := 1; i < len(req.NodeIps); i++ {
 			token, err := retrieveClusterJoinInformation(user, password, passphrase, privateKey, req.NodeIps[0])
 			if err != nil {
@@ -158,6 +162,7 @@ func (service *CloudClusterSetupService) Microk8sProvisionCluster(req Microk8sPr
 
 	// We activate addons on the master node
 	if len(req.Addons) > 0 {
+		service.setMessage(req.EnvironmentID, "Creating MicroK8s cluster", "Enabling MicroK8s addons")
 		errCount := 0
 		for _, addon := range req.Addons {
 			err = enableMicrok8sAddonsOnNode(user, password, passphrase, privateKey, req.NodeIps[0], addon)

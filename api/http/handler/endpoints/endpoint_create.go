@@ -734,8 +734,8 @@ func (handler *Handler) createKubeConfigEndpoint(payload *endpointCreatePayload)
 		TagIDs:             payload.TagIDs,
 		Status:             portaineree.EndpointStatusProvisioning,
 		StatusMessage: portaineree.EndpointStatusMessage{
-			Summary: "Importing KubeConfig",
-			Detail:  "Importing KubeConfig",
+			Summary: "Importing Kubeconfig",
+			Detail:  "",
 		},
 		Snapshots:  []portainer.DockerSnapshot{},
 		Kubernetes: portaineree.KubernetesDefault(),

@@ -54,6 +54,22 @@ func (kcl *KubeClient) GetPortainerAgentIPOrHostname(nodeIPs []string) (string, 
 	return "", nil
 }
 
+// CheckPortainerAgentDeployment checks whether the Portainer agent is deployed and running in the current Kubernetes environment. If the agent is not deployed, return an error.
+func (kcl *KubeClient) CheckRunningPortainerAgentDeployment(nodeIPs []string) error {
+	// get the portainer agent deployment
+	agentDeployment, err := kcl.cli.AppsV1().Deployments("portainer").Get(context.TODO(), "portainer-agent", metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	// check if all replicas for the agent are running, and return the deployment status if not
+	if agentDeployment.Status.AvailableReplicas != agentDeployment.Status.Replicas {
+		return fmt.Errorf("Portainer agent deployment is not ready")
+	}
+
+	return nil
+}
+
 // DeployPortainerAgent deploys the Portainer agent in the current Kubernetes
 // environment it is effectively the equivalent of
 // https://github.com/portainer/k8s/blob/master/deploy/manifests/agent/portainer-agent-k8s-lb.yaml
