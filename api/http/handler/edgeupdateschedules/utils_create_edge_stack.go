@@ -51,13 +51,16 @@ func (handler *Handler) createUpdateEdgeStack(
 	prePullImage := false
 	rePullImage := false
 	registries := []portaineree.RegistryID{}
-	var registry *portaineree.Registry
+	var (
+		registry *portaineree.Registry
+		err      error
+	)
 	if registryID != 0 {
 		prePullImage = true
 		rePullImage = true
 		registries = append(registries, registryID)
 
-		registry, err := handler.dataStore.Registry().Registry(registryID)
+		registry, err = handler.dataStore.Registry().Registry(registryID)
 		if err != nil {
 			return 0, errors.WithMessage(err, "failed to retrieve registry")
 		}
