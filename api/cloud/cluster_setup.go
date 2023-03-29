@@ -700,6 +700,11 @@ func (service *CloudClusterSetupService) processResult(result *cloudPrevisioning
 		if err != nil {
 			log.Error().Err(err).Msg("unable to update endpoint status message in database")
 		}
+	} else {
+		err := service.setStatus(result.endpointID, 1)
+		if err != nil {
+			log.Error().Err(err).Msg("unable to update endpoint status in database")
+		}
 	}
 
 	// Remove the task from the database
