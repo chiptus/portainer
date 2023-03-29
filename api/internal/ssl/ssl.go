@@ -201,13 +201,11 @@ func (service *Service) GetCACertificatePool() *x509.CertPool {
 		return nil
 	}
 
-	{
-		service.mu.RLock()
-		defer service.mu.RUnlock()
+	service.mu.RLock()
+	defer service.mu.RUnlock()
 
-		if service.certPool != nil {
-			return service.certPool
-		}
+	if service.certPool != nil {
+		return service.certPool
 	}
 
 	settings, err := service.GetSSLSettings()
