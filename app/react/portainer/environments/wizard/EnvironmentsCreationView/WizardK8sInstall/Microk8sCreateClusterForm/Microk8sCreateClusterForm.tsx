@@ -10,6 +10,7 @@ import { FormControl } from '@@/form-components/FormControl';
 import { TextTip } from '@@/Tip/TextTip';
 import { LoadingButton } from '@@/buttons';
 import { Select, Option } from '@@/form-components/Input/Select';
+import { FormError } from '@@/form-components/FormError';
 
 import { CredentialsField } from '../../WizardKaaS/shared/CredentialsField';
 import { TestSSHConnectionResponse } from '../../WizardKaaS/types';
@@ -82,6 +83,11 @@ export function Microk8sCreateClusterForm({
   // ensure the form values are valid when the options change
   useSetAvailableOption(credentialOptions, credentialId, 'credentialId');
 
+  const isExperimentalVersion = useMemo(
+    () => values.microk8s.kubernetesVersion !== '1.24/stable',
+    [values.microk8s.kubernetesVersion]
+  );
+
   return (
     <>
       <TextTip
@@ -98,9 +104,9 @@ export function Microk8sCreateClusterForm({
           supported (although other distributions and versions may work).
         </p>
         <p>
-          Tested with MicroK8s versions 1.24, 1.25 and 1.26. Note that if you
-          select &apos;latest/stable&apos; and it has moved on from those
-          tested, we cannot guarantee support.
+          Tested with MicroK8s versions 1.24 to 1.26. Note that if you select
+          &apos;latest/stable&apos; and it has moved on from those tested, we
+          cannot guarantee support.
         </p>
       </TextTip>
       <NameField
@@ -185,6 +191,21 @@ export function Microk8sCreateClusterForm({
           data-cy="microk8sCreateForm-kubernetesVersionSelect"
           options={microk8sOptions}
         />
+        {isExperimentalVersion && (
+          <FormError className="mt-1 !items-start [&>svg]:mt-0.5">
+            MicroK8s 1.25 and 1.26 can have an issue running metrics server in
+            certain circumstances, which may require a patch to the metric
+            server deployment to work around. See{' '}
+            <a
+              href="https://docs.portainer.io/admin/environments/add/kube-create/microk8s#a-note-about-microk8s-versions"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Portainer documentation
+            </a>{' '}
+            for version-specific issues.
+          </FormError>
+        )}
       </FormControl>
 
       <FormControl

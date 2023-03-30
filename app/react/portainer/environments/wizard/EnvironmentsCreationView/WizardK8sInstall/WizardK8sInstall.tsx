@@ -43,7 +43,7 @@ const initialValues: K8sInstallFormValues = {
     nodeIPs: [''],
     addons: [],
     customTemplateId: 0,
-    kubernetesVersion: 'latest/stable',
+    kubernetesVersion: '1.24/stable',
   },
 };
 
