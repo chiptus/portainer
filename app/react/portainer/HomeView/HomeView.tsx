@@ -4,7 +4,10 @@ import { useStore } from 'zustand';
 
 import { Environment } from '@/react/portainer/environments/types';
 import { snapshotEndpoints } from '@/react/portainer/environments/environment.service';
-import { isEdgeEnvironment } from '@/react/portainer/environments/utils';
+import {
+  isEdgeEnvironment,
+  isEdgeAsync,
+} from '@/react/portainer/environments/utils';
 import * as notifications from '@/portainer/services/notifications';
 import { DockerSnapshotPanel } from '@/react/edge/components/SnapshotPanel';
 import { environmentStore } from '@/react/hooks/current-environment-store';
@@ -100,7 +103,7 @@ export function HomeView() {
   }
 
   function handleBrowseClick(environment: Environment) {
-    if (isEdgeEnvironment(environment.Type)) {
+    if (isEdgeEnvironment(environment.Type) && !isEdgeAsync(environment)) {
       setConnectingToEdgeEndpoint(true);
     }
   }

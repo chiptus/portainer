@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { Tag, Activity } from 'lucide-react';
+import clsx from 'clsx';
 
 import {
   isoDateFromTimestamp,
@@ -51,65 +52,65 @@ export function EnvironmentItem({
   const tags = useEnvironmentTagNames(environment.TagIds);
   const dashboardRoute = getDashboardRoute(environment);
 
+  const Button = dashboardRoute.to ? Link : 'button';
+
   return (
     <div className="relative">
-      <Link
+      <Button
+        className={clsx(
+          'blocklist-item no-link !m-0 flex min-h-[110px] w-full items-stretch overflow-hidden bg-transparent !pr-56',
+          { 'cursor-default': !dashboardRoute.to }
+        )}
+        onClick={onClickBrowse}
         to={dashboardRoute.to}
         params={dashboardRoute.params}
-        className="no-link"
       >
-        <button
-          className="blocklist-item !m-0 flex min-h-[110px] w-full items-stretch overflow-hidden bg-transparent !pr-56"
-          onClick={onClickBrowse}
-          type="button"
-        >
-          <div className="ml-2 flex justify-center self-center">
-            <EnvironmentIcon type={environment.Type} />
-          </div>
-          <div className="ml-3 mr-auto flex flex-col items-start justify-center gap-3">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <span className="font-bold">{environment.Name}</span>
-              {isEdge ? (
-                <EdgeIndicator environment={environment} showLastCheckInDate />
-              ) : (
-                <>
-                  <EnvironmentStatusBadge status={environment.Status} />
-                  {snapshotTime && (
-                    <span
-                      className="small text-muted vertical-center gap-1"
-                      title="Last snapshot time"
-                    >
-                      <Activity className="icon icon-sm" aria-hidden="true" />
-                      {snapshotTime}
-                    </span>
-                  )}
-                </>
-              )}
-              <EngineVersion environment={environment} />
-              {!isEdge && (
-                <span className="text-muted small vertical-center">
-                  {stripProtocol(environment.URL)}
-                </span>
-              )}
-            </div>
-            <div className="small text-muted flex flex-wrap items-center gap-x-4 gap-y-2">
-              {groupName && (
-                <span className="font-semibold">
-                  <span>Group: </span>
-                  <span>{groupName}</span>
-                </span>
-              )}
-              <span className="vertical-center gap-1">
-                <Tag className="icon icon-sm" aria-hidden="true" />
-                {tags}
+        <div className="ml-2 flex justify-center self-center">
+          <EnvironmentIcon type={environment.Type} />
+        </div>
+        <div className="ml-3 mr-auto flex flex-col items-start justify-center gap-3">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span className="font-bold">{environment.Name}</span>
+            {isEdge ? (
+              <EdgeIndicator environment={environment} showLastCheckInDate />
+            ) : (
+              <>
+                <EnvironmentStatusBadge status={environment.Status} />
+                {snapshotTime && (
+                  <span
+                    className="small text-muted vertical-center gap-1"
+                    title="Last snapshot time"
+                  >
+                    <Activity className="icon icon-sm" aria-hidden="true" />
+                    {snapshotTime}
+                  </span>
+                )}
+              </>
+            )}
+            <EngineVersion environment={environment} />
+            {!isEdge && (
+              <span className="text-muted small vertical-center">
+                {stripProtocol(environment.URL)}
               </span>
-              <EnvironmentTypeTag environment={environment} />
-              <AgentDetails environment={environment} />
-            </div>
-            <EnvironmentStats environment={environment} />
+            )}
           </div>
-        </button>
-      </Link>
+          <div className="small text-muted flex flex-wrap items-center gap-x-4 gap-y-2">
+            {groupName && (
+              <span className="font-semibold">
+                <span>Group: </span>
+                <span>{groupName}</span>
+              </span>
+            )}
+            <span className="vertical-center gap-1">
+              <Tag className="icon icon-sm" aria-hidden="true" />
+              {tags}
+            </span>
+            <EnvironmentTypeTag environment={environment} />
+            <AgentDetails environment={environment} />
+          </div>
+          <EnvironmentStats environment={environment} />
+        </div>
+      </Button>
       {/* 
       Buttons are extracted out of the main button because it causes errors with react and accessibility issues
       see https://stackoverflow.com/questions/66409964/warning-validatedomnesting-a-cannot-appear-as-a-descendant-of-a

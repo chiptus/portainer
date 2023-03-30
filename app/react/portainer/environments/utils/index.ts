@@ -35,6 +35,10 @@ export function isNomadEnvironment(envType: EnvironmentType) {
   return getPlatformType(envType) === PlatformType.Nomad;
 }
 
+export function isSnapshotBrowsingSupported(environment: Environment) {
+  return isDockerEnvironment(environment.Type) && isEdgeAsync(environment);
+}
+
 export function isAgentEnvironment(envType: EnvironmentType) {
   return (
     isEdgeEnvironment(envType) ||
@@ -78,6 +82,12 @@ export function getDashboardRoute(environment: Environment) {
     }
 
     if (isEdgeAsync(environment)) {
+      if (!isSnapshotBrowsingSupported(environment)) {
+        return {
+          to: '',
+        };
+      }
+
       return {
         to: 'edge.browse.dashboard',
         params: { environmentId: environment.Id },

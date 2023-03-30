@@ -202,7 +202,7 @@ input[type='checkbox'] {
   padding: 10px;
 }
 
-.blocklist-item {
+.blocklist .blocklist-item {
   padding: 10px;
   margin-bottom: 10px;
   border: 1px solid var(--border-blocklist);

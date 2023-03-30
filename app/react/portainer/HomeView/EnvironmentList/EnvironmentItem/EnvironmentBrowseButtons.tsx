@@ -5,6 +5,7 @@ import { Environment } from '@/react/portainer/environments/types';
 import {
   getDashboardRoute,
   isEdgeAsync as checkEdgeAsync,
+  isSnapshotBrowsingSupported,
 } from '@/react/portainer/environments/utils';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 
@@ -29,13 +30,15 @@ export function EnvironmentBrowseButtons({
   const browseStatus = getStatus(isActive, isEdgeAsync);
 
   const dashboardRoute = getDashboardRoute(environment);
+  const supportsSnapshotBrowsing = isSnapshotBrowsingSupported(environment);
+
   return (
     <div className="flex h-24 w-full flex-col justify-center gap-2 [&>*]:h-1/3">
       {isBE &&
         (browseStatus !== 'snapshot' ? (
           <LinkButton
             icon={History}
-            disabled={!isEdgeAsync}
+            disabled={!supportsSnapshotBrowsing}
             to="edge.browse.dashboard"
             params={{
               environmentId: environment.Id,
@@ -44,8 +47,8 @@ export function EnvironmentBrowseButtons({
             color="light"
             className="!m-0 w-full !py-0"
             title={
-              !isEdgeAsync
-                ? 'Browse snapshot is only available for async environments'
+              !supportsSnapshotBrowsing
+                ? 'Browse snapshot is only available for async docker environments'
                 : ''
             }
           >
