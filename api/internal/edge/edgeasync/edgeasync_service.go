@@ -229,11 +229,19 @@ func (service *Service) storeUpdateJobCommand(tx dataservices.DataStoreTx, endpo
 		return err
 	}
 
+	collectLogs := edgeJob.Endpoints[endpointID].CollectLogs
+	logsStatus := edgeJob.Endpoints[endpointID].LogsStatus
+
+	if v, ok := edgeJob.GroupLogsCollection[endpointID]; ok {
+		collectLogs = v.CollectLogs
+		logsStatus = v.LogsStatus
+	}
+
 	edgeJobData := &edgeJobData{
 		ID:                edgeJob.ID,
 		CronExpression:    edgeJob.CronExpression,
-		CollectLogs:       edgeJob.Endpoints[endpointID].CollectLogs,
-		LogsStatus:        edgeJob.Endpoints[endpointID].LogsStatus,
+		CollectLogs:       collectLogs,
+		LogsStatus:        logsStatus,
 		Version:           edgeJob.Version,
 		ScriptFileContent: base64.RawStdEncoding.EncodeToString(fileContent),
 	}
