@@ -12,10 +12,10 @@ function EdgeAutoCreateScriptView() {
   return (
     <>
       <PageHeader
-        title="Automatic Edge Environment Creation"
+        title="Auto onboarding script creation"
         breadcrumbs={[
           { label: 'Environments', link: 'portainer.endpoints' },
-          'Automatic Edge Environment Creation',
+          'Auto onboarding script creation',
         ]}
       />
 

@@ -71,7 +71,7 @@ export function AutomaticEdgeEnvCreation() {
 
   return (
     <Widget>
-      <WidgetTitle icon={Laptop} title="Automatic Edge Environment Creation" />
+      <WidgetTitle icon={Laptop} title="Auto onboarding script creation" />
       <WidgetBody className="form-horizontal">
         {!edgeComputeConfigurationOK ? (
           <TextTip color="orange">
