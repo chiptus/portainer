@@ -331,7 +331,10 @@ func retrieveHostname(user, password, passphrase, privateKey, nodeIp string) (st
 	return strings.TrimSuffix(commandOutput, "\n"), nil
 }
 
-func updateHostFile(user, password, passphrase, privateKey, nodeIp string, hostEntries []string) error {
+func updateHostFile(
+	user, password, passphrase, privateKey, nodeIp string,
+	hostEntries map[string]string,
+) error {
 	config, err := NewSSHConfig(user, password, passphrase, privateKey)
 	if err != nil {
 		return err
@@ -343,41 +346,61 @@ func updateHostFile(user, password, passphrase, privateKey, nodeIp string, hostE
 	}
 	defer conn.Close()
 
-	// TODO: REVIEW-POC-MICROK8S
-	// Right now we append one entry at a time // per SSH command
-	// There might be a way to do this in one go
-	for _, hostEntry := range hostEntries {
-		command := fmt.Sprintf("sh -c 'echo \"%s\" >> /etc/hosts'", hostEntry)
+	for ip, hostname := range hostEntries {
+		if ip == nodeIp {
+			continue
+		}
+		s := fmt.Sprintf("%s %s", ip, hostname)
+		command := fmt.Sprintf("sh -c 'echo \"%s\" >> /etc/hosts'", s)
 		err = runSSHCommand(conn, password, command)
 		if err != nil {
 			return err
 		}
+
+		// cloud-init workaround
+		// On machines created with cloud-init, which is many cloud providers,
+		// you need to edit a file in /etc/cloud/templates instead of the main
+		// /etc/hosts file in order for your changes to persist on a restart.
+		// NOTE: This is a best effort attempt. If the file doesn't exist we
+		// skip it and only edit the main hosts file.
+		path, err := runSSHCommandAndGetOutput(
+			conn,
+			password,
+			`grep -o "\/etc\/cloud\/templates.*\.tmpl$" /etc/hosts`,
+		)
+		if err != nil || path == "" || strings.ContainsAny(path, " ") {
+			continue
+		}
+		command = fmt.Sprintf("sh -c 'echo \"%s\" >> %s'", s, path)
+		// Not worrying about errors since it will just be the file missing.
+		_ = runSSHCommand(conn, password, command)
 	}
 
 	return nil
 }
 
 func setupHostEntries(user, password, passphrase, privateKey string, nodeIps []string) error {
-	hostEntries := []string{}
+	// hostEntries is a mapping of nodeIP to hostname.
+	hostEntries := make(map[string]string)
 
-	// TODO: REVIEW-POC-MICROK8S
-	// Retrieving hostnames on each nodes could be done in parallel
-
-	for idx, nodeIp := range nodeIps {
-		if idx == 0 {
-			continue
-		}
-
+	// Build the list of all host entries.
+	for _, nodeIp := range nodeIps {
 		hostname, err := retrieveHostname(user, password, passphrase, privateKey, nodeIp)
 		if err != nil {
 			return err
 		}
 
-		hostEntry := fmt.Sprintf("%s %s", nodeIp, hostname)
-		hostEntries = append(hostEntries, hostEntry)
+		hostEntries[nodeIp] = hostname
 	}
 
-	return updateHostFile(user, password, passphrase, privateKey, nodeIps[0], hostEntries)
+	// Update each of the nodes with the list of host entries.
+	for _, nodeIp := range nodeIps {
+		err := updateHostFile(user, password, passphrase, privateKey, nodeIp, hostEntries)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func runSSHCommand(conn *ssh.Client, password, command string) error {
