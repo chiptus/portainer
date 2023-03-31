@@ -144,15 +144,16 @@ func (service *CloudClusterSetupService) Microk8sProvisionCluster(req Microk8sPr
 			return "", err
 		}
 
-		service.setMessage(req.EnvironmentID, "Creating MicroK8s cluster", "Joining nodes to the cluster")
 		for i := 1; i < len(req.NodeIps); i++ {
+			service.setMessage(req.EnvironmentID, "Creating MicroK8s cluster", "Joining nodes to the cluster")
 			token, err := retrieveClusterJoinInformation(user, password, passphrase, privateKey, req.NodeIps[0])
 			if err != nil {
 				return "", err
 			}
 
-			// Join nodes to the cluster. The first 1-3 nodes are managers, the rest are workers.
-			asWorkerNode := i >= 3
+			// Join nodes to the cluster. The first 1-3 nodes are managers, the rest are workers. For a 2 node cluster, the first node is a manager and the second is a worker.
+			asWorkerNode := i >= 3 || (len(req.NodeIps) == 2 && i == 1) // index of 1 is the second node
+
 			err = executeJoinClusterCommandOnNode(user, password, passphrase, privateKey, req.NodeIps[i], token, asWorkerNode)
 			if err != nil {
 				return "", err
@@ -282,6 +283,7 @@ func executeJoinClusterCommandOnNode(user, password, passphrase, privateKey, nod
 	}
 
 	joinClusterCommand := fmt.Sprintf("microk8s join %s %s", workerParam, joinInfo.URLS[0])
+	log.Debug().Msgf("Node with ip %s is joining cluster with command: %s", nodeIp, joinClusterCommand)
 	return runSSHCommand(conn, password, joinClusterCommand)
 }
 

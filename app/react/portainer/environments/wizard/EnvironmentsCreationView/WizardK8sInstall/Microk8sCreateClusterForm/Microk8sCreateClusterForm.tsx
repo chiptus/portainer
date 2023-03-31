@@ -118,7 +118,7 @@ export function Microk8sCreateClusterForm({
 
       <FormControl
         label="Node IP list"
-        tooltip="A maximum of three of the nodes will be set up as control plane nodes, with the remaining ones being worker nodes."
+        tooltip="For 3+ node clusters, the first 3 nodes entered are set up as control plane. For 1 or 2 node clusters, the first node entered is set up as control plane. Any remaining are set up as worker nodes."
         inputId="microk8s-nodeIps"
         errors={errors.microk8s?.nodeIPs}
         required
