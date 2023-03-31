@@ -5,12 +5,8 @@ import KubernetesDeploymentConverter from 'Kubernetes/converters/deployment';
 
 class KubernetesDeploymentService {
   /* @ngInject */
-  constructor($async, $state, KubernetesDeployments, Notifications, KubernetesNamespaceService, Authentication) {
+  constructor($async, KubernetesDeployments) {
     this.$async = $async;
-    this.$state = $state;
-    this.Notifications = Notifications;
-    this.Authentication = Authentication;
-    this.KubernetesNamespaceService = KubernetesNamespaceService;
     this.KubernetesDeployments = KubernetesDeployments;
 
     this.getAsync = this.getAsync.bind(this);
@@ -44,15 +40,6 @@ class KubernetesDeploymentService {
       const data = await this.KubernetesDeployments(namespace).get().$promise;
       return data.items;
     } catch (err) {
-      if (err.status === 403) {
-        this.Notifications.error('Failure', new Error('Reloading page, as your permissions for namespace ' + namespace + ' appear to have been revoked.'));
-        await this.KubernetesNamespaceService.refreshCacheAsync().catch(() => {
-          this.Authentication.logout();
-          this.$state.go('portainer.logout');
-        });
-        this.$state.reload();
-        return;
-      }
       throw new PortainerError('Unable to retrieve Deployments', err);
     }
   }

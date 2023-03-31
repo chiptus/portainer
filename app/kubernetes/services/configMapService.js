@@ -7,13 +7,9 @@ import { KubernetesPortainerAccessConfigMap } from 'Kubernetes/models/config-map
 
 class KubernetesConfigMapService {
   /* @ngInject */
-  constructor($async, $state, Authentication, Notifications, KubernetesNamespaceService, KubernetesConfigMaps) {
+  constructor($async, KubernetesConfigMaps) {
     this.$async = $async;
     this.KubernetesConfigMaps = KubernetesConfigMaps;
-    this.Authentication = Authentication;
-    this.$state = $state;
-    this.Notifications = Notifications;
-    this.KubernetesNamespaceService = KubernetesNamespaceService;
 
     this.getAsync = this.getAsync.bind(this);
     this.getAllAsync = this.getAllAsync.bind(this);
@@ -107,15 +103,6 @@ class KubernetesConfigMapService {
       const data = await this.KubernetesConfigMaps(namespace).get().$promise;
       return _.map(data.items, (item) => KubernetesConfigMapConverter.apiToConfigMap(item));
     } catch (err) {
-      if (err.status === 403) {
-        this.Notifications.error('Failure', new Error('Reloading page, as your permissions for namespace ' + namespace + ' appear to have been revoked.'));
-        await this.KubernetesNamespaceService.refreshCacheAsync().catch(() => {
-          this.Authentication.logout();
-          this.$state.go('portainer.logout');
-        });
-        this.$state.reload();
-        return;
-      }
       throw new PortainerError('Unable to retrieve config maps', err);
     }
   }

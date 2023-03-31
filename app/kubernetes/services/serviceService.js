@@ -5,12 +5,8 @@ import KubernetesServiceConverter from 'Kubernetes/converters/service';
 
 class KubernetesServiceService {
   /* @ngInject */
-  constructor($async, $state, KubernetesServices, Notifications, KubernetesNamespaceService, Authentication) {
+  constructor($async, KubernetesServices) {
     this.$async = $async;
-    this.$state = $state;
-    this.Notifications = Notifications;
-    this.Authentication = Authentication;
-    this.KubernetesNamespaceService = KubernetesNamespaceService;
     this.KubernetesServices = KubernetesServices;
 
     this.getAsync = this.getAsync.bind(this);
@@ -45,15 +41,6 @@ class KubernetesServiceService {
       const data = await this.KubernetesServices(namespace).get().$promise;
       return data.items;
     } catch (err) {
-      if (err.status === 403) {
-        this.Notifications.error('Failure', new Error('Reloading page, as your permissions for namespace ' + namespace + ' appear to have been revoked.'));
-        await this.KubernetesNamespaceService.refreshCacheAsync().catch(() => {
-          this.Authentication.logout();
-          this.$state.go('portainer.logout');
-        });
-        this.$state.reload();
-        return;
-      }
       throw new PortainerError('Unable to retrieve services', err);
     }
   }

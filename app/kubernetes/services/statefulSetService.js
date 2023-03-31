@@ -5,12 +5,8 @@ import KubernetesStatefulSetConverter from 'Kubernetes/converters/statefulSet';
 
 class KubernetesStatefulSetService {
   /* @ngInject */
-  constructor($async, $state, KubernetesStatefulSets, KubernetesServiceService, Notifications, KubernetesNamespaceService, Authentication) {
+  constructor($async, KubernetesStatefulSets, KubernetesServiceService) {
     this.$async = $async;
-    this.$state = $state;
-    this.Notifications = Notifications;
-    this.Authentication = Authentication;
-    this.KubernetesNamespaceService = KubernetesNamespaceService;
     this.KubernetesStatefulSets = KubernetesStatefulSets;
     this.KubernetesServiceService = KubernetesServiceService;
 
@@ -55,15 +51,6 @@ class KubernetesStatefulSetService {
       const data = await this.KubernetesStatefulSets(namespace).get().$promise;
       return data.items;
     } catch (err) {
-      if (err.status === 403) {
-        this.Notifications.error('Failure', new Error('Reloading page, as your permissions for namespace ' + namespace + ' appear to have been revoked.'));
-        await this.KubernetesNamespaceService.refreshCacheAsync().catch(() => {
-          this.Authentication.logout();
-          this.$state.go('portainer.logout');
-        });
-        this.$state.reload();
-        return;
-      }
       throw new PortainerError('Unable to retrieve StatefulSets', err);
     }
   }

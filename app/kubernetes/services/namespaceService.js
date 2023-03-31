@@ -22,7 +22,6 @@ class KubernetesNamespaceService {
     this.deleteAsync = this.deleteAsync.bind(this);
     this.getJSONAsync = this.getJSONAsync.bind(this);
     this.updateFinalizeAsync = this.updateFinalizeAsync.bind(this);
-    this.refreshCacheAsync = this.refreshCacheAsync.bind(this);
   }
 
   /**
@@ -110,26 +109,11 @@ class KubernetesNamespaceService {
     }
   }
 
-  async get(name, refreshCache = false) {
+  async get(name) {
     if (name) {
       return this.$async(this.getAsync, name);
     }
-    const cachedAllowedNamespaces = this.LocalStorage.getAllowedNamespaces();
-    if (!cachedAllowedNamespaces || refreshCache) {
-      const allowedNamespaces = await this.getAllAsync();
-      this.LocalStorage.storeAllowedNamespaces(allowedNamespaces);
-      updateNamespaces(allowedNamespaces);
-      return allowedNamespaces;
-    } else {
-      updateNamespaces(cachedAllowedNamespaces);
-      return cachedAllowedNamespaces;
-    }
-  }
-
-  async refreshCacheAsync() {
-    this.LocalStorage.deleteAllowedNamespaces();
     const allowedNamespaces = await this.getAllAsync();
-    this.LocalStorage.storeAllowedNamespaces(allowedNamespaces);
     updateNamespaces(allowedNamespaces);
     return allowedNamespaces;
   }
@@ -142,7 +126,6 @@ class KubernetesNamespaceService {
       const payload = KubernetesNamespaceConverter.createPayload(namespace);
       const params = {};
       const data = await this.KubernetesNamespaces().create(params, payload).$promise;
-      await this.refreshCacheAsync();
       return data;
     } catch (err) {
       throw new PortainerError('Unable to create namespace', err);

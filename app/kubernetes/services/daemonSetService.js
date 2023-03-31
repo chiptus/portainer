@@ -5,12 +5,8 @@ import KubernetesDaemonSetConverter from 'Kubernetes/converters/daemonSet';
 
 class KubernetesDaemonSetService {
   /* @ngInject */
-  constructor($async, $state, KubernetesDaemonSets, Notifications, KubernetesNamespaceService, Authentication) {
+  constructor($async, KubernetesDaemonSets) {
     this.$async = $async;
-    this.$state = $state;
-    this.Notifications = Notifications;
-    this.Authentication = Authentication;
-    this.KubernetesNamespaceService = KubernetesNamespaceService;
     this.KubernetesDaemonSets = KubernetesDaemonSets;
 
     this.getAsync = this.getAsync.bind(this);
@@ -44,15 +40,6 @@ class KubernetesDaemonSetService {
       const data = await this.KubernetesDaemonSets(namespace).get().$promise;
       return data.items;
     } catch (err) {
-      if (err.status === 403) {
-        this.Notifications.error('Failure', new Error('Reloading page, as your permissions for namespace ' + namespace + ' appear to have been revoked.'));
-        await this.KubernetesNamespaceService.refreshCacheAsync().catch(() => {
-          this.Authentication.logout();
-          this.$state.go('portainer.logout');
-        });
-        this.$state.reload();
-        return;
-      }
       throw new PortainerError('Unable to retrieve DaemonSets', err);
     }
   }
