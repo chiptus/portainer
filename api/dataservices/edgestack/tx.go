@@ -1,7 +1,6 @@
 package edgestack
 
 import (
-	"errors"
 	"fmt"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -104,7 +103,25 @@ func (service ServiceTx) UpdateEdgeStack(ID portaineree.EdgeStackID, edgeStack *
 
 // UpdateEdgeStackFunc is a no-op inside a transaction
 func (service ServiceTx) UpdateEdgeStackFunc(ID portaineree.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error {
-	return errors.New("cannot be called inside a transaction")
+	service.service.mu.Lock()
+	defer service.service.mu.Unlock()
+
+	edgeStack, err := service.EdgeStack(ID)
+	if err != nil {
+		return err
+	}
+
+	updateFunc(edgeStack)
+
+	err = service.UpdateEdgeStack(ID, edgeStack)
+	if err != nil {
+		return err
+	}
+
+	service.service.idxVersion[ID] = edgeStack.Version
+	service.service.cacheInvalidationFn(ID)
+
+	return nil
 }
 
 // DeleteEdgeStack deletes an Edge stack.

@@ -15,16 +15,21 @@ const BucketName = "endpoint_relations"
 
 // Service represents a service for managing environment(endpoint) relation data.
 type Service struct {
-	connection    portainer.Connection
-	updateStackFn func(ID portaineree.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error
+	connection      portainer.Connection
+	updateStackFn   func(ID portaineree.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error
+	updateStackFnTx func(tx portainer.Transaction, ID portaineree.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error
 }
 
 func (service *Service) BucketName() string {
 	return BucketName
 }
 
-func (service *Service) RegisterUpdateStackFunction(updateFunc func(ID portaineree.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error) {
+func (service *Service) RegisterUpdateStackFunction(
+	updateFunc func(portaineree.EdgeStackID, func(*portaineree.EdgeStack)) error,
+	updateFuncTx func(portainer.Transaction, portaineree.EdgeStackID, func(*portaineree.EdgeStack)) error,
+) {
 	service.updateStackFn = updateFunc
+	service.updateStackFnTx = updateFuncTx
 }
 
 // NewService creates a new instance of a service.

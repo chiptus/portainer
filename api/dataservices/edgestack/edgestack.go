@@ -160,6 +160,11 @@ func (service *Service) UpdateEdgeStackFunc(ID portaineree.EdgeStackID, updateFu
 	})
 }
 
+// UpdateEdgeStackFuncTx is a helper function used to call UpdateEdgeStackFunc inside a transaction.
+func (service *Service) UpdateEdgeStackFuncTx(tx portainer.Transaction, ID portaineree.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error {
+	return service.Tx(tx).UpdateEdgeStackFunc(ID, updateFunc)
+}
+
 // DeleteEdgeStack deletes an Edge stack.
 func (service *Service) DeleteEdgeStack(ID portaineree.EdgeStackID) error {
 	service.mu.Lock()
