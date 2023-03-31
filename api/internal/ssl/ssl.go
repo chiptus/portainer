@@ -174,15 +174,11 @@ func (service *Service) SetCertificates(certData, keyData []byte) error {
 		return err
 	}
 
-	var certPath, keyPath string
-	{
-		service.mu.Lock()
-		defer service.mu.Unlock()
-
-		certPath, keyPath, err = service.fileService.StoreSSLCertPair(certData, keyData)
-		if err != nil {
-			return err
-		}
+	service.mu.Lock()
+	certPath, keyPath, err := service.fileService.StoreSSLCertPair(certData, keyData)
+	service.mu.Unlock()
+	if err != nil {
+		return err
 	}
 
 	err = service.cacheInfo(certPath, keyPath, nil, false)
