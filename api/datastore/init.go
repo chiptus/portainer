@@ -50,6 +50,11 @@ func (store *Store) checkOrCreateDefaultSettings() error {
 				},
 				SSO: true,
 			},
+			Edge: portaineree.Edge{
+				CommandInterval:  60,
+				PingInterval:     60,
+				SnapshotInterval: 60,
+			},
 			SnapshotInterval:         portaineree.DefaultSnapshotInterval,
 			EdgeAgentCheckinInterval: portaineree.DefaultEdgeAgentCheckinIntervalInSeconds,
 			TemplatesURL:             portaineree.DefaultTemplatesURL,

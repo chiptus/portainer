@@ -16,10 +16,6 @@ export interface EdgeAsyncIntervalsValues {
 export const options: Options = [
   { label: 'Use default interval', value: -1, isDefault: true },
   {
-    value: 0,
-    label: 'disabled',
-  },
-  {
     value: 60,
     label: '1 minute',
   },
@@ -34,6 +30,10 @@ export const options: Options = [
   {
     value: 7 * 24 * 60 * 60,
     label: '1 week',
+  },
+  {
+    value: 0,
+    label: 'disabled',
   },
 ];
 

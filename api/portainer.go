@@ -1209,6 +1209,22 @@ type (
 		HideFileUpload bool `json:"hideFileUpload" example:"false"`
 	}
 
+	Edge struct {
+		// The command list interval for edge agent - used in edge async mode (in seconds)
+		CommandInterval int `json:"CommandInterval" example:"5"`
+		// The ping interval for edge agent - used in edge async mode (in seconds)
+		PingInterval int `json:"PingInterval" example:"5"`
+		// The snapshot interval for edge agent - used in edge async mode (in seconds)
+		SnapshotInterval int `json:"SnapshotInterval" example:"5"`
+
+		MTLS MTLSSettings
+		// The address where the tunneling server can be reached by Edge agents
+		TunnelServerAddress string `json:"TunnelServerAddress" example:"portainer.domain.tld"`
+
+		// Deprecated 2.18
+		AsyncMode bool
+	}
+
 	// Settings represents the application settings
 	Settings struct {
 		// URL to a logo that will be displayed on the login page as well as on top of the sidebar. Will use default Portainer logo when value is empty string
@@ -1262,21 +1278,7 @@ type (
 			Hide bool `json:"Hide" example:"false"`
 		}
 
-		Edge struct {
-			// The command list interval for edge agent - used in edge async mode (in seconds)
-			CommandInterval int `json:"CommandInterval" example:"5"`
-			// The ping interval for edge agent - used in edge async mode (in seconds)
-			PingInterval int `json:"PingInterval" example:"5"`
-			// The snapshot interval for edge agent - used in edge async mode (in seconds)
-			SnapshotInterval int `json:"SnapshotInterval" example:"5"`
-
-			MTLS MTLSSettings
-			// The address where the tunneling server can be reached by Edge agents
-			TunnelServerAddress string `json:"TunnelServerAddress" example:"portainer.domain.tld"`
-
-			// Deprecated 2.18
-			AsyncMode bool
-		}
+		Edge Edge `json:"Edge"`
 
 		// Deprecated fields
 		DisplayDonationHeader       bool
