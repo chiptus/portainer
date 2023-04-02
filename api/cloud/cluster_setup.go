@@ -462,9 +462,12 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				Str("provider", task.Provider).
 				Str("cluster_id", task.ClusterID).
 				Int("endpoint_id", int(task.EndpointID)).
-				Msg("deploying Portainer agent version")
+				Msg("deploying Portainer agent")
 
-			err = kubeClient.DeployPortainerAgent()
+			// use node port for microk8s
+			useNodePort := task.Provider == portaineree.CloudProviderMicrok8s
+
+			err = kubeClient.DeployPortainerAgent(useNodePort)
 			if err != nil {
 				log.Info().
 					Err(err).
@@ -483,14 +486,20 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				Int("endpoint_id", int(task.EndpointID)).
 				Msg("waiting for portainer agent")
 
-			serviceIP, err = kubeClient.GetPortainerAgentIPOrHostname(task.NodeIPs)
+			serviceIP, err = kubeClient.GetPortainerAgentAddress(task.NodeIPs)
 			if serviceIP == "" {
 				service.setMessage(task.EndpointID, "Waiting for agent response", "Waiting for the Portainer agent service to be ready (attempt "+strconv.Itoa(task.Retries+1)+" of "+strconv.Itoa(maxAttempts)+")")
-				err = fmt.Errorf("could not get service ip or hostname: %v", err)
+				if err != nil {
+					err = fmt.Errorf("could not get service ip or hostname: %v", err)
+				} else {
+					err = fmt.Errorf("could not get service ip or hostname")
+				}
+
 				log.Debug().
 					Err(err).
 					Msg("failed to get service ip or hostname")
 			}
+
 			if err != nil {
 				service.setMessage(task.EndpointID, "Waiting for agent response", "Waiting for the Portainer agent service to be ready (attempt "+strconv.Itoa(task.Retries+1)+" of "+strconv.Itoa(maxAttempts)+")")
 				err = checkFatal(err)
@@ -515,16 +524,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 
 		case ProvisioningStateUpdatingEndpoint:
 			log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Msg("updating environment")
-
-			// TODO: REVIEW-POC-MICROK8S
-			// This is another hack around the fact that microk8s is using nodePort and that the serviceIP
-			// returned previously is already containing the agent port
-			agentServiceIP := fmt.Sprintf("%s:9001", serviceIP)
-			if task.Provider == portaineree.CloudProviderMicrok8s {
-				agentServiceIP = serviceIP
-			}
-
-			err = service.updateEndpoint(task.EndpointID, agentServiceIP)
+			err = service.updateEndpoint(task.EndpointID, serviceIP)
 			if err != nil {
 				task.Retries++
 				break

@@ -1800,9 +1800,9 @@ type (
 		CreateRegistrySecret(registry *Registry, namespace string) error
 		IsRegistrySecret(namespace, secretName string) (bool, error)
 		ToggleSystemState(namespace string, isSystem bool) error
-		DeployPortainerAgent() error
+		DeployPortainerAgent(useNodePort bool) error
 		UpsertPortainerK8sClusterRoles(clusterConfig KubernetesConfiguration) error
-		GetPortainerAgentIPOrHostname(nodeIPs []string) (string, error)
+		GetPortainerAgentAddress(nodeIPs []string) (string, error)
 		CheckRunningPortainerAgentDeployment(nodeIPs []string) error
 	}
 

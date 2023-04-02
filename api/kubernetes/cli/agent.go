@@ -28,8 +28,8 @@ func KaasAgentVersion() string {
 	return DefaultAgentVersion
 }
 
-// GetPortainerAgentIP checks whether there is an IP address associated to the agent service and returns it.
-func (kcl *KubeClient) GetPortainerAgentIPOrHostname(nodeIPs []string) (string, error) {
+// GetPortainerAgentAddress checks whether there is an IP address associated to the agent service and returns it.
+func (kcl *KubeClient) GetPortainerAgentAddress(nodeIPs []string) (string, error) {
 	service, err := kcl.cli.CoreV1().Services("portainer").Get(context.TODO(), "portainer-agent", metav1.GetOptions{})
 	if err != nil {
 		return "", err
@@ -37,18 +37,16 @@ func (kcl *KubeClient) GetPortainerAgentIPOrHostname(nodeIPs []string) (string, 
 
 	if len(service.Status.LoadBalancer.Ingress) > 0 {
 		if service.Status.LoadBalancer.Ingress[0].IP != "" {
-			return service.Status.LoadBalancer.Ingress[0].IP, nil
+			return service.Status.LoadBalancer.Ingress[0].IP + ":9001", nil
 		}
-		return service.Status.LoadBalancer.Ingress[0].Hostname, nil
+
+		return service.Status.LoadBalancer.Ingress[0].Hostname + ":9001", nil
 	}
 
-	// TODO: REVIEW-POC-MICROK8S
 	// For microk8s, we simply return the first node IP
 	// Might need something more elaborate in the future
-	if len(nodeIPs) > 0 {
-		if len(service.Spec.Ports) > 0 {
-			return fmt.Sprintf("%s:%d", nodeIPs[0], service.Spec.Ports[0].NodePort), nil
-		}
+	if len(nodeIPs) > 0 && len(service.Spec.Ports) > 0 {
+		return fmt.Sprintf("%s:%d", nodeIPs[0], service.Spec.Ports[0].NodePort), nil
 	}
 
 	return "", nil
@@ -79,7 +77,7 @@ func (kcl *KubeClient) CheckRunningPortainerAgentDeployment(nodeIPs []string) er
 // theory create several clusters on Linode, add them all to a private network,
 // and still manage them with portainer even if they have heavily filtered
 // public internet access (or even none at all).
-func (kcl *KubeClient) DeployPortainerAgent() error {
+func (kcl *KubeClient) DeployPortainerAgent(useNodePort bool) error {
 	// NAMESPACE
 	namespaceName := "portainer"
 
@@ -129,13 +127,20 @@ func (kcl *KubeClient) DeployPortainerAgent() error {
 
 	// SERVICE
 	serviceName := "portainer-agent"
+	serviceType := v1.ServiceTypeLoadBalancer
+
+	var nodePort int32
+	if useNodePort {
+		serviceType = v1.ServiceTypeNodePort
+		nodePort = 30778
+	}
 
 	service := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: serviceName,
 		},
 		Spec: v1.ServiceSpec{
-			Type: v1.ServiceTypeLoadBalancer,
+			Type: serviceType,
 			Selector: map[string]string{
 				"app": "portainer-agent",
 			},
@@ -145,6 +150,7 @@ func (kcl *KubeClient) DeployPortainerAgent() error {
 					Protocol:   v1.ProtocolTCP,
 					Port:       9001,
 					TargetPort: intstr.FromInt(9001),
+					NodePort:   nodePort,
 				},
 			},
 		},
