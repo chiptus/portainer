@@ -17,6 +17,8 @@ type repositoryReferenceListPayload struct {
 	Password        string              `json:"password"`
 	StackID         portaineree.StackID `json:"stackID"`
 	GitCredentialID int                 `json:"gitCredentialID"`
+	// TLSSkipVerify skips SSL verification when cloning the Git repository
+	TLSSkipVerify bool `example:"false"`
 }
 
 func (payload *repositoryReferenceListPayload) Validate(r *http.Request) error {
@@ -77,7 +79,7 @@ func (handler *Handler) gitOperationRepoRefs(w http.ResponseWriter, r *http.Requ
 		repositoryPassword = password
 	}
 
-	refs, err := handler.GitService.ListRefs(payload.Repository, repositoryUsername, repositoryPassword, hardRefresh)
+	refs, err := handler.GitService.ListRefs(payload.Repository, repositoryUsername, repositoryPassword, hardRefresh, payload.TLSSkipVerify)
 	if err != nil {
 		return httperror.InternalServerError("Git returned an error for listing refs", err)
 	}

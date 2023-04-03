@@ -35,7 +35,7 @@ type Handler struct {
 	DataStore               dataservices.DataStore
 	DockerClientFactory     *client.ClientFactory
 	FileService             portainer.FileService
-	GitService              portaineree.GitService
+	GitService              portainer.GitService
 	SwarmStackManager       portaineree.SwarmStackManager
 	ComposeStackManager     portaineree.ComposeStackManager
 	KubernetesDeployer      portaineree.KubernetesDeployer

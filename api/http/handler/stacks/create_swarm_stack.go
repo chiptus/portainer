@@ -132,9 +132,11 @@ type swarmStackFromGitRepositoryPayload struct {
 	SupportRelativePath bool `example:"false"`
 	// Network filesystem path
 	FilesystemPath string `example:"/tmp"`
+	// TLSSkipVerify skips SSL verification when cloning the Git repository
+	TLSSkipVerify bool `example:"false"`
 }
 
-func createStackPayloadFromSwarmGitPayload(name, swarmID, repoUrl, repoReference, repoUsername, repoPassword string, repoGitCredentialID int, repoAuthentication bool, composeFile string, additionalFiles []string, autoUpdate *portaineree.AutoUpdateSettings, env []portaineree.Pair, fromAppTemplate, supportRelativePath bool, filesystemPath string) stackbuilders.StackPayload {
+func createStackPayloadFromSwarmGitPayload(name, swarmID, repoUrl, repoReference, repoUsername, repoPassword string, repoGitCredentialID int, repoAuthentication bool, composeFile string, additionalFiles []string, autoUpdate *portaineree.AutoUpdateSettings, env []portaineree.Pair, fromAppTemplate, supportRelativePath bool, filesystemPath string, repoTLSSkipVerify bool) stackbuilders.StackPayload {
 	return stackbuilders.StackPayload{
 		Name:    name,
 		SwarmID: swarmID,
@@ -145,6 +147,7 @@ func createStackPayloadFromSwarmGitPayload(name, swarmID, repoUrl, repoReference
 			Username:        repoUsername,
 			Password:        repoPassword,
 			GitCredentialID: repoGitCredentialID,
+			TLSSkipVerify:   repoTLSSkipVerify,
 		},
 		ComposeFile:         composeFile,
 		AdditionalFiles:     additionalFiles,
@@ -219,7 +222,9 @@ func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter,
 		payload.Env,
 		payload.FromAppTemplate,
 		payload.SupportRelativePath,
-		payload.FilesystemPath)
+		payload.FilesystemPath,
+		payload.TLSSkipVerify,
+	)
 
 	swarmStackBuilder := stackbuilders.CreateSwarmStackGitBuilder(securityContext,
 		handler.userActivityService,

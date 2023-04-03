@@ -101,7 +101,7 @@ type Server struct {
 	SnapshotService             portaineree.SnapshotService
 	FileService                 portainer.FileService
 	DataStore                   dataservices.DataStore
-	GitService                  portaineree.GitService
+	GitService                  portainer.GitService
 	APIKeyService               apikey.APIKeyService
 	OpenAMTService              portainer.OpenAMTService
 	JWTService                  portaineree.JWTService

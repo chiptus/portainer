@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/scheduler"
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
 )
@@ -34,7 +35,7 @@ type GitMethodStackBuildProcess interface {
 type GitMethodStackBuilder struct {
 	StackBuilder
 	userActivityService portaineree.UserActivityService
-	gitService          portaineree.GitService
+	gitService          portainer.GitService
 	scheduler           *scheduler.Scheduler
 }
 
@@ -70,6 +71,8 @@ func (b *GitMethodStackBuilder) SetGitRepository(payload *StackPayload, userID p
 	repoConfig.Authentication = gitAuthentication
 	repoConfig.URL = payload.URL
 	repoConfig.ReferenceName = payload.ReferenceName
+	repoConfig.TLSSkipVerify = payload.TLSSkipVerify
+
 	repoConfig.ConfigFilePath = payload.ComposeFile
 	if payload.ComposeFile == "" {
 		repoConfig.ConfigFilePath = filesystem.ComposeFileDefaultName

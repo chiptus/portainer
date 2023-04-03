@@ -20,7 +20,7 @@ func CreateComposeStackGitBuilder(securityContext *security.RestrictedRequestCon
 	userActivityService portaineree.UserActivityService,
 	dataStore dataservices.DataStore,
 	fileService portainer.FileService,
-	gitService portaineree.GitService,
+	gitService portainer.GitService,
 	scheduler *scheduler.Scheduler,
 	stackDeployer deployments.StackDeployer) *ComposeStackGitBuilder {
 

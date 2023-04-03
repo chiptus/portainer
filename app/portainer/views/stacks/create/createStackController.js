@@ -63,6 +63,7 @@ angular
         EnableWebhook: false,
         Variables: {},
         AutoUpdate: parseAutoUpdateResponse(),
+        TLSSkipVerify: false,
       };
 
       $scope.state = {
@@ -195,6 +196,7 @@ angular
             SupportRelativePath: $scope.formValues.SupportRelativePath,
             FilesystemPath: $scope.formValues.FilesystemPath,
             AutoUpdate: transformAutoUpdateViewModel($scope.formValues.AutoUpdate, $scope.state.webhookId),
+            TLSSkipVerify: $scope.formValues.TLSSkipVerify,
           };
 
           return StackService.createSwarmStackFromGitRepository(name, repositoryOptions, env, endpointId);
@@ -226,6 +228,7 @@ angular
             SupportRelativePath: $scope.formValues.SupportRelativePath,
             FilesystemPath: $scope.formValues.FilesystemPath,
             AutoUpdate: transformAutoUpdateViewModel($scope.formValues.AutoUpdate, $scope.state.webhookId),
+            TLSSkipVerify: $scope.formValues.TLSSkipVerify,
           };
 
           return StackService.createComposeStackFromGitRepository(name, repositoryOptions, env, endpointId);

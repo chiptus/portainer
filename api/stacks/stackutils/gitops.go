@@ -17,7 +17,7 @@ var (
 
 // DownloadGitRepository downloads the target git repository on the disk
 // The first return value represents the commit hash of the downloaded git repository
-func DownloadGitRepository(stackID portaineree.StackID, config gittypes.RepoConfig, gitService portaineree.GitService, fileService portainer.FileService) (string, error) {
+func DownloadGitRepository(stackID portaineree.StackID, config gittypes.RepoConfig, gitService portainer.GitService, fileService portainer.FileService) (string, error) {
 	username := ""
 	password := ""
 	if config.Authentication != nil {
@@ -28,7 +28,7 @@ func DownloadGitRepository(stackID portaineree.StackID, config gittypes.RepoConf
 	stackFolder := fmt.Sprintf("%d", stackID)
 	projectPath := fileService.GetStackProjectPath(stackFolder)
 
-	err := gitService.CloneRepository(projectPath, config.URL, config.ReferenceName, username, password)
+	err := gitService.CloneRepository(projectPath, config.URL, config.ReferenceName, username, password, config.TLSSkipVerify)
 	if err != nil {
 		if err == gittypes.ErrAuthenticationFailure {
 			newErr := ErrInvalidGitCredential
@@ -39,7 +39,7 @@ func DownloadGitRepository(stackID portaineree.StackID, config gittypes.RepoConf
 		return "", newErr
 	}
 
-	commitID, err := gitService.LatestCommitID(config.URL, config.ReferenceName, username, password)
+	commitID, err := gitService.LatestCommitID(config.URL, config.ReferenceName, username, password, config.TLSSkipVerify)
 	if err != nil {
 		newErr := fmt.Errorf("unable to fetch git repository id: %w", err)
 		return "", newErr

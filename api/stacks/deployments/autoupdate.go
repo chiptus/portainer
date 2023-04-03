@@ -7,11 +7,12 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/scheduler"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
 )
 
-func StartAutoupdate(stackID portaineree.StackID, interval string, scheduler *scheduler.Scheduler, stackDeployer StackDeployer, datastore dataservices.DataStore, gitService portaineree.GitService, activityService portaineree.UserActivityService) (jobID string, e *httperror.HandlerError) {
+func StartAutoupdate(stackID portaineree.StackID, interval string, scheduler *scheduler.Scheduler, stackDeployer StackDeployer, datastore dataservices.DataStore, gitService portainer.GitService, activityService portaineree.UserActivityService) (jobID string, e *httperror.HandlerError) {
 	d, err := time.ParseDuration(interval)
 	if err != nil {
 		return "", httperror.BadRequest("Unable to parse stack's auto update interval", err)

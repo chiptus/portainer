@@ -361,6 +361,7 @@ angular.module('portainer.app').factory('StackService', [
         Env: env,
         SupportRelativePath: repositoryOptions.SupportRelativePath,
         FilesystemPath: repositoryOptions.FilesystemPath,
+        TLSSkipVerify: repositoryOptions.TLSSkipVerify,
       };
 
       if (repositoryOptions.AutoUpdate) {
@@ -391,6 +392,7 @@ angular.module('portainer.app').factory('StackService', [
             Env: env,
             SupportRelativePath: repositoryOptions.SupportRelativePath,
             FilesystemPath: repositoryOptions.FilesystemPath,
+            TLSSkipVerify: repositoryOptions.TLSSkipVerify,
           };
 
           if (repositoryOptions.AutoUpdate) {

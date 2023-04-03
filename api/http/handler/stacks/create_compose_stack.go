@@ -175,13 +175,15 @@ type composeStackFromGitRepositoryPayload struct {
 	Env []portaineree.Pair
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
-	// Whether the stack suppors relative path volume
+	// Whether the stack supports relative path volume
 	SupportRelativePath bool `example:"false"`
 	// Local filesystem path
 	FilesystemPath string `example:"/tmp"`
+	// TLSSkipVerify skips SSL verification when cloning the Git repository
+	TLSSkipVerify bool `example:"false"`
 }
 
-func createStackPayloadFromComposeGitPayload(name, repoUrl, repoReference, repoUsername, repoPassword string, repoGitCredentialID int, repoAuthentication bool, composeFile string, additionalFiles []string, autoUpdate *portaineree.AutoUpdateSettings, env []portaineree.Pair, fromAppTemplate, supportRelativePath bool, filesystemPath string) stackbuilders.StackPayload {
+func createStackPayloadFromComposeGitPayload(name, repoUrl, repoReference, repoUsername, repoPassword string, repoGitCredentialID int, repoAuthentication bool, composeFile string, additionalFiles []string, autoUpdate *portaineree.AutoUpdateSettings, env []portaineree.Pair, fromAppTemplate, supportRelativePath bool, filesystemPath string, repoTLSSkipVerify bool) stackbuilders.StackPayload {
 	return stackbuilders.StackPayload{
 		Name: name,
 		RepositoryConfigPayload: stackbuilders.RepositoryConfigPayload{
@@ -191,6 +193,7 @@ func createStackPayloadFromComposeGitPayload(name, repoUrl, repoReference, repoU
 			Username:        repoUsername,
 			Password:        repoPassword,
 			GitCredentialID: repoGitCredentialID,
+			TLSSkipVerify:   repoTLSSkipVerify,
 		},
 		ComposeFile:         composeFile,
 		AdditionalFiles:     additionalFiles,
@@ -278,7 +281,9 @@ func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWrite
 		payload.Env,
 		payload.FromAppTemplate,
 		payload.SupportRelativePath,
-		payload.FilesystemPath)
+		payload.FilesystemPath,
+		payload.TLSSkipVerify,
+	)
 
 	composeStackBuilder := stackbuilders.CreateComposeStackGitBuilder(securityContext,
 		handler.userActivityService,

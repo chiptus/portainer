@@ -4,7 +4,7 @@ import portaineree "github.com/portainer/portainer-ee/api"
 
 type ldapService struct{}
 
-// NewGitService creates new mock for portaineree.GitService.
+// NewLDAPService creates new mock for portaineree.LDAPService.
 func NewLDAPService() *ldapService {
 	return &ldapService{}
 }

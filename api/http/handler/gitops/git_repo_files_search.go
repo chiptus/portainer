@@ -22,6 +22,8 @@ type repositoryFileSearchPayload struct {
 	Keyword string `json:"keyword" example:"docker-compose"`
 	// Allow to provide specific file extension as the search result. If empty, the file extensions yml,yaml,hcl,json will be set by default
 	Include string `json:"include" example:"json,yml"`
+	// TLSSkipVerify skips SSL verification when cloning the Git repository
+	TLSSkipVerify bool `example:"false"`
 }
 
 func (payload *repositoryFileSearchPayload) Validate(r *http.Request) error {
@@ -68,7 +70,7 @@ func (handler *Handler) gitOperationRepoFilesSearch(w http.ResponseWriter, r *ht
 		return httpErr
 	}
 
-	files, err := handler.GitService.ListFiles(payload.Repository, payload.Reference, repositoryUsername, repositoryPassword, hardRefresh, includedExtensions)
+	files, err := handler.GitService.ListFiles(payload.Repository, payload.Reference, repositoryUsername, repositoryPassword, hardRefresh, includedExtensions, payload.TLSSkipVerify)
 	if err != nil {
 		return httperror.InternalServerError("Git returned an error for listing files", err)
 	}

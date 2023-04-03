@@ -281,7 +281,7 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 	stackOperation := maps["operation"].(string)
 	cmd := []string{}
 	switch stackOperation {
-	// deploy [-u username -p password] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <ref> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
+	// deploy [-u username -p password] [--skip-tls-verify] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <ref> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
 	case "deploy":
 		cmd = append(cmd, stackOperation)
 		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Password) != 0 {
@@ -289,6 +289,9 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 			cmd = append(cmd, stack.GitConfig.Authentication.Username)
 			cmd = append(cmd, "-p")
 			cmd = append(cmd, stack.GitConfig.Authentication.Password)
+		}
+		if stack.GitConfig.TLSSkipVerify {
+			cmd = append(cmd, "--skip-tls-verify")
 		}
 		cmd = append(cmd, getEnv(stack.Env)...)
 		cmd = append(cmd, getRegistry(registries, d.dataStore)...)
@@ -317,13 +320,16 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 			cmd = append(cmd, stack.AdditionalFiles[i])
 		}
 	case "compose-start":
-		// deploy [-u username -p password] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
+		// deploy [-u username -p password] [--skip-tls-verify] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
 		cmd = append(cmd, "deploy")
 		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Password) != 0 {
 			cmd = append(cmd, "-u")
 			cmd = append(cmd, stack.GitConfig.Authentication.Username)
 			cmd = append(cmd, "-p")
 			cmd = append(cmd, stack.GitConfig.Authentication.Password)
+		}
+		if stack.GitConfig.TLSSkipVerify {
+			cmd = append(cmd, "--skip-tls-verify")
 		}
 		cmd = append(cmd, "-k")
 		cmd = append(cmd, getEnv(stack.Env)...)
@@ -353,13 +359,16 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 			cmd = append(cmd, stack.AdditionalFiles[i])
 		}
 	case "swarm-deploy":
-		// deploy [-u username -p password] [-f] [-r] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <git-ref> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
+		// deploy [-u username -p password] [--skip-tls-verify] [-f] [-r] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <git-ref> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
 		cmd = append(cmd, stackOperation)
 		if stack.GitConfig.Authentication != nil && len(stack.GitConfig.Authentication.Password) != 0 {
 			cmd = append(cmd, "-u")
 			cmd = append(cmd, stack.GitConfig.Authentication.Username)
 			cmd = append(cmd, "-p")
 			cmd = append(cmd, stack.GitConfig.Authentication.Password)
+		}
+		if stack.GitConfig.TLSSkipVerify {
+			cmd = append(cmd, "--skip-tls-verify")
 		}
 		pullImage := maps["pullImage"].(bool)
 		if pullImage {
@@ -391,11 +400,14 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 		cmd = append(cmd, stack.Name)
 		cmd = append(cmd, composeDestination)
 	case "swarm-start":
-		// deploy [-u username -p password] [-f] [-r] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
+		// deploy [-u username -p password] [-f] [-r] [-k] [--skip-tls-verify] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
 		cmd = append(cmd, "swarm-deploy")
 		cmd = append(cmd, "-k")
 		cmd = append(cmd, "-f")
 		cmd = append(cmd, "-r")
+		if stack.GitConfig.TLSSkipVerify {
+			cmd = append(cmd, "--skip-tls-verify")
+		}
 		cmd = append(cmd, getEnv(stack.Env)...)
 		cmd = append(cmd, stack.GitConfig.URL)
 		cmd = append(cmd, stack.GitConfig.ReferenceName)

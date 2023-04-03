@@ -17,7 +17,7 @@ type Handler struct {
 	*mux.Router
 	DataStore           dataservices.DataStore
 	FileService         portainer.FileService
-	GitService          portaineree.GitService
+	GitService          portainer.GitService
 	userActivityService portaineree.UserActivityService
 }
 

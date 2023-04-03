@@ -8,16 +8,17 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // Handler is the HTTP handler used to handle git repo operation
 type Handler struct {
 	*mux.Router
 	dataStore  dataservices.DataStore
-	GitService portaineree.GitService
+	GitService portainer.GitService
 }
 
-func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, gitService portaineree.GitService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, gitService portainer.GitService) *Handler {
 	h := &Handler{
 		Router:     mux.NewRouter(),
 		dataStore:  dataStore,

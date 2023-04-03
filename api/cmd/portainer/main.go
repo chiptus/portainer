@@ -245,7 +245,7 @@ func initOAuthService() portaineree.OAuthService {
 	return oauth.NewService()
 }
 
-func initGitService(shutdownCtx context.Context) portaineree.GitService {
+func initGitService(shutdownCtx context.Context) portainer.GitService {
 	return git.NewService(shutdownCtx)
 }
 

@@ -2095,6 +2095,7 @@
         "ConfigFilePath": "docker/redis-compose.yml",
         "ConfigHash": "",
         "ReferenceName": "",
+        "TLSSkipVerify": false,
         "URL": "https://github.com/kheraprabhat/infra"
       },
       "Id": 2,

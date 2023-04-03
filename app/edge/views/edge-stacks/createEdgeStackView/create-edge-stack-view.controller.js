@@ -33,6 +33,7 @@ export default class CreateEdgeStackViewController {
       UseManifestNamespaces: false,
       PrePullImage: false,
       RetryDeploy: false,
+      TLSSkipVerify: false,
     };
 
     this.EditorType = EditorType;
@@ -332,6 +333,7 @@ export default class CreateEdgeStackViewController {
       RepositoryUsername: this.formValues.RepositoryUsername,
       RepositoryPassword: this.formValues.RepositoryPassword,
       RepositoryGitCredentialID: this.formValues.RepositoryGitCredentialID,
+      TLSSkipVerify: this.formValues.TLSSkipVerify,
     };
 
     return this.EdgeStackService.createStackFromGitRepository(

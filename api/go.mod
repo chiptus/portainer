@@ -62,7 +62,7 @@ require (
 	github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a
 	github.com/portainer/libhttp v0.0.0-20230206214615-dabd58de9f44
 	github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91
-	github.com/portainer/portainer/api v0.0.0-20230323163032-3635df89dc7f
+	github.com/portainer/portainer/api v0.0.0-20230403061917-feab2a757e70
 	github.com/portainer/portainer/pkg/featureflags v0.0.0-20230209201943-d73622ed9cd4
 	github.com/portainer/portainer/pkg/libhelm v0.0.0-20221201012749-4fee35924724
 	github.com/robfig/cron/v3 v3.0.1

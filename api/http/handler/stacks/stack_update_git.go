@@ -192,7 +192,7 @@ func (handler *Handler) stackUpdateGit(w http.ResponseWriter, r *http.Request) *
 			Password:        repositoryPassword,
 			GitCredentialID: repositoryGitCredentialID,
 		}
-		_, err = handler.GitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, repositoryUsername, repositoryPassword)
+		_, err = handler.GitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, repositoryUsername, repositoryPassword, stack.GitConfig.TLSSkipVerify)
 		if err != nil {
 			return httperror.InternalServerError("Unable to fetch git repository", err)
 		}

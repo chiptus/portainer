@@ -5,7 +5,6 @@ import (
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	portainer "github.com/portainer/portainer/api"
@@ -15,7 +14,7 @@ import (
 type Handler struct {
 	*mux.Router
 	DataStore   dataservices.DataStore
-	GitService  portaineree.GitService
+	GitService  portainer.GitService
 	FileService portainer.FileService
 }
 

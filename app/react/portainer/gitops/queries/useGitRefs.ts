@@ -8,6 +8,7 @@ interface RefsPayload {
   password?: string;
   gitCredentialID?: number;
   stackID?: number;
+  tlsSkipVerify?: boolean;
 }
 
 export function useGitRefs<T = string[]>(

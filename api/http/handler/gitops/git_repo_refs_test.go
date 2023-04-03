@@ -3,7 +3,6 @@ package gitops
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,6 +15,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
+	portainer "github.com/portainer/portainer/api"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -27,14 +27,14 @@ const (
 )
 
 type TestGitService struct {
-	portaineree.GitService
+	portainer.GitService
 }
 
-func (g *TestGitService) ListRefs(repositoryURL, username, password string, hardRefresh bool) ([]string, error) {
+func (g *TestGitService) ListRefs(repositoryURL, username, password string, hardRefresh bool, tlsSkipVerify bool) ([]string, error) {
 	if repositoryURL == testRepo && testUsername == username && testPassword == password {
 		return []string{"refs/head/main", "refs/head/test"}, nil
 	}
-	return nil, errors.New("Authentication failed, please ensure that the git credentials are correct.")
+	return nil, gittypes.ErrAuthenticationFailure
 }
 
 func Test_gitOperationRepoRefs(t *testing.T) {

@@ -9,14 +9,13 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/git"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	k "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
-
+	"github.com/portainer/portainer/api/git"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/rs/zerolog/log"
 )
@@ -185,7 +184,14 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 
 	// If relative path feature is enabled, the git clone operation will be executed in portainer-unpacker
 	if !isRelativePathEnabled(stack) {
-		clean, err := git.CloneWithBackup(handler.GitService, handler.FileService, git.CloneOptions{ProjectPath: stack.ProjectPath, URL: stack.GitConfig.URL, ReferenceName: stack.GitConfig.ReferenceName, Username: repositoryUsername, Password: repositoryPassword})
+		clean, err := git.CloneWithBackup(handler.GitService, handler.FileService, git.CloneOptions{
+			ProjectPath:   stack.ProjectPath,
+			URL:           stack.GitConfig.URL,
+			ReferenceName: stack.GitConfig.ReferenceName,
+			Username:      repositoryUsername,
+			Password:      repositoryPassword,
+			TLSSkipVerify: stack.GitConfig.TLSSkipVerify,
+		})
 		if err != nil {
 			return httperror.InternalServerError("Unable to clone git repository directory", err)
 		}
@@ -200,7 +206,7 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 		return httpErr
 	}
 
-	newHash, err := handler.GitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, repositoryUsername, repositoryPassword)
+	newHash, err := handler.GitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, repositoryUsername, repositoryPassword, stack.GitConfig.TLSSkipVerify)
 	if err != nil {
 		return httperror.InternalServerError("Unable get latest commit id", errors.WithMessagef(err, "failed to fetch latest commit id of the stack %v", stack.ID))
 	}
@@ -260,7 +266,7 @@ func (handler *Handler) deployStack(r *http.Request, stack *portaineree.Stack, p
 				repositoryName = stack.GitConfig.Authentication.Username
 				repositoryPwd = stack.GitConfig.Authentication.Password
 			}
-			newHash, err := handler.GitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, repositoryName, repositoryPwd)
+			newHash, err := handler.GitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, repositoryName, repositoryPwd, stack.GitConfig.TLSSkipVerify)
 			if err != nil {
 				return httperror.InternalServerError("Unable get latest commit id", errors.WithMessagef(err, "failed to fetch latest commit id of the remote swarm stack %v", stack.ID))
 			}

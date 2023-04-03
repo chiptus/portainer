@@ -29,7 +29,7 @@ type Handler struct {
 	requestBouncer      *security.RequestBouncer
 	DataStore           dataservices.DataStore
 	FileService         portainer.FileService
-	GitService          portaineree.GitService
+	GitService          portainer.GitService
 	userActivityService portaineree.UserActivityService
 	edgeAsyncService    *edgeasync.Service
 	edgeStacksService   *edgestackservice.Service

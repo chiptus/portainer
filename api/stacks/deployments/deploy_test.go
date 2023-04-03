@@ -8,31 +8,11 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
+	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/stretchr/testify/assert"
 )
-
-type gitService struct {
-	cloneErr error
-	id       string
-}
-
-func (g *gitService) CloneRepository(destination, repositoryURL, referenceName, username, password string) error {
-	return g.cloneErr
-}
-
-func (g *gitService) LatestCommitID(repositoryURL, referenceName, username, password string) (string, error) {
-	return g.id, nil
-}
-
-func (g *gitService) ListRefs(repositoryURL, username, password string, hardRefresh bool) ([]string, error) {
-	return nil, nil
-}
-
-func (g *gitService) ListFiles(repositoryURL, referenceName, username, password string, hardRefresh bool, inlcudedExts []string) ([]string, error) {
-	return nil, nil
-}
 
 type noopDeployer struct {
 	SwarmStackDeployed      bool
@@ -126,7 +106,7 @@ func Test_redeployWhenChanged_DoesNothingWhenNotAGitBasedStack(t *testing.T) {
 	t.Run("can deploy docker compose stack", func(t *testing.T) {
 		stack.Type = portaineree.DockerComposeStack
 		store.Stack().UpdateStack(stack.ID, &stack)
-		err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "oldHash"}, nil, nil)
+		err = RedeployWhenChanged(1, noopDeployer, store, testhelpers.NewGitService(nil, "oldHash"), nil, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, noopDeployer.ComposeStackDeployed, true)
 	})
@@ -159,7 +139,7 @@ func Test_redeployWhenChanged_FailsWhenCannotClone(t *testing.T) {
 		}})
 	assert.NoError(t, err, "failed to create a test stack")
 
-	err = RedeployWhenChanged(1, nil, store, &gitService{cloneErr, "newHash"}, nil, nil)
+	err = RedeployWhenChanged(1, nil, store, testhelpers.NewGitService(cloneErr, "newHash"), nil, nil)
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, cloneErr, "should failed to clone but didn't, check test setup")
 }
@@ -202,7 +182,7 @@ func Test_redeployWhenChanged_ForceUpdateOn_WithAdditionalEnv(t *testing.T) {
 		stack.Type = portaineree.DockerComposeStack
 		store.Stack().UpdateStack(stack.ID, &stack)
 
-		err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "oldHash"}, nil, options)
+		err = RedeployWhenChanged(1, noopDeployer, store, testhelpers.NewGitService(nil, "oldHash"), nil, options)
 		assert.NoError(t, err)
 		assert.Equal(t, noopDeployer.ComposeStackDeployed, true)
 		result, _ := store.Stack().Stack(stack.ID)
@@ -213,7 +193,7 @@ func Test_redeployWhenChanged_ForceUpdateOn_WithAdditionalEnv(t *testing.T) {
 		stack.Type = portaineree.DockerSwarmStack
 		store.Stack().UpdateStack(stack.ID, &stack)
 
-		err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "oldHash"}, nil, options)
+		err = RedeployWhenChanged(1, noopDeployer, store, testhelpers.NewGitService(nil, "oldHash"), nil, options)
 		assert.NoError(t, err)
 		assert.Equal(t, noopDeployer.SwarmStackDeployed, true)
 		result, _ := store.Stack().Stack(stack.ID)
@@ -224,7 +204,7 @@ func Test_redeployWhenChanged_ForceUpdateOn_WithAdditionalEnv(t *testing.T) {
 		stack.Type = portaineree.KubernetesStack
 		store.Stack().UpdateStack(stack.ID, &stack)
 
-		err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "oldHash"}, nil, options)
+		err = RedeployWhenChanged(1, noopDeployer, store, testhelpers.NewGitService(nil, "oldHash"), nil, options)
 		assert.NoError(t, err)
 		assert.Equal(t, noopDeployer.KubernetesStackDeployed, true)
 		result, _ := store.Stack().Stack(stack.ID)
@@ -266,7 +246,7 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff(t *testing.T) {
 	assert.NoError(t, err, "failed to create a test stack")
 
 	noopDeployer := &noopDeployer{}
-	err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "oldHash"}, nil, nil)
+	err = RedeployWhenChanged(1, noopDeployer, store, testhelpers.NewGitService(nil, "oldHash"), nil, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, noopDeployer.ComposeStackDeployed, false)
 	assert.Equal(t, noopDeployer.SwarmStackDeployed, false)
@@ -309,7 +289,7 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff_ForePullImageEnable(
 	assert.NoError(t, err, "failed to create a test stack")
 
 	noopDeployer := &noopDeployer{}
-	err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "oldHash"}, nil, nil)
+	err = RedeployWhenChanged(1, noopDeployer, store, testhelpers.NewGitService(nil, "oldHash"), nil, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, noopDeployer.ComposeStackDeployed, true)
 	assert.Equal(t, noopDeployer.SwarmStackDeployed, false)
@@ -352,7 +332,7 @@ func Test_redeployWhenChanged_RepoChanged_ForceUpdateOff(t *testing.T) {
 		stack.Type = portaineree.DockerComposeStack
 		store.Stack().UpdateStack(stack.ID, &stack)
 
-		err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "newHash"}, nil, nil)
+		err = RedeployWhenChanged(1, noopDeployer, store, testhelpers.NewGitService(nil, "newHash"), nil, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, noopDeployer.ComposeStackDeployed, true)
 		result, _ := store.Stack().Stack(stack.ID)
@@ -363,7 +343,7 @@ func Test_redeployWhenChanged_RepoChanged_ForceUpdateOff(t *testing.T) {
 		stack.Type = portaineree.DockerSwarmStack
 		store.Stack().UpdateStack(stack.ID, &stack)
 
-		err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "newHash"}, nil, nil)
+		err = RedeployWhenChanged(1, noopDeployer, store, testhelpers.NewGitService(nil, "newHash"), nil, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, noopDeployer.SwarmStackDeployed, true)
 		result, _ := store.Stack().Stack(stack.ID)
@@ -374,7 +354,7 @@ func Test_redeployWhenChanged_RepoChanged_ForceUpdateOff(t *testing.T) {
 		stack.Type = portaineree.KubernetesStack
 		store.Stack().UpdateStack(stack.ID, &stack)
 
-		err = RedeployWhenChanged(1, noopDeployer, store, &gitService{nil, "newHash"}, nil, nil)
+		err = RedeployWhenChanged(1, noopDeployer, store, testhelpers.NewGitService(nil, "newHash"), nil, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, noopDeployer.KubernetesStackDeployed, true)
 		result, _ := store.Stack().Stack(stack.ID)

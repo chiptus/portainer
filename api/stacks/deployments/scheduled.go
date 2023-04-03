@@ -7,9 +7,10 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/scheduler"
+	portainer "github.com/portainer/portainer/api"
 )
 
-func StartStackSchedules(scheduler *scheduler.Scheduler, stackdeployer StackDeployer, datastore dataservices.DataStore, gitService portaineree.GitService, activityService portaineree.UserActivityService) error {
+func StartStackSchedules(scheduler *scheduler.Scheduler, stackdeployer StackDeployer, datastore dataservices.DataStore, gitService portainer.GitService, activityService portaineree.UserActivityService) error {
 	stacks, err := datastore.Stack().RefreshableStacks()
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch refreshable stacks")
