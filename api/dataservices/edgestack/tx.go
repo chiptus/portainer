@@ -101,11 +101,8 @@ func (service ServiceTx) UpdateEdgeStack(ID portaineree.EdgeStackID, edgeStack *
 	return nil
 }
 
-// UpdateEdgeStackFunc is a no-op inside a transaction
+// Deprecated: use UpdateEdgeStack inside a transaction instead.
 func (service ServiceTx) UpdateEdgeStackFunc(ID portaineree.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error {
-	service.service.mu.Lock()
-	defer service.service.mu.Unlock()
-
 	edgeStack, err := service.EdgeStack(ID)
 	if err != nil {
 		return err
@@ -113,15 +110,7 @@ func (service ServiceTx) UpdateEdgeStackFunc(ID portaineree.EdgeStackID, updateF
 
 	updateFunc(edgeStack)
 
-	err = service.UpdateEdgeStack(ID, edgeStack)
-	if err != nil {
-		return err
-	}
-
-	service.service.idxVersion[ID] = edgeStack.Version
-	service.service.cacheInvalidationFn(ID)
-
-	return nil
+	return service.UpdateEdgeStack(ID, edgeStack)
 }
 
 // DeleteEdgeStack deletes an Edge stack.
