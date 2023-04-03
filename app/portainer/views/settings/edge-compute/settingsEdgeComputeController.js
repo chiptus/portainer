@@ -12,6 +12,31 @@ export default function SettingsEdgeComputeController($q, $async, $state, Notifi
 
   this.onSubmitEdgeCompute = async function (settings) {
     try {
+      let mtlsValues = {
+        UseSeparateCert: false,
+        CaCert: '',
+        Cert: '',
+        Key: '',
+      };
+
+      if (settings.Edge.MTLS.UseSeparateCert) {
+        const caCert = settings.Edge.MTLS.CaCertFile ? settings.Edge.MTLS.CaCertFile.text() : '';
+        const cert = settings.Edge.MTLS.CertFile ? settings.Edge.MTLS.CertFile.text() : '';
+        const key = settings.Edge.MTLS.KeyFile ? settings.Edge.MTLS.KeyFile.text() : '';
+
+        mtlsValues = {
+          ...settings.Edge.MTLS,
+          CaCert: await caCert,
+          Cert: await cert,
+          Key: await key,
+        };
+      }
+
+      settings.Edge = {
+        ...settings.Edge,
+        MTLS: mtlsValues,
+      };
+
       await SettingsService.update(settings);
       Notifications.success('Success', 'Settings updated');
       StateManager.updateEnableEdgeComputeFeatures(settings.EnableEdgeComputeFeatures);

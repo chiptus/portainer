@@ -98,4 +98,5 @@ export function EdgeSettingsViewModel(data = {}) {
   this.SnapshotInterval = data.SnapshotInterval;
   this.CommandInterval = data.CommandInterval;
   this.TunnelServerAddress = data.TunnelServerAddress;
+  this.MTLS = data.MTLS;
 }

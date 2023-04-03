@@ -3,6 +3,8 @@ import { Laptop } from 'lucide-react';
 
 import { PortainerTunnelAddrField } from '@/react/portainer/common/PortainerTunnelAddrField';
 import { PortainerUrlField } from '@/react/portainer/common/PortainerUrlField';
+import { MTLSOptions } from '@/react/edge/components/MTLSOptions';
+import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 
 import { Switch } from '@@/form-components/SwitchField/Switch';
 import { FormControl } from '@@/form-components/FormControl';
@@ -28,6 +30,7 @@ export function EdgeComputeSettings({ settings, onSubmit }: Props) {
     EdgePortainerUrl: settings.EdgePortainerUrl,
     Edge: {
       TunnelServerAddress: settings.Edge?.TunnelServerAddress,
+      MTLS: settings.Edge?.MTLS,
     },
     EnforceEdgeID: settings.EnforceEdgeID,
   };
@@ -89,6 +92,13 @@ export function EdgeComputeSettings({ settings, onSubmit }: Props) {
                     />
 
                     <PortainerTunnelAddrField fieldName="Edge.TunnelServerAddress" />
+
+                    {isBE && (
+                      <MTLSOptions
+                        values={values.Edge.MTLS}
+                        onChange={(value) => setFieldValue('Edge.MTLS', value)}
+                      />
+                    )}
                   </>
                 )}
 

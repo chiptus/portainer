@@ -1,6 +1,6 @@
 import { TeamId } from '@/react/portainer/users/teams/types';
 
-import { MTLSCertOptions } from './EdgeComputeView/DeploymentSyncOptions/types';
+import { MTLSCertOptions } from './EdgeComputeView/EdgeComputeSettings/types';
 
 export interface FDOConfiguration {
   enabled: boolean;

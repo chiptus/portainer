@@ -1,4 +1,4 @@
-import { MTLSCertOptions } from '@/react/portainer/settings/EdgeComputeView/DeploymentSyncOptions/types';
+import { MTLSCertOptions } from '@/react/portainer/settings/EdgeComputeView/EdgeComputeSettings/types';
 
 import { FileUploadField } from '@@/form-components/FileUpload';
 import { FormControl } from '@@/form-components/FormControl';
@@ -21,15 +21,12 @@ export function MTLSOptions({ onChange, values }: Props) {
 
   return (
     <>
-      <TextTip color="blue">
-        Use a specific TLS certificate for mTLS communication
-      </TextTip>
-
       <FormControl
         inputId="use_separate_mtls_cert"
         label="Use separate mTLS cert"
         size="small"
         tooltip=""
+        className="mb-1"
       >
         <Switch
           id="use_separete_cert"
@@ -40,6 +37,10 @@ export function MTLSOptions({ onChange, values }: Props) {
           }
         />
       </FormControl>
+
+      <TextTip color="blue">
+        Use a specific TLS certificate for mTLS communication
+      </TextTip>
 
       {values.UseSeparateCert && (
         <>
