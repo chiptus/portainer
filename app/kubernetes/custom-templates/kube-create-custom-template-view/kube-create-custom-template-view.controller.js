@@ -1,15 +1,16 @@
 import { AccessControlFormData } from '@/portainer/components/accessControlForm/porAccessControlFormModel';
 import { getTemplateVariables, intersectVariables } from '@/react/portainer/custom-templates/components/utils';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
-import { editor, upload } from '@@/BoxSelector/common-options/build-methods';
+import { editor, upload, git } from '@@/BoxSelector/common-options/build-methods';
 import { confirmWebEditorDiscard } from '@@/modals/confirm';
 
 class KubeCreateCustomTemplateViewController {
   /* @ngInject */
-  constructor($async, $state, EndpointProvider, Authentication, CustomTemplateService, FormValidator, Notifications, ResourceControlService) {
-    Object.assign(this, { $async, $state, EndpointProvider, Authentication, CustomTemplateService, FormValidator, Notifications, ResourceControlService });
+  constructor($async, $state, Authentication, CustomTemplateService, FormValidator, Notifications, ResourceControlService, UserService) {
+    Object.assign(this, { $async, $state, Authentication, CustomTemplateService, FormValidator, Notifications, ResourceControlService, UserService });
 
-    this.methodOptions = [editor, upload];
+    this.methodOptions = [editor, upload, git];
+
     this.templates = null;
     this.isTemplateVariablesEnabled = isBE;
 
@@ -30,6 +31,19 @@ class KubeCreateCustomTemplateViewController {
       Logo: '',
       AccessControlData: new AccessControlFormData(),
       Variables: [],
+      RepositoryURL: '',
+      RepositoryURLValid: false,
+      RepositoryReferenceName: 'refs/heads/main',
+      RepositoryAuthentication: false,
+      RepositoryUsername: '',
+      RepositoryPassword: '',
+      SelectedGitCredential: null,
+      GitCredentials: [],
+      SaveCredential: true,
+      RepositoryGitCredentialID: 0,
+      NewCredentialName: '',
+      NewCredentialNameExist: false,
+      ComposeFilePathInRepository: 'manifest.yml',
     };
 
     this.onChangeFile = this.onChangeFile.bind(this);
@@ -38,6 +52,7 @@ class KubeCreateCustomTemplateViewController {
     this.onBeforeOnload = this.onBeforeOnload.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.onVariablesChange = this.onVariablesChange.bind(this);
+    this.onChangeGitCredential = this.onChangeGitCredential.bind(this);
   }
 
   onChangeMethod(method) {
@@ -49,6 +64,23 @@ class KubeCreateCustomTemplateViewController {
     this.handleChange({ FileContent: content });
     this.parseTemplate(content);
     this.state.isEditorDirty = true;
+  }
+
+  onChangeGitCredential(selectedGitCredential) {
+    return this.$async(async () => {
+      if (selectedGitCredential) {
+        this.formValues.SelectedGitCredential = selectedGitCredential;
+        this.formValues.RepositoryGitCredentialID = Number(selectedGitCredential.id);
+        this.formValues.RepositoryUsername = selectedGitCredential.username;
+        this.formValues.SaveGitCredential = false;
+        this.formValues.NewCredentialName = '';
+      } else {
+        this.formValues.SelectedGitCredential = null;
+        this.formValues.RepositoryUsername = '';
+        this.formValues.RepositoryPassword = '';
+        this.formValues.RepositoryGitCredentialID = 0;
+      }
+    });
   }
 
   parseTemplate(templateStr) {
@@ -63,7 +95,7 @@ class KubeCreateCustomTemplateViewController {
     this.state.isTemplateValid = isValid;
 
     if (isValid) {
-      this.onVariablesChange(intersectVariables(this.formValues.Variables, variables));
+      this.onVariablesChange(variables.length > 0 ? intersectVariables(this.formValues.Variables, variables) : variables);
     }
   }
 
@@ -94,10 +126,24 @@ class KubeCreateCustomTemplateViewController {
 
       this.state.actionInProgress = true;
       try {
+        const userDetails = this.Authentication.getUserDetails();
+        if (method === 'repository') {
+          // save git credential
+          if (this.formValues.SaveCredential && this.formValues.NewCredentialName) {
+            const data = await this.UserService.saveGitCredential(
+              userDetails.ID,
+              this.formValues.NewCredentialName,
+              this.formValues.RepositoryUsername,
+              this.formValues.RepositoryPassword
+            );
+
+            this.formValues.RepositoryGitCredentialID = data.gitCredential.id;
+          }
+        }
+
         const customTemplate = await this.createCustomTemplateByMethod(method, this.formValues);
 
         const accessControlData = this.formValues.AccessControlData;
-        const userDetails = this.Authentication.getUserDetails();
         const userId = userDetails.ID;
         await this.ResourceControlService.applyResourceControl(userId, accessControlData, customTemplate.ResourceControl);
 
@@ -120,6 +166,8 @@ class KubeCreateCustomTemplateViewController {
         return this.createCustomTemplateFromFileContent(template);
       case 'upload':
         return this.createCustomTemplateFromFileUpload(template);
+      case 'repository':
+        return this.createCustomTemplateFromGitRepository(template);
     }
   }
 
@@ -129,6 +177,10 @@ class KubeCreateCustomTemplateViewController {
 
   createCustomTemplateFromFileUpload(template) {
     return this.CustomTemplateService.createCustomTemplateFromFileUpload(template);
+  }
+
+  createCustomTemplateFromGitRepository(template) {
+    return this.CustomTemplateService.createCustomTemplateFromGitRepository(template);
   }
 
   validateForm(method) {

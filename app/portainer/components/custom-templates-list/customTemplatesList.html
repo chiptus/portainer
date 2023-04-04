@@ -20,7 +20,7 @@
             ng-model-options="{ debounce: 300 }"
           />
         </div>
-        <div class="actionBar" ng-if="$ctrl.hideDeploymentOption === false">
+        <div class="actionBar">
           <button type="button" class="btn btn-sm btn-primary" ui-state="$ctrl.createPath">
             <pr-icon icon="'plus'"></pr-icon>
             Add Custom Template
@@ -28,13 +28,12 @@
         </div>
       </div>
 
-      <div class="blocklist cursor-default gap-y-2 !px-[20px] !pb-[20px]">
+      <div class="blocklist gap-y-2 !px-[20px] !pb-[20px]">
         <template-item
           ng-repeat="template in $ctrl.templates | filter:$ctrl.state.textFilter"
           model="template"
           type-label="{{ $ctrl.typeLabel(template.Type) }}"
           on-select="($ctrl.onSelectClick)"
-          ng-class="$ctrl.hideDeploymentOption && '[&>.blocklist-item]:!cursor-default'"
         >
           <template-item-actions>
             <div ng-if="$ctrl.isEditAllowed(template)" class="vertical-center">

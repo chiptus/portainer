@@ -2,6 +2,7 @@ package customtemplates
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
@@ -19,13 +20,18 @@ type Handler struct {
 	FileService         portainer.FileService
 	GitService          portainer.GitService
 	userActivityService portaineree.UserActivityService
+	gitFetchMutexs      map[portaineree.TemplateID]*sync.Mutex
 }
 
 // NewHandler creates a handler to manage environment(endpoint) group operations.
-func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, fileService portainer.FileService, gitService portainer.GitService, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
+		DataStore:           dataStore,
+		FileService:         fileService,
+		GitService:          gitService,
 		userActivityService: userActivityService,
+		gitFetchMutexs:      make(map[portaineree.TemplateID]*sync.Mutex),
 	}
 
 	h.Use(bouncer.AuthenticatedAccess, useractivity.LogUserActivity(h.userActivityService))
@@ -36,6 +42,7 @@ func NewHandler(bouncer *security.RequestBouncer, userActivityService portainere
 	h.Handle("/custom_templates/{id}/file", httperror.LoggerHandler(h.customTemplateFile)).Methods(http.MethodGet)
 	h.Handle("/custom_templates/{id}", httperror.LoggerHandler(h.customTemplateUpdate)).Methods(http.MethodPut)
 	h.Handle("/custom_templates/{id}", httperror.LoggerHandler(h.customTemplateDelete)).Methods(http.MethodDelete)
+	h.Handle("/custom_templates/{id}/git_fetch", httperror.LoggerHandler(h.customTemplateGitFetch)).Methods(http.MethodPut)
 	return h
 }
 

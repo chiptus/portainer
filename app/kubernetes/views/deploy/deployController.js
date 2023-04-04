@@ -30,7 +30,7 @@ class KubernetesDeployController {
 
     this.deployOptions = [{ ...kubernetes, value: KubernetesDeployManifestTypes.KUBERNETES }];
 
-    this.methodOptions = [{ ...git, value: KubernetesDeployBuildMethods.GIT }];
+    this.methodOptions = [];
 
     this.state = {
       DeployType: KubernetesDeployManifestTypes.KUBERNETES,
@@ -43,6 +43,8 @@ class KubernetesDeployController {
       template: null,
       baseWebhookUrl: baseStackWebhookUrl(),
       webhookId: createWebhookId(),
+      templateLoadFailed: false,
+      isEditorReadOnly: false,
     };
 
     this.formValues = {
@@ -96,7 +98,7 @@ class KubernetesDeployController {
     const metadata = {
       type: buildLabel(this.state.BuildMethod),
       format: formatLabel(this.state.DeployType),
-      role: roleLabel(this.Authentication.isAdmin(), this.Authentication.hasAuthorizations(['EndpointResourcesAccess'])),
+      role: roleLabel(this.currentUser.isAdmin, this.Authentication.hasAuthorizations(['EndpointResourcesAccess'])),
       'automatic-updates': automaticUpdatesLabel(this.formValues.RepositoryAutomaticUpdates, this.formValues.RepositoryMechanism),
     };
 
@@ -189,9 +191,15 @@ class KubernetesDeployController {
       this.state.template = template;
 
       try {
-        const fileContent = await this.CustomTemplateService.customTemplateFile(templateId);
-        this.state.templateContent = fileContent;
-        this.onChangeFileContent(fileContent);
+        try {
+          this.state.templateContent = await this.CustomTemplateService.customTemplateFile(templateId, template.GitConfig !== null);
+          this.onChangeFileContent(this.state.templateContent);
+
+          this.state.isEditorReadOnly = true;
+        } catch (err) {
+          this.state.templateLoadFailed = true;
+          throw err;
+        }
 
         if (template.Variables && template.Variables.length > 0) {
           const variables = Object.fromEntries(template.Variables.map((variable) => [variable.name, '']));
@@ -254,8 +262,6 @@ class KubernetesDeployController {
       };
 
       if (method === KubernetesDeployRequestMethods.REPOSITORY) {
-        const userDetails = this.Authentication.getUserDetails();
-
         payload.TLSSkipVerify = this.formValues.TLSSkipVerify;
         payload.RepositoryURL = this.formValues.RepositoryURL;
         payload.RepositoryReferenceName = this.formValues.RepositoryReferenceName;
@@ -264,7 +270,7 @@ class KubernetesDeployController {
           // save git credential
           if (this.formValues.SaveCredential && this.formValues.NewCredentialName) {
             await this.UserService.saveGitCredential(
-              userDetails.ID,
+              this.currentUser.id,
               this.formValues.NewCredentialName,
               this.formValues.RepositoryUsername,
               this.formValues.RepositoryPassword
@@ -292,9 +298,8 @@ class KubernetesDeployController {
       this.$state.go('kubernetes.applications');
     } catch (err) {
       this.Notifications.error('Unable to deploy manifest', err, 'Unable to deploy resources');
-      const userDetails = this.Authentication.getUserDetails();
       if (this.formValues.SaveCredential && this.formValues.NewCredentialName && this.formValues.RepositoryGitCredentialID) {
-        this.UserService.deleteGitCredential(userDetails.ID, this.formValues.RepositoryGitCredentialID);
+        this.UserService.deleteGitCredential(this.currentUser.id, this.formValues.RepositoryGitCredentialID);
       }
       this.displayErrorLog(err.err.data.details);
     } finally {
@@ -346,11 +351,16 @@ class KubernetesDeployController {
       try {
         this.deploymentOptions = await getDeploymentOptions(this.endpoint.Id);
         if (!this.deploymentOptions.hideWebEditor) {
-          this.methodOptions.push({ ...editor, value: KubernetesDeployBuildMethods.WEB_EDITOR }, { ...customTemplate, value: KubernetesDeployBuildMethods.CUSTOM_TEMPLATE });
+          this.methodOptions.push({ ...editor, value: KubernetesDeployBuildMethods.WEB_EDITOR });
         }
         if (!this.deploymentOptions.hideFileUpload) {
-          this.methodOptions.push({ ...url, value: KubernetesDeployBuildMethods.URL });
+          this.methodOptions.splice(1, 0, { ...url, value: KubernetesDeployBuildMethods.URL });
         }
+
+        this.methodOptions.push(
+          { ...git, value: KubernetesDeployBuildMethods.GIT },
+          { ...customTemplate, description: 'Use custom template', value: KubernetesDeployBuildMethods.CUSTOM_TEMPLATE }
+        );
 
         // the selected method must be available
         if (!this.methodOptions.map((option) => option.value).includes(this.state.Method)) {

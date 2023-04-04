@@ -1,7 +1,6 @@
 import angular from 'angular';
 
 import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
-
 import { kubeCustomTemplatesView } from './kube-custom-templates-view';
 import { kubeEditCustomTemplateView } from './kube-edit-custom-template-view';
 import { kubeCreateCustomTemplateView } from './kube-create-custom-template-view';

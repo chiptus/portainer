@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { getFilePreview } from '@/react/portainer/gitops/gitops.service';
 import { ResourceControlViewModel } from '@/react/portainer/access-control/models/ResourceControlViewModel';
 
 import { AccessControlFormData } from 'Portainer/components/accessControlForm/porAccessControlFormModel';
@@ -14,12 +15,31 @@ class EditCustomTemplateViewController {
 
     this.isTemplateVariablesEnabled = isBE;
 
-    this.formValues = null;
+    this.formValues = {
+      RepositoryURL: '',
+      RepositoryURLValid: false,
+      RepositoryReferenceName: 'refs/heads/main',
+      RepositoryAuthentication: false,
+      RepositoryUsername: '',
+      RepositoryPassword: '',
+      SaveCredential: true,
+      RepositoryGitCredentialID: 0,
+      NewCredentialName: '',
+      NewCredentialNameExist: false,
+      ComposeFilePathInRepository: 'docker-compose.yml',
+      Variables: [],
+      TLSSkipVerify: false,
+    };
     this.state = {
       formValidationError: '',
       isEditorDirty: false,
       isTemplateValid: true,
       isLoading: true,
+      isEditorVisible: false,
+      isEditorReadOnly: false,
+      templateLoadFailed: false,
+      templatePreviewFailed: false,
+      templatePreviewError: '',
     };
     this.templates = [];
 
@@ -30,6 +50,7 @@ class EditCustomTemplateViewController {
     this.editorUpdate = this.editorUpdate.bind(this);
     this.onVariablesChange = this.onVariablesChange.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.previewFileFromGitRepository = this.previewFileFromGitRepository.bind(this);
   }
 
   getTemplate() {
@@ -37,14 +58,25 @@ class EditCustomTemplateViewController {
   }
   async getTemplateAsync() {
     try {
-      const [template, file] = await Promise.all([
-        this.CustomTemplateService.customTemplate(this.$state.params.id),
-        this.CustomTemplateService.customTemplateFile(this.$state.params.id),
-      ]);
-      template.FileContent = file;
+      const template = await this.CustomTemplateService.customTemplate(this.$state.params.id);
+
+      if (template.GitConfig !== null) {
+        this.state.isEditorReadOnly = true;
+      }
+
+      try {
+        template.FileContent = await this.CustomTemplateService.customTemplateFile(this.$state.params.id, template.GitConfig !== null);
+      } catch (err) {
+        this.state.templateLoadFailed = true;
+        throw err;
+      }
+
       template.Variables = template.Variables || [];
-      this.formValues = template;
+
+      this.formValues = { ...this.formValues, ...template };
+
       this.parseTemplate(template.FileContent);
+      this.parseGitConfig(template.GitConfig);
 
       this.oldFileContent = this.formValues.FileContent;
       if (template.ResourceControl) {
@@ -66,6 +98,30 @@ class EditCustomTemplateViewController {
         ...this.formValues,
         ...values,
       };
+
+      if (this.formValues.GitCredentials) {
+        const existGitCredential = this.formValues.GitCredentials.find((x) => x.name === this.formValues.NewCredentialName);
+        this.formValues.NewCredentialNameExist = existGitCredential ? true : false;
+        this.formValues.NewCredentialNameInvalid = !!(this.formValues.NewCredentialName && !this.formValues.NewCredentialName.match(/^[-_a-z0-9]+$/));
+      }
+    });
+  }
+
+  onChangeGitCredential(selectedGitCredential) {
+    return this.$async(async () => {
+      if (selectedGitCredential) {
+        this.formValues.SelectedGitCredential = selectedGitCredential;
+        this.formValues.RepositoryGitCredentialID = Number(selectedGitCredential.id);
+        this.formValues.RepositoryUsername = selectedGitCredential.username;
+        this.formValues.RepositoryPassword = '';
+        this.formValues.SaveCredential = false;
+        this.formValues.NewCredentialName = '';
+      } else {
+        this.formValues.SelectedGitCredential = null;
+        this.formValues.RepositoryUsername = '';
+        this.formValues.RepositoryPassword = '';
+        this.formValues.RepositoryGitCredentialID = 0;
+      }
     });
   }
 
@@ -110,6 +166,17 @@ class EditCustomTemplateViewController {
       await this.CustomTemplateService.updateCustomTemplate(this.formValues.Id, this.formValues);
 
       const userDetails = this.Authentication.getUserDetails();
+      // save git credential
+      if (this.formValues.SaveCredential && this.formValues.NewCredentialName) {
+        const data = await this.UserService.saveGitCredential(
+          userDetails.ID,
+          this.formValues.NewCredentialName,
+          this.formValues.RepositoryUsername,
+          this.formValues.RepositoryPassword
+        );
+
+        this.formValues.RepositoryGitCredentialID = data.gitCredential.id;
+      }
       const userId = userDetails.ID;
       await this.ResourceControlService.applyResourceControl(userId, this.formValues.AccessControlData, this.formValues.ResourceControl);
 
@@ -143,8 +210,69 @@ class EditCustomTemplateViewController {
     this.state.isTemplateValid = isValid;
 
     if (isValid) {
-      this.onVariablesChange(intersectVariables(this.formValues.Variables, variables));
+      this.onVariablesChange(variables.length > 0 ? intersectVariables(this.formValues.Variables, variables) : variables);
     }
+  }
+
+  parseGitConfig(config) {
+    if (config === null) {
+      return;
+    }
+
+    let flatConfig = {
+      RepositoryURL: config.URL,
+      RepositoryReferenceName: config.ReferenceName,
+      ComposeFilePathInRepository: config.ConfigFilePath,
+      RepositoryAuthentication: config.Authentication !== null,
+      TLSSkipVerify: config.TLSSkipVerify,
+    };
+
+    if (config.Authentication) {
+      flatConfig = {
+        ...flatConfig,
+        RepositoryUsername: config.Authentication.Username,
+        RepositoryPassword: config.Authentication.Password,
+        RepositoryGitCredentialID: config.Authentication.GitCredentialID,
+      };
+    }
+
+    this.formValues = { ...this.formValues, ...flatConfig };
+  }
+
+  previewFileFromGitRepository() {
+    this.state.templatePreviewFailed = false;
+    this.state.templatePreviewError = '';
+
+    let creds = {};
+    if (this.formValues.RepositoryAuthentication) {
+      if (this.formValues.RepositoryPassword) {
+        creds = {
+          username: this.formValues.RepositoryUsername,
+          password: this.formValues.RepositoryPassword,
+        };
+      } else if (this.formValues.SelectedGitCredential) {
+        creds = { gitCredentialId: this.formValues.SelectedGitCredential.id };
+      }
+    }
+    const payload = {
+      repository: this.formValues.RepositoryURL,
+      targetFile: this.formValues.ComposeFilePathInRepository,
+      tlsSkipVerify: this.formValues.TLSSkipVerify,
+      ...creds,
+    };
+
+    this.$async(async () => {
+      try {
+        this.formValues.FileContent = await getFilePreview(payload);
+        this.state.isEditorDirty = true;
+
+        // check if the template contains mustache template symbol
+        this.parseTemplate(this.formValues.FileContent);
+      } catch (err) {
+        this.state.templatePreviewError = err.message;
+        this.state.templatePreviewFailed = true;
+      }
+    });
   }
 
   async uiCanExit() {
@@ -155,7 +283,7 @@ class EditCustomTemplateViewController {
 
   async $onInit() {
     return this.$async(async () => {
-      this.getTemplate();
+      await this.getTemplate();
 
       try {
         this.templates = await this.CustomTemplateService.customTemplates([1, 2]);

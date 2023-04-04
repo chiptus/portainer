@@ -1,6 +1,7 @@
 import { ResourceControlViewModel } from '@/react/portainer/access-control/models/ResourceControlViewModel';
 import { AccessControlFormData } from '@/portainer/components/accessControlForm/porAccessControlFormModel';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
+import { getFilePreview } from '@/react/portainer/gitops/gitops.service';
 import { getTemplateVariables, intersectVariables } from '@/react/portainer/custom-templates/components/utils';
 import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 import { confirmWebEditorDiscard } from '@@/modals/confirm';
@@ -12,12 +13,19 @@ class KubeEditCustomTemplateViewController {
 
     this.isTemplateVariablesEnabled = isBE;
 
-    this.formValues = null;
+    this.formValues = {
+      Variables: [],
+      TLSSkipVerify: false,
+    };
     this.state = {
       formValidationError: '',
       isEditorDirty: false,
       isTemplateValid: true,
       isLoading: true,
+      isEditorReadOnly: false,
+      templateLoadFailed: false,
+      templatePreviewFailed: false,
+      templatePreviewError: '',
     };
     this.templates = [];
 
@@ -27,6 +35,8 @@ class KubeEditCustomTemplateViewController {
     this.onBeforeUnload = this.onBeforeUnload.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.onVariablesChange = this.onVariablesChange.bind(this);
+    this.onChangeGitCredential = this.onChangeGitCredential.bind(this);
+    this.previewFileFromGitRepository = this.previewFileFromGitRepository.bind(this);
   }
 
   getTemplate() {
@@ -34,13 +44,25 @@ class KubeEditCustomTemplateViewController {
       try {
         const { id } = this.$state.params;
 
-        const [template, file] = await Promise.all([this.CustomTemplateService.customTemplate(id), this.CustomTemplateService.customTemplateFile(id)]);
-        template.FileContent = file;
+        const template = await this.CustomTemplateService.customTemplate(id);
+
+        if (template.GitConfig !== null) {
+          this.state.isEditorReadOnly = true;
+        }
+
+        try {
+          template.FileContent = await this.CustomTemplateService.customTemplateFile(id, template.GitConfig !== null);
+        } catch (err) {
+          this.state.templateLoadFailed = true;
+          throw err;
+        }
+
         template.Variables = template.Variables || [];
 
-        this.formValues = template;
+        this.formValues = { ...this.formValues, ...template };
 
-        this.parseTemplate(file);
+        this.parseTemplate(template.FileContent);
+        this.parseGitConfig(template.GitConfig);
 
         this.oldFileContent = this.formValues.FileContent;
 
@@ -62,6 +84,30 @@ class KubeEditCustomTemplateViewController {
         ...this.formValues,
         ...values,
       };
+
+      if (this.formValues.GitCredentials) {
+        const existGitCredential = this.formValues.GitCredentials.find((x) => x.name === this.formValues.NewCredentialName);
+        this.formValues.NewCredentialNameExist = existGitCredential ? true : false;
+        this.formValues.NewCredentialNameInvalid = !!(this.formValues.NewCredentialName && !this.formValues.NewCredentialName.match(/^[-_a-z0-9]+$/));
+      }
+    });
+  }
+
+  onChangeGitCredential(selectedGitCredential) {
+    return this.$async(async () => {
+      if (selectedGitCredential) {
+        this.formValues.SelectedGitCredential = selectedGitCredential;
+        this.formValues.RepositoryGitCredentialID = Number(selectedGitCredential.id);
+        this.formValues.RepositoryUsername = selectedGitCredential.username;
+        this.formValues.RepositoryPassword = '';
+        this.formValues.SaveCredential = false;
+        this.formValues.NewCredentialName = '';
+      } else {
+        this.formValues.SelectedGitCredential = null;
+        this.formValues.RepositoryUsername = '';
+        this.formValues.RepositoryPassword = '';
+        this.formValues.RepositoryGitCredentialID = 0;
+      }
     });
   }
 
@@ -77,8 +123,69 @@ class KubeEditCustomTemplateViewController {
     this.state.isTemplateValid = isValid;
 
     if (isValid) {
-      this.onVariablesChange(intersectVariables(this.formValues.Variables, variables));
+      this.onVariablesChange(variables.length > 0 ? intersectVariables(this.formValues.Variables, variables) : variables);
     }
+  }
+
+  parseGitConfig(config) {
+    if (config === null) {
+      return;
+    }
+
+    let flatConfig = {
+      RepositoryURL: config.URL,
+      RepositoryReferenceName: config.ReferenceName,
+      ComposeFilePathInRepository: config.ConfigFilePath,
+      RepositoryAuthentication: config.Authentication !== null,
+      TLSSkipVerify: config.TLSSkipVerify,
+    };
+
+    if (config.Authentication) {
+      flatConfig = {
+        ...flatConfig,
+        RepositoryUsername: config.Authentication.Username,
+        RepositoryPassword: config.Authentication.Password,
+        RepositoryGitCredentialID: config.Authentication.GitCredentialID,
+      };
+    }
+
+    this.formValues = { ...this.formValues, ...flatConfig };
+  }
+
+  previewFileFromGitRepository() {
+    this.state.templatePreviewFailed = false;
+    this.state.templatePreviewError = '';
+
+    let creds = {};
+    if (this.formValues.RepositoryAuthentication) {
+      if (this.formValues.RepositoryPassword) {
+        creds = {
+          username: this.formValues.RepositoryUsername,
+          password: this.formValues.RepositoryPassword,
+        };
+      } else if (this.formValues.SelectedGitCredential) {
+        creds = { gitCredentialId: this.formValues.SelectedGitCredential.id };
+      }
+    }
+    const payload = {
+      repository: this.formValues.RepositoryURL,
+      targetFile: this.formValues.ComposeFilePathInRepository,
+      TLSSkipVerify: this.formValues.TLSSkipVerify,
+      ...creds,
+    };
+
+    this.$async(async () => {
+      try {
+        this.formValues.FileContent = await getFilePreview(payload);
+        this.state.isEditorDirty = true;
+
+        // check if the template contains mustache template symbol
+        this.parseTemplate(this.formValues.FileContent);
+      } catch (err) {
+        this.state.templatePreviewError = err.message;
+        this.state.templatePreviewFailed = true;
+      }
+    });
   }
 
   validateForm() {
@@ -122,6 +229,7 @@ class KubeEditCustomTemplateViewController {
 
         const userDetails = this.Authentication.getUserDetails();
         const userId = userDetails.ID;
+
         await this.ResourceControlService.applyResourceControl(userId, this.formValues.AccessControlData, this.formValues.ResourceControl);
 
         this.Notifications.success('Success', 'Custom template successfully updated');
@@ -145,7 +253,7 @@ class KubeEditCustomTemplateViewController {
 
   async $onInit() {
     this.$async(async () => {
-      this.getTemplate();
+      await this.getTemplate();
 
       try {
         const endpoint = this.EndpointProvider.currentEndpoint();
@@ -158,6 +266,24 @@ class KubeEditCustomTemplateViewController {
         this.templates = await this.CustomTemplateService.customTemplates();
       } catch (err) {
         this.Notifications.error('Failure loading', err, 'Failed loading custom templates');
+      }
+      if (this.formValues.GitConfig !== null) {
+        this.formValues = {
+          ...this.formValues,
+          GitCredentials: [],
+          SaveCredential: false,
+          NewCredentialName: '',
+          NewCredentialNameExist: false,
+        };
+
+        if (this.formValues.RepositoryGitCredentialID > 0) {
+          this.formValues.SelectedGitCredential = this.formValues.GitCredentials.find((x) => x.id === this.formValues.RepositoryGitCredentialID);
+          if (this.formValues.SelectedGitCredential) {
+            this.formValues.RepositoryGitCredentialID = this.formValues.SelectedGitCredential.id;
+            this.formValues.RepositoryUsername = this.formValues.SelectedGitCredential.username;
+            this.formValues.RepositoryPassword = '';
+          }
+        }
       }
 
       this.state.isLoading = false;

@@ -78,6 +78,9 @@ angular
         selectedTemplateId: null,
         baseWebhookUrl: baseStackWebhookUrl(),
         webhookId: createWebhookId(),
+        selectedTemplateFailedUpdate: false,
+        templateLoadFailed: false,
+        isEditorReadOnly: false,
       };
 
       $window.onbeforeunload = () => {
@@ -335,9 +338,15 @@ angular
             $scope.state.selectedTemplateId = templateId;
             $scope.state.selectedTemplate = template;
 
-            const fileContent = await CustomTemplateService.customTemplateFile(templateId);
-            $scope.state.templateContent = fileContent;
-            onChangeFileContent(fileContent);
+            try {
+              $scope.state.templateContent = await this.CustomTemplateService.customTemplateFile(templateId, template.GitConfig !== null);
+              onChangeFileContent($scope.state.templateContent);
+
+              $scope.state.isEditorReadOnly = true;
+            } catch (err) {
+              $scope.state.templateLoadFailed = true;
+              throw err;
+            }
 
             if (template.Variables && template.Variables.length > 0) {
               const variables = Object.fromEntries(template.Variables.map((variable) => [variable.name, '']));

@@ -175,10 +175,7 @@ func (server *Server) Start() error {
 	var roleHandler = roles.NewHandler(requestBouncer)
 	roleHandler.DataStore = server.DataStore
 
-	var customTemplatesHandler = customtemplates.NewHandler(requestBouncer, server.UserActivityService)
-	customTemplatesHandler.DataStore = server.DataStore
-	customTemplatesHandler.FileService = server.FileService
-	customTemplatesHandler.GitService = server.GitService
+	var customTemplatesHandler = customtemplates.NewHandler(requestBouncer, server.DataStore, server.FileService, server.GitService, server.UserActivityService)
 
 	var edgeGroupsHandler = edgegroups.NewHandler(requestBouncer, server.UserActivityService, server.EdgeAsyncService)
 	edgeGroupsHandler.DataStore = server.DataStore
@@ -243,7 +240,7 @@ func (server *Server) Start() error {
 
 	var endpointHelmHandler = helm.NewHandler(requestBouncer, server.DataStore, server.JWTService, server.KubernetesDeployer, server.HelmPackageManager, server.KubeClusterAccessService, server.UserActivityService)
 
-	var gitOperationHandler = gitops.NewHandler(requestBouncer, server.DataStore, server.GitService)
+	var gitOperationHandler = gitops.NewHandler(requestBouncer, server.DataStore, server.GitService, server.FileService)
 
 	var helmTemplatesHandler = helm.NewTemplateHandler(requestBouncer, server.HelmPackageManager)
 

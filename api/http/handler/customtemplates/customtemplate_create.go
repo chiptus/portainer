@@ -15,6 +15,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
 
@@ -133,6 +134,7 @@ func (payload *customTemplateFromFileContentPayload) Validate(r *http.Request) e
 	if govalidator.IsNull(payload.FileContent) {
 		return errors.New("Invalid file content")
 	}
+	// Platform validation is only for docker related stack (docker standalone and docker swarm)
 	if payload.Type != portaineree.KubernetesStack && payload.Platform != portaineree.CustomTemplatePlatformLinux && payload.Platform != portaineree.CustomTemplatePlatformWindows {
 		return errors.New("Invalid custom template platform")
 	}
@@ -199,7 +201,6 @@ type customTemplateFromGitRepositoryPayload struct {
 	Platform portaineree.CustomTemplatePlatform `example:"1" enums:"1,2"`
 	// Type of created stack (1 - swarm, 2 - compose)
 	Type portaineree.StackType `example:"1" enums:"1,2" validate:"required"`
-
 	// URL of a Git repository hosting the Stack file
 	RepositoryURL string `example:"https://github.com/openfaas/faas" validate:"required"`
 	// Reference name of a Git repository hosting the Stack file
@@ -221,6 +222,8 @@ type customTemplateFromGitRepositoryPayload struct {
 	Variables []portaineree.CustomTemplateVariableDefinition
 	// TLSSkipVerify skips SSL verification when cloning the Git repository
 	TLSSkipVerify bool `example:"false"`
+	// IsComposeFormat indicates if the Kubernetes template is created from a Docker Compose file
+	IsComposeFormat bool `example:"false"`
 }
 
 func (payload *customTemplateFromGitRepositoryPayload) Validate(r *http.Request) error {
@@ -230,24 +233,24 @@ func (payload *customTemplateFromGitRepositoryPayload) Validate(r *http.Request)
 	if govalidator.IsNull(payload.Description) {
 		return errors.New("Invalid custom template description")
 	}
+
 	if govalidator.IsNull(payload.RepositoryURL) || !govalidator.IsURL(payload.RepositoryURL) {
 		return errors.New("Invalid repository URL. Must correspond to a valid URL format")
 	}
-	if payload.RepositoryAuthentication && govalidator.IsNull(payload.RepositoryPassword) && payload.RepositoryGitCredentialID == 0 {
+	if payload.RepositoryAuthentication &&
+		govalidator.IsNull(payload.RepositoryPassword) &&
+		payload.RepositoryGitCredentialID == 0 {
 		return errors.New("Invalid repository credentials. Username and password must be specified when authentication is enabled")
 	}
 	if govalidator.IsNull(payload.ComposeFilePathInRepository) {
 		payload.ComposeFilePathInRepository = filesystem.ComposeFileDefaultName
 	}
 
-	if payload.Type == portaineree.KubernetesStack {
-		return errors.New("Creating a Kubernetes custom template from git is not supported")
-	}
-
-	if payload.Platform != portaineree.CustomTemplatePlatformLinux && payload.Platform != portaineree.CustomTemplatePlatformWindows {
+	// Platform validation is only for docker related stack (docker standalone and docker swarm)
+	if payload.Type != portaineree.KubernetesStack && payload.Platform != portaineree.CustomTemplatePlatformLinux && payload.Platform != portaineree.CustomTemplatePlatformWindows {
 		return errors.New("Invalid custom template platform")
 	}
-	if payload.Type != portaineree.DockerSwarmStack && payload.Type != portaineree.DockerComposeStack {
+	if payload.Type != portaineree.DockerSwarmStack && payload.Type != portaineree.DockerComposeStack && payload.Type != portaineree.KubernetesStack {
 		return errors.New("Invalid custom template type")
 	}
 	if !isValidNote(payload.Note) {
@@ -266,23 +269,33 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request, u
 
 	customTemplateID := handler.DataStore.CustomTemplate().GetNextIdentifier()
 	customTemplate := &portaineree.CustomTemplate{
-		ID:          portaineree.CustomTemplateID(customTemplateID),
-		Title:       payload.Title,
-		EntryPoint:  payload.ComposeFilePathInRepository,
-		Description: payload.Description,
-		Note:        payload.Note,
-		Platform:    payload.Platform,
-		Type:        payload.Type,
-		Logo:        payload.Logo,
-		Variables:   payload.Variables,
+		ID:              portaineree.CustomTemplateID(customTemplateID),
+		Title:           payload.Title,
+		Description:     payload.Description,
+		Note:            payload.Note,
+		Platform:        payload.Platform,
+		Type:            payload.Type,
+		Logo:            payload.Logo,
+		Variables:       payload.Variables,
+		IsComposeFormat: payload.IsComposeFormat,
 	}
 
-	projectPath := handler.FileService.GetCustomTemplateProjectPath(strconv.Itoa(customTemplateID))
+	getProjectPath := func() string {
+		return handler.FileService.GetCustomTemplateProjectPath(strconv.Itoa(customTemplateID))
+	}
+	projectPath := getProjectPath()
 	customTemplate.ProjectPath = projectPath
 
-	repositoryUsername := ""
-	repositoryPassword := ""
+	gitConfig := &gittypes.RepoConfig{
+		URL:            payload.RepositoryURL,
+		ReferenceName:  payload.RepositoryReferenceName,
+		ConfigFilePath: payload.ComposeFilePathInRepository,
+	}
+
 	if payload.RepositoryAuthentication {
+		repositoryUsername := ""
+		repositoryPassword := ""
+		repositoryGitCredentialID := 0
 		if payload.RepositoryGitCredentialID != 0 {
 			credential, err := handler.DataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(payload.RepositoryGitCredentialID))
 			if err != nil {
@@ -296,21 +309,34 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request, u
 
 			repositoryUsername = credential.Username
 			repositoryPassword = credential.Password
+			repositoryGitCredentialID = payload.RepositoryGitCredentialID
 		}
+
+		if payload.RepositoryPassword != "" {
+			repositoryUsername = payload.RepositoryUsername
+			repositoryPassword = payload.RepositoryPassword
+			repositoryGitCredentialID = 0
+		}
+
+		gitConfig.Authentication = &gittypes.GitAuthentication{
+			Username:        repositoryUsername,
+			Password:        repositoryPassword,
+			GitCredentialID: repositoryGitCredentialID,
+		}
+
+		gitConfig.TLSSkipVerify = payload.TLSSkipVerify
 	}
 
-	if payload.RepositoryPassword != "" {
-		repositoryUsername = payload.RepositoryUsername
-		repositoryPassword = payload.RepositoryPassword
-	}
-
-	err = handler.GitService.CloneRepository(projectPath, payload.RepositoryURL, payload.RepositoryReferenceName, repositoryUsername, repositoryPassword, payload.TLSSkipVerify)
+	commitHash, err := stackutils.DownloadGitRepository(*gitConfig, handler.GitService, getProjectPath)
 	if err != nil {
-		if err == gittypes.ErrAuthenticationFailure {
-			return nil, fmt.Errorf("invalid git credential")
-		}
 		return nil, err
 	}
+
+	gitConfig.ConfigHash = commitHash
+	if gitConfig.Authentication != nil {
+		gitConfig.Authentication.Password = ""
+	}
+	customTemplate.GitConfig = gitConfig
 
 	isValidProject := true
 	defer func() {
@@ -321,7 +347,7 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request, u
 		}
 	}()
 
-	entryPath := filesystem.JoinPaths(projectPath, customTemplate.EntryPoint)
+	entryPath := filesystem.JoinPaths(projectPath, gitConfig.ConfigFilePath)
 
 	exists, err := handler.FileService.FileExists(entryPath)
 	if err != nil || !exists {
@@ -333,6 +359,9 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request, u
 	}
 
 	if !exists {
+		if payload.Type == portaineree.KubernetesStack {
+			return nil, errors.New("Invalid Manifest file, ensure that the Manifest file path is correct")
+		}
 		return nil, errors.New("Invalid Compose file, ensure that the Compose file path is correct")
 	}
 
@@ -392,6 +421,7 @@ func (payload *customTemplateFromFileUploadPayload) Validate(r *http.Request) er
 
 	platform, _ := request.RetrieveNumericMultiPartFormValue(r, "Platform", true)
 	templatePlatform := portaineree.CustomTemplatePlatform(platform)
+	// Platform validation is only for docker related stack (docker standalone and docker swarm)
 	if templateType != portaineree.KubernetesStack && templatePlatform != portaineree.CustomTemplatePlatformLinux && templatePlatform != portaineree.CustomTemplatePlatformWindows {
 		return errors.New("Invalid custom template platform")
 	}

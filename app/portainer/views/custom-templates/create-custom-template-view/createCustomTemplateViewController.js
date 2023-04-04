@@ -135,16 +135,19 @@ class CreateCustomTemplateViewController {
 
     this.state.actionInProgress = true;
     const userDetails = this.Authentication.getUserDetails();
-    const that = this;
+
     try {
       if (method === 'repository') {
         // save git credential
         if (this.formValues.SaveCredential && this.formValues.NewCredentialName) {
-          await this.UserService.saveGitCredential(userDetails.ID, this.formValues.NewCredentialName, this.formValues.RepositoryUsername, this.formValues.RepositoryPassword).then(
-            function success(data) {
-              that.formValues.RepositoryGitCredentialID = data.gitCredential.id;
-            }
+          const data = await this.UserService.saveGitCredential(
+            userDetails.ID,
+            this.formValues.NewCredentialName,
+            this.formValues.RepositoryUsername,
+            this.formValues.RepositoryPassword
           );
+
+          this.formValues.RepositoryGitCredentialID = data.gitCredential.id;
         }
       }
       const customTemplate = await this.createCustomTemplateByMethod(method);
@@ -236,7 +239,7 @@ class CreateCustomTemplateViewController {
     this.state.isTemplateValid = isValid;
 
     if (isValid) {
-      this.onVariablesChange(intersectVariables(this.formValues.Variables, variables));
+      this.onVariablesChange(variables.length > 0 ? intersectVariables(this.formValues.Variables, variables) : variables);
     }
   }
 

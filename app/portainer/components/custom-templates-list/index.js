@@ -12,7 +12,6 @@ angular.module('portainer.app').component('customTemplatesList', {
     showSwarmStacks: '<',
     onDeleteClick: '<',
     isEditAllowed: '<',
-    hideDeploymentOption: '<',
     createPath: '@',
     editPath: '@',
   },

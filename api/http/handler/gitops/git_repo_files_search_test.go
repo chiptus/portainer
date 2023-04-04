@@ -39,7 +39,7 @@ func Test_gitOperationRepoFilesSearch(t *testing.T) {
 
 	gitService := git.NewService(context.TODO())
 
-	h := NewHandler(requestBouncer, store, gitService)
+	h := NewHandler(requestBouncer, store, gitService, nil)
 
 	// generate standard and admin user tokens
 	jwt, _ := jwtService.GenerateToken(&portaineree.TokenData{ID: user.ID, Username: user.Username, Role: user.Role})
