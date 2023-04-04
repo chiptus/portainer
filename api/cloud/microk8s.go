@@ -417,6 +417,7 @@ func runSSHCommand(conn *ssh.Client, password, command string) error {
 	if err != nil {
 		return err
 	}
+	defer sftpClient.Close()
 
 	passSFTP, err := sftpClient.Create(".password")
 	err = sftpClient.Chmod(".password", 0600)
@@ -450,6 +451,7 @@ func runSSHCommandAndGetOutput(conn *ssh.Client, password, command string) (stri
 	if err != nil {
 		return "", err
 	}
+	defer sftpClient.Close()
 
 	passSFTP, err := sftpClient.Create(".password")
 	err = sftpClient.Chmod(".password", 0600)
