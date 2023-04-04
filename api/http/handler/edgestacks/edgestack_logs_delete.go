@@ -15,8 +15,8 @@ import (
 // @tags edge_stacks
 // @security ApiKeyAuth
 // @security jwt
-// @param id path string true "EdgeStack Id"
-// @param endpoint_id path string true "Endpoint Id"
+// @param id path int true "EdgeStack Id"
+// @param endpoint_id path int true "Endpoint Id"
 // @success 204
 // @failure 400
 // @failure 503 "Edge compute features are disabled"

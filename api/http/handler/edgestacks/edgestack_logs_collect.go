@@ -16,8 +16,8 @@ import (
 // @tags edge_stacks
 // @security ApiKeyAuth
 // @security jwt
-// @param id path string true "EdgeStack Id"
-// @param endpoint_id path string true "Environment Id"
+// @param id path int true "EdgeStack Id"
+// @param endpoint_id path int true "Environment Id"
 // @param tail query int false "Number of lines to request for the logs"
 // @success 204
 // @failure 400

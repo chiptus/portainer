@@ -49,7 +49,7 @@ func (payload *updateEdgeStackPayload) Validate(r *http.Request) error {
 // @security jwt
 // @accept json
 // @produce json
-// @param id path string true "EdgeStack Id"
+// @param id path int true "EdgeStack Id"
 // @param body body updateEdgeStackPayload true "EdgeStack data"
 // @success 200 {object} portaineree.EdgeStack
 // @failure 500

@@ -42,7 +42,7 @@ func (payload *updateStatusPayload) Validate(r *http.Request) error {
 // @tags edge_stacks
 // @accept json
 // @produce json
-// @param id path string true "EdgeStack Id"
+// @param id path int true "EdgeStack Id"
 // @success 200 {object} portaineree.EdgeStack
 // @failure 500
 // @failure 400

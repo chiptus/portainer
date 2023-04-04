@@ -15,7 +15,7 @@ import (
 // @tags edge, endpoints
 // @accept json
 // @produce json
-// @param id path string true "Environment(Endpoint) Id"
+// @param id path int true "Environment(Endpoint) Id"
 // @success 204
 // @failure 500
 // @failure 400

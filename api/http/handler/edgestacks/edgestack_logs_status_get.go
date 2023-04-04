@@ -19,8 +19,8 @@ type edgeStackLogsStatusResponse struct {
 // @tags edge_stacks
 // @security ApiKeyAuth
 // @security jwt
-// @param id path string true "EdgeStack Id"
-// @param endpoint_id path string true "Environment Id"
+// @param id path int true "EdgeStack Id"
+// @param endpoint_id path int true "Environment Id"
 // @success 200
 // @failure 400
 // @failure 500

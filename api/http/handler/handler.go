@@ -110,7 +110,7 @@ type Handler struct {
 
 // @securitydefinitions.apikey ApiKeyAuth
 // @in header
-// @name Authorization
+// @name x-api-key
 
 // @securitydefinitions.apikey jwt
 // @in header
@@ -150,6 +150,12 @@ type Handler struct {
 // @tag.description Manage roles
 // @tag.name settings
 // @tag.description Manage Portainer settings
+// @tag.name stacks
+// @tag.description Manage stacks
+// @tag.name status
+// @tag.description Information about the Portainer instance
+// @tag.name system
+// @tag.description Manage Portainer system
 // @tag.name users
 // @tag.description Manage users
 // @tag.name tags
@@ -160,18 +166,12 @@ type Handler struct {
 // @tag.description Manage team memberships
 // @tag.name templates
 // @tag.description Manage App Templates
-// @tag.name stacks
-// @tag.description Manage stacks
 // @tag.name upload
 // @tag.description Upload files
 // @tag.name webhooks
 // @tag.description Manage webhooks
 // @tag.name websocket
 // @tag.description Create exec sessions using websockets
-// @tag.name status
-// @tag.description Information about the Portainer instance
-// @tag.name system
-// @tag.description Manage Portainer system
 
 // ServeHTTP delegates a request to the appropriate subhandler.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
