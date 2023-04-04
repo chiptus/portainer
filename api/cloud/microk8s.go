@@ -262,7 +262,7 @@ func installMicrok8sOnNode(user, password, passphrase, privateKey, nodeIp, kuber
 	// Default set of addons.
 	// Note: helm3 is an alias for helm and recently seems to be enabled by default. Leaving helm in here anyway.
 	// ha-cluster is automatically enabled when adding more master nodes to the cluster
-	return runSSHCommand(conn, password, "microk8s enable dns rbac helm")
+	return runSSHCommand(conn, password, "microk8s enable dns rbac helm helm3")
 }
 
 func executeJoinClusterCommandOnNode(user, password, passphrase, privateKey, nodeIp string, joinInfo *microk8sClusterJoinInfo, asWorkerNode bool) error {

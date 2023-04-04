@@ -209,8 +209,22 @@ export function Microk8sCreateClusterForm({
       </FormControl>
 
       <FormControl
-        label="Add-ons"
-        tooltip="You may specify add-ons to be automatically installed in your cluster. The following add-ons will also be installed by default: helm, dns and rbac."
+        label="Addons"
+        tooltip={
+          <>
+            You may specify{' '}
+            <a
+              href="https://microk8s.io/docs/addons"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              addons
+            </a>{' '}
+            to be automatically installed in your cluster. The following addons
+            will also be installed by default: dns, ha-cluster, helm, helm3 and
+            rbac.
+          </>
+        }
         inputId="microk8s-addons"
       >
         <Microk8sAddOnSelector

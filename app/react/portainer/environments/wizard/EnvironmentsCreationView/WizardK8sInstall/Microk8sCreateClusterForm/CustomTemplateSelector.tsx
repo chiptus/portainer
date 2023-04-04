@@ -15,7 +15,7 @@ interface Props {
 export function CustomTemplateSelector({ customTemplates }: Props) {
   const customTemplateOptions: Option<number>[] = useMemo(() => {
     if (customTemplates.length === 0) {
-      return [{ value: 0, label: 'No Custom Template seeds available' }];
+      return [{ value: 0, label: 'No Custom Templates available' }];
     }
     const options = customTemplates.map((c) => ({
       value: c.Id,
