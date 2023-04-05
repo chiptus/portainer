@@ -412,8 +412,12 @@ func (server *Server) Start() error {
 
 	httpsServer.TLSConfig = crypto.CreateTLSConfiguration()
 	httpsServer.TLSConfig.GetCertificate = func(chi *tls.ClientHelloInfo) (*tls.Certificate, error) {
+		if chi.ServerName == "" {
+			return server.SSLService.GetRawCertificate(), nil
+		}
+
 		if mTLSCert := server.SSLService.GetRawMTLSCertificate(); mTLSCert != nil {
-			if err := chi.SupportsCertificate(mTLSCert); err == nil {
+			if err := mTLSCert.Leaf.VerifyHostname(chi.ServerName); err == nil {
 				return mTLSCert, nil
 			}
 		}
