@@ -37,6 +37,7 @@ export function useLogsQuery(
       setOriginalLogs(formattedLogs);
     },
     refetchInterval: () => (autoRefresh ? AUTO_REFRESH_INTERVAL : false),
+    refetchOnWindowFocus: false,
   });
 
   return { logsQuery, originalLogs };
