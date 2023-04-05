@@ -368,7 +368,7 @@ func updateHostFile(
 		path, err := runSSHCommandAndGetOutput(
 			conn,
 			password,
-			`grep -o "\/etc\/cloud\/templates.*\.tmpl$" /etc/hosts`,
+			`grep -o "\/etc\/cloud\/templates\/[^[:space:]]*\.tmpl" /etc/hosts | head -n 1`, // get the first file that matches
 		)
 		if err != nil || path == "" || strings.ContainsAny(path, " ") {
 			continue
