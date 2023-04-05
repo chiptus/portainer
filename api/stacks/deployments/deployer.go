@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"strings"
@@ -458,7 +457,7 @@ func (d *stackDeployer) remoteStack(stack *portaineree.Stack, endpoint *portaine
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get logs from unpacker container")
 	} else {
-		outputBytes, err := ioutil.ReadAll(out)
+		outputBytes, err := io.ReadAll(out)
 		if err != nil {
 			log.Error().Err(err).Msg("unable to parse logs from unpacker container")
 		} else {

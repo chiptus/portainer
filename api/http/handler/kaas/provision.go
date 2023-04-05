@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/cloud"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/providers"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/types"
+	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/sshtest"
 	portainer "github.com/portainer/portainer/api"
 )
@@ -94,6 +95,12 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 
 	// Prepare a new CloudProvisioningRequest
 	request := payload.GetCloudProvisioningRequest(endpoint.ID, provider)
+
+	tokenData, err := security.RetrieveTokenData(r)
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve user details from authentication token", err)
+	}
+	request.CreatedByUserID = tokenData.ID
 
 	handler.cloudClusterSetupService.Request(request)
 	return response.JSON(w, endpoint)

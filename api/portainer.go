@@ -1175,6 +1175,10 @@ type (
 		Addons  []string
 
 		CustomTemplateID CustomTemplateID
+
+		// --- Common portainer internal fields ---
+		// the userid of the user who created this request.
+		CreatedByUserID UserID
 	}
 
 	// CloudProvisioningID represents a cloud provisioning identifier
@@ -1183,12 +1187,13 @@ type (
 	// CloudProvisioningTask represents an active job queue for KaaS provisioning tasks
 	//   used by portainer when stopping and restarting portainer
 	CloudProvisioningTask struct {
-		ID         CloudProvisioningTaskID
-		Provider   string
-		ClusterID  string
-		Region     string
-		EndpointID EndpointID
-		CreatedAt  time.Time
+		ID              CloudProvisioningTaskID
+		Provider        string
+		ClusterID       string
+		Region          string
+		EndpointID      EndpointID
+		CreatedAt       time.Time
+		CreatedByUserID UserID
 
 		State   int   `json:"-"`
 		Retries int   `json:"-"`

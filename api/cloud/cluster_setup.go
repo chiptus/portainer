@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -18,6 +19,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	"github.com/portainer/portainer-ee/api/kubernetes"
 	kubecli "github.com/portainer/portainer-ee/api/kubernetes/cli"
 	log "github.com/rs/zerolog/log"
 )
@@ -126,6 +128,7 @@ func (service *CloudClusterSetupService) createClusterSetupTask(request *portain
 		ResourceGroup:    resourceGroup,
 		CustomTemplateID: request.CustomTemplateID,
 		NodeIPs:          request.NodeIPs,
+		CreatedByUserID:  request.CreatedByUserID,
 	}
 
 	return task, service.dataStore.CloudProvisioning().Create(&task)
@@ -274,7 +277,7 @@ func (service *CloudClusterSetupService) setStatus(id portaineree.EndpointID, st
 func (service *CloudClusterSetupService) seedCluster(task *portaineree.CloudProvisioningTask) (err error) {
 	customTemplate, err := service.dataStore.CustomTemplate().CustomTemplate(portaineree.CustomTemplateID(task.CustomTemplateID))
 	if err != nil {
-		return clouderrors.NewFatalError("error getting custom template with id: %d error: %v", task.CustomTemplateID, err)
+		return clouderrors.NewFatalError("error getting custom template with id: %d, error: %v", task.CustomTemplateID, err)
 	}
 
 	cluster, err := service.getKaasCluster(task)
@@ -282,7 +285,66 @@ func (service *CloudClusterSetupService) seedCluster(task *portaineree.CloudProv
 		return err
 	}
 
-	return service.kubernetesDeployer.DeployViaKubeConfig(cluster.KubeConfig, task.ClusterID, filepath.Join(customTemplate.ProjectPath, customTemplate.EntryPoint))
+	sourceManifest := filepath.Join(customTemplate.ProjectPath, customTemplate.EntryPoint)
+	owner, err := service.dataStore.User().User(task.CreatedByUserID)
+	if err != nil {
+		return clouderrors.NewFatalError("unable to load user information from the database, error: %v", err)
+	}
+
+	// add portainer labels to a copy of the manifest don't modify the orignal as that is the original stack file
+	manifestContent, err := os.ReadFile(sourceManifest)
+	if err != nil {
+		return clouderrors.NewFatalError("error reading manifest file: %s, error: %v", sourceManifest, err)
+	}
+
+	namespace, err := kubernetes.GetNamespace(manifestContent)
+	if err != nil || namespace == "" {
+		namespace = "default"
+	}
+
+	stack := portaineree.Stack{
+		ID:              portaineree.StackID(service.dataStore.Stack().GetNextIdentifier()),
+		Name:            "seed" + strconv.Itoa(int(task.EndpointID)),
+		IsComposeFormat: false,
+		Type:            portaineree.KubernetesStack,
+		EndpointID:      task.EndpointID,
+		EntryPoint:      customTemplate.EntryPoint, // It will be pointing to custom template file
+		ProjectPath:     customTemplate.ProjectPath,
+		Namespace:       namespace,
+	}
+
+	err = service.dataStore.Stack().Create(&stack)
+	if err != nil {
+		return clouderrors.NewFatalError("error creating stack for endpoint: %d, error: %v", task.EndpointID, err)
+	}
+
+	labels := kubernetes.KubeAppLabels{
+		StackID:   int(stack.ID),
+		StackName: customTemplate.Title,
+		Owner:     owner.Username,
+		Kind:      "content", // should be "content" for custom templates
+	}
+
+	labeledManifest, err := kubernetes.AddAppLabels(manifestContent, labels.ToMap())
+	if err != nil {
+		return clouderrors.NewFatalError("error adding labels to manifest file: %s, error: %v", sourceManifest, err)
+	}
+
+	// save the modified manifest to a temp file and deploy it
+	manifestFile, err := os.CreateTemp("", "portainer-seed")
+	if err != nil {
+		return clouderrors.NewFatalError("error creating temp file for manifest, error: %v", err)
+	}
+	defer os.Remove(manifestFile.Name())
+
+	// write labeledManifest to manifestFile
+	_, err = manifestFile.Write(labeledManifest)
+	if err != nil {
+		return clouderrors.NewFatalError("error writing manifest, error: %v", err)
+	}
+	manifestFile.Close()
+
+	return service.kubernetesDeployer.DeployViaKubeConfig(cluster.KubeConfig, task.ClusterID, manifestFile.Name())
 }
 
 // getKaasCluster gets the kaasCluster object for the task from the associated cloud provider
