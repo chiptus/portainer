@@ -204,3 +204,39 @@ func InitialStorageDetection(endpoint *portaineree.Endpoint, endpointService dat
 		log.Err(err).Msg("final error while detecting storage classes")
 	}()
 }
+
+func UpdateEdgeEndpointHeartbeat(endpoint *portaineree.Endpoint, settings *portaineree.Settings) {
+	if IsEdgeEndpoint(endpoint) {
+		checkInInterval := getEndpointCheckinInterval(endpoint, settings)
+		endpoint.Heartbeat = endpoint.QueryDate-endpoint.LastCheckInDate <= int64(checkInInterval*2+20)
+	}
+}
+
+func getEndpointCheckinInterval(endpoint *portaineree.Endpoint, settings *portaineree.Settings) int {
+	if endpoint.Edge.AsyncMode {
+		defaultInterval := 60
+		intervals := [][]int{
+			{endpoint.Edge.PingInterval, settings.Edge.PingInterval},
+			{endpoint.Edge.CommandInterval, settings.Edge.CommandInterval},
+			{endpoint.Edge.SnapshotInterval, settings.Edge.SnapshotInterval},
+		}
+
+		for i := 0; i < len(intervals); i++ {
+			effectiveInterval := intervals[i][0]
+			if effectiveInterval <= 0 {
+				effectiveInterval = intervals[i][1]
+			}
+			if effectiveInterval > 0 && effectiveInterval < defaultInterval {
+				defaultInterval = effectiveInterval
+			}
+		}
+
+		return defaultInterval
+	}
+
+	if endpoint.EdgeCheckinInterval > 0 {
+		return endpoint.EdgeCheckinInterval
+	}
+
+	return settings.EdgeAgentCheckinInterval
+}

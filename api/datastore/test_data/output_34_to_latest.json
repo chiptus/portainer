@@ -62,6 +62,7 @@
       "EnableImageNotification": false,
       "Gpus": [],
       "GroupId": 1,
+      "Heartbeat": false,
       "Id": 2,
       "IsEdgeDevice": false,
       "Kubernetes": {

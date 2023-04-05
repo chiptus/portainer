@@ -168,6 +168,7 @@ export type Environment = {
   EdgeKey: string;
   EdgeCheckinInterval?: number;
   QueryDate?: number;
+  Heartbeat?: boolean;
   LastCheckInDate?: number;
   Name: string;
   Status: EnvironmentStatus;

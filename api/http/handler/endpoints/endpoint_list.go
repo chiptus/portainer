@@ -115,6 +115,7 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 			paginatedEndpoints[idx].EdgeCheckinInterval = settings.EdgeAgentCheckinInterval
 		}
 		paginatedEndpoints[idx].QueryDate = time.Now().Unix()
+		endpointutils.UpdateEdgeEndpointHeartbeat(&paginatedEndpoints[idx], settings)
 		if !query.excludeSnapshots {
 			err = handler.SnapshotService.FillSnapshotData(&paginatedEndpoints[idx])
 			if err != nil {
