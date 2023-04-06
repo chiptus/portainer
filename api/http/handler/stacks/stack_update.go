@@ -1,10 +1,11 @@
 package stacks
 
 import (
-	"github.com/portainer/portainer-ee/api/docker/images"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/portainer/portainer-ee/api/docker/images"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"

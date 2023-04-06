@@ -19,6 +19,15 @@ class StackRedeployGitFormController {
       redeployInProgress: false,
       showConfig: false,
       isEdit: false,
+
+      // isAuthEdit is used to preserve the editing state of the AuthFieldset component.
+      // Within the stack editing page, users have the option to turn the AuthFieldset on or off
+      // and save the stack setting. If the user enables the AuthFieldset from off to on, it
+      // implies that they must input new Git authentication, rather than edit existing authentication.
+      // Thus, a dedicated state tracker is required to differentiate between the editing state of
+      // AuthFieldset component and the parent Stack component
+      // When isAuthEdit is true, PAT field needs to be validated.
+      isAuthEdit: false,
       hasUnsavedChanges: false,
       baseWebhookUrl: baseStackWebhookUrl(),
       webhookId: createWebhookId(),
@@ -161,10 +170,17 @@ class StackRedeployGitFormController {
           this.formValues,
           this.state.webhookId
         );
+
         this.savedFormValues = angular.copy(this.formValues);
         this.state.hasUnsavedChanges = false;
         this.Notifications.success('Success', 'Save stack settings successfully');
 
+        if (!(this.stack.GitConfig && this.stack.GitConfig.Authentication)) {
+          // update the AuthFieldset setting
+          this.state.isAuthEdit = false;
+          this.formValues.RepositoryUsername = '';
+          this.formValues.RepositoryPassword = '';
+        }
         this.stack = stack;
       } catch (err) {
         this.Notifications.error('Failure', err, 'Unable to save stack settings');
@@ -217,13 +233,15 @@ class StackRedeployGitFormController {
 
     if (this.stack.GitConfig && this.stack.GitConfig.Authentication) {
       this.formValues.RepositoryUsername = this.stack.GitConfig.Authentication.Username;
+      this.formValues.RepositoryPassword = this.stack.GitConfig.Authentication.Password;
       this.formValues.RepositoryAuthentication = true;
       this.state.isEdit = true;
+      this.state.isAuthEdit = true;
 
       if (this.stack.GitConfig.Authentication.GitCredentialID > 0) {
-        this.gitStackId = this.stack.Id;
         this.formValues.RepositoryGitCredentialID = this.stack.GitConfig.Authentication.GitCredentialID;
       }
+      this.gitStackId = this.stack.Id;
     }
     this.savedFormValues = angular.copy(this.formValues);
   }
