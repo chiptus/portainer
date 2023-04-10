@@ -7,19 +7,20 @@ import (
 	"github.com/asaskevich/govalidator"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer/pkg/featureflags"
 )
 
 type tagCreatePayload struct {
-	// Name
 	Name string `validate:"required" example:"org/acme"`
 }
 
 func (payload *tagCreatePayload) Validate(r *http.Request) error {
 	if govalidator.IsNull(payload.Name) {
-		return errors.New("Invalid tag name")
+		return errors.New("invalid tag name")
 	}
+
 	return nil
 }
 
@@ -44,14 +45,28 @@ func (handler *Handler) tagCreate(w http.ResponseWriter, r *http.Request) *httpe
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	tags, err := handler.DataStore.Tag().Tags()
+	var tag *portaineree.Tag
+	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
+		tag, err = createTag(handler.DataStore, payload)
+	} else {
+		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+			tag, err = createTag(tx, payload)
+			return err
+		})
+	}
+
+	return txResponse(w, tag, err)
+}
+
+func createTag(tx dataservices.DataStoreTx, payload tagCreatePayload) (*portaineree.Tag, error) {
+	tags, err := tx.Tag().Tags()
 	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve tags from the database", err)
+		return nil, httperror.InternalServerError("Unable to retrieve tags from the database", err)
 	}
 
 	for _, tag := range tags {
 		if tag.Name == payload.Name {
-			return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: "This name is already associated to a tag", Err: errors.New("A tag already exists with this name")}
+			return nil, &httperror.HandlerError{StatusCode: http.StatusConflict, Message: "This name is already associated to a tag", Err: errors.New("a tag already exists with this name")}
 		}
 	}
 
@@ -61,10 +76,10 @@ func (handler *Handler) tagCreate(w http.ResponseWriter, r *http.Request) *httpe
 		Endpoints:      map[portaineree.EndpointID]bool{},
 	}
 
-	err = handler.DataStore.Tag().Create(tag)
+	err = tx.Tag().Create(tag)
 	if err != nil {
-		return httperror.InternalServerError("Unable to persist the tag inside the database", err)
+		return nil, httperror.InternalServerError("Unable to persist the tag inside the database", err)
 	}
 
-	return response.JSON(w, tag)
+	return tag, nil
 }
