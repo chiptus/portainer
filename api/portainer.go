@@ -2000,8 +2000,14 @@ const (
 )
 
 // List of supported features
+const (
+	FeatureFdo  = "fdo"
+	FeatureNoTx = "noTx"
+)
+
 var SupportedFeatureFlags = []featureflags.Feature{
-	"fdo",
+	FeatureFdo,
+	FeatureNoTx,
 }
 
 const (

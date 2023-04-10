@@ -8,8 +8,10 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/slices"
+	"github.com/portainer/portainer/pkg/featureflags"
 )
 
 // @id EdgeJobTasksClear
@@ -37,43 +39,75 @@ func (handler *Handler) edgeJobTasksClear(w http.ResponseWriter, r *http.Request
 		return httperror.BadRequest("Invalid Task identifier route variable", err)
 	}
 
-	edgeJob, err := handler.DataStore.EdgeJob().EdgeJob(portaineree.EdgeJobID(edgeJobID))
-	if handler.DataStore.IsErrObjectNotFound(err) {
+	mutationFn := func(edgeJob *portaineree.EdgeJob, endpointID portaineree.EndpointID, endpointsFromGroups []portaineree.EndpointID) {
+		if slices.Contains(endpointsFromGroups, endpointID) {
+			edgeJob.GroupLogsCollection[endpointID] = portaineree.EdgeJobEndpointMeta{
+				CollectLogs: false,
+				LogsStatus:  portaineree.EdgeJobLogsStatusIdle,
+			}
+		} else {
+			meta := edgeJob.Endpoints[endpointID]
+			meta.CollectLogs = false
+			meta.LogsStatus = portaineree.EdgeJobLogsStatusIdle
+			edgeJob.Endpoints[endpointID] = meta
+		}
+	}
+
+	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
+		updateEdgeJobFn := func(edgeJob *portaineree.EdgeJob, endpointID portaineree.EndpointID, endpointsFromGroups []portaineree.EndpointID) error {
+			return handler.DataStore.EdgeJob().UpdateEdgeJobFunc(edgeJob.ID, func(j *portaineree.EdgeJob) {
+				mutationFn(j, endpointID, endpointsFromGroups)
+			})
+		}
+
+		err = handler.clearEdgeJobTaskLogs(handler.DataStore, portaineree.EdgeJobID(edgeJobID), portaineree.EndpointID(taskID), updateEdgeJobFn)
+	} else {
+		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+			updateEdgeJobFn := func(edgeJob *portaineree.EdgeJob, endpointID portaineree.EndpointID, endpointsFromGroups []portaineree.EndpointID) error {
+				mutationFn(edgeJob, endpointID, endpointsFromGroups)
+
+				return tx.EdgeJob().UpdateEdgeJob(edgeJob.ID, edgeJob)
+			}
+
+			return handler.clearEdgeJobTaskLogs(tx, portaineree.EdgeJobID(edgeJobID), portaineree.EndpointID(taskID), updateEdgeJobFn)
+		})
+	}
+
+	if err != nil {
+		if httpErr, ok := err.(*httperror.HandlerError); ok {
+			return httpErr
+		}
+
+		return httperror.InternalServerError("Unexpected error", err)
+	}
+
+	return response.Empty(w)
+}
+
+func (handler *Handler) clearEdgeJobTaskLogs(tx dataservices.DataStoreTx, edgeJobID portaineree.EdgeJobID, endpointID portaineree.EndpointID, updateEdgeJob func(*portaineree.EdgeJob, portaineree.EndpointID, []portaineree.EndpointID) error) error {
+	edgeJob, err := tx.EdgeJob().EdgeJob(edgeJobID)
+	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an Edge job with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an Edge job with the specified identifier inside the database", err)
 	}
 
-	err = handler.FileService.ClearEdgeJobTaskLogs(strconv.Itoa(edgeJobID), strconv.Itoa(taskID))
+	err = handler.FileService.ClearEdgeJobTaskLogs(strconv.Itoa(int(edgeJobID)), strconv.Itoa(int(endpointID)))
 	if err != nil {
 		return httperror.InternalServerError("Unable to clear log file from disk", err)
 	}
 
-	endpointID := portaineree.EndpointID(taskID)
-	endpointsFromGroups, err := edge.GetEndpointsFromEdgeGroups(edgeJob.EdgeGroups, handler.DataStore)
+	endpointsFromGroups, err := edge.GetEndpointsFromEdgeGroups(edgeJob.EdgeGroups, tx)
 	if err != nil {
 		return httperror.InternalServerError("Unable to get Endpoints from EdgeGroups", err)
 	}
 
-	err = handler.DataStore.EdgeJob().UpdateEdgeJobFunc(edgeJob.ID, func(j *portaineree.EdgeJob) {
-		if slices.Contains(endpointsFromGroups, endpointID) {
-			j.GroupLogsCollection[endpointID] = portaineree.EdgeJobEndpointMeta{
-				CollectLogs: false,
-				LogsStatus:  portaineree.EdgeJobLogsStatusIdle,
-			}
-		} else {
-			meta := j.Endpoints[endpointID]
-			meta.CollectLogs = false
-			meta.LogsStatus = portaineree.EdgeJobLogsStatusIdle
-			j.Endpoints[endpointID] = meta
-		}
-	})
-
+	err = updateEdgeJob(edgeJob, endpointID, endpointsFromGroups)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist Edge job changes in the database", err)
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
+	endpoint, err := tx.Endpoint().Endpoint(endpointID)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve environment from the database", err)
 	}
@@ -83,7 +117,7 @@ func (handler *Handler) edgeJobTasksClear(w http.ResponseWriter, r *http.Request
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve Edge job script file from disk", err)
 		}
-		err = handler.edgeService.ReplaceJobCommand(endpoint.ID, *edgeJob, edgeJobFileContent)
+		err = handler.edgeService.ReplaceJobCommandTx(tx, endpoint.ID, *edgeJob, edgeJobFileContent)
 		if err != nil {
 			return httperror.InternalServerError("Unable to persist edge job changes to the database", err)
 		}
@@ -91,5 +125,5 @@ func (handler *Handler) edgeJobTasksClear(w http.ResponseWriter, r *http.Request
 		handler.ReverseTunnelService.AddEdgeJob(endpoint, edgeJob)
 	}
 
-	return response.Empty(w)
+	return nil
 }

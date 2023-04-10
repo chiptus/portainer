@@ -5,6 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
+	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
@@ -43,6 +44,7 @@ func NewHandler(bouncer *security.RequestBouncer, userActivityService portainere
 	h.Handle("/edge_jobs/{id}/tasks/{taskID}/logs", httperror.LoggerHandler(h.edgeJobTaskLogsInspect)).Methods(http.MethodGet)
 	h.Handle("/edge_jobs/{id}/tasks/{taskID}/logs", httperror.LoggerHandler(h.edgeJobTasksCollect)).Methods(http.MethodPost)
 	h.Handle("/edge_jobs/{id}/tasks/{taskID}/logs", httperror.LoggerHandler(h.edgeJobTasksClear)).Methods(http.MethodDelete)
+
 	return h
 }
 
@@ -54,4 +56,16 @@ func convertEndpointsToMetaObject(endpoints []portaineree.EndpointID) map[portai
 	}
 
 	return endpointsMap
+}
+
+func txResponse(w http.ResponseWriter, r any, err error) *httperror.HandlerError {
+	if err != nil {
+		if httpErr, ok := err.(*httperror.HandlerError); ok {
+			return httpErr
+		}
+
+		return httperror.InternalServerError("Unexpected error", err)
+	}
+
+	return response.JSON(w, r)
 }
