@@ -37,18 +37,19 @@ type KubeResource struct {
 	Namespace string
 }
 
-// convert string to valid kubernetes label by replacing invalid characters with periods
+// convert string to valid kubernetes label by replacing invalid characters with periods and removing any periods at the beginning or end of the string
 func sanitizeLabel(value string) string {
 	re := regexp.MustCompile(`[^A-Za-z0-9\.\-\_]+`)
-	return re.ReplaceAllString(value, ".")
+	onlyAllowedCharacterString := re.ReplaceAllString(value, ".")
+	return strings.Trim(onlyAllowedCharacterString, ".-_")
 }
 
 // ToMap converts KubeAppLabels to a map[string]string
 func (kal *KubeAppLabels) ToMap() map[string]string {
 	return map[string]string{
 		labelPortainerAppStackID: strconv.Itoa(kal.StackID),
-		labelPortainerAppStack:   kal.StackName,
-		labelPortainerAppName:    kal.StackName,
+		labelPortainerAppStack:   sanitizeLabel(kal.StackName),
+		labelPortainerAppName:    sanitizeLabel(kal.StackName),
 		labelPortainerAppOwner:   sanitizeLabel(kal.Owner),
 		labelPortainerAppKind:    kal.Kind,
 	}
