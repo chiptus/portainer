@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -454,13 +455,14 @@ func runSSHCommandAndGetOutput(conn *ssh.Client, password, command string) (stri
 	defer sftpClient.Close()
 
 	passSFTP, err := sftpClient.Create(".password")
+	defer sftpClient.Remove(".password")
 	err = sftpClient.Chmod(".password", 0600)
 	if err != nil {
 		return "", err
 	}
 	_, err = passSFTP.Write([]byte(password))
 	if err != nil {
-		return "", err
+		return "", errors.New("failed to write password to file")
 	}
 	passSFTP.Close()
 
@@ -473,7 +475,6 @@ func runSSHCommandAndGetOutput(conn *ssh.Client, password, command string) (stri
 	if err != nil {
 		return "", err
 	}
-	err = sftpClient.Remove(".password")
 	return buff.String(), err
 }
 

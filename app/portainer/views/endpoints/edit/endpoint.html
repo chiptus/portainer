@@ -70,7 +70,8 @@
     </span>
   </information-panel>
 
-  <microk8s-addons ng-if="endpoint.CloudProvider.Name === k8sInstallTitles.microk8s" environment-id="endpoint.Id"></microk8s-addons>
+  <!-- 2.17 microk8s clusters had a slightly different capitilisation of microk8s to 2.18, use .toLowerCase() to cater for both cases -->
+  <microk8s-addons ng-if="endpoint.CloudProvider.Name.toLowerCase() === k8sInstallTitles.microk8s.toLowerCase()" environment-id="endpoint.Id"></microk8s-addons>
 
   <div class="col-lg-12 col-md-12 col-xs-12" ng-if="endpoint.CloudProvider && endpoint.CloudProvider.URL && endpoint.CloudProvider.Name !== k8sInstallTitles.microk8s">
     <rd-widget>

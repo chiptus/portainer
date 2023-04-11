@@ -6,10 +6,10 @@ export interface AddonsResponse {
   addons: string[];
 }
 
-export async function getAddons(environmentID: number, credentialId: number) {
+export async function getAddons(environmentID: number, credentialID: number) {
   try {
-    const { data } = await axios.get<AddonsResponse>('cloud/microk8s/info', {
-      params: { credentialId, environmentID },
+    const { data } = await axios.get<AddonsResponse>('cloud/microk8s/addons', {
+      params: { credentialID, environmentID },
     });
     return data;
   } catch (err) {
@@ -19,18 +19,18 @@ export async function getAddons(environmentID: number, credentialId: number) {
 
 export function useAddons<TSelect = AddonsResponse | null>(
   environmentID?: number,
-  credentialId?: number,
+  credentialID?: number,
   select?: (info: AddonsResponse | null) => TSelect
 ) {
   return useQuery(
     ['clusterInfo', environmentID, 'addons'],
     () =>
-      environmentID && credentialId
-        ? getAddons(environmentID, credentialId)
+      environmentID && credentialID
+        ? getAddons(environmentID, credentialID)
         : null,
     {
       select,
-      enabled: !!environmentID && !!credentialId,
+      enabled: !!environmentID && !!credentialID,
     }
   );
 }

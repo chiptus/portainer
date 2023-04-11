@@ -50,7 +50,8 @@
     </div>
   </div>
 
-  <microk8s-addons ng-if="ctrl.endpoint.CloudProvider.Name === ctrl.k8sInstallTitles.microk8s"></microk8s-addons>
+  <!-- 2.17 microk8s clusters had a slightly different capitilisation of microk8s to 2.18, use .toLowerCase() to cater for both cases -->
+  <microk8s-addons ng-if="ctrl.endpoint.CloudProvider.Name.toLowerCase() === ctrl.k8sInstallTitles.microk8s.toLowerCase()"></microk8s-addons>
 
   <div class="row">
     <div class="col-sm-12">

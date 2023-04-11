@@ -19,8 +19,9 @@ type Handler struct {
 	dataStore                dataservices.DataStore
 	cloudClusterSetupService *cloud.CloudClusterSetupService
 	cloudClusterInfoService  *cloud.CloudClusterInfoService
-	userActivityService      portaineree.UserActivityService
 	licenseService           portaineree.LicenseService
+	requestBouncer           *security.RequestBouncer
+	userActivityService      portaineree.UserActivityService
 }
 
 // NewHandler creates a handler to manage tag operations.
@@ -39,7 +40,13 @@ func NewHandler(
 		cloudClusterInfoService:  cloudClusterInfoService,
 		userActivityService:      userActivityService,
 		licenseService:           licenseService,
+		requestBouncer:           bouncer,
 	}
+
+	authenticatedRouter := h.NewRoute().Subrouter()
+	authenticatedRouter.Use(bouncer.AuthenticatedAccess)
+
+	authenticatedRouter.Handle("/cloud/microk8s/addons", httperror.LoggerHandler(h.microk8sAddons)).Methods(http.MethodGet)
 
 	adminRouter := h.NewRoute().Subrouter()
 	adminRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))

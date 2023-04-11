@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -14,18 +13,20 @@ import (
 )
 
 // @id kaasProviderInfo
-// @summary Returns information about a Cloud provider.
+// @summary Get information about the provisioning options for a cloud provider.
 // @description The information returned can be used to provision a KaaS cluster.
 // @description **Access policy**: administrator
 // @tags kaas
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
+// @param force query bool false "If true, get the up-to-date information (instead of cached information)."
+// @param credentialId query int true "The shared credential ID used to fetch the cloud provider information."
 // @success 200 "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
-// @router /cloud [post]
+// @router /cloud/{provider}/info [get]
 func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	provider, err := request.RetrieveRouteVariableValue(r, "provider")
 	if err != nil {
@@ -42,27 +43,12 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 		return httperror.InternalServerError("Missing credential id in the query parameter", err)
 	}
 
-	// Only used for MicroK8s.
-	environmentID, _ := request.RetrieveQueryParameter(r, "environmentID", true)
-
 	credential, err := handler.dataStore.CloudCredential().GetByID(models.CloudCredentialID(credentialId))
 	if err != nil {
 		return httperror.InternalServerError(fmt.Sprintf("Unable to retrieve %s information", provider), err)
 	}
 
 	switch provider {
-	case portaineree.CloudProviderMicrok8s:
-		id, err := strconv.Atoi(environmentID)
-		if err != nil {
-			return httperror.InternalServerError("Failed to parse environmentID", err)
-		}
-		microK8sInfo, err := handler.cloudClusterInfoService.Microk8sGetAddons(credential, id)
-		if err != nil {
-			return httperror.InternalServerError("Unable to retrieve MicroK8s information", err)
-		}
-
-		return response.JSON(w, microK8sInfo)
-
 	case portaineree.CloudProviderCivo:
 		civoInfo, err := handler.cloudClusterInfoService.CivoGetInfo(credential, force)
 		if err != nil {
