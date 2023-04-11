@@ -8,6 +8,8 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	"github.com/portainer/portainer-ee/api/kubernetes/podsecurity"
+	"github.com/rs/zerolog/log"
 )
 
 // @id EndpointInspect
@@ -75,6 +77,45 @@ func (handler *Handler) endpointInspect(w http.ResponseWriter, r *http.Request) 
 				handler.DataStore.Endpoint(),
 				handler.K8sClientFactory,
 			)
+		}
+
+		existingRule, err := handler.DataStore.PodSecurity().PodSecurityByEndpointID(int(endpoint.ID))
+		if err == nil {
+			// Upgrade the gatekeeper if needed
+			isGateKeeperRequireUpgrade := endpoint.PostInitMigrations.MigrateGateKeeper
+			if isGateKeeperRequireUpgrade {
+				gateKeeper := podsecurity.NewGateKeeper(
+					handler.KubernetesDeployer,
+					handler.AssetsPath,
+				)
+
+				kubeclient, err := handler.K8sClientFactory.GetKubeClient(endpoint)
+				if err != nil {
+					log.Error().Msgf("Error creating kubeclient for endpoint: %d", endpoint.ID)
+				} else {
+					_, err = kubeclient.GetNamespaces()
+					if err != nil {
+						log.Error().Msgf("Updating GateKeeper. error connecting endpoint (%d): %s", endpoint.ID, err)
+					} else {
+
+						cli, err := handler.K8sClientFactory.CreateClient(endpoint)
+						if err != nil {
+							log.Error().Msgf("Updating GateKeeper. error creating clientset (%d): %s", endpoint.ID, err)
+						} else {
+							err = gateKeeper.UpgradeEndpoint(1, endpoint, kubeclient, cli, existingRule)
+							if err != nil {
+								log.Error().Msgf("Error updating GateKeeper for endpoint (%d): %s", endpoint.ID, err)
+							}
+						}
+					}
+				}
+
+				endpoint.PostInitMigrations.MigrateGateKeeper = false
+				err = handler.DataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
+				if err != nil {
+					log.Error().Msgf("Error setting MigrateGateKeeper flag for endpoint %d : %s", endpoint.ID, err)
+				}
+			}
 		}
 	}
 

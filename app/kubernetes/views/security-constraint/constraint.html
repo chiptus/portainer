@@ -920,7 +920,7 @@
                 <button
                   hide-deployment-option="form"
                   type="submit"
-                  ng-disabled="k8sConstraintForm.$invalid || duplicated"
+                  ng-disabled="k8sConstraintForm.$invalid || duplicated || state.actionInProgress"
                   class="btn btn-primary btn-sm !ml-0"
                   ng-click="save()"
                   button-spinner="state.actionInProgress"

@@ -6,27 +6,41 @@ import (
 	portainer "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	dockerClient "github.com/portainer/portainer-ee/api/docker/client"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	"github.com/portainer/portainer-ee/api/kubernetes/podsecurity"
 
 	"github.com/docker/docker/api/types"
 	"github.com/rs/zerolog/log"
 )
 
 type PostInitMigrator struct {
-	kubeFactory   *cli.ClientFactory
-	dockerFactory *dockerClient.ClientFactory
-	dataStore     dataservices.DataStore
+	kubeFactory        *cli.ClientFactory
+	dockerFactory      *dockerClient.ClientFactory
+	dataStore          dataservices.DataStore
+	assetsPath         string
+	kubernetesDeployer portainer.KubernetesDeployer
 }
 
-func NewPostInitMigrator(kubeFactory *cli.ClientFactory, dockerFactory *dockerClient.ClientFactory, dataStore dataservices.DataStore) *PostInitMigrator {
+func NewPostInitMigrator(
+	kubeFactory *cli.ClientFactory,
+	dockerFactory *dockerClient.ClientFactory,
+	dataStore dataservices.DataStore,
+	assetsPath string,
+	kubernetesDeployer portainer.KubernetesDeployer,
+) *PostInitMigrator {
 	return &PostInitMigrator{
-		kubeFactory:   kubeFactory,
-		dockerFactory: dockerFactory,
-		dataStore:     dataStore,
+		kubeFactory:        kubeFactory,
+		dockerFactory:      dockerFactory,
+		dataStore:          dataStore,
+		assetsPath:         assetsPath,
+		kubernetesDeployer: kubernetesDeployer,
 	}
 }
 
 func (migrator *PostInitMigrator) PostInitMigrate() error {
+	migrator.PostInitMigratePodSecurityConstraintsToLatest()
+
 	if err := migrator.PostInitMigrateIngresses(); err != nil {
 		return err
 	}
@@ -113,4 +127,71 @@ func (migrator *PostInitMigrator) PostInitMigrateGPUs() {
 			}
 		}
 	}
+}
+
+func (migrator *PostInitMigrator) PostInitMigratePodSecurityConstraintsToLatest() error {
+	environments, err := migrator.dataStore.Endpoint().Endpoints()
+	if err != nil {
+		return err
+	}
+
+	gateKeeper := podsecurity.NewGateKeeper(
+		migrator.kubernetesDeployer,
+		migrator.assetsPath,
+	)
+
+	for _, endpoint := range environments {
+		if endpointutils.IsKubernetesEndpoint(&endpoint) && endpoint.PostInitMigrations.MigrateGateKeeper {
+			existedRule, err := migrator.dataStore.PodSecurity().PodSecurityByEndpointID(int(endpoint.ID))
+
+			if err != nil {
+				if dataservices.IsErrObjectNotFound(err) {
+					// set the MigrateGateKeeper flag to false so we don't run this again
+					endpoint.PostInitMigrations.MigrateGateKeeper = false
+					err = migrator.dataStore.Endpoint().UpdateEndpoint(endpoint.ID, &endpoint)
+					if err != nil {
+						log.Error().Msgf("Error updating MigrateGateKeeper flag for endpoint %d: %s", endpoint.ID, err)
+					}
+
+					continue
+				}
+				// for all other errors, log and continue
+				log.Error().Msgf("Error getting PodSecurity for endpoint %d from DB: %s", endpoint.ID, err)
+			} else {
+				if existedRule != nil && existedRule.Enabled {
+					kubeclient, err := migrator.kubeFactory.GetKubeClient(&endpoint)
+					if err != nil {
+						log.Error().Msgf("Error creating kubeclient for endpoint: %d", endpoint.ID)
+						continue
+					}
+
+					_, err = kubeclient.GetNamespaces()
+					if err != nil {
+						log.Error().Msgf("Updating gatekeeper. error connecting endpoint (%d): %s", endpoint.ID, err)
+						continue
+					}
+
+					cli, err := migrator.kubeFactory.CreateClient(&endpoint)
+					if err != nil {
+						continue
+					}
+
+					err = gateKeeper.UpgradeEndpoint(1, &endpoint, kubeclient, cli, existedRule)
+					if err != nil {
+						continue
+					}
+				}
+
+				// set the MigrateGateKeeper flag to false so we don't run this again
+				endpoint.PostInitMigrations.MigrateGateKeeper = false
+				err = migrator.dataStore.Endpoint().UpdateEndpoint(endpoint.ID, &endpoint)
+				if err != nil {
+					log.Error().Msgf("Error updating MigrateGateKeeper flag for endpoint %d: %s", endpoint.ID, err)
+					continue
+				}
+			}
+		}
+	}
+
+	return nil
 }

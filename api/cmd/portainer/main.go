@@ -811,6 +811,8 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		kubernetesClientFactory,
 		dockerClientFactory,
 		dataStore,
+		*flags.Assets,
+		kubernetesDeployer,
 	)
 	if err := postInitMigrator.PostInitMigrate(); err != nil {
 		log.Fatal().Err(err).Msg("failure during post init migrations")

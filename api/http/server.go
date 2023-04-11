@@ -213,6 +213,8 @@ func (server *Server) Start() error {
 	endpointHandler.BindAddress = server.BindAddress
 	endpointHandler.BindAddressHTTPS = server.BindAddressHTTPS
 	endpointHandler.KubernetesTokenCacheManager = server.KubernetesTokenCacheManager
+	endpointHandler.KubernetesDeployer = server.KubernetesDeployer
+	endpointHandler.AssetsPath = server.AssetsPath
 
 	var endpointEdgeHandler = endpointedge.NewHandler(requestBouncer, server.DataStore, server.FileService, server.ReverseTunnelService, server.EdgeAsyncService, server.LicenseService, edgeUpdateService)
 

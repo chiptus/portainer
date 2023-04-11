@@ -93,6 +93,7 @@
       },
       "PostInitMigrations": {
         "MigrateGPUs": true,
+        "MigrateGateKeeper": false,
         "MigrateIngresses": true
       },
       "PublicURL": "",

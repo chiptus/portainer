@@ -4,24 +4,9 @@ import (
 	"github.com/rs/zerolog/log"
 
 	portainer "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
-
-func (m *Migrator) migrateDBVersionToDB90() error {
-	if err := m.updateUserThemeForDB90(); err != nil {
-		return err
-	}
-
-	if err := m.updateEnableGpuManagementFeatures(); err != nil {
-		return err
-	}
-
-	if err := m.updateCloudCredentials(); err != nil {
-		return err
-	}
-
-	return m.updateEdgeStackStatusForDB90()
-}
 
 func (m *Migrator) updateEdgeStackStatusForDB90() error {
 	log.Info().Msg("clean up deleted endpoints from edge jobs")
@@ -70,7 +55,7 @@ func (m *Migrator) updateUserThemeForDB90() error {
 	return nil
 }
 
-func (m *Migrator) updateEnableGpuManagementFeatures() error {
+func (m *Migrator) updateEnableGpuManagementFeaturesForDB90() error {
 	// get all environments
 	environments, err := m.endpointService.Endpoints()
 	if err != nil {
@@ -96,7 +81,7 @@ func (m *Migrator) updateEnableGpuManagementFeatures() error {
 }
 
 // updateCloudCredentials updates credentials with provider name 'microk8s' to have provider name 'ssh'
-func (m *Migrator) updateCloudCredentials() error {
+func (m *Migrator) updateCloudCredentialsForDB90() error {
 	cloudCredentials, err := m.cloudCredentialService.GetAll()
 	if err != nil {
 		return err
@@ -111,5 +96,24 @@ func (m *Migrator) updateCloudCredentials() error {
 		}
 	}
 
+	return nil
+}
+
+func (m *Migrator) updateMigrateGateKeeperFieldForEnvDB90() error {
+	endpoints, err := m.endpointService.Endpoints()
+	if err != nil {
+		return err
+	}
+
+	for _, endpoint := range endpoints {
+		if endpointutils.IsKubernetesEndpoint(&endpoint) {
+			endpoint.PostInitMigrations.MigrateGateKeeper = true
+
+			err = m.endpointService.UpdateEndpoint(endpoint.ID, &endpoint)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }

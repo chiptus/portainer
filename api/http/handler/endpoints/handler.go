@@ -62,6 +62,8 @@ type Handler struct {
 	edgeService                 *edgeasync.Service
 	cloudClusterSetupService    *cloud.CloudClusterSetupService
 	KubernetesTokenCacheManager *kubernetes.TokenCacheManager
+	KubernetesDeployer          portaineree.KubernetesDeployer
+	AssetsPath                  string
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.

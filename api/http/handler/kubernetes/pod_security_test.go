@@ -98,11 +98,11 @@ func Test_updateK8sPodSecurityRule(t *testing.T) {
 }
 
 func TestHandler_updateK8sPodSecurityRule(t *testing.T) {
-	_mockCheckGatekeeper := checkGetekeeperStatus
+	_mockCheckGatekeeper := checkGatekeeperStatus
 	defer func() {
-		checkGetekeeperStatus = _mockCheckGatekeeper
+		checkGatekeeperStatus = _mockCheckGatekeeper
 	}()
-	checkGetekeeperStatus = func(handler *Handler, endpoint *portaineree.Endpoint, r *http.Request) error {
+	checkGatekeeperStatus = func(handler *Handler, endpoint *portaineree.Endpoint, r *http.Request) error {
 		return nil
 	}
 	is := assert.New(t)

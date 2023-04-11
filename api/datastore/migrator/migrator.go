@@ -62,6 +62,7 @@ type (
 		cloudCredentialService  *cloudcredential.Service
 		edgeStackService        *edgestack.Service
 		edgeJobService          *edgejob.Service
+		podSecurityService      *podsecurity.Service
 	}
 
 	// MigratorParameters represents the required parameters to create a new Migrator instance.
@@ -127,6 +128,7 @@ func NewMigrator(parameters *MigratorParameters) *Migrator {
 		cloudCredentialService:  parameters.CloudCredentialService,
 		edgeStackService:        parameters.EdgeStackService,
 		edgeJobService:          parameters.EdgeJobService,
+		podSecurityService:      parameters.PodSecurityService,
 	}
 
 	migrator.initMigrations()
@@ -228,8 +230,16 @@ func (m *Migrator) initMigrations() {
 	m.addMigrations("2.15", m.migrateDBVersionToDB60)
 	m.addMigrations("2.16", m.migrateDBVersionToDB70)
 	m.addMigrations("2.16.1", m.migrateDBVersionToDB71)
-	m.addMigrations("2.17", m.migrateDBVersionToDB80)
-	m.addMigrations("2.18", m.migrateDBVersionToDB90)
+	m.addMigrations("2.17",
+		m.updateEdgeStackStatusForDB80,
+		m.updateExistingEndpointsToNotDetectMetricsAPIForDB80,
+		m.updateExistingEndpointsToNotDetectStorageAPIForDB80)
+	m.addMigrations("2.18",
+		m.updateUserThemeForDB90,
+		m.updateEnableGpuManagementFeaturesForDB90,
+		m.updateCloudCredentialsForDB90,
+		m.updateEdgeStackStatusForDB90,
+		m.updateMigrateGateKeeperFieldForEnvDB90)
 
 	// Add new migrations above...
 
