@@ -27,7 +27,7 @@ module.exports = function (grunt) {
     distdir: 'dist/public',
     binaries: {
       dockerVersion: 'v20.10.21',
-      dockerComposePluginVersion: 'v2.16.0',
+      dockerComposePluginVersion: 'v2.17.2',
       helmVersion: 'v3.11.0',
       kubectlVersion: 'v1.26.3',
       eksctlVersion: 'v0.118.0' /* !! Important:  also update list of supported versions in api/cloud/eks/fetch_info.go */,
