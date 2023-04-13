@@ -205,6 +205,7 @@ class KubernetesRedeployAppGitFormController {
       this.state.isAuthEdit = true;
 
       if (this.stack.GitConfig.Authentication.GitCredentialID > 0) {
+        this.formValues.SaveCredential = false;
         this.formValues.RepositoryGitCredentialID = this.stack.GitConfig.Authentication.GitCredentialID;
       }
       this.gitStackId = this.stack.Id;
