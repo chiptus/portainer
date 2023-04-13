@@ -9,6 +9,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/exec/exectest"
+	"github.com/portainer/portainer-ee/api/filesystem"
 	"github.com/portainer/portainer-ee/api/http/security"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
@@ -36,7 +37,9 @@ func Test_helmDelete(t *testing.T) {
 	kubernetesDeployer := exectest.NewKubernetesDeployer()
 	helmPackageManager := test.NewMockHelmBinaryPackageManager("")
 	kubeClusterAccessService := kubernetes.NewKubeClusterAccessService("", "", "")
-	h := NewHandler(helper.NewTestRequestBouncer(), store, jwtService, kubernetesDeployer, helmPackageManager, kubeClusterAccessService, helper.NewUserActivityService())
+	tmp := t.TempDir()
+	fileService, _ := filesystem.NewService(tmp, tmp)
+	h := NewHandler(helper.NewTestRequestBouncer(), store, jwtService, kubernetesDeployer, helmPackageManager, kubeClusterAccessService, helper.NewUserActivityService(), fileService)
 
 	is.NotNil(h, "Handler should not fail")
 

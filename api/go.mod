@@ -64,7 +64,7 @@ require (
 	github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91
 	github.com/portainer/portainer/api v0.0.0-20230403061917-feab2a757e70
 	github.com/portainer/portainer/pkg/featureflags v0.0.0-20230209201943-d73622ed9cd4
-	github.com/portainer/portainer/pkg/libhelm v0.0.0-20221201012749-4fee35924724
+	github.com/portainer/portainer/pkg/libhelm v0.0.0-20230410231754-96474a42eacb
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.1

@@ -1,10 +1,11 @@
 export default class HelmAddRepositoryController {
   /* @ngInject */
-  constructor($state, $async, HelmService, Notifications) {
+  constructor($state, $async, HelmService, Notifications, Authentication) {
     this.$state = $state;
     this.$async = $async;
     this.HelmService = HelmService;
     this.Notifications = Notifications;
+    this.Authentication = Authentication;
   }
 
   doesRepoExist() {
@@ -30,6 +31,8 @@ export default class HelmAddRepositoryController {
 
   $onInit() {
     return this.$async(async () => {
+      this.isAdmin = this.Authentication.isAdmin();
+
       this.state = {
         isAddingRepo: false,
         repository: '',

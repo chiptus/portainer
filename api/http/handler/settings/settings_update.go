@@ -12,6 +12,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/httpclient"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/pkg/libhelm"
@@ -211,7 +212,11 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 			newHelmRepo := strings.TrimSuffix(strings.ToLower(*payload.HelmRepositoryURL), "/")
 
 			if newHelmRepo != settings.HelmRepositoryURL && newHelmRepo != portaineree.DefaultHelmRepositoryURL {
-				err := libhelm.ValidateHelmRepositoryURL(*payload.HelmRepositoryURL)
+				client := httpclient.NewWithOptions(
+					httpclient.WithClientCertificate(handler.FileService.GetSSLClientCertPath()),
+				)
+
+				err := libhelm.ValidateHelmRepositoryURL(*payload.HelmRepositoryURL, client)
 				if err != nil {
 					return httperror.BadRequest("Invalid Helm repository URL. Must correspond to a valid URL format", err)
 				}

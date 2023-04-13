@@ -55,6 +55,7 @@ func (handler *Handler) helmList(w http.ResponseWriter, r *http.Request) *httper
 		listOpts.Selector = selector
 	}
 
+	listOpts.Env = handler.defaultHelmEnv()
 	releases, err := handler.helmPackageManager.List(listOpts)
 	if err != nil {
 		return httperror.InternalServerError("Helm returned an error", err)

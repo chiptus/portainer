@@ -209,7 +209,9 @@ func initKubernetesDeployer(authService *authorization.Service, kubernetesTokenC
 }
 
 func initHelmPackageManager(assetsPath string) (libhelm.HelmPackageManager, error) {
-	return libhelm.NewHelmPackageManager(libhelm.HelmConfig{BinaryPath: assetsPath})
+	return libhelm.NewHelmPackageManager(
+		libhelm.HelmConfig{BinaryPath: assetsPath},
+	)
 }
 
 func initAPIKeyService(datastore dataservices.DataStore) apikey.APIKeyService {
@@ -249,7 +251,7 @@ func initGitService(shutdownCtx context.Context) portainer.GitService {
 	return git.NewService(shutdownCtx)
 }
 
-func initSSLService(addr, certPath, keyPath, caCertPath, mTLSCertPath, mTLSKeyPath, mTLSCaCertPath string, fileService portainer.FileService, dataStore dataservices.DataStore, shutdownTrigger context.CancelFunc) (*ssl.Service, error) {
+func initSSLService(addr, certPath, keyPath, caCertPath, mTLSCertPath, mTLSKeyPath, mTLSCaCertPath string, fileService portaineree.FileService, dataStore dataservices.DataStore, shutdownTrigger context.CancelFunc) (*ssl.Service, error) {
 	slices := strings.Split(addr, ":")
 	host := slices[0]
 	if host == "" {

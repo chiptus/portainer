@@ -13,6 +13,7 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/httpclient"
 )
 
 type helmUserRepositoryResponse struct {
@@ -22,10 +23,15 @@ type helmUserRepositoryResponse struct {
 
 type addHelmRepoUrlPayload struct {
 	URL string `json:"url"`
+
+	clientCert string
 }
 
 func (p *addHelmRepoUrlPayload) Validate(_ *http.Request) error {
-	return libhelm.ValidateHelmRepositoryURL(p.URL)
+	client := httpclient.NewWithOptions(
+		httpclient.WithClientCertificate(p.clientCert),
+	)
+	return libhelm.ValidateHelmRepositoryURL(p.URL, client)
 }
 
 // @id HelmUserRepositoryCreate
@@ -57,6 +63,7 @@ func (handler *Handler) userCreateHelmRepo(w http.ResponseWriter, r *http.Reques
 	}
 
 	p := new(addHelmRepoUrlPayload)
+	p.clientCert = handler.fileService.GetSSLClientCertPath()
 	err = request.DecodeAndValidateJSONPayload(r, p)
 	if err != nil {
 		return httperror.BadRequest("Invalid Helm repository URL", err)

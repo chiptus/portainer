@@ -10,9 +10,13 @@ import (
 )
 
 type sslUpdatePayload struct {
+	// SSL Certficates
 	Cert        *string
 	Key         *string
 	HTTPEnabled *bool
+
+	// SSL Client Certificates
+	ClientCert *string `json:"clientCert"`
 }
 
 func (payload *sslUpdatePayload) Validate(r *http.Request) error {
@@ -56,6 +60,13 @@ func (handler *Handler) sslUpdate(w http.ResponseWriter, r *http.Request) *httpe
 		err = handler.SSLService.SetHTTPEnabled(*payload.HTTPEnabled)
 		if err != nil {
 			return httperror.InternalServerError("Failed to force https", err)
+		}
+	}
+
+	if payload.ClientCert != nil {
+		err = handler.SSLService.SetClientCertificate([]byte(*payload.ClientCert))
+		if err != nil {
+			return httperror.InternalServerError("Failed to save client certificate", err)
 		}
 	}
 

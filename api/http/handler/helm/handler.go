@@ -30,10 +30,11 @@ type Handler struct {
 	kubernetesDeployer       portaineree.KubernetesDeployer
 	helmPackageManager       libhelm.HelmPackageManager
 	userActivityService      portaineree.UserActivityService
+	fileService              portaineree.FileService
 }
 
 // NewHandler creates a handler to manage endpoint group operations.
-func NewHandler(bouncer requestBouncer, dataStore dataservices.DataStore, jwtService portaineree.JWTService, kubernetesDeployer portaineree.KubernetesDeployer, helmPackageManager libhelm.HelmPackageManager, kubeClusterAccessService kubernetes.KubeClusterAccessService, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(bouncer requestBouncer, dataStore dataservices.DataStore, jwtService portaineree.JWTService, kubernetesDeployer portaineree.KubernetesDeployer, helmPackageManager libhelm.HelmPackageManager, kubeClusterAccessService kubernetes.KubeClusterAccessService, userActivityService portaineree.UserActivityService, fileService portaineree.FileService) *Handler {
 	h := &Handler{
 		Router:                   mux.NewRouter(),
 		requestBouncer:           bouncer,
@@ -43,6 +44,7 @@ func NewHandler(bouncer requestBouncer, dataStore dataservices.DataStore, jwtSer
 		kubernetesDeployer:       kubernetesDeployer,
 		helmPackageManager:       helmPackageManager,
 		userActivityService:      userActivityService,
+		fileService:              fileService,
 	}
 
 	h.Use(middlewares.WithEndpoint(dataStore.Endpoint(), "id"),
@@ -70,11 +72,12 @@ func NewHandler(bouncer requestBouncer, dataStore dataservices.DataStore, jwtSer
 }
 
 // NewTemplateHandler creates a template handler to manage environment(endpoint) group operations.
-func NewTemplateHandler(bouncer requestBouncer, helmPackageManager libhelm.HelmPackageManager) *Handler {
+func NewTemplateHandler(bouncer requestBouncer, helmPackageManager libhelm.HelmPackageManager, fileService portaineree.FileService) *Handler {
 	h := &Handler{
 		Router:             mux.NewRouter(),
 		helmPackageManager: helmPackageManager,
 		requestBouncer:     bouncer,
+		fileService:        fileService,
 	}
 
 	h.Handle("/templates/helm",

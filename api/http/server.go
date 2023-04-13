@@ -99,7 +99,7 @@ type Server struct {
 	EdgeAsyncService            *edgeasync.Service
 	EdgeStacksService           *edgestackservice.Service
 	SnapshotService             portaineree.SnapshotService
-	FileService                 portainer.FileService
+	FileService                 portaineree.FileService
 	DataStore                   dataservices.DataStore
 	GitService                  portainer.GitService
 	APIKeyService               apikey.APIKeyService
@@ -240,11 +240,11 @@ func (server *Server) Start() error {
 
 	var fileHandler = file.NewHandler(filepath.Join(server.AssetsPath, "public"), adminMonitor.WasInstanceDisabled)
 
-	var endpointHelmHandler = helm.NewHandler(requestBouncer, server.DataStore, server.JWTService, server.KubernetesDeployer, server.HelmPackageManager, server.KubeClusterAccessService, server.UserActivityService)
+	var endpointHelmHandler = helm.NewHandler(requestBouncer, server.DataStore, server.JWTService, server.KubernetesDeployer, server.HelmPackageManager, server.KubeClusterAccessService, server.UserActivityService, server.FileService)
 
 	var gitOperationHandler = gitops.NewHandler(requestBouncer, server.DataStore, server.GitService, server.FileService)
 
-	var helmTemplatesHandler = helm.NewTemplateHandler(requestBouncer, server.HelmPackageManager)
+	var helmTemplatesHandler = helm.NewTemplateHandler(requestBouncer, server.HelmPackageManager, server.FileService)
 
 	var ldapHandler = ldap.NewHandler(requestBouncer)
 	ldapHandler.DataStore = server.DataStore

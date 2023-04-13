@@ -1739,6 +1739,8 @@ type (
 		portainer.FileService
 
 		GetKaasFolder() string
+		StoreSSLClientCert(certData []byte) error
+		GetSSLClientCertPath() string
 	}
 
 	// OpenAMTService represents a service for managing OpenAMT

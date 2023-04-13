@@ -55,7 +55,9 @@ func (handler *Handler) helmShow(w http.ResponseWriter, r *http.Request) *httper
 		OutputFormat: options.ShowOutputFormat(cmd),
 		Chart:        chart,
 		Repo:         repo,
+		Env:          handler.defaultHelmEnv(),
 	}
+
 	result, err := handler.helmPackageManager.Show(showOptions)
 	if err != nil {
 		return httperror.InternalServerError("Unable to show chart", err)

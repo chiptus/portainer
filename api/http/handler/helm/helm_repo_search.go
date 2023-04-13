@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
+	"github.com/portainer/portainer-ee/api/internal/httpclient"
 	"github.com/portainer/portainer/pkg/libhelm/options"
 )
 
@@ -36,8 +37,13 @@ func (handler *Handler) helmRepoSearch(w http.ResponseWriter, r *http.Request) *
 		return httperror.BadRequest("Bad request", errors.Wrap(err, fmt.Sprintf("provided URL %q is not valid", repo)))
 	}
 
+	client := httpclient.NewWithOptions(
+		httpclient.WithClientCertificate(handler.fileService.GetSSLClientCertPath()),
+	)
+
 	searchOpts := options.SearchRepoOptions{
-		Repo: repo,
+		Repo:   repo,
+		Client: client,
 	}
 
 	result, err := handler.helmPackageManager.SearchRepo(searchOpts)

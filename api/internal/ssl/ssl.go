@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/pem"
 	"os"
 	"sync"
 	"time"
@@ -12,7 +13,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/ssl/revoke"
-	portainer "github.com/portainer/portainer/api"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -20,18 +20,22 @@ import (
 
 // Service represents a service to manage SSL certificates
 type Service struct {
-	fileService     portainer.FileService
+	fileService     portaineree.FileService
 	dataStore       dataservices.DataStore
 	rawCert         *tls.Certificate
 	mtlsRawCert     *tls.Certificate
 	certPool        *x509.CertPool
 	shutdownTrigger context.CancelFunc
 	crlService      *revoke.Service
-	mu              sync.RWMutex
+
+	// privateClientCert used by http clients to verify connect to private helm/git repos
+	privateClientCertPath string
+
+	mu sync.RWMutex
 }
 
 // NewService returns a pointer to a new Service
-func NewService(fileService portainer.FileService, dataStore dataservices.DataStore, shutdownTrigger context.CancelFunc) *Service {
+func NewService(fileService portaineree.FileService, dataStore dataservices.DataStore, shutdownTrigger context.CancelFunc) *Service {
 	return &Service{
 		fileService:     fileService,
 		dataStore:       dataStore,
@@ -187,6 +191,44 @@ func (service *Service) SetCertificates(certData, keyData []byte) error {
 	}
 
 	service.shutdownTrigger()
+
+	return nil
+}
+
+// SetCertificates sets the certificates
+func (service *Service) SetClientCertificate(raw []byte) error {
+	if len(raw) == 0 {
+		return errors.New("missing certificate file")
+	}
+
+	var cert tls.Certificate
+	for {
+		block, rest := pem.Decode(raw)
+		if block == nil {
+			break
+		}
+
+		if block.Type == "CERTIFICATE" {
+			_, err := x509.ParseCertificate(block.Bytes)
+			if err != nil {
+				return err
+			}
+
+			err = service.fileService.StoreSSLClientCert(raw)
+			if err != nil {
+				return err
+			}
+
+			cert.Certificate = append(cert.Certificate, block.Bytes)
+			break
+		}
+
+		raw = rest
+	}
+
+	if len(cert.Certificate) == 0 {
+		return errors.New("no certificates found in this file")
+	}
 
 	return nil
 }

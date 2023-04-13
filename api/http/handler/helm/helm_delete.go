@@ -52,6 +52,7 @@ func (handler *Handler) helmDelete(w http.ResponseWriter, r *http.Request) *http
 		uninstallOpts.Namespace = namespace
 	}
 
+	uninstallOpts.Env = handler.defaultHelmEnv()
 	err = handler.helmPackageManager.Uninstall(uninstallOpts)
 	if err != nil {
 		return httperror.InternalServerError("Helm returned an error", err)

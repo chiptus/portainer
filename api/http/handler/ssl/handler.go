@@ -9,7 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/ssl"
 )
 
-// Handler is the HTTP handler used to handle MOTD operations.
+// Handler is the HTTP handler used to handle SSL operations.
 type Handler struct {
 	*mux.Router
 	SSLService *ssl.Service

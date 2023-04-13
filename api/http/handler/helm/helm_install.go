@@ -131,6 +131,8 @@ func (handler *Handler) installChart(r *http.Request, p installChartPayload) (*r
 		installOpts.ValuesFile = file.Name()
 	}
 
+	installOpts.Env = handler.defaultHelmEnv()
+
 	release, err := handler.helmPackageManager.Install(installOpts)
 	if err != nil {
 		return nil, err

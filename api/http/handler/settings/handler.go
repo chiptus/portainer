@@ -12,7 +12,6 @@ import (
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/ssl"
-	portainer "github.com/portainer/portainer/api"
 )
 
 func hideFields(settings *portaineree.Settings) {
@@ -29,7 +28,7 @@ type Handler struct {
 	*mux.Router
 	AuthorizationService *authorization.Service
 	DataStore            dataservices.DataStore
-	FileService          portainer.FileService
+	FileService          portaineree.FileService
 	JWTService           portaineree.JWTService
 	LDAPService          portaineree.LDAPService
 	SnapshotService      portaineree.SnapshotService

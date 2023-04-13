@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/portainer/portainer-ee/api/filesystem"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer/pkg/libhelm/binary/test"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +18,9 @@ func Test_helmRepoSearch(t *testing.T) {
 	is := assert.New(t)
 
 	helmPackageManager := test.NewMockHelmBinaryPackageManager("")
-	h := NewTemplateHandler(helper.NewTestRequestBouncer(), helmPackageManager)
+	tmp := t.TempDir()
+	fileService, _ := filesystem.NewService(tmp, tmp)
+	h := NewTemplateHandler(helper.NewTestRequestBouncer(), helmPackageManager, fileService)
 
 	assert.NotNil(t, h, "Handler should not fail")
 
