@@ -32,6 +32,11 @@ class KubernetesDeployController {
 
     this.methodOptions = [];
 
+    this.currentUser = {
+      isAdmin: false,
+      id: null,
+    };
+
     this.state = {
       DeployType: KubernetesDeployManifestTypes.KUBERNETES,
       BuildMethod: KubernetesDeployBuildMethods.GIT,
@@ -345,6 +350,10 @@ class KubernetesDeployController {
 
   $onInit() {
     return this.$async(async () => {
+      this.currentUser.isAdmin = this.Authentication.isAdmin();
+      const user = this.Authentication.getUserDetails();
+      this.currentUser.id = user.ID;
+
       this.formValues.namespace_toggle = false;
       await this.getNamespaces();
 

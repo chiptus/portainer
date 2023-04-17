@@ -158,7 +158,7 @@ export function gitAuthValidation(
     RepositoryPassword: string()
       .when(['RepositoryAuthentication', 'RepositoryGitCredentialID'], {
         is: (auth: boolean, id: number) => auth && !id && !isAuthEdit,
-        then: string().required('Password is required'),
+        then: string().required('Personal Access Token is required'),
       })
       .default(''),
     SaveCredential: boolean().default(false),

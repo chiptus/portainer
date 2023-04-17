@@ -15,10 +15,10 @@ export function validationSchema(names: string[], isEditing = false) {
         message:
           "This field must consist of lower case alphanumeric characters, '_' or '-' (e.g. 'my-name', or 'abc-123').",
       })
-      .required(),
+      .required('Name is required'),
     username: string().optional(),
     password: isEditing
       ? string().notRequired()
-      : string().required('personal access token is required'),
+      : string().required('Personal Access Token is required'),
   });
 }
