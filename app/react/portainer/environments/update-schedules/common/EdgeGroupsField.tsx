@@ -96,7 +96,7 @@ function validateMultipleGroups(groups: EdgeGroup[]) {
 
 function getUpgradeVersionInstruction(groups: EdgeGroup[] | undefined) {
   let upgradeVersionInstruction = (
-    <TextTip color="blue">
+    <TextTip color="blue" className="mt-1">
       You can upgrade from any agent version to 2.17 or later only. You can not
       upgrade to an agent version prior to 2.17 . The ability to rollback to
       originating version is for 2.15.0+ only.
@@ -120,7 +120,7 @@ function getUpgradeVersionInstruction(groups: EdgeGroup[] | undefined) {
     switch (uniqueEndpointType) {
       case EnvironmentType.EdgeAgentOnNomad:
         upgradeVersionInstruction = (
-          <TextTip color="blue">
+          <TextTip color="blue" className="mt-1">
             You can upgrade nomad agent from 2.18 to later only. You can not
             upgrade to nomad agent version prior to 2.18.
           </TextTip>

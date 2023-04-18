@@ -54,7 +54,7 @@ export function DeploymentScripts() {
 
   return (
     <>
-      <TextTip color="blue">
+      <TextTip color="blue" className="mb-2">
         Ensure that you have deployed the Portainer agent in your cluster first.
         Refer to the platform related command below to deploy it.
       </TextTip>

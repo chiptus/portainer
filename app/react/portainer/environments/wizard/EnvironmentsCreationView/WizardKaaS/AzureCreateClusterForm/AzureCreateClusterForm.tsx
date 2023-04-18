@@ -272,7 +272,7 @@ export function AzureCreateClusterForm({
                 options={filteredNodeSizes}
               />
             </FormControl>
-            <TextTip color="blue">
+            <TextTip color="blue" className="mb-2">
               Check your
               <a
                 href="https://portal.azure.com/#blade/Microsoft_Azure_Capacity/QuotaMenuBlade/myQuotas"

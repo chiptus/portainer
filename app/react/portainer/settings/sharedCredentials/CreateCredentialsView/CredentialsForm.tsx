@@ -43,7 +43,7 @@ export function CredentialsForm({ credentialType, routeOnSuccess }: Props) {
   return (
     <>
       <FormSectionTitle>Credential details</FormSectionTitle>
-      <TextTip color="blue">
+      <TextTip color="blue" className="mb-2">
         <span>
           See our{' '}
           <a

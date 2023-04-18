@@ -131,17 +131,19 @@ function ItemView() {
                       error={errors.groupIds}
                     />
 
-                    {isScheduleActive ? (
-                      <InformationPanel>
-                        <TextTip color="blue">
-                          {environmentsCount} environment(s) will be updated to
-                          version {item.version} on {item.scheduledTime} (local
-                          time)
-                        </TextTip>
-                      </InformationPanel>
-                    ) : (
-                      <ScheduleTypeSelector />
-                    )}
+                    <div className="mt-2">
+                      {isScheduleActive ? (
+                        <InformationPanel>
+                          <TextTip color="blue">
+                            {environmentsCount} environment(s) will be updated
+                            to version {item.version} on {item.scheduledTime}{' '}
+                            (local time)
+                          </TextTip>
+                        </InformationPanel>
+                      ) : (
+                        <ScheduleTypeSelector />
+                      )}
+                    </div>
 
                     <AdvancedSettings
                       onBlur={handleBlur}
