@@ -7,11 +7,11 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 var Versions = []string{
-	"2.17.0",
-	"2.18.0",
+	portaineree.APIVersion,
 }
 
 func init() {
