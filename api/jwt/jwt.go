@@ -9,7 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/gorilla/securecookie"
+	"github.com/portainer/portainer-ee/api/internal/securecookie"
 )
 
 // scope represents JWT scopes that are supported in JWT claims.

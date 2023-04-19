@@ -1,9 +1,6 @@
 package apikey
 
 import (
-	"crypto/rand"
-	"io"
-
 	portaineree "github.com/portainer/portainer-ee/api"
 )
 
@@ -17,14 +14,4 @@ type APIKeyService interface {
 	UpdateAPIKey(apiKey *portaineree.APIKey) error
 	DeleteAPIKey(apiKeyID portaineree.APIKeyID) error
 	InvalidateUserKeyCache(userId portaineree.UserID) bool
-}
-
-// generateRandomKey generates a random key of specified length
-// source: https://github.com/gorilla/securecookie/blob/master/securecookie.go#L515
-func generateRandomKey(length int) []byte {
-	k := make([]byte, length)
-	if _, err := io.ReadFull(rand.Reader, k); err != nil {
-		return nil
-	}
-	return k
 }
