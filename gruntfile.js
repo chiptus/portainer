@@ -28,10 +28,10 @@ module.exports = function (grunt) {
     binaries: {
       dockerVersion: 'v20.10.21',
       dockerComposePluginVersion: 'v2.17.2',
-      helmVersion: 'v3.11.0',
+      helmVersion: 'v3.11.3',
       kubectlVersion: 'v1.26.3',
-      eksctlVersion: 'v0.118.0' /* !! Important:  also update list of supported versions in api/cloud/eks/fetch_info.go */,
-      awsAuthVersion: 'v0.5.9',
+      eksctlVersion: 'v0.137.0' /* !! Important:  also update list of supported versions in api/cloud/eks/fetch_info.go */,
+      awsAuthVersion: 'v0.6.2',
     },
     env: gruntConfig.env,
     clean: gruntConfig.clean,

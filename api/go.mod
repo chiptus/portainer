@@ -2,10 +2,6 @@ module github.com/portainer/portainer-ee/api
 
 go 1.19
 
-// this temporary replace can be removed when this fix is merged:
-//    https://github.com/civo/civogo/pull/139 or the bug otherwise fixed
-replace github.com/civo/civogo => github.com/hookenz/civogo v0.0.0-20230305210337-4ca44eed5219
-
 require (
 	cloud.google.com/go/compute v1.6.1
 	github.com/Azure/azure-sdk-for-go v63.4.0+incompatible
@@ -26,7 +22,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.27.1
 	github.com/cavaliergopher/grab/v3 v3.0.1
 	github.com/cbroglie/mustache v1.4.0
-	github.com/civo/civogo v0.3.24
+	github.com/civo/civogo v0.3.32
 	github.com/containers/image/v5 v5.21.0
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
 	github.com/digitalocean/godo v1.75.0
@@ -63,6 +59,7 @@ require (
 	github.com/portainer/liblicense v0.0.0-20220215035909-03c57f1aea91
 	github.com/portainer/portainer/api v0.0.0-20230403061917-feab2a757e70
 	github.com/portainer/portainer/pkg/featureflags v0.0.0-20230209201943-d73622ed9cd4
+	github.com/portainer/portainer/pkg/libhelm v0.0.0-20230414025037-7a8a20e0cc3b
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.1
@@ -70,9 +67,9 @@ require (
 	github.com/viney-shih/go-lock v1.1.1
 	github.com/vmware-labs/yaml-jsonpath v0.3.2
 	go.etcd.io/bbolt v1.3.6
-	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4
+	golang.org/x/mod v0.9.0
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
-	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
+	golang.org/x/sync v0.1.0
 	google.golang.org/api v0.75.0
 	google.golang.org/genproto v0.0.0-20220421151946-72621c1f0bd3
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
@@ -90,7 +87,7 @@ require (
 	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.20.0 // indirect
-	github.com/go-openapi/swag v0.19.14 // indirect
+	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/google/gnostic v0.5.7-v3refs // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/kr/fs v0.1.0 // indirect
@@ -98,7 +95,6 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/portainer/portainer/pkg/libhelm v0.0.0-20230414025037-7a8a20e0cc3b // indirect
 	github.com/portainer/portainer/third_party/digest v0.0.0-20221201002639-8fd0efa34f73 // indirect
 )
 
@@ -206,10 +202,10 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
-	golang.org/x/net v0.4.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/term v0.3.0 // indirect
-	golang.org/x/text v0.5.0 // indirect
+	golang.org/x/net v0.8.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/term v0.6.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/grpc v1.45.0 // indirect
