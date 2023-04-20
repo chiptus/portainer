@@ -28,15 +28,6 @@ export default class LicensesViewController {
   removeAction(licenses) {
     return this.$async(async () => {
       try {
-        const validLicensesToRemove = licenses.filter((l) => l.valid);
-        if (validLicensesToRemove.length) {
-          const validLicenses = this.licenses.filter((l) => l.valid);
-          if (validLicenses.length === validLicensesToRemove.length) {
-            this.Notifications.warning('At least one valid license is required');
-            return;
-          }
-        }
-
         if (!(await confirmDelete('Are you sure you want to remove these licenses?'))) {
           return;
         }

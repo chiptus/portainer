@@ -9,11 +9,12 @@ import { LicenseInfo } from '@/react/portainer/licenses/types';
 import styles from './LicenseExpirationPanel.module.css';
 
 export function LicenseExpirationPanelContainer() {
-  const { remainingDays, isLoading } = useRemainingDays();
+  const { remainingDays, nodes, isLoading } = useExpirationInfo();
 
   return (
     <LicenseExpirationPanel
       remainingDays={remainingDays}
+      nodes={nodes}
       isLoading={isLoading}
     />
   );
@@ -21,23 +22,32 @@ export function LicenseExpirationPanelContainer() {
 
 interface Props {
   remainingDays: number;
+  nodes: number;
   isLoading?: boolean;
 }
 
-export function LicenseExpirationPanel({ remainingDays, isLoading }: Props) {
+export function LicenseExpirationPanel({
+  remainingDays,
+  nodes,
+  isLoading,
+}: Props) {
   if (isLoading || !remainingDays || remainingDays >= 30) {
     return null;
   }
 
-  const expirationMessage = buildMessage(remainingDays);
+  let expirationMessage = `${buildMessage(
+    remainingDays
+  )} Please contact Portainer to renew your license.`;
+  if (nodes === 0) {
+    expirationMessage =
+      'You have no valid licenses and will need to supply one on next login. Please contact Portainer to purchase a license.';
+  }
 
   return (
     <div className={clsx(styles.container)}>
       <div className={clsx(styles.item, 'vertical-center')}>
         <AlertTriangle className="icon icon-sm icon-warning" />
-        <span className="text-muted">
-          {expirationMessage} Please contact Portainer to renew your license.
-        </span>
+        <span className="text-muted">{expirationMessage}</span>
       </div>
     </div>
   );
@@ -59,10 +69,11 @@ function buildMessage(days: number) {
   }
 }
 
-function useRemainingDays() {
+function useExpirationInfo() {
   const { info, isLoading } = useLicenseInfo();
 
   const [remainingDays, setRemainingDays] = useState(0);
+  const [nodes, setNodes] = useState(0);
 
   useEffect(() => {
     if (info) {
@@ -70,10 +81,11 @@ function useRemainingDays() {
     }
   }, [info]);
 
-  return { remainingDays, isLoading };
+  return { remainingDays, nodes, isLoading };
 
   function parseInfo(info: LicenseInfo) {
     const expiresAt = moment.unix(info.expiresAt);
     setRemainingDays(expiresAt.diff(moment().startOf('day'), 'days'));
+    setNodes(info.nodes);
   }
 }

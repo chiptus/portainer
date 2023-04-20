@@ -121,7 +121,6 @@ func (service *Service) AddLicense(licenseKey string) (*liblicense.PortainerLice
 
 // DeleteLicense removes the license from instance
 func (service *Service) DeleteLicense(licenseKey string) error {
-
 	// BUG: When the frontend makes a delete request it does so with the license
 	// key json field NOT the actual boltDB key. Which means if these two values
 	// are ever different (ie. database corruption or manual database editing)
@@ -129,33 +128,7 @@ func (service *Service) DeleteLicense(licenseKey string) error {
 	// way to list boltDB keys so we have no way to detect if these values are
 	// different. This problem exists throughout portainer. You also cannot
 	// delete an endpoint if it's json ID is different than it's boltDB key.
-	license, err := service.dataStore.License().License(licenseKey)
-	if err != nil {
-		return err
-	}
-
-	valid := !isExpiredOrRevoked(*license)
-
-	if valid {
-		licenses, err := service.Licenses()
-		if err != nil {
-			return err
-		}
-
-		hasMoreValidLicenses := false
-		for _, otherLicense := range licenses {
-			if licenseKey != otherLicense.LicenseKey && !isExpiredOrRevoked(otherLicense) {
-				hasMoreValidLicenses = true
-				break
-			}
-		}
-
-		if !hasMoreValidLicenses {
-			return errors.New("At least one valid license is expected")
-		}
-	}
-
-	err = service.dataStore.License().DeleteLicense(licenseKey)
+	err := service.dataStore.License().DeleteLicense(licenseKey)
 	if err != nil {
 		return err
 	}

@@ -85,6 +85,12 @@ function buildInfoWidget(licenseInfo: LicenseInfo, usedNodes: number) {
 function buildAlertWidget(licenseInfo: LicenseInfo, usedNodes: number) {
   const contentSection = buildInfoContent(licenseInfo, usedNodes);
 
+  let exceededMsg =
+    'You have exceeded the node allowance of your current license.';
+  if (licenseInfo.nodes === 0) {
+    exceededMsg = 'You have no current license or node allowance.';
+  }
+
   return (
     <div className={styles.licenseAlertPanel}>
       <div>{contentSection}</div>
@@ -101,8 +107,7 @@ function buildAlertWidget(licenseInfo: LicenseInfo, usedNodes: number) {
             className={clsx('icon-danger', 'space-right')}
           />
           <span className={styles.alertExtraText}>
-            You have exceeded the node allowance of your current license. Please
-            contact Portainer to upgrade your license.
+            {exceededMsg} Please contact Portainer to upgrade your license.
           </span>
         </div>
       )}
@@ -164,6 +169,20 @@ function buildInfoContent(info: LicenseInfo, usedNodes: number) {
 
   const licenseUpgradeURL = getLicenseUpgradeURL(info, usedNodes);
 
+  let subtitle = (
+    <div className="control-label">
+      Portainer licensed to {info.company}
+      {info.type !== LicenseType.Trial
+        ? ` for up to ${info.nodes} ${info.nodes !== 1 ? 'nodes' : 'node'}.`
+        : null}
+    </div>
+  );
+  if (info.nodes === 0) {
+    subtitle = (
+      <div className="control-label">Portainer has no current license.</div>
+    );
+  }
+
   return (
     <div className={clsx(styles.licenseBlock)}>
       <div className={clsx(styles.icon)}>{icon}</div>
@@ -172,12 +191,7 @@ function buildInfoContent(info: LicenseInfo, usedNodes: number) {
         <div>
           <span className={clsx(styles.licenseTitle)}>License information</span>
         </div>
-        <div className="control-label">
-          Portainer licensed to {info.company}
-          {info.type !== LicenseType.Trial
-            ? ` for up to ${info.nodes} ${info.nodes > 1 ? 'Nodes' : 'Node'}.`
-            : null}
-        </div>
+        {subtitle}
       </div>
 
       <div className={clsx(styles.button)}>
