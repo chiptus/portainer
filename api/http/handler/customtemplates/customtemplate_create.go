@@ -88,6 +88,10 @@ func (handler *Handler) customTemplateCreate(w http.ResponseWriter, r *http.Requ
 
 	customTemplate.ResourceControl = resourceControl
 
+	if customTemplate.GitConfig != nil && customTemplate.GitConfig.Authentication != nil {
+		customTemplate.GitConfig.Authentication.Password = ""
+	}
+
 	return response.JSON(w, customTemplate)
 }
 
@@ -333,9 +337,6 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request, u
 	}
 
 	gitConfig.ConfigHash = commitHash
-	if gitConfig.Authentication != nil {
-		gitConfig.Authentication.Password = ""
-	}
 	customTemplate.GitConfig = gitConfig
 
 	isValidProject := true

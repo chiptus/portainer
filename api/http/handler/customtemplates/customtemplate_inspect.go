@@ -58,5 +58,9 @@ func (handler *Handler) customTemplateInspect(w http.ResponseWriter, r *http.Req
 		customTemplate.ResourceControl = resourceControl
 	}
 
+	if customTemplate.GitConfig != nil && customTemplate.GitConfig.Authentication != nil {
+		customTemplate.GitConfig.Authentication.Password = ""
+	}
+
 	return response.JSON(w, customTemplate)
 }

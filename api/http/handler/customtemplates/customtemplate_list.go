@@ -61,6 +61,13 @@ func (handler *Handler) customTemplateList(w http.ResponseWriter, r *http.Reques
 		customTemplates = authorization.FilterAuthorizedCustomTemplates(customTemplates, user, userTeamIDs)
 	}
 
+	for i := range customTemplates {
+		customTemplate := &customTemplates[i]
+		if customTemplate.GitConfig != nil && customTemplate.GitConfig.Authentication != nil {
+			customTemplate.GitConfig.Authentication.Password = ""
+		}
+	}
+
 	customTemplates = filterByType(customTemplates, templateTypes)
 
 	return response.JSON(w, customTemplates)

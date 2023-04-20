@@ -138,6 +138,7 @@ class KubeCreateCustomTemplateViewController {
             );
 
             this.formValues.RepositoryGitCredentialID = data.gitCredential.id;
+            this.formValues.RepositoryPassword = '';
           }
         }
 
