@@ -8,10 +8,8 @@ import (
 	portainer "github.com/portainer/portainer/api"
 )
 
-const (
-	// BucketName represents the name of the bucket where this service stores data.
-	BucketName = "cloudcredentials"
-)
+// BucketName represents the name of the bucket where this service stores data.
+const BucketName = "cloudcredentials"
 
 // Service represents a service for managing cloudcredential data.
 type Service struct {
@@ -34,7 +32,14 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}, nil
 }
 
-// GetByID returns an cloudcredential by ID.
+func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
+	return ServiceTx{
+		service: service,
+		tx:      tx,
+	}
+}
+
+// GetByID returns a cloudcredential by ID.
 func (service *Service) GetByID(ID models.CloudCredentialID) (*models.CloudCredential, error) {
 	var cloudcredential models.CloudCredential
 	identifier := service.connection.ConvertToKey(int(ID))
@@ -47,19 +52,19 @@ func (service *Service) GetByID(ID models.CloudCredentialID) (*models.CloudCrede
 	return &cloudcredential, nil
 }
 
-// Upadte updates an cloudcredential.
+// Update updates a cloudcredential.
 func (service *Service) Update(ID models.CloudCredentialID, cloudcredential *models.CloudCredential) error {
 	identifier := service.connection.ConvertToKey(int(ID))
 	return service.connection.UpdateObject(BucketName, identifier, cloudcredential)
 }
 
-// Delete deletes an cloudcredential.
+// Delete deletes a cloudcredential.
 func (service *Service) Delete(ID models.CloudCredentialID) error {
 	identifier := service.connection.ConvertToKey(int(ID))
 	return service.connection.DeleteObject(BucketName, identifier)
 }
 
-// GetAll return an array containing all the cloudcredentials.
+// GetAll returns an array containing all the cloudcredentials.
 func (service *Service) GetAll() ([]models.CloudCredential, error) {
 	var cloudcreds = make([]models.CloudCredential, 0)
 
@@ -78,7 +83,7 @@ func (service *Service) GetAll() ([]models.CloudCredential, error) {
 	return cloudcreds, err
 }
 
-// Create assign an ID to a new cloudcredential and saves it.
+// Create assigns an ID to a new cloudcredential and saves it.
 func (service *Service) Create(cloudcredential *models.CloudCredential) error {
 	return service.connection.CreateObject(BucketName, func(id uint64) (int, interface{}) {
 		cloudcredential.ID = models.CloudCredentialID(id)
@@ -87,7 +92,7 @@ func (service *Service) Create(cloudcredential *models.CloudCredential) error {
 	})
 }
 
-// GetNextIdentifier returns the next identifier for an cloudcredential.
+// GetNextIdentifier returns the next identifier for a cloudcredential.
 func (service *Service) GetNextIdentifier() int {
 	return service.connection.GetNextIdentifier(BucketName)
 }

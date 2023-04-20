@@ -54,12 +54,16 @@ func (tx *StoreTx) Enforcement() dataservices.EnforcementService               {
 func (tx *StoreTx) FDOProfile() dataservices.FDOProfileService                 { return nil }
 func (tx *StoreTx) HelmUserRepository() dataservices.HelmUserRepositoryService { return nil }
 func (tx *StoreTx) License() dataservices.LicenseRepository                    { return nil }
-func (tx *StoreTx) Registry() dataservices.RegistryService                     { return nil }
-func (tx *StoreTx) ResourceControl() dataservices.ResourceControlService       { return nil }
-func (tx *StoreTx) Role() dataservices.RoleService                             { return nil }
-func (tx *StoreTx) APIKeyRepository() dataservices.APIKeyRepository            { return nil }
-func (tx *StoreTx) GitCredential() dataservices.GitCredential                  { return nil }
-func (tx *StoreTx) S3Backup() dataservices.S3BackupService                     { return nil }
+
+func (tx *StoreTx) Registry() dataservices.RegistryService {
+	return tx.store.RegistryService.Tx(tx.tx)
+}
+
+func (tx *StoreTx) ResourceControl() dataservices.ResourceControlService { return nil }
+func (tx *StoreTx) Role() dataservices.RoleService                       { return nil }
+func (tx *StoreTx) APIKeyRepository() dataservices.APIKeyRepository      { return nil }
+func (tx *StoreTx) GitCredential() dataservices.GitCredential            { return nil }
+func (tx *StoreTx) S3Backup() dataservices.S3BackupService               { return nil }
 
 func (tx *StoreTx) Settings() dataservices.SettingsService {
 	return tx.store.SettingsService.Tx(tx.tx)
@@ -76,11 +80,14 @@ func (tx *StoreTx) Tag() dataservices.TagService {
 	return tx.store.TagService.Tx(tx.tx)
 }
 
-func (tx *StoreTx) TeamMembership() dataservices.TeamMembershipService   { return nil }
-func (tx *StoreTx) Team() dataservices.TeamService                       { return nil }
-func (tx *StoreTx) PodSecurity() dataservices.PodSecurityService         { return nil }
-func (tx *StoreTx) TunnelServer() dataservices.TunnelServerService       { return nil }
-func (tx *StoreTx) User() dataservices.UserService                       { return nil }
-func (tx *StoreTx) Version() dataservices.VersionService                 { return nil }
-func (tx *StoreTx) Webhook() dataservices.WebhookService                 { return nil }
-func (tx *StoreTx) CloudCredential() dataservices.CloudCredentialService { return nil }
+func (tx *StoreTx) TeamMembership() dataservices.TeamMembershipService { return nil }
+func (tx *StoreTx) Team() dataservices.TeamService                     { return nil }
+func (tx *StoreTx) PodSecurity() dataservices.PodSecurityService       { return nil }
+func (tx *StoreTx) TunnelServer() dataservices.TunnelServerService     { return nil }
+func (tx *StoreTx) User() dataservices.UserService                     { return nil }
+func (tx *StoreTx) Version() dataservices.VersionService               { return nil }
+func (tx *StoreTx) Webhook() dataservices.WebhookService               { return nil }
+
+func (tx *StoreTx) CloudCredential() dataservices.CloudCredentialService {
+	return tx.store.CloudCredentialService.Tx(tx.tx)
+}
