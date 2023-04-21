@@ -1,5 +1,7 @@
+import { useCallback } from 'react';
 import RcSlider from 'rc-slider';
-import clsx from 'clsx';
+
+import { SliderTooltip } from '@@/Tip/SliderTooltip';
 
 import styles from './Slider.module.css';
 import 'rc-slider/assets/index.css';
@@ -9,7 +11,7 @@ export interface Props {
   max: number;
   step: number;
   value: number;
-  onChange: (value: number) => void;
+  onChange: (value: number | number[]) => void;
   // true if you want to always show the tooltip
   dataCy: string;
   visibleTooltip?: boolean;
@@ -26,33 +28,34 @@ export function Slider({
   visibleTooltip: visible,
   disabled,
 }: Props) {
-  const SliderWithTooltip = RcSlider.createSliderWithTooltip(RcSlider);
-  // if the tooltip is always visible, hide the marks when tooltip value gets close to the edges
   const marks = {
     [min]: visible && value / max < 0.1 ? '' : translateMinValue(min),
     [max]: visible && value / max > 0.9 ? '' : max.toString(),
   };
 
+  const sliderTooltip = useCallback(
+    (node, handleProps) => (
+      <SliderTooltip
+        value={translateMinValue(handleProps.value)}
+        child={node}
+        delay={0}
+      />
+    ),
+    []
+  );
+
   return (
     <div className={styles.root}>
-      <SliderWithTooltip
-        tipFormatter={translateMinValue}
+      <RcSlider
+        handleRender={sliderTooltip}
         min={min}
         max={max}
-        step={step}
         marks={marks}
-        defaultValue={value}
-        onAfterChange={onChange}
-        className={clsx(
-          styles.slider,
-          disabled && 'opacity-30 th-highcontrast:opacity-75'
-        )}
-        tipProps={{ visible }}
-        railStyle={{ height: 8 }}
-        trackStyle={{ height: 8 }}
-        dotStyle={{ visibility: 'hidden' }}
+        step={step}
         disabled={disabled}
         data-cy={dataCy}
+        value={value}
+        onChange={onChange}
       />
     </div>
   );
