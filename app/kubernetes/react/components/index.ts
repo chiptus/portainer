@@ -103,6 +103,7 @@ export const componentsModule = angular
       'ingressType',
       'handleUpdateAnnotations',
       'screen',
+      'index',
     ])
   )
   .component(

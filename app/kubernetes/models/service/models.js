@@ -25,6 +25,7 @@ const _KubernetesService = Object.freeze({
   Selector: {},
   nodePortError: false,
   servicePortError: false,
+  Annotations: [],
 });
 
 export class KubernetesService {
@@ -46,6 +47,7 @@ const _KubernetesIngressService = Object.freeze({
   Note: '',
   Ingress: true,
   IngressRoute: [],
+  Annotations: [],
 });
 
 export class KubernetesIngressService {

@@ -10,6 +10,7 @@ import {
 } from 'Kubernetes/models/application/models';
 import { KubernetesService, KubernetesServiceHeadlessClusterIP, KubernetesServicePort, KubernetesServiceTypes } from 'Kubernetes/models/service/models';
 import KubernetesServiceHelper from 'Kubernetes/helpers/serviceHelper';
+import KubernetesAnnotationsUtils from './annotations';
 
 function _publishedPortToServicePort(formValues, publishedPort, type) {
   if (publishedPort.IsNew || !publishedPort.NeedsDeletion) {
@@ -42,6 +43,7 @@ class KubernetesServiceConverter {
     res.StackName = formValues.StackName ? formValues.StackName : formValues.Name;
     res.ApplicationOwner = formValues.ApplicationOwner;
     res.ApplicationName = formValues.Name;
+    res.Annotations = formValues.Annotations;
     if (formValues.PublishingType === KubernetesApplicationPublishingTypes.NODE_PORT) {
       res.Type = KubernetesServiceTypes.NODE_PORT;
     } else if (formValues.PublishingType === KubernetesApplicationPublishingTypes.LOAD_BALANCER) {
@@ -69,6 +71,7 @@ class KubernetesServiceConverter {
         res.Type = KubernetesServiceTypes.CLUSTER_IP;
       }
       res.Ingress = service.Ingress;
+      res.Annotations = service.Annotations;
 
       if (service.Selector !== undefined) {
         res.Selector = service.Selector;
@@ -119,6 +122,7 @@ class KubernetesServiceConverter {
     payload.metadata.labels[KubernetesPortainerApplicationStackNameLabel] = service.StackName;
     payload.metadata.labels[KubernetesPortainerApplicationNameLabel] = service.ApplicationName;
     payload.metadata.labels[KubernetesPortainerApplicationOwnerLabel] = service.ApplicationOwner;
+    payload.metadata.annotations = KubernetesAnnotationsUtils.formValuesToKubeAnnotations(service);
 
     const ports = [];
     service.Ports.forEach((port) => {
@@ -145,6 +149,7 @@ class KubernetesServiceConverter {
   static patchPayload(oldService, newService) {
     const oldPayload = KubernetesServiceConverter.createPayload(oldService);
     const newPayload = KubernetesServiceConverter.createPayload(newService);
+
     const payload = JsonPatch.compare(oldPayload, newPayload);
     return payload;
   }

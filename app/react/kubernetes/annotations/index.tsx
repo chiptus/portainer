@@ -11,10 +11,14 @@ import { IngressActions } from './IngressActions';
 import { AnnotationsForm } from './AnnotationsForm';
 
 interface Props {
+  index?: number;
   initialAnnotations: Annotation[];
   errors?: Record<string, ReactNode>;
   placeholder?: string[];
-  handleUpdateAnnotations?: (annotations: Annotation[]) => void;
+  handleUpdateAnnotations?: (
+    annotations: Annotation[],
+    index: number | undefined
+  ) => void;
 
   hideForm?: boolean;
   ingressType?: string;
@@ -30,6 +34,7 @@ export function Annotations({
   ingressType,
   handleUpdateAnnotations = () => {},
   screen,
+  index = undefined,
 }: Props) {
   const [annotations, setAnnotations] =
     useState<Annotation[]>(initialAnnotations);
@@ -39,8 +44,8 @@ export function Annotations({
   );
 
   useEffect(() => {
-    debouncedHandleUpdateAnnotations.current(annotations);
-  }, [annotations]);
+    debouncedHandleUpdateAnnotations.current(annotations, index);
+  }, [annotations, index]);
 
   return (
     <>

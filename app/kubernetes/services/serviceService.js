@@ -79,6 +79,9 @@ class KubernetesServiceService {
       const params = new KubernetesCommonParams();
       params.id = newService.Name;
       const namespace = newService.Namespace;
+      if (Object.keys(oldService.Annotations).length === 0) {
+        delete oldService.Annotations;
+      }
       const payload = KubernetesServiceConverter.patchPayload(oldService, newService);
       if (!payload.length) {
         return;

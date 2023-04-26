@@ -2,6 +2,7 @@ import { KubernetesService, KubernetesServicePort, KubernetesServiceTypes } from
 import { KubernetesApplicationPublishingTypes } from '@/kubernetes/models/application/models/constants';
 import { notifyError } from '@/portainer/services/notifications';
 import { getServices } from '@/react/kubernetes/networks/services/service';
+import KubernetesAnnotationsUtils from '@/kubernetes/converters/annotations';
 
 export default class KubeServicesViewController {
   /* @ngInject */
@@ -10,6 +11,8 @@ export default class KubeServicesViewController {
     this.EndpointProvider = EndpointProvider;
     this.Authentication = Authentication;
     this.asyncOnInit = this.asyncOnInit.bind(this);
+    this.handleUpdateAnnotations = this.handleUpdateAnnotations.bind(this);
+    this.isAnnotationsValid = this.isAnnotationsValid.bind(this);
   }
 
   addEntry(service) {
@@ -45,6 +48,8 @@ export default class KubeServicesViewController {
 
   deleteService(index) {
     this.formValues.Services.splice(index, 1);
+    this.state.annotationsErrors[index] = {};
+    this.isServiceAnnotationsValid = this.isAnnotationsValid();
   }
 
   addPort(index) {
@@ -81,8 +86,26 @@ export default class KubeServicesViewController {
     }
   }
 
+  /** Annotations */
+  handleUpdateAnnotations(annotations, i) {
+    return this.$async(async () => {
+      this.formValues.Services[i].Annotations = annotations;
+      this.state.annotationsErrors[i] = KubernetesAnnotationsUtils.validateAnnotations(annotations);
+      this.isServiceAnnotationsValid = this.isAnnotationsValid();
+    });
+  }
+
+  isAnnotationsValid() {
+    let count = 0;
+    Object.keys(this.state.annotationsErrors).forEach((key) => {
+      count += Object.keys(this.state.annotationsErrors[key]).length;
+    });
+    return count === 0;
+  }
+
   $onInit() {
     this.state = {
+      annotationsErrors: {},
       serviceType: [
         {
           typeName: KubernetesServiceTypes.CLUSTER_IP,

@@ -98,7 +98,7 @@ export function AnnotationsForm({
           {!disabled && (
             <div className="col-sm-3 !m-0 !pl-0">
               <Button
-                size="small"
+                size="medium"
                 color="dangerlight"
                 className="btn-only-icon !ml-0"
                 type="button"

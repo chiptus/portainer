@@ -35,13 +35,23 @@
 </div>
 
 <div class="form-group">
-  <div class="col-sm-12 form-inline" style="margin-top: 20px" ng-repeat="service in $ctrl.formValues.Services">
+  <div class="col-sm-12 form-inline border-bottom pt-4 pb-4" ng-repeat="service in $ctrl.formValues.Services">
     <div>
       <div class="text-muted vertical-center">
         <pr-icon ng-if="$ctrl.serviceType(service.Type) === 'ClusterIP'" icon="'list'"></pr-icon>
         <pr-icon ng-if="$ctrl.serviceType(service.Type) === 'LoadBalancer'" icon="'svg-dataflow'"></pr-icon>
         <pr-icon ng-if="$ctrl.serviceType(service.Type) === 'NodePort'" icon="'list'"></pr-icon>
         {{ $ctrl.serviceType(service.Type) }}
+      </div>
+      <div class="row">
+        <div class="col-sm-9 service-annotations !p-0">
+          <annotations
+            index="$index"
+            initial-annotations="$ctrl.formValues.Services[$index].Annotations"
+            handle-update-annotations="$ctrl.handleUpdateAnnotations"
+            errors="$ctrl.state.annotationsErrors[$index]"
+          ></annotations>
+        </div>
       </div>
       <kube-services-item-view
         node-port-services="$ctrl.nodePortServices"

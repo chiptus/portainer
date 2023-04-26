@@ -9,5 +9,6 @@ angular.module('portainer.kubernetes').component('kubeServicesView', {
     isEdit: '<',
     namespaces: '<',
     loadbalancerEnabled: '<',
+    isServiceAnnotationsValid: '=',
   },
 });

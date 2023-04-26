@@ -31,6 +31,7 @@ import {
   KubernetesPodNodeAffinityPayload,
   KubernetesPreferredSchedulingTermPayload,
 } from 'Kubernetes/pod/payloads/affinities';
+import KubernetesAnnotationsUtils from '@/kubernetes/converters/annotations';
 
 export const PodKubernetesInstanceLabel = 'app.kubernetes.io/instance';
 export const PodManagedByLabel = 'app.kubernetes.io/managed-by';
@@ -289,6 +290,7 @@ class KubernetesApplicationHelper {
           svc.StackName = service.StackName;
           svc.ApplicationOwner = app.ApplicationOwner;
           svc.ApplicationName = app.ApplicationName;
+          svc.Annotations = KubernetesAnnotationsUtils.apiToFormValueAnnotations(service.metadata.annotations);
           svc.Type = service.spec.type;
           if (service.spec.type === KubernetesServiceTypes.CLUSTER_IP) {
             svc.Type = 1;

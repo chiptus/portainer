@@ -151,6 +151,7 @@ class KubernetesCreateApplicationController {
       pullImageValidity: false,
 
       annotationsErrors: {},
+      isServiceAnnotationsValid: true,
     };
 
     this.isAdmin = false;
@@ -1348,7 +1349,7 @@ class KubernetesCreateApplicationController {
   }
 
   isAnnotationsValid() {
-    return Object.keys(this.state.annotationsErrors).length === 0;
+    return Object.keys(this.state.annotationsErrors).length === 0 && this.state.isServiceAnnotationsValid;
   }
 
   /* #region  ON INIT */

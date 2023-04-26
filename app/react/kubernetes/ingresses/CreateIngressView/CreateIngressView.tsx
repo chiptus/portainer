@@ -11,6 +11,7 @@ import { notifyError, notifySuccess } from '@/portainer/services/notifications';
 import { useIsDeploymentOptionHidden } from '@/react/hooks/useIsDeploymentOptionHidden';
 import { useAuthorizations } from '@/react/hooks/useUser';
 import { Annotation } from '@/react/kubernetes/annotations/types';
+import KubernetesAnnotationsUtils from '@/kubernetes/converters/annotations';
 
 import { Link } from '@@/Link';
 import { PageHeader } from '@@/PageHeader';
@@ -297,7 +298,7 @@ export function CreateIngressView() {
       serviceOptions: Option<string>[],
       existingIngressClass?: IngressController
     ) => {
-      const errors: Record<string, ReactNode> = {};
+      let errors: Record<string, ReactNode> = {};
       const rule = { ...ingressRule };
 
       // User cannot edit the namespace and the ingress name
@@ -341,18 +342,10 @@ export function CreateIngressView() {
         }
       }
 
-      const duplicatedAnnotations: string[] = [];
-      rule.Annotations?.forEach((a, i) => {
-        if (!a.Key) {
-          errors[`annotations.key[${i}]`] = 'Annotation key is required';
-        } else if (duplicatedAnnotations.includes(a.Key)) {
-          errors[`annotations.key[${i}]`] = 'Annotation cannot be duplicated';
-        }
-        if (!a.Value) {
-          errors[`annotations.value[${i}]`] = 'Annotation value is required';
-        }
-        duplicatedAnnotations.push(a.Key);
-      });
+      const annotationErrors = KubernetesAnnotationsUtils.validateAnnotations(
+        rule.Annotations
+      );
+      errors = { ...errors, ...annotationErrors };
 
       const duplicatedHosts: string[] = [];
       // Check if the paths are duplicates

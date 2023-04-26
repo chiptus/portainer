@@ -18,7 +18,7 @@
       $ctrl.service.Type === $ctrl.KubernetesApplicationPublishingTypes.NODE_PORT
     "
   >
-    <div ng-show="!$ctrl.multiItemDisable" class="vertical-center mt-5">
+    <div ng-show="!$ctrl.multiItemDisable" class="vertical-center">
       <label class="control-label !pt-0 text-left">Published ports</label>
     </div>
     <div ng-repeat="servicePort in $ctrl.service.Ports" class="service-form row mt-2">
