@@ -48,14 +48,14 @@ func (c *DigestClient) RemoteDigest(image Image) (digest.Digest, error) {
 
 	rmRef, err := ParseReference(image.String())
 	if err != nil {
-		return "", errors.Wrap(err, "Cannot parse reference")
+		return "", errors.Wrap(err, "Cannot parse the image reference")
 	}
 
 	sysCtx := c.sysCtx
 	if c.registryClient != nil {
 		username, password, err := c.registryClient.RegistryAuth(image)
 		if err != nil {
-			log.Info().Str("image", image.String()).Msg("Can not find registry auth, try to access in anonymous")
+			log.Info().Str("image up to date indicator", image.String()).Msg("No environment registry credentials found, using anonymous access")
 		} else {
 			sysCtx = &imagetypes.SystemContext{
 				DockerAuthConfig: &imagetypes.DockerAuthConfig{
