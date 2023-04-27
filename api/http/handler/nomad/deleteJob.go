@@ -16,10 +16,12 @@ import (
 // @tags nomad
 // @security ApiKeyAuth
 // @security jwt
+// @param environmentId path int true "Environment identifier"
+// @param id path int true "Job identifier"
 // @produce json
 // @success 200 "Success"
 // @failure 500 "Server error"
-// @router /nomad/endpoints/{endpointID}/jobs/{id} [delete]
+// @router /nomad/endpoints/{environmentId}/jobs/{id} [delete]
 func (handler *Handler) deleteJob(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
 	jobID, err := request.RetrieveRouteVariableValue(r, "id")

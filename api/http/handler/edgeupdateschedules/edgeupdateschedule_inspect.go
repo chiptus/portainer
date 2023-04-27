@@ -24,6 +24,7 @@ type inspectResponse struct {
 // @tags edge_update_schedules
 // @security ApiKeyAuth
 // @security jwt
+// @param id path int true "EdgeUpdate Id"
 // @produce json
 // @success 200 {object} decoratedUpdateSchedule
 // @failure 500

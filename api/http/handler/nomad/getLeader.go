@@ -21,10 +21,11 @@ type (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
+// @param environmentId path int true "Environment identifier"
 // @success 200 "Success"
 // @failure 404 "Endpoint not found"
 // @failure 500 "Server error"
-// @router /nomad/endpoints/{endpointID}/leader [get]
+// @router /nomad/endpoints/{environmentId}/leader [get]
 func (handler *Handler) getLeader(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {

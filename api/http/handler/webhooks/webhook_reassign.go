@@ -30,6 +30,7 @@ func (payload *webhookReassignPayload) Validate(r *http.Request) error {
 // @tags webhooks
 // @accept json
 // @produce json
+// @param id path int true "Webhook id"
 // @param body body webhookReassignPayload true "Webhook data"
 // @success 200 {object} portaineree.Webhook
 // @success 204

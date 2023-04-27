@@ -1,10 +1,11 @@
 package services
 
 import (
+	"net/http"
+
 	"github.com/portainer/portainer-ee/api/docker/images"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/rs/zerolog/log"
-	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -19,11 +20,13 @@ import (
 // @tags docker
 // @security jwt
 // @accept json
+// @param environmentId path int true "Environment identifier"
+// @param serviceId path int true "Service identifier"
 // @produce json
 // @success 200 "Success"
 // @failure 400 "Bad request"
 // @failure 500 "Internal server error"
-// @router /docker/{environmentId}/services/{serviceID}/image_status [get]
+// @router /docker/{environmentId}/services/{serviceId}/image_status [get]
 func (handler *Handler) ServiceImageStatus(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	serviceID, err := request.RetrieveRouteVariableValue(r, "serviceID")
 	if err != nil {

@@ -20,6 +20,7 @@ import (
 // @accept json
 // @produce json
 // @param environmentId path int true "Environment identifier"
+// @param containerId path int true "Container identifier"
 // @success 200 {object} portainer.DockerContainerSnapshot "Success"
 // @failure 404 "Environment not found"
 // @router /docker/{environmentId}/snapshot/container/{containerId} [get]

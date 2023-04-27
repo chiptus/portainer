@@ -75,7 +75,6 @@ func (payload *EdgeAsyncRequest) Validate(r *http.Request) error {
 // @tags endpoints
 // @security ApiKeyAuth
 // @security jwt
-// @param id path int true "Environment(Endpoint) identifier"
 // @success 200 {object} EdgeAsyncResponse "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied to access environment(endpoint)"

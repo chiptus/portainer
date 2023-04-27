@@ -26,9 +26,11 @@ type slimNomadTaskEvent struct {
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
+// @param environmentId path int true "Environment identifier"
+// @param id path int true "Allocation identifier"
 // @success 200 {array} slimNomadTaskEvent "Success"
 // @failure 500 "Server error"
-// @router /nomad/endpoints/{endpointID}/allocation/{id}/events [get]
+// @router /nomad/endpoints/{environmentId}/allocation/{id}/events [get]
 func (handler *Handler) getTaskEvents(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
 	allocationID, err := request.RetrieveRouteVariableValue(r, "id")
@@ -97,9 +99,11 @@ func (handler *Handler) getTaskEvents(w http.ResponseWriter, r *http.Request) *h
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
+// @param environmentId path int true "Environment identifier"
+// @param id path int true "Allocation identifier"
 // @success 200 {array} slimNomadTaskEvent "Success"
 // @failure 500 "Server error"
-// @router /nomad/endpoints/{endpointID}/allocation/{id}/logs [get]
+// @router /nomad/endpoints/{environmentId}/allocation/{id}/logs [get]
 func (handler *Handler) getTaskLogs(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	allocationID, err := request.RetrieveRouteVariableValue(r, "id")
 	if err != nil {

@@ -352,7 +352,7 @@ func validateKubeConfigEnvironment(r *http.Request) (string, error) {
 // @param EdgeCheckinInterval formData int false "The check in interval for edge agent (in seconds)"
 // @param EdgeTunnelServerAddress formData string true "URL or IP address that will be used to establish a reverse tunnel"
 // @param EdgeAsyncMode formData bool false "Enable async mode for edge agent"
-// @param Gpus formData array false "List of GPUs"
+// @param Gpus formData string false "List of GPUs - json stringified array of {name, value} structs"
 // @success 200 {object} portaineree.Endpoint "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"

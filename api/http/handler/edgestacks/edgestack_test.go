@@ -257,7 +257,7 @@ func TestCreateAndInspect(t *testing.T) {
 	r := bytes.NewBuffer(jsonPayload)
 
 	// Create EdgeStack
-	req, err := http.NewRequest(http.MethodPost, "/edge_stacks?method=string", r)
+	req, err := http.NewRequest(http.MethodPost, "/edge_stacks/create/string", r)
 	if err != nil {
 		t.Fatal("request error:", err)
 	}
@@ -310,37 +310,32 @@ func TestCreateWithInvalidPayload(t *testing.T) {
 	cases := []struct {
 		Name               string
 		Payload            interface{}
-		QueryString        string
 		ExpectedStatusCode int
+		Method             string
 	}{
 		{
-			Name:               "Invalid query string parameter",
+			Name:               "Invalid method parameter",
 			Payload:            swarmStackFromFileContentPayload{},
-			QueryString:        "invalid=query-string",
+			Method:             "invalid",
 			ExpectedStatusCode: 400,
 		},
-		{
-			Name:               "Invalid creation method",
-			Payload:            swarmStackFromFileContentPayload{},
-			QueryString:        "method=invalid-creation-method",
-			ExpectedStatusCode: 500,
-		},
+
 		{
 			Name:               "Empty swarmStackFromFileContentPayload with string method",
 			Payload:            swarmStackFromFileContentPayload{},
-			QueryString:        "method=string",
+			Method:             "string",
 			ExpectedStatusCode: 400,
 		},
 		{
 			Name:               "Empty swarmStackFromFileContentPayload with repository method",
 			Payload:            swarmStackFromFileContentPayload{},
-			QueryString:        "method=repository",
+			Method:             "repository",
 			ExpectedStatusCode: 400,
 		},
 		{
 			Name:               "Empty swarmStackFromFileContentPayload with file method",
 			Payload:            swarmStackFromFileContentPayload{},
-			QueryString:        "method=file",
+			Method:             "file",
 			ExpectedStatusCode: 400,
 		},
 		{
@@ -351,7 +346,7 @@ func TestCreateWithInvalidPayload(t *testing.T) {
 				EdgeGroups:       edgeStack.EdgeGroups,
 				DeploymentType:   edgeStack.DeploymentType,
 			},
-			QueryString:        "method=string",
+			Method:             "string",
 			ExpectedStatusCode: 500,
 		},
 		{
@@ -362,7 +357,7 @@ func TestCreateWithInvalidPayload(t *testing.T) {
 				EdgeGroups:       []portaineree.EdgeGroupID{},
 				DeploymentType:   edgeStack.DeploymentType,
 			},
-			QueryString:        "method=string",
+			Method:             "string",
 			ExpectedStatusCode: 400,
 		},
 		{
@@ -373,7 +368,7 @@ func TestCreateWithInvalidPayload(t *testing.T) {
 				EdgeGroups:       []portaineree.EdgeGroupID{1},
 				DeploymentType:   portaineree.EdgeStackDeploymentKubernetes,
 			},
-			QueryString:        "method=string",
+			Method:             "string",
 			ExpectedStatusCode: 500,
 		},
 		{
@@ -384,7 +379,7 @@ func TestCreateWithInvalidPayload(t *testing.T) {
 				EdgeGroups:       []portaineree.EdgeGroupID{1},
 				DeploymentType:   portaineree.EdgeStackDeploymentCompose,
 			},
-			QueryString:        "method=string",
+			Method:             "string",
 			ExpectedStatusCode: 400,
 		},
 		{
@@ -400,7 +395,7 @@ func TestCreateWithInvalidPayload(t *testing.T) {
 				EdgeGroups:               []portaineree.EdgeGroupID{1},
 				DeploymentType:           portaineree.EdgeStackDeploymentCompose,
 			},
-			QueryString:        "method=repository",
+			Method:             "repository",
 			ExpectedStatusCode: 500,
 		},
 	}
@@ -414,7 +409,7 @@ func TestCreateWithInvalidPayload(t *testing.T) {
 			r := bytes.NewBuffer(jsonPayload)
 
 			// Create EdgeStack
-			req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("/edge_stacks?%s", tc.QueryString), r)
+			req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("/edge_stacks/create/%s", tc.Method), r)
 			if err != nil {
 				t.Fatal("request error:", err)
 			}
@@ -568,7 +563,7 @@ func TestUpdateAndInspect(t *testing.T) {
 	r := bytes.NewBuffer(jsonPayload)
 
 	// Create EdgeStack
-	req, err := http.NewRequest(http.MethodPost, "/edge_stacks?method=string", r)
+	req, err := http.NewRequest(http.MethodPost, "/edge_stacks/create/string", r)
 	if err != nil {
 		t.Fatal("request error:", err)
 	}

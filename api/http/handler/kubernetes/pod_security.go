@@ -23,10 +23,10 @@ import (
 // @security jwt
 // @accept json
 // @produce json
-// @param id path int true "Environment(Endpoint) identifier"
+// @param environmentId path int true "Environment identifier"
 // @success 200 {object} podsecurity.PodSecurityRule "Success"
 // @failure 400 "Invalid request"
-// @router /kubernetes/{id}/opa [get]
+// @router /kubernetes/{environmentId}/opa [get]
 func (handler *Handler) getK8sPodSecurityRule(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
@@ -107,12 +107,12 @@ func (handler *Handler) getK8sPodSecurityRule(w http.ResponseWriter, r *http.Req
 // @security jwt
 // @accept json
 // @produce json
-// @param id path int true "Environment(Endpoint) identifier"
+// @param environmentId path int true "Environment(Endpoint) identifier"
 // @success 200 "Success"
 // @failure 400 "Invalid request"
 // @failure 404 "Pod Security Rule not found"
 // @failure 500 "Server error"
-// @router /kubernetes/{endpointId}/opa [put]
+// @router /kubernetes/{environmentId}/opa [put]
 func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	handler.opaOperationMutex.Lock()
 	defer handler.opaOperationMutex.Unlock()

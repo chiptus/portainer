@@ -27,6 +27,7 @@ func (payload *webhookUpdatePayload) Validate(r *http.Request) error {
 // @tags webhooks
 // @accept json
 // @produce json
+// @param id path int true "Webhook id"
 // @param body body webhookUpdatePayload true "Webhook data"
 // @success 200 {object} portaineree.Webhook
 // @failure 400

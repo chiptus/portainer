@@ -1,11 +1,12 @@
 package containers
 
 import (
+	"net/http"
+
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/docker/images"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/rs/zerolog/log"
-	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -19,12 +20,14 @@ import (
 // @description **Access policy**:
 // @tags docker
 // @security jwt
+// @param environmentId path int true "Environment identifier"
+// @param containerId path int true "Container identifier"
 // @accept json
 // @produce json
 // @success 200 "Success"
 // @failure 400 "Bad request"
 // @failure 500 "Internal server error"
-// @router /docker/{environmentId}/containers/{containerID}/image_status [get]
+// @router /docker/{environmentId}/containers/{containerId}/image_status [get]
 func (handler *Handler) containerImageStatus(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	containerID, err := request.RetrieveRouteVariableValue(r, "containerId")
 	if err != nil {

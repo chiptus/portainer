@@ -35,7 +35,7 @@ func NewHandler(bouncer *security.RequestBouncer, userActivityService portainere
 	h.Use(bouncer.AdminAccess, bouncer.EdgeComputeOperation, useractivity.LogUserActivity(h.userActivityService))
 
 	h.Handle("/edge_jobs", httperror.LoggerHandler(h.edgeJobList)).Methods(http.MethodGet)
-	h.Handle("/edge_jobs", httperror.LoggerHandler(h.edgeJobCreate)).Methods(http.MethodPost)
+	h.Handle("/edge_jobs/create/{method}", httperror.LoggerHandler(h.edgeJobCreate)).Methods(http.MethodPost)
 	h.Handle("/edge_jobs/{id}", httperror.LoggerHandler(h.edgeJobInspect)).Methods(http.MethodGet)
 	h.Handle("/edge_jobs/{id}", httperror.LoggerHandler(h.edgeJobUpdate)).Methods(http.MethodPut)
 	h.Handle("/edge_jobs/{id}", httperror.LoggerHandler(h.edgeJobDelete)).Methods(http.MethodDelete)

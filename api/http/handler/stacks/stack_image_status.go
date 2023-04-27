@@ -25,6 +25,8 @@ import (
 // @security jwt
 // @accept json
 // @produce json
+// @param environmentId path int true "Environment identifier"
+// @param id path int true "Stack identifier"
 // @success 200 "Success"
 // @failure 400 "Bad request"
 // @failure 500 "Internal server error"

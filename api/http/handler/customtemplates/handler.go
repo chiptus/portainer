@@ -36,7 +36,7 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 
 	h.Use(bouncer.AuthenticatedAccess, useractivity.LogUserActivity(h.userActivityService))
 
-	h.Handle("/custom_templates", httperror.LoggerHandler(h.customTemplateCreate)).Methods(http.MethodPost)
+	h.Handle("/custom_templates/create/{method}", httperror.LoggerHandler(h.customTemplateCreate)).Methods(http.MethodPost)
 	h.Handle("/custom_templates", httperror.LoggerHandler(h.customTemplateList)).Methods(http.MethodGet)
 	h.Handle("/custom_templates/{id}", httperror.LoggerHandler(h.customTemplateInspect)).Methods(http.MethodGet)
 	h.Handle("/custom_templates/{id}/file", httperror.LoggerHandler(h.customTemplateFile)).Methods(http.MethodGet)

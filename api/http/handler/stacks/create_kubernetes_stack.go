@@ -135,6 +135,20 @@ type createKubernetesStackResponse struct {
 	Output string `json:"Output"`
 }
 
+// @id StackCreateKubernetesFile
+// @summary Deploy a new kubernetes stack from a file
+// @description Deploy a new stack into a Docker environment specified via the environment identifier.
+// @description **Access policy**: authenticated
+// @tags stacks
+// @security ApiKeyAuth
+// @security jwt
+// @produce json
+// @param body body kubernetesStringDeploymentPayload true "stack config"
+// @param endpointId query int true "Identifier of the environment that will be used to deploy the stack"
+// @success 200 {object} portaineree.Stack
+// @failure 400 "Invalid request"
+// @failure 500 "Server error"
+// @router /stacks/create/kubernetes/string [post]
 func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 	if !endpointutils.IsKubernetesEndpoint(endpoint) {
 		return httperror.BadRequest("Environment type does not match", errors.New("Environment type does not match"))
@@ -181,6 +195,20 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 	return response.JSON(w, resp)
 }
 
+// @id StackCreateKubernetesGit
+// @summary Deploy a new kubernetes stack from a git repository
+// @description Deploy a new stack into a Docker environment specified via the environment identifier.
+// @description **Access policy**: authenticated
+// @tags stacks
+// @security ApiKeyAuth
+// @security jwt
+// @produce json
+// @param body body kubernetesGitDeploymentPayload true "stack config"
+// @param endpointId query int true "Identifier of the environment that will be used to deploy the stack"
+// @success 200 {object} portaineree.Stack
+// @failure 400 "Invalid request"
+// @failure 500 "Server error"
+// @router /stacks/create/kubernetes/repository [post]
 func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 	if !endpointutils.IsKubernetesEndpoint(endpoint) {
 		return httperror.BadRequest("Environment type does not match", errors.New("Environment type does not match"))
@@ -254,6 +282,20 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 	return response.JSON(w, resp)
 }
 
+// @id StackCreateKubernetesUrl
+// @summary Deploy a new kubernetes stack from a url
+// @description Deploy a new stack into a Docker environment specified via the environment identifier.
+// @description **Access policy**: authenticated
+// @tags stacks
+// @security ApiKeyAuth
+// @security jwt
+// @produce json
+// @param body body kubernetesManifestURLDeploymentPayload true "stack config"
+// @param endpointId query int true "Identifier of the environment that will be used to deploy the stack"
+// @success 200 {object} portaineree.Stack
+// @failure 400 "Invalid request"
+// @failure 500 "Server error"
+// @router /stacks/create/kubernetes/url [post]
 func (handler *Handler) createKubernetesStackFromManifestURL(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 	var payload kubernetesManifestURLDeploymentPayload
 	if err := request.DecodeAndValidateJSONPayload(r, &payload); err != nil {

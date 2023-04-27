@@ -24,7 +24,7 @@ import (
 // @accept json
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
-// @param namespace query string true "specify an optional namespace"
+// @param namespace path string true "specify an optional namespace"
 // @success 200 {array} models.K8sApplication "Success"
 // @failure 400 "Invalid request"
 // @failure 401 "Unauthorized"

@@ -15,6 +15,7 @@ import (
 // @description **Access policy**: administrator
 // @tags edge_update_schedules
 // @security ApiKeyAuth
+// @param id path int true "EdgeUpdate Id"
 // @security jwt
 // @success 204
 // @failure 500

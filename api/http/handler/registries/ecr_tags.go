@@ -27,6 +27,7 @@ func (p *deleteTagsPayload) Validate(r *http.Request) error {
 // @tags registries
 // @security jwt
 // @param id path int true "Registry identifier"
+// @param repositoryName path int true "Repository name"
 // @param body body deleteTagsPayload true "Tag Array"
 // @success 204 "Success"
 // @failure 400 "Invalid request"

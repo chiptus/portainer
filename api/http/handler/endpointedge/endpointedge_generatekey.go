@@ -18,6 +18,7 @@ type generateKeyResponse struct {
 // @tags edge, endpoints
 // @accept json
 // @produce json
+// @param id path int true "Environment Id"
 // @param body body generateKeyResponse true "Generate Key Info"
 // @success 200
 // @failure 500

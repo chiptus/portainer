@@ -71,7 +71,7 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 	publicRouter := h.NewRoute().Subrouter()
 	publicRouter.Use(bouncer.PublicAccess)
 
-	authenticatedRouter.Handle("/stacks", httperror.LoggerHandler(h.stackCreate)).Methods(http.MethodPost)
+	authenticatedRouter.Handle("/stacks/create/{type}/{method}", httperror.LoggerHandler(h.stackCreate)).Methods(http.MethodPost)
 	authenticatedRouter.Handle("/stacks", httperror.LoggerHandler(h.stackList)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/stacks/{id}", httperror.LoggerHandler(h.stackInspect)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/stacks/{id}", httperror.LoggerHandler(h.stackDelete)).Methods(http.MethodDelete)

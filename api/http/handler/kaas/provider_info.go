@@ -20,6 +20,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
+// @param provider path string true "cloud provider"
 // @param force query bool false "If true, get the up-to-date information (instead of cached information)."
 // @param credentialId query int true "The shared credential ID used to fetch the cloud provider information."
 // @success 200 "Success"

@@ -62,7 +62,7 @@ func NewHandler(
 	publicRouter := h.NewRoute().Subrouter()
 	publicRouter.Use(useractivity.LogUserActivity(h.userActivityService))
 
-	adminRouter.Handle("/edge_stacks", httperror.LoggerHandler(h.edgeStackCreate)).Methods(http.MethodPost)
+	adminRouter.Handle("/edge_stacks/create/{method}", httperror.LoggerHandler(h.edgeStackCreate)).Methods(http.MethodPost)
 	adminRouter.Handle("/edge_stacks", httperror.LoggerHandler(h.edgeStackList)).Methods(http.MethodGet)
 	adminRouter.Handle("/edge_stacks/{id}", httperror.LoggerHandler(h.edgeStackInspect)).Methods(http.MethodGet)
 	adminRouter.Handle("/edge_stacks/{id}", httperror.LoggerHandler(h.edgeStackUpdate)).Methods(http.MethodPut)
