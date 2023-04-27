@@ -2541,6 +2541,10 @@ const (
 	// k8s namespace operations
 	OperationK8sAccessNamespaceRead  Authorization = "K8sAccessNamespaceRead"
 	OperationK8sAccessNamespaceWrite Authorization = "K8sAccessNamespaceWrite"
+
+	// OPA/Gatekeeper
+	OperationK8sPodSecurityW Authorization = "OperationK8sPodSecurityW"
+
 	// k8s cluster operations
 	OperationK8sResourcePoolsR                   Authorization = "K8sResourcePoolsR"
 	OperationK8sResourcePoolsW                   Authorization = "K8sResourcePoolsW"

@@ -17,6 +17,7 @@ func DefaultK8sClusterAuthorizations() map[portaineree.RoleID]portaineree.Author
 			portaineree.OperationK8sResourcePoolDetailsR:             true,
 			portaineree.OperationK8sResourcePoolDetailsW:             true,
 			portaineree.OperationK8sResourcePoolsAccessManagementRW:  true,
+			portaineree.OperationK8sPodSecurityW:                     true,
 			portaineree.OperationK8sApplicationsR:                    true,
 			portaineree.OperationK8sApplicationsW:                    true,
 			portaineree.OperationK8sApplicationDetailsR:              true,

@@ -309,6 +309,7 @@
         "K8sVolumesR": true,
         "K8sVolumesW": true,
         "K8sYAMLW": true,
+        "OperationK8sPodSecurityW": true,
         "PortainerEndpointUpdateSettings": true,
         "PortainerRegistryInspect": true,
         "PortainerRegistryInternalDelete": true,

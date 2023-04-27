@@ -114,18 +114,37 @@ func (handler *Handler) getK8sPodSecurityRule(w http.ResponseWriter, r *http.Req
 // @failure 500 "Server error"
 // @router /kubernetes/{environmentId}/opa [put]
 func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	handler.opaOperationMutex.Lock()
-	defer handler.opaOperationMutex.Unlock()
-
-	requestRule := &podsecurity.PodSecurityRule{}
-	err := json.NewDecoder(r.Body).Decode(requestRule)
+	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
-		return httperror.BadRequest("cannot parse request body", err)
+		return httperror.InternalServerError("Unable to retrieve info from request context", err)
+	}
+
+	user, err := handler.DataStore.User().User(securityContext.UserID)
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve security context", err)
 	}
 
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
 		return httperror.BadRequest("Invalid environment identifier route variable", err)
+	}
+
+	authorized, err := canEditPodSecurity(user, portaineree.EndpointID(endpointID))
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve user details from authentication token", err)
+	}
+
+	if !authorized {
+		return httperror.Forbidden("Permission denied to update pod security", err)
+	}
+
+	handler.opaOperationMutex.Lock()
+	defer handler.opaOperationMutex.Unlock()
+
+	requestRule := &podsecurity.PodSecurityRule{}
+	err = json.NewDecoder(r.Body).Decode(requestRule)
+	if err != nil {
+		return httperror.BadRequest("cannot parse request body", err)
 	}
 
 	requestRule.EndpointID = endpointID
@@ -173,7 +192,7 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 		existedRule = &podsecurity.PodSecurityRule{}
 		existedRule.EndpointID = endpointID
 
-		//1.deploy gatekeeper
+		// 1.deploy gatekeeper
 		err = gateKeeper.Deploy(tokenData.ID, endpoint)
 		if err != nil {
 			return httperror.InternalServerError("failed to deploy kubernetes gatekeeper", err)
@@ -184,13 +203,13 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 			return httperror.InternalServerError("unable to get gatekeeper status", err)
 		}
 
-		//2. deploy gatekeeper excluded namespaces
+		// 2. deploy gatekeeper excluded namespaces
 		err = gateKeeper.DeployExcludedNamespaces(tokenData.ID, endpoint)
 		if err != nil {
 			return httperror.InternalServerError("failed to deploy excluded namespaces for gatekeeper", err)
 		}
 
-		//3.deploy gatekeeper constrainttemplate
+		// 3.deploy gatekeeper constrainttemplate
 		err = gateKeeper.DeployPodSecurityConstraints(tokenData.ID, endpoint)
 		if err != nil {
 			return httperror.InternalServerError("failed to deploy pod security constraints for gatekeeper", err)
@@ -202,7 +221,7 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 		}
 	}
 
-	//4.deploy gatekeeper constraint yaml files
+	// 4.deploy gatekeeper constraint yaml files
 	for name := range podsecurity.PodSecurityConstraintsMap {
 		rulename := name
 		constraint := podsecurity.PodSecurityConstraint{}
@@ -233,4 +252,11 @@ var checkGatekeeperStatus = func(handler *Handler, endpoint *portaineree.Endpoin
 	}
 
 	return podsecurity.WaitForOpaReady(r.Context(), cli)
+}
+
+// Check if the user is an admin or can edit OPA
+func canEditPodSecurity(user *portaineree.User, endpointID portaineree.EndpointID) (bool, error) {
+	isAdmin := user.Role == portaineree.AdministratorRole
+	_, canEdit := user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.OperationK8sPodSecurityW]
+	return isAdmin || canEdit, nil
 }
