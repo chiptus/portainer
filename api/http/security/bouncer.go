@@ -1,12 +1,12 @@
 package security
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/apikey"
@@ -180,13 +180,19 @@ func (bouncer *RequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, 
 		return err
 	}
 
-	if endpoint.LastCheckInDate > 0 || endpoint.UserTrusted {
+	return nil
+}
+
+// TrustedEdgeEnvironmentAccess defines a security check for Edge environments, checks if
+// the request is coming from a trusted Edge environment
+func (bouncer *RequestBouncer) TrustedEdgeEnvironmentAccess(endpoint *portaineree.Endpoint) error {
+	if endpoint.UserTrusted {
 		return nil
 	}
 
 	settings, err := bouncer.dataStore.Settings().Settings()
 	if err != nil {
-		return fmt.Errorf("could not retrieve the settings: %w", err)
+		return errors.WithMessage(err, "could not retrieve the settings")
 	}
 
 	if !settings.TrustOnFirstConnect {

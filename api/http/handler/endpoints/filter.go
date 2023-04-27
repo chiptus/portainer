@@ -23,12 +23,13 @@ type EnvironmentsQuery struct {
 	groupIds         []portaineree.EndpointGroupID
 	status           []portaineree.EndpointStatus
 	// if edgeAsync not nil, will filter edge endpoints based on this value
-	edgeAsync           *bool
-	edgeDeviceUntrusted bool
-	excludeSnapshots    bool
-	provisioned         bool
-	name                string
-	agentVersions       []string
+	edgeAsync                *bool
+	edgeDeviceUntrusted      bool
+	excludeSnapshots         bool
+	provisioned              bool
+	name                     string
+	agentVersions            []string
+	edgeCheckInPassedSeconds int
 }
 
 func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
@@ -80,20 +81,23 @@ func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
 
 	excludeSnapshots, _ := request.RetrieveBooleanQueryParameter(r, "excludeSnapshots", true)
 
+	edgeCheckInPassedSeconds, _ := request.RetrieveNumericQueryParameter(r, "edgeCheckInPassedSeconds", true)
+
 	return EnvironmentsQuery{
-		search:              search,
-		types:               endpointTypes,
-		tagIds:              tagIDs,
-		endpointIds:         endpointIDs,
-		tagsPartialMatch:    tagsPartialMatch,
-		groupIds:            groupIDs,
-		status:              status,
-		edgeAsync:           edgeAsync,
-		edgeDeviceUntrusted: edgeDeviceUntrusted,
-		excludeSnapshots:    excludeSnapshots,
-		provisioned:         provisioned,
-		name:                name,
-		agentVersions:       agentVersions,
+		search:                   search,
+		types:                    endpointTypes,
+		tagIds:                   tagIDs,
+		endpointIds:              endpointIDs,
+		tagsPartialMatch:         tagsPartialMatch,
+		groupIds:                 groupIDs,
+		status:                   status,
+		edgeAsync:                edgeAsync,
+		edgeDeviceUntrusted:      edgeDeviceUntrusted,
+		excludeSnapshots:         excludeSnapshots,
+		provisioned:              provisioned,
+		name:                     name,
+		agentVersions:            agentVersions,
+		edgeCheckInPassedSeconds: edgeCheckInPassedSeconds,
 	}, nil
 }
 
@@ -131,6 +135,22 @@ func (handler *Handler) filterEndpointsByQuery(filteredEndpoints []portaineree.E
 
 		return endpoint.UserTrusted == !query.edgeDeviceUntrusted
 	})
+
+	if query.edgeCheckInPassedSeconds > 0 {
+		filteredEndpoints = filter(filteredEndpoints, func(endpoint portaineree.Endpoint) bool {
+			// ignore non-edge endpoints
+			if !endpointutils.IsEdgeEndpoint(&endpoint) {
+				return true
+			}
+
+			// filter out endpoints that have never checked in
+			if endpoint.LastCheckInDate == 0 {
+				return false
+			}
+
+			return time.Now().Unix()-endpoint.LastCheckInDate < int64(query.edgeCheckInPassedSeconds)
+		})
+	}
 
 	if len(query.status) > 0 {
 		filteredEndpoints = filterEndpointsByStatuses(filteredEndpoints, query.status, settings)
