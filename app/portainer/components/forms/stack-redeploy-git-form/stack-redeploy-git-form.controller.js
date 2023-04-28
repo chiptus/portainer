@@ -59,6 +59,7 @@ class StackRedeployGitFormController {
     this.onChangeEnvVar = this.onChangeEnvVar.bind(this);
     this.onChangeOption = this.onChangeOption.bind(this);
     this.onChangeGitAuth = this.onChangeGitAuth.bind(this);
+    this.onChangeTLSSkipVerify = this.onChangeTLSSkipVerify.bind(this);
   }
 
   buildAnalyticsProperties() {
@@ -96,6 +97,10 @@ class StackRedeployGitFormController {
 
   onChangeEnvVar(value) {
     this.onChange({ Env: value });
+  }
+
+  onChangeTLSSkipVerify(value) {
+    this.onChange({ TLSSkipVerify: value });
   }
 
   onChangeOption(values) {
@@ -219,6 +224,7 @@ class StackRedeployGitFormController {
   async $onInit() {
     this.formValues.RepositoryURL = this.model.URL;
     this.formValues.RefName = this.model.ReferenceName;
+    this.formValues.TLSSkipVerify = this.model.TLSSkipVerify;
     this.formValues.Env = this.stack.Env;
 
     if (this.stack.Option) {

@@ -55,6 +55,7 @@ class KubernetesRedeployAppGitFormController {
     this.onChangeRef = this.onChangeRef.bind(this);
     this.onChangeAutoUpdate = this.onChangeAutoUpdate.bind(this);
     this.onChangeGitAuth = this.onChangeGitAuth.bind(this);
+    this.onChangeTLSSkipVerify = this.onChangeTLSSkipVerify.bind(this);
   }
 
   onChangeRef(value) {
@@ -75,6 +76,12 @@ class KubernetesRedeployAppGitFormController {
   onChangeGitAuth(values) {
     return this.$async(async () => {
       this.onChange(values);
+    });
+  }
+
+  onChangeTLSSkipVerify(value) {
+    return this.$async(async () => {
+      this.onChange({ TLSSkipVerify: value });
     });
   }
 
@@ -190,6 +197,7 @@ class KubernetesRedeployAppGitFormController {
   async $onInit() {
     this.formValues.RepositoryURL = this.stack.GitConfig.URL;
     this.formValues.RefName = this.stack.GitConfig.ReferenceName;
+    this.formValues.TLSSkipVerify = this.stack.GitConfig.TLSSkipVerify;
 
     this.formValues.AutoUpdate = parseAutoUpdateResponse(this.stack.AutoUpdate);
 

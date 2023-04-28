@@ -1,5 +1,6 @@
 <form name="$ctrl.redeployGitForm" class="form-horizontal my-8">
   <div class="col-sm-12 form-section-title"> Redeploy from git repository </div>
+
   <git-form-info-panel
     class-name="'text-muted small'"
     url="$ctrl.model.URL"
@@ -7,6 +8,7 @@
     config-file-path="$ctrl.model.ConfigFilePath"
     additional-files="$ctrl.stack.AdditionalFiles"
   ></git-form-info-panel>
+
   <git-form-auto-update-fieldset
     value="$ctrl.formValues.AutoUpdate"
     on-change="($ctrl.onChangeAutoUpdate)"
@@ -16,6 +18,7 @@
     webhook-id="{{ $ctrl.state.webhookId }}"
     webhooks-docs="https://docs.portainer.io/user/docker/stacks/webhooks"
   ></git-form-auto-update-fieldset>
+
   <time-window-display></time-window-display>
 
   <div class="form-group">
@@ -47,12 +50,26 @@
     is-auth-edit="$ctrl.state.isAuthEdit"
   ></git-form-auth-fieldset>
 
+  <div class="form-group" ng-if="$ctrl.state.showConfig">
+    <div class="col-sm-12">
+      <por-switch-field
+        name="TLSSkipVerify"
+        checked="$ctrl.formValues.TLSSkipVerify"
+        tooltip="'Enabling this will allow skipping TLS validation for any self-signed certificate.'"
+        label-class="'col-sm-3 col-lg-2'"
+        label="'Skip TLS Verification'"
+        on-change="($ctrl.onChangeTLSSkipVerify)"
+      ></por-switch-field>
+    </div>
+  </div>
+
   <environment-variables-panel
     ng-model="$ctrl.formValues.Env"
     explanation="These values will be used as substitutions in the stack file"
     on-change="($ctrl.onChangeEnvVar)"
     show-help-message="true"
   ></environment-variables-panel>
+
   <div ng-if="$ctrl.stack.Type === 1 && $ctrl.endpoint.apiVersion >= 1.27">
     <div class="col-sm-12 form-section-title"> Options </div>
     <div class="form-group">
@@ -87,6 +104,7 @@
     </span>
     <span ng-show="$ctrl.state.redeployInProgress">In progress...</span>
   </button>
+
   <button
     class="btn btn-sm btn-primary"
     ng-click="$ctrl.saveGitSettings()"

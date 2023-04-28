@@ -285,6 +285,7 @@ angular.module('portainer.app').factory('StackService', [
           RepositoryUsername: gitConfig.RepositoryUsername,
           RepositoryPassword: gitConfig.RepositoryPassword,
           RepositoryGitCredentialID: gitConfig.RepositoryGitCredentialID,
+          TLSSkipVerify: gitConfig.TLSSkipVerify,
         };
       }
 
@@ -480,6 +481,7 @@ angular.module('portainer.app').factory('StackService', [
           RepositoryUsername: gitConfig.RepositoryUsername,
           RepositoryPassword: gitConfig.RepositoryPassword,
           Prune: gitConfig.Option.Prune,
+          TLSSkipVerify: gitConfig.TLSSkipVerify,
         }
       ).$promise;
     };

@@ -27,6 +27,7 @@ type stackGitUpdatePayload struct {
 	RepositoryUsername        string
 	RepositoryPassword        string
 	RepositoryGitCredentialID int
+	TLSSkipVerify             bool
 }
 
 func (payload *stackGitUpdatePayload) Validate(r *http.Request) error {
@@ -141,6 +142,7 @@ func (handler *Handler) stackUpdateGit(w http.ResponseWriter, r *http.Request) *
 
 	//update retrieved stack data based on the payload
 	stack.GitConfig.ReferenceName = payload.RepositoryReferenceName
+	stack.GitConfig.TLSSkipVerify = payload.TLSSkipVerify
 	stack.AutoUpdate = payload.AutoUpdate
 	stack.Env = payload.Env
 	stack.UpdatedBy = user.Username
