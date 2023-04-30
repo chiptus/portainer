@@ -339,6 +339,7 @@ class KubernetesApplicationController {
           event.Involved.uid === this.application.ServiceId ||
           _.find(this.application.Pods, (pod) => pod.Id === event.Involved.uid) !== undefined
       );
+
       this.state.eventWarningCount = KubernetesEventHelper.warningCount(this.events);
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to retrieve application related events');
@@ -422,6 +423,7 @@ class KubernetesApplicationController {
       canAccessNode: this.Authentication.hasAuthorizations(['K8sClusterNodeR']),
       canShowConsole: this.Authentication.hasAuthorizations(['K8sApplicationConsoleRW']),
       publicUrl: this.endpoint.PublicURL,
+      FailedCreateCondition: undefined,
     };
 
     this.state.activeTab = this.LocalStorage.getActiveTab('application');
@@ -442,6 +444,8 @@ class KubernetesApplicationController {
       this.hideEditButton = true;
     }
     await this.getEvents();
+
+    this.state.FailedCreateCondition = _.find(this.application.Conditions, { reason: 'FailedCreate' });
     this.updateApplicationKindText();
     this.state.viewReady = true;
   }

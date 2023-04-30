@@ -40,6 +40,7 @@ const _KubernetesApplication = Object.freeze({
   CurrentRevision: undefined,
   Raw: undefined, // only filled when inspecting app details / create / edit view (never filled in multiple-apps views)
   AutoScaler: undefined, // only filled if the application has an HorizontalPodAutoScaler bound to it
+  Conditions: [],
 });
 
 export class KubernetesApplication {

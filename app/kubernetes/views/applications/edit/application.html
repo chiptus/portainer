@@ -26,6 +26,13 @@
             <uib-tab index="0" classes="btn-sm" select="ctrl.selectTab(0)">
               <uib-tab-heading> <pr-icon icon="'svg-laptopcode'" class-name="'mr-1'"></pr-icon> Application </uib-tab-heading>
               <div style="padding: 20px">
+                <div ng-if="ctrl.state.FailedCreateCondition" class="vertical-center alert alert-danger mb-2">
+                  <pr-icon icon="'info'" mode="'danger'" class="mr-1"></pr-icon>
+                  <div>
+                    <div class="font-semibold">Failed to create application</div>
+                    {{ ctrl.state.FailedCreateCondition.message }}
+                  </div>
+                </div>
                 <table class="table">
                   <tbody>
                     <tr>
@@ -189,7 +196,7 @@
               <uib-tab-heading>
                 <pr-icon icon="'history'"></pr-icon> Events
                 <div ng-if="ctrl.hasEventWarnings()" class="vertical-center">
-                  <pr-icon icon="'alert-circle'" mode="'warning'"></pr-icon>
+                  <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>
                   {{ ctrl.state.eventWarningCount }} warning(s)
                 </div>
               </uib-tab-heading>

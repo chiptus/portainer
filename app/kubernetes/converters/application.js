@@ -82,6 +82,8 @@ class KubernetesApplicationConverter {
     res.Env = _.without(_.flatMap(_.map(containers, 'env')), undefined);
     res.Pods = data.spec.selector ? KubernetesApplicationHelper.associatePodsAndApplication(pods, data.spec.selector) : [data];
 
+    res.Conditions = data.status.conditions;
+
     const limits = {
       Cpu: 0,
       Memory: 0,

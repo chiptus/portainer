@@ -30,6 +30,7 @@ export function KubernetesApplicationFormValues() {
   this.OriginalIngresses = undefined;
   this.IsPublishingService = false;
   this.Annotations = [];
+  this.Conditions = [];
 }
 
 export const KubernetesApplicationConfigurationFormValueOverridenKeyTypes = Object.freeze({

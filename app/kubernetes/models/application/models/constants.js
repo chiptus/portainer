@@ -24,6 +24,14 @@ export const KubernetesApplicationTypeStrings = Object.freeze({
   POD: 'Pod',
 });
 
+export const KubernetesApplicationTypesToStrings = Object.freeze({
+  [KubernetesApplicationTypes.DEPLOYMENT]: KubernetesApplicationTypeStrings.DEPLOYMENT,
+  [KubernetesApplicationTypes.DAEMONSET]: KubernetesApplicationTypeStrings.DAEMONSET,
+  [KubernetesApplicationTypes.STATEFULSET]: KubernetesApplicationTypeStrings.STATEFULSET,
+  [KubernetesApplicationTypes.POD]: KubernetesApplicationTypeStrings.POD,
+  [KubernetesApplicationTypes.HELM]: KubernetesApplicationTypeStrings.HELM,
+});
+
 export const KubernetesApplicationPublishingTypes = Object.freeze({
   CLUSTER_IP: 1,
   NODE_PORT: 2,
