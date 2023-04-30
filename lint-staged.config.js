@@ -3,4 +3,5 @@ module.exports = {
   '*.(ts){,x}': () => 'tsc --noEmit',
   '*.{js,ts,tsx,css,md,html,json}': 'prettier --write',
   '*.go': 'bash golangci-lint.sh',
+  'api/http/handler/**/*.go': 'yarn orval',
 };

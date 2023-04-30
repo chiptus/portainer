@@ -55,6 +55,7 @@ settings:
 overrides:
   - files:
       - app/**/*.ts{,x}
+      - ./orval.config.ts
     parserOptions:
       project: './tsconfig.json'
     parser: '@typescript-eslint/parser'
@@ -89,7 +90,7 @@ overrides:
       func-style: [error, 'declaration']
       import/prefer-default-export: off
       no-use-before-define: 'off'
-      '@typescript-eslint/no-use-before-define': ['error', { functions: false, 'allowNamedExports': true }]
+      '@typescript-eslint/no-use-before-define': ['error', { functions: false, typedefs: false, allowNamedExports: true }]
       no-shadow: 'off'
       '@typescript-eslint/no-shadow': off
       jsx-a11y/no-autofocus: warn
@@ -126,3 +127,10 @@ overrides:
       - app/**/*.stories.*
     rules:
       'no-alert': off
+  # generated types
+  - files:
+      - app/generated-types/**/*.ts
+    rules:
+      func-style: off
+      '@typescript-eslint/no-explicit-any': off
+      '@typescript-eslint/naming-convention': off

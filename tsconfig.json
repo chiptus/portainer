@@ -40,7 +40,7 @@
     }
   },
   "exclude": ["api", "build", "dist", "distribution", "node_modules", "test", "webpack"],
-  "include": ["app"],
+  "include": ["."],
   "typeAcquisition": {
     "include": ["jest"]
   }
