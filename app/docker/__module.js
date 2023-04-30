@@ -66,6 +66,9 @@ angular.module('portainer.docker', ['portainer.app', reactModule]).config([
           }
         });
       },
+      views: {
+        'chatBotItem@': 'chatBotItem',
+      },
     };
 
     var configs = {
@@ -391,6 +394,9 @@ angular.module('portainer.docker', ['portainer.app', reactModule]).config([
           templateUrl: '~Portainer/views/stacks/create/createstack.html',
           controller: 'CreateStackController',
         },
+      },
+      params: {
+        yaml: '',
       },
     };
 

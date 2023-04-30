@@ -62,6 +62,7 @@ require (
 	github.com/portainer/portainer/pkg/libhelm v0.0.0-20230414025037-7a8a20e0cc3b
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.29.0
+	github.com/sashabaranov/go-openai v1.5.8
 	github.com/stretchr/testify v1.8.1
 	github.com/urfave/negroni/v3 v3.0.0
 	github.com/viney-shih/go-lock v1.1.1

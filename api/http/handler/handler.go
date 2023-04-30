@@ -6,6 +6,7 @@ import (
 
 	"github.com/portainer/portainer-ee/api/http/handler/auth"
 	"github.com/portainer/portainer-ee/api/http/handler/backup"
+	"github.com/portainer/portainer-ee/api/http/handler/chat"
 	"github.com/portainer/portainer-ee/api/http/handler/cloudcredentials"
 	"github.com/portainer/portainer-ee/api/http/handler/customtemplates"
 	"github.com/portainer/portainer-ee/api/http/handler/docker"
@@ -53,6 +54,7 @@ import (
 type Handler struct {
 	AuthHandler               *auth.Handler
 	BackupHandler             *backup.Handler
+	ChatHandler               *chat.Handler
 	CustomTemplatesHandler    *customtemplates.Handler
 	DockerHandler             *docker.Handler
 	EdgeGroupsHandler         *edgegroups.Handler
@@ -182,6 +184,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.AuthHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/backup"):
 		http.StripPrefix("/api", h.BackupHandler).ServeHTTP(w, r)
+	case strings.HasPrefix(r.URL.Path, "/api/chat"):
+		http.StripPrefix("/api", h.ChatHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/restore"):
 		http.StripPrefix("/api", h.BackupHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/custom_templates"):

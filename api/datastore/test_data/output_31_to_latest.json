@@ -873,6 +873,9 @@
     "EnableHostManagementFeatures": false,
     "EnableTelemetry": true,
     "EnforceEdgeID": false,
+    "ExperimentalFeatures": {
+      "OpenAIIntegration": false
+    },
     "GlobalDeploymentOptions": {
       "hideAddWithForm": false,
       "hideFileUpload": false,
@@ -2144,6 +2147,7 @@
     {
       "EndpointAuthorizations": {},
       "Id": 1,
+      "OpenAIApiKey": "",
       "Password": "$2a$10$/0Vjytox0VUppqvRNZYO0uQmSZBphAwBAAWQOwv0XgREvWeLRFK9y",
       "PortainerAuthorizations": {
         "PortainerDockerHubInspect": true,

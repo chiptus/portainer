@@ -43,7 +43,7 @@ angular
 
       $scope.formValues = {
         Name: '',
-        StackFileContent: '',
+        StackFileContent: $state.params.yaml || '',
         StackFile: null,
         RepositoryURL: '',
         RepositoryURLValid: false,

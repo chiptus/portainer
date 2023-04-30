@@ -48,6 +48,9 @@ func NewHandler(bouncer *security.RequestBouncer, userActivityService portainere
 	adminRouter := h.NewRoute().Subrouter()
 	adminRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
 
+	authenticatedRouter := h.NewRoute().Subrouter()
+	authenticatedRouter.Use(bouncer.AuthenticatedAccess, useractivity.LogUserActivity(h.userActivityService))
+
 	publicRouter := h.NewRoute().Subrouter()
 	publicRouter.Use(bouncer.PublicAccess)
 
@@ -56,6 +59,9 @@ func NewHandler(bouncer *security.RequestBouncer, userActivityService portainere
 	adminRouter.Handle("/settings/default_registry", httperror.LoggerHandler(h.defaultRegistryUpdate)).Methods(http.MethodPut)
 
 	publicRouter.Handle("/settings/public", httperror.LoggerHandler(h.settingsPublic)).Methods(http.MethodGet)
+
+	adminRouter.Handle("/settings/experimental", httperror.LoggerHandler(h.settingsExperimentalUpdate)).Methods(http.MethodPut)
+	authenticatedRouter.Handle("/settings/experimental", httperror.LoggerHandler(h.settingsExperimentalInspect)).Methods(http.MethodGet)
 
 	return h
 }

@@ -55,6 +55,9 @@ func (store *Store) checkOrCreateDefaultSettings() error {
 				PingInterval:     60,
 				SnapshotInterval: 60,
 			},
+			ExperimentalFeatures: portaineree.ExperimentalFeatures{
+				OpenAIIntegration: false,
+			},
 			SnapshotInterval:         portaineree.DefaultSnapshotInterval,
 			EdgeAgentCheckinInterval: portaineree.DefaultEdgeAgentCheckinIntervalInSeconds,
 			TemplatesURL:             portaineree.DefaultTemplatesURL,

@@ -68,6 +68,9 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
           }
         });
       },
+      views: {
+        'chatBotItem@': 'chatBotItem',
+      },
     };
 
     const helmApplication = {
@@ -338,6 +341,9 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
         'content@': {
           component: 'kubernetesDeployView',
         },
+      },
+      params: {
+        yaml: '',
       },
     };
 

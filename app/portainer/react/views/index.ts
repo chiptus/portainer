@@ -17,14 +17,14 @@ import { EdgeAutoCreateScriptView } from '@/react/portainer/environments/EdgeAut
 import { wizardModule } from './wizard';
 import { teamsModule } from './teams';
 import { updateSchedulesModule } from './update-schedules';
-import { gitCredentialsModule } from './git-credentials';
+import { accountViews } from './account';
 
 export const viewsModule = angular
   .module('portainer.app.react.views', [
     wizardModule,
     teamsModule,
     updateSchedulesModule,
-    gitCredentialsModule,
+    accountViews,
   ])
   .component(
     'homeView',

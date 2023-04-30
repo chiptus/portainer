@@ -15,4 +15,8 @@ var (
 	ErrResourceAccessDenied = errors.New("Access denied to resource")
 	// ErrNotAvailableInDemo feature is not allowed in demo
 	ErrNotAvailableInDemo = errors.New("This feature is not available in the demo version of Portainer")
+	// ErrNotAvailable feature is not enabled
+	ErrNotAvailable = errors.New("This feature is not enabled. Please contact your administrator.")
+	// ErrDisabled feature is disabled
+	ErrDisabled = errors.New("This feature has been disabled. Contact Portainer support.")
 )

@@ -96,6 +96,10 @@ export interface DefaultRegistry {
   Hide: boolean;
 }
 
+export interface ExperimentalFeatures {
+  OpenAIIntegration: boolean;
+}
+
 export interface Settings {
   LogoURL: string;
   CustomLoginBanner: string;
@@ -131,6 +135,7 @@ export interface Settings {
   AllowDeviceMappingForRegularUsers: boolean;
   AllowContainerCapabilitiesForRegularUsers: boolean;
   DefaultRegistry: DefaultRegistry;
+  ExperimentalFeatures: ExperimentalFeatures;
   Edge: {
     PingInterval: number;
     SnapshotInterval: number;

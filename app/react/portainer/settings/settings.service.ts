@@ -58,7 +58,7 @@ export async function updateDefaultRegistry(
   }
 }
 
-function buildUrl(subResource?: string, action?: string) {
+export function buildUrl(subResource?: string, action?: string) {
   let url = 'settings';
   if (subResource) {
     url += `/${subResource}`;

@@ -24,4 +24,5 @@ export type User = {
     color: 'dark' | 'light' | 'highcontrast' | 'auto';
     subtleUpgradeButton: boolean;
   };
+  OpenAIApiKey?: string;
 };

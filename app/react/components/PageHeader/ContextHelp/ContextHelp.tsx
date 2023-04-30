@@ -8,7 +8,7 @@ import './ContextHelp.css';
 
 export function ContextHelp() {
   function onHelpClick() {
-    const docURL = getDocURL();
+    const { docURL } = getDocURL();
     window.open(docURL, '_blank');
   }
 

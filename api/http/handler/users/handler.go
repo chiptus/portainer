@@ -3,6 +3,7 @@ package users
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
@@ -25,8 +26,13 @@ var (
 	errCryptoHashFailure          = errors.New("Unable to hash data")
 )
 
+func redactField(field string) string {
+	return strings.Repeat("*", len(field))
+}
+
 func hideFields(user *portaineree.User) {
 	user.Password = ""
+	user.OpenAIApiKey = redactField(user.OpenAIApiKey)
 }
 
 // Handler is the HTTP handler used to handle user operations.
@@ -67,6 +73,7 @@ func NewHandler(bouncer *security.RequestBouncer, rateLimiter *security.RateLimi
 	adminRouter.Handle("/users", httperror.LoggerHandler(h.userList)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/users/{id}", httperror.LoggerHandler(h.userInspect)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/users/{id}", httperror.LoggerHandler(h.userUpdate)).Methods(http.MethodPut)
+	authenticatedRouter.Handle("/users/{id}/openai", httperror.LoggerHandler(h.userUpdateOpenAIConfig)).Methods(http.MethodPut)
 	adminRouter.Handle("/users/{id}", httperror.LoggerHandler(h.userDelete)).Methods(http.MethodDelete)
 	adminRouter.Handle("/users/{id}/tokens", httperror.LoggerHandler(h.userGetAccessTokens)).Methods(http.MethodGet)
 	adminRouter.Handle("/users/{id}/tokens", rateLimiter.LimitAccess(httperror.LoggerHandler(h.userCreateAccessToken))).Methods(http.MethodPost)

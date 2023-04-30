@@ -82,6 +82,12 @@ class KubernetesDeployController {
     this.onChangeMethod = this.onChangeMethod.bind(this);
     this.onChangeDeployType = this.onChangeDeployType.bind(this);
     this.onChangeTemplateVariables = this.onChangeTemplateVariables.bind(this);
+
+    const manifestData = this.$state.params.yaml || '';
+    if (manifestData) {
+      this.formValues.EditorContent = manifestData;
+      this.state.BuildMethod = KubernetesDeployBuildMethods.WEB_EDITOR;
+    }
   }
 
   onChangeTemplateVariables(value) {

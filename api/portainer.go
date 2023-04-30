@@ -1291,6 +1291,9 @@ type (
 
 		Edge Edge `json:"Edge"`
 
+		// Experimental features
+		ExperimentalFeatures ExperimentalFeatures `json:"ExperimentalFeatures"`
+
 		// Deprecated fields
 		DisplayDonationHeader       bool
 		DisplayExternalContributors bool
@@ -1304,6 +1307,11 @@ type (
 		AllowStackManagementForRegularUsers       bool `json:"AllowStackManagementForRegularUsers"`
 		AllowDeviceMappingForRegularUsers         bool `json:"AllowDeviceMappingForRegularUsers"`
 		AllowContainerCapabilitiesForRegularUsers bool `json:"AllowContainerCapabilitiesForRegularUsers"`
+	}
+
+	// ExperimentalFeatures represents experimental features that can be enabled
+	ExperimentalFeatures struct {
+		OpenAIIntegration bool `json:"OpenAIIntegration"`
 	}
 
 	// SnapshotJob represents a scheduled job that can create environment(endpoint) snapshots
@@ -1612,6 +1620,9 @@ type (
 		PortainerAuthorizations Authorizations         `json:"PortainerAuthorizations"`
 		EndpointAuthorizations  EndpointAuthorizations `json:"EndpointAuthorizations"`
 		ThemeSettings           UserThemeSettings
+
+		// OpenAI integration parameters
+		OpenAIApiKey string `json:"OpenAIApiKey" example:"sk-1234567890"`
 
 		// Deprecated fields
 

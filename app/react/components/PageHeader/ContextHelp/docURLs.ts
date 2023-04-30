@@ -1,21 +1,32 @@
-const docURLs = [
+type DocumentationDefinitions = {
+  desc: string;
+  docURL: string;
+  locationRegex: RegExp;
+  examples: string[];
+};
+
+const definitions: DocumentationDefinitions[] = [
   {
     desc: 'Home',
     docURL: 'https://docs.portainer.io/user/home',
     locationRegex: /#!\/home/,
-    exmaples: ['#!/home'],
+    examples: ['#!/home'],
   },
   {
     desc: 'Docker or Swarm / Dashboard',
     docURL: 'https://docs.portainer.io/user/docker/dashboard',
     locationRegex: /#!\/\d+\/docker\/dashboard/,
-    exmaples: ['#!/10/docker/dashboard'],
+    examples: ['#!/10/docker/dashboard'],
   },
   {
     desc: 'Docker or Swarm / Custom Templates',
     docURL: 'https://docs.portainer.io/user/docker/templates/custom',
     locationRegex: /#!\/\d+\/docker\/templates\/custom/,
-    examples: ['#!/10/docker/templates/custom', '#!/10/docker/templates/custom/new?fileContent=&type=', '#!/10/docker/templates/custom/1'],
+    examples: [
+      '#!/10/docker/templates/custom',
+      '#!/10/docker/templates/custom/new?fileContent=&type=',
+      '#!/10/docker/templates/custom/1',
+    ],
   },
   {
     desc: 'Docker or Swarm / App Templates',
@@ -27,7 +38,11 @@ const docURLs = [
     desc: 'Docker or Swarm / Stacks',
     docURL: 'https://docs.portainer.io/user/docker/stacks',
     locationRegex: /#!\/\d+\/docker\/stacks/,
-    examples: ['#!/10/docker/stacks', '#!/10/docker/stacks/newstack', '#!/10/docker/stacks/s4?id=3&type=1&regular=true&external=false&orphaned=false'],
+    examples: [
+      '#!/10/docker/stacks',
+      '#!/10/docker/stacks/newstack',
+      '#!/10/docker/stacks/s4?id=3&type=1&regular=true&external=false&orphaned=false',
+    ],
   },
   {
     desc: 'Swarm / Services',
@@ -59,31 +74,51 @@ const docURLs = [
     desc: 'Docker or Swarm / Images',
     docURL: 'https://docs.portainer.io/user/docker/images',
     locationRegex: /#!\/\d+\/docker\/images/,
-    examples: ['#!/10/docker/images', '#!/10/docker/images/build', '#!/10/docker/images/sha256:feb5d9fea6a5e9606aa995e879d862b825965ba48de054caab5ef356dc6b3412'],
+    examples: [
+      '#!/10/docker/images',
+      '#!/10/docker/images/build',
+      '#!/10/docker/images/sha256:feb5d9fea6a5e9606aa995e879d862b825965ba48de054caab5ef356dc6b3412',
+    ],
   },
   {
     desc: 'Docker or Swarm / Networks',
     docURL: 'https://docs.portainer.io/user/docker/networks',
     locationRegex: /#!\/\d+\/docker\/networks/,
-    examples: ['#!/10/docker/networks', '#!/10/docker/networks/new', '#!/10/docker/networks/db5732ff4a2c6df70a18530dba6abd8625f8e94c5fc5daabbcbab07377ee1044'],
+    examples: [
+      '#!/10/docker/networks',
+      '#!/10/docker/networks/new',
+      '#!/10/docker/networks/db5732ff4a2c6df70a18530dba6abd8625f8e94c5fc5daabbcbab07377ee1044',
+    ],
   },
   {
     desc: 'Docker or Swarm / Volumes',
     docURL: 'https://docs.portainer.io/user/docker/volumes',
     locationRegex: /#!\/\d+\/docker\/volumes/,
-    examples: ['#!/10/docker/volumes', '#!/10/docker/volumes/new', '#!/10/docker/volumes/153b46162f5bab9a7c9d2c8e1675115fcedd4c0ccdf5834159400750fa6b794c'],
+    examples: [
+      '#!/10/docker/volumes',
+      '#!/10/docker/volumes/new',
+      '#!/10/docker/volumes/153b46162f5bab9a7c9d2c8e1675115fcedd4c0ccdf5834159400750fa6b794c',
+    ],
   },
   {
     desc: 'Swarm / Configs',
     docURL: 'https://docs.portainer.io/user/docker/configs',
     locationRegex: /#!\/\d+\/docker\/configs/,
-    examples: ['#!/10/docker/configs', '#!/10/docker/configs/new', '#!/10/docker/configs/azd0xc805l298jrgnadbnnzyv'],
+    examples: [
+      '#!/10/docker/configs',
+      '#!/10/docker/configs/new',
+      '#!/10/docker/configs/azd0xc805l298jrgnadbnnzyv',
+    ],
   },
   {
     desc: 'Swarm / Secrets',
     docURL: 'https://docs.portainer.io/user/docker/secrets',
     locationRegex: /#!\/\d+\/docker\/secrets/,
-    examples: ['#!/10/docker/secrets', '#!/10/docker/secrets/new', '#!/10/docker/secrets/tsoeeh7ln7g54g5qkk67eg4xe'],
+    examples: [
+      '#!/10/docker/secrets',
+      '#!/10/docker/secrets/new',
+      '#!/10/docker/secrets/tsoeeh7ln7g54g5qkk67eg4xe',
+    ],
   },
   {
     desc: 'Docker or Swarm / Swarm / Cluster visualizer',
@@ -107,7 +142,10 @@ const docURLs = [
     desc: 'Swarm / Swarm',
     docURL: 'https://docs.portainer.io/user/docker/swarm',
     locationRegex: /#!\/\d+\/docker\/(swarm|nodes)/,
-    examples: ['#!/10/docker/swarm', '#!/10/docker/nodes/nd694yepzgms1j8y7kv3lpcc3'],
+    examples: [
+      '#!/10/docker/swarm',
+      '#!/10/docker/nodes/nd694yepzgms1j8y7kv3lpcc3',
+    ],
   },
   {
     desc: 'Docker / Events',
@@ -143,13 +181,21 @@ const docURLs = [
     desc: 'Kubernetes / Custom Templates',
     docURL: 'https://docs.portainer.io/user/kubernetes/templates',
     locationRegex: /#!\/\d+\/kubernetes\/templates\/custom/,
-    examples: ['#!/1/kubernetes/templates/custom', '#!/1/kubernetes/templates/custom/new?fileContent='],
+    examples: [
+      '#!/1/kubernetes/templates/custom',
+      '#!/1/kubernetes/templates/custom/new?fileContent=',
+    ],
   },
   {
     desc: 'Kubernetes / Namespaces',
     docURL: 'https://docs.portainer.io/user/kubernetes/namespaces',
     locationRegex: /#!\/\d+\/kubernetes\/pools/,
-    examples: ['#!/1/kubernetes/pools', '#!/1/kubernetes/pools/new', '#!/1/kubernetes/deploy?templateId=', '#!/1/kubernetes/pools/default'],
+    examples: [
+      '#!/1/kubernetes/pools',
+      '#!/1/kubernetes/pools/new',
+      '#!/1/kubernetes/deploy?templateId=',
+      '#!/1/kubernetes/pools/default',
+    ],
   },
   {
     desc: 'Kubernetes / Helm',
@@ -161,7 +207,12 @@ const docURLs = [
     desc: 'Kubernetes / Applications',
     docURL: 'https://docs.portainer.io/user/kubernetes/applications',
     locationRegex: /#!\/\d+\/kubernetes\/applications/,
-    examples: ['#!/1/kubernetes/applications', '#!/1/kubernetes/applications/new', '#!/1/kubernetes/deploy?templateId=', '#!/1/kubernetes/applications/metallb-system/controller'],
+    examples: [
+      '#!/1/kubernetes/applications',
+      '#!/1/kubernetes/applications/new',
+      '#!/1/kubernetes/deploy?templateId=',
+      '#!/1/kubernetes/applications/metallb-system/controller',
+    ],
   },
   {
     desc: 'Kubernetes / Services',
@@ -179,7 +230,11 @@ const docURLs = [
     desc: 'Kubernetes / ConfigMaps & Secrets',
     docURL: 'https://docs.portainer.io/user/kubernetes/configurations',
     locationRegex: /#!\/\d+\/kubernetes\/configurations/,
-    examples: ['#!/1/kubernetes/configurations', '#!/1/kubernetes/configurations/new', '#!/1/kubernetes/configurations/metallb-system/config'],
+    examples: [
+      '#!/1/kubernetes/configurations',
+      '#!/1/kubernetes/configurations/new',
+      '#!/1/kubernetes/configurations/metallb-system/config',
+    ],
   },
   {
     desc: 'Kubernetes / Volumes',
@@ -203,7 +258,11 @@ const docURLs = [
     desc: 'Kubernetes / Cluster',
     docURL: 'https://docs.portainer.io/user/kubernetes/cluster',
     locationRegex: /#!\/\d+\/kubernetes\/cluster/,
-    examples: ['#!/1/kubernetes/cluster', '#!/1/kubernetes/cluster/ip-10-138-11-102', '#!/1/kubernetes/cluster/ip-10-138-11-102/stats'],
+    examples: [
+      '#!/1/kubernetes/cluster',
+      '#!/1/kubernetes/cluster/ip-10-138-11-102',
+      '#!/1/kubernetes/cluster/ip-10-138-11-102/stats',
+    ],
   },
   {
     desc: 'Kubernetes / Cluster / Registries',
@@ -303,7 +362,12 @@ const docURLs = [
     desc: 'Settings / Environments / Groups',
     docURL: 'https://docs.portainer.io/admin/environments/groups',
     locationRegex: /#!\/groups/,
-    examples: ['#!/groups', '#!/groups/new', '#!/groups/3', '#!/groups/3/access'],
+    examples: [
+      '#!/groups',
+      '#!/groups/new',
+      '#!/groups/3',
+      '#!/groups/3/access',
+    ],
   },
   {
     desc: 'Settings / Environments / Tags',
@@ -359,7 +423,11 @@ const docURLs = [
     desc: 'Settings / Settings / Credentials',
     docURL: 'https://docs.portainer.io/admin/settings/credentials',
     locationRegex: /#!\/settings\/cloud/,
-    examples: ['#!/settings/cloud', '#!/settings/cloud/credentials/new', '#!/settings/cloud/credentials/1'],
+    examples: [
+      '#!/settings/cloud',
+      '#!/settings/cloud/credentials/new',
+      '#!/settings/cloud/credentials/1',
+    ],
   },
   {
     desc: 'Settings / Settings / Edge Compute',
@@ -375,15 +443,20 @@ const docURLs = [
   },
 ];
 
-const DEFAULT_DOC_URL = 'https://docs.portainer.io';
+type Documentation = Pick<DocumentationDefinitions, 'docURL'>;
 
-export function getDocURL() {
-  const hash = window.location.hash;
-  for (let i = 0; i < docURLs.length; i += 1) {
-    const docURL = docURLs[i];
-    if (hash.match(docURL.locationRegex)) {
-      return docURL.docURL;
-    }
+const DEFAULT_DOC: Documentation = {
+  docURL: 'https://docs.portainer.io',
+};
+
+export function getDocURL(): Documentation {
+  const { hash } = window.location;
+
+  let doc: Documentation | undefined = definitions.find((def) =>
+    hash.match(def.locationRegex)
+  );
+  if (!doc) {
+    doc = DEFAULT_DOC;
   }
-  return DEFAULT_DOC_URL;
+  return doc;
 }

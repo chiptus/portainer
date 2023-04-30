@@ -12,7 +12,7 @@ import componentsModule from './components';
 import servicesModule from './services';
 import { reactModule } from './react';
 import { sidebarModule } from './react/views/sidebar';
-import { gitCredentialsModule } from './react/views/git-credentials';
+import { gitCredentialsModule } from './react/views/account/git-credentials';
 import environmentsModule from './environments';
 import { helpersModule } from './helpers';
 

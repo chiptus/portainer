@@ -85,9 +85,13 @@
           </div>
 
           <!-- Main Content -->
-          <div id="view" ui-view="content" ng-if="!applicationState.loading"></div> </div
-        ><!-- End Page Content --> </div
-      ><!-- End Content Wrapper --> </div
-    ><!-- End Page Wrapper -->
+          <div id="view" ui-view="content" ng-if="!applicationState.loading"></div>
+          <div ng-if="showBotItem()" ui-view="chatBotItem"> </div>
+        </div>
+        <!-- End Page Content -->
+      </div>
+      <!-- End Content Wrapper -->
+    </div>
+    <!-- End Page Wrapper -->
   </body></html
 >

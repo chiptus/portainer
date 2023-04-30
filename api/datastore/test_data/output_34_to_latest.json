@@ -795,6 +795,9 @@
     "EnableHostManagementFeatures": false,
     "EnableTelemetry": false,
     "EnforceEdgeID": false,
+    "ExperimentalFeatures": {
+      "OpenAIIntegration": false
+    },
     "GlobalDeploymentOptions": {
       "hideAddWithForm": false,
       "hideFileUpload": false,
@@ -1295,6 +1298,7 @@
     {
       "EndpointAuthorizations": {},
       "Id": 1,
+      "OpenAIApiKey": "",
       "Password": "$2a$10$9S1QB3.1a8imWMjr4J4oOe/s1y9jZY4NjVtEt4kqDFnCGWscM4KBW",
       "PortainerAuthorizations": {
         "PortainerDockerHubInspect": true,
@@ -1331,6 +1335,7 @@
     {
       "EndpointAuthorizations": {},
       "Id": 2,
+      "OpenAIApiKey": "",
       "Password": "$2a$10$VoBNCvC0.R98xPnVH6LWFuLV7Lr4VkB6veWjIsp7HMtD7Dg3JptAG",
       "PortainerAuthorizations": {
         "PortainerDockerHubInspect": true,
@@ -1367,6 +1372,7 @@
     {
       "EndpointAuthorizations": {},
       "Id": 3,
+      "OpenAIApiKey": "",
       "Password": "$2a$10$HnHd/NdAlnEOIEM7p2IKqe8fOWRkQ/vEezz/jhLnEEopcb.2.UiXq",
       "PortainerAuthorizations": {
         "PortainerDockerHubInspect": true,

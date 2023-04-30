@@ -6,6 +6,7 @@ import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
 import { GitCredentialsDatatable } from '@/react/portainer/account/AccountView/GitCredentialsDatatable';
 import { LicenseInfoPanel } from '@/react/portainer/licenses/components/LicenseInfoPanel';
+import { ChatBotItem } from '@/react/portainer/chat/ChatBot';
 
 import { Icon } from '@@/Icon';
 import { ReactQueryDevtoolsWrapper } from '@@/ReactQueryDevtoolsWrapper';
@@ -37,6 +38,7 @@ import { accessControlModule } from './access-control';
 import { environmentsModule } from './environments';
 import { envListModule } from './environments-list-view-components';
 import { registriesModule } from './registries';
+import { accountModule } from './account';
 
 export const componentsModule = angular
   .module('portainer.app.react.components', [
@@ -47,6 +49,7 @@ export const componentsModule = angular
     gitFormModule,
     registriesModule,
     settingsModule,
+    accountModule,
   ])
   .component(
     'tagSelector',
@@ -129,6 +132,10 @@ export const componentsModule = angular
       'isRefetching',
       'dataCy',
     ])
+  )
+  .component(
+    'chatBotItem',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(ChatBotItem))), [])
   )
   .component(
     'datatableSearchbar',

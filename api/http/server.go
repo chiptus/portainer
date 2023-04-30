@@ -20,6 +20,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler"
 	"github.com/portainer/portainer-ee/api/http/handler/auth"
 	"github.com/portainer/portainer-ee/api/http/handler/backup"
+	"github.com/portainer/portainer-ee/api/http/handler/chat"
 	"github.com/portainer/portainer-ee/api/http/handler/cloudcredentials"
 	"github.com/portainer/portainer-ee/api/http/handler/customtemplates"
 	dockerhandler "github.com/portainer/portainer-ee/api/http/handler/docker"
@@ -171,6 +172,10 @@ func (server *Server) Start() error {
 		adminMonitor,
 		server.DemoService,
 	)
+
+	var chatHandler = chat.NewHandler(requestBouncer, server.UserActivityService)
+	chatHandler.DataStore = server.DataStore
+	chatHandler.SnapshotService = server.SnapshotService
 
 	var roleHandler = roles.NewHandler(requestBouncer)
 	roleHandler.DataStore = server.DataStore
@@ -344,6 +349,7 @@ func (server *Server) Start() error {
 		RoleHandler:               roleHandler,
 		AuthHandler:               authHandler,
 		BackupHandler:             backupHandler,
+		ChatHandler:               chatHandler,
 		CustomTemplatesHandler:    customTemplatesHandler,
 		DockerHandler:             dockerHandler,
 		EdgeGroupsHandler:         edgeGroupsHandler,

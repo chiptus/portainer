@@ -11,4 +11,8 @@ function MainController($scope, StateManager, ThemeManager, SidebarService) {
   $scope.isSidebarOpen = SidebarService.isSidebarOpen;
 
   ThemeManager.autoTheme();
+
+  $scope.showBotItem = function () {
+    return !$scope.applicationState.loading;
+  };
 }
