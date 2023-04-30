@@ -39,7 +39,7 @@ const (
 // @param search query string false "Search query"
 // @param groupIds query []int false "List environments(endpoints) of these groups"
 // @param status query []int false "List environments(endpoints) by this status"
-// @param types query []int false "List environments(endpoints) of this type"
+// @param types query []portaineree.EndpointType false "List environments(endpoints) of this type"
 // @param tagIds query []int false "search environments(endpoints) with these tags (depends on tagsPartialMatch)"
 // @param tagsPartialMatch query bool false "If true, will return environment(endpoint) which has one of tagIds, if false (or missing) will return only environments(endpoints) that has all the tags"
 // @param endpointIds query []int false "will return only these environments(endpoints)"
