@@ -10,12 +10,17 @@ export default {
 } as Meta;
 
 interface StoryProps {
-  nodes: number;
   remainingDays: number;
+  noValidLicense: boolean;
 }
 
-function Template({ remainingDays, nodes }: StoryProps) {
-  return <LicenseExpirationPanel nodes={nodes} remainingDays={remainingDays} />;
+function Template({ remainingDays, noValidLicense }: StoryProps) {
+  return (
+    <LicenseExpirationPanel
+      noValidLicense={noValidLicense}
+      remainingDays={remainingDays}
+    />
+  );
 }
 
 export const Example: Story<StoryProps> = Template.bind({});
