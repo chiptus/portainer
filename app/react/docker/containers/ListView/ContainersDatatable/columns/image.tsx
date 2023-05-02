@@ -1,4 +1,4 @@
-import { Column, Row } from 'react-table';
+import { CellContext } from '@tanstack/react-table';
 import { useSref } from '@uirouter/react';
 
 import { ImageStatus } from '@/react/docker/components/ImageStatus';
@@ -6,23 +6,16 @@ import type { DockerContainer } from '@/react/docker/containers/types';
 import { trimSHA } from '@/docker/filters/utils';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 
-export const image: Column<DockerContainer> = {
-  Header: 'Image',
-  accessor: 'Image',
+import { columnHelper } from './helper';
+
+export const image = columnHelper.accessor('Image', {
+  header: 'Image',
   id: 'image',
-  disableFilters: true,
-  Cell: ImageCell,
-  canHide: true,
-  sortType: 'string',
-  Filter: () => null,
-};
+  cell: ImageCell,
+});
 
-interface Props {
-  value: string;
-  row: Row<DockerContainer>;
-}
-
-function ImageCell({ value: imageName, row }: Props) {
+function ImageCell({ getValue, row }: CellContext<DockerContainer, string>) {
+  const imageName = getValue();
   const linkProps = useSref('docker.images.image', { id: imageName });
   const shortImageName = trimSHA(imageName);
 

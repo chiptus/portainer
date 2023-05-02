@@ -1,13 +1,6 @@
-import { Column } from 'react-table';
+import { columnHelper } from './helper';
 
-import { DockerVolume } from '@/react/docker/volumes/types';
-
-export const stackName: Column<DockerVolume> = {
-  Header: 'Stack',
-  accessor: 'StackName',
-  id: 'stackname',
-  disableFilters: true,
-  canHide: true,
-  sortType: 'string',
-  Filter: () => null,
-};
+export const stackName = columnHelper.accessor('StackName', {
+  header: 'Stack',
+  id: 'stackName',
+});

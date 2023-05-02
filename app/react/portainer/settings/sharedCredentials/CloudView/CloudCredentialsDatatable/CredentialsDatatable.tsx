@@ -1,11 +1,11 @@
 import { Key } from 'lucide-react';
-import { useStore } from 'zustand';
 
 import { Datatable } from '@@/datatables';
 import { createPersistedStore } from '@@/datatables/types';
-import { useSearchBarState } from '@@/datatables/SearchBar';
+import { useTableState } from '@@/datatables/useTableState';
 
 import { useCloudCredentials } from '../../cloudSettings.service';
+import { Credential } from '../../types';
 
 import { CredentialsDatatableActions } from './CredentialsDatatableActions';
 import { columns } from './columns';
@@ -15,22 +15,17 @@ const storageKey = 'cloudCredentials';
 const settingsStore = createPersistedStore(storageKey, 'name');
 
 export function CredentialsDatatable() {
-  const settings = useStore(settingsStore);
-  const [search, setSearch] = useSearchBarState(storageKey);
+  const tableState = useTableState(settingsStore, storageKey);
+
   const cloudCredentialsQuery = useCloudCredentials();
 
   const credentials = cloudCredentialsQuery.data || [];
 
   return (
-    <Datatable
+    <Datatable<Credential>
       titleIcon={Key}
       title="Shared credentials"
-      initialPageSize={settings.pageSize}
-      onPageSizeChange={settings.setPageSize}
-      initialSortBy={settings.sortBy}
-      onSortByChange={settings.setSortBy}
-      searchValue={search}
-      onSearchChange={setSearch}
+      settingsManager={tableState}
       columns={columns}
       renderTableActions={(selectedRows) => (
         <CredentialsDatatableActions selectedItems={selectedRows} />

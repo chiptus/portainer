@@ -24,7 +24,7 @@ export function DetailsTable({
           </tr>
         </thead>
       )}
-      <tbody>{children}</tbody>
+      {children && <tbody>{children}</tbody>}
     </table>
   );
 }

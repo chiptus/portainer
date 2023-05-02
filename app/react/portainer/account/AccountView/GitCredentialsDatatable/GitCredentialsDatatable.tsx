@@ -1,12 +1,11 @@
-import { useStore } from 'zustand';
 import { Key } from 'lucide-react';
 
 import { useUser } from '@/react/hooks/useUser';
 import { useGitCredentials } from '@/react/portainer/account/git-credentials/git-credentials.service';
 
 import { Datatable } from '@@/datatables';
-import { useSearchBarState } from '@@/datatables/SearchBar';
 import { createPersistedStore } from '@@/datatables/types';
+import { useTableState } from '@@/datatables/useTableState';
 
 import { columns } from './columns';
 import { GitCredentialsDatatableActions } from './GitCredentialsDatatableActions';
@@ -19,19 +18,13 @@ export function GitCredentialsDatatable() {
   const { user } = useUser();
   const gitCredentialsQuery = useGitCredentials(user.Id);
 
-  const settings = useStore(settingsStore);
+  const tableState = useTableState(settingsStore, storageKey);
 
-  const [search, setSearch] = useSearchBarState(storageKey);
   return (
     <Datatable
       dataset={gitCredentialsQuery.data || []}
+      settingsManager={tableState}
       columns={columns}
-      initialPageSize={settings.pageSize}
-      onPageSizeChange={settings.setPageSize}
-      initialSortBy={settings.sortBy}
-      onSortByChange={settings.setSortBy}
-      searchValue={search}
-      onSearchChange={setSearch}
       title="Git credentials"
       titleIcon={Key}
       renderTableActions={(selectedRows) => (

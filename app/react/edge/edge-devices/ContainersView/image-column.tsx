@@ -1,14 +1,11 @@
-import { Column } from 'react-table';
+import { ColumnDef } from '@tanstack/react-table';
 
 import { DockerContainer } from '@/react/docker/containers/types';
 import { trimSHA } from '@/docker/filters/utils';
 
-export const image: Column<DockerContainer> = {
-  Header: 'Image',
-  accessor: (row) => trimSHA(row.Image),
+export const image: ColumnDef<DockerContainer> = {
+  header: 'Image',
+  accessorFn: (row) => trimSHA(row.Image),
   id: 'image',
-  disableFilters: true,
-  canHide: true,
-  sortType: 'string',
-  Filter: () => null,
+  enableHiding: true,
 };

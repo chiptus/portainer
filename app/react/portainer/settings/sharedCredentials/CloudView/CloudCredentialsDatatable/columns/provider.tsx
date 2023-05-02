@@ -1,18 +1,11 @@
-import { CellProps, Column } from 'react-table';
+import { credentialTitles } from '../../../types';
 
-import { Credential, credentialTitles } from '../../../types';
+import { columnHelper } from './helper';
 
-export const provider: Column<Credential> = {
-  Header: 'Provider',
-  accessor: (row) => credentialTitles[row.provider],
-  id: 'provider',
-  Cell: ProviderCell,
-  disableFilters: true,
-  Filter: () => null,
-  canHide: false,
-  sortType: 'string',
-};
-
-export function ProviderCell({ value: provider }: CellProps<Credential>) {
-  return provider;
-}
+export const provider = columnHelper.accessor(
+  (row) => credentialTitles[row.provider],
+  {
+    header: 'Provider',
+    id: 'provider',
+  }
+);

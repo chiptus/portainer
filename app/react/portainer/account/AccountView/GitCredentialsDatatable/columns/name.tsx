@@ -1,21 +1,19 @@
-import { CellProps, Column } from 'react-table';
+import { CellContext } from '@tanstack/react-table';
 
 import { GitCredential } from '@/react/portainer/account/git-credentials/types';
 
 import { Link } from '@@/Link';
 
-export const name: Column<GitCredential> = {
-  Header: 'Name',
-  accessor: (row) => row.name,
-  id: 'name',
-  Cell: NameCell,
-  disableFilters: true,
-  Filter: () => null,
-  canHide: false,
-  sortType: 'string',
-};
+import { columnHelper } from './helper';
 
-export function NameCell({ value: name, row }: CellProps<GitCredential>) {
+export const name = columnHelper.accessor('name', { cell: NameCell });
+
+export function NameCell({
+  getValue,
+  row,
+}: CellContext<GitCredential, string>) {
+  const name = getValue();
+
   return (
     <Link
       to="portainer.account.gitEditGitCredential"

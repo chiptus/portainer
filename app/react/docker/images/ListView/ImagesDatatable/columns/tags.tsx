@@ -1,18 +1,18 @@
-import { CellProps, Column } from 'react-table';
+import { CellContext } from '@tanstack/react-table';
 
 import { DockerImage } from '@/react/docker/images/types';
 
-export const tags: Column<DockerImage> = {
-  Header: 'Tags',
-  accessor: 'RepoTags',
-  id: 'tags',
-  Cell,
-  disableFilters: true,
-  canHide: true,
-  Filter: () => null,
-};
+import { columnHelper } from './helper';
 
-function Cell({ value: repoTags }: CellProps<DockerImage, string[]>) {
+export const tags = columnHelper.accessor('RepoTags', {
+  id: 'tags',
+  header: 'Tags',
+  cell: Cell,
+});
+
+function Cell({ getValue }: CellContext<DockerImage, string[]>) {
+  const repoTags = getValue();
+
   return (
     <>
       {repoTags.map((tag, idx) => (

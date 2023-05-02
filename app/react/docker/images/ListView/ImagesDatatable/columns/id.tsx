@@ -1,24 +1,23 @@
-import { CellProps, Column } from 'react-table';
+import { CellContext } from '@tanstack/react-table';
 import { useSref } from '@uirouter/react';
 
 import { DockerImage } from '@/react/docker/images/types';
 import { truncate } from '@/portainer/filters/filters';
 
-export const id: Column<DockerImage> = {
-  Header: 'Id',
-  accessor: 'Id',
-  Cell,
+import { columnHelper } from './helper';
+
+export const id = columnHelper.accessor('Id', {
   id: 'id',
-  disableFilters: true,
-  canHide: true,
-  sortType: 'string',
-  Filter: () => null,
-};
+  header: 'Id',
+  cell: Cell,
+});
 
 function Cell({
-  value: name,
+  getValue,
   row: { original: image },
-}: CellProps<DockerImage>) {
+}: CellContext<DockerImage, string>) {
+  const name = getValue();
+
   const linkProps = useSref('.image', {
     id: image.Id,
     imageId: image.Id,

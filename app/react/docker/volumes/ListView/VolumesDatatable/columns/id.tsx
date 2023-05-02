@@ -1,24 +1,23 @@
-import { CellProps, Column } from 'react-table';
 import { useSref } from '@uirouter/react';
+import { CellContext } from '@tanstack/react-table';
 
 import { DockerVolume } from '@/react/docker/volumes/types';
 import { truncate } from '@/portainer/filters/filters';
 
-export const id: Column<DockerVolume> = {
-  Header: 'Id',
-  accessor: 'Id',
-  Cell,
+import { columnHelper } from './helper';
+
+export const id = columnHelper.accessor('Id', {
+  header: 'Id',
   id: 'id',
-  disableFilters: true,
-  canHide: true,
-  sortType: 'string',
-  Filter: () => null,
-};
+  cell: Cell,
+});
 
 function Cell({
-  value: name,
+  getValue,
   row: { original: volume },
-}: CellProps<DockerVolume>) {
+}: CellContext<DockerVolume, string>) {
+  const name = getValue();
+
   const linkProps = useSref('.volume', {
     id: volume.Id,
     volumeId: volume.Id,

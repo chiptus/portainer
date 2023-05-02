@@ -1,5 +1,4 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
-import { useStore } from 'zustand';
 import { Box } from 'lucide-react';
 
 import { useEnvironment } from '@/react/portainer/environments/queries';
@@ -20,8 +19,8 @@ import { useDockerSnapshot } from '@/react/docker/queries/useDockerSnapshot';
 import { Datatable } from '@@/datatables/Datatable';
 import { TextTip } from '@@/Tip/TextTip';
 import { Widget } from '@@/Widget';
-import { useSearchBarState } from '@@/datatables/SearchBar';
 import { TableSettingsProvider } from '@@/datatables/useTableSettings';
+import { useTableState } from '@@/datatables/useTableState';
 
 import { image } from './image-column';
 import { ContainersDatatableActions } from './ContainersDatatableActions';
@@ -37,8 +36,7 @@ export function ContainersView() {
 
   const environmentQuery = useEnvironment(environmentId);
 
-  const settings = useStore(settingsStore);
-  const [search, setSearch] = useSearchBarState(storageKey);
+  const tableState = useTableState(settingsStore, storageKey);
 
   const edgeStackQuery = useEdgeStack(edgeStackId);
 
@@ -113,12 +111,7 @@ export function ContainersView() {
       <RowProvider context={{ environment }}>
         <TableSettingsProvider settings={settingsStore}>
           <Datatable
-            initialPageSize={settings.pageSize}
-            onPageSizeChange={settings.setPageSize}
-            initialSortBy={settings.sortBy}
-            onSortByChange={settings.setSortBy}
-            searchValue={search}
-            onSearchChange={setSearch}
+            settingsManager={tableState}
             titleIcon={Box}
             title="Containers"
             renderTableActions={(selectedRows) => (

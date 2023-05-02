@@ -1,13 +1,6 @@
-import { Column } from 'react-table';
+import { columnHelper } from './helper';
 
-import { DockerVolume } from '@/react/docker/volumes/types';
-
-export const driver: Column<DockerVolume> = {
-  Header: 'Driver',
-  accessor: 'Driver',
+export const driver = columnHelper.accessor('Driver', {
+  header: 'Driver',
   id: 'driver',
-  disableFilters: true,
-  canHide: true,
-  sortType: 'string',
-  Filter: () => null,
-};
+});

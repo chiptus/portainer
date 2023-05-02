@@ -1,15 +1,12 @@
-import { Column } from 'react-table';
-
 import { isoDate } from '@/portainer/filters/filters';
-import { DockerVolume } from '@/react/docker/volumes/types';
 
-export const created: Column<DockerVolume> = {
-  Header: 'Created',
-  accessor: 'CreatedAt',
+import { columnHelper } from './helper';
+
+export const created = columnHelper.accessor('CreatedAt', {
   id: 'created',
-  Cell: ({ value }) => (value ? isoDate(value) : '-'),
-  disableFilters: true,
-  canHide: true,
-  sortType: 'string',
-  Filter: () => null,
-};
+  header: 'Created',
+  cell: ({ getValue }) => {
+    const value = getValue();
+    return isoDate(value);
+  },
+});
