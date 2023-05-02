@@ -9,10 +9,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const (
-	// BucketName represents the name of the bucket where this service stores data.
-	BucketName = "roles"
-)
+// BucketName represents the name of the bucket where this service stores data.
+const BucketName = "roles"
 
 // Service represents a service for managing environment(endpoint) data.
 type Service struct {
@@ -35,6 +33,13 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}, nil
 }
 
+func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
+	return ServiceTx{
+		service: service,
+		tx:      tx,
+	}
+}
+
 // Role returns a Role by ID
 func (service *Service) Role(ID portaineree.RoleID) (*portaineree.Role, error) {
 	var set portaineree.Role
@@ -48,7 +53,7 @@ func (service *Service) Role(ID portaineree.RoleID) (*portaineree.Role, error) {
 	return &set, nil
 }
 
-// Roles return an array containing all the sets.
+// Roles returns an array containing all the sets.
 func (service *Service) Roles() ([]portaineree.Role, error) {
 	var sets = make([]portaineree.Role, 0)
 

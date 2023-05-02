@@ -60,10 +60,14 @@ func (tx *StoreTx) Registry() dataservices.RegistryService {
 }
 
 func (tx *StoreTx) ResourceControl() dataservices.ResourceControlService { return nil }
-func (tx *StoreTx) Role() dataservices.RoleService                       { return nil }
-func (tx *StoreTx) APIKeyRepository() dataservices.APIKeyRepository      { return nil }
-func (tx *StoreTx) GitCredential() dataservices.GitCredential            { return nil }
-func (tx *StoreTx) S3Backup() dataservices.S3BackupService               { return nil }
+
+func (tx *StoreTx) Role() dataservices.RoleService {
+	return tx.store.RoleService.Tx(tx.tx)
+}
+
+func (tx *StoreTx) APIKeyRepository() dataservices.APIKeyRepository { return nil }
+func (tx *StoreTx) GitCredential() dataservices.GitCredential       { return nil }
+func (tx *StoreTx) S3Backup() dataservices.S3BackupService          { return nil }
 
 func (tx *StoreTx) Settings() dataservices.SettingsService {
 	return tx.store.SettingsService.Tx(tx.tx)
