@@ -1,7 +1,5 @@
 name: Validate OpenAPI specs
 
-
-
 on:
   pull_request:
     branches:
@@ -34,13 +32,5 @@ jobs:
           node-version: '14'
           cache: 'yarn'
     - run: yarn --frozen-lockfile
-    
-    - name: Build OpenAPI 2.0 Spec
-      run: yarn build:docs
-
-    
-    # OpenAPI2.0 does not support multiple body params (which we utilize in some of our handlers).
-    # OAS3.0 however does support multiple body params - hence its best to convert the generated OAS 2.0
-    # to OAS 3.0 and validate the output of generated OAS 3.0 instead.
-    - name: Convert OpenAPI 2.0 to OpenAPI 3.0 and validate spec
-      run: yarn validate:docs
+    - name: Validate OpenAPI Spec
+      run: make docs-validate

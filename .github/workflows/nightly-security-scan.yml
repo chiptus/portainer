@@ -1,10 +1,10 @@
 name: Nightly Code Security Scan
 
-on: 
+on:
   schedule:
     - cron: '0 20 * * *'
   workflow_dispatch:
-    
+
 jobs:
   client-dependencies:
     name: Client Dependency Check
@@ -118,7 +118,7 @@ jobs:
     steps:
       - name: scan vulnerabilities by Trivy 
         uses: docker://docker.io/aquasec/trivy:latest
-        continue-on-error: true 
+        continue-on-error: true
         with:
           args: image --ignore-unfixed=true --vuln-type="os,library" --exit-code=1 --format="json" --output="image-trivy.json" --no-progress portainerci/portainer:develop  
 
@@ -151,7 +151,7 @@ jobs:
     if: >-
       github.ref == 'refs/heads/develop'
     strategy:
-      matrix: 
+      matrix:
         js: ${{fromJson(needs.client-dependencies.outputs.js)}}
         go: ${{fromJson(needs.server-dependencies.outputs.go)}}
         image: ${{fromJson(needs.image-vulnerability.outputs.image)}}

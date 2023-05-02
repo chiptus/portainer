@@ -15,7 +15,7 @@ cp -R api ${GOPATH}/src/github.com/portainer/portainer-ee/api
 
 cp -r "./mustache-templates" "./dist"
 
-cd 'api/cmd/portainer'
+cd 'api/cmd/portainer' || exit 1
 
 go get -t -d -v ./...
 
@@ -31,15 +31,18 @@ if [ -n "${KAAS_AGENT_VERSION+1}" ]; then
   ldflags=$ldflags" -X github.com/portainer/portainer-ee/api/kubernetes/cli.DefaultAgentVersion=$KAAS_AGENT_VERSION"
 fi
 
+BINARY_VERSION_FILE="./binary-version.json"
+
+EKSCTL_VERSION=$(jq -r '.eksctl' < "${BINARY_VERSION_FILE}")
 if [ -n "${EKSCTL_VERSION+1}" ]; then
   ldflags=$ldflags" -X github.com/portainer/portainer-ee/api/cloud/eks/eksctl.DefaultEksCtlVersion=$EKSCTL_VERSION"
 fi
 
+AWSAUTH_VERSION=$(jq -r '.awsAuth' < "${BINARY_VERSION_FILE}")
 if [ -n "${AWSAUTH_VERSION+1}" ]; then
   ldflags=$ldflags" -X github.com/portainer/portainer-ee/api/cloud/eks/eksctl.DefaultAwsIamAuthenticatorVersion=$AWSAUTH_VERSION"
 fi
 
-echo "$ldflags"
 
 GOOS=${PLATFORM} GOARCH=${ARCH} CGO_ENABLED=0 go build -a -trimpath --installsuffix cgo --gcflags="-trimpath $(pwd)" --ldflags "$ldflags"
 
