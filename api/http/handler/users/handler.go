@@ -47,6 +47,7 @@ type Handler struct {
 	userActivityService     portaineree.UserActivityService
 	demoService             *demo.Service
 	passwordStrengthChecker security.PasswordStrengthChecker
+	AdminCreationDone       chan<- struct{}
 }
 
 // NewHandler creates a handler to manage user operations.

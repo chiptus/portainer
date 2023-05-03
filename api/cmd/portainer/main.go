@@ -28,13 +28,13 @@ import (
 	"github.com/portainer/portainer-ee/api/exec"
 	"github.com/portainer/portainer-ee/api/filesystem"
 	"github.com/portainer/portainer-ee/api/http"
-	"github.com/portainer/portainer-ee/api/http/client"
 	"github.com/portainer/portainer-ee/api/http/proxy"
 	kubeproxy "github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/snapshot"
 	"github.com/portainer/portainer-ee/api/internal/ssl"
 	"github.com/portainer/portainer-ee/api/jwt"
@@ -403,155 +403,6 @@ func initKeyPair(fileService portainer.FileService, signatureService portaineree
 	return generateAndStoreKeyPair(fileService, signatureService)
 }
 
-func createTLSSecuredEndpoint(flags *portaineree.CLIFlags, dataStore dataservices.DataStore, snapshotService portaineree.SnapshotService) error {
-	tlsConfiguration := portaineree.TLSConfiguration{
-		TLS:           *flags.TLS,
-		TLSSkipVerify: *flags.TLSSkipVerify,
-	}
-
-	if *flags.TLS {
-		tlsConfiguration.TLSCACertPath = *flags.TLSCacert
-		tlsConfiguration.TLSCertPath = *flags.TLSCert
-		tlsConfiguration.TLSKeyPath = *flags.TLSKey
-	} else if !*flags.TLS && *flags.TLSSkipVerify {
-		tlsConfiguration.TLS = true
-	}
-
-	endpointID := dataStore.Endpoint().GetNextIdentifier()
-	endpoint := &portaineree.Endpoint{
-		ID:                 portaineree.EndpointID(endpointID),
-		Name:               "primary",
-		URL:                *flags.EndpointURL,
-		GroupID:            portaineree.EndpointGroupID(1),
-		Type:               portaineree.DockerEnvironment,
-		TLSConfig:          tlsConfiguration,
-		UserAccessPolicies: portaineree.UserAccessPolicies{},
-		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
-		TagIDs:             []portaineree.TagID{},
-		Status:             portaineree.EndpointStatusUp,
-		Snapshots:          []portainer.DockerSnapshot{},
-		Kubernetes:         portaineree.KubernetesDefault(),
-
-		SecuritySettings: portaineree.EndpointSecuritySettings{
-			AllowVolumeBrowserForRegularUsers: false,
-			EnableHostManagementFeatures:      false,
-
-			AllowSysctlSettingForRegularUsers:         true,
-			AllowBindMountsForRegularUsers:            true,
-			AllowPrivilegedModeForRegularUsers:        true,
-			AllowHostNamespaceForRegularUsers:         true,
-			AllowContainerCapabilitiesForRegularUsers: true,
-			AllowDeviceMappingForRegularUsers:         true,
-			AllowStackManagementForRegularUsers:       true,
-		},
-
-		ChangeWindow: portaineree.EndpointChangeWindow{
-			Enabled: false,
-		},
-	}
-
-	if strings.HasPrefix(endpoint.URL, "tcp://") {
-		tlsConfig, err := crypto.CreateTLSConfigurationFromDisk(tlsConfiguration.TLSCACertPath, tlsConfiguration.TLSCertPath, tlsConfiguration.TLSKeyPath, tlsConfiguration.TLSSkipVerify)
-		if err != nil {
-			return err
-		}
-
-		agentOnDockerEnvironment, err := client.ExecutePingOperation(endpoint.URL, tlsConfig)
-		if err != nil {
-			return err
-		}
-
-		if agentOnDockerEnvironment {
-			endpoint.Type = portaineree.AgentOnDockerEnvironment
-		}
-	}
-
-	err := snapshotService.SnapshotEndpoint(endpoint)
-	if err != nil {
-		log.Error().
-			Str("endpoint", endpoint.Name).
-			Str("URL", endpoint.URL).
-			Err(err).
-			Msg("environment snapshot error")
-	}
-
-	return dataStore.Endpoint().Create(endpoint)
-}
-
-func createUnsecuredEndpoint(endpointURL string, dataStore dataservices.DataStore, snapshotService portaineree.SnapshotService) error {
-	if strings.HasPrefix(endpointURL, "tcp://") {
-		_, err := client.ExecutePingOperation(endpointURL, nil)
-		if err != nil {
-			return err
-		}
-	}
-
-	endpointID := dataStore.Endpoint().GetNextIdentifier()
-	endpoint := &portaineree.Endpoint{
-		ID:                 portaineree.EndpointID(endpointID),
-		Name:               "primary",
-		URL:                endpointURL,
-		GroupID:            portaineree.EndpointGroupID(1),
-		Type:               portaineree.DockerEnvironment,
-		TLSConfig:          portaineree.TLSConfiguration{},
-		UserAccessPolicies: portaineree.UserAccessPolicies{},
-		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
-		TagIDs:             []portaineree.TagID{},
-		Status:             portaineree.EndpointStatusUp,
-		Snapshots:          []portainer.DockerSnapshot{},
-		Kubernetes:         portaineree.KubernetesDefault(),
-
-		SecuritySettings: portaineree.EndpointSecuritySettings{
-			AllowVolumeBrowserForRegularUsers: false,
-			EnableHostManagementFeatures:      false,
-
-			AllowSysctlSettingForRegularUsers:         true,
-			AllowBindMountsForRegularUsers:            true,
-			AllowPrivilegedModeForRegularUsers:        true,
-			AllowHostNamespaceForRegularUsers:         true,
-			AllowContainerCapabilitiesForRegularUsers: true,
-			AllowDeviceMappingForRegularUsers:         true,
-			AllowStackManagementForRegularUsers:       true,
-		},
-
-		ChangeWindow: portaineree.EndpointChangeWindow{
-			Enabled: false,
-		},
-	}
-
-	err := snapshotService.SnapshotEndpoint(endpoint)
-	if err != nil {
-		log.Error().
-			Str("endpoint", endpoint.Name).
-			Str("URL", endpoint.URL).Err(err).
-			Msg("environment snapshot error")
-	}
-
-	return dataStore.Endpoint().Create(endpoint)
-}
-
-func initEndpoint(flags *portaineree.CLIFlags, dataStore dataservices.DataStore, snapshotService portaineree.SnapshotService) error {
-	if *flags.EndpointURL == "" {
-		return nil
-	}
-
-	endpoints, err := dataStore.Endpoint().Endpoints()
-	if err != nil {
-		return err
-	}
-
-	if len(endpoints) > 0 {
-		log.Info().Msg("instance already has defined environments, skipping the environment defined via CLI")
-
-		return nil
-	}
-
-	if *flags.TLS || *flags.TLSSkipVerify {
-		return createTLSSecuredEndpoint(flags, dataStore, snapshotService)
-	}
-	return createUnsecuredEndpoint(*flags.EndpointURL, dataStore, snapshotService)
-}
-
 func updateLicenseKeyFromFlags(licenseService portaineree.LicenseService, licenseKey *string) error {
 	if licenseKey == nil || *licenseKey == "" {
 		return nil
@@ -740,10 +591,10 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		}
 	}
 
-	err = initEndpoint(flags, dataStore, snapshotService)
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed initializing environment")
-	}
+	// channel to control when the admin user is created
+	adminCreationDone := make(chan struct{}, 1)
+
+	go endpointutils.InitEndpoint(shutdownCtx, adminCreationDone, flags, dataStore, snapshotService)
 
 	adminPasswordHash := ""
 	if *flags.AdminPasswordFile != "" {
@@ -779,6 +630,9 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 			if err != nil {
 				log.Fatal().Err(err).Msg("failed creating admin user")
 			}
+
+			// notify the admin user is created, the endpoint initialization can start
+			adminCreationDone <- struct{}{}
 		} else {
 			log.Info().Msg("instance already has an administrator user defined, skipping admin password related flags.")
 		}
@@ -875,6 +729,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		CloudClusterSetupService:    cloudClusterSetupService,
 		CloudClusterInfoService:     cloudClusterInfoService,
 		DemoService:                 demoService,
+		AdminCreationDone:           adminCreationDone,
 	}
 }
 

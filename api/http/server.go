@@ -129,6 +129,7 @@ type Server struct {
 	CloudCredentialService      *cloudcredential.Service
 	StackDeployer               deployments.StackDeployer
 	DemoService                 *demo.Service
+	AdminCreationDone           chan struct{}
 }
 
 // Start starts the HTTP server
@@ -326,6 +327,7 @@ func (server *Server) Start() error {
 	userHandler.DataStore = server.DataStore
 	userHandler.CryptoService = server.CryptoService
 	userHandler.K8sClientFactory = server.KubernetesClientFactory
+	userHandler.AdminCreationDone = server.AdminCreationDone
 
 	var userActivityHandler = useractivity.NewHandler(requestBouncer)
 	userActivityHandler.UserActivityStore = server.UserActivityStore
