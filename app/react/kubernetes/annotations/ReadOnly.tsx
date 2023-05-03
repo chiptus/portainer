@@ -15,7 +15,7 @@ export function ReadOnly({ annotations }: Props) {
         <div className="col-sm-8 p-0">Value</div>
       </div>
       {annotations.map((a) => (
-        <div className="row border-top">
+        <div className="row border-top" key={a.Key}>
           <div className="col-sm-4 px-0 py-2">{a.Key}</div>
           <div className="col-sm-8 px-0 py-2">{a.Value}</div>
         </div>
