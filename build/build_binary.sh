@@ -32,7 +32,7 @@ if [ -n "${KAAS_AGENT_VERSION+1}" ]; then
   ldflags=$ldflags" -X github.com/portainer/portainer-ee/api/kubernetes/cli.DefaultAgentVersion=$KAAS_AGENT_VERSION"
 fi
 
-BINARY_VERSION_FILE="./binary-version.json"
+BINARY_VERSION_FILE="../binary-version.json"
 
 EKSCTL_VERSION=$(jq -r '.eksctl' < "${BINARY_VERSION_FILE}")
 if [ -n "${EKSCTL_VERSION+1}" ]; then
