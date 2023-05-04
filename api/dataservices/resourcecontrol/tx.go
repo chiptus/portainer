@@ -9,43 +9,21 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// BucketName represents the name of the bucket where this service stores data.
-const BucketName = "resource_control"
-
-// Service represents a service for managing environment(endpoint) data.
-type Service struct {
-	connection portainer.Connection
+type ServiceTx struct {
+	service *Service
+	tx      portainer.Transaction
 }
 
-func (service *Service) BucketName() string {
+func (service ServiceTx) BucketName() string {
 	return BucketName
 }
 
-// NewService creates a new instance of a service.
-func NewService(connection portainer.Connection) (*Service, error) {
-	err := connection.SetServiceName(BucketName)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Service{
-		connection: connection,
-	}, nil
-}
-
-func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
-	return ServiceTx{
-		service: service,
-		tx:      tx,
-	}
-}
-
 // ResourceControl returns a ResourceControl object by ID
-func (service *Service) ResourceControl(ID portaineree.ResourceControlID) (*portaineree.ResourceControl, error) {
+func (service ServiceTx) ResourceControl(ID portaineree.ResourceControlID) (*portaineree.ResourceControl, error) {
 	var resourceControl portaineree.ResourceControl
-	identifier := service.connection.ConvertToKey(int(ID))
+	identifier := service.service.connection.ConvertToKey(int(ID))
 
-	err := service.connection.GetObject(BucketName, identifier, &resourceControl)
+	err := service.tx.GetObject(BucketName, identifier, &resourceControl)
 	if err != nil {
 		return nil, err
 	}
@@ -56,10 +34,10 @@ func (service *Service) ResourceControl(ID portaineree.ResourceControlID) (*port
 // ResourceControlByResourceIDAndType returns a ResourceControl object by checking if the resourceID is equal
 // to the main ResourceID or in SubResourceIDs. It also performs a check on the resource type. Return nil
 // if no ResourceControl was found.
-func (service *Service) ResourceControlByResourceIDAndType(resourceID string, resourceType portaineree.ResourceControlType) (*portaineree.ResourceControl, error) {
+func (service ServiceTx) ResourceControlByResourceIDAndType(resourceID string, resourceType portaineree.ResourceControlType) (*portaineree.ResourceControl, error) {
 	var resourceControl *portaineree.ResourceControl
 	stop := fmt.Errorf("ok")
-	err := service.connection.GetAll(
+	err := service.tx.GetAll(
 		BucketName,
 		&portaineree.ResourceControl{},
 		func(obj interface{}) (interface{}, error) {
@@ -91,10 +69,10 @@ func (service *Service) ResourceControlByResourceIDAndType(resourceID string, re
 }
 
 // ResourceControls returns all the ResourceControl objects
-func (service *Service) ResourceControls() ([]portaineree.ResourceControl, error) {
+func (service ServiceTx) ResourceControls() ([]portaineree.ResourceControl, error) {
 	var rcs = make([]portaineree.ResourceControl, 0)
 
-	err := service.connection.GetAll(
+	err := service.tx.GetAll(
 		BucketName,
 		&portaineree.ResourceControl{},
 		func(obj interface{}) (interface{}, error) {
@@ -113,8 +91,8 @@ func (service *Service) ResourceControls() ([]portaineree.ResourceControl, error
 }
 
 // CreateResourceControl creates a new ResourceControl object
-func (service *Service) Create(resourceControl *portaineree.ResourceControl) error {
-	return service.connection.CreateObject(
+func (service ServiceTx) Create(resourceControl *portaineree.ResourceControl) error {
+	return service.tx.CreateObject(
 		BucketName,
 		func(id uint64) (int, interface{}) {
 			resourceControl.ID = portaineree.ResourceControlID(id)
@@ -124,13 +102,13 @@ func (service *Service) Create(resourceControl *portaineree.ResourceControl) err
 }
 
 // UpdateResourceControl saves a ResourceControl object.
-func (service *Service) UpdateResourceControl(ID portaineree.ResourceControlID, resourceControl *portaineree.ResourceControl) error {
-	identifier := service.connection.ConvertToKey(int(ID))
-	return service.connection.UpdateObject(BucketName, identifier, resourceControl)
+func (service ServiceTx) UpdateResourceControl(ID portaineree.ResourceControlID, resourceControl *portaineree.ResourceControl) error {
+	identifier := service.service.connection.ConvertToKey(int(ID))
+	return service.tx.UpdateObject(BucketName, identifier, resourceControl)
 }
 
 // DeleteResourceControl deletes a ResourceControl object by ID
-func (service *Service) DeleteResourceControl(ID portaineree.ResourceControlID) error {
-	identifier := service.connection.ConvertToKey(int(ID))
-	return service.connection.DeleteObject(BucketName, identifier)
+func (service ServiceTx) DeleteResourceControl(ID portaineree.ResourceControlID) error {
+	identifier := service.service.connection.ConvertToKey(int(ID))
+	return service.tx.DeleteObject(BucketName, identifier)
 }
