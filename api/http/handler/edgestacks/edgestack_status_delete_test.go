@@ -1,0 +1,32 @@
+package edgestacks
+
+import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	portaineree "github.com/portainer/portainer-ee/api"
+)
+
+// Delete Status
+func TestDeleteStatus(t *testing.T) {
+	handler, _, teardown := setupHandler(t)
+	defer teardown()
+
+	endpoint := createEndpoint(t, handler.DataStore)
+	edgeStack := createEdgeStack(t, handler.DataStore, endpoint.ID)
+
+	req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("/edge_stacks/%d/status/%d", edgeStack.ID, endpoint.ID), nil)
+	if err != nil {
+		t.Fatal("request error:", err)
+	}
+
+	req.Header.Set(portaineree.PortainerAgentEdgeIDHeader, endpoint.EdgeID)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected a %d response, found: %d", http.StatusOK, rec.Code)
+	}
+}
