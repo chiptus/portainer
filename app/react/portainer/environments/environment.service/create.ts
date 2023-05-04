@@ -231,7 +231,7 @@ async function createEnvironment(
       PublicURL: options.publicUrl,
       GroupID: groupId,
       TagIds: arrayToJson(tagIds),
-      CheckinInterval: options.pollFrequency,
+      EdgeCheckinInterval: options.pollFrequency,
       KubeConfig: options.kubeConfig,
       EdgeTunnelServerAddress: options.tunnelServerAddr,
     };
