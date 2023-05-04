@@ -354,7 +354,7 @@ func validateKubeConfigEnvironment(r *http.Request) (string, error) {
 // @param AzureAuthenticationKey formData string false "Azure authentication key. Required if environment(endpoint) type is set to 3"
 // @param TagIds formData []int false "List of tag identifiers to which this environment(endpoint) is associated"
 // @param EdgeCheckinInterval formData int false "The check in interval for edge agent (in seconds)"
-// @param EdgeTunnelServerAddress formData string true "URL or IP address that will be used to establish a reverse tunnel"
+// @param EdgeTunnelServerAddress formData string false "URL or IP address that will be used to establish a reverse tunnel. Required when settings.EnableEdgeComputeFeatures is set to false or when settings.Edge.TunnelServerAddress is not set"
 // @param EdgeAsyncMode formData bool false "Enable async mode for edge agent"
 // @param Gpus formData string false "List of GPUs - json stringified array of {name, value} structs"
 // @success 200 {object} portaineree.Endpoint "Success"
