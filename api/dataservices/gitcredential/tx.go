@@ -1,43 +1,23 @@
 package gitcredential
 
 import (
-	"errors"
 	"fmt"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
-	dserrors "github.com/portainer/portainer/api/dataservices/errors"
+	"github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/rs/zerolog/log"
 )
 
-const BucketName = "git_credentials"
-
-type Service struct {
-	connection portainer.Connection
-}
-
-func NewService(connection portainer.Connection) (*Service, error) {
-	err := connection.SetServiceName(BucketName)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Service{
-		connection: connection,
-	}, nil
-}
-
-func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
-	return ServiceTx{
-		service: service,
-		tx:      tx,
-	}
+type ServiceTx struct {
+	service *Service
+	tx      portainer.Transaction
 }
 
 // Create creates a new git credential object.
-func (service *Service) Create(record *portaineree.GitCredential) error {
-	return service.connection.CreateObject(
+func (service ServiceTx) Create(record *portaineree.GitCredential) error {
+	return service.tx.CreateObject(
 		BucketName,
 		func(id uint64) (int, interface{}) {
 			record.ID = portaineree.GitCredentialID(id)
@@ -48,10 +28,10 @@ func (service *Service) Create(record *portaineree.GitCredential) error {
 }
 
 // GetGitCredentials returns an array containing all git-credentials. It is necessary for export feature
-func (service *Service) GetGitCredentials() ([]portaineree.GitCredential, error) {
+func (service ServiceTx) GetGitCredentials() ([]portaineree.GitCredential, error) {
 	var result = make([]portaineree.GitCredential, 0)
 
-	err := service.connection.GetAll(
+	err := service.tx.GetAll(
 		BucketName,
 		&portaineree.GitCredential{},
 		func(obj interface{}) (interface{}, error) {
@@ -69,11 +49,11 @@ func (service *Service) GetGitCredentials() ([]portaineree.GitCredential, error)
 }
 
 // GetGitCredential retrieves a single GitCredential object by credential ID.
-func (service *Service) GetGitCredential(credID portaineree.GitCredentialID) (*portaineree.GitCredential, error) {
+func (service ServiceTx) GetGitCredential(credID portaineree.GitCredentialID) (*portaineree.GitCredential, error) {
 	var cred portaineree.GitCredential
-	identifier := service.connection.ConvertToKey(int(credID))
+	identifier := service.service.connection.ConvertToKey(int(credID))
 
-	err := service.connection.GetObject(BucketName, identifier, &cred)
+	err := service.tx.GetObject(BucketName, identifier, &cred)
 	if err != nil {
 		return nil, err
 	}
@@ -81,21 +61,21 @@ func (service *Service) GetGitCredential(credID portaineree.GitCredentialID) (*p
 	return &cred, nil
 }
 
-func (service *Service) UpdateGitCredential(ID portaineree.GitCredentialID, cred *portaineree.GitCredential) error {
-	identifier := service.connection.ConvertToKey(int(ID))
-	return service.connection.UpdateObject(BucketName, identifier, cred)
+func (service ServiceTx) UpdateGitCredential(ID portaineree.GitCredentialID, cred *portaineree.GitCredential) error {
+	identifier := service.service.connection.ConvertToKey(int(ID))
+	return service.tx.UpdateObject(BucketName, identifier, cred)
 }
 
-func (service *Service) DeleteGitCredential(ID portaineree.GitCredentialID) error {
-	identifier := service.connection.ConvertToKey(int(ID))
-	return service.connection.DeleteObject(BucketName, identifier)
+func (service ServiceTx) DeleteGitCredential(ID portaineree.GitCredentialID) error {
+	identifier := service.service.connection.ConvertToKey(int(ID))
+	return service.tx.DeleteObject(BucketName, identifier)
 }
 
 // GetGitCredentialsByUserID returns an array containing all git-credentials owned by a specific user
-func (service *Service) GetGitCredentialsByUserID(userID portaineree.UserID) ([]portaineree.GitCredential, error) {
+func (service ServiceTx) GetGitCredentialsByUserID(userID portaineree.UserID) ([]portaineree.GitCredential, error) {
 	var result = make([]portaineree.GitCredential, 0)
 
-	err := service.connection.GetAll(
+	err := service.tx.GetAll(
 		BucketName,
 		&portaineree.GitCredential{},
 		func(obj interface{}) (interface{}, error) {
@@ -115,10 +95,10 @@ func (service *Service) GetGitCredentialsByUserID(userID portaineree.UserID) ([]
 }
 
 // GetGitCredentialByName retrieves a single GitCredential object owned by a specific user with an unique git credential name
-func (service *Service) GetGitCredentialByName(userID portaineree.UserID, name string) (*portaineree.GitCredential, error) {
+func (service ServiceTx) GetGitCredentialByName(userID portaineree.UserID, name string) (*portaineree.GitCredential, error) {
 	var credential *portaineree.GitCredential
 	stop := fmt.Errorf("ok")
-	err := service.connection.GetAll(
+	err := service.tx.GetAll(
 		BucketName,
 		&portaineree.GitCredential{},
 		func(obj interface{}) (interface{}, error) {
@@ -134,11 +114,11 @@ func (service *Service) GetGitCredentialByName(userID portaineree.UserID, name s
 			}
 			return &portaineree.GitCredential{}, nil
 		})
-	if errors.Is(err, stop) {
+	if err == stop {
 		return credential, nil
 	}
 	if err == nil {
-		return nil, dserrors.ErrObjectNotFound
+		return nil, errors.ErrObjectNotFound
 	}
 
 	return nil, err
