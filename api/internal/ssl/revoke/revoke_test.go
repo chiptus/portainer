@@ -139,29 +139,28 @@ func setup() *Service {
 func TestRevoked(t *testing.T) {
 	service := setup()
 	if revoked, err := service.VerifyCertificate(revokedCert); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: soft fail checking revocation")
+		fmt.Fprintln(os.Stderr, "Warning: soft fail checking revocation")
 	} else if !revoked {
-		t.Fatalf("revoked certificate should have been marked as revoked")
+		t.Fatal("revoked certificate should have been marked as revoked")
 	}
 }
 
 func TestExpired(t *testing.T) {
 	service := setup()
 	if revoked, err := service.VerifyCertificate(expiredCert); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: soft fail checking revocation")
+		fmt.Fprintln(os.Stderr, "Warning: soft fail checking revocation")
 	} else if !revoked {
-		t.Fatalf("expired certificate should have been marked as revoked")
+		t.Fatal("expired certificate should have been marked as revoked")
 	}
 }
 
 func TestGood(t *testing.T) {
 	service := setup()
 	if revoked, err := service.VerifyCertificate(goodCert); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: soft fail checking revocation")
+		fmt.Fprintln(os.Stderr, "Warning: soft fail checking revocation")
 	} else if revoked {
-		t.Fatalf("good certificate should not have been marked as revoked")
+		t.Fatal("good certificate should not have been marked as revoked")
 	}
-
 }
 
 func TestLdap(t *testing.T) {
@@ -169,13 +168,13 @@ func TestLdap(t *testing.T) {
 	ldapCert := mustParse(goodComodoCA)
 	ldapCert.CRLDistributionPoints = append(ldapCert.CRLDistributionPoints, "ldap://myldap.example.com")
 	if revoked, err := service.VerifyCertificate(ldapCert); revoked || err != nil {
-		t.Fatalf("ldap certificate should have been recognized")
+		t.Fatal("ldap certificate should have been recognized")
 	}
 }
 
 func TestLdapURLErr(t *testing.T) {
 	if ldapURL(":") {
-		t.Fatalf("bad url does not cause error")
+		t.Fatal("bad url does not cause error")
 	}
 }
 
@@ -185,7 +184,7 @@ func TestCertNotYetValid(t *testing.T) {
 	notReadyCert.NotBefore = time.Date(3000, time.January, 1, 1, 1, 1, 1, time.Local)
 	notReadyCert.NotAfter = time.Date(3005, time.January, 1, 1, 1, 1, 1, time.Local)
 	if revoked, _ := service.VerifyCertificate(expiredCert); !revoked {
-		t.Fatalf("not yet verified certificate should have been marked as revoked")
+		t.Fatal("not yet verified certificate should have been marked as revoked")
 	}
 }
 
@@ -194,12 +193,12 @@ func TestCRLFetchError(t *testing.T) {
 	ldapCert := mustParse(goodComodoCA)
 	ldapCert.CRLDistributionPoints[0] = ""
 	if revoked, err := service.VerifyCertificate(ldapCert); err == nil || revoked {
-		t.Fatalf("Fetching error not encountered")
+		t.Fatal("Fetching error not encountered")
 	}
 
 	service.hardFail = true
 	if revoked, err := service.VerifyCertificate(ldapCert); err == nil || !revoked {
-		t.Fatalf("Fetching error not encountered, hardfail not registered")
+		t.Fatal("Fetching error not encountered, hardfail not registered")
 	}
 	service.hardFail = false
 }
@@ -213,7 +212,7 @@ func TestBadCRLSet(t *testing.T) {
 	service.crlSet[""] = nil
 	service.certIsRevokedCRL(ldapCert, "")
 	if _, ok := service.crlSet[""]; ok {
-		t.Fatalf("key emptystring should be deleted from CRLSet")
+		t.Fatal("key emptystring should be deleted from CRLSet")
 	}
 	delete(service.crlSet, "")
 }
@@ -222,7 +221,7 @@ func TestCachedCRLSet(t *testing.T) {
 	service := setup()
 	service.VerifyCertificate(goodCert)
 	if revoked, err := service.VerifyCertificate(goodCert); err != nil || revoked {
-		t.Fatalf("Previously fetched CRL's should be read smoothly and unrevoked")
+		t.Fatal("Previously fetched CRL's should be read smoothly and unrevoked")
 	}
 }
 
@@ -232,7 +231,7 @@ func TestRemoteFetchError(t *testing.T) {
 	badurl := ":"
 
 	if _, err := service.fetchRemote(badurl); err == nil {
-		t.Fatalf("fetching bad url should result in non-nil error")
+		t.Fatal("fetching bad url should result in non-nil error")
 	}
 
 }
