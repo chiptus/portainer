@@ -1,6 +1,8 @@
 import moment from 'moment';
 import { confirmDelete } from '@@/modals/confirm';
 import { LicenseType } from '@/react/portainer/licenses/types';
+import { getEnvironments } from '@/react/portainer/environments/environment.service';
+import { EdgeTypes } from '@/react/portainer/environments/types';
 
 export default class LicensesViewController {
   /* @ngInject */
@@ -15,6 +17,7 @@ export default class LicensesViewController {
     this.info = null;
     this.licenses = null;
     this.usedNodes = 0;
+    this.untrustedDevices = 0;
     this.template = 'info';
 
     this.removeAction = this.removeAction.bind(this);
@@ -64,6 +67,13 @@ export default class LicensesViewController {
         this.usedNodes = await this.StatusService.nodesCount();
       } catch (err) {
         this.Notifications.error('Failure', err, 'Failed to get nodes count');
+      }
+
+      try {
+        const response = await getEnvironments({ query: { edgeDeviceUntrusted: true, types: EdgeTypes } });
+        this.untrustedDevices = response.totalCount;
+      } catch (err) {
+        this.Notifications.error('Failure', err, 'Failed to get untrusted devices count');
       }
 
       try {

@@ -213,5 +213,10 @@ export const componentsModule = angular
   )
   .component(
     'licenseInfoPanel',
-    r2a(LicenseInfoPanel, ['template', 'licenseInfo', 'usedNodes'])
+    r2a(LicenseInfoPanel, [
+      'template',
+      'licenseInfo',
+      'usedNodes',
+      'untrustedDevices',
+    ])
   ).name;

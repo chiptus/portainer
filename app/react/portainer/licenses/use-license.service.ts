@@ -6,10 +6,15 @@ import { useNodesCount } from '@/react/portainer/system/useNodesCount';
 import { getLicenseInfo, getLicenses } from './license.service';
 import { LicenseType, LicenseInfo, License } from './types';
 
+export const queryKeys = {
+  base: () => ['licenses'] as const,
+  licenseInfo: () => [...queryKeys.base(), 'info'] as const,
+};
+
 // returns the aggregated license info (expires at has the latest date, nodes has the sum of all nodes)
 export function useLicenseInfo() {
   const { isLoading, data: info } = useQuery<LicenseInfo, Error>(
-    'licenseInfo',
+    queryKeys.licenseInfo(),
     () => getLicenseInfo(),
     {
       onError(error) {
@@ -23,7 +28,7 @@ export function useLicenseInfo() {
 
 // returns a use query hook for the list of portainer licenses
 export function useLicensesQuery() {
-  return useQuery<License[], Error>('licenses', () => getLicenses(), {
+  return useQuery<License[], Error>(queryKeys.base(), () => getLicenses(), {
     onError(error) {
       notifyError('Failure', error as Error, 'Failed to get licenses');
     },

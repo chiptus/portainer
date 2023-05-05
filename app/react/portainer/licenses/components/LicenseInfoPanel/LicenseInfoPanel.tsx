@@ -4,6 +4,7 @@ import clsx from 'clsx';
 
 import { Icon } from '@@/Icon';
 import { ProgressBar } from '@@/ProgressBar';
+import { Badge } from '@@/Badge';
 
 import { LicenseInfo, LicenseType } from '../../types';
 
@@ -11,19 +12,25 @@ import { calculateCountdownTime, getLicenseUpgradeURL } from './utils';
 import styles from './LicenseInfoPanel.module.css';
 
 interface Props {
-  template: string;
+  template: 'info' | 'alert' | 'enforcement';
   licenseInfo: LicenseInfo;
   usedNodes: number;
+  untrustedDevices?: number;
 }
 
-export function LicenseInfoPanel({ template, licenseInfo, usedNodes }: Props) {
+export function LicenseInfoPanel({
+  template,
+  licenseInfo,
+  usedNodes,
+  untrustedDevices = 0,
+}: Props) {
   let widget = null;
   switch (template) {
     case 'info':
-      widget = buildInfoWidget(licenseInfo, usedNodes);
+      widget = buildInfoWidget(licenseInfo, usedNodes, untrustedDevices);
       break;
     case 'alert':
-      widget = buildAlertWidget(licenseInfo, usedNodes);
+      widget = buildAlertWidget(licenseInfo, usedNodes, untrustedDevices);
       break;
     case 'enforcement':
       widget = buildCountdownWidget(licenseInfo, usedNodes);
@@ -39,7 +46,11 @@ export function LicenseInfoPanel({ template, licenseInfo, usedNodes }: Props) {
   );
 }
 
-function buildInfoWidget(licenseInfo: LicenseInfo, usedNodes: number) {
+function buildInfoWidget(
+  licenseInfo: LicenseInfo,
+  usedNodes: number,
+  untrustedDevices: number
+) {
   const contentSection = buildInfoContent(licenseInfo, usedNodes);
   const expiredAt = moment.unix(licenseInfo.expiresAt);
   const expiredAtStr = expiredAt.format('YYYY-MM-DD');
@@ -68,13 +79,11 @@ function buildInfoWidget(licenseInfo: LicenseInfo, usedNodes: number) {
     <div className={styles.licenseInfoPanel}>
       <div className={styles.licenseInfoContent}>
         {contentSection}
-        <div>
-          <b className="space-right">
-            {usedNodes} / {licenseInfo.nodes} nodes used
-          </b>
-
-          <ProgressBar current={usedNodes} total={licenseInfo.nodes} />
-        </div>
+        <Details
+          total={licenseInfo.nodes}
+          untrustedDevices={untrustedDevices}
+          used={usedNodes}
+        />
       </div>
       <hr className={styles.divider} />
       {licenseExpiredInfo}
@@ -82,7 +91,11 @@ function buildInfoWidget(licenseInfo: LicenseInfo, usedNodes: number) {
   );
 }
 
-function buildAlertWidget(licenseInfo: LicenseInfo, usedNodes: number) {
+function buildAlertWidget(
+  licenseInfo: LicenseInfo,
+  usedNodes: number,
+  untrustedDevices: number
+) {
   const contentSection = buildInfoContent(licenseInfo, usedNodes);
 
   let exceededMsg =
@@ -94,12 +107,12 @@ function buildAlertWidget(licenseInfo: LicenseInfo, usedNodes: number) {
   return (
     <div className={styles.licenseAlertPanel}>
       <div>{contentSection}</div>
-      <div>
-        <b>
-          {usedNodes} / {licenseInfo.nodes} nodes used
-        </b>
-      </div>
-      <ProgressBar current={usedNodes} total={licenseInfo.nodes} />
+      <Details
+        total={licenseInfo.nodes}
+        untrustedDevices={untrustedDevices}
+        used={usedNodes}
+      />
+
       {licenseInfo.type !== LicenseType.Trial && (
         <div className={styles.alertExtra}>
           <Icon
@@ -205,6 +218,46 @@ function buildInfoContent(info: LicenseInfo, usedNodes: number) {
           Upgrade licenses
         </a>
       </div>
+    </div>
+  );
+}
+
+function Details({
+  used,
+  total,
+  untrustedDevices,
+}: {
+  used: number;
+  total: number;
+  untrustedDevices: number;
+}) {
+  return (
+    <div>
+      <div className="flex">
+        <b className="space-right">
+          {used} / {total} nodes used
+        </b>
+        <Badge type={used + untrustedDevices > total ? 'warn' : 'info'}>
+          +{untrustedDevices} in waiting room
+        </Badge>
+      </div>
+
+      <ProgressBar
+        steps={[
+          {
+            value: used,
+            color: used > total ? '#f04438' : '#0086c9',
+          },
+          {
+            value: untrustedDevices,
+            color:
+              used + untrustedDevices > total
+                ? 'var(--ui-warning-3)'
+                : 'var(--ui-blue-3)',
+          },
+        ]}
+        total={total}
+      />
     </div>
   );
 }

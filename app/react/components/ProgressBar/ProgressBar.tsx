@@ -2,42 +2,57 @@ import clsx from 'clsx';
 
 import styles from './ProgressBar.module.css';
 
+type Step = { value: number; color: string };
 interface Props {
-  current: number;
+  steps: Array<Step>;
   total: number;
 }
 
-export function ProgressBar({ current, total }: Props) {
-  const percent = current > total ? 100 : Math.floor((current / total) * 100);
+export function ProgressBar({ steps, total }: Props) {
+  const { steps: reducedSteps } = steps.reduce<{
+    steps: Array<Step & { percent: number }>;
+    total: number;
+  }>(
+    (acc, cur) => {
+      const value =
+        acc.total + cur.value > total ? total - acc.total : cur.value;
+      return {
+        steps: [
+          ...acc.steps,
+          {
+            ...cur,
+            value,
+            percent: Math.floor((value / total) * 100),
+          },
+        ],
+        total: acc.total + value,
+      };
+    },
+    { steps: [], total: 0 }
+  );
 
-  const inlineStyle =
-    current > total
-      ? {
-          width: '100%',
-          backgroundColor: '#f04438',
-        }
-      : {
-          width: `${percent}%`,
-          backgroundColor: '#0086c9',
-        };
-
-  const progressStyle =
-    current > total
-      ? clsx('progress', styles.progressAlert)
-      : clsx('progress', styles.progressInfo);
+  const sum = steps.reduce((sum, s) => sum + s.value, 0);
 
   return (
-    <div className={progressStyle}>
-      <div
-        className="progress-bar"
-        role="progressbar"
-        style={inlineStyle}
-        aria-valuenow={percent}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      >
-        {' '}
-      </div>
+    <div
+      className={clsx(
+        'progress shadow-none',
+        sum > 100 ? styles.progressAlert : styles.progressInfo
+      )}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      role="progressbar"
+    >
+      {reducedSteps.map((step, index) => (
+        <div
+          key={index}
+          className="progress-bar shadow-none"
+          style={{
+            width: `${step.percent}%`,
+            backgroundColor: step.color,
+          }}
+        />
+      ))}
     </div>
   );
 }

@@ -1,6 +1,12 @@
 import { useQueryClient, useMutation, MutationFunction } from 'react-query';
 
 import {
+  mutationOptions,
+  withError,
+  withInvalidate,
+} from '@/react-tools/react-query';
+
+import {
   createRemoteEnvironment,
   createLocalDockerEnvironment,
   createAzureEnvironment,
@@ -9,6 +15,7 @@ import {
   createLocalKubernetesEnvironment,
   createKubeConfigEnvironment,
 } from '../environment.service/create';
+import { queryKey as nodesCountQueryKey } from '../../system/useNodesCount';
 
 export function useCreateAzureEnvironmentMutation() {
   return useGenericCreationMutation(createAzureEnvironment);
@@ -52,15 +59,11 @@ function useGenericCreationMutation<TData = unknown, TVariables = void>(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation(mutation, {
-    onSuccess() {
-      return queryClient.invalidateQueries(['environments']);
-    },
-    meta: {
-      error: {
-        title: 'Failure',
-        message: 'Unable to create environment',
-      },
-    },
-  });
+  return useMutation(
+    mutation,
+    mutationOptions(
+      withError('Unable to create environment'),
+      withInvalidate(queryClient, [['environments'], nodesCountQueryKey])
+    )
+  );
 }
