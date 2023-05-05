@@ -31,7 +31,7 @@ func (handler *Handler) delete(w http.ResponseWriter, r *http.Request) *httperro
 		return httperror.InternalServerError("failed fetching edge stack", err)
 	}
 
-	err = handler.edgeStacksService.DeleteEdgeStack(edgeStack.ID, edgeStack.EdgeGroups)
+	err = handler.edgeStacksService.DeleteEdgeStack(handler.dataStore, edgeStack.ID, edgeStack.EdgeGroups)
 	if err != nil {
 		return httperror.InternalServerError("failed deleting schedule edge stack", err)
 	}

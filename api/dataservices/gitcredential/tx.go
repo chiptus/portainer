@@ -1,11 +1,12 @@
 package gitcredential
 
 import (
+	"errors"
 	"fmt"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/dataservices/errors"
+	dserrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/rs/zerolog/log"
 )
@@ -114,11 +115,13 @@ func (service ServiceTx) GetGitCredentialByName(userID portaineree.UserID, name 
 			}
 			return &portaineree.GitCredential{}, nil
 		})
-	if err == stop {
+
+	if errors.Is(err, stop) {
 		return credential, nil
 	}
+
 	if err == nil {
-		return nil, errors.ErrObjectNotFound
+		return nil, dserrors.ErrObjectNotFound
 	}
 
 	return nil, err

@@ -24,7 +24,7 @@ func Test_updateEndpointRelation_successfulRuns(t *testing.T) {
 
 	service := NewService(dataStore, nil)
 
-	err := service.updateEndpointRelations(edgeStackID, relatedIds)
+	err := service.updateEndpointRelations(dataStore, edgeStackID, relatedIds)
 
 	assert.NoError(t, err, "updateEndpointRelations should not fail")
 

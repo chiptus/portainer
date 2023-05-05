@@ -89,6 +89,10 @@ func (service *Service) ReplaceStackCommand(endpoint *portaineree.Endpoint, edge
 	return service.storeUpdateStackCommand(service.dataStore, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpReplace, "")
 }
 
+func (service *Service) ReplaceStackCommandTx(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID) error {
+	return service.storeUpdateStackCommand(tx, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpReplace, "")
+}
+
 func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, commandOperation portaineree.EdgeAsyncCommandOperation, scheduledTime string) error {
 	if !endpoint.Edge.AsyncMode {
 		return nil

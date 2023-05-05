@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/asaskevich/govalidator"
-	"github.com/pkg/errors"
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	eefs "github.com/portainer/portainer-ee/api/filesystem"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer/api/filesystem"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/pkg/errors"
 )
 
 type edgeStackFromStringPayload struct {
@@ -71,20 +73,20 @@ func (payload *edgeStackFromStringPayload) Validate(r *http.Request) error {
 // @failure 500 "Internal server error"
 // @failure 503 "Edge compute features are disabled"
 // @router /edge_stacks/create/string [post]
-func (handler *Handler) createEdgeStackFromFileContent(r *http.Request, dryrun bool) (*portaineree.EdgeStack, error) {
+func (handler *Handler) createEdgeStackFromFileContent(r *http.Request, tx dataservices.DataStoreTx, dryrun bool) (*portaineree.EdgeStack, error) {
 	var payload edgeStackFromStringPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
 		return nil, err
 	}
 
-	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false, payload.RetryDeploy)
+	stack, err := handler.edgeStacksService.BuildEdgeStack(tx, payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false, payload.RetryDeploy)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create Edge stack object")
 	}
 
 	if len(payload.Registries) == 0 && dryrun {
-		err = handler.assignPrivateRegistriesToStack(stack, bytes.NewReader([]byte(payload.StackFileContent)))
+		err = handler.assignPrivateRegistriesToStack(tx, stack, bytes.NewReader([]byte(payload.StackFileContent)))
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to assign private registries to stack")
 		}
@@ -94,12 +96,12 @@ func (handler *Handler) createEdgeStackFromFileContent(r *http.Request, dryrun b
 		return stack, nil
 	}
 
-	return handler.edgeStacksService.PersistEdgeStack(stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
-		return handler.storeFileContent(stackFolder, payload.DeploymentType, relatedEndpointIds, []byte(payload.StackFileContent))
+	return handler.edgeStacksService.PersistEdgeStack(tx, stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
+		return handler.storeFileContent(tx, stackFolder, payload.DeploymentType, relatedEndpointIds, []byte(payload.StackFileContent))
 	})
 }
 
-func (handler *Handler) storeFileContent(stackFolder string, deploymentType portaineree.EdgeStackDeploymentType, relatedEndpointIds []portaineree.EndpointID, fileContent []byte) (composePath, manifestPath, projectPath string, err error) {
+func (handler *Handler) storeFileContent(tx dataservices.DataStoreTx, stackFolder string, deploymentType portaineree.EdgeStackDeploymentType, relatedEndpointIds []portaineree.EndpointID, fileContent []byte) (composePath, manifestPath, projectPath string, err error) {
 	hasWrongType, err := hasWrongEnvironmentType(handler.DataStore.Endpoint(), relatedEndpointIds, deploymentType)
 	if err != nil {
 		return "", "", "", fmt.Errorf("unable to check for existence of non fitting environments: %w", err)
@@ -120,7 +122,6 @@ func (handler *Handler) storeFileContent(stackFolder string, deploymentType port
 	}
 
 	if deploymentType == portaineree.EdgeStackDeploymentKubernetes {
-
 		manifestPath = filesystem.ManifestFileDefaultName
 
 		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, manifestPath, fileContent)
@@ -129,11 +130,9 @@ func (handler *Handler) storeFileContent(stackFolder string, deploymentType port
 		}
 
 		return "", manifestPath, projectPath, nil
-
 	}
 
 	if deploymentType == portaineree.EdgeStackDeploymentNomad {
-
 		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, eefs.NomadJobFileDefaultName, fileContent)
 		if err != nil {
 			return "", "", "", err

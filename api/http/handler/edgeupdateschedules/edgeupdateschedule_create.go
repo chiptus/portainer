@@ -4,19 +4,19 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
-	"github.com/rs/zerolog/log"
-
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/set"
 	"github.com/portainer/portainer-ee/api/internal/slices"
+
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type createPayload struct {
@@ -61,8 +61,8 @@ func (payload *createPayload) Validate(r *http.Request) error {
 // @failure 500
 // @router /edge_update_schedules [post]
 func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-
 	var payload createPayload
+
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
 		return httperror.BadRequest("Invalid request payload", err)
@@ -88,15 +88,14 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 		}
 
 		if scheduleID != 0 {
-			err := handler.updateService.DeleteSchedule(scheduleID)
+			err = handler.updateService.DeleteSchedule(scheduleID)
 			if err != nil {
 				log.Error().Err(err).Msg("Unable to cleanup edge update schedule")
 			}
 		}
 
 		if edgeStackID != 0 {
-			err = handler.edgeStacksService.DeleteEdgeStack(edgeStackID, payload.GroupIDs)
-
+			err = handler.edgeStacksService.DeleteEdgeStack(handler.dataStore, edgeStackID, payload.GroupIDs)
 			if err != nil {
 				log.Error().Err(err).Msg("Unable to cleanup edge stack")
 			}
@@ -104,9 +103,8 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 	}()
 
 	item := &edgetypes.UpdateSchedule{
-		Name:    payload.Name,
-		Version: payload.Version,
-
+		Name:       payload.Name,
+		Version:    payload.Version,
 		Created:    time.Now().Unix(),
 		CreatedBy:  tokenData.ID,
 		Type:       payload.Type,
@@ -237,6 +235,7 @@ func (handler *Handler) isUpdateSupported(environment *portaineree.Endpoint) err
 		if snapshot.Docker.Swarm {
 			return errors.New("swarm is not supported")
 		}
+
 		return nil
 	}
 

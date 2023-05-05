@@ -4,13 +4,16 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/asaskevich/govalidator"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/pkg/featureflags"
+
+	"github.com/asaskevich/govalidator"
 	"github.com/rs/zerolog/log"
 )
 
@@ -55,30 +58,53 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 		return httperror.BadRequest("Invalid stack identifier route variable", err)
 	}
 
-	stack, err := handler.DataStore.EdgeStack().EdgeStack(portaineree.EdgeStackID(stackID))
-	if err != nil {
-		return handler.handlerDBErr(err, "Unable to find a stack with the specified identifier inside the database")
-	}
-
 	var payload updateStatusPayload
 	err = request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	// if the stack represents a successful remote update - skip it
-	if endpointStatus, ok := stack.Status[payload.EndpointID]; ok && endpointStatus.Details.RemoteUpdateSuccess {
-		return response.JSON(w, stack)
+	var stack *portaineree.EdgeStack
+	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
+		stack, err = handler.updateEdgeStackStatus(handler.DataStore, r, portaineree.EdgeStackID(stackID), payload)
+	} else {
+		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+			stack, err = handler.updateEdgeStackStatus(tx, r, portaineree.EdgeStackID(stackID), payload)
+			return err
+		})
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(payload.EndpointID)
 	if err != nil {
-		return handler.handlerDBErr(err, "Unable to find an environment with the specified identifier inside the database")
+		var httpErr *httperror.HandlerError
+		if errors.As(err, &httpErr) {
+			return httpErr
+		}
+
+		return httperror.InternalServerError("Unexpected error", err)
+	}
+
+	return response.JSON(w, stack)
+}
+
+func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *http.Request, stackID portaineree.EdgeStackID, payload updateStatusPayload) (*portaineree.EdgeStack, error) {
+	stack, err := tx.EdgeStack().EdgeStack(stackID)
+	if err != nil {
+		return nil, handler.handlerDBErr(err, "Unable to find a stack with the specified identifier inside the database")
+	}
+
+	// if the stack represents a successful remote update - skip it
+	if endpointStatus, ok := stack.Status[payload.EndpointID]; ok && endpointStatus.Details.RemoteUpdateSuccess {
+		return stack, nil
+	}
+
+	endpoint, err := tx.Endpoint().Endpoint(payload.EndpointID)
+	if err != nil {
+		return nil, handler.handlerDBErr(err, "Unable to find an environment with the specified identifier inside the database")
 	}
 
 	err = handler.requestBouncer.AuthorizedEdgeEndpointOperation(r, endpoint)
 	if err != nil {
-		return httperror.Forbidden("Permission denied to access environment", err)
+		return nil, httperror.Forbidden("Permission denied to access environment", err)
 	}
 
 	status := *payload.Status
@@ -98,8 +124,36 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	err = handler.DataStore.EdgeStack().UpdateEdgeStackFunc(portaineree.EdgeStackID(stackID), func(edgeStack *portaineree.EdgeStack) {
-		details := edgeStack.Status[payload.EndpointID].Details
+	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
+		err = tx.EdgeStack().UpdateEdgeStackFunc(stackID, func(edgeStack *portaineree.EdgeStack) {
+			details := edgeStack.Status[payload.EndpointID].Details
+			details.Pending = false
+			switch status {
+			case portainer.EdgeStackStatusOk:
+				details.Ok = true
+			case portainer.EdgeStackStatusError:
+				details.Error = true
+			case portainer.EdgeStackStatusAcknowledged:
+				details.Acknowledged = true
+			case portainer.EdgeStackStatusRemove:
+				details.Remove = true
+			case portainer.EdgeStackStatusImagesPulled:
+				details.ImagesPulled = true
+			}
+
+			edgeStack.Status[payload.EndpointID] = portainer.EdgeStackStatus{
+				Details:    details,
+				Error:      payload.Error,
+				EndpointID: portainer.EndpointID(payload.EndpointID),
+			}
+
+			stack = edgeStack
+		})
+		if err != nil {
+			return nil, handler.handlerDBErr(err, "Unable to persist the stack changes inside the database")
+		}
+	} else {
+		details := stack.Status[payload.EndpointID].Details
 		details.Pending = false
 		switch status {
 		case portainer.EdgeStackStatusOk:
@@ -114,17 +168,17 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 			details.ImagesPulled = true
 		}
 
-		edgeStack.Status[payload.EndpointID] = portainer.EdgeStackStatus{
+		stack.Status[payload.EndpointID] = portainer.EdgeStackStatus{
 			Details:    details,
 			Error:      payload.Error,
 			EndpointID: portainer.EndpointID(payload.EndpointID),
 		}
 
-		stack = edgeStack
-	})
-	if err != nil {
-		return handler.handlerDBErr(err, "Unable to persist the stack changes inside the database")
+		err = tx.EdgeStack().UpdateEdgeStack(stackID, stack)
+		if err != nil {
+			return nil, handler.handlerDBErr(err, "Unable to persist the stack changes inside the database")
+		}
 	}
 
-	return response.JSON(w, stack)
+	return stack, nil
 }

@@ -7,15 +7,18 @@ import (
 	"regexp"
 	"strings"
 
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/internal/slices"
+
 	"github.com/distribution/distribution/reference"
 	"github.com/pkg/errors"
-	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 var imageMatcher = regexp.MustCompile(`image:[\s]*["']{0,1}([.\w\/@\-:]+)["']{0,1}`)
 
-func (handler *Handler) assignPrivateRegistriesToStack(stack *portaineree.EdgeStack, r io.Reader) error {
-	registries, err := handler.DataStore.Registry().Registries()
+func (handler *Handler) assignPrivateRegistriesToStack(tx dataservices.DataStoreTx, stack *portaineree.EdgeStack, r io.Reader) error {
+	registries, err := tx.Registry().Registries()
 	if err != nil {
 		return err
 	}
@@ -48,11 +51,9 @@ func (handler *Handler) assignPrivateRegistriesToStack(stack *portaineree.EdgeSt
 			}
 		}
 
-		if bestmatch > 0 {
-			// don't add the same registry twice
-			if !contains(stack.Registries, bestmatch) {
-				stack.Registries = append(stack.Registries, bestmatch)
-			}
+		// don't add the same registry twice
+		if bestmatch > 0 && !slices.Contains(stack.Registries, bestmatch) {
+			stack.Registries = append(stack.Registries, bestmatch)
 		}
 	}
 
@@ -108,19 +109,8 @@ func scanImages(r io.Reader) ([]string, error) {
 func getRegistryAndPath(image string) (string, string, error) {
 	ref, err := reference.ParseDockerRef(image)
 	if err != nil {
-		return "", "", fmt.Errorf("Error parsing image: %s error: %w", image, err)
+		return "", "", fmt.Errorf("error parsing image: %s error: %w", image, err)
 	}
 
 	return reference.Domain(ref), reference.Path(ref), nil
-}
-
-// Check if array contains existing item
-func contains(registries []portaineree.RegistryID, id portaineree.RegistryID) bool {
-	for _, v := range registries {
-		if v == id {
-			return true
-		}
-	}
-
-	return false
 }

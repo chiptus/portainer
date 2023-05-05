@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/asaskevich/govalidator"
-	"github.com/pkg/errors"
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	eefs "github.com/portainer/portainer-ee/api/filesystem"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/pkg/errors"
 )
 
 type edgeStackFromGitRepositoryPayload struct {
@@ -101,14 +103,14 @@ func (payload *edgeStackFromGitRepositoryPayload) Validate(r *http.Request) erro
 // @failure 500 "Internal server error"
 // @failure 503 "Edge compute features are disabled"
 // @router /edge_stacks/create/repository [post]
-func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, dryrun bool, userID portaineree.UserID) (*portaineree.EdgeStack, error) {
+func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dataservices.DataStoreTx, dryrun bool, userID portaineree.UserID) (*portaineree.EdgeStack, error) {
 	var payload edgeStackFromGitRepositoryPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
 		return nil, err
 	}
 
-	stack, err := handler.edgeStacksService.BuildEdgeStack(payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false, payload.RetryDeploy)
+	stack, err := handler.edgeStacksService.BuildEdgeStack(tx, payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false, payload.RetryDeploy)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create edge stack object")
 	}
@@ -131,13 +133,13 @@ func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, dryrun
 		}
 	}
 
-	return handler.edgeStacksService.PersistEdgeStack(stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
-		return handler.storeManifestFromGitRepository(stackFolder, relatedEndpointIds, payload.DeploymentType, userID, payload.RepositoryGitCredentialID, repoConfig)
+	return handler.edgeStacksService.PersistEdgeStack(tx, stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
+		return handler.storeManifestFromGitRepository(tx, stackFolder, relatedEndpointIds, payload.DeploymentType, userID, payload.RepositoryGitCredentialID, repoConfig)
 	})
 }
 
-func (handler *Handler) storeManifestFromGitRepository(stackFolder string, relatedEndpointIds []portaineree.EndpointID, deploymentType portaineree.EdgeStackDeploymentType, currentUserID portaineree.UserID, gitCredentialId portaineree.GitCredentialID, repositoryConfig gittypes.RepoConfig) (composePath, manifestPath, projectPath string, err error) {
-	hasWrongType, err := hasWrongEnvironmentType(handler.DataStore.Endpoint(), relatedEndpointIds, deploymentType)
+func (handler *Handler) storeManifestFromGitRepository(tx dataservices.DataStoreTx, stackFolder string, relatedEndpointIds []portaineree.EndpointID, deploymentType portaineree.EdgeStackDeploymentType, currentUserID portaineree.UserID, gitCredentialId portaineree.GitCredentialID, repositoryConfig gittypes.RepoConfig) (composePath, manifestPath, projectPath string, err error) {
+	hasWrongType, err := hasWrongEnvironmentType(tx.Endpoint(), relatedEndpointIds, deploymentType)
 	if err != nil {
 		return "", "", "", fmt.Errorf("unable to check for existence of non fitting environments: %w", err)
 	}
@@ -145,12 +147,13 @@ func (handler *Handler) storeManifestFromGitRepository(stackFolder string, relat
 		return "", "", "", fmt.Errorf("edge stack with config do not match the environment type")
 	}
 
+	var repositoryUsername, repositoryPassword string
+
 	projectPath = handler.FileService.GetEdgeStackProjectPath(stackFolder)
-	repositoryUsername := ""
-	repositoryPassword := ""
+
 	if repositoryConfig.Authentication != nil {
 		if gitCredentialId != 0 {
-			credential, err := handler.DataStore.GitCredential().GetGitCredential(gitCredentialId)
+			credential, err := tx.GitCredential().GetGitCredential(gitCredentialId)
 			if err != nil {
 				return "", "", "", fmt.Errorf("git credential not found: %w", err)
 			}
@@ -175,6 +178,7 @@ func (handler *Handler) storeManifestFromGitRepository(stackFolder string, relat
 		if errors.Is(err, gittypes.ErrAuthenticationFailure) {
 			return "", "", "", errInvalidGitCredential
 		}
+
 		return "", "", "", err
 	}
 

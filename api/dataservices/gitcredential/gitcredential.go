@@ -134,9 +134,11 @@ func (service *Service) GetGitCredentialByName(userID portaineree.UserID, name s
 			}
 			return &portaineree.GitCredential{}, nil
 		})
+
 	if errors.Is(err, stop) {
 		return credential, nil
 	}
+
 	if err == nil {
 		return nil, dserrors.ErrObjectNotFound
 	}

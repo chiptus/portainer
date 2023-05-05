@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
@@ -17,11 +15,12 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
+
+	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 )
 
-var (
-	errInvalidGitCredential = errors.New("Invalid git credential")
-)
+var errInvalidGitCredential = errors.New("Invalid git credential")
 
 // Handler is the HTTP handler used to handle environment(endpoint) group operations.
 type Handler struct {

@@ -7,9 +7,10 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-
+	"github.com/portainer/portainer-ee/api/dataservices"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer/pkg/featureflags"
 )
 
 func (handler *Handler) edgeStackCreate(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
@@ -24,7 +25,15 @@ func (handler *Handler) edgeStackCreate(w http.ResponseWriter, r *http.Request) 
 		return httperror.InternalServerError("Unable to retrieve user details from authentication token", err)
 	}
 
-	edgeStack, err := handler.createSwarmStack(method, dryrun, tokenData.ID, r)
+	var edgeStack *portaineree.EdgeStack
+	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
+		edgeStack, err = handler.createSwarmStack(handler.DataStore, method, dryrun, tokenData.ID, r)
+	} else {
+		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+			edgeStack, err = handler.createSwarmStack(tx, method, dryrun, tokenData.ID, r)
+			return err
+		})
+	}
 	if err != nil {
 		switch {
 		case httperrors.IsInvalidPayloadError(err):
@@ -37,15 +46,16 @@ func (handler *Handler) edgeStackCreate(w http.ResponseWriter, r *http.Request) 
 	return response.JSON(w, edgeStack)
 }
 
-func (handler *Handler) createSwarmStack(method string, dryrun bool, userID portaineree.UserID, r *http.Request) (*portaineree.EdgeStack, error) {
+func (handler *Handler) createSwarmStack(tx dataservices.DataStoreTx, method string, dryrun bool, userID portaineree.UserID, r *http.Request) (*portaineree.EdgeStack, error) {
 
 	switch method {
 	case "string":
-		return handler.createEdgeStackFromFileContent(r, dryrun)
+		return handler.createEdgeStackFromFileContent(r, tx, dryrun)
 	case "repository":
-		return handler.createEdgeStackFromGitRepository(r, dryrun, userID)
+		return handler.createEdgeStackFromGitRepository(r, tx, dryrun, userID)
 	case "file":
-		return handler.createEdgeStackFromFileUpload(r, dryrun)
+		return handler.createEdgeStackFromFileUpload(r, tx, dryrun)
 	}
+
 	return nil, httperrors.NewInvalidPayloadError("Invalid value for query parameter: method. Value must be one of: string, repository or file")
 }

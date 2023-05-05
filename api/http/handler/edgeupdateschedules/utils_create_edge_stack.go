@@ -6,13 +6,13 @@ import (
 	"path"
 	"strconv"
 
+	portaineree "github.com/portainer/portainer-ee/api"
+	eefs "github.com/portainer/portainer-ee/api/filesystem"
+	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	"github.com/portainer/portainer/api/filesystem"
+
 	"github.com/cbroglie/mustache"
 	"github.com/pkg/errors"
-	portaineree "github.com/portainer/portainer-ee/api"
-	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
-
-	eefs "github.com/portainer/portainer-ee/api/filesystem"
-	"github.com/portainer/portainer/api/filesystem"
 )
 
 const (
@@ -76,6 +76,7 @@ func (handler *Handler) createUpdateEdgeStack(
 	}
 
 	stack, err := handler.edgeStacksService.BuildEdgeStack(
+		handler.dataStore,
 		buildEdgeStackName(scheduleID),
 		deploymentConfig.Type,
 		groupIDs,
@@ -92,7 +93,7 @@ func (handler *Handler) createUpdateEdgeStack(
 
 	stack.EdgeUpdateID = int(scheduleID)
 
-	_, err = handler.edgeStacksService.PersistEdgeStack(stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
+	_, err = handler.edgeStacksService.PersistEdgeStack(handler.dataStore, stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
 		skipPullAgentImage := ""
 		env := os.Getenv(skipPullAgentImageEnvVar)
 		if env != "" {

@@ -5,17 +5,19 @@ import (
 	"net/http"
 	"strconv"
 
-	portainer "github.com/portainer/portainer/api"
-	"github.com/rs/zerolog/log"
-
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	eefs "github.com/portainer/portainer-ee/api/filesystem"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
+	"github.com/portainer/portainer/pkg/featureflags"
+
+	"github.com/rs/zerolog/log"
 )
 
 type updateEdgeStackPayload struct {
@@ -35,9 +37,11 @@ func (payload *updateEdgeStackPayload) Validate(r *http.Request) error {
 	if payload.StackFileContent == "" {
 		return errors.New("Invalid file content")
 	}
+
 	if len(payload.EdgeGroups) == 0 {
 		return errors.New("edge groups are mandatory for an Edge stack")
 	}
+
 	return nil
 }
 
@@ -62,29 +66,52 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 		return httperror.BadRequest("Invalid stack identifier route variable", err)
 	}
 
-	stack, err := handler.DataStore.EdgeStack().EdgeStack(portaineree.EdgeStackID(stackID))
-	if err != nil {
-		return handler.handlerDBErr(err, "Unable to find a stack with the specified identifier inside the database")
-	}
-
-	if stack.EdgeUpdateID != 0 {
-		return httperror.BadRequest("Unable to delete edge stack that is used by an edge update schedule", err)
-	}
-
 	var payload updateEdgeStackPayload
 	err = request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	relationConfig, err := edge.FetchEndpointRelationsConfig(handler.DataStore)
+	var stack *portaineree.EdgeStack
+	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
+		stack, err = handler.updateEdgeStack(handler.DataStore, portaineree.EdgeStackID(stackID), payload)
+	} else {
+		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+			stack, err = handler.updateEdgeStack(tx, portaineree.EdgeStackID(stackID), payload)
+			return err
+		})
+	}
+
 	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve environments relations config from database", err)
+		var httpErr *httperror.HandlerError
+		if errors.As(err, &httpErr) {
+			return httpErr
+		}
+
+		return httperror.InternalServerError("Unexpected error", err)
+	}
+
+	return response.JSON(w, stack)
+}
+
+func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID portaineree.EdgeStackID, payload updateEdgeStackPayload) (*portaineree.EdgeStack, error) {
+	stack, err := tx.EdgeStack().EdgeStack(portaineree.EdgeStackID(stackID))
+	if err != nil {
+		return nil, handler.handlerDBErr(err, "Unable to find a stack with the specified identifier inside the database")
+	}
+
+	if stack.EdgeUpdateID != 0 {
+		return nil, httperror.BadRequest("Unable to delete edge stack that is used by an edge update schedule", err)
+	}
+
+	relationConfig, err := edge.FetchEndpointRelationsConfig(tx)
+	if err != nil {
+		return nil, httperror.InternalServerError("Unable to retrieve environments relations config from database", err)
 	}
 
 	relatedEndpointIds, err := edge.EdgeStackRelatedEndpoints(stack.EdgeGroups, relationConfig.Endpoints, relationConfig.EndpointGroups, relationConfig.EdgeGroups)
 	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve edge stack related environments from database", err)
+		return nil, httperror.InternalServerError("Unable to retrieve edge stack related environments from database", err)
 	}
 
 	endpointsToAdd := map[portaineree.EndpointID]bool{}
@@ -92,7 +119,7 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 	if payload.EdgeGroups != nil {
 		newRelated, err := edge.EdgeStackRelatedEndpoints(payload.EdgeGroups, relationConfig.Endpoints, relationConfig.EndpointGroups, relationConfig.EdgeGroups)
 		if err != nil {
-			return httperror.InternalServerError("Unable to retrieve edge stack related environments from database", err)
+			return nil, httperror.InternalServerError("Unable to retrieve edge stack related environments from database", err)
 		}
 
 		oldRelatedSet := endpointutils.EndpointSet(relatedEndpointIds)
@@ -106,21 +133,21 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 		}
 
 		for endpointID := range endpointsToRemove {
-			relation, err := handler.DataStore.EndpointRelation().EndpointRelation(endpointID)
+			relation, err := tx.EndpointRelation().EndpointRelation(endpointID)
 			if err != nil {
-				return httperror.InternalServerError("Unable to find environment relation in database", err)
+				return nil, httperror.InternalServerError("Unable to find environment relation in database", err)
 			}
 
 			delete(relation.EdgeStacks, stack.ID)
 
-			err = handler.DataStore.EndpointRelation().UpdateEndpointRelation(endpointID, relation)
+			err = tx.EndpointRelation().UpdateEndpointRelation(endpointID, relation)
 			if err != nil {
-				return httperror.InternalServerError("Unable to persist environment relation in database", err)
+				return nil, httperror.InternalServerError("Unable to persist environment relation in database", err)
 			}
 
-			err = handler.edgeAsyncService.RemoveStackCommand(endpointID, stack.ID)
+			err = handler.edgeAsyncService.RemoveStackCommandTx(tx, endpointID, stack.ID)
 			if err != nil {
-				return httperror.InternalServerError("Unable to store edge async command into the database", err)
+				return nil, httperror.InternalServerError("Unable to store edge async command into the database", err)
 			}
 		}
 
@@ -131,26 +158,26 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 		}
 
 		for endpointID := range endpointsToAdd {
-			relation, err := handler.DataStore.EndpointRelation().EndpointRelation(endpointID)
+			relation, err := tx.EndpointRelation().EndpointRelation(endpointID)
 			if err != nil {
-				return httperror.InternalServerError("Unable to find environment relation in database", err)
+				return nil, httperror.InternalServerError("Unable to find environment relation in database", err)
 			}
 
 			relation.EdgeStacks[stack.ID] = true
 
-			err = handler.DataStore.EndpointRelation().UpdateEndpointRelation(endpointID, relation)
+			err = tx.EndpointRelation().UpdateEndpointRelation(endpointID, relation)
 			if err != nil {
-				return httperror.InternalServerError("Unable to persist environment relation in database", err)
+				return nil, httperror.InternalServerError("Unable to persist environment relation in database", err)
 			}
 
-			endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
+			endpoint, err := tx.Endpoint().Endpoint(endpointID)
 			if err != nil {
-				return httperror.InternalServerError("Unable to retrieve environment from the database", err)
+				return nil, httperror.InternalServerError("Unable to retrieve environment from the database", err)
 			}
 
-			err = handler.edgeAsyncService.AddStackCommand(endpoint, stack.ID, "")
+			err = handler.edgeAsyncService.AddStackCommandTx(tx, endpoint, stack.ID, "")
 			if err != nil {
-				return httperror.InternalServerError("Unable to store edge async command into the database", err)
+				return nil, httperror.InternalServerError("Unable to store edge async command into the database", err)
 			}
 		}
 
@@ -174,10 +201,10 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 
 	hasWrongType, err := hasWrongEnvironmentType(handler.DataStore.Endpoint(), relatedEndpointIds, payload.DeploymentType)
 	if err != nil {
-		return httperror.BadRequest("unable to check for existence of non fitting environments: %w", err)
+		return nil, httperror.BadRequest("unable to check for existence of non fitting environments: %w", err)
 	}
 	if hasWrongType {
-		return httperror.BadRequest("edge stack with config do not match the environment type", nil)
+		return nil, httperror.BadRequest("edge stack with config do not match the environment type", nil)
 	}
 
 	if payload.DeploymentType == portaineree.EdgeStackDeploymentCompose {
@@ -187,12 +214,12 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 
 		_, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
 		if err != nil {
-			return httperror.InternalServerError("Unable to persist updated Compose file on disk", err)
+			return nil, httperror.InternalServerError("Unable to persist updated Compose file on disk", err)
 		}
 
 		manifestPath, err := handler.convertAndStoreKubeManifestIfNeeded(stackFolder, stack.ProjectPath, stack.EntryPoint, relatedEndpointIds)
 		if err != nil {
-			return httperror.InternalServerError("Unable to convert and persist updated Kubernetes manifest file on disk", err)
+			return nil, httperror.InternalServerError("Unable to convert and persist updated Kubernetes manifest file on disk", err)
 		}
 
 		stack.ManifestPath = manifestPath
@@ -207,7 +234,7 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 
 		_, err = handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.ManifestPath, []byte(payload.StackFileContent))
 		if err != nil {
-			return httperror.InternalServerError("Unable to persist updated Kubernetes manifest file on disk", err)
+			return nil, httperror.InternalServerError("Unable to persist updated Kubernetes manifest file on disk", err)
 		}
 	}
 
@@ -218,7 +245,7 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 
 		_, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
 		if err != nil {
-			return httperror.InternalServerError("Unable to persist updated Nomad job file on disk", err)
+			return nil, httperror.InternalServerError("Unable to persist updated Nomad job file on disk", err)
 		}
 	}
 
@@ -240,26 +267,28 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 		stack.Status = make(map[portaineree.EndpointID]portainer.EdgeStackStatus)
 	}
 
-	err = handler.DataStore.EdgeStack().UpdateEdgeStack(stack.ID, stack)
+	err = tx.EdgeStack().UpdateEdgeStack(stack.ID, stack)
 	if err != nil {
-		return httperror.InternalServerError("Unable to persist the stack changes inside the database", err)
+		return nil, httperror.InternalServerError("Unable to persist the stack changes inside the database", err)
 	}
 
-	if versionUpdated {
-		for _, endpointID := range relatedEndpointIds {
-			endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
-			if err != nil {
-				return httperror.InternalServerError("Unable to retrieve environment from the database", err)
-			}
+	if !versionUpdated {
+		return stack, nil
+	}
 
-			if !endpointsToAdd[endpoint.ID] {
-				err = handler.edgeAsyncService.ReplaceStackCommand(endpoint, stack.ID)
-				if err != nil {
-					return httperror.InternalServerError("Unable to store edge async command into the database", err)
-				}
+	for _, endpointID := range relatedEndpointIds {
+		endpoint, err := tx.Endpoint().Endpoint(endpointID)
+		if err != nil {
+			return nil, httperror.InternalServerError("Unable to retrieve environment from the database", err)
+		}
+
+		if !endpointsToAdd[endpoint.ID] {
+			err = handler.edgeAsyncService.ReplaceStackCommandTx(tx, endpoint, stack.ID)
+			if err != nil {
+				return nil, httperror.InternalServerError("Unable to store edge async command into the database", err)
 			}
 		}
 	}
 
-	return response.JSON(w, stack)
+	return stack, nil
 }

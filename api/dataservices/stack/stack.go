@@ -63,7 +63,7 @@ func (service *Service) StackByName(name string) (*portaineree.Stack, error) {
 			stack, ok := obj.(*portaineree.Stack)
 			if !ok {
 				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Stack object")
-				return nil, fmt.Errorf("Failed to convert to Stack object: %s", obj)
+				return nil, fmt.Errorf("failed to convert to Stack object: %s", obj)
 			}
 
 			if stack.Name == name {
@@ -73,9 +73,11 @@ func (service *Service) StackByName(name string) (*portaineree.Stack, error) {
 
 			return &portaineree.Stack{}, nil
 		})
+
 	if errors.Is(err, stop) {
 		return s, nil
 	}
+
 	if err == nil {
 		return nil, dserrors.ErrObjectNotFound
 	}
@@ -179,15 +181,16 @@ func (service *Service) StackByWebhookID(id string) (*portaineree.Stack, error) 
 
 			return &portaineree.Stack{}, nil
 		})
+
 	if errors.Is(err, stop) {
 		return s, nil
 	}
+
 	if err == nil {
 		return nil, dserrors.ErrObjectNotFound
 	}
 
 	return nil, err
-
 }
 
 // RefreshableStacks returns stacks that are configured for a periodic update
@@ -201,7 +204,7 @@ func (service *Service) RefreshableStacks() ([]portaineree.Stack, error) {
 			stack, ok := obj.(*portaineree.Stack)
 			if !ok {
 				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Stack object")
-				return nil, fmt.Errorf("Failed to convert to Stack object: %s", obj)
+				return nil, fmt.Errorf("failed to convert to Stack object: %s", obj)
 			}
 
 			if stack.AutoUpdate != nil && stack.AutoUpdate.Interval != "" {
