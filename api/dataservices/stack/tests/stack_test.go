@@ -60,7 +60,7 @@ func (b *stackBuilder) createNewStack(webhookID string) portaineree.Stack {
 		Type:         portaineree.DockerComposeStack,
 		EndpointID:   2,
 		EntryPoint:   filesystem.ComposeFileDefaultName,
-		Env:          []portaineree.Pair{{"Name1", "Value1"}},
+		Env:          []portaineree.Pair{{Name: "Name1", Value: "Value1"}},
 		Status:       portaineree.StackStatusActive,
 		CreationDate: time.Now().Unix(),
 		ProjectPath:  "/tmp/project",

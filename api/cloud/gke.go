@@ -188,7 +188,7 @@ func (service *CloudClusterSetupService) GKEProvisionCluster(r gke.ProvisionRequ
 	)
 
 	if err != nil {
-		return "", fmt.Errorf("failed creating container service: %v", err)
+		return "", fmt.Errorf("failed creating container service: %w", err)
 	}
 
 	zoneService := container.NewProjectsZonesClustersService(containerService)

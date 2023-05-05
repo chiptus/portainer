@@ -20,7 +20,6 @@ import (
 	"github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	portainer "github.com/portainer/portainer/api"
-	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // Handler is the HTTP handler which will natively deal with to external environments(endpoints).
@@ -142,7 +141,7 @@ func (handler *Handler) kubeClient(next http.Handler) http.Handler {
 		}
 
 		endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-		if err == portainerDsErrors.ErrObjectNotFound {
+		if handler.DataStore.IsErrObjectNotFound(err) {
 			httperror.WriteError(
 				w,
 				http.StatusNotFound,

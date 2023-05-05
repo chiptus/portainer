@@ -8,7 +8,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer/api/dataservices/errors"
+	"github.com/portainer/portainer/api/dataservices"
 )
 
 type endpointSettingsUpdatePayload struct {
@@ -86,7 +86,7 @@ func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Re
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == errors.ErrObjectNotFound {
+	if dataservices.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)

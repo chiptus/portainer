@@ -8,7 +8,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
-	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type webhookListOperationFilters struct {
@@ -36,7 +35,7 @@ func (handler *Handler) webhookList(w http.ResponseWriter, r *http.Request) *htt
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(filters.EndpointID))
-	if err == portainerDsErrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)

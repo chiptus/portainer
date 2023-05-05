@@ -1,6 +1,7 @@
 package tags
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/portainer/portainer-ee/api/dataservices"
@@ -43,8 +44,9 @@ func (handler *Handler) tagDelete(w http.ResponseWriter, r *http.Request) *httpe
 	}
 
 	if err != nil {
-		if httpErr, ok := err.(*httperror.HandlerError); ok {
-			return httpErr
+		var handlerError *httperror.HandlerError
+		if errors.As(err, &handlerError) {
+			return handlerError
 		}
 
 		return httperror.InternalServerError("Unexpected error", err)

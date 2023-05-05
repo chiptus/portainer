@@ -156,10 +156,11 @@ func registryAccessPoliciesContainsNamespace(registryAccess portaineree.Registry
 
 func (handler *Handler) filterKubernetesRegistriesByUserRole(r *http.Request, registries []portaineree.Registry, endpoint *portaineree.Endpoint, user *portaineree.User) ([]portaineree.Registry, *httperror.HandlerError) {
 	err := handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
-	if err == security.ErrAuthorizationRequired {
-		return nil, httperror.Forbidden("User is not authorized", errors.New("missing namespace query parameter"))
-	}
 	if err != nil {
+		if errors.Is(err, security.ErrAuthorizationRequired) {
+			return nil, httperror.Forbidden("User is not authorized", err)
+		}
+
 		return nil, httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 

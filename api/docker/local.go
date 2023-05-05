@@ -20,20 +20,20 @@ func ScanAndCleanUpGhostUpdaterContainers(ctx context.Context) error {
 			Filters: filters.NewArgs(filters.Arg("label", "io.portainer.updater=true")),
 		})
 		if err != nil {
-			return fmt.Errorf("failed to list containers: %s", err.Error())
+			return fmt.Errorf("failed to list containers: %w", err)
 		}
 		for _, container := range containers {
 			if container.State == "exited" {
 				err = cli.ContainerRemove(ctx, container.ID, types.ContainerRemoveOptions{Force: true})
 				if err != nil {
-					return fmt.Errorf("failed to remove container: %s", err.Error())
+					return fmt.Errorf("failed to remove container: %w", err)
 				}
 
 				if container.NetworkSettings != nil {
 					for _, networkSetting := range container.NetworkSettings.Networks {
 						err = cli.NetworkRemove(ctx, networkSetting.NetworkID)
 						if err != nil {
-							return fmt.Errorf("failed to remove network: %s", err.Error())
+							return fmt.Errorf("failed to remove network: %w", err)
 						}
 					}
 				}

@@ -4,8 +4,8 @@ import (
 	"sort"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
-	"github.com/portainer/portainer/api/dataservices/errors"
 )
 
 var PredefinedRoles = map[portaineree.RoleID]*portaineree.Role{
@@ -62,7 +62,7 @@ func (service *Service) CreateOrUpdatePredefinedRoles() error {
 		predefinedRole := PredefinedRoles[roleID]
 
 		_, err := service.Role(roleID)
-		if err == errors.ErrObjectNotFound {
+		if dataservices.IsErrObjectNotFound(err) {
 			err := service.Create(predefinedRole)
 			if err != nil {
 				return err

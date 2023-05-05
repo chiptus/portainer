@@ -23,7 +23,7 @@ func GetChecksum(checksumFileUrl, filename string, timeout int) (string, error) 
 	checksums := map[string]string{}
 	checksumFile, err := downloadUrl(checksumFileUrl, timeout)
 	if err != nil {
-		return "", fmt.Errorf("error downloading checksum file (%s): %v", checksumFileUrl, err)
+		return "", fmt.Errorf("error downloading checksum file (%s): %w", checksumFileUrl, err)
 	}
 
 	scanner := bufio.NewScanner(strings.NewReader(checksumFile))
@@ -98,26 +98,26 @@ func DownloadToFile(url, dest string, checksum string) (string, error) {
 func MoveFile(sourcePath, destPath string) error {
 	inputFile, err := os.Open(sourcePath)
 	if err != nil {
-		return fmt.Errorf("could not open source file: %s", err)
+		return fmt.Errorf("could not open source file: %w", err)
 	}
 
 	outputFile, err := os.Create(destPath)
 	if err != nil {
 		inputFile.Close()
-		return fmt.Errorf("could not open dest file: %s", err)
+		return fmt.Errorf("could not open dest file: %w", err)
 	}
 	defer outputFile.Close()
 
 	_, err = io.Copy(outputFile, inputFile)
 	inputFile.Close()
 	if err != nil {
-		return fmt.Errorf("writing to output file failed: %s", err)
+		return fmt.Errorf("writing to output file failed: %w", err)
 	}
 
 	// it's now safe to remove the original file
 	err = os.Remove(sourcePath)
 	if err != nil {
-		return fmt.Errorf("failed removing original file: %s", err)
+		return fmt.Errorf("failed removing original file: %w", err)
 	}
 
 	return nil

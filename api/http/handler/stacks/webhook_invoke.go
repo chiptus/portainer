@@ -1,6 +1,7 @@
 package stacks
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -50,7 +51,8 @@ func (handler *Handler) webhookInvoke(w http.ResponseWriter, r *http.Request) *h
 	}
 
 	if err = deployments.RedeployWhenChanged(stack.ID, handler.StackDeployer, handler.DataStore, handler.GitService, handler.userActivityService, params); err != nil {
-		if _, ok := err.(*deployments.StackAuthorMissingErr); ok {
+		var StackAuthorMissingErr *deployments.StackAuthorMissingErr
+		if errors.As(err, &StackAuthorMissingErr) {
 			return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: "Autoupdate for the stack isn't available", Err: err}
 		}
 

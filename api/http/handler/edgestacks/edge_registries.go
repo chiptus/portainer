@@ -108,7 +108,7 @@ func scanImages(r io.Reader) ([]string, error) {
 func getRegistryAndPath(image string) (string, string, error) {
 	ref, err := reference.ParseDockerRef(image)
 	if err != nil {
-		return "", "", fmt.Errorf("Error parsing image: %s (%v)", image, err)
+		return "", "", fmt.Errorf("Error parsing image: %s error: %w", image, err)
 	}
 
 	return reference.Domain(ref), reference.Path(ref), nil

@@ -76,7 +76,7 @@ func (handler *Handler) gitOperationRepoFilePreview(w http.ResponseWriter, r *ht
 
 	err = handler.GitService.CloneRepository(projectPath, payload.Repository, payload.Reference, repositoryUsername, repositoryPassword, payload.TLSSkipVerify)
 	if err != nil {
-		if err == gittypes.ErrAuthenticationFailure {
+		if errors.Is(err, gittypes.ErrAuthenticationFailure) {
 			return httperror.BadRequest("Invalid git credential", err)
 		}
 

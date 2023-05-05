@@ -256,7 +256,7 @@ func migrateDBTestHelper(t *testing.T, srcPath, wantPath string) error {
 	// Convert database back to json.
 	databasePath := con.GetDatabaseFilePath()
 	if _, err := os.Stat(databasePath); err != nil {
-		return fmt.Errorf("stat on %s failed: %s", databasePath, err)
+		return fmt.Errorf("stat on %s failed, error: %w", databasePath, err)
 	}
 
 	gotJSON, err := con.ExportJSON(databasePath, false)

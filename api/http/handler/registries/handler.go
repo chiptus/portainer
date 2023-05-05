@@ -1,6 +1,7 @@
 package registries
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -135,7 +136,7 @@ func (handler *Handler) userHasRegistryAccess(r *http.Request) (hasAccess bool, 
 	}
 
 	err = handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
-	if err == security.ErrAuthorizationRequired {
+	if errors.Is(err, security.ErrAuthorizationRequired) {
 		return false, false, nil
 	}
 	if err != nil {

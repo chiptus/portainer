@@ -29,7 +29,7 @@ func (ghPackages *Packages) GetPackages() ([]GPPackage, error) {
 	}
 
 	if err := json.NewDecoder(response.Body).Decode(&packages); err != nil {
-		err = fmt.Errorf("failed to decode packages response: %s", err.Error())
+		err = fmt.Errorf("failed to decode packages response: %w", err)
 	}
 	return packages, nil
 }

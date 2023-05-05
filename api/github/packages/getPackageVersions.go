@@ -30,7 +30,7 @@ func (ghPackages *Packages) GetPackageVersions(packageName string) ([]GPVersion,
 	}
 
 	if err = json.NewDecoder(response.Body).Decode(&versions); err != nil {
-		err = fmt.Errorf("failed to decode package %s versions response: %s", packageName, err.Error())
+		err = fmt.Errorf("failed to decode package %s versions, error: %w", packageName, err)
 	}
 
 	return versions, nil

@@ -2,6 +2,7 @@ package eksctl
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -70,7 +71,7 @@ func (c *Config) Run(params ...string) error {
 	cmd.Stderr = cmd.Stdout
 	err = cmd.Start()
 	if err != nil {
-		return fmt.Errorf("failed to start eksctl: %v", err)
+		return fmt.Errorf("failed to start eksctl, error: %w", err)
 	}
 
 	scanner := bufio.NewScanner(stdout)
@@ -131,9 +132,10 @@ func (c *Config) Run(params ...string) error {
 		Msg("")
 
 	if err = cmd.Wait(); err != nil {
-		if exiterr, ok := err.(*exec.ExitError); ok {
-			if _, ok := exiterr.Sys().(syscall.WaitStatus); ok {
-				return fmt.Errorf("eksctl error: %s, %v. See Portainer and AWS CloudFormation logs for more detail.", errorText, err)
+		var exitError *exec.ExitError
+		if errors.As(err, &exitError) {
+			if _, ok := exitError.Sys().(syscall.WaitStatus); ok {
+				return fmt.Errorf("eksctl error: %s, %w. See Portainer and AWS CloudFormation logs for more detail.", errorText, err)
 			}
 		}
 	}

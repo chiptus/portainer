@@ -57,10 +57,10 @@ func (handler *Handler) ldapTestLogin(w http.ResponseWriter, r *http.Request) *h
 	}
 
 	err = handler.LDAPService.AuthenticateUser(payload.Username, payload.Password, settings)
-	if err != nil && err != httperrors.ErrUnauthorized {
+	if err != nil && !errors.Is(err, httperrors.ErrUnauthorized) {
 		return httperror.InternalServerError("Unable to test user authorization", err)
 	}
 
-	return response.JSON(w, &testLoginResponse{Valid: err != httperrors.ErrUnauthorized})
+	return response.JSON(w, &testLoginResponse{Valid: !errors.Is(err, httperrors.ErrUnauthorized)})
 
 }

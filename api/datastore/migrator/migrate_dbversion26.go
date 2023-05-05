@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer/api/dataservices/errors"
+	"github.com/portainer/portainer-ee/api/dataservices"
 
 	"github.com/rs/zerolog/log"
 )
@@ -29,7 +29,8 @@ func (m *Migrator) updateStackResourceControlToDB27() error {
 
 		stack, err := m.stackService.StackByName(stackName)
 		if err != nil {
-			if err == errors.ErrObjectNotFound {
+			if dataservices.IsErrObjectNotFound(err) {
+
 				continue
 			}
 

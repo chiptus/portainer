@@ -155,7 +155,7 @@ func (handler *Handler) storeManifestFromGitRepository(stackFolder string, relat
 
 	err = handler.GitService.CloneRepository(projectPath, repositoryConfig.URL, repositoryConfig.ReferenceName, repositoryUsername, repositoryPassword, repositoryConfig.TLSSkipVerify)
 	if err != nil {
-		if err == gittypes.ErrAuthenticationFailure {
+		if errors.Is(err, gittypes.ErrAuthenticationFailure) {
 			return "", "", "", errInvalidGitCredential
 		}
 		return "", "", "", err

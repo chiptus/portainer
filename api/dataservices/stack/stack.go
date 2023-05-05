@@ -1,12 +1,13 @@
 package stack
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/dataservices/errors"
+	dserrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/rs/zerolog/log"
 )
@@ -72,11 +73,11 @@ func (service *Service) StackByName(name string) (*portaineree.Stack, error) {
 
 			return &portaineree.Stack{}, nil
 		})
-	if err == stop {
+	if errors.Is(err, stop) {
 		return s, nil
 	}
 	if err == nil {
-		return nil, errors.ErrObjectNotFound
+		return nil, dserrors.ErrObjectNotFound
 	}
 
 	return nil, err
@@ -178,11 +179,11 @@ func (service *Service) StackByWebhookID(id string) (*portaineree.Stack, error) 
 
 			return &portaineree.Stack{}, nil
 		})
-	if err == stop {
+	if errors.Is(err, stop) {
 		return s, nil
 	}
 	if err == nil {
-		return nil, errors.ErrObjectNotFound
+		return nil, dserrors.ErrObjectNotFound
 	}
 
 	return nil, err

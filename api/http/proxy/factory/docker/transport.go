@@ -22,7 +22,6 @@ import (
 	ru "github.com/portainer/portainer-ee/api/http/utils"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	portainer "github.com/portainer/portainer/api"
-	portainerErrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/rs/zerolog/log"
 )
@@ -673,7 +672,7 @@ func (transport *Transport) executeGenericResourceDeletionOperation(request *htt
 	if response.StatusCode == http.StatusNoContent || response.StatusCode == http.StatusOK {
 		resourceControl, err := transport.dataStore.ResourceControl().ResourceControlByResourceIDAndType(resourceIdentifierAttribute, resourceType)
 		if err != nil {
-			if err == portainerErrors.ErrObjectNotFound {
+			if dataservices.IsErrObjectNotFound(err) {
 				return response, nil
 			}
 

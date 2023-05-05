@@ -10,7 +10,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	models "github.com/portainer/portainer-ee/api/http/models/kubernetes"
 	"github.com/portainer/portainer-ee/api/http/security"
-	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 func (handler *Handler) getKubernetesIngressControllers(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
@@ -23,7 +22,7 @@ func (handler *Handler) getKubernetesIngressControllers(w http.ResponseWriter, r
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == portainerDsErrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound(
 			"Unable to find an environment with the specified identifier inside the database",
 			err,
@@ -128,7 +127,7 @@ func (handler *Handler) getKubernetesIngressControllersByNamespace(w http.Respon
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == portainerDsErrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound(
 			"Unable to find an environment with the specified identifier inside the database",
 			err,
@@ -243,7 +242,7 @@ func (handler *Handler) updateKubernetesIngressControllers(w http.ResponseWriter
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == portainerDsErrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound(
 			"Unable to find an environment with the specified identifier inside the database",
 			err,
@@ -345,7 +344,7 @@ func (handler *Handler) updateKubernetesIngressControllersByNamespace(w http.Res
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if err == portainerDsErrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound(
 			"Unable to find an environment with the specified identifier inside the database",
 			err,

@@ -15,7 +15,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/client"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
-	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type dockerhubStatusResponse struct {
@@ -57,7 +56,7 @@ func (handler *Handler) endpointDockerhubStatus(w http.ResponseWriter, r *http.R
 	}
 	if registryID != 0 {
 		registry, err = handler.DataStore.Registry().Registry(portaineree.RegistryID(registryID))
-		if err == portainerDsErrors.ErrObjectNotFound {
+		if handler.DataStore.IsErrObjectNotFound(err) {
 			return httperror.NotFound("Unable to find a registry with the specified identifier inside the database", err)
 		} else if err != nil {
 			return httperror.InternalServerError("Unable to find a registry with the specified identifier inside the database", err)

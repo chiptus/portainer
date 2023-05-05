@@ -1,6 +1,7 @@
 package datastore
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -105,7 +106,7 @@ func (store *Store) CheckCurrentEdition() error {
 
 // TODO: move the use of this to dataservices.IsErrObjectNotFound()?
 func (store *Store) IsErrObjectNotFound(e error) bool {
-	return e == portainerDsErrors.ErrObjectNotFound
+	return errors.Is(e, portainerDsErrors.ErrObjectNotFound)
 }
 
 func (store *Store) Connection() portainer.Connection {

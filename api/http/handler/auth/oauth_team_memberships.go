@@ -50,6 +50,7 @@ func createOrUpdateMembership(tms dataservices.TeamMembershipService, user porta
 
 	var membership *portaineree.TeamMembership
 	for _, m := range memberships {
+		m := m
 		if m.UserID == user.ID {
 			membership = &m
 			break

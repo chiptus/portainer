@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	snapshotutils "github.com/portainer/portainer-ee/api/internal/snapshot"
-	"github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/docker/docker/api/types/volume"
 	"github.com/rs/zerolog/log"
@@ -106,7 +106,7 @@ func (m *Migrator) updateDockerhubToDB32() error {
 	log.Info().Msg("updating dockerhub")
 
 	dockerhub, err := m.dockerhubService.DockerHub()
-	if err == errors.ErrObjectNotFound {
+	if dataservices.IsErrObjectNotFound(err) {
 		return nil
 	} else if err != nil {
 		return err

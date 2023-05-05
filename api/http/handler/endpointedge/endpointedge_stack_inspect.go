@@ -12,7 +12,6 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	"github.com/portainer/portainer-ee/api/kubernetes"
-	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type configResponse struct {
@@ -56,7 +55,7 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 	}
 
 	edgeStack, err := handler.DataStore.EdgeStack().EdgeStack(portaineree.EdgeStackID(edgeStackID))
-	if err == portainerDsErrors.ErrObjectNotFound {
+	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an edge stack with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an edge stack with the specified identifier inside the database", err)

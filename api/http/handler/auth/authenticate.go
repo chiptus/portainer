@@ -11,7 +11,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/pkg/errors"
@@ -74,7 +73,7 @@ func (handler *Handler) authenticate(rw http.ResponseWriter, r *http.Request) (*
 	}
 
 	user, err := handler.DataStore.User().UserByUsername(payload.Username)
-	if err != nil && err != bolterrors.ErrObjectNotFound {
+	if err != nil && !handler.DataStore.IsErrObjectNotFound(err) {
 		return resp, httperror.InternalServerError("Unable to retrieve a user with the specified username from the database", err)
 	}
 

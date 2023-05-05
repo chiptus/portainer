@@ -9,7 +9,6 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
-	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/rs/zerolog/log"
 )
@@ -140,7 +139,7 @@ func (handler *Handler) restartKubernetesApplication(userID portaineree.UserID, 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err != nil {
 		returnCode := http.StatusInternalServerError
-		if err == portainerDsErrors.ErrObjectNotFound {
+		if handler.DataStore.IsErrObjectNotFound(err) {
 			returnCode = http.StatusNotFound
 		}
 

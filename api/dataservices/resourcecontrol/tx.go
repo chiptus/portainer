@@ -1,6 +1,7 @@
 package resourcecontrol
 
 import (
+	"errors"
 	"fmt"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -61,7 +62,7 @@ func (service ServiceTx) ResourceControlByResourceIDAndType(resourceID string, r
 
 			return &portaineree.ResourceControl{}, nil
 		})
-	if err == stop {
+	if errors.Is(err, stop) {
 		return resourceControl, nil
 	}
 

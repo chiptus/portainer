@@ -97,7 +97,7 @@ func TestTxs(t *testing.T) {
 	err = conn.ViewTx(func(tx portainer.Transaction) error {
 		return tx.GetObject(testBucketName, conn.ConvertToKey(testId), &obj)
 	})
-	if err != dserrors.ErrObjectNotFound {
+	if !errors.Is(err, dserrors.ErrObjectNotFound) {
 		t.Fatal(err)
 	}
 

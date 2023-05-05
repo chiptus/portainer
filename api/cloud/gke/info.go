@@ -2,6 +2,7 @@ package gke
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -113,7 +114,7 @@ func (k Key) FetchZones(ctx context.Context) ([]portaineree.Pair, error) {
 	zoneIt := zoneClient.List(ctx, zoneReq)
 	for {
 		resp, err := zoneIt.Next()
-		if err == iterator.Done {
+		if errors.Is(err, iterator.Done) {
 			break
 		}
 		if err != nil {
@@ -169,7 +170,7 @@ func (k Key) FetchNetworks(ctx context.Context) ([]Network, error) {
 	networkIt := networkClient.List(ctx, networkReq)
 	for {
 		resp, err := networkIt.Next()
-		if err == iterator.Done {
+		if errors.Is(err, iterator.Done) {
 			break
 		}
 		if err != nil {
@@ -234,7 +235,7 @@ func (k Key) FetchMachines(ctx context.Context, zone string) ([]portaineree.Pair
 	machineIt := zoneClient.AggregatedList(ctx, machineReq)
 	for {
 		resp, err := machineIt.Next()
-		if err == iterator.Done {
+		if errors.Is(err, iterator.Done) {
 			break
 		}
 		if err != nil {
@@ -277,7 +278,7 @@ func (k Key) FetchVersions(ctx context.Context, zone string) ([]portaineree.Pair
 		option.WithCredentialsJSON(k.Bytes),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed creating container service: %v", err)
+		return nil, fmt.Errorf("failed creating container service: %w", err)
 	}
 	zoneService := container.NewProjectsZonesService(containerService)
 

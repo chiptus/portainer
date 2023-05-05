@@ -3,8 +3,8 @@ package enforcement
 import (
 	"github.com/pkg/errors"
 	"github.com/portainer/portainer-ee/api/database/models"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 const BucketName = "enforcement"
@@ -31,7 +31,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 func (s *Service) LicenseEnforcement() (*models.LicenseEnforcement, error) {
 	var enforcement models.LicenseEnforcement
 	err := s.connection.GetObject(BucketName, LicenseOveruseEnforcementKey, &enforcement)
-	if err != nil && err != bolterrors.ErrObjectNotFound {
+	if err != nil && !dataservices.IsErrObjectNotFound(err) {
 		return nil, errors.Wrapf(err, "failed to fetch the enforcement record with key %s", string(LicenseOveruseEnforcementKey))
 	}
 

@@ -1,6 +1,7 @@
 package dataservices
 
 import (
+	"errors"
 	"io"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	"github.com/portainer/portainer-ee/api/kubernetes/podsecurity"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/dataservices/errors"
+	perrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type (
@@ -421,5 +422,5 @@ type (
 )
 
 func IsErrObjectNotFound(e error) bool {
-	return e == errors.ErrObjectNotFound
+	return errors.Is(e, perrors.ErrObjectNotFound)
 }

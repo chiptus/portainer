@@ -2,10 +2,11 @@ package packages
 
 import (
 	"fmt"
-	portaineree "github.com/portainer/portainer-ee/api"
 	"io"
 	"net/http"
 	"time"
+
+	portaineree "github.com/portainer/portainer-ee/api"
 )
 
 type (
@@ -19,7 +20,7 @@ type (
 		Metadata struct {
 			container struct {
 				Tags []string `json:"tags"`
-			} `json:"container"`
+			}
 		} `json:"metadata"`
 	}
 

@@ -2,8 +2,8 @@ package migrator
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/rs/zerolog/log"
 )
@@ -25,7 +25,7 @@ func (m *Migrator) refreshRBACRoles() error {
 	for roleID, defaultAuthorizations := range defaultAuthorizationsOfRoles {
 		role, err := m.roleService.Role(roleID)
 		if err != nil {
-			if err == bolterrors.ErrObjectNotFound {
+			if dataservices.IsErrObjectNotFound(err) {
 				continue
 			} else {
 				return err

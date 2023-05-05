@@ -2,6 +2,7 @@ package useractivity
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -75,7 +76,7 @@ func (store *Store) cleanLogsByType(obj interface{}) (int, error) {
 	query := store.db.Select(q.Lte("Timestamp", oldLogsDate))
 
 	count, err := query.Count(obj)
-	if err != nil && err != storm.ErrNotFound {
+	if err != nil && !errors.Is(err, storm.ErrNotFound) {
 		return 0, fmt.Errorf("failed counting old logs: %w", err)
 	}
 
@@ -84,7 +85,7 @@ func (store *Store) cleanLogsByType(obj interface{}) (int, error) {
 	}
 
 	err = query.Delete(obj)
-	if err != nil && err != storm.ErrNotFound {
+	if err != nil && !errors.Is(err, storm.ErrNotFound) {
 		return 0, fmt.Errorf("failed cleaning logs: %w", err)
 	}
 

@@ -1,6 +1,7 @@
 package edgejobs
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -60,8 +61,9 @@ func convertEndpointsToMetaObject(endpoints []portaineree.EndpointID) map[portai
 
 func txResponse(w http.ResponseWriter, r any, err error) *httperror.HandlerError {
 	if err != nil {
-		if httpErr, ok := err.(*httperror.HandlerError); ok {
-			return httpErr
+		var handlerError *httperror.HandlerError
+		if errors.As(err, &handlerError) {
+			return handlerError
 		}
 
 		return httperror.InternalServerError("Unexpected error", err)

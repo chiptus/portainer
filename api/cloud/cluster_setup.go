@@ -418,7 +418,8 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 // checkFatal wraps known fatal errors with clouderrors.FatalError which
 // shortcuts exiting the privisioning loop.
 func checkFatal(err error) error {
-	if _, ok := err.(net.Error); ok {
+	var netError net.Error
+	if errors.As(err, &netError) {
 		if strings.Contains(err.Error(), "TLS handshake error") ||
 			strings.Contains(err.Error(), "connection refused") {
 			return clouderrors.NewFatalError(err.Error())
@@ -552,7 +553,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			if serviceIP == "" {
 				service.setMessage(task.EndpointID, "Waiting for agent response", "Waiting for the Portainer agent service to be ready (attempt "+strconv.Itoa(task.Retries+1)+" of "+strconv.Itoa(maxAttempts)+")")
 				if err != nil {
-					err = fmt.Errorf("could not get service ip or hostname: %v", err)
+					err = fmt.Errorf("could not get service ip or hostname: %w", err)
 				} else {
 					err = fmt.Errorf("could not get service ip or hostname")
 				}

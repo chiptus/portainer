@@ -51,11 +51,11 @@ func extractTgz(archiveFile, destination string) error {
 	tarReader := tar.NewReader(uncompressedStream)
 	for {
 		header, err := tarReader.Next()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
-			return fmt.Errorf("ExtractTarGz: Next() failed: %v", err)
+			return fmt.Errorf("ExtractTarGz: Next() failed: %w", err)
 		}
 
 		switch header.Typeflag {
@@ -66,30 +66,30 @@ func extractTgz(archiveFile, destination string) error {
 			), 0755)
 			if err != nil {
 				return fmt.Errorf(
-					"ExtractTarGz: Mkdir() failed: %s",
-					err.Error(),
+					"ExtractTarGz: Mkdir() failed: %w",
+					err,
 				)
 			}
 
 			outFile, err := os.Create(path.Join(destination, header.Name))
 			if err != nil {
 				return fmt.Errorf(
-					"ExtractTarGz: Create() failed: %s",
-					err.Error(),
+					"ExtractTarGz: Create() failed: %w",
+					err,
 				)
 			}
 			if _, err := io.Copy(outFile, tarReader); err != nil {
 				return fmt.Errorf(
-					"ExtractTarGz: Copy() failed: %s",
-					err.Error(),
+					"ExtractTarGz: Copy() failed: %w",
+					err,
 				)
 			}
 
 			err = outFile.Chmod(0755)
 			if err != nil {
 				return fmt.Errorf(
-					"ExtractTarGz: Chmod() failed: %s",
-					err.Error(),
+					"ExtractTarGz: Chmod() failed: %w",
+					err,
 				)
 			}
 			outFile.Close()

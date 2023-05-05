@@ -13,7 +13,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
-	dberrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type userGitCredentialCreatePayload struct {
@@ -89,7 +88,7 @@ func (handler *Handler) userCreateGitCredential(w http.ResponseWriter, r *http.R
 	}
 
 	cred, err := handler.DataStore.GitCredential().GetGitCredentialByName(portaineree.UserID(userID), payload.Name)
-	if err != nil && err != dberrors.ErrObjectNotFound {
+	if err != nil && !handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.InternalServerError("Unable to verify the git credential with name", err)
 	}
 

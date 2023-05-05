@@ -8,10 +8,10 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/registryutils/access"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gofrs/uuid"
@@ -58,7 +58,7 @@ func (handler *Handler) webhookCreate(w http.ResponseWriter, r *http.Request) *h
 	}
 
 	webhook, err := handler.DataStore.Webhook().WebhookByResourceID(payload.ResourceID)
-	if err != nil && err != bolterrors.ErrObjectNotFound {
+	if err != nil && !dataservices.IsErrObjectNotFound(err) {
 		return httperror.InternalServerError("An error occurred retrieving webhooks from the database", err)
 	}
 	if webhook != nil {

@@ -186,7 +186,7 @@ func (service *CloudClusterSetupService) LinodeGetCluster(apiKey, clusterID stri
 
 	kubeConfigData, err := base64.StdEncoding.DecodeString(kubeConfig.KubeConfig)
 	if err != nil {
-		return nil, fmt.Errorf("failed reading kubeconfig %v: %v", kubeConfig.KubeConfig, err)
+		return nil, fmt.Errorf("failed reading kubeconfig %v: %w", kubeConfig.KubeConfig, err)
 	}
 
 	kaasCluster.KubeConfig = string(kubeConfigData)

@@ -2,6 +2,7 @@ package useractivity
 
 import (
 	"context"
+	"errors"
 	"io"
 	"path"
 	"time"
@@ -116,7 +117,7 @@ func (store *Store) getLogs(activities interface{}, activityLogType interface{},
 	}
 
 	err = limitedQuery.Find(activities)
-	if err != nil && err != storm.ErrNotFound {
+	if err != nil && !errors.Is(err, storm.ErrNotFound) {
 		return 0, err
 	}
 

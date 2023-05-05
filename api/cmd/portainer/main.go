@@ -135,6 +135,10 @@ func initDataStore(flags *portaineree.CLIFlags, secretKey []byte, fileService po
 	}
 
 	if *flags.RollbackToCE {
+		if isNew {
+			log.Fatal().Msg("cannot rollback to CE, no previous version found")
+		}
+
 		err := store.RollbackToCE()
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed rolling back to CE")

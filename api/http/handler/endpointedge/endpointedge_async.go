@@ -371,7 +371,7 @@ func (handler *Handler) updateDockerSnapshot(endpoint *portaineree.Endpoint, sna
 		lastSnapshotJSON, err := json.Marshal(lastSnapshot)
 		if err != nil {
 			*needFullSnapshot = true
-			return fmt.Errorf("could not marshal the last Docker snapshot: %s", err)
+			return fmt.Errorf("could not marshal the last Docker snapshot: %w", err)
 		}
 
 		if snapshotPayload.DockerHash == nil {
@@ -390,14 +390,14 @@ func (handler *Handler) updateDockerSnapshot(endpoint *portaineree.Endpoint, sna
 		newSnapshotJSON, err := snapshotPayload.DockerPatch.Apply(lastSnapshotJSON)
 		if err != nil {
 			*needFullSnapshot = true
-			return fmt.Errorf("could not apply the patch to the Docker snapshot: %s", err)
+			return fmt.Errorf("could not apply the patch to the Docker snapshot: %w", err)
 		}
 
 		var newSnapshot portainer.DockerSnapshot
 		err = json.Unmarshal(newSnapshotJSON, &newSnapshot)
 		if err != nil {
 			*needFullSnapshot = true
-			return fmt.Errorf("could not unmarshal the patched Docker snapshot: %s", err)
+			return fmt.Errorf("could not unmarshal the patched Docker snapshot: %w", err)
 		}
 
 		log.Debug().Msg("setting the patched Docker snapshot")
@@ -431,7 +431,7 @@ func (handler *Handler) updateKubernetesSnapshot(endpoint *portaineree.Endpoint,
 		lastSnapshotJSON, err := json.Marshal(lastSnapshot)
 		if err != nil {
 			*needFullSnapshot = true
-			return fmt.Errorf("could not marshal the last Kubernetes snapshot: %s", err)
+			return fmt.Errorf("could not marshal the last Kubernetes snapshot: %w", err)
 		}
 
 		if snapshotPayload.KubernetesHash == nil {
@@ -450,14 +450,14 @@ func (handler *Handler) updateKubernetesSnapshot(endpoint *portaineree.Endpoint,
 		newSnapshotJSON, err := snapshotPayload.KubernetesPatch.Apply(lastSnapshotJSON)
 		if err != nil {
 			*needFullSnapshot = true
-			return fmt.Errorf("could not apply the patch to the Kubernetes snapshot: %s", err)
+			return fmt.Errorf("could not apply the patch to the Kubernetes snapshot: %w", err)
 		}
 
 		var newSnapshot portaineree.KubernetesSnapshot
 		err = json.Unmarshal(newSnapshotJSON, &newSnapshot)
 		if err != nil {
 			*needFullSnapshot = true
-			return fmt.Errorf("could not unmarshal the patched Kubernetes snapshot: %s", err)
+			return fmt.Errorf("could not unmarshal the patched Kubernetes snapshot: %w", err)
 		}
 
 		log.Debug().Msg("setting the patched Kubernetes snapshot")
@@ -569,12 +569,12 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 	switch endpoint.Type {
 	case portaineree.KubernetesLocalEnvironment, portaineree.AgentOnKubernetesEnvironment, portaineree.EdgeAgentOnKubernetesEnvironment:
 		err := handler.updateKubernetesSnapshot(endpoint, snapshotPayload, needFullSnapshot)
-		if err != nil && err != errHashMismatch {
+		if err != nil && !errors.Is(err, errHashMismatch) {
 			log.Error().Err(err).Msg("unable to update Kubernetes snapshot")
 		}
 	case portaineree.DockerEnvironment, portaineree.AgentOnDockerEnvironment, portaineree.EdgeAgentOnDockerEnvironment:
 		err := handler.updateDockerSnapshot(endpoint, snapshotPayload, needFullSnapshot)
-		if err != nil && err != errHashMismatch {
+		if err != nil && !errors.Is(err, errHashMismatch) {
 			log.Error().Err(err).Msg("unable to update Docker snapshot")
 		}
 	}

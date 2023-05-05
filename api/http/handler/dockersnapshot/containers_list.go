@@ -10,7 +10,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/docker/consts"
 	portainer "github.com/portainer/portainer/api"
-	portainerDsErrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 // @id snapshotContainersList
@@ -42,7 +41,7 @@ func (handler *Handler) containersList(w http.ResponseWriter, r *http.Request) *
 
 		if err != nil {
 			statusCode := http.StatusNotFound
-			if err != portainerDsErrors.ErrObjectNotFound {
+			if !handler.dataStore.IsErrObjectNotFound(err) {
 				statusCode = http.StatusInternalServerError
 			}
 			return httperror.NewError(statusCode, "Unable to find an edge stack with the specified identifier inside the database", err)

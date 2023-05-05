@@ -1,11 +1,12 @@
 package webhook
 
 import (
+	"errors"
 	"fmt"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/dataservices/errors"
+	dserrors "github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/rs/zerolog/log"
 )
@@ -94,12 +95,12 @@ func (service *Service) WebhookByResourceID(ID string) (*portaineree.Webhook, er
 			return &portaineree.Webhook{}, nil
 		})
 
-	if err == stop {
+	if errors.Is(err, stop) {
 		return w, nil
 	}
 
 	if err == nil {
-		return nil, errors.ErrObjectNotFound
+		return nil, dserrors.ErrObjectNotFound
 	}
 
 	return nil, err
@@ -128,12 +129,12 @@ func (service *Service) WebhookByToken(token string) (*portaineree.Webhook, erro
 			return &portaineree.Webhook{}, nil
 		})
 
-	if err == stop {
+	if errors.Is(err, stop) {
 		return w, nil
 	}
 
 	if err == nil {
-		return nil, errors.ErrObjectNotFound
+		return nil, dserrors.ErrObjectNotFound
 	}
 
 	return nil, err

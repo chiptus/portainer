@@ -8,10 +8,10 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
-	bolterrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type registryUpdatePayload struct {
@@ -24,7 +24,7 @@ type registryUpdatePayload struct {
 	Quay             *portaineree.QuayRegistryData
 	Github           *portaineree.GithubRegistryData
 	RegistryAccesses *portaineree.RegistryAccesses `json:",omitempty"`
-	Ecr              *portaineree.EcrData          `json:",omitempty" example:"\{\"Region\": \"ap-southeast-2\"\}"`
+	Ecr              *portaineree.EcrData          `json:",omitempty" example:"{\"Region\": \"ap-southeast-2\"}"`
 }
 
 func (payload *registryUpdatePayload) Validate(r *http.Request) error {
@@ -64,7 +64,7 @@ func (handler *Handler) registryUpdate(w http.ResponseWriter, r *http.Request) *
 	}
 
 	registry, err := handler.DataStore.Registry().Registry(portaineree.RegistryID(registryID))
-	if err == bolterrors.ErrObjectNotFound {
+	if dataservices.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a registry with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a registry with the specified identifier inside the database", err)

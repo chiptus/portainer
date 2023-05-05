@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd api
-if golangci-lint run -c .golangci.yaml
+if golangci-lint run --timeout=10m -c .golangci.yaml
 then
     echo "golangci-lint run successfully"
 else

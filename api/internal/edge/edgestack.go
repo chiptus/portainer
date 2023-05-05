@@ -18,6 +18,7 @@ func EdgeStackRelatedEndpoints(edgeGroupIDs []portaineree.EdgeGroupID, endpoints
 		var edgeGroup *portaineree.EdgeGroup
 
 		for _, group := range edgeGroups {
+			group := group
 			if group.ID == edgeGroupID {
 				edgeGroup = &group
 				break
