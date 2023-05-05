@@ -23,9 +23,9 @@ type edgeStackFromStringPayload struct {
 	EdgeGroups []portaineree.EdgeGroupID `example:"1"`
 	// Deployment type to deploy this stack
 	// Valid values are: 0 - 'compose', 1 - 'kubernetes', 2 - 'nomad'
-	// for compose stacks will use kompose to convert to kubernetes manifest for kubernetes environments(endpoints)
-	// kubernetes deploy type is enabled only for kubernetes environments(endpoints)
-	// nomad deploy type is enabled only for nomad environments(endpoints)
+	// compose is enabled only for docker environments
+	// kubernetes is enabled only for kubernetes environments
+	// nomad is enabled only for nomad environments
 	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1,2"`
 	// List of Registries to use for this stack
 	Registries []portaineree.RegistryID
@@ -41,11 +41,17 @@ func (payload *edgeStackFromStringPayload) Validate(r *http.Request) error {
 	if govalidator.IsNull(payload.Name) {
 		return httperrors.NewInvalidPayloadError("Invalid stack name")
 	}
+
 	if govalidator.IsNull(payload.StackFileContent) {
 		return httperrors.NewInvalidPayloadError("Invalid stack file content")
 	}
+
 	if len(payload.EdgeGroups) == 0 {
 		return httperrors.NewInvalidPayloadError("Edge Groups are mandatory for an Edge stack")
+	}
+
+	if payload.DeploymentType != portaineree.EdgeStackDeploymentCompose && payload.DeploymentType != portaineree.EdgeStackDeploymentKubernetes && payload.DeploymentType != portaineree.EdgeStackDeploymentNomad {
+		return httperrors.NewInvalidPayloadError("Invalid deployment type")
 	}
 
 	return nil
@@ -94,6 +100,14 @@ func (handler *Handler) createEdgeStackFromFileContent(r *http.Request, dryrun b
 }
 
 func (handler *Handler) storeFileContent(stackFolder string, deploymentType portaineree.EdgeStackDeploymentType, relatedEndpointIds []portaineree.EndpointID, fileContent []byte) (composePath, manifestPath, projectPath string, err error) {
+	hasWrongType, err := hasWrongEnvironmentType(handler.DataStore.Endpoint(), relatedEndpointIds, deploymentType)
+	if err != nil {
+		return "", "", "", fmt.Errorf("unable to check for existence of non fitting environments: %w", err)
+	}
+	if hasWrongType {
+		return "", "", "", fmt.Errorf("edge stack with config do not match the environment type")
+	}
+
 	if deploymentType == portaineree.EdgeStackDeploymentCompose {
 		composePath = filesystem.ComposeFileDefaultName
 
@@ -102,21 +116,7 @@ func (handler *Handler) storeFileContent(stackFolder string, deploymentType port
 			return "", "", "", err
 		}
 
-		manifestPath, err = handler.convertAndStoreKubeManifestIfNeeded(stackFolder, projectPath, composePath, relatedEndpointIds)
-		if err != nil {
-			return "", "", "", fmt.Errorf("Failed creating and storing kube manifest: %w", err)
-		}
-
-		return composePath, manifestPath, projectPath, nil
-	}
-
-	hasDockerEndpoint, err := hasDockerEndpoint(handler.DataStore.Endpoint(), relatedEndpointIds)
-	if err != nil {
-		return "", "", "", fmt.Errorf("unable to check for existence of docker environment: %w", err)
-	}
-
-	if hasDockerEndpoint {
-		return "", "", "", errors.New("edge stack with docker environment cannot be deployed with kubernetes or nomad config")
+		return composePath, "", projectPath, nil
 	}
 
 	if deploymentType == portaineree.EdgeStackDeploymentKubernetes {

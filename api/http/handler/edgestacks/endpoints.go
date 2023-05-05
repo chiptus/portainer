@@ -30,3 +30,18 @@ func hasEndpointPredicate(endpointService dataservices.EndpointService, endpoint
 
 	return false, nil
 }
+
+func hasWrongEnvironmentType(endpointService dataservices.EndpointService, endpointIDs []portaineree.EndpointID, deploymentType portaineree.EdgeStackDeploymentType) (bool, error) {
+	return hasEndpointPredicate(endpointService, endpointIDs, func(e *portaineree.Endpoint) bool {
+		switch deploymentType {
+		case portaineree.EdgeStackDeploymentKubernetes:
+			return !endpointutils.IsKubernetesEndpoint(e)
+		case portaineree.EdgeStackDeploymentCompose:
+			return !endpointutils.IsDockerEndpoint(e)
+		case portaineree.EdgeStackDeploymentNomad:
+			return !endpointutils.IsNomadEndpoint(e)
+		}
+
+		return e.Type != portaineree.DockerEnvironment
+	})
+}

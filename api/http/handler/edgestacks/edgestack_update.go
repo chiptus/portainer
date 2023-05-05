@@ -172,6 +172,14 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 
 	stackFolder := strconv.Itoa(int(stack.ID))
 
+	hasWrongType, err := hasWrongEnvironmentType(handler.DataStore.Endpoint(), relatedEndpointIds, payload.DeploymentType)
+	if err != nil {
+		return httperror.BadRequest("unable to check for existence of non fitting environments: %w", err)
+	}
+	if hasWrongType {
+		return httperror.BadRequest("edge stack with config do not match the environment type", nil)
+	}
+
 	if payload.DeploymentType == portaineree.EdgeStackDeploymentCompose {
 		if stack.EntryPoint == "" {
 			stack.EntryPoint = filesystem.ComposeFileDefaultName
@@ -196,15 +204,6 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 		}
 
 		stack.UseManifestNamespaces = payload.UseManifestNamespaces
-
-		hasDockerEndpoint, err := hasDockerEndpoint(handler.DataStore.Endpoint(), relatedEndpointIds)
-		if err != nil {
-			return httperror.InternalServerError("Unable to check for existence of docker environment", err)
-		}
-
-		if hasDockerEndpoint {
-			return httperror.BadRequest("Edge stack with docker environment cannot be deployed with kubernetes config", err)
-		}
 
 		_, err = handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.ManifestPath, []byte(payload.StackFileContent))
 		if err != nil {
