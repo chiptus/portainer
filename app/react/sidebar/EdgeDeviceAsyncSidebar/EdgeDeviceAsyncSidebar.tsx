@@ -1,4 +1,4 @@
-import { Box, Database, Layout, List } from 'lucide-react';
+import { Box, Database, Layout, Layers, List } from 'lucide-react';
 
 import { EnvironmentId } from '@/react/portainer/environments/types';
 
@@ -17,6 +17,14 @@ export function EdgeDeviceAsyncSidebar({ environmentId }: Props) {
         icon={Layout}
         label="Dashboard"
         data-cy="edgeDeviceSidebar-dashboard"
+      />
+
+      <SidebarItem
+        to="edge.browse.stacks"
+        params={{ environmentId }}
+        icon={Layers}
+        label="Stacks"
+        data-cy="edgeDeviceSidebar-stacks"
       />
 
       <SidebarItem

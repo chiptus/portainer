@@ -38,7 +38,7 @@ export function DockerSnapshotPanel({
   return (
     <SnapshotPanel
       environment={environment}
-      lastSnapshotTime={snapshot.SnapshotTime}
+      lastSnapshotTime={snapshot.Info.SystemTime}
     />
   );
 }

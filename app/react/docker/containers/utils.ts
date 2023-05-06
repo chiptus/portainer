@@ -4,6 +4,10 @@ import { ResourceControlViewModel } from '@/react/portainer/access-control/model
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import { useInfo } from '@/docker/services/system.service';
 import { useEnvironment } from '@/react/portainer/environments/queries';
+import {
+  COMPOSE_STACK_NAME_LABEL,
+  SWARM_STACK_NAME_LABEL,
+} from '@/react/constants';
 
 import { DockerContainer, ContainerStatus } from './types';
 import { DockerContainerResponse } from './types/response';
@@ -22,8 +26,7 @@ export function parseViewModel(
 
   const labels = response.Labels || {};
   const stackName =
-    labels['com.docker.compose.project'] ||
-    labels['com.docker.stack.namespace'];
+    labels[COMPOSE_STACK_NAME_LABEL] || labels[SWARM_STACK_NAME_LABEL];
 
   const status = createStatus(response.Status);
 

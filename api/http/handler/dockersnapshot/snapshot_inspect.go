@@ -12,6 +12,20 @@ import (
 	portainer "github.com/portainer/portainer/api"
 )
 
+type remoteManager struct {
+	NodeID string
+	Addr   string
+}
+
+type snapshotInfoSwarm struct {
+	NodeID           string          `json:"NodeID"`
+	NodeAddr         string          `json:"NodeAddr"`
+	LocalNodeState   string          `json:"LocalNodeState"`
+	ControlAvailable bool            `json:"ControlAvailable"`
+	Error            string          `json:"Error"`
+	RemoteManagers   []remoteManager `json:"RemoteManagers"`
+}
+
 type snapshotInfo struct {
 	Containers        int
 	ContainersRunning int
@@ -19,6 +33,7 @@ type snapshotInfo struct {
 	ContainersStopped int
 	Images            int
 	SystemTime        string
+	Swarm             snapshotInfoSwarm
 }
 
 type snapshotResponse struct {
@@ -59,6 +74,9 @@ func (handler *Handler) snapshotInspect(w http.ResponseWriter, r *http.Request) 
 			ContainersPaused:  environmentSnapshot.Docker.SnapshotRaw.Info.ContainersPaused,
 			ContainersStopped: environmentSnapshot.Docker.SnapshotRaw.Info.ContainersStopped,
 			Images:            environmentSnapshot.Docker.SnapshotRaw.Info.Images,
+			Swarm: snapshotInfoSwarm{
+				NodeID: environmentSnapshot.Docker.SnapshotRaw.Info.Swarm.NodeID,
+			},
 		},
 	}
 

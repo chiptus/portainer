@@ -2,6 +2,7 @@ import angular from 'angular';
 
 import { r2a } from '@/react-tools/react2angular';
 import { ContainersView } from '@/react/edge/edge-devices/ContainersView';
+import { StacksView } from '@/react/edge/edge-devices/StacksView';
 import { ContainerView } from '@/react/edge/edge-devices/ContainerView';
 import { DashboardView } from '@/react/edge/edge-devices/DashboardView';
 import { ImagesView } from '@/react/edge/edge-devices/ImagesView';
@@ -20,6 +21,10 @@ export const viewsModule = angular
   .component(
     'edgeDeviceDashboardView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(DashboardView))), [])
+  )
+  .component(
+    'edgeDeviceStacksView',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(StacksView))), [])
   )
   .component(
     'edgeDeviceContainersView',

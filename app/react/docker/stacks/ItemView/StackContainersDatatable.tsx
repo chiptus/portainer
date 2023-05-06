@@ -7,6 +7,7 @@ import { useColumns } from '@/react/docker/containers/ListView/ContainersDatatab
 import { ContainersDatatableActions } from '@/react/docker/containers/ListView/ContainersDatatable/ContainersDatatableActions';
 import { ContainersDatatableSettings } from '@/react/docker/containers/ListView/ContainersDatatable/ContainersDatatableSettings';
 import { useShowGPUsColumn } from '@/react/docker/containers/utils';
+import { COMPOSE_STACK_NAME_LABEL } from '@/react/constants';
 
 import { Datatable, Table } from '@@/datatables';
 import {
@@ -45,7 +46,7 @@ export function StackContainersDatatable({ environment, stackName }: Props) {
     environment.Id,
     true,
     {
-      label: [`com.docker.compose.project=${stackName}`],
+      label: [`${COMPOSE_STACK_NAME_LABEL}=${stackName}`],
     },
     tableState.autoRefreshRate * 1000
   );

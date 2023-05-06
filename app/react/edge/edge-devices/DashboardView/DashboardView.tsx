@@ -1,5 +1,5 @@
 import { find } from 'lodash';
-import { Box, Cpu, Database, List, Gauge } from 'lucide-react';
+import { Box, Cpu, Database, List, Gauge, Layers } from 'lucide-react';
 import { useCurrentStateAndParams } from '@uirouter/react';
 
 import { useEnvironment } from '@/react/portainer/environments/queries';
@@ -9,6 +9,7 @@ import { ContainerStatus } from '@/react/docker/DashboardView/ContainerStatus';
 import { ImagesTotalSize } from '@/react/docker/DashboardView/ImagesTotalSize';
 import { useDockerSnapshot } from '@/react/docker/queries/useDockerSnapshot';
 import Memory from '@/assets/ico/memory.svg?c';
+import { filterUniqueContainersBasedOnStack } from '@/react/docker/snapshots/utils';
 
 import { Widget } from '@@/Widget';
 import { DashboardGrid } from '@@/DashboardItem/DashboardGrid';
@@ -76,6 +77,8 @@ export function DashboardView() {
 
   const { Containers: containers, Images: images, Volumes: volumes } = snapshot;
 
+  const uniqueStacks = filterUniqueContainersBasedOnStack(containers);
+
   const imagesTotalSize = images.reduce(
     (res, image) => res + image.VirtualSize,
     0
@@ -123,6 +126,17 @@ export function DashboardView() {
 
       <div className="mx-4">
         <DashboardGrid>
+          <Link
+            to="edge.browse.stacks"
+            params={{ environmentId }}
+            className="no-link"
+          >
+            <DashboardItem
+              icon={Layers}
+              type="Stack"
+              value={uniqueStacks.length}
+            />
+          </Link>
           <Link
             to="edge.browse.containers"
             params={{ environmentId }}

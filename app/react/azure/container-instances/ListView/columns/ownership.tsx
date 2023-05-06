@@ -1,5 +1,5 @@
-import clsx from 'clsx';
 import { CellContext } from '@tanstack/react-table';
+import clsx from 'clsx';
 
 import { ownershipIcon } from '@/portainer/filters/filters';
 import { ResourceControlOwnership } from '@/react/portainer/access-control/types';

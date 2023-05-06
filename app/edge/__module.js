@@ -175,6 +175,16 @@ angular
     });
 
     $stateRegistryProvider.register({
+      name: 'edge.browse.stacks',
+      url: '/:environmentId/stacks?edgeStackId',
+      views: {
+        'content@': {
+          component: 'edgeDeviceStacksView',
+        },
+      },
+    });
+
+    $stateRegistryProvider.register({
       name: 'edge.browse.containers',
       url: '/containers?edgeStackId',
       views: {

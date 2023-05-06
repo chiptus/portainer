@@ -64,6 +64,12 @@ type volumeCommandData struct {
 	VolumeOperation portaineree.EdgeAsyncVolumeOperation
 }
 
+type normalStackData struct {
+	Name             string
+	StackFileContent string
+	StackOperation   portaineree.EdgeAsyncNormalStackOperation
+}
+
 type Service struct {
 	dataStore   dataservices.DataStore
 	fileService portainer.FileService
@@ -430,6 +436,40 @@ func (service *Service) DeleteVolumeCommand(endpointID portaineree.EndpointID, n
 		Operation:  portaineree.EdgeAsyncCommandOpAdd,
 		Path:       fmt.Sprintf("/volumes/%s/%s", portaineree.EdgeAsyncVolumeOperationDelete, name),
 		Value:      cmdData,
+	}
+
+	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
+}
+
+func (service *Service) RemoveNormalStackCommand(endpointID portaineree.EndpointID, stackID portaineree.StackID) error {
+	endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
+	if err != nil || !endpoint.Edge.AsyncMode {
+		return err
+	}
+
+	stack, err := service.dataStore.Stack().Stack(stackID)
+	if err != nil {
+		return err
+	}
+
+	fileContent, err := service.fileService.GetFileContent(stack.ProjectPath, stack.EntryPoint)
+	if err != nil {
+		return err
+	}
+
+	stackStatus := normalStackData{
+		Name:             stack.Name,
+		StackFileContent: string(fileContent),
+		StackOperation:   portaineree.EdgeAsyncNormalStackOperationRemove,
+	}
+
+	asyncCommand := &portaineree.EdgeAsyncCommand{
+		Type:       portaineree.EdgeAsyncCommandTypeNormalStack,
+		EndpointID: endpointID,
+		Timestamp:  time.Now(),
+		Operation:  portaineree.EdgeAsyncCommandOpAdd,
+		Path:       fmt.Sprintf("/normalStack/%d", stackID),
+		Value:      stackStatus,
 	}
 
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)

@@ -63,6 +63,7 @@ func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataSto
 
 	endpointRouter.PathPrefix("/edge/trust").Handler(bouncer.AdminAccess(license.RecalculateLicenseUsage(licenseService, httperror.LoggerHandler(h.endpointTrust)))).Methods(http.MethodPost)
 
+	endpointRouter.Handle("/edge/async/commands/stack/{stackId}", bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.createNormalStackCommand))).Methods(http.MethodPost)
 	endpointRouter.Handle("/edge/async/commands/container", bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.createContainerCommand))).Methods(http.MethodPost)
 	endpointRouter.Handle("/edge/async/commands/image", bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.createImageCommand))).Methods(http.MethodPost)
 	endpointRouter.Handle("/edge/async/commands/volume", bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.createVolumeCommand))).Methods(http.MethodPost)

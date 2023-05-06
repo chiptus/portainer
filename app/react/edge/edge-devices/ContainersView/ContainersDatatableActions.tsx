@@ -194,14 +194,14 @@ export function ContainersDatatableActions({
         setPortainerAgentTargetHeader(container.NodeName);
         await removeContainer(endpointId, container, cleanVolumes);
         notifications.success(
-          'Container successfully removed',
+          'Container removal successfully planned',
           container.Names[0]
         );
       } catch (err) {
         notifications.error(
           'Failure',
           err as Error,
-          'Unable to remove container'
+          'Unable to schedule container removal'
         );
       }
     }

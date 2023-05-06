@@ -48,11 +48,13 @@ type (
 		ForcePullImage bool `example:"false"`
 	}
 
-	EdgeAsyncCommandType        string
-	EdgeAsyncCommandOperation   string
-	EdgeAsyncContainerOperation string
-	EdgeAsyncImageOperation     string
-	EdgeAsyncVolumeOperation    string
+	EdgeAsyncCommandType          string
+	EdgeAsyncCommandOperation     string
+	EdgeAsyncContainerOperation   string
+	EdgeAsyncImageOperation       string
+	EdgeAsyncVolumeOperation      string
+	EdgeAsyncStackOperation       string
+	EdgeAsyncNormalStackOperation string
 
 	// EdgeRegistryCredentials holds the credentials for a Docker registry used by Edge Agent
 	EdgeRegistryCredential struct {
@@ -2272,12 +2274,13 @@ const (
 )
 
 const (
-	EdgeAsyncCommandTypeStack     EdgeAsyncCommandType = "edgeStack"
-	EdgeAsyncCommandTypeJob       EdgeAsyncCommandType = "edgeJob"
-	EdgeAsyncCommandTypeLog       EdgeAsyncCommandType = "edgeLog"
-	EdgeAsyncCommandTypeContainer EdgeAsyncCommandType = "container"
-	EdgeAsyncCommandTypeImage     EdgeAsyncCommandType = "image"
-	EdgeAsyncCommandTypeVolume    EdgeAsyncCommandType = "volume"
+	EdgeAsyncCommandTypeStack       EdgeAsyncCommandType = "edgeStack"
+	EdgeAsyncCommandTypeJob         EdgeAsyncCommandType = "edgeJob"
+	EdgeAsyncCommandTypeLog         EdgeAsyncCommandType = "edgeLog"
+	EdgeAsyncCommandTypeContainer   EdgeAsyncCommandType = "container"
+	EdgeAsyncCommandTypeImage       EdgeAsyncCommandType = "image"
+	EdgeAsyncCommandTypeVolume      EdgeAsyncCommandType = "volume"
+	EdgeAsyncCommandTypeNormalStack EdgeAsyncCommandType = "normalStack"
 
 	EdgeAsyncCommandOpAdd     EdgeAsyncCommandOperation = "add"
 	EdgeAsyncCommandOpRemove  EdgeAsyncCommandOperation = "remove"
@@ -2292,6 +2295,8 @@ const (
 	EdgeAsyncImageOperationDelete EdgeAsyncImageOperation = "delete"
 
 	EdgeAsyncVolumeOperationDelete EdgeAsyncVolumeOperation = "delete"
+
+	EdgeAsyncNormalStackOperationRemove EdgeAsyncNormalStackOperation = "remove"
 )
 
 const (

@@ -1,6 +1,7 @@
 import { DockerVolume } from '@/react/docker/volumes/types';
 import { DockerImage } from '@/react/docker/images/types';
 import { DockerContainer } from '@/react/docker/containers/types';
+import { DockerInfoResponse } from '@/react/docker/DashboardView/types/response';
 
 export type DockerContainerSnapshot = DockerContainer & {
   Env: string[];
@@ -10,7 +11,7 @@ export type DockerSnapshotRaw = {
   Containers: DockerContainerSnapshot[];
   Volumes: DockerVolume[];
   Images: DockerImage[];
-  SnapshotTime: string;
+  Info: DockerInfoResponse;
 };
 
 export interface DockerSnapshot {
