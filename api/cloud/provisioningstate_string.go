@@ -10,14 +10,14 @@ func _() {
 	var x [1]struct{}
 	_ = x[ProvisioningStatePending-0]
 	_ = x[ProvisioningStateWaitingForCluster-1]
-	_ = x[ProvisiongStateSeedingCluster-2]
+	_ = x[ProvisioningStateDeployingCustomTemplate-2]
 	_ = x[ProvisioningStateAgentSetup-3]
 	_ = x[ProvisioningStateWaitingForAgent-4]
 	_ = x[ProvisioningStateUpdatingEndpoint-5]
 	_ = x[ProvisioningStateDone-6]
 }
 
-const _ProvisioningState_name = "PendingWaitingForClusterProvisiongStateSeedingClusterAgentSetupWaitingForAgentUpdatingEndpointDone"
+const _ProvisioningState_name = "PendingWaitingForClusterProvisioningStateDeployingCustomTemplateAgentSetupWaitingForAgentUpdatingEndpointDone"
 
 var _ProvisioningState_index = [...]uint8{0, 7, 24, 53, 63, 78, 94, 98}
 

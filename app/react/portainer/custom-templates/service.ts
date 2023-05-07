@@ -2,7 +2,7 @@ import { useQuery } from 'react-query';
 
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 
-import { CustomTemplate } from './types';
+import { CustomTemplate, CustomTemplateFileContent } from './types';
 
 export async function getCustomTemplates() {
   try {
@@ -23,4 +23,20 @@ export function useCustomTemplates() {
       },
     },
   });
+}
+
+export async function getCustomTemplateFileContent(id: number) {
+  try {
+    const {
+      data: { FileContent },
+    } = await axios.get<CustomTemplateFileContent>(
+      `custom_templates/${id}/file`
+    );
+    return FileContent;
+  } catch (e) {
+    throw parseAxiosError(
+      e as Error,
+      'Unable to get custom template file content'
+    );
+  }
 }

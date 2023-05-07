@@ -8,8 +8,10 @@ type (
 	CloudProviders map[CloudProviderShortName]portaineree.CloudProvider
 
 	EnvironmentMetadata struct {
-		GroupId portaineree.EndpointGroupID `json:"groupId"`
-		TagIds  []portaineree.TagID         `json:"tagIds"`
+		GroupId               portaineree.EndpointGroupID  `json:"groupId"`
+		TagIds                []portaineree.TagID          `json:"tagIds"`
+		CustomTemplateID      portaineree.CustomTemplateID `json:"customTemplateID"`
+		CustomTemplateContent string                       `json:"customTemplateContent"`
 	}
 )
 

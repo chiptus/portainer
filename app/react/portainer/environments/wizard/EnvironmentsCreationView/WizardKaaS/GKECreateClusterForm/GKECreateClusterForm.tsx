@@ -2,6 +2,7 @@ import { Field, useFormikContext } from 'formik';
 import { useEffect, useMemo, useState } from 'react';
 
 import { Credential } from '@/react/portainer/settings/sharedCredentials/types';
+import { CustomTemplate } from '@/react/portainer/custom-templates/types';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { Input, Select } from '@@/form-components/Input';
@@ -15,6 +16,7 @@ import { FormValues, isGKEKaasInfo } from '../types';
 import { CredentialsField } from '../shared/CredentialsField';
 import { ActionsSection } from '../shared/ActionsSection';
 import { MoreSettingsSection } from '../../shared/MoreSettingsSection';
+import { CustomTemplateSelector } from '../../shared/CustomTemplateSelector';
 import { KaaSInfoText } from '../shared/KaaSInfoText';
 import { NameField } from '../../shared/NameField';
 import { KaasProvider, providerTitles } from '../../WizardK8sInstall/types';
@@ -23,12 +25,14 @@ import { maxGKERam, minGKERam } from './validation';
 
 type Props = {
   credentials: Credential[];
+  customTemplates: CustomTemplate[];
   provider: KaasProvider;
   isSubmitting: boolean;
 };
 
 export function GKECreateClusterForm({
   credentials,
+  customTemplates,
   provider,
   isSubmitting,
 }: Props) {
@@ -266,11 +270,12 @@ export function GKECreateClusterForm({
       )}
 
       <MoreSettingsSection>
-        <TextTip color="blue">
+        <TextTip color="blue" className="mb-4">
           Metadata is only assigned to the environment in Portainer, i.e. the
           group and tags are not assigned to the cluster at the cloud provider
           end.
         </TextTip>
+        <CustomTemplateSelector customTemplates={customTemplates} />
       </MoreSettingsSection>
 
       <ActionsSection

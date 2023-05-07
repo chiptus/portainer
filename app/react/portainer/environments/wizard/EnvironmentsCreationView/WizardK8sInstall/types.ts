@@ -24,7 +24,6 @@ export type Microk8sK8sVersion =
 export interface CreateMicrok8sClusterFormValues {
   nodeIPs: string[];
   addons: string[];
-  customTemplateId: number;
   kubernetesVersion: Microk8sK8sVersion;
 }
 

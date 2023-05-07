@@ -6,17 +6,20 @@ import { useCreateAgentEnvironmentMutation } from '@/react/portainer/environment
 import { notifySuccess } from '@/portainer/services/notifications';
 import { Environment } from '@/react/portainer/environments/types';
 import { CreateAgentEnvironmentValues } from '@/react/portainer/environments/environment.service/create';
+import { CustomTemplate } from '@/react/portainer/custom-templates/types';
 
 import { LoadingButton } from '@@/buttons/LoadingButton';
 
 import { NameField } from '../NameField';
 import { MoreSettingsSection } from '../MoreSettingsSection';
+import { CustomTemplateSelector } from '../CustomTemplateSelector';
 
 import { EnvironmentUrlField } from './EnvironmentUrlField';
 import { useValidation } from './AgentForm.validation';
 
 interface Props {
   onCreate(environment: Environment): void;
+  customTemplates?: CustomTemplate[];
 }
 
 const initialValues: CreateAgentEnvironmentValues = {
@@ -25,10 +28,12 @@ const initialValues: CreateAgentEnvironmentValues = {
   meta: {
     groupId: 1,
     tagIds: [],
+    customTemplateId: 0,
+    variables: {},
   },
 };
 
-export function AgentForm({ onCreate }: Props) {
+export function AgentForm({ onCreate, customTemplates }: Props) {
   const [formKey, clearForm] = useReducer((state) => state + 1, 0);
 
   const mutation = useCreateAgentEnvironmentMutation();
@@ -47,7 +52,11 @@ export function AgentForm({ onCreate }: Props) {
           <NameField />
           <EnvironmentUrlField />
 
-          <MoreSettingsSection />
+          <MoreSettingsSection>
+            {customTemplates && (
+              <CustomTemplateSelector customTemplates={customTemplates} />
+            )}
+          </MoreSettingsSection>
 
           <div className="form-group">
             <div className="col-sm-12">

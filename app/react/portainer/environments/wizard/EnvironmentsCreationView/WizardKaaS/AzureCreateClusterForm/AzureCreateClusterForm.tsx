@@ -2,6 +2,7 @@ import { Field, useFormikContext } from 'formik';
 import { useMemo, useState } from 'react';
 
 import { Credential } from '@/react/portainer/settings/sharedCredentials/types';
+import { CustomTemplate } from '@/react/portainer/custom-templates/types';
 
 import { Select as ReactSelect } from '@@/form-components/ReactSelect';
 import { FormControl } from '@@/form-components/FormControl';
@@ -19,10 +20,12 @@ import { ActionsSection } from '../shared/ActionsSection';
 import { KaaSInfoText } from '../shared/KaaSInfoText';
 import { NameField } from '../../shared/NameField';
 import { MoreSettingsSection } from '../../shared/MoreSettingsSection';
+import { CustomTemplateSelector } from '../../shared/CustomTemplateSelector';
 import { KaasProvider, providerTitles } from '../../WizardK8sInstall/types';
 
 type Props = {
   credentials: Credential[];
+  customTemplates: CustomTemplate[];
   provider: KaasProvider;
   isSubmitting: boolean;
 };
@@ -30,6 +33,7 @@ type Props = {
 // ApiCreateClusterForm handles form changes, conditionally renders inputs, and manually set values
 export function AzureCreateClusterForm({
   credentials,
+  customTemplates,
   provider,
   isSubmitting,
 }: Props) {
@@ -397,11 +401,12 @@ export function AzureCreateClusterForm({
         )}
 
       <MoreSettingsSection>
-        <TextTip color="blue">
+        <TextTip color="blue" className="mb-4">
           Metadata is only assigned to the environment in Portainer, i.e. the
           group and tags are not assigned to the cluster at the cloud provider
           end.
         </TextTip>
+        <CustomTemplateSelector customTemplates={customTemplates} />
       </MoreSettingsSection>
 
       <ActionsSection

@@ -1180,7 +1180,8 @@ type (
 		NodeIPs []string
 		Addons  []string
 
-		CustomTemplateID CustomTemplateID
+		CustomTemplateID      CustomTemplateID
+		CustomTemplateContent string
 
 		// --- Common portainer internal fields ---
 		// the userid of the user who created this request.
@@ -1193,13 +1194,15 @@ type (
 	// CloudProvisioningTask represents an active job queue for KaaS provisioning tasks
 	//   used by portainer when stopping and restarting portainer
 	CloudProvisioningTask struct {
-		ID              CloudProvisioningTaskID
-		Provider        string
-		ClusterID       string
-		Region          string
-		EndpointID      EndpointID
-		CreatedAt       time.Time
-		CreatedByUserID UserID
+		ID                    CloudProvisioningTaskID
+		Provider              string
+		ClusterID             string
+		Region                string
+		EndpointID            EndpointID
+		CreatedAt             time.Time
+		CreatedByUserID       UserID
+		CustomTemplateID      CustomTemplateID
+		CustomTemplateContent string
 
 		State   int   `json:"-"`
 		Retries int   `json:"-"`
@@ -1209,8 +1212,7 @@ type (
 		ResourceGroup string
 
 		// Microk8s specific fields
-		NodeIPs          []string
-		CustomTemplateID CustomTemplateID
+		NodeIPs []string
 	}
 
 	// GlobalDeploymentOptions hides manual deployment forms globally, to enforce infrastructure as code practices
@@ -2639,12 +2641,13 @@ const (
 )
 
 const (
-	CloudProviderCivo         = "civo"
-	CloudProviderDigitalOcean = "digitalocean"
-	CloudProviderLinode       = "linode"
-	CloudProviderGKE          = "gke"
-	CloudProviderKubeConfig   = "kubeconfig"
-	CloudProviderAzure        = "azure"
-	CloudProviderAmazon       = "amazon"
-	CloudProviderMicrok8s     = "microk8s"
+	CloudProviderCivo              = "civo"
+	CloudProviderDigitalOcean      = "digitalocean"
+	CloudProviderLinode            = "linode"
+	CloudProviderGKE               = "gke"
+	CloudProviderKubeConfig        = "kubeconfig"
+	CloudProviderAzure             = "azure"
+	CloudProviderAmazon            = "amazon"
+	CloudProviderMicrok8s          = "microk8s"
+	CloudProviderPreinstalledAgent = "agent"
 )

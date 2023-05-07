@@ -99,5 +99,8 @@ func (payload *AzureProvisionPayload) GetCloudProvisioningRequest(endpointID por
 		Tier:              payload.Tier,
 		PoolName:          payload.PoolName,
 		DNSPrefix:         payload.DNSPrefix,
+
+		CustomTemplateID:      payload.Meta.CustomTemplateID,
+		CustomTemplateContent: payload.Meta.CustomTemplateContent,
 	}
 }

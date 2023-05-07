@@ -20,9 +20,9 @@ import { NameField } from '../../shared/NameField';
 import { useTestSSHConnection } from '../service';
 import { K8sInstallFormValues, Microk8sK8sVersion } from '../types';
 import { formatMicrok8sPayload } from '../utils';
+import { CustomTemplateSelector } from '../../shared/CustomTemplateSelector';
 
 import { AddOnOption, Microk8sAddOnSelector } from './AddonSelector';
-import { CustomTemplateSelector } from './CustomTemplateSelector';
 import { NodeAddressErrors, NodeAddressInput } from './NodeAddressInput';
 import { Microk8sActions } from './Microk8sActions';
 
@@ -239,14 +239,13 @@ export function Microk8sCreateClusterForm({
         />
       </FormControl>
 
-      <CustomTemplateSelector customTemplates={customTemplates} />
-
       <MoreSettingsSection>
-        <TextTip color="blue">
+        <TextTip color="blue" className="mb-4">
           Metadata is only assigned to the environment in Portainer, i.e. the
           group and tags are not assigned to the cluster at the cloud provider
           end.
         </TextTip>
+        <CustomTemplateSelector customTemplates={customTemplates} />
       </MoreSettingsSection>
 
       <Microk8sActions

@@ -42,7 +42,6 @@ const initialValues: K8sInstallFormValues = {
   microk8s: {
     nodeIPs: [''],
     addons: [],
-    customTemplateId: 0,
     kubernetesVersion: '1.24/stable',
   },
 };

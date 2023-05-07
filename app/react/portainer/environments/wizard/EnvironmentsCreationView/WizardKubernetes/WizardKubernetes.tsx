@@ -7,6 +7,11 @@ import { commandsTabs } from '@/react/edge/components/EdgeScriptForm/scripts';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import EdgeAgentStandardIcon from '@/react/edge/components/edge-agent-standard.svg?c';
 import EdgeAgentAsyncIcon from '@/react/edge/components/edge-agent-async.svg?c';
+import {
+  CustomTemplate,
+  CustomTemplateKubernetesType,
+} from '@/react/portainer/custom-templates/types';
+import { useCustomTemplates } from '@/react/portainer/custom-templates/service';
 
 import { BoxSelector } from '@@/BoxSelector';
 import { BoxSelectorOption } from '@@/BoxSelector/types';
@@ -65,8 +70,13 @@ const options: BoxSelectorOption<CreationType>[] = _.compact([
 export function WizardKubernetes({ onCreate }: Props) {
   const [creationType, setCreationType] = useState(options[0].value);
 
-  const tab = getTab(creationType);
+  const customTemplatesQuery = useCustomTemplates();
+  const customTemplates =
+    customTemplatesQuery.data?.filter(
+      (t) => t.Type === CustomTemplateKubernetesType
+    ) || [];
 
+  const tab = getTab(creationType, customTemplates);
   return (
     <div className="form-horizontal">
       <BoxSelector
@@ -80,12 +90,13 @@ export function WizardKubernetes({ onCreate }: Props) {
     </div>
   );
 
-  function getTab(type: CreationType) {
+  function getTab(type: CreationType, customTemplates: CustomTemplate[]) {
     switch (type) {
       case 'agent':
         return (
           <AgentPanel
             onCreate={(environment) => onCreate(environment, 'kubernetesAgent')}
+            customTemplates={customTemplates}
           />
         );
       case 'edgeAgentStandard':
@@ -111,6 +122,7 @@ export function WizardKubernetes({ onCreate }: Props) {
         return (
           <KubeConfigForm
             onCreate={(environment) => onCreate(environment, 'kubernetesAgent')}
+            customTemplates={customTemplates}
           />
         );
       default:

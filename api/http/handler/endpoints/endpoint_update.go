@@ -65,6 +65,12 @@ type endpointUpdatePayload struct {
 		// The command list interval for edge agent - used in edge async mode (in seconds)
 		CommandInterval *int `json:"CommandInterval" example:"5"`
 	}
+
+	IsSetStatusMessage bool `json:"IsSetStatusMessage"`
+	StatusMessage      struct {
+		Detail  string `json:"Detail" example:"Error message"`
+		Summary string `json:"Summary" example:"Error"`
+	}
 }
 
 func (payload *endpointUpdatePayload) Validate(r *http.Request) error {
@@ -166,6 +172,11 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 			}
 
 			endpoint.Name = name
+		}
+
+		if payload.IsSetStatusMessage {
+			endpoint.StatusMessage.Detail = payload.StatusMessage.Detail
+			endpoint.StatusMessage.Summary = payload.StatusMessage.Summary
 		}
 
 		if payload.URL != nil {

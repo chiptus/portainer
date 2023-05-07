@@ -155,6 +155,11 @@ interface EndpointChangeWindow {
   EndTime: string;
 }
 
+export interface EnvironmentStatusMessage {
+  Detail: string;
+  Summary: string;
+}
+
 export type Environment = {
   Agent: { Version: string };
   Id: EnvironmentId;
@@ -172,6 +177,7 @@ export type Environment = {
   LastCheckInDate?: number;
   Name: string;
   Status: EnvironmentStatus;
+  StatusMessage: EnvironmentStatusMessage;
   URL: string;
   Snapshots: DockerSnapshot[];
   Kubernetes: KubernetesSettings;

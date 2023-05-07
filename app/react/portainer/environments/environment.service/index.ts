@@ -11,6 +11,7 @@ import type {
   EnvironmentType,
   EnvironmentSecuritySettings,
   EnvironmentStatus,
+  EnvironmentStatusMessage,
 } from '../types';
 
 import { buildUrl } from './utils';
@@ -221,6 +222,28 @@ export async function updateEndpoint(
     return endpoint;
   } catch (e) {
     throw parseAxiosError(e as Error, 'Unable to update environment');
+  }
+}
+
+export async function updateEndpointStatusMessage(
+  id: EnvironmentId,
+  payload: {
+    IsSetStatusMessage: boolean;
+    StatusMessage: EnvironmentStatusMessage;
+  }
+) {
+  try {
+    const { data: endpoint } = await axios.put<Environment>(
+      buildUrl(id),
+      payload
+    );
+
+    return endpoint;
+  } catch (e) {
+    throw parseAxiosError(
+      e as Error,
+      'Unable to update environment status message'
+    );
   }
 }
 

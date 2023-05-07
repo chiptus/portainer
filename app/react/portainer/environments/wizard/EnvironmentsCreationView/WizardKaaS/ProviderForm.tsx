@@ -2,6 +2,7 @@ import { useFormikContext } from 'formik';
 import { useEffect } from 'react';
 
 import { Credential } from '@/react/portainer/settings/sharedCredentials/types';
+import { CustomTemplate } from '@/react/portainer/custom-templates/types';
 
 import { KaasProvider } from '../WizardK8sInstall/types';
 
@@ -15,6 +16,7 @@ interface Props {
   provider: KaasProvider;
   onChangeSelectedCredential: (credential: Credential | null) => void;
   credentials: Credential[];
+  customTemplates: CustomTemplate[];
   isSubmitting: boolean;
 }
 
@@ -22,6 +24,7 @@ export function ProviderForm({
   provider,
   onChangeSelectedCredential,
   credentials,
+  customTemplates,
   isSubmitting,
 }: Props) {
   useSelectedCredentials(credentials, onChangeSelectedCredential);
@@ -36,6 +39,7 @@ export function ProviderForm({
     <Form
       provider={provider}
       credentials={credentials}
+      customTemplates={customTemplates}
       isSubmitting={isSubmitting}
     />
   );

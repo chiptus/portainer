@@ -45,6 +45,7 @@ export function CustomTemplatesVariablesField({
                   [def.name]: e.target.value,
                 })
               }
+              placeholder={`Enter value or leave blank to use default of ${def.defaultValue}`}
             />
           </FormControl>
         );

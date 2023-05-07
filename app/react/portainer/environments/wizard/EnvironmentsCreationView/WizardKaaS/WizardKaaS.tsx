@@ -7,9 +7,11 @@ import {
   providerToCredentialTypeMap,
 } from '@/react/portainer/settings/sharedCredentials/types';
 import { useCloudCredentials } from '@/react/portainer/settings/sharedCredentials/cloudSettings.service';
+import { useCustomTemplates } from '@/react/portainer/custom-templates/service';
 import { Environment } from '@/react/portainer/environments/types';
 import { useSettings } from '@/react/portainer/settings/queries';
 import { CredentialsForm } from '@/react/portainer/settings/sharedCredentials/CreateCredentialsView/CredentialsForm';
+import { CustomTemplateKubernetesType } from '@/react/portainer/custom-templates/types';
 
 import { Loading } from '@@/Widget/Loading';
 import { Link } from '@@/Link';
@@ -78,12 +80,18 @@ export function WizardKaaS({ onCreate }: Props) {
   const [credentialType, setCredentialType] = useState<Credential | null>(null);
 
   const credentialsQuery = useCloudCredentials();
+  const customTemplatesQuery = useCustomTemplates();
 
   const cloudOptionsQuery = useCloudProviderOptions<KaasInfo>(
     provider,
     isKaasInfo,
     credentialType
   );
+
+  const customTemplates =
+    customTemplatesQuery.data?.filter(
+      (t) => t.Type === CustomTemplateKubernetesType
+    ) || [];
 
   const credentials = credentialsQuery.data;
 
@@ -119,6 +127,7 @@ export function WizardKaaS({ onCreate }: Props) {
               provider={provider}
               onChangeSelectedCredential={setCredentialType}
               credentials={providerCredentials}
+              customTemplates={customTemplates}
               isSubmitting={createKaasClusterMutation.isLoading}
             />
           )}

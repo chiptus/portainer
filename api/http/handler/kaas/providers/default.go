@@ -68,14 +68,16 @@ func (payload *DefaultProvisionPayload) GetEnvironmentMetadata() types.Environme
 
 func (payload *DefaultProvisionPayload) GetCloudProvisioningRequest(endpointID portaineree.EndpointID, provider string) *portaineree.CloudProvisioningRequest {
 	return &portaineree.CloudProvisioningRequest{
-		EndpointID:        endpointID,
-		Provider:          provider,
-		Region:            payload.Region,
-		Name:              payload.Name,
-		NodeSize:          payload.NodeSize,
-		NetworkID:         payload.NetworkID,
-		NodeCount:         payload.NodeCount,
-		KubernetesVersion: payload.KubernetesVersion,
-		CredentialID:      payload.CredentialID,
+		EndpointID:            endpointID,
+		Provider:              provider,
+		Region:                payload.Region,
+		Name:                  payload.Name,
+		NodeSize:              payload.NodeSize,
+		NetworkID:             payload.NetworkID,
+		NodeCount:             payload.NodeCount,
+		CustomTemplateID:      payload.Meta.CustomTemplateID,
+		CustomTemplateContent: payload.Meta.CustomTemplateContent,
+		KubernetesVersion:     payload.KubernetesVersion,
+		CredentialID:          payload.CredentialID,
 	}
 }

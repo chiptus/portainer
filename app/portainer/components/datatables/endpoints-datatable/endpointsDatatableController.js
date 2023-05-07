@@ -3,12 +3,15 @@ import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 
 angular.module('portainer.app').controller('EndpointsDatatableController', [
   '$scope',
+  '$state',
   '$controller',
   '$interval',
   'DatatableService',
   'PaginationService',
-  function ($scope, $controller, $interval, DatatableService, PaginationService) {
+  function ($scope, $state, $controller, $interval, DatatableService, PaginationService) {
     angular.extend(this, $controller('GenericDatatableController', { $scope: $scope }));
+
+    this.$state = $state;
 
     this.isBE = isBE;
 
@@ -96,6 +99,10 @@ angular.module('portainer.app').controller('EndpointsDatatableController', [
         }
       });
     };
+
+    this.reload = function () {
+      this.$state.reload();
+    }.bind(this);
 
     /**
      * Overridden

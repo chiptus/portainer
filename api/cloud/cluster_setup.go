@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -21,6 +20,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/kubernetes"
 	kubecli "github.com/portainer/portainer-ee/api/kubernetes/cli"
+	"github.com/portainer/portainer/api/filesystem"
 	log "github.com/rs/zerolog/log"
 )
 
@@ -30,7 +30,7 @@ type ProvisioningState int
 const (
 	ProvisioningStatePending ProvisioningState = iota
 	ProvisioningStateWaitingForCluster
-	ProvisiongStateSeedingCluster
+	ProvisioningStateDeployingCustomTemplate
 	ProvisioningStateAgentSetup
 	ProvisioningStateWaitingForAgent
 	ProvisioningStateUpdatingEndpoint
@@ -119,16 +119,17 @@ func (service *CloudClusterSetupService) Request(r *portaineree.CloudProvisionin
 // createClusterSetupTask transforms a provisioning request into a task and adds it to the db
 func (service *CloudClusterSetupService) createClusterSetupTask(request *portaineree.CloudProvisioningRequest, clusterID, resourceGroup string) (portaineree.CloudProvisioningTask, error) {
 	task := portaineree.CloudProvisioningTask{
-		Provider:         request.Provider,
-		ClusterID:        clusterID,
-		EndpointID:       request.EndpointID,
-		Region:           request.Region,
-		State:            request.StartingState,
-		CreatedAt:        time.Now(),
-		ResourceGroup:    resourceGroup,
-		CustomTemplateID: request.CustomTemplateID,
-		NodeIPs:          request.NodeIPs,
-		CreatedByUserID:  request.CreatedByUserID,
+		Provider:              request.Provider,
+		ClusterID:             clusterID,
+		EndpointID:            request.EndpointID,
+		Region:                request.Region,
+		State:                 request.StartingState,
+		CreatedAt:             time.Now(),
+		ResourceGroup:         resourceGroup,
+		CustomTemplateID:      request.CustomTemplateID,
+		CustomTemplateContent: request.CustomTemplateContent,
+		NodeIPs:               request.NodeIPs,
+		CreatedByUserID:       request.CreatedByUserID,
 	}
 
 	return task, service.dataStore.CloudProvisioning().Create(&task)
@@ -285,33 +286,34 @@ func (service *CloudClusterSetupService) seedCluster(task *portaineree.CloudProv
 		return err
 	}
 
-	sourceManifest := filepath.Join(customTemplate.ProjectPath, customTemplate.EntryPoint)
 	owner, err := service.dataStore.User().User(task.CreatedByUserID)
 	if err != nil {
 		return clouderrors.NewFatalError("unable to load user information from the database, error: %v", err)
 	}
 
-	// add portainer labels to a copy of the manifest don't modify the orignal as that is the original stack file
-	manifestContent, err := os.ReadFile(sourceManifest)
-	if err != nil {
-		return clouderrors.NewFatalError("error reading manifest file: %s, error: %v", sourceManifest, err)
-	}
-
-	namespace, err := kubernetes.GetNamespace(manifestContent)
+	namespace, err := kubernetes.GetNamespace([]byte(task.CustomTemplateContent))
 	if err != nil || namespace == "" {
 		namespace = "default"
 	}
 
+	stackID := service.dataStore.Stack().GetNextIdentifier()
+
 	stack := portaineree.Stack{
-		ID:              portaineree.StackID(service.dataStore.Stack().GetNextIdentifier()),
+		ID:              portaineree.StackID(stackID),
 		Name:            "seed" + strconv.Itoa(int(task.EndpointID)),
 		IsComposeFormat: false,
 		Type:            portaineree.KubernetesStack,
 		EndpointID:      task.EndpointID,
-		EntryPoint:      customTemplate.EntryPoint, // It will be pointing to custom template file
-		ProjectPath:     customTemplate.ProjectPath,
 		Namespace:       namespace,
+		EntryPoint:      filesystem.ManifestFileDefaultName,
 	}
+
+	stackFolder := strconv.Itoa(stackID)
+	projectPath, err := service.fileService.StoreStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(task.CustomTemplateContent))
+	if err != nil {
+		return clouderrors.NewFatalError("error copying stack manifest for endpoint: %d, error: %v", task.EndpointID, err)
+	}
+	stack.ProjectPath = projectPath
 
 	err = service.dataStore.Stack().Create(&stack)
 	if err != nil {
@@ -325,9 +327,9 @@ func (service *CloudClusterSetupService) seedCluster(task *portaineree.CloudProv
 		Kind:      "content", // should be "content" for custom templates
 	}
 
-	labeledManifest, err := kubernetes.AddAppLabels(manifestContent, labels.ToMap())
+	labeledManifest, err := kubernetes.AddAppLabels([]byte(task.CustomTemplateContent), labels.ToMap())
 	if err != nil {
-		return clouderrors.NewFatalError("error adding labels to manifest file: %s, error: %v", sourceManifest, err)
+		return clouderrors.NewFatalError("error adding labels to manifest file: %s, error: %v", task.CustomTemplateContent, err)
 	}
 
 	// save the modified manifest to a temp file and deploy it
@@ -344,22 +346,44 @@ func (service *CloudClusterSetupService) seedCluster(task *portaineree.CloudProv
 	}
 	manifestFile.Close()
 
-	return service.kubernetesDeployer.DeployViaKubeConfig(cluster.KubeConfig, task.ClusterID, manifestFile.Name())
+	if task.Provider == portaineree.CloudProviderPreinstalledAgent {
+		endpoint, err := service.dataStore.Endpoint().Endpoint(task.EndpointID)
+		manifests := []string{manifestFile.Name()}
+		_, err = service.kubernetesDeployer.Deploy(
+			task.CreatedByUserID,
+			endpoint,
+			manifests,
+			"default",
+		)
+		return err
+	}
+	return service.kubernetesDeployer.DeployViaKubeConfig(
+		cluster.KubeConfig,
+		task.ClusterID,
+		manifestFile.Name(),
+	)
 }
 
 // getKaasCluster gets the kaasCluster object for the task from the associated cloud provider
-func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudProvisioningTask) (cluster *KaasCluster, err error) {
+func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudProvisioningTask) (*KaasCluster, error) {
 	endpoint, err := service.dataStore.Endpoint().Endpoint(task.EndpointID)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read endpoint from the database")
 	}
 
-	credentials, err := service.dataStore.CloudCredential().GetByID(endpoint.CloudProvider.CredentialID)
-	if err != nil {
-		return nil, errors.Wrap(err, "Unable to read credentials from the database")
+	var credentials *models.CloudCredential
+	if task.Provider != portaineree.CloudProviderPreinstalledAgent {
+		credentials, err = service.dataStore.CloudCredential().GetByID(endpoint.CloudProvider.CredentialID)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read credentials: %w", err)
+		}
 	}
 
+	cluster := new(KaasCluster)
 	switch task.Provider {
+	case portaineree.CloudProviderPreinstalledAgent:
+		cluster, err = service.PreinstalledAgentGetCluster(task.ClusterID)
+
 	case portaineree.CloudProviderMicrok8s:
 		cluster, err = service.Microk8sGetCluster(
 			credentials.Credentials["username"],
@@ -479,6 +503,8 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				service.changeState(&task, ProvisioningStateWaitingForCluster, "Waiting for MicroK8s cluster to become available")
 			case portaineree.CloudProviderKubeConfig:
 				service.changeState(&task, ProvisioningStateWaitingForCluster, "Importing Kubeconfig")
+			case portaineree.CloudProviderPreinstalledAgent:
+				service.changeState(&task, ProvisioningStateDeployingCustomTemplate, "Deploying Custom Template")
 			default:
 				service.changeState(&task, ProvisioningStateWaitingForCluster, "Creating KaaS cluster")
 			}
@@ -491,22 +517,10 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			}
 
 			if cluster.Ready {
-				service.changeState(&task, ProvisiongStateSeedingCluster, "Seeding cluster")
+				service.changeState(&task, ProvisioningStateAgentSetup, "Deploying Portainer agent")
 			}
 
 			log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Msg("waiting for cluster")
-
-		case ProvisiongStateSeedingCluster:
-			if task.CustomTemplateID != 0 {
-				err = service.seedCluster(&task)
-				if err != nil {
-					task.Retries++
-					break
-				}
-				log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Msg("seeding cluster")
-			}
-
-			service.changeState(&task, ProvisioningStateAgentSetup, "Deploying Portainer agent")
 
 		case ProvisioningStateAgentSetup:
 			log.Info().Str("state", state.String()).Int("retries", task.Retries).Msg("process state")
@@ -593,6 +607,23 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				break
 			}
 
+			// If custom template is used, we need to deploy custom template
+			if task.CustomTemplateID != 0 {
+				service.changeState(&task, ProvisioningStateDeployingCustomTemplate, "Deploying Custom Template")
+			} else {
+				service.changeState(&task, ProvisioningStateDone, "Connecting")
+			}
+
+		case ProvisioningStateDeployingCustomTemplate:
+			if task.CustomTemplateID != 0 {
+				log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Msg("deploying custom template")
+				err = service.seedCluster(&task)
+				if err != nil {
+					task.Retries++
+					break
+				}
+			}
+
 			service.changeState(&task, ProvisioningStateDone, "Connecting")
 
 		case ProvisioningStateDone:
@@ -633,11 +664,15 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 func (service *CloudClusterSetupService) processRequest(request *portaineree.CloudProvisioningRequest) {
 	log.Info().Str("provider", request.Provider).Str("agent_version", kubecli.DefaultAgentVersion).Msg("new cluster creation request received")
 
-	credentials, err := service.dataStore.CloudCredential().GetByID(request.CredentialID)
-	if err != nil {
-		log.Error().Err(err).Msg("unable to retrieve credentials from the database")
+	var credentials *models.CloudCredential
+	var err error
+	if request.Provider != portaineree.CloudProviderPreinstalledAgent {
+		credentials, err = service.dataStore.CloudCredential().GetByID(request.CredentialID)
+		if err != nil {
+			log.Error().Err(err).Msg("unable to retrieve credentials from the database")
 
-		return
+			return
+		}
 	}
 
 	var clusterID string
@@ -649,6 +684,12 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 	// it appearing twice in the portainer logs.
 
 	switch request.Provider {
+	case portaineree.CloudProviderPreinstalledAgent:
+		req := PreinstalledAgentProvisioningClusterRequest{
+			EnvironmentID: request.EndpointID,
+		}
+		clusterID, provErr = service.PreinstalledAgentProvisionCluster(req)
+
 	case portaineree.CloudProviderMicrok8s:
 		req := Microk8sProvisioningClusterRequest{
 			EnvironmentID:     request.EndpointID,

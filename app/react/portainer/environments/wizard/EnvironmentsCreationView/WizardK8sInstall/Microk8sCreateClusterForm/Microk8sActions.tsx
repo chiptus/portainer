@@ -92,7 +92,7 @@ export function Microk8sActions({
         provider: K8sDistributionType.MICROK8S,
         addons: values.microk8s.addons,
         nodeCount,
-        customTemplateUsed: values.microk8s.customTemplateId !== 0,
+        customTemplateUsed: values.meta.customTemplateId !== 0,
       },
     });
   }

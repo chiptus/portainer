@@ -10,6 +10,9 @@ import { arrayToJson, buildUrl, json2formData } from './utils';
 export interface EnvironmentMetadata {
   groupId?: EnvironmentGroupId;
   tagIds?: TagId[];
+  variables?: Record<string, string>;
+  customTemplateId?: number;
+  customTemplateContent?: string;
 }
 
 interface CreateLocalDockerEnvironment {
@@ -195,7 +198,7 @@ export function createEdgeAgentEnvironment({
   name,
   portainerUrl,
   tunnelServerAddr,
-  meta = { tagIds: [] },
+  meta = { tagIds: [], variables: {} },
   pollFrequency,
   edge,
 }: CreateEdgeAgentEnvironment) {
@@ -266,6 +269,15 @@ async function createEnvironment(
         EdgePingInterval: options.edge?.PingInterval,
         EdgeSnapshotInterval: options.edge?.SnapshotInterval,
         EdgeCommandInterval: options.edge?.CommandInterval,
+      };
+    }
+
+    if (options.meta?.customTemplateId) {
+      payload = {
+        ...payload,
+        CustomTemplateID: options.meta.customTemplateId,
+        Variables: JSON.stringify(options.meta?.variables),
+        CustomTemplateContent: options.meta?.customTemplateContent,
       };
     }
   }

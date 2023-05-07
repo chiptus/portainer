@@ -21,10 +21,9 @@ type Microk8sTestSSHPayload struct {
 }
 
 type Microk8sProvisionPayload struct {
-	NodeIPs           []string                     `validate:"required" json:"nodeIPs"`
-	KubernetesVersion string                       `validate:"required" json:"kubernetesVersion"`
-	Addons            []string                     `json:"addons"`
-	CustomTemplateID  portaineree.CustomTemplateID `json:"customTemplateID"`
+	NodeIPs           []string `validate:"required" json:"nodeIPs"`
+	KubernetesVersion string   `validate:"required" json:"kubernetesVersion"`
+	Addons            []string `json:"addons"`
 
 	DefaultProvisionPayload
 }
@@ -114,15 +113,16 @@ func (payload *Microk8sProvisionPayload) GetCloudProvider(_ string) (*portainere
 
 func (payload *Microk8sProvisionPayload) GetCloudProvisioningRequest(endpointID portaineree.EndpointID, _ string) *portaineree.CloudProvisioningRequest {
 	request := &portaineree.CloudProvisioningRequest{
-		EndpointID:        endpointID,
-		Provider:          portaineree.CloudProviderMicrok8s,
-		Name:              payload.Name,
-		CredentialID:      payload.CredentialID,
-		NodeCount:         payload.NodeCount,
-		NodeIPs:           payload.NodeIPs,
-		Addons:            payload.Addons,
-		CustomTemplateID:  payload.CustomTemplateID,
-		KubernetesVersion: payload.KubernetesVersion,
+		EndpointID:            endpointID,
+		Provider:              portaineree.CloudProviderMicrok8s,
+		Name:                  payload.Name,
+		CredentialID:          payload.CredentialID,
+		NodeCount:             payload.NodeCount,
+		NodeIPs:               payload.NodeIPs,
+		Addons:                payload.Addons,
+		CustomTemplateID:      payload.Meta.CustomTemplateID,
+		CustomTemplateContent: payload.Meta.CustomTemplateContent,
+		KubernetesVersion:     payload.KubernetesVersion,
 	}
 
 	return request

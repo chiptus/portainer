@@ -77,6 +77,9 @@ func (payload *AmazonProvisionPayload) GetCloudProvisioningRequest(endpointID po
 		CredentialID:      payload.CredentialID,
 		AmiType:           payload.AmiType,
 		InstanceType:      payload.InstanceType,
+
+		CustomTemplateID:      payload.Meta.CustomTemplateID,
+		CustomTemplateContent: payload.Meta.CustomTemplateContent,
 	}
 
 	if payload.NodeVolumeSize == nil {

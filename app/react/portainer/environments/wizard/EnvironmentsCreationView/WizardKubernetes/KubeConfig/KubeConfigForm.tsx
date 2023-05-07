@@ -6,6 +6,7 @@ import { useCreateKubeConfigEnvironmentMutation } from '@/react/portainer/enviro
 import { notifySuccess } from '@/portainer/services/notifications';
 import { Environment } from '@/react/portainer/environments/types';
 import { CreateKubeConfigEnvironment } from '@/react/portainer/environments/environment.service/create';
+import { CustomTemplate } from '@/react/portainer/custom-templates/types';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { FileUploadField } from '@@/form-components/FileUpload/FileUploadField';
@@ -14,11 +15,13 @@ import { TextTip } from '@@/Tip/TextTip';
 
 import { NameField } from '../../shared/NameField';
 import { MoreSettingsSection } from '../../shared/MoreSettingsSection';
+import { CustomTemplateSelector } from '../../shared/CustomTemplateSelector';
 
 import { useValidation } from './KubeConfig.validation';
 
 interface Props {
   onCreate(environment: Environment): void;
+  customTemplates: CustomTemplate[];
 }
 
 const initialValues: CreateKubeConfigEnvironment = {
@@ -51,7 +54,7 @@ async function readFileContent(file: File) {
   });
 }
 
-export function KubeConfigForm({ onCreate }: Props) {
+export function KubeConfigForm({ onCreate, customTemplates }: Props) {
   const [formKey, clearForm] = useReducer((state) => state + 1, 0);
   const [kubeConfigFile, setKubeConfigFile] = useState<File>();
 
@@ -136,7 +139,9 @@ export function KubeConfigForm({ onCreate }: Props) {
             />
           </FormControl>
 
-          <MoreSettingsSection />
+          <MoreSettingsSection>
+            <CustomTemplateSelector customTemplates={customTemplates} />
+          </MoreSettingsSection>
 
           <div className="form-group">
             <div className="col-sm-12">

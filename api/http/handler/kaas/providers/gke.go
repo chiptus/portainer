@@ -72,5 +72,8 @@ func (payload *GKEProvisionPayload) GetCloudProvisioningRequest(endpointID porta
 		CPU:               payload.CPU,
 		RAM:               payload.RAM,
 		HDD:               payload.HDD,
+
+		CustomTemplateID:      payload.Meta.CustomTemplateID,
+		CustomTemplateContent: payload.Meta.CustomTemplateContent,
 	}
 }

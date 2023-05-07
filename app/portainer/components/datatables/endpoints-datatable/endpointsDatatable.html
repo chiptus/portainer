@@ -126,37 +126,7 @@
                 </span>
               </td>
               <td>
-                <span ng-if="item.Type !== 4 && item.Status !== 3">{{ item.URL | stripprotocol }}</span>
-                <span ng-if="item.Type === 4">-</span>
-                <span ng-if="item.Status === 3">
-                  <span
-                    ng-if="item.StatusMessage.Detail"
-                    class="vertical-center cursor-pointer"
-                    tooltip-append-to-body="true"
-                    tooltip-placement="top"
-                    tooltip-class="portainer-tooltip"
-                    uib-tooltip="{{ item.StatusMessage.Detail }}"
-                  >
-                    <pr-icon icon="'settings'" class-name="'animate-spin-slow space-right'"></pr-icon>
-                    {{ item.StatusMessage.Summary }}
-                  </span>
-                  <span ng-if="!item.StatusMessage.Detail">
-                    <pr-icon icon="'settings'" class-name="'animate-spin-slow space-right'"></pr-icon>
-                    {{ item.StatusMessage.Summary }}
-                  </span>
-                </span>
-                <span ng-if="item.Status === 4" style="color: var(--red-5)">
-                  <span
-                    class="interactive vertical-center"
-                    tooltip-append-to-body="true"
-                    tooltip-placement="top"
-                    tooltip-class="portainer-tooltip"
-                    uib-tooltip="{{ item.StatusMessage.Detail }}"
-                  >
-                    <pr-icon icon="'alert-triangle'" class-name="'icon-danger'"></pr-icon>
-                    <span class="small text-danger">{{ item.StatusMessage.Summary }}</span>
-                  </span>
-                </span>
+                <portainer-environment-url endpoint="item" on-reload="($ctrl.reload)"></portainer-environment-url>
               </td>
               <td>{{ item.GroupName }}</td>
               <td>

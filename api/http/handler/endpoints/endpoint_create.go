@@ -21,6 +21,7 @@ import (
 	"github.com/portainer/portainer-ee/api/cloud"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/http/client"
+	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	portainer "github.com/portainer/portainer/api"
@@ -67,6 +68,11 @@ type endpointCreatePayload struct {
 		CommandInterval     int
 		TunnelServerAddress string
 	}
+	InitialStatus        portaineree.EndpointStatus
+	InitialStatusMessage portaineree.EndpointStatusMessage
+
+	CustomTemplateID      portaineree.CustomTemplateID
+	CustomTemplateContent string
 
 	KubeConfig string
 }
@@ -198,6 +204,12 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 
 	asyncMode, _ := request.RetrieveBooleanMultiPartFormValue(r, "EdgeAsyncMode", true)
 	payload.Edge.AsyncMode = asyncMode
+
+	customTemplateID, _ := request.RetrieveNumericMultiPartFormValue(r, "CustomTemplateID", true)
+	payload.CustomTemplateID = portaineree.CustomTemplateID(customTemplateID)
+
+	customTemplateContent, _ := request.RetrieveMultiPartFormValue(r, "CustomTemplateContent", true)
+	payload.CustomTemplateContent = customTemplateContent
 
 	payload.Edge.PingInterval, _ = request.RetrieveNumericMultiPartFormValue(r, "EdgePingInterval", true)
 	payload.Edge.SnapshotInterval, _ = request.RetrieveNumericMultiPartFormValue(r, "EdgeSnapshotInterval", true)
@@ -377,9 +389,39 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		return httperror.NewError(http.StatusConflict, "Name is not unique", nil)
 	}
 
+	payload.InitialStatus = portaineree.EndpointStatusUp
+	payload.InitialStatusMessage = portaineree.EndpointStatusMessage{}
+	if payload.CustomTemplateID != 0 {
+		payload.InitialStatus = portaineree.EndpointStatusProvisioning
+		payload.InitialStatusMessage = portaineree.EndpointStatusMessage{
+			Summary: "Deploying Custom Template",
+		}
+	}
+
 	endpoint, endpointCreationError := handler.createEndpoint(payload)
 	if endpointCreationError != nil {
 		return endpointCreationError
+	}
+
+	// Use the KaaS provisioning loop for installing custom templates if required.
+	if payload.CustomTemplateID != 0 {
+		kaasRequest := &portaineree.CloudProvisioningRequest{
+			EndpointID:            endpoint.ID,
+			Provider:              portaineree.CloudProviderPreinstalledAgent,
+			Name:                  payload.Name,
+			CustomTemplateID:      payload.CustomTemplateID,
+			CustomTemplateContent: payload.CustomTemplateContent,
+		}
+		tokenData, err := security.RetrieveTokenData(r)
+		if err != nil {
+			return httperror.InternalServerError(
+				"Unable to retrieve user details from authentication token",
+				err,
+			)
+		}
+		kaasRequest.CreatedByUserID = tokenData.ID
+
+		handler.cloudClusterSetupService.Request(kaasRequest)
 	}
 
 	edgeStacks, err := handler.DataStore.EdgeStack().EdgeStacks()
@@ -520,7 +562,8 @@ func (handler *Handler) createAzureEndpoint(payload *endpointCreatePayload) (*po
 		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
 		AzureCredentials:   credentials,
 		TagIDs:             payload.TagIDs,
-		Status:             portaineree.EndpointStatusUp,
+		Status:             payload.InitialStatus,
+		StatusMessage:      payload.InitialStatusMessage,
 		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portaineree.KubernetesDefault(),
 
@@ -580,7 +623,8 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 		UserAccessPolicies:  portaineree.UserAccessPolicies{},
 		TeamAccessPolicies:  portaineree.TeamAccessPolicies{},
 		TagIDs:              payload.TagIDs,
-		Status:              portaineree.EndpointStatusUp,
+		Status:              payload.InitialStatus,
+		StatusMessage:       payload.InitialStatusMessage,
 		Snapshots:           []portainer.DockerSnapshot{},
 		EdgeKey:             edgeKey,
 		EdgeCheckinInterval: payload.EdgeCheckinInterval,
@@ -646,7 +690,8 @@ func (handler *Handler) createUnsecuredEndpoint(payload *endpointCreatePayload) 
 		UserAccessPolicies: portaineree.UserAccessPolicies{},
 		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
 		TagIDs:             payload.TagIDs,
-		Status:             portaineree.EndpointStatusUp,
+		Status:             payload.InitialStatus,
+		StatusMessage:      payload.InitialStatusMessage,
 		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portaineree.KubernetesDefault(),
 		ChangeWindow: portaineree.EndpointChangeWindow{
@@ -685,7 +730,8 @@ func (handler *Handler) createKubernetesEndpoint(payload *endpointCreatePayload)
 		UserAccessPolicies: portaineree.UserAccessPolicies{},
 		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
 		TagIDs:             payload.TagIDs,
-		Status:             portaineree.EndpointStatusUp,
+		Status:             payload.InitialStatus,
+		StatusMessage:      payload.InitialStatusMessage,
 		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portaineree.KubernetesDefault(),
 
@@ -784,7 +830,8 @@ func (handler *Handler) createTLSSecuredEndpoint(payload *endpointCreatePayload,
 		UserAccessPolicies: portaineree.UserAccessPolicies{},
 		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
 		TagIDs:             payload.TagIDs,
-		Status:             portaineree.EndpointStatusUp,
+		Status:             payload.InitialStatus,
+		StatusMessage:      payload.InitialStatusMessage,
 		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portaineree.KubernetesDefault(),
 		ChangeWindow: portaineree.EndpointChangeWindow{

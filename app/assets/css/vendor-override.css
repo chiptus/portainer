@@ -9,6 +9,11 @@
   color: var(--text-muted-color);
 }
 
+.text-muted-light {
+  color: var(--grey-8);
+  text-decoration: none;
+}
+
 .table > thead > tr > th {
   border-bottom: 1px solid var(--border-table-color);
 }
