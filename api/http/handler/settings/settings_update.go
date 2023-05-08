@@ -123,20 +123,6 @@ func (payload *settingsUpdatePayload) Validate(r *http.Request) error {
 		}
 	}
 
-	if payload.Edge.MTLS.UseSeparateCert != nil && *payload.Edge.MTLS.UseSeparateCert {
-		if payload.Edge.MTLS.Cert == nil {
-			return errors.New("Missing mTLS certificate")
-		}
-
-		if payload.Edge.MTLS.Key == nil {
-			return errors.New("Missing mTLS key")
-		}
-
-		if payload.Edge.MTLS.CaCert == nil {
-			return errors.New("Missing mTLS CA certificate")
-		}
-	}
-
 	return nil
 }
 
@@ -371,12 +357,41 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 
 	if payload.Edge.MTLS.UseSeparateCert != nil {
 		settings.Edge.MTLS.UseSeparateCert = *payload.Edge.MTLS.UseSeparateCert
-	}
 
-	if payload.Edge.MTLS.UseSeparateCert != nil {
-		err = handler.saveCertificates(payload.Edge.MTLS)
-		if err != nil {
-			return httperror.InternalServerError("Unable to persist mTLS certificates", err)
+		if *payload.Edge.MTLS.UseSeparateCert {
+			// If mtls is enabled, but cert and key are not provided
+			// we should check if there is an existing one in the database
+			// If there is, we skip saving the empty cert and key provided in payload
+			// If there isn't, we should return an error
+			if payload.Edge.MTLS.Cert == nil || payload.Edge.MTLS.Key == nil || payload.Edge.MTLS.CaCert == nil {
+				// Check if there is an existing cert and key in the database
+				if settings.Edge.MTLS.CaCertFile == "" || settings.Edge.MTLS.CertFile == "" || settings.Edge.MTLS.KeyFile == "" {
+					// no existing cert and key in the database
+					return httperror.BadRequest("Unable to save mTLS settings", errors.New("mTLS settings are incomplete"))
+				}
+			} else {
+				certPath, caCertPath, keyPath, err := handler.FileService.StoreMTLSCertificates(
+					[]byte(*payload.Edge.MTLS.Cert),
+					[]byte(*payload.Edge.MTLS.CaCert),
+					[]byte(*payload.Edge.MTLS.Key))
+				if err != nil {
+					return httperror.InternalServerError("Unable to persist mTLS certificates", err)
+				}
+
+				settings.Edge.MTLS.CertFile = certPath
+				settings.Edge.MTLS.CaCertFile = caCertPath
+				settings.Edge.MTLS.KeyFile = keyPath
+				err = handler.SSLService.SetMTLSCertificates([]byte(*payload.Edge.MTLS.CaCert), []byte(*payload.Edge.MTLS.Cert), []byte(*payload.Edge.MTLS.Key))
+				if err != nil {
+					return httperror.InternalServerError("Unable to set mtls certificates", err)
+				}
+			}
+		} else {
+			// If mtls is disabled, we should clear the cert and key
+			settings.Edge.MTLS.CertFile = ""
+			settings.Edge.MTLS.KeyFile = ""
+			settings.Edge.MTLS.CaCertFile = ""
+			handler.SSLService.DisableMTLS()
 		}
 	}
 
@@ -428,27 +443,5 @@ func (handler *Handler) updateEnvironmentDeploymentType() *httperror.HandlerErro
 			}
 		}
 	}
-	return nil
-}
-
-func (handler *Handler) saveCertificates(payload mTLSPayload) error {
-	if *payload.UseSeparateCert {
-		if *payload.Cert == "" && *payload.CaCert == "" && *payload.Key == "" {
-			return nil
-		}
-
-		_, _, _, err := handler.FileService.StoreMTLSCertificates(
-			[]byte(*payload.Cert),
-			[]byte(*payload.CaCert),
-			[]byte(*payload.Key))
-		if err != nil {
-			return err
-		}
-
-		return handler.SSLService.SetMTLSCertificates([]byte(*payload.CaCert), []byte(*payload.Cert), []byte(*payload.Key))
-	}
-
-	handler.SSLService.DisableMTLS()
-
 	return nil
 }

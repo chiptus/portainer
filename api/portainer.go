@@ -713,10 +713,13 @@ type (
 	}
 
 	MTLSSettings struct {
-		UseSeparateCert bool   `json:"UseSeparateCert"`
-		CaCertFile      string `json:"CaCertFile"`
-		CertFile        string `json:"CertFile"`
-		KeyFile         string `json:"KeyFile"`
+		UseSeparateCert bool `json:"UseSeparateCert"`
+		// CaCertFile is the path to the mTLS CA certificate file
+		CaCertFile string `json:"CaCertFile"`
+		// CertFile is the path to the mTLS certificate file
+		CertFile string `json:"CertFile"`
+		// KeyFile is the path to the mTLS key file
+		KeyFile string `json:"KeyFile"`
 	}
 
 	// NomadData contains all the Nomad related environment(endpoint) information
