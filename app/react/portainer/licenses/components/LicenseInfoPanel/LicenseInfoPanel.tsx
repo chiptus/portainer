@@ -80,9 +80,10 @@ function buildInfoWidget(
       <div className={styles.licenseInfoContent}>
         {contentSection}
         <Details
-          total={licenseInfo.nodes}
-          untrustedDevices={untrustedDevices}
           used={usedNodes}
+          total={licenseInfo.nodes}
+          valid={licenseInfo.valid}
+          untrustedDevices={untrustedDevices}
         />
       </div>
       <hr className={styles.divider} />
@@ -108,9 +109,10 @@ function buildAlertWidget(
     <div className={styles.licenseAlertPanel}>
       <div>{contentSection}</div>
       <Details
-        total={licenseInfo.nodes}
-        untrustedDevices={untrustedDevices}
         used={usedNodes}
+        total={licenseInfo.nodes}
+        valid={licenseInfo.valid}
+        untrustedDevices={untrustedDevices}
       />
 
       {licenseInfo.type !== LicenseType.Trial && (
@@ -190,7 +192,7 @@ function buildInfoContent(info: LicenseInfo, usedNodes: number) {
         : null}
     </div>
   );
-  if (info.nodes === 0) {
+  if (!info.valid) {
     subtitle = (
       <div className="control-label">Portainer has no current license.</div>
     );
@@ -225,18 +227,23 @@ function buildInfoContent(info: LicenseInfo, usedNodes: number) {
 function Details({
   used,
   total,
+  valid,
   untrustedDevices,
 }: {
   used: number;
   total: number;
+  valid: boolean;
   untrustedDevices: number;
 }) {
+  let nodesUsedMsg = `${used.toString()} / ${total.toString()} nodes used`;
+  if (total === 0 && valid) {
+    nodesUsedMsg = `${used.toString()} out of unlimited nodes used`;
+  }
+
   return (
     <div>
       <div className="flex">
-        <b className="space-right">
-          {used} / {total} nodes used
-        </b>
+        <b className="space-right">{nodesUsedMsg}</b>
         <Badge type={used + untrustedDevices > total ? 'warn' : 'info'}>
           +{untrustedDevices} in waiting room
         </Badge>
