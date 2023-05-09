@@ -20,6 +20,7 @@ export async function getAddons(environmentID: number, credentialID: number) {
 export function useAddons<TSelect = AddonsResponse | null>(
   environmentID?: number,
   credentialID?: number,
+  status?: number,
   select?: (info: AddonsResponse | null) => TSelect
 ) {
   return useQuery(
@@ -30,7 +31,7 @@ export function useAddons<TSelect = AddonsResponse | null>(
         : null,
     {
       select,
-      enabled: !!environmentID && !!credentialID,
+      enabled: !!environmentID && !!credentialID && status !== 4,
     }
   );
 }
