@@ -1,6 +1,6 @@
 import { User, Clock, Edit, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import moment from 'moment';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pod } from 'kubernetes-types/core/v1';
 import { useCurrentStateAndParams } from '@uirouter/react';
 
@@ -59,13 +59,18 @@ export function ApplicationSummaryWidget() {
   const applicationRequests = application && getResourceRequests(application);
   const applicationOwner = application?.metadata?.labels?.[appOwnerLabel];
   const applicationDeployMethod = getApplicationDeployMethod(application);
+
   const applicationNote =
     application?.metadata?.annotations?.[appNoteAnnotation];
 
   const [isNoteOpen, setIsNoteOpen] = useState(true);
-  const [applicationNoteFormValues, setApplicationNoteFormValues] = useState(
-    applicationNote || ''
-  );
+  const [applicationNoteFormValues, setApplicationNoteFormValues] =
+    useState('');
+
+  useEffect(() => {
+    setApplicationNoteFormValues(applicationNote || '');
+  }, [applicationNote]);
+
   const failedCreateCondition = application?.status?.conditions?.find(
     (condition) => condition.reason === 'FailedCreate'
   );
