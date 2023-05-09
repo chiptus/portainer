@@ -2,6 +2,7 @@ package system
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -63,7 +64,7 @@ func (handler *Handler) version(w http.ResponseWriter, r *http.Request) {
 	}
 
 	latestVersion := system.GetLatestVersion()
-	if system.HasNewerVersion(portaineree.APIVersion, latestVersion) {
+	if os.Getenv("TEST_UPDATE_PORTAINER") != "" || system.HasNewerVersion(portaineree.APIVersion, latestVersion) {
 		result.UpdateAvailable = true
 		result.LatestVersion = latestVersion
 	}

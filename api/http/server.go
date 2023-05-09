@@ -71,6 +71,7 @@ import (
 	edgestackservice "github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
 	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	"github.com/portainer/portainer-ee/api/internal/ssl"
+	"github.com/portainer/portainer-ee/api/internal/update"
 	k8s "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	"github.com/portainer/portainer-ee/api/nomad/clientFactory"
@@ -129,6 +130,7 @@ type Server struct {
 	CloudCredentialService      *cloudcredential.Service
 	StackDeployer               deployments.StackDeployer
 	DemoService                 *demo.Service
+	UpdateService               update.Service
 	AdminCreationDone           chan struct{}
 }
 
@@ -298,7 +300,7 @@ func (server *Server) Start() error {
 	stackHandler.ComposeStackManager = server.ComposeStackManager
 	stackHandler.StackDeployer = server.StackDeployer
 
-	var systemHandler = system.NewHandler(requestBouncer, server.Status, server.DemoService, server.DataStore)
+	var systemHandler = system.NewHandler(requestBouncer, server.Status, server.DemoService, server.DataStore, server.UpdateService)
 
 	var storybookHandler = storybook.NewHandler(server.AssetsPath)
 

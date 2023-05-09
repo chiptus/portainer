@@ -37,6 +37,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/snapshot"
 	"github.com/portainer/portainer-ee/api/internal/ssl"
+	"github.com/portainer/portainer-ee/api/internal/update"
 	"github.com/portainer/portainer-ee/api/jwt"
 	"github.com/portainer/portainer-ee/api/kubernetes"
 	kubecli "github.com/portainer/portainer-ee/api/kubernetes/cli"
@@ -663,6 +664,11 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		log.Fatal().Msg("failed to fetch SSL settings from DB")
 	}
 
+	updateService, err := update.NewService(*flags.Assets, composeDeployer, kubernetesClientFactory)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed initializing update service")
+	}
+
 	// Our normal migrations run as part of the database initialization
 	// but some more complex migrations require access to a kubernetes or docker
 	// client. Therefore we run a separate migration process just before
@@ -733,6 +739,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		CloudClusterSetupService:    cloudClusterSetupService,
 		CloudClusterInfoService:     cloudClusterInfoService,
 		DemoService:                 demoService,
+		UpdateService:               updateService,
 		AdminCreationDone:           adminCreationDone,
 	}
 }

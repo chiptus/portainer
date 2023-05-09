@@ -3,6 +3,8 @@ import clsx from 'clsx';
 
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 
+import { UpdateBannerWrapper } from '../UpdateBanner';
+
 import { UpdateNotification } from './UpdateNotifications';
 import { BuildInfoModalButton } from './BuildInfoModal';
 import '@reach/dialog/styles.css';
@@ -31,7 +33,7 @@ function CEFooter() {
 function BEFooter() {
   return (
     <div className={clsx(styles.root, 'text-center')}>
-      <UpdateNotification />
+      <UpdateBannerWrapper />
 
       <FooterContent>
         <span>&copy;</span>
