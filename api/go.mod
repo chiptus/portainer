@@ -62,9 +62,8 @@ require (
 	github.com/portainer/portainer/pkg/libhelm v0.0.0-20230414025037-7a8a20e0cc3b
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.29.0
-	github.com/sashabaranov/go-openai v1.5.8
+	github.com/sashabaranov/go-openai v1.9.3
 	github.com/stretchr/testify v1.8.1
-	github.com/swaggo/swag v1.16.1
 	github.com/urfave/negroni/v3 v3.0.0
 	github.com/viney-shih/go-lock v1.1.1
 	github.com/vmware-labs/yaml-jsonpath v0.3.2
@@ -84,13 +83,11 @@ require (
 
 require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
-	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/dprotaso/go-yit v0.0.0-20191028211022-135eb7262960 // indirect
 	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.20.0 // indirect
-	github.com/go-openapi/spec v0.20.4 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/google/gnostic v0.5.7-v3refs // indirect
 	github.com/josharian/intern v1.0.0 // indirect
@@ -100,7 +97,6 @@ require (
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/portainer/portainer/third_party/digest v0.0.0-20221201002639-8fd0efa34f73 // indirect
-	golang.org/x/tools v0.7.0 // indirect
 )
 
 require (
