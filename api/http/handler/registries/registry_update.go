@@ -24,7 +24,7 @@ type registryUpdatePayload struct {
 	Quay             *portaineree.QuayRegistryData
 	Github           *portaineree.GithubRegistryData
 	RegistryAccesses *portaineree.RegistryAccesses `json:",omitempty"`
-	Ecr              *portaineree.EcrData          `json:",omitempty" example:"{\"Region\": \"ap-southeast-2\"}"`
+	Ecr              *portaineree.EcrData          `json:",omitempty"`
 }
 
 func (payload *registryUpdatePayload) Validate(r *http.Request) error {
