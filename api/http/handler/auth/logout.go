@@ -23,6 +23,11 @@ func (handler *Handler) logout(w http.ResponseWriter, r *http.Request) (*authMid
 		Username: tokenData.Username,
 	}
 
+	err = handler.LicenseService.ReaggregareLicenseInfo()
+	if err != nil {
+		return resp, httperror.InternalServerError("Unable to refresh license info", err)
+	}
+
 	if err != nil {
 		return resp, httperror.InternalServerError("Unable to retrieve user details from authentication token", err)
 	}

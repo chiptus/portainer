@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	syncInterval = 24 * time.Hour
+	syncInterval = time.Hour
 
 	// a period of time after which license overuse restrictions will be enforced.
 	// default value: 10 days

@@ -2,21 +2,26 @@ import moment from 'moment';
 import clsx from 'clsx';
 import { AlertTriangle } from 'lucide-react';
 
-import { useLicensesQuery } from '@/react/portainer/licenses/use-license.service';
-import { License } from '@/react/portainer/licenses/types';
+import { useLicenseInfo } from '@/react/portainer/licenses/use-license.service';
 import { pluralize } from '@/portainer/helpers/strings';
 
 import styles from './LicenseExpirationPanel.module.css';
 
 export function LicenseExpirationPanelContainer() {
-  const licensesQuery = useLicensesQuery();
-  if (licensesQuery.isLoading || !licensesQuery.data) {
+  const licenceInfoQuery = useLicenseInfo();
+
+  if (licenceInfoQuery.isLoading || !licenceInfoQuery.info) {
     return null;
   }
 
-  const { remainingDays, noValidLicense } = getDaysUntilNextLicenseExpiry(
-    licensesQuery.data
+  const nextLicenseExpiryUnix = moment.unix(
+    licenceInfoQuery.info?.expiresAt || 0
   );
+  const remainingDays = nextLicenseExpiryUnix.diff(
+    moment().startOf('day'),
+    'days'
+  );
+  const noValidLicense = !licenceInfoQuery.info?.valid;
 
   return (
     <LicenseExpirationPanel
@@ -71,30 +76,4 @@ function buildMessage(days: number, noValidLicense?: boolean) {
 
     return `will expire in ${days} ${pluralize(days, 'day')}`;
   }
-}
-
-// getDaysUntilNextLicenseExpiry gets the remaining days for the license that's the closest to expire.
-function getDaysUntilNextLicenseExpiry(licenses: License[]) {
-  const licensesExpiries = licenses.map((license) => license.expiresAt);
-  // filter out expired licenses
-  const filteredLicensesExpiries = licensesExpiries.filter(
-    (expiresAt) => expiresAt > moment().unix()
-  );
-  // if there are no valid licenses, return noValidLicense: true, remainingDays: 0
-  if (filteredLicensesExpiries.length === 0) {
-    return {
-      noValidLicense: true,
-      remainingDays: 0,
-    };
-  }
-  const nextLicenseExpiryUnix = Math.min(...filteredLicensesExpiries);
-  const nextLicenseExpiryTime = moment.unix(nextLicenseExpiryUnix);
-  const daysUntilNextLicenseExpiry = nextLicenseExpiryTime.diff(
-    moment().startOf('day'),
-    'days'
-  );
-  return {
-    noValidLicense: false,
-    remainingDays: daysUntilNextLicenseExpiry,
-  };
 }
