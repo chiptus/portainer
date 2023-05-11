@@ -11,7 +11,7 @@ jobs:
   openapi-spec:
     runs-on: ubuntu-latest
     env:
-      GOPRIVATE: github.com/portainer/*
+      GOPRIVATE: github.com/portainer/liblicense
     steps:
     - uses: actions/checkout@v3
     - uses: webfactory/ssh-agent@v0.7.0
