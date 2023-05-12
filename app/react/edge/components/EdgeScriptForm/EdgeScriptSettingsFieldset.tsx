@@ -56,7 +56,6 @@ export function EdgeScriptSettingsFieldset({
             <Input
               type="text"
               name="edgeIdGenerator"
-              value={values.edgeIdGenerator}
               id="edge-id-generator-input"
               onChange={(e) => setFieldValue(e.target.name, e.target.value)}
             />

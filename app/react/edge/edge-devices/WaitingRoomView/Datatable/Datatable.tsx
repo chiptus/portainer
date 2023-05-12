@@ -9,7 +9,7 @@ import { useEnvironments } from './useEnvironments';
 
 const storageKey = 'edge-devices-waiting-room';
 
-const settingsStore = createPersistedStore(storageKey, 'Name');
+const settingsStore = createPersistedStore(storageKey);
 
 export function Datatable() {
   const tableState = useTableState(settingsStore, storageKey);
