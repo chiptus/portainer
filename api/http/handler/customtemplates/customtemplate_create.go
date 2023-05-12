@@ -307,6 +307,7 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request, u
 		URL:            payload.RepositoryURL,
 		ReferenceName:  payload.RepositoryReferenceName,
 		ConfigFilePath: payload.ComposeFilePathInRepository,
+		TLSSkipVerify:  payload.TLSSkipVerify,
 	}
 
 	if payload.RepositoryAuthentication {
@@ -340,8 +341,6 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request, u
 			Password:        repositoryPassword,
 			GitCredentialID: repositoryGitCredentialID,
 		}
-
-		gitConfig.TLSSkipVerify = payload.TLSSkipVerify
 	}
 
 	commitHash, err := stackutils.DownloadGitRepository(*gitConfig, handler.GitService, getProjectPath)
