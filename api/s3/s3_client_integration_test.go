@@ -95,7 +95,7 @@ func startMinio() (*s3.Client, func()) {
 	minioHost := "http://localhost:9090"
 
 	// wait for minio to get up and running
-	client := http.Client{
+	client := &http.Client{
 		Timeout: 50 * time.Millisecond,
 	}
 	for i := 0; i < 10; i++ {

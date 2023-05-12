@@ -2,6 +2,7 @@ package packages
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -15,13 +16,15 @@ func (ghPackages *Packages) DeletePackage(packageName string) error {
 
 	client := ghPackages.newClient()
 
-	response, err := client.Do(request)
+	resp, err := client.Do(request)
 	if err != nil {
 		return err
 	}
+	io.Copy(io.Discard, resp.Body)
+	resp.Body.Close()
 
-	if response.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("failed to delete package %s, status=%d", packageName, response.StatusCode)
+	if resp.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("failed to delete package %s, status=%d", packageName, resp.StatusCode)
 	}
 
 	return nil

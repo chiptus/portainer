@@ -39,7 +39,7 @@ func GetChecksum(checksumFileUrl, filename string, timeout int) (string, error) 
 }
 
 func downloadUrl(url string, timeout int) (string, error) {
-	client := http.Client{}
+	client := &http.Client{}
 
 	if timeout > 0 {
 		client.Timeout = time.Duration(timeout) * time.Second

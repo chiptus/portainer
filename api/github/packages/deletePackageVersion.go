@@ -2,6 +2,7 @@ package packages
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -19,6 +20,8 @@ func (ghPackages *Packages) DeletePackageVersion(packageName string, version int
 	if err != nil {
 		return err
 	}
+	io.Copy(io.Discard, response.Body)
+	response.Body.Close()
 
 	if response.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("failed to delete package %s version %d, status=%d", packageName, version, response.StatusCode)
