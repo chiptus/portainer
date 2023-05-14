@@ -40,7 +40,7 @@ func Test_EndpointList_AgentVersion(t *testing.T) {
 	noVersionEndpoint := portaineree.Endpoint{ID: 3, Type: portaineree.AgentOnDockerEnvironment, GroupID: 1}
 	notAgentEnvironments := portaineree.Endpoint{ID: 4, Type: portaineree.DockerEnvironment, GroupID: 1}
 
-	handler, teardown := setup(t, []portaineree.Endpoint{
+	handler, teardown := setupEndpointListHandler(t, []portaineree.Endpoint{
 		notAgentEnvironments,
 		version1Endpoint,
 		version2Endpoint,
@@ -112,7 +112,7 @@ func Test_endpointList_edgeFilter(t *testing.T) {
 	regularTrustedEdgeStandard := portaineree.Endpoint{ID: 4, UserTrusted: true, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: false}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
 	regularEndpoint := portaineree.Endpoint{ID: 5, GroupID: 1, Type: portaineree.DockerEnvironment}
 
-	handler, teardown := setup(t, []portaineree.Endpoint{
+	handler, teardown := setupEndpointListHandler(t, []portaineree.Endpoint{
 		trustedEdgeAsync,
 		untrustedEdgeAsync,
 		regularUntrustedEdgeStandard,
@@ -185,7 +185,7 @@ func Test_endpointList_edgeFilter(t *testing.T) {
 	}
 }
 
-func setup(t *testing.T, endpoints []portaineree.Endpoint) (handler *Handler, teardown func()) {
+func setupEndpointListHandler(t *testing.T, endpoints []portaineree.Endpoint) (handler *Handler, teardown func()) {
 	is := assert.New(t)
 	_, store, teardown := datastore.MustNewTestStore(t, true, true)
 

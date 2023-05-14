@@ -1,21 +1,32 @@
-import { Trash2 } from 'lucide-react';
+import { Check, CheckCircle, Trash2 } from 'lucide-react';
 
 import { notifySuccess } from '@/portainer/services/notifications';
 import { useDeleteEnvironmentsMutation } from '@/react/portainer/environments/queries/useDeleteEnvironmentsMutation';
 import { Environment } from '@/react/portainer/environments/types';
+import { withReactQuery } from '@/react-tools/withReactQuery';
 
 import { Button } from '@@/buttons';
-import { ModalType } from '@@/modals';
+import { ModalType, openModal } from '@@/modals';
 import { confirm } from '@@/modals/confirm';
 import { buildConfirmButton } from '@@/modals/utils';
 import { TooltipWithChildren } from '@@/Tip/TooltipWithChildren';
 
 import { useAssociateDeviceMutation, useLicenseOverused } from '../queries';
+import { WaitingRoomEnvironment } from '../types';
+
+import { AssignmentDialog } from './AssignmentDialog/AssignmentDialog';
+
+const overusedTooltip = (
+  <>
+    Associating devices is disabled as your node count exceeds your license
+    limit
+  </>
+);
 
 export function TableActions({
   selectedRows,
 }: {
-  selectedRows: Environment[];
+  selectedRows: WaitingRoomEnvironment[];
 }) {
   const associateMutation = useAssociateDeviceMutation();
   const removeMutation = useDeleteEnvironmentsMutation();
@@ -34,10 +45,36 @@ export function TableActions({
 
       <TooltipWithChildren
         message={
-          licenseOverused && (
+          licenseOverused ? (
+            overusedTooltip
+          ) : (
             <>
-              Associating devices is disabled as your node count exceeds your
-              license limit
+              Associate device(s) and assigning edge groups, group and tags with
+              overriding options
+            </>
+          )
+        }
+      >
+        <span>
+          <Button
+            onClick={() => handleAssociateAndAssign(selectedRows)}
+            disabled={selectedRows.length === 0 || licenseOverused}
+            color="secondary"
+            icon={CheckCircle}
+          >
+            Associate and assignment
+          </Button>
+        </span>
+      </TooltipWithChildren>
+
+      <TooltipWithChildren
+        message={
+          licenseOverused ? (
+            overusedTooltip
+          ) : (
+            <>
+              Associate device(s) based on their pre-assigned edge groups, group
+              and tags
             </>
           )
         }
@@ -46,6 +83,7 @@ export function TableActions({
           <Button
             onClick={() => handleAssociateDevice(selectedRows)}
             disabled={selectedRows.length === 0 || licenseOverused}
+            icon={Check}
           >
             Associate Device
           </Button>
@@ -53,6 +91,20 @@ export function TableActions({
       </TooltipWithChildren>
     </>
   );
+
+  async function handleAssociateAndAssign(
+    environments: WaitingRoomEnvironment[]
+  ) {
+    const assigned = await openModal(withReactQuery(AssignmentDialog), {
+      environments,
+    });
+
+    if (!assigned) {
+      return;
+    }
+
+    handleAssociateDevice(environments);
+  }
 
   function handleAssociateDevice(devices: Environment[]) {
     associateMutation.mutate(

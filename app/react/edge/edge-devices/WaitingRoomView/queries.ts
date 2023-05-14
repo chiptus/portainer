@@ -12,6 +12,7 @@ import {
 } from '@/react-tools/react-query';
 import { queryKey as nodesCountQueryKey } from '@/react/portainer/system/useNodesCount';
 import { LicenseType } from '@/react/portainer/licenses/types';
+import { queryKeys } from '@/react/portainer/environments/queries/query-keys';
 
 export function useAssociateDeviceMutation() {
   const queryClient = useQueryClient();
@@ -21,7 +22,7 @@ export function useAssociateDeviceMutation() {
       promiseSequence(ids.map((id) => () => associateDevice(id))),
     mutationOptions(
       withError('Failed to associate devices'),
-      withInvalidate(queryClient, [['environments'], nodesCountQueryKey])
+      withInvalidate(queryClient, [queryKeys.base(), nodesCountQueryKey])
     )
   );
 }
