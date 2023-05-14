@@ -235,6 +235,7 @@ class EditCustomTemplateViewController {
         RepositoryUsername: config.Authentication.Username,
         RepositoryPassword: config.Authentication.Password,
         RepositoryGitCredentialID: config.Authentication.GitCredentialID,
+        SaveCredential: false,
       };
     }
 
