@@ -178,7 +178,12 @@ func (handler *Handler) endpointEdgeStatusInspect(w http.ResponseWriter, r *http
 	}
 
 	skipCache := false
-	if updateID > 0 {
+
+	if updateID > 0 || activeUpdateSchedule != nil {
+		// To determine if a request comes from an agent after an update, we
+		// rely on the condition that udpateID > 0. However, in addition to that,
+		// we also need to check whether the request is intended to update an agent.
+		// To do so, we verify that activeUpdateSchedule is not nil.
 		skipCache = true
 	}
 	edgeStacksStatus, handlerErr := handler.buildEdgeStacks(endpoint.ID, location, skipCache)
@@ -187,7 +192,7 @@ func (handler *Handler) endpointEdgeStatusInspect(w http.ResponseWriter, r *http
 	}
 	statusResponse.Stacks = edgeStacksStatus
 
-	return cacheResponse(w, endpoint.ID, statusResponse)
+	return cacheResponse(w, endpoint.ID, statusResponse, skipCache)
 }
 
 func parseLocation(endpoint *portaineree.Endpoint) (*time.Location, error) {
@@ -355,7 +360,7 @@ func (handler *Handler) buildEdgeStacks(endpointID portaineree.EndpointID, timeZ
 	return edgeStacksStatus, nil
 }
 
-func cacheResponse(w http.ResponseWriter, endpointID portaineree.EndpointID, statusResponse endpointEdgeStatusInspectResponse) *httperror.HandlerError {
+func cacheResponse(w http.ResponseWriter, endpointID portaineree.EndpointID, statusResponse endpointEdgeStatusInspectResponse, skipCache bool) *httperror.HandlerError {
 	rr := httptest.NewRecorder()
 
 	httpErr := response.JSON(rr, statusResponse)
@@ -363,21 +368,24 @@ func cacheResponse(w http.ResponseWriter, endpointID portaineree.EndpointID, sta
 		return httpErr
 	}
 
-	h := fnv.New32a()
-	h.Write(rr.Body.Bytes())
-	etag := strconv.FormatUint(uint64(h.Sum32()), 16)
-
-	cache.Set(endpointID, []byte(etag))
-
 	resp := rr.Result()
 
-	for k, vs := range resp.Header {
-		for _, v := range vs {
-			w.Header().Add(k, v)
+	if !skipCache {
+		h := fnv.New32a()
+		h.Write(rr.Body.Bytes())
+		etag := strconv.FormatUint(uint64(h.Sum32()), 16)
+
+		cache.Set(endpointID, []byte(etag))
+
+		for k, vs := range resp.Header {
+			for _, v := range vs {
+				w.Header().Add(k, v)
+			}
 		}
+
+		w.Header().Set("ETag", etag)
 	}
 
-	w.Header().Set("ETag", etag)
 	io.Copy(w, resp.Body)
 
 	return nil
