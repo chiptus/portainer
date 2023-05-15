@@ -143,6 +143,11 @@ class KubernetesCreateConfigurationController {
   }
 
   async createConfigurationAsync() {
+    let kind = 'ConfigMap';
+    if (this.formValues.Kind === this.KubernetesConfigurationKinds.SECRET) {
+      kind = 'Secret';
+    }
+
     try {
       this.state.actionInProgress = true;
       this.formValues.ConfigurationOwner = this.Authentication.getUserDetails().username;
@@ -151,11 +156,11 @@ class KubernetesCreateConfigurationController {
       }
 
       await this.KubernetesConfigurationService.create(this.formValues);
-      this.Notifications.success('Success', 'Configuration succesfully created');
+      this.Notifications.success('Success', `${kind} successfully created`);
       this.state.isEditorDirty = false;
       this.$state.go('kubernetes.configurations');
     } catch (err) {
-      this.Notifications.error('Failure', err, 'Unable to create configuration');
+      this.Notifications.error('Failure', err, `Unable to create ${kind}`);
     } finally {
       this.state.actionInProgress = false;
     }
@@ -169,7 +174,7 @@ class KubernetesCreateConfigurationController {
     try {
       this.configurations = await this.KubernetesConfigurationService.get();
     } catch (err) {
-      this.Notifications.error('Failure', err, 'Unable to retrieve configurations');
+      this.Notifications.error('Failure', err, 'Unable to retrieve ConfigMaps & Secrets');
     }
   }
 

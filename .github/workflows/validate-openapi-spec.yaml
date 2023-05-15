@@ -14,7 +14,7 @@ jobs:
       GOPRIVATE: github.com/portainer/liblicense
     steps:
     - uses: actions/checkout@v3
-    - uses: webfactory/ssh-agent@v0.7.0
+    - uses: webfactory/ssh-agent@v0.8.0
       with:
         ssh-private-key: ${{ secrets.DEPLOY_KEY_LIBLICENSE }}
 
@@ -29,7 +29,7 @@ jobs:
       run: cd ./api && go get -t -v -d ./...
     - uses: actions/setup-node@v3
       with:
-          node-version: '14'
+          node-version: '18'
           cache: 'yarn'
     - run: yarn --frozen-lockfile
     - name: Validate OpenAPI Spec
