@@ -8,13 +8,11 @@ import (
 
 // Service represents a service used to
 // update authorizations associated to a user or team.
-type (
-	Service struct {
-		dataStore         dataservices.DataStore
-		authEventHandlers map[string]portaineree.AuthEventHandler
-		K8sClientFactory  *cli.ClientFactory
-	}
-)
+type Service struct {
+	dataStore         dataservices.DataStore
+	authEventHandlers map[string]portaineree.AuthEventHandler
+	K8sClientFactory  *cli.ClientFactory
+}
 
 // NewService returns a point to a new Service instance.
 func NewService(dataStore dataservices.DataStore) *Service {
@@ -712,8 +710,8 @@ func (service *Service) RemoveUserAccessPolicies(userID portaineree.UserID) erro
 }
 
 // UpdateUserAuthorizations will update the authorizations for the provided userid
-func (service *Service) UpdateUserAuthorizations(userID portaineree.UserID) error {
-	err := service.updateUserAuthorizations(userID)
+func (service *Service) UpdateUserAuthorizations(tx dataservices.DataStoreTx, userID portaineree.UserID) error {
+	err := service.updateUserAuthorizations(tx, userID)
 	if err != nil {
 		return err
 	}
@@ -731,7 +729,7 @@ func (service *Service) UpdateUsersAuthorizations() error {
 	}
 
 	for _, user := range users {
-		err := service.updateUserAuthorizations(user.ID)
+		err := service.updateUserAuthorizations(service.dataStore, user.ID)
 		if err != nil {
 			return err
 		}
@@ -742,43 +740,61 @@ func (service *Service) UpdateUsersAuthorizations() error {
 	return nil
 }
 
-func (service *Service) updateUserAuthorizations(userID portaineree.UserID) error {
-	user, err := service.dataStore.User().User(userID)
+func (service *Service) UpdateUsersAuthorizationsTx(tx dataservices.DataStoreTx) error {
+	users, err := tx.User().Users()
 	if err != nil {
 		return err
 	}
 
-	endpointAuthorizations, err := service.getAuthorizations(user)
+	for _, user := range users {
+		err := service.updateUserAuthorizations(tx, user.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	service.TriggerUsersAuthUpdate()
+
+	return nil
+}
+
+func (service *Service) updateUserAuthorizations(tx dataservices.DataStoreTx, userID portaineree.UserID) error {
+	user, err := tx.User().User(userID)
+	if err != nil {
+		return err
+	}
+
+	endpointAuthorizations, err := service.getAuthorizations(tx, user)
 	if err != nil {
 		return err
 	}
 	user.EndpointAuthorizations = endpointAuthorizations
 
-	return service.dataStore.User().UpdateUser(userID, user)
+	return tx.User().UpdateUser(userID, user)
 }
 
-func (service *Service) getAuthorizations(user *portaineree.User) (portaineree.EndpointAuthorizations, error) {
+func (service *Service) getAuthorizations(tx dataservices.DataStoreTx, user *portaineree.User) (portaineree.EndpointAuthorizations, error) {
 	endpointAuthorizations := portaineree.EndpointAuthorizations{}
 	if user.Role == portaineree.AdministratorRole {
 		return endpointAuthorizations, nil
 	}
 
-	userMemberships, err := service.dataStore.TeamMembership().TeamMembershipsByUserID(user.ID)
+	userMemberships, err := tx.TeamMembership().TeamMembershipsByUserID(user.ID)
 	if err != nil {
 		return endpointAuthorizations, err
 	}
 
-	endpoints, err := service.dataStore.Endpoint().Endpoints()
+	endpoints, err := tx.Endpoint().Endpoints()
 	if err != nil {
 		return endpointAuthorizations, err
 	}
 
-	endpointGroups, err := service.dataStore.EndpointGroup().EndpointGroups()
+	endpointGroups, err := tx.EndpointGroup().EndpointGroups()
 	if err != nil {
 		return endpointAuthorizations, err
 	}
 
-	roles, err := service.dataStore.Role().Roles()
+	roles, err := tx.Role().Roles()
 	if err != nil {
 		return endpointAuthorizations, err
 	}
@@ -808,10 +824,12 @@ func getGroupPolicies(endpointGroups []portaineree.EndpointGroup) (
 ) {
 	groupUserAccessPolicies := map[portaineree.EndpointGroupID]portaineree.UserAccessPolicies{}
 	groupTeamAccessPolicies := map[portaineree.EndpointGroupID]portaineree.TeamAccessPolicies{}
+
 	for _, endpointGroup := range endpointGroups {
 		groupUserAccessPolicies[endpointGroup.ID] = endpointGroup.UserAccessPolicies
 		groupTeamAccessPolicies[endpointGroup.ID] = endpointGroup.TeamAccessPolicies
 	}
+
 	return groupUserAccessPolicies, groupTeamAccessPolicies
 }
 

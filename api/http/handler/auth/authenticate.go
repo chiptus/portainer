@@ -158,7 +158,7 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 		log.Warn().Err(err).Msg("unable to automatically sync user teams with ldap")
 	}
 
-	err = handler.AuthorizationService.UpdateUserAuthorizations(user.ID)
+	err = handler.AuthorizationService.UpdateUserAuthorizations(handler.DataStore, user.ID)
 	if err != nil {
 		return resp, httperror.InternalServerError("Unable to update user authorizations", err)
 	}

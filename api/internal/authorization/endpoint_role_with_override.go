@@ -2,10 +2,12 @@ package authorization
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 )
 
 // CleanNAPWithOverridePolicies Clean Namespace Access Policies with override policies
 func (service *Service) CleanNAPWithOverridePolicies(
+	tx dataservices.DataStoreTx,
 	endpoint *portaineree.Endpoint,
 	endpointGroup *portaineree.EndpointGroup,
 ) error {
@@ -23,10 +25,11 @@ func (service *Service) CleanNAPWithOverridePolicies(
 
 	for namespace, policy := range accessPolicies {
 		for teamID := range policy.TeamAccessPolicies {
-			endpointRole, err := service.GetTeamEndpointRoleWithOverridePolicies(teamID, endpoint, endpointGroup)
+			endpointRole, err := service.GetTeamEndpointRoleWithOverridePolicies(tx, teamID, endpoint, endpointGroup)
 			if err != nil {
 				return err
 			}
+
 			if endpointRole == nil {
 				delete(accessPolicies[namespace].TeamAccessPolicies, teamID)
 				hasChange = true
@@ -34,15 +37,16 @@ func (service *Service) CleanNAPWithOverridePolicies(
 		}
 
 		for userID := range policy.UserAccessPolicies {
-			_, err := service.dataStore.User().User(userID)
-			if service.dataStore.IsErrObjectNotFound(err) {
+			_, err := tx.User().User(userID)
+			if tx.IsErrObjectNotFound(err) {
 				continue
 			}
 
-			endpointRole, err := service.GetUserEndpointRoleWithOverridePolicies(userID, endpoint, endpointGroup)
+			endpointRole, err := service.GetUserEndpointRoleWithOverridePolicies(tx, userID, endpoint, endpointGroup)
 			if err != nil {
 				return err
 			}
+
 			if endpointRole == nil {
 				delete(accessPolicies[namespace].UserAccessPolicies, userID)
 				hasChange = true
@@ -58,26 +62,27 @@ func (service *Service) CleanNAPWithOverridePolicies(
 }
 
 func (service *Service) GetUserEndpointRoleWithOverridePolicies(
+	tx dataservices.DataStoreTx,
 	userID portaineree.UserID,
 	endpoint *portaineree.Endpoint,
 	endpointGroup *portaineree.EndpointGroup,
 ) (*portaineree.Role, error) {
-	user, err := service.dataStore.User().User(portaineree.UserID(userID))
+	user, err := tx.User().User(portaineree.UserID(userID))
 	if err != nil {
 		return nil, err
 	}
 
-	userMemberships, err := service.dataStore.TeamMembership().TeamMembershipsByUserID(user.ID)
+	userMemberships, err := tx.TeamMembership().TeamMembershipsByUserID(user.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	endpointGroups, err := service.dataStore.EndpointGroup().EndpointGroups()
+	endpointGroups, err := tx.EndpointGroup().EndpointGroups()
 	if err != nil {
 		return nil, err
 	}
 
-	roles, err := service.dataStore.Role().Roles()
+	roles, err := tx.Role().Roles()
 	if err != nil {
 		return nil, err
 	}
@@ -93,22 +98,22 @@ func (service *Service) GetUserEndpointRoleWithOverridePolicies(
 }
 
 func (service *Service) GetTeamEndpointRoleWithOverridePolicies(
+	tx dataservices.DataStoreTx,
 	teamID portaineree.TeamID,
 	endpoint *portaineree.Endpoint,
 	endpointGroup *portaineree.EndpointGroup,
 ) (*portaineree.Role, error) {
-
-	memberships, err := service.dataStore.TeamMembership().TeamMembershipsByTeamID(teamID)
+	memberships, err := tx.TeamMembership().TeamMembershipsByTeamID(teamID)
 	if err != nil {
 		return nil, err
 	}
 
-	endpointGroups, err := service.dataStore.EndpointGroup().EndpointGroups()
+	endpointGroups, err := tx.EndpointGroup().EndpointGroups()
 	if err != nil {
 		return nil, err
 	}
 
-	roles, err := service.dataStore.Role().Roles()
+	roles, err := tx.Role().Roles()
 	if err != nil {
 		return nil, err
 	}
@@ -124,6 +129,5 @@ func (service *Service) GetTeamEndpointRoleWithOverridePolicies(
 		return role, nil
 	}
 
-	role = getRoleFromTeamEndpointGroupPolicies(memberships, endpoint, roles, groupTeamAccessPolicies)
-	return role, nil
+	return getRoleFromTeamEndpointGroupPolicies(memberships, endpoint, roles, groupTeamAccessPolicies), nil
 }

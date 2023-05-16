@@ -1,12 +1,15 @@
 package endpointgroups
 
 import (
+	"errors"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer/pkg/featureflags"
 )
 
 // @id EndpointGroupAddEndpoint
@@ -34,15 +37,36 @@ func (handler *Handler) endpointGroupAddEndpoint(w http.ResponseWriter, r *http.
 		return httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 
-	endpointGroup, err := handler.DataStore.EndpointGroup().EndpointGroup(portaineree.EndpointGroupID(endpointGroupID))
-	if handler.DataStore.IsErrObjectNotFound(err) {
+	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
+		err = handler.addEndpoint(handler.DataStore, portaineree.EndpointGroupID(endpointGroupID), portaineree.EndpointID(endpointID))
+	} else {
+		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+			return handler.addEndpoint(tx, portaineree.EndpointGroupID(endpointGroupID), portaineree.EndpointID(endpointID))
+		})
+	}
+
+	if err != nil {
+		var httpErr *httperror.HandlerError
+		if errors.As(err, &httpErr) {
+			return httpErr
+		}
+
+		return httperror.InternalServerError("Unexpected error", err)
+	}
+
+	return response.Empty(w)
+}
+
+func (handler *Handler) addEndpoint(tx dataservices.DataStoreTx, endpointGroupID portaineree.EndpointGroupID, endpointID portaineree.EndpointID) error {
+	endpointGroup, err := tx.EndpointGroup().EndpointGroup(endpointGroupID)
+	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment group with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment group with the specified identifier inside the database", err)
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if handler.DataStore.IsErrObjectNotFound(err) {
+	endpoint, err := tx.Endpoint().Endpoint(endpointID)
+	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
@@ -50,20 +74,20 @@ func (handler *Handler) endpointGroupAddEndpoint(w http.ResponseWriter, r *http.
 
 	endpoint.GroupID = endpointGroup.ID
 
-	err = handler.DataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
+	err = tx.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist environment changes inside the database", err)
 	}
 
-	err = handler.updateEndpointRelations(endpoint, endpointGroup)
+	err = handler.updateEndpointRelations(tx, endpoint, endpointGroup)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist environment relations changes inside the database", err)
 	}
 
-	err = handler.AuthorizationService.UpdateUsersAuthorizations()
+	err = handler.AuthorizationService.UpdateUsersAuthorizationsTx(tx)
 	if err != nil {
 		return httperror.InternalServerError("Unable to update user authorizations", err)
 	}
 
-	return response.Empty(w)
+	return nil
 }

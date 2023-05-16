@@ -2,17 +2,18 @@ package endpointgroups
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 )
 
-func (handler *Handler) updateEndpointRelations(endpoint *portaineree.Endpoint, endpointGroup *portaineree.EndpointGroup) error {
+func (handler *Handler) updateEndpointRelations(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, endpointGroup *portaineree.EndpointGroup) error {
 	if !endpointutils.IsEdgeEndpoint(endpoint) {
 		return nil
 	}
 
 	if endpointGroup == nil {
-		unassignedGroup, err := handler.DataStore.EndpointGroup().EndpointGroup(portaineree.EndpointGroupID(1))
+		unassignedGroup, err := tx.EndpointGroup().EndpointGroup(portaineree.EndpointGroupID(1))
 		if err != nil {
 			return err
 		}
@@ -20,17 +21,17 @@ func (handler *Handler) updateEndpointRelations(endpoint *portaineree.Endpoint, 
 		endpointGroup = unassignedGroup
 	}
 
-	endpointRelation, err := handler.DataStore.EndpointRelation().EndpointRelation(endpoint.ID)
+	endpointRelation, err := tx.EndpointRelation().EndpointRelation(endpoint.ID)
 	if err != nil {
 		return err
 	}
 
-	edgeGroups, err := handler.DataStore.EdgeGroup().EdgeGroups()
+	edgeGroups, err := tx.EdgeGroup().EdgeGroups()
 	if err != nil {
 		return err
 	}
 
-	edgeStacks, err := handler.DataStore.EdgeStack().EdgeStacks()
+	edgeStacks, err := tx.EdgeStack().EdgeStacks()
 	if err != nil {
 		return err
 	}
@@ -42,5 +43,5 @@ func (handler *Handler) updateEndpointRelations(endpoint *portaineree.Endpoint, 
 	}
 	endpointRelation.EdgeStacks = stacksSet
 
-	return handler.DataStore.EndpointRelation().UpdateEndpointRelation(endpoint.ID, endpointRelation)
+	return tx.EndpointRelation().UpdateEndpointRelation(endpoint.ID, endpointRelation)
 }
