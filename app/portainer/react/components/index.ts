@@ -71,7 +71,7 @@ export const componentsModule = angular
   )
   .component(
     'portainerEnvironmentUrl',
-    r2a(withReactQuery(EnvironmentURL), ['endpoint', 'className', 'onReload'])
+    r2a(withReactQuery(EnvironmentURL), ['endpoint', 'onReload'])
   )
   .component('badge', r2a(Badge, ['type', 'className']))
   .component('fileUploadField', fileUploadField)

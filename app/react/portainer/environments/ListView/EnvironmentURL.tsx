@@ -11,7 +11,6 @@ import { useUpdateEndpointStatusMessageMutation } from '../queries/useUpdateEnvi
 export interface Props {
   endpoint: Environment;
   onReload?: () => void;
-  className?: string;
 }
 
 export function EnvironmentURL({ endpoint, onReload }: Props) {

@@ -157,7 +157,7 @@ function useParamEnvironmentTypes(): EnvironmentOptionValue[] {
 }
 
 function useStepper(
-  steps: typeof environmentTypes[number][],
+  steps: (typeof environmentTypes)[number][],
   onFinish: () => void
 ) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
