@@ -5,8 +5,9 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
-	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer/pkg/featureflags"
 )
 
 // @id EdgeGroupInspect
@@ -27,21 +28,35 @@ func (handler *Handler) edgeGroupInspect(w http.ResponseWriter, r *http.Request)
 		return httperror.BadRequest("Invalid Edge group identifier route variable", err)
 	}
 
-	edgeGroup, err := handler.DataStore.EdgeGroup().EdgeGroup(portaineree.EdgeGroupID(edgeGroupID))
-	if handler.DataStore.IsErrObjectNotFound(err) {
-		return httperror.NotFound("Unable to find an Edge group with the specified identifier inside the database", err)
+	var edgeGroup *portaineree.EdgeGroup
+	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
+		edgeGroup, err = getEdgeGroup(handler.DataStore, portaineree.EdgeGroupID(edgeGroupID))
+	} else {
+		err = handler.DataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
+			edgeGroup, err = getEdgeGroup(tx, portaineree.EdgeGroupID(edgeGroupID))
+			return err
+		})
+	}
+
+	return txResponse(w, edgeGroup, err)
+}
+
+func getEdgeGroup(tx dataservices.DataStoreTx, ID portaineree.EdgeGroupID) (*portaineree.EdgeGroup, error) {
+	edgeGroup, err := tx.EdgeGroup().EdgeGroup(ID)
+	if tx.IsErrObjectNotFound(err) {
+		return nil, httperror.NotFound("Unable to find an Edge group with the specified identifier inside the database", err)
 	} else if err != nil {
-		return httperror.InternalServerError("Unable to find an Edge group with the specified identifier inside the database", err)
+		return nil, httperror.InternalServerError("Unable to find an Edge group with the specified identifier inside the database", err)
 	}
 
 	if edgeGroup.Dynamic {
-		endpoints, err := handler.getEndpointsByTags(edgeGroup.TagIDs, edgeGroup.PartialMatch)
+		endpoints, err := getEndpointsByTags(tx, edgeGroup.TagIDs, edgeGroup.PartialMatch)
 		if err != nil {
-			return httperror.InternalServerError("Unable to retrieve environments and environment groups for Edge group", err)
+			return nil, httperror.InternalServerError("Unable to retrieve environments and environment groups for Edge group", err)
 		}
 
 		edgeGroup.Endpoints = endpoints
 	}
 
-	return response.JSON(w, edgeGroup)
+	return edgeGroup, err
 }
