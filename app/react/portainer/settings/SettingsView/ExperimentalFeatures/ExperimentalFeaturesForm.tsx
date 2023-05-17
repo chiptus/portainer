@@ -1,6 +1,7 @@
 import { Form, Formik } from 'formik';
 import * as yup from 'yup';
 import { useCallback } from 'react';
+import { FlaskConical } from 'lucide-react';
 
 import { notifySuccess } from '@/portainer/services/notifications';
 import { ExperimentalFeatures } from '@/react/portainer/settings/types';
@@ -58,7 +59,7 @@ export function ExperimentalFeaturesSettingsForm({ settings }: Props) {
     >
       {({ isValid, dirty }) => (
         <Form className="form-horizontal">
-          <TextTip color="blue">
+          <TextTip color="blue" icon={FlaskConical}>
             Experimental features may be discontinued without notice.
           </TextTip>
 

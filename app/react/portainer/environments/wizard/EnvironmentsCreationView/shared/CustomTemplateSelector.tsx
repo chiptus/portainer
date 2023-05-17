@@ -6,11 +6,11 @@ import { CustomTemplatesVariablesField } from '@/react/portainer/custom-template
 import { renderTemplate } from '@/react/portainer/custom-templates/components/utils';
 import { getCustomTemplateFileContent } from '@/react/portainer/custom-templates/service';
 
-import { TextTip } from '@@/Tip/TextTip';
 import { FormControl } from '@@/form-components/FormControl';
 import { Select, Option } from '@@/form-components/Input/Select';
 
 import { useSetAvailableOption } from '../WizardKaaS/useSetAvailableOption';
+import { BetaAlert } from '../../../update-schedules/common/BetaAlert';
 
 interface Props {
   customTemplates: CustomTemplate[];
@@ -106,14 +106,10 @@ export function CustomTemplateSelector({ customTemplates }: Props) {
         value={fieldProps.value}
         onChange={handleChange}
       />
-      <TextTip
-        className="text-warning vertical-center mb-4 mt-1"
-        icon="svg-beta"
-        childrenWrapperClassName="text-warning"
-      >
-        Beta feature - so far, this has only been tested on a limited set of
-        Kubernetes environments
-      </TextTip>
+      <BetaAlert
+        className="mt-2"
+        message="Beta feature - so far, this has only been tested on a limited set of Kubernetes environments"
+      />
 
       {selectedTemplate && (
         <CustomTemplatesVariablesField

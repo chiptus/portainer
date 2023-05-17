@@ -1,5 +1,6 @@
 import { Formik } from 'formik';
 import { PropsWithChildren } from 'react';
+import { FlaskConical } from 'lucide-react';
 
 import { TextTip } from '@@/Tip/TextTip';
 
@@ -78,7 +79,7 @@ export function EdgeScriptForm({
                 asyncMode={asyncMode}
               />
               {isNomadTokenVisible && asyncMode && (
-                <TextTip color="blue" className="mt-1">
+                <TextTip color="blue" className="mt-1" icon={FlaskConical}>
                   Please note that Edge Agent Async in Nomad environment is
                   currently in the experimental stage.
                 </TextTip>
