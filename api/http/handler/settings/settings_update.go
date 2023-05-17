@@ -6,16 +6,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/asaskevich/govalidator"
-	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/httpclient"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
+	"github.com/portainer/portainer/pkg/featureflags"
 	"github.com/portainer/portainer/pkg/libhelm"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/pkg/errors"
 )
 
 type mTLSPayload struct {
@@ -86,21 +89,26 @@ func (payload *settingsUpdatePayload) Validate(r *http.Request) error {
 	if payload.AuthenticationMethod != nil && *payload.AuthenticationMethod != 1 && *payload.AuthenticationMethod != 2 && *payload.AuthenticationMethod != 3 {
 		return errors.New("Invalid authentication method value. Value must be one of: 1 (internal), 2 (LDAP/AD) or 3 (OAuth)")
 	}
+
 	if payload.LogoURL != nil && *payload.LogoURL != "" && !govalidator.IsURL(*payload.LogoURL) {
 		return errors.New("Invalid logo URL. Must correspond to a valid URL format")
 	}
+
 	if payload.TemplatesURL != nil && *payload.TemplatesURL != "" && !govalidator.IsURL(*payload.TemplatesURL) {
 		return errors.New("Invalid external templates URL. Must correspond to a valid URL format")
 	}
+
 	if payload.HelmRepositoryURL != nil && *payload.HelmRepositoryURL != "" && !govalidator.IsURL(*payload.HelmRepositoryURL) {
 		return errors.New("Invalid Helm repository URL. Must correspond to a valid URL format")
 	}
+
 	if payload.UserSessionTimeout != nil {
 		_, err := time.ParseDuration(*payload.UserSessionTimeout)
 		if err != nil {
 			return errors.New("Invalid user session timeout")
 		}
 	}
+
 	if payload.KubeconfigExpiry != nil {
 		_, err := time.ParseDuration(*payload.KubeconfigExpiry)
 		if err != nil {
@@ -112,12 +120,15 @@ func (payload *settingsUpdatePayload) Validate(r *http.Request) error {
 		if payload.LDAPSettings == nil {
 			return errors.New("Invalid LDAP Configuration")
 		}
+
 		if len(payload.LDAPSettings.URLs) == 0 {
 			return errors.New("Invalid LDAP URLs. At least one URL is required")
 		}
+
 		if payload.LDAPSettings.AdminAutoPopulate && len(payload.LDAPSettings.AdminGroupSearchSettings) == 0 {
 			return errors.New("Missing Admin group Search settings. when AdminAutoPopulate is true, at least one settings is required")
 		}
+
 		if !payload.LDAPSettings.AdminAutoPopulate && len(payload.LDAPSettings.AdminGroups) > 0 {
 			payload.LDAPSettings.AdminGroups = []string{}
 		}
@@ -147,9 +158,33 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	settings, err := handler.DataStore.Settings().Settings()
+	var settings *portaineree.Settings
+	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
+		settings, err = handler.updateSettings(handler.DataStore, payload)
+	} else {
+		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+			settings, err = handler.updateSettings(tx, payload)
+			return err
+		})
+	}
+
 	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve the settings from the database", err)
+		var httpErr *httperror.HandlerError
+		if errors.As(err, &httpErr) {
+			return httpErr
+		}
+
+		return httperror.InternalServerError("Unexpected error", err)
+	}
+
+	hideFields(settings)
+	return response.JSON(w, settings)
+}
+
+func (handler *Handler) updateSettings(tx dataservices.DataStoreTx, payload settingsUpdatePayload) (*portaineree.Settings, error) {
+	settings, err := tx.Settings().Settings()
+	if err != nil {
+		return nil, httperror.InternalServerError("Unable to retrieve the settings from the database", err)
 	}
 
 	if handler.demoService.IsDemo() {
@@ -179,9 +214,9 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		newPerEnvOverride := payload.GlobalDeploymentOptions.PerEnvOverride
 
 		if oldPerEnvOverride != newPerEnvOverride {
-			httpErr := handler.updateEnvironmentDeploymentType()
+			httpErr := handler.updateEnvironmentDeploymentType(tx)
 			if httpErr != nil {
-				return httpErr
+				return nil, httpErr
 			}
 		}
 
@@ -204,7 +239,7 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 
 				err := libhelm.ValidateHelmRepositoryURL(*payload.HelmRepositoryURL, client)
 				if err != nil {
-					return httperror.BadRequest("Invalid Helm repository URL. Must correspond to a valid URL format", err)
+					return nil, httperror.BadRequest("Invalid Helm repository URL. Must correspond to a valid URL format", err)
 				}
 			}
 
@@ -249,14 +284,17 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		if clientSecret == "" {
 			clientSecret = settings.OAuthSettings.ClientSecret
 		}
+
 		kubeSecret := payload.OAuthSettings.KubeSecretKey
 		if kubeSecret == nil {
 			kubeSecret = settings.OAuthSettings.KubeSecretKey
 		}
+
 		//if SSO is switched off, then make sure HideInternalAuth is switched off
 		if !payload.OAuthSettings.SSO && payload.OAuthSettings.HideInternalAuth {
 			payload.OAuthSettings.HideInternalAuth = false
 		}
+
 		settings.OAuthSettings = *payload.OAuthSettings
 		settings.OAuthSettings.ClientSecret = clientSecret
 		settings.OAuthSettings.KubeSecretKey = kubeSecret
@@ -268,12 +306,12 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		if payload.OAuthSettings.OAuthAutoMapTeamMemberships {
 			// throw errors on invalid values
 			if payload.OAuthSettings.TeamMemberships.OAuthClaimName == "" {
-				return httperror.BadRequest("oauth claim name required", errors.New("provided oauth team membership claim name is empty"))
+				return nil, httperror.BadRequest("oauth claim name required", errors.New("provided oauth team membership claim name is empty"))
 			}
 
 			for _, mapping := range payload.OAuthSettings.TeamMemberships.OAuthClaimMappings {
 				if mapping.ClaimValRegex == "" || mapping.Team == 0 {
-					return httperror.BadRequest("invalid oauth mapping provided", fmt.Errorf("invalid oauth team membership mapping; mapping=%v", mapping))
+					return nil, httperror.BadRequest("invalid oauth mapping provided", fmt.Errorf("invalid oauth team membership mapping; mapping=%v", mapping))
 				}
 			}
 		} else {
@@ -306,7 +344,7 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 	if payload.SnapshotInterval != nil && *payload.SnapshotInterval != settings.SnapshotInterval {
 		err := handler.updateSnapshotInterval(settings, *payload.SnapshotInterval)
 		if err != nil {
-			return httperror.InternalServerError("Unable to update snapshot interval", err)
+			return nil, httperror.InternalServerError("Unable to update snapshot interval", err)
 		}
 	}
 
@@ -346,9 +384,9 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		settings.EnableTelemetry = *payload.EnableTelemetry
 	}
 
-	tlsError := handler.updateTLS(settings)
-	if tlsError != nil {
-		return tlsError
+	err = handler.updateTLS(settings)
+	if err != nil {
+		return nil, err
 	}
 
 	if payload.KubectlShellImage != nil {
@@ -367,7 +405,7 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 				// Check if there is an existing cert and key in the database
 				if settings.Edge.MTLS.CaCertFile == "" || settings.Edge.MTLS.CertFile == "" || settings.Edge.MTLS.KeyFile == "" {
 					// no existing cert and key in the database
-					return httperror.BadRequest("Unable to save mTLS settings", errors.New("mTLS settings are incomplete"))
+					return nil, httperror.BadRequest("Unable to save mTLS settings", errors.New("mTLS settings are incomplete"))
 				}
 			} else {
 				certPath, caCertPath, keyPath, err := handler.FileService.StoreMTLSCertificates(
@@ -375,7 +413,7 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 					[]byte(*payload.Edge.MTLS.CaCert),
 					[]byte(*payload.Edge.MTLS.Key))
 				if err != nil {
-					return httperror.InternalServerError("Unable to persist mTLS certificates", err)
+					return nil, httperror.InternalServerError("Unable to persist mTLS certificates", err)
 				}
 
 				settings.Edge.MTLS.CertFile = certPath
@@ -383,7 +421,7 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 				settings.Edge.MTLS.KeyFile = keyPath
 				err = handler.SSLService.SetMTLSCertificates([]byte(*payload.Edge.MTLS.CaCert), []byte(*payload.Edge.MTLS.Cert), []byte(*payload.Edge.MTLS.Key))
 				if err != nil {
-					return httperror.InternalServerError("Unable to set mtls certificates", err)
+					return nil, httperror.InternalServerError("Unable to set mtls certificates", err)
 				}
 			}
 		} else {
@@ -395,13 +433,12 @@ func (handler *Handler) settingsUpdate(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
-	err = handler.DataStore.Settings().UpdateSettings(settings)
+	err = tx.Settings().UpdateSettings(settings)
 	if err != nil {
-		return httperror.InternalServerError("Unable to persist settings changes inside the database", err)
+		return nil, httperror.InternalServerError("Unable to persist settings changes inside the database", err)
 	}
 
-	hideFields(settings)
-	return response.JSON(w, settings)
+	return settings, nil
 }
 
 func (handler *Handler) updateSnapshotInterval(settings *portaineree.Settings, snapshotInterval string) error {
@@ -410,23 +447,26 @@ func (handler *Handler) updateSnapshotInterval(settings *portaineree.Settings, s
 	return handler.SnapshotService.SetSnapshotInterval(snapshotInterval)
 }
 
-func (handler *Handler) updateTLS(settings *portaineree.Settings) *httperror.HandlerError {
+func (handler *Handler) updateTLS(settings *portaineree.Settings) error {
 	if (settings.LDAPSettings.TLSConfig.TLS || settings.LDAPSettings.StartTLS) && !settings.LDAPSettings.TLSConfig.TLSSkipVerify {
 		caCertPath, _ := handler.FileService.GetPathForTLSFile(filesystem.LDAPStorePath, portainer.TLSFileCA)
 		settings.LDAPSettings.TLSConfig.TLSCACertPath = caCertPath
-	} else {
-		settings.LDAPSettings.TLSConfig.TLSCACertPath = ""
-		err := handler.FileService.DeleteTLSFiles(filesystem.LDAPStorePath)
-		if err != nil {
-			return httperror.InternalServerError("Unable to remove TLS files from disk", err)
-		}
+
+		return nil
 	}
+
+	settings.LDAPSettings.TLSConfig.TLSCACertPath = ""
+	err := handler.FileService.DeleteTLSFiles(filesystem.LDAPStorePath)
+	if err != nil {
+		return httperror.InternalServerError("Unable to remove TLS files from disk", err)
+	}
+
 	return nil
 }
 
 // updateEnvironmentDeploymentType updates environment deployment options to nil when per env override global settings change
-func (handler *Handler) updateEnvironmentDeploymentType() *httperror.HandlerError {
-	endpoints, err := handler.DataStore.Endpoint().Endpoints()
+func (handler *Handler) updateEnvironmentDeploymentType(tx dataservices.DataStoreTx) error {
+	endpoints, err := tx.Endpoint().Endpoints()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve the environments from the database", err)
 	}
@@ -436,12 +476,13 @@ func (handler *Handler) updateEnvironmentDeploymentType() *httperror.HandlerErro
 			// save database writes by only updating the envs that have deployment option values
 			if endpoint.DeploymentOptions != nil {
 				endpoint.DeploymentOptions = nil
-				err = handler.DataStore.Endpoint().UpdateEndpoint(endpoint.ID, &endpoint)
+				err = tx.Endpoint().UpdateEndpoint(endpoint.ID, &endpoint)
 				if err != nil {
 					return httperror.InternalServerError("Unable to update the deployment options for the environment", err)
 				}
 			}
 		}
 	}
+
 	return nil
 }
