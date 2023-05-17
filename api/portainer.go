@@ -1317,6 +1317,8 @@ type (
 		AllowStackManagementForRegularUsers       bool `json:"AllowStackManagementForRegularUsers"`
 		AllowDeviceMappingForRegularUsers         bool `json:"AllowDeviceMappingForRegularUsers"`
 		AllowContainerCapabilitiesForRegularUsers bool `json:"AllowContainerCapabilitiesForRegularUsers"`
+
+		IsDockerDesktopExtention bool `json:"IsDockerDesktopExtention"`
 	}
 
 	// ExperimentalFeatures represents experimental features that can be enabled
