@@ -124,12 +124,12 @@ func (handler *Handler) stackStop(w http.ResponseWriter, r *http.Request) *httpe
 func (handler *Handler) stopStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
 	switch stack.Type {
 	case portaineree.DockerComposeStack:
-		if stack.SupportRelativePath {
+		if stackutils.IsGitStack(stack) {
 			return handler.StackDeployer.StopRemoteComposeStack(stack, endpoint)
 		}
 		return handler.ComposeStackManager.Down(context.TODO(), stack, endpoint)
 	case portaineree.DockerSwarmStack:
-		if stack.SupportRelativePath {
+		if stackutils.IsGitStack(stack) {
 			return handler.StackDeployer.StopRemoteSwarmStack(stack, endpoint)
 		}
 		return handler.SwarmStackManager.Remove(stack, endpoint)

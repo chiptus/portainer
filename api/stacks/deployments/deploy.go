@@ -8,6 +8,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	consts "github.com/portainer/portainer-ee/api/useractivity"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/git/update"
@@ -166,7 +167,7 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 	case portaineree.DockerComposeStack:
 		log.Debug().Int("stack_id", int(stackID)).Bool("force_pull_image", forcePullImage).Msg("compose stack redeploy with pull image flag")
 
-		if stack.SupportRelativePath {
+		if stackutils.IsGitStack(stack) {
 			err = deployer.DeployRemoteComposeStack(stack, endpoint, registries, forcePullImage, stack.AutoUpdate != nil && stack.AutoUpdate.ForceUpdate)
 		} else {
 			err = deployer.DeployComposeStack(stack, endpoint, registries, forcePullImage, stack.AutoUpdate != nil && stack.AutoUpdate.ForceUpdate)
@@ -176,7 +177,7 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 			return errors.WithMessagef(err, "failed to deploy a docker compose stack %v", stackID)
 		}
 	case portaineree.DockerSwarmStack:
-		if stack.SupportRelativePath {
+		if stackutils.IsGitStack(stack) {
 			err = deployer.DeployRemoteSwarmStack(stack, endpoint, registries, true, forcePullImage)
 		} else {
 			err = deployer.DeploySwarmStack(stack, endpoint, registries, true, forcePullImage)

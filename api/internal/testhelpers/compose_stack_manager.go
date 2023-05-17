@@ -20,7 +20,7 @@ func (manager *composeStackManager) NormalizeStackName(name string) string {
 	return name
 }
 
-func (manager *composeStackManager) Up(ctx context.Context, stack *portaineree.Stack, endpoint *portaineree.Endpoint, forceRereate bool) error {
+func (manager *composeStackManager) Up(ctx context.Context, stack *portaineree.Stack, endpoint *portaineree.Endpoint, forceRecreate bool) error {
 	return nil
 }
 
