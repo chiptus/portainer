@@ -2,6 +2,7 @@ package endpoints
 
 import (
 	"net/http"
+	"time"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -50,6 +51,7 @@ func (handler *Handler) endpointInspect(w http.ResponseWriter, r *http.Request) 
 	}
 
 	hideFields(endpoint)
+	endpoint.QueryDate = time.Now().Unix()
 	endpointutils.UpdateEdgeEndpointHeartbeat(endpoint, settings)
 	endpoint.ComposeSyntaxMaxVersion = handler.ComposeStackManager.ComposeSyntaxMaxVersion()
 

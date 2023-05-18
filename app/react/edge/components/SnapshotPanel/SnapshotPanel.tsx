@@ -4,7 +4,10 @@ import { addSeconds } from 'date-fns';
 import { Menu, MenuButton, MenuPopover } from '@reach/menu-button';
 import { get } from 'lodash';
 
-import { Environment } from '@/react/portainer/environments/types';
+import {
+  Environment,
+  EnvironmentStatus,
+} from '@/react/portainer/environments/types';
 import { useSettings } from '@/react/portainer/settings/queries';
 import { useDockerSnapshot } from '@/react/docker/queries/useDockerSnapshot';
 import {
@@ -65,6 +68,9 @@ function SnapshotPanel({ environment, lastSnapshotTime }: SnapshotPanelProps) {
 
   const snapshotDisabled = snapshotInterval === 0;
 
+  const status = environment.Heartbeat
+    ? EnvironmentStatus.Up
+    : EnvironmentStatus.Down;
   return (
     <div className="ml-5">
       <Menu>
@@ -86,17 +92,24 @@ function SnapshotPanel({ environment, lastSnapshotTime }: SnapshotPanelProps) {
                 />
               </Row>
               <Row label="Next update">
-                <DateColumn
-                  date={nextSnapshotDate}
-                  snapshotDisabled={snapshotDisabled}
-                />
-                <IntervalColumn
-                  start={now}
-                  end={nextSnapshotDate}
-                  pattern="(in $)"
-                  snapshotDisabled={snapshotDisabled}
-                  muted
-                />
+                {environment.Heartbeat && (
+                  <>
+                    <DateColumn
+                      date={nextSnapshotDate}
+                      snapshotDisabled={snapshotDisabled}
+                    />
+                    <IntervalColumn
+                      start={now}
+                      end={nextSnapshotDate}
+                      pattern="(in $)"
+                      snapshotDisabled={snapshotDisabled}
+                      muted
+                    />
+                  </>
+                )}
+                {!environment.Heartbeat && (
+                  <span>No update planned as environment is offline</span>
+                )}
               </Row>
               {!snapshotDisabled && (
                 <Row label="Snapshot interval">
@@ -108,7 +121,7 @@ function SnapshotPanel({ environment, lastSnapshotTime }: SnapshotPanelProps) {
                 </Row>
               )}
               <Row label="Environment status">
-                <EnvironmentStatusBadge status={environment.Status} />
+                <EnvironmentStatusBadge status={status} />
               </Row>
             </DetailsTable>
           </div>
