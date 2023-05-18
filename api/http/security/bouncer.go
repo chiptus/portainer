@@ -184,12 +184,12 @@ func (bouncer *RequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, 
 
 // TrustedEdgeEnvironmentAccess defines a security check for Edge environments, checks if
 // the request is coming from a trusted Edge environment
-func (bouncer *RequestBouncer) TrustedEdgeEnvironmentAccess(endpoint *portaineree.Endpoint) error {
+func (bouncer *RequestBouncer) TrustedEdgeEnvironmentAccess(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint) error {
 	if endpoint.UserTrusted {
 		return nil
 	}
 
-	settings, err := bouncer.dataStore.Settings().Settings()
+	settings, err := tx.Settings().Settings()
 	if err != nil {
 		return errors.WithMessage(err, "could not retrieve the settings")
 	}

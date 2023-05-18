@@ -4,12 +4,13 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/docker/docker/api/types"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
+
+	"github.com/docker/docker/api/types"
 )
 
 type EdgeAsyncContainerCommandCreateRequest struct {

@@ -9,8 +9,6 @@ import (
 	"testing"
 	"time"
 
-	portainer "github.com/portainer/portainer/api"
-
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/apikey"
 	"github.com/portainer/portainer-ee/api/chisel"
@@ -19,6 +17,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	"github.com/portainer/portainer-ee/api/jwt"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 
 	"github.com/stretchr/testify/assert"

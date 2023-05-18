@@ -13,9 +13,11 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/pkg/featureflags"
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/pkg/errors"
@@ -82,8 +84,6 @@ func (payload *EdgeAsyncRequest) Validate(r *http.Request) error {
 // @failure 500 "Server error"
 // @router /endpoints/edge/async [post]
 func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	var err error
-
 	edgeID := r.Header.Get(portaineree.PortainerAgentEdgeIDHeader)
 	if edgeID == "" {
 		log.Debug().Str("PortainerAgentEdgeIDHeader", edgeID).Msg("missing agent edge id")
@@ -96,9 +96,32 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	endpoint, err := handler.getEndpoint(payload.EndpointID, edgeID)
+	var asyncResponse *EdgeAsyncResponse
+	if featureflags.IsEnabled(portainer.FeatureNoTx) {
+		asyncResponse, err = handler.getStatusAsync(handler.DataStore, edgeID, payload, r)
+	} else {
+		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+			asyncResponse, err = handler.getStatusAsync(tx, edgeID, payload, r)
+			return err
+		})
+	}
+
 	if err != nil {
-		return httperror.InternalServerError("Endpoint with edge id or endpoint id is missing", err)
+		var httpErr *httperror.HandlerError
+		if errors.As(err, &httpErr) {
+			return httpErr
+		}
+
+		return httperror.InternalServerError("Uexpected error", err)
+	}
+
+	return response.JSON(w, asyncResponse)
+}
+
+func (handler *Handler) getStatusAsync(tx dataservices.DataStoreTx, edgeID string, payload EdgeAsyncRequest, r *http.Request) (*EdgeAsyncResponse, error) {
+	endpoint, err := handler.getEndpoint(tx, payload.EndpointID, edgeID)
+	if err != nil {
+		return nil, httperror.InternalServerError("Endpoint with edge ID or endpoint ID is missing", err)
 	}
 
 	version := r.Header.Get(portaineree.PortainerAgentHeader)
@@ -107,58 +130,58 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 
 	agentPlatform, agentPlatformErr := parseAgentPlatform(r)
 	if agentPlatformErr != nil {
-		return httperror.BadRequest("agent platform header is not valid", agentPlatformErr)
+		return nil, httperror.BadRequest("agent platform header is not valid", agentPlatformErr)
 	}
 
 	err = handler.requestBouncer.AuthorizedClientTLSConn(r)
 	if err != nil {
-		return httperror.Forbidden("Permission denied to access environment", err)
+		return nil, httperror.Forbidden("Permission denied to access environment", err)
 	}
 
 	if endpoint == nil {
 		log.Debug().Str("PortainerAgentEdgeIDHeader", edgeID).Msg("edge id not found in existing endpoints")
 
-		newEndpoint, createEndpointErr := handler.createAsyncEdgeAgentEndpoint(r, edgeID, agentPlatform, version, timeZone, payload.MetaFields)
+		newEndpoint, createEndpointErr := handler.createAsyncEdgeAgentEndpoint(tx, r, edgeID, agentPlatform, version, timeZone, payload.MetaFields)
 		if createEndpointErr != nil {
-			return createEndpointErr
+			return nil, createEndpointErr
 		}
 
 		asyncResponse := EdgeAsyncResponse{
 			EndpointID: newEndpoint.ID,
 		}
 
-		return response.JSON(w, asyncResponse)
+		return &asyncResponse, nil
 	}
 
 	endpoint.Type = agentPlatform
 
 	err = handler.requestBouncer.AuthorizedEdgeEndpointOperation(r, endpoint)
 	if err != nil {
-		return httperror.Forbidden("Permission denied to access environment", err)
+		return nil, httperror.Forbidden("Permission denied to access environment", err)
 	}
 
 	updateID, err := parseEdgeUpdateID(r)
 	if err != nil {
-		return httperror.BadRequest("Unable to parse edge update id", err)
+		return nil, httperror.BadRequest("Unable to parse edge update id", err)
 	}
 
 	// check endpoint version, if it has the same version as the active schedule, then we can mark the edge stack as successfully deployed
 	activeUpdateSchedule := handler.edgeUpdateService.ActiveSchedule(endpoint.ID)
 	if activeUpdateSchedule != nil && activeUpdateSchedule.ScheduleID == updateID {
-		err := handler.handleSuccessfulUpdate(activeUpdateSchedule)
+		err := handler.handleSuccessfulUpdate(tx, activeUpdateSchedule)
 		if err != nil {
-			return httperror.InternalServerError("Unable to handle successful update", err)
+			return nil, httperror.InternalServerError("Unable to handle successful update", err)
 		}
 
-		err = handler.EdgeService.RemoveStackCommand(endpoint.ID, activeUpdateSchedule.EdgeStackID)
+		err = handler.EdgeService.RemoveStackCommandTx(tx, endpoint.ID, activeUpdateSchedule.EdgeStackID)
 		if err != nil {
-			return httperror.InternalServerError("Unable to replace stack command", err)
+			return nil, httperror.InternalServerError("Unable to replace stack command", err)
 		}
 	}
 
 	var needFullSnapshot bool
 	if payload.Snapshot != nil {
-		handler.saveSnapshot(endpoint, payload.Snapshot, &needFullSnapshot)
+		handler.saveSnapshot(tx, endpoint, payload.Snapshot, &needFullSnapshot)
 	}
 
 	if timeZone != "" {
@@ -169,14 +192,14 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 	endpoint.Edge.AsyncMode = true
 	endpoint.Agent.Version = version
 
-	err = handler.DataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
+	err = tx.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
 	if err != nil {
-		return httperror.InternalServerError("Unable to Unable to persist environment changes inside the database", err)
+		return nil, httperror.InternalServerError("Unable to Unable to persist environment changes inside the database", err)
 	}
 
-	settings, err := handler.DataStore.Settings().Settings()
+	settings, err := tx.Settings().Settings()
 	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve settings from the database", err)
+		return nil, httperror.InternalServerError("Unable to retrieve settings from the database", err)
 	}
 
 	pingInterval := endpoint.Edge.PingInterval
@@ -205,18 +228,18 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 	if payload.CommandTimestamp != nil {
 		location, err := parseLocation(endpoint)
 		if err != nil {
-			return httperror.InternalServerError("Unable to parse location", err)
+			return nil, httperror.InternalServerError("Unable to parse location", err)
 		}
 
-		commands, err := handler.sendCommandsSince(endpoint, *payload.CommandTimestamp, location)
+		commands, err := handler.sendCommandsSince(tx, endpoint, *payload.CommandTimestamp, location)
 		if err != nil {
-			return httperror.InternalServerError("Unable to retrieve commands", err)
+			return nil, httperror.InternalServerError("Unable to retrieve commands", err)
 		}
 
 		asyncResponse.Commands = commands
 	}
 
-	return response.JSON(w, asyncResponse)
+	return &asyncResponse, nil
 }
 
 func parseBodyPayload(req *http.Request) (EdgeAsyncRequest, error) {
@@ -241,10 +264,8 @@ func parseBodyPayload(req *http.Request) (EdgeAsyncRequest, error) {
 	return payload, nil
 }
 
-func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID string, endpointType portaineree.EndpointType, version string, timeZone string, metaFields *MetaFields) (*portaineree.Endpoint, *httperror.HandlerError) {
-	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
-
-	settings, err := handler.DataStore.Settings().Settings()
+func (handler *Handler) createAsyncEdgeAgentEndpoint(tx dataservices.DataStoreTx, req *http.Request, edgeID string, endpointType portaineree.EndpointType, version string, timeZone string, metaFields *MetaFields) (*portaineree.Endpoint, *httperror.HandlerError) {
+	settings, err := tx.Settings().Settings()
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to retrieve the settings", err)
 	}
@@ -252,6 +273,8 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 	if settings.EdgePortainerURL == "" {
 		return nil, httperror.InternalServerError("Portainer API server URL is not set in Edge Compute settings", errors.New("Portainer API server URL is not set in Edge Compute settings"))
 	}
+
+	endpointID := tx.Endpoint().GetNextIdentifier()
 
 	edgeKey := handler.ReverseTunnelService.GenerateEdgeKey(settings.EdgePortainerURL, settings.Edge.TunnelServerAddress, endpointID)
 
@@ -294,7 +317,7 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 	var edgeGroupsIDs []portaineree.EdgeGroupID
 	if metaFields != nil {
 		// validate the environment group
-		_, err = handler.DataStore.EndpointGroup().EndpointGroup(metaFields.EnvironmentGroupID)
+		_, err = tx.EndpointGroup().EndpointGroup(metaFields.EnvironmentGroupID)
 		if err != nil {
 			log.Warn().Err(err).Msg("Unable to retrieve the environment group from the database")
 			metaFields.EnvironmentGroupID = 1
@@ -304,7 +327,7 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 		// validate tags
 		tagsIDs := []portaineree.TagID{}
 		for _, tagID := range metaFields.TagsIDs {
-			_, err := handler.DataStore.Tag().Tag(tagID)
+			_, err = tx.Tag().Tag(tagID)
 			if err != nil {
 				log.Warn().Err(err).Msg("Unable to retrieve the tag from the database")
 				continue
@@ -316,7 +339,7 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 
 		// validate edge groups
 		for _, edgeGroupID := range metaFields.EdgeGroupsIDs {
-			_, err := handler.DataStore.EdgeGroup().EdgeGroup(edgeGroupID)
+			_, err = tx.EdgeGroup().EdgeGroup(edgeGroupID)
 			if err != nil {
 				log.Warn().Err(err).Msg("Unable to retrieve the edge group from the database")
 				continue
@@ -334,34 +357,50 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(req *http.Request, edgeID s
 	endpoint.Edge.CommandInterval = settings.Edge.CommandInterval
 	endpoint.UserTrusted = settings.TrustOnFirstConnect
 
-	err = handler.DataStore.Endpoint().Create(endpoint)
+	err = tx.Endpoint().Create(endpoint)
 	if err != nil {
 		return nil, httperror.InternalServerError("An error occurred while trying to create the environment", err)
 	}
 
-	err = edge.AddEnvironmentToEdgeGroups(handler.DataStore, endpoint, edgeGroupsIDs)
+	err = edge.AddEnvironmentToEdgeGroups(tx, endpoint, edgeGroupsIDs)
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to add environment to edge groups", err)
 	}
 
 	for _, tagID := range endpoint.TagIDs {
-		err = handler.DataStore.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
-			tag.Endpoints[endpoint.ID] = true
-		})
+		if featureflags.IsEnabled(portainer.FeatureNoTx) {
+			err = tx.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
+				tag.Endpoints[endpoint.ID] = true
+			})
+			if err != nil {
+				return endpoint, httperror.InternalServerError("Unable to associate the environment to the specified tag", err)
+			}
+
+			continue
+		}
+
+		tag, err := tx.Tag().Tag(tagID)
 		if err != nil {
-			return endpoint, httperror.InternalServerError("Unable to associate the environment to the specified tag", err)
+			return nil, httperror.InternalServerError("Unable to retrieve tag from the database", err)
+		}
+
+		tag.Endpoints[endpoint.ID] = true
+
+		err = tx.Tag().UpdateTag(tag.ID, tag)
+		if err != nil {
+			return nil, httperror.InternalServerError("Unable to associate the environment to the specified tag", err)
 		}
 	}
 
 	return endpoint, nil
 }
 
-func (handler *Handler) updateDockerSnapshot(endpoint *portaineree.Endpoint, snapshotPayload *snapshot, needFullSnapshot *bool) error {
+func (handler *Handler) updateDockerSnapshot(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, snapshotPayload *snapshot, needFullSnapshot *bool) error {
 	snapshot := &portaineree.Snapshot{}
 
 	if len(snapshotPayload.DockerPatch) > 0 {
 		var err error
-		snapshot, err = handler.DataStore.Snapshot().Snapshot(endpoint.ID)
+		snapshot, err = tx.Snapshot().Snapshot(endpoint.ID)
 		if err != nil || snapshot.Docker == nil {
 			*needFullSnapshot = true
 			return errors.New("received a Docker snapshot patch but there was no previous snapshot")
@@ -408,7 +447,7 @@ func (handler *Handler) updateDockerSnapshot(endpoint *portaineree.Endpoint, sna
 	}
 
 	snapshot.EndpointID = endpoint.ID
-	err := handler.DataStore.Snapshot().UpdateSnapshot(snapshot)
+	err := tx.Snapshot().UpdateSnapshot(snapshot)
 	if err != nil {
 		return errors.New("snapshot could not be updated")
 	}
@@ -416,12 +455,12 @@ func (handler *Handler) updateDockerSnapshot(endpoint *portaineree.Endpoint, sna
 	return nil
 }
 
-func (handler *Handler) updateKubernetesSnapshot(endpoint *portaineree.Endpoint, snapshotPayload *snapshot, needFullSnapshot *bool) error {
+func (handler *Handler) updateKubernetesSnapshot(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, snapshotPayload *snapshot, needFullSnapshot *bool) error {
 	snapshot := &portaineree.Snapshot{}
 
 	if len(snapshotPayload.KubernetesPatch) > 0 {
 		var err error
-		snapshot, err = handler.DataStore.Snapshot().Snapshot(endpoint.ID)
+		snapshot, err = tx.Snapshot().Snapshot(endpoint.ID)
 		if err != nil || snapshot.Kubernetes == nil {
 			*needFullSnapshot = true
 			return errors.New("received a Kubernetes snapshot patch but there was no previous snapshot")
@@ -468,7 +507,7 @@ func (handler *Handler) updateKubernetesSnapshot(endpoint *portaineree.Endpoint,
 	}
 
 	snapshot.EndpointID = endpoint.ID
-	err := handler.DataStore.Snapshot().UpdateSnapshot(snapshot)
+	err := tx.Snapshot().UpdateSnapshot(snapshot)
 	if err != nil {
 		return errors.New("snapshot could not be updated")
 	}
@@ -476,10 +515,10 @@ func (handler *Handler) updateKubernetesSnapshot(endpoint *portaineree.Endpoint,
 	return nil
 }
 
-func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPayload *snapshot, needFullSnapshot *bool) {
+func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, snapshotPayload *snapshot, needFullSnapshot *bool) {
 	// Save edge stacks status
 	for stackID, status := range snapshotPayload.StackStatus {
-		stack, err := handler.DataStore.EdgeStack().EdgeStack(stackID)
+		stack, err := tx.EdgeStack().EdgeStack(stackID)
 		if err != nil {
 			log.Error().Err(err).Int("stack_id", int(stackID)).Msg("fetch edge stack")
 
@@ -493,7 +532,7 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 
 		if stack.EdgeUpdateID != 0 {
 			if status.Details.Error {
-				err := handler.edgeUpdateService.RemoveActiveSchedule(endpoint.ID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
+				err = handler.edgeUpdateService.RemoveActiveSchedule(endpoint.ID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
 				if err != nil {
 					log.Warn().
 						Err(err).
@@ -516,7 +555,7 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 			}
 		}
 
-		err = handler.DataStore.EdgeStack().UpdateEdgeStack(stack.ID, stack)
+		err = tx.EdgeStack().UpdateEdgeStack(stack.ID, stack)
 		if err != nil {
 			log.Error().Err(err).Int("stack_id", int(stackID)).Msg("update edge stack")
 		}
@@ -526,7 +565,7 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 	for _, logs := range snapshotPayload.StackLogs {
 		logs.EndpointID = endpoint.ID
 
-		err := handler.DataStore.EdgeStackLog().Update(&logs)
+		err := tx.EdgeStackLog().Update(&logs)
 		if err != nil {
 			log.Error().
 				Err(err).
@@ -538,7 +577,7 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 
 	// Save edge jobs status
 	for jobID, jobPayload := range snapshotPayload.JobsStatus {
-		edgeJob, err := handler.DataStore.EdgeJob().EdgeJob(jobID)
+		edgeJob, err := tx.EdgeJob().EdgeJob(jobID)
 		if err != nil {
 			log.Error().Err(err).Int("job", int(jobID)).Msg("fetch edge job")
 
@@ -559,7 +598,7 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 			edgeJob.Endpoints[endpoint.ID] = meta
 		}
 
-		err = handler.DataStore.EdgeJob().UpdateEdgeJob(edgeJob.ID, edgeJob)
+		err = tx.EdgeJob().UpdateEdgeJob(edgeJob.ID, edgeJob)
 		if err != nil {
 			log.Error().Err(err).Int("job", int(jobID)).Msg("fetch edge job")
 		}
@@ -568,20 +607,20 @@ func (handler *Handler) saveSnapshot(endpoint *portaineree.Endpoint, snapshotPay
 	// Update snapshot
 	switch endpoint.Type {
 	case portaineree.KubernetesLocalEnvironment, portaineree.AgentOnKubernetesEnvironment, portaineree.EdgeAgentOnKubernetesEnvironment:
-		err := handler.updateKubernetesSnapshot(endpoint, snapshotPayload, needFullSnapshot)
+		err := handler.updateKubernetesSnapshot(tx, endpoint, snapshotPayload, needFullSnapshot)
 		if err != nil && !errors.Is(err, errHashMismatch) {
 			log.Error().Err(err).Msg("unable to update Kubernetes snapshot")
 		}
 	case portaineree.DockerEnvironment, portaineree.AgentOnDockerEnvironment, portaineree.EdgeAgentOnDockerEnvironment:
-		err := handler.updateDockerSnapshot(endpoint, snapshotPayload, needFullSnapshot)
+		err := handler.updateDockerSnapshot(tx, endpoint, snapshotPayload, needFullSnapshot)
 		if err != nil && !errors.Is(err, errHashMismatch) {
 			log.Error().Err(err).Msg("unable to update Docker snapshot")
 		}
 	}
 }
 
-func (handler *Handler) sendCommandsSince(endpoint *portaineree.Endpoint, commandTimestamp time.Time, timeZone *time.Location) ([]portaineree.EdgeAsyncCommand, error) {
-	storedCommands, err := handler.DataStore.EdgeAsyncCommand().EndpointCommands(endpoint.ID)
+func (handler *Handler) sendCommandsSince(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, commandTimestamp time.Time, timeZone *time.Location) ([]portaineree.EdgeAsyncCommand, error) {
+	storedCommands, err := tx.EdgeAsyncCommand().EndpointCommands(endpoint.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -604,13 +643,13 @@ func (handler *Handler) sendCommandsSince(endpoint *portaineree.Endpoint, comman
 			}
 
 			storedCommand.Executed = true
-			err = handler.DataStore.EdgeAsyncCommand().Update(storedCommand.ID, &storedCommand)
+			err = tx.EdgeAsyncCommand().Update(storedCommand.ID, &storedCommand)
 			if err != nil {
 				return commandsResponse, err
 			}
 		} else if !storedCommand.Timestamp.After(commandTimestamp) { // not a scheduled command
 			storedCommand.Executed = true
-			err := handler.DataStore.EdgeAsyncCommand().Update(storedCommand.ID, &storedCommand)
+			err := tx.EdgeAsyncCommand().Update(storedCommand.ID, &storedCommand)
 			if err != nil {
 				return commandsResponse, err
 			}
@@ -627,7 +666,7 @@ func (handler *Handler) sendCommandsSince(endpoint *portaineree.Endpoint, comman
 	return commandsResponse, nil
 }
 
-func (handler *Handler) getEndpoint(endpointID portaineree.EndpointID, edgeID string) (*portaineree.Endpoint, error) {
+func (handler *Handler) getEndpoint(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeID string) (*portaineree.Endpoint, error) {
 	if endpointID == 0 {
 		var ok bool
 		endpointID, ok = handler.DataStore.Endpoint().EndpointIDByEdgeID(edgeID)
@@ -635,7 +674,7 @@ func (handler *Handler) getEndpoint(endpointID portaineree.EndpointID, edgeID st
 			return nil, nil
 		}
 
-		endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
+		endpoint, err := tx.Endpoint().Endpoint(endpointID)
 		if err != nil {
 			return nil, errors.WithMessage(err, "Unable to retrieve environment")
 		}
@@ -643,7 +682,7 @@ func (handler *Handler) getEndpoint(endpointID portaineree.EndpointID, edgeID st
 		return endpoint, nil
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
+	endpoint, err := tx.Endpoint().Endpoint(endpointID)
 	if err != nil {
 		return nil, errors.WithMessage(err, "Unable to retrieve the Endpoint from the database")
 	}
@@ -651,7 +690,7 @@ func (handler *Handler) getEndpoint(endpointID portaineree.EndpointID, edgeID st
 	if endpoint.EdgeID == "" {
 		endpoint.EdgeID = edgeID
 
-		err = handler.DataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
+		err = tx.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
 		if err != nil {
 			return nil, errors.WithMessage(err, "Unable to update the Endpoint in the database")
 		}

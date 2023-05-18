@@ -1,10 +1,11 @@
 package edge
 
 import (
-	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/set"
+
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -31,9 +32,9 @@ func EndpointRelatedEdgeStacks(endpoint *portaineree.Endpoint, endpointGroup *po
 	return relatedEdgeStacks
 }
 
-func AddEnvironmentToEdgeGroups(dataStore dataservices.DataStore, endpoint *portaineree.Endpoint, edgeGroupsIDs []portaineree.EdgeGroupID) error {
+func AddEnvironmentToEdgeGroups(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeGroupsIDs []portaineree.EdgeGroupID) error {
 	for _, edgeGroupID := range edgeGroupsIDs {
-		edgeGroup, err := dataStore.EdgeGroup().EdgeGroup(edgeGroupID)
+		edgeGroup, err := tx.EdgeGroup().EdgeGroup(edgeGroupID)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -50,7 +51,7 @@ func AddEnvironmentToEdgeGroups(dataStore dataservices.DataStore, endpoint *port
 		}
 
 		edgeGroup.Endpoints = append(edgeGroup.Endpoints, endpoint.ID)
-		err = dataStore.EdgeGroup().UpdateEdgeGroup(edgeGroupID, edgeGroup)
+		err = tx.EdgeGroup().UpdateEdgeGroup(edgeGroupID, edgeGroup)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -64,17 +65,17 @@ func AddEnvironmentToEdgeGroups(dataStore dataservices.DataStore, endpoint *port
 		EdgeStacks: map[portaineree.EdgeStackID]bool{},
 	}
 
-	relationConfig, err := FetchEndpointRelationsConfig(dataStore)
+	relationConfig, err := FetchEndpointRelationsConfig(tx)
 	if err != nil {
 		return errors.WithMessage(err, "Unable to retrieve environments relations config from database")
 	}
 
-	edgeStacks, err := dataStore.EdgeStack().EdgeStacks()
+	edgeStacks, err := tx.EdgeStack().EdgeStacks()
 	if err != nil {
 		return errors.WithMessage(err, "Unable to retrieve edge stacks from database")
 	}
 
-	environmentGroup, err := dataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
+	environmentGroup, err := tx.EndpointGroup().EndpointGroup(endpoint.GroupID)
 	if err != nil {
 		return errors.WithMessage(err, "Unable to retrieve environment group from database")
 	}
@@ -87,9 +88,10 @@ func AddEnvironmentToEdgeGroups(dataStore dataservices.DataStore, endpoint *port
 
 	relation.EdgeStacks = edgeStackSet
 
-	err = dataStore.EndpointRelation().Create(relation)
+	err = tx.EndpointRelation().Create(relation)
 	if err != nil {
 		return errors.WithMessage(err, "Unable to persist the relation object inside the database")
 	}
+
 	return nil
 }
