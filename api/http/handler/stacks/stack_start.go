@@ -72,7 +72,7 @@ func (handler *Handler) stackStart(w http.ResponseWriter, r *http.Request) *http
 		return httperror.InternalServerError("Unable to verify user authorizations to validate stack deletion", err)
 	}
 	if !canManage {
-		errMsg := "Stack management is disabled for non-admin users"
+		errMsg := "stack management is disabled for non-admin users"
 		return httperror.Forbidden(errMsg, errors.New(errMsg))
 	}
 
@@ -99,7 +99,7 @@ func (handler *Handler) stackStart(w http.ResponseWriter, r *http.Request) *http
 	}
 
 	if stack.Status == portaineree.StackStatusActive {
-		return httperror.BadRequest("Stack is already active", errors.New("Stack is already active"))
+		return httperror.BadRequest("Stack is already active", errors.New("stack is already active"))
 	}
 
 	if stack.AutoUpdate != nil && stack.AutoUpdate.Interval != "" {
@@ -135,15 +135,22 @@ func (handler *Handler) stackStart(w http.ResponseWriter, r *http.Request) *http
 func (handler *Handler) startStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
 	switch stack.Type {
 	case portaineree.DockerComposeStack:
+		stack.Name = handler.ComposeStackManager.NormalizeStackName(stack.Name)
+
 		if stackutils.IsGitStack(stack) {
 			return handler.StackDeployer.StartRemoteComposeStack(stack, endpoint)
 		}
+
 		return handler.ComposeStackManager.Up(context.TODO(), stack, endpoint, false)
 	case portaineree.DockerSwarmStack:
+		stack.Name = handler.SwarmStackManager.NormalizeStackName(stack.Name)
+
 		if stackutils.IsGitStack(stack) {
 			return handler.StackDeployer.StartRemoteSwarmStack(stack, endpoint)
 		}
+
 		return handler.SwarmStackManager.Deploy(stack, true, true, endpoint)
 	}
+
 	return nil
 }

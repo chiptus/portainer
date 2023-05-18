@@ -113,7 +113,7 @@ func (handler *Handler) stackDelete(w http.ResponseWriter, r *http.Request) *htt
 		return httperror.InternalServerError("Unable to verify user authorizations to validate stack deletion", err)
 	}
 	if !canManage {
-		errMsg := "Stack deletion is disabled for non-admin users"
+		errMsg := "stack deletion is disabled for non-admin users"
 		return httperror.Forbidden(errMsg, fmt.Errorf(errMsg))
 	}
 
@@ -199,17 +199,25 @@ func (handler *Handler) deleteExternalStack(r *http.Request, w http.ResponseWrit
 
 func (handler *Handler) deleteStack(userID portaineree.UserID, stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
 	if stack.Type == portaineree.DockerSwarmStack {
+		stack.Name = handler.SwarmStackManager.NormalizeStackName(stack.Name)
+
 		if stackutils.IsGitStack(stack) {
 			return handler.StackDeployer.UndeployRemoteSwarmStack(stack, endpoint)
 		}
+
 		return handler.SwarmStackManager.Remove(stack, endpoint)
 	}
+
 	if stack.Type == portaineree.DockerComposeStack {
+		stack.Name = handler.ComposeStackManager.NormalizeStackName(stack.Name)
+
 		if stackutils.IsGitStack(stack) {
 			return handler.StackDeployer.UndeployRemoteComposeStack(stack, endpoint)
 		}
+
 		return handler.ComposeStackManager.Down(context.TODO(), stack, endpoint)
 	}
+
 	if stack.Type == portaineree.KubernetesStack {
 		var manifestFiles []string
 
@@ -221,6 +229,7 @@ func (handler *Handler) deleteStack(userID portaineree.UserID, stack *portainere
 			if err != nil {
 				return errors.Wrap(err, "failed to create temp directory for deleting kub stack")
 			}
+
 			defer os.RemoveAll(tmpDir)
 
 			for _, fileName := range fileNames {
@@ -244,8 +253,11 @@ func (handler *Handler) deleteStack(userID portaineree.UserID, stack *portainere
 		} else {
 			manifestFiles = stackutils.GetStackFilePaths(stack, true)
 		}
+
 		out, err := handler.KubernetesDeployer.Remove(userID, endpoint, manifestFiles, stack.Namespace)
+
 		return errors.WithMessagef(err, "failed to remove kubernetes resources: %q", out)
 	}
+
 	return fmt.Errorf("unsupported stack type: %v", stack.Type)
 }
