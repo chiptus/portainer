@@ -39,7 +39,7 @@ func (payload *deletePayload) Validate(r *http.Request) error {
 // @produce json
 // @param body body deletePayload true "list of license keys to remove"
 // @success 200 {object} deleteResponse "Failures will be in `body.FailedKeys[key] = error`"
-// @router /licenses [delete]
+// @router /licenses [post]
 func (handler *Handler) licensesDelete(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	var payload deletePayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
