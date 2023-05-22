@@ -50,7 +50,7 @@ func (handler *Handler) endpointTrust(w http.ResponseWriter, r *http.Request) *h
 	return response.Empty(w)
 }
 
-func trustEndpoint(tx dataservices.DataStoreTx, ID portaineree.EndpointID) *httperror.HandlerError {
+func trustEndpoint(tx dataservices.DataStoreTx, ID portaineree.EndpointID) error {
 	endpoint, err := tx.Endpoint().Endpoint(ID)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve environment from the database", err)
