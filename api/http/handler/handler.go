@@ -120,10 +120,18 @@ type Handler struct {
 
 // @tag.name auth
 // @tag.description Authenticate against Portainer HTTP API
+// @tag.name backup
+// @tag.description Manage backups
+// @tag.name chat
+// @tag.description Manage openAI queries
+// @tag name cloud_credentials
+// @tag description Manage cloud credentials
 // @tag.name custom_templates
 // @tag.description Manage Custom Templates
-// @tag.name dockerhub
-// @tag.description Manage how Portainer connects to the DockerHub
+// @tag.name docker
+// @tag.description Manage Docker resources
+// @tag.name edge
+// @tag.description Manage Edge related environment settings
 // @tag.name edge_groups
 // @tag.description Manage Edge Groups
 // @tag.name edge_jobs
@@ -132,18 +140,30 @@ type Handler struct {
 // @tag.description Manage Edge Stacks
 // @tag.name edge_templates
 // @tag.description Manage Edge Templates
-// @tag.name edge
-// @tag.description Manage Edge related environment(endpoint) settings
-// @tag.name endpoints
-// @tag.description Manage Docker environments(endpoints)
+// @tag name edge_update_schedules
+// @tag description Manage Edge Update Schedules
 // @tag.name endpoint_groups
-// @tag.description Manage environment(endpoint) groups
+// @tag.description Manage environment groups
+// @tag.name endpoints
+// @tag.description Manage environments
 // @tag.name gitops
 // @tag.description Operate git repository
+// @tag.name helm
+// @tag.description Manage Helm charts
+// @tag.name intel
+// @tag.description Manage Intel AMT settings
+// @tag.name kaas
+// @tag description Manage KaaS
 // @tag.name kubernetes
 // @tag.description Manage Kubernetes cluster
+// @tag.name ldap
+// @tag.description Manage LDAP settings
+// @tag name licenses
+// @tag description Manage licenses
 // @tag.name motd
 // @tag.description Fetch the message of the day
+// @tag name nomad
+// @tag description Manage Nomad cluster
 // @tag.name registries
 // @tag.description Manage Docker registries
 // @tag.name resource_controls
@@ -158,18 +178,20 @@ type Handler struct {
 // @tag.description Information about the Portainer instance
 // @tag.name system
 // @tag.description Manage Portainer system
-// @tag.name users
-// @tag.description Manage users
 // @tag.name tags
 // @tag.description Manage tags
-// @tag.name teams
-// @tag.description Manage teams
 // @tag.name team_memberships
 // @tag.description Manage team memberships
+// @tag.name teams
+// @tag.description Manage teams
 // @tag.name templates
 // @tag.description Manage App Templates
 // @tag.name upload
 // @tag.description Upload files
+// @tag name useractivity
+// @tag description Manage user activity logs
+// @tag.name users
+// @tag.description Manage users
 // @tag.name webhooks
 // @tag.description Manage webhooks
 // @tag.name websocket
