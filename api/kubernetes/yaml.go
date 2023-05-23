@@ -289,8 +289,10 @@ func updateContainerEnv(yamlDoc interface{}, env map[string]string) {
 	}
 
 	if containers, ok := m["containers"]; ok {
-		c := containers.([]interface{})
-		updateEnv(c, env)
+		c, ok := containers.([]interface{})
+		if ok {
+			updateEnv(c, env)
+		}
 		return
 	}
 
