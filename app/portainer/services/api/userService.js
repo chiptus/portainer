@@ -1,6 +1,7 @@
 import _ from 'lodash-es';
 import { UserTokenModel, UserViewModel } from '@/portainer/models/user';
 import { getUsers } from '@/portainer/users/user.service';
+import { queryClient } from '@/react-tools/react-query';
 
 import { getUser } from '@/portainer/users/queries/useUser';
 import { TeamMembershipModel } from '../../models/teamMembership';
@@ -174,7 +175,8 @@ export function UserService($q, Users, TeamService, TeamMembershipService) {
     const deferred = $q.defer();
     const payload = { name, username, password };
     Users.saveGitCredential({ id: userId }, payload)
-      .$promise.then((data) => {
+      .$promise.then(async (data) => {
+        await queryClient.invalidateQueries(['gitcredentials']);
         deferred.resolve(data);
       })
       .catch(function error(err) {

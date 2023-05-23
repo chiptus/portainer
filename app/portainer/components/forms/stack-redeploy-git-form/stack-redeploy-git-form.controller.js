@@ -136,7 +136,7 @@ class StackRedeployGitFormController {
 
         // save git credential
         if (that.formValues.SaveCredential && that.formValues.NewCredentialName) {
-          const userDetails = this.Authentication.getUserDetails();
+          const userDetails = that.Authentication.getUserDetails();
           await that.UserService.saveGitCredential(userDetails.ID, that.formValues.NewCredentialName, that.formValues.RepositoryUsername, that.formValues.RepositoryPassword).then(
             function success(data) {
               that.formValues.RepositoryGitCredentialID = data.gitCredential.id;
@@ -173,7 +173,12 @@ class StackRedeployGitFormController {
         if (this.formValues.SaveCredential && this.formValues.NewCredentialName) {
           await this.UserService.saveGitCredential(userDetails.ID, this.formValues.NewCredentialName, this.formValues.RepositoryUsername, this.formValues.RepositoryPassword).then(
             function success(data) {
-              that.formValues.RepositoryGitCredentialID = data.gitCredential.id;
+              that.formValues = {
+                ...that.formValues,
+                RepositoryGitCredentialID: data.gitCredential.id,
+                SaveCredential: false,
+                RepositoryPassword: '',
+              };
             }
           );
         }
