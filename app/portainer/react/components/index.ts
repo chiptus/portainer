@@ -8,6 +8,7 @@ import { GitCredentialsDatatable } from '@/react/portainer/account/AccountView/G
 import { LicenseInfoPanel } from '@/react/portainer/licenses/components/LicenseInfoPanel';
 import { ChatBotItem } from '@/react/portainer/chat/ChatBot';
 import { EnvironmentURL } from '@/react/portainer/environments/ListView/EnvironmentURL';
+import { TableColumnHeaderImageUpToDate } from '@/react/docker/components/datatables/TableColumnHeaderImageUpToDate';
 
 import { Icon } from '@@/Icon';
 import { ReactQueryDevtoolsWrapper } from '@@/ReactQueryDevtoolsWrapper';
@@ -100,6 +101,15 @@ export const componentsModule = angular
   .component(
     'tableColumnHeader',
     r2a(TableColumnHeaderAngular, [
+      'colTitle',
+      'canSort',
+      'isSorted',
+      'isSortedDesc',
+    ])
+  )
+  .component(
+    'tableColumnHeaderImageUpToDate',
+    r2a(withUIRouter(withReactQuery(TableColumnHeaderImageUpToDate)), [
       'colTitle',
       'canSort',
       'isSorted',

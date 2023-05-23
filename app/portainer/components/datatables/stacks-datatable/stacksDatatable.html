@@ -139,7 +139,9 @@
                   ng-click="$ctrl.changeOrderBy('Type')"
                 ></table-column-header>
               </th>
-              <th ng-if="$ctrl.enableImageNotification"><table-column-header col-title="'Images up to date'" can-sort="false"></table-column-header></th>
+              <th ng-if="$ctrl.enableImageNotification"
+                ><table-column-header-image-up-to-date col-title="'Images up to date'" can-sort="false"></table-column-header-image-up-to-date
+              ></th>
               <th><table-column-header col-title="'Control'" can-sort="false"></table-column-header></th>
               <th>
                 <table-column-header

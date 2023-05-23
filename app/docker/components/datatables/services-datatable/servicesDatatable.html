@@ -110,7 +110,16 @@
                 ></table-column-header>
               </th>
               <th ng-show="$ctrl.columnVisibility.columns.image.display">
+                <table-column-header-image-up-to-date
+                  ng-if="$ctrl.enableImageNotification"
+                  col-title="'Image'"
+                  can-sort="true"
+                  is-sorted="$ctrl.state.orderBy === 'Image'"
+                  is-sorted-desc="$ctrl.state.orderBy === 'Image' && $ctrl.state.reverseOrder"
+                  ng-click="$ctrl.changeOrderBy('Image')"
+                ></table-column-header-image-up-to-date>
                 <table-column-header
+                  ng-if="!$ctrl.enableImageNotification"
                   col-title="'Image'"
                   can-sort="true"
                   is-sorted="$ctrl.state.orderBy === 'Image'"
@@ -178,9 +187,8 @@
               </td>
               <td ng-if="$ctrl.showStackColumn">{{ item.StackName ? item.StackName : '-' }}</td>
               <td ng-show="$ctrl.columnVisibility.columns.image.display">
-                <image-status resource-id="item.Id" resource-type="$ctrl.resourceType" environment-id="$ctrl.endpointId"></image-status>
-                {{ item.Image | hideshasum }}</td
-              >
+                <image-status resource-id="item.Id" resource-type="$ctrl.resourceType" environment-id="$ctrl.endpointId"></image-status>{{ item.Image | hideshasum }}
+              </td>
               <td ng-controller="ServicesDatatableActionsController as actionCtrl">
                 {{ item.Mode }}
                 <code>{{ item.Tasks | runningtaskscount }}</code> / <code>{{ item.Mode === 'replicated' ? item.Replicas : ($ctrl.nodes | availablenodecount : item) }}</code>

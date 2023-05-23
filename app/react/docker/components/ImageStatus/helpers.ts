@@ -1,16 +1,20 @@
+import { Loader } from 'lucide-react';
+
+import UpdatesAvailable from '@/assets/ico/icon_updates-available.svg?c';
+import UpToDate from '@/assets/ico/icon_up-to-date.svg?c';
+import UpdatesUnknown from '@/assets/ico/icon_updates-unknown.svg?c';
+
 import { ImageStatus } from '../../images/types';
 
-import style from './ImageStatus.module.css';
-
-export function statusClass(status: ImageStatus) {
+export function statusIcon(status: ImageStatus) {
   switch (status.Status) {
     case 'outdated':
-      return style.outdated;
+      return UpdatesAvailable;
     case 'updated':
-      return style.updated;
+      return UpToDate;
     case 'processing':
-      return style.processing;
+      return Loader;
     default:
-      return style.unknown;
+      return UpdatesUnknown;
   }
 }

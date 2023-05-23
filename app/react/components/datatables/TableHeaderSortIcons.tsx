@@ -12,7 +12,7 @@ interface Props {
 
 export function TableHeaderSortIcons({ sorted, descending, className }: Props) {
   return (
-    <div className="no-wrap w-min-max flex flex-row align-middle">
+    <div className="no-wrap w-min-max ml-1 flex flex-row align-middle group-hover:[&>svg>path]:fill-gray-6">
       <SortDownIcon
         className={clsx(
           className,

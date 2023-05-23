@@ -12,6 +12,7 @@ angular.module('portainer.docker').controller('ServicesController', [
   function ($q, $scope, ServiceService, ServiceHelper, Notifications, TaskService, TaskHelper, NodeService, ContainerService, endpoint) {
     $scope.getServices = getServices;
     $scope.endpoint = endpoint;
+    $scope.enableImageNotification = endpoint.EnableImageNotification;
 
     function getServices() {
       var agentProxy = $scope.applicationState.endpoint.mode.agentProxy;

@@ -18,5 +18,6 @@ angular.module('portainer.docker').component('servicesDatatable', {
     notAutoFocus: '<',
     endpointPublicUrl: '<',
     endpointId: '<',
+    enableImageNotification: '<',
   },
 });

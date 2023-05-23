@@ -32,7 +32,7 @@ export function Tooltip({
       position={position}
       className={className}
     >
-      <span className="inline-flex text-base">
+      <span className="inline-flex items-center text-base">
         <HelpCircle className="lucide ml-1" aria-hidden="true" />
       </span>
     </TooltipWithChildren>
