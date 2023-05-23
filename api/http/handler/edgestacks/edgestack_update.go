@@ -199,7 +199,7 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 
 	stackFolder := strconv.Itoa(int(stack.ID))
 
-	hasWrongType, err := hasWrongEnvironmentType(handler.DataStore.Endpoint(), relatedEndpointIds, payload.DeploymentType)
+	hasWrongType, err := hasWrongEnvironmentType(tx.Endpoint(), relatedEndpointIds, payload.DeploymentType)
 	if err != nil {
 		return nil, httperror.BadRequest("unable to check for existence of non fitting environments: %w", err)
 	}
