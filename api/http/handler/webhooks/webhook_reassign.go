@@ -11,7 +11,8 @@ import (
 )
 
 type webhookReassignPayload struct {
-	ResourceID  string
+	ResourceID string
+	// Type of webhook (1 - service, 2 - container)
 	WebhookType portaineree.WebhookType
 }
 

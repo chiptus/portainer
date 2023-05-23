@@ -18,10 +18,11 @@ import (
 )
 
 type webhookCreatePayload struct {
-	ResourceID  string
-	EndpointID  int
-	RegistryID  portaineree.RegistryID
-	WebhookType int
+	ResourceID string
+	EndpointID portaineree.EndpointID
+	RegistryID portaineree.RegistryID
+	// Type of webhook (1 - service, 2 - container)
+	WebhookType portaineree.WebhookType
 }
 
 func (payload *webhookCreatePayload) Validate(r *http.Request) error {
@@ -31,7 +32,7 @@ func (payload *webhookCreatePayload) Validate(r *http.Request) error {
 	if payload.EndpointID == 0 {
 		return errors.New("Invalid EndpointID")
 	}
-	if payload.WebhookType != 1 && payload.WebhookType != 2 {
+	if payload.WebhookType != portaineree.ContainerWebhook && payload.WebhookType != portaineree.ServiceWebhook {
 		return errors.New("Invalid WebhookType")
 	}
 	return nil
@@ -65,7 +66,7 @@ func (handler *Handler) webhookCreate(w http.ResponseWriter, r *http.Request) *h
 		return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: "A webhook for this resource already exists", Err: errors.New("A webhook for this resource already exists")}
 	}
 
-	endpointID := portaineree.EndpointID(payload.EndpointID)
+	endpointID := payload.EndpointID
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(endpointID)
 	if handler.DataStore.IsErrObjectNotFound(err) {
@@ -105,7 +106,7 @@ func (handler *Handler) webhookCreate(w http.ResponseWriter, r *http.Request) *h
 		ResourceID:  payload.ResourceID,
 		EndpointID:  endpointID,
 		RegistryID:  payload.RegistryID,
-		WebhookType: portaineree.WebhookType(payload.WebhookType),
+		WebhookType: payload.WebhookType,
 	}
 
 	err = handler.DataStore.Webhook().Create(webhook)

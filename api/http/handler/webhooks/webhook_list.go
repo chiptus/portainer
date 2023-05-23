@@ -11,8 +11,8 @@ import (
 )
 
 type webhookListOperationFilters struct {
-	ResourceID string `json:"ResourceID"`
-	EndpointID int    `json:"EndpointID"`
+	ResourceID string `json:"ResourceID" validate:"required"`
+	EndpointID int    `json:"EndpointID" validate:"required"`
 }
 
 // @summary List webhooks
@@ -49,11 +49,13 @@ func (handler *Handler) webhookList(w http.ResponseWriter, r *http.Request) *htt
 	if handlerErr != nil || !isAuthorized {
 		return response.JSON(w, []portaineree.Webhook{})
 	}
+
 	webhooks, err := handler.DataStore.Webhook().Webhooks()
-	webhooks = filterWebhooks(webhooks, &filters)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve webhooks from the database", err)
 	}
+
+	webhooks = filterWebhooks(webhooks, &filters)
 
 	return response.JSON(w, webhooks)
 }
