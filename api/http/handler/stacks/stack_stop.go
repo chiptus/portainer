@@ -24,6 +24,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @param id path int true "Stack identifier"
+// @param endpointId query int true "Environment identifier"
 // @success 200 {object} portaineree.Stack "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
@@ -52,7 +53,7 @@ func (handler *Handler) stackStop(w http.ResponseWriter, r *http.Request) *httpe
 		return httperror.BadRequest("Stopping a kubernetes stack is not supported", err)
 	}
 
-	endpointID, err := request.RetrieveNumericQueryParameter(r, "endpointId", true)
+	endpointID, err := request.RetrieveNumericQueryParameter(r, "endpointId", false)
 	if err != nil {
 		return httperror.BadRequest("Invalid query parameter: endpointId", err)
 	}
