@@ -20,7 +20,7 @@ import (
 type KubernetesStackDeploymentConfig struct {
 	namespaces              []string
 	stack                   *portaineree.Stack
-	kuberneteDeployer       portaineree.KubernetesDeployer
+	kubernetesDeployer      portaineree.KubernetesDeployer
 	appLabel                k.KubeAppLabels
 	tokenData               *portaineree.TokenData
 	endpoint                *portaineree.Endpoint
@@ -39,7 +39,7 @@ func CreateKubernetesStackDeploymentConfig(stack *portaineree.Stack,
 
 	return &KubernetesStackDeploymentConfig{
 		stack:                   stack,
-		kuberneteDeployer:       kubeDeployer,
+		kubernetesDeployer:      kubeDeployer,
 		appLabel:                appLabels,
 		tokenData:               tokenData,
 		endpoint:                endpoint,
@@ -76,7 +76,7 @@ func (config *KubernetesStackDeploymentConfig) Deploy() error {
 		}
 
 		if config.stack.IsComposeFormat {
-			manifestContent, err = config.kuberneteDeployer.ConvertCompose(manifestContent)
+			manifestContent, err = config.kubernetesDeployer.ConvertCompose(manifestContent)
 			if err != nil {
 				return errors.Wrap(err, "failed to convert docker compose file to a kube manifest")
 			}
@@ -128,7 +128,7 @@ func (config *KubernetesStackDeploymentConfig) Deploy() error {
 		}
 	}
 
-	output, err := config.kuberneteDeployer.Deploy(config.tokenData.ID, config.endpoint, manifestFilePaths, config.stack.Namespace)
+	output, err := config.kubernetesDeployer.Deploy(config.tokenData.ID, config.endpoint, manifestFilePaths, config.stack.Namespace)
 	if err != nil {
 		return fmt.Errorf("failed to deploy kubernete stack: %w", err)
 	}
