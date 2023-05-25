@@ -5,10 +5,8 @@ import (
 	portainer "github.com/portainer/portainer/api"
 )
 
-const (
-	// BucketName represents the name of the bucket where this service stores data.
-	BucketName = "edge_stack_log"
-)
+// BucketName represents the name of the bucket where this service stores data.
+const BucketName = "edge_stack_log"
 
 // Service represents a service for managing Edge Stack logs.
 type Service struct {
@@ -29,6 +27,13 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	return &Service{
 		connection: connection,
 	}, nil
+}
+
+func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
+	return ServiceTx{
+		service: service,
+		tx:      tx,
+	}
 }
 
 func (service *Service) generateKey(edgeStackID portaineree.EdgeStackID, endpointID portaineree.EndpointID) []byte {

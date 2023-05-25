@@ -36,7 +36,9 @@ func (tx *StoreTx) EdgeStack() dataservices.EdgeStackService {
 	return tx.store.EdgeStackService.Tx(tx.tx)
 }
 
-func (tx *StoreTx) EdgeStackLog() dataservices.EdgeStackLogService { return nil }
+func (tx *StoreTx) EdgeStackLog() dataservices.EdgeStackLogService {
+	return tx.store.EdgeStackLogService.Tx(tx.tx)
+}
 
 func (tx *StoreTx) Endpoint() dataservices.EndpointService {
 	return tx.store.EndpointService.Tx(tx.tx)

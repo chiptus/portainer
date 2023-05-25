@@ -160,7 +160,7 @@ func (config *KubernetesStackDeploymentConfig) Restart(resourceList []string) er
 		}
 
 		if config.stack.IsComposeFormat {
-			manifestContent, err = config.kuberneteDeployer.ConvertCompose(manifestContent)
+			manifestContent, err = config.kubernetesDeployer.ConvertCompose(manifestContent)
 			if err != nil {
 				return errors.Wrap(err, "failed to convert docker compose file to a kube manifest")
 			}
@@ -214,7 +214,7 @@ func (config *KubernetesStackDeploymentConfig) Restart(resourceList []string) er
 
 		log.Debug().Msgf("Namespace: %s, Resources: %+v", namespace, resources)
 
-		output, e := config.kuberneteDeployer.Restart(config.tokenData.ID, config.endpoint, resources, namespace)
+		output, e := config.kubernetesDeployer.Restart(config.tokenData.ID, config.endpoint, resources, namespace)
 		if e != nil {
 			log.Error().Err(err).Msgf("Failed to restart resources %v in namespace %v", resources, namespace)
 			err = fmt.Errorf("Some resources failed to restart, check Portainer log for more details")
