@@ -55,13 +55,13 @@ jobs:
     outputs:
       go: ${{ steps.set-matrix.outputs.go_result }}
     env:
-      GOPRIVATE: github.com/portainer/*
+      GOPRIVATE: github.com/portainer/liblicense
     steps:
       - name: checkout repository
         uses: actions/checkout@master
 
       - name: setup ssh agent for private modules
-        uses: webfactory/ssh-agent@v0.7.0
+        uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_KEY_LIBLICENSE }}
 

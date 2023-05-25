@@ -78,13 +78,13 @@ jobs:
     outputs:
       godiff: ${{ steps.set-diff-matrix.outputs.go_diff_result }}
     env:
-      GOPRIVATE: github.com/portainer/*
+      GOPRIVATE: github.com/portainer/liblicense
     steps:
       - name: checkout repository
         uses: actions/checkout@master
 
       - name: setup ssh agent for private modules
-        uses: webfactory/ssh-agent@v0.7.0
+        uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_KEY_LIBLICENSE }}
 
@@ -150,13 +150,13 @@ jobs:
     outputs:
       imagediff: ${{ steps.set-diff-matrix.outputs.image_diff_result }}
     env:
-      GOPRIVATE: github.com/portainer/*
+      GOPRIVATE: github.com/portainer/liblicense
     steps:
       - name: checkout code
         uses: actions/checkout@master
 
       - name: setup ssh agent for private modules
-        uses: webfactory/ssh-agent@v0.7.0
+        uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_KEY_LIBLICENSE }}
 
