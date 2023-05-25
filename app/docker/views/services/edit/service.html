@@ -8,7 +8,6 @@
     </div>
   </div>
 </div>
-
 <div class="row">
   <div class="col-lg-9 col-md-9 col-xs-9">
     <rd-widget>
@@ -17,7 +16,7 @@
         <table class="table">
           <tbody>
             <tr>
-              <td>Name</td>
+              <td class="w-1/5">Name</td>
               <td ng-if="applicationState.endpoint.apiVersion <= 1.24">
                 <input type="text" class="form-control" ng-model="service.Name" ng-change="updateServiceAttribute(service, 'Name')" ng-disabled="isUpdating" />
               </td>
@@ -66,24 +65,29 @@
               <td>{{ service.Image }}</td>
             </tr>
             <tr ng-if="applicationState.endpoint.type !== 4 && hasAuthorizations(['PortainerWebhookCreate', 'PortainerWebhookList', 'PortainerWebhookDelete'])">
-              <td colspan="{{ webhookURL ? '1' : '2' }}">
-                <por-switch-field
-                  tooltip="'Webhook (or callback URI) used to automate the update of this service. Sending a POST request to this callback URI (without requiring any authentication) will pull the most up-to-date version of the associated image and re-deploy this service.'"
-                  checked="WebhookExists"
-                  disabled="disabledWebhookButton(WebhookExists)"
-                  on-change="(onWebhookChange)"
-                  label="'Service webhook'"
-                ></por-switch-field>
+              <td>
+                <div class="inline-flex items-center">
+                  <div> Service webhook </div>
+                  <portainer-tooltip
+                    message="'Webhook (or callback URI) used to automate the update of this service. Sending a POST request to this callback URI (without requiring any authentication) will pull the most up-to-date version of the associated image and re-deploy this service.'"
+                  >
+                  </portainer-tooltip>
+                </div>
               </td>
-              <td ng-if="webhookURL">
-                <span class="text-muted">{{ webhookURL | truncatelr }}</span>
-                <button type="button" class="btn btn-sm btn-primary btn-sm space-left" ng-if="webhookURL" ng-click="copyWebhook()">
-                  <pr-icon icon="'copy'" class-name="'mr-1'"></pr-icon>
-                  Copy link
-                </button>
-                <span>
-                  <pr-icon id="copyNotification" icon="'check'" mode="'success'" style="display: none"></pr-icon>
-                </span>
+              <td>
+                <div class="flex flex-wrap items-center">
+                  <por-switch-field label-class="'!mr-0'" checked="WebhookExists" disabled="disabledWebhookButton(WebhookExists)" on-change="(onWebhookChange)"></por-switch-field>
+                  <span ng-if="webhookURL">
+                    <span class="text-muted">{{ webhookURL | truncatelr }}</span>
+                    <button type="button" class="btn btn-sm btn-primary btn-sm space-left" ng-if="webhookURL" ng-click="copyWebhook()">
+                      <pr-icon icon="'copy'" class-name="'mr-1'"></pr-icon>
+                      Copy link
+                    </button>
+                    <span>
+                      <pr-icon id="copyNotification" icon="'check'" mode="'success'" style="display: none"></pr-icon>
+                    </span>
+                  </span>
+                </div>
               </td>
             </tr>
             <tr authorization="DockerServiceLogs, DockerServiceUpdate, DockerServiceDelete">
@@ -177,7 +181,7 @@
   <div class="col-lg-3 col-md-3 col-xs-3">
     <rd-widget>
       <rd-widget-header icon="menu" title-text="Quick navigation"></rd-widget-header>
-      <rd-widget-body classes="no-padding">
+      <rd-widget-body>
         <ul class="nav nav-pills nav-stacked">
           <li><a href ng-click="goToItem('service-env-variables')">Environment variables</a></li>
           <li><a href ng-click="goToItem('service-container-image')">Container image</a></li>

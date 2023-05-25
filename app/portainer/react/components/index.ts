@@ -86,6 +86,7 @@ export const componentsModule = angular
       'disabled',
       'dataCy',
       'onChange',
+      'index',
       'featureId',
       'className',
     ])
