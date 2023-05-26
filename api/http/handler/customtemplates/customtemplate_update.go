@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/asaskevich/govalidator"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
@@ -15,6 +14,8 @@ import (
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
+
+	"github.com/asaskevich/govalidator"
 )
 
 type customTemplateUpdatePayload struct {
@@ -53,6 +54,8 @@ type customTemplateUpdatePayload struct {
 	FileContent string `validate:"required"`
 	// Definitions of variables in the stack file
 	Variables []portaineree.CustomTemplateVariableDefinition
+	// TLSSkipVerify skips SSL verification when cloning the Git repository
+	TLSSkipVerify bool `example:"false"`
 	// IsComposeFormat indicates if the Kubernetes template is created from a Docker Compose file
 	IsComposeFormat bool `example:"false"`
 }
@@ -159,10 +162,12 @@ func (handler *Handler) customTemplateUpdate(w http.ResponseWriter, r *http.Requ
 		if !govalidator.IsURL(payload.RepositoryURL) {
 			return httperror.BadRequest("Invalid repository URL. Must correspond to a valid URL format", err)
 		}
+
 		gitConfig := &gittypes.RepoConfig{
 			URL:            payload.RepositoryURL,
 			ReferenceName:  payload.RepositoryReferenceName,
 			ConfigFilePath: payload.ComposeFilePathInRepository,
+			TLSSkipVerify:  payload.TLSSkipVerify,
 		}
 
 		if payload.RepositoryAuthentication {
@@ -225,5 +230,6 @@ func (handler *Handler) customTemplateUpdate(w http.ResponseWriter, r *http.Requ
 	if customTemplate.GitConfig != nil && customTemplate.GitConfig.Authentication != nil {
 		customTemplate.GitConfig.Authentication.Password = ""
 	}
+
 	return response.JSON(w, customTemplate)
 }
