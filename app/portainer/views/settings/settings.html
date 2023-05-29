@@ -8,8 +8,8 @@
         <form class="form-horizontal">
           <!-- snapshot-interval -->
           <div class="form-group">
-            <label for="snapshot_interval" class="col-sm-3 col-lg-2 control-label text-left">Snapshot interval</label>
-            <div class="col-sm-8">
+            <label for="snapshot_interval" class="col-sm-2 control-label text-left">Snapshot interval</label>
+            <div class="col-sm-10">
               <input type="text" class="form-control" ng-model="settings.SnapshotInterval" id="snapshot_interval" placeholder="e.g. 15m" />
             </div>
           </div>
@@ -34,7 +34,7 @@
               disabled="state.isDemo"
               on-change="(onToggleCustomLogo)"
               field-class="'col-sm-12'"
-              label-class="'col-sm-3 col-lg-2'"
+              label-class="'col-sm-2'"
             ></por-switch-field>
             <div class="col-sm-12" ng-if="state.isDemo" style="margin-top: 10px">
               <span class="small text-muted">You cannot use this feature in the demo version of Portainer.</span>
@@ -46,8 +46,8 @@
               <span class="col-sm-12 text-muted small"> You can specify the URL to your logo here. For an optimal display, logo dimensions should be 155px by 55px. </span>
             </div>
             <div class="form-group">
-              <label for="logo_url" class="col-sm-3 col-lg-2 control-label text-left"> URL </label>
-              <div class="col-sm-8">
+              <label for="logo_url" class="col-sm-2 control-label text-left"> URL </label>
+              <div class="col-sm-10">
                 <input type="text" class="form-control" ng-model="settings.LogoURL" id="logo_url" placeholder="https://mycompany.com/logo.png" />
               </div>
             </div>
@@ -62,7 +62,7 @@
               on-change="(onToggleEnableTelemetry)"
               disabled="state.isDemo"
               field-class="'col-sm-12'"
-              label-class="'col-sm-3 col-lg-2'"
+              label-class="'col-sm-2'"
             ></por-switch-field>
             <div class="col-sm-12" ng-if="state.isDemo" style="margin-top: 10px">
               <span class="small text-muted">You cannot use this feature in the demo version of Portainer.</span>
@@ -82,7 +82,7 @@
               disabled="state.isDemo"
               on-change="(onToggleCustomLoginBanner)"
               field-class="'col-sm-12'"
-              label-class="'col-sm-3 col-lg-2'"
+              label-class="'col-sm-2'"
             ></por-switch-field>
             <div class="col-sm-12" ng-if="state.isDemo" style="margin-top: 10px">
               <span class="small text-muted">You cannot use this feature in the demo version of Portainer.</span>
@@ -92,8 +92,8 @@
 
           <div ng-if="formValues.customLoginBanner">
             <div class="form-group">
-              <label for="custom_login_banner" class="col-sm-3 col-lg-2 control-label required text-left">Details</label>
-              <div class="col-sm-8">
+              <label for="custom_login_banner" class="col-sm-2 control-label required text-left">Details</label>
+              <div class="col-sm-10">
                 <textarea class="form-control" rows="5" ng-model="settings.CustomLoginBanner" id="custom_login_banner" placeholder="Banner details"></textarea>
               </div>
             </div>
@@ -110,8 +110,8 @@
               </span>
             </div>
             <div class="form-group">
-              <label for="templates_url" class="col-sm-3 col-lg-2 control-label text-left"> URL </label>
-              <div class="col-sm-8">
+              <label for="templates_url" class="col-sm-2 control-label text-left"> URL </label>
+              <div class="col-sm-10">
                 <input
                   type="text"
                   class="form-control"
@@ -164,8 +164,8 @@
               </span>
             </div>
             <div class="form-group">
-              <label for="helmrepository_url" class="col-sm-3 col-lg-2 control-label text-left"> URL </label>
-              <div class="col-sm-8">
+              <label for="helmrepository_url" class="col-sm-2 control-label text-left"> URL </label>
+              <div class="col-sm-10">
                 <input type="text" class="form-control" ng-model="formValues.HelmRepositoryURL" id="helmrepository_url" placeholder="https://charts.bitnami.com/bitnami" />
               </div>
             </div>
@@ -174,8 +174,8 @@
           <!-- kubeconfig -->
           <div class="col-sm-12 form-section-title"> Kubeconfig </div>
           <div class="form-group">
-            <label for="kubeconfig_expiry" class="col-sm-3 col-lg-2 control-label text-left"> Kubeconfig expiry </label>
-            <div class="col-sm-8">
+            <label for="kubeconfig_expiry" class="col-sm-2 control-label text-left"> Kubeconfig expiry </label>
+            <div class="col-sm-10">
               <select
                 id="kubeconfig_expiry"
                 class="form-control"
@@ -193,8 +193,8 @@
               checked="formValues.GlobalDeploymentOptions.hideAddWithForm"
               name="'toggle_hideAddWithForm'"
               on-change="(onToggleAddWithForm)"
-              field-class="'col-sm-12'"
-              label-class="'col-sm-3 col-lg-2'"
+              field-class="'col-sm-10'"
+              label-class="'col-sm-2'"
               tooltip="'Hides the \'Add with form\' buttons and prevents adding/editing of resources via forms'"
             ></por-switch-field>
           </div>
@@ -204,16 +204,16 @@
               checked="!formValues.GlobalDeploymentOptions.hideWebEditor"
               name="'toggle_hideWebEditor'"
               on-change="(onToggleHideWebEditor)"
-              field-class="'col-sm-12'"
-              label-class="'col-sm-3 col-lg-2 !pl-4'"
+              field-class="'col-sm-10'"
+              label-class="'col-sm-2 !pl-4'"
             ></por-switch-field>
             <por-switch-field
               label="'Allow specifying of a manifest via a URL'"
               checked="!formValues.GlobalDeploymentOptions.hideFileUpload"
               name="'toggle_hideFileUpload'"
               on-change="(onToggleHideFileUpload)"
-              field-class="'col-sm-12'"
-              label-class="'col-sm-3 col-lg-2 !pl-4'"
+              field-class="'col-sm-10'"
+              label-class="'col-sm-2 !pl-4'"
             ></por-switch-field>
           </div>
           <div class="form-group">
@@ -222,8 +222,8 @@
               checked="formValues.GlobalDeploymentOptions.perEnvOverride"
               name="'toggle_perEnvOverride'"
               on-change="(onTogglePerEnvOverride)"
-              field-class="'col-sm-12'"
-              label-class="'col-sm-3 col-lg-2'"
+              field-class="'col-sm-10'"
+              label-class="'col-sm-2'"
               tooltip="'Allows overriding of deployment options in the Cluster setup screen of each environment'"
             ></por-switch-field>
           </div>
@@ -339,16 +339,16 @@
                 name="'s3-backup-setting'"
                 feature-id="s3BackupFeatureId"
                 checked="formValues.scheduleAutomaticBackups"
-                field-class="'col-sm-12'"
-                label-class="'col-sm-3 col-lg-2'"
+                field-class="'col-sm-10'"
+                label-class="'col-sm-2'"
                 on-change="(onToggleAutoBackups)"
               ></por-switch-field>
             </div>
             <!-- !Schedule automatic backups -->
             <!-- Cron rule  -->
             <div class="form-group" ng-if="formValues.scheduleAutomaticBackups">
-              <label for="cron_rule" class="col-sm-3 col-lg-2 col-lg-2 control-label text-left">Cron rule</label>
-              <div class="col-sm-10 col-lg-10">
+              <label for="cron_rule" class="col-sm-2 control-label text-left">Cron rule</label>
+              <div class="col-sm-10">
                 <input
                   type="text"
                   class="form-control"
@@ -379,8 +379,8 @@
             </div>
             <!-- Access key id  -->
             <div class="form-group">
-              <label for="access_key_id" class="col-sm-3 col-lg-2 col-lg-2 control-label text-left">Access key ID</label>
-              <div class="col-sm-9 col-lg-10">
+              <label for="access_key_id" class="col-sm-2 control-label text-left">Access key ID</label>
+              <div class="col-sm-10">
                 <input
                   type="text"
                   class="form-control"
@@ -405,8 +405,8 @@
             <!-- !Access key id  -->
             <!-- Secret access key -->
             <div class="form-group">
-              <label for="secret_access_key" class="col-sm-3 col-lg-2 control-label text-left">Secret access key</label>
-              <div class="col-sm-9 col-lg-10">
+              <label for="secret_access_key" class="col-sm-2 control-label text-left">Secret access key</label>
+              <div class="col-sm-10">
                 <input
                   type="password"
                   class="form-control"
@@ -431,8 +431,8 @@
             <!-- !Secret access key -->
             <!-- Region -->
             <div class="form-group">
-              <label for="region" class="col-sm-3 col-lg-2 control-label text-left">Region</label>
-              <div class="col-sm-9 col-lg-10">
+              <label for="region" class="col-sm-2 control-label text-left">Region</label>
+              <div class="col-sm-10">
                 <input
                   type="text"
                   class="form-control"
@@ -450,8 +450,8 @@
             <!-- !Region -->
             <!-- Bucket name -->
             <div class="form-group">
-              <label for="bucket_name" class="col-sm-3 col-lg-2 control-label text-left">Bucket name</label>
-              <div class="col-sm-9 col-lg-10">
+              <label for="bucket_name" class="col-sm-2 control-label text-left">Bucket name</label>
+              <div class="col-sm-10">
                 <input
                   type="text"
                   class="form-control"
@@ -475,11 +475,11 @@
             <!-- !Bucket name -->
             <!-- S3 compatible host -->
             <div class="form-group">
-              <label for="s3_compatible_host" class="col-sm-3 col-lg-2 control-label text-left">
+              <label for="s3_compatible_host" class="col-sm-2 control-label text-left">
                 S3 compatible host
                 <portainer-tooltip message="'Hostname of a S3 service'"></portainer-tooltip>
               </label>
-              <div class="col-sm-9 col-lg-10">
+              <div class="col-sm-10">
                 <input
                   type="text"
                   class="form-control"
@@ -506,8 +506,8 @@
             <div class="col-sm-12 form-section-title"> Security settings </div>
             <!-- Password protect S3 -->
             <div class="form-group">
-              <label for="password_protect" class="col-sm-3 col-lg-2 control-label text-left">Password protect</label>
-              <div class="col-sm-8">
+              <label for="password_protect" class="col-sm-2 control-label text-left">Password protect</label>
+              <div class="col-sm-10">
                 <label class="switch">
                   <input
                     type="checkbox"
@@ -522,7 +522,7 @@
             <!-- !Password protect S3 -->
             <!-- Password S3 -->
             <div class="form-group" ng-if="formValues.passwordProtectS3">
-              <label for="password" class="col-sm-3 col-lg-2 control-label text-left">Password</label>
+              <label for="password" class="col-sm-2 control-label text-left">Password</label>
               <div class="col-sm-3">
                 <input type="password" class="form-control" ng-model="formValues.passwordS3" id="password_S3" name="password_S3" required data-cy="settings-backups3pw" />
               </div>
@@ -576,8 +576,8 @@
             <div class="col-sm-12 form-section-title"> Security settings </div>
             <!-- Password protect -->
             <div class="form-group">
-              <label for="password_protect" class="col-sm-3 col-lg-2 control-label text-left">Password protect</label>
-              <div class="col-sm-3 col-lg-2">
+              <label for="password_protect" class="col-sm-2 control-label text-left">Password protect</label>
+              <div class="col-sm-2">
                 <label class="switch" data-cy="settings-passwordProtectLocal">
                   <input type="checkbox" id="password_protect" name="password_protect" ng-model="formValues.passwordProtect" /><span class="slider round"></span>
                 </label>
@@ -587,7 +587,7 @@
 
             <!-- Password -->
             <div class="form-group" ng-if="formValues.passwordProtect">
-              <label for="password" class="col-sm-3 col-lg-2 control-label text-left">Password</label>
+              <label for="password" class="col-sm-2 control-label text-left">Password</label>
               <div class="col-sm-3">
                 <input type="password" class="form-control" ng-model="formValues.password" id="password" name="password" required data-cy="settings-backupLocalPassword" />
               </div>
