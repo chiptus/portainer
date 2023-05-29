@@ -20,13 +20,13 @@ jobs:
 
     - uses: actions/setup-go@v3
       with:
-        go-version: '1.18'
+        go-version: '1.19.5'
 
     - name: Configure git for private modules
-      run: git config --global url."git@github.com:".insteadOf "https://github.com"
+      run: git config --global url.ssh://git@github.com/.insteadOf https://github.com/
 
     - name: Download golang modules
-      run: cd ./api && go get -t -v -d ./...
+      run: cd ./api && go get -v -d ./...
     - uses: actions/setup-node@v3
       with:
           node-version: '18'

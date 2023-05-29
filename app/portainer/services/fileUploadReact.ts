@@ -4,7 +4,7 @@ export function readFileAsArrayBuffer(
 ): Promise<string | ArrayBuffer | null> {
   return new Promise((resolve, reject) => {
     if (maxSize && file.size > maxSize) {
-      const rounded = Math.round((maxSize / (1024 * 1024)) * 10) / 10; // 10 multiplier to round to 1 decimal place
+      const rounded = Math.round((maxSize / (1000 * 1000)) * 10) / 10; // 10 multiplier to round to 1 decimal place
       reject(new Error(`The uploaded file should be less than ${rounded}MB`));
     }
     const reader = new FileReader();
@@ -32,7 +32,7 @@ export function readFileAsText(
 ): Promise<string | ArrayBuffer | null> {
   return new Promise((resolve, reject) => {
     if (maxSize && file.size > maxSize) {
-      const rounded = Math.round((maxSize / (1024 * 1024)) * 10) / 10; // 10 multiplier to round to 1 decimal place
+      const rounded = Math.round((maxSize / (1000 * 1000)) * 10) / 10; // 10 multiplier to round to 1 decimal place
       reject(new Error(`The uploaded file should be less than ${rounded}MB`));
     }
     const reader = new FileReader();

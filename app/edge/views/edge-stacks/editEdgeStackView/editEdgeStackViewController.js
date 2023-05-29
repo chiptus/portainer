@@ -2,7 +2,7 @@ import _ from 'lodash-es';
 import { getEnvironments } from '@/react/portainer/environments/environment.service';
 import { EditorType } from '@/react/edge/edge-stacks/types';
 import { confirmWebEditorDiscard } from '@@/modals/confirm';
-import { confirmStackUpdate } from '@/react/docker/stacks/common/confirm-stack-update';
+import { confirmStackUpdate } from '@/react/common/stacks/common/confirm-stack-update';
 
 export class EditEdgeStackViewController {
   /* @ngInject */

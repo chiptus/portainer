@@ -74,7 +74,7 @@ export default function SSHCredentialsPrivateKeyForm({
               value={privateKeyFile}
               onChange={async (file) => {
                 try {
-                  const maxFileSize = 1024 * 1024; // 1MB
+                  const maxFileSize = 1000 * 1000; // 1MB
                   const fileText = await readFileAsText(file, maxFileSize);
                   setFieldValue('credentials.privateKey', fileText);
                   setPrivateKeyFile(file);

@@ -2,7 +2,7 @@ import angular from 'angular';
 
 import { r2a } from '@/react-tools/react2angular';
 import { withControlledInput } from '@/react-tools/withControlledInput';
-import { StackContainersDatatable } from '@/react/docker/stacks/ItemView/StackContainersDatatable';
+import { StackContainersDatatable } from '@/react/common/stacks/ItemView/StackContainersDatatable';
 import { StackImageStatus } from '@/react/docker/stacks/ListView/StackImageStatus';
 import { ContainerQuickActions } from '@/react/docker/containers/components/ContainerQuickActions';
 import { ImageStatus } from '@/react/docker/components/ImageStatus';

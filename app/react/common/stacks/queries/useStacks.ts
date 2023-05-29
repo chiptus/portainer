@@ -2,7 +2,7 @@ import { useQuery } from 'react-query';
 
 import { withError } from '@/react-tools/react-query';
 import axios, { parseAxiosError } from '@/portainer/services/axios';
-import { Stack } from '@/react/docker/stacks/types';
+import { Stack } from '@/react/common/stacks/types';
 
 import { buildStackUrl } from './buildUrl';
 

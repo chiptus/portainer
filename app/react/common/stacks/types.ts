@@ -62,3 +62,7 @@ export interface Stack {
   SupportRelativePath: boolean;
   FilesystemPath: string;
 }
+
+export type StackFile = {
+  StackFileContent: string;
+};

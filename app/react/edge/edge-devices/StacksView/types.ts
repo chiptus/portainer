@@ -1,5 +1,5 @@
 import { DockerContainer } from '@/react/docker/containers/types';
-import { Stack } from '@/react/docker/stacks/types';
+import { Stack } from '@/react/common/stacks/types';
 
 export interface StackMetadata {
   isEdgeStack?: boolean;

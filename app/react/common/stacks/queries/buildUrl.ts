@@ -1,4 +1,4 @@
-import { Stack } from '@/react/docker/stacks/types';
+import { Stack } from '@/react/common/stacks/types';
 
 export function buildStackUrl(id?: Stack['Id'], action?: string) {
   const baseUrl = '/stacks';

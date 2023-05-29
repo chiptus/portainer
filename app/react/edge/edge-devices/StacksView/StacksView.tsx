@@ -8,7 +8,7 @@ import { useEdgeStacks } from '@/react/edge/edge-stacks/queries/useEdgeStacks';
 import { NoSnapshotAvailablePanel } from '@/react/edge/components/NoSnapshotAvailablePanel';
 import { EdgeDeviceViewsHeader } from '@/react/edge/components/EdgeDeviceViewsHeader';
 import { useDockerSnapshot } from '@/react/docker/queries/useDockerSnapshot';
-import { useStacks } from '@/react/docker/stacks/queries/useStacks';
+import { useStacks } from '@/react/common/stacks/queries/useStacks';
 import { filterUniqueContainersBasedOnStack } from '@/react/docker/snapshots/utils';
 
 import { Datatable } from '@@/datatables';

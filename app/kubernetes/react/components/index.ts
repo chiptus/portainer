@@ -13,7 +13,10 @@ import { KubeApplicationAccessPolicySelector } from '@/react/kubernetes/applicat
 import { KubeApplicationDeploymentTypeSelector } from '@/react/kubernetes/applications/CreateView/KubeApplicationDeploymentTypeSelector';
 import { Annotations } from '@/react/kubernetes/annotations';
 import { YAMLReplace } from '@/react/kubernetes/common/YAMLReplace';
-import { ApplicationSummaryWidget } from '@/react/kubernetes/applications/DetailsView';
+import {
+  ApplicationSummaryWidget,
+  ApplicationDetailsWidget,
+} from '@/react/kubernetes/applications/DetailsView';
 import { withUserProvider } from '@/react/test-utils/withUserProvider';
 
 export const componentsModule = angular
@@ -119,6 +122,13 @@ export const componentsModule = angular
     'applicationSummaryWidget',
     r2a(
       withUIRouter(withReactQuery(withUserProvider(ApplicationSummaryWidget))),
+      []
+    )
+  )
+  .component(
+    'applicationDetailsWidget',
+    r2a(
+      withUIRouter(withReactQuery(withUserProvider(ApplicationDetailsWidget))),
       []
     )
   ).name;

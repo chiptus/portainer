@@ -1,5 +1,5 @@
 import { useQuery } from 'react-query';
-import { Loader } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import { useEnvironment } from '@/react/portainer/environments/queries';
@@ -26,7 +26,7 @@ export function StackImageStatus({ stackId, environmentId }: Props) {
   if (isLoading || !data) {
     return (
       <Icon
-        icon={Loader}
+        icon={Loader2}
         size="sm"
         className="!mr-1 animate-spin-slow align-middle"
       />

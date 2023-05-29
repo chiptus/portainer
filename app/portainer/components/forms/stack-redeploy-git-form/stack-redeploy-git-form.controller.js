@@ -1,5 +1,5 @@
 import { RepositoryMechanismTypes } from 'Kubernetes/models/deploy';
-import { confirmStackUpdate } from '@/react/docker/stacks/common/confirm-stack-update';
+import { confirmStackUpdate } from '@/react/common/stacks/common/confirm-stack-update';
 import { parseAutoUpdateResponse } from '@/react/portainer/gitops/AutoUpdateFieldset/utils';
 import { baseStackWebhookUrl, createWebhookId } from '@/portainer/helpers/webhookHelper';
 import { confirmEnableTLSVerify } from '@/react/portainer/gitops/utils';
