@@ -512,8 +512,8 @@ func portainerStackOperationAuthorization(url, method string) portaineree.Author
 
 	case http.MethodPost:
 		switch action {
-		case "":
-			if resource == "" {
+		default:
+			if resource == "create" {
 				return portaineree.OperationPortainerStackCreate
 			}
 		case "git", "stop", "start":
