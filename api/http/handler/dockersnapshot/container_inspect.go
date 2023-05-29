@@ -23,7 +23,7 @@ import (
 // @param containerId path int true "Container identifier"
 // @success 200 {object} portainer.DockerContainerSnapshot "Success"
 // @failure 404 "Environment not found"
-// @router /docker/{environmentId}/snapshot/container/{containerId} [get]
+// @router /docker/{environmentId}/snapshot/containers/{containerId} [get]
 func (handler *Handler) containerInspect(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	containerId, err := request.RetrieveRouteVariableValue(r, "containerId")
 	if err != nil {
