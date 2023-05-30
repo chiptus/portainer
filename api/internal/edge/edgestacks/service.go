@@ -82,7 +82,7 @@ func validateUniqueName(edgeStacksGetter func() ([]portaineree.EdgeStack, error)
 
 	for _, stack := range edgeStacks {
 		if strings.EqualFold(stack.Name, name) {
-			return errors.New("Edge stack name must be unique")
+			return httperrors.NewConflictError("Edge stack name must be unique")
 		}
 	}
 
@@ -108,9 +108,12 @@ func validateScheduledTime(scheduledTime string) error {
 }
 
 // PersistEdgeStack persists the edge stack in the database and its relations
-func (service *Service) PersistEdgeStack(tx dataservices.DataStoreTx, stack *portaineree.EdgeStack, storeManifest edgetypes.StoreManifestFunc) (*portaineree.EdgeStack, error) {
-	relationConfig, err := edge.FetchEndpointRelationsConfig(tx)
+func (service *Service) PersistEdgeStack(
+	tx dataservices.DataStoreTx,
+	stack *portaineree.EdgeStack,
+	storeManifest edgetypes.StoreManifestFunc) (*portaineree.EdgeStack, error) {
 
+	relationConfig, err := edge.FetchEndpointRelationsConfig(service.dataStore)
 	if err != nil {
 		return nil, fmt.Errorf("unable to find environment relations in database: %w", err)
 	}

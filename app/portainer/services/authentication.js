@@ -135,6 +135,10 @@ angular.module('portainer.app').factory('Authentication', [
       }
     }
 
+    if (process.env.NODE_ENV === 'development') {
+      window.login = loginAsync;
+    }
+
     return service;
   },
 ]);

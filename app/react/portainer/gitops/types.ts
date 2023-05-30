@@ -17,9 +17,9 @@ export interface AutoUpdateResponse {
 }
 
 export interface GitAuthenticationResponse {
-  Username: string;
-  Password: string;
-  GitCredentialID: number;
+  Username?: string;
+  Password?: string;
+  GitCredentialID?: number;
 }
 
 export interface RepoConfigResponse {

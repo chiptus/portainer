@@ -18,72 +18,18 @@ func TestUpdateAndInspect(t *testing.T) {
 
 	// Create Endpoint, EdgeGroup and EndpointRelation
 	endpoint := createEndpoint(t, handler.DataStore)
-	edgeGroup := portaineree.EdgeGroup{
-		ID:           1,
-		Name:         "EdgeGroup 1",
-		Dynamic:      false,
-		TagIDs:       nil,
-		Endpoints:    []portaineree.EndpointID{endpoint.ID},
-		PartialMatch: false,
-	}
-
-	err := handler.DataStore.EdgeGroup().Create(&edgeGroup)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	endpointRelation := portaineree.EndpointRelation{
-		EndpointID: endpoint.ID,
-		EdgeStacks: map[portaineree.EdgeStackID]bool{},
-	}
-
-	err = handler.DataStore.EndpointRelation().Create(&endpointRelation)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	payload := edgeStackFromStringPayload{
-		Name:             "Test Stack",
-		StackFileContent: "stack content",
-		EdgeGroups:       []portaineree.EdgeGroupID{1},
-		DeploymentType:   portaineree.EdgeStackDeploymentCompose,
-	}
-
-	jsonPayload, err := json.Marshal(payload)
-	if err != nil {
-		t.Fatal("JSON marshal error:", err)
-	}
-	r := bytes.NewBuffer(jsonPayload)
-
-	// Create EdgeStack
-	req, err := http.NewRequest(http.MethodPost, "/edge_stacks/create/string", r)
-	if err != nil {
-		t.Fatal("request error:", err)
-	}
-	req.Header.Add("x-api-key", rawAPIKey)
-	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf(fmt.Sprintf("expected a %d response, found: %d", http.StatusOK, rec.Code))
-	}
-
-	edgeStack := portaineree.EdgeStack{}
-	err = json.NewDecoder(rec.Body).Decode(&edgeStack)
-	if err != nil {
-		t.Fatal("error decoding response:", err)
-	}
+	edgeStack := createEdgeStack(t, handler.DataStore, endpoint.ID)
 
 	// Update edge stack: create new Endpoint, EndpointRelation and EdgeGroup
 	endpointID := portaineree.EndpointID(6)
 	newEndpoint := createEndpointWithId(t, handler.DataStore, endpointID)
 
-	err = handler.DataStore.Endpoint().Create(&newEndpoint)
+	err := handler.DataStore.Endpoint().Create(&newEndpoint)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	endpointRelation = portaineree.EndpointRelation{
+	endpointRelation := portaineree.EndpointRelation{
 		EndpointID: endpointID,
 		EdgeStacks: map[portaineree.EdgeStackID]bool{
 			edgeStack.ID: true,
@@ -109,26 +55,26 @@ func TestUpdateAndInspect(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	payload = edgeStackFromStringPayload{
-		Name:             "Test Stack updated",
+	payload := updateEdgeStackPayload{
 		StackFileContent: "update-test",
+		UpdateVersion:    true,
 		EdgeGroups:       append(edgeStack.EdgeGroups, newEdgeGroup.ID),
 		DeploymentType:   portaineree.EdgeStackDeploymentCompose,
 	}
 
-	jsonPayload, err = json.Marshal(payload)
+	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
 		t.Fatal("request error:", err)
 	}
 
-	r = bytes.NewBuffer(jsonPayload)
-	req, err = http.NewRequest(http.MethodPut, fmt.Sprintf("/edge_stacks/%d", edgeStack.ID), r)
+	r := bytes.NewBuffer(jsonPayload)
+	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("/edge_stacks/%d", edgeStack.ID), r)
 	if err != nil {
 		t.Fatal("request error:", err)
 	}
 
 	req.Header.Add("x-api-key", rawAPIKey)
-	rec = httptest.NewRecorder()
+	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
@@ -155,6 +101,14 @@ func TestUpdateAndInspect(t *testing.T) {
 		t.Fatal("error decoding response:", err)
 	}
 
+	if payload.UpdateVersion && data.Version != edgeStack.Version+1 {
+		t.Fatalf("expected EdgeStackID %d, found %d", edgeStack.Version, data.Version)
+	}
+
+	if data.DeploymentType != payload.DeploymentType {
+		t.Fatalf("expected DeploymentType %d, found %d", edgeStack.DeploymentType, data.DeploymentType)
+	}
+
 	if !reflect.DeepEqual(data.EdgeGroups, payload.EdgeGroups) {
 		t.Fatalf("expected EdgeGroups to be equal")
 	}
@@ -178,7 +132,6 @@ func TestUpdateWithInvalidEdgeGroups(t *testing.T) {
 
 	handler.DataStore.EdgeGroup().Create(&newEdgeGroup)
 
-	newVersion := 238
 	cases := []struct {
 		Name               string
 		Payload            updateEdgeStackPayload
@@ -188,7 +141,7 @@ func TestUpdateWithInvalidEdgeGroups(t *testing.T) {
 			"Update with non-existing EdgeGroupID",
 			updateEdgeStackPayload{
 				StackFileContent: "error-test",
-				Version:          &newVersion,
+				UpdateVersion:    true,
 				EdgeGroups:       []portaineree.EdgeGroupID{9999},
 				DeploymentType:   edgeStack.DeploymentType,
 			},
@@ -198,7 +151,7 @@ func TestUpdateWithInvalidEdgeGroups(t *testing.T) {
 			"Update with invalid EdgeGroup (non-existing Endpoint)",
 			updateEdgeStackPayload{
 				StackFileContent: "error-test",
-				Version:          &newVersion,
+				UpdateVersion:    true,
 				EdgeGroups:       []portaineree.EdgeGroupID{2},
 				DeploymentType:   edgeStack.DeploymentType,
 			},
@@ -208,7 +161,7 @@ func TestUpdateWithInvalidEdgeGroups(t *testing.T) {
 			"Update DeploymentType from Docker to Kubernetes",
 			updateEdgeStackPayload{
 				StackFileContent: "error-test",
-				Version:          &newVersion,
+				UpdateVersion:    true,
 				EdgeGroups:       []portaineree.EdgeGroupID{1},
 				DeploymentType:   portaineree.EdgeStackDeploymentKubernetes,
 			},
@@ -246,7 +199,6 @@ func TestUpdateWithInvalidPayload(t *testing.T) {
 	endpoint := createEndpoint(t, handler.DataStore)
 	edgeStack := createEdgeStack(t, handler.DataStore, endpoint.ID)
 
-	newVersion := 238
 	cases := []struct {
 		Name               string
 		Payload            updateEdgeStackPayload
@@ -256,7 +208,7 @@ func TestUpdateWithInvalidPayload(t *testing.T) {
 			"Update with empty StackFileContent",
 			updateEdgeStackPayload{
 				StackFileContent: "",
-				Version:          &newVersion,
+				UpdateVersion:    true,
 				EdgeGroups:       edgeStack.EdgeGroups,
 				DeploymentType:   edgeStack.DeploymentType,
 			},
@@ -266,7 +218,7 @@ func TestUpdateWithInvalidPayload(t *testing.T) {
 			"Update with empty EdgeGroups",
 			updateEdgeStackPayload{
 				StackFileContent: "error-test",
-				Version:          &newVersion,
+				UpdateVersion:    true,
 				EdgeGroups:       []portaineree.EdgeGroupID{},
 				DeploymentType:   edgeStack.DeploymentType,
 			},

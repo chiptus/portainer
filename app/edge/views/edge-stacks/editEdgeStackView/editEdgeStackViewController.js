@@ -3,6 +3,8 @@ import { getEnvironments } from '@/react/portainer/environments/environment.serv
 import { EditorType } from '@/react/edge/edge-stacks/types';
 import { confirmWebEditorDiscard } from '@@/modals/confirm';
 import { confirmStackUpdate } from '@/react/common/stacks/common/confirm-stack-update';
+import { EnvironmentType } from '@/react/portainer/environments/types';
+import { createWebhookId } from '@/portainer/helpers/webhookHelper';
 
 export class EditEdgeStackViewController {
   /* @ngInject */
@@ -21,13 +23,19 @@ export class EditEdgeStackViewController {
     this.state = {
       actionInProgress: false,
       activeTab: 0,
-      isEditorDirty: false,
+      isStackDeployed: false,
+    };
+
+    this.formValues = {
+      content: '',
     };
 
     this.deployStack = this.deployStack.bind(this);
     this.deployStackAsync = this.deployStackAsync.bind(this);
     this.getPaginatedEndpoints = this.getPaginatedEndpoints.bind(this);
     this.getPaginatedEndpointsAsync = this.getPaginatedEndpointsAsync.bind(this);
+    this.onEditorChange = this.onEditorChange.bind(this);
+    this.isEditorDirty = this.isEditorDirty.bind(this);
   }
 
   async $onInit() {
@@ -42,22 +50,21 @@ export class EditEdgeStackViewController {
         this.stackEndpointIds = this.filterStackEndpoints(model.EdgeGroups, edgeGroups);
         this.originalFileContent = file;
         this.formValues = {
-          StackFileContent: file,
-          EdgeGroups: this.stack.EdgeGroups,
-          DeploymentType: this.stack.DeploymentType,
-          Name: this.stack.Name,
-          Registries: this.stack.Registries,
-          UseManifestNamespaces: this.stack.UseManifestNamespaces,
-          PrePullImage: this.stack.PrePullImage,
-          RetryDeploy: this.stack.RetryDeploy,
+          content: file,
         };
-        this.oldFileContent = this.formValues.StackFileContent;
+
+        const stackEdgeGroups = model.EdgeGroups.map((id) => this.edgeGroups.find((e) => e.Id === id));
+        const endpointTypes = stackEdgeGroups.flatMap((group) => group.EndpointTypes);
+        const initiallyContainsKubeEnv = endpointTypes.includes(EnvironmentType.EdgeAgentOnKubernetes);
+        const isComposeStack = this.stack.DeploymentType === 0;
+
+        this.allowKubeToSelectCompose = initiallyContainsKubeEnv && isComposeStack;
       } catch (err) {
         this.Notifications.error('Failure', err, 'Unable to retrieve stack data');
       }
 
       this.$window.onbeforeunload = () => {
-        if (this.formValues.StackFileContent !== this.oldFileContent && this.state.isEditorDirty) {
+        if (this.isEditorDirty()) {
           return '';
         }
       };
@@ -65,17 +72,21 @@ export class EditEdgeStackViewController {
   }
 
   $onDestroy() {
-    this.state.isEditorDirty = false;
+    this.$window.onbeforeunload = undefined;
   }
 
   async uiCanExit() {
-    if (
-      this.formValues.StackFileContent &&
-      this.formValues.StackFileContent.replace(/(\r\n|\n|\r)/gm, '') !== this.oldFileContent.replace(/(\r\n|\n|\r)/gm, '') &&
-      this.state.isEditorDirty
-    ) {
+    if (this.isEditorDirty()) {
       return confirmWebEditorDiscard();
     }
+  }
+
+  onEditorChange(content) {
+    this.formValues.content = content;
+  }
+
+  isEditorDirty() {
+    return !this.state.isStackDeployed && this.formValues.content.replace(/(\r\n|\n|\r)/gm, '') !== this.originalFileContent.replace(/(\r\n|\n|\r)/gm, '');
   }
 
   filterStackEndpoints(groupIds, groups) {
@@ -87,36 +98,46 @@ export class EditEdgeStackViewController {
     );
   }
 
-  deployStack() {
-    if (this.formValues.DeploymentType == EditorType.Compose) {
-      const defaultToggle = this.formValues.PrePullImage;
-      confirmStackUpdate('Do you want to force an update of the stack?', defaultToggle).then((result) => {
-        if (result) {
-          this.formValues.RePullImage = result.pullImage;
-          return this.$async(this.deployStackAsync);
+  deployStack(values) {
+    return this.$async(async () => {
+      let pullImage = false;
+      if (this.formValues.DeploymentType == EditorType.Compose) {
+        const defaultToggle = values.PrePullImage;
+        const result = await confirmStackUpdate('Do you want to force an update of the stack?', defaultToggle);
+        if (!result) {
+          return;
         }
-      });
-    } else {
-      return this.$async(this.deployStackAsync);
-    }
+      }
+
+      this.deployStackAsync(values, pullImage);
+    });
   }
 
-  async deployStackAsync() {
+  async deployStackAsync(values, rePullImage) {
     this.state.actionInProgress = true;
     try {
-      if (
-        this.originalFileContent != this.formValues.StackFileContent ||
-        this.formValues.Registries[0] !== this.stack.Registries[0] ||
-        this.formValues.UseManifestNamespaces !== this.stack.UseManifestNamespaces ||
-        this.formValues.PrePullImage !== this.stack.PrePullImage ||
-        this.formValues.RetryDeploy !== this.stack.RetryDeploy ||
-        this.formValues.RePullImage
-      ) {
-        this.formValues.Version = this.stack.Version + 1;
-      }
-      await this.EdgeStackService.updateStack(this.stack.Id, this.formValues);
+      const updateVersion = !!(
+        this.originalFileContent != values.content ||
+        values.privateRegistryId !== this.stack.Registries[0] ||
+        values.useManifestNamespaces !== this.stack.UseManifestNamespaces ||
+        values.prePullImage !== this.stack.PrePullImage ||
+        values.retryDeploy !== this.stack.RetryDeploy ||
+        rePullImage
+      );
+
+      await this.EdgeStackService.updateStack(this.stack.Id, {
+        stackFileContent: values.content,
+        edgeGroups: values.edgeGroups,
+        deploymentType: values.deploymentType,
+        registries: [values.privateRegistryId],
+        useManifestNamespaces: values.useManifestNamespaces,
+        prePullImage: values.prePullImage,
+        updateVersion,
+        rePullImage,
+        webhook: values.webhookEnabled ? this.stack.Webhook || createWebhookId() : '',
+      });
       this.Notifications.success('Success', 'Stack successfully deployed');
-      this.state.isEditorDirty = false;
+      this.state.isStackDeployed = true;
       this.$state.go('edge.stacks');
     } catch (err) {
       this.Notifications.error('Deployment error', err, 'Unable to deploy stack');

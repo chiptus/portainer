@@ -1,8 +1,10 @@
 import { EditorType } from '@/react/edge/edge-stacks/types';
-import { PortainerEndpointTypes } from '@/portainer/models/endpoint/models';
 import { getValidEditorTypes } from '@/react/edge/edge-stacks/utils';
 import { STACK_NAME_VALIDATION_REGEX } from '@/react/constants';
 import { confirmWebEditorDiscard } from '@@/modals/confirm';
+import { baseEdgeStackWebhookUrl, createWebhookId } from '@/portainer/helpers/webhookHelper';
+import { parseAutoUpdateResponse, transformAutoUpdateViewModel } from '@/react/portainer/gitops/AutoUpdateFieldset/utils';
+import { EnvironmentType } from '@/react/portainer/environments/types';
 
 export default class CreateEdgeStackViewController {
   /* @ngInject */
@@ -22,8 +24,6 @@ export default class CreateEdgeStackViewController {
       SaveCredential: true,
       RepositoryGitCredentialID: 0,
       NewCredentialName: '',
-      NewCredentialNameExist: false,
-      NewCredentialNameInvalid: false,
       Env: [],
       ComposeFilePathInRepository: '',
       Groups: [],
@@ -34,9 +34,12 @@ export default class CreateEdgeStackViewController {
       PrePullImage: false,
       RetryDeploy: false,
       TLSSkipVerify: false,
+      AutoUpdate: parseAutoUpdateResponse(),
+      webhookEnabled: false,
     };
 
     this.EditorType = EditorType;
+    this.EnvironmentType = EnvironmentType;
 
     this.state = {
       Method: 'editor',
@@ -45,6 +48,8 @@ export default class CreateEdgeStackViewController {
       StackType: null,
       isEditorDirty: false,
       endpointTypes: [],
+      baseWebhookUrl: baseEdgeStackWebhookUrl(),
+      webhookId: createWebhookId(),
     };
 
     this.edgeGroups = null;
@@ -61,12 +66,11 @@ export default class CreateEdgeStackViewController {
     this.matchRegistry = this.matchRegistry.bind(this);
     this.clearRegistries = this.clearRegistries.bind(this);
     this.selectedRegistry = this.selectedRegistry.bind(this);
-    this.hasDockerEndpoint = this.hasDockerEndpoint.bind(this);
-    this.hasKubeEndpoint = this.hasKubeEndpoint.bind(this);
-    this.hasNomadEndpoint = this.hasNomadEndpoint.bind(this);
+    this.hasType = this.hasType.bind(this);
     this.onChangeDeploymentType = this.onChangeDeploymentType.bind(this);
     this.onChangePrePullImage = this.onChangePrePullImage.bind(this);
     this.onChangeRetryDeploy = this.onChangeRetryDeploy.bind(this);
+    this.onChangeWebhookState = this.onChangeWebhookState.bind(this);
   }
 
   buildAnalyticsProperties() {
@@ -118,6 +122,12 @@ export default class CreateEdgeStackViewController {
         return '';
       }
     };
+  }
+
+  onChangeWebhookState(state) {
+    this.$scope.$evalAsync(() => {
+      this.formValues.webhookEnabled = state;
+    });
   }
 
   $onDestroy() {
@@ -231,9 +241,11 @@ export default class CreateEdgeStackViewController {
   }
 
   checkIfEndpointTypes(groups) {
-    const edgeGroups = groups.map((id) => this.edgeGroups.find((e) => e.Id === id));
-    this.state.endpointTypes = edgeGroups.flatMap((group) => group.EndpointTypes);
-    this.selectValidDeploymentType();
+    return this.$scope.$evalAsync(() => {
+      const edgeGroups = groups.map((id) => this.edgeGroups.find((e) => e.Id === id));
+      this.state.endpointTypes = edgeGroups.flatMap((group) => group.EndpointTypes);
+      this.selectValidDeploymentType();
+    });
   }
 
   selectValidDeploymentType() {
@@ -244,16 +256,8 @@ export default class CreateEdgeStackViewController {
     }
   }
 
-  hasKubeEndpoint() {
-    return this.state.endpointTypes.includes(PortainerEndpointTypes.EdgeAgentOnKubernetesEnvironment);
-  }
-
-  hasDockerEndpoint() {
-    return this.state.endpointTypes.includes(PortainerEndpointTypes.EdgeAgentOnDockerEnvironment);
-  }
-
-  hasNomadEndpoint() {
-    return this.state.endpointTypes.includes(PortainerEndpointTypes.EdgeAgentOnNomadEnvironment);
+  hasType(envType) {
+    return this.state.endpointTypes.includes(envType);
   }
 
   validateForm(method) {
@@ -279,7 +283,13 @@ export default class CreateEdgeStackViewController {
   }
 
   createStackFromFileContent(name, dryrun) {
-    const { StackFileContent, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy } = this.formValues;
+    const { StackFileContent, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy, webhookEnabled } = this.formValues;
+
+    let webhookId = '';
+    if (webhookEnabled) {
+      webhookId = this.state.webhookId;
+    }
+
     return this.EdgeStackService.createStackFromFileContent(
       {
         name,
@@ -290,13 +300,19 @@ export default class CreateEdgeStackViewController {
         UseManifestNamespaces,
         PrePullImage,
         RetryDeploy,
+        webhook: webhookId,
       },
       dryrun
     );
   }
 
   createStackFromFileUpload(name, dryrun) {
-    const { StackFile, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy } = this.formValues;
+    const { StackFile, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy, webhookEnabled } = this.formValues;
+    let webhookId = '';
+    if (webhookEnabled) {
+      webhookId = this.state.webhookId;
+    }
+
     return this.EdgeStackService.createStackFromFileUpload(
       {
         Name: name,
@@ -306,6 +322,7 @@ export default class CreateEdgeStackViewController {
         UseManifestNamespaces,
         PrePullImage,
         RetryDeploy,
+        webhook: webhookId,
       },
       StackFile,
       dryrun
@@ -324,6 +341,8 @@ export default class CreateEdgeStackViewController {
         }
       );
     }
+
+    const autoUpdate = transformAutoUpdateViewModel(this.formValues.AutoUpdate, this.state.webhookId);
 
     const repositoryOptions = {
       RepositoryURL: this.formValues.RepositoryURL,
@@ -345,6 +364,7 @@ export default class CreateEdgeStackViewController {
         UseManifestNamespaces,
         PrePullImage,
         RetryDeploy,
+        AutoUpdate: autoUpdate,
       },
       repositoryOptions
     );

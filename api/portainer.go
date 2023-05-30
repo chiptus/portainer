@@ -357,6 +357,13 @@ type (
 		// Retry deploy
 		RetryDeploy bool `example:"false"`
 
+		// The auto update settings of a git stack
+		AutoUpdate *AutoUpdateSettings `json:"AutoUpdate"`
+		// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
+		Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
+		// The git configuration of a git stack
+		GitConfig *gittypes.RepoConfig
+
 		// Deprecated
 		Prune bool `json:"Prune"`
 	}

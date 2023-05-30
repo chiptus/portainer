@@ -3,17 +3,18 @@ package edgestacks
 import (
 	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/asaskevich/govalidator"
+	"github.com/pkg/errors"
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	eefs "github.com/portainer/portainer-ee/api/filesystem"
+	"github.com/portainer/portainer-ee/api/git/update"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
-
-	"github.com/asaskevich/govalidator"
-	"github.com/pkg/errors"
 )
 
 type edgeStackFromGitRepositoryPayload struct {
@@ -51,6 +52,8 @@ type edgeStackFromGitRepositoryPayload struct {
 	RetryDeploy bool `example:"false"`
 	// TLSSkipVerify skips SSL verification when cloning the Git repository
 	TLSSkipVerify bool `example:"false"`
+	// Optional auto update configuration
+	AutoUpdate *portaineree.AutoUpdateSettings
 }
 
 func (payload *edgeStackFromGitRepositoryPayload) Validate(r *http.Request) error {
@@ -85,6 +88,10 @@ func (payload *edgeStackFromGitRepositoryPayload) Validate(r *http.Request) erro
 		return httperrors.NewInvalidPayloadError("Invalid edge groups. At least one edge group must be specified")
 	}
 
+	if err := update.ValidateAutoUpdateSettings(payload.AutoUpdate); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -110,6 +117,13 @@ func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dat
 		return nil, err
 	}
 
+	if payload.AutoUpdate != nil && payload.AutoUpdate.Webhook != "" {
+		err := handler.checkUniqueWebhookID(payload.AutoUpdate.Webhook)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	stack, err := handler.edgeStacksService.BuildEdgeStack(tx, payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false, payload.RetryDeploy)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create edge stack object")
@@ -133,9 +147,76 @@ func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dat
 		}
 	}
 
-	return handler.edgeStacksService.PersistEdgeStack(tx, stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
+	stack.AutoUpdate = payload.AutoUpdate
+	stack.GitConfig = &repoConfig
+
+	edgeStack, err := handler.edgeStacksService.PersistEdgeStack(tx, stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
 		return handler.storeManifestFromGitRepository(tx, stackFolder, relatedEndpointIds, payload.DeploymentType, userID, payload.RepositoryGitCredentialID, repoConfig)
 	})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to persist edge stack")
+	}
+
+	jobID, err := handler.handleAutoUpdate(edgeStack.ID, edgeStack.AutoUpdate)
+	if err != nil {
+		return nil, err
+	}
+
+	if jobID != "" {
+		err = handler.DataStore.EdgeStack().UpdateEdgeStackFunc(edgeStack.ID, func(edgeStack *portaineree.EdgeStack) {
+			edgeStack.AutoUpdate.JobID = jobID
+		})
+		if err != nil {
+			return edgeStack, errors.WithMessage(err, "failed updating edge stack")
+		}
+	}
+
+	return edgeStack, nil
+}
+
+func (handler *Handler) handleAutoUpdate(stackID portaineree.EdgeStackID, autoUpdate *portaineree.AutoUpdateSettings) (string, error) {
+	// no auto update or interval not set
+	if autoUpdate == nil || autoUpdate.Interval == "" {
+		return "", nil
+	}
+
+	duration, err := time.ParseDuration(autoUpdate.Interval)
+	if err != nil {
+		return "", errors.WithMessage(err, "Unable to parse stack's auto update interval")
+	}
+
+	edgeStackId := stackID
+
+	return handler.scheduler.StartJobEvery(duration, func() error {
+		return handler.gitAutoUpdate(edgeStackId)
+	}), nil
+
+}
+
+func (handler *Handler) isUniqueWebhookID(webhookID string) (bool, error) {
+	stack, err := handler.edgeStackByWebhook(webhookID)
+	if err != nil {
+		return false, err
+	}
+
+	return stack == nil, nil
+}
+
+func (handler *Handler) checkUniqueWebhookID(webhookID string) error {
+	if webhookID == "" {
+		return nil
+	}
+
+	isUnique, err := handler.isUniqueWebhookID(webhookID)
+	if err != nil {
+		return errors.WithMessage(err, "Unable to check for webhook ID collision")
+	}
+
+	if !isUnique {
+		return httperrors.NewConflictError("Webhook ID already exists")
+	}
+
+	return nil
 }
 
 func (handler *Handler) storeManifestFromGitRepository(tx dataservices.DataStoreTx, stackFolder string, relatedEndpointIds []portaineree.EndpointID, deploymentType portaineree.EdgeStackDeploymentType, currentUserID portaineree.UserID, gitCredentialId portaineree.GitCredentialID, repositoryConfig gittypes.RepoConfig) (composePath, manifestPath, projectPath string, err error) {
@@ -148,7 +229,6 @@ func (handler *Handler) storeManifestFromGitRepository(tx dataservices.DataStore
 	}
 
 	var repositoryUsername, repositoryPassword string
-
 	projectPath = handler.FileService.GetEdgeStackProjectPath(stackFolder)
 
 	if repositoryConfig.Authentication != nil {

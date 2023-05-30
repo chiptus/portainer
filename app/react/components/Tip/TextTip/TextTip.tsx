@@ -23,7 +23,6 @@ export function TextTip({
   return (
     <div className={clsx('small inline-flex gap-1', className)}>
       <Icon icon={icon} mode={getMode(color)} className="!mt-[2px]" />
-
       <span className={childrenWrapperClassName}>{children}</span>
     </div>
   );

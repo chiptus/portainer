@@ -17,6 +17,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
+	"github.com/portainer/portainer-ee/api/scheduler"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 
@@ -70,6 +71,7 @@ func setupHandler(t *testing.T) (*Handler, string) {
 		edgeAsyncService,
 		edgestacks.NewService(store, edgeAsyncService),
 		edgeUpdateService,
+		&scheduler.Scheduler{},
 	)
 
 	handler.FileService = fs

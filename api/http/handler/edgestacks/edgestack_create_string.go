@@ -37,6 +37,8 @@ type edgeStackFromStringPayload struct {
 	PrePullImage bool `example:"false"`
 	// Retry deploy
 	RetryDeploy bool `example:"false"`
+	// Optional webhook configuration
+	Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
 }
 
 func (payload *edgeStackFromStringPayload) Validate(r *http.Request) error {
@@ -80,6 +82,13 @@ func (handler *Handler) createEdgeStackFromFileContent(r *http.Request, tx datas
 		return nil, err
 	}
 
+	if payload.Webhook != "" {
+		err := handler.checkUniqueWebhookID(payload.Webhook)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	stack, err := handler.edgeStacksService.BuildEdgeStack(tx, payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false, payload.RetryDeploy)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create Edge stack object")
@@ -91,6 +100,8 @@ func (handler *Handler) createEdgeStackFromFileContent(r *http.Request, tx datas
 			return nil, errors.Wrap(err, "failed to assign private registries to stack")
 		}
 	}
+
+	stack.Webhook = payload.Webhook
 
 	if dryrun {
 		return stack, nil

@@ -55,6 +55,7 @@ interface Props {
   yaml?: boolean;
   readonly?: boolean;
   hideTitle?: boolean;
+  error?: string;
 }
 
 export function WebEditorForm({
@@ -66,6 +67,7 @@ export function WebEditorForm({
   readonly,
   yaml,
   children,
+  error,
 }: PropsWithChildren<Props>) {
   return (
     <div>
@@ -98,6 +100,10 @@ export function WebEditorForm({
               onChange={onChange}
             />
           </div>
+        </div>
+
+        <div className="form-group">
+          <div className="col-sm-12 col-lg-12">{error}</div>
         </div>
       </div>
     </div>

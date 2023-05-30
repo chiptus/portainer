@@ -11,6 +11,8 @@ import { EdgeScriptForm } from '@/react/edge/components/EdgeScriptForm';
 import { EdgeGroupsSelector } from '@/react/edge/edge-stacks/components/EdgeGroupsSelector';
 import { EdgeStackDeploymentTypeSelector } from '@/react/edge/edge-stacks/components/EdgeStackDeploymentTypeSelector';
 import { PrivateRegistryFieldset } from '@/react/edge/edge-stacks/components/PrivateRegistryFieldset';
+import { EditEdgeStackForm } from '@/react/edge/edge-stacks/ItemView/EditEdgeStackForm/EditEdgeStackForm';
+import { withCurrentUser } from '@/react-tools/withCurrentUser';
 
 export const componentsModule = angular
   .module('portainer.edge.react.components', [])
@@ -90,5 +92,16 @@ export const componentsModule = angular
       'isActive',
       'clearRegistries',
       'method',
+    ])
+  )
+  .component(
+    'editEdgeStackForm',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(EditEdgeStackForm))), [
+      'edgeStack',
+      'fileContent',
+      'isSubmitting',
+      'onEditorChange',
+      'onSubmit',
+      'allowKubeToSelectCompose',
     ])
   ).name;

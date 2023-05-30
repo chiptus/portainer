@@ -1,10 +1,10 @@
 package edgestacks
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 
+	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
@@ -12,17 +12,15 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	eefs "github.com/portainer/portainer-ee/api/filesystem"
 	"github.com/portainer/portainer-ee/api/internal/edge"
-	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	"github.com/portainer/portainer-ee/api/internal/set"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/pkg/featureflags"
-
 	"github.com/rs/zerolog/log"
 )
 
 type updateEdgeStackPayload struct {
 	StackFileContent string
-	Version          *int
 	EdgeGroups       []portaineree.EdgeGroupID
 	DeploymentType   portaineree.EdgeStackDeploymentType
 	Registries       []portaineree.RegistryID
@@ -31,6 +29,9 @@ type updateEdgeStackPayload struct {
 	PrePullImage          bool
 	RePullImage           bool
 	RetryDeploy           bool
+	UpdateVersion         bool
+	// Optional webhook configuration
+	Webhook *string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
 }
 
 func (payload *updateEdgeStackPayload) Validate(r *http.Request) error {
@@ -114,87 +115,33 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 		return nil, httperror.InternalServerError("Unable to retrieve edge stack related environments from database", err)
 	}
 
-	endpointsToAdd := map[portaineree.EndpointID]bool{}
-
+	endpointsToAdd := set.Set[portaineree.EndpointID]{}
+	groupsIds := stack.EdgeGroups
 	if payload.EdgeGroups != nil {
-		newRelated, err := edge.EdgeStackRelatedEndpoints(payload.EdgeGroups, relationConfig.Endpoints, relationConfig.EndpointGroups, relationConfig.EdgeGroups)
+		newRelated, newEndpoints, err := handler.handleChangeEdgeGroups(tx, stack.ID, payload.EdgeGroups, relatedEndpointIds, relationConfig)
 		if err != nil {
-			return nil, httperror.InternalServerError("Unable to retrieve edge stack related environments from database", err)
+			return nil, httperror.InternalServerError("Unable to handle edge groups change", err)
 		}
 
-		oldRelatedSet := endpointutils.EndpointSet(relatedEndpointIds)
-		newRelatedSet := endpointutils.EndpointSet(newRelated)
-
-		endpointsToRemove := map[portaineree.EndpointID]bool{}
-		for endpointID := range oldRelatedSet {
-			if !newRelatedSet[endpointID] {
-				endpointsToRemove[endpointID] = true
-			}
-		}
-
-		for endpointID := range endpointsToRemove {
-			relation, err := tx.EndpointRelation().EndpointRelation(endpointID)
-			if err != nil {
-				return nil, httperror.InternalServerError("Unable to find environment relation in database", err)
-			}
-
-			delete(relation.EdgeStacks, stack.ID)
-
-			err = tx.EndpointRelation().UpdateEndpointRelation(endpointID, relation)
-			if err != nil {
-				return nil, httperror.InternalServerError("Unable to persist environment relation in database", err)
-			}
-
-			err = handler.edgeAsyncService.RemoveStackCommandTx(tx, endpointID, stack.ID)
-			if err != nil {
-				return nil, httperror.InternalServerError("Unable to store edge async command into the database", err)
-			}
-		}
-
-		for endpointID := range newRelatedSet {
-			if !oldRelatedSet[endpointID] {
-				endpointsToAdd[endpointID] = true
-			}
-		}
-
-		for endpointID := range endpointsToAdd {
-			relation, err := tx.EndpointRelation().EndpointRelation(endpointID)
-			if err != nil {
-				return nil, httperror.InternalServerError("Unable to find environment relation in database", err)
-			}
-
-			relation.EdgeStacks[stack.ID] = true
-
-			err = tx.EndpointRelation().UpdateEndpointRelation(endpointID, relation)
-			if err != nil {
-				return nil, httperror.InternalServerError("Unable to persist environment relation in database", err)
-			}
-
-			endpoint, err := tx.Endpoint().Endpoint(endpointID)
-			if err != nil {
-				return nil, httperror.InternalServerError("Unable to retrieve environment from the database", err)
-			}
-
-			err = handler.edgeAsyncService.AddStackCommandTx(tx, endpoint, stack.ID, "")
-			if err != nil {
-				return nil, httperror.InternalServerError("Unable to store edge async command into the database", err)
-			}
-		}
-
-		stack.EdgeGroups = payload.EdgeGroups
+		groupsIds = payload.EdgeGroups
 		relatedEndpointIds = newRelated
+		endpointsToAdd = newEndpoints
 	}
 
-	if stack.DeploymentType != payload.DeploymentType {
+	entryPoint := stack.EntryPoint
+	manifestPath := stack.ManifestPath
+	deploymentType := stack.DeploymentType
+
+	if deploymentType != payload.DeploymentType {
 		// deployment type was changed - need to delete the old file
 		err = handler.FileService.RemoveDirectory(stack.ProjectPath)
 		if err != nil {
 			log.Warn().Err(err).Msg("Unable to clear old files")
 		}
 
-		stack.EntryPoint = ""
-		stack.ManifestPath = ""
-		stack.DeploymentType = payload.DeploymentType
+		entryPoint = ""
+		manifestPath = ""
+		deploymentType = payload.DeploymentType
 	}
 
 	stackFolder := strconv.Itoa(int(stack.ID))
@@ -207,88 +154,154 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 		return nil, httperror.BadRequest("edge stack with config do not match the environment type", nil)
 	}
 
-	if payload.DeploymentType == portaineree.EdgeStackDeploymentCompose {
-		if stack.EntryPoint == "" {
-			stack.EntryPoint = filesystem.ComposeFileDefaultName
+	if deploymentType == portaineree.EdgeStackDeploymentCompose {
+		if entryPoint == "" {
+			entryPoint = filesystem.ComposeFileDefaultName
 		}
 
-		_, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
+		_, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, entryPoint, []byte(payload.StackFileContent))
 		if err != nil {
 			return nil, httperror.InternalServerError("Unable to persist updated Compose file on disk", err)
 		}
 
-		manifestPath, err := handler.convertAndStoreKubeManifestIfNeeded(stackFolder, stack.ProjectPath, stack.EntryPoint, relatedEndpointIds)
-		if err != nil {
-			return nil, httperror.InternalServerError("Unable to convert and persist updated Kubernetes manifest file on disk", err)
-		}
-
-		stack.ManifestPath = manifestPath
 	}
 
-	if payload.DeploymentType == portaineree.EdgeStackDeploymentKubernetes {
-		if stack.ManifestPath == "" {
-			stack.ManifestPath = filesystem.ManifestFileDefaultName
+	if deploymentType == portaineree.EdgeStackDeploymentKubernetes {
+		if manifestPath == "" {
+			manifestPath = filesystem.ManifestFileDefaultName
 		}
 
-		stack.UseManifestNamespaces = payload.UseManifestNamespaces
-
-		_, err = handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.ManifestPath, []byte(payload.StackFileContent))
+		_, err = handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, manifestPath, []byte(payload.StackFileContent))
 		if err != nil {
 			return nil, httperror.InternalServerError("Unable to persist updated Kubernetes manifest file on disk", err)
 		}
 	}
 
-	if payload.DeploymentType == portaineree.EdgeStackDeploymentNomad {
-		if stack.EntryPoint == "" {
-			stack.EntryPoint = eefs.NomadJobFileDefaultName
+	if deploymentType == portaineree.EdgeStackDeploymentNomad {
+		if entryPoint == "" {
+			entryPoint = eefs.NomadJobFileDefaultName
 		}
 
-		_, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
+		_, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, entryPoint, []byte(payload.StackFileContent))
 		if err != nil {
 			return nil, httperror.InternalServerError("Unable to persist updated Nomad job file on disk", err)
 		}
 	}
 
-	versionUpdated := payload.Version != nil && *payload.Version != stack.Version
-	if versionUpdated {
-		stack.Version = *payload.Version
-	}
+	err = tx.EdgeStack().UpdateEdgeStackFunc(stack.ID, func(edgeStack *portaineree.EdgeStack) {
+		// Assign a potentially new registries to the stack
+		edgeStack.Registries = payload.Registries
 
-	// Assign a potentially new registries to the stack
-	stack.Registries = payload.Registries
+		edgeStack.PrePullImage = payload.PrePullImage
+		edgeStack.RePullImage = payload.RePullImage
+		edgeStack.RetryDeploy = payload.RetryDeploy
 
-	stack.PrePullImage = payload.PrePullImage
-	stack.RePullImage = payload.RePullImage
-	stack.RetryDeploy = payload.RetryDeploy
+		edgeStack.NumDeployments = len(relatedEndpointIds)
+		if payload.UpdateVersion {
+			edgeStack.Status = make(map[portaineree.EndpointID]portainer.EdgeStackStatus)
+			edgeStack.Version++
+		}
 
-	stack.NumDeployments = len(relatedEndpointIds)
+		edgeStack.UseManifestNamespaces = payload.UseManifestNamespaces
 
-	if versionUpdated {
-		stack.Status = make(map[portaineree.EndpointID]portainer.EdgeStackStatus)
-	}
+		edgeStack.DeploymentType = deploymentType
+		edgeStack.EntryPoint = entryPoint
+		edgeStack.ManifestPath = manifestPath
 
-	err = tx.EdgeStack().UpdateEdgeStack(stack.ID, stack)
+		edgeStack.EdgeGroups = groupsIds
+
+		if payload.Webhook != nil {
+			edgeStack.Webhook = *payload.Webhook
+		}
+	})
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to persist the stack changes inside the database", err)
 	}
 
-	if !versionUpdated {
-		return stack, nil
-	}
-
-	for _, endpointID := range relatedEndpointIds {
-		endpoint, err := tx.Endpoint().Endpoint(endpointID)
-		if err != nil {
-			return nil, httperror.InternalServerError("Unable to retrieve environment from the database", err)
-		}
-
-		if !endpointsToAdd[endpoint.ID] {
-			err = handler.edgeAsyncService.ReplaceStackCommandTx(tx, endpoint, stack.ID)
+	if payload.UpdateVersion {
+		for _, endpointID := range relatedEndpointIds {
+			endpoint, err := tx.Endpoint().Endpoint(endpointID)
 			if err != nil {
-				return nil, httperror.InternalServerError("Unable to store edge async command into the database", err)
+				return nil, httperror.InternalServerError("Unable to retrieve environment from the database", err)
+			}
+
+			if !endpointsToAdd[endpoint.ID] {
+				err = handler.edgeAsyncService.ReplaceStackCommandTx(tx, endpoint, stack.ID)
+				if err != nil {
+					return nil, httperror.InternalServerError("Unable to store edge async command into the database", err)
+				}
 			}
 		}
 	}
 
 	return stack, nil
+}
+
+func (handler *Handler) handleChangeEdgeGroups(tx dataservices.DataStoreTx, edgeStackID portaineree.EdgeStackID, newEdgeGroupsIDs []portaineree.EdgeGroupID, oldRelatedEnvironmentIDs []portaineree.EndpointID, relationConfig *edge.EndpointRelationsConfig) ([]portaineree.EndpointID, set.Set[portaineree.EndpointID], error) {
+	newRelatedEnvironmentIDs, err := edge.EdgeStackRelatedEndpoints(newEdgeGroupsIDs, relationConfig.Endpoints, relationConfig.EndpointGroups, relationConfig.EdgeGroups)
+	if err != nil {
+		return nil, nil, errors.WithMessage(err, "Unable to retrieve edge stack related environments from database")
+	}
+
+	oldRelatedSet := set.ToSet(oldRelatedEnvironmentIDs)
+	newRelatedSet := set.ToSet(newRelatedEnvironmentIDs)
+
+	endpointsToRemove := set.Set[portaineree.EndpointID]{}
+	for endpointID := range oldRelatedSet {
+		if !newRelatedSet[endpointID] {
+			endpointsToRemove[endpointID] = true
+		}
+	}
+
+	for endpointID := range endpointsToRemove {
+		relation, err := tx.EndpointRelation().EndpointRelation(endpointID)
+		if err != nil {
+			return nil, nil, errors.WithMessage(err, "Unable to find environment relation in database")
+		}
+
+		delete(relation.EdgeStacks, edgeStackID)
+
+		err = tx.EndpointRelation().UpdateEndpointRelation(endpointID, relation)
+		if err != nil {
+			return nil, nil, errors.WithMessage(err, "Unable to persist environment relation in database")
+		}
+
+		err = handler.edgeAsyncService.RemoveStackCommandTx(tx, endpointID, edgeStackID)
+		if err != nil {
+			return nil, nil, errors.WithMessage(err, "Unable to store edge async command into the database")
+		}
+	}
+
+	endpointsToAdd := set.Set[portaineree.EndpointID]{}
+	for endpointID := range newRelatedSet {
+		if !oldRelatedSet[endpointID] {
+			endpointsToAdd[endpointID] = true
+		}
+	}
+
+	for endpointID := range endpointsToAdd {
+		relation, err := tx.EndpointRelation().EndpointRelation(endpointID)
+		if err != nil {
+			return nil, nil, errors.WithMessage(err, "Unable to find environment relation in database")
+		}
+
+		relation.EdgeStacks[edgeStackID] = true
+
+		err = tx.EndpointRelation().UpdateEndpointRelation(endpointID, relation)
+		if err != nil {
+			return nil, nil, errors.WithMessage(err, "Unable to persist environment relation in database")
+		}
+
+		endpoint, err := tx.Endpoint().Endpoint(endpointID)
+		if err != nil {
+			return nil, nil, errors.WithMessage(err, "Unable to retrieve environment from the database")
+		}
+
+		err = handler.edgeAsyncService.AddStackCommandTx(tx, endpoint, edgeStackID, "")
+		if err != nil {
+			return nil, nil, errors.WithMessage(err, "Unable to store edge async command into the database")
+		}
+	}
+
+	return newRelatedEnvironmentIDs, endpointsToAdd, nil
 }

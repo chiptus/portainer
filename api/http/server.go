@@ -201,7 +201,14 @@ func (server *Server) Start() error {
 
 	edgeUpdateScheduleHandler := edgeupdateschedules.NewHandler(requestBouncer, server.DataStore, server.FileService, server.AssetsPath, server.EdgeStacksService, edgeUpdateService)
 
-	var edgeStacksHandler = edgestacks.NewHandler(requestBouncer, server.UserActivityService, server.DataStore, server.EdgeAsyncService, server.EdgeStacksService, edgeUpdateService)
+	var edgeStacksHandler = edgestacks.NewHandler(requestBouncer,
+		server.UserActivityService,
+		server.DataStore,
+		server.EdgeAsyncService,
+		server.EdgeStacksService,
+		edgeUpdateService,
+		server.Scheduler,
+	)
 	edgeStacksHandler.FileService = server.FileService
 	edgeStacksHandler.GitService = server.GitService
 	edgeStacksHandler.KubernetesDeployer = server.KubernetesDeployer

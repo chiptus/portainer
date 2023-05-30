@@ -19,7 +19,7 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-// @id WebhookInvoke
+// @id StacksWebhookInvoke
 // @summary Webhook for triggering stack updates from git
 // @description **Access policy**: public
 // @tags stacks

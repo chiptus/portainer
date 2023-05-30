@@ -1,25 +1,25 @@
 import { useState, useEffect } from 'react';
-import { Info } from 'lucide-react';
 
-import { RegistryViewModel } from '@/portainer/models/registry';
+import { Registry } from '@/react/portainer/registries/types';
 
 import { Select } from '@@/form-components/ReactSelect';
 import { FormControl } from '@@/form-components/FormControl';
 import { Button } from '@@/buttons';
-import { Tooltip } from '@@/Tip/Tooltip';
-import { Icon } from '@@/Icon';
 import { FormError } from '@@/form-components/FormError';
+import { SwitchField } from '@@/form-components/SwitchField';
+import { TextTip } from '@@/Tip/TextTip';
+import { FormSection } from '@@/form-components/FormSection';
 
 interface Props {
-  value: number;
-  registries: RegistryViewModel[];
+  value?: number;
+  registries: Registry[];
   onChange: () => void;
   formInvalid?: boolean;
-  errorMessage: string;
-  onSelect: () => void;
+  errorMessage?: string;
+  onSelect: (value?: number) => void;
   isActive?: boolean;
   clearRegistries: () => void;
-  method: string;
+  method?: string;
 }
 
 export function PrivateRegistryFieldset({
@@ -33,7 +33,7 @@ export function PrivateRegistryFieldset({
   clearRegistries,
   method,
 }: Props) {
-  const [checked, setChecked] = useState(isActive);
+  const [checked, setChecked] = useState(isActive || false);
   const [selected, setSelected] = useState(value);
 
   const tooltipMessage =
@@ -57,49 +57,34 @@ export function PrivateRegistryFieldset({
     setSelected(value);
   }
 
-  function handleChange() {
-    setChecked(!checked);
-  }
-
   return (
-    <>
-      <div className="col-sm-12 form-section-title"> Registry </div>
+    <FormSection title="Registry">
       <div className="form-group">
-        <div className="col-sm-12 vertical-center">
-          <label
-            className="col-sm-3 col-lg-2 control-label !pt-0 !pl-0 text-left"
-            htmlFor="toggle-registry-slider"
-          >
-            Use Credentials <Tooltip message={tooltipMessage} />
-          </label>
-          <label className="switch mb-0">
-            <input
-              type="checkbox"
-              name="toggle_registry"
-              onChange={handleChange}
-              disabled={formInvalid}
-              defaultChecked={isActive}
-              id="toggle-registry-slider"
-            />
-            <span className="slider round" />
-          </label>
+        <div className="col-sm-12">
+          <SwitchField
+            checked={checked}
+            onChange={(value) => setChecked(value)}
+            tooltip={tooltipMessage}
+            label="Use Credentials"
+            labelClass="col-sm-3 col-lg-2"
+            disabled={formInvalid}
+          />
         </div>
       </div>
+
       {checked && (
         <>
           {method !== 'repository' && (
             <>
-              <p className="text-muted small">
-                <Icon icon={Info} mode="primary" />
-                <span className="ml-1">
-                  If you make any changes to the image urls in your yaml, please
-                  reload or select registry manually
-                </span>
-              </p>
+              <TextTip color="blue">
+                If you make any changes to the image urls in your yaml, please
+                reload or select registry manually
+              </TextTip>
+
               <Button onClick={reload}>Reload</Button>
             </>
           )}
-          {!errorMessage && (
+          {!errorMessage ? (
             <FormControl label="Registry" inputId="users-selector">
               <Select
                 value={registries.filter(
@@ -107,14 +92,15 @@ export function PrivateRegistryFieldset({
                 )}
                 options={registries}
                 getOptionLabel={(registry) => registry.Name}
-                getOptionValue={(registry) => registry.Id}
-                onChange={onSelect}
+                getOptionValue={(registry) => registry.Id.toString()}
+                onChange={(value) => onSelect(value?.Id)}
               />
             </FormControl>
+          ) : (
+            <FormError>{errorMessage}</FormError>
           )}
-          {errorMessage && <FormError>{errorMessage}</FormError>}
         </>
       )}
-    </>
+    </FormSection>
   );
 }

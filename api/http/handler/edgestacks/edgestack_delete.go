@@ -62,6 +62,13 @@ func (handler *Handler) deleteEdgeStack(tx dataservices.DataStoreTx, edgeStackID
 		return httperror.BadRequest("Unable to delete edge stack that is used by an edge update schedule", err)
 	}
 
+	if edgeStack.AutoUpdate != nil && edgeStack.AutoUpdate.JobID != "" {
+		err := handler.scheduler.StopJob(edgeStack.AutoUpdate.JobID)
+		if err != nil {
+			return httperror.InternalServerError("Unable to stop auto update job", err)
+		}
+	}
+
 	err = handler.edgeStacksService.DeleteEdgeStack(tx, edgeStack.ID, edgeStack.EdgeGroups)
 	if err != nil {
 		return httperror.InternalServerError("Unable to delete edge stack", err)
