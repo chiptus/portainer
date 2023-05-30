@@ -11,8 +11,7 @@ import (
 )
 
 func TestHandler_webhookInvoke(t *testing.T) {
-	h, _, teardown := setupHandler(t)
-	defer teardown()
+	h, _ := setupHandler(t)
 
 	admin := &portaineree.User{ID: 1, Username: "admin"}
 	err := h.DataStore.User().Create(admin)
