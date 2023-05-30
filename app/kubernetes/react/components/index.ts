@@ -7,7 +7,7 @@ import { NamespacesSelector } from '@/react/kubernetes/cluster/RegistryAccessVie
 import { withUIRouter } from '@/react-tools/withUIRouter';
 import { StorageAccessModeSelector } from '@/react/kubernetes/cluster/ConfigureView/StorageAccessModeSelector';
 import { NamespaceAccessUsersSelector } from '@/react/kubernetes/namespaces/AccessView/NamespaceAccessUsersSelector';
-import { Microk8sAddons } from '@/react/kubernetes/cluster/ClusterView/MicroK8sAddons';
+import { Microk8sClusterDetails } from '@/react/kubernetes/cluster/Microk8sClusterDetails';
 import { CreateNamespaceRegistriesSelector } from '@/react/kubernetes/namespaces/CreateView/CreateNamespaceRegistriesSelector';
 import { KubeApplicationAccessPolicySelector } from '@/react/kubernetes/applications/CreateView/KubeApplicationAccessPolicySelector';
 import { KubeApplicationDeploymentTypeSelector } from '@/react/kubernetes/applications/CreateView/KubeApplicationDeploymentTypeSelector';
@@ -68,8 +68,8 @@ export const componentsModule = angular
     ])
   )
   .component(
-    'microk8sAddons',
-    r2a(withUIRouter(withReactQuery(Microk8sAddons)), [])
+    'microk8sClusterDetails',
+    r2a(withUIRouter(withReactQuery(Microk8sClusterDetails)), [])
   )
   .component(
     'createNamespaceRegistriesSelector',

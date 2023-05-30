@@ -2,11 +2,11 @@ import { useQuery } from 'react-query';
 
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 
-export interface AddonsResponse {
+interface AddonsResponse {
   addons: string[];
 }
 
-export async function getAddons(environmentID: number, credentialID: number) {
+async function getAddons(environmentID: number, credentialID: number) {
   try {
     const { data } = await axios.get<AddonsResponse>('cloud/microk8s/addons', {
       params: { credentialID, environmentID },
