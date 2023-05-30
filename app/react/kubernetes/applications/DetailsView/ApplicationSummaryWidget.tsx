@@ -63,6 +63,10 @@ export function ApplicationSummaryWidget() {
   const applicationNote =
     application?.metadata?.annotations?.[appNoteAnnotation];
 
+  const annotations = KubernetesAnnotationsUtils.apiToFormValueAnnotations(
+    application?.metadata?.annotations
+  );
+
   const [isNoteOpen, setIsNoteOpen] = useState(true);
   const [applicationNoteFormValues, setApplicationNoteFormValues] =
     useState('');
@@ -211,15 +215,10 @@ export function ApplicationSummaryWidget() {
             </div>
           </td>
         </tr>
-        {application?.metadata?.annotations && (
+        {annotations && annotations.length > 0 && (
           <tr>
             <td colSpan={2}>
-              <Annotations
-                hideForm
-                initialAnnotations={KubernetesAnnotationsUtils.apiToFormValueAnnotations(
-                  application?.metadata?.annotations
-                )}
-              />
+              <Annotations hideForm initialAnnotations={annotations} />
             </td>
           </tr>
         )}
