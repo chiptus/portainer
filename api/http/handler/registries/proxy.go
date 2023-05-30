@@ -1,12 +1,13 @@
 package registries
 
 import (
-	"github.com/gorilla/mux"
-	"github.com/portainer/portainer-ee/api/github/packages"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/gorilla/mux"
+	"github.com/portainer/portainer-ee/api/github/packages"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -38,10 +39,7 @@ func (handler *Handler) proxyRequestsToRegistryAPI(w http.ResponseWriter, r *htt
 		return httperror.InternalServerError("Unable to find a registry with the specified identifier inside the database", err)
 	}
 
-	managementConfiguration := registry.ManagementConfiguration
-	if managementConfiguration == nil {
-		managementConfiguration = createDefaultManagementConfiguration(registry)
-	}
+	managementConfiguration := syncConfig(registry)
 
 	key := strconv.Itoa(int(registryID))
 

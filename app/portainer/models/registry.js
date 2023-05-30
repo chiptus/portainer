@@ -19,7 +19,8 @@ export function RegistryViewModel(data) {
 }
 
 export function RegistryManagementConfigurationDefaultModel(registry) {
-  this.Authentication = false;
+  this.Authentication = registry.Authentication;
+  this.Username = registry.Username;
   this.Password = '';
   this.TLS = false;
   this.TLSSkipVerify = false;

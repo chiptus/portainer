@@ -132,6 +132,8 @@ func (handler *Handler) registryUpdate(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
+	registry.ManagementConfiguration = syncConfig(registry)
+
 	if payload.Github != nil {
 		registry.Github = *payload.Github
 	}
@@ -176,7 +178,24 @@ func (handler *Handler) registryUpdate(w http.ResponseWriter, r *http.Request) *
 		return httperror.InternalServerError("Unable to persist registry changes inside the database", err)
 	}
 
+	handler.deleteProxy(registry)
+
 	return response.JSON(w, registry)
+}
+
+func syncConfig(registry *portaineree.Registry) *portaineree.RegistryManagementConfiguration {
+	config := registry.ManagementConfiguration
+	if config == nil {
+		config = &portaineree.RegistryManagementConfiguration{}
+	}
+
+	config.Authentication = registry.Authentication
+	config.Username = registry.Username
+	config.Password = registry.Password
+	config.Ecr = registry.Ecr
+	config.Type = registry.Type
+
+	return config
 }
 
 func (handler *Handler) updateEndpointRegistryAccess(endpoint *portaineree.Endpoint, registry *portaineree.Registry, endpointAccess portaineree.RegistryAccessPolicies) error {

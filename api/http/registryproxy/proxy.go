@@ -34,6 +34,11 @@ func (service *Service) GetProxy(key, uri string, config *portaineree.RegistryMa
 	return service.createProxy(key, uri, config)
 }
 
+// DeleteProxy deletes the registry proxy associated to a key.
+func (service *Service) DeleteProxy(key string) {
+	service.proxies.Remove(key)
+}
+
 func (service *Service) createProxy(key, uri string, config *portaineree.RegistryManagementConfiguration) (http.Handler, error) {
 	var proxy http.Handler
 	var err error

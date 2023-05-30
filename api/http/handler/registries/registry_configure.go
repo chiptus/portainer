@@ -125,26 +125,23 @@ func (handler *Handler) registryConfigure(w http.ResponseWriter, r *http.Request
 		return httperror.InternalServerError("Unable to find a registry with the specified identifier inside the database", err)
 	}
 
-	registry.ManagementConfiguration = &portaineree.RegistryManagementConfiguration{
-		Type: registry.Type,
-	}
-
 	if payload.Authentication {
-		registry.ManagementConfiguration.Authentication = true
-		registry.ManagementConfiguration.Username = payload.Username
-		if payload.Username == registry.Username && payload.Password == "" {
-			registry.ManagementConfiguration.Password = registry.Password
-		} else {
-			registry.ManagementConfiguration.Password = payload.Password
+		registry.Authentication = true
+
+		registry.Username = payload.Username
+
+		if payload.Password != "" {
+			registry.Password = payload.Password
 		}
 
 		if payload.Region != "" {
-			registry.ManagementConfiguration.Ecr.Region = payload.Region
+			registry.Ecr.Region = payload.Region
 		}
 	}
 
+	var tlsConfig portaineree.TLSConfiguration
 	if payload.TLS {
-		registry.ManagementConfiguration.TLSConfig = portaineree.TLSConfiguration{
+		tlsConfig = portaineree.TLSConfiguration{
 			TLS:           true,
 			TLSSkipVerify: payload.TLSSkipVerify,
 		}
@@ -156,26 +153,39 @@ func (handler *Handler) registryConfigure(w http.ResponseWriter, r *http.Request
 			if err != nil {
 				return httperror.InternalServerError("Unable to persist TLS certificate file on disk", err)
 			}
-			registry.ManagementConfiguration.TLSConfig.TLSCertPath = certPath
+			tlsConfig.TLSCertPath = certPath
 
 			keyPath, err := handler.FileService.StoreRegistryManagementFileFromBytes(folder, "key.pem", payload.TLSKeyFile)
 			if err != nil {
 				return httperror.InternalServerError("Unable to persist TLS key file on disk", err)
 			}
-			registry.ManagementConfiguration.TLSConfig.TLSKeyPath = keyPath
+			tlsConfig.TLSKeyPath = keyPath
 
 			cacertPath, err := handler.FileService.StoreRegistryManagementFileFromBytes(folder, "ca.pem", payload.TLSCACertFile)
 			if err != nil {
 				return httperror.InternalServerError("Unable to persist TLS CA certificate file on disk", err)
 			}
-			registry.ManagementConfiguration.TLSConfig.TLSCACertPath = cacertPath
+			tlsConfig.TLSCACertPath = cacertPath
 		}
 	}
+
+	registry.ManagementConfiguration = syncConfig(registry)
+	registry.ManagementConfiguration.TLSConfig = tlsConfig
 
 	err = handler.DataStore.Registry().UpdateRegistry(registry.ID, registry)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist registry changes inside the database", err)
 	}
 
+	handler.deleteProxy(registry)
+
 	return response.Empty(w)
+}
+
+func (handler *Handler) deleteProxy(registry *portaineree.Registry) {
+	id := strconv.Itoa(int(registry.ID))
+	handler.registryProxyService.DeleteProxy(id)
+	if registry.Type == portaineree.GitlabRegistry {
+		handler.registryProxyService.DeleteProxy(id + "-gitlab")
+	}
 }
