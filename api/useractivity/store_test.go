@@ -1,12 +1,16 @@
 package useractivity
 
-import "fmt"
+import (
+	"testing"
+)
 
-func setup(path string) (*Store, error) {
-	store, err := NewStore(path, 0, 0, 0)
+func mustSetup(t testing.TB) *Store {
+	store, err := NewStore(t.TempDir(), 0, 0, 0)
 	if err != nil {
-		return nil, fmt.Errorf("Failed creating new store: %w", err)
+		t.Fatalf("Failed creating new store: %s", err)
 	}
 
-	return store, nil
+	t.Cleanup(func() { store.Close() })
+
+	return store
 }

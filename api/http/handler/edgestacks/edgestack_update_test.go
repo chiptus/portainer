@@ -14,8 +14,7 @@ import (
 
 // Update
 func TestUpdateAndInspect(t *testing.T) {
-	handler, rawAPIKey, teardown := setupHandler(t)
-	defer teardown()
+	handler, rawAPIKey := setupHandler(t)
 
 	// Create Endpoint, EdgeGroup and EndpointRelation
 	endpoint := createEndpoint(t, handler.DataStore)
@@ -162,8 +161,7 @@ func TestUpdateAndInspect(t *testing.T) {
 }
 
 func TestUpdateWithInvalidEdgeGroups(t *testing.T) {
-	handler, rawAPIKey, teardown := setupHandler(t)
-	defer teardown()
+	handler, rawAPIKey := setupHandler(t)
 
 	endpoint := createEndpoint(t, handler.DataStore)
 	edgeStack := createEdgeStack(t, handler.DataStore, endpoint.ID)
@@ -243,8 +241,7 @@ func TestUpdateWithInvalidEdgeGroups(t *testing.T) {
 }
 
 func TestUpdateWithInvalidPayload(t *testing.T) {
-	handler, rawAPIKey, teardown := setupHandler(t)
-	defer teardown()
+	handler, rawAPIKey := setupHandler(t)
 
 	endpoint := createEndpoint(t, handler.DataStore)
 	edgeStack := createEdgeStack(t, handler.DataStore, endpoint.ID)

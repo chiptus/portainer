@@ -94,8 +94,7 @@ func singleAPIRequest(h *Handler, jwt string, is *assert.Assertions, expect stri
 func Test_customTemplateGitFetch(t *testing.T) {
 	is := assert.New(t)
 
-	_, store, teardown := datastore.MustNewTestStore(t, true, true)
-	defer teardown()
+	_, store := datastore.MustNewTestStore(t, true, true)
 
 	// create user(s)
 	user1 := &portaineree.User{ID: 1, Username: "user-1", Role: portaineree.StandardUserRole, PortainerAuthorizations: authorization.DefaultPortainerAuthorizations()}

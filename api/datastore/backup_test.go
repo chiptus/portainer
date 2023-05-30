@@ -13,8 +13,7 @@ import (
 )
 
 func TestCreateBackupFolders(t *testing.T) {
-	_, store, teardown := MustNewTestStore(t, true, true)
-	defer teardown()
+	_, store := MustNewTestStore(t, true, true)
 
 	connection := store.GetConnection()
 	backupPath := path.Join(connection.GetStorePath(), backupDefaults.backupDir)
@@ -30,9 +29,7 @@ func TestCreateBackupFolders(t *testing.T) {
 }
 
 func TestStoreCreation(t *testing.T) {
-	_, store, teardown := MustNewTestStore(t, true, true)
-	defer teardown()
-
+	_, store := MustNewTestStore(t, true, true)
 	if store == nil {
 		t.Fatal("Expect to create a store")
 	}
@@ -52,9 +49,8 @@ func TestStoreCreation(t *testing.T) {
 }
 
 func TestBackup(t *testing.T) {
-	_, store, teardown := MustNewTestStore(t, true, true)
+	_, store := MustNewTestStore(t, true, true)
 	connection := store.GetConnection()
-	defer teardown()
 
 	tests := []struct {
 		edition portaineree.SoftwareEdition
@@ -115,8 +111,7 @@ func TestBackup(t *testing.T) {
 func TestRestore(t *testing.T) {
 	editions := []portaineree.SoftwareEdition{portaineree.PortainerCE, portaineree.PortainerEE}
 
-	_, store, teardown := MustNewTestStore(t, true, true)
-	defer teardown()
+	_, store := MustNewTestStore(t, true, true)
 
 	for _, e := range editions {
 		editionLabel := e.GetEditionLabel()
@@ -152,8 +147,7 @@ func TestRestore(t *testing.T) {
 }
 
 func TestRemoveWithOptions(t *testing.T) {
-	_, store, teardown := MustNewTestStore(t, true, true)
-	defer teardown()
+	_, store := MustNewTestStore(t, true, true)
 
 	t.Run("successfully removes file if existent", func(t *testing.T) {
 		store.createBackupFolders()

@@ -9,8 +9,7 @@ import (
 
 // Inspect
 func TestInspectInvalidEdgeID(t *testing.T) {
-	handler, rawAPIKey, teardown := setupHandler(t)
-	defer teardown()
+	handler, rawAPIKey := setupHandler(t)
 
 	cases := []struct {
 		Name               string

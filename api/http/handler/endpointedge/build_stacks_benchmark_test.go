@@ -14,8 +14,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func setupBuildEdgeStacksTest(b testing.TB, endpointsCount int) (*Handler, func(), error) {
-	_, store, teardown := datastore.MustNewTestStore(b, true, false)
+func setupBuildEdgeStacksTest(b testing.TB, endpointsCount int) (*Handler, error) {
+	_, store := datastore.MustNewTestStore(b, true, false)
 
 	edgeStackID := portaineree.EdgeStackID(1)
 
@@ -28,8 +28,7 @@ func setupBuildEdgeStacksTest(b testing.TB, endpointsCount int) (*Handler, func(
 
 	err := store.EdgeStack().Create(edgeStackID, edgeStack)
 	if err != nil {
-		teardown()
-		return nil, nil, err
+		return nil, err
 	}
 
 	for i := 1; i < endpointsCount; i++ {
@@ -41,8 +40,7 @@ func setupBuildEdgeStacksTest(b testing.TB, endpointsCount int) (*Handler, func(
 			Type: portaineree.EdgeAgentOnDockerEnvironment,
 		})
 		if err != nil {
-			teardown()
-			return nil, nil, err
+			return nil, err
 		}
 
 		err = store.EndpointRelation().Create(&portaineree.EndpointRelation{
@@ -52,8 +50,7 @@ func setupBuildEdgeStacksTest(b testing.TB, endpointsCount int) (*Handler, func(
 			},
 		})
 		if err != nil {
-			teardown()
-			return nil, nil, err
+			return nil, err
 		}
 
 		edgeStack.Status[endpointID] = portainer.EdgeStackStatus{
@@ -63,8 +60,7 @@ func setupBuildEdgeStacksTest(b testing.TB, endpointsCount int) (*Handler, func(
 
 		err = store.EdgeStack().UpdateEdgeStack(edgeStackID, edgeStack)
 		if err != nil {
-			teardown()
-			return nil, nil, err
+			return nil, err
 		}
 	}
 
@@ -72,7 +68,7 @@ func setupBuildEdgeStacksTest(b testing.TB, endpointsCount int) (*Handler, func(
 
 	h := NewHandler(nil, store, nil, nil, edgeService, nil, nil)
 
-	return h, teardown, nil
+	return h, nil
 }
 
 func BenchmarkBuildEdgeStacks(b *testing.B) {
@@ -80,11 +76,10 @@ func BenchmarkBuildEdgeStacks(b *testing.B) {
 
 	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 
-	h, teardown, err := setupBuildEdgeStacksTest(b, endpointsCount)
+	h, err := setupBuildEdgeStacksTest(b, endpointsCount)
 	if err != nil {
 		b.Fatal(err)
 	}
-	defer teardown()
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -99,11 +94,10 @@ func BenchmarkBuildEdgeStacksParallel(b *testing.B) {
 
 	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 
-	h, teardown, err := setupBuildEdgeStacksTest(b, endpointsCount)
+	h, err := setupBuildEdgeStacksTest(b, endpointsCount)
 	if err != nil {
 		b.Fatal(err)
 	}
-	defer teardown()
 
 	runtime.GOMAXPROCS(64)
 

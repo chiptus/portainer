@@ -10,8 +10,7 @@ import (
 
 func Test_DeleteLicense(t *testing.T) {
 	t.Run("should be able to delete revoked license", func(t *testing.T) {
-		_, store, teardown := datastore.MustNewTestStore(t, true, true)
-		defer teardown()
+		_, store := datastore.MustNewTestStore(t, true, true)
 
 		license1 := &liblicense.PortainerLicense{
 			LicenseKey: "key1",

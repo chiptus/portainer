@@ -50,9 +50,7 @@ func TestMigrateData(t *testing.T) {
 	}
 
 	t.Run("MigrateData for New Store & Re-Open Check", func(t *testing.T) {
-		newStore, store, teardown := MustNewTestStore(t, true, false)
-		defer teardown()
-
+		newStore, store := MustNewTestStore(t, true, false)
 		if !newStore {
 			t.Error("Expect a new DB")
 		}
@@ -67,8 +65,7 @@ func TestMigrateData(t *testing.T) {
 	})
 
 	t.Run("Error in MigrateData should restore backup before MigrateData", func(t *testing.T) {
-		_, store, teardown := MustNewTestStore(t, false, false)
-		defer teardown()
+		_, store := MustNewTestStore(t, false, false)
 
 		v := models.Version{
 			SchemaVersion: "2.14",
@@ -81,9 +78,7 @@ func TestMigrateData(t *testing.T) {
 	})
 
 	t.Run("MigrateData should create backup file upon update", func(t *testing.T) {
-		_, store, teardown := MustNewTestStore(t, true, false)
-		defer teardown()
-
+		_, store := MustNewTestStore(t, true, false)
 		store.VersionService.UpdateVersion(&models.Version{SchemaVersion: "1.0"})
 		store.MigrateData()
 
@@ -94,11 +89,8 @@ func TestMigrateData(t *testing.T) {
 	})
 
 	t.Run("MigrateData should fail to create backup if database file is set to updating", func(t *testing.T) {
-		_, store, teardown := MustNewTestStore(t, true, false)
-		defer teardown()
-
+		_, store := MustNewTestStore(t, true, false)
 		store.VersionService.StoreIsUpdating(true)
-
 		store.MigrateData()
 
 		// If you get an error, it usually means that the backup folder doesn't exist (no backups). Expected!
@@ -111,8 +103,7 @@ func TestMigrateData(t *testing.T) {
 	})
 
 	t.Run("MigrateData should not create backup on startup if portainer version matches db", func(t *testing.T) {
-		_, store, teardown := MustNewTestStore(t, true, false)
-		defer teardown()
+		_, store := MustNewTestStore(t, true, false)
 
 		// Set migrator the count to match our migrations array (simulate no changes).
 		// Should not create a backup
@@ -139,8 +130,7 @@ func TestMigrateData(t *testing.T) {
 	})
 
 	t.Run("MigrateData should create backup on startup if portainer version matches db and migrationFuncs counts differ", func(t *testing.T) {
-		_, store, teardown := MustNewTestStore(t, true, false)
-		defer teardown()
+		_, store := MustNewTestStore(t, true, false)
 
 		// Set migrator count very large to simulate changes
 		// Should not create a backup
@@ -160,8 +150,7 @@ func TestMigrateData(t *testing.T) {
 }
 
 func Test_getBackupRestoreOptions(t *testing.T) {
-	_, store, teardown := MustNewTestStore(t, true, false)
-	defer teardown()
+	_, store := MustNewTestStore(t, true, false)
 
 	options := getBackupRestoreOptions(store.commonBackupDir())
 
@@ -184,8 +173,7 @@ func TestRollback(t *testing.T) {
 			SchemaVersion: version,
 		}
 
-		_, store, teardown := MustNewTestStore(t, false, false)
-		defer teardown()
+		_, store := MustNewTestStore(t, false, false)
 		store.VersionService.UpdateVersion(&v)
 
 		_, err := store.backupWithOptions(getBackupRestoreOptions(store.commonBackupDir()))
@@ -222,8 +210,7 @@ func migrateDBTestHelper(t *testing.T, srcPath, wantPath string) error {
 	}
 
 	// Parse source json to db.
-	_, store, teardown := MustNewTestStore(t, false, false)
-	defer teardown()
+	_, store := MustNewTestStore(t, false, false)
 
 	// need to remove new automatic addition of new version bucket before
 	// importing the old one to properly test the version bucket migration

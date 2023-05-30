@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -19,35 +18,28 @@ import (
 	"github.com/portainer/portainer/api/filesystem"
 )
 
-func setupGlobalKeyHandler(t *testing.T) (*Handler, func(), error) {
-	_, store, storeTeardown := datastore.MustNewTestStore(t, true, true)
+func mustSetupGlobalKeyHandler(t *testing.T) *Handler {
+	_, store := datastore.MustNewTestStore(t, true, true)
 
 	ctx := context.Background()
 	shutdownCtx, cancelFn := context.WithCancel(ctx)
-
-	teardown := func() {
-		cancelFn()
-		storeTeardown()
-	}
+	t.Cleanup(cancelFn)
 
 	tmpDir, err := os.MkdirTemp(t.TempDir(), "portainer-test-global-key-*")
 	if err != nil {
-		teardown()
-		return nil, nil, fmt.Errorf("could not create a tmp dir: %w", err)
+		t.Fatalf("could not create a tmp dir: %s", err)
 	}
 
 	fs, err := filesystem.NewService(tmpDir, "")
 	if err != nil {
-		teardown()
-		return nil, nil, fmt.Errorf("could not start a new filesystem service: %w", err)
+		t.Fatalf("could not start a new filesystem service: %s", err)
 	}
 
 	settings := &portaineree.Settings{EdgePortainerURL: "https://portainer.domain.tld:9443"}
 	settings.Edge.TunnelServerAddress = "portainer.domain.tld:8000"
 	err = store.Settings().UpdateSettings(settings)
 	if err != nil {
-		teardown()
-		return nil, nil, fmt.Errorf("could not update settings: %w", err)
+		t.Fatalf("could not update settings: %s", err)
 	}
 
 	handler := NewHandler(
@@ -63,16 +55,11 @@ func setupGlobalKeyHandler(t *testing.T) (*Handler, func(), error) {
 	handler.ReverseTunnelService = chisel.NewService(store, shutdownCtx)
 	handler.AuthorizationService = authorization.NewService(store)
 
-	return handler, teardown, nil
+	return handler
 }
 
 func TestGlobalKey(t *testing.T) {
-	handler, teardown, err := setupGlobalKeyHandler(t)
-	defer teardown()
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	handler := mustSetupGlobalKeyHandler(t)
 
 	portainerURL := "https://portainer.domain.tld:9443"
 
@@ -127,12 +114,7 @@ func TestGlobalKey(t *testing.T) {
 }
 
 func TestEmptyGlobalKey(t *testing.T) {
-	handler, teardown, err := setupGlobalKeyHandler(t)
-	defer teardown()
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	handler := mustSetupGlobalKeyHandler(t)
 
 	req, err := http.NewRequest(http.MethodPost, "https://portainer.io:9443/endpoints/global-key", bytes.NewReader([]byte("{}")))
 	if err != nil {

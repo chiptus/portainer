@@ -25,19 +25,14 @@ func TestConcurrentEndpointDelete(t *testing.T) {
 
 	// Setup N environments with 1 shared tag
 
-	handler, teardown, err := setupGlobalKeyHandler(t)
-	defer teardown()
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	handler := mustSetupGlobalKeyHandler(t)
 
 	handler.demoService = demo.NewService()
 	handler.ProxyManager = proxy.NewManager(handler.DataStore, nil, nil, nil, nil, nil, nil, nil, nil)
 
 	tagID := portaineree.TagID(1)
 
-	err = handler.DataStore.Tag().Create(&portaineree.Tag{
+	err := handler.DataStore.Tag().Create(&portaineree.Tag{
 		ID:             tagID,
 		Name:           "concurrent-test-tag",
 		Endpoints:      make(map[portaineree.EndpointID]bool),
@@ -119,8 +114,7 @@ func TestConcurrentEndpointDelete(t *testing.T) {
 func TestEndpointDeleteEdgeGroupsConcurrently(t *testing.T) {
 	const endpointsCount = 100
 
-	_, store, teardown := datastore.MustNewTestStore(t, true, false)
-	defer teardown()
+	_, store := datastore.MustNewTestStore(t, true, false)
 
 	user := &portaineree.User{ID: 2, Username: "admin", Role: portaineree.AdministratorRole}
 	err := store.User().Create(user)

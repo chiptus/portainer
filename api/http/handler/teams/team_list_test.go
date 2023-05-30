@@ -22,8 +22,7 @@ import (
 func Test_teamList(t *testing.T) {
 	is := assert.New(t)
 
-	_, store, teardown := datastore.MustNewTestStore(t, true, true)
-	defer teardown()
+	_, store := datastore.MustNewTestStore(t, true, true)
 
 	// create admin
 	adminUser := &portaineree.User{ID: 1, Username: "admin", Role: portaineree.AdministratorRole}

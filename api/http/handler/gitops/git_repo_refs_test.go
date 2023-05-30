@@ -40,8 +40,7 @@ func (g *TestGitService) ListRefs(repositoryURL, username, password string, hard
 func Test_gitOperationRepoRefs(t *testing.T) {
 	is := assert.New(t)
 
-	_, store, teardown := datastore.MustNewTestStore(t, true, true)
-	defer teardown()
+	_, store := datastore.MustNewTestStore(t, true, true)
 
 	// create user(s)
 	user := &portaineree.User{ID: 1, Username: "standard", Role: portaineree.StandardUserRole, PortainerAuthorizations: authorization.DefaultPortainerAuthorizations()}

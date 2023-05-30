@@ -21,18 +21,13 @@ func createActivityLog(username, context, action string, payload []byte) *portai
 }
 
 func TestAddUserActivity(t *testing.T) {
-	store, err := setup(t.TempDir())
-	if err != nil {
-		t.Fatalf("Failed setup: %s", err)
-	}
-
-	defer store.Close()
+	store := mustSetup(t)
 
 	expectedPayloadString := "payload"
 
 	userLog := createActivityLog("username", "context", "action", []byte(expectedPayloadString))
 
-	err = store.StoreUserActivityLog(userLog)
+	err := store.StoreUserActivityLog(userLog)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -49,15 +44,10 @@ func TestAddUserActivity(t *testing.T) {
 }
 
 func TestGetUserActivityLogs(t *testing.T) {
-	store, err := setup(t.TempDir())
-	if err != nil {
-		t.Fatalf("Failed setup: %s", err)
-	}
-
-	defer store.Close()
+	store := mustSetup(t)
 
 	log1 := createActivityLog("username1", "context1", "action1", []byte("payload1"))
-	err = store.StoreUserActivityLog(log1)
+	err := store.StoreUserActivityLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -83,15 +73,10 @@ func TestGetUserActivityLogs(t *testing.T) {
 }
 
 func TestGetUserActivityLogsByTimestamp(t *testing.T) {
-	store, err := setup(t.TempDir())
-	if err != nil {
-		t.Fatalf("Failed setup: %s", err)
-	}
-
-	defer store.Close()
+	store := mustSetup(t)
 
 	log1 := createActivityLog("username1", "context1", "action1", []byte("payload1"))
-	err = store.StoreUserActivityLog(log1)
+	err := store.StoreUserActivityLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -125,15 +110,10 @@ func TestGetUserActivityLogsByTimestamp(t *testing.T) {
 }
 
 func TestGetUserActivityLogsByKeyword(t *testing.T) {
-	store, err := setup(t.TempDir())
-	if err != nil {
-		t.Fatalf("Failed setup: %s", err)
-	}
-
-	defer store.Close()
+	store := mustSetup(t)
 
 	log1 := createActivityLog("username1", "context1", "action1", []byte("success"))
-	err = store.StoreUserActivityLog(log1)
+	err := store.StoreUserActivityLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -186,15 +166,10 @@ func TestGetUserActivityLogsByKeyword(t *testing.T) {
 }
 
 func TestGetUserActivityLogsSortOrderAndPaginate(t *testing.T) {
-	store, err := setup(t.TempDir())
-	if err != nil {
-		t.Fatalf("Failed setup: %s", err)
-	}
-
-	defer store.Close()
+	store := mustSetup(t)
 
 	log1 := createActivityLog("username1", "context1", "action1", []byte("payload1"))
-	err = store.StoreUserActivityLog(log1)
+	err := store.StoreUserActivityLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -245,15 +220,10 @@ func TestGetUserActivityLogsSortOrderAndPaginate(t *testing.T) {
 }
 
 func TestGetUserActivityLogsDesc(t *testing.T) {
-	store, err := setup(t.TempDir())
-	if err != nil {
-		t.Fatalf("Failed setup: %s", err)
-	}
-
-	defer store.Close()
+	store := mustSetup(t)
 
 	log1 := createActivityLog("username1", "context1", "action1", []byte("payload1"))
-	err = store.StoreUserActivityLog(log1)
+	err := store.StoreUserActivityLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -282,10 +252,7 @@ func TestGetUserActivityLogsDesc(t *testing.T) {
 }
 
 func TestDoubleClose(t *testing.T) {
-	store, err := setup(t.TempDir())
-	if err != nil {
-		t.Fatalf("Failed setup: %s", err)
-	}
+	store := mustSetup(t)
 
 	store.Close()
 	store.Close()

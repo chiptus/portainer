@@ -17,8 +17,7 @@ import (
 
 func Test_getLicenseOveruseTimestamp(t *testing.T) {
 	t.Run("shouldn't update if aggregate license isn't Essential", func(t *testing.T) {
-		_, store, teardown := datastore.MustNewTestStore(t, true, true)
-		defer teardown()
+		_, store := datastore.MustNewTestStore(t, true, true)
 
 		endpoint := &portaineree.Endpoint{Type: portaineree.DockerEnvironment, ID: portaineree.EndpointID(1)}
 		store.Endpoint().Create(endpoint)
@@ -35,8 +34,7 @@ func Test_getLicenseOveruseTimestamp(t *testing.T) {
 	})
 
 	t.Run("should set the timestamp if Essential license was overused", func(t *testing.T) {
-		_, store, teardown := datastore.MustNewTestStore(t, true, true)
-		defer teardown()
+		_, store := datastore.MustNewTestStore(t, true, true)
 
 		endpoint := &portaineree.Endpoint{Type: portaineree.DockerEnvironment, ID: portaineree.EndpointID(1)}
 		store.Endpoint().Create(endpoint)
@@ -54,8 +52,7 @@ func Test_getLicenseOveruseTimestamp(t *testing.T) {
 	})
 
 	t.Run("shouldn't drop the timestamp if Essential license stopped being overused", func(t *testing.T) {
-		_, store, teardown := datastore.MustNewTestStore(t, true, true)
-		defer teardown()
+		_, store := datastore.MustNewTestStore(t, true, true)
 
 		endpoint := &portaineree.Endpoint{Type: portaineree.DockerEnvironment, ID: portaineree.EndpointID(1)}
 		store.Endpoint().Create(endpoint)
@@ -72,8 +69,7 @@ func Test_getLicenseOveruseTimestamp(t *testing.T) {
 	})
 
 	t.Run("should keep the old timestamp if Essential license was overused before", func(t *testing.T) {
-		_, store, teardown := datastore.MustNewTestStore(t, true, true)
-		defer teardown()
+		_, store := datastore.MustNewTestStore(t, true, true)
 
 		endpoint := &portaineree.Endpoint{Type: portaineree.DockerEnvironment, ID: portaineree.EndpointID(1)}
 		store.Endpoint().Create(endpoint)
@@ -90,8 +86,7 @@ func Test_getLicenseOveruseTimestamp(t *testing.T) {
 	})
 
 	t.Run("should drop the timestamp if overused Essential license being replaced with Subscription", func(t *testing.T) {
-		_, store, teardown := datastore.MustNewTestStore(t, true, true)
-		defer teardown()
+		_, store := datastore.MustNewTestStore(t, true, true)
 
 		endpoint := &portaineree.Endpoint{Type: portaineree.DockerEnvironment, ID: portaineree.EndpointID(1)}
 		store.Endpoint().Create(endpoint)
@@ -109,8 +104,7 @@ func Test_getLicenseOveruseTimestamp(t *testing.T) {
 }
 
 func Test_licenseIsOverused(t *testing.T) {
-	_, store, teardown := datastore.MustNewTestStore(t, true, true)
-	defer teardown()
+	_, store := datastore.MustNewTestStore(t, true, true)
 
 	endpoint1 := &portaineree.Endpoint{Type: portaineree.DockerEnvironment, ID: portaineree.EndpointID(1)}
 	endpoint2 := &portaineree.Endpoint{Type: portaineree.DockerEnvironment, ID: portaineree.EndpointID(2)}
@@ -157,8 +151,7 @@ func Test_ShouldEnforceOveruse(t *testing.T) {
 }
 
 func Test_NotOverused(t *testing.T) {
-	_, store, teardown := datastore.MustNewTestStore(t, true, true)
-	defer teardown()
+	_, store := datastore.MustNewTestStore(t, true, true)
 
 	endpoint := &portaineree.Endpoint{Type: portaineree.DockerEnvironment, ID: portaineree.EndpointID(1)}
 	store.Endpoint().Create(endpoint)

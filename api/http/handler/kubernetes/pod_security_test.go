@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/portainer/portainer-ee/api/apikey"
@@ -26,8 +25,7 @@ import (
 func Test_getK8sPodSecurityRule(t *testing.T) {
 	is := assert.New(t)
 
-	_, store, teardown := datastore.MustNewTestStore(t, true, true)
-	defer teardown()
+	_, store := datastore.MustNewTestStore(t, true, true)
 
 	err := store.Endpoint().Create(&portaineree.Endpoint{ID: 1, Type: portaineree.AgentOnKubernetesEnvironment})
 	is.NoError(err, "error creating environment")
@@ -63,8 +61,7 @@ func Test_getK8sPodSecurityRule(t *testing.T) {
 func Test_updateK8sPodSecurityRule(t *testing.T) {
 	is := assert.New(t)
 
-	_, store, teardown := datastore.MustNewTestStore(t, true, true)
-	defer teardown()
+	_, store := datastore.MustNewTestStore(t, true, true)
 
 	err := store.Endpoint().Create(&portaineree.Endpoint{ID: 1, Type: portaineree.AgentOnKubernetesEnvironment})
 	is.NoError(err, "error creating environment")
@@ -107,8 +104,7 @@ func TestHandler_updateK8sPodSecurityRule(t *testing.T) {
 	}
 	is := assert.New(t)
 
-	_, store, teardown := datastore.MustNewTestStore(t, true, true)
-	defer teardown()
+	_, store := datastore.MustNewTestStore(t, true, true)
 
 	err := store.Endpoint().Create(&portaineree.Endpoint{ID: 1, Type: portaineree.AgentOnKubernetesEnvironment})
 	is.NoError(err, "error creating environment")
@@ -126,21 +122,23 @@ func TestHandler_updateK8sPodSecurityRule(t *testing.T) {
 	kubeClusterAccessService := kubernetes.NewKubeClusterAccessService("", "", "")
 	authorizationService := authorization.NewService(store)
 
-	tmpDir, err := os.MkdirTemp(t.TempDir(), "portainer-test-global-key-*")
+	fs, err := filesystem.NewService(t.TempDir(), "")
 	if err != nil {
-		teardown()
+		t.Fatalf("unable to create filesystem service: %s", err)
 	}
-	fs, err := filesystem.NewService(tmpDir, "")
-	if err != nil {
-		teardown()
-	}
+
 	handler := NewHandler(requestBouncer, authorizationService, store, jwtService, kubeClusterAccessService,
 		nil, nil, testhelpers.NewUserActivityService(),
 		kubernetesDeployer, fs, "./")
 	is.NotNil(handler, "Handler should not fail")
 	payload := &podsecurity.PodSecurityRule{}
 	payload.Enabled = true
+
 	optdata, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatalf("unable to marshal payload: %s", err)
+	}
+
 	req := httptest.NewRequest(http.MethodPut, "/kubernetes/1/opa", bytes.NewBuffer(optdata))
 	ctx := security.StoreTokenData(req, &portaineree.TokenData{ID: 1, Username: "admin", Role: 1})
 	req = req.WithContext(ctx)

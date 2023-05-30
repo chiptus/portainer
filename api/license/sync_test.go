@@ -12,8 +12,7 @@ import (
 )
 
 func Test_revokeInvalidLicenses(t *testing.T) {
-	_, store, teardown := datastore.MustNewTestStore(t, true, true)
-	defer teardown()
+	_, store := datastore.MustNewTestStore(t, true, true)
 
 	invalidLicense := createValidLicense(liblicense.PortainerLicenseSubscription, time.Now().Unix())
 	olderTrialLicense := createValidLicense(liblicense.PortainerLicenseTrial, time.Now().Add(-time.Hour*24).Unix())

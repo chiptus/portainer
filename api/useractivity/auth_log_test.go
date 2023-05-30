@@ -35,12 +35,7 @@ func BenchmarkAuthLog(b *testing.B) {
 		b.Fatalf("Failed removing db: %s", err)
 	}
 
-	store, err := setup("")
-	if err != nil {
-		b.Fatalf("Failed setup: %s", err)
-	}
-
-	defer store.Close()
+	store := mustSetup(b)
 
 	authLog := createAuthLog("username", "endpoint", portaineree.AuthenticationInternal, testType)
 
@@ -61,15 +56,11 @@ func BenchmarkAuthLog(b *testing.B) {
 }
 
 func TestAddActivity(t *testing.T) {
-	store, err := setup(t.TempDir())
-	if err != nil {
-		t.Fatalf("Failed setup: %s", err)
-	}
+	store := mustSetup(t)
 
-	defer store.Close()
 	authLog := createAuthLog("username", "endpoint", portaineree.AuthenticationInternal, testType)
 
-	err = store.StoreAuthLog(authLog)
+	err := store.StoreAuthLog(authLog)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -83,15 +74,10 @@ func TestAddActivity(t *testing.T) {
 }
 
 func TestGetAuthLogs(t *testing.T) {
-	store, err := setup(t.TempDir())
-	if err != nil {
-		t.Fatalf("Failed setup: %s", err)
-	}
-
-	defer store.Close()
+	store := mustSetup(t)
 
 	log1 := createAuthLog("username1", "endpoint1", portaineree.AuthenticationInternal, testType)
-	err = store.StoreAuthLog(log1)
+	err := store.StoreAuthLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -117,15 +103,10 @@ func TestGetAuthLogs(t *testing.T) {
 }
 
 func TestGetAuthLogsByTimestamp(t *testing.T) {
-	store, err := setup(t.TempDir())
-	if err != nil {
-		t.Fatalf("Failed setup: %s", err)
-	}
-
-	defer store.Close()
+	store := mustSetup(t)
 
 	log1 := createAuthLog("username1", "endpoint1", portaineree.AuthenticationInternal, testType)
-	err = store.StoreAuthLog(log1)
+	err := store.StoreAuthLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -161,15 +142,10 @@ func TestGetAuthLogsByTimestamp(t *testing.T) {
 }
 
 func TestGetAuthLogsByKeyword(t *testing.T) {
-	store, err := setup(t.TempDir())
-	if err != nil {
-		t.Fatalf("Failed setup: %s", err)
-	}
-
-	defer store.Close()
+	store := mustSetup(t)
 
 	log1 := createAuthLog("username1", "endpoint1", portaineree.AuthenticationInternal, testType)
-	err = store.StoreAuthLog(log1)
+	err := store.StoreAuthLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -227,15 +203,10 @@ func TestGetAuthLogsByKeyword(t *testing.T) {
 }
 
 func TestGetAuthLogsByContext(t *testing.T) {
-	store, err := setup(t.TempDir())
-	if err != nil {
-		t.Fatalf("Failed setup: %s", err)
-	}
-
-	defer store.Close()
+	store := mustSetup(t)
 
 	log1 := createAuthLog("username1", "endpoint1", portaineree.AuthenticationInternal, testType)
-	err = store.StoreAuthLog(log1)
+	err := store.StoreAuthLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -281,15 +252,10 @@ func TestGetAuthLogsByContext(t *testing.T) {
 }
 
 func TestGetAuthLogsByType(t *testing.T) {
-	store, err := setup(t.TempDir())
-	if err != nil {
-		t.Fatalf("Failed setup: %s", err)
-	}
-
-	defer store.Close()
+	store := mustSetup(t)
 
 	log1 := createAuthLog("username1", "endpoint1", portaineree.AuthenticationInternal, portaineree.AuthenticationActivityFailure)
-	err = store.StoreAuthLog(log1)
+	err := store.StoreAuthLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -335,15 +301,10 @@ func TestGetAuthLogsByType(t *testing.T) {
 }
 
 func TestGetAuthLogsSortOrderAndPaginate(t *testing.T) {
-	store, err := setup(t.TempDir())
-	if err != nil {
-		t.Fatalf("Failed setup: %s", err)
-	}
-
-	defer store.Close()
+	store := mustSetup(t)
 
 	log1 := createAuthLog("username1", "endpoint1", portaineree.AuthenticationInternal, testType)
-	err = store.StoreAuthLog(log1)
+	err := store.StoreAuthLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}
@@ -398,15 +359,10 @@ func TestGetAuthLogsSortOrderAndPaginate(t *testing.T) {
 }
 
 func TestGetAuthLogsDesc(t *testing.T) {
-	store, err := setup(t.TempDir())
-	if err != nil {
-		t.Fatalf("Failed setup: %s", err)
-	}
-
-	defer store.Close()
+	store := mustSetup(t)
 
 	log1 := createAuthLog("username1", "endpoint1", portaineree.AuthenticationInternal, testType)
-	err = store.StoreAuthLog(log1)
+	err := store.StoreAuthLog(log1)
 	if err != nil {
 		t.Fatalf("Failed adding activity log: %s", err)
 	}

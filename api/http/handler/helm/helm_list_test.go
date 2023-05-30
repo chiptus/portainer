@@ -24,8 +24,7 @@ import (
 func Test_helmList(t *testing.T) {
 	is := assert.New(t)
 
-	_, store, teardown := datastore.MustNewTestStore(t, true, true)
-	defer teardown()
+	_, store := datastore.MustNewTestStore(t, true, true)
 
 	err := store.Endpoint().Create(&portaineree.Endpoint{ID: 1})
 	is.NoError(err, "error creating environment")

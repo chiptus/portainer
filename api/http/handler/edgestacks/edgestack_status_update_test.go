@@ -14,8 +14,7 @@ import (
 
 // Update Status
 func TestUpdateStatusAndInspect(t *testing.T) {
-	handler, rawAPIKey, teardown := setupHandler(t)
-	defer teardown()
+	handler, rawAPIKey := setupHandler(t)
 
 	endpoint := createEndpoint(t, handler.DataStore)
 	edgeStack := createEdgeStack(t, handler.DataStore, endpoint.ID)
@@ -80,8 +79,7 @@ func TestUpdateStatusAndInspect(t *testing.T) {
 	}
 }
 func TestUpdateStatusWithInvalidPayload(t *testing.T) {
-	handler, _, teardown := setupHandler(t)
-	defer teardown()
+	handler, _ := setupHandler(t)
 
 	endpoint := createEndpoint(t, handler.DataStore)
 	edgeStack := createEdgeStack(t, handler.DataStore, endpoint.ID)

@@ -9,9 +9,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newScheduler(status *portaineree.S3BackupStatus, settings *portaineree.S3BackupSettings) *BackupScheduler {
+func newScheduler(t *testing.T, status *portaineree.S3BackupStatus, settings *portaineree.S3BackupSettings) *BackupScheduler {
 	scheduler := NewBackupScheduler(nil, i.NewDatastore(i.WithS3BackupService(status, settings)), i.NewUserActivityStore(), "")
 	scheduler.Start()
+
+	t.Cleanup(func() { scheduler.Stop() })
 
 	return scheduler
 }
@@ -31,44 +33,39 @@ func settings(cronRule string,
 }
 
 func Test_startWithoutCron_shouldNotStartAJob(t *testing.T) {
-	scheduler := newScheduler(&portaineree.S3BackupStatus{}, &portaineree.S3BackupSettings{})
-	defer scheduler.Stop()
-
+	scheduler := newScheduler(t, &portaineree.S3BackupStatus{}, &portaineree.S3BackupSettings{})
 	jobs := scheduler.cronmanager.Entries()
+
 	assert.Len(t, jobs, 0, "should have empty job list")
 }
 
 func Test_startWitACron_shouldAlsoStartAJob(t *testing.T) {
-	scheduler := newScheduler(&portaineree.S3BackupStatus{}, settings("*/10 * * * *", "id", "key", "region", "bucket"))
-	defer scheduler.Stop()
-
+	scheduler := newScheduler(t, &portaineree.S3BackupStatus{}, settings("*/10 * * * *", "id", "key", "region", "bucket"))
 	jobs := scheduler.cronmanager.Entries()
+
 	assert.Len(t, jobs, 1, "should have 1 active job")
 }
 
 func Test_update_shouldDropStatus(t *testing.T) {
 	storedStatus := &portaineree.S3BackupStatus{Failed: true, Timestamp: time.Now().Add(-time.Hour)}
-	scheduler := newScheduler(storedStatus, &portaineree.S3BackupSettings{})
-	defer scheduler.Stop()
-
+	scheduler := newScheduler(t, storedStatus, &portaineree.S3BackupSettings{})
 	scheduler.Update(*settings("*/10 * * * *", "id", "key", "region", "bucket"))
+
 	assert.Equal(t, portaineree.S3BackupStatus{}, *storedStatus, "stasus should be dropped")
 }
 
 func Test_update_shouldUpdateSettings(t *testing.T) {
 	storedSettings := &portaineree.S3BackupSettings{}
-	scheduler := newScheduler(&portaineree.S3BackupStatus{}, storedSettings)
-	defer scheduler.Stop()
-
 	newSettings := settings("", "id2", "key2", "region2", "bucket2")
+
+	scheduler := newScheduler(t, &portaineree.S3BackupStatus{}, storedSettings)
 	scheduler.Update(*newSettings)
 
 	assert.EqualValues(t, *storedSettings, *newSettings, "updated settings should match stored settings")
 }
 
 func Test_updateWithCron_shouldStartAJob(t *testing.T) {
-	scheduler := newScheduler(&portaineree.S3BackupStatus{}, &portaineree.S3BackupSettings{})
-	defer scheduler.Stop()
+	scheduler := newScheduler(t, &portaineree.S3BackupStatus{}, &portaineree.S3BackupSettings{})
 
 	jobs := scheduler.cronmanager.Entries()
 	assert.Len(t, jobs, 0, "should have empty job list upon startup")
@@ -80,9 +77,7 @@ func Test_updateWithCron_shouldStartAJob(t *testing.T) {
 }
 
 func Test_updateWithoutCron_shouldStopActiveJob(t *testing.T) {
-	scheduler := newScheduler(&portaineree.S3BackupStatus{}, &portaineree.S3BackupSettings{})
-	defer scheduler.Stop()
-
+	scheduler := newScheduler(t, &portaineree.S3BackupStatus{}, &portaineree.S3BackupSettings{})
 	scheduler.Update(*settings("*/10 * * * *", "id", "key", "region", "bucket"))
 
 	jobs := scheduler.cronmanager.Entries()
@@ -95,8 +90,7 @@ func Test_updateWithoutCron_shouldStopActiveJob(t *testing.T) {
 }
 
 func Test_updateWithACron_shouldStopActiveJob_andStartNewJob(t *testing.T) {
-	scheduler := newScheduler(&portaineree.S3BackupStatus{}, &portaineree.S3BackupSettings{})
-	defer scheduler.Stop()
+	scheduler := newScheduler(t, &portaineree.S3BackupStatus{}, &portaineree.S3BackupSettings{})
 
 	scheduler.Update(*settings("*/10 * * * *", "id", "key", "region", "bucket"))
 
