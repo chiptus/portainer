@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { PropsWithChildren } from 'react';
 
-interface Props {
+export interface Props {
   className?: string;
 }
 
