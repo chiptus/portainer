@@ -9,7 +9,13 @@ import { LicenseInfoPanel } from '@/react/portainer/licenses/components/LicenseI
 import { ChatBotItem } from '@/react/portainer/chat/ChatBot';
 import { EnvironmentURL } from '@/react/portainer/environments/ListView/EnvironmentURL';
 import { TableColumnHeaderImageUpToDate } from '@/react/docker/components/datatables/TableColumnHeaderImageUpToDate';
+import { withFormValidation } from '@/react-tools/withFormValidation';
 
+import {
+  EnvironmentVariablesFieldset,
+  EnvironmentVariablesPanel,
+  envVarValidation,
+} from '@@/form-components/EnvironmentVariablesFieldset';
 import { Icon } from '@@/Icon';
 import { ReactQueryDevtoolsWrapper } from '@@/ReactQueryDevtoolsWrapper';
 import { PageHeader } from '@@/PageHeader';
@@ -42,7 +48,7 @@ import { envListModule } from './environments-list-view-components';
 import { registriesModule } from './registries';
 import { accountModule } from './account';
 
-export const componentsModule = angular
+export const ngModule = angular
   .module('portainer.app.react.components', [
     accessControlModule,
     customTemplatesModule,
@@ -237,4 +243,22 @@ export const componentsModule = angular
       'usedNodes',
       'untrustedDevices',
     ])
-  ).name;
+  );
+
+export const componentsModule = ngModule.name;
+
+withFormValidation(
+  ngModule,
+  EnvironmentVariablesFieldset,
+  'environmentVariablesFieldset',
+  [],
+  envVarValidation
+);
+
+withFormValidation(
+  ngModule,
+  EnvironmentVariablesPanel,
+  'environmentVariablesPanel',
+  ['explanation', 'showHelpMessage'],
+  envVarValidation
+);

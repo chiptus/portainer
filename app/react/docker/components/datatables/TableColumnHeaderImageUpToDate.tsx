@@ -57,7 +57,7 @@ export function ImageUpToDateTooltip() {
             </div>
             <div>
               <Icon icon={UpdatesUnknown} className="!mr-2" />
-              Updates availablility unknown
+              Updates availability unknown
             </div>
           </div>
         }

@@ -1,6 +1,6 @@
 import clsx from 'clsx';
-import { ChangeEvent, createRef } from 'react';
-import { XCircle } from 'lucide-react';
+import { ChangeEvent, ComponentProps, createRef } from 'react';
+import { Upload, XCircle } from 'lucide-react';
 
 import { Button } from '@@/buttons';
 import { Icon } from '@@/Icon';
@@ -9,13 +9,14 @@ import styles from './FileUploadField.module.css';
 
 export interface Props {
   onChange(value: File): void;
-  value?: File;
+  value?: File | null;
   accept?: string;
   title?: string;
   required?: boolean;
   inputId: string;
   dataCy?: string;
   className?: string;
+  color?: ComponentProps<typeof Button>['color'];
 }
 
 export function FileUploadField({
@@ -27,6 +28,7 @@ export function FileUploadField({
   inputId,
   dataCy,
   className,
+  color = 'primary',
 }: Props) {
   const fileRef = createRef<HTMLInputElement>();
 
@@ -44,16 +46,17 @@ export function FileUploadField({
       />
       <Button
         size="small"
-        color="primary"
+        color={color}
         onClick={handleButtonClick}
         className={clsx(styles.fileButton, className)}
         data-cy={dataCy}
+        icon={Upload}
       >
         {title}
       </Button>
 
       <span className="vertical-center">
-        {value ? value.name : <Icon icon={XCircle} mode="danger" />}
+        {value ? value.name : required && <Icon icon={XCircle} mode="danger" />}
       </span>
     </div>
   );

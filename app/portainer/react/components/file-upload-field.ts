@@ -11,4 +11,5 @@ export const fileUploadField = r2a(FileUploadField, [
   'inputId',
   'dataCy',
   'className',
+  'color',
 ]);

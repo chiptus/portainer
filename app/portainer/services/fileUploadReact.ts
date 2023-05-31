@@ -1,7 +1,7 @@
 export function readFileAsArrayBuffer(
   file: File,
   maxSize?: number
-): Promise<string | ArrayBuffer | null> {
+): Promise<ArrayBuffer | null> {
   return new Promise((resolve, reject) => {
     if (maxSize && file.size > maxSize) {
       const rounded = Math.round((maxSize / (1000 * 1000)) * 10) / 10; // 10 multiplier to round to 1 decimal place
@@ -10,7 +10,9 @@ export function readFileAsArrayBuffer(
     const reader = new FileReader();
     reader.readAsArrayBuffer(file);
     reader.onload = () => {
-      resolve(reader.result);
+      if (reader.result instanceof ArrayBuffer) {
+        resolve(reader.result);
+      }
     };
     reader.onerror = (error) => reject(error);
   });
@@ -29,7 +31,7 @@ export function arrayBufferToBase64(buffer: ArrayBuffer) {
 export function readFileAsText(
   file: File,
   maxSize?: number
-): Promise<string | ArrayBuffer | null> {
+): Promise<string | null> {
   return new Promise((resolve, reject) => {
     if (maxSize && file.size > maxSize) {
       const rounded = Math.round((maxSize / (1000 * 1000)) * 10) / 10; // 10 multiplier to round to 1 decimal place
@@ -38,7 +40,9 @@ export function readFileAsText(
     const reader = new FileReader();
     reader.readAsText(file);
     reader.onload = () => {
-      resolve(reader.result);
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      }
     };
     reader.onerror = (error) => reject(error);
   });
