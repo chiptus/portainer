@@ -23,6 +23,10 @@ export function useCopy(
   function handleCopy() {
     const text = typeof copyText === 'function' ? copyText() : copyText;
 
+    if (!text) {
+      return;
+    }
+
     // https://developer.mozilla.org/en-US/docs/Web/API/Clipboard
     // https://caniuse.com/?search=clipboard
     if (navigator.clipboard) {
