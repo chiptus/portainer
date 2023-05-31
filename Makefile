@@ -26,7 +26,7 @@ build: build-server build-client ## Build the server and client
 build-client: init-dist ## Build the client
 	export NODE_ENV=$(ENV) && yarn build --config $(WEBPACK_CONFIG)
 
-build-server: init-dist server-deps ## Build the server binary
+build-server: init-dist ## Build the server binary
 	./build/build_binary.sh "$(PLATFORM)" "$(ARCH)"
 
 build-image: build ## Build the Portainer image locally
