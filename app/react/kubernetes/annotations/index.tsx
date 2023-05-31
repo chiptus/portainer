@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Plus } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { debounce } from 'lodash';
@@ -8,12 +8,12 @@ import { Tooltip } from '@@/Tip/Tooltip';
 
 import { Annotation } from './types';
 import { IngressActions } from './IngressActions';
-import { AnnotationsForm } from './AnnotationsForm';
+import { AnnotationErrors, AnnotationsForm } from './AnnotationsForm';
 
 interface Props {
   index?: number;
   initialAnnotations: Annotation[];
-  errors?: Record<string, ReactNode>;
+  errors?: AnnotationErrors;
   placeholder?: string[];
   handleUpdateAnnotations?: (
     annotations: Annotation[],

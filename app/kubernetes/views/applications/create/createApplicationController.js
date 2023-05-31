@@ -41,6 +41,7 @@ import { ModalType } from '@@/modals';
 
 import KubernetesAnnotationsUtils from '@/kubernetes/converters/annotations';
 import { placementOptions } from '@/react/kubernetes/applications/CreateView/placementTypes';
+import { getServices } from '@/react/kubernetes/networks/services/service';
 
 class KubernetesCreateApplicationController {
   /* #region  CONSTRUCTOR */
@@ -152,6 +153,7 @@ class KubernetesCreateApplicationController {
 
       annotationsErrors: {},
       isServiceAnnotationsValid: true,
+      nodePortServices: [],
     };
 
     this.isAdmin = false;
@@ -178,6 +180,8 @@ class KubernetesCreateApplicationController {
 
     this.handleUpdateAnnotations = this.handleUpdateAnnotations.bind(this);
     this.isAnnotationsValid = this.isAnnotationsValid.bind(this);
+    this.onServicesChange = this.onServicesChange.bind(this);
+    this.isServicesAnnotationsValid = this.isServicesAnnotationsValid.bind(this);
   }
   /* #endregion */
 
@@ -512,6 +516,25 @@ class KubernetesCreateApplicationController {
   /* #endregion */
 
   /* #region  PUBLISHED PORTS UI MANAGEMENT */
+  onServicesChange(services) {
+    return this.$async(async () => {
+      this.formValues.Services = services;
+      this.state.isServiceAnnotationsValid = this.isServicesAnnotationsValid(services);
+    });
+  }
+
+  isServicesAnnotationsValid(services) {
+    let count = 0;
+    services.reduce((acc, service) => {
+      const serviceAnnotationsErrors = KubernetesAnnotationsUtils.validateAnnotations(service.Annotations);
+      acc += Object.keys(serviceAnnotationsErrors).forEach((key) => {
+        count += Object.keys(serviceAnnotationsErrors[key]).length;
+      });
+      return acc;
+    }, count);
+    return count === 0;
+  }
+
   onServicePublishChange() {
     // enable publishing with no previous ports exposed
     if (this.formValues.IsPublishingService && !this.formValues.PublishedPorts.length) {
@@ -1458,13 +1481,20 @@ class KubernetesCreateApplicationController {
         this.formValues.IsPublishingService = this.formValues.PublishedPorts.length > 0;
 
         this.oldFormValues = angular.copy(this.formValues);
-
         this.refreshStorageAvailabilities();
       } catch (err) {
         this.Notifications.error('Failure', err, 'Unable to load view data');
       } finally {
         this.state.viewReady = true;
       }
+      // get all nodeport services in the cluster, to validate unique nodeports in the form
+      // this is below the try catch, to not block the page rendering
+      const allSettledServices = await Promise.allSettled(this.resourcePools.map((namespace) => getServices(this.endpoint.Id, namespace.Namespace.Name)));
+      const allServices = allSettledServices
+        .filter((settledService) => settledService.status === 'fulfilled' && settledService.value)
+        .map((fulfilledService) => fulfilledService.value)
+        .flat();
+      this.state.nodePortServices = allServices.filter((service) => service.Type === 'NodePort');
     });
   }
   /* #endregion */

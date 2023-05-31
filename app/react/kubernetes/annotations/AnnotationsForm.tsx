@@ -8,6 +8,8 @@ import { Button } from '@@/buttons';
 import { ReadOnly } from './ReadOnly';
 import { Annotation } from './types';
 
+export type AnnotationErrors = Record<string, ReactNode>;
+
 interface Props {
   annotations: Annotation[];
   handleAnnotationChange: (
@@ -16,7 +18,7 @@ interface Props {
     val: string
   ) => void;
   removeAnnotation: (index: number) => void;
-  errors: Record<string, ReactNode>;
+  errors: AnnotationErrors;
   placeholder: string[];
   disabled?: boolean;
   screen?: string;

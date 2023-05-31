@@ -7,12 +7,19 @@ import { ComponentType } from 'react';
 import { PropNames, r2a } from '@/react-tools/react2angular';
 
 import { validateForm } from '@@/form-components/validate-form';
-import { ArrayError } from '@@/form-components/InputList/InputList';
 
+/**
+ * The interface for the props that will be passed to the react component.
+ *
+ * - `onChange` and `values` must be manually passed to the react component from an angular view.
+ * - `errors` will be automatically passed to the react component and updated by the validation component.
+ * - `validationContext` is optional and can be used to pass external data to the yup validation schema.
+ */
 interface FormFieldProps<TValue> {
-  onChange(values: TValue): void;
-  values: TValue;
-  errors?: FormikErrors<TValue> | ArrayError<TValue>;
+  onChange(values: TValue): void; // update the values for the entire form object used in yup validation, not just one input.
+  values: TValue; // current values
+  errors?: FormikErrors<TValue>;
+  validationContext?: object; // optional context to pass to yup validation, for example, external data
 }
 
 type WithFormFieldProps<TProps, TValue> = TProps & FormFieldProps<TValue>;
@@ -37,7 +44,13 @@ export function withFormValidation<TProps, TValue, TData = never>(
   ngModule
     .component(
       reactComponentName,
-      r2a(Component, ['errors', 'onChange', 'values', ...propNames])
+      r2a(Component, [
+        'errors',
+        'onChange',
+        'values',
+        'validationContext',
+        ...propNames,
+      ])
     )
     .component(
       componentName,
@@ -68,7 +81,12 @@ export function createFormValidationComponent<TFormModel, TData = never>(
     </ng-form>`,
     controller: createFormValidatorController(schemaBuilder),
     bindings: Object.fromEntries(
-      [...propsWithErrors, 'validationData', 'onChange'].map((p) => [p, '<'])
+      [
+        ...propsWithErrors,
+        'validationData',
+        'onChange',
+        'validationContext',
+      ].map((p) => [p, '<'])
     ),
   };
 }
@@ -87,6 +105,8 @@ export function createFormValidatorController<TFormModel, TData = never>(
 
     validationData?: TData;
 
+    validationContext?: object;
+
     onChange?: (value: TFormModel) => void;
 
     /* @ngInject */
@@ -100,17 +120,18 @@ export function createFormValidatorController<TFormModel, TData = never>(
     async handleChange(newValues: TFormModel) {
       return this.$async(async () => {
         this.onChange?.(newValues);
-        await this.runValidation(newValues);
+        await this.runValidation(newValues, this.validationContext);
       });
     }
 
-    async runValidation(value: TFormModel) {
+    async runValidation(value: TFormModel, validationContext?: object) {
       return this.$async(async () => {
         this.form?.$setValidity('form', true, this.form);
 
         this.errors = await validateForm<TFormModel>(
           () => schemaBuilder(this.validationData),
-          value
+          value,
+          validationContext
         );
 
         if (this.errors && Object.keys(this.errors).length > 0) {
@@ -121,7 +142,10 @@ export function createFormValidatorController<TFormModel, TData = never>(
 
     async $onChanges(changes: { values?: { currentValue: TFormModel } }) {
       if (changes.values) {
-        await this.runValidation(changes.values.currentValue);
+        await this.runValidation(
+          changes.values.currentValue,
+          this.validationContext
+        );
       }
     }
   };

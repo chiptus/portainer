@@ -10,6 +10,10 @@ import { NamespaceAccessUsersSelector } from '@/react/kubernetes/namespaces/Acce
 import { Microk8sClusterDetails } from '@/react/kubernetes/cluster/Microk8sClusterDetails';
 import { CreateNamespaceRegistriesSelector } from '@/react/kubernetes/namespaces/CreateView/CreateNamespaceRegistriesSelector';
 import { KubeApplicationAccessPolicySelector } from '@/react/kubernetes/applications/CreateView/KubeApplicationAccessPolicySelector';
+import {
+  KubeServicesForm,
+  kubeServicesValidation,
+} from '@/react/kubernetes/applications/CreateView/application-services/KubeServicesForm';
 import { KubeApplicationDeploymentTypeSelector } from '@/react/kubernetes/applications/CreateView/KubeApplicationDeploymentTypeSelector';
 import { Annotations } from '@/react/kubernetes/annotations';
 import { YAMLReplace } from '@/react/kubernetes/common/YAMLReplace';
@@ -18,8 +22,10 @@ import {
   ApplicationDetailsWidget,
 } from '@/react/kubernetes/applications/DetailsView';
 import { withUserProvider } from '@/react/test-utils/withUserProvider';
+import { withFormValidation } from '@/react-tools/withFormValidation';
+import { withCurrentUser } from '@/react-tools/withCurrentUser';
 
-export const componentsModule = angular
+export const ngModule = angular
   .module('portainer.kubernetes.react.components', [])
   .component(
     'ingressClassDatatable',
@@ -112,7 +118,7 @@ export const componentsModule = angular
   )
   .component(
     'yamlReplace',
-    r2a(withUIRouter(withReactQuery(withUserProvider(YAMLReplace))), [
+    r2a(withUIRouter(withReactQuery(withCurrentUser(YAMLReplace))), [
       'yml',
       'originalYml',
       'disabled',
@@ -121,7 +127,7 @@ export const componentsModule = angular
   .component(
     'applicationSummaryWidget',
     r2a(
-      withUIRouter(withReactQuery(withUserProvider(ApplicationSummaryWidget))),
+      withUIRouter(withReactQuery(withCurrentUser(ApplicationSummaryWidget))),
       []
     )
   )
@@ -131,4 +137,21 @@ export const componentsModule = angular
       withUIRouter(withReactQuery(withUserProvider(ApplicationDetailsWidget))),
       []
     )
-  ).name;
+  );
+
+export const componentsModule = ngModule.name;
+
+withFormValidation(
+  ngModule,
+  withUIRouter(withCurrentUser(withReactQuery(KubeServicesForm))),
+  'kubeServicesForm',
+  [
+    'values',
+    'onChange',
+    'loadBalancerEnabled',
+    'appName',
+    'selector',
+    'isEditMode',
+  ],
+  kubeServicesValidation
+);
