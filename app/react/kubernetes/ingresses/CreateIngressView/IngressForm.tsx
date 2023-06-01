@@ -11,6 +11,7 @@ import { FormError } from '@@/form-components/FormError';
 import { Widget, WidgetBody } from '@@/Widget';
 import { Tooltip } from '@@/Tip/Tooltip';
 import { Button } from '@@/buttons';
+import { TextTip } from '@@/Tip/TextTip';
 
 import { Rule, ServicePorts } from './types';
 
@@ -279,9 +280,8 @@ export function IngressForm({
                     </div>
 
                     {!hideForm && (
-                      <p className="vertical-center text-muted small col-sm-12 whitespace-nowrap !p-0">
-                        <Icon icon={Info} mode="primary" size="md" />
-                        <span>
+                      <div className="col-sm-12 p-0">
+                        <TextTip color="blue">
                           Add a secret via{' '}
                           <Link
                             to="kubernetes.configurations"
@@ -294,8 +294,8 @@ export function IngressForm({
                           {', '}
                           then select &apos;Reload TLS secrets&apos; above to
                           populate the dropdown with your changes.
-                        </span>
-                      </p>
+                        </TextTip>
+                      </div>
                     )}
                   </div>
                 )}

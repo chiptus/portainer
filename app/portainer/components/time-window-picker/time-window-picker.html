@@ -1,8 +1,7 @@
-<div class="time-window-wrapper">
+<div class="col-sm-12">
   <div ng-if="$ctrl.state.changeWindow || !$ctrl.state.timeSet">
-    <div class="time-window-container" ng-if="!$ctrl.readOnly">
+    <div class="inline-flex flex-nowrap items-center gap-2" ng-if="!$ctrl.readOnly">
       <div
-        class="time-window-item"
         uib-timepicker
         readonly-input="true"
         ng-model="$ctrl.state.setStartTime"
@@ -11,9 +10,8 @@
         show-meridian="$ctrl.state.ismeridian"
         ng-change="$ctrl.timeWindowUpdate()"
       ></div>
-      <div class="time-window-item">to </div>
+      <div> to </div>
       <div
-        class="time-window-item"
         uib-timepicker
         readonly-input="true"
         ng-model="$ctrl.state.setEndTime"
@@ -22,20 +20,23 @@
         show-meridian="$ctrl.state.ismeridian"
         ng-change="$ctrl.timeWindowUpdate()"
       ></div>
-      <div class="time-window-item">
+      <div>
         <select class="form-control" ng-model="$ctrl.state.timeZoneSelected" ng-options="opt for opt in $ctrl.state.options.timezones" ng-change="$ctrl.timeWindowUpdate()">
         </select>
       </div>
     </div>
-    <div class="time-window-warning">
-      <span class="vertical-center text-warning"
-        ><pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> Automatic updates to stacks or applications outside the defined change window will not occur.</span
-      >
-      <div style="padding: 8px 0px" class="vertical-center text-warning" ng-show="$ctrl.state.timeError">
+    <span class="text-warning small inline-flex gap-1 align-top">
+      <div class="icon icon-sm">
         <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>
-        The chosen time configuration is invalid
       </div>
-    </div>
+      <div>Automatic updates to stacks or applications outside the defined change window will not occur.</div>
+    </span>
+    <span class="text-warning small inline-flex gap-1 align-top" ng-show="$ctrl.state.timeError">
+      <div class="icon icon-sm">
+        <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>
+      </div>
+      <div>The chosen time configuration is invalid</div>
+    </span>
   </div>
 </div>
 <div class="time-window-warning">

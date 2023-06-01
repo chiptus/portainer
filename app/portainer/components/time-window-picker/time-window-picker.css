@@ -22,9 +22,3 @@
   text-decoration-line: underline;
   padding: 0px 10px;
 }
-
-.time-window-warning {
-  color: var(--text-muted-color);
-  margin: 10px 0px 15px 0px;
-  font-size: 12px;
-}
