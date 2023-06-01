@@ -28,7 +28,7 @@ require (
 	github.com/digitalocean/godo v1.75.0
 	github.com/distribution/distribution v2.8.1+incompatible
 	github.com/docker/cli v20.10.12+incompatible
-	github.com/docker/docker v23.0.2+incompatible
+	github.com/docker/docker v23.0.3+incompatible
 	github.com/evanphx/json-patch/v5 v5.6.0
 	github.com/fvbommel/sortorder v1.0.2
 	github.com/fxamacker/cbor/v2 v2.4.0
