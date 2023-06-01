@@ -1,14 +1,12 @@
 package endpoints
 
 import (
+	"github.com/portainer/libhttp/request"
+	"golang.org/x/mod/semver"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
-	"time"
-
-	"github.com/portainer/libhttp/request"
-	"golang.org/x/mod/semver"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
@@ -115,7 +113,6 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 		if paginatedEndpoints[idx].EdgeCheckinInterval == 0 {
 			paginatedEndpoints[idx].EdgeCheckinInterval = settings.EdgeAgentCheckinInterval
 		}
-		paginatedEndpoints[idx].QueryDate = time.Now().Unix()
 		endpointutils.UpdateEdgeEndpointHeartbeat(&paginatedEndpoints[idx], settings)
 		if !query.excludeSnapshots {
 			err = handler.SnapshotService.FillSnapshotData(&paginatedEndpoints[idx])
