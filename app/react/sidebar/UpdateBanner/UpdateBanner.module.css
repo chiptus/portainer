@@ -2,6 +2,7 @@
   padding: 12px;
   margin-bottom: 20px;
   text-align: left;
+  background-color: var(--ui-gray-9);
 }
 
 .dismissTitle {
@@ -16,8 +17,17 @@
 }
 
 .actions {
-  color: var(--text-link-color);
-  padding-left: 26px;
+  color: var(--blue-9);
+  padding-left: 10px;
+  padding-right: 5px;
+  border: none;
+  background: none;
+}
+
+.non-admin-action {
+  color: var(--text-muted-color);
+  padding-left: 10px;
+  padding-right: 5px;
   border: none;
   background: none;
 }

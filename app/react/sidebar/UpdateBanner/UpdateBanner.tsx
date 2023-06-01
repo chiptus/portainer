@@ -8,10 +8,12 @@ import {
 } from '@/react/portainer/system/useSystemInfo';
 import { withEdition } from '@/react/portainer/feature-flags/withEdition';
 import { withHideOnExtension } from '@/react/hooks/withHideOnExtension';
+import { useCurrentUser } from '@/react/hooks/useUser';
 import { useSystemVersion } from '@/react/portainer/system/useSystemVersion';
 import { useUIState } from '@/react/hooks/useUIState';
 
 import { Icon } from '@@/Icon';
+import { Tooltip } from '@@/Tip/Tooltip';
 
 import { useSidebarState } from '../useSidebarState';
 
@@ -29,6 +31,7 @@ const enabledPlatforms: Array<ContainerPlatform> = [
 ];
 
 function UpdateBanner() {
+  const { isAdmin } = useCurrentUser();
   const { isOpen: isSidebarOpen } = useSidebarState();
   const systemInfoQuery = useSystemInfo();
 
@@ -78,22 +81,34 @@ function UpdateBanner() {
         </div>
       )}
 
-      <div>
-        <button
-          className={clsx(styles.actions)}
-          type="button"
-          onClick={handleClick}
-        >
-          Update automatically now
-        </button>
-
+      <div className="inline-flex items-center">
         <button
           type="button"
-          className={clsx(styles.dismissBtn, 'space-right')}
+          className={clsx(styles.dismissBtn)}
           onClick={() => onDismiss(LatestVersion)}
         >
           Dismiss
         </button>
+
+        <button
+          className={clsx(isAdmin ? styles.actions : styles.nonAdminAction)}
+          disabled={!isAdmin}
+          type="button"
+          onClick={isAdmin ? handleClick : () => {}}
+        >
+          Update now
+        </button>
+        <div
+          className={clsx(styles.updateTooltip, 'inline-flex', 'items-center')}
+        >
+          <Tooltip
+            message={
+              isAdmin
+                ? 'This will effortlessly migrate you to the latest version of Portainer by updating this instance'
+                : 'Admin users can effortlessly migrate to the latest version of Portainer by updating this instance'
+            }
+          />
+        </div>
       </div>
 
       {isOpen && <UpdateDialog onDismiss={() => setIsOpen(false)} />}
