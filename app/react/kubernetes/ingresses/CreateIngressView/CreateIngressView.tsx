@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, ReactNode, useCallback } from 'react';
 import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import { v4 as uuidv4 } from 'uuid';
-import _ from 'lodash';
+import { forEach, groupBy, debounce } from 'lodash';
 
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useConfigurations } from '@/react/kubernetes/configs/queries';
@@ -137,18 +137,27 @@ export function CreateIngressView() {
     }
   });
 
-  const clusterIpServices = useMemo(
-    () => servicesResults.data?.filter((s) => s.Type === 'ClusterIP'),
-    [servicesResults.data]
-  );
-  const servicesOptions = useMemo(
-    () =>
-      clusterIpServices?.map((service) => ({
-        label: service.Name,
-        value: service.Name,
-      })),
-    [clusterIpServices]
-  );
+  const allServices = servicesResults.data;
+  const servicesOptions: Option<string>[] = useMemo(() => {
+    const options: Option<string>[] = [];
+    forEach(
+      groupBy(allServices, (s) => s.Type),
+      (services, type) => {
+        options.push({
+          label: `--- ${type} services ---`,
+          value: type,
+          disabled: true,
+        });
+        services.forEach((service) => {
+          options.push({
+            label: service.Name,
+            value: service.Name,
+          });
+        });
+      }
+    );
+    return options;
+  }, [allServices]);
 
   const serviceOptions = [
     { label: 'Select a service', value: '' },
@@ -156,9 +165,9 @@ export function CreateIngressView() {
   ];
   const servicePorts = useMemo(
     () =>
-      clusterIpServices
+      allServices
         ? Object.fromEntries(
-            clusterIpServices?.map((service) => [
+            allServices?.map((service) => [
               service.Name,
               service.Ports.map((port) => ({
                 label: String(port.Port),
@@ -167,7 +176,7 @@ export function CreateIngressView() {
             ])
           )
         : {},
-    [clusterIpServices]
+    [allServices]
   );
 
   const existingIngressClass = useMemo(
@@ -427,10 +436,7 @@ export function CreateIngressView() {
     [ingresses, environmentId, isEdit, params.name]
   );
 
-  const debouncedValidate = useMemo(
-    () => _.debounce(validate, 500),
-    [validate]
-  );
+  const debouncedValidate = useMemo(() => debounce(validate, 500), [validate]);
 
   useEffect(() => {
     if (namespace.length > 0) {
