@@ -3,6 +3,8 @@ package edgeasync
 import (
 	"encoding/base64"
 	"fmt"
+	"os"
+	"path"
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -20,6 +22,7 @@ type edgeStackData struct {
 	ID                  portaineree.EdgeStackID
 	Version             int
 	StackFileContent    string
+	DotEnvFileContent   string
 	Name                string
 	RegistryCredentials []portaineree.EdgeRegistryCredential
 	// Namespace to use for Kubernetes manifests, leave empty to use the namespaces defined in the manifest
@@ -132,6 +135,14 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 		return err
 	}
 
+	var dotEnvFileContent []byte
+	if _, err = os.Stat(path.Join(edgeStack.ProjectPath, ".env")); err == nil {
+		dotEnvFileContent, err = service.fileService.GetFileContent(edgeStack.ProjectPath, ".env")
+		if err != nil {
+			return err
+		}
+	}
+
 	registryCredentials := registryutils.GetRegistryCredentialsForEdgeStack(tx, edgeStack, endpoint)
 
 	namespace := ""
@@ -141,6 +152,7 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 
 	stackStatus := edgeStackData{
 		StackFileContent:    string(stackFileContent),
+		DotEnvFileContent:   string(dotEnvFileContent),
 		Name:                edgeStack.Name,
 		ID:                  edgeStackID,
 		Version:             edgeStack.Version,
