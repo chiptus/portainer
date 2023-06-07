@@ -2,6 +2,7 @@ import { Form, Formik } from 'formik';
 
 import { addPlural } from '@/portainer/helpers/strings';
 import { useUpdateEnvironmentsRelationsMutation } from '@/react/portainer/environments/queries/useUpdateEnvironmentsRelationsMutation';
+import { BetaAlert } from '@/react/portainer/environments/update-schedules/common/BetaAlert';
 
 import { Checkbox } from '@@/form-components/Checkbox';
 import { FormControl } from '@@/form-components/FormControl';
@@ -145,6 +146,16 @@ export function AssignmentDialog({
                 Associate
               </LoadingButton>
             </Modal.Footer>
+            <div className="mt-2">
+              <BetaAlert
+                message={
+                  <>
+                    <b>Beta Feature</b> - This feature is currently in beta,
+                    some functions might not work as expected.
+                  </>
+                }
+              />
+            </div>
           </Form>
         )}
       </Formik>
