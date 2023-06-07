@@ -8,6 +8,7 @@ import { SettingsFDO } from '@/react/portainer/settings/EdgeComputeView/Settings
 import { SettingsOpenAMT } from '@/react/portainer/settings/EdgeComputeView/SettingsOpenAMT';
 import { InternalAuth } from '@/react/portainer/settings/AuthenticationView/InternalAuth';
 import { ExperimentalFeatures } from '@/react/portainer/settings/SettingsView/ExperimentalFeatures';
+import { ApplicationSettingsPanel } from '@/react/portainer/settings/SettingsView/ApplicationSettingsPanel';
 
 export const settingsModule = angular
   .module('portainer.app.react.components.settings', [])
@@ -23,4 +24,8 @@ export const settingsModule = angular
   .component(
     'internalAuth',
     r2a(InternalAuth, ['onSaveSettings', 'isLoading', 'value', 'onChange'])
+  )
+  .component(
+    'applicationSettingsPanel',
+    r2a(withReactQuery(ApplicationSettingsPanel), ['onSuccess'])
   ).name;

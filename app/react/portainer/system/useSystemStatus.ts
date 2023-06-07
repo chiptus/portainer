@@ -2,8 +2,10 @@ import { useQuery } from 'react-query';
 import { RetryValue } from 'react-query/types/core/retryer';
 
 import axios, { parseAxiosError } from '@/portainer/services/axios';
+import { UserId } from '@/portainer/users/types';
 
 import { isBE } from '../feature-flags/feature-flags.service';
+import { EnvironmentId } from '../environments/types';
 
 import { buildUrl } from './build-url';
 import { queryKeys } from './query-keys';
@@ -14,6 +16,11 @@ export interface StatusResponse {
   Edition: string;
   Version: string;
   InstanceID: string;
+  DemoEnvironment: {
+    Enabled: boolean;
+    Users: Array<UserId>;
+    Environments: Array<EnvironmentId>;
+  };
 }
 
 export async function getSystemStatus() {
@@ -44,5 +51,11 @@ export function useSystemStatus<T = StatusResponse>({
     enabled,
     retry,
     onSuccess,
+  });
+}
+
+export function useIsDemo() {
+  return useSystemStatus({
+    select: (status) => status.DemoEnvironment.Enabled,
   });
 }

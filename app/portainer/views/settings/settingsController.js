@@ -12,11 +12,12 @@ angular.module('portainer.app').controller('SettingsController', [
   'FileSaver',
   function ($scope, Notifications, SettingsService, StateManager, BackupService, FileSaver) {
     $scope.s3BackupFeatureId = FeatureId.S3_BACKUP_SETTING;
+    $scope.updateSettings = updateSettings;
+    $scope.handleSuccess = handleSuccess;
 
     $scope.backupOptions = options;
 
     $scope.state = {
-      isDemo: false,
       actionInProgress: false,
       availableKubeconfigExpiryOptions: [
         {
@@ -47,8 +48,6 @@ angular.module('portainer.app').controller('SettingsController', [
     $scope.BACKUP_FORM_TYPES = { S3: 's3', FILE: 'file' };
 
     $scope.formValues = {
-      customLogo: false,
-      customLoginBanner: false,
       GlobalDeploymentOptions: {
         hideAddWithForm: false,
         perEnvOverride: false,
@@ -60,7 +59,6 @@ angular.module('portainer.app').controller('SettingsController', [
       BlackListedLabels: [],
       labelName: '',
       labelValue: '',
-      enableTelemetry: false,
       passwordProtect: false,
       password: '',
       scheduleAutomaticBackups: true,
@@ -71,26 +69,6 @@ angular.module('portainer.app').controller('SettingsController', [
       bucketName: '',
       s3CompatibleHost: '',
       backupFormType: $scope.BACKUP_FORM_TYPES.FILE,
-    };
-
-    $scope.initialFormValues = {};
-
-    $scope.onToggleEnableTelemetry = function onToggleEnableTelemetry(checked) {
-      $scope.$evalAsync(() => {
-        $scope.formValues.enableTelemetry = checked;
-      });
-    };
-
-    $scope.onToggleCustomLogo = function onToggleCustomLogo(checked) {
-      $scope.$evalAsync(() => {
-        $scope.formValues.customLogo = checked;
-      });
-    };
-
-    $scope.onToggleCustomLoginBanner = function onToggleCustomLoginBanner(checked) {
-      $scope.$evalAsync(() => {
-        $scope.formValues.customLoginBanner = checked;
-      });
     };
 
     $scope.onToggleAddWithForm = function onToggleAddWithForm(checked) {
@@ -134,13 +112,6 @@ angular.module('portainer.app').controller('SettingsController', [
       $scope.state.featureLimited = limited;
     };
 
-    $scope.onChangeCheckInInterval = function (interval) {
-      $scope.$evalAsync(() => {
-        var settings = $scope.settings;
-        settings.EdgeAgentCheckinInterval = interval;
-      });
-    };
-
     $scope.removeFilteredContainerLabel = function (index) {
       const filteredSettings = $scope.formValues.BlackListedLabels.filter((_, i) => i !== index);
       const filteredSettingsPayload = { BlackListedLabels: filteredSettings };
@@ -178,21 +149,6 @@ angular.module('portainer.app').controller('SettingsController', [
         .finally(function final() {
           $scope.state.backupInProgress = false;
         });
-    };
-
-    // only update the values from the app settings widget. In future separate the api endpoints
-    $scope.saveApplicationSettings = function () {
-      const appSettingsPayload = {
-        SnapshotInterval: $scope.settings.SnapshotInterval,
-        LogoURL: $scope.formValues.customLogo ? $scope.settings.LogoURL : '',
-        EnableTelemetry: $scope.formValues.enableTelemetry,
-        CustomLoginBanner: $scope.formValues.customLoginBanner ? $scope.settings.CustomLoginBanner : '',
-        TemplatesURL: $scope.settings.TemplatesURL,
-        EdgeAgentCheckinInterval: $scope.settings.EdgeAgentCheckinInterval,
-      };
-
-      $scope.state.actionInProgress = true;
-      updateSettings(appSettingsPayload, 'Application settings updated');
     };
 
     // only update the values from the kube settings widget. In future separate the api endpoints
@@ -253,17 +209,10 @@ angular.module('portainer.app').controller('SettingsController', [
       // it is not ideal solution as API still accepts CloudAPIKeys
       // which may override the cloud provider API keys
       settings.CloudApiKeys = undefined;
-      SettingsService.update(settings)
-        .then(function success(response) {
+      return SettingsService.update(settings)
+        .then(function success(settings) {
           Notifications.success('Success', successMessage);
-          StateManager.updateLogo(settings.LogoURL);
-          StateManager.updateSnapshotInterval(settings.SnapshotInterval);
-          StateManager.updateEnableTelemetry(settings.EnableTelemetry);
-          $scope.initialFormValues.enableTelemetry = response.EnableTelemetry;
-          $scope.formValues.BlackListedLabels = response.BlackListedLabels;
-          // trigger an event to update the deployment options for the react based sidebar
-          const event = new CustomEvent('portainer:deploymentOptionsUpdated');
-          document.dispatchEvent(event);
+          handleSuccess(settings);
         })
         .catch(function error(err) {
           Notifications.error('Failure', err, 'Unable to update settings');
@@ -274,10 +223,20 @@ angular.module('portainer.app').controller('SettingsController', [
         });
     }
 
-    function initView() {
-      const state = StateManager.getState();
-      $scope.state.isDemo = state.application.demoEnvironment.enabled;
+    function handleSuccess(settings) {
+      if (settings) {
+        StateManager.updateLogo(settings.LogoURL);
+        StateManager.updateSnapshotInterval(settings.SnapshotInterval);
+        StateManager.updateEnableTelemetry(settings.EnableTelemetry);
+        $scope.formValues.BlackListedLabels = settings.BlackListedLabels;
+      }
 
+      // trigger an event to update the deployment options for the react based sidebar
+      const event = new CustomEvent('portainer:deploymentOptionsUpdated');
+      document.dispatchEvent(event);
+    }
+
+    function initView() {
       BackupService.getS3Settings()
         .then(function success(data) {
           $scope.formValues.passwordS3 = data.Password;
@@ -300,21 +259,10 @@ angular.module('portainer.app').controller('SettingsController', [
           var settings = data;
           $scope.settings = settings;
 
-          if (settings.LogoURL !== '') {
-            $scope.formValues.customLogo = true;
-          }
-
-          if (settings.CustomLoginBanner !== '') {
-            $scope.formValues.customLoginBanner = true;
-          }
-
           if (settings.GlobalDeploymentOptions) {
             $scope.formValues.GlobalDeploymentOptions = settings.GlobalDeploymentOptions;
           }
 
-          $scope.initialFormValues.enableTelemetry = settings.EnableTelemetry;
-
-          $scope.formValues.enableTelemetry = settings.EnableTelemetry;
           $scope.formValues.KubeconfigExpiry = settings.KubeconfigExpiry;
           $scope.formValues.HelmRepositoryURL = settings.HelmRepositoryURL;
           $scope.formValues.BlackListedLabels = settings.BlackListedLabels;
