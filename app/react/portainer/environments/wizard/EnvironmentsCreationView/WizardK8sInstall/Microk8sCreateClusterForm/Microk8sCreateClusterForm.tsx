@@ -47,6 +47,7 @@ const addonOptions = [
 
 const microk8sOptions: Option<Microk8sK8sVersion>[] = [
   { label: 'latest/stable', value: 'latest/stable' },
+  { label: '1.27/stable', value: '1.27/stable' },
   { label: '1.26/stable', value: '1.26/stable' },
   { label: '1.25/stable', value: '1.25/stable' },
   { label: '1.24/stable', value: '1.24/stable' },

@@ -17,6 +17,7 @@ export type ProvisionOption = KaasProvider | K8sDistributionType;
 
 export type Microk8sK8sVersion =
   | 'latest/stable'
+  | '1.27/stable'
   | '1.26/stable'
   | '1.25/stable'
   | '1.24/stable';
