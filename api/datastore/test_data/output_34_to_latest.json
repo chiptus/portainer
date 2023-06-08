@@ -802,7 +802,9 @@
       "hideAddWithForm": false,
       "hideFileUpload": false,
       "hideWebEditor": false,
-      "perEnvOverride": false
+      "minApplicationNoteLength": 0,
+      "perEnvOverride": false,
+      "requireNoteOnApplications": false
     },
     "HelmRepositoryURL": "https://charts.bitnami.com/bitnami",
     "InternalAuthSettings": {

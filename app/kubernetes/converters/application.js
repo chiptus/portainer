@@ -304,6 +304,7 @@ class KubernetesApplicationConverter {
     res.PublishedPorts = KubernetesApplicationHelper.generatePublishedPortsFormValuesFromPublishedPorts(app.ServiceType, app.PublishedPorts, ingresses);
     res.Containers = app.Containers;
     res.Annotations = KubernetesAnnotationsUtils.apiToFormValueAnnotations(app.Annotations);
+    res.Note = app.Note;
 
     const isIngress = _.filter(res.PublishedPorts, (p) => p.IngressName).length;
     if (app.ServiceType === KubernetesServiceTypes.LOAD_BALANCER) {
@@ -357,6 +358,7 @@ class KubernetesApplicationConverter {
     }
 
     app.Annotations = formValues.Annotations;
+    app.Note = formValues.Note;
 
     let headlessService;
     if (statefulSet) {

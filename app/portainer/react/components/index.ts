@@ -10,12 +10,14 @@ import { ChatBotItem } from '@/react/portainer/chat/ChatBot';
 import { EnvironmentURL } from '@/react/portainer/environments/ListView/EnvironmentURL';
 import { TableColumnHeaderImageUpToDate } from '@/react/docker/components/datatables/TableColumnHeaderImageUpToDate';
 import { withFormValidation } from '@/react-tools/withFormValidation';
+import { BetaAlert } from '@/react/portainer/environments/update-schedules/common/BetaAlert';
 
 import {
   EnvironmentVariablesFieldset,
   EnvironmentVariablesPanel,
   envVarValidation,
 } from '@@/form-components/EnvironmentVariablesFieldset';
+import { Note } from '@@/Note';
 import { Icon } from '@@/Icon';
 import { ReactQueryDevtoolsWrapper } from '@@/ReactQueryDevtoolsWrapper';
 import { PageHeader } from '@@/PageHeader';
@@ -242,6 +244,20 @@ export const ngModule = angular
       'licenseInfo',
       'usedNodes',
       'untrustedDevices',
+    ])
+  )
+  .component('betaAlert', r2a(BetaAlert, ['className', 'message', 'isHtml']))
+  .component(
+    'note',
+    r2a(Note, [
+      'defaultIsOpen',
+      'value',
+      'onChange',
+      'labelClass',
+      'inputClass',
+      'isRequired',
+      'minLength',
+      'isExpandable',
     ])
   );
 

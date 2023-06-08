@@ -7,7 +7,7 @@
     <rd-widget>
       <rd-widget-header icon="svg-kube" title-text="Kubernetes settings"></rd-widget-header>
       <rd-widget-body>
-        <form class="form-horizontal">
+        <form class="form-horizontal" name="kubeForm">
           <!-- helm charts -->
           <div class="col-sm-12 form-section-title"> Helm Repository </div>
           <div>
@@ -47,7 +47,7 @@
               checked="formValues.GlobalDeploymentOptions.hideAddWithForm"
               name="'toggle_hideAddWithForm'"
               on-change="(onToggleAddWithForm)"
-              field-class="'col-sm-10'"
+              field-class="'col-sm-12'"
               label-class="'col-sm-2'"
               tooltip="'Hides the \'Add with form\' buttons and prevents adding/editing of resources via forms'"
             ></por-switch-field>
@@ -58,7 +58,7 @@
               checked="!formValues.GlobalDeploymentOptions.hideWebEditor"
               name="'toggle_hideWebEditor'"
               on-change="(onToggleHideWebEditor)"
-              field-class="'col-sm-10'"
+              field-class="'col-sm-12'"
               label-class="'col-sm-2 !pl-4'"
             ></por-switch-field>
             <por-switch-field
@@ -66,7 +66,7 @@
               checked="!formValues.GlobalDeploymentOptions.hideFileUpload"
               name="'toggle_hideFileUpload'"
               on-change="(onToggleHideFileUpload)"
-              field-class="'col-sm-10'"
+              field-class="'col-sm-12'"
               label-class="'col-sm-2 !pl-4'"
             ></por-switch-field>
           </div>
@@ -76,12 +76,51 @@
               checked="formValues.GlobalDeploymentOptions.perEnvOverride"
               name="'toggle_perEnvOverride'"
               on-change="(onTogglePerEnvOverride)"
-              field-class="'col-sm-10'"
+              field-class="'col-sm-12'"
               label-class="'col-sm-2'"
               tooltip="'Allows overriding of deployment options in the Cluster setup screen of each environment'"
             ></por-switch-field>
           </div>
           <!-- ! deployment options  -->
+          <div class="form-group">
+            <por-switch-field
+              label="'Require a note on applications'"
+              checked="formValues.GlobalDeploymentOptions.requireNoteOnApplications"
+              name="'toggle_requireNoteOnApplications'"
+              on-change="(onToggleNoteOnApplications)"
+              field-class="'col-sm-12'"
+              label-class="'col-sm-2'"
+              tooltip="'Using this will enforce entry of a note in Add/Edit application (and prevent complete clearing of it in Application details).'"
+            ></por-switch-field>
+          </div>
+          <div class="form-group" ng-if="formValues.GlobalDeploymentOptions.requireNoteOnApplications">
+            <label for="minApplicationNoteLength" class="col-xs-6 col-sm-2 control-label text-left">
+              <span class="!pl-4">Minimum number of characters note must have</span>
+            </label>
+            <div class="col-xs-3 col-md-2">
+              <input
+                type="number"
+                name="minNoteLength"
+                class="form-control"
+                ng-model="formValues.GlobalDeploymentOptions.minApplicationNoteLength"
+                id="minApplicationNoteLength"
+                placeholder="50"
+                ng-min="1"
+                ng-max="9999"
+                ng-required="formValues.GlobalDeploymentOptions.requireNoteOnApplications"
+              />
+              <div class="form-group" ng-show="kubeForm.minNoteLength.$invalid">
+                <div class="col-sm-12 small text-warning">
+                  <div ng-messages="kubeForm.minNoteLength.$error">
+                    <p class="vertical-center mt-1">
+                      <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>
+                      Enter 1 to 9999
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           <!-- actions -->
           <div class="form-group">
             <div class="col-sm-12">
@@ -89,7 +128,7 @@
                 type="button"
                 class="btn btn-primary btn-sm !ml-0"
                 ng-click="saveKubernetesSettings()"
-                ng-disabled="state.kubeSettingsActionInProgress"
+                ng-disabled="state.kubeSettingsActionInProgress || !kubeForm.$valid"
                 button-spinner="state.kubeSettingsActionInProgress"
                 data-cy="settings-saveKubeSettingsButton"
               >

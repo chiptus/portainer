@@ -211,6 +211,18 @@
                 </div>
                 <!-- #end region IMAGE FIELD -->
 
+                <div class="col-sm-12 notes mb-4 p-0">
+                  <note
+                    value="ctrl.formValues.Note"
+                    default-is-open="true"
+                    on-change="(ctrl.handleUpdateNotes)"
+                    label-class="'col-xs-12 col-sm-3 col-lg-2'"
+                    input-class="'col-xs-12 col-sm-8'"
+                    is-required="ctrl.deploymentOptions.requireNoteOnApplications"
+                    min-length="ctrl.deploymentOptions.minApplicationNoteLength"
+                  ></note>
+                </div>
+
                 <div class="col-sm-12 annotations mb-4 p-0">
                   <annotations
                     initial-annotations="ctrl.formValues.Annotations"
@@ -1220,7 +1232,7 @@
                   ng-if="ctrl.state.appType === ctrl.KubernetesDeploymentTypes.APPLICATION_FORM"
                   type="button"
                   class="btn btn-primary btn-sm !ml-0"
-                  ng-disabled="!kubernetesApplicationCreationForm.$valid || ctrl.isDeployUpdateButtonDisabled() || !ctrl.imageValidityIsValid() || ctrl.hasPortErrors() || !ctrl.isAnnotationsValid()"
+                  ng-disabled="!kubernetesApplicationCreationForm.$valid || ctrl.isDeployUpdateButtonDisabled() || !ctrl.imageValidityIsValid() || ctrl.hasPortErrors() || !ctrl.isAnnotationsValid() || !ctrl.isNoteValid()"
                   ng-click="ctrl.deployApplication()"
                   button-spinner="ctrl.state.actionInProgress"
                   data-cy="k8sAppCreate-deployButton"
@@ -1244,7 +1256,7 @@
                   class="btn btn-sm btn-primary"
                   ng-click="ctrl.updateApplicationViaWebEditor()"
                   ng-if="ctrl.state.appType === ctrl.KubernetesDeploymentTypes.CONTENT || ctrl.state.updateWebEditorInProgress"
-                  ng-disabled="!kubernetesApplicationCreationForm.$valid || !ctrl.state.isEditorDirty || ctrl.state.updateWebEditorInProgress"
+                  ng-disabled="!kubernetesApplicationCreationForm.$valid || !ctrl.state.isEditorDirty || ctrl.state.updateWebEditorInProgress || !ctrl.isAnnotationsValid() || !ctrl.isNoteValid()"
                   style="margin-top: 7px; margin-left: 0"
                   button-spinner="ctrl.state.updateWebEditorInProgress"
                 >

@@ -7,9 +7,11 @@
 
 .btn-none:focus {
   outline: none;
+  color: inherit;
 }
 
-.btn-none:active {
+.btn-none:active,
+.btn-none:focus {
   outline: none;
   background-color: transparent;
   box-shadow: none;

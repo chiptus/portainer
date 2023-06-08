@@ -3,6 +3,7 @@ import _ from 'lodash-es';
 import filesizeParser from 'filesize-parser';
 import * as JsonPatch from 'fast-json-patch';
 import { RegistryTypes } from '@/portainer/models/registryTypes';
+import { getGlobalDeploymentOptions } from '@/react/portainer/settings/settings.service';
 
 import {
   KubernetesApplicationDataAccessPolicies,
@@ -182,6 +183,8 @@ class KubernetesCreateApplicationController {
     this.isAnnotationsValid = this.isAnnotationsValid.bind(this);
     this.onServicesChange = this.onServicesChange.bind(this);
     this.isServicesAnnotationsValid = this.isServicesAnnotationsValid.bind(this);
+    this.handleUpdateNotes = this.handleUpdateNotes.bind(this);
+    this.isNoteValid = this.isNoteValid.bind(this);
   }
   /* #endregion */
 
@@ -1363,6 +1366,12 @@ class KubernetesCreateApplicationController {
   }
   /* #endregion */
 
+  handleUpdateNotes(note) {
+    return this.$async(async () => {
+      this.formValues.Note = note;
+    });
+  }
+
   /** Annotations */
   handleUpdateAnnotations(annotations) {
     return this.$async(async () => {
@@ -1375,6 +1384,18 @@ class KubernetesCreateApplicationController {
     return Object.keys(this.state.annotationsErrors).length === 0 && this.state.isServiceAnnotationsValid;
   }
 
+  isNoteValid() {
+    if (
+      this.deploymentOptions.requireNoteOnApplications &&
+      this.deploymentOptions.minApplicationNoteLength &&
+      this.formValues.Note.length < this.deploymentOptions.minApplicationNoteLength
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
   /* #region  ON INIT */
   $onInit() {
     return this.$async(async () => {
@@ -1382,6 +1403,7 @@ class KubernetesCreateApplicationController {
         this.Authentication.redirectIfUnauthorized(['K8sApplicationDetailsW']);
 
         this.isAdmin = this.Authentication.isAdmin();
+        this.deploymentOptions = await getGlobalDeploymentOptions();
 
         this.state.isEdit = !!(this.$state.params.namespace && this.$state.params.name);
 

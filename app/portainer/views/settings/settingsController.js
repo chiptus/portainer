@@ -53,6 +53,8 @@ angular.module('portainer.app').controller('SettingsController', [
         perEnvOverride: false,
         hideWebEditor: false,
         hideFileUpload: false,
+        requireNoteOnApplications: false,
+        minApplicationNoteLength: '',
       },
       KubeconfigExpiry: undefined,
       HelmRepositoryURL: undefined,
@@ -92,6 +94,12 @@ angular.module('portainer.app').controller('SettingsController', [
     $scope.onToggleHideWebEditor = function onToggleHideWebEditor(checked) {
       $scope.$evalAsync(() => {
         $scope.formValues.GlobalDeploymentOptions.hideWebEditor = !checked;
+      });
+    };
+
+    $scope.onToggleNoteOnApplications = function onToggleNoteOnApplications(checked) {
+      $scope.$evalAsync(() => {
+        $scope.formValues.GlobalDeploymentOptions.requireNoteOnApplications = checked;
       });
     };
 

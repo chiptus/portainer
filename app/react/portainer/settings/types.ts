@@ -146,7 +146,7 @@ export interface Settings {
   };
 }
 
-interface GlobalDeploymentOptions {
+export interface GlobalDeploymentOptions {
   /** Hide manual deploy forms in portainer */
   hideAddWithForm: boolean;
   /** Configure this per environment or globally */
@@ -155,6 +155,9 @@ interface GlobalDeploymentOptions {
   hideWebEditor: boolean;
   /** Hide the file upload option in the remaining visible forms */
   hideFileUpload: boolean;
+  /** Make note on application add/edit screen required */
+  requireNoteOnApplications: boolean;
+  minApplicationNoteLength: number;
 }
 
 export interface PublicSettingsResponse {

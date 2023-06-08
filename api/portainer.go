@@ -1235,6 +1235,9 @@ type (
 		HideWebEditor bool `json:"hideWebEditor" example:"false"`
 		// Hide the file upload option in the remaining visible forms
 		HideFileUpload bool `json:"hideFileUpload" example:"false"`
+		// Make note field mandatory if enabled
+		RequireNoteOnApplications bool `json:"requireNoteOnApplications" example:"false"`
+		MinApplicationNoteLength  int  `json:"minApplicationNoteLength" example:"10"`
 	}
 
 	Edge struct {

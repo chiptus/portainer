@@ -1,4 +1,4 @@
-import { User, Clock, Edit, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { User, Clock, Info } from 'lucide-react';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
 import { Pod } from 'kubernetes-types/core/v1';
@@ -8,12 +8,15 @@ import { Annotations } from '@/react/kubernetes/annotations';
 import KubernetesAnnotationsUtils from '@/kubernetes/converters/annotations';
 import { Authorized } from '@/react/hooks/useUser';
 import { notifyError, notifySuccess } from '@/portainer/services/notifications';
+import { type GlobalDeploymentOptions } from '@/react/portainer/settings/types';
+import { usePublicSettings } from '@/react/portainer/settings/queries';
 
 import { DetailsTable } from '@@/DetailsTable';
 import { Badge } from '@@/Badge';
 import { Link } from '@@/Link';
-import { Button, LoadingButton } from '@@/buttons';
+import { LoadingButton } from '@@/buttons';
 import { Icon } from '@@/Icon';
+import { Note } from '@@/Note';
 
 import { isSystemNamespace } from '../../namespaces/utils';
 import {
@@ -67,13 +70,17 @@ export function ApplicationSummaryWidget() {
     application?.metadata?.annotations
   );
 
-  const [isNoteOpen, setIsNoteOpen] = useState(true);
   const [applicationNoteFormValues, setApplicationNoteFormValues] =
     useState('');
 
   useEffect(() => {
     setApplicationNoteFormValues(applicationNote || '');
   }, [applicationNote]);
+
+  const globalDeploymentOptionsQuery =
+    usePublicSettings<GlobalDeploymentOptions>({
+      select: (settings) => settings.GlobalDeploymentOptions,
+    });
 
   const failedCreateCondition = application?.status?.conditions?.find(
     (condition) => condition.reason === 'FailedCreate'
@@ -225,66 +232,47 @@ export function ApplicationSummaryWidget() {
         <tr>
           <td colSpan={2}>
             <form className="form-horizontal">
-              <div className="form-group">
-                <div className="col-sm-12 vertical-center">
-                  <Edit /> Note
-                  <Button
-                    size="xsmall"
-                    type="button"
-                    color="light"
-                    data-cy="k8sAppDetail-expandNoteButton"
-                    onClick={() => setIsNoteOpen(!isNoteOpen)}
-                  >
-                    {isNoteOpen ? 'Collapse' : 'Expand'}
-                    {isNoteOpen ? <ChevronUp /> : <ChevronDown />}
-                  </Button>
-                </div>
-              </div>
-
-              {isNoteOpen && (
-                <>
-                  <div className="form-group">
-                    <div className="col-sm-12">
-                      <textarea
-                        className="form-control resize-y"
-                        name="application_note"
-                        id="application_note"
-                        value={applicationNoteFormValues}
-                        onChange={(e) =>
-                          setApplicationNoteFormValues(e.target.value)
-                        }
-                        rows={5}
-                        placeholder="Enter a note about this application..."
-                      />
-                    </div>
+              <Note
+                value={applicationNoteFormValues}
+                onChange={setApplicationNoteFormValues}
+                isRequired={
+                  globalDeploymentOptionsQuery?.data?.requireNoteOnApplications
+                }
+                minLength={
+                  globalDeploymentOptionsQuery?.data?.minApplicationNoteLength
+                }
+                defaultIsOpen
+                isExpandable
+              />
+              <Authorized authorizations="K8sApplicationDetailsW">
+                <div className="form-group">
+                  <div className="col-sm-12">
+                    <LoadingButton
+                      color="primary"
+                      size="small"
+                      className="!ml-0"
+                      type="button"
+                      onClick={() => patchApplicationNote()}
+                      disabled={
+                        // disable if there is no change to the note, or it's updating
+                        applicationNoteFormValues === (applicationNote || '') ||
+                        (globalDeploymentOptionsQuery?.data
+                          ?.requireNoteOnApplications &&
+                          (applicationNoteFormValues.length === 0 ||
+                            applicationNoteFormValues.length <
+                              globalDeploymentOptionsQuery?.data
+                                ?.minApplicationNoteLength)) ||
+                        patchApplicationMutation.isLoading
+                      }
+                      data-cy="k8sAppDetail-saveNoteButton"
+                      isLoading={patchApplicationMutation.isLoading}
+                      loadingText={applicationNote ? 'Updating' : 'Saving'}
+                    >
+                      {applicationNote ? 'Update' : 'Save'} note
+                    </LoadingButton>
                   </div>
-
-                  <Authorized authorizations="K8sApplicationDetailsW">
-                    <div className="form-group">
-                      <div className="col-sm-12">
-                        <LoadingButton
-                          color="primary"
-                          size="small"
-                          className="!ml-0"
-                          type="button"
-                          onClick={() => patchApplicationNote()}
-                          disabled={
-                            // disable if there is no change to the note, or it's updating
-                            applicationNoteFormValues ===
-                              (applicationNote || '') ||
-                            patchApplicationMutation.isLoading
-                          }
-                          data-cy="k8sAppDetail-saveNoteButton"
-                          isLoading={patchApplicationMutation.isLoading}
-                          loadingText={applicationNote ? 'Updating' : 'Saving'}
-                        >
-                          {applicationNote ? 'Update' : 'Save'} note
-                        </LoadingButton>
-                      </div>
-                    </div>
-                  </Authorized>
-                </>
-              )}
+                </div>
+              </Authorized>
             </form>
           </td>
         </tr>
@@ -297,7 +285,7 @@ export function ApplicationSummaryWidget() {
       {
         op: 'replace',
         path: `/metadata/annotations/${appNoteAnnotation}`,
-        value: 'applicationNoteFormValues',
+        value: applicationNoteFormValues,
       },
     ];
     if (application?.kind) {
