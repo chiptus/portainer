@@ -1,5 +1,6 @@
 import { CSSProperties } from 'react';
 import { parse } from 'ansicolor';
+import stripAnsi from 'strip-ansi';
 import toStyle from 'css-to-style';
 
 import { LogInterface } from '@@/LogViewer/types';
@@ -18,7 +19,8 @@ export function formatANSILogs(stripedLogs: string) {
     log = newBlankLog();
   }
 
-  function pushSpan(text: string, style: CSSProperties) {
+  function pushSpan(rawText: string, style: CSSProperties) {
+    const text = stripAnsi(rawText);
     log.line += text;
     log.spans.push({ text, style });
   }
