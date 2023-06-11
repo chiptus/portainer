@@ -253,20 +253,29 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
 
     const configurations = {
       name: 'kubernetes.configurations',
-      url: '/configurations',
+      url: '/configurations?tab',
       views: {
         'content@': {
-          component: 'kubernetesConfigurationsView',
+          component: 'kubernetesConfigMapsAndSecretsView',
         },
+      },
+      params: {
+        tab: null,
       },
     };
 
-    const configurationCreation = {
-      name: 'kubernetes.configurations.new',
+    const configmaps = {
+      name: 'kubernetes.configmaps',
+      url: '/configmaps',
+      abstract: true,
+    };
+
+    const configMapCreation = {
+      name: 'kubernetes.configmaps.new',
       url: '/new',
       views: {
         'content@': {
-          component: 'kubernetesCreateConfigurationView',
+          component: 'kubernetesCreateConfigMapView',
         },
       },
       onEnter: /* @ngInject */ function endpoint($async, $state, $transition$, Notifications) {
@@ -275,7 +284,7 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
             const endpointId = +$transition$.params().endpointId;
             const deploymentOptions = await getDeploymentOptions(endpointId);
             if (deploymentOptions.hideAddWithForm) {
-              $state.go('kubernetes.configurations', { endpointId });
+              $state.go('kubernetes.configurations', { endpointId, tab: 'configmaps' });
             }
           } catch (err) {
             Notifications.error('Failed to get deployment options', err);
@@ -284,12 +293,51 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
       },
     };
 
-    const configuration = {
-      name: 'kubernetes.configurations.configuration',
+    const configMap = {
+      name: 'kubernetes.configmaps.configmap',
       url: '/:namespace/:name',
       views: {
         'content@': {
-          component: 'kubernetesConfigurationView',
+          component: 'kubernetesConfigMapView',
+        },
+      },
+    };
+
+    const secrets = {
+      name: 'kubernetes.secrets',
+      url: '/secrets',
+      abstract: true,
+    };
+
+    const secretCreation = {
+      name: 'kubernetes.secrets.new',
+      url: '/new',
+      views: {
+        'content@': {
+          component: 'kubernetesCreateSecretView',
+        },
+      },
+      onEnter: /* @ngInject */ function endpoint($async, $state, $transition$, Notifications) {
+        return $async(async () => {
+          try {
+            const endpointId = +$transition$.params().endpointId;
+            const deploymentOptions = await getDeploymentOptions(endpointId);
+            if (deploymentOptions.hideAddWithForm) {
+              $state.go('kubernetes.configurations', { endpointId, tab: 'secrets' });
+            }
+          } catch (err) {
+            Notifications.error('Failed to get deployment options', err);
+          }
+        });
+      },
+    };
+
+    const secret = {
+      name: 'kubernetes.secrets.secret',
+      url: '/:namespace/:name',
+      views: {
+        'content@': {
+          component: 'kubernetesSecretView',
         },
       },
     };
@@ -336,7 +384,7 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
 
     const deploy = {
       name: 'kubernetes.deploy',
-      url: '/deploy?templateId&referrer',
+      url: '/deploy?templateId&referrer&tab',
       views: {
         'content@': {
           component: 'kubernetesDeployView',
@@ -476,8 +524,12 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
     $stateRegistryProvider.register(stack);
     $stateRegistryProvider.register(stackLogs);
     $stateRegistryProvider.register(configurations);
-    $stateRegistryProvider.register(configurationCreation);
-    $stateRegistryProvider.register(configuration);
+    $stateRegistryProvider.register(configmaps);
+    $stateRegistryProvider.register(configMapCreation);
+    $stateRegistryProvider.register(secrets);
+    $stateRegistryProvider.register(secretCreation);
+    $stateRegistryProvider.register(configMap);
+    $stateRegistryProvider.register(secret);
     $stateRegistryProvider.register(cluster);
     $stateRegistryProvider.register(dashboard);
     $stateRegistryProvider.register(deploy);

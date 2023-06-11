@@ -32,10 +32,10 @@ const settingsStore = createPersistedStore(storageKey);
 export function IngressDatatable() {
   const environmentId = useEnvironmentId();
 
-  const nsResult = useNamespaces(environmentId);
+  const { data: namespaces, ...namespacesQuery } = useNamespaces(environmentId);
   const ingressesQuery = useIngresses(
     environmentId,
-    Object.keys(nsResult?.data || {})
+    Object.keys(namespaces || {})
   );
 
   const isAddIngressHidden = useIsDeploymentOptionHidden('form');
@@ -50,7 +50,7 @@ export function IngressDatatable() {
       settingsManager={tableState}
       dataset={ingressesQuery.data || []}
       columns={columns}
-      isLoading={ingressesQuery.isLoading}
+      isLoading={ingressesQuery.isLoading || namespacesQuery.isLoading}
       emptyContentLabel="No supported ingresses found"
       title="Ingresses"
       titleIcon={Route}

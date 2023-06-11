@@ -2595,10 +2595,10 @@ const (
 	OperationK8sPodDelete                        Authorization = "K8sPodDelete"
 	OperationK8sApplicationConsoleRW             Authorization = "K8sApplicationConsoleRW"
 	OperationK8sApplicationsAdvancedDeploymentRW Authorization = "K8sApplicationsAdvancedDeploymentRW"
-	OperationK8sConfigurationsR                  Authorization = "K8sConfigurationsR"
-	OperationK8sConfigurationsW                  Authorization = "K8sConfigurationsW"
-	OperationK8sConfigurationsDetailsR           Authorization = "K8sConfigurationsDetailsR" // ConfigMaps
-	OperationK8sConfigurationsDetailsW           Authorization = "K8sConfigurationsDetailsW" // ConfigMaps
+	OperationK8sConfigMapsR                      Authorization = "K8sConfigMapsR" // ConfigMaps
+	OperationK8sConfigMapsW                      Authorization = "K8sConfigMapsW" // ConfigMaps
+	OperationK8sSecretsR                         Authorization = "K8sSecretsR"    // Secrets
+	OperationK8sSecretsW                         Authorization = "K8sSecretsW"    // Secrets
 	OperationK8sRegistrySecretList               Authorization = "K8sRegistrySecretList"
 	OperationK8sRegistrySecretInspect            Authorization = "K8sRegistrySecretInspect"
 	OperationK8sRegistrySecretUpdate             Authorization = "K8sRegistrySecretUpdate"
@@ -2618,10 +2618,8 @@ const (
 	OperationK8sIngressesR Authorization = "K8sIngressesR"
 	OperationK8sIngressesW Authorization = "K8sIngressesW"
 
-	OperationK8sYAMLR    Authorization = "K8sYAMLR"
-	OperationK8sYAMLW    Authorization = "K8sYAMLW"
-	OperationK8sSecretsR Authorization = "K8sSecretsR" // Secrets
-	OperationK8sSecretsW Authorization = "K8sSecretsW" // Secrets
+	OperationK8sYAMLR Authorization = "K8sYAMLR"
+	OperationK8sYAMLW Authorization = "K8sYAMLW"
 
 	OperationK8sServiceR Authorization = "K8sServiceR"
 	OperationK8sServiceW Authorization = "K8sServiceW"

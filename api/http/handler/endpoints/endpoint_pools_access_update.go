@@ -25,9 +25,9 @@ func (payload *resourcePoolUpdatePayload) Validate(r *http.Request) error {
 	return nil
 }
 
-// @id endpointPoolsAccessUpdate
-// @summary update resource pool access
-// @description update the access on the resource pool in the current environment
+// @id namespacesAccessUpdate
+// @summary update namespace access
+// @description update the access on the namespace in the current environment
 // @description **Access policy**: restricted
 // @tags endpoints
 // @security ApiKeyAuth
@@ -67,11 +67,11 @@ func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http
 	}
 
 	if tokenData.Role != portaineree.AdministratorRole {
-		// check if the user has Configuration RW access in the environment(endpoint)
+		// check if the user has Secret and ConfigMap W access in the environment(endpoint) and deny if they don't have both
 		endpointRole, err := handler.AuthorizationService.GetUserEndpointRole(int(tokenData.ID), int(endpoint.ID))
 		if err != nil {
 			return httperror.Forbidden(permissionDeniedErr, err)
-		} else if !endpointRole.Authorizations[portaineree.OperationK8sConfigurationsW] {
+		} else if !(endpointRole.Authorizations[portaineree.OperationK8sConfigMapsW] && endpointRole.Authorizations[portaineree.OperationK8sSecretsW]) {
 			err = errors.New(permissionDeniedErr)
 			return httperror.Forbidden(permissionDeniedErr, err)
 		}
