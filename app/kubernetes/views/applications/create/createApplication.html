@@ -1300,15 +1300,16 @@
                   </div>
 
                   <!-- kubernetes services options -->
-                  <kube-services-form
-                    on-change="(ctrl.onServicesChange)"
-                    values="ctrl.formValues.Services"
-                    load-balancer-enabled="ctrl.publishViaLoadBalancerEnabled()"
-                    app-name="ctrl.formValues.Name"
-                    selector="ctrl.formValues.Selector"
-                    validation-data="{nodePortServices: ctrl.state.nodePortServices, formServices: ctrl.formValues.Services}"
-                    is-edit-mode="ctrl.state.isEdit"
-                  ></kube-services-form>
+                  <div class="mb-8">
+                    <kube-services-form
+                      on-change="(ctrl.onServicesChange)"
+                      values="ctrl.formValues.Services"
+                      app-name="ctrl.formValues.Name"
+                      selector="ctrl.formValues.Selector"
+                      validation-data="{nodePortServices: ctrl.state.nodePortServices, formServices: ctrl.formValues.Services}"
+                      is-edit-mode="ctrl.state.isEdit"
+                    ></kube-services-form>
+                  </div>
                   <!-- kubernetes services options -->
 
                   <!-- summary -->
@@ -1320,7 +1321,7 @@
                 </div>
               </div>
             </div>
-            <div ng-if="ctrl.isExternalApplication()">
+            <div ng-if="ctrl.isExternalApplication()" class="mb-4">
               <div class="col-sm-12 form-section-title" ng-if="ctrl.state.appType === ctrl.KubernetesDeploymentTypes.APPLICATION_FORM"> Namespace </div>
               <!-- #region NAMESPACE -->
               <div class="form-group" ng-if="ctrl.formValues.ResourcePool">
@@ -1354,7 +1355,6 @@
               <kube-services-form
                 on-change="(ctrl.onServicesChange)"
                 values="ctrl.formValues.Services"
-                load-balancer-enabled="ctrl.publishViaLoadBalancerEnabled()"
                 app-name="ctrl.formValues.Name"
                 selector="ctrl.formValues.Selector"
                 validation-data="{nodePortServices: ctrl.state.nodePortServices, formServices: ctrl.formValues.Services}"

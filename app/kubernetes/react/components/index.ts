@@ -145,13 +145,6 @@ withFormValidation(
   ngModule,
   withUIRouter(withCurrentUser(withReactQuery(KubeServicesForm))),
   'kubeServicesForm',
-  [
-    'values',
-    'onChange',
-    'loadBalancerEnabled',
-    'appName',
-    'selector',
-    'isEditMode',
-  ],
+  ['values', 'onChange', 'appName', 'selector', 'isEditMode'],
   kubeServicesValidation
 );

@@ -163,7 +163,7 @@ export function Microk8sCreateClusterForm({
           </LoadingButton>
           {isSSHTestSuccessful !== undefined && ( // dont show the text tip if provisioning is started and the test is successful
             <TextTip
-              className="mt-2 !items-start [&>svg]:mt-0.5"
+              className="mt-2"
               icon={isSSHTestSuccessful ? CheckCircle : AlertCircle}
               color={isSSHTestSuccessful ? 'green' : 'red'}
             >
@@ -193,7 +193,7 @@ export function Microk8sCreateClusterForm({
           options={microk8sOptions}
         />
         {isExperimentalVersion && (
-          <FormError className="mt-1 !items-start [&>svg]:mt-0.5">
+          <FormError className="mt-1">
             MicroK8s 1.25 and 1.26 can have an issue running metrics server in
             certain circumstances, which may require a patch to the metric
             server deployment to work around. See{' '}

@@ -907,10 +907,6 @@ class KubernetesCreateApplicationController {
     return this.nodesLimits.overflowForReplica(cpu, memory, instances);
   }
 
-  publishViaLoadBalancerEnabled() {
-    return this.state.useLoadBalancer && this.state.maxLoadBalancersQuota !== 0;
-  }
-
   publishViaIngressEnabled() {
     return this.ingresses.length;
   }
