@@ -212,17 +212,6 @@ export function IngressForm({
                   </div>
                   {!hideForm && (
                     <div className="col-sm-9 p-0 text-right">
-                      {!host.NoHost && (
-                        <Button
-                          className="btn btn-light btn-sm"
-                          onClick={() => reloadTLSCerts()}
-                          icon={RefreshCw}
-                          disabled={hideForm}
-                        >
-                          Reload TLS secrets
-                        </Button>
-                      )}
-
                       <Button
                         className="btn btn-sm ml-2"
                         color="dangerlight"
@@ -275,12 +264,23 @@ export function IngressForm({
                           }
                           defaultValue={host.Secret}
                           disabled={hideForm}
+                          className="!rounded-r-none"
                         />
+                        {!host.NoHost && !hideForm && (
+                          <div className="input-group-btn">
+                            <Button
+                              className="btn btn-light btn-sm !ml-0 !rounded-l-none"
+                              onClick={() => reloadTLSCerts()}
+                              icon={RefreshCw}
+                              disabled={hideForm}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     {!hideForm && (
-                      <div className="col-sm-12 p-0">
+                      <div className="col-sm-12 col-lg-4 flex h-[30px] items-center pl-2">
                         <TextTip color="blue">
                           You may also use the{' '}
                           <Link
@@ -311,6 +311,13 @@ export function IngressForm({
                     Paths
                   </div>
                 </div>
+
+                <p className="small text-muted mt-4">
+                  By leaving service/path details blank, you can setup{' '}
+                  <span>ingress defaults</span> that a user may select from via
+                  the hostname dropdown in Create/Edit Application.
+                </p>
+
                 {host.Paths.map((path, pathIndex) => (
                   <div
                     className="row path mt-5 !mb-5"
@@ -318,9 +325,7 @@ export function IngressForm({
                   >
                     <div className="form-group col-sm-3 col-xl-2 !m-0 !pl-0">
                       <div className="input-group input-group-sm">
-                        <span className="input-group-addon required">
-                          Service
-                        </span>
+                        <span className="input-group-addon">Service</span>
                         <Select
                           key={serviceOptions.toString() + path.ServiceName}
                           name={`ingress_service_${hostIndex}_${pathIndex}`}
@@ -354,7 +359,7 @@ export function IngressForm({
                       {servicePorts && (
                         <>
                           <div className="input-group input-group-sm">
-                            <span className="input-group-addon required">
+                            <span className="input-group-addon">
                               Service port
                             </span>
                             <Select
@@ -439,7 +444,7 @@ export function IngressForm({
 
                     <div className="form-group col-sm-3 col-xl-3 !m-0 !pl-0">
                       <div className="input-group input-group-sm">
-                        <span className="input-group-addon required">Path</span>
+                        <span className="input-group-addon">Path</span>
                         <input
                           className="form-control"
                           name={`ingress_route_${hostIndex}-${pathIndex}`}
@@ -481,7 +486,6 @@ export function IngressForm({
                           onClick={() =>
                             removeIngressRoute(hostIndex, pathIndex)
                           }
-                          disabled={host.Paths.length === 1}
                           icon={Trash2}
                         />
                       </div>

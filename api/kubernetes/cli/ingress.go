@@ -208,6 +208,14 @@ func (kcl *KubeClient) CreateIngress(namespace string, info models.K8sIngressInf
 		})
 	}
 
+	if len(rules) == 0 {
+		for _, host := range info.Hosts {
+			ingress.Spec.Rules = []netv1.IngressRule{{
+				Host: host,
+			}}
+		}
+	}
+
 	_, err := ingressClient.Create(context.Background(), &ingress, metav1.CreateOptions{})
 	return err
 }
@@ -269,15 +277,23 @@ func (kcl *KubeClient) UpdateIngress(namespace string, info models.K8sIngressInf
 		})
 	}
 
-	for rule, paths := range rules {
+	for host, paths := range rules {
 		ingress.Spec.Rules = append(ingress.Spec.Rules, netv1.IngressRule{
-			Host: rule,
+			Host: host,
 			IngressRuleValue: netv1.IngressRuleValue{
 				HTTP: &netv1.HTTPIngressRuleValue{
 					Paths: paths,
 				},
 			},
 		})
+	}
+
+	if len(rules) == 0 {
+		for _, host := range info.Hosts {
+			ingress.Spec.Rules = []netv1.IngressRule{{
+				Host: host,
+			}}
+		}
 	}
 
 	_, err := ingressClient.Update(context.Background(), &ingress, metav1.UpdateOptions{})
