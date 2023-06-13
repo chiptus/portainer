@@ -8,11 +8,12 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer/api/edge"
 	log "github.com/rs/zerolog/log"
 )
 
-func GetRegistryCredentialsForEdgeStack(dataStore dataservices.DataStoreTx, stack *portaineree.EdgeStack, endpoint *portaineree.Endpoint) []portaineree.EdgeRegistryCredential {
-	registries := []portaineree.EdgeRegistryCredential{}
+func GetRegistryCredentialsForEdgeStack(dataStore dataservices.DataStoreTx, stack *portaineree.EdgeStack, endpoint *portaineree.Endpoint) []edge.RegistryCredentials {
+	registries := []edge.RegistryCredentials{}
 	for _, id := range stack.Registries {
 		registry, _ := dataStore.Registry().Registry(id)
 
@@ -33,14 +34,14 @@ func GetRegistryCredentialsForEdgeStack(dataStore dataservices.DataStoreTx, stac
 			Str("environment", endpoint.Name).
 			Msg("the environment was deployed using HTTP and is insecure (registry credentials withheld), to use private registries, please update it to use HTTPS")
 
-		registries = []portaineree.EdgeRegistryCredential{}
+		registries = []edge.RegistryCredentials{}
 	}
 
 	return registries
 }
 
-func GetRegistryCredential(registry *portaineree.Registry) *portaineree.EdgeRegistryCredential {
-	registryCredential := &portaineree.EdgeRegistryCredential{}
+func GetRegistryCredential(registry *portaineree.Registry) *edge.RegistryCredentials {
+	registryCredential := &edge.RegistryCredentials{}
 	if registry != nil {
 		var username string
 		var password string

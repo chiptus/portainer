@@ -14,20 +14,8 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	"github.com/portainer/portainer-ee/api/kubernetes"
+	"github.com/portainer/portainer/api/edge"
 )
-
-type configResponse struct {
-	StackFileContent    string
-	DotEnvFileContent   string
-	Name                string
-	RegistryCredentials []portaineree.EdgeRegistryCredential
-	// Namespace to use for Kubernetes manifests, leave empty to use the namespaces defined in the manifest
-	Namespace    string
-	PrePullImage bool
-	RePullImage  bool
-	RetryDeploy  bool
-	EdgeUpdateID int
-}
 
 // @summary Inspect an Edge Stack for an Environment(Endpoint)
 // @description **Access policy**: public
@@ -36,7 +24,7 @@ type configResponse struct {
 // @produce json
 // @param id path int true "Environment(Endpoint) Id"
 // @param stackId path int true "EdgeStack Id"
-// @success 200 {object} configResponse
+// @success 200 {object} edge.StackPayload
 // @failure 500
 // @failure 400
 // @failure 404
@@ -100,8 +88,8 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 
 	registryCredentials := registryutils.GetRegistryCredentialsForEdgeStack(handler.DataStore, edgeStack, endpoint)
 
-	return response.JSON(w, configResponse{
-		StackFileContent:    string(stackFileContent),
+	return response.JSON(w, edge.StackPayload{
+		FileContent:         string(stackFileContent),
 		DotEnvFileContent:   string(dotEnvFileContent),
 		Name:                edgeStack.Name,
 		RegistryCredentials: registryCredentials,

@@ -13,7 +13,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/pkg/errors"
 	libstack "github.com/portainer/docker-compose-wrapper"
-	"github.com/portainer/portainer/api/docker"
+	dockerclient "github.com/portainer/portainer/api/docker/client"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/rs/zerolog/log"
 )
@@ -89,7 +89,7 @@ func (service *service) updateDocker(version, envType string) error {
 }
 
 func (service *service) checkImageForDocker(ctx context.Context, image string, skipPullImage bool) error {
-	cli, err := docker.CreateClientFromEnv()
+	cli, err := dockerclient.CreateClientFromEnv()
 	if err != nil {
 		return errors.Wrap(err, "failed to create docker client")
 	}

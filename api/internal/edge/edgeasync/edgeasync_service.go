@@ -13,25 +13,11 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	"github.com/portainer/portainer-ee/api/kubernetes"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/edge"
 
 	"github.com/docker/docker/api/types"
 	"github.com/rs/zerolog/log"
 )
-
-type edgeStackData struct {
-	ID                  portaineree.EdgeStackID
-	Version             int
-	StackFileContent    string
-	DotEnvFileContent   string
-	Name                string
-	RegistryCredentials []portaineree.EdgeRegistryCredential
-	// Namespace to use for Kubernetes manifests, leave empty to use the namespaces defined in the manifest
-	Namespace    string
-	PrePullImage bool
-	RePullImage  bool
-	RetryDeploy  bool
-	EdgeUpdateID int
-}
 
 type edgeLogData struct {
 	EdgeStackID   portaineree.EdgeStackID
@@ -150,11 +136,11 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 		namespace = kubernetes.DefaultNamespace
 	}
 
-	stackStatus := edgeStackData{
-		StackFileContent:    string(stackFileContent),
+	stackStatus := edge.StackPayload{
+		FileContent:         string(stackFileContent),
 		DotEnvFileContent:   string(dotEnvFileContent),
 		Name:                edgeStack.Name,
-		ID:                  edgeStackID,
+		ID:                  int(edgeStackID),
 		Version:             edgeStack.Version,
 		RegistryCredentials: registryCredentials,
 		Namespace:           namespace,
@@ -193,9 +179,9 @@ func (service *Service) RemoveStackCommandTx(tx dataservices.DataStoreTx, endpoi
 		return err
 	}
 
-	stackStatus := edgeStackData{
+	stackStatus := edge.StackPayload{
 		Name:    edgeStack.Name,
-		ID:      edgeStackID,
+		ID:      int(edgeStackID),
 		Version: edgeStack.Version,
 	}
 
