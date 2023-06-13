@@ -2,7 +2,7 @@
   "docker": "v20.10.21",
   "dockerCompose": "v2.17.2",
   "helm": "v3.11.3",
-  "kubectl": "v1.26.3",
+  "kubectl": "v1.27.2",
   "eksctl": "v0.137.0",
   "awsAuth": "v0.6.2"
 }

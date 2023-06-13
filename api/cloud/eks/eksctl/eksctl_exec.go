@@ -16,8 +16,8 @@ import (
 
 var (
 	// Vars set during build time.  Don't make const!
-	DefaultEksCtlVersion              = "v0.137.0"
-	DefaultAwsIamAuthenticatorVersion = "v0.6.2"
+	DefaultEksCtlVersion              = "v0.143.0"
+	DefaultAwsIamAuthenticatorVersion = "v0.6.10"
 )
 
 const (

@@ -294,7 +294,8 @@ func getInstanceTypesInput() *ec2.DescribeInstanceTypesInput {
 func supportedVersions() []portaineree.Pair {
 	return []portaineree.Pair{
 		// display name, val
-		withValue("latest", ""),
+		withValue("1.27", "1.27"),
+		withValue("1.26", "1.26"),
 		withValue("1.25", "1.25"),
 		withValue("1.24", "1.24"),
 		withValue("1.23", "1.23"),

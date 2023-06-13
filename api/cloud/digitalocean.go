@@ -91,7 +91,6 @@ func (service *CloudClusterInfoService) DigitalOceanFetchInfo(apiKey string) (*D
 		kvs = append(kvs, version.Slug)
 	}
 	sort.Sort(sort.Reverse(sortorder.Natural(kvs)))
-	kvs = append([]string{"latest"}, kvs...)
 
 	nodeSizes, _, err := client.Sizes.List(ctx, &godo.ListOptions{})
 	if err != nil {
