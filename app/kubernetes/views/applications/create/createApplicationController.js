@@ -1276,7 +1276,6 @@ class KubernetesCreateApplicationController {
     try {
       this.formValues.ApplicationOwner = this.Authentication.getUserDetails().username;
       // combine the secrets and configmap form values when submitting the form
-      this.formValues.Configurations = [...this.formValues.ConfigMaps, ...this.formValues.Secrets];
       _.remove(this.formValues.Configurations, (item) => item.SelectedConfiguration === undefined);
       await this.KubernetesApplicationService.create(this.formValues);
       this.Notifications.success('Request to deploy application successfully submitted', this.formValues.Name);
@@ -1300,7 +1299,6 @@ class KubernetesCreateApplicationController {
 
     try {
       this.state.actionInProgress = true;
-      this.formValues.Configurations = [...this.formValues.ConfigMaps, ...this.formValues.Secrets];
       await this.KubernetesApplicationService.patch(this.savedFormValues, this.formValues);
       this.Notifications.success('Success', 'Request to update application successfully submitted');
       this.$state.go('kubernetes.applications.application', { name: this.application.Name, namespace: this.application.ResourcePool });
