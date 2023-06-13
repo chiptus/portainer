@@ -49,7 +49,7 @@ type endpointUpdatePayload struct {
 	TeamAccessPolicies portaineree.TeamAccessPolicies
 	// Associated Kubernetes data
 	Kubernetes *portaineree.KubernetesData
-	// Whether automatic update time restrictions are enabled
+	// Whether GitOps update time restrictions are enabled
 	ChangeWindow *portaineree.EndpointChangeWindow
 	// Hide manual deployment forms for an environment
 	DeploymentOptions *portaineree.DeploymentOptions `json:"DeploymentOptions"`

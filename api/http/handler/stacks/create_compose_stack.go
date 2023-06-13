@@ -184,7 +184,7 @@ type composeStackFromGitRepositoryPayload struct {
 	ComposeFile string `example:"docker-compose.yml" default:"docker-compose.yml"`
 	// Applicable when deploying with multiple stack files
 	AdditionalFiles []string `example:"[nz.compose.yml, uat.compose.yml]"`
-	// Optional auto update configuration
+	// Optional GitOps update configuration
 	AutoUpdate *portaineree.AutoUpdateSettings
 	// A list of environment variables used during stack deployment
 	Env []portaineree.Pair

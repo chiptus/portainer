@@ -139,7 +139,7 @@ type swarmStackFromGitRepositoryPayload struct {
 	ComposeFile string `example:"docker-compose.yml" default:"docker-compose.yml"`
 	// Applicable when deploying with multiple stack files
 	AdditionalFiles []string `example:"[nz.compose.yml, uat.compose.yml]"`
-	// Optional auto update configuration
+	// Optional GitOps update configuration
 	AutoUpdate *portaineree.AutoUpdateSettings
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`

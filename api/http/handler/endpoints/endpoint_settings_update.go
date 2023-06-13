@@ -33,7 +33,7 @@ type endpointSettingsUpdatePayload struct {
 		// Whether host management features are enabled
 		EnableHostManagementFeatures *bool `json:"enableHostManagementFeatures" example:"true"`
 	} `json:"securitySettings"`
-	// Whether automatic update time restrictions are enabled
+	// Whether GitOps update time restrictions are enabled
 	ChangeWindow *portaineree.EndpointChangeWindow `json:"changeWindow"`
 
 	// Hide manual deployment forms for an environment

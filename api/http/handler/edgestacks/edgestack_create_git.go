@@ -52,7 +52,7 @@ type edgeStackFromGitRepositoryPayload struct {
 	RetryDeploy bool `example:"false"`
 	// TLSSkipVerify skips SSL verification when cloning the Git repository
 	TLSSkipVerify bool `example:"false"`
-	// Optional auto update configuration
+	// Optional GitOps update configuration
 	AutoUpdate *portaineree.AutoUpdateSettings
 }
 

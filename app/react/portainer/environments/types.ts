@@ -191,7 +191,7 @@ export type Environment = {
   EnableImageNotification: boolean;
   LocalTimeZone?: string;
 
-  /** Automatic update change window restriction for stacks and apps */
+  /** GitOps update change window restriction for stacks and apps */
   ChangeWindow: EndpointChangeWindow;
 };
 

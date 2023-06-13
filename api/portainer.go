@@ -357,7 +357,7 @@ type (
 		// Retry deploy
 		RetryDeploy bool `example:"false"`
 
-		// The auto update settings of a git stack
+		// The GitOps update settings of a git stack
 		AutoUpdate *AutoUpdateSettings `json:"AutoUpdate"`
 		// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
 		Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
@@ -385,7 +385,7 @@ type (
 		Logs        []EndpointLog `json:"logs,omitempty"`
 	}
 
-	// EndpointChangeWindow determine when automatic stack/app updates may occur
+	// EndpointChangeWindow determine when GitOps stack/app updates may occur
 	EndpointChangeWindow struct {
 		Enabled   bool   `json:"Enabled" example:"true"`
 		StartTime string `json:"StartTime" example:"22:00"`
@@ -478,7 +478,7 @@ type (
 		// LocalTimeZone is the local time zone of the endpoint
 		LocalTimeZone string
 
-		// Automatic update change window restriction for stacks and apps
+		// GitOps update change window restriction for stacks and apps
 		ChangeWindow EndpointChangeWindow `json:"ChangeWindow"`
 		// Hide manual deployment forms for an environment
 		DeploymentOptions *DeploymentOptions `json:"DeploymentOptions"`
@@ -1383,7 +1383,7 @@ type (
 		UpdatedBy string `example:"bob"`
 		// Only applies when deploying stack with multiple files
 		AdditionalFiles []string `json:"AdditionalFiles"`
-		// The auto update settings of a git stack
+		// The GitOps update settings of a git stack
 		AutoUpdate *AutoUpdateSettings `json:"AutoUpdate"`
 		// The stack deployment option
 		Option *StackOption `json:"Option"`
