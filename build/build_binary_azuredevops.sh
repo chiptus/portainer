@@ -5,8 +5,7 @@ PLATFORM=$1
 ARCH=$2
 
 export GOPATH="/tmp/go"
-
-binary="portainer"
+BUILD_SOURCESDIRECTORY=${BUILD_SOURCESDIRECTORY:-$(pwd)}
 
 mkdir -p dist
 mkdir -p ${GOPATH}/src/github.com/portainer/portainer-ee
@@ -31,7 +30,7 @@ if [ -n "${KAAS_AGENT_VERSION+1}" ]; then
   ldflags=$ldflags" -X github.com/portainer/portainer-ee/api/kubernetes/cli.DefaultAgentVersion=$KAAS_AGENT_VERSION"
 fi
 
-BINARY_VERSION_FILE="./binary-version.json"
+BINARY_VERSION_FILE="$BUILD_SOURCESDIRECTORY/binary-version.json"
 
 EKSCTL_VERSION=$(jq -r '.eksctl' < "${BINARY_VERSION_FILE}")
 if [ -n "${EKSCTL_VERSION+1}" ]; then
@@ -43,12 +42,10 @@ if [ -n "${AWSAUTH_VERSION+1}" ]; then
   ldflags=$ldflags" -X github.com/portainer/portainer-ee/api/cloud/eks/eksctl.DefaultAwsIamAuthenticatorVersion=$AWSAUTH_VERSION"
 fi
 
-
 GOOS=${PLATFORM} GOARCH=${ARCH} CGO_ENABLED=0 go build -a -trimpath --installsuffix cgo --gcflags="-trimpath $(pwd)" --ldflags "$ldflags"
 
 if [ "${PLATFORM}" == 'windows' ]; then
-    mv "$BUILD_SOURCESDIRECTORY/api/cmd/portainer/${binary}.exe" "$BUILD_SOURCESDIRECTORY/dist/portainer.exe"
+    mv "$BUILD_SOURCESDIRECTORY/api/cmd/portainer/portainer.exe" "$BUILD_SOURCESDIRECTORY/dist/portainer.exe"
 else
-    mv "$BUILD_SOURCESDIRECTORY/api/cmd/portainer/$binary" "$BUILD_SOURCESDIRECTORY/dist/portainer"
+    mv "$BUILD_SOURCESDIRECTORY/api/cmd/portainer/portainer" "$BUILD_SOURCESDIRECTORY/dist/portainer"
 fi
-
