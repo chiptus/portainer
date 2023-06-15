@@ -23,7 +23,7 @@ type generateKeyResponse struct {
 // @success 200
 // @failure 500
 // @failure 400
-// @router /endpoints/{id}/edge/generate-key [get]
+// @router /endpoints/edge/generate-key [post]
 func (handler *Handler) endpointEdgeGenerateKey(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	var err error
 
