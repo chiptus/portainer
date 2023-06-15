@@ -1,12 +1,13 @@
 package endpoints
 
 import (
-	"github.com/portainer/libhttp/request"
-	"golang.org/x/mod/semver"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/portainer/libhttp/request"
+	"golang.org/x/mod/semver"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"

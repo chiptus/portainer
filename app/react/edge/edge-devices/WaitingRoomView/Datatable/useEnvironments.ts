@@ -10,7 +10,13 @@ import { WaitingRoomEnvironment } from '../types';
 
 import { useFilterStore } from './filter-store';
 
-export function useEnvironments() {
+export function useEnvironments({
+  page = 1,
+  pageLimit = 10,
+}: {
+  page?: number;
+  pageLimit?: number;
+} = {}) {
   const filterStore = useFilterStore();
   const edgeGroupsQuery = useEdgeGroups();
 
@@ -24,6 +30,8 @@ export function useEnvironments() {
     : undefined;
 
   const environmentsQuery = useEnvironmentList({
+    page,
+    pageLimit,
     edgeDeviceUntrusted: true,
     excludeSnapshots: true,
     types: EdgeTypes,
