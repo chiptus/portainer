@@ -8,14 +8,11 @@ import (
 	"testing"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/apikey"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/http/proxy"
-	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
-	"github.com/portainer/portainer-ee/api/jwt"
 
 	"github.com/gofrs/uuid"
 )
@@ -116,27 +113,8 @@ func TestEndpointDeleteEdgeGroupsConcurrently(t *testing.T) {
 
 	_, store := datastore.MustNewTestStore(t, true, false)
 
-	user := &portaineree.User{ID: 2, Username: "admin", Role: portaineree.AdministratorRole}
-	err := store.User().Create(user)
-	if err != nil {
-		t.Fatal("could not create admin user:", err)
-	}
-
-	jwtService, err := jwt.NewService("1h", store)
-	if err != nil {
-		t.Fatal("could not initialize the JWT service:", err)
-	}
-
-	apiKeyService := apikey.NewAPIKeyService(store.APIKeyRepository(), store.User())
-	rawAPIKey, _, err := apiKeyService.GenerateApiKey(*user, "test")
-	if err != nil {
-		t.Fatal("could not generate API key:", err)
-	}
-
-	bouncer := security.NewRequestBouncer(store, nil, jwtService, apiKeyService, nil)
-
 	handler := NewHandler(
-		bouncer,
+		testhelpers.NewTestRequestBouncer(),
 		testhelpers.NewUserActivityService(),
 		store,
 		nil,
@@ -154,7 +132,7 @@ func TestEndpointDeleteEdgeGroupsConcurrently(t *testing.T) {
 	for i := 0; i < endpointsCount; i++ {
 		endpointID := portaineree.EndpointID(i) + 1
 
-		err = store.Endpoint().Create(&portaineree.Endpoint{
+		err := store.Endpoint().Create(&portaineree.Endpoint{
 			ID:   endpointID,
 			Name: "env-" + strconv.Itoa(int(endpointID)),
 			Type: portaineree.EdgeAgentOnDockerEnvironment,
@@ -166,7 +144,7 @@ func TestEndpointDeleteEdgeGroupsConcurrently(t *testing.T) {
 		endpointIDs = append(endpointIDs, endpointID)
 	}
 
-	err = store.EdgeGroup().Create(&portaineree.EdgeGroup{
+	err := store.EdgeGroup().Create(&portaineree.EdgeGroup{
 		ID:        1,
 		Name:      "edgegroup-1",
 		Endpoints: endpointIDs,
@@ -189,7 +167,6 @@ func TestEndpointDeleteEdgeGroupsConcurrently(t *testing.T) {
 				t.Fail()
 				return
 			}
-			req.Header.Add("X-Api-Key", rawAPIKey)
 
 			rec := httptest.NewRecorder()
 			handler.ServeHTTP(rec, req)

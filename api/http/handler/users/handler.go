@@ -38,7 +38,7 @@ func hideFields(user *portaineree.User) {
 // Handler is the HTTP handler used to handle user operations.
 type Handler struct {
 	*mux.Router
-	bouncer                 *security.RequestBouncer
+	bouncer                 security.BouncerService
 	apiKeyService           apikey.APIKeyService
 	AuthorizationService    *authorization.Service
 	CryptoService           portaineree.CryptoService
@@ -51,7 +51,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage user operations.
-func NewHandler(bouncer *security.RequestBouncer, rateLimiter *security.RateLimiter, apiKeyService apikey.APIKeyService, userActivityService portaineree.UserActivityService, demoService *demo.Service, passwordStrengthChecker security.PasswordStrengthChecker) *Handler {
+func NewHandler(bouncer security.BouncerService, rateLimiter *security.RateLimiter, apiKeyService apikey.APIKeyService, userActivityService portaineree.UserActivityService, demoService *demo.Service, passwordStrengthChecker security.PasswordStrengthChecker) *Handler {
 	h := &Handler{
 		Router:                  mux.NewRouter(),
 		bouncer:                 bouncer,

@@ -31,7 +31,7 @@ type Handler struct {
 	*mux.Router
 	stackCreationMutex      *sync.Mutex
 	stackDeletionMutex      *sync.Mutex
-	requestBouncer          *security.RequestBouncer
+	requestBouncer          security.BouncerService
 	userActivityService     portaineree.UserActivityService
 	DataStore               dataservices.DataStore
 	DockerClientFactory     *client.ClientFactory
@@ -53,7 +53,7 @@ func stackExistsError(name string) *httperror.HandlerError {
 }
 
 // NewHandler creates a handler to manage stack operations.
-func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStore, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		DataStore:           dataStore,

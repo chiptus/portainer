@@ -3,7 +3,6 @@ package kaas
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/cloud"
@@ -11,6 +10,8 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/license"
+
+	"github.com/gorilla/mux"
 )
 
 // Handler is the HTTP handler used to handle tag operations.
@@ -20,13 +21,13 @@ type Handler struct {
 	cloudClusterSetupService *cloud.CloudClusterSetupService
 	cloudClusterInfoService  *cloud.CloudClusterInfoService
 	licenseService           portaineree.LicenseService
-	requestBouncer           *security.RequestBouncer
+	requestBouncer           security.BouncerService
 	userActivityService      portaineree.UserActivityService
 }
 
 // NewHandler creates a handler to manage tag operations.
 func NewHandler(
-	bouncer *security.RequestBouncer,
+	bouncer security.BouncerService,
 	dataStore dataservices.DataStore,
 	cloudClusterSetupService *cloud.CloudClusterSetupService,
 	cloudClusterInfoService *cloud.CloudClusterInfoService,

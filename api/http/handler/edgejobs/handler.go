@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -13,6 +12,8 @@ import (
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 	portainer "github.com/portainer/portainer/api"
+
+	"github.com/gorilla/mux"
 )
 
 // Handler is the HTTP handler used to handle Edge job operations.
@@ -26,7 +27,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage Edge job operations.
-func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService, edgeService *edgeasync.Service) *Handler {
+func NewHandler(bouncer security.BouncerService, userActivityService portaineree.UserActivityService, edgeService *edgeasync.Service) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		userActivityService: userActivityService,

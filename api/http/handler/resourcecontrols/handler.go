@@ -20,7 +20,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage resource control operations.
-func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStore, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		DataStore:           dataStore,

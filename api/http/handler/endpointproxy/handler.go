@@ -1,25 +1,26 @@
 package endpointproxy
 
 import (
-	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/proxy"
 	"github.com/portainer/portainer-ee/api/http/security"
+
+	"github.com/gorilla/mux"
 )
 
 // Handler is the HTTP handler used to proxy requests to external APIs.
 type Handler struct {
 	*mux.Router
 	DataStore            dataservices.DataStore
-	requestBouncer       *security.RequestBouncer
+	requestBouncer       security.BouncerService
 	ProxyManager         *proxy.Manager
 	ReverseTunnelService portaineree.ReverseTunnelService
 }
 
 // NewHandler creates a handler to proxy requests to external APIs.
-func NewHandler(bouncer *security.RequestBouncer) *Handler {
+func NewHandler(bouncer security.BouncerService) *Handler {
 	h := &Handler{
 		Router:         mux.NewRouter(),
 		requestBouncer: bouncer,

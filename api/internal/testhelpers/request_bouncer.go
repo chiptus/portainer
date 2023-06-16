@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 )
 
-type testRequestBouncer struct {
-}
+type testRequestBouncer struct{}
 
 // NewTestRequestBouncer creates new mock for requestBouncer
 func NewTestRequestBouncer() *testRequestBouncer {
@@ -34,6 +34,14 @@ func (testRequestBouncer) AdminAccess(h http.Handler) http.Handler {
 	return h
 }
 
+func (testRequestBouncer) TeamLeaderAccess(h http.Handler) http.Handler {
+	return h
+}
+
+func (testRequestBouncer) EdgeComputeOperation(h http.Handler) http.Handler {
+	return h
+}
+
 func (testRequestBouncer) AuthorizedEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint, authorizationCheck bool) error {
 	return nil
 }
@@ -44,5 +52,13 @@ func (testRequestBouncer) AuthorizedClientTLSConn(r *http.Request) error {
 
 // AuthorizedEdgeEndpointOperation verifies that the request was received from a valid Edge environment(endpoint)
 func (testRequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint) error {
+	return nil
+}
+
+func (testRequestBouncer) TrustedEdgeEnvironmentAccess(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint) error {
+	return nil
+}
+
+func (testRequestBouncer) JWTAuthLookup(r *http.Request) *portaineree.TokenData {
 	return nil
 }

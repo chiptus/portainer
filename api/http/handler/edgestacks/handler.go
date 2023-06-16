@@ -26,7 +26,7 @@ var errInvalidGitCredential = errors.New("Invalid git credential")
 // Handler is the HTTP handler used to handle environment(endpoint) group operations.
 type Handler struct {
 	*mux.Router
-	requestBouncer      *security.RequestBouncer
+	requestBouncer      security.BouncerService
 	DataStore           dataservices.DataStore
 	FileService         portainer.FileService
 	GitService          portainer.GitService
@@ -42,7 +42,7 @@ const contextKey = "edgeStack_item"
 
 // NewHandler creates a handler to manage environment(endpoint) group operations.
 func NewHandler(
-	bouncer *security.RequestBouncer,
+	bouncer security.BouncerService,
 	userActivityService portaineree.UserActivityService,
 	dataStore dataservices.DataStore,
 	edgeAsyncService *edgeasync.Service,

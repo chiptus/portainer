@@ -8,11 +8,8 @@ import (
 	"testing"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/apikey"
 	"github.com/portainer/portainer-ee/api/datastore"
-	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
-	"github.com/portainer/portainer-ee/api/jwt"
 )
 
 func TestTagDeleteEdgeGroupsConcurrently(t *testing.T) {
@@ -26,20 +23,7 @@ func TestTagDeleteEdgeGroupsConcurrently(t *testing.T) {
 		t.Fatal("could not create admin user:", err)
 	}
 
-	jwtService, err := jwt.NewService("1h", store)
-	if err != nil {
-		t.Fatal("could not initialize the JWT service:", err)
-	}
-
-	apiKeyService := apikey.NewAPIKeyService(store.APIKeyRepository(), store.User())
-	rawAPIKey, _, err := apiKeyService.GenerateApiKey(*user, "test")
-	if err != nil {
-		t.Fatal("could not generate API key:", err)
-	}
-
-	bouncer := security.NewRequestBouncer(store, nil, jwtService, apiKeyService, nil)
-
-	handler := NewHandler(bouncer, testhelpers.NewUserActivityService())
+	handler := NewHandler(testhelpers.NewTestRequestBouncer(), testhelpers.NewUserActivityService())
 	handler.DataStore = store
 
 	// Create all the tags and add them to the same edge group
@@ -83,7 +67,6 @@ func TestTagDeleteEdgeGroupsConcurrently(t *testing.T) {
 				t.Fail()
 				return
 			}
-			req.Header.Add("X-Api-Key", rawAPIKey)
 
 			rec := httptest.NewRecorder()
 			handler.ServeHTTP(rec, req)

@@ -23,14 +23,14 @@ type Handler struct {
 	ReverseTunnelService        portaineree.ReverseTunnelService
 	KubernetesClientFactory     *cli.ClientFactory
 	authorizationService        *authorization.Service
-	requestBouncer              *security.RequestBouncer
+	requestBouncer              security.BouncerService
 	connectionUpgrader          websocket.Upgrader
 	userActivityService         portaineree.UserActivityService
 	kubernetesTokenCacheManager *kubernetes.TokenCacheManager
 }
 
 // NewHandler creates a handler to manage websocket operations.
-func NewHandler(kubernetesTokenCacheManager *kubernetes.TokenCacheManager, bouncer *security.RequestBouncer, authorizationService *authorization.Service, dataStore dataservices.DataStore, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(kubernetesTokenCacheManager *kubernetes.TokenCacheManager, bouncer security.BouncerService, authorizationService *authorization.Service, dataStore dataservices.DataStore, userActivityService portaineree.UserActivityService) *Handler {
 	h := &Handler{
 		Router:                      mux.NewRouter(),
 		connectionUpgrader:          websocket.Upgrader{},

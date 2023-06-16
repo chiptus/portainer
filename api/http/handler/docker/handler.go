@@ -2,27 +2,27 @@ package docker
 
 import (
 	"errors"
-	"github.com/portainer/portainer-ee/api/docker"
-	"github.com/portainer/portainer-ee/api/docker/client"
-	"github.com/portainer/portainer-ee/api/http/handler/docker/services"
 	"net/http"
 
-	"github.com/portainer/portainer-ee/api/internal/endpointutils"
-
-	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/docker"
+	"github.com/portainer/portainer-ee/api/docker/client"
 	"github.com/portainer/portainer-ee/api/http/handler/docker/containers"
+	"github.com/portainer/portainer-ee/api/http/handler/docker/services"
 	"github.com/portainer/portainer-ee/api/http/handler/dockersnapshot"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+
+	"github.com/gorilla/mux"
 )
 
 // Handler is the HTTP handler which will natively deal with to external environments(endpoints).
 type Handler struct {
 	*mux.Router
-	requestBouncer       *security.RequestBouncer
+	requestBouncer       security.BouncerService
 	dataStore            dataservices.DataStore
 	dockerClientFactory  *client.ClientFactory
 	authorizationService *authorization.Service
@@ -30,7 +30,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to process non-proxied requests to docker APIs directly.
-func NewHandler(bouncer *security.RequestBouncer, authorizationService *authorization.Service, dataStore dataservices.DataStore, dockerClientFactory *client.ClientFactory, containerService *docker.ContainerService) *Handler {
+func NewHandler(bouncer security.BouncerService, authorizationService *authorization.Service, dataStore dataservices.DataStore, dockerClientFactory *client.ClientFactory, containerService *docker.ContainerService) *Handler {
 	h := &Handler{
 		Router:               mux.NewRouter(),
 		requestBouncer:       bouncer,

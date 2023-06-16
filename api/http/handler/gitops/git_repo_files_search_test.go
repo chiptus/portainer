@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -12,12 +11,11 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
-	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
-	"github.com/portainer/portainer-ee/api/jwt"
 	"github.com/portainer/portainer/api/git"
 	gittypes "github.com/portainer/portainer/api/git/types"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,29 +30,21 @@ func Test_gitOperationRepoFilesSearch(t *testing.T) {
 	is.NoError(err, "error creating user")
 
 	// setup services
-	jwtService, err := jwt.NewService("1h", store)
-	is.NoError(err, "Error initiating jwt service")
-	requestBouncer := security.NewRequestBouncer(store, testhelpers.Licenseservice{}, jwtService, nil, nil)
-
 	gitService := git.NewService(context.TODO())
 
-	h := NewHandler(requestBouncer, store, gitService, nil)
-
-	// generate standard and admin user tokens
-	jwt, _ := jwtService.GenerateToken(&portaineree.TokenData{ID: user.ID, Username: user.Username, Role: user.Role})
+	h := NewHandler(testhelpers.NewTestRequestBouncer(), store, gitService, nil)
 
 	type response struct {
 		Message string `json:"message"`
 		Details string `json:"details"`
 	}
+
 	t.Run("query parameter repo must be provided", func(t *testing.T) {
 		data := repositoryFileSearchPayload{}
 		payload, err := json.Marshal(data)
 		is.NoError(err)
 
 		req := httptest.NewRequest(http.MethodPost, "/gitops/repo/files/search", bytes.NewBuffer(payload))
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwt))
-
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
 
@@ -69,8 +59,6 @@ func Test_gitOperationRepoFilesSearch(t *testing.T) {
 		is.NoError(err)
 
 		req := httptest.NewRequest(http.MethodPost, "/gitops/repo/files/search", bytes.NewBuffer(payload))
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwt))
-
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
 
@@ -93,9 +81,8 @@ func Test_gitOperationRepoFilesSearch(t *testing.T) {
 		}
 		payload, err := json.Marshal(data)
 		is.NoError(err)
-		req := httptest.NewRequest(http.MethodPost, "/gitops/repo/files/search", bytes.NewBuffer(payload))
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwt))
 
+		req := httptest.NewRequest(http.MethodPost, "/gitops/repo/files/search", bytes.NewBuffer(payload))
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
 
@@ -118,9 +105,8 @@ func Test_gitOperationRepoFilesSearch(t *testing.T) {
 		}
 		payload, err := json.Marshal(data)
 		is.NoError(err)
-		req := httptest.NewRequest(http.MethodPost, "/gitops/repo/files/search", bytes.NewBuffer(payload))
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwt))
 
+		req := httptest.NewRequest(http.MethodPost, "/gitops/repo/files/search", bytes.NewBuffer(payload))
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
 

@@ -21,7 +21,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage Edge job operations.
-func NewHandler(bouncer *security.RequestBouncer, userActivityService portaineree.UserActivityService, demoService *demo.Service) *Handler {
+func NewHandler(bouncer security.BouncerService, userActivityService portaineree.UserActivityService, demoService *demo.Service) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		userActivityService: userActivityService,

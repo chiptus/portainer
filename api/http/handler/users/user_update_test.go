@@ -13,7 +13,6 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
-	"github.com/portainer/portainer-ee/api/jwt"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -29,15 +28,19 @@ func Test_updateUserRemovesAccessTokens(t *testing.T) {
 	is.NoError(err, "error creating user")
 
 	// setup services
-	jwtService, err := jwt.NewService("1h", store)
-	is.NoError(err, "Error initiating jwt service")
 	apiKeyService := apikey.NewAPIKeyService(store.APIKeyRepository(), store.User())
-	requestBouncer := security.NewRequestBouncer(store, nil, jwtService, apiKeyService, nil)
 	rateLimiter := security.NewRateLimiter(10, 1*time.Second, 1*time.Hour)
 	authorizationService := authorization.NewService(store)
 	passwordChecker := security.NewPasswordStrengthChecker(store.SettingsService)
 
-	h := NewHandler(requestBouncer, rateLimiter, apiKeyService, testhelpers.NewUserActivityService(), &demo.Service{}, passwordChecker)
+	h := NewHandler(
+		testhelpers.NewTestRequestBouncer(),
+		rateLimiter,
+		apiKeyService,
+		testhelpers.NewUserActivityService(),
+		&demo.Service{},
+		passwordChecker,
+	)
 	h.DataStore = store
 	h.AuthorizationService = authorizationService
 

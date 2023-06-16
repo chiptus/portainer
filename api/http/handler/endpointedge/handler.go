@@ -22,7 +22,7 @@ import (
 // Handler is the HTTP handler used to handle edge environment(endpoint) operations.
 type Handler struct {
 	*mux.Router
-	requestBouncer       *security.RequestBouncer
+	requestBouncer       security.BouncerService
 	DataStore            dataservices.DataStore
 	FileService          portainer.FileService
 	ReverseTunnelService portaineree.ReverseTunnelService
@@ -32,7 +32,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.
-func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, fileService portainer.FileService, reverseTunnelService portaineree.ReverseTunnelService, edgeService *edgeasync.Service, licenseService portaineree.LicenseService, edgeUpdateService *updateschedules.Service) *Handler {
+func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStore, fileService portainer.FileService, reverseTunnelService portaineree.ReverseTunnelService, edgeService *edgeasync.Service, licenseService portaineree.LicenseService, edgeUpdateService *updateschedules.Service) *Handler {
 	h := &Handler{
 		Router:               mux.NewRouter(),
 		requestBouncer:       bouncer,

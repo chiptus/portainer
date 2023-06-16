@@ -22,7 +22,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage status operations.
-func NewHandler(bouncer *security.RequestBouncer, status *portaineree.Status, demoService *demo.Service, dataStore dataservices.DataStore, updateService update.Service) *Handler {
+func NewHandler(bouncer security.BouncerService, status *portaineree.Status, demoService *demo.Service, dataStore dataservices.DataStore, updateService update.Service) *Handler {
 	h := &Handler{
 		Router:        mux.NewRouter(),
 		dataStore:     dataStore,

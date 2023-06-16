@@ -22,7 +22,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage Nomad operations.
-func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, nomadClientFactory *clientFactory.ClientFactory, authorizationService *authorization.Service) *Handler {
+func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStore, nomadClientFactory *clientFactory.ClientFactory, authorizationService *authorization.Service) *Handler {
 	h := &Handler{
 		Router:               mux.NewRouter(),
 		dataStore:            dataStore,

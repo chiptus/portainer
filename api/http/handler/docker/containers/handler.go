@@ -1,14 +1,15 @@
 package containers
 
 import (
+	"net/http"
+
+	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/docker/client"
-	"net/http"
+	"github.com/portainer/portainer-ee/api/http/security"
 
 	"github.com/gorilla/mux"
-	httperror "github.com/portainer/libhttp/error"
-	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 type Handler struct {
@@ -16,11 +17,11 @@ type Handler struct {
 	dockerClientFactory *client.ClientFactory
 	dataStore           dataservices.DataStore
 	containerService    *docker.ContainerService
-	bouncer             *security.RequestBouncer
+	bouncer             security.BouncerService
 }
 
 // NewHandler creates a handler to process non-proxied requests to docker APIs directly.
-func NewHandler(routePrefix string, bouncer *security.RequestBouncer, dataStore dataservices.DataStore, dockerClientFactory *client.ClientFactory, containerService *docker.ContainerService) *Handler {
+func NewHandler(routePrefix string, bouncer security.BouncerService, dataStore dataservices.DataStore, dockerClientFactory *client.ClientFactory, containerService *docker.ContainerService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		dataStore:           dataStore,

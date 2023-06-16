@@ -4,24 +4,25 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/portainer/portainer-ee/api/docker/client"
-
-	"github.com/gorilla/mux"
-	werrors "github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/cloud"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/demo"
+	"github.com/portainer/portainer-ee/api/docker/client"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/proxy"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
+	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	"github.com/portainer/portainer-ee/api/license"
 	portainer "github.com/portainer/portainer/api"
+
+	"github.com/gorilla/mux"
+	werrors "github.com/pkg/errors"
 )
 
 func hideFields(endpoint *portaineree.Endpoint) {
@@ -31,21 +32,10 @@ func hideFields(endpoint *portaineree.Endpoint) {
 	}
 }
 
-// This requestBouncer exists because security.RequestBounder is a type and not an interface.
-// Therefore we can not switch it out with a dummy bouncer for go tests.  This interface works around it
-type requestBouncer interface {
-	AuthenticatedAccess(h http.Handler) http.Handler
-	AdminAccess(h http.Handler) http.Handler
-	PublicAccess(h http.Handler) http.Handler
-	AuthorizedEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint, authorizationCheck bool) error
-	AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint) error
-	AuthorizedClientTLSConn(r *http.Request) error
-}
-
 // Handler is the HTTP handler used to handle environment(endpoint) operations.
 type Handler struct {
 	*mux.Router
-	requestBouncer              requestBouncer
+	requestBouncer              security.BouncerService
 	AuthorizationService        *authorization.Service
 	DataStore                   dataservices.DataStore
 	demoService                 *demo.Service
@@ -68,7 +58,7 @@ type Handler struct {
 
 // NewHandler creates a handler to manage environment(endpoint) operations.
 func NewHandler(
-	bouncer requestBouncer,
+	bouncer security.BouncerService,
 	userActivityService portaineree.UserActivityService,
 	dataStore dataservices.DataStore,
 	edgeService *edgeasync.Service,

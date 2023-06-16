@@ -1,15 +1,15 @@
 package openamt
 
 import (
-	"github.com/portainer/portainer-ee/api/docker/client"
 	"net/http"
-
-	"github.com/gorilla/mux"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/docker/client"
 	"github.com/portainer/portainer-ee/api/http/security"
 	portainer "github.com/portainer/portainer/api"
+
+	"github.com/gorilla/mux"
 )
 
 // Handler is the HTTP handler used to handle OpenAMT operations.
@@ -21,7 +21,7 @@ type Handler struct {
 }
 
 // NewHandler returns a new Handler
-func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore) *Handler {
+func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStore) *Handler {
 	h := &Handler{
 		Router: mux.NewRouter(),
 	}

@@ -16,7 +16,7 @@ import (
 	"github.com/portainer/portainer-ee/api/adminmonitor"
 	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/http/offlinegate"
-	i "github.com/portainer/portainer-ee/api/internal/testhelpers"
+	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -50,10 +50,23 @@ func Test_restoreArchive_usingCombinationOfPasswords(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			datastore := i.NewDatastore(i.WithUsers([]portaineree.User{}), i.WithEdgeJobs([]portaineree.EdgeJob{}))
+			datastore := testhelpers.NewDatastore(
+				testhelpers.WithUsers([]portaineree.User{}),
+				testhelpers.WithEdgeJobs([]portaineree.EdgeJob{}),
+			)
 			adminMonitor := adminmonitor.New(time.Hour, datastore, context.Background())
 
-			h := NewHandler(nil, datastore, i.NewUserActivityStore(), offlinegate.NewOfflineGate(), "./test_assets/handler_test", nil, func() {}, adminMonitor, &demo.Service{})
+			h := NewHandler(
+				testhelpers.NewTestRequestBouncer(),
+				datastore,
+				testhelpers.NewUserActivityStore(),
+				offlinegate.NewOfflineGate(),
+				"./test_assets/handler_test",
+				nil,
+				func() {},
+				adminMonitor,
+				&demo.Service{},
+			)
 
 			//backup
 			archive := backup(t, h, test.backupPassword)
@@ -73,10 +86,24 @@ func Test_restoreArchive_shouldFailIfSystemWasAlreadyInitialized(t *testing.T) {
 	admin := portaineree.User{
 		Role: portaineree.AdministratorRole,
 	}
-	datastore := i.NewDatastore(i.WithUsers([]portaineree.User{admin}), i.WithEdgeJobs([]portaineree.EdgeJob{}))
+
+	datastore := testhelpers.NewDatastore(
+		testhelpers.WithUsers([]portaineree.User{admin}),
+		testhelpers.WithEdgeJobs([]portaineree.EdgeJob{}),
+	)
+
 	adminMonitor := adminmonitor.New(time.Hour, datastore, context.Background())
 
-	h := NewHandler(nil, datastore, i.NewUserActivityStore(), offlinegate.NewOfflineGate(), "./test_assets/handler_test", nil, func() {}, adminMonitor, &demo.Service{})
+	h := NewHandler(
+		testhelpers.NewTestRequestBouncer(),
+		datastore,
+		testhelpers.NewUserActivityStore(),
+		offlinegate.NewOfflineGate(),
+		"./test_assets/handler_test",
+		nil,
+		func() {},
+		adminMonitor,
+		&demo.Service{})
 
 	//backup
 	archive := backup(t, h, "password")
@@ -107,11 +134,13 @@ func backup(t *testing.T, h *Handler, password string) []byte {
 
 func prepareMultipartRequest(password string, file []byte) (*http.Request, error) {
 	var body bytes.Buffer
+
 	w := multipart.NewWriter(&body)
 	err := w.WriteField("password", password)
 	if err != nil {
 		return nil, err
 	}
+
 	fw, err := w.CreateFormFile("file", "filename")
 	if err != nil {
 		return nil, err

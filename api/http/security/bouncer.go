@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/apikey"
@@ -14,10 +13,26 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/ssl"
 
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 
 type (
+	BouncerService interface {
+		PublicAccess(http.Handler) http.Handler
+		AdminAccess(http.Handler) http.Handler
+		RestrictedAccess(http.Handler) http.Handler
+		TeamLeaderAccess(http.Handler) http.Handler
+		AuthenticatedAccess(http.Handler) http.Handler
+		EdgeComputeOperation(http.Handler) http.Handler
+
+		AuthorizedClientTLSConn(*http.Request) error
+		AuthorizedEndpointOperation(*http.Request, *portaineree.Endpoint, bool) error
+		AuthorizedEdgeEndpointOperation(*http.Request, *portaineree.Endpoint) error
+		TrustedEdgeEnvironmentAccess(dataservices.DataStoreTx, *portaineree.Endpoint) error
+		JWTAuthLookup(*http.Request) *portaineree.TokenData
+	}
+
 	// RequestBouncer represents an entity that manages API request accesses
 	RequestBouncer struct {
 		dataStore      dataservices.DataStore

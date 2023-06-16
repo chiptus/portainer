@@ -1,13 +1,13 @@
 package webhooks
 
 import (
-	"github.com/portainer/portainer-ee/api/docker/client"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/docker"
+	"github.com/portainer/portainer-ee/api/docker/client"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
@@ -18,7 +18,7 @@ import (
 // Handler is the HTTP handler used to handle webhook operations.
 type Handler struct {
 	*mux.Router
-	requestBouncer      *security.RequestBouncer
+	requestBouncer      security.BouncerService
 	DataStore           dataservices.DataStore
 	DockerClientFactory *client.ClientFactory
 	userActivityService portaineree.UserActivityService
@@ -26,7 +26,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage webhooks operations.
-func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, userActivityService portaineree.UserActivityService,
+func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStore, userActivityService portaineree.UserActivityService,
 	containerService *docker.ContainerService) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),

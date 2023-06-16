@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/adminmonitor"
@@ -14,13 +13,15 @@ import (
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/offlinegate"
 	"github.com/portainer/portainer-ee/api/http/security"
+
+	"github.com/gorilla/mux"
 )
 
 // Handler is an http handler responsible for backup and restore portainer state
 type Handler struct {
 	*mux.Router
 	backupScheduler   *operations.BackupScheduler
-	bouncer           *security.RequestBouncer
+	bouncer           security.BouncerService
 	dataStore         dataservices.DataStore
 	userActivityStore portaineree.UserActivityStore
 	gate              *offlinegate.OfflineGate
@@ -31,7 +32,7 @@ type Handler struct {
 
 // NewHandler creates an new instance of backup handler
 func NewHandler(
-	bouncer *security.RequestBouncer,
+	bouncer security.BouncerService,
 	dataStore dataservices.DataStore,
 	userActivityStore portaineree.UserActivityStore,
 	gate *offlinegate.OfflineGate,

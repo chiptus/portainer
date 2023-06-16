@@ -4,15 +4,14 @@ import (
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
-	portainer "github.com/portainer/portainer/api"
-
-	"github.com/gorilla/mux"
 	"github.com/portainer/portainer-ee/api/dataservices"
-
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
 	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
+	portainer "github.com/portainer/portainer/api"
+
+	"github.com/gorilla/mux"
 )
 
 const contextKey = "edgeUpdateSchedule_item"
@@ -20,7 +19,7 @@ const contextKey = "edgeUpdateSchedule_item"
 // Handler is the HTTP handler used to handle edge environment update operations.
 type Handler struct {
 	*mux.Router
-	requestBouncer    *security.RequestBouncer
+	requestBouncer    security.BouncerService
 	dataStore         dataservices.DataStore
 	fileService       portainer.FileService
 	updateService     *updateschedules.Service
@@ -29,7 +28,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage environment update operations.
-func NewHandler(bouncer *security.RequestBouncer, dataStore dataservices.DataStore, fileService portainer.FileService, assetsPath string, edgeStacksService *edgestacks.Service, updateService *updateschedules.Service) *Handler {
+func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStore, fileService portainer.FileService, assetsPath string, edgeStacksService *edgestacks.Service, updateService *updateschedules.Service) *Handler {
 	h := &Handler{
 		Router:            mux.NewRouter(),
 		requestBouncer:    bouncer,
