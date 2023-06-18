@@ -154,6 +154,10 @@ interface EndpointChangeWindow {
   StartTime: string;
   EndTime: string;
 }
+interface EndpointStatusMessage {
+  Summary: string;
+  Detail: string;
+}
 
 export interface EnvironmentStatusMessage {
   Detail: string;
@@ -177,7 +181,6 @@ export type Environment = {
   LastCheckInDate?: number;
   Name: string;
   Status: EnvironmentStatus;
-  StatusMessage: EnvironmentStatusMessage;
   URL: string;
   Snapshots: DockerSnapshot[];
   Kubernetes: KubernetesSettings;
@@ -193,6 +196,10 @@ export type Environment = {
 
   /** GitOps update change window restriction for stacks and apps */
   ChangeWindow: EndpointChangeWindow;
+  /**
+   *  A message that describes the status. Should be included for Status Provisioning or Error.
+   */
+  StatusMessage: EndpointStatusMessage;
 };
 
 /**

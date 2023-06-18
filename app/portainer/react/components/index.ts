@@ -7,7 +7,6 @@ import { withUIRouter } from '@/react-tools/withUIRouter';
 import { GitCredentialsDatatable } from '@/react/portainer/account/AccountView/GitCredentialsDatatable';
 import { LicenseInfoPanel } from '@/react/portainer/licenses/components/LicenseInfoPanel';
 import { ChatBotItem } from '@/react/portainer/chat/ChatBot';
-import { EnvironmentURL } from '@/react/portainer/environments/ListView/EnvironmentURL';
 import { TableColumnHeaderImageUpToDate } from '@/react/docker/components/datatables/TableColumnHeaderImageUpToDate';
 import { withFormValidation } from '@/react-tools/withFormValidation';
 import { BetaAlert } from '@/react/portainer/environments/update-schedules/common/BetaAlert';
@@ -77,10 +76,6 @@ export const ngModule = angular
   .component(
     'portainerTooltip',
     r2a(Tooltip, ['message', 'position', 'className', 'setHtmlMessage'])
-  )
-  .component(
-    'portainerEnvironmentUrl',
-    r2a(withReactQuery(EnvironmentURL), ['endpoint', 'onReload'])
   )
   .component('badge', r2a(Badge, ['type', 'className']))
   .component('fileUploadField', fileUploadField)

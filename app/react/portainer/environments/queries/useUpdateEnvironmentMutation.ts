@@ -1,10 +1,6 @@
 import { useQueryClient, useMutation } from 'react-query';
 
-import {
-  mutationOptions,
-  withError,
-  withInvalidate,
-} from '@/react-tools/react-query';
+import { withError, withInvalidate } from '@/react-tools/react-query';
 import {
   EnvironmentId,
   EnvironmentStatusMessage,
@@ -21,9 +17,7 @@ import { queryKeys } from './query-keys';
 export function useUpdateEnvironmentMutation() {
   const queryClient = useQueryClient();
   return useMutation(updateEnvironment, {
-    onSuccess(data, { id }) {
-      queryClient.invalidateQueries(queryKeys.item(id));
-    },
+    ...withInvalidate(queryClient, [queryKeys.base()]),
     ...withError('Unable to update environment'),
   });
 }
@@ -100,48 +94,5 @@ async function uploadTLSFilesForEndpoint(
     } catch (e) {
       throw parseAxiosError(e as Error);
     }
-  }
-}
-
-export function useUpdateEndpointStatusMessageMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation(
-    ({
-      environmentId,
-      payload,
-    }: {
-      environmentId: EnvironmentId;
-      payload: {
-        IsSetStatusMessage: boolean;
-        StatusMessage: EnvironmentStatusMessage;
-      };
-    }) => updateEndpointStatusMessage(environmentId, payload),
-    mutationOptions(
-      withError('Failed to update environment status message'),
-      withInvalidate(queryClient, [['environments']])
-    )
-  );
-}
-
-async function updateEndpointStatusMessage(
-  id: EnvironmentId,
-  payload: {
-    IsSetStatusMessage: boolean;
-    StatusMessage: EnvironmentStatusMessage;
-  }
-) {
-  try {
-    const { data: endpoint } = await axios.put<Environment>(
-      buildUrl(id),
-      payload
-    );
-
-    return endpoint;
-  } catch (e) {
-    throw parseAxiosError(
-      e as Error,
-      'Unable to update environment status message'
-    );
   }
 }

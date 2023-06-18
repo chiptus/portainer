@@ -193,7 +193,7 @@ angular
         url: '/endpoints',
         views: {
           'content@': {
-            component: 'endpointsView',
+            component: 'environmentsListView',
           },
         },
       };

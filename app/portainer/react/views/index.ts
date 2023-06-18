@@ -13,6 +13,7 @@ import { EditCredentialView } from '@/react/portainer/settings/sharedCredentials
 import { withI18nSuspense } from '@/react-tools/withI18nSuspense';
 import { NotificationsView } from '@/react/portainer/notifications/NotificationsView';
 import { EdgeAutoCreateScriptView } from '@/react/portainer/environments/EdgeAutoCreateScriptView';
+import { ListView as EnvironmentsListView } from '@/react/portainer/environments/ListView';
 
 import { wizardModule } from './wizard';
 import { teamsModule } from './teams';
@@ -66,4 +67,8 @@ export const viewsModule = angular
   .component(
     'notifications',
     r2a(withUIRouter(withReactQuery(withCurrentUser(NotificationsView))), [])
+  )
+  .component(
+    'environmentsListView',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(EnvironmentsListView))), [])
   ).name;
