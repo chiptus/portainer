@@ -1070,19 +1070,19 @@ type (
 	// S3BackupSettings represents when and where to backup
 	S3BackupSettings struct {
 		// Crontab rule to make periodical backups
-		CronRule string
+		CronRule string `json:"cronRule"`
 		// AWS access key id
-		AccessKeyID string
+		AccessKeyID string `json:"accessKeyID"`
 		// AWS secret access key
-		SecretAccessKey string
+		SecretAccessKey string `json:"secretAccessKey"`
 		// AWS S3 region. Default to "us-east-1"
-		Region string `example:"us-east-1"`
+		Region string `json:"region" example:"us-east-1"`
 		// AWS S3 bucket name
-		BucketName string
+		BucketName string `json:"bucketName"`
 		// Password to encrypt the backup with
-		Password string
+		Password string `json:"password"`
 		// S3 compatible host
-		S3CompatibleHost string
+		S3CompatibleHost string `json:"s3CompatibleHost"`
 	}
 
 	// S3BackupStatus represents result of the scheduled s3 backup

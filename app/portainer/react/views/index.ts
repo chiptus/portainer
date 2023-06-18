@@ -14,6 +14,7 @@ import { withI18nSuspense } from '@/react-tools/withI18nSuspense';
 import { NotificationsView } from '@/react/portainer/notifications/NotificationsView';
 import { EdgeAutoCreateScriptView } from '@/react/portainer/environments/EdgeAutoCreateScriptView';
 import { ListView as EnvironmentsListView } from '@/react/portainer/environments/ListView';
+import { BackupSettingsPanel } from '@/react/portainer/settings/SettingsView/BackupSettingsView/BackupSettingsPanel';
 
 import { wizardModule } from './wizard';
 import { teamsModule } from './teams';
@@ -63,6 +64,10 @@ export const viewsModule = angular
   .component(
     'editSharedCredentialsView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(EditCredentialView))), [])
+  )
+  .component(
+    'backupSettingsPanel',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(BackupSettingsPanel))), [])
   )
   .component(
     'notifications',

@@ -1,21 +1,13 @@
 import angular from 'angular';
 
-import { FeatureId } from '@/react/portainer/feature-flags/enums';
-import { options } from '@/react/portainer/settings/SettingsView/backup-options';
-
 angular.module('portainer.app').controller('SettingsController', [
   '$scope',
   'Notifications',
   'SettingsService',
   'StateManager',
-  'BackupService',
-  'FileSaver',
-  function ($scope, Notifications, SettingsService, StateManager, BackupService, FileSaver) {
-    $scope.s3BackupFeatureId = FeatureId.S3_BACKUP_SETTING;
+  function ($scope, Notifications, SettingsService, StateManager) {
     $scope.updateSettings = updateSettings;
     $scope.handleSuccess = handleSuccess;
-
-    $scope.backupOptions = options;
 
     $scope.state = {
       actionInProgress: false,
@@ -45,8 +37,6 @@ angular.module('portainer.app').controller('SettingsController', [
       featureLimited: false,
     };
 
-    $scope.BACKUP_FORM_TYPES = { S3: 's3', FILE: 'file' };
-
     $scope.formValues = {
       GlobalDeploymentOptions: {
         hideAddWithForm: false,
@@ -61,16 +51,6 @@ angular.module('portainer.app').controller('SettingsController', [
       BlackListedLabels: [],
       labelName: '',
       labelValue: '',
-      passwordProtect: false,
-      password: '',
-      scheduleAutomaticBackups: true,
-      cronRule: '',
-      accessKeyId: '',
-      secretAccessKey: '',
-      region: '',
-      bucketName: '',
-      s3CompatibleHost: '',
-      backupFormType: $scope.BACKUP_FORM_TYPES.FILE,
     };
 
     $scope.onToggleAddWithForm = function onToggleAddWithForm(checked) {
@@ -82,6 +62,12 @@ angular.module('portainer.app').controller('SettingsController', [
           $scope.formValues.GlobalDeploymentOptions.hideWebEditor = true;
           $scope.formValues.GlobalDeploymentOptions.hideFileUpload = true;
         }
+      });
+    };
+
+    $scope.onToggleNoteOnApplications = function onToggleNoteOnApplications(checked) {
+      $scope.$evalAsync(() => {
+        $scope.formValues.GlobalDeploymentOptions.requireNoteOnApplications = checked;
       });
     };
 
@@ -97,27 +83,10 @@ angular.module('portainer.app').controller('SettingsController', [
       });
     };
 
-    $scope.onToggleNoteOnApplications = function onToggleNoteOnApplications(checked) {
-      $scope.$evalAsync(() => {
-        $scope.formValues.GlobalDeploymentOptions.requireNoteOnApplications = checked;
-      });
-    };
-
     $scope.onToggleHideFileUpload = function onToggleHideFileUpload(checked) {
       $scope.$evalAsync(() => {
         $scope.formValues.GlobalDeploymentOptions.hideFileUpload = !checked;
       });
-    };
-
-    $scope.onToggleAutoBackups = function onToggleAutoBackups(checked) {
-      $scope.$evalAsync(() => {
-        $scope.formValues.scheduleAutomaticBackups = checked;
-      });
-    };
-
-    $scope.onBackupOptionsChange = function (type, limited) {
-      $scope.formValues.backupFormType = type;
-      $scope.state.featureLimited = limited;
     };
 
     $scope.removeFilteredContainerLabel = function (index) {
@@ -137,28 +106,6 @@ angular.module('portainer.app').controller('SettingsController', [
       updateSettings(filteredSettingsPayload, 'Hidden container settings updated');
     };
 
-    $scope.downloadBackup = function () {
-      const payload = {};
-      if ($scope.formValues.passwordProtect) {
-        payload.password = $scope.formValues.password;
-      }
-
-      $scope.state.backupInProgress = true;
-
-      BackupService.downloadBackup(payload)
-        .then(function success(data) {
-          const downloadData = new Blob([data.file], { type: 'application/gzip' });
-          FileSaver.saveAs(downloadData, data.name);
-          Notifications.success('Success', 'Backup successfully downloaded');
-        })
-        .catch(function error(err) {
-          Notifications.error('Failure', err, 'Unable to download backup');
-        })
-        .finally(function final() {
-          $scope.state.backupInProgress = false;
-        });
-    };
-
     // only update the values from the kube settings widget. In future separate the api endpoints
     $scope.saveKubernetesSettings = function () {
       const kubeSettingsPayload = {
@@ -170,46 +117,6 @@ angular.module('portainer.app').controller('SettingsController', [
       $scope.state.kubeSettingsActionInProgress = true;
       updateSettings(kubeSettingsPayload, 'Kubernetes settings updated');
     };
-
-    $scope.saveS3BackupSettings = function () {
-      const payload = getS3SettingsPayload();
-      BackupService.saveS3Settings(payload)
-        .then(function success() {
-          Notifications.success('Success', 'S3 Backup settings successfully saved');
-        })
-        .catch(function error(err) {
-          Notifications.error('Failure', err, 'Unable to save S3 backup settings');
-        })
-        .finally(function final() {
-          $scope.state.backupInProgress = false;
-        });
-    };
-
-    $scope.exportBackup = function () {
-      const payload = getS3SettingsPayload();
-      BackupService.exportBackup(payload)
-        .then(function success() {
-          Notifications.success('Success', 'Exported backup to S3 successfully');
-        })
-        .catch(function error(err) {
-          Notifications.error('Failure', err, 'Unable to export backup to S3');
-        })
-        .finally(function final() {
-          $scope.state.backupInProgress = false;
-        });
-    };
-
-    function getS3SettingsPayload() {
-      return {
-        Password: $scope.formValues.passwordProtectS3 ? $scope.formValues.passwordS3 : '',
-        CronRule: $scope.formValues.scheduleAutomaticBackups ? $scope.formValues.cronRule : '',
-        AccessKeyID: $scope.formValues.accessKeyId,
-        SecretAccessKey: $scope.formValues.secretAccessKey,
-        Region: $scope.formValues.region,
-        BucketName: $scope.formValues.bucketName,
-        S3CompatibleHost: $scope.formValues.s3CompatibleHost,
-      };
-    }
 
     function updateSettings(settings, successMessage = 'Settings updated') {
       // ignore CloudApiKeys to avoid overriding them
@@ -245,23 +152,6 @@ angular.module('portainer.app').controller('SettingsController', [
     }
 
     function initView() {
-      BackupService.getS3Settings()
-        .then(function success(data) {
-          $scope.formValues.passwordS3 = data.Password;
-          $scope.formValues.cronRule = data.CronRule;
-          $scope.formValues.accessKeyId = data.AccessKeyID;
-          $scope.formValues.secretAccessKey = data.SecretAccessKey;
-          $scope.formValues.region = data.Region;
-          $scope.formValues.bucketName = data.BucketName;
-          $scope.formValues.s3CompatibleHost = data.S3CompatibleHost;
-
-          $scope.formValues.scheduleAutomaticBackups = $scope.formValues.cronRule ? true : false;
-          $scope.formValues.passwordProtectS3 = $scope.formValues.passwordS3 ? true : false;
-        })
-        .catch(function error(err) {
-          Notifications.error('Failure', err, 'Unable to retrieve S3 backup settings');
-        });
-
       SettingsService.settings()
         .then(function success(data) {
           var settings = data;
