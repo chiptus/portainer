@@ -4,6 +4,7 @@ import { type TagId } from '@/portainer/tags/types';
 import { UserId } from '@/portainer/users/types';
 import { TeamId } from '@/react/portainer/users/teams/types';
 import { getPublicSettings } from '@/react/portainer/settings/settings.service';
+import { EdgeStack, EdgeStackStatus } from '@/react/edge/edge-stacks/types';
 
 import type {
   Environment,
@@ -15,7 +16,16 @@ import type {
 
 import { buildUrl } from './utils';
 
-export interface EnvironmentsQueryParams {
+export type EdgeStackEnvironmentsQueryParams =
+  | {
+      edgeStackId?: EdgeStack['Id'];
+    }
+  | {
+      edgeStackId: EdgeStack['Id'];
+      edgeStackStatus?: keyof EdgeStackStatus['Details'];
+    };
+
+export interface BaseEnvironmentsQueryParams {
   search?: string;
   types?: EnvironmentType[] | readonly EnvironmentType[];
   tagIds?: TagId[];
@@ -32,6 +42,9 @@ export interface EnvironmentsQueryParams {
   updateInformation?: boolean;
   edgeCheckInPassedSeconds?: number;
 }
+
+export type EnvironmentsQueryParams = BaseEnvironmentsQueryParams &
+  EdgeStackEnvironmentsQueryParams;
 
 export interface GetEnvironmentsOptions {
   start?: number;

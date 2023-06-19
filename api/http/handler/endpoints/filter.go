@@ -10,8 +10,24 @@ import (
 	"github.com/pkg/errors"
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/http/handler/edgegroups"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/slices"
+	"github.com/portainer/portainer-ee/api/internal/unique"
+	portainer "github.com/portainer/portainer/api"
+)
+
+type EdgeStackStatusFilter string
+
+const (
+	statusFilterPending             EdgeStackStatusFilter = "Pending"
+	statusFilterOk                  EdgeStackStatusFilter = "Ok"
+	statusFilterError               EdgeStackStatusFilter = "Error"
+	statusFilterAcknowledged        EdgeStackStatusFilter = "Acknowledged"
+	statusFilterRemove              EdgeStackStatusFilter = "Remove"
+	statusFilterRemoteUpdateSuccess EdgeStackStatusFilter = "RemoteUpdateSuccess"
+	statusFilterImagesPulled        EdgeStackStatusFilter = "ImagesPulled"
 )
 
 type EnvironmentsQuery struct {
@@ -30,6 +46,8 @@ type EnvironmentsQuery struct {
 	name                     string
 	agentVersions            []string
 	edgeCheckInPassedSeconds int
+	edgeStackId              portaineree.EdgeStackID
+	edgeStackStatus          EdgeStackStatusFilter
 }
 
 func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
@@ -83,6 +101,10 @@ func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
 
 	edgeCheckInPassedSeconds, _ := request.RetrieveNumericQueryParameter(r, "edgeCheckInPassedSeconds", true)
 
+	edgeStackId, _ := request.RetrieveNumericQueryParameter(r, "edgeStackId", true)
+
+	edgeStackStatus, _ := request.RetrieveQueryParameter(r, "edgeStackStatus", true)
+
 	return EnvironmentsQuery{
 		search:                   search,
 		types:                    endpointTypes,
@@ -98,6 +120,8 @@ func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
 		name:                     name,
 		agentVersions:            agentVersions,
 		edgeCheckInPassedSeconds: edgeCheckInPassedSeconds,
+		edgeStackId:              portaineree.EdgeStackID(edgeStackId),
+		edgeStackStatus:          EdgeStackStatusFilter(edgeStackStatus),
 	}, nil
 }
 
@@ -187,8 +211,77 @@ func (handler *Handler) filterEndpointsByQuery(filteredEndpoints []portaineree.E
 			return !endpointutils.IsAgentEndpoint(&endpoint) || contains(query.agentVersions, endpoint.Agent.Version)
 		})
 	}
+	if query.edgeStackId != 0 {
+		f, err := filterEndpointsByEdgeStack(filteredEndpoints, query.edgeStackId, query.edgeStackStatus, handler.DataStore)
+		if err != nil {
+			return nil, 0, err
+		}
+		filteredEndpoints = f
+	}
 
 	return filteredEndpoints, totalAvailableEndpoints, nil
+}
+
+func endpointStatusInStackMatchesFilter(stackStatus map[portaineree.EndpointID]portainer.EdgeStackStatus, envId portaineree.EndpointID, statusFilter EdgeStackStatusFilter) bool {
+	status, ok := stackStatus[envId]
+
+	// consider that if the env has no status in the stack it is in Pending state
+	// workaround because Stack.Status[EnvId].Details.Pending is never set to True in the codebase
+	if !ok && statusFilter == statusFilterPending {
+		return true
+	}
+
+	valueMap := map[EdgeStackStatusFilter]bool{
+		statusFilterPending:             status.Details.Pending,
+		statusFilterOk:                  status.Details.Ok,
+		statusFilterError:               status.Details.Error,
+		statusFilterAcknowledged:        status.Details.Acknowledged,
+		statusFilterRemove:              status.Details.Remove,
+		statusFilterRemoteUpdateSuccess: status.Details.RemoteUpdateSuccess,
+		statusFilterImagesPulled:        status.Details.ImagesPulled,
+	}
+
+	currentStatus, ok := valueMap[statusFilter]
+	return ok && currentStatus
+}
+
+func filterEndpointsByEdgeStack(endpoints []portaineree.Endpoint, edgeStackId portaineree.EdgeStackID, statusFilter EdgeStackStatusFilter, datastore dataservices.DataStore) ([]portaineree.Endpoint, error) {
+	stack, err := datastore.EdgeStack().EdgeStack(edgeStackId)
+	if err != nil {
+		return nil, errors.WithMessage(err, "Unable to retrieve edge stack from the database")
+	}
+
+	envIds := make([]portaineree.EndpointID, 0)
+	for _, edgeGroupdId := range stack.EdgeGroups {
+		edgeGroup, err := datastore.EdgeGroup().EdgeGroup(edgeGroupdId)
+		if err != nil {
+			return nil, errors.WithMessage(err, "Unable to retrieve edge group from the database")
+		}
+		if edgeGroup.Dynamic {
+			endpointIDs, err := edgegroups.GetEndpointsByTags(datastore, edgeGroup.TagIDs, edgeGroup.PartialMatch)
+			if err != nil {
+				return nil, errors.WithMessage(err, "Unable to retrieve environments and environment groups for Edge group")
+			}
+			edgeGroup.Endpoints = endpointIDs
+		}
+		envIds = append(envIds, edgeGroup.Endpoints...)
+	}
+
+	if statusFilter != "" {
+		n := 0
+		for _, envId := range envIds {
+			if endpointStatusInStackMatchesFilter(stack.Status, envId, statusFilter) {
+				envIds[n] = envId
+				n++
+			}
+		}
+		envIds = envIds[:n]
+	}
+
+	uniqueIds := unique.Unique(envIds)
+	filteredEndpoints := filteredEndpointsByIds(endpoints, uniqueIds)
+
+	return filteredEndpoints, nil
 }
 
 func filterEndpointsByGroupIDs(endpoints []portaineree.Endpoint, endpointGroupIDs []portaineree.EndpointGroupID) []portaineree.Endpoint {
@@ -414,7 +507,6 @@ func filteredEndpointsByIds(endpoints []portaineree.Endpoint, ids []portaineree.
 	}
 
 	return endpoints[:n]
-
 }
 
 func filterEndpointsByName(endpoints []portaineree.Endpoint, name string) []portaineree.Endpoint {
