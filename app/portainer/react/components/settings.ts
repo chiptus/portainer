@@ -9,6 +9,7 @@ import { SettingsOpenAMT } from '@/react/portainer/settings/EdgeComputeView/Sett
 import { InternalAuth } from '@/react/portainer/settings/AuthenticationView/InternalAuth';
 import { ExperimentalFeatures } from '@/react/portainer/settings/SettingsView/ExperimentalFeatures';
 import { ApplicationSettingsPanel } from '@/react/portainer/settings/SettingsView/ApplicationSettingsPanel';
+import { KubeSettingsPanel } from '@/react/portainer/settings/SettingsView/KubeSettingsPanel';
 
 export const settingsModule = angular
   .module('portainer.app.react.components.settings', [])
@@ -28,4 +29,8 @@ export const settingsModule = angular
   .component(
     'applicationSettingsPanel',
     r2a(withReactQuery(ApplicationSettingsPanel), ['onSuccess'])
+  )
+  .component(
+    'kubeSettingsPanel',
+    r2a(withUIRouter(withReactQuery(KubeSettingsPanel)), [])
   ).name;

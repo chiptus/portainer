@@ -136,6 +136,7 @@ export interface Settings {
   AllowContainerCapabilitiesForRegularUsers: boolean;
   DefaultRegistry: DefaultRegistry;
   ExperimentalFeatures: ExperimentalFeatures;
+  GlobalDeploymentOptions?: GlobalDeploymentOptions;
   Edge: {
     PingInterval: number;
     SnapshotInterval: number;

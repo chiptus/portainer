@@ -1,6 +1,4 @@
-import { useEffect } from 'react';
 import { Box, Edit, Layers, Lock, Server, Shuffle } from 'lucide-react';
-import { useQueryClient } from 'react-query';
 
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import { Authorized } from '@/react/hooks/useUser';
@@ -21,32 +19,11 @@ interface Props {
 
 export function KubernetesSidebar({ environmentId }: Props) {
   const { isOpen } = useSidebarState();
-  const queryClient = useQueryClient();
 
   const { data: deploymentOptions } =
     useEnvironmentDeploymentOptions(environmentId);
   const showCustomTemplates =
     deploymentOptions && !deploymentOptions?.hideWebEditor;
-
-  // use an event listener to check when to invalidate the useEnvironmentDeploymentOptions query and update the side bar
-  // this is a workaround for not being able to invalidate the query from the (angular based) settings and kube configure views
-  useEffect(() => {
-    document.addEventListener('portainer:deploymentOptionsUpdated', () => {
-      // invalidate the query to update the sidebar
-      queryClient.invalidateQueries([
-        'environments',
-        environmentId,
-        'deploymentOptions',
-      ]);
-    });
-    return () => {
-      document.removeEventListener(
-        'portainer:deploymentOptionsUpdated',
-        () => {}
-      );
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <>
