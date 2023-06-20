@@ -1,12 +1,9 @@
 package registry
 
 import (
-	"fmt"
-
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
-
-	"github.com/rs/zerolog/log"
 )
 
 type ServiceTx struct {
@@ -35,22 +32,11 @@ func (service ServiceTx) Registry(ID portaineree.RegistryID) (*portaineree.Regis
 func (service ServiceTx) Registries() ([]portaineree.Registry, error) {
 	var registries = make([]portaineree.Registry, 0)
 
-	err := service.tx.GetAll(
+	return registries, service.tx.GetAll(
 		BucketName,
 		&portaineree.Registry{},
-		func(obj interface{}) (interface{}, error) {
-			registry, ok := obj.(*portaineree.Registry)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Registry object")
-				return nil, fmt.Errorf("Failed to convert to Registry object: %s", obj)
-			}
-
-			registries = append(registries, *registry)
-
-			return &portaineree.Registry{}, nil
-		})
-
-	return registries, err
+		dataservices.AppendFn(&registries),
+	)
 }
 
 // Create creates a new registry.

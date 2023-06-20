@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
@@ -63,22 +64,10 @@ func (service *Service) Update(id int, cmd *portaineree.EdgeAsyncCommand) error 
 func (service *Service) EndpointCommands(endpointID portaineree.EndpointID) ([]portaineree.EdgeAsyncCommand, error) {
 	var cmds = make([]portaineree.EdgeAsyncCommand, 0)
 
-	err := service.connection.GetAllWithKeyPrefix(
+	return cmds, service.connection.GetAllWithKeyPrefix(
 		BucketName,
 		service.connection.ConvertToKey(int(endpointID)),
 		&portaineree.EdgeAsyncCommand{},
-		func(obj interface{}) (interface{}, error) {
-			cmd, ok := obj.(*portaineree.EdgeAsyncCommand)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to EdgeAsyncCommand object")
-
-				return nil, fmt.Errorf("failed to convert to EdgeAsyncCommand object: %s", obj)
-			}
-
-			cmds = append(cmds, *cmd)
-
-			return &portaineree.EdgeAsyncCommand{}, nil
-		})
-
-	return cmds, err
+		dataservices.AppendFn(&cmds),
+	)
 }

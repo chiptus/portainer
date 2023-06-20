@@ -2,12 +2,10 @@ package edgejob
 
 import (
 	"errors"
-	"fmt"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
-
-	"github.com/rs/zerolog/log"
 )
 
 type ServiceTx struct {
@@ -23,22 +21,11 @@ func (service ServiceTx) BucketName() string {
 func (service ServiceTx) EdgeJobs() ([]portaineree.EdgeJob, error) {
 	var edgeJobs = make([]portaineree.EdgeJob, 0)
 
-	err := service.tx.GetAll(
+	return edgeJobs, service.tx.GetAll(
 		BucketName,
 		&portaineree.EdgeJob{},
-		func(obj interface{}) (interface{}, error) {
-			job, ok := obj.(*portaineree.EdgeJob)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to EdgeJob object")
-				return nil, fmt.Errorf("Failed to convert to EdgeJob object: %s", obj)
-			}
-
-			edgeJobs = append(edgeJobs, *job)
-
-			return &portaineree.EdgeJob{}, nil
-		})
-
-	return edgeJobs, err
+		dataservices.AppendFn(&edgeJobs),
+	)
 }
 
 // EdgeJob returns an Edge job by ID

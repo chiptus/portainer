@@ -1,18 +1,13 @@
 package license
 
 import (
-	"fmt"
-
 	"github.com/portainer/liblicense"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
-
-	"github.com/rs/zerolog/log"
 )
 
-const (
-	// BucketName represents the name of the bucket where this service stores data.
-	BucketName = "license"
-)
+// BucketName represents the name of the bucket where this service stores data.
+const BucketName = "license"
 
 // Service represents a service for managing license data.
 type Service struct {
@@ -48,21 +43,11 @@ func (service *Service) License(licenseKey string) (*liblicense.PortainerLicense
 func (service *Service) Licenses() ([]liblicense.PortainerLicense, error) {
 	var licenses = make([]liblicense.PortainerLicense, 0)
 
-	err := service.connection.GetAll(
+	return licenses, service.connection.GetAll(
 		BucketName,
 		&liblicense.PortainerLicense{},
-		func(obj interface{}) (interface{}, error) {
-			r, ok := obj.(*liblicense.PortainerLicense)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("Failed to convert to PortainerLicense object")
-				return nil, fmt.Errorf("Failed to convert to PortainerLicense object: %s", obj)
-			}
-
-			licenses = append(licenses, *r)
-
-			return &liblicense.PortainerLicense{}, nil
-		})
-	return licenses, err
+		dataservices.AppendFn(&licenses),
+	)
 }
 
 // AddLicense saves a licence

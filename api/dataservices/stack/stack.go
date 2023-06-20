@@ -2,20 +2,16 @@ package stack
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 	dserrors "github.com/portainer/portainer/api/dataservices/errors"
-
-	"github.com/rs/zerolog/log"
 )
 
-const (
-	// BucketName represents the name of the bucket where this service stores data.
-	BucketName = "stacks"
-)
+// BucketName represents the name of the bucket where this service stores data.
+const BucketName = "stacks"
 
 // Service represents a service for managing environment(endpoint) data.
 type Service struct {
@@ -53,29 +49,18 @@ func (service *Service) Stack(ID portaineree.StackID) (*portaineree.Stack, error
 
 // StackByName returns a stack object by name.
 func (service *Service) StackByName(name string) (*portaineree.Stack, error) {
-	var s *portaineree.Stack
+	var s portaineree.Stack
 
-	stop := fmt.Errorf("ok")
 	err := service.connection.GetAll(
 		BucketName,
 		&portaineree.Stack{},
-		func(obj interface{}) (interface{}, error) {
-			stack, ok := obj.(*portaineree.Stack)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Stack object")
-				return nil, fmt.Errorf("failed to convert to Stack object: %s", obj)
-			}
+		dataservices.FirstFn(&s, func(e portaineree.Stack) bool {
+			return e.Name == name
+		}),
+	)
 
-			if stack.Name == name {
-				s = stack
-				return nil, stop
-			}
-
-			return &portaineree.Stack{}, nil
-		})
-
-	if errors.Is(err, stop) {
-		return s, nil
+	if errors.Is(err, dataservices.ErrStop) {
+		return &s, nil
 	}
 
 	if err == nil {
@@ -89,46 +74,24 @@ func (service *Service) StackByName(name string) (*portaineree.Stack, error) {
 func (service *Service) StacksByName(name string) ([]portaineree.Stack, error) {
 	var stacks = make([]portaineree.Stack, 0)
 
-	err := service.connection.GetAll(
+	return stacks, service.connection.GetAll(
 		BucketName,
 		&portaineree.Stack{},
-		func(obj interface{}) (interface{}, error) {
-			stack, ok := obj.(portaineree.Stack)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Stack object")
-				return nil, fmt.Errorf("Failed to convert to Stack object: %s", obj)
-			}
-
-			if stack.Name == name {
-				stacks = append(stacks, stack)
-			}
-
-			return &portaineree.Stack{}, nil
-		})
-
-	return stacks, err
+		dataservices.FilterFn(&stacks, func(e portaineree.Stack) bool {
+			return e.Name == name
+		}),
+	)
 }
 
 // Stacks returns an array containing all the stacks.
 func (service *Service) Stacks() ([]portaineree.Stack, error) {
 	var stacks = make([]portaineree.Stack, 0)
 
-	err := service.connection.GetAll(
+	return stacks, service.connection.GetAll(
 		BucketName,
 		&portaineree.Stack{},
-		func(obj interface{}) (interface{}, error) {
-			stack, ok := obj.(*portaineree.Stack)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Stack object")
-				return nil, fmt.Errorf("Failed to convert to Stack object: %s", obj)
-			}
-
-			stacks = append(stacks, *stack)
-
-			return &portaineree.Stack{}, nil
-		})
-
-	return stacks, err
+		dataservices.AppendFn(&stacks),
+	)
 }
 
 // GetNextIdentifier returns the next identifier for a stack.
@@ -156,34 +119,19 @@ func (service *Service) DeleteStack(ID portaineree.StackID) error {
 // StackByWebhookID returns a pointer to a stack object by webhook ID.
 // It returns nil, errors.ErrObjectNotFound if there's no stack associated with the webhook ID.
 func (service *Service) StackByWebhookID(id string) (*portaineree.Stack, error) {
-	var s *portaineree.Stack
-	stop := fmt.Errorf("ok")
+	var s portaineree.Stack
+
 	err := service.connection.GetAll(
 		BucketName,
 		&portaineree.Stack{},
-		func(obj interface{}) (interface{}, error) {
-			var ok bool
-			s, ok = obj.(*portaineree.Stack)
+		dataservices.FirstFn(&s, func(e portaineree.Stack) bool {
+			return (e.Webhook != "" && strings.EqualFold(e.Webhook, id)) ||
+				(e.AutoUpdate != nil && strings.EqualFold(e.AutoUpdate.Webhook, id))
+		}),
+	)
 
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Stack object")
-
-				return &portaineree.Stack{}, nil
-			}
-
-			if s.Webhook != "" && strings.EqualFold(s.Webhook, id) {
-				return nil, stop
-			}
-
-			if s.AutoUpdate != nil && strings.EqualFold(s.AutoUpdate.Webhook, id) {
-				return nil, stop
-			}
-
-			return &portaineree.Stack{}, nil
-		})
-
-	if errors.Is(err, stop) {
-		return s, nil
+	if errors.Is(err, dataservices.ErrStop) {
+		return &s, nil
 	}
 
 	if err == nil {
@@ -197,22 +145,11 @@ func (service *Service) StackByWebhookID(id string) (*portaineree.Stack, error) 
 func (service *Service) RefreshableStacks() ([]portaineree.Stack, error) {
 	stacks := make([]portaineree.Stack, 0)
 
-	err := service.connection.GetAll(
+	return stacks, service.connection.GetAll(
 		BucketName,
 		&portaineree.Stack{},
-		func(obj interface{}) (interface{}, error) {
-			stack, ok := obj.(*portaineree.Stack)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Stack object")
-				return nil, fmt.Errorf("failed to convert to Stack object: %s", obj)
-			}
-
-			if stack.AutoUpdate != nil && stack.AutoUpdate.Interval != "" {
-				stacks = append(stacks, *stack)
-			}
-
-			return &portaineree.Stack{}, nil
-		})
-
-	return stacks, err
+		dataservices.FilterFn(&stacks, func(e portaineree.Stack) bool {
+			return e.AutoUpdate != nil && e.AutoUpdate.Interval != ""
+		}),
+	)
 }

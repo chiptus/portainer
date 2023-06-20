@@ -2,11 +2,10 @@ package edgegroup
 
 import (
 	"errors"
-	"fmt"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/rs/zerolog/log"
 )
 
 type ServiceTx struct {
@@ -22,21 +21,11 @@ func (service ServiceTx) BucketName() string {
 func (service ServiceTx) EdgeGroups() ([]portaineree.EdgeGroup, error) {
 	var groups = make([]portaineree.EdgeGroup, 0)
 
-	err := service.tx.GetAllWithJsoniter(
+	return groups, service.tx.GetAllWithJsoniter(
 		BucketName,
 		&portaineree.EdgeGroup{},
-		func(obj interface{}) (interface{}, error) {
-			group, ok := obj.(*portaineree.EdgeGroup)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to EdgeGroup object")
-				return nil, fmt.Errorf("Failed to convert to EdgeGroup object: %s", obj)
-			}
-			groups = append(groups, *group)
-
-			return &portaineree.EdgeGroup{}, nil
-		})
-
-	return groups, err
+		dataservices.AppendFn(&groups),
+	)
 }
 
 // EdgeGroup returns an Edge group by ID.

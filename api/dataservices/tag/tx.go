@@ -2,12 +2,10 @@ package tag
 
 import (
 	"errors"
-	"fmt"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
-
-	"github.com/rs/zerolog/log"
 )
 
 type ServiceTx struct {
@@ -23,22 +21,11 @@ func (service ServiceTx) BucketName() string {
 func (service ServiceTx) Tags() ([]portaineree.Tag, error) {
 	var tags = make([]portaineree.Tag, 0)
 
-	err := service.tx.GetAll(
+	return tags, service.tx.GetAll(
 		BucketName,
 		&portaineree.Tag{},
-		func(obj interface{}) (interface{}, error) {
-			tag, ok := obj.(*portaineree.Tag)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Tag object")
-				return nil, fmt.Errorf("Failed to convert to Tag object: %s", obj)
-			}
-
-			tags = append(tags, *tag)
-
-			return &portaineree.Tag{}, nil
-		})
-
-	return tags, err
+		dataservices.AppendFn(&tags),
+	)
 }
 
 // Tag returns a tag by ID.

@@ -1,12 +1,9 @@
 package tag
 
 import (
-	"fmt"
-
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
-
-	"github.com/rs/zerolog/log"
 )
 
 // BucketName represents the name of the bucket where this service stores data.
@@ -44,22 +41,11 @@ func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 func (service *Service) Tags() ([]portaineree.Tag, error) {
 	var tags = make([]portaineree.Tag, 0)
 
-	err := service.connection.GetAll(
+	return tags, service.connection.GetAll(
 		BucketName,
 		&portaineree.Tag{},
-		func(obj interface{}) (interface{}, error) {
-			tag, ok := obj.(*portaineree.Tag)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Tag object")
-				return nil, fmt.Errorf("Failed to convert to Tag object: %s", obj)
-			}
-
-			tags = append(tags, *tag)
-
-			return &portaineree.Tag{}, nil
-		})
-
-	return tags, err
+		dataservices.AppendFn(&tags),
+	)
 }
 
 // Tag returns a tag by ID.

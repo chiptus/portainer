@@ -2,20 +2,16 @@ package team
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 	dserrors "github.com/portainer/portainer/api/dataservices/errors"
-
-	"github.com/rs/zerolog/log"
 )
 
-const (
-	// BucketName represents the name of the bucket where this service stores data.
-	BucketName = "teams"
-)
+// BucketName represents the name of the bucket where this service stores data.
+const BucketName = "teams"
 
 // Service represents a service for managing environment(endpoint) data.
 type Service struct {
@@ -53,29 +49,20 @@ func (service *Service) Team(ID portaineree.TeamID) (*portaineree.Team, error) {
 
 // TeamByName returns a team by name.
 func (service *Service) TeamByName(name string) (*portaineree.Team, error) {
-	var t *portaineree.Team
+	var t portaineree.Team
 
-	stop := fmt.Errorf("ok")
 	err := service.connection.GetAll(
 		BucketName,
 		&portaineree.Team{},
-		func(obj interface{}) (interface{}, error) {
-			team, ok := obj.(*portaineree.Team)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Team object")
-				return nil, fmt.Errorf("Failed to convert to Team object: %s", obj)
-			}
+		dataservices.FirstFn(&t, func(e portaineree.Team) bool {
+			return strings.EqualFold(e.Name, name)
+		}),
+	)
 
-			if strings.EqualFold(team.Name, name) {
-				t = team
-				return nil, stop
-			}
-
-			return &portaineree.Team{}, nil
-		})
-	if errors.Is(err, stop) {
-		return t, nil
+	if errors.Is(err, dataservices.ErrStop) {
+		return &t, nil
 	}
+
 	if err == nil {
 		return nil, dserrors.ErrObjectNotFound
 	}
@@ -87,22 +74,11 @@ func (service *Service) TeamByName(name string) (*portaineree.Team, error) {
 func (service *Service) Teams() ([]portaineree.Team, error) {
 	var teams = make([]portaineree.Team, 0)
 
-	err := service.connection.GetAll(
+	return teams, service.connection.GetAll(
 		BucketName,
 		&portaineree.Team{},
-		func(obj interface{}) (interface{}, error) {
-			team, ok := obj.(*portaineree.Team)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Team object")
-				return nil, fmt.Errorf("Failed to convert to Team object: %s", obj)
-			}
-
-			teams = append(teams, *team)
-
-			return &portaineree.Team{}, nil
-		})
-
-	return teams, err
+		dataservices.AppendFn(&teams),
+	)
 }
 
 // UpdateTeam saves a Team.

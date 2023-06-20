@@ -1,12 +1,9 @@
 package fdoprofile
 
 import (
-	"fmt"
-
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
-
-	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -39,21 +36,11 @@ func NewService(connection portainer.Connection) (*Service, error) {
 func (service *Service) FDOProfiles() ([]portaineree.FDOProfile, error) {
 	var fdoProfiles = make([]portaineree.FDOProfile, 0)
 
-	err := service.connection.GetAll(
+	return fdoProfiles, service.connection.GetAll(
 		BucketName,
 		&portaineree.FDOProfile{},
-		func(obj interface{}) (interface{}, error) {
-			fdoProfile, ok := obj.(*portaineree.FDOProfile)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to FDOProfile object")
-
-				return nil, fmt.Errorf("Failed to convert to FDOProfile object: %s", obj)
-			}
-			fdoProfiles = append(fdoProfiles, *fdoProfile)
-			return &portaineree.FDOProfile{}, nil
-		})
-
-	return fdoProfiles, err
+		dataservices.AppendFn(&fdoProfiles),
+	)
 }
 
 // FDOProfile returns an FDO Profile by ID.

@@ -1,12 +1,9 @@
 package edgejob
 
 import (
-	"fmt"
-
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
-
-	"github.com/rs/zerolog/log"
 )
 
 // BucketName represents the name of the bucket where this service stores data.
@@ -44,22 +41,11 @@ func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 func (service *Service) EdgeJobs() ([]portaineree.EdgeJob, error) {
 	var edgeJobs = make([]portaineree.EdgeJob, 0)
 
-	err := service.connection.GetAll(
+	return edgeJobs, service.connection.GetAll(
 		BucketName,
 		&portaineree.EdgeJob{},
-		func(obj interface{}) (interface{}, error) {
-			job, ok := obj.(*portaineree.EdgeJob)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to EdgeJob object")
-				return nil, fmt.Errorf("Failed to convert to EdgeJob object: %s", obj)
-			}
-
-			edgeJobs = append(edgeJobs, *job)
-
-			return &portaineree.EdgeJob{}, nil
-		})
-
-	return edgeJobs, err
+		dataservices.AppendFn(&edgeJobs),
+	)
 }
 
 // EdgeJob returns an Edge job by ID

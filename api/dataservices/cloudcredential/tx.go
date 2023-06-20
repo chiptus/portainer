@@ -1,10 +1,10 @@
 package cloudcredential
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/portainer/portainer-ee/api/database/models"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -43,21 +43,11 @@ func (service ServiceTx) Delete(ID models.CloudCredentialID) error {
 func (service ServiceTx) GetAll() ([]models.CloudCredential, error) {
 	var cloudcreds = make([]models.CloudCredential, 0)
 
-	err := service.tx.GetAllWithJsoniter(
+	return cloudcreds, service.tx.GetAllWithJsoniter(
 		BucketName,
 		&models.CloudCredential{},
-		func(obj interface{}) (interface{}, error) {
-			cloudcredential, ok := obj.(*models.CloudCredential)
-			if !ok {
-				return nil, fmt.Errorf("failed to convert to CloudCredential object: %s", obj)
-			}
-
-			cloudcreds = append(cloudcreds, *cloudcredential)
-
-			return &models.CloudCredential{}, nil
-		})
-
-	return cloudcreds, err
+		dataservices.AppendFn(&cloudcreds),
+	)
 }
 
 // Create assigns an ID to a new cloudcredential and saves it.

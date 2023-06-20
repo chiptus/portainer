@@ -1,18 +1,13 @@
 package cloudprovisioning
 
 import (
-	"fmt"
-
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
-
-	"github.com/rs/zerolog/log"
 )
 
-const (
-	// BucketName represents the name of the bucket where this service stores data.
-	BucketName = "cloud_provisioning"
-)
+// BucketName represents the name of the bucket where this service stores data.
+const BucketName = "cloud_provisioning"
 
 // Service represents a service for managing edge jobs data.
 type Service struct {
@@ -39,20 +34,11 @@ func NewService(connection portainer.Connection) (*Service, error) {
 func (service *Service) Tasks() ([]portaineree.CloudProvisioningTask, error) {
 	var cloudTasks = make([]portaineree.CloudProvisioningTask, 0)
 
-	err := service.connection.GetAll(
+	return cloudTasks, service.connection.GetAll(
 		BucketName,
 		&portaineree.CloudProvisioningTask{},
-		func(obj interface{}) (interface{}, error) {
-			task, ok := obj.(*portaineree.CloudProvisioningTask)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("Failed to convert to CloudProvisioningTask object")
-				return nil, fmt.Errorf("Failed to convert to CloudProvisioningTask object: %s", obj)
-			}
-			cloudTasks = append(cloudTasks, *task)
-			return &portaineree.CloudProvisioningTask{}, nil
-		})
-
-	return cloudTasks, err
+		dataservices.AppendFn(&cloudTasks),
+	)
 }
 
 // Task returns an Cloud Provisioning Task by ID

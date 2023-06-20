@@ -1,12 +1,9 @@
 package snapshot
 
 import (
-	"fmt"
-
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
-
-	"github.com/rs/zerolog/log"
 )
 
 const BucketName = "snapshots"
@@ -52,20 +49,11 @@ func (service *Service) Snapshot(endpointID portaineree.EndpointID) (*portainere
 func (service *Service) Snapshots() ([]portaineree.Snapshot, error) {
 	var snapshots = make([]portaineree.Snapshot, 0)
 
-	err := service.connection.GetAllWithJsoniter(
+	return snapshots, service.connection.GetAllWithJsoniter(
 		BucketName,
 		&portaineree.Snapshot{},
-		func(obj interface{}) (interface{}, error) {
-			snapshot, ok := obj.(*portaineree.Snapshot)
-			if !ok {
-				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to Snapshot object")
-				return nil, fmt.Errorf("failed to convert to Snapshot object: %s", obj)
-			}
-			snapshots = append(snapshots, *snapshot)
-			return &portaineree.Snapshot{}, nil
-		})
-
-	return snapshots, err
+		dataservices.AppendFn(&snapshots),
+	)
 }
 
 func (service *Service) UpdateSnapshot(snapshot *portaineree.Snapshot) error {
