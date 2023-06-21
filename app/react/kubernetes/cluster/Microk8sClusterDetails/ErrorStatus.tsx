@@ -8,6 +8,10 @@ export function ErrorStatus() {
   const environmentId = useEnvironmentId();
   const { data: environment } = useEnvironment(environmentId);
 
+  if (!environment?.StatusMessage) {
+    return null;
+  }
+
   return (
     <WidgetBody>
       <TextTip childrenWrapperClassName="ml-2 text-muted" color="red">
