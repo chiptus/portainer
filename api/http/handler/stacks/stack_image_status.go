@@ -37,7 +37,7 @@ func (handler *Handler) stackImagesStatus(w http.ResponseWriter, r *http.Request
 		return httperror.BadRequest("Invalid stack identifier route variable", err)
 	}
 
-	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(stackID))
+	stack, err := handler.DataStore.Stack().Read(portaineree.StackID(stackID))
 	if err != nil {
 		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	}

@@ -26,7 +26,7 @@ func (handler *Handler) webhookDelete(w http.ResponseWriter, r *http.Request) *h
 		return httperror.BadRequest("Invalid webhook id", err)
 	}
 
-	webhook, err := handler.DataStore.Webhook().Webhook(portaineree.WebhookID(id))
+	webhook, err := handler.DataStore.Webhook().Read(portaineree.WebhookID(id))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a webhook with this token", err)
 	} else if err != nil {
@@ -47,7 +47,7 @@ func (handler *Handler) webhookDelete(w http.ResponseWriter, r *http.Request) *h
 		return handlerErr
 	}
 
-	err = handler.DataStore.Webhook().DeleteWebhook(portaineree.WebhookID(id))
+	err = handler.DataStore.Webhook().Delete(portaineree.WebhookID(id))
 	if err != nil {
 		return httperror.InternalServerError("Unable to remove the webhook from the database", err)
 	}

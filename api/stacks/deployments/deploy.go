@@ -66,7 +66,7 @@ type RedeployOptions struct {
 func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, datastore dataservices.DataStore, gitService portainer.GitService, activityService portaineree.UserActivityService, options *RedeployOptions) error {
 	log.Debug().Int("stack_id", int(stackID)).Msg("redeploying stack")
 
-	stack, err := datastore.Stack().Stack(stackID)
+	stack, err := datastore.Stack().Read(stackID)
 	if err != nil {
 		return errors.WithMessagef(err, "failed to get the stack %v", stackID)
 	}
@@ -207,7 +207,7 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 		return errors.Errorf("cannot update stack, type %v is unsupported", stack.Type)
 	}
 
-	if err := datastore.Stack().UpdateStack(stack.ID, stack); err != nil {
+	if err := datastore.Stack().Update(stack.ID, stack); err != nil {
 		return errors.WithMessagef(err, "failed to update the stack %v", stack.ID)
 	}
 
@@ -236,7 +236,7 @@ func isRollingRestart(options *RedeployOptions) bool {
 }
 
 func getUserRegistries(datastore dataservices.DataStore, user *portaineree.User, endpointID portaineree.EndpointID) ([]portaineree.Registry, error) {
-	registries, err := datastore.Registry().Registries()
+	registries, err := datastore.Registry().ReadAll()
 	if err != nil {
 		return nil, errors.WithMessage(err, "unable to retrieve registries from the database")
 	}

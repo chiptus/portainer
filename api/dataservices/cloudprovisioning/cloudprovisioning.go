@@ -11,11 +11,7 @@ const BucketName = "cloud_provisioning"
 
 // Service represents a service for managing edge jobs data.
 type Service struct {
-	connection portainer.Connection
-}
-
-func (service *Service) BucketName() string {
-	return BucketName
+	dataservices.BaseDataService[portaineree.CloudProvisioningTask, portaineree.CloudProvisioningTaskID]
 }
 
 // NewService creates a new instance of a service.
@@ -26,37 +22,16 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		connection: connection,
+		BaseDataService: dataservices.BaseDataService[portaineree.CloudProvisioningTask, portaineree.CloudProvisioningTaskID]{
+			Bucket:     BucketName,
+			Connection: connection,
+		},
 	}, nil
-}
-
-// Tasks returns a list of Cloud Provisioning Tasks
-func (service *Service) Tasks() ([]portaineree.CloudProvisioningTask, error) {
-	var cloudTasks = make([]portaineree.CloudProvisioningTask, 0)
-
-	return cloudTasks, service.connection.GetAll(
-		BucketName,
-		&portaineree.CloudProvisioningTask{},
-		dataservices.AppendFn(&cloudTasks),
-	)
-}
-
-// Task returns an Cloud Provisioning Task by ID
-func (service *Service) Task(ID portaineree.CloudProvisioningTaskID) (*portaineree.CloudProvisioningTask, error) {
-	var cloudTask portaineree.CloudProvisioningTask
-	identifier := service.connection.ConvertToKey(int(ID))
-
-	err := service.connection.GetObject(BucketName, identifier, &cloudTask)
-	if err != nil {
-		return nil, err
-	}
-
-	return &cloudTask, nil
 }
 
 // Create assign an ID to a new Cloud Provisioning Task and saves it.
 func (service *Service) Create(task *portaineree.CloudProvisioningTask) error {
-	return service.connection.CreateObject(
+	return service.Connection.CreateObject(
 		BucketName,
 		func(id uint64) (int, interface{}) {
 			task.ID = portaineree.CloudProvisioningTaskID(id)
@@ -65,19 +40,7 @@ func (service *Service) Create(task *portaineree.CloudProvisioningTask) error {
 	)
 }
 
-// Update updates a cloud provisioning task by ID
-func (service *Service) Update(ID portaineree.CloudProvisioningTaskID, task *portaineree.CloudProvisioningTask) error {
-	identifier := service.connection.ConvertToKey(int(ID))
-	return service.connection.UpdateObject(BucketName, identifier, task)
-}
-
-// Delete deletes a cloud provisioning task by ID
-func (service *Service) Delete(ID portaineree.CloudProvisioningTaskID) error {
-	identifier := service.connection.ConvertToKey(int(ID))
-	return service.connection.DeleteObject(BucketName, identifier)
-}
-
 // GetNextIdentifier returns the next identifier for a cloud provisionng task
 func (service *Service) GetNextIdentifier() int {
-	return service.connection.GetNextIdentifier(BucketName)
+	return service.Connection.GetNextIdentifier(BucketName)
 }

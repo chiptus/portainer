@@ -30,7 +30,7 @@ func (handler *Handler) teamDelete(w http.ResponseWriter, r *http.Request) *http
 		return httperror.BadRequest("Invalid team identifier route variable", err)
 	}
 
-	_, err = handler.DataStore.Team().Team(portaineree.TeamID(teamID))
+	_, err = handler.DataStore.Team().Read(portaineree.TeamID(teamID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a team with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -70,7 +70,7 @@ func (handler *Handler) teamDelete(w http.ResponseWriter, r *http.Request) *http
 		}
 	}
 
-	err = handler.DataStore.Team().DeleteTeam(portaineree.TeamID(teamID))
+	err = handler.DataStore.Team().Delete(portaineree.TeamID(teamID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to delete the team from the database", err)
 	}

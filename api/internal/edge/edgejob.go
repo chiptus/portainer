@@ -7,7 +7,7 @@ import (
 
 // LoadEdgeJobs registers all edge jobs inside corresponding environment(endpoint) tunnel
 func LoadEdgeJobs(dataStore dataservices.DataStore, reverseTunnelService portaineree.ReverseTunnelService) error {
-	edgeJobs, err := dataStore.EdgeJob().EdgeJobs()
+	edgeJobs, err := dataStore.EdgeJob().ReadAll()
 	if err != nil {
 		return err
 	}

@@ -29,7 +29,7 @@ func removeMemberships(tms dataservices.TeamMembershipService, user portaineree.
 		}
 
 		if !teamsContainsTeamID {
-			err := tms.DeleteTeamMembership(membership.ID)
+			err := tms.Delete(membership.ID)
 			if err != nil {
 				return err
 			}
@@ -77,7 +77,7 @@ func createOrUpdateMembership(tms dataservices.TeamMembershipService, user porta
 			log.Debug().Int("updated_role", int(updatedRole)).Msg("updating membership role")
 
 			membership.Role = updatedRole
-			err = tms.UpdateTeamMembership(membership.ID, membership)
+			err = tms.Update(membership.ID, membership)
 			if err != nil {
 				return err
 			}
@@ -93,7 +93,7 @@ func mapAllClaimValuesToTeams(ts dataservices.TeamService, user portaineree.User
 	teams := make([]portaineree.Team, 0)
 
 	log.Debug().Msg("mapping OAuth claim values automatically to existing portainer teams")
-	dsTeams, err := ts.Teams()
+	dsTeams, err := ts.ReadAll()
 	if err != nil {
 		return []portaineree.Team{}, err
 	}
@@ -130,7 +130,7 @@ func mapClaimValRegexToTeams(ts dataservices.TeamService, claimMappings []portai
 					Str("team", oAuthTeam).
 					Msg("OAuth mapping claim matched")
 
-				team, err := ts.Team(portaineree.TeamID(mapping.Team))
+				team, err := ts.Read(portaineree.TeamID(mapping.Team))
 				if err != nil {
 					return nil, err
 				}
@@ -165,7 +165,7 @@ func updateOAuthTeamMemberships(dataStore dataservices.DataStore, oAuthSettings 
 
 	// if user cannot be assigned to any teams based on claims, then assign user to the default team
 	if len(teams) == 0 && oAuthSettings.DefaultTeamID != 0 {
-		defaultTeam, err := dataStore.Team().Team(oAuthSettings.DefaultTeamID)
+		defaultTeam, err := dataStore.Team().Read(oAuthSettings.DefaultTeamID)
 		if err != nil {
 			return fmt.Errorf("failed to retrieve default portainer team, err: %w", err)
 		}

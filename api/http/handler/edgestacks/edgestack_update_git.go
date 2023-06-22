@@ -73,7 +73,7 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	user, err := handler.DataStore.User().User(securityContext.UserID)
+	user, err := handler.DataStore.User().Read(securityContext.UserID)
 	if err != nil {
 		return httperror.BadRequest("Cannot find context user", errors.Wrap(err, "failed to fetch the user"))
 	}
@@ -258,7 +258,7 @@ func parseGitCredentials(tx dataservices.DataStoreTx, authSettings, defaults *gi
 		}, nil
 	}
 
-	credential, err := tx.GitCredential().GetGitCredential(portaineree.GitCredentialID(authSettings.GitCredentialID))
+	credential, err := tx.GitCredential().Read(portaineree.GitCredentialID(authSettings.GitCredentialID))
 	if err != nil {
 		return nil, httperror.NotFound("Git credential not found", err)
 	}

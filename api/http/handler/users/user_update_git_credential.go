@@ -76,7 +76,7 @@ func (handler *Handler) userUpdateGitCredential(w http.ResponseWriter, r *http.R
 		return httperror.Forbidden("Couldn't update git credential for another user", httperrors.ErrUnauthorized)
 	}
 
-	_, err = handler.DataStore.User().User(portaineree.UserID(userID))
+	_, err = handler.DataStore.User().Read(portaineree.UserID(userID))
 	if err != nil {
 		if handler.DataStore.IsErrObjectNotFound(err) {
 			return httperror.NotFound("Unable to find a user with the specified identifier inside the database", err)
@@ -85,7 +85,7 @@ func (handler *Handler) userUpdateGitCredential(w http.ResponseWriter, r *http.R
 	}
 
 	// check if the credential exists and the credential belongs to the user
-	cred, err := handler.DataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(credID))
+	cred, err := handler.DataStore.GitCredential().Read(portaineree.GitCredentialID(credID))
 	if err != nil {
 		return httperror.InternalServerError("Git credential not found", err)
 	}
@@ -109,7 +109,7 @@ func (handler *Handler) userUpdateGitCredential(w http.ResponseWriter, r *http.R
 		cred.Password = payload.Password
 	}
 
-	err = handler.DataStore.GitCredential().UpdateGitCredential(portaineree.GitCredentialID(credID), cred)
+	err = handler.DataStore.GitCredential().Update(portaineree.GitCredentialID(credID), cred)
 	if err != nil {
 		return httperror.InternalServerError("Unable to update the git-credential from the user", err)
 	}

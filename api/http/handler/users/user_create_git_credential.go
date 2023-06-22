@@ -82,7 +82,7 @@ func (handler *Handler) userCreateGitCredential(w http.ResponseWriter, r *http.R
 		return httperror.Forbidden("Couldn't create git credential for another user", httperrors.ErrUnauthorized)
 	}
 
-	_, err = handler.DataStore.User().User(portaineree.UserID(userID))
+	_, err = handler.DataStore.User().Read(portaineree.UserID(userID))
 	if err != nil {
 		return httperror.BadRequest("Unable to find a user", err)
 	}

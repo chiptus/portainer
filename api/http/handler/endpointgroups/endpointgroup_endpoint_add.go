@@ -58,7 +58,7 @@ func (handler *Handler) endpointGroupAddEndpoint(w http.ResponseWriter, r *http.
 }
 
 func (handler *Handler) addEndpoint(tx dataservices.DataStoreTx, endpointGroupID portaineree.EndpointGroupID, endpointID portaineree.EndpointID) error {
-	endpointGroup, err := tx.EndpointGroup().EndpointGroup(endpointGroupID)
+	endpointGroup, err := tx.EndpointGroup().Read(endpointGroupID)
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment group with the specified identifier inside the database", err)
 	} else if err != nil {

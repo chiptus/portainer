@@ -104,7 +104,7 @@ func (handler *Handler) executeServiceWebhook(
 	}
 
 	if registryID != 0 {
-		registry, err := handler.DataStore.Registry().Registry(registryID)
+		registry, err := handler.DataStore.Registry().Read(registryID)
 		if err != nil {
 			return httperror.InternalServerError("Error getting registry", err)
 		}
@@ -140,7 +140,7 @@ func (handler *Handler) executeContainerWebhook(w http.ResponseWriter, endpoint 
 		return httperror.InternalServerError("Error updating service", err)
 	}
 	webhook.ResourceID = newContainer.ID
-	err = handler.DataStore.Webhook().UpdateWebhook(webhook.ID, webhook)
+	err = handler.DataStore.Webhook().Update(webhook.ID, webhook)
 	if err != nil {
 		return httperror.InternalServerError("Error updating webhook", err)
 	}

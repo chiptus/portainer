@@ -48,7 +48,7 @@ func (handler *Handler) userDelete(w http.ResponseWriter, r *http.Request) *http
 		return httperror.Forbidden("Cannot remove your own user account. Contact another administrator", errAdminCannotRemoveSelf)
 	}
 
-	user, err := handler.DataStore.User().User(portaineree.UserID(userID))
+	user, err := handler.DataStore.User().Read(portaineree.UserID(userID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a user with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -69,7 +69,7 @@ func (handler *Handler) deleteAdminUser(w http.ResponseWriter, user *portaineree
 		return handler.deleteUser(w, user)
 	}
 
-	users, err := handler.DataStore.User().Users()
+	users, err := handler.DataStore.User().ReadAll()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve users from the database", err)
 	}
@@ -99,7 +99,7 @@ func (handler *Handler) deleteUser(w http.ResponseWriter, user *portaineree.User
 		return httperror.InternalServerError("Unable to clean-up user access policies", err)
 	}
 
-	err = handler.DataStore.User().DeleteUser(user.ID)
+	err = handler.DataStore.User().Delete(user.ID)
 	if err != nil {
 		return httperror.InternalServerError("Unable to remove user from the database", err)
 	}
@@ -127,7 +127,7 @@ func (handler *Handler) deleteUser(w http.ResponseWriter, user *portaineree.User
 		return httperror.InternalServerError("Unable to retrieve user git credentials from the database", err)
 	}
 	for _, k := range credentials {
-		err = handler.DataStore.GitCredential().DeleteGitCredential(k.ID)
+		err = handler.DataStore.GitCredential().Delete(k.ID)
 		if err != nil {
 			return httperror.InternalServerError("Unable to remove user git credential from the database", err)
 		}

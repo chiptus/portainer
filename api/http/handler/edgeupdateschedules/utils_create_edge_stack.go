@@ -58,7 +58,7 @@ func (handler *Handler) createUpdateEdgeStack(
 		rePullImage = true
 		registries = append(registries, registryID)
 
-		registry, err := handler.dataStore.Registry().Registry(registryID)
+		registry, err := handler.dataStore.Registry().Read(registryID)
 		if err != nil {
 			return 0, errors.WithMessage(err, "failed to retrieve registry")
 		}

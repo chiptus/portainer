@@ -16,7 +16,7 @@ func GetCredentials(auth *gittypes.GitAuthentication, dataStore dataservices.Dat
 		return auth.Username, auth.Password, nil
 	}
 
-	credential, err := dataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(auth.GitCredentialID))
+	credential, err := dataStore.GitCredential().Read(portaineree.GitCredentialID(auth.GitCredentialID))
 	if err != nil {
 		return "", "", errors.WithMessagef(err, "failed to get credentials")
 	}

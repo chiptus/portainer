@@ -172,7 +172,7 @@ func decorateAgentDockerHubRequest(r *http.Request, dataStore dataservices.DataS
 	}
 
 	if registryID != 0 {
-		registry, err = dataStore.Registry().Registry(portaineree.RegistryID(registryID))
+		registry, err = dataStore.Registry().Read(portaineree.RegistryID(registryID))
 		if err != nil {
 			return fmt.Errorf("failed fetching registry: %w", err)
 		}

@@ -42,7 +42,7 @@ func (handler *Handler) extractGitCredential(username, password string, credenti
 	repositoryUsername := ""
 	repositoryPassword := ""
 	if credentialID != 0 {
-		credential, err := handler.dataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(credentialID))
+		credential, err := handler.dataStore.GitCredential().Read(portaineree.GitCredentialID(credentialID))
 		if err != nil {
 			return "", "", httperror.InternalServerError("git credential not found", err)
 		}

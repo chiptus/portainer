@@ -61,7 +61,7 @@ func (service *Service) CreateOrUpdatePredefinedRoles() error {
 		roleID := portaineree.RoleID(roleid)
 		predefinedRole := PredefinedRoles[roleID]
 
-		_, err := service.Role(roleID)
+		_, err := service.Read(roleID)
 		if dataservices.IsErrObjectNotFound(err) {
 			err := service.Create(predefinedRole)
 			if err != nil {
@@ -70,7 +70,7 @@ func (service *Service) CreateOrUpdatePredefinedRoles() error {
 		} else if err != nil {
 			return err
 		} else {
-			err = service.UpdateRole(predefinedRole.ID, predefinedRole)
+			err = service.Update(predefinedRole.ID, predefinedRole)
 			if err != nil {
 				return err
 			}

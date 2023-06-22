@@ -44,7 +44,7 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 		return httperror.InternalServerError("Missing credential id in the query parameter", err)
 	}
 
-	credential, err := handler.dataStore.CloudCredential().GetByID(models.CloudCredentialID(credentialId))
+	credential, err := handler.dataStore.CloudCredential().Read(models.CloudCredentialID(credentialId))
 	if err != nil {
 		return httperror.InternalServerError(fmt.Sprintf("Unable to retrieve %s information", provider), err)
 	}

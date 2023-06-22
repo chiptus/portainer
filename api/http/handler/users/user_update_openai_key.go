@@ -73,14 +73,14 @@ func (handler *Handler) userUpdateOpenAIConfig(w http.ResponseWriter, r *http.Re
 		return httperror.Forbidden("Permission denied to update OpenAI API token", httperrors.ErrUnauthorized)
 	}
 
-	user, err := handler.DataStore.User().User(portaineree.UserID(userID))
+	user, err := handler.DataStore.User().Read(portaineree.UserID(userID))
 	if err != nil {
 		return httperror.NotFound("Unable to find a user", err)
 	}
 
 	user.OpenAIApiKey = payload.ApiKey
 
-	err = handler.DataStore.User().UpdateUser(user.ID, user)
+	err = handler.DataStore.User().Update(user.ID, user)
 	if err != nil {
 		return httperror.InternalServerError("Unable to update user", err)
 	}

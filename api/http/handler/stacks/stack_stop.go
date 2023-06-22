@@ -42,7 +42,7 @@ func (handler *Handler) stackStop(w http.ResponseWriter, r *http.Request) *httpe
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(stackID))
+	stack, err := handler.DataStore.Stack().Read(portaineree.StackID(stackID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -109,7 +109,7 @@ func (handler *Handler) stackStop(w http.ResponseWriter, r *http.Request) *httpe
 	}
 
 	stack.Status = portaineree.StackStatusInactive
-	err = handler.DataStore.Stack().UpdateStack(stack.ID, stack)
+	err = handler.DataStore.Stack().Update(stack.ID, stack)
 	if err != nil {
 		return httperror.InternalServerError("Unable to update stack status", err)
 	}

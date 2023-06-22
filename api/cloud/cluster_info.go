@@ -41,7 +41,7 @@ func NewCloudInfoService(dataStore dataservices.DataStore, shutdownCtx context.C
 }
 
 func (service *CloudClusterInfoService) tryUpdate() {
-	credentials, err := service.dataStore.CloudCredential().GetAll()
+	credentials, err := service.dataStore.CloudCredential().ReadAll()
 	if err != nil {
 		log.Error().Err(err).Msg("while fetching cloud credentials")
 

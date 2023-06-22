@@ -289,5 +289,5 @@ func (handler *Handler) addAndPersistEdgeJob(tx dataservices.DataStoreTx, edgeJo
 		}
 	}
 
-	return tx.EdgeJob().Create(edgeJob.ID, edgeJob)
+	return tx.EdgeJob().CreateWithID(edgeJob.ID, edgeJob)
 }

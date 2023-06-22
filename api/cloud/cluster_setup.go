@@ -137,7 +137,7 @@ func (service *CloudClusterSetupService) createClusterSetupTask(request *portain
 
 // restoreProvisioningTasks looks up provisioning tasks and retores them to a running state
 func (service *CloudClusterSetupService) restoreProvisioningTasks() {
-	tasks, err := service.dataStore.CloudProvisioning().Tasks()
+	tasks, err := service.dataStore.CloudProvisioning().ReadAll()
 	if err != nil {
 		log.Error().Err(err).Msg("failed to restore provisioning tasks")
 	}
@@ -276,7 +276,7 @@ func (service *CloudClusterSetupService) setStatus(id portaineree.EndpointID, st
 }
 
 func (service *CloudClusterSetupService) seedCluster(task *portaineree.CloudProvisioningTask) (err error) {
-	customTemplate, err := service.dataStore.CustomTemplate().CustomTemplate(portaineree.CustomTemplateID(task.CustomTemplateID))
+	customTemplate, err := service.dataStore.CustomTemplate().Read(portaineree.CustomTemplateID(task.CustomTemplateID))
 	if err != nil {
 		return clouderrors.NewFatalError("error getting custom template with id: %d, error: %v", task.CustomTemplateID, err)
 	}
@@ -286,7 +286,7 @@ func (service *CloudClusterSetupService) seedCluster(task *portaineree.CloudProv
 		return err
 	}
 
-	owner, err := service.dataStore.User().User(task.CreatedByUserID)
+	owner, err := service.dataStore.User().Read(task.CreatedByUserID)
 	if err != nil {
 		return clouderrors.NewFatalError("unable to load user information from the database, error: %v", err)
 	}
@@ -373,7 +373,7 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 
 	var credentials *models.CloudCredential
 	if task.Provider != portaineree.CloudProviderPreinstalledAgent {
-		credentials, err = service.dataStore.CloudCredential().GetByID(endpoint.CloudProvider.CredentialID)
+		credentials, err = service.dataStore.CloudCredential().Read(endpoint.CloudProvider.CredentialID)
 		if err != nil {
 			return nil, fmt.Errorf("unable to read credentials: %w", err)
 		}
@@ -667,7 +667,7 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 	var credentials *models.CloudCredential
 	var err error
 	if request.Provider != portaineree.CloudProviderPreinstalledAgent {
-		credentials, err = service.dataStore.CloudCredential().GetByID(request.CredentialID)
+		credentials, err = service.dataStore.CloudCredential().Read(request.CredentialID)
 		if err != nil {
 			log.Error().Err(err).Msg("unable to retrieve credentials from the database")
 
@@ -855,7 +855,7 @@ func (service *CloudClusterSetupService) updateEndpoint(endpointID portaineree.E
 		return err
 	}
 
-	group, err := service.dataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
+	group, err := service.dataStore.EndpointGroup().Read(endpoint.GroupID)
 	if err != nil {
 		return err
 	}

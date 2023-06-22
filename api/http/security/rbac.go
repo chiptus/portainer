@@ -21,7 +21,7 @@ func IsAdminOrEndpointAdmin(request *http.Request, dataStore dataservices.DataSt
 		return true, nil
 	}
 
-	user, err := dataStore.User().User(tokenData.ID)
+	user, err := dataStore.User().Read(tokenData.ID)
 	if err != nil {
 		return false, err
 	}

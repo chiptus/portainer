@@ -54,7 +54,7 @@ func (handler *Handler) gitOperationRepoRefs(w http.ResponseWriter, r *http.Requ
 	repositoryUsername := ""
 	repositoryPassword := ""
 	if payload.StackID != 0 {
-		stack, err := handler.dataStore.Stack().Stack(portaineree.StackID(payload.StackID))
+		stack, err := handler.dataStore.Stack().Read(portaineree.StackID(payload.StackID))
 		if handler.dataStore.IsErrObjectNotFound(err) {
 			return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 		} else if err != nil {

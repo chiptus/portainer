@@ -87,7 +87,7 @@ func (store *Store) checkOrCreateDefaultSSLSettings() error {
 }
 
 func (store *Store) checkOrCreateDefaultData() error {
-	groups, err := store.EndpointGroupService.EndpointGroups()
+	groups, err := store.EndpointGroupService.ReadAll()
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (store *Store) checkOrCreateDefaultData() error {
 		}
 	}
 
-	roles, err := store.RoleService.Roles()
+	roles, err := store.RoleService.ReadAll()
 	if err != nil {
 		return err
 	}

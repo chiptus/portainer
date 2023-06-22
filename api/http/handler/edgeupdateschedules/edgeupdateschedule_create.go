@@ -235,7 +235,7 @@ func (handler *Handler) isUpdateSupported(environment *portaineree.Endpoint) err
 	}
 
 	if endpointutils.IsDockerEndpoint(environment) {
-		snapshot, err := handler.dataStore.Snapshot().Snapshot(environment.ID)
+		snapshot, err := handler.dataStore.Snapshot().Read(environment.ID)
 		if err != nil {
 			return errors.WithMessage(err, "unable to fetch snapshot")
 		}

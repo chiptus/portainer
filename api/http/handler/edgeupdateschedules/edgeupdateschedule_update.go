@@ -121,7 +121,7 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 		}
 
 		if len(stack.EdgeGroups) > 0 {
-			err = handler.dataStore.EdgeGroup().DeleteEdgeGroup(stack.EdgeGroups[0])
+			err = handler.dataStore.EdgeGroup().Delete(stack.EdgeGroups[0])
 			if err != nil {
 				return httperror.InternalServerError("Unable to delete Edge group", err)
 			}

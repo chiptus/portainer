@@ -38,14 +38,14 @@ func (handler *Handler) registryDelete(w http.ResponseWriter, r *http.Request) *
 		return httperror.BadRequest("Invalid registry identifier route variable", err)
 	}
 
-	_, err = handler.DataStore.Registry().Registry(portaineree.RegistryID(registryID))
+	_, err = handler.DataStore.Registry().Read(portaineree.RegistryID(registryID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a registry with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a registry with the specified identifier inside the database", err)
 	}
 
-	err = handler.DataStore.Registry().DeleteRegistry(portaineree.RegistryID(registryID))
+	err = handler.DataStore.Registry().Delete(portaineree.RegistryID(registryID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to remove the registry from the database", err)
 	}

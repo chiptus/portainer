@@ -128,7 +128,7 @@ func Test_createOrUpdateMembership(t *testing.T) {
 			t.Errorf("createOrUpdateMembership should not throw error when creating new team membership")
 		}
 
-		got, _ := store.TeamMembershipService.TeamMemberships()
+		got, _ := store.TeamMembershipService.ReadAll()
 		want := []portaineree.TeamMembership{{ID: 1, UserID: 1, TeamID: 1, Role: 1}}
 
 		if !reflect.DeepEqual(got, want) {
@@ -149,7 +149,7 @@ func Test_createOrUpdateMembership(t *testing.T) {
 			t.Errorf("createOrUpdateMembership should not throw error when updating existing team membership")
 		}
 
-		got, _ := store.TeamMembershipService.TeamMembership(1)
+		got, _ := store.TeamMembershipService.Read(1)
 		want := &portaineree.TeamMembership{ID: 1, UserID: 1, TeamID: 1, Role: 3}
 
 		if !reflect.DeepEqual(got, want) {
@@ -167,11 +167,11 @@ func Test_removeMemberships(t *testing.T) {
 		user := portaineree.User{ID: 1, Role: 1}
 		teams := []portaineree.Team{{ID: 1, Name: "team-remove"}}
 
-		before, _ := store.TeamMembershipService.TeamMemberships()
+		before, _ := store.TeamMembershipService.ReadAll()
 
 		removeMemberships(store.TeamMembershipService, user, teams)
 
-		after, _ := store.TeamMembershipService.TeamMemberships()
+		after, _ := store.TeamMembershipService.ReadAll()
 
 		if !reflect.DeepEqual(before, after) {
 			t.Errorf("removeMemberships should not have removed any memberships; before=%v, after=%v", before, after)
@@ -186,11 +186,11 @@ func Test_removeMemberships(t *testing.T) {
 		teams := []portaineree.Team{{ID: 1, Name: "team-remove"}}
 		store.TeamMembershipService.Create(&portaineree.TeamMembership{ID: 1, UserID: user.ID, TeamID: teams[0].ID, Role: 1})
 
-		before, _ := store.TeamMembershipService.TeamMembership(1)
+		before, _ := store.TeamMembershipService.Read(1)
 
 		removeMemberships(store.TeamMembershipService, user, teams)
 
-		after, _ := store.TeamMembershipService.TeamMembership(1)
+		after, _ := store.TeamMembershipService.Read(1)
 
 		if !reflect.DeepEqual(before, after) {
 			t.Errorf("removeMemberships should not have removed any memberships; before=%v, after=%v", before, after)

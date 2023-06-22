@@ -23,7 +23,7 @@ func (m *Migrator) refreshRBACRoles() error {
 	}
 
 	for roleID, defaultAuthorizations := range defaultAuthorizationsOfRoles {
-		role, err := m.roleService.Role(roleID)
+		role, err := m.roleService.Read(roleID)
 		if err != nil {
 			if dataservices.IsErrObjectNotFound(err) {
 				continue
@@ -33,7 +33,7 @@ func (m *Migrator) refreshRBACRoles() error {
 		}
 		role.Authorizations = defaultAuthorizations
 
-		err = m.roleService.UpdateRole(role.ID, role)
+		err = m.roleService.Update(role.ID, role)
 		if err != nil {
 			return err
 		}
@@ -44,7 +44,7 @@ func (m *Migrator) refreshRBACRoles() error {
 
 func (m *Migrator) refreshUserAuthorizations() error {
 	log.Info().Msg("refreshing user authorizations")
-	users, err := m.userService.Users()
+	users, err := m.userService.ReadAll()
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (m *Migrator) refreshUserAuthorizations() error {
 	for _, user := range users {
 		user.PortainerAuthorizations = authorization.DefaultPortainerAuthorizations()
 
-		err = m.userService.UpdateUser(user.ID, &user)
+		err = m.userService.Update(user.ID, &user)
 		if err != nil {
 			return err
 		}

@@ -108,7 +108,7 @@ func (handler *Handler) chatQuery(w http.ResponseWriter, r *http.Request) *httpe
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	user, err := handler.DataStore.User().User(tokenData.ID)
+	user, err := handler.DataStore.User().Read(tokenData.ID)
 	if err != nil {
 		return httperror.NotFound("Unable to retrieve user from the database", err)
 	}

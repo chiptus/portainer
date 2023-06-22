@@ -13,11 +13,7 @@ const BucketName = "cloudcredentials"
 
 // Service represents a service for managing cloudcredential data.
 type Service struct {
-	connection portainer.Connection
-}
-
-func (service *Service) BucketName() string {
-	return BucketName
+	dataservices.BaseDataService[models.CloudCredential, models.CloudCredentialID]
 }
 
 // NewService creates a new instance of a service.
@@ -28,56 +24,26 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		connection: connection,
+		BaseDataService: dataservices.BaseDataService[models.CloudCredential, models.CloudCredentialID]{
+			Bucket:     BucketName,
+			Connection: connection,
+		},
 	}, nil
 }
 
 func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 	return ServiceTx{
-		service: service,
-		tx:      tx,
+		BaseDataServiceTx: dataservices.BaseDataServiceTx[models.CloudCredential, models.CloudCredentialID]{
+			Bucket:     BucketName,
+			Connection: service.Connection,
+			Tx:         tx,
+		},
 	}
-}
-
-// GetByID returns a cloudcredential by ID.
-func (service *Service) GetByID(ID models.CloudCredentialID) (*models.CloudCredential, error) {
-	var cloudcredential models.CloudCredential
-	identifier := service.connection.ConvertToKey(int(ID))
-
-	err := service.connection.GetObject(BucketName, identifier, &cloudcredential)
-	if err != nil {
-		return nil, err
-	}
-
-	return &cloudcredential, nil
-}
-
-// Update updates a cloudcredential.
-func (service *Service) Update(ID models.CloudCredentialID, cloudcredential *models.CloudCredential) error {
-	identifier := service.connection.ConvertToKey(int(ID))
-	return service.connection.UpdateObject(BucketName, identifier, cloudcredential)
-}
-
-// Delete deletes a cloudcredential.
-func (service *Service) Delete(ID models.CloudCredentialID) error {
-	identifier := service.connection.ConvertToKey(int(ID))
-	return service.connection.DeleteObject(BucketName, identifier)
-}
-
-// GetAll returns an array containing all the cloudcredentials.
-func (service *Service) GetAll() ([]models.CloudCredential, error) {
-	var cloudcreds = make([]models.CloudCredential, 0)
-
-	return cloudcreds, service.connection.GetAllWithJsoniter(
-		BucketName,
-		&models.CloudCredential{},
-		dataservices.AppendFn(&cloudcreds),
-	)
 }
 
 // Create assigns an ID to a new cloudcredential and saves it.
 func (service *Service) Create(cloudcredential *models.CloudCredential) error {
-	return service.connection.CreateObject(BucketName, func(id uint64) (int, interface{}) {
+	return service.Connection.CreateObject(BucketName, func(id uint64) (int, interface{}) {
 		cloudcredential.ID = models.CloudCredentialID(id)
 		cloudcredential.Created = time.Now().Unix()
 		return int(cloudcredential.ID), cloudcredential
@@ -86,5 +52,5 @@ func (service *Service) Create(cloudcredential *models.CloudCredential) error {
 
 // GetNextIdentifier returns the next identifier for a cloudcredential.
 func (service *Service) GetNextIdentifier() int {
-	return service.connection.GetNextIdentifier(BucketName)
+	return service.Connection.GetNextIdentifier(BucketName)
 }

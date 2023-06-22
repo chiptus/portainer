@@ -34,7 +34,7 @@ func EndpointRelatedEdgeStacks(endpoint *portaineree.Endpoint, endpointGroup *po
 
 func AddEnvironmentToEdgeGroups(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeGroupsIDs []portaineree.EdgeGroupID) error {
 	for _, edgeGroupID := range edgeGroupsIDs {
-		edgeGroup, err := tx.EdgeGroup().EdgeGroup(edgeGroupID)
+		edgeGroup, err := tx.EdgeGroup().Read(edgeGroupID)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -51,7 +51,7 @@ func AddEnvironmentToEdgeGroups(tx dataservices.DataStoreTx, endpoint *portainer
 		}
 
 		edgeGroup.Endpoints = append(edgeGroup.Endpoints, endpoint.ID)
-		err = tx.EdgeGroup().UpdateEdgeGroup(edgeGroupID, edgeGroup)
+		err = tx.EdgeGroup().Update(edgeGroupID, edgeGroup)
 		if err != nil {
 			log.Warn().
 				Err(err).
@@ -75,7 +75,7 @@ func AddEnvironmentToEdgeGroups(tx dataservices.DataStoreTx, endpoint *portainer
 		return errors.WithMessage(err, "Unable to retrieve edge stacks from database")
 	}
 
-	environmentGroup, err := tx.EndpointGroup().EndpointGroup(endpoint.GroupID)
+	environmentGroup, err := tx.EndpointGroup().Read(endpoint.GroupID)
 	if err != nil {
 		return errors.WithMessage(err, "Unable to retrieve environment group from database")
 	}

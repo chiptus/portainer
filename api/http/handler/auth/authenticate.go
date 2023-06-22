@@ -250,7 +250,7 @@ func (handler *Handler) syncUserTeamsWithLDAPGroups(user *portaineree.User, sett
 		return nil
 	}
 
-	teams, err := handler.DataStore.Team().Teams()
+	teams, err := handler.DataStore.Team().ReadAll()
 	if err != nil {
 		return err
 	}
@@ -316,7 +316,7 @@ func isLDAPAdmin(username string, ldapService portaineree.LDAPService, ldapSetti
 
 func (handler *Handler) updateUserRole(user *portaineree.User, role portaineree.UserRole) error {
 	user.Role = role
-	err := handler.DataStore.User().UpdateUser(user.ID, user)
+	err := handler.DataStore.User().Update(user.ID, user)
 	return errors.Wrap(err, "unable to update user role inside the database")
 }
 

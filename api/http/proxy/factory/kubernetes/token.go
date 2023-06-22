@@ -57,7 +57,7 @@ func (manager *tokenManager) GetUserServiceAccountToken(
 	userID int, endpointID int,
 ) (string, error) {
 	tokenFunc := func() (string, error) {
-		user, err := manager.dataStore.User().User(portaineree.UserID(userID))
+		user, err := manager.dataStore.User().Read(portaineree.UserID(userID))
 		if err != nil || user == nil {
 			return "", err
 		}

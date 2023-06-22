@@ -52,7 +52,7 @@ func (handler *Handler) webhookReassign(w http.ResponseWriter, r *http.Request) 
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	webhook, err := handler.DataStore.Webhook().Webhook(webhookID)
+	webhook, err := handler.DataStore.Webhook().Read(webhookID)
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a webhooks with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -65,7 +65,7 @@ func (handler *Handler) webhookReassign(w http.ResponseWriter, r *http.Request) 
 
 	webhook.ResourceID = payload.ResourceID
 
-	err = handler.DataStore.Webhook().UpdateWebhook(portaineree.WebhookID(id), webhook)
+	err = handler.DataStore.Webhook().Update(portaineree.WebhookID(id), webhook)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist the webhook inside the database", err)
 	}

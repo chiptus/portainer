@@ -60,7 +60,7 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 		return httperror.BadRequest("Invalid stack identifier route variable", err)
 	}
 
-	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(stackID))
+	stack, err := handler.DataStore.Stack().Read(portaineree.StackID(stackID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -145,7 +145,7 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 	repositoryGitCredentialID := 0
 	if payload.RepositoryAuthentication {
 		if payload.RepositoryGitCredentialID != 0 {
-			credential, err := handler.DataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(payload.RepositoryGitCredentialID))
+			credential, err := handler.DataStore.GitCredential().Read(portaineree.GitCredentialID(payload.RepositoryGitCredentialID))
 			if err != nil {
 				return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Git credential not found", Err: err}
 			}
@@ -212,7 +212,7 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 	}
 	stack.GitConfig.ConfigHash = newHash
 
-	user, err := handler.DataStore.User().User(securityContext.UserID)
+	user, err := handler.DataStore.User().Read(securityContext.UserID)
 	if err != nil {
 		return httperror.BadRequest("Cannot find context user", errors.Wrap(err, "failed to fetch the user"))
 	}
@@ -220,7 +220,7 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 	stack.UpdateDate = time.Now().Unix()
 	stack.Status = portaineree.StackStatusActive
 
-	err = handler.DataStore.Stack().UpdateStack(stack.ID, stack)
+	err = handler.DataStore.Stack().Update(stack.ID, stack)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist the stack changes inside the database", errors.Wrap(err, "failed to update the stack"))
 	}

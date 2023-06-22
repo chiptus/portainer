@@ -25,12 +25,12 @@ type ComposeStackDeploymentConfig struct {
 }
 
 func CreateComposeStackDeploymentConfig(securityContext *security.RestrictedRequestContext, stack *portaineree.Stack, endpoint *portaineree.Endpoint, dataStore dataservices.DataStore, fileService portainer.FileService, deployer StackDeployer, forcePullImage, forceCreate bool) (*ComposeStackDeploymentConfig, error) {
-	user, err := dataStore.User().User(securityContext.UserID)
+	user, err := dataStore.User().Read(securityContext.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("unable to load user information from the database: %w", err)
 	}
 
-	registries, err := dataStore.Registry().Registries()
+	registries, err := dataStore.Registry().ReadAll()
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve registries from the database: %w", err)
 	}

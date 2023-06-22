@@ -29,7 +29,7 @@ func (handler *Handler) containersList(w http.ResponseWriter, r *http.Request) *
 	edgeStackId, _ := request.RetrieveNumericQueryParameter(r, "edgeStackId", true)
 	environmentId, _ := request.RetrieveNumericRouteVariableValue(r, "id")
 
-	environmentSnapshot, err := handler.dataStore.Snapshot().Snapshot(portaineree.EndpointID(environmentId))
+	environmentSnapshot, err := handler.dataStore.Snapshot().Read(portaineree.EndpointID(environmentId))
 	if err != nil || environmentSnapshot == nil || environmentSnapshot.Docker == nil {
 		return response.JSON(w, []string{})
 	}

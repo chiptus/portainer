@@ -42,7 +42,7 @@ func (handler *Handler) userInspect(w http.ResponseWriter, r *http.Request) *htt
 		return httperror.Forbidden("Permission denied inspect user", errors.ErrResourceAccessDenied)
 	}
 
-	user, err := handler.DataStore.User().User(portaineree.UserID(userID))
+	user, err := handler.DataStore.User().Read(portaineree.UserID(userID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a user with the specified identifier inside the database", err)
 	} else if err != nil {

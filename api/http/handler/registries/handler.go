@@ -121,7 +121,7 @@ func (handler *Handler) userHasRegistryAccess(r *http.Request) (hasAccess bool, 
 		return true, true, nil
 	}
 
-	user, err := handler.DataStore.User().User(securityContext.UserID)
+	user, err := handler.DataStore.User().Read(securityContext.UserID)
 	if err != nil {
 		return false, false, err
 	}

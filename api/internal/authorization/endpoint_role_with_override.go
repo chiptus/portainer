@@ -37,7 +37,7 @@ func (service *Service) CleanNAPWithOverridePolicies(
 		}
 
 		for userID := range policy.UserAccessPolicies {
-			_, err := tx.User().User(userID)
+			_, err := tx.User().Read(userID)
 			if tx.IsErrObjectNotFound(err) {
 				continue
 			}
@@ -67,7 +67,7 @@ func (service *Service) GetUserEndpointRoleWithOverridePolicies(
 	endpoint *portaineree.Endpoint,
 	endpointGroup *portaineree.EndpointGroup,
 ) (*portaineree.Role, error) {
-	user, err := tx.User().User(portaineree.UserID(userID))
+	user, err := tx.User().Read(portaineree.UserID(userID))
 	if err != nil {
 		return nil, err
 	}
@@ -77,12 +77,12 @@ func (service *Service) GetUserEndpointRoleWithOverridePolicies(
 		return nil, err
 	}
 
-	endpointGroups, err := tx.EndpointGroup().EndpointGroups()
+	endpointGroups, err := tx.EndpointGroup().ReadAll()
 	if err != nil {
 		return nil, err
 	}
 
-	roles, err := tx.Role().Roles()
+	roles, err := tx.Role().ReadAll()
 	if err != nil {
 		return nil, err
 	}
@@ -108,12 +108,12 @@ func (service *Service) GetTeamEndpointRoleWithOverridePolicies(
 		return nil, err
 	}
 
-	endpointGroups, err := tx.EndpointGroup().EndpointGroups()
+	endpointGroups, err := tx.EndpointGroup().ReadAll()
 	if err != nil {
 		return nil, err
 	}
 
-	roles, err := tx.Role().Roles()
+	roles, err := tx.Role().ReadAll()
 	if err != nil {
 		return nil, err
 	}

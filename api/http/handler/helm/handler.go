@@ -135,7 +135,7 @@ func (handler *Handler) authoriseHelmOperation(r *http.Request, authorization po
 		return nil
 	}
 
-	user, err := handler.dataStore.User().User(tokenData.ID)
+	user, err := handler.dataStore.User().Read(tokenData.ID)
 	if err != nil {
 		return httperror.NotFound("Unable to find user", err)
 	}

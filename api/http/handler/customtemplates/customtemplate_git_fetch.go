@@ -34,7 +34,7 @@ func (handler *Handler) customTemplateGitFetch(w http.ResponseWriter, r *http.Re
 		return httperror.BadRequest("Invalid Custom template identifier route variable", err)
 	}
 
-	customTemplate, err := handler.DataStore.CustomTemplate().CustomTemplate(portaineree.CustomTemplateID(customTemplateID))
+	customTemplate, err := handler.DataStore.CustomTemplate().Read(portaineree.CustomTemplateID(customTemplateID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a custom template with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -64,7 +64,7 @@ func (handler *Handler) customTemplateGitFetch(w http.ResponseWriter, r *http.Re
 	defer cleanUpBackupCustomTemplate(backupPath)
 
 	if customTemplate.GitConfig.Authentication != nil && customTemplate.GitConfig.Authentication.GitCredentialID != 0 {
-		credential, err := handler.DataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(customTemplate.GitConfig.Authentication.GitCredentialID))
+		credential, err := handler.DataStore.GitCredential().Read(portaineree.GitCredentialID(customTemplate.GitConfig.Authentication.GitCredentialID))
 		if err != nil {
 			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Git credential not found", Err: err}
 		}
@@ -88,7 +88,7 @@ func (handler *Handler) customTemplateGitFetch(w http.ResponseWriter, r *http.Re
 	if customTemplate.GitConfig.ConfigHash != commitHash {
 		customTemplate.GitConfig.ConfigHash = commitHash
 
-		err = handler.DataStore.CustomTemplate().UpdateCustomTemplate(customTemplate.ID, customTemplate)
+		err = handler.DataStore.CustomTemplate().Update(customTemplate.ID, customTemplate)
 		if err != nil {
 			return httperror.InternalServerError("Unable to persist custom template changes inside the database", err)
 		}

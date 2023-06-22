@@ -57,7 +57,7 @@ func (handler *Handler) endpointGroupDeleteEndpoint(w http.ResponseWriter, r *ht
 }
 
 func (handler *Handler) removeEndpoint(tx dataservices.DataStoreTx, endpointGroupID portaineree.EndpointGroupID, endpointID portaineree.EndpointID) error {
-	_, err := tx.EndpointGroup().EndpointGroup(portaineree.EndpointGroupID(endpointGroupID))
+	_, err := tx.EndpointGroup().Read(portaineree.EndpointGroupID(endpointGroupID))
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment group with the specified identifier inside the database", err)
 	} else if err != nil {

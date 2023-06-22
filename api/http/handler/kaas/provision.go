@@ -184,7 +184,7 @@ func (handler *Handler) sshTestNodeIPs(w http.ResponseWriter, r *http.Request) *
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	credentials, err := handler.dataStore.CloudCredential().GetByID(payload.CredentialID)
+	credentials, err := handler.dataStore.CloudCredential().Read(payload.CredentialID)
 	if err != nil {
 		return httperror.InternalServerError("unable to read credentials from the database", err)
 	}

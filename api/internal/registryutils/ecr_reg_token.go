@@ -24,7 +24,7 @@ func doGetRegToken(dataStore dataservices.DataStore, registry *portaineree.Regis
 	registry.AccessToken = *accessToken
 	registry.AccessTokenExpiry = expiryAt.Unix()
 
-	err = dataStore.Registry().UpdateRegistry(registry.ID, registry)
+	err = dataStore.Registry().Update(registry.ID, registry)
 
 	return
 }

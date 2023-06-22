@@ -5,49 +5,19 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
 )
 
 type ServiceTx struct {
-	service *Service
-	tx      portainer.Transaction
-}
-
-func (service ServiceTx) BucketName() string {
-	return BucketName
-}
-
-// TeamMembership returns a TeamMembership object by ID
-func (service ServiceTx) TeamMembership(ID portaineree.TeamMembershipID) (*portaineree.TeamMembership, error) {
-	var membership portaineree.TeamMembership
-	identifier := service.service.connection.ConvertToKey(int(ID))
-
-	err := service.tx.GetObject(BucketName, identifier, &membership)
-	if err != nil {
-		return nil, err
-	}
-
-	return &membership, nil
-}
-
-// TeamMemberships return an array containing all the TeamMembership objects.
-func (service ServiceTx) TeamMemberships() ([]portaineree.TeamMembership, error) {
-	var memberships = make([]portaineree.TeamMembership, 0)
-
-	return memberships, service.tx.GetAll(
-		BucketName,
-		&portaineree.TeamMembership{},
-		dataservices.AppendFn(&memberships),
-	)
+	dataservices.BaseDataServiceTx[portaineree.TeamMembership, portaineree.TeamMembershipID]
 }
 
 // TeamMembershipsByUserID return an array containing all the TeamMembership objects where the specified userID is present.
 func (service ServiceTx) TeamMembershipsByUserID(userID portaineree.UserID) ([]portaineree.TeamMembership, error) {
 	var memberships = make([]portaineree.TeamMembership, 0)
 
-	return memberships, service.tx.GetAll(
+	return memberships, service.Tx.GetAll(
 		BucketName,
 		&portaineree.TeamMembership{},
 		dataservices.FilterFn(&memberships, func(e portaineree.TeamMembership) bool {
@@ -60,7 +30,7 @@ func (service ServiceTx) TeamMembershipsByUserID(userID portaineree.UserID) ([]p
 func (service ServiceTx) TeamMembershipsByTeamID(teamID portaineree.TeamID) ([]portaineree.TeamMembership, error) {
 	var memberships = make([]portaineree.TeamMembership, 0)
 
-	return memberships, service.tx.GetAll(
+	return memberships, service.Tx.GetAll(
 		BucketName,
 		&portaineree.TeamMembership{},
 		dataservices.FilterFn(&memberships, func(e portaineree.TeamMembership) bool {
@@ -69,15 +39,9 @@ func (service ServiceTx) TeamMembershipsByTeamID(teamID portaineree.TeamID) ([]p
 	)
 }
 
-// UpdateTeamMembership saves a TeamMembership object.
-func (service ServiceTx) UpdateTeamMembership(ID portaineree.TeamMembershipID, membership *portaineree.TeamMembership) error {
-	identifier := service.service.connection.ConvertToKey(int(ID))
-	return service.tx.UpdateObject(BucketName, identifier, membership)
-}
-
 // CreateTeamMembership creates a new TeamMembership object.
 func (service ServiceTx) Create(membership *portaineree.TeamMembership) error {
-	return service.tx.CreateObject(
+	return service.Tx.CreateObject(
 		BucketName,
 		func(id uint64) (int, interface{}) {
 			membership.ID = portaineree.TeamMembershipID(id)
@@ -86,15 +50,9 @@ func (service ServiceTx) Create(membership *portaineree.TeamMembership) error {
 	)
 }
 
-// DeleteTeamMembership deletes a TeamMembership object.
-func (service ServiceTx) DeleteTeamMembership(ID portaineree.TeamMembershipID) error {
-	identifier := service.service.connection.ConvertToKey(int(ID))
-	return service.tx.DeleteObject(BucketName, identifier)
-}
-
 // DeleteTeamMembershipByUserID deletes all the TeamMembership object associated to a UserID.
 func (service ServiceTx) DeleteTeamMembershipByUserID(userID portaineree.UserID) error {
-	return service.tx.DeleteAllObjects(
+	return service.Tx.DeleteAllObjects(
 		BucketName,
 		&portaineree.TeamMembership{},
 		func(obj interface{}) (id int, ok bool) {
@@ -115,7 +73,7 @@ func (service ServiceTx) DeleteTeamMembershipByUserID(userID portaineree.UserID)
 
 // DeleteTeamMembershipByTeamID deletes all the TeamMembership object associated to a TeamID.
 func (service ServiceTx) DeleteTeamMembershipByTeamID(teamID portaineree.TeamID) error {
-	return service.tx.DeleteAllObjects(
+	return service.Tx.DeleteAllObjects(
 		BucketName,
 		&portaineree.TeamMembership{},
 		func(obj interface{}) (id int, ok bool) {
@@ -135,7 +93,7 @@ func (service ServiceTx) DeleteTeamMembershipByTeamID(teamID portaineree.TeamID)
 }
 
 func (service ServiceTx) DeleteTeamMembershipByTeamIDAndUserID(teamID portaineree.TeamID, userID portaineree.UserID) error {
-	return service.tx.DeleteAllObjects(
+	return service.Tx.DeleteAllObjects(
 		BucketName,
 		&portaineree.TeamMembership{},
 		func(obj interface{}) (id int, ok bool) {

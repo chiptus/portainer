@@ -15,7 +15,7 @@ import (
 func GetRegistryCredentialsForEdgeStack(dataStore dataservices.DataStoreTx, stack *portaineree.EdgeStack, endpoint *portaineree.Endpoint) []edge.RegistryCredentials {
 	registries := []edge.RegistryCredentials{}
 	for _, id := range stack.Registries {
-		registry, _ := dataStore.Registry().Registry(id)
+		registry, _ := dataStore.Registry().Read(id)
 
 		registryCredential := GetRegistryCredential(registry)
 		if registryCredential != nil {

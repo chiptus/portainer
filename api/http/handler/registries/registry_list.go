@@ -21,7 +21,7 @@ import (
 // @failure 500 "Server error"
 // @router /registries [get]
 func (handler *Handler) registryList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	registries, err := handler.DataStore.Registry().Registries()
+	registries, err := handler.DataStore.Registry().ReadAll()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve registries from the database", err)
 	}

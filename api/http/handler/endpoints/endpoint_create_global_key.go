@@ -75,7 +75,7 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 	}
 
 	// validate the environment group
-	_, err = handler.DataStore.EndpointGroup().EndpointGroup(payload.EnvironmentGroupID)
+	_, err = handler.DataStore.EndpointGroup().Read(payload.EnvironmentGroupID)
 	if err != nil {
 		log.Warn().Err(err).Msg("Unable to retrieve the environment group from the database")
 		payload.EnvironmentGroupID = 1
@@ -84,7 +84,7 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 	// validate tags
 	tagsIDs := []portaineree.TagID{}
 	for _, tagID := range payload.TagsIDs {
-		_, err := handler.DataStore.Tag().Tag(tagID)
+		_, err := handler.DataStore.Tag().Read(tagID)
 		if err != nil {
 			log.Warn().Err(err).Msg("Unable to retrieve the tag from the database")
 			continue
@@ -96,7 +96,7 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 	// validate edge groups
 	var edgeGroupsIDs []portaineree.EdgeGroupID
 	for _, edgeGroupID := range payload.EdgeGroupsIDs {
-		_, err := handler.DataStore.EdgeGroup().EdgeGroup(edgeGroupID)
+		_, err := handler.DataStore.EdgeGroup().Read(edgeGroupID)
 		if err != nil {
 			log.Warn().Err(err).Msg("Unable to retrieve the edge group from the database")
 			continue

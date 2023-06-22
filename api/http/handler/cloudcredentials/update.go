@@ -29,7 +29,7 @@ import (
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
 	id, _ := request.RetrieveNumericRouteVariableValue(r, "id")
-	cloudCredential, err := h.DataStore.CloudCredential().GetByID(models.CloudCredentialID(id))
+	cloudCredential, err := h.DataStore.CloudCredential().Read(models.CloudCredentialID(id))
 	if err != nil {
 		return httperror.InternalServerError("Unable to fetch cloud credentials from the database", err)
 	}
@@ -60,7 +60,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) *httperror.Hand
 		cloudCredential.Credentials = credentials
 	}
 
-	cloudCredentials, err := h.DataStore.CloudCredential().GetAll()
+	cloudCredentials, err := h.DataStore.CloudCredential().ReadAll()
 	if err != nil {
 		return httperror.InternalServerError("Unable to validate credential name", err)
 	}

@@ -93,7 +93,7 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 }
 
 func (handler *Handler) userCanAccessStack(securityContext *security.RestrictedRequestContext, endpointID portaineree.EndpointID, resourceControl *portaineree.ResourceControl) (bool, error) {
-	user, err := handler.DataStore.User().User(securityContext.UserID)
+	user, err := handler.DataStore.User().Read(securityContext.UserID)
 	if err != nil {
 		return false, err
 	}
@@ -111,7 +111,7 @@ func (handler *Handler) userCanAccessStack(securityContext *security.RestrictedR
 }
 
 func (handler *Handler) userIsAdmin(userID portaineree.UserID) (bool, error) {
-	user, err := handler.DataStore.User().User(userID)
+	user, err := handler.DataStore.User().Read(userID)
 	if err != nil {
 		return false, err
 	}
@@ -122,7 +122,7 @@ func (handler *Handler) userIsAdmin(userID portaineree.UserID) (bool, error) {
 }
 
 func (handler *Handler) userCanCreateStack(securityContext *security.RestrictedRequestContext, endpointID portaineree.EndpointID) (bool, error) {
-	user, err := handler.DataStore.User().User(securityContext.UserID)
+	user, err := handler.DataStore.User().Read(securityContext.UserID)
 	if err != nil {
 		return false, err
 	}
@@ -151,7 +151,7 @@ func (handler *Handler) userCanManageStacks(securityContext *security.Restricted
 }
 
 func (handler *Handler) checkUniqueStackName(endpoint *portaineree.Endpoint, name string, stackID portaineree.StackID) (bool, error) {
-	stacks, err := handler.DataStore.Stack().Stacks()
+	stacks, err := handler.DataStore.Stack().ReadAll()
 	if err != nil {
 		return false, err
 	}

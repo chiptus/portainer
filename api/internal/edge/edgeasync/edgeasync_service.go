@@ -445,7 +445,7 @@ func (service *Service) RemoveNormalStackCommand(endpointID portaineree.Endpoint
 		return err
 	}
 
-	stack, err := service.dataStore.Stack().Stack(stackID)
+	stack, err := service.dataStore.Stack().Read(stackID)
 	if err != nil {
 		return err
 	}

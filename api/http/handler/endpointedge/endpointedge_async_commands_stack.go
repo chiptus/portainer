@@ -41,7 +41,7 @@ func (handler *Handler) createNormalStackCommand(w http.ResponseWriter, r *http.
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	stack, err := handler.DataStore.Stack().Stack(portaineree.StackID(stackId))
+	stack, err := handler.DataStore.Stack().Read(portaineree.StackID(stackId))
 	if err != nil {
 		httpErr := httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
 		if handler.DataStore.IsErrObjectNotFound(err) {
@@ -54,7 +54,7 @@ func (handler *Handler) createNormalStackCommand(w http.ResponseWriter, r *http.
 	case portaineree.EdgeAsyncNormalStackOperationRemove:
 		err = handler.EdgeService.RemoveNormalStackCommand(endpoint.ID, stack.ID)
 		if err == nil {
-			err = handler.DataStore.Stack().DeleteStack(portaineree.StackID(stackId))
+			err = handler.DataStore.Stack().Delete(portaineree.StackID(stackId))
 		}
 	}
 

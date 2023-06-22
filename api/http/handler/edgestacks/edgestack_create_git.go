@@ -233,7 +233,7 @@ func (handler *Handler) storeManifestFromGitRepository(tx dataservices.DataStore
 
 	if repositoryConfig.Authentication != nil {
 		if gitCredentialId != 0 {
-			credential, err := tx.GitCredential().GetGitCredential(gitCredentialId)
+			credential, err := tx.GitCredential().Read(gitCredentialId)
 			if err != nil {
 				return "", "", "", fmt.Errorf("git credential not found: %w", err)
 			}

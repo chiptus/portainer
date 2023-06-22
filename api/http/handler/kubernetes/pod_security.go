@@ -119,7 +119,7 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	user, err := handler.DataStore.User().User(securityContext.UserID)
+	user, err := handler.DataStore.User().Read(securityContext.UserID)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve security context", err)
 	}

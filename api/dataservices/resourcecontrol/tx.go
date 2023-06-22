@@ -6,31 +6,12 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
 )
 
 type ServiceTx struct {
-	service *Service
-	tx      portainer.Transaction
-}
-
-func (service ServiceTx) BucketName() string {
-	return BucketName
-}
-
-// ResourceControl returns a ResourceControl object by ID
-func (service ServiceTx) ResourceControl(ID portaineree.ResourceControlID) (*portaineree.ResourceControl, error) {
-	var resourceControl portaineree.ResourceControl
-	identifier := service.service.connection.ConvertToKey(int(ID))
-
-	err := service.tx.GetObject(BucketName, identifier, &resourceControl)
-	if err != nil {
-		return nil, err
-	}
-
-	return &resourceControl, nil
+	dataservices.BaseDataServiceTx[portaineree.ResourceControl, portaineree.ResourceControlID]
 }
 
 // ResourceControlByResourceIDAndType returns a ResourceControl object by checking if the resourceID is equal
@@ -39,14 +20,14 @@ func (service ServiceTx) ResourceControl(ID portaineree.ResourceControlID) (*por
 func (service ServiceTx) ResourceControlByResourceIDAndType(resourceID string, resourceType portaineree.ResourceControlType) (*portaineree.ResourceControl, error) {
 	var resourceControl *portaineree.ResourceControl
 	stop := fmt.Errorf("ok")
-	err := service.tx.GetAll(
+	err := service.Tx.GetAll(
 		BucketName,
 		&portaineree.ResourceControl{},
 		func(obj interface{}) (interface{}, error) {
 			rc, ok := obj.(*portaineree.ResourceControl)
 			if !ok {
 				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to ResourceControl object")
-				return nil, fmt.Errorf("Failed to convert to ResourceControl object: %s", obj)
+				return nil, fmt.Errorf("failed to convert to ResourceControl object: %s", obj)
 			}
 
 			if rc.ResourceID == resourceID && rc.Type == resourceType {
@@ -70,36 +51,13 @@ func (service ServiceTx) ResourceControlByResourceIDAndType(resourceID string, r
 	return nil, err
 }
 
-// ResourceControls returns all the ResourceControl objects
-func (service ServiceTx) ResourceControls() ([]portaineree.ResourceControl, error) {
-	var rcs = make([]portaineree.ResourceControl, 0)
-
-	return rcs, service.tx.GetAll(
-		BucketName,
-		&portaineree.ResourceControl{},
-		dataservices.AppendFn(&rcs),
-	)
-}
-
 // CreateResourceControl creates a new ResourceControl object
 func (service ServiceTx) Create(resourceControl *portaineree.ResourceControl) error {
-	return service.tx.CreateObject(
+	return service.Tx.CreateObject(
 		BucketName,
 		func(id uint64) (int, interface{}) {
 			resourceControl.ID = portaineree.ResourceControlID(id)
 			return int(resourceControl.ID), resourceControl
 		},
 	)
-}
-
-// UpdateResourceControl saves a ResourceControl object.
-func (service ServiceTx) UpdateResourceControl(ID portaineree.ResourceControlID, resourceControl *portaineree.ResourceControl) error {
-	identifier := service.service.connection.ConvertToKey(int(ID))
-	return service.tx.UpdateObject(BucketName, identifier, resourceControl)
-}
-
-// DeleteResourceControl deletes a ResourceControl object by ID
-func (service ServiceTx) DeleteResourceControl(ID portaineree.ResourceControlID) error {
-	identifier := service.service.connection.ConvertToKey(int(ID))
-	return service.tx.DeleteObject(BucketName, identifier)
 }

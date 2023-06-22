@@ -13,7 +13,7 @@ func (transport *baseTransport) proxyNamespaceDeleteOperation(request *http.Requ
 		return nil, errors.WithMessagef(err, "failed to delete a namespace [%s] from portainer config", namespace)
 	}
 
-	registries, err := transport.dataStore.Registry().Registries()
+	registries, err := transport.dataStore.Registry().ReadAll()
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (transport *baseTransport) proxyNamespaceDeleteOperation(request *http.Requ
 				}
 
 				registry.RegistryAccesses[endpointID] = updatedAccessPolicies
-				err := transport.dataStore.Registry().UpdateRegistry(registry.ID, &registry)
+				err := transport.dataStore.Registry().Update(registry.ID, &registry)
 				if err != nil {
 					return nil, err
 				}
@@ -52,14 +52,14 @@ func (transport *baseTransport) proxyNamespaceDeleteOperation(request *http.Requ
 		}
 	}
 
-	stacks, err := transport.dataStore.Stack().Stacks()
+	stacks, err := transport.dataStore.Stack().ReadAll()
 	if err != nil {
 		return nil, err
 	}
 
 	for _, s := range stacks {
 		if s.Namespace == namespace && s.EndpointID == transport.endpoint.ID {
-			if err := transport.dataStore.Stack().DeleteStack(s.ID); err != nil {
+			if err := transport.dataStore.Stack().Delete(s.ID); err != nil {
 				return nil, err
 			}
 		}

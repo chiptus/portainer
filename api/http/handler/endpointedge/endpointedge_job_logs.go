@@ -84,7 +84,7 @@ func (handler *Handler) getEdgeJobLogs(tx dataservices.DataStoreTx, endpointID p
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
 	}
 
-	edgeJob, err := tx.EdgeJob().EdgeJob(portaineree.EdgeJobID(edgeJobID))
+	edgeJob, err := tx.EdgeJob().Read(portaineree.EdgeJobID(edgeJobID))
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an edge job with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -103,7 +103,7 @@ func (handler *Handler) getEdgeJobLogs(tx dataservices.DataStoreTx, endpointID p
 		edgeJob.Endpoints[endpoint.ID] = meta
 	}
 
-	err = tx.EdgeJob().UpdateEdgeJob(edgeJob.ID, edgeJob)
+	err = tx.EdgeJob().Update(edgeJob.ID, edgeJob)
 
 	handler.ReverseTunnelService.AddEdgeJob(endpoint, edgeJob)
 

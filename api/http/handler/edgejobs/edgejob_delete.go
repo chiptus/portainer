@@ -55,7 +55,7 @@ func (handler *Handler) edgeJobDelete(w http.ResponseWriter, r *http.Request) *h
 }
 
 func (handler *Handler) deleteEdgeJob(tx dataservices.DataStoreTx, edgeJobID portaineree.EdgeJobID) error {
-	edgeJob, err := tx.EdgeJob().EdgeJob(portaineree.EdgeJobID(edgeJobID))
+	edgeJob, err := tx.EdgeJob().Read(portaineree.EdgeJobID(edgeJobID))
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an Edge job with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -92,7 +92,7 @@ func (handler *Handler) deleteEdgeJob(tx dataservices.DataStoreTx, edgeJobID por
 		}
 	}
 
-	err = tx.EdgeJob().DeleteEdgeJob(edgeJob.ID)
+	err = tx.EdgeJob().Delete(edgeJob.ID)
 	if err != nil {
 		return httperror.InternalServerError("Unable to remove the Edge job from the database", err)
 	}

@@ -18,7 +18,7 @@ import (
 var imageMatcher = regexp.MustCompile(`image:[\s]*["']{0,1}([.\w\/@\-:]+)["']{0,1}`)
 
 func (handler *Handler) assignPrivateRegistriesToStack(tx dataservices.DataStoreTx, stack *portaineree.EdgeStack, r io.Reader) error {
-	registries, err := tx.Registry().Registries()
+	registries, err := tx.Registry().ReadAll()
 	if err != nil {
 		return err
 	}

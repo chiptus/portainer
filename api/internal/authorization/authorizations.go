@@ -599,7 +599,7 @@ func (service *Service) RemoveTeamAccessPolicies(teamID portaineree.TeamID) erro
 		}
 	}
 
-	endpointGroups, err := service.dataStore.EndpointGroup().EndpointGroups()
+	endpointGroups, err := service.dataStore.EndpointGroup().ReadAll()
 	if err != nil {
 		return err
 	}
@@ -609,7 +609,7 @@ func (service *Service) RemoveTeamAccessPolicies(teamID portaineree.TeamID) erro
 			if policyTeamID == teamID {
 				delete(endpointGroup.TeamAccessPolicies, policyTeamID)
 
-				err := service.dataStore.EndpointGroup().UpdateEndpointGroup(endpointGroup.ID, &endpointGroup)
+				err := service.dataStore.EndpointGroup().Update(endpointGroup.ID, &endpointGroup)
 				if err != nil {
 					return err
 				}
@@ -619,7 +619,7 @@ func (service *Service) RemoveTeamAccessPolicies(teamID portaineree.TeamID) erro
 		}
 	}
 
-	registries, err := service.dataStore.Registry().Registries()
+	registries, err := service.dataStore.Registry().ReadAll()
 	if err != nil {
 		return err
 	}
@@ -629,7 +629,7 @@ func (service *Service) RemoveTeamAccessPolicies(teamID portaineree.TeamID) erro
 			if policyTeamID == teamID {
 				delete(registry.TeamAccessPolicies, policyTeamID)
 
-				err := service.dataStore.Registry().UpdateRegistry(registry.ID, &registry)
+				err := service.dataStore.Registry().Update(registry.ID, &registry)
 				if err != nil {
 					return err
 				}
@@ -664,7 +664,7 @@ func (service *Service) RemoveUserAccessPolicies(userID portaineree.UserID) erro
 		}
 	}
 
-	endpointGroups, err := service.dataStore.EndpointGroup().EndpointGroups()
+	endpointGroups, err := service.dataStore.EndpointGroup().ReadAll()
 	if err != nil {
 		return err
 	}
@@ -674,7 +674,7 @@ func (service *Service) RemoveUserAccessPolicies(userID portaineree.UserID) erro
 			if policyUserID == userID {
 				delete(endpointGroup.UserAccessPolicies, policyUserID)
 
-				err := service.dataStore.EndpointGroup().UpdateEndpointGroup(endpointGroup.ID, &endpointGroup)
+				err := service.dataStore.EndpointGroup().Update(endpointGroup.ID, &endpointGroup)
 				if err != nil {
 					return err
 				}
@@ -684,7 +684,7 @@ func (service *Service) RemoveUserAccessPolicies(userID portaineree.UserID) erro
 		}
 	}
 
-	registries, err := service.dataStore.Registry().Registries()
+	registries, err := service.dataStore.Registry().ReadAll()
 	if err != nil {
 		return err
 	}
@@ -694,7 +694,7 @@ func (service *Service) RemoveUserAccessPolicies(userID portaineree.UserID) erro
 			if policyUserID == userID {
 				delete(registry.UserAccessPolicies, policyUserID)
 
-				err := service.dataStore.Registry().UpdateRegistry(registry.ID, &registry)
+				err := service.dataStore.Registry().Update(registry.ID, &registry)
 				if err != nil {
 					return err
 				}
@@ -723,7 +723,7 @@ func (service *Service) UpdateUserAuthorizations(tx dataservices.DataStoreTx, us
 
 // UpdateUsersAuthorizations will trigger an update of the authorizations for all the users.
 func (service *Service) UpdateUsersAuthorizations() error {
-	users, err := service.dataStore.User().Users()
+	users, err := service.dataStore.User().ReadAll()
 	if err != nil {
 		return err
 	}
@@ -741,7 +741,7 @@ func (service *Service) UpdateUsersAuthorizations() error {
 }
 
 func (service *Service) UpdateUsersAuthorizationsTx(tx dataservices.DataStoreTx) error {
-	users, err := tx.User().Users()
+	users, err := tx.User().ReadAll()
 	if err != nil {
 		return err
 	}
@@ -759,7 +759,7 @@ func (service *Service) UpdateUsersAuthorizationsTx(tx dataservices.DataStoreTx)
 }
 
 func (service *Service) updateUserAuthorizations(tx dataservices.DataStoreTx, userID portaineree.UserID) error {
-	user, err := tx.User().User(userID)
+	user, err := tx.User().Read(userID)
 	if err != nil {
 		return err
 	}
@@ -770,7 +770,7 @@ func (service *Service) updateUserAuthorizations(tx dataservices.DataStoreTx, us
 	}
 	user.EndpointAuthorizations = endpointAuthorizations
 
-	return tx.User().UpdateUser(userID, user)
+	return tx.User().Update(userID, user)
 }
 
 func (service *Service) getAuthorizations(tx dataservices.DataStoreTx, user *portaineree.User) (portaineree.EndpointAuthorizations, error) {
@@ -789,12 +789,12 @@ func (service *Service) getAuthorizations(tx dataservices.DataStoreTx, user *por
 		return endpointAuthorizations, err
 	}
 
-	endpointGroups, err := tx.EndpointGroup().EndpointGroups()
+	endpointGroups, err := tx.EndpointGroup().ReadAll()
 	if err != nil {
 		return endpointAuthorizations, err
 	}
 
-	roles, err := tx.Role().Roles()
+	roles, err := tx.Role().ReadAll()
 	if err != nil {
 		return endpointAuthorizations, err
 	}
@@ -1007,7 +1007,7 @@ func (service *Service) GetUserEndpointRole(
 	userID int,
 	endpointID int,
 ) (*portaineree.Role, error) {
-	user, err := service.dataStore.User().User(portaineree.UserID(userID))
+	user, err := service.dataStore.User().Read(portaineree.UserID(userID))
 	if err != nil {
 		return nil, err
 	}
@@ -1022,12 +1022,12 @@ func (service *Service) GetUserEndpointRole(
 		return nil, err
 	}
 
-	endpointGroups, err := service.dataStore.EndpointGroup().EndpointGroups()
+	endpointGroups, err := service.dataStore.EndpointGroup().ReadAll()
 	if err != nil {
 		return nil, err
 	}
 
-	roles, err := service.dataStore.Role().Roles()
+	roles, err := service.dataStore.Role().ReadAll()
 	if err != nil {
 		return nil, err
 	}
@@ -1136,7 +1136,7 @@ func (service *Service) GetUserNamespaceRoles(
 		return make(map[string]portaineree.Role), nil
 	}
 
-	user, err := service.dataStore.User().User(portaineree.UserID(userID))
+	user, err := service.dataStore.User().Read(portaineree.UserID(userID))
 	if err != nil {
 		return nil, err
 	}
@@ -1146,7 +1146,7 @@ func (service *Service) GetUserNamespaceRoles(
 		return nil, err
 	}
 
-	roles, err := service.dataStore.Role().Roles()
+	roles, err := service.dataStore.Role().ReadAll()
 	if err != nil {
 		return nil, err
 	}
@@ -1262,12 +1262,12 @@ func (service *Service) GetTeamEndpointRole(
 		return nil, err
 	}
 
-	endpointGroups, err := service.dataStore.EndpointGroup().EndpointGroups()
+	endpointGroups, err := service.dataStore.EndpointGroup().ReadAll()
 	if err != nil {
 		return nil, err
 	}
 
-	roles, err := service.dataStore.Role().Roles()
+	roles, err := service.dataStore.Role().ReadAll()
 	if err != nil {
 		return nil, err
 	}
@@ -1476,7 +1476,7 @@ func unionAuthorizations(auths ...portaineree.Authorizations) portaineree.Author
 }
 
 func (service *Service) UserIsAdminOrAuthorized(userID portaineree.UserID, endpointID portaineree.EndpointID, authorizations []portaineree.Authorization) (bool, error) {
-	user, err := service.dataStore.User().User(userID)
+	user, err := service.dataStore.User().Read(userID)
 	if err != nil {
 		return false, err
 	}

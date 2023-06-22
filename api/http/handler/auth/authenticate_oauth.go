@@ -165,7 +165,7 @@ func (handler *Handler) updateUser(user *portaineree.User, oauthSettings portain
 		user.Role = portaineree.StandardUserRole
 	}
 
-	if err := handler.DataStore.User().UpdateUser(user.ID, user); err != nil {
+	if err := handler.DataStore.User().Update(user.ID, user); err != nil {
 		return errors.New("Unable to persist user changes inside the database")
 	}
 

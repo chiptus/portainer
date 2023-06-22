@@ -51,7 +51,7 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
-	err = handler.DataStore.Snapshot().DeleteSnapshot(portaineree.EndpointID(endpointID))
+	err = handler.DataStore.Snapshot().Delete(portaineree.EndpointID(endpointID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to remove the snapshot from the database", err)
 	}
@@ -115,7 +115,7 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
-	edgeGroups, err := handler.DataStore.EdgeGroup().EdgeGroups()
+	edgeGroups, err := handler.DataStore.EdgeGroup().ReadAll()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve edge groups from the database", err)
 	}
@@ -145,7 +145,7 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
-	registries, err := handler.DataStore.Registry().Registries()
+	registries, err := handler.DataStore.Registry().ReadAll()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve registries from the database", err)
 	}
@@ -154,7 +154,7 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		registry := &registries[idx]
 		if _, ok := registry.RegistryAccesses[endpoint.ID]; ok {
 			delete(registry.RegistryAccesses, endpoint.ID)
-			err = handler.DataStore.Registry().UpdateRegistry(registry.ID, registry)
+			err = handler.DataStore.Registry().Update(registry.ID, registry)
 			if err != nil {
 				return httperror.InternalServerError("Unable to update registry accesses", err)
 			}
@@ -167,7 +167,7 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		return response.Empty(w)
 	}
 
-	edgeJobs, err := handler.DataStore.EdgeJob().EdgeJobs()
+	edgeJobs, err := handler.DataStore.EdgeJob().ReadAll()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve edge jobs from the database", err)
 	}

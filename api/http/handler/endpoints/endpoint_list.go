@@ -67,7 +67,7 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 
 	updateInformation, _ := request.RetrieveBooleanQueryParameter(r, "updateInformation", true)
 
-	endpointGroups, err := handler.DataStore.EndpointGroup().EndpointGroups()
+	endpointGroups, err := handler.DataStore.EndpointGroup().ReadAll()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve environment groups from the database", err)
 	}

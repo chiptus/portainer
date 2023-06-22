@@ -37,7 +37,7 @@ func (handler *Handler) delete(w http.ResponseWriter, r *http.Request) *httperro
 	}
 
 	if len(edgeStack.EdgeGroups) > 0 {
-		err = handler.dataStore.EdgeGroup().DeleteEdgeGroup(edgeStack.EdgeGroups[0])
+		err = handler.dataStore.EdgeGroup().Delete(edgeStack.EdgeGroups[0])
 		if err != nil {
 			return httperror.InternalServerError("failed deleting schedule edge group", err)
 		}

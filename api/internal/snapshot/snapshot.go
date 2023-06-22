@@ -286,7 +286,7 @@ func FetchDockerID(snapshot portainer.DockerSnapshot) (string, error) {
 }
 
 func FillSnapshotData(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint) error {
-	snapshot, err := tx.Snapshot().Snapshot(endpoint.ID)
+	snapshot, err := tx.Snapshot().Read(endpoint.ID)
 	if tx.IsErrObjectNotFound(err) {
 		endpoint.Snapshots = []portainer.DockerSnapshot{}
 		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{}

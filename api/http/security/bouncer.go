@@ -147,7 +147,7 @@ func (bouncer *RequestBouncer) AuthorizedEndpointOperation(r *http.Request, endp
 		return err
 	}
 
-	group, err := bouncer.dataStore.EndpointGroup().EndpointGroup(endpoint.GroupID)
+	group, err := bouncer.dataStore.EndpointGroup().Read(endpoint.GroupID)
 	if err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func (bouncer *RequestBouncer) checkEndpointOperationAuthorization(r *http.Reque
 		return nil
 	}
 
-	user, err := bouncer.dataStore.User().User(tokenData.ID)
+	user, err := bouncer.dataStore.User().Read(tokenData.ID)
 	if err != nil {
 		return err
 	}
@@ -298,7 +298,7 @@ func (bouncer *RequestBouncer) mwCheckPortainerAuthorizations(next http.Handler)
 			return
 		}
 
-		user, err := bouncer.dataStore.User().User(tokenData.ID)
+		user, err := bouncer.dataStore.User().Read(tokenData.ID)
 		if bouncer.dataStore.IsErrObjectNotFound(err) {
 			httperror.WriteError(w, http.StatusUnauthorized, "Unauthorized", httperrors.ErrUnauthorized)
 			return
@@ -380,7 +380,7 @@ func (bouncer *RequestBouncer) mwAuthenticateFirst(tokenLookups []tokenLookup, n
 			return
 		}
 
-		user, _ := bouncer.dataStore.User().User(token.ID)
+		user, _ := bouncer.dataStore.User().Read(token.ID)
 		if user == nil {
 			httperror.WriteError(w, http.StatusUnauthorized, "An authorisation token is invalid", httperrors.ErrUnauthorized)
 			return

@@ -39,7 +39,7 @@ func (m *Migrator) UpgradeToEE() error {
 	}
 
 	// Validate
-	roles, err := m.roleService.Roles()
+	roles, err := m.roleService.ReadAll()
 	if err != nil {
 		return errors.Wrap(err, "while getting roles")
 	}
@@ -111,7 +111,7 @@ func (m *Migrator) updateUserRolesToEE() error {
 	}
 
 	log.Debug().Msg("retrieving environment groups")
-	endpointGroups, err := m.endpointGroupService.EndpointGroups()
+	endpointGroups, err := m.endpointGroupService.ReadAll()
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func (m *Migrator) updateUserRolesToEE() error {
 			updateTeamAccessPolicyToReadOnlyRole(endpointGroup.TeamAccessPolicies, key)
 		}
 
-		err := m.endpointGroupService.UpdateEndpointGroup(endpointGroup.ID, &endpointGroup)
+		err := m.endpointGroupService.Update(endpointGroup.ID, &endpointGroup)
 		if err != nil {
 			return err
 		}
@@ -160,7 +160,7 @@ func (m *Migrator) updateUserRolesToEE() error {
 }
 
 func (m *Migrator) updateUserAuthorizationToEE() error {
-	legacyUsers, err := m.userService.Users()
+	legacyUsers, err := m.userService.ReadAll()
 	if err != nil {
 		return err
 	}
@@ -168,7 +168,7 @@ func (m *Migrator) updateUserAuthorizationToEE() error {
 	for _, user := range legacyUsers {
 		user.PortainerAuthorizations = authorization.DefaultPortainerAuthorizations()
 
-		err = m.userService.UpdateUser(user.ID, &user)
+		err = m.userService.Update(user.ID, &user)
 		if err != nil {
 			return err
 		}

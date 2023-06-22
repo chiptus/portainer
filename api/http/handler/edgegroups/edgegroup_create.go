@@ -56,7 +56,7 @@ func (handler *Handler) edgeGroupCreate(w http.ResponseWriter, r *http.Request) 
 	var edgeGroup *portaineree.EdgeGroup
 
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		edgeGroups, err := tx.EdgeGroup().EdgeGroups()
+		edgeGroups, err := tx.EdgeGroup().ReadAll()
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve Edge groups from the database", err)
 		}

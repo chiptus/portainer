@@ -62,7 +62,7 @@ func (deployer *KubernetesDeployer) getToken(userID portaineree.UserID, endpoint
 		return "", err
 	}
 
-	user, err := deployer.dataStore.User().User(userID)
+	user, err := deployer.dataStore.User().Read(userID)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to fetch the user")
 	}

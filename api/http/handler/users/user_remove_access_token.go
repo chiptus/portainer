@@ -48,7 +48,7 @@ func (handler *Handler) userRemoveAccessToken(w http.ResponseWriter, r *http.Req
 		return httperror.Forbidden("Permission denied to get user access tokens", httperrors.ErrUnauthorized)
 	}
 
-	_, err = handler.DataStore.User().User(portaineree.UserID(userID))
+	_, err = handler.DataStore.User().Read(portaineree.UserID(userID))
 	if err != nil {
 		if handler.DataStore.IsErrObjectNotFound(err) {
 			return httperror.NotFound("Unable to find a user with the specified identifier inside the database", err)

@@ -53,19 +53,19 @@ func TestConcurrentEndpointDelete(t *testing.T) {
 			t.Fatal(hErr)
 		}
 
-		tag, err := handler.DataStore.Tag().Tag(tagID)
+		tag, err := handler.DataStore.Tag().Read(tagID)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		tag.Endpoints[endpoint.ID] = true
 
-		handler.DataStore.Tag().UpdateTag(tagID, tag)
+		handler.DataStore.Tag().Update(tagID, tag)
 	}
 
 	// Delete the environments concurrently
 
-	tag, err := handler.DataStore.Tag().Tag(tagID)
+	tag, err := handler.DataStore.Tag().Read(tagID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +98,7 @@ func TestConcurrentEndpointDelete(t *testing.T) {
 
 	wg.Wait()
 
-	tag, err = handler.DataStore.Tag().Tag(tagID)
+	tag, err = handler.DataStore.Tag().Read(tagID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -177,7 +177,7 @@ func TestEndpointDeleteEdgeGroupsConcurrently(t *testing.T) {
 
 	// Check that the edge group is consistent
 
-	edgeGroup, err := handler.DataStore.EdgeGroup().EdgeGroup(1)
+	edgeGroup, err := handler.DataStore.EdgeGroup().Read(1)
 	if err != nil {
 		t.Fatal("could not retrieve the edge group:", err)
 	}

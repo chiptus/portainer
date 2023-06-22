@@ -41,7 +41,7 @@ func (handler *Handler) customTemplateCreate(w http.ResponseWriter, r *http.Requ
 
 	customTemplate.CreatedByUserID = tokenData.ID
 
-	customTemplates, err := handler.DataStore.CustomTemplate().CustomTemplates()
+	customTemplates, err := handler.DataStore.CustomTemplate().ReadAll()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve custom templates from the database", err)
 	}
@@ -315,7 +315,7 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request, u
 		repositoryPassword := ""
 		repositoryGitCredentialID := 0
 		if payload.RepositoryGitCredentialID != 0 {
-			credential, err := handler.DataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(payload.RepositoryGitCredentialID))
+			credential, err := handler.DataStore.GitCredential().Read(portaineree.GitCredentialID(payload.RepositoryGitCredentialID))
 			if err != nil {
 				return nil, fmt.Errorf("git credential not found: %w", err)
 			}

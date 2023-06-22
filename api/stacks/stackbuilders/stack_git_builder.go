@@ -152,7 +152,7 @@ func (b *GitMethodStackBuilder) extractGitAuthenticationFromPayload(payload *Rep
 		repositoryPassword := ""
 		repositoryGitCredentialID := 0
 		if payload.GitCredentialID != 0 {
-			credential, err := b.dataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(payload.GitCredentialID))
+			credential, err := b.dataStore.GitCredential().Read(portaineree.GitCredentialID(payload.GitCredentialID))
 			if err != nil {
 				b.err = httperror.InternalServerError("git credential not found", err)
 				return nil, err

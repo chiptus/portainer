@@ -317,7 +317,7 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(tx dataservices.DataStoreTx
 	var edgeGroupsIDs []portaineree.EdgeGroupID
 	if metaFields != nil {
 		// validate the environment group
-		_, err = tx.EndpointGroup().EndpointGroup(metaFields.EnvironmentGroupID)
+		_, err = tx.EndpointGroup().Read(metaFields.EnvironmentGroupID)
 		if err != nil {
 			log.Warn().Err(err).Msg("Unable to retrieve the environment group from the database")
 			metaFields.EnvironmentGroupID = 1
@@ -327,7 +327,7 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(tx dataservices.DataStoreTx
 		// validate tags
 		tagsIDs := []portaineree.TagID{}
 		for _, tagID := range metaFields.TagsIDs {
-			_, err = tx.Tag().Tag(tagID)
+			_, err = tx.Tag().Read(tagID)
 			if err != nil {
 				log.Warn().Err(err).Msg("Unable to retrieve the tag from the database")
 				continue
@@ -339,7 +339,7 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(tx dataservices.DataStoreTx
 
 		// validate edge groups
 		for _, edgeGroupID := range metaFields.EdgeGroupsIDs {
-			_, err = tx.EdgeGroup().EdgeGroup(edgeGroupID)
+			_, err = tx.EdgeGroup().Read(edgeGroupID)
 			if err != nil {
 				log.Warn().Err(err).Msg("Unable to retrieve the edge group from the database")
 				continue
@@ -379,14 +379,14 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(tx dataservices.DataStoreTx
 			continue
 		}
 
-		tag, err := tx.Tag().Tag(tagID)
+		tag, err := tx.Tag().Read(tagID)
 		if err != nil {
 			return nil, httperror.InternalServerError("Unable to retrieve tag from the database", err)
 		}
 
 		tag.Endpoints[endpoint.ID] = true
 
-		err = tx.Tag().UpdateTag(tag.ID, tag)
+		err = tx.Tag().Update(tag.ID, tag)
 		if err != nil {
 			return nil, httperror.InternalServerError("Unable to associate the environment to the specified tag", err)
 		}
@@ -400,7 +400,7 @@ func (handler *Handler) updateDockerSnapshot(tx dataservices.DataStoreTx, endpoi
 
 	if len(snapshotPayload.DockerPatch) > 0 {
 		var err error
-		snapshot, err = tx.Snapshot().Snapshot(endpoint.ID)
+		snapshot, err = tx.Snapshot().Read(endpoint.ID)
 		if err != nil || snapshot.Docker == nil {
 			*needFullSnapshot = true
 			return errors.New("received a Docker snapshot patch but there was no previous snapshot")
@@ -447,7 +447,7 @@ func (handler *Handler) updateDockerSnapshot(tx dataservices.DataStoreTx, endpoi
 	}
 
 	snapshot.EndpointID = endpoint.ID
-	err := tx.Snapshot().UpdateSnapshot(snapshot)
+	err := tx.Snapshot().Update(endpoint.ID, snapshot)
 	if err != nil {
 		return errors.New("snapshot could not be updated")
 	}
@@ -460,7 +460,7 @@ func (handler *Handler) updateKubernetesSnapshot(tx dataservices.DataStoreTx, en
 
 	if len(snapshotPayload.KubernetesPatch) > 0 {
 		var err error
-		snapshot, err = tx.Snapshot().Snapshot(endpoint.ID)
+		snapshot, err = tx.Snapshot().Read(endpoint.ID)
 		if err != nil || snapshot.Kubernetes == nil {
 			*needFullSnapshot = true
 			return errors.New("received a Kubernetes snapshot patch but there was no previous snapshot")
@@ -507,7 +507,7 @@ func (handler *Handler) updateKubernetesSnapshot(tx dataservices.DataStoreTx, en
 	}
 
 	snapshot.EndpointID = endpoint.ID
-	err := tx.Snapshot().UpdateSnapshot(snapshot)
+	err := tx.Snapshot().Update(endpoint.ID, snapshot)
 	if err != nil {
 		return errors.New("snapshot could not be updated")
 	}
@@ -577,7 +577,7 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 
 	// Save edge jobs status
 	for jobID, jobPayload := range snapshotPayload.JobsStatus {
-		edgeJob, err := tx.EdgeJob().EdgeJob(jobID)
+		edgeJob, err := tx.EdgeJob().Read(jobID)
 		if err != nil {
 			log.Error().Err(err).Int("job", int(jobID)).Msg("fetch edge job")
 
@@ -598,7 +598,7 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 			edgeJob.Endpoints[endpoint.ID] = meta
 		}
 
-		err = tx.EdgeJob().UpdateEdgeJob(edgeJob.ID, edgeJob)
+		err = tx.EdgeJob().Update(edgeJob.ID, edgeJob)
 		if err != nil {
 			log.Error().Err(err).Int("job", int(jobID)).Msg("fetch edge job")
 		}

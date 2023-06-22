@@ -71,15 +71,15 @@ func (t testRegistryService) Create(r *portaineree.Registry) error {
 	return t.createRegistry(r)
 }
 
-func (t testRegistryService) UpdateRegistry(ID portaineree.RegistryID, r *portaineree.Registry) error {
+func (t testRegistryService) Update(ID portaineree.RegistryID, r *portaineree.Registry) error {
 	return t.updateRegistry(ID, r)
 }
 
-func (t testRegistryService) Registry(ID portaineree.RegistryID) (*portaineree.Registry, error) {
+func (t testRegistryService) Read(ID portaineree.RegistryID) (*portaineree.Registry, error) {
 	return t.getRegistry(ID)
 }
 
-func (t testRegistryService) Registries() ([]portaineree.Registry, error) {
+func (t testRegistryService) ReadAll() ([]portaineree.Registry, error) {
 	return nil, nil
 }
 

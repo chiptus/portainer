@@ -67,7 +67,7 @@ func (handler *Handler) edgeJobTasksClear(w http.ResponseWriter, r *http.Request
 			updateEdgeJobFn := func(edgeJob *portaineree.EdgeJob, endpointID portaineree.EndpointID, endpointsFromGroups []portaineree.EndpointID) error {
 				mutationFn(edgeJob, endpointID, endpointsFromGroups)
 
-				return tx.EdgeJob().UpdateEdgeJob(edgeJob.ID, edgeJob)
+				return tx.EdgeJob().Update(edgeJob.ID, edgeJob)
 			}
 
 			return handler.clearEdgeJobTaskLogs(tx, portaineree.EdgeJobID(edgeJobID), portaineree.EndpointID(taskID), updateEdgeJobFn)
@@ -87,7 +87,7 @@ func (handler *Handler) edgeJobTasksClear(w http.ResponseWriter, r *http.Request
 }
 
 func (handler *Handler) clearEdgeJobTaskLogs(tx dataservices.DataStoreTx, edgeJobID portaineree.EdgeJobID, endpointID portaineree.EndpointID, updateEdgeJob func(*portaineree.EdgeJob, portaineree.EndpointID, []portaineree.EndpointID) error) error {
-	edgeJob, err := tx.EdgeJob().EdgeJob(edgeJobID)
+	edgeJob, err := tx.EdgeJob().Read(edgeJobID)
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an Edge job with the specified identifier inside the database", err)
 	} else if err != nil {

@@ -46,7 +46,7 @@ func (handler *Handler) userRemoveGitCredential(w http.ResponseWriter, r *http.R
 		return httperror.Forbidden("Couldn't remove git credential for another user", httperrors.ErrUnauthorized)
 	}
 
-	_, err = handler.DataStore.User().User(portaineree.UserID(userID))
+	_, err = handler.DataStore.User().Read(portaineree.UserID(userID))
 	if err != nil {
 		if handler.DataStore.IsErrObjectNotFound(err) {
 			return httperror.Forbidden("Unable to find a user with the specified identifier inside the database", err)
@@ -55,7 +55,7 @@ func (handler *Handler) userRemoveGitCredential(w http.ResponseWriter, r *http.R
 	}
 
 	// check if the credential exists and the credential belongs to the user
-	cred, err := handler.DataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(credID))
+	cred, err := handler.DataStore.GitCredential().Read(portaineree.GitCredentialID(credID))
 	if err != nil {
 		return httperror.InternalServerError("Git credential not found", err)
 	}
@@ -63,7 +63,7 @@ func (handler *Handler) userRemoveGitCredential(w http.ResponseWriter, r *http.R
 		return httperror.Forbidden("Permission denied to remove git-credential", httperrors.ErrUnauthorized)
 	}
 
-	err = handler.DataStore.GitCredential().DeleteGitCredential(portaineree.GitCredentialID(credID))
+	err = handler.DataStore.GitCredential().Delete(portaineree.GitCredentialID(credID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to remove the git-credential from the user", err)
 	}

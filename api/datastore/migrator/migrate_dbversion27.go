@@ -20,7 +20,7 @@ func (m *Migrator) updateUsersAndRolesToDBVersion28() error {
 		return err
 	}
 
-	roles, err := m.roleService.Roles()
+	roles, err := m.roleService.ReadAll()
 	if err != nil {
 		return errors.Wrap(err, "while getting roles from db")
 	}

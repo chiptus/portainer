@@ -13,7 +13,7 @@ func (handler *Handler) updateEndpointRelations(tx dataservices.DataStoreTx, end
 	}
 
 	if endpointGroup == nil {
-		unassignedGroup, err := tx.EndpointGroup().EndpointGroup(portaineree.EndpointGroupID(1))
+		unassignedGroup, err := tx.EndpointGroup().Read(portaineree.EndpointGroupID(1))
 		if err != nil {
 			return err
 		}
@@ -26,7 +26,7 @@ func (handler *Handler) updateEndpointRelations(tx dataservices.DataStoreTx, end
 		return err
 	}
 
-	edgeGroups, err := tx.EdgeGroup().EdgeGroups()
+	edgeGroups, err := tx.EdgeGroup().ReadAll()
 	if err != nil {
 		return err
 	}

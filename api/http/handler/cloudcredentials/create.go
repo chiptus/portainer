@@ -32,7 +32,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) *httperror.Hand
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	cloudCredentials, err := h.DataStore.CloudCredential().GetAll()
+	cloudCredentials, err := h.DataStore.CloudCredential().ReadAll()
 	if err != nil {
 		return httperror.InternalServerError("Unable to validate credential name", err)
 	}
