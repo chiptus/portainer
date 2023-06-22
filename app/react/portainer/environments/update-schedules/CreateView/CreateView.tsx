@@ -5,6 +5,7 @@ import { useRouter } from '@uirouter/react';
 
 import { notifySuccess } from '@/portainer/services/notifications';
 import { withLimitToBE } from '@/react/hooks/useLimitToBE';
+import { useEdgeGroups } from '@/react/edge/edge-groups/queries/useEdgeGroups';
 
 import { PageHeader } from '@@/PageHeader';
 import { Widget } from '@@/Widget';
@@ -38,7 +39,7 @@ function CreateView() {
     }),
     []
   );
-
+  const edgeGroupsQuery = useEdgeGroups();
   const schedulesQuery = useList();
 
   const createMutation = useCreateMutation();
@@ -77,7 +78,9 @@ function CreateView() {
                 initialValues={initialValues}
                 onSubmit={handleSubmit}
                 validateOnMount
-                validationSchema={() => validation(schedules)}
+                validationSchema={() =>
+                  validation(schedules, edgeGroupsQuery.data)
+                }
               >
                 {({ isValid, setFieldValue, values, handleBlur, errors }) => (
                   <FormikForm className="form-horizontal">
