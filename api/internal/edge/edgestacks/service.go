@@ -32,6 +32,17 @@ func NewService(dataStore dataservices.DataStore, edgeAsyncService *edgeasync.Se
 	}
 }
 
+type BuildEdgeStackArgs struct {
+	Registries            []portaineree.RegistryID
+	ScheduledTime         string
+	UseManifestNamespaces bool
+	PrePullImage          bool
+	RePullImage           bool
+	RetryDeploy           bool
+	SupportRelativePath   bool
+	FilesystemPath        string
+}
+
 // BuildEdgeStack builds the initial edge stack object
 // PersistEdgeStack is required to be called after this to persist the edge stack
 func (service *Service) BuildEdgeStack(
@@ -39,19 +50,14 @@ func (service *Service) BuildEdgeStack(
 	name string,
 	deploymentType portaineree.EdgeStackDeploymentType,
 	edgeGroups []portaineree.EdgeGroupID,
-	registries []portaineree.RegistryID,
-	scheduledTime string,
-	useManifestNamespaces bool,
-	prePullImage bool,
-	rePullImage bool,
-	RetryDeploy bool,
+	args BuildEdgeStackArgs,
 ) (*portaineree.EdgeStack, error) {
 	err := validateUniqueName(tx.EdgeStack().EdgeStacks, name)
 	if err != nil {
 		return nil, err
 	}
 
-	err = validateScheduledTime(scheduledTime)
+	err = validateScheduledTime(args.ScheduledTime)
 	if err != nil {
 		return nil, err
 	}
@@ -65,12 +71,14 @@ func (service *Service) BuildEdgeStack(
 		EdgeGroups:            edgeGroups,
 		Status:                make(map[portaineree.EndpointID]portainer.EdgeStackStatus),
 		Version:               1,
-		Registries:            registries,
-		ScheduledTime:         scheduledTime,
-		UseManifestNamespaces: useManifestNamespaces,
-		PrePullImage:          prePullImage,
-		RePullImage:           rePullImage,
-		RetryDeploy:           RetryDeploy,
+		Registries:            args.Registries,
+		ScheduledTime:         args.ScheduledTime,
+		UseManifestNamespaces: args.UseManifestNamespaces,
+		PrePullImage:          args.PrePullImage,
+		RePullImage:           args.RePullImage,
+		RetryDeploy:           args.RetryDeploy,
+		SupportRelativePath:   args.SupportRelativePath,
+		FilesystemPath:        args.FilesystemPath,
 	}, nil
 }
 
@@ -111,8 +119,8 @@ func validateScheduledTime(scheduledTime string) error {
 func (service *Service) PersistEdgeStack(
 	tx dataservices.DataStoreTx,
 	stack *portaineree.EdgeStack,
-	storeManifest edgetypes.StoreManifestFunc) (*portaineree.EdgeStack, error) {
-
+	storeManifest edgetypes.StoreManifestFunc,
+) (*portaineree.EdgeStack, error) {
 	relationConfig, err := edge.FetchEndpointRelationsConfig(service.dataStore)
 	if err != nil {
 		return nil, fmt.Errorf("unable to find environment relations in database: %w", err)

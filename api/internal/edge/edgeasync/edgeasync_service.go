@@ -3,10 +3,9 @@ package edgeasync
 import (
 	"encoding/base64"
 	"fmt"
-	"os"
-	"path"
 	"time"
 
+	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
@@ -14,6 +13,7 @@ import (
 	"github.com/portainer/portainer-ee/api/kubernetes"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/edge"
+	"github.com/portainer/portainer/api/filesystem"
 
 	"github.com/docker/docker/api/types"
 	"github.com/rs/zerolog/log"
@@ -114,19 +114,13 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 		}
 	}
 
-	stackFileContent, err := service.fileService.GetFileContent(edgeStack.ProjectPath, fileName)
+	dirEntries, err := filesystem.LoadDir(edgeStack.ProjectPath)
 	if err != nil {
-		log.Error().Err(err).Msg("unable to retrieve Compose file from disk")
-
-		return err
+		return httperror.InternalServerError("Unable to load repository", err)
 	}
 
-	var dotEnvFileContent []byte
-	if _, err = os.Stat(path.Join(edgeStack.ProjectPath, ".env")); err == nil {
-		dotEnvFileContent, err = service.fileService.GetFileContent(edgeStack.ProjectPath, ".env")
-		if err != nil {
-			return err
-		}
+	if !edgeStack.SupportRelativePath || edgeStack.FilesystemPath == "" {
+		dirEntries = filesystem.FilterDirForEntryFile(dirEntries, fileName)
 	}
 
 	registryCredentials := registryutils.GetRegistryCredentialsForEdgeStack(tx, edgeStack, endpoint)
@@ -137,8 +131,10 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 	}
 
 	stackStatus := edge.StackPayload{
-		FileContent:         string(stackFileContent),
-		DotEnvFileContent:   string(dotEnvFileContent),
+		DirEntries:          dirEntries,
+		EntryFileName:       fileName,
+		SupportRelativePath: edgeStack.SupportRelativePath,
+		FilesystemPath:      edgeStack.FilesystemPath,
 		Name:                edgeStack.Name,
 		ID:                  int(edgeStackID),
 		Version:             edgeStack.Version,
@@ -180,9 +176,12 @@ func (service *Service) RemoveStackCommandTx(tx dataservices.DataStoreTx, endpoi
 	}
 
 	stackStatus := edge.StackPayload{
-		Name:    edgeStack.Name,
-		ID:      int(edgeStackID),
-		Version: edgeStack.Version,
+		Name:                edgeStack.Name,
+		ID:                  int(edgeStackID),
+		Version:             edgeStack.Version,
+		EntryFileName:       edgeStack.EntryPoint,
+		SupportRelativePath: edgeStack.SupportRelativePath,
+		FilesystemPath:      edgeStack.FilesystemPath,
 	}
 
 	asyncCommand := &portaineree.EdgeAsyncCommand{

@@ -13,6 +13,7 @@ import (
 	eefs "github.com/portainer/portainer-ee/api/filesystem"
 	"github.com/portainer/portainer-ee/api/git/update"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
 )
@@ -54,6 +55,10 @@ type edgeStackFromGitRepositoryPayload struct {
 	TLSSkipVerify bool `example:"false"`
 	// Optional GitOps update configuration
 	AutoUpdate *portaineree.AutoUpdateSettings
+	// Whether the stack supports relative path volume
+	SupportRelativePath bool `example:"false"`
+	// Local filesystem path
+	FilesystemPath string `example:"/mnt"`
 }
 
 func (payload *edgeStackFromGitRepositoryPayload) Validate(r *http.Request) error {
@@ -124,7 +129,18 @@ func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dat
 		}
 	}
 
-	stack, err := handler.edgeStacksService.BuildEdgeStack(tx, payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false, payload.RetryDeploy)
+	buildEdgeStackArgs := edgestacks.BuildEdgeStackArgs{
+		Registries:            payload.Registries,
+		ScheduledTime:         "",
+		UseManifestNamespaces: payload.UseManifestNamespaces,
+		PrePullImage:          payload.PrePullImage,
+		RePullImage:           false,
+		RetryDeploy:           payload.RetryDeploy,
+		SupportRelativePath:   payload.SupportRelativePath,
+		FilesystemPath:        payload.FilesystemPath,
+	}
+
+	stack, err := handler.edgeStacksService.BuildEdgeStack(tx, payload.Name, payload.DeploymentType, payload.EdgeGroups, buildEdgeStackArgs)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create edge stack object")
 	}
@@ -150,9 +166,13 @@ func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dat
 	stack.AutoUpdate = payload.AutoUpdate
 	stack.GitConfig = &repoConfig
 
-	edgeStack, err := handler.edgeStacksService.PersistEdgeStack(tx, stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
-		return handler.storeManifestFromGitRepository(tx, stackFolder, relatedEndpointIds, payload.DeploymentType, userID, payload.RepositoryGitCredentialID, repoConfig)
-	})
+	edgeStack, err := handler.edgeStacksService.PersistEdgeStack(
+		tx,
+		stack,
+		func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
+			return handler.storeManifestFromGitRepository(tx, stackFolder, relatedEndpointIds, payload.DeploymentType, userID, payload.RepositoryGitCredentialID, repoConfig)
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to persist edge stack")
 	}
@@ -219,7 +239,15 @@ func (handler *Handler) checkUniqueWebhookID(webhookID string) error {
 	return nil
 }
 
-func (handler *Handler) storeManifestFromGitRepository(tx dataservices.DataStoreTx, stackFolder string, relatedEndpointIds []portaineree.EndpointID, deploymentType portaineree.EdgeStackDeploymentType, currentUserID portaineree.UserID, gitCredentialId portaineree.GitCredentialID, repositoryConfig gittypes.RepoConfig) (composePath, manifestPath, projectPath string, err error) {
+func (handler *Handler) storeManifestFromGitRepository(
+	tx dataservices.DataStoreTx,
+	stackFolder string,
+	relatedEndpointIds []portaineree.EndpointID,
+	deploymentType portaineree.EdgeStackDeploymentType,
+	currentUserID portaineree.UserID,
+	gitCredentialId portaineree.GitCredentialID,
+	repositoryConfig gittypes.RepoConfig,
+) (composePath, manifestPath, projectPath string, err error) {
 	hasWrongType, err := hasWrongEnvironmentType(tx.Endpoint(), relatedEndpointIds, deploymentType)
 	if err != nil {
 		return "", "", "", fmt.Errorf("unable to check for existence of non fitting environments: %w", err)

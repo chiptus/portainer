@@ -14,6 +14,7 @@ class DockerComposeFormController {
     this.onChangeTemplate = this.onChangeTemplate.bind(this);
     this.onChangeMethod = this.onChangeMethod.bind(this);
     this.onChangeFormValues = this.onChangeFormValues.bind(this);
+    this.onEnableRelativePathsChange = this.onEnableRelativePathsChange.bind(this);
   }
 
   onChangeFormValues(newValues) {
@@ -52,6 +53,12 @@ class DockerComposeFormController {
   onChangeFile(value) {
     return this.$async(async () => {
       this.formValues.StackFile = value;
+    });
+  }
+
+  onEnableRelativePathsChange(value) {
+    return this.$async(async () => {
+      this.formValues.SupportRelativePath = value;
     });
   }
 

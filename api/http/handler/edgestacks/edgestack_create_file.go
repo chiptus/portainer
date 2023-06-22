@@ -8,6 +8,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
 
 	"github.com/pkg/errors"
 )
@@ -118,7 +119,16 @@ func (handler *Handler) createEdgeStackFromFileUpload(r *http.Request, tx datase
 		}
 	}
 
-	stack, err := handler.edgeStacksService.BuildEdgeStack(tx, payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false, payload.RetryDeploy)
+	buildEdgeStackArgs := edgestacks.BuildEdgeStackArgs{
+		Registries:            payload.Registries,
+		ScheduledTime:         "",
+		UseManifestNamespaces: payload.UseManifestNamespaces,
+		PrePullImage:          payload.PrePullImage,
+		RePullImage:           false,
+		RetryDeploy:           payload.RetryDeploy,
+	}
+
+	stack, err := handler.edgeStacksService.BuildEdgeStack(tx, payload.Name, payload.DeploymentType, payload.EdgeGroups, buildEdgeStackArgs)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create edge stack object")
 	}
@@ -136,7 +146,11 @@ func (handler *Handler) createEdgeStackFromFileUpload(r *http.Request, tx datase
 		return stack, nil
 	}
 
-	return handler.edgeStacksService.PersistEdgeStack(tx, stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
-		return handler.storeFileContent(tx, stackFolder, payload.DeploymentType, relatedEndpointIds, payload.StackFileContent)
-	})
+	return handler.edgeStacksService.PersistEdgeStack(
+		tx,
+		stack,
+		func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
+			return handler.storeFileContent(tx, stackFolder, payload.DeploymentType, relatedEndpointIds, payload.StackFileContent)
+		},
+	)
 }

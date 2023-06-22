@@ -3,8 +3,6 @@ package endpointedge
 import (
 	"errors"
 	"net/http"
-	"os"
-	"path"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -15,6 +13,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	"github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer/api/edge"
+	"github.com/portainer/portainer/api/filesystem"
 )
 
 // @summary Inspect an Edge Stack for an Environment(Endpoint)
@@ -73,24 +72,22 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 
 	}
 
-	stackFileContent, err := handler.FileService.GetFileContent(edgeStack.ProjectPath, fileName)
+	dirEntries, err := filesystem.LoadDir(edgeStack.ProjectPath)
 	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve Compose file from disk", err)
+		return httperror.InternalServerError("Unable to load repository", err)
 	}
 
-	var dotEnvFileContent []byte
-	if _, err = os.Stat(path.Join(edgeStack.ProjectPath, ".env")); err == nil {
-		dotEnvFileContent, err = handler.FileService.GetFileContent(edgeStack.ProjectPath, ".env")
-		if err != nil {
-			return httperror.InternalServerError("Unable to retrieve .env file from disk", err)
-		}
+	if !edgeStack.SupportRelativePath || edgeStack.FilesystemPath == "" {
+		dirEntries = filesystem.FilterDirForEntryFile(dirEntries, fileName)
 	}
 
 	registryCredentials := registryutils.GetRegistryCredentialsForEdgeStack(handler.DataStore, edgeStack, endpoint)
 
 	return response.JSON(w, edge.StackPayload{
-		FileContent:         string(stackFileContent),
-		DotEnvFileContent:   string(dotEnvFileContent),
+		DirEntries:          dirEntries,
+		EntryFileName:       fileName,
+		SupportRelativePath: edgeStack.SupportRelativePath,
+		FilesystemPath:      edgeStack.FilesystemPath,
 		Name:                edgeStack.Name,
 		RegistryCredentials: registryCredentials,
 		Namespace:           namespace,

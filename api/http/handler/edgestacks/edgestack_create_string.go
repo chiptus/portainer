@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	eefs "github.com/portainer/portainer-ee/api/filesystem"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
 	"github.com/portainer/portainer/api/filesystem"
 
 	"github.com/asaskevich/govalidator"
@@ -89,7 +90,16 @@ func (handler *Handler) createEdgeStackFromFileContent(r *http.Request, tx datas
 		}
 	}
 
-	stack, err := handler.edgeStacksService.BuildEdgeStack(tx, payload.Name, payload.DeploymentType, payload.EdgeGroups, payload.Registries, "", payload.UseManifestNamespaces, payload.PrePullImage, false, payload.RetryDeploy)
+	buildEdgeStackArgs := edgestacks.BuildEdgeStackArgs{
+		Registries:            payload.Registries,
+		ScheduledTime:         "",
+		UseManifestNamespaces: payload.UseManifestNamespaces,
+		PrePullImage:          payload.PrePullImage,
+		RePullImage:           false,
+		RetryDeploy:           payload.RetryDeploy,
+	}
+
+	stack, err := handler.edgeStacksService.BuildEdgeStack(tx, payload.Name, payload.DeploymentType, payload.EdgeGroups, buildEdgeStackArgs)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create Edge stack object")
 	}

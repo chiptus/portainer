@@ -30,6 +30,41 @@
   docs-links
 ></git-form>
 
+<div ng-if="$ctrl.state.Method == 'repository'" class="form-group">
+  <div class="col-sm-12 mb-3">
+    <por-switch-field
+      name="EnableRelativePaths"
+      checked="$ctrl.formValues.SupportRelativePath"
+      label="'Enable relative path volumes'"
+      label-class="'col-sm-3 col-lg-2'"
+      tooltip="'Enabling this means you can specify relative path volumes in your Compose files, with Portainer pulling the content from your git repository to the environment the stack is deployed to.'"
+      on-change="($ctrl.onEnableRelativePathsChange)"
+    ></por-switch-field>
+  </div>
+  <div ng-if="$ctrl.formValues.SupportRelativePath">
+    <span ng-if="!isDockerStandalone" class="col-sm-12">
+      <p class="small vertical-center">
+        <pr-icon icon="'info'" mode="'primary'"></pr-icon>
+        <span class="text-muted">For relative path volumes use with Docker Swarm, you must have a network filesystem which all of your nodes can access.</span>
+      </p>
+    </span>
+    <div class="col-sm-12">
+      <div class="form-group">
+        <label class="col-sm-3 col-lg-2 control-label text-left"> Local filesystem path </label>
+        <div class="col-sm-9 col-lg-10">
+          <input type="text" class="form-control" ng-model="$ctrl.formValues.FilesystemPath" placeholder="/mnt" />
+          <span class="help-block" ng-if="$ctrl.formValues.FilesystemPath.length === 0">
+            <p class="text-warning small vertical-center">
+              <pr-icon icon="'alert-triangle'" mode="'warning'" size="'sm'"></pr-icon>
+              <span>Local filesystem path is required</span>
+            </p>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- template -->
 <div ng-if="$ctrl.state.Method === 'template'">
   <div class="form-group">

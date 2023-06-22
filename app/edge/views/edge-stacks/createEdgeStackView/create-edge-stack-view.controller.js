@@ -36,6 +36,8 @@ export default class CreateEdgeStackViewController {
       TLSSkipVerify: false,
       AutoUpdate: parseAutoUpdateResponse(),
       webhookEnabled: false,
+      SupportRelativePath: false,
+      FilesystemPath: '',
     };
 
     this.EditorType = EditorType;
@@ -330,7 +332,7 @@ export default class CreateEdgeStackViewController {
   }
 
   async createStackFromGitRepository(name) {
-    const { Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy } = this.formValues;
+    const { Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy, SupportRelativePath, FilesystemPath } = this.formValues;
 
     if (this.formValues.SaveCredential && this.formValues.NewCredentialName) {
       const userDetails = this.Authentication.getUserDetails();
@@ -365,6 +367,8 @@ export default class CreateEdgeStackViewController {
         PrePullImage,
         RetryDeploy,
         AutoUpdate: autoUpdate,
+        SupportRelativePath: SupportRelativePath,
+        FilesystemPath: FilesystemPath,
       },
       repositoryOptions
     );

@@ -358,6 +358,11 @@ type (
 		// The git configuration of a git stack
 		GitConfig *gittypes.RepoConfig
 
+		// Whether the stack supports relative path volume
+		SupportRelativePath bool `example:"false"`
+		// Local filesystem path
+		FilesystemPath string `example:"/tmp"`
+
 		// Deprecated
 		Prune bool `json:"Prune"`
 	}

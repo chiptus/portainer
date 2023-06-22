@@ -8,6 +8,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	eefs "github.com/portainer/portainer-ee/api/filesystem"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	"github.com/portainer/portainer/api/filesystem"
 
@@ -85,17 +86,21 @@ func (handler *Handler) createUpdateEdgeStack(
 		return 0, errors.WithMessage(err, "failed to create edge group for update schedule")
 	}
 
+	buildEdgeStackArgs := edgestacks.BuildEdgeStackArgs{
+		Registries:            registries,
+		ScheduledTime:         scheduledTime,
+		UseManifestNamespaces: false,
+		PrePullImage:          prePullImage,
+		RePullImage:           rePullImage,
+		RetryDeploy:           false,
+	}
+
 	stack, err := handler.edgeStacksService.BuildEdgeStack(
 		handler.dataStore,
 		buildEdgeStackName(scheduleID),
 		deploymentConfig.Type,
 		[]portaineree.EdgeGroupID{edgeGroup.ID},
-		registries,
-		scheduledTime,
-		false,
-		prePullImage,
-		rePullImage,
-		false,
+		buildEdgeStackArgs,
 	)
 	if err != nil {
 		return 0, err

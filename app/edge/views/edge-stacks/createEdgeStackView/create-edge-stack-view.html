@@ -129,7 +129,13 @@
               <button
                 type="button"
                 class="btn btn-primary btn-sm"
-                ng-disabled="$ctrl.state.actionInProgress || $ctrl.formIsInvalid() || ($ctrl.formValues.RepositoryAuthentication && (!$ctrl.formValues.RepositoryPassword && $ctrl.formValues.RepositoryGitCredentialID===0)) || ($ctrl.formValues.RepositoryAuthentication && $ctrl.formValues.RepositoryPassword && $ctrl.formValues.SaveCredential && (!$ctrl.formValues.NewCredentialName || $ctrl.formValues.NewCredentialNameExist || $ctrl.formValues.NewCredentialNameInvalid))"
+                ng-disabled="
+                  $ctrl.state.actionInProgress ||
+                  $ctrl.formIsInvalid() ||
+                  ($ctrl.formValues.RepositoryAuthentication && (!$ctrl.formValues.RepositoryPassword && $ctrl.formValues.RepositoryGitCredentialID===0)) ||
+                  ($ctrl.formValues.RepositoryAuthentication && $ctrl.formValues.RepositoryPassword && $ctrl.formValues.SaveCredential && (!$ctrl.formValues.NewCredentialName || $ctrl.formValues.NewCredentialNameExist || $ctrl.formValues.NewCredentialNameInvalid)) ||
+                  ($ctrl.formValues.SupportRelativePath && $ctrl.formValues.FilesystemPath.length === 0)
+                "
                 ng-click="$ctrl.createStack()"
                 button-spinner="$ctrl.state.actionInProgress"
                 analytics-on
