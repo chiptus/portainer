@@ -2,6 +2,7 @@ package customtemplates
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -11,8 +12,8 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
-	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	"github.com/portainer/portainer/api/filesystem"
+	"github.com/portainer/portainer/api/git"
 	gittypes "github.com/portainer/portainer/api/git/types"
 
 	"github.com/asaskevich/govalidator"
@@ -170,10 +171,10 @@ func (handler *Handler) customTemplateUpdate(w http.ResponseWriter, r *http.Requ
 			TLSSkipVerify:  payload.TLSSkipVerify,
 		}
 
+		repositoryUsername := ""
+		repositoryPassword := ""
+		var repositoryGitCredentialID portaineree.GitCredentialID
 		if payload.RepositoryAuthentication {
-			repositoryUsername := ""
-			repositoryPassword := ""
-			repositoryGitCredentialID := 0
 			if payload.RepositoryGitCredentialID != 0 {
 				credential, err := handler.DataStore.GitCredential().GetGitCredential(portaineree.GitCredentialID(payload.RepositoryGitCredentialID))
 				if err != nil {
@@ -190,26 +191,37 @@ func (handler *Handler) customTemplateUpdate(w http.ResponseWriter, r *http.Requ
 
 				repositoryUsername = credential.Username
 				repositoryPassword = credential.Password
-				repositoryGitCredentialID = payload.RepositoryGitCredentialID
+				repositoryGitCredentialID = credential.ID
 			} else if payload.RepositoryPassword != "" {
 				repositoryUsername = payload.RepositoryUsername
 				repositoryPassword = payload.RepositoryPassword
-				repositoryGitCredentialID = 0
-			}
-
-			gitConfig.Authentication = &gittypes.GitAuthentication{
-				Username:        repositoryUsername,
-				Password:        repositoryPassword,
-				GitCredentialID: repositoryGitCredentialID,
 			}
 
 		}
 
-		commitHash, err := stackutils.DownloadGitRepository(*gitConfig, handler.GitService, func() string {
-			return customTemplate.ProjectPath
+		gitConfig.Authentication = &gittypes.GitAuthentication{
+			Username:        repositoryUsername,
+			Password:        repositoryPassword,
+			GitCredentialID: int(repositoryGitCredentialID),
+		}
+
+		cleanBackup, err := git.CloneWithBackup(handler.GitService, handler.FileService, git.CloneOptions{
+			ProjectPath:   customTemplate.ProjectPath,
+			URL:           gitConfig.URL,
+			ReferenceName: gitConfig.ReferenceName,
+			Username:      repositoryUsername,
+			Password:      repositoryPassword,
+			TLSSkipVerify: gitConfig.TLSSkipVerify,
 		})
 		if err != nil {
-			return httperror.InternalServerError(err.Error(), err)
+			return httperror.InternalServerError("Unable to clone git repository directory", err)
+		}
+
+		defer cleanBackup()
+
+		commitHash, err := handler.GitService.LatestCommitID(gitConfig.URL, gitConfig.ReferenceName, repositoryUsername, repositoryPassword, gitConfig.TLSSkipVerify)
+		if err != nil {
+			return httperror.InternalServerError("Unable get latest commit id", fmt.Errorf("failed to fetch latest commit id of the template %v: %w", customTemplate.ID, err))
 		}
 
 		gitConfig.ConfigHash = commitHash
