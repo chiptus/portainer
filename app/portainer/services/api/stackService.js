@@ -430,13 +430,13 @@ angular.module('portainer.app').factory('StackService', [
     };
 
     service.start = start;
-    function start(id) {
-      return Stack.start({ id }).$promise;
+    function start(endpointId, id) {
+      return Stack.start({ id, endpointId }).$promise;
     }
 
     service.stop = stop;
-    function stop(id, endpointId) {
-      return Stack.stop({ id: id, endpointId: endpointId }).$promise;
+    function stop(endpointId, id) {
+      return Stack.stop({ endpointId, id }).$promise;
     }
 
     function updateGit(id, endpointId, env, prune, gitConfig, pullImage) {
