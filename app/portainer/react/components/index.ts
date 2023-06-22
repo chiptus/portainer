@@ -10,6 +10,8 @@ import { ChatBotItem } from '@/react/portainer/chat/ChatBot';
 import { TableColumnHeaderImageUpToDate } from '@/react/docker/components/datatables/TableColumnHeaderImageUpToDate';
 import { withFormValidation } from '@/react-tools/withFormValidation';
 import { BetaAlert } from '@/react/portainer/environments/update-schedules/common/BetaAlert';
+import { GroupAssociationTable } from '@/react/portainer/environments/environment-groups/components/GroupAssociationTable';
+import { AssociatedEnvironmentsSelector } from '@/react/portainer/environments/environment-groups/components/AssociatedEnvironmentsSelector';
 
 import {
   EnvironmentVariablesFieldset,
@@ -255,6 +257,20 @@ export const ngModule = angular
       'minLength',
       'isExpandable',
     ])
+  )
+  .component(
+    'groupAssociationTable',
+    r2a(withReactQuery(GroupAssociationTable), [
+      'emptyContentLabel',
+      'onClickRow',
+      'query',
+      'title',
+      'data-cy',
+    ])
+  )
+  .component(
+    'associatedEndpointsSelector',
+    r2a(withReactQuery(AssociatedEnvironmentsSelector), ['onChange', 'value'])
   );
 
 export const componentsModule = ngModule.name;
