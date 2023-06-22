@@ -94,7 +94,9 @@ class KubernetesConfigureController {
     return _.find(this.formValues.IngressClasses, { Type: this.IngressClassTypes.TRAEFIK });
   }
 
-  toggleAdvancedIngSettings() {
+  toggleAdvancedIngSettings($event) {
+    $event.stopPropagation();
+    $event.preventDefault();
     this.$scope.$evalAsync(() => {
       this.state.isIngToggleSectionExpanded = !this.state.isIngToggleSectionExpanded;
     });
