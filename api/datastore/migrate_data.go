@@ -135,6 +135,9 @@ func (store *Store) newMigratorParameters(version *models.Version) *migrator.Mig
 		EdgeStackService:         store.EdgeStackService,
 		EdgeJobService:           store.EdgeJobService,
 		PodSecurityService:       store.PodSecurityService,
+		EdgeUpdateService:        store.EdgeUpdateScheduleService,
+		EdgeGroupService:         store.EdgeGroupService,
+		FDOProfilesService:       store.FDOProfilesService,
 	}
 }
 

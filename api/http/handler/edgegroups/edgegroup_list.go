@@ -71,6 +71,11 @@ func getEdgeGroupList(tx dataservices.DataStoreTx) ([]decoratedEdgeGroup, error)
 
 	decoratedEdgeGroups := []decoratedEdgeGroup{}
 	for _, orgEdgeGroup := range edgeGroups {
+		// hide groups that are created for an edge update
+		if orgEdgeGroup.EdgeUpdateID != 0 {
+			continue
+		}
+
 		usedByEdgeJob := false
 		for _, edgeJob := range edgeJobs {
 			if slices.Contains(edgeJob.EdgeGroups, portaineree.EdgeGroupID(orgEdgeGroup.ID)) {

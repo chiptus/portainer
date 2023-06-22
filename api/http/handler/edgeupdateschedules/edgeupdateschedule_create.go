@@ -103,12 +103,13 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 	}()
 
 	item := &edgetypes.UpdateSchedule{
-		Name:       payload.Name,
-		Version:    payload.Version,
-		Created:    time.Now().Unix(),
-		CreatedBy:  tokenData.ID,
-		Type:       payload.Type,
-		RegistryID: payload.RegistryID,
+		Name:         payload.Name,
+		Version:      payload.Version,
+		Created:      time.Now().Unix(),
+		CreatedBy:    tokenData.ID,
+		Type:         payload.Type,
+		RegistryID:   payload.RegistryID,
+		EdgeGroupIDs: payload.GroupIDs,
 	}
 
 	relatedEnvironments, err := handler.fetchRelatedEnvironments(payload.GroupIDs)
@@ -135,7 +136,18 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 
 	scheduleID = item.ID
 
-	edgeStackID, err = handler.createUpdateEdgeStack(item.ID, payload.GroupIDs, payload.RegistryID, payload.Version, payload.ScheduledTime, edgeEnvironmentType)
+	relatedEnvironmentsIDs := slices.Map(relatedEnvironments, func(environment portaineree.Endpoint) portaineree.EndpointID {
+		return environment.ID
+	})
+
+	edgeStackID, err = handler.createUpdateEdgeStack(
+		item.ID,
+		relatedEnvironmentsIDs,
+		payload.RegistryID,
+		payload.Version,
+		payload.ScheduledTime,
+		edgeEnvironmentType,
+	)
 	if err != nil {
 		return httperror.InternalServerError("Unable to create edge stack", err)
 	}

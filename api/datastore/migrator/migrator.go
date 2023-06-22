@@ -3,6 +3,7 @@ package migrator
 import (
 	"github.com/Masterminds/semver"
 	"github.com/pkg/errors"
+	"github.com/portainer/portainer-ee/api/dataservices/edgegroup"
 	"github.com/portainer/portainer-ee/api/dataservices/edgestack"
 	"github.com/rs/zerolog/log"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/cloudprovisioning"
 	"github.com/portainer/portainer-ee/api/dataservices/dockerhub"
 	"github.com/portainer/portainer-ee/api/dataservices/edgejob"
+	"github.com/portainer/portainer-ee/api/dataservices/edgeupdateschedule"
 	"github.com/portainer/portainer-ee/api/dataservices/endpoint"
 	"github.com/portainer/portainer-ee/api/dataservices/endpointgroup"
 	"github.com/portainer/portainer-ee/api/dataservices/endpointrelation"
@@ -63,6 +65,8 @@ type (
 		edgeStackService        *edgestack.Service
 		edgeJobService          *edgejob.Service
 		podSecurityService      *podsecurity.Service
+		edgeUpdateService       *edgeupdateschedule.Service
+		edgeGroupService        *edgegroup.Service
 	}
 
 	// MigratorParameters represents the required parameters to create a new Migrator instance.
@@ -92,6 +96,8 @@ type (
 		CloudCredentialService   *cloudcredential.Service
 		EdgeStackService         *edgestack.Service
 		EdgeJobService           *edgejob.Service
+		EdgeUpdateService        *edgeupdateschedule.Service
+		EdgeGroupService         *edgegroup.Service
 	}
 
 	Migrations struct {
@@ -129,6 +135,8 @@ func NewMigrator(parameters *MigratorParameters) *Migrator {
 		edgeStackService:        parameters.EdgeStackService,
 		edgeJobService:          parameters.EdgeJobService,
 		podSecurityService:      parameters.PodSecurityService,
+		edgeUpdateService:       parameters.EdgeUpdateService,
+		edgeGroupService:        parameters.EdgeGroupService,
 	}
 
 	migrator.initMigrations()
@@ -240,6 +248,9 @@ func (m *Migrator) initMigrations() {
 		m.updateCloudCredentialsForDB90,
 		m.updateEdgeStackStatusForDB90,
 		m.updateMigrateGateKeeperFieldForEnvDB90)
+	m.addMigrations("2.19",
+		m.assignEdgeGroupsToEdgeUpdatesForDB100,
+	)
 
 	// Add new migrations above...
 

@@ -6,16 +6,14 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 )
 
 type inspectResponse struct {
 	*edgetypes.UpdateSchedule
-	EdgeGroupIds  []portaineree.EdgeGroupID `json:"edgeGroupIds"`
-	ScheduledTime string                    `json:"scheduledTime"`
-	IsActive      bool                      `json:"isActive"`
+	ScheduledTime string `json:"scheduledTime"`
+	IsActive      bool   `json:"isActive"`
 }
 
 // @id EdgeUpdateScheduleInspect
@@ -55,7 +53,6 @@ func (handler *Handler) inspect(w http.ResponseWriter, r *http.Request) *httperr
 
 	decoratedItem := &inspectResponse{
 		UpdateSchedule: item,
-		EdgeGroupIds:   edgeStack.EdgeGroups,
 		IsActive:       isActive,
 		ScheduledTime:  edgeStack.ScheduledTime,
 	}

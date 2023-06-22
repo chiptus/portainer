@@ -37,6 +37,13 @@ type (
 		RegistryID portaineree.RegistryID `json:"registryId" example:"1"`
 
 		EnvironmentsPreviousVersions map[portaineree.EndpointID]string `json:"environmentsPreviousVersions"`
+
+		// EdgeGroups to be updated
+		//
+		// There is some duplication here with EdgeStack.EdgeGroups
+		// EdgeStack.EdgeGroup should have only one group which a temporary group, used only for the update
+		// This field is saved only to show which groups the user chose when creating the schedule
+		EdgeGroupIDs []portaineree.EdgeGroupID `json:"edgeGroupIds" example:"1"`
 	}
 
 	// UpdateScheduleType represents type of an Edge update schedule

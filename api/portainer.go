@@ -270,6 +270,7 @@ type (
 		TagIDs       []TagID      `json:"TagIds"`
 		Endpoints    []EndpointID `json:"Endpoints"`
 		PartialMatch bool         `json:"PartialMatch"`
+		EdgeUpdateID int
 	}
 
 	// EdgeGroupID represents an Edge group identifier

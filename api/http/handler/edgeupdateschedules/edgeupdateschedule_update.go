@@ -120,10 +120,21 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 			return httperror.InternalServerError("Unable to delete Edge stack", err)
 		}
 
+		if len(stack.EdgeGroups) > 0 {
+			err = handler.dataStore.EdgeGroup().DeleteEdgeGroup(stack.EdgeGroups[0])
+			if err != nil {
+				return httperror.InternalServerError("Unable to delete Edge group", err)
+			}
+		}
+
 		relatedEnvironments, err := handler.fetchRelatedEnvironments(payload.GroupIDs)
 		if err != nil {
 			return httperror.InternalServerError("Unable to fetch related environments", err)
 		}
+
+		relatedEnvironmentsIDs := slices.Map(relatedEnvironments, func(environment portaineree.Endpoint) portaineree.EndpointID {
+			return environment.ID
+		})
 
 		edgeEnvironmentType, err := handler.validateRelatedEnvironments(relatedEnvironments)
 		if err != nil {
@@ -137,7 +148,7 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 
 		item.EnvironmentsPreviousVersions = previousVersions
 
-		stackID, err := handler.createUpdateEdgeStack(item.ID, newGroupIds, *payload.RegistryID, item.Version, scheduledTime, edgeEnvironmentType)
+		stackID, err := handler.createUpdateEdgeStack(item.ID, relatedEnvironmentsIDs, *payload.RegistryID, item.Version, scheduledTime, edgeEnvironmentType)
 		if err != nil {
 			return httperror.InternalServerError("Unable to create Edge stack", err)
 		}

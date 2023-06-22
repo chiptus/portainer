@@ -38,10 +38,11 @@ const (
 
 func (handler *Handler) createUpdateEdgeStack(
 	scheduleID edgetypes.UpdateScheduleID,
-	groupIDs []portaineree.EdgeGroupID,
+	relatedEnvironments []portaineree.EndpointID,
 	registryID portaineree.RegistryID,
 	version, scheduledTime string,
-	endpointType portaineree.EndpointType) (portaineree.EdgeStackID, error) {
+	endpointType portaineree.EndpointType,
+) (portaineree.EdgeStackID, error) {
 
 	agentImagePrefix := os.Getenv(agentImagePrefixEnvVar)
 	if agentImagePrefix == "" {
@@ -51,21 +52,19 @@ func (handler *Handler) createUpdateEdgeStack(
 	prePullImage := false
 	rePullImage := false
 	registries := []portaineree.RegistryID{}
-	var (
-		registry *portaineree.Registry
-		err      error
-	)
+	registryURL := ""
 	if registryID != 0 {
 		prePullImage = true
 		rePullImage = true
 		registries = append(registries, registryID)
 
-		registry, err = handler.dataStore.Registry().Registry(registryID)
+		registry, err := handler.dataStore.Registry().Registry(registryID)
 		if err != nil {
 			return 0, errors.WithMessage(err, "failed to retrieve registry")
 		}
 
-		agentImagePrefix = fmt.Sprintf("%s/agent", registry.URL)
+		registryURL = registry.URL
+		agentImagePrefix = fmt.Sprintf("%s/agent", registryURL)
 	}
 
 	agentImage := fmt.Sprintf("%s:%s", agentImagePrefix, version)
@@ -75,11 +74,22 @@ func (handler *Handler) createUpdateEdgeStack(
 		return 0, err
 	}
 
+	edgeGroup := &portaineree.EdgeGroup{
+		Name:         buildEdgeStackName(scheduleID),
+		Endpoints:    relatedEnvironments,
+		EdgeUpdateID: int(scheduleID),
+	}
+
+	err = handler.dataStore.EdgeGroup().Create(edgeGroup)
+	if err != nil {
+		return 0, errors.WithMessage(err, "failed to create edge group for update schedule")
+	}
+
 	stack, err := handler.edgeStacksService.BuildEdgeStack(
 		handler.dataStore,
 		buildEdgeStackName(scheduleID),
 		deploymentConfig.Type,
-		groupIDs,
+		[]portaineree.EdgeGroupID{edgeGroup.ID},
 		registries,
 		scheduledTime,
 		false,
@@ -101,8 +111,8 @@ func (handler *Handler) createUpdateEdgeStack(
 		}
 
 		updaterImage := os.Getenv(updaterImageEnvVar)
-		if updaterImage == "" && registry != nil && registry.URL != "" {
-			updaterImage = fmt.Sprintf("%s/portainer-updater:latest", registry.URL)
+		if updaterImage == "" && registryURL != "" {
+			updaterImage = fmt.Sprintf("%s/portainer-updater:latest", registryURL)
 		}
 
 		deploymentFile, err := mustache.RenderFile(deploymentConfig.TemplatePath, map[string]string{
