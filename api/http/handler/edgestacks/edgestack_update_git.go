@@ -120,7 +120,12 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 			return httperror.InternalServerError("Failed updating git settings", err)
 		}
 
-		updateSettings, err := handler.updateAutoUpdateSettings(edgeStack.ID, payload.AutoUpdate, edgeStack.AutoUpdate.JobID)
+		jobId := ""
+		if edgeStack.AutoUpdate != nil {
+			jobId = edgeStack.AutoUpdate.JobID
+		}
+
+		updateSettings, err := handler.updateAutoUpdateSettings(edgeStack.ID, payload.AutoUpdate, jobId)
 		if err != nil {
 			return httperror.InternalServerError("Failed updating auto update settings", err)
 		}
@@ -194,6 +199,10 @@ func (handler *Handler) updateAutoUpdateSettings(edgeStackID portaineree.EdgeSta
 		if err != nil {
 			return nil, errors.WithMessage(err, "Failed stopping auto update job")
 		}
+	}
+
+	if settings == nil {
+		return nil, nil
 	}
 
 	jobID, err := handler.handleAutoUpdate(edgeStackID, settings)
