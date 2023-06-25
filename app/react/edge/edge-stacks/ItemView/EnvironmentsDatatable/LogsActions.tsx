@@ -6,11 +6,12 @@ import { EnvironmentId } from '@/react/portainer/environments/types';
 import { Button } from '@@/buttons';
 import { Icon } from '@@/Icon';
 
-import { useCollectLogsMutation } from '../queries/useCollectLogsMutation';
-import { useDeleteLogsMutation } from '../queries/useDeleteLogsMutation';
-import { useDownloadLogsMutation } from '../queries/useDownloadLogsMutation';
-import { EdgeStack } from '../types';
-import { useLogsStatus } from '../queries/useLogsStatus';
+import { EdgeStack } from '../../types';
+
+import { useCollectLogsMutation } from './useCollectLogsMutation';
+import { useDeleteLogsMutation } from './useDeleteLogsMutation';
+import { useDownloadLogsMutation } from './useDownloadLogsMutation';
+import { useLogsStatus } from './useLogsStatus';
 
 interface Props {
   environmentId: EnvironmentId;

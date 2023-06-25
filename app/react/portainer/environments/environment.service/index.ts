@@ -4,7 +4,10 @@ import { type TagId } from '@/portainer/tags/types';
 import { UserId } from '@/portainer/users/types';
 import { TeamId } from '@/react/portainer/users/teams/types';
 import { getPublicSettings } from '@/react/portainer/settings/settings.service';
-import { EdgeStack, EdgeStackStatus } from '@/react/edge/edge-stacks/types';
+import {
+  EdgeStack,
+  StatusType as EdgeStackStatusType,
+} from '@/react/edge/edge-stacks/types';
 
 import type {
   Environment,
@@ -22,7 +25,7 @@ export type EdgeStackEnvironmentsQueryParams =
     }
   | {
       edgeStackId: EdgeStack['Id'];
-      edgeStackStatus?: keyof EdgeStackStatus['Details'];
+      edgeStackStatus?: EdgeStackStatusType;
     };
 
 export interface BaseEnvironmentsQueryParams {

@@ -69,15 +69,11 @@ angular
 
     const stacksEdit = {
       name: 'edge.stacks.edit',
-      url: '/:stackId',
+      url: '/:stackId?tab&status',
       views: {
         'content@': {
           component: 'editEdgeStackView',
         },
-      },
-      params: {
-        tab: 0,
-        status: '',
       },
     };
 

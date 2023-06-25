@@ -1,4 +1,5 @@
 import { Search } from 'lucide-react';
+import { useCurrentStateAndParams } from '@uirouter/react';
 
 import { Environment } from '@/react/portainer/environments/types';
 
@@ -6,16 +7,17 @@ import { Button } from '@@/buttons';
 import { Link } from '@@/Link';
 import { Icon } from '@@/Icon';
 
-import { EdgeStack } from '../types';
-
 import { LogsActions } from './LogsActions';
 
 interface Props {
   environment: Environment;
-  edgeStackId: EdgeStack['Id'];
 }
 
-export function EnvironmentActions({ environment, edgeStackId }: Props) {
+export function EnvironmentActions({ environment }: Props) {
+  const {
+    params: { stackId: edgeStackId },
+  } = useCurrentStateAndParams();
+
   return (
     <div className="space-x-2">
       {environment.Snapshots.length > 0 && (

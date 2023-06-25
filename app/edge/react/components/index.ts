@@ -1,8 +1,6 @@
 import angular from 'angular';
 
 import { r2a } from '@/react-tools/react2angular';
-import { EnvironmentActions } from '@/react/edge/edge-stacks/ItemView/EnvironmentActions';
-import { ActionStatus } from '@/react/edge/edge-stacks/ItemView/ActionStatus';
 import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
 import { EdgeAsyncIntervalsForm } from '@/react/edge/components/EdgeAsyncIntervalsForm';
@@ -15,19 +13,13 @@ import { EditEdgeStackForm } from '@/react/edge/edge-stacks/ItemView/EditEdgeSta
 import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { EdgeGroupAssociationTable } from '@/react/edge/components/EdgeGroupAssociationTable';
 import { AssociatedEdgeEnvironmentsSelector } from '@/react/edge/components/AssociatedEdgeEnvironmentsSelector';
+import { EnvironmentsDatatable } from '@/react/edge/edge-stacks/ItemView/EnvironmentsDatatable';
 
 export const componentsModule = angular
   .module('portainer.edge.react.components', [])
   .component(
-    'edgeStackEnvironmentActions',
-    r2a(withUIRouter(withReactQuery(EnvironmentActions)), [
-      'environment',
-      'edgeStackId',
-    ])
-  )
-  .component(
-    'edgeStackActionStatus',
-    r2a(withReactQuery(ActionStatus), ['edgeStackId', 'environmentId'])
+    'edgeStackEnvironmentsDatatable',
+    r2a(withUIRouter(withReactQuery(EnvironmentsDatatable)), [])
   )
   .component(
     'edgeGroupsSelector',

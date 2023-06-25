@@ -2,17 +2,23 @@ import { useQuery } from 'react-query';
 
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import axios, { parseAxiosError } from '@/portainer/services/axios';
+import { EdgeStack } from '@/react/edge/edge-stacks/types';
 
-import { EdgeStack } from '../types';
+import { queryKeys } from '../../queries/query-keys';
 
-import { queryKeys } from './query-keys';
+export function logsStatusQueryKey(
+  edgeStackId: EdgeStack['Id'],
+  environmentId: EnvironmentId
+) {
+  return [...queryKeys.item(edgeStackId), 'logs', environmentId] as const;
+}
 
 export function useLogsStatus(
   edgeStackId: EdgeStack['Id'],
   environmentId: EnvironmentId
 ) {
   return useQuery(
-    queryKeys.logsStatus(edgeStackId, environmentId),
+    logsStatusQueryKey(edgeStackId, environmentId),
     () => getLogsStatus(edgeStackId, environmentId),
     {
       refetchInterval(status) {

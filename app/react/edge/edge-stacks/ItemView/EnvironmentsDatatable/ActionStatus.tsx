@@ -1,14 +1,18 @@
+import { useCurrentStateAndParams } from '@uirouter/react';
+
 import { EnvironmentId } from '@/react/portainer/environments/types';
 
-import { useLogsStatus } from '../queries/useLogsStatus';
-import { EdgeStack } from '../types';
+import { useLogsStatus } from './useLogsStatus';
 
 interface Props {
   environmentId: EnvironmentId;
-  edgeStackId: EdgeStack['Id'];
 }
 
-export function ActionStatus({ environmentId, edgeStackId }: Props) {
+export function ActionStatus({ environmentId }: Props) {
+  const {
+    params: { stackId: edgeStackId },
+  } = useCurrentStateAndParams();
+
   const logsStatusQuery = useLogsStatus(edgeStackId, environmentId);
 
   return <>{getStatusText(logsStatusQuery.data)}</>;

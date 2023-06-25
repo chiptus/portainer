@@ -5,7 +5,7 @@ import { EnvironmentId } from '@/react/portainer/environments/types';
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 import { mutationOptions, withError } from '@/react-tools/react-query';
 
-import { EdgeStack } from '../types';
+import { EdgeStack } from '../../types';
 
 export function useDownloadLogsMutation() {
   return useMutation(

@@ -6,10 +6,12 @@ import axios, { parseAxiosError } from '@/portainer/services/axios';
 import { EdgeStack } from '../types';
 
 import { buildUrl } from './buildUrl';
+import { queryKeys } from './query-keys';
 
 export function useEdgeStack(id?: EdgeStack['Id']) {
-  return useQuery(['edge_stacks', id], () => getEdgeStack(id), {
+  return useQuery(id ? queryKeys.item(id) : [], () => getEdgeStack(id), {
     ...withError('Failed loading Edge stack'),
+    enabled: !!id,
   });
 }
 

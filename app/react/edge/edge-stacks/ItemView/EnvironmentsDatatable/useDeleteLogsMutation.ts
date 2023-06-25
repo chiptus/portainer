@@ -4,9 +4,9 @@ import { EnvironmentId } from '@/react/portainer/environments/types';
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 import { withError } from '@/react-tools/react-query';
 
-import { EdgeStack } from '../types';
+import { EdgeStack } from '../../types';
 
-import { queryKeys } from './query-keys';
+import { logsStatusQueryKey } from './useLogsStatus';
 
 export function useDeleteLogsMutation() {
   const queryClient = useQueryClient();
@@ -14,7 +14,7 @@ export function useDeleteLogsMutation() {
   return useMutation(deleteLogs, {
     onSuccess(data, variables) {
       return queryClient.invalidateQueries(
-        queryKeys.logsStatus(variables.edgeStackId, variables.environmentId)
+        logsStatusQueryKey(variables.edgeStackId, variables.environmentId)
       );
     },
     ...withError('Unable to delete logs'),
