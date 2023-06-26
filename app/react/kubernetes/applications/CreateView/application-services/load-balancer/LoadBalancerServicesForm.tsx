@@ -1,4 +1,4 @@
-import { Plus, RotateCw } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { FormikErrors } from 'formik';
 
 import { AnnotationErrors } from '@/react/kubernetes/annotations/AnnotationsForm';
@@ -14,8 +14,13 @@ import { Button } from '@@/buttons';
 import { FormError } from '@@/form-components/FormError';
 import { Link } from '@@/Link';
 
-import { generateUniqueName, newPort, serviceFormDefaultValues } from './utils';
-import { ServiceFormValues, ServicePort } from './types';
+import {
+  generateUniqueName,
+  newPort,
+  serviceFormDefaultValues,
+} from '../utils';
+import { ServiceFormValues, ServicePort } from '../types';
+
 import { LoadBalancerServiceForm } from './LoadBalancerServiceForm';
 
 interface Props {
@@ -27,6 +32,8 @@ interface Props {
   handleUpdateAnnotations: (annotations: Annotation[], index?: number) => void;
   appName: string;
   selector: Record<string, string>;
+  namespace?: string;
+  isEditMode?: boolean;
 }
 
 export function LoadBalancerServicesForm({
@@ -38,6 +45,8 @@ export function LoadBalancerServicesForm({
   setAnnotationsErrors,
   appName,
   selector,
+  namespace,
+  isEditMode,
 }: Props) {
   const { isAdmin } = useCurrentUser();
   const environmentId = useEnvironmentId();
@@ -81,7 +90,7 @@ export function LoadBalancerServicesForm({
             </FormError>
             <div className="flex">
               <Button
-                icon={RotateCw}
+                icon={RefreshCw}
                 color="default"
                 className="!ml-0"
                 onClick={() => loadBalancerEnabledQuery.refetch()}
@@ -112,6 +121,8 @@ export function LoadBalancerServicesForm({
                   annotationsErrors={annotationsErrors}
                   setAnnotationsErrors={setAnnotationsErrors}
                   handleUpdateAnnotations={handleUpdateAnnotations}
+                  namespace={namespace}
+                  isEditMode={isEditMode}
                 />
               ) : null
             )}

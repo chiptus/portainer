@@ -28,7 +28,6 @@ export function KubernetesApplicationFormValues() {
   this.PlacementType = KubernetesApplicationPlacementTypes.PREFERRED;
   this.Placements = []; // KubernetesApplicationPlacementFormValue lis;
   this.OriginalIngresses = undefined;
-  this.IsPublishingService = false;
   this.Annotations = [];
   this.Conditions = [];
 }

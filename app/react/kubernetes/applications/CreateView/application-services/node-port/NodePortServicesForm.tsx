@@ -1,17 +1,22 @@
-import { Plus } from 'lucide-react';
 import { FormikErrors } from 'formik';
+import { Plus } from 'lucide-react';
 
 import { AnnotationErrors } from '@/react/kubernetes/annotations/AnnotationsForm';
-import { KubernetesApplicationPublishingTypes } from '@/kubernetes/models/application/models';
 import { Annotation } from '@/react/kubernetes/annotations/types';
+import { KubernetesApplicationPublishingTypes } from '@/kubernetes/models/application/models';
 
 import { Card } from '@@/Card';
 import { TextTip } from '@@/Tip/TextTip';
 import { Button } from '@@/buttons';
 
-import { generateUniqueName, newPort, serviceFormDefaultValues } from './utils';
-import { ServiceFormValues, ServicePort } from './types';
-import { ClusterIpServiceForm } from './ClusterIpServiceForm';
+import {
+  serviceFormDefaultValues,
+  generateUniqueName,
+  newPort,
+} from '../utils';
+import { ServiceFormValues, ServicePort } from '../types';
+
+import { NodePortServiceForm } from './NodePortServiceForm';
 
 interface Props {
   services: ServiceFormValues[];
@@ -22,9 +27,11 @@ interface Props {
   handleUpdateAnnotations: (annotations: Annotation[], index?: number) => void;
   appName: string;
   selector: Record<string, string>;
+  namespace?: string;
+  isEditMode?: boolean;
 }
 
-export function ClusterIpServicesForm({
+export function NodePortServicesForm({
   services,
   onChangeService,
   errors,
@@ -33,25 +40,25 @@ export function ClusterIpServicesForm({
   setAnnotationsErrors,
   appName,
   selector,
+  namespace,
+  isEditMode,
 }: Props) {
-  const clusterIPServiceCount = services.filter(
-    (service) =>
-      service.Type === KubernetesApplicationPublishingTypes.CLUSTER_IP
+  const nodePortServiceCount = services.filter(
+    (service) => service.Type === KubernetesApplicationPublishingTypes.NODE_PORT
   ).length;
   return (
     <Card className="pb-5">
       <div className="flex flex-col gap-6">
         <TextTip color="blue">
-          Publish <b>internally</b> in the cluster via a{' '}
-          <b>ClusterIP service</b>, optionally exposing <b>externally</b> to the
-          outside world via an <b>ingress</b>.
+          Allow access to traffic <b>external</b> to the cluster via a{' '}
+          <b>NodePort service</b>. Not generally recommended for Production use.
         </TextTip>
-        {clusterIPServiceCount > 0 && (
+        {nodePortServiceCount > 0 && (
           <div className="flex w-full flex-col gap-4">
             {services.map((service, index) =>
               service.Type ===
-              KubernetesApplicationPublishingTypes.CLUSTER_IP ? (
-                <ClusterIpServiceForm
+              KubernetesApplicationPublishingTypes.NODE_PORT ? (
+                <NodePortServiceForm
                   key={index}
                   serviceName={service.Name}
                   servicePorts={service.Ports}
@@ -67,6 +74,8 @@ export function ClusterIpServicesForm({
                   annotationsErrors={annotationsErrors}
                   setAnnotationsErrors={setAnnotationsErrors}
                   handleUpdateAnnotations={handleUpdateAnnotations}
+                  namespace={namespace}
+                  isEditMode={isEditMode}
                 />
               ) : null
             )}
@@ -86,7 +95,7 @@ export function ClusterIpServicesForm({
                 services.length + 1,
                 services
               );
-              newService.Type = KubernetesApplicationPublishingTypes.CLUSTER_IP;
+              newService.Type = KubernetesApplicationPublishingTypes.NODE_PORT;
               const newServicePort = newPort(newService.Name);
               newService.Ports = [newServicePort];
               newService.Selector = selector;
