@@ -19,10 +19,16 @@ interface EdgeStackStatusDetails {
 
 export type StatusType = keyof EdgeStackStatusDetails;
 
+interface EdgeStackDeploymentInfo {
+  Version: number;
+  ConfigHash: string;
+}
+
 export interface EdgeStackStatus {
   Details: EdgeStackStatusDetails;
   Error: string;
   EndpointID: EnvironmentId;
+  DeploymentInfo: EdgeStackDeploymentInfo;
 }
 
 export enum DeploymentType {
@@ -57,6 +63,7 @@ export type EdgeStack = {
   Prune: boolean;
   RetryDeploy: boolean;
   Webhook: string;
+  PreviousDeploymentInfo: EdgeStackDeploymentInfo;
 };
 
 export enum EditorType {

@@ -250,6 +250,7 @@ func (m *Migrator) initMigrations() {
 		m.updateMigrateGateKeeperFieldForEnvDB90)
 	m.addMigrations("2.19",
 		m.assignEdgeGroupsToEdgeUpdatesForDB100,
+		m.rebuildEdgeStackFileSystemWithVersionForDB100,
 	)
 
 	// Add new migrations above...

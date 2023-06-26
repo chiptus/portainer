@@ -8,8 +8,10 @@ import { FormValues } from './types';
 
 export function NomadForm({
   handleContentChange,
+  handleVersionChange,
 }: {
   handleContentChange: (type: DeploymentType, content: string) => void;
+  handleVersionChange: (version: number) => void;
 }) {
   const { errors, values } = useFormikContext<FormValues>();
 
@@ -21,6 +23,8 @@ export function NomadForm({
       placeholder="Define or paste the content of your manifest here"
       onChange={(value) => handleContentChange(DeploymentType.Nomad, value)}
       error={errors.content}
+      versions={values.versions}
+      onVersionChange={handleVersionChange}
     >
       <p>
         You can get more information about Nomad file format in the{' '}

@@ -361,7 +361,8 @@ type (
 		// Whether the stack supports relative path volume
 		SupportRelativePath bool `example:"false"`
 		// Local filesystem path
-		FilesystemPath string `example:"/tmp"`
+		FilesystemPath         string                         `example:"/tmp"`
+		PreviousDeploymentInfo *portainer.StackDeploymentInfo `json:"PreviousDeploymentInfo"`
 
 		// Deprecated
 		Prune bool `json:"Prune"`

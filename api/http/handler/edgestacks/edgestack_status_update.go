@@ -128,9 +128,14 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 		err = tx.EdgeStack().UpdateEdgeStackFunc(stackID, func(edgeStack *portaineree.EdgeStack) {
 			details := edgeStack.Status[payload.EndpointID].Details
 			details.Pending = false
+
+			var deploymentInfo portainer.StackDeploymentInfo
 			switch status {
 			case portainer.EdgeStackStatusOk:
 				details.Ok = true
+
+				// if the edge stack is deployed successfully, we need to update the deployment info
+				deploymentInfo.Version = edgeStack.Version
 			case portainer.EdgeStackStatusError:
 				details.Error = true
 			case portainer.EdgeStackStatusAcknowledged:
@@ -142,9 +147,10 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 			}
 
 			edgeStack.Status[payload.EndpointID] = portainer.EdgeStackStatus{
-				Details:    details,
-				Error:      payload.Error,
-				EndpointID: portainer.EndpointID(payload.EndpointID),
+				Details:        details,
+				Error:          payload.Error,
+				EndpointID:     portainer.EndpointID(payload.EndpointID),
+				DeploymentInfo: deploymentInfo,
 			}
 
 			stack = edgeStack
@@ -155,9 +161,12 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 	} else {
 		details := stack.Status[payload.EndpointID].Details
 		details.Pending = false
+		var deploymentInfo portainer.StackDeploymentInfo
 		switch status {
 		case portainer.EdgeStackStatusOk:
 			details.Ok = true
+
+			deploymentInfo.Version = stack.Version
 		case portainer.EdgeStackStatusError:
 			details.Error = true
 		case portainer.EdgeStackStatusAcknowledged:
@@ -169,9 +178,10 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 		}
 
 		stack.Status[payload.EndpointID] = portainer.EdgeStackStatus{
-			Details:    details,
-			Error:      payload.Error,
-			EndpointID: portainer.EndpointID(payload.EndpointID),
+			Details:        details,
+			Error:          payload.Error,
+			EndpointID:     portainer.EndpointID(payload.EndpointID),
+			DeploymentInfo: deploymentInfo,
 		}
 
 		err = tx.EdgeStack().UpdateEdgeStack(stackID, stack)

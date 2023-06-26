@@ -28,6 +28,7 @@
           <button type="button" class="btn btn-sm btn-primary" ui-sref="edge.stacks.new" data-cy="edgeStack-addStackButton"> <pr-icon icon="'plus'"></pr-icon> Add stack </button>
         </div>
         <div class="settings !w-2.5" data-cy="edgeStack-stackTableSettings">
+          <datatable-columns-visibility columns="$ctrl.columnVisibility.columns" on-change="($ctrl.onColumnVisibilityChange)"></datatable-columns-visibility>
           <span class="setting mr-0" ng-class="{ 'setting-active': $ctrl.settings.open }" uib-dropdown dropdown-append-to-body auto-close="disabled" is-open="$ctrl.settings.open">
             <span uib-dropdown-toggle><pr-icon icon="'more-vertical'"></pr-icon></span>
             <div class="dropdown-menu dropdown-menu-right" uib-dropdown-menu>
@@ -101,6 +102,7 @@
                   ng-click="$ctrl.changeOrderBy('CreationDate')"
                 ></table-column-header>
               </th>
+              <th class="text-center" ng-if="$ctrl.columnVisibility.columns.targetVersion.display"> Target Version </th>
             </tr>
           </thead>
           <tbody>
@@ -155,6 +157,7 @@
                 </span>
               </td>
               <td>{{ item.CreationDate | getisodatefromtimestamp }}</td>
+              <td class="text-center" ng-if="$ctrl.columnVisibility.columns.targetVersion.display">{{ item.Version }}</td>
             </tr>
             <tr ng-if="!$ctrl.dataset" data-cy="edgeStack-loadingRow">
               <td colspan="7" class="text-muted text-center">Loading...</td>

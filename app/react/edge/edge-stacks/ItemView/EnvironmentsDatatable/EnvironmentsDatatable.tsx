@@ -38,6 +38,8 @@ export function EnvironmentsDatatable() {
     edgeStackStatus: statusFilter,
   });
 
+  const currentVersion = edgeStackQuery.data?.Version || 1;
+
   const environments: Array<EdgeStackEnvironment> = useMemo(
     () =>
       endpointsQuery.environments.map((env) => ({
@@ -56,7 +58,12 @@ export function EnvironmentsDatatable() {
             },
             EndpointID: env.Id,
             Error: '',
+            DeploymentInfo: {
+              Version: 0,
+              ConfigHash: '',
+            },
           } satisfies EdgeStackStatus),
+        TargetVersion: currentVersion,
       })),
     [edgeStackQuery.data?.Status, endpointsQuery.environments]
   );

@@ -56,6 +56,8 @@ interface Props {
   readonly?: boolean;
   hideTitle?: boolean;
   error?: string;
+  versions?: number[];
+  onVersionChange: (version: number) => void;
 }
 
 export function WebEditorForm({
@@ -68,6 +70,8 @@ export function WebEditorForm({
   yaml,
   children,
   error,
+  versions,
+  onVersionChange,
 }: PropsWithChildren<Props>) {
   return (
     <div>
@@ -98,6 +102,8 @@ export function WebEditorForm({
               yaml={yaml}
               value={value}
               onChange={onChange}
+              versions={versions}
+              onVersionChange={onVersionChange}
             />
           </div>
         </div>

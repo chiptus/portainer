@@ -10,9 +10,11 @@ import { FormValues } from './types';
 export function ComposeForm({
   handleContentChange,
   hasKubeEndpoint,
+  handleVersionChange,
 }: {
   hasKubeEndpoint: boolean;
   handleContentChange: (type: DeploymentType, content: string) => void;
+  handleVersionChange: (newVersion: number) => void;
 }) {
   const { errors, values } = useFormikContext<FormValues>();
 
@@ -61,6 +63,8 @@ export function ComposeForm({
         onChange={(value) => handleContentChange(DeploymentType.Compose, value)}
         error={errors.content}
         readonly={hasKubeEndpoint}
+        versions={values.versions}
+        onVersionChange={handleVersionChange}
       >
         <div>
           You can get more information about Compose file format in the{' '}

@@ -3,6 +3,8 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import clsx from 'clsx';
 import { useState } from 'react';
 
+import UpdatesAvailable from '@/assets/ico/icon_updates-available.svg?c';
+import UpToDate from '@/assets/ico/icon_up-to-date.svg?c';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 
 import { Button } from '@@/buttons';
@@ -25,6 +27,19 @@ export const columns = [
     id: 'status',
     header: 'Status',
   }),
+  ...(isBE
+    ? [
+        columnHelper.accessor('TargetVersion', {
+          id: 'targetVersion',
+          header: 'Target version',
+        }),
+        columnHelper.accessor((env) => endpointVersionLabel(env.StackStatus), {
+          id: 'deployedVersion',
+          header: 'Deployed version',
+          cell: DeployedVersionCell,
+        }),
+      ]
+    : []),
   columnHelper.accessor((env) => env.StackStatus.Error, {
     id: 'error',
     header: 'Error',
@@ -103,4 +118,39 @@ function endpointStatusLabel(status: EdgeStackStatus) {
   }
 
   return labels.join(', ');
+}
+
+function DeployedVersionCell({
+  row,
+  getValue,
+}: CellContext<EdgeStackEnvironment, number>) {
+  const value = getValue();
+  if (!value) {
+    return (
+      <div>
+        <Icon icon={UpdatesAvailable} className="!mr-2" />
+        {value}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {row.original.TargetVersion > value ? (
+        <div>
+          <Icon icon={UpdatesAvailable} className="!mr-2" />
+          {value}
+        </div>
+      ) : (
+        <div>
+          <Icon icon={UpToDate} className="!mr-2" />
+          {value}
+        </div>
+      )}
+    </>
+  );
+}
+
+function endpointVersionLabel(status: EdgeStackStatus) {
+  return (status && status.DeploymentInfo.Version.toString()) || {};
 }

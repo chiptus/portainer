@@ -1,7 +1,6 @@
 package edgestacks
 
 import (
-	"fmt"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
@@ -15,7 +14,6 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	"github.com/portainer/portainer-ee/api/scheduler"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/filesystem"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -95,35 +93,6 @@ func NewHandler(
 	edgeStackStatusRouter.PathPrefix("/edge_stacks/{id}/status/{endpoint_id}").Handler(httperror.LoggerHandler(h.edgeStackStatusDelete)).Methods(http.MethodDelete)
 
 	return h
-}
-
-func (handler *Handler) convertAndStoreKubeManifestIfNeeded(stackFolder string, projectPath, composePath string, relatedEndpointIds []portaineree.EndpointID) (manifestPath string, err error) {
-	hasKubeEndpoint, err := hasKubeEndpoint(handler.DataStore.Endpoint(), relatedEndpointIds)
-	if err != nil {
-		return "", fmt.Errorf("unable to check if edge stack has kube environments: %w", err)
-	}
-
-	if !hasKubeEndpoint {
-		return "", nil
-	}
-
-	composeConfig, err := handler.FileService.GetFileContent(projectPath, composePath)
-	if err != nil {
-		return "", fmt.Errorf("unable to retrieve Compose file from disk: %w", err)
-	}
-
-	kompose, err := handler.KubernetesDeployer.ConvertCompose(composeConfig)
-	if err != nil {
-		return "", fmt.Errorf("failed converting compose file to kubernetes manifest: %w", err)
-	}
-
-	komposeFileName := filesystem.ManifestFileDefaultName
-	_, err = handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, komposeFileName, kompose)
-	if err != nil {
-		return "", fmt.Errorf("failed to store kube manifest file: %w", err)
-	}
-
-	return komposeFileName, nil
 }
 
 func (handler *Handler) handlerDBErr(err error, msg string) *httperror.HandlerError {

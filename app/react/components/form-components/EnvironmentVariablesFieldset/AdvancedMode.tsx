@@ -40,6 +40,8 @@ export function AdvancedMode({
         value={editorValue}
         onChange={handleEditorChange}
         placeholder="e.g. key=value"
+        versions={[]}
+        onVersionChange={() => {}}
       />
     </>
   );

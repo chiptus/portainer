@@ -21,6 +21,7 @@ type stackFileResponse struct {
 // @security jwt
 // @produce json
 // @param id path int true "EdgeStack Id"
+// @param version query int false "Stack version"
 // @success 200 {object} stackFileResponse
 // @failure 500
 // @failure 400
@@ -42,7 +43,20 @@ func (handler *Handler) edgeStackFile(w http.ResponseWriter, r *http.Request) *h
 		fileName = stack.ManifestPath
 	}
 
-	stackFileContent, err := handler.FileService.GetFileContent(stack.ProjectPath, fileName)
+	projectPath := stack.ProjectPath
+	if stack.GitConfig == nil {
+		projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, stack.Version)
+		// check if a version is provided
+		version, _ := request.RetrieveNumericQueryParameter(r, "version", true)
+		if version != 0 {
+			if version != stack.PreviousDeploymentInfo.Version && version != stack.Version {
+				return httperror.BadRequest("Invalid version", err)
+			}
+			projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, version)
+		}
+	}
+
+	stackFileContent, err := handler.FileService.GetFileContent(projectPath, fileName)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve stack file from disk", err)
 	}

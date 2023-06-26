@@ -38,6 +38,7 @@ export default class CreateEdgeStackViewController {
       webhookEnabled: false,
       SupportRelativePath: false,
       FilesystemPath: '',
+      versions: [1],
     };
 
     this.EditorType = EditorType;

@@ -10,4 +10,5 @@ export interface FormValues {
   prePullImage: boolean;
   retryDeploy: boolean;
   webhookEnabled: boolean;
+  versions?: number[];
 }

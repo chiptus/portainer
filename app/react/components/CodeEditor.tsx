@@ -11,6 +11,7 @@ import { CopyButton } from '@@/buttons/CopyButton';
 
 import styles from './CodeEditor.module.css';
 import { TextTip } from './Tip/TextTip';
+import { StackVersionSelector } from './StackVersionSelector/index';
 
 interface Props {
   id: string;
@@ -22,6 +23,8 @@ interface Props {
   onChange: (value: string) => void;
   value: string;
   height?: string;
+  versions?: number[];
+  onVersionChange: (version: number) => void;
 }
 
 const theme = createTheme({
@@ -63,6 +66,8 @@ export function CodeEditor({
   placeholder,
   readonly,
   value,
+  versions,
+  onVersionChange,
   height = '500px',
   yaml: isYaml,
   dockerFile: isDockerFile,
@@ -90,7 +95,17 @@ export function CodeEditor({
             {!!placeholder && <TextTip color="blue">{placeholder}</TextTip>}
           </div>
 
-          <div className="ml-auto">
+          {versions && (
+            <div className="flex-2 ml-auto mr-2">
+              <StackVersionSelector
+                versions={versions}
+                onChange={onVersionChange}
+              />
+            </div>
+          )}
+        </div>
+        <div className="flex">
+          <div className="ml-auto mr-2">
             <CopyButton
               copyText={value}
               color="none"

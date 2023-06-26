@@ -545,13 +545,19 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 			}
 		}
 
+		var deploymentInfo portainer.StackDeploymentInfo
+		if status.Details.Ok {
+			deploymentInfo.Version = stack.Version
+		}
+
 		if status.Details.Remove {
 			delete(stack.Status, portaineree.EndpointID(status.EndpointID))
 		} else {
 			stack.Status[portaineree.EndpointID(status.EndpointID)] = portainer.EdgeStackStatus{
-				EndpointID: status.EndpointID,
-				Details:    status.Details,
-				Error:      status.Error,
+				EndpointID:     status.EndpointID,
+				Details:        status.Details,
+				Error:          status.Error,
+				DeploymentInfo: deploymentInfo,
 			}
 		}
 

@@ -131,10 +131,12 @@ func (handler *Handler) storeFileContent(tx dataservices.DataStoreTx, stackFolde
 		return "", "", "", fmt.Errorf("edge stack with config do not match the environment type")
 	}
 
+	projectPath = handler.FileService.GetEdgeStackProjectPath(stackFolder)
 	if deploymentType == portaineree.EdgeStackDeploymentCompose {
 		composePath = filesystem.ComposeFileDefaultName
 
-		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, composePath, fileContent)
+		// When creating a new stack, the version is always 1
+		_, err = handler.FileService.StoreEdgeStackFileFromBytesByVersion(stackFolder, composePath, 1, fileContent)
 		if err != nil {
 			return "", "", "", err
 		}
@@ -145,7 +147,8 @@ func (handler *Handler) storeFileContent(tx dataservices.DataStoreTx, stackFolde
 	if deploymentType == portaineree.EdgeStackDeploymentKubernetes {
 		manifestPath = filesystem.ManifestFileDefaultName
 
-		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, manifestPath, fileContent)
+		// When creating a new stack, the version is always 1
+		projectPath, err = handler.FileService.StoreEdgeStackFileFromBytesByVersion(stackFolder, manifestPath, 1, fileContent)
 		if err != nil {
 			return "", "", "", err
 		}
@@ -154,12 +157,14 @@ func (handler *Handler) storeFileContent(tx dataservices.DataStoreTx, stackFolde
 	}
 
 	if deploymentType == portaineree.EdgeStackDeploymentNomad {
-		projectPath, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, eefs.NomadJobFileDefaultName, fileContent)
+		nomadConfigPath := eefs.NomadJobFileDefaultName
+		// When creating a new stack, the version is always 1
+		projectPath, err = handler.FileService.StoreEdgeStackFileFromBytesByVersion(stackFolder, nomadConfigPath, 1, fileContent)
 		if err != nil {
 			return "", "", "", err
 		}
 
-		return eefs.NomadJobFileDefaultName, "", projectPath, nil
+		return nomadConfigPath, "", projectPath, nil
 	}
 
 	errMessage := fmt.Sprintf("invalid deployment type: %d", deploymentType)

@@ -9,8 +9,10 @@ import { FormValues } from './types';
 
 export function KubernetesForm({
   handleContentChange,
+  handleVersionChange,
 }: {
   handleContentChange: (type: DeploymentType, content: string) => void;
+  handleVersionChange: (version: number) => void;
 }) {
   const { errors, values, setFieldValue } = useFormikContext<FormValues>();
 
@@ -36,6 +38,8 @@ export function KubernetesForm({
           handleContentChange(DeploymentType.Kubernetes, value)
         }
         error={errors.content}
+        versions={values.versions}
+        onVersionChange={handleVersionChange}
       >
         <p>
           You can get more information about Kubernetes file format in the{' '}

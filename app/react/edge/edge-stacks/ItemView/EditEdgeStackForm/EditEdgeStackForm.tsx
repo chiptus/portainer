@@ -16,6 +16,8 @@ import { SwitchField } from '@@/form-components/SwitchField';
 import { LoadingButton } from '@@/buttons';
 import { FormError } from '@@/form-components/FormError';
 
+import { getEdgeStackFile } from '../../queries/useEdgeStackFile';
+
 import { PrivateRegistryFieldsetWrapper } from './PrivateRegistryFieldsetWrapper';
 import { FormValues } from './types';
 import { ComposeForm } from './ComposeForm';
@@ -61,7 +63,12 @@ export function EditEdgeStackForm({
     prePullImage: edgeStack.PrePullImage,
     retryDeploy: edgeStack.RetryDeploy,
     webhookEnabled: !!edgeStack.Webhook,
+    versions: [edgeStack.Version],
   };
+
+  if (edgeStack.PreviousDeploymentInfo?.Version > 0) {
+    formValues.versions?.push(edgeStack.PreviousDeploymentInfo?.Version);
+  }
 
   return (
     <Formik
@@ -90,14 +97,8 @@ function InnerForm({
   onEditorChange: (content: string) => void;
   allowKubeToSelectCompose: boolean;
 }) {
-  const {
-    values,
-    setFieldValue,
-    isValid,
-
-    errors,
-    setFieldError,
-  } = useFormikContext<FormValues>();
+  const { values, setFieldValue, isValid, errors, setFieldError } =
+    useFormikContext<FormValues>();
   const { getCachedContent, setContentCache } = useCachedContent();
   const { hasType } = useValidateEnvironmentTypes(values.edgeGroups);
 
@@ -147,6 +148,7 @@ function InnerForm({
       <DeploymentForm
         hasKubeEndpoint={hasType(EnvironmentType.EdgeAgentOnKubernetes)}
         handleContentChange={handleContentChange}
+        handleVersionChange={handleVersionChange}
       />
 
       {isBE && (
@@ -239,6 +241,13 @@ function InnerForm({
     setContentCache(type, content);
     onEditorChange(content);
   }
+
+  async function handleVersionChange(newVersion: number) {
+    const fileResponse = await getEdgeStackFile(edgeStack.Id, newVersion);
+    if (fileResponse) {
+      handleContentChange(values.deploymentType, fileResponse.StackFileContent);
+    }
+  }
 }
 
 function useCachedContent() {
@@ -273,5 +282,6 @@ function formValidation(): SchemaOf<FormValues> {
       .required()
       .min(1, 'At least one edge group is required'),
     webhookEnabled: boolean().default(false),
+    versions: array().of(number().optional()).optional(),
   });
 }

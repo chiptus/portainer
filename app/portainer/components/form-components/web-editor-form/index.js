@@ -14,6 +14,7 @@ export const webEditorForm = {
     hideTitle: '<',
     height: '@',
     onRefresh: '<',
+    versions: '<',
   },
 
   transclude: {

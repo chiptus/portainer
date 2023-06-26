@@ -132,8 +132,10 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 	manifestPath := stack.ManifestPath
 	deploymentType := stack.DeploymentType
 
+	// shouldRemovePreviousVersion will be used when the deployment type is changed
+	shouldRemovePreviousVersion := false
 	if deploymentType != payload.DeploymentType {
-		// deployment type was changed - need to delete the old file
+		// deployment type was changed - need to delete all old files
 		err = handler.FileService.RemoveDirectory(stack.ProjectPath)
 		if err != nil {
 			log.Warn().Err(err).Msg("Unable to clear old files")
@@ -142,9 +144,9 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 		entryPoint = ""
 		manifestPath = ""
 		deploymentType = payload.DeploymentType
-	}
 
-	stackFolder := strconv.Itoa(int(stack.ID))
+		shouldRemovePreviousVersion = true
+	}
 
 	hasWrongType, err := hasWrongEnvironmentType(tx.Endpoint(), relatedEndpointIds, payload.DeploymentType)
 	if err != nil {
@@ -154,16 +156,16 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 		return nil, httperror.BadRequest("edge stack with config do not match the environment type", nil)
 	}
 
+	stackFolder := strconv.Itoa(int(stack.ID))
 	if deploymentType == portaineree.EdgeStackDeploymentCompose {
 		if entryPoint == "" {
 			entryPoint = filesystem.ComposeFileDefaultName
 		}
 
-		_, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, entryPoint, []byte(payload.StackFileContent))
+		_, err = handler.FileService.StoreEdgeStackFileFromBytesByVersion(stackFolder, entryPoint, stack.Version+1, []byte(payload.StackFileContent))
 		if err != nil {
-			return nil, httperror.InternalServerError("Unable to persist updated Compose file on disk", err)
+			return nil, httperror.InternalServerError("Unable to persist updated Compose file with version on disk", err)
 		}
-
 	}
 
 	if deploymentType == portaineree.EdgeStackDeploymentKubernetes {
@@ -171,9 +173,9 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 			manifestPath = filesystem.ManifestFileDefaultName
 		}
 
-		_, err = handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, manifestPath, []byte(payload.StackFileContent))
+		_, err = handler.FileService.StoreEdgeStackFileFromBytesByVersion(stackFolder, manifestPath, stack.Version+1, []byte(payload.StackFileContent))
 		if err != nil {
-			return nil, httperror.InternalServerError("Unable to persist updated Kubernetes manifest file on disk", err)
+			return nil, httperror.InternalServerError("Unable to persist updated Kubernetes manifest with version on disk", err)
 		}
 	}
 
@@ -182,9 +184,9 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 			entryPoint = eefs.NomadJobFileDefaultName
 		}
 
-		_, err := handler.FileService.StoreEdgeStackFileFromBytes(stackFolder, entryPoint, []byte(payload.StackFileContent))
+		_, err = handler.FileService.StoreEdgeStackFileFromBytesByVersion(stackFolder, entryPoint, stack.Version+1, []byte(payload.StackFileContent))
 		if err != nil {
-			return nil, httperror.InternalServerError("Unable to persist updated Nomad job file on disk", err)
+			return nil, httperror.InternalServerError("Unable to persist updated Nomad job file with version on disk", err)
 		}
 	}
 
@@ -198,8 +200,23 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 
 		edgeStack.NumDeployments = len(relatedEndpointIds)
 		if payload.UpdateVersion {
-			edgeStack.Status = make(map[portaineree.EndpointID]portainer.EdgeStackStatus)
+			if shouldRemovePreviousVersion {
+				// if the deployment type is changed, we need to remove the previous version,
+				// because the new version will be deployed with the new deployment type.
+				// For example, if the deployment type was compose and now it's kubernetes,
+				// there is no point to keep the old compose file version for kubernetes deployment type
+				edgeStack.PreviousDeploymentInfo = nil
+			} else {
+				// When the edge stack is updated, we need to keep track of the previous version
+				edgeStack.PreviousDeploymentInfo = &portainer.StackDeploymentInfo{
+					Version: edgeStack.Version,
+				}
+			}
+
+			// Increment the stack version
 			edgeStack.Version++
+
+			edgeStack.Status = make(map[portaineree.EndpointID]portainer.EdgeStackStatus)
 		}
 
 		edgeStack.UseManifestNamespaces = payload.UseManifestNamespaces

@@ -36,6 +36,9 @@ import nomadicon from '@/assets/ico/vendor/nomad-icon.svg?c';
 import openldap from '@/assets/ico/vendor/openldap.svg?c';
 import proget from '@/assets/ico/vendor/proget.svg?c';
 import quay from '@/assets/ico/vendor/quay.svg?c';
+import beta from '@/assets/ico/beta.svg?c';
+import oldversion from '@/assets/ico/icon_updates-available.svg?c';
+import latestversion from '@/assets/ico/icon_up-to-date.svg?c';
 
 const placeholder = Placeholder;
 
@@ -76,6 +79,9 @@ export const SvgIcons = {
   proget,
   quay,
   kube,
+  beta,
+  oldversion,
+  latestversion,
 };
 
 interface SvgProps {

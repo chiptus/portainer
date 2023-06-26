@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/apikey"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/datastore"
+	"github.com/portainer/portainer-ee/api/filesystem"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
@@ -19,7 +20,6 @@ import (
 	"github.com/portainer/portainer-ee/api/jwt"
 	"github.com/portainer/portainer-ee/api/scheduler"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/filesystem"
 
 	"github.com/pkg/errors"
 )

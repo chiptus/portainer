@@ -3,7 +3,7 @@ import './edgeStackDatatable.css';
 
 angular.module('portainer.edge').component('edgeStacksDatatable', {
   templateUrl: './edgeStacksDatatable.html',
-  controller: 'GenericDatatableController',
+  controller: 'EdgeStacksDatatableController',
   bindings: {
     titleText: '@',
     titleIcon: '@',
