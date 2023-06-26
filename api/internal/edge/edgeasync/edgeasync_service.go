@@ -161,7 +161,7 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 
 // Deprecated: use RemoveStackCommandTx instead.
 func (service *Service) RemoveStackCommand(endpointID portaineree.EndpointID, edgeStackID portaineree.EdgeStackID) error {
-	return service.RemoveJobCommandTx(service.dataStore, endpointID, portaineree.EdgeJobID(edgeStackID))
+	return service.RemoveStackCommandTx(service.dataStore, endpointID, portaineree.EdgeStackID(edgeStackID))
 }
 
 func (service *Service) RemoveStackCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeStackID portaineree.EdgeStackID) error {
