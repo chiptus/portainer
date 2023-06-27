@@ -2,11 +2,10 @@ import _ from 'lodash-es';
 import uuidv4 from 'uuid/v4';
 
 import { PortainerEndpointTypes } from '@/portainer/models/endpoint/models';
-import { EndpointSecurityFormData } from '@/portainer/components/endpointSecurity/porEndpointSecurityModel';
 import EndpointHelper from '@/portainer/helpers/endpointHelper';
 import { getAMTInfo } from 'Portainer/hostmanagement/open-amt/open-amt.service';
 import { confirmDestructive } from '@@/modals/confirm';
-import { getPlatformTypeName, isAgentEnvironment, isEdgeEnvironment } from '@/react/portainer/environments/utils';
+import { getPlatformTypeName, isAgentEnvironment, isDockerAPIEnvironment, isEdgeEnvironment } from '@/react/portainer/environments/utils';
 import { commandsTabs } from '@/react/edge/components/EdgeScriptForm/scripts';
 import { k8sInstallTitles } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/types';
 import { confirmDisassociate } from '@/react/portainer/environments/ItemView/ConfirmDisassociateModel';
@@ -21,6 +20,7 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
   $scope.setFieldValue = setFieldValue;
   $scope.onChangeTags = onChangeTags;
   $scope.onChangeEdgeSettings = onChangeEdgeSettings;
+  $scope.onChangeTLSConfigFormValues = onChangeTLSConfigFormValues;
   $scope.k8sInstallTitles = k8sInstallTitles;
 
   const isBE = process.env.PORTAINER_EDITION === 'BE';
@@ -43,6 +43,7 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
     allowSelfSignedCerts: true,
     showAMTInfo: false,
     showNomad: isBE,
+    showTLSConfig: false,
     edgeScriptCommands: {
       linux: _.compact([commandsTabs.k8sLinux, commandsTabs.swarmLinux, commandsTabs.standaloneLinux, isBE && commandsTabs.nomadLinux]),
       win: [commandsTabs.swarmWindows, commandsTabs.standaloneWindow],
@@ -90,7 +91,14 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
   };
 
   $scope.formValues = {
-    SecurityFormData: new EndpointSecurityFormData(),
+    tlsConfig: {
+      tls: false,
+      skipVerify: false,
+      skipClientVerify: false,
+      caCertFile: null,
+      certFile: null,
+      keyFile: null,
+    },
   };
 
   function onChangeEdgeSettings(value) {
@@ -128,6 +136,15 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
     setFieldValue('TagIds', value);
   }
 
+  function onChangeTLSConfigFormValues(newValues) {
+    return this.$async(async () => {
+      $scope.formValues.tlsConfig = {
+        ...$scope.formValues.tlsConfig,
+        ...newValues,
+      };
+    });
+  }
+
   function setFieldValue(name, value) {
     return $scope.$evalAsync(() => {
       $scope.endpoint = {
@@ -152,11 +169,6 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
 
   $scope.updateEndpoint = async function () {
     var endpoint = $scope.endpoint;
-    var securityData = $scope.formValues.SecurityFormData;
-    var TLS = securityData.TLS;
-    var TLSMode = securityData.TLSMode;
-    var TLSSkipVerify = TLS && (TLSMode === 'tls_client_noca' || TLSMode === 'tls_only');
-    var TLSSkipClientVerify = TLS && (TLSMode === 'tls_ca' || TLSMode === 'tls_only');
 
     if (isEdgeEnvironment(endpoint.Type) && _.difference($scope.initialTagIds, endpoint.TagIds).length > 0) {
       let confirmed = await confirmDestructive({
@@ -176,12 +188,6 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
       Gpus: endpoint.Gpus,
       GroupID: endpoint.GroupId,
       TagIds: endpoint.TagIds,
-      TLS: TLS,
-      TLSSkipVerify: TLSSkipVerify,
-      TLSSkipClientVerify: TLSSkipClientVerify,
-      TLSCACert: TLSSkipVerify || securityData.TLSCACert === endpoint.TLSConfig.TLSCACert ? null : securityData.TLSCACert,
-      TLSCert: TLSSkipClientVerify || securityData.TLSCert === endpoint.TLSConfig.TLSCert ? null : securityData.TLSCert,
-      TLSKey: TLSSkipClientVerify || securityData.TLSKey === endpoint.TLSConfig.TLSKey ? null : securityData.TLSKey,
       AzureApplicationID: endpoint.AzureCredentials.ApplicationID,
       AzureTenantID: endpoint.AzureCredentials.TenantID,
       AzureAuthenticationKey: endpoint.AzureCredentials.AuthenticationKey,
@@ -193,10 +199,6 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
       },
     };
 
-    if (!$scope.showSecurity) {
-      delete payload.TLS;
-    }
-
     if (
       $scope.endpointType !== 'local' &&
       endpoint.Type !== PortainerEndpointTypes.AzureEnvironment &&
@@ -204,6 +206,18 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
       endpoint.Type !== PortainerEndpointTypes.AgentOnKubernetesEnvironment
     ) {
       payload.URL = 'tcp://' + endpoint.URL;
+
+      if (endpoint.Type === PortainerEndpointTypes.DockerEnvironment) {
+        var tlsConfig = $scope.formValues.tlsConfig;
+        payload.TLS = tlsConfig.tls;
+        payload.TLSSkipVerify = tlsConfig.skipVerify;
+        if (tlsConfig.tls && !tlsConfig.skipVerify) {
+          payload.TLSSkipClientVerify = tlsConfig.skipClientVerify;
+          payload.TLSCACert = tlsConfig.caCertFile;
+          payload.TLSCert = tlsConfig.certFile;
+          payload.TLSKey = tlsConfig.keyFile;
+        }
+      }
     }
 
     if (endpoint.Type === PortainerEndpointTypes.AgentOnKubernetesEnvironment) {
@@ -267,10 +281,24 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
     }
   }
 
+  function configureTLS(endpoint) {
+    $scope.formValues = {
+      tlsConfig: {
+        tls: endpoint.TLSConfig.TLS || false,
+        skipVerify: endpoint.TLSConfig.TLSSkipVerify || false,
+        skipClientVerify: endpoint.TLSConfig.TLSSkipClientVerify || false,
+      },
+    };
+  }
+
   async function initView() {
     return $async(async () => {
       try {
         const [endpoint, groups, settings] = await Promise.all([EndpointService.endpoint($transition$.params().id), GroupService.groups(), SettingsService.settings()]);
+
+        if (isDockerAPIEnvironment(endpoint)) {
+          $scope.state.showTLSConfig = true;
+        }
 
         // Check if the environment is docker standalone, to decide whether to show the GPU insights box
         const isDockerEnvironment = endpoint.Type === PortainerEndpointTypes.DockerEnvironment;
@@ -308,6 +336,8 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
         $scope.groups = groups;
 
         configureState();
+
+        configureTLS(endpoint);
 
         if (EndpointHelper.isDockerEndpoint(endpoint) && $scope.state.edgeAssociated) {
           $scope.state.showAMTInfo = settings && settings.openAMTConfiguration && settings.openAMTConfiguration.enabled;

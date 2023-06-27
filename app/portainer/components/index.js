@@ -9,8 +9,9 @@ import dateRangePickerModule from './date-range-picker';
 import { beFeatureIndicator } from './BEFeatureIndicator';
 import { InformationPanelAngular } from './InformationPanel';
 import { gitFormModule } from './forms/git-form';
+import { tlsFieldsetModule } from './tls-fieldset';
 
 export default angular
-  .module('portainer.app.components', [boxSelectorModule, widgetModule, dateRangePickerModule, gitFormModule, porAccessManagementModule, formComponentsModule])
+  .module('portainer.app.components', [boxSelectorModule, widgetModule, dateRangePickerModule, gitFormModule, porAccessManagementModule, formComponentsModule, tlsFieldsetModule])
   .component('informationPanel', InformationPanelAngular)
   .component('beFeatureIndicator', beFeatureIndicator).name;
