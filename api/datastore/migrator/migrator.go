@@ -38,6 +38,7 @@ import (
 type (
 	// Migrator defines a service to migrate data after a Portainer version update.
 	Migrator struct {
+		flags            *portaineree.CLIFlags
 		currentDBVersion *models.Version
 		migrations       []Migrations
 
@@ -71,6 +72,7 @@ type (
 
 	// MigratorParameters represents the required parameters to create a new Migrator instance.
 	MigratorParameters struct {
+		Flags                    *portaineree.CLIFlags
 		CurrentDBVersion         *models.Version
 		CloudProvisioningService *cloudprovisioning.Service
 		EndpointGroupService     *endpointgroup.Service
@@ -111,6 +113,7 @@ type (
 // NewMigrator creates a new Migrator.
 func NewMigrator(parameters *MigratorParameters) *Migrator {
 	migrator := &Migrator{
+		flags:                   parameters.Flags,
 		currentDBVersion:        parameters.CurrentDBVersion,
 		endpointGroupService:    parameters.EndpointGroupService,
 		endpointService:         parameters.EndpointService,
@@ -251,6 +254,7 @@ func (m *Migrator) initMigrations() {
 	m.addMigrations("2.19",
 		m.assignEdgeGroupsToEdgeUpdatesForDB100,
 		m.rebuildEdgeStackFileSystemWithVersionForDB100,
+		m.updateTunnelServerAddressForDB100,
 	)
 
 	// Add new migrations above...

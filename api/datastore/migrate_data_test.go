@@ -109,7 +109,7 @@ func TestMigrateData(t *testing.T) {
 		// Should not create a backup
 		v, err := store.VersionService.Version()
 
-		migratorParams := store.newMigratorParameters(v)
+		migratorParams := store.newMigratorParameters(v, &portaineree.CLIFlags{})
 		m := migrator.NewMigrator(migratorParams)
 		latestMigrations := m.LatestMigrations()
 

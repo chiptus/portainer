@@ -117,7 +117,7 @@ func initDataStore(flags *portaineree.CLIFlags, secretKey []byte, fileService po
 		log.Fatal().Msg("failed creating database connection: expecting a boltdb database type but a different one was received")
 	}
 
-	store := datastore.NewStore(*flags.Data, fileService, connection)
+	store := datastore.NewStore(flags, fileService, connection)
 	isNew, err := store.Open()
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed opening store")

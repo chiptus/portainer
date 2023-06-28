@@ -2,9 +2,12 @@ package migrator
 
 import (
 	"fmt"
+	"net"
 	"strconv"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/url"
+	"github.com/rs/zerolog/log"
 )
 
 func (migrator *Migrator) assignEdgeGroupsToEdgeUpdatesForDB100() error {
@@ -77,4 +80,32 @@ func (migrator *Migrator) rebuildEdgeStackFileSystemWithVersionForDB100() error 
 		}
 	}
 	return nil
+}
+
+func (migrator *Migrator) updateTunnelServerAddressForDB100() error {
+	settings, err := migrator.settingsService.Settings()
+	if err != nil {
+		return err
+	}
+
+	if settings.EdgePortainerURL != "" && settings.Edge.TunnelServerAddress == "" {
+		u, err := url.ParseURL(settings.EdgePortainerURL)
+		if err != nil {
+			return err
+		}
+
+		host, _, err := net.SplitHostPort(u.Host)
+		if err != nil {
+			return err
+		}
+
+		settings.Edge.TunnelServerAddress = net.JoinHostPort(host, *migrator.flags.TunnelPort)
+		log.
+			Info().
+			Str("EdgePortainerURL", settings.EdgePortainerURL).
+			Str("TunnelServerAddress", settings.Edge.TunnelServerAddress).
+			Msg("TunnelServerAddress updated")
+	}
+
+	return migrator.settingsService.UpdateSettings(settings)
 }

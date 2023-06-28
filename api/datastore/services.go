@@ -54,6 +54,7 @@ import (
 // Store defines the implementation of dataservices.DataStore using
 // dataservicesDB as the storage system.
 type Store struct {
+	flags                     *portaineree.CLIFlags
 	path                      string
 	connection                portainer.Connection
 	fileService               portainer.FileService
