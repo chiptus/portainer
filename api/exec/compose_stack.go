@@ -8,11 +8,11 @@ import (
 	"path"
 	"strings"
 
-	libstack "github.com/portainer/docker-compose-wrapper"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/proxy"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
+	"github.com/portainer/portainer/pkg/libstack"
 
 	"github.com/pkg/errors"
 )

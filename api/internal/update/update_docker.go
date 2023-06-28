@@ -12,9 +12,9 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/pkg/errors"
-	libstack "github.com/portainer/docker-compose-wrapper"
 	dockerclient "github.com/portainer/portainer/api/docker/client"
 	"github.com/portainer/portainer/api/filesystem"
+	"github.com/portainer/portainer/pkg/libstack"
 	"github.com/rs/zerolog/log"
 )
 
