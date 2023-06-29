@@ -25,7 +25,7 @@ export class EditEdgeStackViewController {
     };
 
     this.formValues = {
-      content: '',
+      content: null,
     };
 
     this.deployStack = this.deployStack.bind(this);
@@ -39,7 +39,11 @@ export class EditEdgeStackViewController {
       const { stackId, tab } = this.$state.params;
       this.state.activeTab = tab ? parseInt(tab, 10) : 0;
       try {
-        const [edgeGroups, model, file] = await Promise.all([this.EdgeGroupService.groups(), this.EdgeStackService.stack(stackId), this.EdgeStackService.stackFile(stackId)]);
+        const [edgeGroups, model, file] = await Promise.all([
+          this.EdgeGroupService.groups(),
+          this.EdgeStackService.stack(stackId),
+          this.EdgeStackService.stackFile(stackId).catch(() => ''),
+        ]);
 
         this.edgeGroups = edgeGroups;
         this.stack = model;

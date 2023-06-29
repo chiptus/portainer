@@ -243,9 +243,11 @@ function InnerForm({
   }
 
   async function handleVersionChange(newVersion: number) {
-    const fileResponse = await getEdgeStackFile(edgeStack.Id, newVersion);
-    if (fileResponse) {
-      handleContentChange(values.deploymentType, fileResponse.StackFileContent);
+    const fileContent = await getEdgeStackFile(edgeStack.Id, newVersion).catch(
+      () => ''
+    );
+    if (fileContent) {
+      handleContentChange(values.deploymentType, fileContent);
     }
   }
 }

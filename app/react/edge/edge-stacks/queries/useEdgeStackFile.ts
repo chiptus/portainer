@@ -17,7 +17,7 @@ export async function getEdgeStackFile(id?: EdgeStack['Id'], version?: number) {
     const { data } = await axios.get<StackFileResponse>(buildUrl(id, 'file'), {
       params: { version },
     });
-    return data;
+    return data.StackFileContent;
   } catch (e) {
     throw parseAxiosError(e as Error);
   }
