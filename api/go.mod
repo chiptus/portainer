@@ -56,7 +56,7 @@ require (
 	github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a
 	github.com/portainer/libhttp v0.0.0-20230615144939-a999f666d9a9
 	github.com/portainer/liblicense v0.0.0-20220719225113-db2e51789529
-	github.com/portainer/portainer/api v0.0.0-20230626061215-c96e07687170
+	github.com/portainer/portainer/api v0.0.0-20230630044938-bc47061624f8
 	github.com/portainer/portainer/pkg/featureflags v0.0.0-20230209201943-d73622ed9cd4
 	github.com/portainer/portainer/pkg/libhelm v0.0.0-20230414025037-7a8a20e0cc3b
 	github.com/portainer/portainer/pkg/libstack v0.0.0-20230626042119-89c1d0e33707
@@ -101,7 +101,6 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/portainer/docker-compose-wrapper v0.0.0-20230301083819-3dbc6abf1ce7 // indirect
 	github.com/portainer/portainer/third_party/digest v0.0.0-20221201002639-8fd0efa34f73 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 )

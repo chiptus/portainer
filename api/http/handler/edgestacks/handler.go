@@ -65,6 +65,8 @@ func NewHandler(
 	publicRouter := h.NewRoute().Subrouter()
 	publicRouter.Use(useractivity.LogUserActivity(h.userActivityService))
 
+	publicWebhookRouter := h.NewRoute().Subrouter()
+
 	adminRouter.Handle("/edge_stacks/create/{method}", httperror.LoggerHandler(h.edgeStackCreate)).Methods(http.MethodPost)
 	adminRouter.Handle("/edge_stacks", httperror.LoggerHandler(h.edgeStackList)).Methods(http.MethodGet)
 
@@ -86,7 +88,7 @@ func NewHandler(
 	adminRouter.Handle("/edge_stacks/{id}/logs/{endpoint_id}/file", httperror.LoggerHandler(h.edgeStackLogsDownload)).Methods(http.MethodGet)
 
 	publicRouter.Handle("/edge_stacks/{id}/status", httperror.LoggerHandler(h.edgeStackStatusUpdate)).Methods(http.MethodPut)
-	publicRouter.Handle("/edge_stacks/webhooks/{webhookID}", httperror.LoggerHandler(h.webhookInvoke)).Methods(http.MethodPost)
+	publicWebhookRouter.Handle("/edge_stacks/webhooks/{webhookID}", httperror.LoggerHandler(h.webhookInvoke)).Methods(http.MethodPost)
 
 	edgeStackStatusRouter := publicRouter.NewRoute().Subrouter()
 	edgeStackStatusRouter.Use(middlewares.WithEndpoint(h.DataStore.Endpoint(), "endpoint_id"))

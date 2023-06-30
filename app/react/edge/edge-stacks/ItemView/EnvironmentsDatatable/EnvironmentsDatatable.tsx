@@ -38,8 +38,9 @@ export function EnvironmentsDatatable() {
     edgeStackStatus: statusFilter,
   });
 
-  const currentVersion = edgeStackQuery.data?.Version || 1;
-
+  const currentVersion = edgeStackQuery.data?.Version.toString() || '';
+  const gitConfigURL = edgeStackQuery.data?.GitConfig?.URL || '';
+  const gitConfigCommitHash = edgeStackQuery.data?.GitConfig?.ConfigHash || '';
   const environments: Array<EdgeStackEnvironment> = useMemo(
     () =>
       endpointsQuery.environments.map((env) => ({
@@ -64,8 +65,16 @@ export function EnvironmentsDatatable() {
             },
           } satisfies EdgeStackStatus),
         TargetVersion: currentVersion,
+        GitConfigURL: gitConfigURL,
+        TargetCommitHash: gitConfigCommitHash,
       })),
-    [edgeStackQuery.data?.Status, endpointsQuery.environments]
+    [
+      edgeStackQuery.data?.Status,
+      endpointsQuery.environments,
+      currentVersion,
+      gitConfigURL,
+      gitConfigCommitHash,
+    ]
   );
 
   return (

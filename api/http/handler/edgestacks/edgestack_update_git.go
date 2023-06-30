@@ -61,7 +61,7 @@ func (payload *stackGitUpdatePayload) Validate(r *http.Request) error {
 // @failure 403 "Permission denied"
 // @failure 404 "Not found"
 // @failure 500 "Server error"
-// @router /edge_stacks/{id}/git [post]
+// @router /edge_stacks/{id}/git [put]
 func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	payload, err := request.GetPayload[stackGitUpdatePayload](r)
 	if err != nil {
@@ -114,6 +114,9 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 			return hErr
 		}
 
+		// make a copy of the current commit hash before updating the git config
+		currentCommitHash := edgeStack.GitConfig.ConfigHash
+
 		gitConfig := edgeStack.GitConfig
 		err = handler.updateGitSettings(gitConfig, payload.RefName, auth, true)
 		if err != nil {
@@ -133,18 +136,11 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 		username, password := extractGitCredentials(auth)
 
 		if payload.UpdateVersion {
-			clean, err := git.CloneWithBackup(handler.GitService, handler.FileService, git.CloneOptions{
-				ProjectPath:   edgeStack.ProjectPath,
-				URL:           gitConfig.URL,
-				ReferenceName: payload.RefName,
-				Username:      username,
-				Password:      password,
-			})
+			projectPath := handler.FileService.FormProjectPathByVersion(edgeStack.ProjectPath, 0, gitConfig.ConfigHash)
+			err = handler.GitService.CloneRepository(projectPath, gitConfig.URL, payload.RefName, username, password, false)
 			if err != nil {
 				return httperror.InternalServerError("Failed cloning repository", err)
 			}
-
-			defer clean()
 		}
 
 		err = tx.EdgeStack().UpdateEdgeStackFunc(edgeStack.ID, func(edgeStack *portaineree.EdgeStack) {
@@ -157,9 +153,12 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 
 			edgeStack.AutoUpdate = updateSettings
 			edgeStack.NumDeployments = len(relatedEndpointIds)
-			edgeStack.Status = map[portaineree.EndpointID]portainer.EdgeStackStatus{}
 
 			if payload.UpdateVersion {
+				edgeStack.PreviousDeploymentInfo = &portainer.StackDeploymentInfo{
+					Version:    edgeStack.Version,
+					ConfigHash: currentCommitHash,
+				}
 				edgeStack.Version = edgeStack.Version + 1
 			}
 		})

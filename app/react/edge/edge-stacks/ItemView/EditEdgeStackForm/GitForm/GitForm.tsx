@@ -76,6 +76,7 @@ export function GitForm({ stack }: { stack: EdgeStack }) {
             onUpdateSettingsClick={handleUpdateSettings}
             gitPath={gitConfig.ConfigFilePath}
             gitUrl={gitConfig.URL}
+            gitCommitHash={gitConfig.ConfigHash}
             isLoading={updateStackMutation.isLoading}
             isUpdateVersion={!!updateStackMutation.variables?.updateVersion}
           />
@@ -156,6 +157,7 @@ export function GitForm({ stack }: { stack: EdgeStack }) {
 function InnerForm({
   gitUrl,
   gitPath,
+  gitCommitHash,
   isLoading,
   isUpdateVersion,
   onUpdateSettingsClick,
@@ -163,6 +165,7 @@ function InnerForm({
 }: {
   gitUrl: string;
   gitPath: string;
+  gitCommitHash: string;
 
   isLoading: boolean;
   isUpdateVersion: boolean;
@@ -218,6 +221,7 @@ function InnerForm({
           url={gitUrl}
           type="Edge stack"
           configFilePath={gitPath}
+          commitHash={gitCommitHash}
         />
 
         <AutoUpdateFieldset

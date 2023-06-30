@@ -38,6 +38,7 @@ export const gitFormModule = angular
       'configFilePath',
       'type',
       'url',
+      'commitHash',
     ])
   )
   .component(

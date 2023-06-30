@@ -67,13 +67,51 @@ func (migrator *Migrator) rebuildEdgeStackFileSystemWithVersionForDB100() error 
 	}
 
 	for _, edgeStack := range edgeStacks {
+		commitHash := ""
 		if edgeStack.GitConfig != nil {
-			// skip if the edge stack is deployed by git repository
-			continue
+			commitHash = edgeStack.GitConfig.ConfigHash
 		}
 
 		edgeStackIdentifier := strconv.Itoa(int(edgeStack.ID))
-		edgeStackVersionFolder := migrator.fileService.GetEdgeStackProjectPathByVersion(edgeStackIdentifier, edgeStack.Version)
+		edgeStackVersionFolder := migrator.fileService.GetEdgeStackProjectPathByVersion(edgeStackIdentifier, edgeStack.Version, commitHash)
+
+		// Conduct the source folder checks to avoid unnecessary error return
+		// In the normal case, the source folder should exist, However, there is a chance that
+		// the edge stack folder was deleted by the user, but the edge stack id is still in the
+		// database. In this case, we should skip folder migration
+		sourceExists, err := migrator.fileService.FileExists(edgeStack.ProjectPath)
+		if err != nil {
+			log.Warn().
+				Err(err).
+				Int("edgeStackID", int(edgeStack.ID)).
+				Msg("failed to check if edge stack project folder exists")
+			continue
+		}
+		if !sourceExists {
+			log.Debug().
+				Int("edgeStackID", int(edgeStack.ID)).
+				Msg("edge stack project folder does not exist, skipping")
+			continue
+		}
+
+		/*
+			We do not need to check if the target folder exists or not, because
+			1. There is a chance the edge stack folder already included a version folder that matches
+			with our version folder name. But it was added by user or existed in git repository originally.
+			In that case, we should still add our version folder as the parent folder. For example:
+
+			Original:                                       After migration:
+
+			└── edge-stacks                                     └── edge-stacks
+				└── 1                                               └── 1
+					├── docker-compose.yml                              └── v1
+					└── v1                                                  ├── docker-compose.yml
+																			└── v1
+			 2. As the migration function will be only invoked once when the database is upgraded
+			 from lower version to 100, we do not need to worry about nested subfolders being created
+			 multiple times. For example: /edge-stacks/2/v1/v1/v1/v1/docker-compose.yml
+		*/
+
 		err = migrator.fileService.SafeMoveDirectory(edgeStack.ProjectPath, edgeStackVersionFolder)
 		if err != nil {
 			return fmt.Errorf("failed to copy edge stack %d project folder: %w", edgeStack.ID, err)

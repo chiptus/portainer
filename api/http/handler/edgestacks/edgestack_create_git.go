@@ -170,7 +170,7 @@ func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dat
 		tx,
 		stack,
 		func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
-			return handler.storeManifestFromGitRepository(tx, stackFolder, relatedEndpointIds, payload.DeploymentType, userID, payload.RepositoryGitCredentialID, repoConfig)
+			return handler.storeManifestFromGitRepository(tx, stackFolder, relatedEndpointIds, payload.DeploymentType, userID, payload.RepositoryGitCredentialID, stack.GitConfig)
 		},
 	)
 	if err != nil {
@@ -246,7 +246,7 @@ func (handler *Handler) storeManifestFromGitRepository(
 	deploymentType portaineree.EdgeStackDeploymentType,
 	currentUserID portaineree.UserID,
 	gitCredentialId portaineree.GitCredentialID,
-	repositoryConfig gittypes.RepoConfig,
+	repoConfig *gittypes.RepoConfig,
 ) (composePath, manifestPath, projectPath string, err error) {
 	hasWrongType, err := hasWrongEnvironmentType(tx.Endpoint(), relatedEndpointIds, deploymentType)
 	if err != nil {
@@ -259,7 +259,7 @@ func (handler *Handler) storeManifestFromGitRepository(
 	var repositoryUsername, repositoryPassword string
 	projectPath = handler.FileService.GetEdgeStackProjectPath(stackFolder)
 
-	if repositoryConfig.Authentication != nil {
+	if repoConfig.Authentication != nil {
 		if gitCredentialId != 0 {
 			credential, err := tx.GitCredential().Read(gitCredentialId)
 			if err != nil {
@@ -275,13 +275,26 @@ func (handler *Handler) storeManifestFromGitRepository(
 			repositoryPassword = credential.Password
 		}
 
-		if repositoryConfig.Authentication.Password != "" {
-			repositoryUsername = repositoryConfig.Authentication.Username
-			repositoryPassword = repositoryConfig.Authentication.Password
+		if repoConfig.Authentication.Password != "" {
+			repositoryUsername = repoConfig.Authentication.Username
+			repositoryPassword = repoConfig.Authentication.Password
 		}
 	}
 
-	err = handler.GitService.CloneRepository(projectPath, repositoryConfig.URL, repositoryConfig.ReferenceName, repositoryUsername, repositoryPassword, repositoryConfig.TLSSkipVerify)
+	commitHash, err := handler.GitService.LatestCommitID(repoConfig.URL, repoConfig.ReferenceName, repositoryUsername, repositoryPassword, repoConfig.TLSSkipVerify)
+	if err != nil {
+		if errors.Is(err, gittypes.ErrAuthenticationFailure) {
+			return "", "", "", errInvalidGitCredential
+		}
+
+		return "", "", "", err
+	}
+
+	// Add the commit hash to the repo config
+	repoConfig.ConfigHash = commitHash
+
+	dest := handler.FileService.FormProjectPathByVersion(projectPath, 1, commitHash)
+	err = handler.GitService.CloneRepository(dest, repoConfig.URL, repoConfig.ReferenceName, repositoryUsername, repositoryPassword, repoConfig.TLSSkipVerify)
 	if err != nil {
 		if errors.Is(err, gittypes.ErrAuthenticationFailure) {
 			return "", "", "", errInvalidGitCredential
@@ -291,15 +304,15 @@ func (handler *Handler) storeManifestFromGitRepository(
 	}
 
 	if deploymentType == portaineree.EdgeStackDeploymentCompose {
-		return repositoryConfig.ConfigFilePath, "", projectPath, nil
+		return repoConfig.ConfigFilePath, "", projectPath, nil
 	}
 
 	if deploymentType == portaineree.EdgeStackDeploymentKubernetes {
-		return "", repositoryConfig.ConfigFilePath, projectPath, nil
+		return "", repoConfig.ConfigFilePath, projectPath, nil
 	}
 
 	if deploymentType == portaineree.EdgeStackDeploymentNomad {
-		return repositoryConfig.ConfigFilePath, "", projectPath, nil
+		return repoConfig.ConfigFilePath, "", projectPath, nil
 	}
 
 	errMessage := fmt.Sprintf("unknown deployment type: %d", deploymentType)

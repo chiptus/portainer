@@ -1,6 +1,7 @@
 package edgestacks
 
 import (
+	"fmt"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
@@ -21,7 +22,8 @@ type stackFileResponse struct {
 // @security jwt
 // @produce json
 // @param id path int true "EdgeStack Id"
-// @param version query int false "Stack version"
+// @param version query int false "Stack version maintained by Portainer. If both version and commitHash are provided, the commitHash will be used"
+// @param commitHash query string false "Git repository commit hash. If both version and commitHash are provided, the commitHash will be used"
 // @success 200 {object} stackFileResponse
 // @failure 500
 // @failure 400
@@ -43,16 +45,28 @@ func (handler *Handler) edgeStackFile(w http.ResponseWriter, r *http.Request) *h
 		fileName = stack.ManifestPath
 	}
 
-	projectPath := stack.ProjectPath
-	if stack.GitConfig == nil {
-		projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, stack.Version)
+	var projectPath string
+	if stack.GitConfig != nil {
+		projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, stack.Version, stack.GitConfig.ConfigHash)
+
+		// check if a commit hash is provided
+		commitHash, _ := request.RetrieveQueryParameter(r, "commitHash", true)
+		if commitHash != "" {
+			if commitHash != stack.PreviousDeploymentInfo.ConfigHash && commitHash != stack.GitConfig.ConfigHash {
+				return httperror.BadRequest("Only support latest two versions", fmt.Errorf("commit hash %s is not a valid commit hash for this stack", commitHash))
+			}
+			projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, stack.Version, commitHash)
+		}
+
+	} else {
+		projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, stack.Version, "")
 		// check if a version is provided
 		version, _ := request.RetrieveNumericQueryParameter(r, "version", true)
 		if version != 0 {
 			if version != stack.PreviousDeploymentInfo.Version && version != stack.Version {
-				return httperror.BadRequest("Invalid version", err)
+				return httperror.BadRequest("Only support latest two versions", fmt.Errorf("version %d is not a valid version for this stack", version))
 			}
-			projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, version)
+			projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, version, "")
 		}
 	}
 

@@ -29,15 +29,19 @@ export const columns = [
   }),
   ...(isBE
     ? [
-        columnHelper.accessor('TargetVersion', {
+        columnHelper.accessor((env) => endpointTargetVersionLabel(env), {
           id: 'targetVersion',
           header: 'Target version',
+          cell: TargetVersionCell,
         }),
-        columnHelper.accessor((env) => endpointVersionLabel(env.StackStatus), {
-          id: 'deployedVersion',
-          header: 'Deployed version',
-          cell: DeployedVersionCell,
-        }),
+        columnHelper.accessor(
+          (env) => endpointDeployedVersionLabel(env.StackStatus),
+          {
+            id: 'deployedVersion',
+            header: 'Deployed version',
+            cell: DeployedVersionCell,
+          }
+        ),
       ]
     : []),
   columnHelper.accessor((env) => env.StackStatus.Error, {
@@ -120,30 +124,79 @@ function endpointStatusLabel(status: EdgeStackStatus) {
   return labels.join(', ');
 }
 
-function DeployedVersionCell({
+function TargetVersionCell({
   row,
   getValue,
-}: CellContext<EdgeStackEnvironment, number>) {
+}: CellContext<EdgeStackEnvironment, string>) {
   const value = getValue();
   if (!value) {
-    return (
-      <div>
-        <Icon icon={UpdatesAvailable} className="!mr-2" />
-        {value}
-      </div>
-    );
+    return '';
   }
 
   return (
     <>
-      {row.original.TargetVersion > value ? (
+      {row.original.TargetCommitHash ? (
         <div>
-          <Icon icon={UpdatesAvailable} className="!mr-2" />
-          {value}
+          <a
+            href={`${row.original.GitConfigURL}/commit/${row.original.TargetCommitHash}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {value}
+          </a>
+        </div>
+      ) : (
+        <div>{value}</div>
+      )}
+    </>
+  );
+}
+
+function endpointTargetVersionLabel(env: EdgeStackEnvironment) {
+  if (env.TargetCommitHash) {
+    return env.TargetCommitHash.slice(0, 7).toString();
+  }
+  return env.TargetVersion.toString() || '';
+}
+
+function DeployedVersionCell({
+  row,
+  getValue,
+}: CellContext<EdgeStackEnvironment, string>) {
+  const value = getValue();
+  if (!value || value === '0') {
+    return (
+      <div>
+        <Icon icon={UpdatesAvailable} className="!mr-2" />
+      </div>
+    );
+  }
+
+  let statusIcon = <Icon icon={UpToDate} className="!mr-2" />;
+  if (
+    (row.original.TargetCommitHash &&
+      row.original.TargetCommitHash.slice(0, 7) !== value) ||
+    (!row.original.TargetCommitHash && row.original.TargetVersion !== value)
+  ) {
+    statusIcon = <Icon icon={UpdatesAvailable} className="!mr-2" />;
+  }
+
+  return (
+    <>
+      {row.original.TargetCommitHash ? (
+        <div>
+          {statusIcon}
+          <a
+            href={`${row.original.GitConfigURL}/commit/${row.original.TargetCommitHash}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {value}
+          </a>
         </div>
       ) : (
         <div>
-          <Icon icon={UpToDate} className="!mr-2" />
+          {statusIcon}
           {value}
         </div>
       )}
@@ -151,6 +204,9 @@ function DeployedVersionCell({
   );
 }
 
-function endpointVersionLabel(status: EdgeStackStatus) {
-  return (status && status.DeploymentInfo.Version.toString()) || {};
+function endpointDeployedVersionLabel(status: EdgeStackStatus) {
+  if (status.DeploymentInfo.ConfigHash) {
+    return status.DeploymentInfo.ConfigHash.slice(0, 7).toString();
+  }
+  return (status && status.DeploymentInfo.Version.toString()) || '';
 }

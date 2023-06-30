@@ -6,6 +6,7 @@ interface Props {
   additionalFiles?: string[];
   className: string;
   type: string;
+  commitHash: string;
 }
 
 export function InfoPanel({
@@ -14,12 +15,21 @@ export function InfoPanel({
   additionalFiles = [],
   className,
   type,
+  commitHash,
 }: Props) {
   return (
     <div className={clsx('form-group', className)}>
       <div className="col-sm-12">
         <p>
-          This {type} was deployed from the git repository <code>{url}</code>.
+          This {type} was deployed from the git repository <code>{url}</code>{' '}
+          and the current version deployed is{' '}
+          <a
+            href={`${url}/commit/${commitHash}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {commitHash.slice(0, 7).toString()}
+          </a>
         </p>
         <p>
           Update

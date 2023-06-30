@@ -134,7 +134,7 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 
 	var gitCommitChangedOrForceUpdate bool
 	if !stack.FromAppTemplate {
-		updated, newHash, err := update.UpdateGitObject(gitService, fmt.Sprintf("stack:%d", stackID), stack.GitConfig, stack.AutoUpdate != nil && stack.AutoUpdate.ForceUpdate, stack.ProjectPath)
+		updated, newHash, err := update.UpdateGitObject(gitService, fmt.Sprintf("stack:%d", stackID), stack.GitConfig, stack.AutoUpdate != nil && stack.AutoUpdate.ForceUpdate, true, stack.ProjectPath)
 		if err != nil {
 			return err
 		}
