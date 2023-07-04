@@ -125,7 +125,10 @@ func (service *Service) SetTunnelStatusToIdle(endpointID portaineree.EndpointID)
 	credentials := tunnel.Credentials
 	if credentials != "" {
 		tunnel.Credentials = ""
-		service.chiselServer.DeleteUser(strings.Split(credentials, ":")[0])
+
+		if service.chiselServer != nil {
+			service.chiselServer.DeleteUser(strings.Split(credentials, ":")[0])
+		}
 	}
 
 	service.ProxyManager.DeleteEndpointProxy(endpointID)
@@ -160,9 +163,12 @@ func (service *Service) SetTunnelStatusToRequired(endpointID portaineree.Endpoin
 
 		username, password := generateRandomCredentials()
 		authorizedRemote := fmt.Sprintf("^R:0.0.0.0:%d$", tunnel.Port)
-		err = service.chiselServer.AddUser(username, password, authorizedRemote)
-		if err != nil {
-			return err
+
+		if service.chiselServer != nil {
+			err = service.chiselServer.AddUser(username, password, authorizedRemote)
+			if err != nil {
+				return err
+			}
 		}
 
 		credentials, err := encryptCredentials(username, password, endpoint.EdgeID)

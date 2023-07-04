@@ -237,11 +237,15 @@ func (handler *Handler) isUpdateSupported(environment *portaineree.Endpoint) err
 	if endpointutils.IsDockerEndpoint(environment) {
 		snapshot, err := handler.dataStore.Snapshot().Read(environment.ID)
 		if err != nil {
-			return errors.WithMessage(err, "unable to fetch snapshot")
+			handler.ReverseTunnelService.SetTunnelStatusToRequired(environment.ID)
+
+			return errors.WithMessage(err, "unable to fetch snapshot, please try again later")
 		}
 
 		if snapshot.Docker == nil {
-			return errors.New("missing docker snapshot")
+			handler.ReverseTunnelService.SetTunnelStatusToRequired(environment.ID)
+
+			return errors.New("missing docker snapshot, please try again later")
 		}
 
 		if snapshot.Docker.Swarm {

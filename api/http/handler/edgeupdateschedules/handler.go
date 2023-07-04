@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
@@ -19,12 +20,13 @@ const contextKey = "edgeUpdateSchedule_item"
 // Handler is the HTTP handler used to handle edge environment update operations.
 type Handler struct {
 	*mux.Router
-	requestBouncer    security.BouncerService
-	dataStore         dataservices.DataStore
-	fileService       portainer.FileService
-	updateService     *updateschedules.Service
-	assetsPath        string
-	edgeStacksService *edgestacks.Service
+	requestBouncer       security.BouncerService
+	dataStore            dataservices.DataStore
+	fileService          portainer.FileService
+	updateService        *updateschedules.Service
+	assetsPath           string
+	edgeStacksService    *edgestacks.Service
+	ReverseTunnelService portaineree.ReverseTunnelService
 }
 
 // NewHandler creates a handler to manage environment update operations.

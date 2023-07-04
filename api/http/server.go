@@ -70,6 +70,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 	edgestackservice "github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
 	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
+	"github.com/portainer/portainer-ee/api/internal/snapshot"
 	"github.com/portainer/portainer-ee/api/internal/ssl"
 	"github.com/portainer/portainer-ee/api/internal/update"
 	k8s "github.com/portainer/portainer-ee/api/kubernetes"
@@ -200,6 +201,7 @@ func (server *Server) Start() error {
 	}
 
 	edgeUpdateScheduleHandler := edgeupdateschedules.NewHandler(requestBouncer, server.DataStore, server.FileService, server.AssetsPath, server.EdgeStacksService, edgeUpdateService)
+	edgeUpdateScheduleHandler.ReverseTunnelService = server.ReverseTunnelService
 
 	var edgeStacksHandler = edgestacks.NewHandler(requestBouncer,
 		server.UserActivityService,
@@ -457,6 +459,8 @@ func (server *Server) Start() error {
 	}
 
 	go shutdown(server.ShutdownCtx, httpsServer, backupScheduler)
+
+	go snapshot.NewBackgroundSnapshotter(server.DataStore, server.ReverseTunnelService)
 
 	return httpsServer.ListenAndServeTLS("", "")
 }
