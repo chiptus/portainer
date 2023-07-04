@@ -294,7 +294,7 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
   async function initView() {
     return $async(async () => {
       try {
-        const [endpoint, groups, settings] = await Promise.all([EndpointService.endpoint($transition$.params().id), GroupService.groups(), SettingsService.settings()]);
+        const [endpoint, groups, settings] = await Promise.all([EndpointService.endpoint($transition$.params().endpointId), GroupService.groups(), SettingsService.settings()]);
 
         if (isDockerAPIEnvironment(endpoint)) {
           $scope.state.showTLSConfig = true;

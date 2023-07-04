@@ -126,7 +126,14 @@ export type DeploymentOptions = {
 };
 
 type CloudProviderSettings = {
-  Name: string;
+  Name:
+    | 'Civo'
+    | 'Linode'
+    | 'Digital'
+    | 'Google'
+    | 'Azure'
+    | 'Amazon'
+    | 'MicroK8s';
   URL: string;
   Region: string | null;
   Size: number | null;
@@ -157,8 +164,10 @@ interface EndpointChangeWindow {
 }
 
 export interface EnvironmentStatusMessage {
-  Detail: string;
-  Summary: string;
+  detail: string;
+  summary: string;
+  operation: '' | 'scale' | 'upgrade' | 'addons';
+  operationStatus: '' | 'processing' | 'error';
 }
 
 export type Environment = {

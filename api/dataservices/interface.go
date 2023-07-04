@@ -146,6 +146,7 @@ type (
 		DeleteEndpoint(ID portaineree.EndpointID) error
 		GetNextIdentifier() int
 		BucketName() string
+		SetMessage(ID portaineree.EndpointID, statusMessage portaineree.EndpointStatusMessage) error
 	}
 
 	// EndpointGroupService represents a service for managing environment(endpoint) group data

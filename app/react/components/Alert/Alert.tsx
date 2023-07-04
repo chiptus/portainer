@@ -6,7 +6,7 @@ import { Icon } from '@@/Icon';
 
 type AlertType = 'success' | 'error' | 'info' | 'warn';
 
-const alertSettings: Record<
+export const alertSettings: Record<
   AlertType,
   { container: string; header: string; body: string; icon: ReactNode }
 > = {
@@ -66,7 +66,7 @@ export function Alert({
   );
 }
 
-function AlertContainer({
+export function AlertContainer({
   className,
   children,
 }: PropsWithChildren<{ className?: string }>) {

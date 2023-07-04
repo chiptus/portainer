@@ -50,7 +50,7 @@ type Handler struct {
 	BindAddressHTTPS            string
 	userActivityService         portaineree.UserActivityService
 	edgeService                 *edgeasync.Service
-	cloudClusterSetupService    *cloud.CloudClusterSetupService
+	cloudManagementService      *cloud.CloudManagementService
 	KubernetesTokenCacheManager *kubernetes.TokenCacheManager
 	KubernetesDeployer          portaineree.KubernetesDeployer
 	AssetsPath                  string
@@ -63,17 +63,17 @@ func NewHandler(
 	dataStore dataservices.DataStore,
 	edgeService *edgeasync.Service,
 	demoService *demo.Service,
-	cloudClusterSetupService *cloud.CloudClusterSetupService,
+	cloudManagementService *cloud.CloudManagementService,
 	licenseService portaineree.LicenseService,
 ) *Handler {
 	h := &Handler{
-		Router:                   mux.NewRouter(),
-		requestBouncer:           bouncer,
-		userActivityService:      userActivityService,
-		DataStore:                dataStore,
-		edgeService:              edgeService,
-		demoService:              demoService,
-		cloudClusterSetupService: cloudClusterSetupService,
+		Router:                 mux.NewRouter(),
+		requestBouncer:         bouncer,
+		userActivityService:    userActivityService,
+		DataStore:              dataStore,
+		edgeService:            edgeService,
+		demoService:            demoService,
+		cloudManagementService: cloudManagementService,
 	}
 
 	logEndpointActivity := useractivity.LogUserActivityWithContext(h.userActivityService, middlewares.FindInPath(dataStore.Endpoint(), "id"))

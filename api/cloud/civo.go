@@ -33,7 +33,7 @@ type (
 	}
 )
 
-func (service *CloudClusterInfoService) CivoGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
+func (service *CloudInfoService) CivoGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
 	log.Debug().Str("provider", portaineree.CloudProviderCivo).Msg("processing get info request")
 
 	apiKey, ok := credential.Credentials["apiKey"]
@@ -62,7 +62,7 @@ func (service *CloudClusterInfoService) CivoGetInfo(credential *models.CloudCred
 	return &info, nil
 }
 
-func (service *CloudClusterInfoService) civoFetchRefresh(apiKey, cacheKey string) error {
+func (service *CloudInfoService) civoFetchRefresh(apiKey, cacheKey string) error {
 	info, err := service.CivoFetchInfo(apiKey)
 	if err != nil {
 		return err
@@ -75,7 +75,7 @@ func (service *CloudClusterInfoService) civoFetchRefresh(apiKey, cacheKey string
 	return nil
 }
 
-func (service *CloudClusterInfoService) CivoFetchInfo(apiKey string) (*CivoInfo, error) {
+func (service *CloudInfoService) CivoFetchInfo(apiKey string) (*CivoInfo, error) {
 	log.Info().Str("provider", "civo").Msg("processing fetch info request")
 
 	client, err := civogo.NewClient(apiKey, "")
@@ -214,7 +214,7 @@ func (service *CloudClusterInfoService) CivoFetchInfo(apiKey string) (*CivoInfo,
 	return civoInfo, nil
 }
 
-func (service *CloudClusterSetupService) CivoGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
+func (service *CloudManagementService) CivoGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
 	log.Debug().
 		Str("provider", "civo").
 		Str("cluster_id", clusterID).
@@ -245,7 +245,7 @@ func (service *CloudClusterSetupService) CivoGetCluster(apiKey, clusterID, regio
 	return kaasCluster, nil
 }
 
-func (service *CloudClusterSetupService) CivoProvisionCluster(req CloudProvisioningRequest) (string, error) {
+func (service *CloudManagementService) CivoProvisionCluster(req CloudProvisioningRequest) (string, error) {
 	log.Debug().
 		Str("provider", "civo").
 		Str("cluster", req.ClusterName).

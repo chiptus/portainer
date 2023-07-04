@@ -35,7 +35,7 @@ type (
 	kubernetesVersions []portaineree.Pair
 )
 
-func (service *CloudClusterInfoService) AzureGetInfo(credentials *models.CloudCredential, force bool) (interface{}, error) {
+func (service *CloudInfoService) AzureGetInfo(credentials *models.CloudCredential, force bool) (interface{}, error) {
 	log.Info().Str("provider", portaineree.CloudProviderAzure).Msg("get info started")
 	if len(credentials.Credentials) == 0 {
 		return nil, fmt.Errorf("missing credentials in the database")
@@ -63,7 +63,7 @@ func (service *CloudClusterInfoService) AzureGetInfo(credentials *models.CloudCr
 	return &info, nil
 }
 
-func (service *CloudClusterInfoService) azureFetchRefresh(c *models.CloudCredential, cacheKey string) error {
+func (service *CloudInfoService) azureFetchRefresh(c *models.CloudCredential, cacheKey string) error {
 	info, err := service.AzureFetchInfo(c.Credentials)
 	if err != nil {
 		return err
@@ -76,7 +76,7 @@ func (service *CloudClusterInfoService) azureFetchRefresh(c *models.CloudCredent
 	return nil
 }
 
-func (a *CloudClusterInfoService) AzureFetchInfo(credentials models.CloudCredentialMap) (*AzureInfo, error) {
+func (a *CloudInfoService) AzureFetchInfo(credentials models.CloudCredentialMap) (*AzureInfo, error) {
 	log.Debug().Str("provider", portaineree.CloudProviderAzure).Msg("processing cloud provider info request")
 
 	conn, err := azure.NewCredentials(credentials).GetConnection()
@@ -210,7 +210,7 @@ func (a *CloudClusterInfoService) AzureFetchInfo(credentials models.CloudCredent
 	return azureInfo, nil
 }
 
-func (service *CloudClusterSetupService) AzureProvisionCluster(credentials models.CloudCredentialMap, params *portaineree.CloudProvisioningRequest) (string, string, error) {
+func (service *CloudManagementService) AzureProvisionCluster(credentials models.CloudCredentialMap, params *portaineree.CloudProvisioningRequest) (string, string, error) {
 	log.Debug().
 		Str("provider", "azure").
 		Str("cluster_name", params.Name).
@@ -330,7 +330,7 @@ func (service *CloudClusterSetupService) AzureProvisionCluster(credentials model
 	return *managedCluster.Name, params.ResourceGroup, nil
 }
 
-func (service *CloudClusterSetupService) AzureGetCluster(credentials models.CloudCredentialMap, resourceGroup, resourceName string) (*KaasCluster, error) {
+func (service *CloudManagementService) AzureGetCluster(credentials models.CloudCredentialMap, resourceGroup, resourceName string) (*KaasCluster, error) {
 	conn, err := azure.NewCredentials(credentials).GetConnection()
 	if err != nil {
 		return nil, fmt.Errorf("while getting connection: %w", err)

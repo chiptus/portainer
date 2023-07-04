@@ -25,7 +25,7 @@ type LinodeInfo struct {
 	KubernetesVersions []portaineree.Pair `json:"kubernetesVersions"`
 }
 
-func (service *CloudClusterInfoService) LinodeGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
+func (service *CloudInfoService) LinodeGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
 	log.Info().Str("provider", portaineree.CloudProviderLinode).Msg("processing get info request")
 
 	apiKey, ok := credential.Credentials["apiKey"]
@@ -53,7 +53,7 @@ func (service *CloudClusterInfoService) LinodeGetInfo(credential *models.CloudCr
 	return &info, nil
 }
 
-func (service *CloudClusterInfoService) linodeFetchRefresh(apiKey, cacheKey string) error {
+func (service *CloudInfoService) linodeFetchRefresh(apiKey, cacheKey string) error {
 	log.Info().Str("provider", portaineree.CloudProviderLinode).Msg("processing fetch info request")
 
 	info, err := service.LinodeFetchInfo(apiKey)
@@ -67,7 +67,7 @@ func (service *CloudClusterInfoService) linodeFetchRefresh(apiKey, cacheKey stri
 	service.mu.Unlock()
 	return nil
 }
-func (service *CloudClusterInfoService) LinodeFetchInfo(apiKey string) (*LinodeInfo, error) {
+func (service *CloudInfoService) LinodeFetchInfo(apiKey string) (*LinodeInfo, error) {
 	log.Debug().Str("provider", "linode").Msg("sending cloud provider info request")
 
 	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: apiKey})
@@ -152,7 +152,7 @@ func (service *CloudClusterInfoService) LinodeFetchInfo(apiKey string) (*LinodeI
 	return linodeInfo, nil
 }
 
-func (service *CloudClusterSetupService) LinodeGetCluster(apiKey, clusterID string) (*KaasCluster, error) {
+func (service *CloudManagementService) LinodeGetCluster(apiKey, clusterID string) (*KaasCluster, error) {
 	log.Debug().Str("provider", "linode").Str("cluster_id", clusterID).Msg("sending KaaS cluster details request")
 
 	id, err := strconv.Atoi(clusterID)
@@ -201,7 +201,7 @@ func (service *CloudClusterSetupService) LinodeGetCluster(apiKey, clusterID stri
 	return kaasCluster, nil
 }
 
-func (service *CloudClusterSetupService) LinodeProvisionCluster(req CloudProvisioningRequest) (string, error) {
+func (service *CloudManagementService) LinodeProvisionCluster(req CloudProvisioningRequest) (string, error) {
 	log.Debug().
 		Str("provider", "linode").
 		Str("cluster_name", req.ClusterName).

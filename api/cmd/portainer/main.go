@@ -546,11 +546,11 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 
 	kubernetesDeployer := initKubernetesDeployer(authorizationService, kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, reverseTunnelService, digitalSignatureService, proxyManager, *flags.Assets)
 
-	cloudClusterSetupService := cloud.NewCloudClusterSetupService(dataStore, fileService, kubernetesClientFactory, snapshotService, authorizationService, shutdownCtx, kubernetesDeployer)
-	cloudClusterSetupService.Start()
+	cloudManagementService := cloud.NewCloudClusterManagementService(dataStore, fileService, kubernetesClientFactory, snapshotService, authorizationService, shutdownCtx, kubernetesDeployer)
+	cloudManagementService.Start()
 
-	cloudClusterInfoService := cloud.NewCloudInfoService(dataStore, shutdownCtx)
-	cloudClusterInfoService.Start()
+	cloudInfoService := cloud.NewCloudInfoService(dataStore, shutdownCtx)
+	cloudInfoService.Start()
 
 	dockerConfigPath := fileService.GetDockerConfigPath()
 
@@ -736,8 +736,8 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		ShutdownCtx:                 shutdownCtx,
 		ShutdownTrigger:             shutdownTrigger,
 		StackDeployer:               stackDeployer,
-		CloudClusterSetupService:    cloudClusterSetupService,
-		CloudClusterInfoService:     cloudClusterInfoService,
+		CloudManagementService:      cloudManagementService,
+		CloudInfoService:            cloudInfoService,
 		DemoService:                 demoService,
 		UpdateService:               updateService,
 		AdminCreationDone:           adminCreationDone,

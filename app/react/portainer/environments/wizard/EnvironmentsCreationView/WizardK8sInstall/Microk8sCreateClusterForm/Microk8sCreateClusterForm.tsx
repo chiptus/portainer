@@ -1,29 +1,32 @@
 import { Field, useFormikContext } from 'formik';
 import { useMemo, useState } from 'react';
-import { AlertCircle, ArrowLeftRight, CheckCircle, Info } from 'lucide-react';
+import { ArrowLeftRight, Info } from 'lucide-react';
 import { partition } from 'lodash';
 
 import { Credential } from '@/react/portainer/settings/sharedCredentials/types';
 import { CustomTemplate } from '@/react/portainer/custom-templates/types';
+import {
+  TestSSHConnectionResponse,
+  useTestSSHConnection,
+} from '@/react/kubernetes/cluster/microk8s/microk8s.service';
+import { NodeAddressInput } from '@/react/kubernetes/cluster/microk8s/NodeAddressInput';
+import { formatNodeIPs } from '@/react/kubernetes/cluster/microk8s/utils';
+import { NodeAddressTestResults } from '@/react/kubernetes/cluster/microk8s/NodeAddressTestResults';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { TextTip } from '@@/Tip/TextTip';
 import { LoadingButton } from '@@/buttons';
-import { Select, Option } from '@@/form-components/Input/Select';
-import { FormError } from '@@/form-components/FormError';
+import { Select } from '@@/form-components/Input/Select';
 
 import { CredentialsField } from '../../WizardKaaS/shared/CredentialsField';
-import { TestSSHConnectionResponse } from '../../WizardKaaS/types';
 import { useSetAvailableOption } from '../../WizardKaaS/useSetAvailableOption';
 import { MoreSettingsSection } from '../../shared/MoreSettingsSection';
 import { NameField } from '../../shared/NameField';
-import { useTestSSHConnection } from '../service';
-import { K8sInstallFormValues, Microk8sK8sVersion } from '../types';
-import { formatMicrok8sPayload } from '../utils';
+import { AddonOption, K8sInstallFormValues } from '../types';
+import { useMicroK8sOptions } from '../queries';
 import { CustomTemplateSelector } from '../../shared/CustomTemplateSelector';
 
 import { AddOnOption, Microk8sAddOnSelector } from './AddonSelector';
-import { NodeAddressErrors, NodeAddressInput } from './NodeAddressInput';
 import { Microk8sActions } from './Microk8sActions';
 
 type Props = {
@@ -33,25 +36,6 @@ type Props = {
   setIsSSHTestSuccessful: (isSuccessful: boolean) => void;
   isSSHTestSuccessful?: boolean;
 };
-
-const addonOptions = [
-  'metrics-server',
-  'ingress',
-  'cert-manager',
-  'host-access',
-  'hostpath-storage',
-  'gpu',
-  'observability',
-  'registry',
-];
-
-const microk8sOptions: Option<Microk8sK8sVersion>[] = [
-  { label: 'latest/stable', value: 'latest/stable' },
-  { label: '1.27/stable', value: '1.27/stable' },
-  { label: '1.26/stable', value: '1.26/stable' },
-  { label: '1.25/stable', value: '1.25/stable' },
-  { label: '1.24/stable', value: '1.24/stable' },
-];
 
 export function Microk8sCreateClusterForm({
   credentials,
@@ -70,7 +54,7 @@ export function Microk8sCreateClusterForm({
   const [testedAddressList, setTestedAddressList] = useState<string[]>([]);
   const [isTestConnectionLoading, setIsTestConnectionLoading] = useState(false);
 
-  const { credentialId } = values;
+  const { credentialId, microk8s } = values;
 
   const credentialOptions = useMemo(
     () =>
@@ -84,18 +68,33 @@ export function Microk8sCreateClusterForm({
   // ensure the form values are valid when the options change
   useSetAvailableOption(credentialOptions, credentialId, 'credentialId');
 
-  const isExperimentalVersion = useMemo(
-    () => values.microk8s.kubernetesVersion !== '1.24/stable',
-    [values.microk8s.kubernetesVersion]
+  const microk8sOptionsQuery = useMicroK8sOptions();
+  const microk8sOptions = microk8sOptionsQuery.data;
+  const kubernetesVersions = useMemo(
+    () => microk8sOptions?.kubernetesVersions || [],
+    [microk8sOptions?.kubernetesVersions]
   );
+  useSetAvailableOption(
+    kubernetesVersions,
+    microk8s.kubernetesVersion,
+    'kubernetesVersion'
+  );
+
+  const addonOptions: AddonOption[] = useMemo(() => {
+    const addons: AddonOption[] = [];
+    microk8sOptions?.availableAddons.forEach((a) => {
+      const kubeVersion = parseFloat(microk8s.kubernetesVersion.split('/')[0]);
+      const versionAvailableFrom = parseFloat(a.versionAvailableFrom);
+      if (kubeVersion >= versionAvailableFrom) {
+        addons.push(a);
+      }
+    });
+    return addons;
+  }, [microk8sOptions?.availableAddons, microk8s.kubernetesVersion]);
 
   return (
     <>
-      <TextTip
-        color="blue"
-        icon={Info}
-        className="mt-2 !items-start [&>svg]:mt-0.5"
-      >
+      <TextTip color="blue" icon={Info} className="mt-2">
         <p>
           This will allow you to install MicroK8s Kubernetes to your own
           existing nodes, and will then deploy the Portainer agent to it.
@@ -118,29 +117,60 @@ export function Microk8sCreateClusterForm({
       <CredentialsField credentials={credentials} />
 
       <FormControl
-        label="Node IP list"
-        tooltip="For 3+ node clusters, the first 3 nodes entered are set up as control plane. For 1 or 2 node clusters, the first node entered is set up as control plane. Any remaining are set up as worker nodes."
-        inputId="microk8s-nodeIps"
-        errors={errors.microk8s?.nodeIPs}
+        label="Control plane nodes"
+        tooltip="The nodes used for managing the overall state of the cluster and deciding where to schedule workloads on worker nodes. For production use it's recommended to have 3, 5 or 7 control plane nodes for high availability."
+        inputId="microk8s-masterNodesToAdd"
+        errors={errors.microk8s?.masterNodes}
         required
-        // reduce the bottom gap so that the test connection button is closer to the input (but still below the front end validation errors)
-        className="!mb-0 [&>div>.help-block>p]:!mb-0 [&>div>.help-block]:!mb-0"
       >
         <TextTip
           color="blue"
           className="mt-2 !items-start [&>svg]:mt-0.5"
           icon={Info}
         >
-          Add a list of comma or line separated IP addresses. You can also add
-          IP ranges by separating with a hyphen e.g. 192.168.1.1 - 192.168.1.10,
-          192.168.100.1
+          <p>
+            Add a list of comma or line separated IP addresses. You can also add
+            IP ranges by separating with a hyphen e.g. 192.168.1.1 -
+            192.168.1.10, 192.168.100.1
+          </p>
+          <p>
+            Your nodes must be internet routable from this Portainer instance,
+            and you must ensure ports 22, 16443 and 30778 are open to them. WSL
+            will not typically meet this.
+          </p>
         </TextTip>
         <Field
-          name="microk8s.nodeIPs"
+          name="microk8s.masterNodes"
           as={NodeAddressInput}
           type="text"
-          data-cy="microk8sCreateForm-nodeIpsInput"
+          data-cy="microk8sCreateForm-controlPlaneNodesInput"
           id="microk8s-nodeIps"
+          nodeIPValues={values.microk8s.masterNodes}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+            const nodeIpArrayByLine = e.target.value.split('\n');
+            setFieldValue('microk8s.masterNodes', nodeIpArrayByLine);
+          }}
+        />
+      </FormControl>
+      <FormControl
+        label="Worker nodes"
+        tooltip="The nodes used to execute tasks from the Control Plane Nodes, running the containers and workloads to keep your applications functioning."
+        inputId="workerNodesToAdd"
+        errors={errors.microk8s?.workerNodes}
+        // reduce the bottom gap so that the test connection button is closer to the input (but still below the front end validation errors)
+        className="!mb-0 [&>div>.help-block>p]:!mb-0 [&>div>.help-block]:!mb-0"
+      >
+        <Field
+          name="microk8s.workerNodes"
+          as={NodeAddressInput}
+          type="text"
+          data-cy="microk8sCreateForm-workerNodesInput"
+          id="controlPlaneNodes"
+          nodeIPValues={values.microk8s.workerNodes}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+            const nodeIpArrayByLine = e.target.value.split('\n');
+            setFieldValue('microk8s.workerNodes', nodeIpArrayByLine);
+          }}
         />
       </FormControl>
       <FormControl label="" className="[&>label]:!pt-0">
@@ -156,27 +186,18 @@ export function Microk8sCreateClusterForm({
               setIsTestConnectionLoading(true); // set this manually, because the mutation is also triggered when submitting is started
               await handleTestConnection();
             }}
-            disabled={!!errors.microk8s?.nodeIPs}
+            disabled={
+              !!errors.microk8s?.masterNodes || !!errors.microk8s?.workerNodes
+            }
             type="button"
           >
             Test connections
           </LoadingButton>
-          {isSSHTestSuccessful !== undefined && ( // dont show the text tip if provisioning is started and the test is successful
-            <TextTip
-              className="mt-2"
-              icon={isSSHTestSuccessful ? CheckCircle : AlertCircle}
-              color={isSSHTestSuccessful ? 'green' : 'red'}
-            >
-              {isSSHTestSuccessful === false ? (
-                <NodeAddressErrors
-                  failedAddressResults={failedAddressResults}
-                  addressResults={addressResults}
-                />
-              ) : (
-                `${addressResults.length} out of ${addressResults.length} nodes are reachable.`
-              )}
-            </TextTip>
-          )}
+          <NodeAddressTestResults
+            failedAddressResults={failedAddressResults}
+            addressResults={addressResults}
+            isSSHTestSuccessful={isSSHTestSuccessful}
+          />
         </div>
       </FormControl>
       <FormControl
@@ -190,23 +211,8 @@ export function Microk8sCreateClusterForm({
           as={Select}
           id="microk8s-kubernetesVersion"
           data-cy="microk8sCreateForm-kubernetesVersionSelect"
-          options={microk8sOptions}
+          options={kubernetesVersions}
         />
-        {isExperimentalVersion && (
-          <FormError className="mt-1">
-            MicroK8s 1.25 and 1.26 can have an issue running metrics server in
-            certain circumstances, which may require a patch to the metric
-            server deployment to work around. See{' '}
-            <a
-              href="https://docs.portainer.io/admin/environments/add/kube-create/microk8s#a-note-about-microk8s-versions"
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              Portainer documentation
-            </a>{' '}
-            for version-specific issues.
-          </FormError>
-        )}
       </FormControl>
 
       <FormControl
@@ -222,15 +228,15 @@ export function Microk8sCreateClusterForm({
               addons
             </a>{' '}
             to be automatically installed in your cluster. The following addons
-            will also be installed by default: dns, ha-cluster, helm, helm3 and
-            rbac.
+            will also be installed by default: community, dns, ha-cluster, helm,
+            helm3 and rbac.
           </>
         }
         inputId="microk8s-addons"
       >
         <Microk8sAddOnSelector
           value={values.microk8s.addons.map((name) => ({ name }))}
-          options={addonOptions.map((name) => ({ name }))}
+          options={addonOptions.map((a) => ({ name: a.label }))}
           onChange={(value: AddOnOption[]) => {
             setFieldValue(
               'microk8s.addons',
@@ -262,9 +268,15 @@ export function Microk8sCreateClusterForm({
   // handleTestConnection tests the SSH connection to the nodes and returns a boolean indicating whether the test was successful
   function handleTestConnection(): Promise<[boolean, number]> {
     return new Promise((resolve) => {
-      const payload = formatMicrok8sPayload(values);
+      const combinedNodeIPs = formatNodeIPs([
+        ...values.microk8s.masterNodes,
+        ...values.microk8s.workerNodes,
+      ]);
       testSSHConnectionMutation.mutate(
-        { payload },
+        {
+          nodeIPs: combinedNodeIPs,
+          credentialID: values.credentialId,
+        },
         {
           onSuccess: (addressResults) => {
             const [failedAddressResults, successfulAddressResults] = partition(
@@ -274,14 +286,14 @@ export function Microk8sCreateClusterForm({
             const isTestSuccessful = failedAddressResults.length === 0;
             // update the component state with the results of the test
             setAddressResults(addressResults);
-            setTestedAddressList(values.microk8s.nodeIPs);
+            setTestedAddressList(combinedNodeIPs);
             setIsSSHTestSuccessful(isTestSuccessful);
             setFailedAddressResults(failedAddressResults);
             // resolve with the results of the test, and the number of successful addresses
             resolve([isTestSuccessful, successfulAddressResults.length]);
           },
           onError: () => {
-            setTestedAddressList(values.microk8s.nodeIPs);
+            setTestedAddressList(combinedNodeIPs);
             resolve([false, 0]);
           },
           onSettled: () => {

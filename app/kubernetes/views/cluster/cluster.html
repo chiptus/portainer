@@ -51,20 +51,9 @@
   </div>
 
   <!-- 2.17 microk8s clusters had a slightly different capitilisation of microk8s to 2.18, use .toLowerCase() to cater for both cases -->
-  <microk8s-cluster-details ng-if="ctrl.endpoint.CloudProvider.Name.toLowerCase() === ctrl.k8sInstallTitles.microk8s.toLowerCase()"></microk8s-cluster-details>
+  <microk8s-update-widget ng-if="ctrl.endpoint.CloudProvider.Name.toLowerCase() === ctrl.k8sInstallTitles.microk8s.toLowerCase()"></microk8s-update-widget>
 
   <div class="row">
-    <div class="col-sm-12">
-      <kubernetes-nodes-datatable
-        title-text="Nodes"
-        title-icon="hard-drive"
-        dataset="ctrl.nodes"
-        table-key="kubernetes.nodes"
-        order-by="Name"
-        has-k8s-cluster-node-r="ctrl.state.hasK8sClusterNodeR"
-        refresh-callback="ctrl.getNodes"
-        use-server-metrics="ctrl.state.useServerMetrics"
-      ></kubernetes-nodes-datatable>
-    </div>
+    <kube-nodes-datatable></kube-nodes-datatable>
   </div>
 </div>

@@ -352,6 +352,22 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
       },
     };
 
+    const nodes = {
+      name: 'kubernetes.cluster.nodes',
+      url: '/nodes',
+      abstract: true,
+    };
+
+    const nodeCreate = {
+      name: 'kubernetes.cluster.nodes.new',
+      url: '/new',
+      views: {
+        'content@': {
+          component: 'kubernetesNodeCreateView',
+        },
+      },
+    };
+
     const node = {
       name: 'kubernetes.cluster.node',
       url: '/:name',
@@ -533,6 +549,8 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
     $stateRegistryProvider.register(cluster);
     $stateRegistryProvider.register(dashboard);
     $stateRegistryProvider.register(deploy);
+    $stateRegistryProvider.register(nodes);
+    $stateRegistryProvider.register(nodeCreate);
     $stateRegistryProvider.register(node);
     $stateRegistryProvider.register(nodeStats);
     $stateRegistryProvider.register(resourcePools);

@@ -222,16 +222,16 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 func validateKubeConfigEnvironment(r *http.Request) (string, error) {
 	encoded, err := request.RetrieveMultiPartFormValue(r, "KubeConfig", true)
 	if err != nil {
-		return "", fmt.Errorf("Invalid kubeconfig: %w", err)
+		return "", fmt.Errorf("invalid kubeconfig: %w", err)
 	}
 
 	if encoded == "" {
-		return "", fmt.Errorf("Missing or invalid kubeconfig")
+		return "", fmt.Errorf("missing or invalid kubeconfig")
 	}
 
 	decoded, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
-		return "", errors.New("KubeConfig could not be decoded")
+		return "", errors.New("kubeConfig could not be decoded")
 	}
 
 	// Parse the config as yaml so we can check for the existence of several
@@ -421,7 +421,7 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		}
 		kaasRequest.CreatedByUserID = tokenData.ID
 
-		handler.cloudClusterSetupService.Request(kaasRequest)
+		handler.cloudManagementService.SubmitRequest(kaasRequest)
 	}
 
 	edgeStacks, err := handler.DataStore.EdgeStack().EdgeStacks()
@@ -808,7 +808,7 @@ func (handler *Handler) createKubeConfigEndpoint(payload *endpointCreatePayload)
 		Provider:      portaineree.CloudProviderKubeConfig,
 	}
 
-	handler.cloudClusterSetupService.Request(&request)
+	handler.cloudManagementService.SubmitRequest(&request)
 
 	return endpoint, nil
 }

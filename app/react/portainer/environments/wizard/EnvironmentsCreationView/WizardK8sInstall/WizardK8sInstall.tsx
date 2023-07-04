@@ -10,6 +10,7 @@ import { Environment } from '@/react/portainer/environments/types';
 import { CredentialsForm } from '@/react/portainer/settings/sharedCredentials/CreateCredentialsView/CredentialsForm';
 import Microk8s from '@/assets/ico/vendor/microk8s.svg?c';
 import { useCustomTemplates } from '@/react/portainer/custom-templates/service';
+import { formatNodeIPs } from '@/react/kubernetes/cluster/microk8s/utils';
 
 import { Link } from '@@/Link';
 import { TextTip } from '@@/Tip/TextTip';
@@ -22,11 +23,11 @@ import { useInstallK8sCluster } from './service';
 import { useValidationSchema } from './WizardK8sInstall.validation';
 import { Microk8sCreateClusterForm } from './Microk8sCreateClusterForm';
 import {
+  CreateMicrok8sClusterPayload,
   K8sDistributionType,
   K8sInstallFormValues,
   k8sInstallTitles,
 } from './types';
-import { formatMicrok8sPayload } from './utils';
 
 interface Props {
   onCreate(environment: Environment, analytics: AnalyticsStateKey): void;
@@ -40,9 +41,10 @@ const initialValues: K8sInstallFormValues = {
     tagIds: [],
   },
   microk8s: {
-    nodeIPs: [''],
+    masterNodes: [''],
+    workerNodes: [''],
     addons: [],
-    kubernetesVersion: '1.24/stable',
+    kubernetesVersion: '1.27/stable',
   },
 };
 
@@ -166,4 +168,17 @@ export function WizardK8sInstall({ onCreate }: Props) {
       }
     );
   }
+}
+
+function formatMicrok8sPayload({
+  microk8s: { masterNodes, workerNodes, addons, kubernetesVersion },
+  ...values
+}: K8sInstallFormValues): CreateMicrok8sClusterPayload {
+  return {
+    ...values,
+    masterNodes: formatNodeIPs(masterNodes),
+    workerNodes: formatNodeIPs(workerNodes),
+    addons,
+    kubernetesVersion,
+  };
 }

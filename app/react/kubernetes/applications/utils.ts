@@ -10,6 +10,8 @@ import {
 import { Pod } from 'kubernetes-types/core/v1';
 import filesizeParser from 'filesize-parser';
 
+import { parseCpu } from '../utils';
+
 import { Application, ApplicationPatch, Revision } from './types';
 import {
   appOwnerLabel,
@@ -110,16 +112,6 @@ export function getTotalPods(
     default:
       throw new Error('Unknown application type');
   }
-}
-
-function parseCpu(cpu: string) {
-  let res = parseInt(cpu, 10);
-  if (cpu.endsWith('m')) {
-    res /= 1000;
-  } else if (cpu.endsWith('n')) {
-    res /= 1000000000;
-  }
-  return res;
 }
 
 // bytesToReadableFormat converts bytes to a human readable string (e.g. '1.5 GB'), assuming base 10

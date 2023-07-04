@@ -125,8 +125,8 @@ type Server struct {
 	Scheduler                   *scheduler.Scheduler
 	ShutdownCtx                 context.Context
 	ShutdownTrigger             context.CancelFunc
-	CloudClusterSetupService    *cloud.CloudClusterSetupService
-	CloudClusterInfoService     *cloud.CloudClusterInfoService
+	CloudManagementService      *cloud.CloudManagementService
+	CloudInfoService            *cloud.CloudInfoService
 	CloudCredentialService      *cloudcredential.Service
 	StackDeployer               deployments.StackDeployer
 	DemoService                 *demo.Service
@@ -216,7 +216,7 @@ func (server *Server) Start() error {
 	var edgeTemplatesHandler = edgetemplates.NewHandler(requestBouncer)
 	edgeTemplatesHandler.DataStore = server.DataStore
 
-	var endpointHandler = endpoints.NewHandler(requestBouncer, server.UserActivityService, server.DataStore, server.EdgeAsyncService, server.DemoService, server.CloudClusterSetupService, server.LicenseService)
+	var endpointHandler = endpoints.NewHandler(requestBouncer, server.UserActivityService, server.DataStore, server.EdgeAsyncService, server.DemoService, server.CloudManagementService, server.LicenseService)
 	endpointHandler.AuthorizationService = server.AuthorizationService
 	endpointHandler.FileService = server.FileService
 	endpointHandler.ProxyManager = server.ProxyManager
@@ -242,7 +242,7 @@ func (server *Server) Start() error {
 	endpointProxyHandler.ProxyManager = server.ProxyManager
 	endpointProxyHandler.ReverseTunnelService = server.ReverseTunnelService
 
-	var kaasHandler = kaas.NewHandler(requestBouncer, server.DataStore, server.CloudClusterSetupService, server.CloudClusterInfoService, server.UserActivityService, server.LicenseService)
+	var kaasHandler = kaas.NewHandler(requestBouncer, server.DataStore, server.CloudManagementService, server.CloudInfoService, server.UserActivityService, server.LicenseService)
 
 	var kubernetesHandler = kubehandler.NewHandler(requestBouncer, server.AuthorizationService, server.DataStore, server.JWTService, server.KubeClusterAccessService, server.KubernetesClientFactory, nil, server.UserActivityService, server.KubernetesDeployer, server.FileService, server.AssetsPath)
 

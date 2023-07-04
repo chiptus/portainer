@@ -12,6 +12,7 @@ import { Environment } from '@/react/portainer/environments/types';
 import { useSettings } from '@/react/portainer/settings/queries';
 import { CredentialsForm } from '@/react/portainer/settings/sharedCredentials/CreateCredentialsView/CredentialsForm';
 import { CustomTemplateKubernetesType } from '@/react/portainer/custom-templates/types';
+import { useAnalytics } from '@/react/hooks/useAnalytics';
 
 import { Loading } from '@@/Widget/Loading';
 import { Link } from '@@/Link';
@@ -73,6 +74,7 @@ const initialValues: FormValues = {
 };
 
 export function WizardKaaS({ onCreate }: Props) {
+  const { trackEvent } = useAnalytics();
   const settingsQuery = useSettings();
   const createKaasClusterMutation = useCreateCluster();
 
@@ -168,7 +170,7 @@ export function WizardKaaS({ onCreate }: Props) {
     }
   ) {
     if (settingsQuery.data?.EnableTelemetry) {
-      sendKaasProvisionAnalytics(values, provider);
+      sendKaasProvisionAnalytics(values, provider, trackEvent);
     }
 
     const parser = getPayloadParse(provider);

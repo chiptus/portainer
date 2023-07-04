@@ -12,7 +12,7 @@ import (
 	"github.com/portainer/portainer-ee/api/database/models"
 )
 
-// @id kaasProviderInfo
+// @id providerInfo
 // @summary Get information about the provisioning options for a cloud provider.
 // @description The information returned can be used to provision a KaaS cluster.
 // @description **Access policy**: administrator
@@ -20,15 +20,13 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @param provider path string true "cloud provider"
 // @param force query bool false "If true, get the up-to-date information (instead of cached information)."
-// @param credentialId query int true "The shared credential ID used to fetch the cloud provider information."
 // @success 200 "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
 // @router /cloud/{provider}/info [get]
-func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+func (handler *Handler) providerInfo(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	provider, err := request.RetrieveRouteVariableValue(r, "provider")
 	if err != nil {
 		return httperror.BadRequest("Invalid user identifier route variable", err)
@@ -39,19 +37,22 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 		return httperror.BadRequest("Failed parsing \"force\" boolean", err)
 	}
 
-	credentialId, _ := request.RetrieveNumericQueryParameter(r, "credentialId", true)
-	if credentialId == 0 {
-		return httperror.InternalServerError("Missing credential id in the query parameter", err)
-	}
+	credential := &models.CloudCredential{}
+	if provider != portaineree.CloudProviderMicrok8s {
+		credentialId, _ := request.RetrieveNumericQueryParameter(r, "credentialId", true)
+		if credentialId == 0 {
+			return httperror.InternalServerError("Missing credential id in the query parameter", err)
+		}
 
-	credential, err := handler.dataStore.CloudCredential().Read(models.CloudCredentialID(credentialId))
-	if err != nil {
-		return httperror.InternalServerError(fmt.Sprintf("Unable to retrieve %s information", provider), err)
+		credential, err = handler.dataStore.CloudCredential().Read(models.CloudCredentialID(credentialId))
+		if err != nil {
+			return httperror.InternalServerError(fmt.Sprintf("Unable to retrieve %s information", provider), err)
+		}
 	}
 
 	switch provider {
 	case portaineree.CloudProviderCivo:
-		civoInfo, err := handler.cloudClusterInfoService.CivoGetInfo(credential, force)
+		civoInfo, err := handler.cloudInfoService.CivoGetInfo(credential, force)
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve Civo information", err)
 		}
@@ -60,7 +61,7 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 
 	case portaineree.CloudProviderDigitalOcean:
 
-		digitalOceanInfo, err := handler.cloudClusterInfoService.DigitalOceanGetInfo(credential, force)
+		digitalOceanInfo, err := handler.cloudInfoService.DigitalOceanGetInfo(credential, force)
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve DigitalOcean information", err)
 		}
@@ -69,7 +70,7 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 
 	case portaineree.CloudProviderLinode:
 
-		linodeInfo, err := handler.cloudClusterInfoService.LinodeGetInfo(credential, force)
+		linodeInfo, err := handler.cloudInfoService.LinodeGetInfo(credential, force)
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve Linode information", err)
 		}
@@ -77,7 +78,7 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 		return response.JSON(w, linodeInfo)
 
 	case portaineree.CloudProviderGKE:
-		gkeInfo, err := handler.cloudClusterInfoService.GKEGetInfo(credential, force)
+		gkeInfo, err := handler.cloudInfoService.GKEGetInfo(credential, force)
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve GKE information", err)
 		}
@@ -86,7 +87,7 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 
 	case portaineree.CloudProviderAzure:
 
-		azureInfo, err := handler.cloudClusterInfoService.AzureGetInfo(credential, force)
+		azureInfo, err := handler.cloudInfoService.AzureGetInfo(credential, force)
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve Azure information", err)
 		}
@@ -94,12 +95,20 @@ func (handler *Handler) kaasProviderInfo(w http.ResponseWriter, r *http.Request)
 		return response.JSON(w, azureInfo)
 
 	case portaineree.CloudProviderAmazon:
-		awsInfo, err := handler.cloudClusterInfoService.AmazonEksGetInfo(credential, force)
+		awsInfo, err := handler.cloudInfoService.AmazonEksGetInfo(credential, force)
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve AWS information", err)
 		}
 
 		return response.JSON(w, awsInfo)
+
+	case portaineree.CloudProviderMicrok8s:
+		microk8sInfo := handler.cloudInfoService.MicroK8sGetInfo()
+		if err != nil {
+			return httperror.InternalServerError("Unable to retrieve Microk8s information", err)
+		}
+
+		return response.JSON(w, microk8sInfo)
 	}
 
 	return httperror.InternalServerError("Unable to get Kaas provider info", errors.New("invalid provider route parameter. Valid values: civo, digitalocean, linode, azure, gke"))

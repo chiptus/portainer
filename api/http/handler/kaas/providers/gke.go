@@ -30,7 +30,7 @@ func (payload *GKEProvisionPayload) Validate(r *http.Request) error {
 func (payload *GKEProvisionPayload) GetCloudProvider(_ string) (*portaineree.CloudProvider, error) {
 	cloudProvider, ok := types.CloudProvidersMap[types.CloudProviderShortName(portaineree.CloudProviderGKE)]
 	if !ok {
-		return nil, errors.New("Invalid cloud provider")
+		return nil, errors.New("invalid cloud provider")
 	}
 
 	log.Info().Str("provider", cloudProvider.Name).Msg("cloud provider")

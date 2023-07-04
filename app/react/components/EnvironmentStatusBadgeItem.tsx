@@ -22,10 +22,12 @@ export function EnvironmentStatusBadgeItem({
         'flex items-center gap-1',
         'rounded border-2 border-solid',
         'w-fit py-px px-1',
-        'text-xs font-semibold text-gray-7',
+        'text-xs font-medium text-gray-7 th-dark:!text-white',
         {
-          'border-green-3 bg-green-2': color === 'success',
-          'border-error-3 bg-error-2': color === 'danger',
+          'border-green-3 bg-green-2 th-dark:border-success-9 th-dark:bg-success-9':
+            color === 'success',
+          'border-error-3 bg-error-2 th-dark:border-error-9 th-dark:bg-error-9':
+            color === 'danger',
         },
         className
       )}
@@ -35,7 +37,7 @@ export function EnvironmentStatusBadgeItem({
       {icon && (
         <Icon
           icon={icon}
-          className={clsx({
+          className={clsx('th-dark:!text-white', {
             '!text-green-7': color === 'success',
             '!text-error-7': color === 'danger',
           })}

@@ -17,7 +17,7 @@ export async function createKaasEnvironment(
 ) {
   try {
     const { data } = await axios.post<Environment>(
-      buildUrl(provider, 'cluster'),
+      buildUrl(provider, 'provision'),
       payload
     );
     return data;

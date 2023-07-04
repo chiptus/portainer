@@ -76,6 +76,17 @@ func (service *Service) Endpoint(ID portaineree.EndpointID) (*portaineree.Endpoi
 	return endpoint, nil
 }
 
+func (service *Service) SetMessage(ID portaineree.EndpointID, statusMessage portaineree.EndpointStatusMessage) error {
+	return service.connection.UpdateTx(func(tx portainer.Transaction) error {
+		err := service.Tx(tx).SetMessage(ID, statusMessage)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
 // UpdateEndpoint updates an environment(endpoint).
 func (service *Service) UpdateEndpoint(ID portaineree.EndpointID, endpoint *portaineree.Endpoint) error {
 	return service.connection.UpdateTx(func(tx portainer.Transaction) error {

@@ -68,8 +68,10 @@ type endpointUpdatePayload struct {
 
 	IsSetStatusMessage bool `json:"IsSetStatusMessage"`
 	StatusMessage      struct {
-		Detail  string `json:"Detail" example:"Error message"`
-		Summary string `json:"Summary" example:"Error"`
+		Detail          string `json:"Detail" example:"Error message"`
+		Summary         string `json:"Summary" example:"Error"`
+		Operation       string `json:"operation" example:"scale"`       // 'scale', 'upgrade', 'addons'
+		OperationStatus string `json:"operationStatus" example:"error"` // '', 'error', 'processing'
 	}
 }
 
@@ -176,6 +178,8 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		if payload.IsSetStatusMessage {
 			endpoint.StatusMessage.Detail = payload.StatusMessage.Detail
 			endpoint.StatusMessage.Summary = payload.StatusMessage.Summary
+			endpoint.StatusMessage.Operation = payload.StatusMessage.Operation
+			endpoint.StatusMessage.OperationStatus = payload.StatusMessage.OperationStatus
 		}
 
 		if payload.URL != nil {

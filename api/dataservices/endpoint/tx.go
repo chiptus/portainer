@@ -31,6 +31,17 @@ func (service ServiceTx) Endpoint(ID portaineree.EndpointID) (*portaineree.Endpo
 	return &endpoint, nil
 }
 
+func (service ServiceTx) SetMessage(ID portaineree.EndpointID, statusMessage portaineree.EndpointStatusMessage) error {
+	endpoint, err := service.Endpoint(ID)
+	if err != nil {
+		return err
+	}
+
+	endpoint.StatusMessage = statusMessage
+
+	return service.UpdateEndpoint(ID, endpoint)
+}
+
 // UpdateEndpoint updates an environment(endpoint).
 func (service ServiceTx) UpdateEndpoint(ID portaineree.EndpointID, endpoint *portaineree.Endpoint) error {
 	identifier := service.service.connection.ConvertToKey(int(ID))

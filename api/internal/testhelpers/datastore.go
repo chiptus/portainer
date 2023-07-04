@@ -370,6 +370,13 @@ func (s *stubEndpointService) GetNextIdentifier() int {
 	return len(s.endpoints)
 }
 
+func (s *stubEndpointService) SetMessage(id portaineree.EndpointID, statusMessage portaineree.EndpointStatusMessage) error {
+	endpoint, _ := s.Endpoint(id)
+	endpoint.StatusMessage = statusMessage
+
+	return s.UpdateEndpoint(id, endpoint)
+}
+
 // WithEndpoints option will instruct testDatastore to return provided environments(endpoints)
 func WithEndpoints(endpoints []portaineree.Endpoint) datastoreOption {
 	return func(d *testDatastore) {

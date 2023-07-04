@@ -3,16 +3,18 @@ package kaas
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/cloud"
 	"github.com/portainer/portainer-ee/api/database/models"
+	"github.com/portainer/portainer-ee/api/http/handler/kaas/providers"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
 )
 
-// @id microk8sAddons
+// @id microk8sGetAddons
 // @summary Get a list of addons which are installed in a MicroK8s cluster.
 // @description The information returned can be used to query the MircoK8s cluster.
 // @description **Access policy**: authenticated
@@ -21,51 +23,92 @@ import (
 // @security jwt
 // @produce json
 // @param environmentID query int true "The environment ID of the cluster within Portainer."
-// @param credentialID query int true "The credential ID to use to connect to a node in the MicroK8s cluster."
 // @success 200 "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
-// @router /cloud/microk8s/addons [get]
-func (handler *Handler) microk8sAddons(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	environmentID, err := request.RetrieveQueryParameter(r, "environmentID", true)
+// @router /cloud/endpoints/{environmentid}/addons [get]
+func (handler *Handler) microk8sGetAddons(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {
-		return httperror.BadRequest("Invalid environment identifier", err)
-	}
-
-	// Check if the environment exists
-	formattedEnvironmentID, err := strconv.Atoi(environmentID)
-	if err != nil {
-		return httperror.InternalServerError("Failed to parse environmentID", err)
-	}
-	environment, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(formattedEnvironmentID))
-	if handler.dataStore.IsErrObjectNotFound(err) {
-		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
-	} else if err != nil {
-		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
+		return httperror.InternalServerError(err.Error(), err)
 	}
 
 	// And that the user has access to the environment
-	err = handler.requestBouncer.AuthorizedEndpointOperation(r, environment, false)
+	err = handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, false)
 	if err != nil {
 		return httperror.Forbidden("Permission denied to access environment", err)
 	}
 
-	credentialId, _ := request.RetrieveNumericQueryParameter(r, "credentialID", true)
-	if credentialId == 0 {
-		return httperror.InternalServerError("Missing credential id in the query parameter", err)
+	if endpoint.CloudProvider == nil {
+		return httperror.BadRequest("bad request", fmt.Errorf("this is not a cloud environment"))
 	}
 
+	if endpoint.CloudProvider.Provider != portaineree.CloudProviderMicrok8s {
+		return httperror.BadRequest("bad request", fmt.Errorf("this cluster was not provisioned by Portainer"))
+	}
+
+	credentialId := endpoint.CloudProvider.CredentialID
 	credential, err := handler.dataStore.CloudCredential().Read(models.CloudCredentialID(credentialId))
 	if err != nil {
-		return httperror.InternalServerError(fmt.Sprintf("Unable to retrieve SSH credential information"), err)
+		return httperror.InternalServerError("Unable to retrieve SSH credential information", err)
 	}
 
-	microK8sInfo, err := handler.cloudClusterInfoService.Microk8sGetAddons(credential, formattedEnvironmentID)
+	microK8sInfo, err := handler.cloudInfoService.Microk8sGetAddons(credential, int(endpoint.ID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve MicroK8s information", err)
 	}
 
 	return response.JSON(w, microK8sInfo)
+}
+
+// @id microk8sGetAddons
+// @summary Get a list of addons which are installed in a MicroK8s cluster.
+// @description The information returned can be used to query the MircoK8s cluster.
+// @description **Access policy**: authenticated
+// @tags kaas
+// @security ApiKeyAuth
+// @security jwt
+// @produce json
+// @param environmentID query int true "The environment ID of the cluster within Portainer."
+// @success 200 "Success"
+// @failure 400 "Invalid request"
+// @failure 403 "Permission denied"
+// @failure 500 "Server error"
+// @failure 503 "Missing configuration"
+// @router /cloud/endpoints/{environmentid}/addons [post]
+func (handler *Handler) microk8sUpdateAddons(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+	endpoint, err := middlewares.FetchEndpoint(r)
+	if err != nil {
+		return httperror.InternalServerError(err.Error(), err)
+	}
+
+	// And that the user has access to the environment
+	err = handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, false)
+	if err != nil {
+		return httperror.Forbidden("Permission denied to access environment", err)
+	}
+
+	if endpoint.CloudProvider == nil {
+		return httperror.BadRequest("bad request", fmt.Errorf("this is not a cloud environment"))
+	}
+
+	if endpoint.CloudProvider.Provider != portaineree.CloudProviderMicrok8s {
+		return httperror.BadRequest("bad request", fmt.Errorf("this cluster was not provisioned by Portainer"))
+	}
+
+	var p providers.Microk8sUpdateAddonsPayload
+	err = request.DecodeAndValidateJSONPayload(r, &p)
+	if err != nil {
+		return httperror.BadRequest("Invalid addons request payload", err)
+	}
+
+	updateAddonsRequest := &cloud.Microk8sUpdateAddonsRequest{
+		EndpointID: endpoint.ID,
+		Addons:     p.Addons,
+	}
+
+	handler.cloudManagementService.SubmitRequest(updateAddonsRequest)
+	return response.JSON(w, updateAddonsRequest)
 }

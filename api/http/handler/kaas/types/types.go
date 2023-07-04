@@ -1,6 +1,11 @@
 package types
 
-import portaineree "github.com/portainer/portainer-ee/api"
+import (
+	"fmt"
+	"net/http"
+
+	portaineree "github.com/portainer/portainer-ee/api"
+)
 
 type (
 	CloudProviderShortName string
@@ -13,35 +18,70 @@ type (
 		CustomTemplateID      portaineree.CustomTemplateID `json:"customTemplateID"`
 		CustomTemplateContent string                       `json:"customTemplateContent"`
 	}
+
+	Microk8sAddonsPayload struct {
+		Addons []string `json:"addons"`
+	}
 )
 
 var CloudProvidersMap CloudProviders = CloudProviders{
 	portaineree.CloudProviderCivo: {
-		Name: "Civo",
-		URL:  "https://www.civo.com/login",
+		Provider: portaineree.CloudProviderCivo,
+		Name:     "Civo",
+		URL:      "https://www.civo.com/login",
 	},
 	portaineree.CloudProviderLinode: {
-		Name: "Linode",
-		URL:  "https://login.linode.com/",
+		Provider: portaineree.CloudProviderLinode,
+		Name:     "Linode",
+		URL:      "https://login.linode.com/",
 	},
 	portaineree.CloudProviderDigitalOcean: {
-		Name: "DigitalOcean",
-		URL:  "https://cloud.digitalocean.com/login",
+		Provider: portaineree.CloudProviderDigitalOcean,
+		Name:     "Digital Ocean",
+		URL:      "https://cloud.digitalocean.com/login",
 	},
 	portaineree.CloudProviderGKE: {
-		Name: "Google Cloud Platform",
-		URL:  "https://console.cloud.google.com/kubernetes/",
+		Provider: portaineree.CloudProviderGKE,
+		Name:     "Google Cloud Platform",
+		URL:      "https://console.cloud.google.com/kubernetes/",
 	},
 	portaineree.CloudProviderAzure: {
-		Name: "Azure",
-		URL:  "https://portal.azure.com/",
+		Provider: portaineree.CloudProviderAzure,
+		Name:     "Azure",
+		URL:      "https://portal.azure.com/",
 	},
 	portaineree.CloudProviderAmazon: {
-		Name: "Amazon",
-		URL:  "https://console.aws.amazon.com",
+		Provider: portaineree.CloudProviderAmazon,
+		Name:     "Amazon",
+		URL:      "https://console.aws.amazon.com",
 	},
 	portaineree.CloudProviderMicrok8s: {
-		Name: "MicroK8s",
-		URL:  "https://microk8s.io/",
+		Provider: portaineree.CloudProviderMicrok8s,
+		Name:     "MicroK8s",
+		URL:      "https://microk8s.io/",
 	},
+}
+
+func (r Microk8sAddonsPayload) Validate(request *http.Request) error {
+	if len(r.Addons) == 0 {
+		return fmt.Errorf("at least one addon must be specified")
+	}
+
+	// TODO: this creates an import loop.  Refactor to avoid.
+	// for _, addon := range r.Addons {
+	// 	if !slices.Contains(microk8s.Microk8sDefaultInstallableAddons, addon) {
+	// 		return fmt.Errorf("the specified addon (%s) is not valid or cannot be installed by portainer", addon)
+	// 	}
+	// }
+
+	return nil
+}
+
+func (r Microk8sAddonsPayload) IndexOf(element string) int {
+	for k, v := range r.Addons {
+		if element == v {
+			return k
+		}
+	}
+	return -1 // not found.
 }

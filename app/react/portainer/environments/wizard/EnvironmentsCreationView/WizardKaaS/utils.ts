@@ -1,4 +1,4 @@
-import { trackEvent } from '@/angulartics.matomo/analytics-services';
+import { TrackEventProps } from '@/angulartics.matomo/analytics-services';
 
 import { KaasProvider } from '../WizardK8sInstall/types';
 
@@ -6,7 +6,8 @@ import { FormValues, KaaSFormType } from './types';
 
 export function sendKaasProvisionAnalytics(
   values: FormValues,
-  provider: KaasProvider
+  provider: KaasProvider,
+  trackEvent: (action: string, properties: TrackEventProps) => void
 ) {
   trackEvent('portainer-endpoint-creation', {
     category: 'portainer',
@@ -15,25 +16,28 @@ export function sendKaasProvisionAnalytics(
 
   switch (provider) {
     case KaasProvider.GOOGLE_CLOUD:
-      trackGoogleCloudProvision(values);
+      trackGoogleCloudProvision(values, trackEvent);
       break;
     case KaasProvider.CIVO:
     case KaasProvider.LINODE:
     case KaasProvider.DIGITAL_OCEAN:
-      trackApiProvision(provider, values);
+      trackApiProvision(provider, values, trackEvent);
       break;
     case KaasProvider.AZURE:
-      trackAzureProvision(values);
+      trackAzureProvision(values, trackEvent);
       break;
     case KaasProvider.AWS:
-      trackAmazonProvision(values);
+      trackAmazonProvision(values, trackEvent);
       break;
     default:
       break;
   }
 }
 
-function trackAzureProvision(values: FormValues) {
+function trackAzureProvision(
+  values: FormValues,
+  trackEvent: (action: string, properties: TrackEventProps) => void
+) {
   trackEvent('provision-kaas-cluster', {
     category: 'kubernetes',
     metadata: {
@@ -47,7 +51,10 @@ function trackAzureProvision(values: FormValues) {
   });
 }
 
-function trackGoogleCloudProvision(values: FormValues) {
+function trackGoogleCloudProvision(
+  values: FormValues,
+  trackEvent: (action: string, properties: TrackEventProps) => void
+) {
   trackEvent('provision-kaas-cluster', {
     category: 'kubernetes',
     metadata: {
@@ -62,7 +69,11 @@ function trackGoogleCloudProvision(values: FormValues) {
   });
 }
 
-function trackApiProvision(provider: KaasProvider, values: FormValues) {
+function trackApiProvision(
+  provider: KaasProvider,
+  values: FormValues,
+  trackEvent: (action: string, properties: TrackEventProps) => void
+) {
   trackEvent('provision-kaas-cluster', {
     category: 'kubernetes',
     metadata: {
@@ -74,7 +85,10 @@ function trackApiProvision(provider: KaasProvider, values: FormValues) {
   });
 }
 
-function trackAmazonProvision(values: FormValues) {
+function trackAmazonProvision(
+  values: FormValues,
+  trackEvent: (action: string, properties: TrackEventProps) => void
+) {
   trackEvent('provision-kaas-cluster', {
     category: 'kubernetes',
     metadata: {

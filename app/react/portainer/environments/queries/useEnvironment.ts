@@ -8,17 +8,21 @@ import { Environment, EnvironmentId } from '../types';
 import { queryKeys } from './query-keys';
 
 export function useEnvironment<T = Environment | null>(
-  id?: EnvironmentId,
-  select?: (environment: Environment | null) => T
+  environmentId?: EnvironmentId,
+  select?: (environment: Environment | null) => T,
+  options?: { autoRefreshRate?: number }
 ) {
   return useQuery(
-    id ? queryKeys.item(id) : [],
-    () => (id ? getEndpoint(id) : null),
+    environmentId ? queryKeys.item(environmentId) : [],
+    () => (environmentId ? getEndpoint(environmentId) : null),
     {
       select,
       ...withError('Failed loading environment'),
       staleTime: 50,
-      enabled: !!id,
+      enabled: !!environmentId,
+      refetchInterval() {
+        return options?.autoRefreshRate ?? false;
+      },
     }
   );
 }

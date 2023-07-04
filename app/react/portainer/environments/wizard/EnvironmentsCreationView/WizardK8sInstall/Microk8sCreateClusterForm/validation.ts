@@ -1,37 +1,52 @@
-import { object, number, array, mixed, SchemaOf } from 'yup';
+import { object, number, string, array, SchemaOf, TestContext } from 'yup';
 
-import { CreateMicrok8sClusterFormValues, Microk8sK8sVersion } from '../types';
+import { AddNodesFormValues } from '@/react/kubernetes/cluster/NodeCreateView/types';
+
+import { CreateMicrok8sClusterFormValues } from '../types';
 
 export function validationSchema(): SchemaOf<CreateMicrok8sClusterFormValues> {
   return object().shape({
-    nodeIPs: array()
-      .test(
-        'valid IPV4',
-        'Must have a valid IP address or address range separated by commas.',
-        validateIpList
-      )
-      .test('first line not empty', 'Node IP is required', validateFirstLine)
-      .test(
-        'no duplicate IPs',
-        'Duplicate IPs are not allowed',
-        validateNoDuplicateIPs
-      ),
+    masterNodes: validateNodeIPList().test(
+      'first line not empty',
+      'At least one control plane node is required',
+      validateFirstLine
+    ),
+    workerNodes: validateNodeIPList(), // worker nodes can be empty on creation
     customTemplateId: number().default(0),
     addons: array(),
-    kubernetesVersion: mixed<Microk8sK8sVersion>().required(
-      'Kubernetes version is required'
-    ),
+    kubernetesVersion: string().required('version is required'),
   });
 }
 
-// I don't want to use any[] as the parameter type, but it is required by yup
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function validateFirstLine(ipList?: any[]) {
+export function validateNodeIPList(existingNodeIPAddresses?: string[]) {
+  return array()
+    .test(
+      'valid IPV4',
+      'Must have a valid IP address or address range separated by commas.',
+      validateIpList
+    )
+    .test(
+      'no duplicate IPs in input',
+      'Duplicate IPs are not allowed',
+      validateNoDuplicatesInInput
+    )
+    .test(
+      'no duplicate IPs in form',
+      'Duplicate IPs are not allowed',
+      validateNoDuplicateIPsInForm
+    )
+    .test(
+      'no duplicates with existing nodes',
+      "An IP address you're trying to add is already assigned to an existing node in the cluster. Please use a different IP address.",
+      (value) => validateNoDuplicateIPsInCluster(value, existingNodeIPAddresses)
+    );
+}
+
+function validateFirstLine(ipList?: string[]) {
   return !!ipList && ipList.length > 0 && !!ipList[0];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function validateIpList(ipList?: any[]) {
+function validateIpList(ipList?: string[]) {
   // remove any empty or undefined lines
   const ipListNoEmptyLines = ipList?.filter((ip) => ip);
 
@@ -44,18 +59,59 @@ function validateIpList(ipList?: any[]) {
   );
 }
 
-function validateNoDuplicateIPs(ipList?: string[]) {
+function validateNoDuplicatesInInput(ipList?: string[]) {
   if (!ipList || ipList.length === 0) {
     return true;
   }
 
-  const ipListSeparatedByIp = ipList
-    .flatMap((ip) => ip?.split(/,|-/)) // split by comma or dash
-    .map((ip) => ip?.trim()) // trim whitespace
-    .map((ip) => ip?.replace(/(^|\.)0+(\d)/g, '$1$2')) // remove all leading 0's from each octet
-    .filter((ip) => ip); // remove any empty or undefined lines
+  const ipListSeparatedByIp = formatSeparateIPAddresses(ipList);
 
   // if the length of the set is the same as the length of the array, there are no duplicates
   const ipSet = new Set(ipListSeparatedByIp);
   return ipSet.size === ipListSeparatedByIp.length;
+}
+
+/** validateNoDuplicateIPsInForm checks for duplicates between both masterNodesToAdd and workerNodesToAdd input */
+function validateNoDuplicateIPsInForm(this: TestContext) {
+  const { masterNodesToAdd, workerNodesToAdd } = this
+    .parent as Partial<AddNodesFormValues>;
+  const ipList = [...(masterNodesToAdd ?? []), ...(workerNodesToAdd ?? [])];
+  if (ipList.length === 0) {
+    return true;
+  }
+
+  const ipListSeparatedByIp = formatSeparateIPAddresses(ipList);
+
+  // if the length of the set is the same as the length of the array, there are no duplicates
+  const ipSet = new Set(ipListSeparatedByIp);
+  return ipSet.size === ipListSeparatedByIp.length;
+}
+
+function validateNoDuplicateIPsInCluster(
+  formIPList?: string[],
+  nodeIPList?: string[]
+) {
+  if (
+    !formIPList ||
+    formIPList?.length === 0 ||
+    !nodeIPList ||
+    nodeIPList?.length === 0
+  ) {
+    return true;
+  }
+
+  const ipListSeparatedByIp = formatSeparateIPAddresses(formIPList);
+  const nodeIPListContainsAnyFormIP = ipListSeparatedByIp.some((ip) =>
+    nodeIPList.includes(ip)
+  );
+  return !nodeIPListContainsAnyFormIP;
+}
+
+/** formatSeparateIPAddresses takes a list of IP addresses and IP address ranges from the form, which can be on the same line, and returns a list of all the separated IP addresses in the form */
+function formatSeparateIPAddresses(formIPList: string[]) {
+  return formIPList
+    .flatMap((ip) => ip?.split(/,|-/)) // split by comma or dash
+    .map((ip) => ip?.trim()) // trim whitespace
+    .map((ip) => ip?.replace(/(^|\.)0+(\d)/g, '$1$2')) // remove all leading 0's from each octet
+    .filter((ip) => ip); // remove any empty or undefined lines
 }

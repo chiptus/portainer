@@ -2,14 +2,17 @@ import { useQueryClient, useMutation } from 'react-query';
 
 import { notifySuccess } from '@/portainer/services/notifications';
 import axios, { parseAxiosError } from '@/portainer/services/axios';
+import { withError } from '@/react-tools/react-query';
 
 import { createKaasEnvironment } from '../WizardKaaS/kaas.service';
-import {
-  CreateClusterPayload,
-  TestSSHConnectionResponse,
-} from '../WizardKaaS/types';
+import { CreateClusterPayload } from '../WizardKaaS/types';
 
-import { K8sDistributionType, ProvisionOption } from './types';
+import {
+  MicroK8sInfo,
+  K8sDistributionType,
+  ProvisionOption,
+  AddonOption,
+} from './types';
 
 export function useInstallK8sCluster() {
   const client = useQueryClient();
@@ -27,40 +30,44 @@ export function useInstallK8sCluster() {
         client.cancelQueries(['cloud', provider, 'info']);
         return client.invalidateQueries(['environments']);
       },
-      meta: {
-        error: {
-          title: 'Failure',
-          message: 'Unable to create K8s environment',
-        },
-      },
+      ...withError('Unable to create K8s environment'),
     }
   );
 }
 
-export function useTestSSHConnection() {
-  return useMutation(
-    ({ payload }: { payload: CreateClusterPayload }) =>
-      testSSHConnection(payload),
-    {
-      meta: {
-        error: {
-          title: 'Failed to test SSH connection',
-          message: 'Unable to test SSH connection',
-        },
-      },
-    }
-  );
-}
-
-async function testSSHConnection(payload: CreateClusterPayload) {
+export async function getMicroK8sInfo() {
   try {
-    const { data } = await axios.post<TestSSHConnectionResponse>(
-      `/cloud/${K8sDistributionType.MICROK8S}/cluster`,
-      payload,
-      { params: { testssh: true } }
+    const { data } = await axios.get<MicroK8sInfo>(
+      `/cloud/${K8sDistributionType.MICROK8S}/info`
     );
-    return data;
+    return parseInfoResponse(data);
   } catch (e) {
     throw parseAxiosError(e as Error);
   }
+}
+
+function parseInfoResponse(response: MicroK8sInfo): MicroK8sInfo {
+  const kubernetesVersions = response.kubernetesVersions.map((v) =>
+    buildOption(v.value, v.label)
+  );
+  const availableAddons = response.availableAddons.map((v) => {
+    const a = buildOption(v.value, v.label) as AddonOption;
+    a.versionAvailableFrom = v.versionAvailableFrom;
+    return a;
+  });
+
+  return {
+    kubernetesVersions,
+    availableAddons,
+    requiredAddons: response.requiredAddons,
+  };
+}
+
+function buildOption(value: string, label?: string): Option<string> {
+  return { value, label: label ?? value };
+}
+
+export interface Option<T extends string | number> {
+  value: T;
+  label: string;
 }

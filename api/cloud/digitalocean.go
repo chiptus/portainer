@@ -21,7 +21,7 @@ type DigitalOceanInfo struct {
 	KubernetesVersions []portaineree.Pair `json:"kubernetesVersions"`
 }
 
-func (service *CloudClusterInfoService) DigitalOceanGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
+func (service *CloudInfoService) DigitalOceanGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
 	log.Info().Str("provider", portaineree.CloudProviderDigitalOcean).Msg("processing get info request")
 
 	apiKey, ok := credential.Credentials["apiKey"]
@@ -49,7 +49,7 @@ func (service *CloudClusterInfoService) DigitalOceanGetInfo(credential *models.C
 	return &info, nil
 }
 
-func (service *CloudClusterInfoService) digitalOceanFetchRefresh(apiKey, cacheKey string) error {
+func (service *CloudInfoService) digitalOceanFetchRefresh(apiKey, cacheKey string) error {
 	log.Info().Str("provider", portaineree.CloudProviderDigitalOcean).Msg("processing fetch info request")
 
 	info, err := service.DigitalOceanFetchInfo(apiKey)
@@ -64,7 +64,7 @@ func (service *CloudClusterInfoService) digitalOceanFetchRefresh(apiKey, cacheKe
 	return nil
 }
 
-func (service *CloudClusterInfoService) DigitalOceanFetchInfo(apiKey string) (*DigitalOceanInfo, error) {
+func (service *CloudInfoService) DigitalOceanFetchInfo(apiKey string) (*DigitalOceanInfo, error) {
 	log.Debug().Str("provider", "digitalocean").Msg("sending cloud provider info request")
 
 	client := godo.NewFromToken(apiKey)
@@ -147,7 +147,7 @@ func (service *CloudClusterInfoService) DigitalOceanFetchInfo(apiKey string) (*D
 	return digitalOceanInfo, nil
 }
 
-func (service *CloudClusterSetupService) DigitalOceanGetCluster(apiKey, clusterID string) (*KaasCluster, error) {
+func (service *CloudManagementService) DigitalOceanGetCluster(apiKey, clusterID string) (*KaasCluster, error) {
 	log.Debug().Str("provider", "digitalocean").Str("cluster_id", clusterID).Msg("sending KaaS cluster details request")
 
 	client := godo.NewFromToken(apiKey)
@@ -179,7 +179,7 @@ func (service *CloudClusterSetupService) DigitalOceanGetCluster(apiKey, clusterI
 	return kaasCluster, nil
 }
 
-func (service *CloudClusterSetupService) DigitalOceanProvisionCluster(req CloudProvisioningRequest) (string, error) {
+func (service *CloudManagementService) DigitalOceanProvisionCluster(req CloudProvisioningRequest) (string, error) {
 	log.Debug().
 		Str("provider", "digitalocean").
 		Str("cluster", req.ClusterName).

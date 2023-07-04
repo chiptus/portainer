@@ -112,8 +112,10 @@
       "Snapshots": [],
       "Status": 1,
       "StatusMessage": {
-        "Detail": "",
-        "Summary": ""
+        "detail": "",
+        "operation": "",
+        "operationStatus": "",
+        "summary": ""
       },
       "TLSConfig": {
         "TLS": false,
@@ -1404,7 +1406,7 @@
     }
   ],
   "version": {
-    "VERSION": "{\"SchemaVersion\":\"2.19.0\",\"MigratorCount\":3,\"Edition\":3,\"InstanceID\":\"8d48fdd2-b059-4fa1-9a87-01b88b5404b4\"}"
+    "VERSION": "{\"SchemaVersion\":\"2.19.0\",\"MigratorCount\":5,\"Edition\":3,\"InstanceID\":\"8d48fdd2-b059-4fa1-9a87-01b88b5404b4\"}"
   },
   "webhooks": null
 }

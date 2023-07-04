@@ -14,6 +14,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	clouderrors "github.com/portainer/portainer-ee/api/cloud/errors"
 	"github.com/portainer/portainer-ee/api/cloud/gke"
+	mk8s "github.com/portainer/portainer-ee/api/cloud/microk8s"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
@@ -33,7 +34,7 @@ const (
 	ProvisioningStateDeployingCustomTemplate
 	ProvisioningStateAgentSetup
 	ProvisioningStateWaitingForAgent
-	ProvisioningStateUpdatingEndpoint
+	ProvisioningStateUpdatingEnvironment
 	ProvisioningStateDone
 )
 
@@ -44,11 +45,11 @@ const (
 )
 
 type (
-	CloudClusterSetupService struct {
+	CloudManagementService struct {
 		dataStore            dataservices.DataStore
 		fileService          portaineree.FileService
 		shutdownCtx          context.Context
-		requests             chan *portaineree.CloudProvisioningRequest
+		requests             chan portaineree.CloudManagementRequest
 		result               chan *cloudPrevisioningResult
 		snapshotService      portaineree.SnapshotService
 		authorizationService *authorization.Service
@@ -72,11 +73,11 @@ type (
 	}
 )
 
-func NewCloudClusterSetupService(dataStore dataservices.DataStore, fileService portaineree.FileService, clientFactory *kubecli.ClientFactory, snapshotService portaineree.SnapshotService, authorizationService *authorization.Service, shutdownCtx context.Context, kubernetesDeployer portaineree.KubernetesDeployer) *CloudClusterSetupService {
-	requests := make(chan *portaineree.CloudProvisioningRequest, 10)
+func NewCloudClusterManagementService(dataStore dataservices.DataStore, fileService portaineree.FileService, clientFactory *kubecli.ClientFactory, snapshotService portaineree.SnapshotService, authorizationService *authorization.Service, shutdownCtx context.Context, kubernetesDeployer portaineree.KubernetesDeployer) *CloudManagementService {
+	requests := make(chan portaineree.CloudManagementRequest, 10)
 	result := make(chan *cloudPrevisioningResult, 10)
 
-	return &CloudClusterSetupService{
+	return &CloudManagementService{
 		dataStore:            dataStore,
 		fileService:          fileService,
 		shutdownCtx:          shutdownCtx,
@@ -89,16 +90,16 @@ func NewCloudClusterSetupService(dataStore dataservices.DataStore, fileService p
 	}
 }
 
-func (service *CloudClusterSetupService) Start() {
+func (service *CloudManagementService) Start() {
 	log.Info().Msg("starting cloud cluster setup service")
 
-	service.restoreProvisioningTasks()
+	service.restoreTasks()
 
 	go func() {
 		for {
 			select {
 			case request := <-service.requests:
-				go service.processRequest(request)
+				go service.processManagementRequest(request)
 
 			case result := <-service.result:
 				service.processResult(result)
@@ -111,13 +112,13 @@ func (service *CloudClusterSetupService) Start() {
 	}()
 }
 
-// Request takes a CloudProvisioningRequest and adds it to the queue to be processed concurrently
-func (service *CloudClusterSetupService) Request(r *portaineree.CloudProvisioningRequest) {
+// SubmitRequest takes a CloudProvisioningRequest and adds it to the queue to be processed concurrently
+func (service *CloudManagementService) SubmitRequest(r portaineree.CloudManagementRequest) {
 	service.requests <- r
 }
 
 // createClusterSetupTask transforms a provisioning request into a task and adds it to the db
-func (service *CloudClusterSetupService) createClusterSetupTask(request *portaineree.CloudProvisioningRequest, clusterID, resourceGroup string) (portaineree.CloudProvisioningTask, error) {
+func (service *CloudManagementService) createClusterSetupTask(request *portaineree.CloudProvisioningRequest, clusterID, resourceGroup string) (portaineree.CloudProvisioningTask, error) {
 	task := portaineree.CloudProvisioningTask{
 		Provider:              request.Provider,
 		ClusterID:             clusterID,
@@ -128,7 +129,8 @@ func (service *CloudClusterSetupService) createClusterSetupTask(request *portain
 		ResourceGroup:         resourceGroup,
 		CustomTemplateID:      request.CustomTemplateID,
 		CustomTemplateContent: request.CustomTemplateContent,
-		NodeIPs:               request.NodeIPs,
+		MasterNodes:           request.MasterNodes,
+		WorkerNodes:           request.WorkerNodes,
 		CreatedByUserID:       request.CreatedByUserID,
 	}
 
@@ -136,7 +138,7 @@ func (service *CloudClusterSetupService) createClusterSetupTask(request *portain
 }
 
 // restoreProvisioningTasks looks up provisioning tasks and retores them to a running state
-func (service *CloudClusterSetupService) restoreProvisioningTasks() {
+func (service *CloudManagementService) restoreTasks() {
 	tasks, err := service.dataStore.CloudProvisioning().ReadAll()
 	if err != nil {
 		log.Error().Err(err).Msg("failed to restore provisioning tasks")
@@ -153,7 +155,7 @@ func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 		if endpoint.Status == portaineree.EndpointStatusProvisioning {
 			found := false
 			for _, task := range tasks {
-				found = task.EndpointID == task.EndpointID
+				found = task.EndpointID == endpoint.ID
 			}
 
 			if !found {
@@ -163,7 +165,9 @@ func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 					log.Error().Err(err).Msg("unable to update endpoint status in database")
 				}
 
-				err = service.setMessage(endpoint.ID, "Provisioning Error", "Provisioning of this environment has been interrupted and cannot be recovered. This may be due to a Portainer restart. Please check and delete the environment in the cloud platform's portal and remove here.")
+				summary := "Provisioning Error"
+				detail := "Provisioning of this environment has been interrupted and cannot be recovered. This may be due to a Portainer restart. Please check and delete the environment in the cloud platform's portal and remove here."
+				err = service.setMessageHandler(endpoint.ID, "")(summary, detail, "error")
 				if err != nil {
 					log.Error().Err(err).Msg("unable to update endpoint status message in database")
 				}
@@ -185,7 +189,7 @@ func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 				log.Error().Err(err).Msg("unable to update endpoint status in database")
 			}
 
-			err = service.setMessage(task.EndpointID, "Provisioning Error", "Timed out")
+			err = service.setMessageHandler(task.EndpointID, "")("Provisioning Error", "Timed out", "error")
 			if err != nil {
 				log.Error().Err(err).Msg("unable to update endpoint status message in database")
 			}
@@ -228,13 +232,13 @@ func (service *CloudClusterSetupService) restoreProvisioningTasks() {
 }
 
 // changeState changes the state of a task and updates the db
-func (service *CloudClusterSetupService) changeState(task *portaineree.CloudProvisioningTask, newState ProvisioningState, message string) {
+func (service *CloudManagementService) changeState(task *portaineree.CloudProvisioningTask, newState ProvisioningState, message string, operationStatus string) {
 	log.Debug().
 		Str("cluster_id", task.ClusterID).
 		Str("state", newState.String()).
 		Msg("changed state of cluster setup task")
 
-	err := service.setMessage(task.EndpointID, message, "")
+	err := service.setMessageHandler(task.EndpointID, "")(message, "", operationStatus)
 	if err != nil {
 		log.Error().
 			Str("cluster_id", task.ClusterID).
@@ -246,22 +250,18 @@ func (service *CloudClusterSetupService) changeState(task *portaineree.CloudProv
 	task.Retries = 0
 }
 
-func (service *CloudClusterSetupService) setMessage(id portaineree.EndpointID, summary string, detail string) error {
-	endpoint, err := service.dataStore.Endpoint().Endpoint(id)
-	if err != nil {
-		return err
+func (service *CloudManagementService) setMessageHandler(id portaineree.EndpointID, operation string) func(summary, detail, operationStatus string) error {
+	return func(summary, detail, operationStatus string) error {
+		status := portaineree.EndpointStatusMessage{Summary: summary, Detail: detail, OperationStatus: operationStatus, Operation: operation}
+		err := service.dataStore.Endpoint().SetMessage(id, status)
+		if err != nil {
+			return fmt.Errorf("unable to update endpoint in database")
+		}
+		return nil
 	}
-
-	endpoint.StatusMessage.Summary = summary
-	endpoint.StatusMessage.Detail = detail
-	err = service.dataStore.Endpoint().UpdateEndpoint(id, endpoint)
-	if err != nil {
-		return fmt.Errorf("unable to update endpoint in database")
-	}
-	return nil
 }
 
-func (service *CloudClusterSetupService) setStatus(id portaineree.EndpointID, status int) error {
+func (service *CloudManagementService) setStatus(id portaineree.EndpointID, status int) error {
 	endpoint, err := service.dataStore.Endpoint().Endpoint(id)
 	if err != nil {
 		return err
@@ -275,7 +275,7 @@ func (service *CloudClusterSetupService) setStatus(id portaineree.EndpointID, st
 	return nil
 }
 
-func (service *CloudClusterSetupService) seedCluster(task *portaineree.CloudProvisioningTask) (err error) {
+func (service *CloudManagementService) seedCluster(task *portaineree.CloudProvisioningTask) (err error) {
 	customTemplate, err := service.dataStore.CustomTemplate().Read(portaineree.CustomTemplateID(task.CustomTemplateID))
 	if err != nil {
 		return clouderrors.NewFatalError("error getting custom template with id: %d, error: %v", task.CustomTemplateID, err)
@@ -348,6 +348,11 @@ func (service *CloudClusterSetupService) seedCluster(task *portaineree.CloudProv
 
 	if task.Provider == portaineree.CloudProviderPreinstalledAgent {
 		endpoint, err := service.dataStore.Endpoint().Endpoint(task.EndpointID)
+		if err != nil {
+			log.Debug().Msgf("error getting endpoint with id: %d, error: %v", task.EndpointID, err)
+			return nil
+		}
+
 		manifests := []string{manifestFile.Name()}
 		_, err = service.kubernetesDeployer.Deploy(
 			task.CreatedByUserID,
@@ -365,7 +370,7 @@ func (service *CloudClusterSetupService) seedCluster(task *portaineree.CloudProv
 }
 
 // getKaasCluster gets the kaasCluster object for the task from the associated cloud provider
-func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudProvisioningTask) (*KaasCluster, error) {
+func (service *CloudManagementService) getKaasCluster(task *portaineree.CloudProvisioningTask) (*KaasCluster, error) {
 	endpoint, err := service.dataStore.Endpoint().Endpoint(task.EndpointID)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read endpoint from the database")
@@ -391,7 +396,7 @@ func (service *CloudClusterSetupService) getKaasCluster(task *portaineree.CloudP
 			credentials.Credentials["passphrase"],
 			credentials.Credentials["privateKey"],
 			task.ClusterID,
-			task.NodeIPs,
+			task.MasterNodes[0],
 		)
 
 	case portaineree.CloudProviderCivo:
@@ -455,7 +460,7 @@ func checkFatal(err error) error {
 
 // provisionKaasClusterTask processes a provisioning task
 // this function uses a state machine model for progressing the provisioning.  This allows easy retry and state tracking
-func (service *CloudClusterSetupService) provisionKaasClusterTask(task portaineree.CloudProvisioningTask) {
+func (service *CloudManagementService) provisionKaasClusterTask(task portaineree.CloudProvisioningTask) {
 	var cluster *KaasCluster
 	var kubeClient portaineree.KubeClient
 	var serviceIP string
@@ -465,6 +470,8 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 	if task.Provider == portaineree.CloudProviderKubeConfig {
 		maxAttempts = maxRequestFailuresImport
 	}
+
+	setMessage := service.setMessageHandler(task.EndpointID, "")
 	for {
 		var fatal *clouderrors.FatalError
 		if errors.As(err, &fatal) {
@@ -500,13 +507,13 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			switch task.Provider {
 			case portaineree.CloudProviderMicrok8s:
 				// pendingState logic is completed outside of this function, but this is the initial state
-				service.changeState(&task, ProvisioningStateWaitingForCluster, "Waiting for MicroK8s cluster to become available")
+				service.changeState(&task, ProvisioningStateWaitingForCluster, "Waiting for MicroK8s cluster to become available", "processing")
 			case portaineree.CloudProviderKubeConfig:
-				service.changeState(&task, ProvisioningStateWaitingForCluster, "Importing Kubeconfig")
+				service.changeState(&task, ProvisioningStateWaitingForCluster, "Importing Kubeconfig", "processing")
 			case portaineree.CloudProviderPreinstalledAgent:
-				service.changeState(&task, ProvisioningStateDeployingCustomTemplate, "Deploying Custom Template")
+				service.changeState(&task, ProvisioningStateDeployingCustomTemplate, "Deploying Custom Template", "processing")
 			default:
-				service.changeState(&task, ProvisioningStateWaitingForCluster, "Creating KaaS cluster")
+				service.changeState(&task, ProvisioningStateWaitingForCluster, "Creating KaaS cluster", "processing")
 			}
 
 		case ProvisioningStateWaitingForCluster:
@@ -517,7 +524,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			}
 
 			if cluster.Ready {
-				service.changeState(&task, ProvisioningStateAgentSetup, "Deploying Portainer agent")
+				service.changeState(&task, ProvisioningStateAgentSetup, "Deploying Portainer agent", "processing")
 			}
 
 			log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Msg("waiting for cluster")
@@ -554,7 +561,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				break
 			}
 
-			service.changeState(&task, ProvisioningStateWaitingForAgent, "Waiting for agent response")
+			service.changeState(&task, ProvisioningStateWaitingForAgent, "Waiting for agent response", "processing")
 
 		case ProvisioningStateWaitingForAgent:
 			log.Debug().
@@ -563,9 +570,10 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				Int("endpoint_id", int(task.EndpointID)).
 				Msg("waiting for portainer agent")
 
-			serviceIP, err = kubeClient.GetPortainerAgentAddress(task.NodeIPs)
+			serviceIP, err = kubeClient.GetPortainerAgentAddress(task.MasterNodes)
 			if serviceIP == "" {
-				service.setMessage(task.EndpointID, "Waiting for agent response", "Waiting for the Portainer agent service to be ready (attempt "+strconv.Itoa(task.Retries+1)+" of "+strconv.Itoa(maxAttempts)+")")
+				detail := "Waiting for the Portainer agent service to be ready (attempt " + strconv.Itoa(task.Retries+1) + " of " + strconv.Itoa(maxAttempts) + ")"
+				setMessage("Waiting for agent response", detail, "error")
 				if err != nil {
 					err = fmt.Errorf("could not get service ip or hostname: %w", err)
 				} else {
@@ -578,14 +586,16 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 			}
 
 			if err != nil {
-				service.setMessage(task.EndpointID, "Waiting for agent response", "Waiting for the Portainer agent service to be ready (attempt "+strconv.Itoa(task.Retries+1)+" of "+strconv.Itoa(maxAttempts)+")")
+				summary := "Waiting for agent response"
+				detail := "Waiting for the Portainer agent service to be ready (attempt " + strconv.Itoa(task.Retries+1) + " of " + strconv.Itoa(maxAttempts) + ")"
+				setMessage(summary, detail, "error")
 				err = checkFatal(err)
 				task.Retries++
 				break
 			}
-			err = kubeClient.CheckRunningPortainerAgentDeployment(task.NodeIPs)
+			err = kubeClient.CheckRunningPortainerAgentDeployment(task.MasterNodes)
 			if err != nil {
-				service.setMessage(task.EndpointID, "Waiting for agent response", "Waiting for the Portainer agent deployment to be ready (attempt "+strconv.Itoa(task.Retries+1)+" of "+strconv.Itoa(maxAttempts)+")")
+				setMessage("Waiting for agent response", "Waiting for the Portainer agent deployment to be ready (attempt "+strconv.Itoa(task.Retries+1)+" of "+strconv.Itoa(maxAttempts)+")", "processing")
 				err = checkFatal(err)
 				task.Retries++
 				break
@@ -597,9 +607,9 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				Str("service_ip", serviceIP).
 				Msg("portainer agent service is ready")
 
-			service.changeState(&task, ProvisioningStateUpdatingEndpoint, "Updating environment")
+			service.changeState(&task, ProvisioningStateUpdatingEnvironment, "Updating environment", "processing")
 
-		case ProvisioningStateUpdatingEndpoint:
+		case ProvisioningStateUpdatingEnvironment:
 			log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Msg("updating environment")
 			err = service.updateEndpoint(task.EndpointID, serviceIP)
 			if err != nil {
@@ -609,9 +619,9 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 
 			// If custom template is used, we need to deploy custom template
 			if task.CustomTemplateID != 0 {
-				service.changeState(&task, ProvisioningStateDeployingCustomTemplate, "Deploying Custom Template")
+				service.changeState(&task, ProvisioningStateDeployingCustomTemplate, "Deploying Custom Template", "processing")
 			} else {
-				service.changeState(&task, ProvisioningStateDone, "Connecting")
+				service.changeState(&task, ProvisioningStateDone, "Connecting", "processing")
 			}
 
 		case ProvisioningStateDeployingCustomTemplate:
@@ -624,7 +634,7 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 				}
 			}
 
-			service.changeState(&task, ProvisioningStateDone, "Connecting")
+			service.changeState(&task, ProvisioningStateDone, "Connecting", "processing")
 
 		case ProvisioningStateDone:
 			if err == nil {
@@ -661,7 +671,66 @@ func (service *CloudClusterSetupService) provisionKaasClusterTask(task portainer
 	}
 }
 
-func (service *CloudClusterSetupService) processRequest(request *portaineree.CloudProvisioningRequest) {
+func (service *CloudManagementService) processManagementRequest(request portaineree.CloudManagementRequest) {
+	// determine request type
+	switch r := request.(type) {
+	case *portaineree.CloudProvisioningRequest:
+		service.processCreateClusterRequest(r)
+
+	case portaineree.CloudScalingRequest:
+		service.processScalingRequest(r)
+
+	case *Microk8sUpdateAddonsRequest:
+		service.processMicrok8sUpdateAddonsRequest(r)
+
+	case portaineree.CloudUpgradeRequest:
+		service.processClusterUpgradeRequest(r)
+	}
+}
+
+func (service *CloudManagementService) processClusterUpgradeRequest(request portaineree.CloudUpgradeRequest) {
+	var err error
+	switch request.Provider() {
+	case portaineree.CloudProviderMicrok8s:
+		req := request.(*Microk8sUpgradeRequest)
+		go func() {
+			err = service.processMicrok8sUpgradeRequest(req)
+		}()
+
+	default:
+		log.Error().Str("provider", request.Provider()).Msg("upgrading not supported for provider")
+	}
+
+	if err != nil {
+		log.Error().Err(err).Str("provider", request.Provider()).Msg("failed to process cluster upgrade request")
+		return
+	}
+
+	log.Debug().Err(err).Msg("scaling request complete")
+}
+
+func (service *CloudManagementService) processScalingRequest(request portaineree.CloudScalingRequest) {
+	var err error
+	switch request.Provider() {
+	case portaineree.CloudProviderMicrok8s:
+		req := request.(*Microk8sScalingRequest)
+		go func() {
+			err = service.processMicrok8sScalingRequest(req)
+		}()
+
+	default:
+		log.Error().Str("provider", request.Provider()).Msg("scaling not supported for provider")
+	}
+
+	if err != nil {
+		log.Error().Err(err).Str("provider", request.Provider()).Msg("failed to process scaling request")
+		return
+	}
+
+	log.Debug().Err(err).Msg("scaling request complete")
+}
+
+func (service *CloudManagementService) processCreateClusterRequest(request *portaineree.CloudProvisioningRequest) {
 	log.Info().Str("provider", request.Provider).Str("agent_version", kubecli.DefaultAgentVersion).Msg("new cluster creation request received")
 
 	var credentials *models.CloudCredential
@@ -670,7 +739,6 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 		credentials, err = service.dataStore.CloudCredential().Read(request.CredentialID)
 		if err != nil {
 			log.Error().Err(err).Msg("unable to retrieve credentials from the database")
-
 			return
 		}
 	}
@@ -691,10 +759,11 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 		clusterID, provErr = service.PreinstalledAgentProvisionCluster(req)
 
 	case portaineree.CloudProviderMicrok8s:
-		req := Microk8sProvisioningClusterRequest{
+		req := mk8s.Microk8sProvisioningClusterRequest{
 			EnvironmentID:     request.EndpointID,
 			Credentials:       credentials,
-			NodeIps:           request.NodeIPs,
+			MasterNodes:       request.MasterNodes,
+			WorkerNodes:       request.WorkerNodes,
 			Addons:            request.Addons,
 			KubernetesVersion: request.KubernetesVersion,
 		}
@@ -780,7 +849,7 @@ func (service *CloudClusterSetupService) processRequest(request *portaineree.Clo
 	go service.provisionKaasClusterTask(task)
 }
 
-func (service *CloudClusterSetupService) processResult(result *cloudPrevisioningResult) {
+func (service *CloudManagementService) processResult(result *cloudPrevisioningResult) {
 	log.Info().Msg("cluster creation request completed")
 
 	if result.err != nil {
@@ -800,7 +869,7 @@ func (service *CloudClusterSetupService) processResult(result *cloudPrevisioning
 			}
 		}
 
-		err = service.setMessage(result.endpointID, result.errSummary, result.err.Error())
+		err = service.setMessageHandler(result.endpointID, "")(result.errSummary, result.err.Error(), "error")
 		if err != nil {
 			log.Error().Err(err).Msg("unable to update endpoint status message in database")
 		}
@@ -824,7 +893,7 @@ func (service *CloudClusterSetupService) processResult(result *cloudPrevisioning
 	}
 }
 
-func (service *CloudClusterSetupService) updateEndpoint(endpointID portaineree.EndpointID, url string) error {
+func (service *CloudManagementService) updateEndpoint(endpointID portaineree.EndpointID, url string) error {
 	endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
 	if err != nil {
 		return err

@@ -34,14 +34,15 @@ func TestChangeState(t *testing.T) {
 	snapshotService := new(MockedSnapshotService)
 	clientFactory := new(kubecli.ClientFactory)
 
-	requests := make(chan *portaineree.CloudProvisioningRequest, 10)
+	requests := make(chan portaineree.CloudManagementRequest, 10)
 	result := make(chan *cloudPrevisioningResult, 10)
 
 	tests := []struct {
-		endpoint *portaineree.Endpoint
-		task     *portaineree.CloudProvisioningTask
-		state    ProvisioningState
-		message  string
+		endpoint        *portaineree.Endpoint
+		task            *portaineree.CloudProvisioningTask
+		state           ProvisioningState
+		message         string
+		operationStatus string
 	}{
 		{
 			endpoint: &portaineree.Endpoint{},
@@ -50,8 +51,9 @@ func TestChangeState(t *testing.T) {
 				ClusterID:  "ID",
 				State:      int(ProvisioningStatePending),
 			},
-			state:   ProvisioningStateWaitingForCluster,
-			message: "Creating KaaS Cluster",
+			state:           ProvisioningStateWaitingForCluster,
+			message:         "Creating KaaS Cluster",
+			operationStatus: "processing",
 		},
 		{
 			endpoint: &portaineree.Endpoint{},
@@ -60,8 +62,9 @@ func TestChangeState(t *testing.T) {
 				ClusterID:  "",
 				State:      int(ProvisioningStatePending),
 			},
-			state:   ProvisioningStateAgentSetup,
-			message: "Deploying portainer agent",
+			state:           ProvisioningStateAgentSetup,
+			message:         "Deploying portainer agent",
+			operationStatus: "processing",
 		},
 		{
 			endpoint: &portaineree.Endpoint{},
@@ -70,8 +73,9 @@ func TestChangeState(t *testing.T) {
 				ClusterID:  "ID",
 				State:      int(ProvisioningStatePending),
 			},
-			state:   ProvisioningStateWaitingForAgent,
-			message: "Waiting for agent response",
+			state:           ProvisioningStateWaitingForAgent,
+			message:         "Waiting for agent response",
+			operationStatus: "processing",
 		},
 		{
 			endpoint: &portaineree.Endpoint{},
@@ -80,8 +84,9 @@ func TestChangeState(t *testing.T) {
 				ClusterID:  "ID",
 				State:      int(ProvisioningStatePending),
 			},
-			state:   ProvisioningStateUpdatingEndpoint,
-			message: "Updating environment",
+			state:           ProvisioningStateUpdatingEnvironment,
+			message:         "Updating environment",
+			operationStatus: "processing",
 		},
 		{
 			endpoint: &portaineree.Endpoint{},
@@ -90,8 +95,9 @@ func TestChangeState(t *testing.T) {
 				ClusterID:  "civoID",
 				State:      int(ProvisioningStatePending),
 			},
-			state:   ProvisioningStateDone,
-			message: "Connecting",
+			state:           ProvisioningStateDone,
+			message:         "Connecting",
+			operationStatus: "processing",
 		},
 	}
 
@@ -100,7 +106,7 @@ func TestChangeState(t *testing.T) {
 		endpoints = append(endpoints, *test.endpoint)
 		dataStore := testhelpers.NewDatastore(testhelpers.WithEndpoints(endpoints))
 
-		service := &CloudClusterSetupService{
+		service := &CloudManagementService{
 			dataStore:            dataStore,
 			shutdownCtx:          context.TODO(),
 			requests:             requests,
@@ -110,7 +116,7 @@ func TestChangeState(t *testing.T) {
 			clientFactory:        clientFactory,
 		}
 
-		service.changeState(test.task, test.state, test.message)
+		service.changeState(test.task, test.state, test.message, test.operationStatus)
 		if test.task.State != int(test.state) {
 			t.Error("failed setting task state in changeState")
 		}

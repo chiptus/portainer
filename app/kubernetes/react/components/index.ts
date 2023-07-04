@@ -7,7 +7,9 @@ import { NamespacesSelector } from '@/react/kubernetes/cluster/RegistryAccessVie
 import { withUIRouter } from '@/react-tools/withUIRouter';
 import { StorageAccessModeSelector } from '@/react/kubernetes/cluster/ConfigureView/StorageAccessModeSelector';
 import { NamespaceAccessUsersSelector } from '@/react/kubernetes/namespaces/AccessView/NamespaceAccessUsersSelector';
-import { Microk8sClusterDetails } from '@/react/kubernetes/cluster/Microk8sClusterDetails';
+import { Microk8sUpdateWidget } from '@/react/kubernetes/cluster/HomeView/Microk8sClusterDetails';
+import { Microk8sClusterDetails } from '@/react/portainer/environments/ItemView/Microk8sClusterDetails';
+import { NodesDatatable } from '@/react/kubernetes/cluster/HomeView/NodesDatatable';
 import { CreateNamespaceRegistriesSelector } from '@/react/kubernetes/namespaces/CreateView/CreateNamespaceRegistriesSelector';
 import { KubeApplicationAccessPolicySelector } from '@/react/kubernetes/applications/CreateView/KubeApplicationAccessPolicySelector';
 import { KubeServicesForm } from '@/react/kubernetes/applications/CreateView/application-services/KubeServicesForm';
@@ -72,8 +74,19 @@ export const ngModule = angular
     ])
   )
   .component(
+    'microk8sUpdateWidget',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(Microk8sUpdateWidget))), [])
+  )
+  .component(
     'microk8sClusterDetails',
-    r2a(withUIRouter(withReactQuery(Microk8sClusterDetails)), [])
+    r2a(
+      withUIRouter(withReactQuery(withCurrentUser(Microk8sClusterDetails))),
+      []
+    )
+  )
+  .component(
+    'kubeNodesDatatable',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(NodesDatatable))), [])
   )
   .component(
     'createNamespaceRegistriesSelector',

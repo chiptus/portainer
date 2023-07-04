@@ -13,89 +13,132 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/iprange"
 )
 
-const maxNodeLimit = 100
+type (
+	Microk8sTestSSHPayload struct {
+		Nodes        []string                 `validate:"required" json:"nodeIPs"`
+		CredentialID models.CloudCredentialID `validate:"required" json:"credentialID" example:"1"`
+	}
 
-type Microk8sTestSSHPayload struct {
-	NodeIPs      []string                 `validate:"required" json:"nodeIPs"`
-	CredentialID models.CloudCredentialID `validate:"required" example:"1"`
-}
+	Microk8sProvisionPayload struct {
+		MasterNodes       []string `validate:"required" json:"masterNodes"`
+		WorkerNodes       []string `json:"workerNodes"`
+		KubernetesVersion string   `validate:"required" json:"kubernetesVersion"`
+		Addons            []string `json:"addons"`
 
-type Microk8sProvisionPayload struct {
-	NodeIPs           []string `validate:"required" json:"nodeIPs"`
-	KubernetesVersion string   `validate:"required" json:"kubernetesVersion"`
-	Addons            []string `json:"addons"`
+		DefaultProvisionPayload
+	}
 
-	DefaultProvisionPayload
-}
+	Microk8sScaleClusterPayload struct {
+		MasterNodesToAdd []string `json:"masterNodesToAdd"`
+		WorkerNodesToAdd []string `json:"workerNodesToAdd"`
+		NodesToRemove    []string `json:"nodesToRemove"`
+	}
+
+	Microk8sUpdateAddonsPayload struct {
+		Addons []string `json:"addons"`
+	}
+)
 
 func (payload *Microk8sTestSSHPayload) Validate(r *http.Request) error {
-	ips, err := validateNodeIPs(payload.NodeIPs)
-	payload.NodeIPs = ips
-	return err
+	return validateNodes(payload.Nodes)
 }
 
-func validateNodeIPs(ipRanges []string) (nodeIPs []string, err error) {
-	if ipRanges != nil && len(ipRanges) == 0 {
-		return nil, errors.New("invalid count of node IPs")
+func (payload *Microk8sScaleClusterPayload) Validate(r *http.Request) error {
+	if len(payload.MasterNodesToAdd) >= 0 && len(payload.WorkerNodesToAdd) >= 0 {
+		nodes := append(payload.MasterNodesToAdd, payload.WorkerNodesToAdd...)
+		err := validateNodes(nodes)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
 
-	for _, entry := range ipRanges {
-		ipr, err := iprange.Parse(entry)
+	if len(payload.NodesToRemove) > 0 {
+		err := validateNodes(payload.NodesToRemove)
 		if err != nil {
-			return nil, fmt.Errorf("invalid ip or ip range '%s' error: %w", entry, err)
+			return err
 		}
 
-		if ipr.Validate() != nil {
-			return nil, err
+		return nil
+	}
+
+	return fmt.Errorf("invalid request payload, nodes to add or remove is empty")
+}
+
+func validateNodes(nodesOrNodeRanges []string) error {
+	// for each ip range, check whether it overlaps any other ip range provided
+	var ranges []iprange.IPRange
+	var errors []error
+
+	for _, node := range nodesOrNodeRanges {
+		// parse the ranges
+		r, err := iprange.Parse(node)
+		if err != nil {
+			if node == "" {
+				err = fmt.Errorf("node range cannot be empty")
+			} else if govalidator.IsHost(node) {
+				// TODO: future - support hostnames by skipping here
+				// skip hostnames
+				// 	continue
+				err = fmt.Errorf("parse %s failed, hostnames are not currently supported", node)
+			}
+
+			errors = append(errors, err)
 		}
 
-		ips := ipr.Expand()
+		// add parsed range to the list
+		ranges = append(ranges, r)
+	}
 
-		// Return an error if there are duplicates
-		for _, ip := range ips {
-			if strings.Contains(strings.Join(nodeIPs, ","), ip) {
-				return nil, fmt.Errorf("duplicate ip '%s' found", ip)
+	// check for range overlaps
+	for i, r1 := range ranges {
+		for j, r2 := range ranges {
+			// skip self
+			if i == j {
+				continue
+			}
+
+			if r1.Overlaps(r2) {
+				errors = append(errors, fmt.Errorf("node ranges overlap, %v and %v", r1, r2))
+				break
 			}
 		}
-
-		nodeIPs = append(nodeIPs, ips...)
 	}
 
-	if len(nodeIPs) > maxNodeLimit {
-		return nil, fmt.Errorf("too many nodes. Max %d nodes allowed", maxNodeLimit)
-	}
-
-	return nodeIPs, nil
-}
-
-func (payload *Microk8sProvisionPayload) Validate(r *http.Request) error {
-	if govalidator.IsNull(payload.Name) {
-		return errors.New("Invalid cluster name")
-	}
-
-	if payload.NodeIPs != nil && len(payload.NodeIPs) == 0 {
-		return errors.New("Invalid count of node IPs")
-	}
-
-	nodeips, err := validateNodeIPs(payload.NodeIPs)
-	if err != nil {
-		return err
-	}
-
-	payload.NodeIPs = nodeips
-	payload.NodeCount = len(nodeips)
-
-	if govalidator.IsNonPositive(float64(payload.CredentialID)) {
-		return errors.New("Invalid credentials")
+	if len(errors) > 0 {
+		return fmt.Errorf("invalid node address: %v", errors)
 	}
 
 	return nil
 }
 
-func (payload *Microk8sProvisionPayload) GetCloudProvider(_ string) (*portaineree.CloudProvider, error) {
+func (payload *Microk8sProvisionPayload) Validate(r *http.Request) error {
+	if govalidator.IsNull(payload.Name) {
+		return errors.New("invalid cluster name")
+	}
+
+	if govalidator.IsNonPositive(float64(payload.CredentialID)) {
+		return errors.New("invalid credentials")
+	}
+
+	if len(payload.MasterNodes) == 0 {
+		return errors.New("no master nodes specified")
+	}
+
+	nodes := append(payload.MasterNodes, payload.WorkerNodes...)
+	err := validateNodes(nodes)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (payload *Microk8sProvisionPayload) GetCloudProvider(string) (*portaineree.CloudProvider, error) {
 	cloudProvider, ok := types.CloudProvidersMap[types.CloudProviderShortName(portaineree.CloudProviderMicrok8s)]
 	if !ok {
-		return nil, errors.New("Invalid cloud provider")
+		return nil, errors.New("invalid cloud provider")
 	}
 
 	cloudProvider.CredentialID = payload.CredentialID
@@ -104,21 +147,38 @@ func (payload *Microk8sProvisionPayload) GetCloudProvider(_ string) (*portainere
 		addons := strings.Join(payload.Addons, ", ")
 		cloudProvider.Addons = &addons
 	}
-	if payload.NodeIPs != nil {
-		addons := strings.Join(payload.NodeIPs, ", ")
-		cloudProvider.NodeIPs = &addons
+
+	nodes := strings.Join(payload.MasterNodes, ",")
+	if len(payload.WorkerNodes) > 0 {
+		nodes = fmt.Sprintf("%s,%s", nodes, strings.Join(payload.WorkerNodes, ","))
 	}
+	cloudProvider.NodeIPs = &nodes
 	return &cloudProvider, nil
 }
 
 func (payload *Microk8sProvisionPayload) GetCloudProvisioningRequest(endpointID portaineree.EndpointID, _ string) *portaineree.CloudProvisioningRequest {
+
+	// nodes have been Parsed before inside Validate so skip the error check
+	var masters []string
+	for _, node := range payload.MasterNodes {
+		r, _ := iprange.Parse(node)
+		masters = append(masters, r.Expand()...)
+	}
+
+	var workers []string
+	for _, node := range payload.WorkerNodes {
+		r, _ := iprange.Parse(node)
+		workers = append(workers, r.Expand()...)
+	}
+
 	request := &portaineree.CloudProvisioningRequest{
 		EndpointID:            endpointID,
 		Provider:              portaineree.CloudProviderMicrok8s,
 		Name:                  payload.Name,
 		CredentialID:          payload.CredentialID,
 		NodeCount:             payload.NodeCount,
-		NodeIPs:               payload.NodeIPs,
+		MasterNodes:           masters,
+		WorkerNodes:           workers,
 		Addons:                payload.Addons,
 		CustomTemplateID:      payload.Meta.CustomTemplateID,
 		CustomTemplateContent: payload.Meta.CustomTemplateContent,
@@ -126,4 +186,8 @@ func (payload *Microk8sProvisionPayload) GetCloudProvisioningRequest(endpointID 
 	}
 
 	return request
+}
+
+func (payload *Microk8sUpdateAddonsPayload) Validate(r *http.Request) error {
+	return nil
 }

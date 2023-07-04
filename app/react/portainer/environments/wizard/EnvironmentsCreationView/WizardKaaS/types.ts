@@ -246,11 +246,6 @@ export interface Microk8sKaasInfo extends BaseKaasInfo {
   nodeIP1: string;
 }
 
-export type TestSSHConnectionResponse = {
-  address: string;
-  error?: string;
-}[];
-
 export type KaasInfo = APIKaasInfo | AzureKaasInfo | GKEKaasInfo | EKSKaasInfo;
 
 export function isAPIKaasInfo(kaasInfo: KaasInfo): kaasInfo is APIKaasInfo {

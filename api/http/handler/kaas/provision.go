@@ -8,15 +8,13 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/cloud"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/providers"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/types"
 	"github.com/portainer/portainer-ee/api/http/security"
-	"github.com/portainer/portainer-ee/api/internal/sshtest"
 	portainer "github.com/portainer/portainer/api"
 )
 
-// @id provisionKaaSClusterAzure
+// @id provisionClusterAzure
 // @summary Provision a new KaaS cluster on azure and create an environment
 // @description Provision a new KaaS cluster and create an environment.
 // @description **Access policy**: administrator
@@ -30,9 +28,9 @@ import (
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
-// @router /cloud/azure [post]
+// @router /cloud/azure/provision [post]
 
-// @id provisionKaaSClusterGKE
+// @id provisionClusterGKE
 // @summary Provision a new KaaS cluster on GKE and create an environment
 // @description Provision a new KaaS cluster and create an environment.
 // @description **Access policy**: administrator
@@ -46,9 +44,9 @@ import (
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
-// @router /cloud/gke [post]
+// @router /cloud/gke/provision [post]
 
-// @id provisionKaaSCluster
+// @id provisionCluster
 // @summary Provision a new KaaS cluster and create an environment
 // @description Provision a new KaaS cluster and create an environment.
 // @description **Access policy**: administrator
@@ -62,11 +60,11 @@ import (
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
-// @router /cloud/civo [post]
-// @router /cloud/digitalocean [post]
-// @router /cloud/linode [post]
+// @router /cloud/civo/provision [post]
+// @router /cloud/digitalocean/provision [post]
+// @router /cloud/linode/provision [post]
 
-func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+func (handler *Handler) provisionCluster(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	provider, err := request.RetrieveRouteVariableValue(r, "provider")
 	if err != nil {
 		return httperror.BadRequest("Invalid user identifier route variable", err)
@@ -92,22 +90,12 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 		err = request.DecodeAndValidateJSONPayload(r, &p)
 		payload = &p
 	case portaineree.CloudProviderMicrok8s:
-		var testssh bool
-		err = request.RetrieveJSONQueryParameter(r, "testssh", &testssh, true)
-		if err != nil {
-			return httperror.BadRequest("query parameter error", err)
-		}
-
-		if testssh {
-			return handler.sshTestNodeIPs(w, r)
-		}
-
 		var p providers.Microk8sProvisionPayload
 		err = request.DecodeAndValidateJSONPayload(r, &p)
 		payload = &p
 
 	default:
-		return httperror.BadRequest("Invalid request payload", fmt.Errorf("Invalid cloud provider: %s", provider))
+		return httperror.BadRequest("Invalid request payload", fmt.Errorf("invalid cloud provider: %s", provider))
 	}
 
 	if err != nil {
@@ -126,15 +114,15 @@ func (handler *Handler) provisionKaaSCluster(w http.ResponseWriter, r *http.Requ
 
 	// Prepare a new CloudProvisioningRequest
 	request := payload.GetCloudProvisioningRequest(endpoint.ID, provider)
+	request.CreatedByUserID = getUserID(r)
 
-	tokenData, err := security.RetrieveTokenData(r)
-	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve user details from authentication token", err)
-	}
-	request.CreatedByUserID = tokenData.ID
-
-	handler.cloudClusterSetupService.Request(request)
+	handler.cloudManagementService.SubmitRequest(request)
 	return response.JSON(w, endpoint)
+}
+
+func getUserID(r *http.Request) portaineree.UserID {
+	tokenData, _ := security.RetrieveTokenData(r)
+	return tokenData.ID
 }
 
 func (handler *Handler) createEndpoint(name string, provider portaineree.CloudProvider, metadata types.EnvironmentMetadata) (*portaineree.Endpoint, error) {
@@ -175,30 +163,4 @@ func (handler *Handler) createEndpoint(name string, provider portaineree.CloudPr
 	}
 
 	return endpoint, nil
-}
-
-func (handler *Handler) sshTestNodeIPs(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	var payload providers.Microk8sTestSSHPayload
-	err := request.DecodeAndValidateJSONPayload(r, &payload)
-	if err != nil {
-		return httperror.BadRequest("Invalid request payload", err)
-	}
-
-	credentials, err := handler.dataStore.CloudCredential().Read(payload.CredentialID)
-	if err != nil {
-		return httperror.InternalServerError("unable to read credentials from the database", err)
-	}
-
-	// get ip ranges and run ssh tests
-	config, err := cloud.NewSSHConfig(
-		credentials.Credentials["username"],
-		credentials.Credentials["password"],
-		credentials.Credentials["passphrase"],
-		credentials.Credentials["privateKey"],
-	)
-	if err != nil {
-		return httperror.InternalServerError("unable to create ssh config with given credentials", err)
-	}
-	results := sshtest.SSHTest(config, payload.NodeIPs)
-	return response.JSON(w, results)
 }

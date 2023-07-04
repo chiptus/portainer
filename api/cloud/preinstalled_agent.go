@@ -9,7 +9,7 @@ type PreinstalledAgentProvisioningClusterRequest struct {
 	EnvironmentID portaineree.EndpointID `json:"environmentID"`
 }
 
-func (service *CloudClusterSetupService) PreinstalledAgentProvisionCluster(req PreinstalledAgentProvisioningClusterRequest) (string, error) {
+func (service *CloudManagementService) PreinstalledAgentProvisionCluster(req PreinstalledAgentProvisioningClusterRequest) (string, error) {
 	// The agent is already installed so we don't really need to do anything here.
 	uid, err := uuid.NewV4()
 	if err != nil {
@@ -18,7 +18,7 @@ func (service *CloudClusterSetupService) PreinstalledAgentProvisionCluster(req P
 	return uid.String(), nil
 }
 
-func (service *CloudClusterSetupService) PreinstalledAgentGetCluster(id string) (*KaasCluster, error) {
+func (service *CloudManagementService) PreinstalledAgentGetCluster(id string) (*KaasCluster, error) {
 	return &KaasCluster{
 		Id:    id,
 		Ready: true,

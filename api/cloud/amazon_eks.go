@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (service *CloudClusterInfoService) AmazonEksGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
+func (service *CloudInfoService) AmazonEksGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
 	log.Debug().Str("provider", portaineree.CloudProviderAmazon).Msg("cluster get info request started")
 
 	cacheKey := fmt.Sprintf("%s_%d", portaineree.CloudProviderAmazon, credential.ID)
@@ -42,7 +42,7 @@ func (service *CloudClusterInfoService) AmazonEksGetInfo(credential *models.Clou
 	return &info, nil
 }
 
-func (service *CloudClusterInfoService) eksFetchRefresh(accessKeyId, secretAccessKey, cacheKey string) error {
+func (service *CloudInfoService) eksFetchRefresh(accessKeyId, secretAccessKey, cacheKey string) error {
 	info, err := service.AmazonEksFetchInfo(accessKeyId, secretAccessKey)
 	if err != nil {
 		return err
@@ -55,11 +55,11 @@ func (service *CloudClusterInfoService) eksFetchRefresh(accessKeyId, secretAcces
 	return nil
 }
 
-func (service *CloudClusterInfoService) AmazonEksFetchInfo(accessKeyId, secretAccessKey string) (*eks.EksInfo, error) {
+func (service *CloudInfoService) AmazonEksFetchInfo(accessKeyId, secretAccessKey string) (*eks.EksInfo, error) {
 	return eks.FetchInfo(accessKeyId, secretAccessKey)
 }
 
-func (service *CloudClusterSetupService) AmazonEksGetCluster(credentials models.CloudCredentialMap, name, region string) (*KaasCluster, error) {
+func (service *CloudManagementService) AmazonEksGetCluster(credentials models.CloudCredentialMap, name, region string) (*KaasCluster, error) {
 	log.Info().Str("provider", portaineree.CloudProviderAmazon).Str("name", name).Str("region", region).Msg("eks get cluster request received")
 
 	accessKeyId := credentials["accessKeyId"]
@@ -86,7 +86,7 @@ func (service *CloudClusterSetupService) AmazonEksGetCluster(credentials models.
 	return kaasCluster, nil
 }
 
-func (service *CloudClusterSetupService) AmazonEksProvisionCluster(credentials models.CloudCredentialMap, request *portaineree.CloudProvisioningRequest) (string, error) {
+func (service *CloudManagementService) AmazonEksProvisionCluster(credentials models.CloudCredentialMap, request *portaineree.CloudProvisioningRequest) (string, error) {
 	accessKeyId := credentials["accessKeyId"]
 	secretAccessKey := credentials["secretAccessKey"]
 

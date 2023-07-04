@@ -1,29 +1,8 @@
 import { useState } from 'react';
-import { useFormikContext } from 'formik';
 
-import { TextArea } from '@@/form-components/Input/Textarea';
+import { TestSSHConnectionResponse } from '@/react/kubernetes/cluster/microk8s/microk8s.service';
+
 import { Button } from '@@/buttons';
-
-import { K8sInstallFormValues } from '../types';
-import { TestSSHConnectionResponse } from '../../WizardKaaS/types';
-
-// this input is part of a formik form. When the text area is changed, the textbox string is separated into an array of strings by new line and comma separators.
-// This array is set as the 'microk8s.nodeIPs' formik value
-export function NodeAddressInput() {
-  const { values, setFieldValue } = useFormikContext<K8sInstallFormValues>();
-  return (
-    <div>
-      <TextArea
-        className="min-h-[150px] resize-y"
-        value={values.microk8s.nodeIPs.join('\n')} // display the text area as a string with each new ip address/entry on a new line
-        onChange={(e) => {
-          const nodeIpArrayFromString = e.target.value.split('\n');
-          setFieldValue('microk8s.nodeIPs', nodeIpArrayFromString);
-        }}
-      />
-    </div>
-  );
-}
 
 type NodeAddressErrorsProps = {
   failedAddressResults: TestSSHConnectionResponse;

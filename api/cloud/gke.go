@@ -17,7 +17,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-func (service *CloudClusterInfoService) GKEGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
+func (service *CloudInfoService) GKEGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
 	log.Info().Str("provider", portaineree.CloudProviderGKE).Msg("processing get info request")
 
 	apiKey, ok := credential.Credentials["jsonKeyBase64"]
@@ -46,7 +46,7 @@ func (service *CloudClusterInfoService) GKEGetInfo(credential *models.CloudCrede
 	return &info, nil
 }
 
-func (service *CloudClusterInfoService) gkeFetchRefresh(apiKey, cacheKey string) error {
+func (service *CloudInfoService) gkeFetchRefresh(apiKey, cacheKey string) error {
 	log.Info().Str("provider", portaineree.CloudProviderGKE).Msg("processing fetch info request")
 
 	info, err := service.GKEFetchInfo(apiKey)
@@ -60,7 +60,7 @@ func (service *CloudClusterInfoService) gkeFetchRefresh(apiKey, cacheKey string)
 	return nil
 }
 
-func (service *CloudClusterInfoService) GKEFetchInfo(apiKey string) (*gke.Info, error) {
+func (service *CloudInfoService) GKEFetchInfo(apiKey string) (*gke.Info, error) {
 	log.Debug().Str("provider", "GKE").Msg("sending cloud provider info request")
 
 	key, err := gke.ExtractKey(apiKey)
@@ -127,7 +127,7 @@ func (service *CloudClusterInfoService) GKEFetchInfo(apiKey string) (*gke.Info, 
 	return gkeInfo, nil
 }
 
-func (service *CloudClusterSetupService) GKEGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
+func (service *CloudManagementService) GKEGetCluster(apiKey, clusterID, region string) (*KaasCluster, error) {
 	log.Debug().
 		Str("provider", "GKE").
 		Str("cluster_id", clusterID).
@@ -168,7 +168,7 @@ func (service *CloudClusterSetupService) GKEGetCluster(apiKey, clusterID, region
 	return kaasCluster, err
 }
 
-func (service *CloudClusterSetupService) GKEProvisionCluster(r gke.ProvisionRequest) (string, error) {
+func (service *CloudManagementService) GKEProvisionCluster(r gke.ProvisionRequest) (string, error) {
 	log.Debug().
 		Str("provider", "GKE").
 		Str("cluster", r.ClusterName).

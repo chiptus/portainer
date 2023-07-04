@@ -20,7 +20,7 @@ import (
 // CloudProviderAmazon       = "amazon"
 type CloudProvider string
 
-type CloudClusterInfoService struct {
+type CloudInfoService struct {
 	dataStore   dataservices.DataStore
 	shutdownCtx context.Context
 	update      chan struct{}
@@ -28,11 +28,11 @@ type CloudClusterInfoService struct {
 	mu          sync.Mutex
 }
 
-func NewCloudInfoService(dataStore dataservices.DataStore, shutdownCtx context.Context) *CloudClusterInfoService {
+func NewCloudInfoService(dataStore dataservices.DataStore, shutdownCtx context.Context) *CloudInfoService {
 	update := make(chan struct{})
 	info := make(map[string]interface{})
 
-	return &CloudClusterInfoService{
+	return &CloudInfoService{
 		dataStore:   dataStore,
 		shutdownCtx: shutdownCtx,
 		update:      update,
@@ -40,7 +40,7 @@ func NewCloudInfoService(dataStore dataservices.DataStore, shutdownCtx context.C
 	}
 }
 
-func (service *CloudClusterInfoService) tryUpdate() {
+func (service *CloudInfoService) tryUpdate() {
 	credentials, err := service.dataStore.CloudCredential().ReadAll()
 	if err != nil {
 		log.Error().Err(err).Msg("while fetching cloud credentials")
@@ -84,11 +84,11 @@ func (service *CloudClusterInfoService) tryUpdate() {
 }
 
 // Update schedules an update to the cache.
-func (service *CloudClusterInfoService) Update() {
+func (service *CloudInfoService) Update() {
 	service.update <- struct{}{}
 }
 
-func (service *CloudClusterInfoService) Start() {
+func (service *CloudInfoService) Start() {
 	go func() {
 		time.Sleep(2 * time.Second)
 

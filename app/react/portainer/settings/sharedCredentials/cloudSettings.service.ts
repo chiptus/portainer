@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from 'react-query';
 
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 import { success as notifySuccess } from '@/portainer/services/notifications';
+import { withError } from '@/react-tools/react-query';
 
 import {
   CreateCredentialPayload,
@@ -104,12 +105,8 @@ export function useDeleteCredentialMutation() {
 export function useCloudCredential(id: number) {
   return useQuery(queryKeys.credential(id), () => getCloudCredential(id), {
     cacheTime: 0, // don't cache to make sure the Use SSH key authentication is correctly set
-    meta: {
-      error: {
-        title: 'Failure',
-        message: 'Unable to retrieve cloud credential',
-      },
-    },
+    enabled: id >= 0,
+    ...withError('Unable to retrieve cloud credential'),
   });
 }
 

@@ -1,16 +1,15 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useFormikContext } from 'formik';
 import { Plus } from 'lucide-react';
 import { isEqual } from 'lodash';
 
-import { usePublicSettings } from '@/react/portainer/settings/queries';
-import { trackEvent } from '@/angulartics.matomo/analytics-services';
+import { TestSSHConnectionResponse } from '@/react/kubernetes/cluster/microk8s/microk8s.service';
+import { useAnalytics } from '@/react/hooks/useAnalytics';
 
 import { LoadingButton } from '@@/buttons/LoadingButton';
 import { FormSection } from '@@/form-components/FormSection';
 
 import { K8sDistributionType, K8sInstallFormValues } from '../types';
-import { TestSSHConnectionResponse } from '../../WizardKaaS/types';
 
 interface Props {
   isSubmitting: boolean;
@@ -28,15 +27,26 @@ export function Microk8sActions({
   addressResults,
   isSSHTestSuccessful,
 }: Props) {
-  const settingsQuery = usePublicSettings();
+  const { trackEvent } = useAnalytics();
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const { values, isValid, submitForm } =
     useFormikContext<K8sInstallFormValues>();
 
-  const isCurrentValuesTested = isEqual(
-    testedAddressList.filter((ip) => ip),
-    values.microk8s.nodeIPs.filter((ip) => ip).map((ip) => ip.trim())
-  );
+  const isCurrentValuesTested = useMemo(() => {
+    const allNodeIPs = [
+      ...values.microk8s.masterNodes,
+      ...values.microk8s.workerNodes,
+    ];
+    return isEqual(
+      testedAddressList.filter((ip) => ip),
+      allNodeIPs.filter((ip) => ip).map((ip) => ip.trim())
+    );
+  }, [
+    testedAddressList,
+    values.microk8s.masterNodes,
+    values.microk8s.workerNodes,
+  ]);
+
   const isCurrentValuesFailed =
     isSSHTestSuccessful === false && isCurrentValuesTested;
 
@@ -52,34 +62,34 @@ export function Microk8sActions({
           loadingText="Provision in progress..."
           icon={Plus}
           className="!ml-0"
-          onClick={async () => {
-            // if already tested and successful, submit form
-            if (isCurrentValuesTested && isSSHTestSuccessful) {
-              sendAnalytics(addressResults.length);
-              submitForm();
-              return;
-            }
-            // otherwise, test connection and submit form if the test is successful
-            try {
-              setIsTestingConnection(true);
-              const [isTestConnectionSuccessful, nodeCount] =
-                await handleTestConnection();
-              if (isTestConnectionSuccessful) {
-                submitForm();
-                if (settingsQuery.data?.EnableTelemetry) {
-                  sendAnalytics(nodeCount);
-                }
-              }
-            } finally {
-              setIsTestingConnection(false);
-            }
-          }}
+          onClick={async () => handleProvision()}
         >
           Provision environment
         </LoadingButton>
       </div>
     </FormSection>
   );
+
+  async function handleProvision() {
+    // if already tested and successful, submit form
+    if (isCurrentValuesTested && isSSHTestSuccessful) {
+      sendAnalytics(addressResults.length);
+      submitForm();
+      return;
+    }
+    // otherwise, test connection and submit form if the test is successful
+    try {
+      setIsTestingConnection(true);
+      const [isTestConnectionSuccessful, nodeCount] =
+        await handleTestConnection();
+      if (isTestConnectionSuccessful) {
+        submitForm();
+        sendAnalytics(nodeCount);
+      }
+    } finally {
+      setIsTestingConnection(false);
+    }
+  }
 
   function sendAnalytics(nodeCount: number) {
     trackEvent('portainer-endpoint-creation', {

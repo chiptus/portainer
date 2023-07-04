@@ -46,7 +46,7 @@ export function SSHKeyGenerationModal({
               </p>
             </div>
           }
-          className="flex items-center [&>div]:!pr-0 [&>label]:mb-0 [&>label]:pl-0"
+          className="flex items-center [&>label]:mb-0 [&>label]:pl-0 [&>div]:!pr-0"
         >
           <Input
             name="generate-ssh-passphrase"

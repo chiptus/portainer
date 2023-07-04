@@ -138,6 +138,7 @@ type (
 
 	// CloudProvider represents a Kubernetes as a service cloud provider.
 	CloudProvider struct {
+		Provider  string   `json:"Provider"`
 		Name      string   `json:"Name"`
 		URL       string   `json:"URL"`
 		Region    string   `json:"Region"`
@@ -559,8 +560,14 @@ type (
 	// EndpointStatusMessage represents the current status of a provisioning or
 	// failed endpoint.
 	EndpointStatusMessage struct {
-		Summary string `json:"Summary"`
-		Detail  string `json:"Detail"`
+		Summary string `json:"summary"`
+		Detail  string `json:"detail"`
+
+		// TODO: in future versions, we should think about removing these fields and
+		// create a separate bucket to store cluster operation messages instead or try to find a better way.
+		// Operation/OperationStatus blank means, nothing is happening
+		Operation       string `json:"operation"`       // ,scale,upgrade,addons
+		OperationStatus string `json:"operationStatus"` // ,processing,error
 	}
 
 	// EndpointSyncJob represents a scheduled job that synchronize environments(endpoints) based on an external file
@@ -1152,6 +1159,8 @@ type (
 		GKEApiKey         string `json:"GKEApiKey" example:"an entire base64ed key file"`
 	}
 
+	CloudManagementRequest interface{}
+
 	// CloudProvisioningRequest represents a requested Cloud Kubernetes Cluster
 	// which should be executed to create a CloudProvisioningTask.
 	CloudProvisioningRequest struct {
@@ -1189,8 +1198,9 @@ type (
 		NodeVolumeSize int
 
 		// Microk8S specific fields
-		NodeIPs []string
-		Addons  []string
+		MasterNodes []string
+		WorkerNodes []string
+		Addons      []string
 
 		CustomTemplateID      CustomTemplateID
 		CustomTemplateContent string
@@ -1198,6 +1208,15 @@ type (
 		// --- Common portainer internal fields ---
 		// the userid of the user who created this request.
 		CreatedByUserID UserID
+	}
+
+	CloudScalingRequest interface {
+		Provider() string
+		String() string
+	}
+
+	CloudUpgradeRequest interface {
+		Provider() string
 	}
 
 	// CloudProvisioningID represents a cloud provisioning identifier
@@ -1224,7 +1243,8 @@ type (
 		ResourceGroup string
 
 		// Microk8s specific fields
-		NodeIPs []string
+		MasterNodes []string
+		WorkerNodes []string
 	}
 
 	// GlobalDeploymentOptions hides manual deployment forms globally, to enforce infrastructure as code practices

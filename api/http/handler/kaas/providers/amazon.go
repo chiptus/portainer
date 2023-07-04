@@ -23,25 +23,25 @@ type AmazonProvisionPayload struct {
 func (payload *AmazonProvisionPayload) Validate(r *http.Request) error {
 
 	if govalidator.IsNull(payload.Name) {
-		return errors.New("Invalid cluster name")
+		return errors.New("invalid cluster name")
 	}
 	if payload.NodeCount < 1 {
-		return errors.New("Invalid node count")
+		return errors.New("invalid node count")
 	}
 	if govalidator.IsNull(payload.Region) {
-		return errors.New("Invalid region")
+		return errors.New("invalid region")
 	}
 	if govalidator.IsNonPositive(float64(payload.CredentialID)) {
-		return errors.New("Invalid credentials")
+		return errors.New("invalid credentials")
 	}
 	if govalidator.IsNull(payload.AmiType) {
-		return errors.New("Invalid AMI type")
+		return errors.New("invalid AMI type")
 	}
 	if govalidator.IsNull(payload.InstanceType) {
-		return errors.New("Invalid instance type")
+		return errors.New("invalid instance type")
 	}
 	if payload.NodeVolumeSize != nil && !govalidator.InRange(float64(*payload.NodeVolumeSize), 1, 16384) {
-		return errors.New("Node volume size out of range")
+		return errors.New("node volume size out of range")
 	}
 
 	return nil
@@ -50,7 +50,7 @@ func (payload *AmazonProvisionPayload) Validate(r *http.Request) error {
 func (payload *AmazonProvisionPayload) GetCloudProvider(_ string) (*portaineree.CloudProvider, error) {
 	cloudProvider, ok := types.CloudProvidersMap[types.CloudProviderShortName(portaineree.CloudProviderAmazon)]
 	if !ok {
-		return nil, errors.New("Invalid cloud provider")
+		return nil, errors.New("invalid cloud provider")
 	}
 
 	cloudProvider.Region = payload.Region

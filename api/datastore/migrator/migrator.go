@@ -255,7 +255,8 @@ func (m *Migrator) initMigrations() {
 		m.assignEdgeGroupsToEdgeUpdatesForDB100,
 		m.rebuildEdgeStackFileSystemWithVersionForDB100,
 		m.updateTunnelServerAddressForDB100,
-	)
+		m.updateCloudProviderForDB100,
+		m.enableCommunityAddonForDB100)
 
 	// Add new migrations above...
 

@@ -171,7 +171,7 @@ users:
 		{
 			input: []byte(``),
 			want:  "",
-			err:   errors.New("Missing or invalid kubeconfig"),
+			err:   errors.New("missing or invalid kubeconfig"),
 		},
 		{
 			input: []byte("\t"),

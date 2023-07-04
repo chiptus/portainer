@@ -13,13 +13,13 @@ func _() {
 	_ = x[ProvisioningStateDeployingCustomTemplate-2]
 	_ = x[ProvisioningStateAgentSetup-3]
 	_ = x[ProvisioningStateWaitingForAgent-4]
-	_ = x[ProvisioningStateUpdatingEndpoint-5]
+	_ = x[ProvisioningStateUpdatingEnvironment-5]
 	_ = x[ProvisioningStateDone-6]
 }
 
-const _ProvisioningState_name = "PendingWaitingForClusterProvisioningStateDeployingCustomTemplateAgentSetupWaitingForAgentUpdatingEndpointDone"
+const _ProvisioningState_name = "PendingWaitingForClusterDeployingCustomTemplateAgentSetupWaitingForAgentUpdatingEnvironmentDone"
 
-var _ProvisioningState_index = [...]uint8{0, 7, 24, 53, 63, 78, 94, 98}
+var _ProvisioningState_index = [...]uint8{0, 7, 24, 47, 57, 72, 91, 95}
 
 func (i ProvisioningState) String() string {
 	if i < 0 || i >= ProvisioningState(len(_ProvisioningState_index)-1) {

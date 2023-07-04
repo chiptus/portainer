@@ -16,7 +16,7 @@ enum DimensionConfig {
   PortainerEndpointUserRole,
 }
 
-interface TrackEventProps {
+export interface TrackEventProps {
   category: Category;
   metadata?: Record<string, unknown>;
   value?: string | number;

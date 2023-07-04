@@ -2,7 +2,6 @@ import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useEnvironment } from '@/react/portainer/environments/queries';
 
 import { TextTip } from '@@/Tip/TextTip';
-import { WidgetBody } from '@@/Widget';
 
 export function ErrorStatus() {
   const environmentId = useEnvironmentId();
@@ -13,13 +12,11 @@ export function ErrorStatus() {
   }
 
   return (
-    <WidgetBody>
-      <TextTip childrenWrapperClassName="ml-2 text-muted" color="red">
-        {environment?.StatusMessage.Summary && (
-          <div className="font-medium">{environment.StatusMessage.Summary}</div>
-        )}
-        {environment?.StatusMessage.Detail}
-      </TextTip>
-    </WidgetBody>
+    <TextTip childrenWrapperClassName="ml-2 text-muted" color="red">
+      {environment?.StatusMessage.summary && (
+        <div className="font-medium">{environment.StatusMessage.summary}</div>
+      )}
+      {environment?.StatusMessage.detail}
+    </TextTip>
   );
 }

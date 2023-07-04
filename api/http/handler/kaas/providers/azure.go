@@ -31,16 +31,16 @@ func (payload *AzureProvisionPayload) Validate(r *http.Request) error {
 	}
 
 	if govalidator.IsNull(payload.Tier) {
-		return errors.New("Invalid resource tier")
+		return errors.New("invalid resource tier")
 	}
 	if govalidator.IsNull(payload.PoolName) {
-		return errors.New("Invalid pool name")
+		return errors.New("invalid pool name")
 	}
 	if govalidator.IsNull(payload.DNSPrefix) {
-		return errors.New("Invalid DNS prefix")
+		return errors.New("invalid DNS prefix")
 	}
 	if govalidator.IsNull(payload.ResourceGroupName) && govalidator.IsNull(payload.ResourceGroup) {
-		return errors.New("Either choose a resource group or a resource group name")
+		return errors.New("either choose a resource group or a resource group name")
 	}
 
 	return nil
@@ -49,7 +49,7 @@ func (payload *AzureProvisionPayload) Validate(r *http.Request) error {
 func (payload *AzureProvisionPayload) GetCloudProvider(_ string) (*portaineree.CloudProvider, error) {
 	cloudProvider, ok := types.CloudProvidersMap[types.CloudProviderShortName(portaineree.CloudProviderAzure)]
 	if !ok {
-		return nil, errors.New("Invalid cloud provider")
+		return nil, errors.New("invalid cloud provider")
 	}
 
 	log.Info().Str("provider", cloudProvider.Name).Msg("cloud provider")

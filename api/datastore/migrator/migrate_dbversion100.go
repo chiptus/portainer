@@ -1,11 +1,16 @@
 package migrator
 
 import (
+	"bytes"
 	"fmt"
 	"net"
+	"os"
 	"strconv"
+	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	mk8s "github.com/portainer/portainer-ee/api/cloud/microk8s"
+	sshUtil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
 	"github.com/portainer/portainer-ee/api/internal/url"
 	"github.com/rs/zerolog/log"
 )
@@ -146,4 +151,122 @@ func (migrator *Migrator) updateTunnelServerAddressForDB100() error {
 	}
 
 	return migrator.settingsService.UpdateSettings(settings)
+}
+
+func (m *Migrator) updateCloudProviderForDB100() error {
+	// get all environments
+	environments, err := m.endpointService.Endpoints()
+	if err != nil {
+		return err
+	}
+
+	// The Name field which is used for display was stored, but not the provider.
+	// We need to store an unchangeable provider label whose value should never be changed.
+	// Also Digital Ocean was missing a space between the words.
+	for _, env := range environments {
+		if env.CloudProvider != nil {
+			switch env.CloudProvider.Name {
+			case "Civo":
+				env.CloudProvider.Provider = portaineree.CloudProviderCivo
+			case "Linode":
+				env.CloudProvider.Provider = portaineree.CloudProviderLinode
+			case "DigitalOcean":
+				env.CloudProvider.Name = "Digital Ocean"
+				env.CloudProvider.Provider = portaineree.CloudProviderDigitalOcean
+			case "Google Cloud Platform":
+				env.CloudProvider.Provider = portaineree.CloudProviderGKE
+			case "Azure":
+				env.CloudProvider.Provider = portaineree.CloudProviderAzure
+			case "Amazon":
+				env.CloudProvider.Provider = portaineree.CloudProviderAmazon
+			case "MicroK8s":
+				env.CloudProvider.Provider = portaineree.CloudProviderMicrok8s
+			}
+
+			err = m.endpointService.UpdateEndpoint(env.ID, &env)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (m *Migrator) enableCommunityAddonForDB100() error {
+	log.Info().Msg("enable `community` addon on all MicroK8s master nodes")
+
+	// get all environments
+	environments, err := m.endpointService.Endpoints()
+	if err != nil {
+		return err
+	}
+
+	for _, env := range environments {
+		if env.CloudProvider != nil {
+			if env.CloudProvider.Provider == portaineree.CloudProviderMicrok8s {
+				nodeIP, _, _ := strings.Cut(env.URL, ":")
+
+				credential, err := m.cloudCredentialService.Read(env.CloudProvider.CredentialID)
+				if err != nil {
+					log.Error().Err(err).Msgf("unable to retrieve SSH credential information for MicroK8s environment %s", env.URL)
+					continue
+				}
+
+				// Get all the Nodes
+				// Create ssh client with one of the master nodes.
+				sshClient, err := sshUtil.NewConnection(
+					credential.Credentials["username"],
+					credential.Credentials["password"],
+					credential.Credentials["passphrase"],
+					credential.Credentials["privateKey"],
+					nodeIP,
+				)
+				if err != nil {
+					log.Error().Err(err).Msgf("failed creating ssh client for node %s", nodeIP)
+					continue
+				}
+				defer sshClient.Close()
+
+				var respNodes bytes.Buffer
+				if err = sshClient.RunCommand(
+					"microk8s kubectl get nodes -o json",
+					&respNodes,
+				); err != nil {
+					log.Error().Err(err).Msg("failed to run ssh command on node")
+					continue
+				}
+				nodeIps, err := mk8s.ParseKubernetesNodes(respNodes.Bytes())
+				if err != nil {
+					log.Error().Err(err).Msg("failed to get the kubernetes node addresses")
+					continue
+				}
+
+				for _, node := range nodeIps {
+					if node.IsMaster {
+						sshClientForNode, err := sshUtil.NewConnection(
+							credential.Credentials["username"],
+							credential.Credentials["password"],
+							credential.Credentials["passphrase"],
+							credential.Credentials["privateKey"],
+							node.IP,
+						)
+						if err != nil {
+							log.Error().Err(err).Msgf("failed to create ssh client for node %s (IP %s)", node.HostName, node.IP)
+							continue
+						}
+						if err = sshClientForNode.RunCommand(
+							"microk8s enable community",
+							os.Stdout,
+						); err != nil {
+							log.Error().Err(err).Msgf("while disabling addon community on node %s (IP %s)", node.HostName, node.IP)
+						}
+						sshClientForNode.Close()
+					}
+				}
+			}
+		}
+	}
+
+	return nil
 }

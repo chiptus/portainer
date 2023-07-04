@@ -21,7 +21,7 @@ function Example() {
           {
             label: 'endpointName',
             link: 'portainer.endpoints.endpoint',
-            linkParams: { id: 5 },
+            linkParams: { endpointId: 5 },
           },
           { label: 'String item' },
         ]}
