@@ -24,7 +24,6 @@ export default class CreateEdgeStackViewController {
       SaveCredential: true,
       RepositoryGitCredentialID: 0,
       NewCredentialName: '',
-      Env: [],
       ComposeFilePathInRepository: '',
       Groups: [],
       DeploymentType: EditorType.Compose,
@@ -39,6 +38,7 @@ export default class CreateEdgeStackViewController {
       SupportRelativePath: false,
       FilesystemPath: '',
       versions: [1],
+      envVars: [],
     };
 
     this.EditorType = EditorType;
@@ -74,6 +74,13 @@ export default class CreateEdgeStackViewController {
     this.onChangePrePullImage = this.onChangePrePullImage.bind(this);
     this.onChangeRetryDeploy = this.onChangeRetryDeploy.bind(this);
     this.onChangeWebhookState = this.onChangeWebhookState.bind(this);
+    this.onEnvVarChange = this.onEnvVarChange.bind(this);
+  }
+
+  onEnvVarChange(envVars) {
+    return this.$scope.$evalAsync(() => {
+      this.formValues.envVars = envVars;
+    });
   }
 
   buildAnalyticsProperties() {
@@ -286,7 +293,7 @@ export default class CreateEdgeStackViewController {
   }
 
   createStackFromFileContent(name, dryrun) {
-    const { StackFileContent, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy, webhookEnabled } = this.formValues;
+    const { StackFileContent, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy, webhookEnabled, envVars } = this.formValues;
 
     let webhookId = '';
     if (webhookEnabled) {
@@ -304,13 +311,14 @@ export default class CreateEdgeStackViewController {
         PrePullImage,
         RetryDeploy,
         webhook: webhookId,
+        envVars,
       },
       dryrun
     );
   }
 
   createStackFromFileUpload(name, dryrun) {
-    const { StackFile, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy, webhookEnabled } = this.formValues;
+    const { StackFile, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy, webhookEnabled, envVars } = this.formValues;
     let webhookId = '';
     if (webhookEnabled) {
       webhookId = this.state.webhookId;
@@ -326,6 +334,7 @@ export default class CreateEdgeStackViewController {
         PrePullImage,
         RetryDeploy,
         webhook: webhookId,
+        envVars,
       },
       StackFile,
       dryrun
@@ -333,7 +342,7 @@ export default class CreateEdgeStackViewController {
   }
 
   async createStackFromGitRepository(name) {
-    const { Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy, SupportRelativePath, FilesystemPath } = this.formValues;
+    const { Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy, SupportRelativePath, FilesystemPath, envVars } = this.formValues;
 
     if (this.formValues.SaveCredential && this.formValues.NewCredentialName) {
       const userDetails = this.Authentication.getUserDetails();
@@ -370,6 +379,7 @@ export default class CreateEdgeStackViewController {
         AutoUpdate: autoUpdate,
         SupportRelativePath: SupportRelativePath,
         FilesystemPath: FilesystemPath,
+        envVars,
       },
       repositoryOptions
     );

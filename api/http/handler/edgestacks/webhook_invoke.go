@@ -2,10 +2,12 @@ package edgestacks
 
 import (
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/portainer/libhttp/response"
+	portainer "github.com/portainer/portainer/api"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 
@@ -41,7 +43,9 @@ func (handler *Handler) webhookInvoke(w http.ResponseWriter, r *http.Request) *h
 		return httperror.NotFound("Unable to find edge stack with the specified webhook id", nil)
 	}
 
-	if err = handler.gitAutoUpdate(edgeStack.ID); err != nil {
+	envVars := parseQuery(r.URL.Query())
+
+	if err = handler.autoUpdate(edgeStack.ID, envVars); err != nil {
 		log.Error().Err(err).Msg("failed to update the stack")
 
 		return httperror.InternalServerError("Failed to update the stack", err)
@@ -81,4 +85,15 @@ func (handler *Handler) edgeStackByWebhook(webhookID string) (*portaineree.EdgeS
 	}
 
 	return nil, nil
+}
+
+func parseQuery(query url.Values) []portainer.Pair {
+	envVars := make([]portainer.Pair, 0)
+	for key, value := range query {
+		val := value[len(value)-1]
+
+		envVars = append(envVars, portainer.Pair{Name: key, Value: val})
+	}
+
+	return envVars
 }

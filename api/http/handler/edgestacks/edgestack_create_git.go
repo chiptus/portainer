@@ -14,6 +14,7 @@ import (
 	"github.com/portainer/portainer-ee/api/git/update"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
 )
@@ -59,6 +60,8 @@ type edgeStackFromGitRepositoryPayload struct {
 	SupportRelativePath bool `example:"false"`
 	// Local filesystem path
 	FilesystemPath string `example:"/mnt"`
+	// List of environment variables
+	EnvVars []portainer.Pair
 }
 
 func (payload *edgeStackFromGitRepositoryPayload) Validate(r *http.Request) error {
@@ -138,6 +141,7 @@ func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dat
 		RetryDeploy:           payload.RetryDeploy,
 		SupportRelativePath:   payload.SupportRelativePath,
 		FilesystemPath:        payload.FilesystemPath,
+		EnvVars:               payload.EnvVars,
 	}
 
 	stack, err := handler.edgeStacksService.BuildEdgeStack(tx, payload.Name, payload.DeploymentType, payload.EdgeGroups, buildEdgeStackArgs)
@@ -208,7 +212,7 @@ func (handler *Handler) handleAutoUpdate(stackID portaineree.EdgeStackID, autoUp
 	edgeStackId := stackID
 
 	return handler.scheduler.StartJobEvery(duration, func() error {
-		return handler.gitAutoUpdate(edgeStackId)
+		return handler.autoUpdate(edgeStackId, nil)
 	}), nil
 
 }

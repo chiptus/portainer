@@ -120,7 +120,6 @@ type (
 		EdgeStack(ID portaineree.EdgeStackID) (*portaineree.EdgeStack, error)
 		EdgeStackVersion(ID portaineree.EdgeStackID) (int, bool)
 		Create(id portaineree.EdgeStackID, edgeStack *portaineree.EdgeStack) error
-		// Deprecated: Use UpdateEdgeStackFunc instead.
 		UpdateEdgeStack(ID portaineree.EdgeStackID, edgeStack *portaineree.EdgeStack) error
 		UpdateEdgeStackFunc(ID portaineree.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error
 		DeleteEdgeStack(ID portaineree.EdgeStackID) error

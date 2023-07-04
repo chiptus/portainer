@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/pkg/errors"
 )
@@ -33,6 +34,8 @@ type edgeStackFromFileUploadPayload struct {
 
 	// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
 	Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
+	// List of environment variables
+	EnvVars []portainer.Pair
 }
 
 func (payload *edgeStackFromFileUploadPayload) Validate(r *http.Request) error {
@@ -80,6 +83,13 @@ func (payload *edgeStackFromFileUploadPayload) Validate(r *http.Request) error {
 	retryDeploy, _ := request.RetrieveBooleanMultiPartFormValue(r, "RetryDeploy", true)
 	payload.RetryDeploy = retryDeploy
 
+	envVars := make([]portainer.Pair, 0)
+	err = request.RetrieveMultiPartFormJSONValue(r, "EnvVars", &envVars, true)
+	if err != nil {
+		return httperrors.NewInvalidPayloadError("Invalid environment variables")
+	}
+	payload.EnvVars = envVars
+
 	return nil
 }
 
@@ -100,6 +110,7 @@ func (payload *edgeStackFromFileUploadPayload) Validate(r *http.Request) error {
 // @param PrePullImage formData bool false "Pre Pull image"
 // @param RetryDeploy formData bool false "Retry deploy"
 // @param dryrun query string false "if true, will not create an edge stack, but just will check the settings and return a non-persisted edge stack object"
+// @param EnvVars formData string false "JSON stringified array of environment variables {name, value}"
 // @success 200 {object} portaineree.EdgeStack
 // @failure 400 "Bad request"
 // @failure 500 "Internal server error"
@@ -126,6 +137,7 @@ func (handler *Handler) createEdgeStackFromFileUpload(r *http.Request, tx datase
 		PrePullImage:          payload.PrePullImage,
 		RePullImage:           false,
 		RetryDeploy:           payload.RetryDeploy,
+		EnvVars:               payload.EnvVars,
 	}
 
 	stack, err := handler.edgeStacksService.BuildEdgeStack(tx, payload.Name, payload.DeploymentType, payload.EdgeGroups, buildEdgeStackArgs)

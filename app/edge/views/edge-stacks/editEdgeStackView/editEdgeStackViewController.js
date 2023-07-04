@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { EditorType } from '@/react/edge/edge-stacks/types';
 import { confirmWebEditorDiscard } from '@@/modals/confirm';
 import { confirmStackUpdate } from '@/react/common/stacks/common/confirm-stack-update';
@@ -112,6 +113,7 @@ export class EditEdgeStackViewController {
         values.useManifestNamespaces !== this.stack.UseManifestNamespaces ||
         values.prePullImage !== this.stack.PrePullImage ||
         values.retryDeploy !== this.stack.RetryDeploy ||
+        _.differenceWith(values.envVars, this.stack.Env, _.isEqual).length > 0 ||
         rePullImage
       );
 
@@ -125,6 +127,7 @@ export class EditEdgeStackViewController {
         updateVersion,
         rePullImage,
         webhook: values.webhookEnabled ? this.stack.Webhook || createWebhookId() : '',
+        envVars: values.envVars,
       });
       this.Notifications.success('Success', 'Stack successfully deployed');
       this.state.isStackDeployed = true;

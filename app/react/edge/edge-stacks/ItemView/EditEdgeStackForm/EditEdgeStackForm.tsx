@@ -15,6 +15,10 @@ import { TextTip } from '@@/Tip/TextTip';
 import { SwitchField } from '@@/form-components/SwitchField';
 import { LoadingButton } from '@@/buttons';
 import { FormError } from '@@/form-components/FormError';
+import {
+  EnvironmentVariablesPanel,
+  envVarValidation,
+} from '@@/form-components/EnvironmentVariablesFieldset';
 
 import { getEdgeStackFile } from '../../queries/useEdgeStackFile';
 
@@ -64,6 +68,7 @@ export function EditEdgeStackForm({
     retryDeploy: edgeStack.RetryDeploy,
     webhookEnabled: !!edgeStack.Webhook,
     versions: [edgeStack.Version],
+    envVars: edgeStack.EnvVars || [],
   };
 
   if (edgeStack.PreviousDeploymentInfo?.Version > 0) {
@@ -167,11 +172,19 @@ function InnerForm({
             </div>
 
             {edgeStack.Webhook && (
-              <WebhookSettings
-                baseUrl={baseEdgeStackWebhookUrl()}
-                value={edgeStack.Webhook}
-                docsLink="todo"
-              />
+              <>
+                <WebhookSettings
+                  baseUrl={baseEdgeStackWebhookUrl()}
+                  value={edgeStack.Webhook}
+                  docsLink=""
+                />
+
+                <TextTip color="orange">
+                  Sending environment variables to the webhook is updating the
+                  stack with the new values. New variables names will be added
+                  to the stack and existing variables will be updated.
+                </TextTip>
+              </>
             )}
           </FormSection>
 
@@ -187,6 +200,12 @@ function InnerForm({
 
           {values.deploymentType === DeploymentType.Compose && (
             <>
+              <EnvironmentVariablesPanel
+                onChange={(value) => setFieldValue('envVars', value)}
+                values={values.envVars}
+                errors={errors.envVars}
+              />
+
               <div className="form-group">
                 <div className="col-sm-12">
                   <SwitchField
@@ -285,5 +304,6 @@ function formValidation(): SchemaOf<FormValues> {
       .min(1, 'At least one edge group is required'),
     webhookEnabled: boolean().default(false),
     versions: array().of(number().optional()).optional(),
+    envVars: envVarValidation(),
   });
 }

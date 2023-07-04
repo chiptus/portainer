@@ -99,5 +99,6 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 		RePullImage:         edgeStack.RePullImage,
 		RetryDeploy:         edgeStack.RetryDeploy,
 		EdgeUpdateID:        edgeStack.EdgeUpdateID,
+		EnvVars:             edgeStack.EnvVars,
 	})
 }

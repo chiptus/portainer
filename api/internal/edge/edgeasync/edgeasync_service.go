@@ -135,6 +135,11 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 		namespace = kubernetes.DefaultNamespace
 	}
 
+	envVars := edgeStack.EnvVars
+	if envVars == nil {
+		envVars = make([]portainer.Pair, 0)
+	}
+
 	stackStatus := edge.StackPayload{
 		DirEntries:          dirEntries,
 		EntryFileName:       fileName,
@@ -149,6 +154,7 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 		RePullImage:         edgeStack.RePullImage,
 		RetryDeploy:         edgeStack.RetryDeploy,
 		EdgeUpdateID:        edgeStack.EdgeUpdateID,
+		EnvVars:             envVars,
 	}
 
 	asyncCommand := &portaineree.EdgeAsyncCommand{
@@ -166,7 +172,7 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 
 // Deprecated: use RemoveStackCommandTx instead.
 func (service *Service) RemoveStackCommand(endpointID portaineree.EndpointID, edgeStackID portaineree.EdgeStackID) error {
-	return service.RemoveStackCommandTx(service.dataStore, endpointID, portaineree.EdgeStackID(edgeStackID))
+	return service.RemoveStackCommandTx(service.dataStore, endpointID, edgeStackID)
 }
 
 func (service *Service) RemoveStackCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeStackID portaineree.EdgeStackID) error {
@@ -187,6 +193,7 @@ func (service *Service) RemoveStackCommandTx(tx dataservices.DataStoreTx, endpoi
 		EntryFileName:       edgeStack.EntryPoint,
 		SupportRelativePath: edgeStack.SupportRelativePath,
 		FilesystemPath:      edgeStack.FilesystemPath,
+		EnvVars:             edgeStack.EnvVars,
 	}
 
 	asyncCommand := &portaineree.EdgeAsyncCommand{

@@ -5,6 +5,8 @@ import {
 } from '@/react/portainer/gitops/types';
 import { RegistryId } from '@/react/portainer/registries/types';
 
+import { EnvVar } from '@@/form-components/EnvironmentVariablesFieldset/types';
+
 import { EdgeGroup } from '../edge-groups/types';
 
 interface EdgeStackStatusDetails {
@@ -64,6 +66,7 @@ export type EdgeStack = {
   RetryDeploy: boolean;
   Webhook: string;
   PreviousDeploymentInfo: EdgeStackDeploymentInfo;
+  EnvVars?: EnvVar[];
 };
 
 export enum EditorType {

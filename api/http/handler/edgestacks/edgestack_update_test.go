@@ -95,21 +95,21 @@ func TestUpdateAndInspect(t *testing.T) {
 		t.Fatalf("expected a %d response, found: %d", http.StatusOK, rec.Code)
 	}
 
-	data := portaineree.EdgeStack{}
-	err = json.NewDecoder(rec.Body).Decode(&data)
+	updatedStack := portaineree.EdgeStack{}
+	err = json.NewDecoder(rec.Body).Decode(&updatedStack)
 	if err != nil {
 		t.Fatal("error decoding response:", err)
 	}
 
-	if payload.UpdateVersion && data.Version != edgeStack.Version+1 {
-		t.Fatalf("expected EdgeStackID %d, found %d", edgeStack.Version, data.Version)
+	if payload.UpdateVersion && updatedStack.Version != edgeStack.Version+1 {
+		t.Fatalf("expected EdgeStackID %d, found %d", edgeStack.Version+1, updatedStack.Version)
 	}
 
-	if data.DeploymentType != payload.DeploymentType {
-		t.Fatalf("expected DeploymentType %d, found %d", edgeStack.DeploymentType, data.DeploymentType)
+	if updatedStack.DeploymentType != payload.DeploymentType {
+		t.Fatalf("expected DeploymentType %d, found %d", payload.DeploymentType, updatedStack.DeploymentType)
 	}
 
-	if !reflect.DeepEqual(data.EdgeGroups, payload.EdgeGroups) {
+	if !reflect.DeepEqual(updatedStack.EdgeGroups, payload.EdgeGroups) {
 		t.Fatalf("expected EdgeGroups to be equal")
 	}
 }

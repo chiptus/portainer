@@ -363,6 +363,8 @@ type (
 		// Local filesystem path
 		FilesystemPath         string                         `example:"/tmp"`
 		PreviousDeploymentInfo *portainer.StackDeploymentInfo `json:"PreviousDeploymentInfo"`
+		// EnvVars is a list of environment variables to inject into the stack
+		EnvVars []portainer.Pair
 
 		// Deprecated
 		Prune bool `json:"Prune"`

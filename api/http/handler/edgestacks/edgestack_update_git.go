@@ -1,6 +1,7 @@
 package edgestacks
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -28,6 +29,7 @@ type stackGitUpdatePayload struct {
 	Authentication *gittypes.GitAuthentication
 	// Update the stack file content from the git repository
 	UpdateVersion bool
+	EnvVars       []portainer.Pair
 }
 
 func (payload *stackGitUpdatePayload) Validate(r *http.Request) error {
@@ -143,25 +145,23 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 			}
 		}
 
-		err = tx.EdgeStack().UpdateEdgeStackFunc(edgeStack.ID, func(edgeStack *portaineree.EdgeStack) {
-			edgeStack.GitConfig = gitConfig
-			edgeStack.EdgeGroups = groupIds
+		edgeStack.GitConfig = gitConfig
+		edgeStack.EdgeGroups = groupIds
+		edgeStack.EnvVars = payload.EnvVars
 
-			if payload.DeploymentType != nil {
-				edgeStack.DeploymentType = *payload.DeploymentType
-			}
+		if payload.DeploymentType != nil {
+			edgeStack.DeploymentType = *payload.DeploymentType
+		}
 
-			edgeStack.AutoUpdate = updateSettings
-			edgeStack.NumDeployments = len(relatedEndpointIds)
+		edgeStack.AutoUpdate = updateSettings
+		edgeStack.NumDeployments = len(relatedEndpointIds)
 
-			if payload.UpdateVersion {
-				edgeStack.PreviousDeploymentInfo = &portainer.StackDeploymentInfo{
-					Version:    edgeStack.Version,
-					ConfigHash: currentCommitHash,
-				}
-				edgeStack.Version = edgeStack.Version + 1
-			}
-		})
+		err = handler.updateStackVersion(edgeStack, edgeStack.DeploymentType, nil, currentCommitHash, relatedEndpointIds)
+		if err != nil {
+			return fmt.Errorf("unable to update stack version: %w", err)
+		}
+
+		err = tx.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack)
 		if err != nil {
 			return httperror.InternalServerError("Failed updating edge stack", err)
 		}

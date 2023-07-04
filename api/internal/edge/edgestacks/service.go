@@ -41,6 +41,7 @@ type BuildEdgeStackArgs struct {
 	RetryDeploy           bool
 	SupportRelativePath   bool
 	FilesystemPath        string
+	EnvVars               []portainer.Pair
 }
 
 // BuildEdgeStack builds the initial edge stack object
@@ -79,6 +80,7 @@ func (service *Service) BuildEdgeStack(
 		RetryDeploy:           args.RetryDeploy,
 		SupportRelativePath:   args.SupportRelativePath,
 		FilesystemPath:        args.FilesystemPath,
+		EnvVars:               args.EnvVars,
 	}, nil
 }
 
