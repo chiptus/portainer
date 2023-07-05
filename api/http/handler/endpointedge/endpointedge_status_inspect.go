@@ -130,14 +130,14 @@ func (handler *Handler) inspectStatus(tx dataservices.DataStoreTx, r *http.Reque
 		return nil, false, err
 	}
 
+	err = handler.requestBouncer.TrustedEdgeEnvironmentAccess(tx, endpoint)
+	if err != nil {
+		return nil, false, httperror.Forbidden("Permission denied to access environment", err)
+	}
+
 	if endpoint.EdgeID == "" {
 		edgeIdentifier := r.Header.Get(portaineree.PortainerAgentEdgeIDHeader)
 		endpoint.EdgeID = edgeIdentifier
-	}
-
-	// Take an initial snapshot
-	if endpoint.LastCheckInDate == 0 {
-		handler.ReverseTunnelService.SetTunnelStatusToRequired(endpoint.ID)
 	}
 
 	agentPlatform, agentPlatformErr := parseAgentPlatform(r)
@@ -154,16 +154,16 @@ func (handler *Handler) inspectStatus(tx dataservices.DataStoreTx, r *http.Reque
 	version := r.Header.Get(portaineree.PortainerAgentHeader)
 	endpoint.Agent.Version = version
 
+	// Take an initial snapshot
+	if endpoint.LastCheckInDate == 0 {
+		handler.ReverseTunnelService.SetTunnelStatusToRequired(endpoint.ID)
+	}
+
 	endpoint.LastCheckInDate = time.Now().Unix()
 
 	err = tx.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
 	if err != nil {
 		return nil, false, httperror.InternalServerError("Unable to persist environment changes inside the database", err)
-	}
-
-	err = handler.requestBouncer.TrustedEdgeEnvironmentAccess(tx, endpoint)
-	if err != nil {
-		return nil, false, httperror.Forbidden("Permission denied to access environment", err)
 	}
 
 	checkinInterval := endpoint.EdgeCheckinInterval
