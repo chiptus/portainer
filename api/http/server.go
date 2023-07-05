@@ -62,6 +62,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/users"
 	"github.com/portainer/portainer-ee/api/http/handler/webhooks"
 	"github.com/portainer/portainer-ee/api/http/handler/websocket"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/offlinegate"
 	"github.com/portainer/portainer-ee/api/http/proxy"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
@@ -409,6 +410,9 @@ func (server *Server) Start() error {
 	errorLogger := NewHTTPLogger()
 
 	handler := adminMonitor.WithRedirect(offlineGate.WaitingMiddleware(time.Minute, server.Handler))
+
+	handler = middlewares.WithSlowRequestsLogger(handler)
+
 	if server.HTTPEnabled {
 		go func() {
 			log.Info().Str("bind_address", server.BindAddress).Msg("starting HTTP server")

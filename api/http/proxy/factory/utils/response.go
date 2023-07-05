@@ -77,7 +77,7 @@ func RewriteAccessDeniedResponse(response *http.Response) error {
 // RewriteResponse will replace the existing response body and status code with the one specified
 // in parameters
 func RewriteResponse(response *http.Response, newResponseData interface{}, statusCode int) error {
-	data, err := marshal(getContentType(response.Header), newResponseData)
+	data, err := marshal(getContentType(response), newResponseData)
 	if err != nil {
 		return err
 	}
@@ -98,37 +98,13 @@ func RewriteResponse(response *http.Response, newResponseData interface{}, statu
 
 func getResponseBody(response *http.Response) (interface{}, error) {
 	isGzip := response.Header.Get("Content-Encoding") == "gzip"
-
 	if isGzip {
 		response.Header.Del("Content-Encoding")
 	}
 
-	bodyBytes, err := CopyResponseBody(response)
-	if err != nil {
-		return nil, err
-	}
-
-	return getBody(io.NopCloser(bytes.NewBuffer(bodyBytes)), getContentType(response.Header), isGzip)
+	return getBody(response.Body, getContentType(response), isGzip)
 }
 
-// CopyBody copies the request body and recreates it
-func CopyResponseBody(response *http.Response) ([]byte, error) {
-	if response.Body == nil {
-		return nil, nil
-	}
-
-	bodyBytes, err := io.ReadAll(response.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to read body")
-	}
-
-	response.Body.Close()
-	// recreate body to pass to actual request handler
-	response.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-
-	return bodyBytes, nil
-}
-
-func getContentType(headers http.Header) string {
-	return headers.Get("Content-type")
+func getContentType(response *http.Response) string {
+	return response.Header.Get("Content-type")
 }
