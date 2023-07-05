@@ -40,11 +40,7 @@ export default class InitLicenseViewController {
       this.state.actionInProgress = true;
 
       try {
-        const { failedKeys } = await this.LicenseService.attach([this.license]);
-
-        if (failedKeys[this.license]) {
-          throw new Error(failedKeys[this.license]);
-        }
+        await this.LicenseService.attach({ key: this.license }, { params: { force: true } });
 
         let path = 'portainer.wizard';
         if (this.Authentication.getUserDetails().forceChangePassword) {

@@ -15,6 +15,7 @@ import { NotificationsView } from '@/react/portainer/notifications/Notifications
 import { EdgeAutoCreateScriptView } from '@/react/portainer/environments/EdgeAutoCreateScriptView';
 import { ListView as EnvironmentsListView } from '@/react/portainer/environments/ListView';
 import { BackupSettingsPanel } from '@/react/portainer/settings/SettingsView/BackupSettingsView/BackupSettingsPanel';
+import { CreateView as licenseCreateView } from '@/react/portainer/licenses/CreateView/CreateView';
 
 import { wizardModule } from './wizard';
 import { teamsModule } from './teams';
@@ -76,4 +77,8 @@ export const viewsModule = angular
   .component(
     'environmentsListView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(EnvironmentsListView))), [])
+  )
+  .component(
+    'licenseCreateView',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(licenseCreateView))), [])
   ).name;

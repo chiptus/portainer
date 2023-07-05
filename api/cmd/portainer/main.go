@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/sha256"
+	"fmt"
 	"math/rand"
 	"os"
 	"path"
@@ -58,7 +59,6 @@ import (
 	"github.com/portainer/portainer/pkg/libstack/compose"
 
 	"github.com/gofrs/uuid"
-	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -413,8 +413,12 @@ func updateLicenseKeyFromFlags(licenseService portaineree.LicenseService, licens
 		return nil
 	}
 
-	_, err := licenseService.AddLicense(*licenseKey)
-	return errors.WithMessage(err, "failed to add license")
+	conflicts, err := licenseService.AddLicense(*licenseKey, false)
+	return fmt.Errorf(
+		"failed to add license: conflicts %s: %w",
+		strings.Join(conflicts, ", "),
+		err,
+	)
 }
 
 func loadEncryptionSecretKey(keyfilename string) []byte {
@@ -526,7 +530,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	}
 	snapshotService.Start()
 
-	licenseService := license.NewService(dataStore, shutdownCtx, snapshotService)
+	licenseService := license.NewService(dataStore, shutdownCtx, snapshotService, *flags.LicenseExpireAbsolute)
 	if err = licenseService.Init(); err != nil {
 		log.Fatal().Err(err).Msg("failed initializing license service")
 	}

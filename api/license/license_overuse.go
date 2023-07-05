@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
-	"github.com/portainer/liblicense"
+	"github.com/portainer/liblicense/v3"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	nodeutil "github.com/portainer/portainer-ee/api/internal/nodes"
@@ -26,7 +26,7 @@ func NotOverused(licenseService portaineree.LicenseService, dataStore dataservic
 
 		licenseInfo := licenseService.Info()
 		// license validation is only relevant for an Essential license
-		if licenseInfo.Type == liblicense.PortainerLicenseEssentials {
+		if licenseInfo.Type == liblicense.PortainerLicenseFree {
 			endpoints, err := dataStore.Endpoint().Endpoints()
 			if err != nil {
 				next.ServeHTTP(rw, r)
@@ -81,8 +81,8 @@ func (service *Service) getLicenseOveruseTimestamp(licenseType liblicense.Portai
 	}
 	licenseOveruseStartedTimestamp := enforcement.LicenseOveruseStartedTimestamp
 
-	// current only Essenstial License node abuse can trigger license enforcement
-	if licenseType != liblicense.PortainerLicenseEssentials {
+	// Only Free License node abuse can trigger license enforcement.
+	if licenseType != liblicense.PortainerLicenseFree {
 		return 0, nil
 	}
 

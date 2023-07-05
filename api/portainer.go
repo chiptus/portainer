@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/containerservice/mgmt/containerservice"
-	"github.com/portainer/liblicense"
+	"github.com/portainer/liblicense/v3"
 	"github.com/portainer/portainer-ee/api/database/models"
 	kubeModels "github.com/portainer/portainer-ee/api/http/models/kubernetes"
 	portainer "github.com/portainer/portainer/api"
@@ -34,7 +34,7 @@ type (
 		Authorizations Authorizations
 	}
 
-	//AutoUpdateSettings represents the git auto sync config for stack deployment
+	// AutoUpdateSettings represents the git auto sync config for stack deployment
 	AutoUpdateSettings struct {
 		// Auto update interval
 		Interval string `example:"1m30s"`
@@ -211,6 +211,7 @@ type (
 		MaxBatchDelay             *time.Duration
 		SecretKeyName             *string
 		LicenseKey                *string
+		LicenseExpireAbsolute     *bool
 		LogLevel                  *string
 		LogMode                   *string
 	}
@@ -324,7 +325,7 @@ type (
 		Endpoints      []EndpointID `json:"Endpoints"`
 	}
 
-	//EdgeStack represents an edge stack
+	// EdgeStack represents an edge stack
 	EdgeStack struct {
 		// EdgeStack Identifier
 		ID             EdgeStackID                              `json:"Id" example:"1"`
@@ -373,7 +374,7 @@ type (
 
 	EdgeStackDeploymentType int
 
-	//EdgeStackID represents an edge stack id
+	// EdgeStackID represents an edge stack id
 	EdgeStackID int
 
 	EndpointLog struct {
@@ -1419,7 +1420,7 @@ type (
 		IsComposeFormat bool `example:"false"`
 		// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
 		Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
-		//If stack support relative path volume
+		// If stack support relative path volume
 		SupportRelativePath bool `example:"false"`
 		// Network(Swarm) or local(Standalone) filesystem path
 		FilesystemPath string `example:"/tmp"`
@@ -1912,7 +1913,7 @@ type (
 
 	// LicenseService represents a service used to manage licenses
 	LicenseService interface {
-		AddLicense(licenseKey string) (*liblicense.PortainerLicense, error)
+		AddLicense(licenseKey string, force bool) ([]string, error)
 		DeleteLicense(licenseKey string) error
 		Info() *LicenseInfo
 		Init() error
@@ -2075,7 +2076,7 @@ const (
 	AuthenticationInternal
 	// AuthenticationLDAP represents the LDAP authentication method (authentication against a LDAP server)
 	AuthenticationLDAP
-	//AuthenticationOAuth represents the OAuth authentication method (authentication against a authorization server)
+	// AuthenticationOAuth represents the OAuth authentication method (authentication against a authorization server)
 	AuthenticationOAuth
 )
 

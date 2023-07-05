@@ -5,6 +5,7 @@ import {
   arrayToStr,
   environmentTypeIcon,
   endpointTypeName,
+  licenseTypeName,
   getPairKey,
   getPairValue,
   humanize,
@@ -35,4 +36,5 @@ angular
   .filter('labelsToStr', () => labelsToStr)
   .filter('endpointtypename', () => endpointTypeName)
   .filter('endpointtypeicon', () => environmentTypeIcon)
+  .filter('licensetypename', () => licenseTypeName)
   .filter('ownershipicon', () => ownershipIcon);

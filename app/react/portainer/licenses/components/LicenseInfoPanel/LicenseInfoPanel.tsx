@@ -83,6 +83,7 @@ function buildInfoWidget(
           used={usedNodes}
           total={licenseInfo.nodes}
           valid={licenseInfo.valid}
+          trial={licenseInfo.type === 1}
           untrustedDevices={untrustedDevices}
         />
       </div>
@@ -112,6 +113,7 @@ function buildAlertWidget(
         used={usedNodes}
         total={licenseInfo.nodes}
         valid={licenseInfo.valid}
+        trial={licenseInfo.type === 1}
         untrustedDevices={untrustedDevices}
       />
 
@@ -176,7 +178,7 @@ function buildCountdownWidget(licenseInfo: LicenseInfo, usedNodes: number) {
 
 function buildInfoContent(info: LicenseInfo, usedNodes: number) {
   const icon =
-    usedNodes > info.nodes ? (
+    usedNodes > info.nodes && info.type !== LicenseType.Trial ? (
       <AlertCircle className="icon-danger icon-nested-red" aria-hidden="true" />
     ) : (
       <Award className="icon-primary icon-nested-blue" aria-hidden="true" />
@@ -228,16 +230,22 @@ function Details({
   used,
   total,
   valid,
+  trial,
   untrustedDevices,
 }: {
   used: number;
   total: number;
   valid: boolean;
+  trial: boolean;
   untrustedDevices: number;
 }) {
   let nodesUsedMsg = `${used.toString()} / ${total.toString()} nodes used`;
   if (total === 0 && valid) {
     nodesUsedMsg = `${used.toString()} out of unlimited nodes used`;
+  }
+  let color = used > total ? '#f04438' : '#0086c9';
+  if (trial) {
+    color = '#0086c9';
   }
 
   return (
@@ -253,7 +261,7 @@ function Details({
         steps={[
           {
             value: used,
-            color: used > total ? '#f04438' : '#0086c9',
+            color,
           },
           {
             value: untrustedDevices,

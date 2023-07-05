@@ -133,6 +133,23 @@ export function environmentTypeIcon(type) {
   }
 }
 
+export function licenseTypeName(type) {
+  switch (type) {
+    case 1:
+      return 'Trial';
+    case 2:
+      return 'Subscription';
+    case 3:
+      return 'Free';
+    case 4:
+      return 'Personal';
+    case 5:
+      return 'Starter';
+    default:
+      throw new Error(`License type ${type} is not supported`);
+  }
+}
+
 export function ownershipIcon(ownership) {
   switch (ownership) {
     case RCO.PRIVATE:

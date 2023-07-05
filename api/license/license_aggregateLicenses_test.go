@@ -4,8 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/portainer/liblicense"
-	"github.com/portainer/liblicense/master"
+	"github.com/portainer/liblicense/v3"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/internal/snapshot"
@@ -31,8 +30,8 @@ func Test_aggregateLicense_CalculateCorrectType(t *testing.T) {
 		},
 		{
 			name:         "only Essentials",
-			types:        []liblicense.PortainerLicenseType{liblicense.PortainerLicenseEssentials},
-			expectedType: liblicense.PortainerLicenseEssentials,
+			types:        []liblicense.PortainerLicenseType{liblicense.PortainerLicenseFree},
+			expectedType: liblicense.PortainerLicenseFree,
 		},
 		{
 			name:         "only Subscriptions",
@@ -40,32 +39,19 @@ func Test_aggregateLicense_CalculateCorrectType(t *testing.T) {
 			expectedType: liblicense.PortainerLicenseSubscription,
 		},
 		{
-			name: "Essentials and Subscriptions result in Subscription",
+			name: "Essentials and Subscriptions",
 			types: []liblicense.PortainerLicenseType{
-				liblicense.PortainerLicenseEssentials,
-				liblicense.PortainerLicenseSubscription},
-			expectedType: liblicense.PortainerLicenseSubscription,
+				liblicense.PortainerLicenseFree,
+				liblicense.PortainerLicenseSubscription,
+			},
+			expectedType: liblicense.PortainerLicenseFree,
 		},
 		{
-			name: "Trials and Subscriptions result in Trial",
+			name: "Trial and Subscriptions",
 			types: []liblicense.PortainerLicenseType{
 				liblicense.PortainerLicenseTrial,
-				liblicense.PortainerLicenseSubscription},
-			expectedType: liblicense.PortainerLicenseTrial,
-		},
-		{
-			name: "Essentials and Trials result in Trial",
-			types: []liblicense.PortainerLicenseType{
-				liblicense.PortainerLicenseEssentials,
-				liblicense.PortainerLicenseTrial},
-			expectedType: liblicense.PortainerLicenseTrial,
-		},
-		{
-			name: "Essentials and Subscriptions and Trials result in Trial",
-			types: []liblicense.PortainerLicenseType{
-				liblicense.PortainerLicenseEssentials,
 				liblicense.PortainerLicenseSubscription,
-				liblicense.PortainerLicenseTrial},
+			},
 			expectedType: liblicense.PortainerLicenseTrial,
 		},
 	}
@@ -78,13 +64,14 @@ func Test_aggregateLicense_CalculateCorrectType(t *testing.T) {
 					Type:         licenseType,
 					Created:      time.Now().Unix(),
 					ExpiresAfter: 10,
+					Version:      3,
 				}
 				updateLicenseWithGeneratedKey(l)
 				licenses = append(licenses, *l)
 			}
 
 			_, store := datastore.MustNewTestStore(t, true, true)
-			service := NewService(store, nil, nil)
+			service := NewService(store, nil, nil, false)
 
 			result := service.aggregateLicenses(licenses)
 			assert.Equal(t, tc.expectedType, result.Type)
@@ -92,76 +79,21 @@ func Test_aggregateLicense_CalculateCorrectType(t *testing.T) {
 	}
 }
 
-func Test_aggregateLicenses_aggregatesValidLicenses(t *testing.T) {
-	expiredLicense := liblicense.PortainerLicense{
-		Created:      time.Now().Add(-time.Hour * 24 * 10).Unix(),
-		ExpiresAfter: 1,
-		Nodes:        1,
-	}
-	updateLicenseWithGeneratedKey(&expiredLicense)
-
-	incorrectKeyLicense := liblicense.PortainerLicense{
-		Created:      time.Now().Unix(),
-		ExpiresAfter: 1,
-		Revoked:      true,
-		Nodes:        10,
-		LicenseKey:   "foo",
-	}
-
-	validLicense1 := liblicense.PortainerLicense{
-		Created:      time.Now().Unix(),
-		ExpiresAfter: 1,
-		Nodes:        50,
-	}
-	updateLicenseWithGeneratedKey(&validLicense1)
-
-	validLicense2 := liblicense.PortainerLicense{
-		Created:      time.Now().Unix(),
-		ExpiresAfter: 1,
-		Nodes:        100,
-	}
-	updateLicenseWithGeneratedKey(&validLicense2)
-
-	licenses := []liblicense.PortainerLicense{
-		expiredLicense,
-		validLicense1,
-		incorrectKeyLicense,
-		validLicense2,
-	}
-
-	_, store := datastore.MustNewTestStore(t, true, true)
-	service := NewService(store, nil, nil)
-
-	result := service.aggregateLicenses(licenses)
-	assert.Equal(t, 150, result.Nodes)
+func createValidLicense(licenseType liblicense.PortainerLicenseType, createdTimestamp int64) *liblicense.PortainerLicense {
+	return createValidLicenseNodes(licenseType, createdTimestamp, 1)
 }
 
-func Test_aggregateLicenses_picksEarliestExpirationDate(t *testing.T) {
-	expiresFirst := liblicense.PortainerLicense{
-		Created:      time.Now().Unix(),
-		ExpiresAfter: 1,
+func createValidLicenseNodes(licenseType liblicense.PortainerLicenseType, createdTimestamp int64, nodes int) *liblicense.PortainerLicense {
+	license := &liblicense.PortainerLicense{
+		Type:         licenseType,
+		Created:      createdTimestamp,
+		ExpiresAfter: 10, // expired in 10 days
+		Nodes:        nodes,
+		Version:      3,
 	}
-	updateLicenseWithGeneratedKey(&expiresFirst)
-
-	expiresLast := liblicense.PortainerLicense{
-		Created:      time.Now().Unix(),
-		ExpiresAfter: 10,
-	}
-	updateLicenseWithGeneratedKey(&expiresLast)
-
-	expiresSecond := liblicense.PortainerLicense{
-		Created:      time.Now().Add(time.Hour * 24).Unix(),
-		ExpiresAfter: 5,
-	}
-	updateLicenseWithGeneratedKey(&expiresSecond)
-
-	licenses := []liblicense.PortainerLicense{expiresFirst, expiresLast, expiresSecond}
-
-	_, store := datastore.MustNewTestStore(t, true, true)
-	service := NewService(store, nil, nil)
-
-	result := service.aggregateLicenses(licenses)
-	assert.Equal(t, master.ExpiresAt(expiresFirst.Created, expiresFirst.ExpiresAfter).Unix(), result.ExpiresAt)
+	key, _ := liblicense.GenerateLicense(license)
+	license.LicenseKey = key
+	return license
 }
 
 func Test_aggregateLicenses_shouldSetOveruseTimestamp(t *testing.T) {
@@ -173,11 +105,11 @@ func Test_aggregateLicenses_shouldSetOveruseTimestamp(t *testing.T) {
 
 	snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil)
 
-	service := NewService(store, nil, snapshotService)
+	service := NewService(store, nil, snapshotService, false)
 	enforcement, _ := service.dataStore.Enforcement().LicenseEnforcement()
 	assert.Equal(t, int64(0), enforcement.LicenseOveruseStartedTimestamp)
 
-	overusedLicense := createValidLicenseNodes(liblicense.PortainerLicenseEssentials, time.Now().Unix(), 1)
+	overusedLicense := createValidLicenseNodes(liblicense.PortainerLicenseFree, time.Now().Unix(), 1)
 
 	aggregate := service.aggregateLicenses([]liblicense.PortainerLicense{*overusedLicense})
 	assert.NotZero(t, aggregate.OveruseStartedTimestamp)
@@ -187,7 +119,7 @@ func Test_aggregateLicenses_shouldSetOveruseTimestamp(t *testing.T) {
 }
 
 func updateLicenseWithGeneratedKey(license *liblicense.PortainerLicense) *liblicense.PortainerLicense {
-	key, _ := master.GenerateLicense(license)
+	key, _ := liblicense.GenerateLicense(license)
 	license.LicenseKey = key
 	return license
 }

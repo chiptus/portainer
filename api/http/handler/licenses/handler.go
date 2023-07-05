@@ -35,7 +35,7 @@ func NewHandler(bouncer security.BouncerService, userActivityService portaineree
 	publicRouter.Use(bouncer.PublicAccess)
 
 	adminRouter.Handle("/licenses", httperror.LoggerHandler(h.licensesList)).Methods(http.MethodGet)
-	adminRouter.Handle("/licenses", httperror.LoggerHandler(h.licensesAttach)).Methods(http.MethodPost)
+	adminRouter.Handle("/licenses/add", httperror.LoggerHandler(h.licensesAttach)).Methods(http.MethodPost)
 	adminRouter.Handle("/licenses/remove", httperror.LoggerHandler(h.licensesDelete)).Methods(http.MethodPost)
 	publicRouter.Handle("/licenses/info", httperror.LoggerHandler(h.licensesInfo)).Methods(http.MethodGet)
 	return h

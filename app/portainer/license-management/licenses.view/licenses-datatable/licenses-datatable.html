@@ -82,7 +82,7 @@
                 </span>
                 {{ item.company }}
               </td>
-              <td>{{ item.type === 1 ? 'Trial' : 'Subscription' }}</td>
+              <td>{{ item.type | licensetypename }}</td>
               <td>{{ item.nodes ? item.nodes : '-' }}</td>
               <td>{{ item.showExpiresAt }}</td>
               <td>

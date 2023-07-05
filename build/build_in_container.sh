@@ -7,7 +7,7 @@ mkdir -p dist
 cp -r "./mustache-templates" "./dist"
 
 
-ldflags='-s -X github.com/portainer/liblicense.LicenseServerBaseURL=https://api.portainer.io'
+ldflags='-s -X github.com/portainer/liblicense/v3.LicenseServerBaseURL=https://api.portainer.io'
 if [ -n "${KAAS_AGENT_VERSION+1}" ]; then
     ldflags=$ldflags" -X github.com/portainer/portainer-ee/api/kubernetes/cli.DefaultAgentVersion=$KAAS_AGENT_VERSION"
 fi

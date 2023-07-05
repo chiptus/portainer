@@ -3,7 +3,7 @@ package license
 import (
 	"testing"
 
-	"github.com/portainer/liblicense"
+	"github.com/portainer/liblicense/v3"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/stretchr/testify/assert"
 )
@@ -22,7 +22,7 @@ func Test_DeleteLicense(t *testing.T) {
 		}
 		store.License().AddLicense(license1.LicenseKey, license2)
 
-		s := NewService(store, nil, nil)
+		s := NewService(store, nil, nil, false)
 		err := s.DeleteLicense(license1.LicenseKey)
 		assert.NoError(t, err)
 	})

@@ -14,15 +14,11 @@ type (
 		// List of license keys to remove
 		LicenseKeys []string
 	}
-
-	deleteResponse struct {
-		FailedKeys map[string]string `json:"failedKeys"`
-	}
 )
 
 func (payload *deletePayload) Validate(r *http.Request) error {
 	if len(payload.LicenseKeys) == 0 {
-		return errors.New("Missing licenses keys")
+		return errors.New("missing licenses keys")
 	}
 
 	return nil
@@ -38,8 +34,8 @@ func (payload *deletePayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param body body deletePayload true "list of license keys to remove"
-// @success 200 {object} deleteResponse "Failures will be in `body.FailedKeys[key] = error`"
-// @router /licenses [post]
+// @success 200
+// @router /licenses/remove [post]
 func (handler *Handler) licensesDelete(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	var payload deletePayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
@@ -47,16 +43,12 @@ func (handler *Handler) licensesDelete(w http.ResponseWriter, r *http.Request) *
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	resp := &attachResponse{
-		FailedKeys: map[string]string{},
-	}
-
 	for _, licenseKey := range payload.LicenseKeys {
 		err := handler.LicenseService.DeleteLicense(licenseKey)
 		if err != nil {
-			resp.FailedKeys[licenseKey] = err.Error()
+			return httperror.InternalServerError("Failed deleting license(s)", err)
 		}
 	}
 
-	return response.JSON(w, resp)
+	return response.Empty(w)
 }

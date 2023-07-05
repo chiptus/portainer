@@ -35,10 +35,7 @@ export default class LicensesViewController {
           return;
         }
 
-        const response = await this.LicenseService.remove(licenses.map((license) => license.licenseKey));
-        if (response.failedKeys && Object.keys(response.failedKeys).length) {
-          throw new Error('Failed removing licenses');
-        }
+        await this.LicenseService.remove(licenses.map((license) => license.licenseKey));
       } catch (err) {
         this.Notifications.error('Failure', err, 'Failed removing licenses');
       }
@@ -77,6 +74,7 @@ export default class LicensesViewController {
       }
 
       try {
+        this.LicenseService.resetState();
         this.info = await this.LicenseService.info();
         if (this.usedNodes > this.info.nodes && this.info.type != LicenseType.Trial) {
           this.template = 'alert';

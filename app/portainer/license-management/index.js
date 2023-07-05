@@ -2,9 +2,8 @@ import angular from 'angular';
 
 import { LicenseService } from './license.service.ts';
 import licensesViewModule from './licenses.view';
-import addLicenseViewModule from './add-license.view';
 
-export default angular.module('portainer.app.license-management', [licensesViewModule, addLicenseViewModule]).config(config).service('LicenseService', LicenseService).name;
+export default angular.module('portainer.app.license-management', [licensesViewModule]).config(config).service('LicenseService', LicenseService).name;
 
 /* @ngInject */
 function config($stateRegistryProvider) {
@@ -30,7 +29,7 @@ function config($stateRegistryProvider) {
     url: '/licenses/new',
     views: {
       'content@': {
-        component: 'addLicenseView',
+        component: 'licenseCreateView',
       },
     },
   };

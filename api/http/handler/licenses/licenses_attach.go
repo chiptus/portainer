@@ -7,24 +7,21 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	"github.com/portainer/liblicense"
 )
 
 type (
 	attachPayload struct {
-		// List of license keys to attach
-		LicenseKeys []string
+		Key string `json:"key"`
 	}
 
 	attachResponse struct {
-		Licenses   []*liblicense.PortainerLicense `json:"licenses"`
-		FailedKeys map[string]string              `json:"failedKeys"`
+		ConflictingKeys []string `json:"conflictingKeys"`
 	}
 )
 
 func (payload *attachPayload) Validate(r *http.Request) error {
-	if len(payload.LicenseKeys) == 0 {
-		return errors.New("Missing licenses keys")
+	if payload == nil {
+		return errors.New("missing licenses key")
 	}
 
 	return nil
@@ -40,8 +37,9 @@ func (payload *attachPayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param body body attachPayload true "list of licenses keys to attach"
-// @success 200 {object} attachResponse "Success license data will be in `body.Licenses`, Failures will be in `body.FailedKeys[key] = error`"
-// @router /licenses [post]
+// @param force query bool false "remove conflicting licenses"
+// @success 200 {object} attachResponse "Success license data will be in `body.Licenses`, Failures will be in `body.ConflictingKeys = error`"
+// @router /licenses/add [post]
 func (handler *Handler) licensesAttach(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	var payload attachPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
@@ -49,20 +47,17 @@ func (handler *Handler) licensesAttach(w http.ResponseWriter, r *http.Request) *
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	resp := &attachResponse{
-		FailedKeys: map[string]string{},
-		Licenses:   []*liblicense.PortainerLicense{},
+	force, err := request.RetrieveBooleanQueryParameter(r, "force", true)
+	if err != nil {
+		return httperror.BadRequest("Failed parsing \"force\" boolean", err)
 	}
 
-	for _, licenseKey := range payload.LicenseKeys {
-		license, err := handler.LicenseService.AddLicense(licenseKey)
-		if err != nil {
-			resp.FailedKeys[licenseKey] = err.Error()
-			continue
-		}
-
-		resp.Licenses = append(resp.Licenses, license)
+	conflicts, err := handler.LicenseService.AddLicense(string(payload.Key), force)
+	if err != nil {
+		return httperror.BadRequest("License is invalid", err)
 	}
-
+	resp := attachResponse{
+		ConflictingKeys: conflicts,
+	}
 	return response.JSON(w, resp)
 }

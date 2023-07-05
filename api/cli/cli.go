@@ -69,6 +69,7 @@ func (*Service) ParseFlags(version string) (*portaineree.CLIFlags, error) {
 		MaxBatchDelay:             kingpin.Flag("max-batch-delay", "Maximum delay before a batch starts").Duration(),
 		SecretKeyName:             kingpin.Flag("secret-key-name", "Secret key name for encryption and will be used as /run/secrets/<secret-key-name>.").Default(defaultSecretKeyName).String(),
 		LicenseKey:                kingpin.Flag("license-key", "License key for Portainer").Envar(envVarLicenseKey).String(),
+		LicenseExpireAbsolute:     kingpin.Flag("license-expire-absolute", "Expire licenses at the minute rather than end of day").Bool(),
 		LogLevel:                  kingpin.Flag("log-level", "Set the minimum logging level to show").Default("INFO").Enum("DEBUG", "INFO", "WARN", "ERROR"),
 		LogMode:                   kingpin.Flag("log-mode", "Set the logging output mode").Default("PRETTY").Enum("PRETTY", "JSON"),
 	}

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/portainer/liblicense"
+	"github.com/portainer/liblicense/v3"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices"
@@ -523,7 +523,6 @@ type storeExport struct {
 }
 
 func (store *Store) Export(filename string) (err error) {
-
 	backup := storeExport{}
 
 	if c, err := store.CustomTemplate().ReadAll(); err != nil {
@@ -759,7 +758,7 @@ func (store *Store) Export(filename string) (err error) {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filename, b, 0600)
+	return os.WriteFile(filename, b, 0o600)
 }
 
 func (store *Store) Import(filename string) (err error) {

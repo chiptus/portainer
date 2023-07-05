@@ -468,8 +468,8 @@ github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a h1:B0z3skIMT+O
 github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a/go.mod h1:n54EEIq+MM0NNtqLeCby8ljL+l275VpolXO0ibHegLE=
 github.com/portainer/libhttp v0.0.0-20230615144939-a999f666d9a9 h1:Jq8g/pDcFL1Z/DnZgn6DyaWu29y9+RiB5aOJ/Xw4960=
 github.com/portainer/libhttp v0.0.0-20230615144939-a999f666d9a9/go.mod h1:H49JLiywwLt2rrJVroafEWy8fIs0i7mThAThK40sbb8=
-github.com/portainer/liblicense v0.0.0-20220719225113-db2e51789529 h1:2gkOSUT6IW+7//STFs1J6AN53iCSplJUqgkWtefJLY4=
-github.com/portainer/liblicense v0.0.0-20220719225113-db2e51789529/go.mod h1:6OSugUz07QF1WwrMmRNIMhgiq+drVMIZ98UTu5LVZP8=
+github.com/portainer/liblicense/v3 v3.0.0 h1:BELxUtHdUGhMa9EnXO1KPJz17+aoAb33lZXYp8e1feg=
+github.com/portainer/liblicense/v3 v3.0.0/go.mod h1:rDiC5UI1EJvJabscD1pj735+8o9K3JHwaWcBay0hmVw=
 github.com/portainer/portainer/api v0.0.0-20230704041435-f5e09618f028 h1:vsKlhlEBeSp29imw2NTdLjpIKiE/araGHC1Q5u68p7w=
 github.com/portainer/portainer/api v0.0.0-20230704041435-f5e09618f028/go.mod h1:gzA6bHYsi8Zpg1724921r+eFlVT+QGhgWADa+MRUF/0=
 github.com/portainer/portainer/pkg/featureflags v0.0.0-20230209201943-d73622ed9cd4 h1:gnXwaF0GnFUIlynRq994WFOtqOULTKZks4aSWuonlhA=

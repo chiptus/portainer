@@ -1,8 +1,9 @@
 package license
 
 import (
-	"github.com/portainer/liblicense"
 	"github.com/portainer/portainer-ee/api/dataservices"
+
+	"github.com/portainer/liblicense/v3"
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -41,7 +42,7 @@ func (service *Service) License(licenseKey string) (*liblicense.PortainerLicense
 
 // Licenses return an array containing all the licenses.
 func (service *Service) Licenses() ([]liblicense.PortainerLicense, error) {
-	var licenses = make([]liblicense.PortainerLicense, 0)
+	licenses := make([]liblicense.PortainerLicense, 0)
 
 	return licenses, service.connection.GetAll(
 		BucketName,

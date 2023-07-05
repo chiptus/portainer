@@ -31,17 +31,22 @@ export async function getLicenses() {
 }
 
 interface AttachResponse {
-  licenses: License[];
-  failedKeys: Record<string, string>;
+  conflictingKeys?: string[];
 }
 
-export async function attachLicense(licenseKeys: string[]) {
+// Make it to add single license
+export async function attachLicense(
+  licenseKey: { key: string },
+  config?: { params?: { force?: boolean } }
+) {
   try {
-    const { data } = await axios.post<AttachResponse>(buildUrl(), {
-      licenseKeys,
-    });
+    const { data } = await axios.post<AttachResponse>(
+      buildUrl('add'),
+      licenseKey,
+      config
+    );
 
-    if (Object.keys(data.failedKeys).length === licenseKeys.length) {
+    if (data.conflictingKeys) {
       return data;
     }
 
@@ -68,9 +73,6 @@ export async function removeLicense(licenseKeys: string[]) {
     const { data } = await axios.post<RemoveResponse>(buildUrl('remove'), {
       licenseKeys,
     });
-    if (Object.keys(data.failedKeys).length === licenseKeys.length) {
-      return data;
-    }
 
     store.invalidated = true;
     getLicenseInfo();
