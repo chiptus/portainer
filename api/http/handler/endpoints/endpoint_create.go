@@ -662,8 +662,6 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 		return nil, httperror.InternalServerError("Unable to create a snapshot object for the environment", err)
 	}
 
-	handler.ReverseTunnelService.SetTunnelStatusToRequired(endpoint.ID)
-
 	return endpoint, nil
 }
 
