@@ -33,6 +33,29 @@ func (payload *edgeGroupCreatePayload) Validate(r *http.Request) error {
 	return nil
 }
 
+func calculateEndpointsOrTags(tx dataservices.DataStoreTx, edgeGroup *portaineree.EdgeGroup, endpoints []portaineree.EndpointID, tagIDs []portaineree.TagID) error {
+	if edgeGroup.Dynamic {
+		edgeGroup.TagIDs = tagIDs
+	} else {
+		endpointIDs := []portaineree.EndpointID{}
+
+		for _, endpointID := range endpoints {
+			endpoint, err := tx.Endpoint().Endpoint(endpointID)
+			if err != nil {
+				return httperror.InternalServerError("Unable to retrieve environment from the database", err)
+			}
+
+			if endpointutils.IsEdgeEndpoint(endpoint) {
+				endpointIDs = append(endpointIDs, endpoint.ID)
+			}
+		}
+
+		edgeGroup.Endpoints = endpointIDs
+	}
+
+	return nil
+}
+
 // @id EdgeGroupCreate
 // @summary Create an EdgeGroup
 // @description **Access policy**: administrator
@@ -75,21 +98,8 @@ func (handler *Handler) edgeGroupCreate(w http.ResponseWriter, r *http.Request) 
 			PartialMatch: payload.PartialMatch,
 		}
 
-		if edgeGroup.Dynamic {
-			edgeGroup.TagIDs = payload.TagIDs
-		} else {
-			endpointIDs := []portaineree.EndpointID{}
-			for _, endpointID := range payload.Endpoints {
-				endpoint, err := tx.Endpoint().Endpoint(endpointID)
-				if err != nil {
-					return httperror.InternalServerError("Unable to retrieve environment from the database", err)
-				}
-
-				if endpointutils.IsEdgeEndpoint(endpoint) {
-					endpointIDs = append(endpointIDs, endpoint.ID)
-				}
-			}
-			edgeGroup.Endpoints = endpointIDs
+		if err := calculateEndpointsOrTags(tx, edgeGroup, payload.Endpoints, payload.TagIDs); err != nil {
+			return err
 		}
 
 		err = tx.EdgeGroup().Create(edgeGroup)

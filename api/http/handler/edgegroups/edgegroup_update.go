@@ -64,7 +64,7 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 
 	var edgeGroup *portaineree.EdgeGroup
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		edgeGroup, err := tx.EdgeGroup().Read(portaineree.EdgeGroupID(edgeGroupID))
+		edgeGroup, err = tx.EdgeGroup().Read(portaineree.EdgeGroupID(edgeGroupID))
 		if handler.DataStore.IsErrObjectNotFound(err) {
 			return httperror.NotFound("Unable to find an Edge group with the specified identifier inside the database", err)
 		} else if err != nil {
@@ -99,21 +99,8 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 		oldRelatedEndpoints := edge.EdgeGroupRelatedEndpoints(edgeGroup, endpoints, endpointGroups)
 
 		edgeGroup.Dynamic = payload.Dynamic
-		if edgeGroup.Dynamic {
-			edgeGroup.TagIDs = payload.TagIDs
-		} else {
-			endpointIDs := []portaineree.EndpointID{}
-			for _, endpointID := range payload.Endpoints {
-				endpoint, err := tx.Endpoint().Endpoint(endpointID)
-				if err != nil {
-					return httperror.InternalServerError("Unable to retrieve environment from the database", err)
-				}
-
-				if endpointutils.IsEdgeEndpoint(endpoint) {
-					endpointIDs = append(endpointIDs, endpoint.ID)
-				}
-			}
-			edgeGroup.Endpoints = endpointIDs
+		if err := calculateEndpointsOrTags(tx, edgeGroup, payload.Endpoints, payload.TagIDs); err != nil {
+			return err
 		}
 
 		if payload.PartialMatch != nil {
@@ -136,6 +123,13 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 		edgeStacks, err := tx.EdgeStack().EdgeStacks()
 		if err != nil {
 			return err
+		}
+
+		// Update the edgeGroups with the modified edgeGroup for updateEndpointStacks()
+		for i := range edgeGroups {
+			if edgeGroups[i].ID == edgeGroup.ID {
+				edgeGroups[i] = *edgeGroup
+			}
 		}
 
 		for _, endpointID := range endpointsToUpdate {
