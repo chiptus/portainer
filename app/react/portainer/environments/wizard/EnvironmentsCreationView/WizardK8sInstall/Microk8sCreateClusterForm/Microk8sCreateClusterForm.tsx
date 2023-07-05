@@ -22,7 +22,7 @@ import { CredentialsField } from '../../WizardKaaS/shared/CredentialsField';
 import { useSetAvailableOption } from '../../WizardKaaS/useSetAvailableOption';
 import { MoreSettingsSection } from '../../shared/MoreSettingsSection';
 import { NameField } from '../../shared/NameField';
-import { AddonOption, K8sInstallFormValues } from '../types';
+import { K8sInstallFormValues } from '../types';
 import { useMicroK8sOptions } from '../queries';
 import { CustomTemplateSelector } from '../../shared/CustomTemplateSelector';
 
@@ -80,16 +80,20 @@ export function Microk8sCreateClusterForm({
     'kubernetesVersion'
   );
 
-  const addonOptions: AddonOption[] = useMemo(() => {
-    const addons: AddonOption[] = [];
+  const addonOptions: AddOnOption[] = useMemo(() => {
+    const addonOptions: AddOnOption[] = [];
     microk8sOptions?.availableAddons.forEach((a) => {
       const kubeVersion = parseFloat(microk8s.kubernetesVersion.split('/')[0]);
       const versionAvailableFrom = parseFloat(a.versionAvailableFrom);
       if (kubeVersion >= versionAvailableFrom) {
-        addons.push(a);
+        addonOptions.push({ name: a.label, type: a.type });
       }
     });
-    return addons;
+
+    addonOptions.sort(
+      (a, b) => b.type.localeCompare(a.type) || a.name.localeCompare(b.name)
+    );
+    return addonOptions;
   }, [microk8sOptions?.availableAddons, microk8s.kubernetesVersion]);
 
   return (
@@ -235,13 +239,10 @@ export function Microk8sCreateClusterForm({
         inputId="microk8s-addons"
       >
         <Microk8sAddOnSelector
-          value={values.microk8s.addons.map((name) => ({ name }))}
-          options={addonOptions.map((a) => ({ name: a.label }))}
+          value={values.microk8s.addons}
+          options={addonOptions}
           onChange={(value: AddOnOption[]) => {
-            setFieldValue(
-              'microk8s.addons',
-              value.map((option) => option.name)
-            );
+            setFieldValue('microk8s.addons', value);
           }}
         />
       </FormControl>

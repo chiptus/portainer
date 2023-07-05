@@ -60,7 +60,13 @@ func (r *Microk8sScalingRequest) String() string {
 func (service *CloudInfoService) MicroK8sGetInfo() mk8s.MicroK8sInfo {
 	addonOptions := make([]mk8s.AddonPair, 0)
 	for _, s := range mk8s.GetAllAvailableAddons() {
-		addonOptions = append(addonOptions, mk8s.AddonPair{Pair: portaineree.Pair{Name: s.Name, Value: s.Name}, VersionAvailableFrom: s.MicroK8sVersionAvailableFrom})
+		addonOptions = append(
+			addonOptions, mk8s.AddonPair{
+				Pair:                 portaineree.Pair{Name: s.Name, Value: s.Name},
+				VersionAvailableFrom: s.MicroK8sVersionAvailableFrom,
+				Type:                 s.Type,
+			},
+		)
 	}
 	return mk8s.MicroK8sInfo{
 		KubernetesVersions: mk8s.MicroK8sVersions,

@@ -2,6 +2,8 @@ import { EnvironmentMetadata } from '@/react/portainer/environments/environment.
 
 import { Option } from '@@/form-components/Input/Select';
 
+import { AddOnOption } from './Microk8sCreateClusterForm/AddonSelector';
+
 export enum K8sDistributionType {
   MICROK8S = 'microk8s',
 }
@@ -19,6 +21,7 @@ export type ProvisionOption = KaasProvider | K8sDistributionType;
 
 export type AddonOption = {
   versionAvailableFrom: string;
+  type: string;
 } & Option<string>;
 
 export interface MicroK8sInfo {
@@ -30,7 +33,7 @@ export interface MicroK8sInfo {
 export interface CreateMicrok8sClusterFormValues {
   masterNodes: string[];
   workerNodes: string[];
-  addons: string[];
+  addons: AddOnOption[];
   kubernetesVersion: string;
 }
 
@@ -42,9 +45,12 @@ export interface K8sInstallFormValues {
   microk8s: CreateMicrok8sClusterFormValues;
 }
 
-export interface CreateMicrok8sClusterPayload
-  extends CreateMicrok8sClusterFormValues {
+export interface CreateMicrok8sClusterPayload {
   name: string;
+  masterNodes: string[];
+  workerNodes: string[];
+  addons: string[];
+  kubernetesVersion: string;
 }
 
 export const providerTitles: Record<KaasProvider, string> = {

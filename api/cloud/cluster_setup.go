@@ -852,6 +852,7 @@ func (service *CloudManagementService) processCreateClusterRequest(request *port
 func (service *CloudManagementService) processResult(result *cloudPrevisioningResult) {
 	log.Info().Msg("cluster creation request completed")
 
+	setMessage := service.setMessageHandler(result.endpointID, "")
 	if result.err != nil {
 		log.Error().Err(result.err).Msg("unable to provision cluster")
 
@@ -869,7 +870,7 @@ func (service *CloudManagementService) processResult(result *cloudPrevisioningRe
 			}
 		}
 
-		err = service.setMessageHandler(result.endpointID, "")(result.errSummary, result.err.Error(), "error")
+		err = setMessage(result.errSummary, result.err.Error(), "error")
 		if err != nil {
 			log.Error().Err(err).Msg("unable to update endpoint status message in database")
 		}
@@ -877,6 +878,10 @@ func (service *CloudManagementService) processResult(result *cloudPrevisioningRe
 		err := service.setStatus(result.endpointID, 1)
 		if err != nil {
 			log.Error().Err(err).Msg("unable to update endpoint status in database")
+		}
+		err = setMessage("", "", "")
+		if err != nil {
+			log.Error().Err(err).Msg("unable to update endpoint status message in database")
 		}
 	}
 

@@ -20,6 +20,7 @@ interface AddonsResponse {
   addons: {
     name: string;
     status: string;
+    repository: string;
   }[];
   currentVersion: string;
   kubernetesVersions: Option<string>[];

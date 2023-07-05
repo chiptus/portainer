@@ -9,6 +9,7 @@ type (
 	AddonPair struct {
 		portaineree.Pair
 		VersionAvailableFrom string `json:"versionAvailableFrom"`
+		Type                 string `json:"type"`
 	}
 
 	MicroK8sInfo struct {
@@ -118,6 +119,7 @@ var AllAddons = Addons{
 		MicroK8sVersionAvailableFrom: "1.19",
 		Tooltip:                      "<a href='https://microk8s.io/docs/addon-host-access' target='_blank'>host-access</a> - provides a fixed IP for access to the host’s services.",
 
+		Type:        "core",
 		IsAvailable: true,
 	},
 	{

@@ -178,7 +178,7 @@ function formatMicrok8sPayload({
     ...values,
     masterNodes: formatNodeIPs(masterNodes),
     workerNodes: formatNodeIPs(workerNodes),
-    addons,
+    addons: addons.map((addon) => addon.name),
     kubernetesVersion,
   };
 }

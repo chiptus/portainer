@@ -2,6 +2,7 @@ import { Select } from '@@/form-components/ReactSelect';
 
 export type AddOnOption = {
   name: string;
+  type: string;
 };
 
 interface Props {
@@ -20,7 +21,7 @@ export function Microk8sAddOnSelector({
   return (
     <Select
       isMulti
-      getOptionLabel={(option) => option.name}
+      getOptionLabel={(option) => `${option.name} (${option.type})`}
       getOptionValue={(option) => option.name}
       options={options}
       value={value}

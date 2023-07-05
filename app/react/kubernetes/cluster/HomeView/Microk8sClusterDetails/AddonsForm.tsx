@@ -33,12 +33,21 @@ export function AddonsForm({
   const { data: microk8sOptions, ...microk8sOptionsQuery } =
     useMicroK8sOptions();
 
-  const addonOptions: string[] = useMemo(
-    () => microk8sOptions?.availableAddons.map((a) => a.label) || [],
-    [microk8sOptions?.availableAddons]
-  );
+  const addonOptions: AddOnOption[] = useMemo(() => {
+    const addonOptions: AddOnOption[] = [];
+    microk8sOptions?.availableAddons.forEach((a) => {
+      const kubeVersion = parseFloat(values.currentVersion.split('/')[0]);
+      const versionAvailableFrom = parseFloat(a.versionAvailableFrom);
+      if (kubeVersion >= versionAvailableFrom) {
+        addonOptions.push({ name: a.label, type: a.type });
+      }
+    });
 
-  addonOptions.sort();
+    addonOptions.sort(
+      (a, b) => b.type.localeCompare(a.type) || a.name.localeCompare(b.name)
+    );
+    return addonOptions;
+  }, [microk8sOptions?.availableAddons, values.currentVersion]);
 
   const requiredAddons: string[] = useMemo(
     () => microk8sOptions?.requiredAddons || [],
@@ -85,13 +94,10 @@ export function AddonsForm({
         inputId="microk8s-addons"
       >
         <Microk8sAddOnSelector
-          value={values.addons.map((name) => ({ name }))}
-          options={addonOptions.map((name) => ({ name }))}
+          value={values.addons}
+          options={addonOptions}
           onChange={(value: AddOnOption[]) => {
-            setFieldValue(
-              'addons',
-              value.map((option) => option.name)
-            );
+            setFieldValue('addons', value);
           }}
           disabled={!isAllowed}
         />

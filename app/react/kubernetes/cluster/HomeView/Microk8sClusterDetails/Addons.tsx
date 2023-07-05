@@ -8,6 +8,7 @@ import { useEnvironment } from '@/react/portainer/environments/queries';
 import { notifyError, notifySuccess } from '@/portainer/services/notifications';
 import { useMicroK8sOptions } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/queries';
 import { queryClient } from '@/react-tools/react-query';
+import { AddOnOption } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/Microk8sCreateClusterForm/AddonSelector';
 
 import { TextTip } from '@@/Tip/TextTip';
 import { Card } from '@@/Card';
@@ -38,13 +39,13 @@ export function Addons({ currentVersion }: Props) {
     useMicroK8sOptions();
   const addonsUpdateMutation = useUpdateAddonsMutation();
 
-  const addonOptions: string[] = useMemo(() => {
-    const addons: string[] = [];
+  const addonOptions: AddOnOption[] = useMemo(() => {
+    const addons: AddOnOption[] = [];
     microk8sOptions?.availableAddons.forEach((a) => {
       const kubeVersion = parseFloat(currentVersion.split('/')[0]);
       const versionAvailableFrom = parseFloat(a.versionAvailableFrom);
       if (kubeVersion >= versionAvailableFrom) {
-        addons.push(a.label);
+        addons.push({ name: a.label, type: a.type });
       }
     });
     return addons;
@@ -55,8 +56,9 @@ export function Addons({ currentVersion }: Props) {
     addons:
       addonInfo?.addons
         .filter((addon) => addon.status === 'enabled')
-        .filter((addon) => addonOptions.includes(addon.name)) // show only installable addons
-        .map((addon) => addon.name) || [],
+        .filter((addon) => addonOptions.find((a) => a.name === addon.name)) // show only installable addons
+        .map((addon) => ({ name: addon.name, type: addon.repository })) || [],
+    currentVersion,
   };
 
   if (addonsQuery.isError || environmentQuery.isError) {
@@ -91,7 +93,7 @@ export function Addons({ currentVersion }: Props) {
   function handleUpdateAddons(values: K8sAddOnsForm) {
     return new Promise((resolve) => {
       const payload = {
-        addons: values.addons.map((addon) => addon),
+        addons: values.addons.map((addon) => addon.name),
       };
       addonsUpdateMutation.mutate(
         {
