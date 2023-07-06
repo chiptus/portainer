@@ -1,11 +1,10 @@
 import { ChangeEvent, ReactNode } from 'react';
-import { Info, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { Plus, RefreshCw, Trash2 } from 'lucide-react';
 
 import { Annotations } from '@/react/kubernetes/annotations';
 import { Annotation } from '@/react/kubernetes/annotations/types';
 
 import { Link } from '@@/Link';
-import { Icon } from '@@/Icon';
 import { Select, Option } from '@@/form-components/Input/Select';
 import { FormError } from '@@/form-components/FormError';
 import { Widget, WidgetBody } from '@@/Widget';
@@ -298,12 +297,11 @@ export function IngressForm({
                   </div>
                 )}
                 {host.NoHost && (
-                  <p className="vertical-center text-muted small col-sm-12 !p-0">
-                    <Icon icon={Info} mode="primary" size="md" />A fallback rule
-                    has no host specified. This rule only applies when an
-                    inbound request has a hostname that does not match with any
-                    of your other rules.
-                  </p>
+                  <TextTip color="blue">
+                    A fallback rule has no host specified. This rule only
+                    applies when an inbound request has a hostname that does not
+                    match with any of your other rules.
+                  </TextTip>
                 )}
 
                 <div className="row">
@@ -313,12 +311,11 @@ export function IngressForm({
                 </div>
 
                 {!host.Paths.length && (
-                  <p className="small text-muted vertical-center mt-4 gap-1">
-                    <Icon icon={Info} mode="primary" size="md" />
+                  <TextTip className="mt-2" color="blue">
                     You may save the ingress without a path and it will then be
                     an <b>ingress default</b> that a user may select via the
                     hostname dropdown in Create/Edit application.
-                  </p>
+                  </TextTip>
                 )}
 
                 {host.Paths.map((path, pathIndex) => (
