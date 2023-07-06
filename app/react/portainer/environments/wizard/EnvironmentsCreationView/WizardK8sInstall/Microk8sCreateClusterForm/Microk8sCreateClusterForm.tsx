@@ -122,7 +122,7 @@ export function Microk8sCreateClusterForm({
 
       <FormControl
         label="Control plane nodes"
-        tooltip="The nodes used for managing the overall state of the cluster and deciding where to schedule workloads on worker nodes. For production use it's recommended to have 3, 5 or 7 control plane nodes for high availability."
+        tooltip="Control plane nodes manage cluster state and workload scheduling on worker nodes. For high availability, use 3 nodes (or 5 for greater reliability)."
         inputId="microk8s-masterNodesToAdd"
         errors={errors.microk8s?.masterNodes}
         required
@@ -158,7 +158,7 @@ export function Microk8sCreateClusterForm({
       </FormControl>
       <FormControl
         label="Worker nodes"
-        tooltip="The nodes used to execute tasks from the Control Plane Nodes, running the containers and workloads to keep your applications functioning."
+        tooltip="Worker nodes execute tasks assigned by the control plane nodes and handle the execution of containers and workloads to keep your applications running smoothly."
         inputId="workerNodesToAdd"
         errors={errors.microk8s?.workerNodes}
         // reduce the bottom gap so that the test connection button is closer to the input (but still below the front end validation errors)

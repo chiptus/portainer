@@ -73,7 +73,7 @@ export function useAddonsQuery<TSelect = AddonsResponse | null>(
   select?: (info: AddonsResponse | null) => TSelect
 ) {
   return useQuery(
-    ['clusterInfo', environmentID, 'addons'],
+    ['environments', environmentID, 'clusterInfo', 'addons'],
     () => (environmentID ? getAddons(environmentID) : null),
     {
       select,

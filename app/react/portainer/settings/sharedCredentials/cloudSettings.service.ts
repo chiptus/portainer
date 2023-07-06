@@ -45,7 +45,7 @@ export async function getCloudCredential(id: number) {
     const { data } = await axios.get<Credential>(buildUrl(id));
     return data;
   } catch (e) {
-    throw parseAxiosError(e as Error, 'Unable to get credential');
+    throw parseAxiosError(e as Error, 'Unable to get credentials');
   }
 }
 

@@ -101,7 +101,7 @@ export function NodesDatatable() {
         credentialQuery.isFetched && (
           <div className="w-full">
             <TextTip color="orange">
-              No SSH credential found for the current cluster.
+              No SSH credentials found for the current cluster.
             </TextTip>
           </div>
         )
@@ -162,13 +162,10 @@ function TableActions({
 
   async function onRemoveClick(selectedItems: IndexOptional<Node>[]) {
     const confirmed = await confirmDelete(
-      `Are you sure you want to remove the selected ${pluralize(
+      `Removing a node uninstalls MicroK8s from it. During this time, the cluster may become unreachable. Are you sure you want to remove the selected ${pluralize(
         selectedItems.length,
         'node'
-      )}? This will also uninstall MicroK8s from the ${pluralize(
-        selectedItems.length,
-        'node'
-      )} and might make the cluster unreachable for a short time.`
+      )}?`
     );
     if (confirmed) {
       const nodeIpToDelete = selectedItems.flatMap(
@@ -176,7 +173,10 @@ function TableActions({
       );
       removeNodesMutation.mutate(nodeIpToDelete, {
         onSuccess: () => {
-          notifySuccess('Submitted', 'Request to remove nodes received.');
+          notifySuccess(
+            'Success',
+            'Request to remove nodes successfully submitted.'
+          );
           router.stateService.reload();
         },
       });

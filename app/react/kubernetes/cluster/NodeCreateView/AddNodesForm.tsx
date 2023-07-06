@@ -39,12 +39,12 @@ export function validation(
   return object({
     masterNodesToAdd: validateNodeIPList(existingNodeIPAddresses).test(
       'at least one node',
-      'At least one node is required',
+      'At least one control plane or worker node is required',
       atLeastOneNode
     ),
     workerNodesToAdd: validateNodeIPList(existingNodeIPAddresses).test(
       'at least one node',
-      'At least one node is required',
+      'At least one control plane or worker node is required',
       atLeastOneNode
     ),
   });
@@ -110,7 +110,7 @@ export function AddNodesForm() {
             onSuccess: () => {
               notifySuccess(
                 'Success',
-                'Successfully starting to add nodes. This might take a few minutes to complete.'
+                'Request to add nodes successfully submitted. This might take a few minutes to complete.'
               );
               router.stateService.go('portainer.kubernetes.cluster');
             },
@@ -145,7 +145,7 @@ export function AddNodesForm() {
             <Form onSubmit={handleSubmit}>
               <FormControl
                 label="Control plane nodes"
-                tooltip="The nodes used for managing the overall state of the cluster and deciding where to schedule workloads on worker nodes. For production use it's recommended to have 3, 5 or 7 control plane nodes for high availability."
+                tooltip="Control plane nodes manage cluster state and workload scheduling on worker nodes. For high availability, use 3 nodes (or 5 for greater reliability)."
                 inputId="masterNodesToAdd"
                 errors={errors.masterNodesToAdd}
                 className="[&>div>.help-block>p]:!mb-0 [&>div>.help-block]:!mb-0 [&>label]:!pl-0"
@@ -177,7 +177,7 @@ export function AddNodesForm() {
               </FormControl>
               <FormControl
                 label="Worker nodes"
-                tooltip="The nodes used to execute tasks from the Control Plane Nodes, running the containers and workloads to keep your applications functioning."
+                tooltip="Worker nodes execute tasks assigned by the control plane nodes and handle the execution of containers and workloads to keep your applications running smoothly."
                 inputId="workerNodesToAdd"
                 errors={errors.workerNodesToAdd}
                 // reduce the bottom gap so that the test connection button is closer to the input (but still below the front end validation errors)

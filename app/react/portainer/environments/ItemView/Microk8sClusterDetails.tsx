@@ -51,14 +51,16 @@ export function Microk8sClusterDetails() {
                 {nodes && nodes.length}
               </DetailsTable.Row>
             </DetailsTable>
-            <div className="flex w-full">
+            <TextTip color="blue">
+              You can{' '}
               <Link
                 to="kubernetes.cluster"
                 params={{ endpointId: environmentId }}
               >
-                Update cluster
-              </Link>
-            </div>
+                manage the cluster
+              </Link>{' '}
+              to upgrade, add/remove nodes or enable/disable addons.
+            </TextTip>
           </WidgetBody>
         </Widget>
       </div>

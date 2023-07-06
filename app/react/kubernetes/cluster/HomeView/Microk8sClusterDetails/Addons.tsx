@@ -12,6 +12,8 @@ import { AddOnOption } from '@/react/portainer/environments/wizard/EnvironmentsC
 
 import { TextTip } from '@@/Tip/TextTip';
 import { Card } from '@@/Card';
+import { confirmUpdate } from '@@/modals/confirm';
+import { Icon } from '@@/Icon';
 
 import {
   useAddonsQuery,
@@ -21,11 +23,7 @@ import {
 import { K8sAddOnsForm } from './types';
 import { AddonsForm } from './AddonsForm';
 
-type Props = {
-  currentVersion: string;
-};
-
-export function Addons({ currentVersion }: Props) {
+export function Addons() {
   const router = useRouter();
 
   const environmentId = useEnvironmentId();
@@ -39,6 +37,7 @@ export function Addons({ currentVersion }: Props) {
     useMicroK8sOptions();
   const addonsUpdateMutation = useUpdateAddonsMutation();
 
+  const currentVersion = addonInfo?.currentVersion ?? '';
   const addonOptions: AddOnOption[] = useMemo(() => {
     const addons: AddOnOption[] = [];
     microk8sOptions?.availableAddons.forEach((a) => {
@@ -61,26 +60,24 @@ export function Addons({ currentVersion }: Props) {
     currentVersion,
   };
 
-  if (addonsQuery.isError || environmentQuery.isError) {
-    return <TextTip color="orange">Unable to get addons</TextTip>;
-  }
-
-  if (microk8sOptionsQuery.isError) {
-    return <TextTip color="orange">Unable to get addon options.</TextTip>;
-  }
-
   return (
     <Card>
-      {addonsQuery.isLoading && (
-        <div className="vertical-center text-muted">
-          <Loader2 className="h-4 animate-spin-slow" />
+      {microk8sOptionsQuery.isError && (
+        <TextTip color="red">Unable to get addon options</TextTip>
+      )}
+      {(addonsQuery.isError || environmentQuery.isError) && (
+        <TextTip color="red">Unable to get addons</TextTip>
+      )}
+      {(addonsQuery.isLoading || addonsQuery.isRefetching) && (
+        <div className="vertical-center text-muted text-sm">
+          <Icon icon={Loader2} className="animate-spin-slow" />
           Loading addons...
         </div>
       )}
-      {addonsQuery.isSuccess && (
+      {addonsQuery.isSuccess && !addonsQuery.isRefetching && (
         <Formik
           initialValues={initialValues}
-          onSubmit={(values) => handleUpdateAddons(values)}
+          onSubmit={handleUpdateAddons}
           validateOnMount
           enableReinitialize
         >
@@ -90,30 +87,36 @@ export function Addons({ currentVersion }: Props) {
     </Card>
   );
 
-  function handleUpdateAddons(values: K8sAddOnsForm) {
-    return new Promise((resolve) => {
-      const payload = {
-        addons: values.addons.map((addon) => addon.name),
-      };
-      addonsUpdateMutation.mutate(
-        {
-          environmentID: environmentId,
-          credentialID: environment?.CloudProvider.CredentialID || 0,
-          payload,
-        },
-        {
-          onSuccess: () => {
-            resolve([true, 0]);
-            notifySuccess('Success', 'Addons update requested successfully');
-            queryClient.refetchQueries(['environments', environmentId]);
-            router.stateService.reload();
-          },
-          onError: (error) => {
-            resolve([false, 0]);
-            notifyError('Error requesting addons update', error as Error);
-          },
+  async function handleUpdateAddons(values: K8sAddOnsForm) {
+    confirmUpdate(
+      'Are you sure you want to apply changes to addons?',
+      (confirmed) => {
+        if (confirmed) {
+          const payload = {
+            addons: values.addons.map((addon) => addon.name),
+          };
+          addonsUpdateMutation.mutate(
+            {
+              environmentID: environmentId,
+              credentialID: environment?.CloudProvider.CredentialID || 0,
+              payload,
+            },
+            {
+              onSuccess: () => {
+                notifySuccess(
+                  'Success',
+                  'Request to update addons successfully submitted'
+                );
+                queryClient.refetchQueries(['environments', environmentId]);
+                router.stateService.reload();
+              },
+              onError: (error) => {
+                notifyError('Error requesting addons update', error as Error);
+              },
+            }
+          );
         }
-      );
-    });
+      }
+    );
   }
 }

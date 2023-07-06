@@ -163,11 +163,13 @@ interface EndpointChangeWindow {
   EndTime: string;
 }
 
+export type OperationStatus = 'processing' | 'error' | '';
+
 export interface EnvironmentStatusMessage {
   detail: string;
   summary: string;
   operation: '' | 'scale' | 'upgrade' | 'addons';
-  operationStatus: '' | 'processing' | 'error';
+  operationStatus: OperationStatus;
 }
 
 export type Environment = {

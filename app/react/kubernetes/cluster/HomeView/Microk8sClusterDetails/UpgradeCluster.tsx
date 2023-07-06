@@ -1,13 +1,12 @@
-import { Loader2 } from 'lucide-react';
 import { Formik, Form, Field } from 'formik';
 import { useRouter } from '@uirouter/react';
+import { Loader2 } from 'lucide-react';
 
-import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { notifySuccess } from '@/portainer/services/notifications';
 import { useAuthorizations } from '@/react/hooks/useUser';
 import { useAnalytics } from '@/react/hooks/useAnalytics';
 import { K8sDistributionType } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/types';
-import { useEnvironment } from '@/react/portainer/environments/queries';
+import { useCurrentEnvironment } from '@/react/hooks/useCurrentEnvironment';
 
 import { confirm } from '@@/modals/confirm';
 import { Input } from '@@/form-components/Input';
@@ -15,33 +14,24 @@ import { Card } from '@@/Card';
 import { FormControl } from '@@/form-components/FormControl';
 import { LoadingButton } from '@@/buttons';
 import { ModalType } from '@@/modals';
-import { Option } from '@@/form-components/Input/Select';
+import { TextTip } from '@@/Tip/TextTip';
+import { Icon } from '@@/Icon';
 
-import { useUpgradeClusterMutation } from '../../microk8s/addons.service';
+import {
+  useAddonsQuery,
+  useUpgradeClusterMutation,
+} from '../../microk8s/addons.service';
 
 export type K8sUpgradeType = {
   kubeVersion: string;
 };
 
-type Props = {
-  kubernetesVersions?: Option<string>[];
-  currentVersion?: string;
-  statusQuery: {
-    isLoading: boolean;
-    isError: boolean;
-  };
-};
-
-export function UpgradeCluster({
-  currentVersion,
-  kubernetesVersions,
-  statusQuery,
-}: Props) {
+export function UpgradeCluster() {
   const router = useRouter();
 
-  const environmentId = useEnvironmentId();
-  const environmentQuery = useEnvironment(environmentId);
-  const { data: environment } = environmentQuery;
+  const { data: environment, ...environmentQuery } = useCurrentEnvironment();
+  const statusQuery = useAddonsQuery(environment?.Id, environment?.Status);
+  const { currentVersion, kubernetesVersions } = statusQuery.data || {};
   const isProcessing =
     environment?.StatusMessage?.operationStatus === 'processing';
 
@@ -60,61 +50,69 @@ export function UpgradeCluster({
   const { trackEvent } = useAnalytics();
 
   return (
-    <Formik
-      initialValues={initialValues}
-      onSubmit={handleUpgradeCluster}
-      validateOnMount
-      enableReinitialize
-    >
-      <Form className="form-horizontal">
-        <Card>
-          {statusQuery.isError && 'Unable to get kubernetes status'}
-          <FormControl
-            label="Kubernetes version"
-            tooltip="Kubernetes version running on the cluster. Upgrades can only be performed to the next version number (where a newer version is available)."
-            inputId="kubeVersion"
-          >
-            {statusQuery.isLoading && (
-              <div className="vertical-center text-muted pt-2">
-                <Loader2 className="h-4 animate-spin-slow" />
-                Loading version...
-              </div>
-            )}
-            {!statusQuery.isLoading && (
-              <Field
-                name="kubeVersion"
-                as={Input}
-                id="kubeVersion-input"
-                disabled
-              />
-            )}
-          </FormControl>
-          {!statusQuery.isLoading && (
-            <LoadingButton
-              isLoading={statusQuery.isLoading}
-              loadingText="Upgrading..."
-              type="submit"
-              color="secondary"
-              className="!ml-0"
-              onClick={() => {}}
-              disabled={
-                nextVersion === currentVersion ||
-                upgradeClusterMutation.isLoading ||
-                !isAllowed ||
-                isProcessing
-              }
-            >
-              {nextVersion === currentVersion
-                ? 'No upgrade currently available'
-                : `Upgrade to ${nextVersion}`}
-            </LoadingButton>
+    <Card>
+      {statusQuery.isError && (
+        <TextTip color="red">Unable to Kubernetes version</TextTip>
+      )}
+      {environmentQuery.isError && (
+        <TextTip color="red">Unable to load environment</TextTip>
+      )}
+      {(statusQuery.isLoading ||
+        environmentQuery.isLoading ||
+        statusQuery.isRefetching) && (
+        <div className="vertical-center text-muted text-sm">
+          <Icon icon={Loader2} className="animate-spin-slow" />
+          Loading Kubernetes version...
+        </div>
+      )}
+      {statusQuery.isSuccess && environment && !statusQuery.isRefetching && (
+        <Formik
+          initialValues={initialValues}
+          onSubmit={handleUpgradeCluster}
+          validateOnMount
+          enableReinitialize
+        >
+          {({ isSubmitting }) => (
+            <Form className="form-horizontal">
+              <FormControl
+                label="Kubernetes version"
+                tooltip="Kubernetes version running on the cluster. Upgrades can only be performed to the next version number (where a newer version is available)."
+                inputId="kubeVersion"
+              >
+                <Field
+                  name="kubeVersion"
+                  as={Input}
+                  id="kubeVersion-input"
+                  disabled
+                />
+              </FormControl>
+              <LoadingButton
+                isLoading={isSubmitting}
+                loadingText="Upgrading..."
+                type="submit"
+                color="secondary"
+                className="!ml-0"
+                onClick={() => {}}
+                disabled={
+                  nextVersion === currentVersion ||
+                  upgradeClusterMutation.isLoading ||
+                  !isAllowed ||
+                  isProcessing
+                }
+              >
+                {nextVersion === currentVersion
+                  ? 'No upgrade currently available'
+                  : `Upgrade to ${nextVersion}`}
+              </LoadingButton>
+            </Form>
           )}
-        </Card>
-      </Form>
-    </Formik>
+        </Formik>
+      )}
+    </Card>
   );
 
   async function handleUpgradeCluster() {
+    if (!environment) return;
     const confirmed = await confirm({
       title: 'Are you sure?',
       message:
@@ -124,7 +122,7 @@ export function UpgradeCluster({
     });
     if (confirmed) {
       upgradeClusterMutation.mutate(
-        { environmentID: environmentId, nextVersion: nextVersion || '' },
+        { environmentID: environment?.Id, nextVersion: nextVersion || '' },
         {
           onSuccess: () => {
             notifySuccess('Success', 'Cluster upgrade requested successfully');

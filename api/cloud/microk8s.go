@@ -252,6 +252,8 @@ func (service *CloudManagementService) processMicrok8sScalingRequest(req *Microk
 
 	endpoint, err := service.dataStore.Endpoint().Endpoint(req.EndpointID)
 	if err != nil {
+		details := fmt.Sprintf("Scaling error: %v", err)
+		setMessage("Failed to scale cluster", details, "error")
 		return fmt.Errorf("failed to retrieve environment %d. %w", req.EndpointID, err)
 	}
 
@@ -261,6 +263,8 @@ func (service *CloudManagementService) processMicrok8sScalingRequest(req *Microk
 
 	credentials, err := service.dataStore.CloudCredential().Read(endpoint.CloudProvider.CredentialID)
 	if err != nil {
+		details := fmt.Sprintf("Scaling error: %v", err)
+		setMessage("Failed to scale cluster", details, "error")
 		return fmt.Errorf("failed to retrieve credentials for endpoint %d. %w", req.EndpointID, err)
 	}
 
@@ -274,7 +278,7 @@ func (service *CloudManagementService) processMicrok8sScalingRequest(req *Microk
 
 	if err != nil {
 		details := fmt.Sprintf("Scaling error: %v", err)
-		setMessage("Scaling cluster", details, "error")
+		setMessage("Failed to scale cluster", details, "error")
 		return err
 	}
 

@@ -5,7 +5,7 @@ import { withError } from '@/react-tools/react-query';
 import { getDeploymentOptions, getEndpoint } from '../environment.service';
 import { Environment, EnvironmentId } from '../types';
 
-import { queryKeys } from './query-keys';
+import { environmentQueryKeys } from './query-keys';
 
 export function useEnvironment<T = Environment | null>(
   environmentId?: EnvironmentId,
@@ -13,7 +13,7 @@ export function useEnvironment<T = Environment | null>(
   options?: { autoRefreshRate?: number }
 ) {
   return useQuery(
-    environmentId ? queryKeys.item(environmentId) : [],
+    environmentId ? environmentQueryKeys.item(environmentId) : [],
     () => (environmentId ? getEndpoint(environmentId) : null),
     {
       select,
@@ -29,7 +29,7 @@ export function useEnvironment<T = Environment | null>(
 
 export function useEnvironmentDeploymentOptions(id: EnvironmentId) {
   return useQuery(
-    [...queryKeys.item(id), 'deploymentOptions'],
+    [...environmentQueryKeys.item(id), 'deploymentOptions'],
     () => getDeploymentOptions(id),
     {
       enabled: !!id,

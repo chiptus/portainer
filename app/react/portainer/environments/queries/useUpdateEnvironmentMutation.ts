@@ -12,12 +12,12 @@ import { TagId } from '@/portainer/tags/types';
 import { EnvironmentGroupId } from '../environment-groups/types';
 import { buildUrl } from '../environment.service/utils';
 
-import { queryKeys } from './query-keys';
+import { environmentQueryKeys } from './query-keys';
 
 export function useUpdateEnvironmentMutation() {
   const queryClient = useQueryClient();
   return useMutation(updateEnvironment, {
-    ...withInvalidate(queryClient, [queryKeys.base()]),
+    ...withInvalidate(queryClient, [environmentQueryKeys.base()]),
     ...withError('Unable to update environment'),
   });
 }
