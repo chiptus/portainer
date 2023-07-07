@@ -75,7 +75,7 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 	if edgeStack.GitConfig != nil {
 		commitHash = edgeStack.GitConfig.ConfigHash
 	}
-	projectVersionPath := handler.FileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.Version, commitHash)
+	projectVersionPath := handler.FileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.StackFileVersion, commitHash)
 	dirEntries, err := filesystem.LoadDir(projectVersionPath)
 	if err != nil {
 		return httperror.InternalServerError("Unable to load repository", err)

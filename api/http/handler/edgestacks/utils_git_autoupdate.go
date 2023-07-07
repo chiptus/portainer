@@ -58,7 +58,7 @@ func (handler *Handler) autoUpdate(edgeStackId portaineree.EdgeStackID, envVars 
 				fileName = edgeStack.ManifestPath
 			}
 
-			projectPath := handler.FileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.Version, "")
+			projectPath := handler.FileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.StackFileVersion, "")
 			stackFileContent, err := handler.FileService.GetFileContent(projectPath, fileName)
 			if err != nil {
 				log.Warn().
@@ -80,7 +80,8 @@ func (handler *Handler) autoUpdate(edgeStackId portaineree.EdgeStackID, envVars 
 			return fmt.Errorf("unable to retrieve edge stack related environments from database: %w", err)
 		}
 
-		err = handler.updateStackVersion(edgeStack, edgeStack.DeploymentType, config, oldHash, relatedEndpointIds)
+		var rollbackTo *int = nil // auto update does not need rollback
+		err = handler.updateStackVersion(edgeStack, edgeStack.DeploymentType, config, oldHash, relatedEndpointIds, rollbackTo)
 		if err != nil {
 			return fmt.Errorf("unable to update stack version: %w", err)
 		}
@@ -106,7 +107,6 @@ func (handler *Handler) autoUpdate(edgeStackId portaineree.EdgeStackID, envVars 
 	})
 	if err != nil {
 		return httperror.InternalServerError("failed in git auto update", err)
-
 	}
 
 	edgeStack, err := handler.DataStore.EdgeStack().EdgeStack(edgeStackId)

@@ -118,7 +118,7 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 	if edgeStack.GitConfig != nil {
 		commitHash = edgeStack.GitConfig.ConfigHash
 	}
-	projectVersionPath := service.fileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.Version, commitHash)
+	projectVersionPath := service.fileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.StackFileVersion, commitHash)
 	dirEntries, err := filesystem.LoadDir(projectVersionPath)
 	if err != nil {
 		return httperror.InternalServerError("Unable to load repository", err)

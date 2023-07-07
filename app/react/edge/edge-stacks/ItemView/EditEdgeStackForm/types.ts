@@ -12,6 +12,6 @@ export interface FormValues {
   prePullImage: boolean;
   retryDeploy: boolean;
   webhookEnabled: boolean;
-  versions?: number[];
   envVars: EnvVar[];
+  rollbackTo?: number;
 }

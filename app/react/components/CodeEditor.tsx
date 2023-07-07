@@ -3,7 +3,7 @@ import { StreamLanguage, LanguageSupport } from '@codemirror/language';
 import { yaml } from '@codemirror/legacy-modes/mode/yaml';
 import { dockerFile } from '@codemirror/legacy-modes/mode/dockerfile';
 import { shell } from '@codemirror/legacy-modes/mode/shell';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { createTheme } from '@uiw/codemirror-themes';
 import { tags as highlightTags } from '@lezer/highlight';
 
@@ -73,6 +73,8 @@ export function CodeEditor({
   dockerFile: isDockerFile,
   shell: isShell,
 }: Props) {
+  const [isRollback, setIsRollback] = useState(false);
+
   const extensions = useMemo(() => {
     const extensions = [];
     if (isYaml) {
@@ -87,6 +89,18 @@ export function CodeEditor({
     return extensions;
   }, [isYaml, isDockerFile, isShell]);
 
+  function handleVersionChange(version: number) {
+    if (versions && versions.length > 1) {
+      if (version < versions[0]) {
+        setIsRollback(true);
+      } else {
+        setIsRollback(false);
+      }
+    }
+
+    onVersionChange(version);
+  }
+
   return (
     <>
       <div className="mb-2 flex flex-col">
@@ -99,7 +113,7 @@ export function CodeEditor({
             <div className="flex-2 ml-auto mr-2">
               <StackVersionSelector
                 versions={versions}
-                onChange={onVersionChange}
+                onChange={handleVersionChange}
               />
             </div>
           )}
@@ -122,7 +136,7 @@ export function CodeEditor({
         theme={theme}
         value={value}
         onChange={onChange}
-        readOnly={readonly}
+        readOnly={readonly || isRollback}
         id={id}
         extensions={extensions}
         height={height}

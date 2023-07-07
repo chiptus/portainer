@@ -135,7 +135,7 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 				details.Ok = true
 
 				// if the edge stack is deployed successfully, we need to update the deployment info
-				deploymentInfo.Version = edgeStack.Version
+				deploymentInfo.FileVersion = edgeStack.StackFileVersion
 				if edgeStack.GitConfig != nil {
 					deploymentInfo.ConfigHash = edgeStack.GitConfig.ConfigHash
 				}
@@ -169,7 +169,7 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 		case portainer.EdgeStackStatusOk:
 			details.Ok = true
 
-			deploymentInfo.Version = stack.Version
+			deploymentInfo.FileVersion = stack.StackFileVersion
 			if stack.GitConfig != nil {
 				deploymentInfo.ConfigHash = stack.GitConfig.ConfigHash
 			}

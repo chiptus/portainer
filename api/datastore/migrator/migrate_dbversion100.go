@@ -78,7 +78,7 @@ func (migrator *Migrator) rebuildEdgeStackFileSystemWithVersionForDB100() error 
 		}
 
 		edgeStackIdentifier := strconv.Itoa(int(edgeStack.ID))
-		edgeStackVersionFolder := migrator.fileService.GetEdgeStackProjectPathByVersion(edgeStackIdentifier, edgeStack.Version, commitHash)
+		edgeStackVersionFolder := migrator.fileService.GetEdgeStackProjectPathByVersion(edgeStackIdentifier, edgeStack.StackFileVersion, commitHash)
 
 		// Conduct the source folder checks to avoid unnecessary error return
 		// In the normal case, the source folder should exist, However, there is a chance that

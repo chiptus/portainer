@@ -128,6 +128,7 @@ export class EditEdgeStackViewController {
         rePullImage,
         webhook: values.webhookEnabled ? this.stack.Webhook || createWebhookId() : '',
         envVars: values.envVars,
+        rollbackTo: values.rollbackTo ? values.rollbackTo : undefined,
       });
       this.Notifications.success('Success', 'Stack successfully deployed');
       this.state.isStackDeployed = true;

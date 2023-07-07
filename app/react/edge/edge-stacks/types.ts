@@ -22,7 +22,7 @@ interface EdgeStackStatusDetails {
 export type StatusType = keyof EdgeStackStatusDetails;
 
 interface EdgeStackDeploymentInfo {
-  Version: number;
+  FileVersion: number;
   ConfigHash: string;
 }
 
@@ -65,6 +65,7 @@ export type EdgeStack = {
   Prune: boolean;
   RetryDeploy: boolean;
   Webhook: string;
+  StackFileVersion: number;
   PreviousDeploymentInfo: EdgeStackDeploymentInfo;
   EnvVars?: EnvVar[];
 };

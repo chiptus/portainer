@@ -117,7 +117,10 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 		}
 
 		// make a copy of the current commit hash before updating the git config
-		currentCommitHash := edgeStack.GitConfig.ConfigHash
+		oldCommitHash := ""
+		if edgeStack.GitConfig != nil {
+			oldCommitHash = edgeStack.GitConfig.ConfigHash
+		}
 
 		gitConfig := edgeStack.GitConfig
 		err = handler.updateGitSettings(gitConfig, payload.RefName, auth, true)
@@ -156,7 +159,8 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 		edgeStack.AutoUpdate = updateSettings
 		edgeStack.NumDeployments = len(relatedEndpointIds)
 
-		err = handler.updateStackVersion(edgeStack, edgeStack.DeploymentType, nil, currentCommitHash, relatedEndpointIds)
+		var rollbackTo *int = nil // update git doesn't support rollback now (v2.19.0)
+		err = handler.updateStackVersion(edgeStack, edgeStack.DeploymentType, nil, oldCommitHash, relatedEndpointIds, rollbackTo)
 		if err != nil {
 			return fmt.Errorf("unable to update stack version: %w", err)
 		}

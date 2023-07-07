@@ -47,7 +47,7 @@ func (handler *Handler) edgeStackFile(w http.ResponseWriter, r *http.Request) *h
 
 	var projectPath string
 	if stack.GitConfig != nil {
-		projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, stack.Version, stack.GitConfig.ConfigHash)
+		projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, stack.StackFileVersion, stack.GitConfig.ConfigHash)
 
 		// check if a commit hash is provided
 		commitHash, _ := request.RetrieveQueryParameter(r, "commitHash", true)
@@ -55,15 +55,15 @@ func (handler *Handler) edgeStackFile(w http.ResponseWriter, r *http.Request) *h
 			if commitHash != stack.PreviousDeploymentInfo.ConfigHash && commitHash != stack.GitConfig.ConfigHash {
 				return httperror.BadRequest("Only support latest two versions", fmt.Errorf("commit hash %s is not a valid commit hash for this stack", commitHash))
 			}
-			projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, stack.Version, commitHash)
+			projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, stack.StackFileVersion, commitHash)
 		}
 
 	} else {
-		projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, stack.Version, "")
+		projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, stack.StackFileVersion, "")
 		// check if a version is provided
 		version, _ := request.RetrieveNumericQueryParameter(r, "version", true)
 		if version != 0 {
-			if version != stack.PreviousDeploymentInfo.Version && version != stack.Version {
+			if version != stack.PreviousDeploymentInfo.FileVersion && version != stack.StackFileVersion {
 				return httperror.BadRequest("Only support latest two versions", fmt.Errorf("version %d is not a valid version for this stack", version))
 			}
 			projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, version, "")

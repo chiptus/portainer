@@ -30,6 +30,8 @@ type updateEdgeStackPayload struct {
 	Webhook *string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
 	// Environment variables to inject into the stack
 	EnvVars []portainer.Pair
+	// RollbackTo specifies the stack file version to rollback to
+	RollbackTo *int
 }
 
 func (payload *updateEdgeStackPayload) Validate(r *http.Request) error {
@@ -153,7 +155,12 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 	}
 
 	if payload.UpdateVersion {
-		err := handler.updateStackVersion(stack, payload.DeploymentType, []byte(payload.StackFileContent), "", relatedEndpointIds)
+		err := handler.updateStackVersion(stack,
+			payload.DeploymentType,
+			[]byte(payload.StackFileContent),
+			"",
+			relatedEndpointIds,
+			payload.RollbackTo)
 		if err != nil {
 			return nil, httperror.InternalServerError("Unable to update stack version", err)
 		}

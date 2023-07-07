@@ -81,6 +81,7 @@ func (service *Service) BuildEdgeStack(
 		SupportRelativePath:   args.SupportRelativePath,
 		FilesystemPath:        args.FilesystemPath,
 		EnvVars:               args.EnvVars,
+		StackFileVersion:      1,
 	}, nil
 }
 

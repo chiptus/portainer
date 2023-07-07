@@ -547,7 +547,7 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 
 		var deploymentInfo portainer.StackDeploymentInfo
 		if status.Details.Ok {
-			deploymentInfo.Version = stack.Version
+			deploymentInfo.FileVersion = stack.StackFileVersion
 			if stack.GitConfig != nil {
 				deploymentInfo.ConfigHash = stack.GitConfig.ConfigHash
 			}

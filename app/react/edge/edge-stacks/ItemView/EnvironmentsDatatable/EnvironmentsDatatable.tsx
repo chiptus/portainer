@@ -38,7 +38,7 @@ export function EnvironmentsDatatable() {
     edgeStackStatus: statusFilter,
   });
 
-  const currentVersion = edgeStackQuery.data?.Version.toString() || '';
+  const currentVersion = edgeStackQuery.data?.StackFileVersion.toString() || '';
   const gitConfigURL = edgeStackQuery.data?.GitConfig?.URL || '';
   const gitConfigCommitHash = edgeStackQuery.data?.GitConfig?.ConfigHash || '';
   const environments: Array<EdgeStackEnvironment> = useMemo(
@@ -60,11 +60,11 @@ export function EnvironmentsDatatable() {
             EndpointID: env.Id,
             Error: '',
             DeploymentInfo: {
-              Version: 0,
+              FileVersion: 0,
               ConfigHash: '',
             },
           } satisfies EdgeStackStatus),
-        TargetVersion: currentVersion,
+        TargetFileVersion: currentVersion,
         GitConfigURL: gitConfigURL,
         TargetCommitHash: gitConfigCommitHash,
       })),

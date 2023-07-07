@@ -136,11 +136,11 @@ func (handler *Handler) storeFileContent(tx dataservices.DataStoreTx, stackFolde
 	}
 
 	projectPath = handler.FileService.GetEdgeStackProjectPath(stackFolder)
+	initialStackFileVersion := 1 // When creating a new stack, the version is always 1
 	if deploymentType == portaineree.EdgeStackDeploymentCompose {
 		composePath = filesystem.ComposeFileDefaultName
 
-		// When creating a new stack, the version is always 1
-		_, err = handler.FileService.StoreEdgeStackFileFromBytesByVersion(stackFolder, composePath, 1, fileContent)
+		_, err = handler.FileService.StoreEdgeStackFileFromBytesByVersion(stackFolder, composePath, initialStackFileVersion, fileContent)
 		if err != nil {
 			return "", "", "", err
 		}
@@ -151,8 +151,7 @@ func (handler *Handler) storeFileContent(tx dataservices.DataStoreTx, stackFolde
 	if deploymentType == portaineree.EdgeStackDeploymentKubernetes {
 		manifestPath = filesystem.ManifestFileDefaultName
 
-		// When creating a new stack, the version is always 1
-		projectPath, err = handler.FileService.StoreEdgeStackFileFromBytesByVersion(stackFolder, manifestPath, 1, fileContent)
+		_, err = handler.FileService.StoreEdgeStackFileFromBytesByVersion(stackFolder, manifestPath, initialStackFileVersion, fileContent)
 		if err != nil {
 			return "", "", "", err
 		}
@@ -162,8 +161,8 @@ func (handler *Handler) storeFileContent(tx dataservices.DataStoreTx, stackFolde
 
 	if deploymentType == portaineree.EdgeStackDeploymentNomad {
 		nomadConfigPath := eefs.NomadJobFileDefaultName
-		// When creating a new stack, the version is always 1
-		projectPath, err = handler.FileService.StoreEdgeStackFileFromBytesByVersion(stackFolder, nomadConfigPath, 1, fileContent)
+
+		_, err = handler.FileService.StoreEdgeStackFileFromBytesByVersion(stackFolder, nomadConfigPath, initialStackFileVersion, fileContent)
 		if err != nil {
 			return "", "", "", err
 		}

@@ -1,5 +1,5 @@
 import { Form, Formik, useFormikContext } from 'formik';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { array, boolean, number, object, SchemaOf, string } from 'yup';
 
 import { EdgeGroupsSelector } from '@/react/edge/edge-stacks/components/EdgeGroupsSelector';
@@ -67,12 +67,13 @@ export function EditEdgeStackForm({
     prePullImage: edgeStack.PrePullImage,
     retryDeploy: edgeStack.RetryDeploy,
     webhookEnabled: !!edgeStack.Webhook,
-    versions: [edgeStack.Version],
     envVars: edgeStack.EnvVars || [],
+    rollbackTo: undefined,
   };
 
-  if (edgeStack.PreviousDeploymentInfo?.Version > 0) {
-    formValues.versions?.push(edgeStack.PreviousDeploymentInfo?.Version);
+  const versionOptions: number[] = [edgeStack.StackFileVersion];
+  if (edgeStack.PreviousDeploymentInfo?.FileVersion > 0) {
+    versionOptions.push(edgeStack.PreviousDeploymentInfo?.FileVersion);
   }
 
   return (
@@ -86,6 +87,7 @@ export function EditEdgeStackForm({
         isSubmitting={isSubmitting}
         onEditorChange={onEditorChange}
         allowKubeToSelectCompose={allowKubeToSelectCompose}
+        versionOptions={versionOptions}
       />
     </Formik>
   );
@@ -96,16 +98,27 @@ function InnerForm({
   edgeStack,
   isSubmitting,
   allowKubeToSelectCompose,
+  versionOptions,
 }: {
   edgeStack: EdgeStack;
   isSubmitting: boolean;
   onEditorChange: (content: string) => void;
   allowKubeToSelectCompose: boolean;
+  versionOptions: number[];
 }) {
   const { values, setFieldValue, isValid, errors, setFieldError } =
     useFormikContext<FormValues>();
   const { getCachedContent, setContentCache } = useCachedContent();
   const { hasType } = useValidateEnvironmentTypes(values.edgeGroups);
+  const [selectedVersion, setSelectedVersion] = useState(versionOptions[0]);
+
+  useEffect(() => {
+    if (selectedVersion !== versionOptions[0]) {
+      setFieldValue('rollbackTo', selectedVersion);
+    } else {
+      setFieldValue('rollbackTo', undefined);
+    }
+  }, [selectedVersion, setFieldValue, versionOptions]);
 
   const hasKubeEndpoint = hasType(EnvironmentType.EdgeAgentOnKubernetes);
   const hasDockerEndpoint = hasType(EnvironmentType.EdgeAgentOnDocker);
@@ -153,6 +166,7 @@ function InnerForm({
       <DeploymentForm
         hasKubeEndpoint={hasType(EnvironmentType.EdgeAgentOnKubernetes)}
         handleContentChange={handleContentChange}
+        versionOptions={versionOptions}
         handleVersionChange={handleVersionChange}
       />
 
@@ -266,6 +280,13 @@ function InnerForm({
       () => ''
     );
     if (fileContent) {
+      if (versionOptions.length > 1) {
+        if (newVersion < versionOptions[0]) {
+          setSelectedVersion(newVersion);
+        } else {
+          setSelectedVersion(versionOptions[0]);
+        }
+      }
       handleContentChange(values.deploymentType, fileContent);
     }
   }
@@ -305,5 +326,6 @@ function formValidation(): SchemaOf<FormValues> {
     webhookEnabled: boolean().default(false),
     versions: array().of(number().optional()).optional(),
     envVars: envVarValidation(),
+    rollbackTo: number().optional(),
   });
 }
