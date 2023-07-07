@@ -31,10 +31,10 @@ func (handler *Handler) endpointTrust(w http.ResponseWriter, r *http.Request) *h
 	}
 
 	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-		err = trustEndpoint(handler.DataStore, endpoint.ID)
+		err = handler.trustEndpoint(handler.DataStore, endpoint.ID)
 	} else {
 		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			return trustEndpoint(tx, endpoint.ID)
+			return handler.trustEndpoint(tx, endpoint.ID)
 		})
 	}
 
@@ -50,7 +50,7 @@ func (handler *Handler) endpointTrust(w http.ResponseWriter, r *http.Request) *h
 	return response.Empty(w)
 }
 
-func trustEndpoint(tx dataservices.DataStoreTx, ID portaineree.EndpointID) error {
+func (handler *Handler) trustEndpoint(tx dataservices.DataStoreTx, ID portaineree.EndpointID) error {
 	endpoint, err := tx.Endpoint().Endpoint(ID)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve environment from the database", err)
@@ -66,6 +66,8 @@ func trustEndpoint(tx dataservices.DataStoreTx, ID portaineree.EndpointID) error
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist environment changes inside the database", err)
 	}
+
+	handler.ReverseTunnelService.SetTunnelStatusToRequired(endpoint.ID)
 
 	return nil
 }
