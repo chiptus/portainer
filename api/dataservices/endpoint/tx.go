@@ -28,6 +28,8 @@ func (service ServiceTx) Endpoint(ID portaineree.EndpointID) (*portaineree.Endpo
 		return nil, err
 	}
 
+	endpoint.LastCheckInDate, _ = service.service.Heartbeat(ID)
+
 	return &endpoint, nil
 }
 

@@ -101,13 +101,20 @@ func (handler *Handler) endpointEdgeStatusInspect(w http.ResponseWriter, r *http
 		return httperror.Forbidden("Permission denied to access environment", err)
 	}
 
+	handler.DataStore.Endpoint().UpdateHeartbeat(endpoint.ID)
+
+	err = handler.requestBouncer.TrustedEdgeEnvironmentAccess(handler.DataStore, endpoint)
+	if err != nil {
+		return httperror.Forbidden("Permission denied to access environment", err)
+	}
+
 	var statusResponse *endpointEdgeStatusInspectResponse
 	var skipCache bool
 	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-		statusResponse, skipCache, err = handler.inspectStatus(handler.DataStore, r, portaineree.EndpointID(endpointID))
+		statusResponse, skipCache, err = handler.inspectStatus(handler.DataStore, r, endpoint.ID)
 	} else {
 		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			statusResponse, skipCache, err = handler.inspectStatus(tx, r, portaineree.EndpointID(endpointID))
+			statusResponse, skipCache, err = handler.inspectStatus(tx, r, endpoint.ID)
 			return err
 		})
 	}
@@ -128,11 +135,6 @@ func (handler *Handler) inspectStatus(tx dataservices.DataStoreTx, r *http.Reque
 	endpoint, err := tx.Endpoint().Endpoint(endpointID)
 	if err != nil {
 		return nil, false, err
-	}
-
-	err = handler.requestBouncer.TrustedEdgeEnvironmentAccess(tx, endpoint)
-	if err != nil {
-		return nil, false, httperror.Forbidden("Permission denied to access environment", err)
 	}
 
 	if endpoint.EdgeID == "" {
