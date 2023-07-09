@@ -1,16 +1,18 @@
 import clsx from 'clsx';
-import { PropsWithChildren } from 'react';
+import { Children, PropsWithChildren } from 'react';
 
 type Props = {
   headers?: string[];
   dataCy?: string;
   className?: string;
+  emptyMessage?: string;
 };
 
 export function DetailsTable({
   headers = [],
   dataCy,
   className,
+  emptyMessage,
   children,
 }: PropsWithChildren<Props>) {
   return (
@@ -24,7 +26,17 @@ export function DetailsTable({
           </tr>
         </thead>
       )}
-      {children && <tbody>{children}</tbody>}
+      <tbody>
+        {Children.count(children) > 0 ? (
+          children
+        ) : (
+          <tr>
+            <td colSpan={headers.length} className="text-muted text-center">
+              {emptyMessage}
+            </td>
+          </tr>
+        )}
+      </tbody>
     </table>
   );
 }

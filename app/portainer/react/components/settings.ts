@@ -11,6 +11,7 @@ import { ExperimentalFeatures } from '@/react/portainer/settings/SettingsView/Ex
 import { ApplicationSettingsPanel } from '@/react/portainer/settings/SettingsView/ApplicationSettingsPanel';
 import { KubeSettingsPanel } from '@/react/portainer/settings/SettingsView/KubeSettingsPanel';
 import { HelmCertPanel } from '@/react/portainer/settings/SettingsView/HelmCertPanel';
+import { HiddenContainersPanel } from '@/react/portainer/settings/SettingsView/HiddenContainersPanel/HiddenContainersPanel';
 
 export const settingsModule = angular
   .module('portainer.app.react.components.settings', [])
@@ -32,6 +33,10 @@ export const settingsModule = angular
     r2a(withReactQuery(ApplicationSettingsPanel), ['onSuccess'])
   )
   .component('helmCertPanel', r2a(withReactQuery(HelmCertPanel), []))
+  .component(
+    'hiddenContainersPanel',
+    r2a(withUIRouter(withReactQuery(HiddenContainersPanel)), [])
+  )
   .component(
     'kubeSettingsPanel',
     r2a(withUIRouter(withReactQuery(KubeSettingsPanel)), [])
