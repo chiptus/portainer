@@ -244,7 +244,7 @@ function useNodeRowData(
         ...node,
         isApi,
         isPublishedNode,
-        name: `${node.metadata?.name}${isApi ? 'api' : ''}` ?? '',
+        Name: `${node.metadata?.name}${isApi ? 'api' : ''}` ?? '',
       };
     });
     return nodeRowData;

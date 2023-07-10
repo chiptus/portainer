@@ -38,7 +38,11 @@ export function AddonsForm({
     microk8sOptions?.availableAddons.forEach((a) => {
       const kubeVersion = parseFloat(values.currentVersion.split('/')[0]);
       const versionAvailableFrom = parseFloat(a.versionAvailableFrom);
-      if (kubeVersion >= versionAvailableFrom) {
+      const versionAvailableTo = parseFloat(a.versionAvailableTo);
+      if (
+        kubeVersion >= versionAvailableFrom &&
+        (Number.isNaN(versionAvailableTo) || kubeVersion <= versionAvailableTo)
+      ) {
         addonOptions.push({ name: a.label, type: a.type });
       }
     });
@@ -50,7 +54,8 @@ export function AddonsForm({
   }, [microk8sOptions?.availableAddons, values.currentVersion]);
 
   const requiredAddons: string[] = useMemo(
-    () => microk8sOptions?.requiredAddons || [],
+    () =>
+      microk8sOptions?.requiredAddons.filter((a) => a !== 'portainer') || [],
     [microk8sOptions?.requiredAddons]
   );
 

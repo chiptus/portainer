@@ -21,6 +21,7 @@ export type ProvisionOption = KaasProvider | K8sDistributionType;
 
 export type AddonOption = {
   versionAvailableFrom: string;
+  versionAvailableTo: string;
   type: string;
 } & Option<string>;
 

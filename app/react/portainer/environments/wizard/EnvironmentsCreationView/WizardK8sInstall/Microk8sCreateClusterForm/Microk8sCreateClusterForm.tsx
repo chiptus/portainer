@@ -85,7 +85,11 @@ export function Microk8sCreateClusterForm({
     microk8sOptions?.availableAddons.forEach((a) => {
       const kubeVersion = parseFloat(microk8s.kubernetesVersion.split('/')[0]);
       const versionAvailableFrom = parseFloat(a.versionAvailableFrom);
-      if (kubeVersion >= versionAvailableFrom) {
+      const versionAvailableTo = parseFloat(a.versionAvailableTo);
+      if (
+        kubeVersion >= versionAvailableFrom &&
+        (Number.isNaN(versionAvailableTo) || kubeVersion <= versionAvailableTo)
+      ) {
         addonOptions.push({ name: a.label, type: a.type });
       }
     });

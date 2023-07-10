@@ -64,6 +64,7 @@ func (service *CloudInfoService) MicroK8sGetInfo() mk8s.MicroK8sInfo {
 			addonOptions, mk8s.AddonPair{
 				Pair:                 portaineree.Pair{Name: s.Name, Value: s.Name},
 				VersionAvailableFrom: s.MicroK8sVersionAvailableFrom,
+				VersionAvailableTo:   s.MicroK8sVersionAvailableTo,
 				Type:                 s.Type,
 			},
 		)
@@ -443,71 +444,69 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 
 	setMessage := service.setMessageHandler(req.EndpointID, "addons")
 
-	if len(req.Addons) > 0 {
-		nodeIP, _, _ := strings.Cut(endpoint.URL, ":")
+	nodeIP, _, _ := strings.Cut(endpoint.URL, ":")
+	if err != nil {
+		return fmt.Errorf("unable to get portainer agent address: %w", err)
+	}
+
+	setMessage("Updating addons", "Enabling/Disabling MicroK8s addons", "processing")
+	microK8sInfo, err := service.Microk8sGetAddons(endpoint.ID, credentials)
+	if err != nil {
+		return err
+	}
+
+	allInstallableAddons := types.Microk8sAddonsPayload{
+		Addons: mk8s.GetAllAvailableAddons().GetNames(),
+	}
+
+	deletedAddons := []string{}
+	newAddons := []string{}
+	for _, addon := range microK8sInfo.Addons {
+		if allInstallableAddons.IndexOf(addon.Name) != -1 {
+			log.Info().Msgf("Addon %s Status %s", addon.Name, addon.Status)
+			if addon.Status == "enabled" && payload.IndexOf(addon.Name) == -1 {
+				deletedAddons = append(deletedAddons, addon.Name)
+			}
+			if addon.Status == "disabled" && payload.IndexOf(addon.Name) != -1 {
+				newAddons = append(newAddons, addon.Name)
+			}
+		}
+	}
+
+	log.Info().Msgf("New addons: %v", newAddons)
+	log.Info().Msgf("Delete addons: %v", deletedAddons)
+
+	log.Debug().Msgf("Enabling addons")
+
+	setMessage("Updating addons", "Enabling MicroK8s addons", "processing")
+	errCount := 0
+	for _, addon := range newAddons {
+		err = mk8s.EnableMicrok8sAddonsOnNode(user, password, passphrase, privateKey, nodeIP, addon)
 		if err != nil {
-			return fmt.Errorf("unable to get portainer agent address: %w", err)
+			// Rather than fail the whole thing.  Warn the user and allow them to manually try to enable the addon
+			log.Warn().AnErr("error", err).Msgf("failed to enable microk8s addon %s on node. error: ", addon)
+			errCount++
 		}
+	}
 
-		setMessage("Updating addons", "Enabling/Disabling MicroK8s addons", "processing")
-		microK8sInfo, err := service.Microk8sGetAddons(endpoint.ID, credentials)
+	if errCount > 0 {
+		log.Error().Msgf("failed to enable %d microk8s addons on node.  Please enable these manually", errCount)
+	}
+
+	log.Debug().Msgf("Disabling addons")
+	setMessage("Updating addons", "Disabling MicroK8s addons", "processing")
+	errCount = 0
+	for _, addon := range deletedAddons {
+		err = mk8s.DisableMicrok8sAddonsOnNode(user, password, passphrase, privateKey, nodeIP, addon)
 		if err != nil {
-			return err
+			// Rather than fail the whole thing.  Warn the user and allow them to manually try to disable the addon
+			log.Warn().AnErr("error", err).Msgf("failed to disable microk8s addon %s on node. error: ", addon)
+			errCount++
 		}
+	}
 
-		allInstallableAddons := types.Microk8sAddonsPayload{
-			Addons: mk8s.GetAllAvailableAddons().GetNames(),
-		}
-
-		deletedAddons := []string{}
-		newAddons := []string{}
-		for _, addon := range microK8sInfo.Addons {
-			if allInstallableAddons.IndexOf(addon.Name) != -1 {
-				log.Info().Msgf("Addon %s Status %s", addon.Name, addon.Status)
-				if addon.Status == "enabled" && payload.IndexOf(addon.Name) == -1 {
-					deletedAddons = append(deletedAddons, addon.Name)
-				}
-				if addon.Status == "disabled" && payload.IndexOf(addon.Name) != -1 {
-					newAddons = append(newAddons, addon.Name)
-				}
-			}
-		}
-
-		log.Info().Msgf("New addons: %v", newAddons)
-		log.Info().Msgf("Delete addons: %v", deletedAddons)
-
-		log.Debug().Msgf("Enabling addons")
-
-		setMessage("Updating addons", "Enabling MicroK8s addons", "processing")
-		errCount := 0
-		for _, addon := range newAddons {
-			err = mk8s.EnableMicrok8sAddonsOnNode(user, password, passphrase, privateKey, nodeIP, addon)
-			if err != nil {
-				// Rather than fail the whole thing.  Warn the user and allow them to manually try to enable the addon
-				log.Warn().AnErr("error", err).Msgf("failed to enable microk8s addon %s on node. error: ", addon)
-				errCount++
-			}
-		}
-
-		if errCount > 0 {
-			log.Error().Msgf("failed to enable %d microk8s addons on node.  Please enable these manually", errCount)
-		}
-
-		log.Debug().Msgf("Disabling addons")
-		setMessage("Updating addons", "Disabling MicroK8s addons", "processing")
-		errCount = 0
-		for _, addon := range deletedAddons {
-			err = mk8s.DisableMicrok8sAddonsOnNode(user, password, passphrase, privateKey, nodeIP, addon)
-			if err != nil {
-				// Rather than fail the whole thing.  Warn the user and allow them to manually try to disable the addon
-				log.Warn().AnErr("error", err).Msgf("failed to disable microk8s addon %s on node. error: ", addon)
-				errCount++
-			}
-		}
-
-		if errCount > 0 {
-			log.Error().Msgf("failed to disable %d microk8s addons on node.  Please disable these manually", errCount)
-		}
+	if errCount > 0 {
+		log.Error().Msgf("failed to disable %d microk8s addons on node.  Please disable these manually", errCount)
 	}
 
 	setMessage("Updating addons", "Addons updated", "")

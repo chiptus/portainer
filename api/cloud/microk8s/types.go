@@ -9,6 +9,7 @@ type (
 	AddonPair struct {
 		portaineree.Pair
 		VersionAvailableFrom string `json:"versionAvailableFrom"`
+		VersionAvailableTo   string `json:"versionAvailableTo"`
 		Type                 string `json:"type"`
 	}
 
@@ -91,6 +92,7 @@ type Addon struct {
 
 	Type                         string `json:"type"`                         // if core/community
 	MicroK8sVersionAvailableFrom string `json:"microK8sVersionAvailableFrom"` // microk8s version if the addon is available from a specific version
+	MicroK8sVersionAvailableTo   string `json:"microK8sVersionAvailableTo"`   // microk8s version if the addon is unavailable from a specific version
 
 	RequiredOnAllMasterNodes []string `json:"-"` // affected microk8s versions if the addon is required on all master nodes
 }
@@ -124,7 +126,7 @@ var AllAddons = Addons{
 	},
 	{
 		Name:                         "cert-manager",
-		MicroK8sVersionAvailableFrom: "1.15",
+		MicroK8sVersionAvailableFrom: "1.25",
 		Tooltip:                      "<a href='https://microk8s.io/docs/addon-cert-manager' target='_blank'>cert-manager</a> - certificate management for Kubernetes clusters.",
 
 		IsAvailable: true,
@@ -150,6 +152,15 @@ var AllAddons = Addons{
 		Name:                         "observability",
 		MicroK8sVersionAvailableFrom: "1.25",
 		Tooltip:                      "observability - deploys the <a href='https://prometheus.io/docs/' target='_blank'>Kubernetes Prometheus Observability Stack.</a>",
+
+		IsAvailable: true,
+		Type:        "core",
+	},
+	{
+		Name:                         "prometheus",
+		MicroK8sVersionAvailableFrom: "1.14",
+		MicroK8sVersionAvailableTo:   "1.24",
+		Tooltip:                      "prometheus - deploys the <a href='https://prometheus.io/docs/' target='_blank'>Kubernetes Prometheus Operator</a>.",
 
 		IsAvailable: true,
 		Type:        "core",

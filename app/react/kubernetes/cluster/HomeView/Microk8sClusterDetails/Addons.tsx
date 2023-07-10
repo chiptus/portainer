@@ -43,7 +43,11 @@ export function Addons() {
     microk8sOptions?.availableAddons.forEach((a) => {
       const kubeVersion = parseFloat(currentVersion.split('/')[0]);
       const versionAvailableFrom = parseFloat(a.versionAvailableFrom);
-      if (kubeVersion >= versionAvailableFrom) {
+      const versionAvailableTo = parseFloat(a.versionAvailableTo);
+      if (
+        kubeVersion >= versionAvailableFrom &&
+        (Number.isNaN(versionAvailableTo) || kubeVersion <= versionAvailableTo)
+      ) {
         addons.push({ name: a.label, type: a.type });
       }
     });

@@ -9,7 +9,7 @@ import { NodeRowData } from '../types';
 
 import { columnHelper } from './helper';
 
-export const name = columnHelper.accessor('name', {
+export const name = columnHelper.accessor('Name', {
   header: 'Name',
   cell: NameCell,
 });
