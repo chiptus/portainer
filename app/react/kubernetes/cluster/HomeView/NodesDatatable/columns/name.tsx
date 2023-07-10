@@ -9,13 +9,10 @@ import { NodeRowData } from '../types';
 
 import { columnHelper } from './helper';
 
-export const name = columnHelper.accessor(
-  (row) => `${row.metadata?.name}${row.isApi ? 'api' : ''}`,
-  {
-    header: 'Name',
-    cell: NameCell,
-  }
-);
+export const name = columnHelper.accessor('name', {
+  header: 'Name',
+  cell: NameCell,
+});
 
 function NameCell({
   row: { original: node },

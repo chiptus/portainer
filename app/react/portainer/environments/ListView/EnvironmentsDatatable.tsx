@@ -12,6 +12,7 @@ import { useTableState } from '@@/datatables/useTableState';
 
 import { isBE } from '../../feature-flags/feature-flags.service';
 import { isSortType, refetchIfAnyOffline } from '../queries/useEnvironmentList';
+import { EnvironmentStatus } from '../types';
 
 import { columns } from './columns';
 import { EnvironmentListItem } from './types';
@@ -64,6 +65,9 @@ export function EnvironmentsDatatable({
       onPageChange={setPage}
       isLoading={isLoading}
       totalCount={totalCount}
+      isRowSelectable={(row) =>
+        row.original.Status !== EnvironmentStatus.Provisioning
+      }
       renderTableActions={(selectedRows) => (
         <div className="flex items-center gap-2">
           <Button

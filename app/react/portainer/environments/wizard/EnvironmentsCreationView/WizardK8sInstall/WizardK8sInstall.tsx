@@ -162,7 +162,9 @@ export function WizardK8sInstall({ onCreate }: Props) {
         onSuccess: (environment) => {
           onCreate(environment, 'k8sInstallAgent');
           setFieldValue('name', '');
-          setFieldValue('microk8s.nodeIPs', ['']);
+          setFieldValue('microk8s.masterNodes', ['']);
+          setFieldValue('microk8s.workerNodes', ['']);
+          setFieldValue('microk8s.addons', ['']);
           setIsSSHTestSuccessful(undefined);
         },
       }

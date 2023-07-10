@@ -68,13 +68,13 @@ export function Addons() {
       {(addonsQuery.isError || environmentQuery.isError) && (
         <TextTip color="red">Unable to get addons</TextTip>
       )}
-      {(addonsQuery.isLoading || addonsQuery.isRefetching) && (
+      {addonsQuery.isLoading && (
         <div className="vertical-center text-muted text-sm">
           <Icon icon={Loader2} className="animate-spin-slow" />
           Loading addons...
         </div>
       )}
-      {addonsQuery.isSuccess && !addonsQuery.isRefetching && (
+      {addonsQuery.isSuccess && (
         <Formik
           initialValues={initialValues}
           onSubmit={handleUpdateAddons}

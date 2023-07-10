@@ -57,15 +57,13 @@ export function UpgradeCluster() {
       {environmentQuery.isError && (
         <TextTip color="red">Unable to load environment</TextTip>
       )}
-      {(statusQuery.isLoading ||
-        environmentQuery.isLoading ||
-        statusQuery.isRefetching) && (
+      {(statusQuery.isLoading || environmentQuery.isLoading) && (
         <div className="vertical-center text-muted text-sm">
           <Icon icon={Loader2} className="animate-spin-slow" />
           Loading Kubernetes version...
         </div>
       )}
-      {statusQuery.isSuccess && environment && !statusQuery.isRefetching && (
+      {statusQuery.isSuccess && environment && (
         <Formik
           initialValues={initialValues}
           onSubmit={handleUpgradeCluster}
@@ -97,7 +95,8 @@ export function UpgradeCluster() {
                   nextVersion === currentVersion ||
                   upgradeClusterMutation.isLoading ||
                   !isAllowed ||
-                  isProcessing
+                  isProcessing ||
+                  statusQuery.isRefetching
                 }
               >
                 {nextVersion === currentVersion

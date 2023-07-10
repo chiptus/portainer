@@ -240,7 +240,12 @@ function useNodeRowData(
         !!nodeAddress &&
         !!environmentUrl &&
         environmentUrl?.includes(nodeAddress);
-      return { ...node, isApi, isPublishedNode };
+      return {
+        ...node,
+        isApi,
+        isPublishedNode,
+        name: `${node.metadata?.name}${isApi ? 'api' : ''}` ?? '',
+      };
     });
     return nodeRowData;
   }, [nodes, kubernetesEndpoints, environmentUrl]);
