@@ -2,7 +2,7 @@ import _ from 'lodash-es';
 import { RegistryImageLayerViewModel } from '@/portainer/registry-management/models/registryImageLayer';
 import { RegistryImageDetailsViewModel } from '@/portainer/registry-management/models/registryImageDetails';
 import EndpointHelper from '@/portainer/helpers/endpointHelper';
-import { getInfo } from '@/docker/services/system.service';
+import { getInfo } from '@/react/docker/proxy/queries/useInfo';
 
 export class RegistryRepositoryTagController {
   /* @ngInject */

@@ -16,7 +16,8 @@ import {
   type EnvironmentId,
 } from '@/react/portainer/environments/types';
 import { Authorized, useUser, isEnvironmentAdmin } from '@/react/hooks/useUser';
-import { useInfo, useVersion } from '@/docker/services/system.service';
+import { useInfo } from '@/react/docker/proxy/queries/useInfo';
+import { useVersion } from '@/react/docker/proxy/queries/useVersion';
 
 import { SidebarItem } from './SidebarItem';
 import { DashboardLink } from './items/DashboardLink';
@@ -40,7 +41,7 @@ export function DockerSidebar({ environmentId, environment }: Props) {
   );
 
   const envVersionQuery = useVersion(environmentId, (version) =>
-    parseFloat(version.ApiVersion)
+    version.ApiVersion ? parseFloat(version.ApiVersion) : 0
   );
 
   const isSwarmManager = envInfoQuery.data;

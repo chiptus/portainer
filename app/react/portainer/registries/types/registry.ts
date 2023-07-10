@@ -1,6 +1,8 @@
 import { TeamId } from '@/react/portainer/users/teams/types';
 import { UserId } from '@/portainer/users/types';
 
+import { TLSConfiguration } from '../../settings/types';
+
 export type Catalog = {
   repositories: string[];
 };
@@ -47,33 +49,44 @@ export interface Gitlab {
 }
 
 export interface Quay {
-  useOrganisation: boolean;
-  organisationName: string;
+  UseOrganisation: boolean;
+  OrganisationName: string;
 }
 
 export interface Github {
-  useOrganisation: boolean;
-  organisationName: string;
+  UseOrganisation: boolean;
+  OrganisationName: string;
 }
 
 export interface Ecr {
   Region: string;
 }
 
+interface RegistryManagementConfiguration {
+  Type: RegistryTypes;
+  Authentication: boolean;
+  Username: string;
+  Password: string;
+  TLSConfig: TLSConfiguration;
+  Ecr: Ecr;
+  AccessToken?: string;
+  AccessTokenExpiry?: number;
+}
+
 export type RegistryId = number;
 export interface Registry {
   Id: RegistryId;
-  Type: number;
+  Type: RegistryTypes;
   Name: string;
   URL: string;
   BaseURL: string;
   Authentication: boolean;
   Username: string;
-  Password: string;
+  Password?: string;
+  ManagementConfiguration?: RegistryManagementConfiguration;
+  Gitlab: Gitlab;
+  Quay: Quay;
+  Github: Github;
+  Ecr: Ecr;
   RegistryAccesses: RegistryAccesses;
-  Checked: boolean;
-  Gitlab?: Gitlab;
-  Quay?: Quay;
-  Github?: Github;
-  Ecr?: Ecr;
 }

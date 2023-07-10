@@ -6,6 +6,8 @@ export const queryKeys = {
     [...queryKeys.root(environmentId), 'snapshot'] as const,
   snapshotQuery: (environmentId: EnvironmentId) =>
     [...queryKeys.snapshot(environmentId)] as const,
+  plugins: (environmentId: EnvironmentId) =>
+    [...queryKeys.root(environmentId), 'plugins'] as const,
 };
 
 export function buildDockerUrl(environmentId: EnvironmentId) {
