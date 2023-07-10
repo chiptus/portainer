@@ -1,4 +1,4 @@
-import { getUniqueTagListFromImages } from '@/react/docker/images/utils';
+import _ from 'lodash-es';
 import { ImageViewModel } from '../models/image';
 import { ImageDetailsViewModel } from '../models/imageDetails';
 import { ImageLayerViewModel } from '../models/imageLayer';
@@ -200,7 +200,16 @@ angular.module('portainer.docker').factory('ImageService', [
       return deferred.promise;
     };
 
-    service.getUniqueTagListFromImages = getUniqueTagListFromImages;
+    service.getUniqueTagListFromImages = function (availableImages) {
+      return _.uniq(
+        _.flatMap(availableImages, function (image) {
+          _.remove(image.RepoTags, function (item) {
+            return item.indexOf('<none>') !== -1;
+          });
+          return image.RepoTags ? _.uniqWith(image.RepoTags, _.isEqual) : [];
+        })
+      );
+    };
 
     return service;
   },

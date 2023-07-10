@@ -4,6 +4,7 @@ import {
   AccessControlFormData,
   OwnershipParameters,
   ResourceControlId,
+  ResourceControlResponse,
   ResourceControlType,
   ResourceId,
 } from './types';
@@ -38,14 +39,14 @@ export function applyResourceControlChange(
  */
 export function applyResourceControl(
   accessControlData: AccessControlFormData,
-  resourceControlId: ResourceControlId,
+  resourceControl: ResourceControlResponse,
   subResourcesIds: (number | string)[] = []
 ) {
   const ownershipParameters = parseOwnershipParameters(
     accessControlData,
     subResourcesIds
   );
-  return updateResourceControl(resourceControlId, ownershipParameters);
+  return updateResourceControl(resourceControl.Id, ownershipParameters);
 }
 
 /**

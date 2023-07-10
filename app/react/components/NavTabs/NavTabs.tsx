@@ -14,8 +14,6 @@ interface Props<T extends string | number> {
   selectedId?: T;
   onSelect?(id: T): void;
   disabled?: boolean;
-  type?: 'tabs' | 'pills';
-  justified?: boolean;
 }
 
 export function NavTabs<T extends string | number = string>({
@@ -23,16 +21,12 @@ export function NavTabs<T extends string | number = string>({
   selectedId,
   onSelect = () => {},
   disabled,
-  type = 'tabs',
-  justified = false,
 }: Props<T>) {
   const selected = options.find((option) => option.id === selectedId);
 
   return (
-    <div>
-      <ul
-        className={clsx('nav', `nav-${type}`, { 'nav-justified': justified })}
-      >
+    <div className="nav-container">
+      <ul className="nav nav-tabs">
         {options.map((option) => (
           <li
             className={clsx({

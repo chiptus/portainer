@@ -369,7 +369,7 @@ angular.module('portainer.docker').controller('ContainerController', [
     };
 
     function removeContainer(cleanAssociatedVolumes) {
-      ContainerService.remove($scope.container.Id, cleanAssociatedVolumes)
+      ContainerService.remove($scope.container, cleanAssociatedVolumes)
         .then(function success() {
           return $q.when($scope.WebhookID && WebhookService.deleteWebhook($scope.WebhookID));
         })

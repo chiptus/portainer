@@ -13,7 +13,7 @@ import { Button } from '@@/buttons';
 
 export function DefaultRegistryAction() {
   const settingsQuery = usePublicSettings({
-    select: (settings) => settings.DefaultRegistry?.Hide,
+    select: (settings) => settings.DefaultRegistry.Hide,
   });
   const defaultRegistryMutation = useUpdateDefaultRegistrySettingsMutation();
 

@@ -1,4 +1,4 @@
-import { useInfo } from '@/react/docker/proxy/queries/useInfo';
+import { useInfo } from '@/docker/services/system.service';
 import { Environment } from '@/react/portainer/environments/types';
 import { isAgentEnvironment } from '@/react/portainer/environments/utils';
 

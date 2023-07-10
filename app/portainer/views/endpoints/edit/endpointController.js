@@ -10,7 +10,7 @@ import { commandsTabs } from '@/react/edge/components/EdgeScriptForm/scripts';
 import { k8sInstallTitles } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/types';
 import { confirmDisassociate } from '@/react/portainer/environments/ItemView/ConfirmDisassociateModel';
 import { buildConfirmButton } from '@@/modals/utils';
-import { getInfo } from '@/react/docker/proxy/queries/useInfo';
+import { getInfo } from '@/docker/services/system.service';
 
 angular.module('portainer.app').controller('EndpointController', EndpointController);
 

@@ -1,13 +1,12 @@
-import { Volume } from 'docker-types/generated/1.41';
-
 import {
   COMPOSE_STACK_NAME_LABEL,
   SWARM_STACK_NAME_LABEL,
 } from '@/react/constants';
 
 import { DockerVolume } from './types';
+import { DockerVolumeResponse } from './types/response';
 
-export function parseViewModel(response: Volume): DockerVolume {
+export function parseViewModel(response: DockerVolumeResponse): DockerVolume {
   const stackName =
     (response.Labels &&
       (response.Labels[COMPOSE_STACK_NAME_LABEL] ||

@@ -1,17 +1,15 @@
-import { object, mixed, array, number, SchemaOf } from 'yup';
+import { object, string, array, number } from 'yup';
 
-import { AccessControlFormData, ResourceControlOwnership } from '../types';
+import { ResourceControlOwnership } from '../types';
 
-export function validationSchema(
-  isAdmin: boolean
-): SchemaOf<AccessControlFormData> {
+export function validationSchema(isAdmin: boolean) {
   return object()
     .shape({
-      ownership: mixed<ResourceControlOwnership>()
+      ownership: string()
         .oneOf(Object.values(ResourceControlOwnership))
         .required(),
-      authorizedUsers: array(number().default(0)),
-      authorizedTeams: array(number().default(0)),
+      authorizedUsers: array(number()),
+      authorizedTeams: array(number()),
     })
     .test(
       'user-and-team',

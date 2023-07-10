@@ -199,7 +199,6 @@ export const ngModule = angular
       'isMulti',
       'isClearable',
       'components',
-      'isLoading',
     ])
   )
   .component(

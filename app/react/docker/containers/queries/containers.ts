@@ -9,8 +9,7 @@ import { withGlobalError } from '@/react-tools/react-query';
 
 import { urlBuilder } from '../containers.service';
 import { DockerContainerResponse } from '../types/response';
-import { toListViewModel } from '../utils';
-import { DockerContainer } from '../types';
+import { parseViewModel } from '../utils';
 
 import { Filters } from './types';
 import { queryKeys } from './query-keys';
@@ -21,17 +20,14 @@ interface UseContainers {
   nodeName?: string;
 }
 
-export function useContainers<T = DockerContainer[]>(
+export function useContainers(
   environmentId: EnvironmentId,
   {
     autoRefreshRate,
-    select,
-    enabled,
+
     ...params
   }: UseContainers & {
     autoRefreshRate?: number;
-    select?: (data: DockerContainer[]) => T;
-    enabled?: boolean;
   } = {}
 ) {
   return useQuery(
@@ -42,13 +38,11 @@ export function useContainers<T = DockerContainer[]>(
       refetchInterval() {
         return autoRefreshRate ?? false;
       },
-      select,
-      enabled,
     }
   );
 }
 
-export async function getContainers(
+async function getContainers(
   environmentId: EnvironmentId,
   { all = true, filters, nodeName }: UseContainers = {}
 ) {
@@ -64,7 +58,7 @@ export async function getContainers(
           : undefined,
       }
     );
-    return data.map((c) => toListViewModel(c));
+    return data.map((c) => parseViewModel(c));
   } catch (error) {
     throw parseAxiosError(error as Error, 'Unable to retrieve containers');
   }

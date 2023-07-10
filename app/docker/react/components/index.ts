@@ -8,6 +8,7 @@ import { ContainerQuickActions } from '@/react/docker/containers/components/Cont
 import { ImageStatus } from '@/react/docker/components/ImageStatus';
 import { TemplateListDropdown } from '@/react/docker/app-templates/TemplateListDropdown';
 import { TemplateListSort } from '@/react/docker/app-templates/TemplateListSort';
+import { Gpu } from '@/react/docker/containers/CreateView/Gpu';
 import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
@@ -17,10 +18,8 @@ import { GpusList } from '@/react/docker/host/SetupView/GpusList';
 import { GpusInsights } from '@/react/docker/host/SetupView/GpusInsights';
 import { InsightsBox } from '@/react/components/InsightsBox';
 
-import { containersModule } from './containers';
-
 export const componentsModule = angular
-  .module('portainer.docker.react.components', [containersModule])
+  .module('portainer.docker.react.components', [])
   .component('dockerfileDetails', r2a(DockerfileDetails, ['image']))
   .component('dockerHealthStatus', r2a(HealthStatus, ['health']))
   .component(
@@ -68,6 +67,17 @@ export const componentsModule = angular
       withUIRouter(withReactQuery(withCurrentUser(StackContainersDatatable))),
       ['environment', 'stackName']
     )
+  )
+  .component(
+    'gpu',
+    r2a(Gpu, [
+      'values',
+      'onChange',
+      'gpus',
+      'usedGpus',
+      'usedAllGpus',
+      'enableGpuManagement',
+    ])
   )
   .component(
     'gpusList',

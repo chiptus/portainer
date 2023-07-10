@@ -25,10 +25,7 @@ export function VolumesTable({ mounts = [] }: Props) {
                 const name = mount.Type === 'bind' ? mount.Source : mount.Name;
 
                 return (
-                  <DetailsTable.Row
-                    label={name || mount.Source || ''}
-                    key={name}
-                  >
+                  <DetailsTable.Row label={name || mount.Source} key={name}>
                     {mount.Destination}
                   </DetailsTable.Row>
                 );

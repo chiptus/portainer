@@ -5,7 +5,7 @@ import {
   SWARM_STACK_NAME_LABEL,
 } from '@/react/constants';
 
-import { toListViewModel as parseContainer } from '../containers/utils';
+import { parseViewModel as parseContainer } from '../containers/utils';
 import { parseViewModel as parseImage } from '../images/utils';
 import { parseViewModel as parseVolume } from '../volumes/utils';
 

@@ -33,7 +33,7 @@ export function LogView() {
   );
 
   const containerQuery = useContainer(environmentId, containerId);
-  const containerName = containerQuery.data?.Name?.substring(1) || '';
+  const containerName = containerQuery.data?.Name.substring(1) || '';
   const breadcrumbs = [
     { label: 'Containers', link: 'docker.containers' },
     {

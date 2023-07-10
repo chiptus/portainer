@@ -1,174 +1,91 @@
 import _ from 'lodash';
-import { AxiosRequestHeaders } from 'axios';
 
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import PortainerError from '@/portainer/error';
-import axios, { parseAxiosError } from '@/portainer/services/axios';
+import axios from '@/portainer/services/axios';
 import { genericHandler } from '@/docker/rest/response/handlers';
 
-import { ContainerId, ContainerLogsParams } from './types';
+import { ContainerId, ContainerLogsParams, DockerContainer } from './types';
 
 export async function startContainer(
   environmentId: EnvironmentId,
-  id: ContainerId,
-  { nodeName }: { nodeName?: string } = {}
+  id: ContainerId
 ) {
-  const headers: AxiosRequestHeaders = {};
-
-  if (nodeName) {
-    headers['X-PortainerAgent-Target'] = nodeName;
-  }
-
-  try {
-    await axios.post<void>(
-      urlBuilder(environmentId, id, 'start'),
-      {},
-      { transformResponse: genericHandler, headers }
-    );
-  } catch (e) {
-    throw parseAxiosError(e, 'Failed starting container');
-  }
+  await axios.post<void>(
+    urlBuilder(environmentId, id, 'start'),
+    {},
+    { transformResponse: genericHandler }
+  );
 }
 
 export async function stopContainer(
   endpointId: EnvironmentId,
-  id: ContainerId,
-  { nodeName }: { nodeName?: string } = {}
+  id: ContainerId
 ) {
-  const headers: AxiosRequestHeaders = {};
-
-  if (nodeName) {
-    headers['X-PortainerAgent-Target'] = nodeName;
-  }
-
-  await axios.post<void>(urlBuilder(endpointId, id, 'stop'), {}, { headers });
+  await axios.post<void>(urlBuilder(endpointId, id, 'stop'), {});
 }
 
 export async function recreateContainer(
   endpointId: EnvironmentId,
   id: ContainerId,
-  pullImage: boolean,
-  { nodeName }: { nodeName?: string } = {}
+  pullImage: boolean
 ) {
-  const headers: AxiosRequestHeaders = {};
-
-  if (nodeName) {
-    headers['X-PortainerAgent-Target'] = nodeName;
-  }
-
-  await axios.post<void>(
-    `/docker/${endpointId}/containers/${id}/recreate`,
-    {
-      PullImage: pullImage,
-    },
-    { headers }
-  );
+  await axios.post<void>(`/docker/${endpointId}/containers/${id}/recreate`, {
+    PullImage: pullImage,
+  });
 }
 
 export async function restartContainer(
   endpointId: EnvironmentId,
-  id: ContainerId,
-  { nodeName }: { nodeName?: string } = {}
+  id: ContainerId
 ) {
-  const headers: AxiosRequestHeaders = {};
-
-  if (nodeName) {
-    headers['X-PortainerAgent-Target'] = nodeName;
-  }
-
-  await axios.post<void>(
-    urlBuilder(endpointId, id, 'restart'),
-    {},
-    { headers }
-  );
+  await axios.post<void>(urlBuilder(endpointId, id, 'restart'), {});
 }
 
 export async function killContainer(
   endpointId: EnvironmentId,
-  id: ContainerId,
-  { nodeName }: { nodeName?: string } = {}
+  id: ContainerId
 ) {
-  const headers: AxiosRequestHeaders = {};
-
-  if (nodeName) {
-    headers['X-PortainerAgent-Target'] = nodeName;
-  }
-
-  await axios.post<void>(urlBuilder(endpointId, id, 'kill'), {}, { headers });
+  await axios.post<void>(urlBuilder(endpointId, id, 'kill'), {});
 }
 
 export async function pauseContainer(
   endpointId: EnvironmentId,
-  id: ContainerId,
-  { nodeName }: { nodeName?: string } = {}
+  id: ContainerId
 ) {
-  const headers: AxiosRequestHeaders = {};
-
-  if (nodeName) {
-    headers['X-PortainerAgent-Target'] = nodeName;
-  }
-
-  await axios.post<void>(urlBuilder(endpointId, id, 'pause'), {}, { headers });
+  await axios.post<void>(urlBuilder(endpointId, id, 'pause'), {});
 }
 
 export async function resumeContainer(
   endpointId: EnvironmentId,
-  id: ContainerId,
-  { nodeName }: { nodeName?: string } = {}
+  id: ContainerId
 ) {
-  const headers: AxiosRequestHeaders = {};
-
-  if (nodeName) {
-    headers['X-PortainerAgent-Target'] = nodeName;
-  }
-
-  await axios.post<void>(
-    urlBuilder(endpointId, id, 'unpause'),
-    {},
-    { headers }
-  );
+  await axios.post<void>(urlBuilder(endpointId, id, 'unpause'), {});
 }
 
 export async function renameContainer(
   endpointId: EnvironmentId,
   id: ContainerId,
-  name: string,
-  { nodeName }: { nodeName?: string } = {}
+  name: string
 ) {
-  const headers: AxiosRequestHeaders = {};
-
-  if (nodeName) {
-    headers['X-PortainerAgent-Target'] = nodeName;
-  }
-
   await axios.post<void>(
     urlBuilder(endpointId, id, 'rename'),
     {},
-    { params: { name }, transformResponse: genericHandler, headers }
+    { params: { name }, transformResponse: genericHandler }
   );
 }
 
 export async function removeContainer(
   endpointId: EnvironmentId,
-  containerId: string,
-  {
-    nodeName,
-    removeVolumes,
-  }: { removeVolumes?: boolean; nodeName?: string } = {}
+  container: DockerContainer,
+  removeVolumes: boolean
 ) {
   try {
-    const headers: AxiosRequestHeaders = {};
-
-    if (nodeName) {
-      headers['X-PortainerAgent-Target'] = nodeName;
-    }
-
     const { data } = await axios.delete<null | { message: string }>(
-      urlBuilder(endpointId, containerId),
+      urlBuilder(endpointId, container.Id),
       {
         params: { v: removeVolumes ? 1 : 0, force: true },
         transformResponse: genericHandler,
-        headers,
       }
     );
 

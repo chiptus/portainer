@@ -1,6 +1,15 @@
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 
-import { Catalog, Repository } from './types/registry';
+import { Catalog, Repository, Registry } from './types/registry';
+
+export async function getRegistries() {
+  try {
+    const { data } = await axios.get<Registry[]>('/registries');
+    return data;
+  } catch (e) {
+    throw parseAxiosError(e as Error, 'Unable to retrieve registries');
+  }
+}
 
 export async function listRegistryCatalogs(registryId: number) {
   try {
@@ -9,7 +18,7 @@ export async function listRegistryCatalogs(registryId: number) {
     );
     return data;
   } catch (err) {
-    throw parseAxiosError(err as Error, 'Failed to get catalog of registry');
+    throw parseAxiosError(err as Error, 'Failed to get catelog of regisry');
   }
 }
 

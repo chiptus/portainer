@@ -70,20 +70,6 @@ export function useAuthorizations(
   );
 }
 
-export function useIsEnvironmentAdmin({
-  forceEnvironmentId,
-  adminOnlyCE = true,
-}: {
-  forceEnvironmentId?: EnvironmentId;
-  adminOnlyCE?: boolean;
-} = {}) {
-  return useAuthorizations(
-    ['EndpointResourcesAccess'],
-    forceEnvironmentId,
-    adminOnlyCE
-  );
-}
-
 export function isEnvironmentAdmin(
   user: User,
   environmentId: EnvironmentId,

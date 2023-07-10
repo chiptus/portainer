@@ -1,4 +1,4 @@
-import { Volume } from 'docker-types/generated/1.41';
+import { DockerVolumeResponse } from './types/response';
 
 type DecoratedDockerVolume = {
   Id: string;
@@ -6,4 +6,5 @@ type DecoratedDockerVolume = {
   Used: boolean;
 };
 
-export type DockerVolume = DecoratedDockerVolume & Omit<Volume, 'Name'>;
+export type DockerVolume = DecoratedDockerVolume &
+  Omit<DockerVolumeResponse, 'Name'>;

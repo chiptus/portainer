@@ -19,10 +19,9 @@ interface Props<T> {
   disabled?: boolean;
   readOnly?: boolean;
   className?: string;
-  'aria-label'?: string;
 }
 
-export function ButtonSelector<T extends string | number | boolean>({
+export function ButtonSelector<T extends string | number>({
   value,
   onChange,
   size,
@@ -30,17 +29,12 @@ export function ButtonSelector<T extends string | number | boolean>({
   disabled,
   readOnly,
   className,
-  'aria-label': ariaLabel,
 }: Props<T>) {
   return (
-    <ButtonGroup
-      size={size}
-      className={clsx(styles.group, className)}
-      aria-label={ariaLabel}
-    >
+    <ButtonGroup size={size} className={clsx(styles.group, className)}>
       {options.map((option) => (
         <OptionItem
-          key={option.value.toString()}
+          key={option.value}
           selected={value === option.value}
           onChange={() => onChange(option.value)}
           disabled={disabled}

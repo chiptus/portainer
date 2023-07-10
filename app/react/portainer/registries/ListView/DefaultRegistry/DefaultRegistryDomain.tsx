@@ -4,7 +4,7 @@ import { usePublicSettings } from '@/react/portainer/settings/queries';
 
 export function DefaultRegistryDomain() {
   const settingsQuery = usePublicSettings({
-    select: (settings) => settings.DefaultRegistry?.Hide,
+    select: (settings) => settings.DefaultRegistry.Hide,
   });
 
   return (

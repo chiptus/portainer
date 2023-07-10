@@ -1,4 +1,5 @@
 import { ComponentType } from 'react';
+import clsx from 'clsx';
 import { FormikErrors } from 'formik';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 
@@ -9,6 +10,7 @@ import { TextTip } from '@@/Tip/TextTip';
 import { Input } from '../Input';
 import { FormError } from '../FormError';
 
+import styles from './InputList.module.css';
 import { arrayMove } from './utils';
 
 type ArrElement<ArrType> = ArrType extends readonly (infer ElementType)[]
@@ -92,9 +94,12 @@ export function InputList<T = DefaultType>({
 }: Props<T>) {
   const isAddButtonVisible = !(isAddButtonHidden || readOnly);
   return (
-    <div className="form-group" aria-label={ariaLabel || label}>
+    <div
+      className={clsx('form-group', styles.root)}
+      aria-label={ariaLabel || label}
+    >
       {label && (
-        <div className="col-sm-12">
+        <div className={clsx('col-sm-12', styles.header)}>
           <span className="control-label space-right pt-2 text-left !font-bold">
             {label}
             {tooltip && <Tooltip message={tooltip} />}
@@ -116,7 +121,14 @@ export function InputList<T = DefaultType>({
               typeof errors === 'object' ? errors[index] : undefined;
 
             return (
-              <div key={key} className="flex">
+              <div
+                key={key}
+                className={clsx(
+                  styles.itemLine,
+                  { [styles.hasError]: !!error },
+                  'vertical-center'
+                )}
+              >
                 {Item ? (
                   <Item
                     item={item}
@@ -171,7 +183,7 @@ export function InputList<T = DefaultType>({
       )}
 
       {isAddButtonVisible && (
-        <div className="col-sm-12 mt-3">
+        <div className="col-sm-12 mt-5">
           <Button
             onClick={handleAdd}
             disabled={disabled}
@@ -260,7 +272,7 @@ function DefaultItem({
       <Input
         value={item.value}
         onChange={(e) => onChange({ value: e.target.value })}
-        className="!w-full"
+        className={styles.defaultItem}
         disabled={disabled}
         readOnly={readOnly}
       />

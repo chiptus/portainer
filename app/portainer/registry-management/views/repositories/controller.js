@@ -2,7 +2,7 @@ import _ from 'lodash-es';
 
 import { RegistryTypes } from 'Portainer/models/registryTypes';
 import EndpointHelper from '@/portainer/helpers/endpointHelper';
-import { getInfo } from '@/react/docker/proxy/queries/useInfo';
+import { getInfo } from '@/docker/services/system.service';
 
 export class RegistryRepositoriesController {
   /* @ngInject */

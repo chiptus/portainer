@@ -1,4 +1,3 @@
-import { commandStringToArray } from '@/docker/helpers/containers';
 import { DockerHubViewModel } from 'Portainer/models/dockerhub';
 import { TemplateViewModel } from '../../models/template';
 
@@ -61,7 +60,7 @@ function TemplateServiceFactory($q, Templates, TemplateHelper, ImageHelper, Cont
     configuration.name = containerName;
     configuration.Hostname = template.Hostname;
     configuration.Env = TemplateHelper.EnvToStringArray(template.Env);
-    configuration.Cmd = commandStringToArray(template.Command);
+    configuration.Cmd = ContainerHelper.commandStringToArray(template.Command);
     var portConfiguration = TemplateHelper.portArrayToPortConfiguration(template.Ports);
     configuration.HostConfig.PortBindings = portConfiguration.bindings;
     configuration.ExposedPorts = portConfiguration.exposedPorts;

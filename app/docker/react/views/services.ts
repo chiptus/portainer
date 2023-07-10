@@ -8,7 +8,7 @@ import { withUIRouter } from '@/react-tools/withUIRouter';
 import { LogView } from '@/react/docker/services/LogsView';
 
 export const servicesModule = angular
-  .module('portainer.docker.react.views.services', [])
+  .module('portainer.docker.services', [])
   .component(
     'serviceLogView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(LogView))), [])

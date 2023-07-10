@@ -66,7 +66,7 @@ function sizeClassLabel(size?: Size) {
     case 'medium':
       return 'col-sm-4 col-lg-3';
     case 'xsmall':
-      return 'col-sm-1';
+      return 'col-sm-2';
     case 'vertical':
       return '';
     default:
@@ -81,7 +81,7 @@ function sizeClassChildren(size?: Size) {
     case 'medium':
       return 'col-sm-8 col-lg-9';
     case 'xsmall':
-      return 'col-sm-11';
+      return 'col-sm-10';
     case 'vertical':
       return '';
     default:

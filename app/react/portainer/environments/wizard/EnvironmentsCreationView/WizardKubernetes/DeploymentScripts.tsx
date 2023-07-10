@@ -9,7 +9,6 @@ import { Code } from '@@/Code';
 import { TextTip } from '@@/Tip/TextTip';
 import { NavTabs } from '@@/NavTabs';
 import { Icon } from '@@/Icon';
-import { NavContainer } from '@@/NavTabs/NavContainer';
 
 const deployments = [
   {
@@ -60,13 +59,11 @@ export function DeploymentScripts() {
         Refer to the platform related command below to deploy it.
       </TextTip>
 
-      <NavContainer>
-        <NavTabs
-          options={options}
-          onSelect={(id: string) => setDeployType(id)}
-          selectedId={deployType}
-        />
-      </NavContainer>
+      <NavTabs
+        options={options}
+        onSelect={(id: string) => setDeployType(id)}
+        selectedId={deployType}
+      />
     </>
   );
 }
