@@ -2,24 +2,18 @@ import { useQuery } from 'react-query';
 import { FormikHandlers } from 'formik';
 
 import { RegistryId } from '@/react/portainer/registries/types/registry';
+import {
+  listRegistryCatalogs,
+  listRegistryCatalogsRepository,
+} from '@/react/portainer/registries/registry.service';
+import { useRegistries } from '@/react/portainer/registries/queries/useRegistries';
 
 import { Option } from '@@/form-components/PortainerSelect';
 import { FormSection } from '@@/form-components/FormSection';
 import { TextTip } from '@@/Tip/TextTip';
 
-import {
-  listRegistryCatalogs,
-  listRegistryCatalogsRepository,
-} from '../../../registries/registry.service';
-import { useRegistries } from '../../../registries/queries/queries';
-
 import { FormValues } from './types';
 import { RegistrySelector } from './RegistrySelector';
-
-const defaultRegistry: Option<RegistryId> = {
-  value: 0,
-  label: 'Docker Hub (anonymous)',
-};
 
 interface Props {
   onBlur: FormikHandlers['handleBlur'];
@@ -47,7 +41,7 @@ export function AdvancedSettings({
       })),
     ],
   });
-  const options = [defaultRegistry, ...(registriesQuery.data || [])];
+  const options = registriesQuery.data || [];
 
   return (
     <FormSection title="Advanced Settings">

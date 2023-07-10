@@ -192,7 +192,7 @@ export interface PublicSettingsResponse {
   IsFDOEnabled: boolean;
   /** Whether AMT is enabled */
   IsAMTEnabled: boolean;
-  DefaultRegistry: {
+  DefaultRegistry?: {
     Hide: boolean;
   };
   Edge: {

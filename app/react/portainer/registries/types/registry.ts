@@ -47,13 +47,13 @@ export interface Gitlab {
 }
 
 export interface Quay {
-  useOrganisation: boolean;
-  organisationName: string;
+  UseOrganisation: boolean;
+  OrganisationName: string;
 }
 
 export interface Github {
-  useOrganisation: boolean;
-  organisationName: string;
+  UseOrganisation: boolean;
+  OrganisationName: string;
 }
 
 export interface Ecr {
@@ -72,8 +72,8 @@ export interface Registry {
   Password: string;
   RegistryAccesses: RegistryAccesses;
   Checked: boolean;
-  Gitlab?: Gitlab;
-  Quay?: Quay;
-  Github?: Github;
-  Ecr?: Ecr;
+  Gitlab: Gitlab;
+  Quay: Quay;
+  Github: Github;
+  Ecr: Ecr;
 }
