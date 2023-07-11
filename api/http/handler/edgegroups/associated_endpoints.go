@@ -41,7 +41,7 @@ func GetEndpointsByTags(tx dataservices.DataStoreTx, tagIDs []portaineree.TagID,
 
 	results := []portaineree.EndpointID{}
 	for _, endpoint := range endpoints {
-		if _, ok := endpointSet[endpoint.ID]; ok && endpointutils.IsEdgeEndpoint(&endpoint) {
+		if _, ok := endpointSet[endpoint.ID]; ok && endpointutils.IsEdgeEndpoint(&endpoint) && endpoint.UserTrusted {
 			results = append(results, endpoint.ID)
 		}
 	}
