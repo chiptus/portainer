@@ -1,5 +1,3 @@
-import { useMemo, useState } from 'react';
-
 import { useLocalStorage } from './useLocalStorage';
 
 export function usePaginationLimitState(
@@ -13,26 +11,4 @@ export function usePaginationLimitState(
   function paginationKeyBuilder(key: string) {
     return `datatable_pagination_${key}`;
   }
-}
-
-export function usePaginationState(key: string): {
-  page: number;
-  setPage: (value: number) => void;
-  pageLimit: number;
-  setPageLimit: (value: number) => void;
-} {
-  const [page, setPage] = useState(0);
-  const [pageLimit, setPageLimit] = usePaginationLimitState(key);
-
-  const state = useMemo(
-    () => ({
-      page,
-      setPage,
-      pageLimit,
-      setPageLimit,
-    }),
-    [page, setPage, pageLimit, setPageLimit]
-  );
-
-  return state;
 }

@@ -316,6 +316,9 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(tx dataservices.DataStoreTx
 
 	var edgeGroupsIDs []portaineree.EdgeGroupID
 	if metaFields != nil {
+		if metaFields.EnvironmentGroupID == 0 {
+			metaFields.EnvironmentGroupID = 1
+		}
 		// validate the environment group
 		_, err = tx.EndpointGroup().Read(metaFields.EnvironmentGroupID)
 		if err != nil {

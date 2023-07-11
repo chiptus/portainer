@@ -1,4 +1,4 @@
-import { usePaginationState } from '@/react/hooks/usePaginationLimitState';
+import { useState } from 'react';
 
 import { Datatable as GenericDatatable } from '@@/datatables';
 import { createPersistedStore } from '@@/datatables/types';
@@ -14,7 +14,7 @@ const storageKey = 'edge-devices-waiting-room';
 const settingsStore = createPersistedStore(storageKey);
 
 export function Datatable() {
-  const { page, pageLimit, setPage } = usePaginationState(storageKey);
+  const [page, setPage] = useState(0);
   const tableState = useTableState(settingsStore, storageKey);
   const {
     data: environments,
@@ -22,7 +22,7 @@ export function Datatable() {
     isLoading,
   } = useEnvironments({ page: page + 1, pageLimit: tableState.pageSize });
 
-  const pageCount = Math.ceil(totalCount / pageLimit);
+  const pageCount = Math.ceil(totalCount / tableState.pageSize);
 
   return (
     <GenericDatatable
