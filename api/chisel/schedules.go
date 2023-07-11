@@ -18,6 +18,7 @@ func (service *Service) AddEdgeJob(endpoint *portaineree.Endpoint, edgeJob *port
 	for idx, existingJob := range tunnel.Jobs {
 		if existingJob.ID == edgeJob.ID {
 			existingJobIndex = idx
+
 			break
 		}
 	}

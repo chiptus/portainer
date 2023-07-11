@@ -189,12 +189,7 @@ func (bouncer *RequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, 
 		return errors.New("invalid Edge identifier")
 	}
 
-	err := bouncer.AuthorizedClientTLSConn(r)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return bouncer.AuthorizedClientTLSConn(r)
 }
 
 // TrustedEdgeEnvironmentAccess defines a security check for Edge environments, checks if

@@ -149,7 +149,7 @@ func (handler *Handler) restartKubernetesApplication(userID portaineree.UserID, 
 	log.Debug().Msg("Restarting " + resourceList[0])
 	output, err := handler.KubernetesDeployer.Restart(userID, endpoint, resourceList, namespace)
 	if err != nil {
-		return output, httperror.NewError(http.StatusInternalServerError, "Unable to restart application", err)
+		return output, httperror.InternalServerError("Unable to restart application", err)
 	}
 
 	return output, nil

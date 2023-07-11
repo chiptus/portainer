@@ -124,6 +124,7 @@ func extractZip(archiveFile, destination string) error {
 			if err := os.MkdirAll(filePath, os.ModePerm); err != nil {
 				return err
 			}
+
 			continue
 		}
 

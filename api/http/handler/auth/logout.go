@@ -23,7 +23,7 @@ func (handler *Handler) logout(w http.ResponseWriter, r *http.Request) (*authMid
 		Username: tokenData.Username,
 	}
 
-	err = handler.LicenseService.ReaggregareLicenseInfo()
+	err = handler.LicenseService.ReaggregateLicenseInfo()
 	if err != nil {
 		return resp, httperror.InternalServerError("Unable to refresh license info", err)
 	}

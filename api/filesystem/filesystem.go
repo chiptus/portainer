@@ -47,12 +47,8 @@ func NewService(dataStorePath, fileStorePath string) (*Service, error) {
 
 func setupPublicCACerts(dataStorePath, fileStorePath string) error {
 	caCertsPath := filesystem.JoinPaths(dataStorePath, filesystem.SSLCertPath, PublicCACertPath)
-	err := os.MkdirAll(caCertsPath, 0755)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return os.MkdirAll(caCertsPath, 0755)
 }
 
 func (service *Service) GetKaasFolder() string {

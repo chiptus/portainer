@@ -4,11 +4,12 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/asaskevich/govalidator"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+
+	"github.com/asaskevich/govalidator"
 )
 
 type repositoryReferenceListPayload struct {
@@ -25,6 +26,7 @@ func (payload *repositoryReferenceListPayload) Validate(r *http.Request) error {
 	if govalidator.IsNull(payload.Repository) || !govalidator.IsURL(payload.Repository) {
 		return errors.New("Invalid repository URL. Must correspond to a valid URL format")
 	}
+
 	return nil
 }
 
@@ -51,8 +53,7 @@ func (handler *Handler) gitOperationRepoRefs(w http.ResponseWriter, r *http.Requ
 
 	hardRefresh, _ := request.RetrieveBooleanQueryParameter(r, "force", true)
 
-	repositoryUsername := ""
-	repositoryPassword := ""
+	var repositoryUsername, repositoryPassword string
 	if payload.StackID != 0 {
 		stack, err := handler.dataStore.Stack().Read(portaineree.StackID(payload.StackID))
 		if handler.dataStore.IsErrObjectNotFound(err) {
@@ -69,12 +70,12 @@ func (handler *Handler) gitOperationRepoRefs(w http.ResponseWriter, r *http.Requ
 
 		repositoryUsername = stack.GitConfig.Authentication.Username
 		repositoryPassword = stack.GitConfig.Authentication.Password
-
 	} else {
 		username, password, httpErr := handler.extractGitCredential(payload.Username, payload.Password, payload.GitCredentialID)
 		if httpErr != nil {
 			return httpErr
 		}
+
 		repositoryUsername = username
 		repositoryPassword = password
 	}

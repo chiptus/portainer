@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/asaskevich/govalidator"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/types"
 	"github.com/portainer/portainer-ee/api/internal/iprange"
+
+	"github.com/asaskevich/govalidator"
 )
 
 type (
@@ -46,21 +47,12 @@ func (payload *Microk8sTestSSHPayload) Validate(r *http.Request) error {
 func (payload *Microk8sScaleClusterPayload) Validate(r *http.Request) error {
 	if len(payload.MasterNodesToAdd) >= 0 && len(payload.WorkerNodesToAdd) >= 0 {
 		nodes := append(payload.MasterNodesToAdd, payload.WorkerNodesToAdd...)
-		err := validateNodes(nodes)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return validateNodes(nodes)
 	}
 
 	if len(payload.NodesToRemove) > 0 {
-		err := validateNodes(payload.NodesToRemove)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return validateNodes(payload.NodesToRemove)
 	}
 
 	return fmt.Errorf("invalid request payload, nodes to add or remove is empty")
@@ -127,12 +119,8 @@ func (payload *Microk8sProvisionPayload) Validate(r *http.Request) error {
 	}
 
 	nodes := append(payload.MasterNodes, payload.WorkerNodes...)
-	err := validateNodes(nodes)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return validateNodes(nodes)
 }
 
 func (payload *Microk8sProvisionPayload) GetCloudProvider(string) (*portaineree.CloudProvider, error) {
@@ -153,6 +141,7 @@ func (payload *Microk8sProvisionPayload) GetCloudProvider(string) (*portaineree.
 		nodes = fmt.Sprintf("%s,%s", nodes, strings.Join(payload.WorkerNodes, ","))
 	}
 	cloudProvider.NodeIPs = &nodes
+
 	return &cloudProvider, nil
 }
 

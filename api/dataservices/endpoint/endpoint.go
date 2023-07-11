@@ -78,12 +78,7 @@ func (service *Service) Endpoint(ID portaineree.EndpointID) (*portaineree.Endpoi
 
 func (service *Service) SetMessage(ID portaineree.EndpointID, statusMessage portaineree.EndpointStatusMessage) error {
 	return service.connection.UpdateTx(func(tx portainer.Transaction) error {
-		err := service.Tx(tx).SetMessage(ID, statusMessage)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return service.Tx(tx).SetMessage(ID, statusMessage)
 	})
 }
 

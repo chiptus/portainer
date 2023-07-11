@@ -847,6 +847,7 @@ func (service *Service) UpdateUserNamespaceAccessPolicies(
 	if err != nil {
 		return nil, false, err
 	}
+
 	usersEndpointRole := make(map[int]int)
 	teamsEndpointRole := make(map[int]int)
 	if userRole != nil {
@@ -860,17 +861,20 @@ func (service *Service) UpdateUserNamespaceAccessPolicies(
 	if err != nil {
 		return nil, false, err
 	}
+
 	teamIDs := make([]int, 0)
 	for _, membership := range userMemberships {
 		teamRole, err := service.GetTeamEndpointRole(int(membership.TeamID), endpointID)
 		if err != nil {
 			return nil, false, err
 		}
+
 		if teamRole != nil {
 			teamsEndpointRole[int(membership.TeamID)] = int(teamRole.ID)
 			teamIDs = append(teamIDs, int(membership.TeamID))
 		}
 	}
+
 	return service.updateNamespaceAccessPolicies(userID, teamIDs, usersEndpointRole, teamsEndpointRole,
 		policiesToUpdate, restrictDefaultNamespace)
 }
@@ -888,6 +892,7 @@ func (service *Service) updateNamespaceAccessPolicies(
 		delete(policiesToUpdate, "default")
 		hasChange = true
 	}
+
 	for ns, nsPolicies := range policiesToUpdate {
 		for userID, policy := range nsPolicies.UserAccessPolicies {
 			if int(userID) == selectedUserID {
@@ -903,6 +908,7 @@ func (service *Service) updateNamespaceAccessPolicies(
 				}
 			}
 		}
+
 		for teamID, policy := range nsPolicies.TeamAccessPolicies {
 			for _, selectedTeamID := range selectedTeamIDs {
 				if int(teamID) == selectedTeamID {
@@ -919,8 +925,10 @@ func (service *Service) updateNamespaceAccessPolicies(
 				}
 			}
 		}
+
 		policiesToUpdate[ns] = nsPolicies
 	}
+
 	return policiesToUpdate, hasChange, nil
 }
 
@@ -935,10 +943,12 @@ func (service *Service) RemoveUserNamespaceAccessPolicies(
 	if err != nil {
 		return nil, false, err
 	}
+
 	usersEndpointRole := make(map[int]int)
 	if userRole != nil {
 		usersEndpointRole[userID] = int(userRole.ID)
 	}
+
 	return service.removeUserInNamespaceAccessPolicies(usersEndpointRole, policiesToUpdate)
 }
 
@@ -957,12 +967,14 @@ func (service *Service) removeUserInNamespaceAccessPolicies(
 				hasChange = true
 			}
 		}
+
 		if len(nsPolicies.UserAccessPolicies) == 0 && len(nsPolicies.TeamAccessPolicies) == 0 {
 			delete(policiesToUpdate, ns)
 		} else {
 			policiesToUpdate[ns] = nsPolicies
 		}
 	}
+
 	return policiesToUpdate, hasChange, nil
 }
 
@@ -977,9 +989,11 @@ func (service *Service) RemoveTeamNamespaceAccessPolicies(
 	if err != nil {
 		return nil, false, err
 	}
+
 	if teamRole == nil {
 		return nil, false, nil
 	}
+
 	teamsEndpointRole := make(map[int]int)
 	teamsEndpointRole[teamID] = int(teamRole.ID)
 
@@ -998,6 +1012,7 @@ func (service *Service) RemoveTeamNamespaceAccessPolicies(
 			policiesToUpdate[ns] = nsPolicies
 		}
 	}
+
 	return policiesToUpdate, hasChange, nil
 }
 
@@ -1071,6 +1086,7 @@ func (service *Service) GetNamespaceAuthorizations(
 	if err != nil {
 		return nil, err
 	}
+
 	// update the namespace access policies based on user's role, also in configmap.
 	accessPolicies, hasChange, err := service.UpdateUserNamespaceAccessPolicies(
 		userID, &endpoint, accessPolicies,
@@ -1282,6 +1298,7 @@ func (service *Service) GetTeamEndpointRole(
 
 	role = getRoleFromTeamEndpointGroupPolicies(memberships, endpoint,
 		roles, groupTeamAccessPolicies)
+
 	return role, nil
 }
 
@@ -1305,9 +1322,11 @@ func getUserEndpointRole(user *portaineree.User, endpoint portaineree.Endpoint,
 	if role == nil {
 		role = getRoleFromUserEndpointGroupPolicy(user, &endpoint, roles, groupUserAccessPolicies)
 	}
+
 	if role == nil {
 		role = getRoleFromTeamAccessPolicies(userMemberships, endpoint.TeamAccessPolicies, roles)
 	}
+
 	if role == nil {
 		role = getRoleFromTeamEndpointGroupPolicies(userMemberships, &endpoint, roles, groupTeamAccessPolicies)
 	}
@@ -1365,6 +1384,7 @@ func getRoleFromUserAccessPolicies(
 	if ok && policy.RoleID != 0 {
 		policyRoles = append(policyRoles, policy.RoleID)
 	}
+
 	if len(policyRoles) == 0 {
 		return nil
 	}
@@ -1384,6 +1404,7 @@ func getRoleFromUserEndpointGroupPolicy(user *portaineree.User,
 	if ok && policy.RoleID != 0 {
 		policyRoles = append(policyRoles, policy.RoleID)
 	}
+
 	if len(policyRoles) == 0 {
 		return nil
 	}
@@ -1405,6 +1426,7 @@ func getRoleFromTeamAccessPolicies(
 			policyRoles = append(policyRoles, policy.RoleID)
 		}
 	}
+
 	if len(policyRoles) == 0 {
 		return nil
 	}
@@ -1426,6 +1448,7 @@ func getRoleFromTeamEndpointGroupPolicies(memberships []portaineree.TeamMembersh
 			policyRoles = append(policyRoles, policy.RoleID)
 		}
 	}
+
 	if len(policyRoles) == 0 {
 		return nil
 	}
@@ -1480,6 +1503,7 @@ func (service *Service) UserIsAdminOrAuthorized(userID portaineree.UserID, endpo
 	if err != nil {
 		return false, err
 	}
+
 	if user.Role == portaineree.AdministratorRole {
 		return true, nil
 	}
@@ -1490,5 +1514,6 @@ func (service *Service) UserIsAdminOrAuthorized(userID portaineree.UserID, endpo
 			return true, nil
 		}
 	}
+
 	return false, nil
 }

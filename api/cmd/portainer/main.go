@@ -189,7 +189,7 @@ func initDataStore(flags *portaineree.CLIFlags, secretKey []byte, fileService po
 	return store
 }
 
-func initComposeStackManager(composeDeployer libstack.Deployer, reverseTunnelService portaineree.ReverseTunnelService, proxyManager *proxy.Manager) portaineree.ComposeStackManager {
+func initComposeStackManager(composeDeployer libstack.Deployer, proxyManager *proxy.Manager) portaineree.ComposeStackManager {
 	composeWrapper, err := exec.NewComposeStackManager(composeDeployer, proxyManager)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed creating compose manager")
@@ -563,7 +563,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		log.Fatal().Err(err).Msg("failed initializing compose deployer")
 	}
 
-	composeStackManager := initComposeStackManager(composeDeployer, reverseTunnelService, proxyManager)
+	composeStackManager := initComposeStackManager(composeDeployer, proxyManager)
 
 	swarmStackManager, err := initSwarmStackManager(*flags.Assets, dockerConfigPath, digitalSignatureService, fileService, reverseTunnelService, dataStore)
 	if err != nil {

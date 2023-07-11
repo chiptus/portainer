@@ -6,6 +6,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	portainer "github.com/portainer/portainer/api"
+
 	"github.com/rs/zerolog/log"
 )
 
@@ -42,6 +43,7 @@ func (b *StackBuilder) SaveStack() (*portaineree.Stack, *httperror.HandlerError)
 	}
 
 	b.doCleanUp = false
+
 	return b.stack, nil
 }
 

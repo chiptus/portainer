@@ -1921,7 +1921,7 @@ type (
 		Info() *LicenseInfo
 		Init() error
 		Licenses() ([]liblicense.PortainerLicense, error)
-		ReaggregareLicenseInfo() error
+		ReaggregateLicenseInfo() error
 		ShouldEnforceOveruse() bool
 		Start() error
 		WillBeEnforcedAt() int64

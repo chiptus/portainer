@@ -8,11 +8,12 @@ import (
 	eefs "github.com/portainer/portainer-ee/api/filesystem"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
+
 	"github.com/rs/zerolog/log"
 )
 
 func (handler *Handler) updateStackVersion(stack *portaineree.EdgeStack, deploymentType portaineree.EdgeStackDeploymentType, config []byte, oldGitHash string, relatedEnvironmentsIDs []portaineree.EndpointID, rollbackTo *int) error {
-	stack.Version = stack.Version + 1
+	stack.Version++
 	stack.Status = newStatus(stack.Status, relatedEnvironmentsIDs)
 
 	if stack.GitConfig != nil {

@@ -43,5 +43,5 @@ func (service *Service) startSyncLoop() error {
 // - revokes all licenses that are either expired, don't stack with each other, or has an invalid key
 // - marks license overuse
 func (service *Service) syncLicenses() error {
-	return service.ReaggregareLicenseInfo()
+	return service.ReaggregateLicenseInfo()
 }

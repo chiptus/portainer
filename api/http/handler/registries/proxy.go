@@ -6,14 +6,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gorilla/mux"
-	"github.com/portainer/portainer-ee/api/github/packages"
-
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/github/packages"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 
+	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 )
 
@@ -93,27 +92,8 @@ func replacePathRaw(o, n string, h http.Handler) http.Handler {
 			r2 := *r
 			r2.URL = new(url.URL)
 			*r2.URL = *r.URL
-			r2.URL.RawPath = strings.Replace(r.URL.RawPath, o, n, -1)
+			r2.URL.RawPath = strings.ReplaceAll(r.URL.RawPath, o, n)
 			h.ServeHTTP(w, &r2)
 		}
 	})
-}
-
-func createDefaultManagementConfiguration(registry *portaineree.Registry) *portaineree.RegistryManagementConfiguration {
-	config := &portaineree.RegistryManagementConfiguration{
-		Type: registry.Type,
-		TLSConfig: portaineree.TLSConfiguration{
-			TLS: false,
-		},
-	}
-
-	if registry.Authentication {
-		config.Username = registry.Username
-		config.Password = registry.Password
-		config.Ecr = registry.Ecr
-		config.AccessToken = registry.AccessToken
-		config.AccessTokenExpiry = registry.AccessTokenExpiry
-	}
-
-	return config
 }

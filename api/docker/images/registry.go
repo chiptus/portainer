@@ -4,22 +4,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/patrickmn/go-cache"
-	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
+
+	"github.com/patrickmn/go-cache"
+	"github.com/pkg/errors"
 )
 
-var (
-	_registriesCache = cache.New(5*time.Minute, 5*time.Minute)
-)
+var registriesCache = cache.New(5*time.Minute, 5*time.Minute)
 
-type (
-	RegistryClient struct {
-		dataStore dataservices.DataStore
-	}
-)
+type RegistryClient struct {
+	dataStore dataservices.DataStore
+}
 
 func NewRegistryClient(dataStore dataservices.DataStore) *RegistryClient {
 	return &RegistryClient{dataStore: dataStore}
@@ -130,12 +127,12 @@ func findBestMatchRegistry(repository string, registries []portaineree.Registry)
 	if match == nil {
 		return nil, errors.New("no registries matched")
 	}
-	_registriesCache.Set(repository, match, 0)
+	registriesCache.Set(repository, match, 0)
 	return match, nil
 }
 
 func cachedRegistry(cacheKey string) (*portaineree.Registry, error) {
-	r, ok := _registriesCache.Get(cacheKey)
+	r, ok := registriesCache.Get(cacheKey)
 	if ok {
 		registry, ok := r.(portaineree.Registry)
 		if ok {

@@ -191,22 +191,13 @@ func (handler *Handler) kubeClient(next http.Handler) http.Handler {
 		singleEndpointList := []portaineree.Endpoint{
 			*endpoint,
 		}
-		config, handlerErr := handler.buildConfig(
+		config := handler.buildConfig(
 			r,
 			tokenData,
 			bearerToken,
 			singleEndpointList,
 			true,
 		)
-		if err != nil {
-			httperror.WriteError(
-				w,
-				http.StatusInternalServerError,
-				"Unable to build endpoint kubeconfig",
-				handlerErr.Err,
-			)
-			return
-		}
 
 		if len(config.Clusters) == 0 {
 			httperror.WriteError(

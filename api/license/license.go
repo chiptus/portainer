@@ -68,7 +68,7 @@ func (service *Service) Licenses() ([]liblicense.PortainerLicense, error) {
 func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 	// Validate the given license key and parse it into a license object.
 	l := ParseLicense(key, service.expireAbsolute)
-	if l.Revoked == true {
+	if l.Revoked {
 		return nil, fmt.Errorf("license is invalid")
 	}
 	valid, err := liblicense.ValidateLicense(&l)
@@ -96,6 +96,7 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 		}
 		licenses = append(licenses, l)
 		service.info = service.aggregateLicenses(licenses)
+
 		return nil, nil
 	}
 
@@ -199,16 +200,19 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 	if len(conflicts) != 0 && !force {
 		return conflicts, nil
 	}
+
 	err = service.dataStore.License().AddLicense(l.LicenseKey, &l)
 	if err != nil {
 		return nil, err
 	}
+
 	// Fetch new list of licenses.
 	licenses, err = service.Licenses()
 	if err != nil {
 		return nil, err
 	}
 	service.info = service.aggregateLicenses(licenses)
+
 	return conflicts, nil
 }
 
@@ -236,6 +240,7 @@ func displayNodes(n int) string {
 	} else {
 		count = strconv.Itoa(n)
 	}
+
 	return count + " nodes"
 }
 
@@ -290,8 +295,8 @@ func (service *Service) revokeLicense(licenseKey string) error {
 	return nil
 }
 
-// ReaggregareLicenseInfo re-calculates and updates the aggregated license
-func (service *Service) ReaggregareLicenseInfo() error {
+// ReaggregateLicenseInfo re-calculates and updates the aggregated license
+func (service *Service) ReaggregateLicenseInfo() error {
 	licenses, err := service.Licenses()
 	if err == nil {
 		service.info = service.aggregateLicenses(licenses)
@@ -305,7 +310,7 @@ func RecalculateLicenseUsage(licenseService portaineree.LicenseService, next htt
 		next.ServeHTTP(rw, r)
 
 		if licenseService != nil {
-			licenseService.ReaggregareLicenseInfo()
+			licenseService.ReaggregateLicenseInfo()
 		}
 	})
 }
@@ -372,6 +377,7 @@ func trialLicenseInfo(licenses []liblicense.PortainerLicense, expireAbsolute boo
 			return info, true
 		}
 	}
+
 	return info, false
 }
 

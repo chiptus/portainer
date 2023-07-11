@@ -84,7 +84,6 @@ func NewConnection(user, password, passphrase, privateKey, ip string) (*SSHConne
 }
 
 func (s *SSHConnection) RunCommand(command string, out io.Writer) error {
-
 	log.Debug().Str("node", s.IP).Msgf("Running command: %s", command)
 
 	session, err := s.Client.NewSession()
@@ -114,9 +113,5 @@ func (s *SSHConnection) RunCommand(command string, out io.Writer) error {
 	session.Stdout = out
 	session.Stderr = os.Stderr
 
-	err = session.Run(fmt.Sprintf("cat '.password' | sudo -S %s", command))
-	if err != nil {
-		return err
-	}
-	return err
+	return session.Run(fmt.Sprintf("cat '.password' | sudo -S %s", command))
 }

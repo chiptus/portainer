@@ -13,6 +13,7 @@ func compareYAMLStrings(in1, in2 string) int {
 	r := strings.NewReplacer("\t", "", "\n", "", " ", "")
 	in1 = r.Replace(in1)
 	in2 = r.Replace(in2)
+
 	return strings.Compare(in1, in2)
 }
 
@@ -85,7 +86,7 @@ func Test_GenerateYAML(t *testing.T) {
 				t.Errorf("generateYamlConfig failed; err=%s", err)
 			}
 
-			if compareYAMLStrings(string(yaml), ryt.wantYAML) != 0 {
+			if compareYAMLStrings(yaml, ryt.wantYAML) != 0 {
 				t.Errorf("generateYamlConfig failed;\ngot=\n%s\nwant=\n%s", yaml, ryt.wantYAML)
 			}
 		})

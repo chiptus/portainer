@@ -1,18 +1,14 @@
 package migrator
 
 import (
-	"github.com/Masterminds/semver"
-	"github.com/pkg/errors"
-	"github.com/portainer/portainer-ee/api/dataservices/edgegroup"
-	"github.com/portainer/portainer-ee/api/dataservices/edgestack"
-	"github.com/rs/zerolog/log"
-
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudcredential"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudprovisioning"
 	"github.com/portainer/portainer-ee/api/dataservices/dockerhub"
+	"github.com/portainer/portainer-ee/api/dataservices/edgegroup"
 	"github.com/portainer/portainer-ee/api/dataservices/edgejob"
+	"github.com/portainer/portainer-ee/api/dataservices/edgestack"
 	"github.com/portainer/portainer-ee/api/dataservices/edgeupdateschedule"
 	"github.com/portainer/portainer-ee/api/dataservices/endpoint"
 	"github.com/portainer/portainer-ee/api/dataservices/endpointgroup"
@@ -33,6 +29,10 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/version"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	portainer "github.com/portainer/portainer/api"
+
+	"github.com/Masterminds/semver"
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type (
@@ -285,7 +285,7 @@ func (m *Migrator) Always() error {
 		return errors.Wrap(err, "failed refreshing RBAC roles")
 	}
 
-	return err
+	return nil
 }
 
 func dbTooOldError() error {

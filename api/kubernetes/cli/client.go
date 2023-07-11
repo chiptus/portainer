@@ -116,7 +116,7 @@ func (factory *ClientFactory) SetProxyKubeClient(endpointID, token string, cli *
 // CreateKubeClientFromKubeConfig creates a KubeClient from a clusterID, and
 // Kubernetes config.
 func (factory *ClientFactory) CreateKubeClientFromKubeConfig(clusterID string, kubeConfig []byte) (*KubeClient, error) {
-	config, err := clientcmd.NewClientConfigFromBytes([]byte(kubeConfig))
+	config, err := clientcmd.NewClientConfigFromBytes(kubeConfig)
 	if err != nil {
 		return nil, err
 	}
