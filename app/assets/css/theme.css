@@ -261,6 +261,9 @@
 
 /* Dark Theme */
 [theme='dark'] {
+  --BE-only: var(--ui-blue-8);
+  --bg-BE-only: rgba(225, 223, 223, 0.08);
+
   --text-log-viewer-color-json-grey: #d0d5dd;
   --text-log-viewer-color-json-magenta: #fda29b;
   --text-log-viewer-color-json-yellow: #fec84b;
