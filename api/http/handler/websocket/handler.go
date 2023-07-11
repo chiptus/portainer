@@ -49,5 +49,6 @@ func NewHandler(kubernetesTokenCacheManager *kubernetes.TokenCacheManager, bounc
 	h.PathPrefix("/websocket/attach").Handler(httperror.LoggerHandler(h.websocketAttach))
 	h.PathPrefix("/websocket/pod").Handler(httperror.LoggerHandler(h.websocketPodExec))
 	h.PathPrefix("/websocket/kubernetes-shell").Handler(httperror.LoggerHandler(h.websocketShellPodExec))
+	h.PathPrefix("/websocket/microk8s-shell").Handler(httperror.LoggerHandler(h.websocketMicrok8sShell))
 	return h
 }

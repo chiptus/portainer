@@ -55,7 +55,8 @@ export function NodesDatatable() {
   );
 
   // currently only microk8s supports deleting nodes
-  const canScaleCluster = environment?.CloudProvider?.Name === 'MicroK8s';
+  const canScaleCluster = environment?.CloudProvider?.Provider === 'microk8s';
+  const canSSH = environment?.CloudProvider?.Provider === 'microk8s';
   const { data: credential, ...credentialQuery } = useCloudCredential(
     environment?.CloudProvider?.CredentialID ?? NaN
   );
@@ -64,7 +65,7 @@ export function NodesDatatable() {
   return (
     <Datatable<IndexOptional<NodeRowData>>
       dataset={nodeRowData ?? []}
-      columns={getColumns(isServerMetricsEnabled)}
+      columns={getColumns(isServerMetricsEnabled, canSSH)}
       settingsManager={tableState}
       isLoading={
         nodesQuery.isLoading ||

@@ -129,11 +129,21 @@ type CloudProviderSettings = {
   Name:
     | 'Civo'
     | 'Linode'
-    | 'Digital'
+    | 'Digital Ocean'
     | 'Google'
     | 'Azure'
     | 'Amazon'
     | 'MicroK8s';
+  Provider:
+    | 'civo'
+    | 'digitalocean'
+    | 'linode'
+    | 'gke'
+    | 'kubeconfig'
+    | 'azure'
+    | 'amazon'
+    | 'microk8s'
+    | 'agent';
   URL: string;
   Region: string | null;
   Size: number | null;

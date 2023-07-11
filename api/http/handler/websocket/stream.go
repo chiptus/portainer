@@ -14,14 +14,12 @@ func streamFromWebsocketToWriter(websocketConn *websocket.Conn, writer io.Writer
 		_, in, err := websocketConn.ReadMessage()
 		if err != nil {
 			errorChan <- err
-
 			break
 		}
 
 		_, err = writer.Write(in)
 		if err != nil {
 			errorChan <- err
-
 			break
 		}
 	}
@@ -34,7 +32,6 @@ func streamFromReaderToWebsocket(websocketConn *websocket.Conn, reader io.Reader
 		n, err := reader.Read(out)
 		if err != nil {
 			errorChan <- err
-
 			break
 		}
 
@@ -42,7 +39,6 @@ func streamFromReaderToWebsocket(websocketConn *websocket.Conn, reader io.Reader
 		err = websocketConn.WriteMessage(websocket.TextMessage, []byte(processedOutput))
 		if err != nil {
 			errorChan <- err
-
 			break
 		}
 	}

@@ -5,11 +5,21 @@ import { cpu } from './cpu';
 import { memory } from './memory';
 import { version } from './version';
 import { ip } from './ip';
-import { actions } from './actions';
+import { getActions } from './actions';
 
-export function getColumns(isServerMetricsEnabled: boolean) {
-  if (isServerMetricsEnabled) {
-    return [name, role, status, cpu, memory, version, ip, actions];
+export function getColumns(isServerMetricsEnabled: boolean, canSSH: boolean) {
+  if (!isServerMetricsEnabled && !canSSH) {
+    return [name, role, status, cpu, memory, version, ip];
   }
-  return [name, role, status, cpu, memory, version, ip];
+
+  return [
+    name,
+    role,
+    status,
+    cpu,
+    memory,
+    version,
+    ip,
+    getActions(isServerMetricsEnabled, canSSH),
+  ];
 }
