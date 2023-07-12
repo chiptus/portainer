@@ -71,8 +71,9 @@ func NewBackgroundSnapshotter(dataStore dataservices.DataStore, tunnelService po
 				continue
 			}
 
-			_, err := tx.Snapshot().Read(e.ID)
-			if dataservices.IsErrObjectNotFound(err) {
+			s, err := tx.Snapshot().Read(e.ID)
+			if dataservices.IsErrObjectNotFound(err) ||
+				(err == nil && s.Docker == nil && s.Kubernetes == nil && s.Nomad == nil) {
 				endpointIDs = append(endpointIDs, e.ID)
 			}
 		}
