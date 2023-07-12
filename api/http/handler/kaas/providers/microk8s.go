@@ -141,6 +141,7 @@ func (payload *Microk8sProvisionPayload) GetCloudProvider(string) (*portaineree.
 		nodes = fmt.Sprintf("%s,%s", nodes, strings.Join(payload.WorkerNodes, ","))
 	}
 	cloudProvider.NodeIPs = &nodes
+	cloudProvider.NodeCount = len(payload.MasterNodes) + len(payload.WorkerNodes)
 
 	return &cloudProvider, nil
 }
@@ -165,7 +166,7 @@ func (payload *Microk8sProvisionPayload) GetCloudProvisioningRequest(endpointID 
 		Provider:              portaineree.CloudProviderMicrok8s,
 		Name:                  payload.Name,
 		CredentialID:          payload.CredentialID,
-		NodeCount:             payload.NodeCount,
+		NodeCount:             len(masters) + len(workers),
 		MasterNodes:           masters,
 		WorkerNodes:           workers,
 		Addons:                payload.Addons,
