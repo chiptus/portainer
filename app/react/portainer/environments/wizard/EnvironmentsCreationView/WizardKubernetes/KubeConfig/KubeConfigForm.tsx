@@ -91,7 +91,7 @@ export function KubeConfigForm({ onCreate, customTemplates }: Props) {
               <TextTip color="blue">
                 <span className="text-muted">
                   <a
-                    href="https://docs.portainer.io/start/install/agent/kubernetes/import"
+                    href="https://docs.portainer.io/admin/environments/add/kubernetes/import"
                     target="_blank"
                     rel="noreferrer"
                     className="mx-1"
