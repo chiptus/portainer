@@ -84,7 +84,7 @@ export function getDashboardRoute(environment: Environment) {
     if (!environment.EdgeID) {
       return {
         to: 'portainer.endpoints.endpoint',
-        params: { endpointId: environment.Id },
+        params: { id: environment.Id },
       };
     }
 

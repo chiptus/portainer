@@ -97,7 +97,7 @@ angular
 
                 const endpoint = await EndpointService.endpoint(endpointId);
                 if ((endpoint.Type === 4 || endpoint.Type === 7) && !endpoint.EdgeID) {
-                  $state.go('portainer.endpoints.endpoint', { endpointId: endpoint.Id });
+                  $state.go('portainer.endpoints.endpoint', { id: endpoint.Id });
                   return;
                 }
 
@@ -200,7 +200,7 @@ angular
 
       var endpoint = {
         name: 'portainer.endpoints.endpoint',
-        url: '/:endpointId?redirectTo',
+        url: '/:id?redirectTo',
         params: {
           redirectTo: '',
         },
