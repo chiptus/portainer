@@ -71,7 +71,9 @@ export function EditEdgeStackForm({
     rollbackTo: undefined,
   };
 
-  const versionOptions: number[] = [edgeStack.StackFileVersion];
+  const versionOptions: number[] = edgeStack.StackFileVersion
+    ? [edgeStack.StackFileVersion]
+    : [];
   if (edgeStack.PreviousDeploymentInfo?.FileVersion > 0) {
     versionOptions.push(edgeStack.PreviousDeploymentInfo?.FileVersion);
   }

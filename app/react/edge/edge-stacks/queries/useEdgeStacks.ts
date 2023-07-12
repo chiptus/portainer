@@ -7,9 +7,22 @@ import { EdgeStack } from '../types';
 
 import { buildUrl } from './buildUrl';
 
-export function useEdgeStacks() {
+export function useEdgeStacks<T = Array<EdgeStack>>({
+  select,
+  /**
+   * If set to a number, the query will continuously refetch at this frequency in milliseconds.
+   * If set to a function, the function will be executed with the latest data and query to compute a frequency
+   * Defaults to `false`.
+   */
+  refetchInterval,
+}: {
+  select?: (stacks: EdgeStack[]) => T;
+  refetchInterval?: number | false | ((data?: T) => false | number);
+} = {}) {
   return useQuery(['edge_stacks'], () => getEdgeStacks(), {
     ...withError('Failed loading Edge stack'),
+    select,
+    refetchInterval,
   });
 }
 

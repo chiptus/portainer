@@ -65,7 +65,7 @@ export type EdgeStack = {
   Prune: boolean;
   RetryDeploy: boolean;
   Webhook: string;
-  StackFileVersion: number;
+  StackFileVersion?: number;
   PreviousDeploymentInfo: EdgeStackDeploymentInfo;
   EnvVars?: EnvVar[];
 };

@@ -38,7 +38,8 @@ export function EnvironmentsDatatable() {
     edgeStackStatus: statusFilter,
   });
 
-  const currentVersion = edgeStackQuery.data?.StackFileVersion.toString() || '';
+  const currentVersion =
+    edgeStackQuery.data?.StackFileVersion?.toString() || '';
   const gitConfigURL = edgeStackQuery.data?.GitConfig?.URL || '';
   const gitConfigCommitHash = edgeStackQuery.data?.GitConfig?.ConfigHash || '';
   const environments: Array<EdgeStackEnvironment> = useMemo(
