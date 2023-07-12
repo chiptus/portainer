@@ -20,7 +20,10 @@ function NameCell({
   const nodeName = node.metadata?.name;
   return (
     <div className="flex gap-2">
-      <Authorized authorizations="K8sClusterNodeR" childrenUnauthorized={name}>
+      <Authorized
+        authorizations="K8sClusterNodeR"
+        childrenUnauthorized={nodeName}
+      >
         <Link to="kubernetes.cluster.node" params={{ nodeName }}>
           {nodeName}
         </Link>

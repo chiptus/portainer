@@ -56,7 +56,6 @@ class KubernetesDeploymentService {
   async createAsync(deployment) {
     try {
       const params = {};
-      console.log(deployment);
       const payload = KubernetesDeploymentConverter.createPayload(deployment);
       const namespace = payload.metadata.namespace;
       const data = await this.KubernetesDeployments(namespace).create(params, payload).$promise;
