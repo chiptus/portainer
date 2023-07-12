@@ -9,6 +9,8 @@ import {
 
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import smallLogo from '@/assets/ico/logomark.svg';
+import { useAnalytics } from '@/react/hooks/useAnalytics';
+import { useEnvironment } from '@/react/portainer/environments/queries';
 
 import { useChatQueryMutation, useCanDisplayChatbot } from '../queries';
 import { ChatQueryContext } from '../types';
@@ -16,6 +18,7 @@ import { ChatQueryContext } from '../types';
 import { ChatBotLink } from './components/ChatBotLink';
 import 'react-chat-widget/lib/styles.css';
 import styles from './ChatBot.module.css';
+import { getPlatformTypeForAnalytics } from './utils';
 
 function toggleWaitingState() {
   toggleInputDisabled();
@@ -26,9 +29,20 @@ export function ChatBotItem() {
   const askMutation = useChatQueryMutation();
   const environmentId = useEnvironmentId(false);
   const canDisplayChatbot = useCanDisplayChatbot();
+  const { trackEvent } = useAnalytics();
+  const { data: environmentType, ...environmentQuery } = useEnvironment(
+    environmentId,
+    (env) => getPlatformTypeForAnalytics(env?.Type)
+  );
 
   const handleNewUserMessage = useCallback(
     async (newMessage: string) => {
+      trackEvent('chatbot-send-message', {
+        category: 'portainer',
+        metadata: {
+          environmentType,
+        },
+      });
       toggleWaitingState();
       askMutation.mutate(
         {
@@ -55,14 +69,14 @@ You can check the status of the OpenAI API at [https://status.openai.com](https:
         }
       );
     },
-    [askMutation, environmentId]
+    [askMutation, environmentId, environmentType, trackEvent]
   );
 
   useEffect(() => {
     sendDisclaimer();
   }, []);
 
-  if (!environmentId) {
+  if (!environmentId || environmentQuery.isLoading) {
     return null; // for now do not display the chat widget in views outside of environment
   }
 

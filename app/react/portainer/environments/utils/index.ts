@@ -1,6 +1,6 @@
 import { Environment, EnvironmentType, PlatformType } from '../types';
 
-export function getPlatformType(envType: EnvironmentType) {
+export function getPlatformType(envType?: EnvironmentType) {
   switch (envType) {
     case EnvironmentType.KubernetesLocal:
     case EnvironmentType.AgentOnKubernetes:

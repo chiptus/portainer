@@ -5,6 +5,7 @@ import { FlaskConical } from 'lucide-react';
 
 import { notifySuccess } from '@/portainer/services/notifications';
 import { User } from '@/portainer/users/types';
+import { useAnalytics } from '@/react/hooks/useAnalytics';
 
 import { LoadingButton } from '@@/buttons/LoadingButton';
 import { TextTip } from '@@/Tip/TextTip';
@@ -28,15 +29,22 @@ export function OpenAIKeyForm({ user }: Props) {
     OpenAIApiKey: user.OpenAIApiKey || '',
   };
 
-  const mutation = useUpdateUserOpenAIKeyMutation();
-
-  const { mutate: updateSettings } = mutation;
+  const updateSettingsMutation = useUpdateUserOpenAIKeyMutation();
+  const { trackEvent } = useAnalytics();
 
   const handleSubmit = useCallback(
-    (variables: FormValues) => {
-      updateSettings(
+    (values: FormValues) => {
+      // if the key is being added or removed, send analytics
+      if (!initialValues.OpenAIApiKey && values.OpenAIApiKey) {
+        trackEvent('chatbot-register-openaikey', { category: 'portainer' });
+      }
+      if (initialValues.OpenAIApiKey && !values.OpenAIApiKey) {
+        trackEvent('chatbot-remove-openaikey', { category: 'portainer' });
+      }
+
+      updateSettingsMutation.mutate(
         {
-          ApiKey: variables.OpenAIApiKey,
+          ApiKey: values.OpenAIApiKey,
         },
         {
           onSuccess() {
@@ -48,7 +56,7 @@ export function OpenAIKeyForm({ user }: Props) {
         }
       );
     },
-    [updateSettings]
+    [initialValues.OpenAIApiKey, trackEvent, updateSettingsMutation]
   );
 
   return (
@@ -86,7 +94,7 @@ export function OpenAIKeyForm({ user }: Props) {
             <div className="col-sm-12">
               <LoadingButton
                 loadingText="Saving..."
-                isLoading={mutation.isLoading}
+                isLoading={updateSettingsMutation.isLoading}
                 disabled={!isValid || !dirty}
                 className="!ml-0"
                 data-cy="account-openAIKeyButton"

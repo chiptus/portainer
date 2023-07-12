@@ -6,6 +6,7 @@ import { FlaskConical } from 'lucide-react';
 import { notifySuccess } from '@/portainer/services/notifications';
 import { ExperimentalFeatures } from '@/react/portainer/settings/types';
 import { useUpdateExperimentalSettingsMutation } from '@/react/portainer/settings/queries';
+import { useAnalytics } from '@/react/hooks/useAnalytics';
 
 import { LoadingButton } from '@@/buttons/LoadingButton';
 import { TextTip } from '@@/Tip/TextTip';
@@ -26,15 +27,22 @@ interface Props {
 export function ExperimentalFeaturesSettingsForm({ settings }: Props) {
   const initialValues: FormValues = settings;
 
-  const mutation = useUpdateExperimentalSettingsMutation();
-
-  const { mutate: updateSettings } = mutation;
+  const { trackEvent } = useAnalytics();
+  const updateSettingsMutation = useUpdateExperimentalSettingsMutation();
 
   const handleSubmit = useCallback(
-    (variables: FormValues) => {
-      updateSettings(
+    ({ OpenAIIntegration }: FormValues) => {
+      // if OpenAIIntegration gets enabled or disabled send analytics
+      if (!initialValues.OpenAIIntegration && OpenAIIntegration) {
+        trackEvent('chatbot-enable-globally', { category: 'portainer' });
+      }
+      if (initialValues.OpenAIIntegration && !OpenAIIntegration) {
+        trackEvent('chatbot-disable-globally', { category: 'portainer' });
+      }
+
+      updateSettingsMutation.mutate(
         {
-          OpenAIIntegration: variables.OpenAIIntegration,
+          OpenAIIntegration,
         },
         {
           onSuccess() {
@@ -46,7 +54,7 @@ export function ExperimentalFeaturesSettingsForm({ settings }: Props) {
         }
       );
     },
-    [updateSettings]
+    [initialValues.OpenAIIntegration, trackEvent, updateSettingsMutation]
   );
 
   return (
@@ -82,7 +90,7 @@ export function ExperimentalFeaturesSettingsForm({ settings }: Props) {
             <div className="col-sm-12">
               <LoadingButton
                 loadingText="Saving settings..."
-                isLoading={mutation.isLoading}
+                isLoading={updateSettingsMutation.isLoading}
                 disabled={!isValid || !dirty}
                 className="!ml-0"
                 data-cy="settings-experimentalButton"
