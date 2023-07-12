@@ -17,7 +17,7 @@ export function useKubernetesEndpointsQuery(
   options?: { autoRefreshRate?: number }
 ) {
   return useQuery(
-    ['kubernetes', environmentId, 'endpoints'],
+    ['environments', environmentId, 'kubernetes', 'endpoints'],
     () => getKubernetesEndpoints(environmentId),
     {
       ...withError('Unable to retrieve Kubernetes endpoints'),

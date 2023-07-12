@@ -17,12 +17,12 @@ export const name = columnHelper.accessor('Name', {
 function NameCell({
   row: { original: node },
 }: CellContext<NodeRowData, string>) {
-  const name = node.metadata?.name;
+  const nodeName = node.metadata?.name;
   return (
     <div className="flex gap-2">
       <Authorized authorizations="K8sClusterNodeR" childrenUnauthorized={name}>
-        <Link to="kubernetes.cluster.node" params={{ name }}>
-          {name}
+        <Link to="kubernetes.cluster.node" params={{ nodeName }}>
+          {nodeName}
         </Link>
       </Authorized>
       {node.isPublishedNode && <Badge type="success">connected</Badge>}

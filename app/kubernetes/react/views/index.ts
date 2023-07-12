@@ -13,6 +13,7 @@ import { ServicesView } from '@/react/kubernetes/services/ServicesView';
 import { ConsoleView } from '@/react/kubernetes/applications/ConsoleView';
 import { ConfigmapsAndSecretsView } from '@/react/kubernetes/configs/ListView/ConfigmapsAndSecretsView';
 import { NodeCreateView } from '@/react/kubernetes/cluster/NodeCreateView/NodeCreateView';
+import { Microk8sNodeStatusView } from '@/react/kubernetes/cluster/NodeStatusView';
 
 export const viewsModule = angular
   .module('portainer.kubernetes.react.views', [])
@@ -51,6 +52,13 @@ export const viewsModule = angular
   .component(
     'kubernetesNodeCreateView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(NodeCreateView))), [])
+  )
+  .component(
+    'microk8sNodeStatusView',
+    r2a(
+      withUIRouter(withReactQuery(withCurrentUser(Microk8sNodeStatusView))),
+      []
+    )
   )
   .component(
     'kubernetesDashboardView',

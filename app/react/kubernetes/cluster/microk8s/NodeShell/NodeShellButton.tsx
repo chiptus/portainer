@@ -32,7 +32,7 @@ export function NodeShellButton({
         disabled={open}
         data-cy="nodeShellButton"
         onClick={() => handleOpen()}
-        className="!text-blue-8"
+        className="!ml-0 !text-blue-8"
         icon={Terminal}
       />
 

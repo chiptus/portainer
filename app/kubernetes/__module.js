@@ -368,9 +368,19 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
       },
     };
 
+    const microk8sNodeStatus = {
+      name: 'kubernetes.cluster.node.microk8s-status',
+      url: '/microk8s-status',
+      views: {
+        'content@': {
+          component: 'microk8sNodeStatusView',
+        },
+      },
+    };
+
     const node = {
       name: 'kubernetes.cluster.node',
-      url: '/:name',
+      url: '/:nodeName',
       views: {
         'content@': {
           component: 'kubernetesNodeView',
@@ -553,6 +563,7 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
     $stateRegistryProvider.register(nodeCreate);
     $stateRegistryProvider.register(node);
     $stateRegistryProvider.register(nodeStats);
+    $stateRegistryProvider.register(microk8sNodeStatus);
     $stateRegistryProvider.register(resourcePools);
     $stateRegistryProvider.register(resourcePoolCreation);
     $stateRegistryProvider.register(resourcePool);

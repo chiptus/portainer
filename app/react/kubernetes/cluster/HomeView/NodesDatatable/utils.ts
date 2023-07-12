@@ -1,7 +1,7 @@
 import { Node } from 'kubernetes-types/core/v1';
 
-export function getInternalNodeIpAddress(node: Node) {
-  return node.status?.addresses?.find(
+export function getInternalNodeIpAddress(node?: Node) {
+  return node?.status?.addresses?.find(
     (address) => address.type === 'InternalIP'
   )?.address;
 }

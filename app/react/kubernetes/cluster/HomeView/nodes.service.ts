@@ -1,4 +1,4 @@
-import { NodeList } from 'kubernetes-types/core/v1';
+import { NodeList, Node } from 'kubernetes-types/core/v1';
 import { useMutation, useQuery } from 'react-query';
 
 import axios from '@/portainer/services/axios';
@@ -6,6 +6,42 @@ import { EnvironmentId } from '@/react/portainer/environments/types';
 import { queryClient, withError } from '@/react-tools/react-query';
 
 import { AddNodesFormValues } from '../NodeCreateView/types';
+
+const queryKeys = {
+  node: (environmentId: number, nodeName: string) => [
+    'environments',
+    environmentId,
+    'kubernetes',
+    'nodes',
+    nodeName,
+  ],
+  nodes: (environmentId: number) => [
+    'environments',
+    environmentId,
+    'kubernetes',
+    'nodes',
+  ],
+};
+
+async function getNode(environmentId: EnvironmentId, nodeName: string) {
+  const { data: node } = await axios.get<Node>(
+    `/endpoints/${environmentId}/kubernetes/api/v1/nodes/${nodeName}`
+  );
+  return node;
+}
+
+export function useNodeQuery(environmentId: EnvironmentId, nodeName: string) {
+  return useQuery(
+    queryKeys.node(environmentId, nodeName),
+    () => getNode(environmentId, nodeName),
+    {
+      ...withError(
+        'Unable to get node details from the Kubernetes api',
+        'Failed to get node details'
+      ),
+    }
+  );
+}
 
 // getNodes is used to get a list of nodes using the kubernetes API
 async function getNodes(environmentId: EnvironmentId) {
@@ -21,10 +57,13 @@ export function useNodesQuery(
   options?: { autoRefreshRate?: number }
 ) {
   return useQuery(
-    ['environments', environmentId, 'kubernetes', 'nodes'],
+    queryKeys.nodes(environmentId),
     async () => getNodes(environmentId),
     {
-      ...withError('Unable to get nodes.'),
+      ...withError(
+        'Failed to get nodes from the Kubernetes api',
+        'Failed to get nodes'
+      ),
       refetchInterval() {
         return options?.autoRefreshRate ?? false;
       },
@@ -49,12 +88,7 @@ export function useRemoveNodesMutation(environmentId: EnvironmentId) {
     {
       ...withError('Unable to remove nodes.'),
       onSuccess: () =>
-        queryClient.invalidateQueries([
-          'environments',
-          environmentId,
-          'kubernetes',
-          'nodes',
-        ]),
+        queryClient.invalidateQueries(queryKeys.nodes(environmentId)),
     }
   );
 }

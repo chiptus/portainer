@@ -1,5 +1,5 @@
 import { CellContext } from '@tanstack/react-table';
-import { BarChart } from 'lucide-react';
+import { Activity, BarChart } from 'lucide-react';
 
 import { Authorized } from '@/react/hooks/useUser';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
@@ -33,18 +33,18 @@ function ActionsCell({
   canSSH: boolean;
 }) {
   const environmentId = useEnvironmentId();
-  const name = node.metadata?.name;
+  const nodeName = node.metadata?.name;
 
   const nodeIp = getInternalNodeIpAddress(node);
 
   return (
-    <div className="flex gap-1">
+    <div className="flex gap-1.5">
       <Authorized authorizations="K8sClusterNodeR">
         {metricsEnabled && (
           <Link
             title="Stats"
             to="kubernetes.cluster.node.stats"
-            params={{ name }}
+            params={{ nodeName }}
             className="flex items-center"
           >
             <Icon icon={BarChart} />
@@ -52,12 +52,22 @@ function ActionsCell({
         )}
 
         {nodeIp && canSSH && (
-          <NodeShellButton
-            windowTitle="SSH Console"
-            btnTitle="SSH Console"
-            environmentId={environmentId}
-            nodeIp={nodeIp}
-          />
+          <>
+            <Link
+              title="MicroK8s status"
+              to="kubernetes.cluster.node.microk8s-status"
+              params={{ nodeName }}
+              className="flex items-center"
+            >
+              <Icon icon={Activity} />
+            </Link>
+            <NodeShellButton
+              windowTitle="SSH Console"
+              btnTitle="SSH Console"
+              environmentId={environmentId}
+              nodeIp={nodeIp}
+            />
+          </>
         )}
       </Authorized>
     </div>

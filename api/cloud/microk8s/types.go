@@ -49,6 +49,10 @@ type (
 		RequiredAddons     []string           `json:"requiredAddons"`
 	}
 
+	Microk8sNodeStatusResponse struct {
+		Status string `json:"status"`
+	}
+
 	Microk8sProvisioningClusterRequest struct {
 		EnvironmentID     portaineree.EndpointID `json:"environmentID"`
 		Credentials       *models.CloudCredential

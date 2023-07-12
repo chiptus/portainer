@@ -76,6 +76,37 @@ func (service *CloudInfoService) MicroK8sGetInfo() mk8s.MicroK8sInfo {
 	}
 }
 
+// Microk8sGetNodeStatus returns the status of a microk8s node
+func (service *CloudInfoService) Microk8sGetStatus(credential *models.CloudCredential, environmentID int, nodeIP string) (string, error) {
+	log.Debug().Str("provider", portaineree.CloudProviderMicrok8s).Msg("processing get info request")
+
+	// Gather current addon list.
+	sshClient, err := sshUtil.NewConnection(
+		credential.Credentials["username"],
+		credential.Credentials["password"],
+		credential.Credentials["passphrase"],
+		credential.Credentials["privateKey"],
+		nodeIP,
+	)
+	if err != nil {
+		log.Debug().Err(err).Msg("failed creating ssh client")
+		return "", err
+	}
+	defer sshClient.Close()
+
+	var respSnapList bytes.Buffer
+	if err = sshClient.RunCommand(
+		"snap list",
+		&respSnapList,
+	); err != nil {
+		return "", fmt.Errorf("failed to run ssh command: %w", err)
+	}
+
+	var resp bytes.Buffer
+	err = sshClient.RunCommand("microk8s status", &resp)
+	return resp.String(), err
+}
+
 func (service *CloudInfoService) Microk8sGetAddons(credential *models.CloudCredential, environmentID int) (*mk8s.Microk8sStatusResponse, error) {
 	log.Debug().Str("provider", portaineree.CloudProviderMicrok8s).Msg("processing get info request")
 

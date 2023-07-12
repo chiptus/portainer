@@ -111,11 +111,6 @@ export function Microk8sCreateClusterForm({
           Only nodes with an operating system of Ubuntu 20.04 LTS and above are
           supported (although other distributions and versions may work).
         </p>
-        <p>
-          Tested with MicroK8s versions 1.24 to 1.26. Note that if you select
-          &apos;latest/stable&apos; and it has moved on from those tested, we
-          cannot guarantee support.
-        </p>
       </TextTip>
       <NameField
         tooltip="Name of the cluster and environment."
