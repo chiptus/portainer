@@ -14,22 +14,20 @@ jobs:
 
       - name: Run tests
         run: yarn jest --maxWorkers=2
-  # test-server:
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     GOPRIVATE: "github.com/portainer"
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: webfactory/ssh-agent@v0.5.4
-  #       with:
-  #         ssh-private-key: ${{ secrets.DEPLOY_KEY_LIBLICENSE }}
-  #     - uses: actions/setup-go@v3
-  #       with:
-  #         go-version: '1.18'
-  #     - name: Configure git for private modules
-  #       run: git config --global url."git@github.com:".insteadOf "https://github.com"
-  #     - name: Run tests
-  #       run: |
-  #         cd api 
-  #         go test ./...
+  test-server:
+    runs-on: ubuntu-latest
+    env:
+      GOPRIVATE: "github.com/portainer/liblicense"
+    steps:
+      - uses: actions/checkout@v3
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY_LIBLICENSE }}
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.19.5
+      - name: Configure git for private modules
+        run: git config --global url."git@github.com:".insteadOf "https://github.com"
+      - name: Run tests
+        run: make test-server
 
