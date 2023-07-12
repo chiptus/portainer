@@ -102,7 +102,7 @@ export function Addons() {
           addonsUpdateMutation.mutate(
             {
               environmentID: environmentId,
-              credentialID: environment?.CloudProvider.CredentialID || 0,
+              credentialID: environment?.CloudProvider?.CredentialID || 0,
               payload,
             },
             {

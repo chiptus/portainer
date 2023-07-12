@@ -85,6 +85,19 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
+	if endpoint.CloudProvider != nil {
+		// This is a Portainer provisioned cloud environment
+		deleteCluster, err := request.RetrieveBooleanQueryParameter(r, "deleteCluster", true)
+		if err != nil {
+			return httperror.BadRequest("Invalid boolean query parameter", err)
+		}
+
+		if deleteCluster {
+			log.Info().Msgf("Deleting the remote cluster associated to environment %d (%s)", endpoint.ID, endpoint.Name)
+			handler.cloudManagementService.DeleteCluster(endpoint)
+		}
+	}
+
 	handler.ProxyManager.DeleteEndpointProxy(endpoint.ID)
 
 	if len(endpoint.UserAccessPolicies) > 0 || len(endpoint.TeamAccessPolicies) > 0 {

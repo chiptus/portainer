@@ -1,6 +1,6 @@
 import { Option } from '@@/form-components/Input/Select';
 
-import { KaasProvider } from '../WizardK8sInstall/types';
+import { KaasProvider } from '../../../types';
 
 import {
   KaasInfo,

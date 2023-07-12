@@ -5,8 +5,8 @@ import { Loader2 } from 'lucide-react';
 import { notifySuccess } from '@/portainer/services/notifications';
 import { useAuthorizations } from '@/react/hooks/useUser';
 import { useAnalytics } from '@/react/hooks/useAnalytics';
-import { K8sDistributionType } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/types';
 import { useCurrentEnvironment } from '@/react/hooks/useCurrentEnvironment';
+import { K8sDistributionType } from '@/react/portainer/environments/types';
 
 import { confirm } from '@@/modals/confirm';
 import { Input } from '@@/form-components/Input';

@@ -10,10 +10,12 @@ import { IndexOptional } from '@/react/kubernetes/configs/types';
 import { DefaultDatatableSettings } from '@/react/kubernetes/datatables/DefaultDatatableSettings';
 import { useEnvironment } from '@/react/portainer/environments/queries';
 import { pluralize } from '@/portainer/helpers/strings';
-import { EnvironmentId } from '@/react/portainer/environments/types';
+import {
+  EnvironmentId,
+  K8sDistributionType,
+} from '@/react/portainer/environments/types';
 import { notifySuccess } from '@/portainer/services/notifications';
 import { useCloudCredential } from '@/react/portainer/settings/sharedCredentials/cloudSettings.service';
-import { K8sDistributionType } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/types';
 import { useAnalytics } from '@/react/hooks/useAnalytics';
 
 import { Datatable, TableSettingsMenu } from '@@/datatables';

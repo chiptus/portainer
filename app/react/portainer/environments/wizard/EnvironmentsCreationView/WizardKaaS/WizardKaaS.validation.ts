@@ -3,7 +3,7 @@ import { number, object, string, mixed, SchemaOf } from 'yup';
 import { useNameValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/NameField';
 import { metadataValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MetadataFieldset/validation';
 
-import { KaasProvider } from '../WizardK8sInstall/types';
+import { KaasProvider } from '../../../types';
 
 import { validationSchema as gkeValidation } from './GKECreateClusterForm/validation';
 import { validationSchema as apiValidation } from './ApiCreateClusterForm/validation';

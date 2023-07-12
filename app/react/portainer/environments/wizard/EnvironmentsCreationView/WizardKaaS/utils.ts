@@ -1,6 +1,6 @@
 import { TrackEventProps } from '@/angulartics.matomo/analytics-services';
 
-import { KaasProvider } from '../WizardK8sInstall/types';
+import { KaasProvider } from '../../../types';
 
 import { FormValues, KaaSFormType } from './types';
 

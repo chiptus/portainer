@@ -5,11 +5,12 @@ import { isEqual } from 'lodash';
 
 import { TestSSHConnectionResponse } from '@/react/kubernetes/cluster/microk8s/microk8s.service';
 import { useAnalytics } from '@/react/hooks/useAnalytics';
+import { K8sDistributionType } from '@/react/portainer/environments/types';
 
 import { LoadingButton } from '@@/buttons/LoadingButton';
 import { FormSection } from '@@/form-components/FormSection';
 
-import { K8sDistributionType, K8sInstallFormValues } from '../types';
+import { K8sInstallFormValues } from '../types';
 
 interface Props {
   isSubmitting: boolean;

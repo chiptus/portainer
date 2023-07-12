@@ -2,20 +2,9 @@ import { EnvironmentMetadata } from '@/react/portainer/environments/environment.
 
 import { Option } from '@@/form-components/Input/Select';
 
+import { K8sDistributionType, KaasProvider } from '../../../types';
+
 import { AddOnOption } from './Microk8sCreateClusterForm/AddonSelector';
-
-export enum K8sDistributionType {
-  MICROK8S = 'microk8s',
-}
-
-export enum KaasProvider {
-  CIVO = 'civo',
-  LINODE = 'linode',
-  DIGITAL_OCEAN = 'digitalocean',
-  GOOGLE_CLOUD = 'gke',
-  AWS = 'amazon',
-  AZURE = 'azure',
-}
 
 export type ProvisionOption = KaasProvider | K8sDistributionType;
 

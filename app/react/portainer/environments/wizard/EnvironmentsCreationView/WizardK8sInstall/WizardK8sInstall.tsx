@@ -6,7 +6,10 @@ import {
   CredentialType,
 } from '@/react/portainer/settings/sharedCredentials/types';
 import { useCloudCredentials } from '@/react/portainer/settings/sharedCredentials/cloudSettings.service';
-import { Environment } from '@/react/portainer/environments/types';
+import {
+  Environment,
+  K8sDistributionType,
+} from '@/react/portainer/environments/types';
 import { CredentialsForm } from '@/react/portainer/settings/sharedCredentials/CreateCredentialsView/CredentialsForm';
 import Microk8s from '@/assets/ico/vendor/microk8s.svg?c';
 import { useCustomTemplates } from '@/react/portainer/custom-templates/service';
@@ -24,7 +27,6 @@ import { useValidationSchema } from './WizardK8sInstall.validation';
 import { Microk8sCreateClusterForm } from './Microk8sCreateClusterForm';
 import {
   CreateMicrok8sClusterPayload,
-  K8sDistributionType,
   K8sInstallFormValues,
   k8sInstallTitles,
 } from './types';

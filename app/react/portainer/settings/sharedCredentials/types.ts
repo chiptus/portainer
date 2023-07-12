@@ -1,8 +1,6 @@
-import {
-  K8sDistributionType,
-  KaasProvider,
-  ProvisionOption,
-} from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/types';
+import { ProvisionOption } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/types';
+
+import { K8sDistributionType, KaasProvider } from '../../environments/types';
 
 export enum CredentialType {
   CIVO = 'civo',

@@ -7,7 +7,7 @@ import Azure from '@/assets/ico/vendor/azure.svg?c';
 
 import { BoxSelector, BoxSelectorOption } from '@@/BoxSelector';
 
-import { KaasProvider } from '../WizardK8sInstall/types';
+import { KaasProvider } from '../../../types';
 
 interface Props {
   provider: KaasProvider;

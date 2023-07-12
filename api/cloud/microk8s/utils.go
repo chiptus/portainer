@@ -401,3 +401,11 @@ func GetEnabledAddons(s string) ([]string, error) {
 	}
 	return addons, nil
 }
+
+func UrlToMasterNode(url string) string {
+	node, _, found := strings.Cut(url, ":")
+	if !found {
+		return url
+	}
+	return node
+}

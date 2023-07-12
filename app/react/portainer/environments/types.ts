@@ -125,6 +125,19 @@ export type DeploymentOptions = {
   hideFileUpload: boolean;
 };
 
+export enum K8sDistributionType {
+  MICROK8S = 'microk8s',
+}
+
+export enum KaasProvider {
+  CIVO = 'civo',
+  LINODE = 'linode',
+  DIGITAL_OCEAN = 'digitalocean',
+  GOOGLE_CLOUD = 'gke',
+  AWS = 'amazon',
+  AZURE = 'azure',
+}
+
 type CloudProviderSettings = {
   Name:
     | 'Civo'
@@ -134,16 +147,7 @@ type CloudProviderSettings = {
     | 'Azure'
     | 'Amazon'
     | 'MicroK8s';
-  Provider:
-    | 'civo'
-    | 'digitalocean'
-    | 'linode'
-    | 'gke'
-    | 'kubeconfig'
-    | 'azure'
-    | 'amazon'
-    | 'microk8s'
-    | 'agent';
+  Provider: K8sDistributionType | KaasProvider;
   URL: string;
   Region: string | null;
   Size: number | null;
@@ -189,7 +193,7 @@ export type Environment = {
   TagIds: TagId[];
   GroupId: EnvironmentGroupId;
   EnableGPUManagement: boolean;
-  CloudProvider: Partial<CloudProviderSettings>;
+  CloudProvider?: Partial<CloudProviderSettings>;
   DeploymentOptions: DeploymentOptions | null;
   EdgeID?: string;
   EdgeKey: string;

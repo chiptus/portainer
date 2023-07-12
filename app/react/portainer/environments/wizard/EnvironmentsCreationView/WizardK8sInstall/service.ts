@@ -6,13 +6,9 @@ import { withError } from '@/react-tools/react-query';
 
 import { createKaasEnvironment } from '../WizardKaaS/kaas.service';
 import { CreateClusterPayload } from '../WizardKaaS/types';
+import { K8sDistributionType } from '../../../types';
 
-import {
-  MicroK8sInfo,
-  K8sDistributionType,
-  ProvisionOption,
-  AddonOption,
-} from './types';
+import { MicroK8sInfo, ProvisionOption, AddonOption } from './types';
 
 export function useInstallK8sCluster() {
   const client = useQueryClient();

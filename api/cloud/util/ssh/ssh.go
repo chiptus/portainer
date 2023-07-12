@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/pkg/sftp"
+	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/ssh"
 )
@@ -81,6 +82,23 @@ func NewConnection(user, password, passphrase, privateKey, ip string) (*SSHConne
 	}
 
 	return &s, nil
+}
+
+func NewConnectionWithCredentials(ip string, credentials *models.CloudCredential) (*SSHConnection, error) {
+	username, ok := credentials.Credentials["username"]
+	if !ok {
+		log.Debug().Msg("credentials are missing ssh username")
+		return nil, fmt.Errorf("missing ssh username")
+	}
+	password := credentials.Credentials["password"]
+	passphrase, passphraseOK := credentials.Credentials["passphrase"]
+	privateKey, privateKeyOK := credentials.Credentials["privateKey"]
+
+	if passphraseOK && !privateKeyOK {
+		log.Debug().Msg("passphrase provided, but we are missing a private key")
+	}
+
+	return NewConnection(username, password, passphrase, privateKey, ip)
 }
 
 func (s *SSHConnection) RunCommand(command string, out io.Writer) error {

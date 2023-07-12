@@ -9,8 +9,8 @@ import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useEnvironment } from '@/react/portainer/environments/queries';
 import { validateNodeIPList } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/Microk8sCreateClusterForm/validation';
 import { notifySuccess } from '@/portainer/services/notifications';
-import { K8sDistributionType } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/types';
 import { useAnalytics } from '@/react/hooks/useAnalytics';
+import { K8sDistributionType } from '@/react/portainer/environments/types';
 
 import { TextTip } from '@@/Tip/TextTip';
 import { FormControl } from '@@/form-components/FormControl';
@@ -82,7 +82,7 @@ export function AddNodesForm() {
   const environmentId = useEnvironmentId();
   const { data: credentialID, ...environmentQuery } = useEnvironment(
     environmentId,
-    (environment) => environment?.CloudProvider.CredentialID
+    (environment) => environment?.CloudProvider?.CredentialID
   );
   const { data: nodes, ...nodesQuery } = useNodesQuery(environmentId);
   const existingNodeIPAddresses = nodes

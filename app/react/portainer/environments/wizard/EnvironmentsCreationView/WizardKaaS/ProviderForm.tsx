@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { Credential } from '@/react/portainer/settings/sharedCredentials/types';
 import { CustomTemplate } from '@/react/portainer/custom-templates/types';
 
-import { KaasProvider } from '../WizardK8sInstall/types';
+import { KaasProvider } from '../../../types';
 
 import { FormValues } from './types';
 import { GKECreateClusterForm } from './GKECreateClusterForm/GKECreateClusterForm';

@@ -1,6 +1,7 @@
 import { object, string, SchemaOf } from 'yup';
 
-import { KaasProvider } from '../../WizardK8sInstall/types';
+import { KaasProvider } from '@/react/portainer/environments/types';
+
 import { CreateApiClusterFormValues } from '../types';
 
 export function validationSchema(): SchemaOf<CreateApiClusterFormValues> {

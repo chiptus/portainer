@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 
 import { Credential } from '@/react/portainer/settings/sharedCredentials/types';
 import { CustomTemplate } from '@/react/portainer/custom-templates/types';
+import { KaasProvider } from '@/react/portainer/environments/types';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { Input, Select } from '@@/form-components/Input';
@@ -19,7 +20,7 @@ import { MoreSettingsSection } from '../../shared/MoreSettingsSection';
 import { CustomTemplateSelector } from '../../shared/CustomTemplateSelector';
 import { KaaSInfoText } from '../shared/KaaSInfoText';
 import { NameField } from '../../shared/NameField';
-import { KaasProvider, providerTitles } from '../../WizardK8sInstall/types';
+import { providerTitles } from '../../WizardK8sInstall/types';
 
 type Props = {
   credentials: Credential[];

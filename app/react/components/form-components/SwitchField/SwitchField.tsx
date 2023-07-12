@@ -52,7 +52,7 @@ export function SwitchField({
         )}
       </span>
       <Switch
-        className={clsx('space-right', switchClass)}
+        className={clsx('space-right shrink-0', switchClass)}
         name={toggleName}
         id={toggleName}
         checked={checked}

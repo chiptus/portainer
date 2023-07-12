@@ -8,7 +8,10 @@ import {
 } from '@/react/portainer/settings/sharedCredentials/types';
 import { useCloudCredentials } from '@/react/portainer/settings/sharedCredentials/cloudSettings.service';
 import { useCustomTemplates } from '@/react/portainer/custom-templates/service';
-import { Environment } from '@/react/portainer/environments/types';
+import {
+  Environment,
+  KaasProvider,
+} from '@/react/portainer/environments/types';
 import { useSettings } from '@/react/portainer/settings/queries';
 import { CredentialsForm } from '@/react/portainer/settings/sharedCredentials/CreateCredentialsView/CredentialsForm';
 import { CustomTemplateKubernetesType } from '@/react/portainer/custom-templates/types';
@@ -19,7 +22,7 @@ import { Link } from '@@/Link';
 import { TextTip } from '@@/Tip/TextTip';
 
 import { AnalyticsStateKey } from '../types';
-import { KaasProvider, providerTitles } from '../WizardK8sInstall/types';
+import { providerTitles } from '../WizardK8sInstall/types';
 
 import { KaasProvidersSelector } from './KaasProvidersSelector';
 import { sendKaasProvisionAnalytics } from './utils';
