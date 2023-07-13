@@ -1,29 +1,28 @@
 import { useMemo } from 'react';
 import { Form, FormikProps } from 'formik';
+import { Plus } from 'lucide-react';
 
-import {
-  AddOnOption,
-  Microk8sAddOnSelector,
-} from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/Microk8sCreateClusterForm/AddonSelector';
 import { useMicroK8sOptions } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/queries';
 import { useAuthorizations } from '@/react/hooks/useUser';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useEnvironment } from '@/react/portainer/environments/queries';
+import { isErrorType } from '@/react/kubernetes/applications/CreateView/application-services/utils';
 
 import { Button, LoadingButton } from '@@/buttons';
-import { FormControl } from '@@/form-components/FormControl';
 import { TextTip } from '@@/Tip/TextTip';
 
-import { K8sAddOnsForm } from './types';
+import { AddOnFormValue, AddOnOption, K8sAddOnsForm } from './types';
+import { AddOnSelector } from './AddonSelector';
 
 export function AddonsForm({
   values,
+  errors,
+  isValid,
   setFieldValue,
   isSubmitting,
   initialValues,
 }: FormikProps<K8sAddOnsForm>) {
   const isAllowed = useAuthorizations(['K8sClusterW']);
-
   const environmentId = useEnvironmentId();
   const { data: isProcessing } = useEnvironment(
     environmentId,
@@ -33,7 +32,7 @@ export function AddonsForm({
   const { data: microk8sOptions, ...microk8sOptionsQuery } =
     useMicroK8sOptions();
 
-  const addonOptions: AddOnOption[] = useMemo(() => {
+  const [addonOptions, filteredOptions]: AddOnOption[][] = useMemo(() => {
     const addonOptions: AddOnOption[] = [];
     microk8sOptions?.availableAddons.forEach((a) => {
       const kubeVersion = parseFloat(values.currentVersion.split('/')[0]);
@@ -43,15 +42,22 @@ export function AddonsForm({
         kubeVersion >= versionAvailableFrom &&
         (Number.isNaN(versionAvailableTo) || kubeVersion <= versionAvailableTo)
       ) {
-        addonOptions.push({ name: a.label, type: a.type });
+        addonOptions.push({ ...a, name: a.label } as AddOnOption);
       }
     });
 
     addonOptions.sort(
-      (a, b) => b.type.localeCompare(a.type) || a.name.localeCompare(b.name)
+      (a, b) =>
+        b.repository?.localeCompare(a.repository || '') ||
+        a.label?.localeCompare(b.label)
     );
-    return addonOptions;
-  }, [microk8sOptions?.availableAddons, values.currentVersion]);
+
+    const addonOptionsWithoutExistingValues = addonOptions.filter(
+      (addonOption) =>
+        !values.addons.some((addon) => addon.name === addonOption.label)
+    );
+    return [addonOptions, addonOptionsWithoutExistingValues];
+  }, [microk8sOptions?.availableAddons, values.addons, values.currentVersion]);
 
   const requiredAddons: string[] = useMemo(
     () =>
@@ -81,39 +87,55 @@ export function AddonsForm({
           {requiredAddons?.join(', ')}
         </span>
       </div>
-      <FormControl
-        label="Addons"
-        tooltip={
-          <>
-            You may add or remove{' '}
-            <a
-              href="https://microk8s.io/docs/addons"
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              addons
-            </a>{' '}
-            here and they will be installed or uninstalled from your cluster.
-          </>
-        }
-        inputId="microk8s-addons"
-      >
-        <Microk8sAddOnSelector
-          value={values.addons}
-          options={addonOptions}
-          onChange={(value: AddOnOption[]) => {
-            setFieldValue('addons', value);
-          }}
-          disabled={!isAllowed}
-        />
-      </FormControl>
+      <div className="form-group">
+        <span className="col-sm-12 control-label !pt-0 text-left">
+          Optional addons
+        </span>
+      </div>
+      {values.addons.map((addon, index) => {
+        const error = errors.addons?.[index];
+        const addonError = isErrorType<AddOnFormValue>(error)
+          ? error
+          : undefined;
+        return (
+          <AddOnSelector
+            key={`addon${index}`}
+            value={addon}
+            options={addonOptions}
+            filteredOptions={filteredOptions}
+            index={index}
+            errors={addonError}
+            onChange={(value: AddOnFormValue) => {
+              const addons = [...values.addons];
+              addons[index] = value;
+              setFieldValue('addons', addons);
+            }}
+            onRemove={() => {
+              const addons = [...values.addons];
+              addons.splice(index, 1);
+              setFieldValue('addons', addons);
+            }}
+          />
+        );
+      })}
+
+      <div className="row mt-5 mb-5">
+        <Button
+          className="btn btn-sm btn-light !ml-0"
+          type="button"
+          onClick={addAddon}
+          icon={Plus}
+        >
+          Add addon
+        </Button>
+      </div>
       <LoadingButton
         isLoading={isSubmitting}
         loadingText="Updating addons"
         type="submit"
         color="secondary"
         className="!ml-0"
-        disabled={!isAllowed || isInitialValues || isProcessing}
+        disabled={!isAllowed || isInitialValues || isProcessing || !isValid}
       >
         Apply Changes
       </LoadingButton>
@@ -127,4 +149,16 @@ export function AddonsForm({
       </Button>
     </Form>
   );
+
+  function addAddon() {
+    // Clone the existing addons array to avoid mutating the original
+    const addons = structuredClone(values.addons);
+    addons.push({
+      name: '',
+      arguments: '',
+    });
+
+    // Update the form values with the new addons array
+    setFieldValue('addons', addons);
+  }
 }

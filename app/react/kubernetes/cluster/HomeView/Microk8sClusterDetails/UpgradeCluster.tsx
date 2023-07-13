@@ -20,7 +20,7 @@ import { Icon } from '@@/Icon';
 import {
   useAddonsQuery,
   useUpgradeClusterMutation,
-} from '../../microk8s/addons.service';
+} from '../../microk8s/addons/addons.service';
 
 export type K8sUpgradeType = {
   kubeVersion: string;

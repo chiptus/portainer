@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	portaineree "github.com/portainer/portainer-ee/api"
 	sshUtil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
@@ -97,26 +98,66 @@ func ParseAndCheckIfNodeUnschedulable(s []byte, hostName string) (bool, error) {
 	return false, nil
 }
 
-func EnableMicrok8sAddonsOnNode(user, password, passphrase, privateKey, nodeIp string, addon string) error {
-	sshClient, err := sshUtil.NewConnection(user, password, passphrase, privateKey, nodeIp)
-	if err != nil {
-		return err
+func EnableMicrok8sAddonsOnNode(sshClient *sshUtil.SSHConnection, addon portaineree.MicroK8sAddon) error {
+	addonsConfig := AllAddons.GetAddon(addon.Name)
+	if addonsConfig == nil {
+		log.Warn().Msgf("addon does not exists in the list of available addons: %s", addon)
+		return nil
 	}
-	defer sshClient.Close()
+	cmds := addonsConfig.InstallCommands
+	if len(cmds) > 0 {
+		for _, cmd := range cmds {
+			if err := sshClient.RunCommand(cmd, os.Stdout); err != nil {
+				return err
+			}
+		}
+	}
 
-	command := "microk8s enable " + addon
+	addonWithArgs := addon.Name
+	if len(addon.Args) > 0 {
+		if addonsConfig.ArgumentSeparator == "" {
+			addonWithArgs = addon.Name + " " + addon.Args
+		} else {
+			addonWithArgs = addon.Name + addonsConfig.ArgumentSeparator + addon.Args
+		}
+	}
+
+	command := "microk8s enable " + addonWithArgs
 	return sshClient.RunCommand(command, os.Stdout)
 }
 
-func DisableMicrok8sAddonsOnNode(user, password, passphrase, privateKey, nodeIp string, addon string) error {
-	sshClient, err := sshUtil.NewConnection(user, password, passphrase, privateKey, nodeIp)
-	if err != nil {
-		return err
+func DisableMicrok8sAddonsOnNode(sshClient *sshUtil.SSHConnection, addon string) error {
+	addonsConfig := AllAddons.GetAddon(addon)
+	if addonsConfig == nil {
+		log.Warn().Msgf("addon does not exist in the list of available addons: %s", addon)
+		return nil
 	}
-	defer sshClient.Close()
+	cmds := addonsConfig.UninstallCommands
+	if len(cmds) > 0 {
+		for _, cmd := range cmds {
+			if err := sshClient.RunCommand(cmd, os.Stdout); err != nil {
+				return err
+			}
+		}
+	}
 
 	command := "microk8s disable " + addon
 	return sshClient.RunCommand(command, os.Stdout)
+}
+
+func GetAllNodes(sshClient *sshUtil.SSHConnection) ([]MicroK8sMasterWorkerNode, error) {
+	var respNodes bytes.Buffer
+	if err := sshClient.RunCommand(
+		"microk8s kubectl get nodes -o json",
+		&respNodes,
+	); err != nil {
+		return nil, err
+	}
+	nodeIps, err := ParseKubernetesNodes(respNodes.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	return nodeIps, nil
 }
 
 func InstallMicrok8sOnNode(user, password, passphrase, privateKey, nodeIp, kubernetesVersion string) error {
@@ -153,30 +194,34 @@ func InstallMicrok8sOnNode(user, password, passphrase, privateKey, nodeIp, kuber
 	addons := []string{"dns", "rbac", "helm", "community"}
 	for _, addon := range addons {
 		if addon != "community" {
-			err = EnableMicrok8sAddonsOnNode(user, password, passphrase, privateKey, nodeIp, addon)
+			err = EnableMicrok8sAddonsOnNode(sshClient, portaineree.MicroK8sAddon{Name: addon})
 			if err != nil {
 				log.Debug().Err(err).Msgf("Failed to enable addon %s on node %s", addon, nodeIp)
 			}
 		} else {
 			// community addon should be enabled on all the master nodes.
-			var respNodes bytes.Buffer
-			if err = sshClient.RunCommand(
-				"microk8s kubectl get nodes -o json",
-				&respNodes,
-			); err != nil {
+			nodeIps, err := GetAllNodes(sshClient)
+			if err != nil {
 				log.Error().Err(err).Msgf("Failed to run ssh command on node %s", nodeIp)
 				continue
 			}
-			nodeIps, err := ParseKubernetesNodes(respNodes.Bytes())
-			if err != nil {
-				log.Error().Err(err).Msg("Failed to get the kubernetes node addresses")
-				continue
-			}
 			for _, node := range nodeIps {
-				err = EnableMicrok8sAddonsOnNode(user, password, passphrase, privateKey, node.IP, addon)
+				err := func() error {
+					sshClientForNode, err := sshUtil.NewConnection(user, password, passphrase, privateKey, node.IP)
+					if err != nil {
+						return err
+					}
+					defer sshClientForNode.Close()
+					if node.IsMaster {
+						err = EnableMicrok8sAddonsOnNode(sshClientForNode, portaineree.MicroK8sAddon{Name: addon})
+						if err != nil {
+							log.Debug().Err(err).Msgf("Failed to enable addon %s on node %s", addon, node.IP)
+						}
+					}
+					return nil
+				}()
 				if err != nil {
-					log.Debug().Err(err).Msgf("Failed to enable addon %s on node %s", addon, node.IP)
-					continue
+					return err
 				}
 			}
 		}
@@ -267,16 +312,10 @@ func ExecuteDrainNodeCommandOnNode(user, password, passphrase, privateKey, maste
 	return sshClient.RunCommand(removeNodeCmd, os.Stdout)
 }
 
-func RetrieveClusterJoinInformation(user, password, passphrase, privateKey, nodeIp string) (*microk8sClusterJoinInfo, error) {
-	sshClient, err := sshUtil.NewConnection(user, password, passphrase, privateKey, nodeIp)
-	if err != nil {
-		return nil, err
-	}
-	defer sshClient.Close()
-
+func RetrieveClusterJoinInformation(sshClient *sshUtil.SSHConnection) (*microk8sClusterJoinInfo, error) {
 	addNodeCommand := "microk8s add-node --format json"
 	var resp bytes.Buffer
-	err = sshClient.RunCommand(addNodeCommand, &resp)
+	err := sshClient.RunCommand(addNodeCommand, &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -387,16 +426,16 @@ func ParseAddonResponse(s string) (*Microk8sStatusResponse, error) {
 	return status, nil
 }
 
-func GetEnabledAddons(s string) ([]string, error) {
+func GetEnabledAddons(s string) ([]portaineree.MicroK8sAddon, error) {
 	status, err := ParseAddonResponse(s)
 	if err != nil {
 		return nil, err
 	}
 
-	addons := make([]string, 0)
+	addons := make([]portaineree.MicroK8sAddon, 0)
 	for _, addon := range status.Addons {
 		if addon.Status == "enabled" {
-			addons = append(addons, addon.Name)
+			addons = append(addons, portaineree.MicroK8sAddon{Name: addon.Name, Repository: addon.Repository})
 		}
 	}
 	return addons, nil

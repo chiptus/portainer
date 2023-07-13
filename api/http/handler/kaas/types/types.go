@@ -20,7 +20,7 @@ type (
 	}
 
 	Microk8sAddonsPayload struct {
-		Addons []string `json:"addons"`
+		Addons []portaineree.MicroK8sAddon `json:"addons"`
 	}
 )
 
@@ -79,7 +79,7 @@ func (r Microk8sAddonsPayload) Validate(request *http.Request) error {
 
 func (r Microk8sAddonsPayload) IndexOf(element string) int {
 	for k, v := range r.Addons {
-		if element == v {
+		if element == v.Name {
 			return k
 		}
 	}

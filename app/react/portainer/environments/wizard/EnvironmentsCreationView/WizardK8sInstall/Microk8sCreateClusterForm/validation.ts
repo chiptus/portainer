@@ -1,10 +1,13 @@
 import { object, number, string, array, SchemaOf, TestContext } from 'yup';
 
 import { AddNodesFormValues } from '@/react/kubernetes/cluster/NodeCreateView/types';
+import { addonsValidation } from '@/react/kubernetes/cluster/microk8s/addons/addonsValidation';
 
-import { CreateMicrok8sClusterFormValues } from '../types';
+import { AddonOptionInfo, CreateMicrok8sClusterFormValues } from '../types';
 
-export function validationSchema(): SchemaOf<CreateMicrok8sClusterFormValues> {
+export function validationSchema(
+  addonOptionsInfo: AddonOptionInfo[]
+): SchemaOf<CreateMicrok8sClusterFormValues> {
   return object().shape({
     masterNodes: validateNodeIPList().test(
       'first line not empty',
@@ -13,7 +16,7 @@ export function validationSchema(): SchemaOf<CreateMicrok8sClusterFormValues> {
     ),
     workerNodes: validateNodeIPList(), // worker nodes can be empty on creation
     customTemplateId: number().default(0),
-    addons: array(),
+    addons: addonsValidation(addonOptionsInfo),
     kubernetesVersion: string().required('version is required'),
   });
 }

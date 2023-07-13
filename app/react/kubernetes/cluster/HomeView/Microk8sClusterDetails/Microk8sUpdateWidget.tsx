@@ -6,7 +6,8 @@ import { BetaAlert } from '@/react/portainer/environments/update-schedules/commo
 
 import { Widget, WidgetTitle } from '@@/Widget';
 
-import { Addons } from './Addons';
+import { Addons } from '../../microk8s/addons/Addons';
+
 import { ErrorStatus } from './ErrorStatus';
 import { UpgradeCluster } from './UpgradeCluster';
 import { UpgradeStatus } from './UpgradeStatus';

@@ -4,8 +4,9 @@ import { useNameValidation } from '@/react/portainer/environments/wizard/Environ
 import { metadataValidation } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/shared/MetadataFieldset/validation';
 
 import { validationSchema as microk8sValidation } from './Microk8sCreateClusterForm/validation';
+import { AddonOptionInfo } from './types';
 
-export function useValidationSchema() {
+export function useValidationSchema(addonOptions: AddonOptionInfo[]) {
   return object({
     name: useNameValidation()
       .matches(
@@ -19,6 +20,6 @@ export function useValidationSchema() {
       ),
     meta: metadataValidation(),
     credentialId: number().required('Credentials are required.'),
-    microk8s: microk8sValidation(),
+    microk8s: microk8sValidation(addonOptions),
   });
 }

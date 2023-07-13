@@ -1,29 +1,38 @@
+import {
+  AddOnFormValue,
+  AddonsArgumentType,
+} from '@/react/kubernetes/cluster/microk8s/addons/types';
 import { EnvironmentMetadata } from '@/react/portainer/environments/environment.service/create';
 
 import { Option } from '@@/form-components/Input/Select';
 
 import { K8sDistributionType, KaasProvider } from '../../../types';
 
-import { AddOnOption } from './Microk8sCreateClusterForm/AddonSelector';
-
 export type ProvisionOption = KaasProvider | K8sDistributionType;
 
-export type AddonOption = {
+export type AddonOptionInfo = {
   versionAvailableFrom: string;
   versionAvailableTo: string;
-  type: string;
+  repository: string;
+
+  tooltip?: string;
+  description?: string;
+  version?: string;
+  placeholder?: string;
+  argumentsType: AddonsArgumentType;
+  isDefault: boolean;
 } & Option<string>;
 
 export interface MicroK8sInfo {
   kubernetesVersions: Option<string>[];
-  availableAddons: AddonOption[];
+  availableAddons: AddonOptionInfo[];
   requiredAddons: string[];
 }
 
 export interface CreateMicrok8sClusterFormValues {
   masterNodes: string[];
   workerNodes: string[];
-  addons: AddOnOption[];
+  addons: AddOnFormValue[];
   kubernetesVersion: string;
 }
 
@@ -39,7 +48,7 @@ export interface CreateMicrok8sClusterPayload {
   name: string;
   masterNodes: string[];
   workerNodes: string[];
-  addons: string[];
+  addons: AddOnFormValue[];
   kubernetesVersion: string;
 }
 

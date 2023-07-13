@@ -30,6 +30,7 @@ import {
   K8sInstallFormValues,
   k8sInstallTitles,
 } from './types';
+import { useMicroK8sOptions } from './queries';
 
 interface Props {
   onCreate(environment: Environment, analytics: AnalyticsStateKey): void;
@@ -74,6 +75,8 @@ export function WizardK8sInstall({ onCreate }: Props) {
 
   const credentialsQuery = useCloudCredentials();
   const customTemplatesQuery = useCustomTemplates();
+  const { data: microk8sOptions, ...microk8sOptionsQuery } =
+    useMicroK8sOptions();
 
   const credentials = credentialsQuery.data;
   const availableCredentials = useMemo(
@@ -84,13 +87,15 @@ export function WizardK8sInstall({ onCreate }: Props) {
     [credentials, k8sDistributionType]
   );
 
-  const validation = useValidationSchema();
+  const validation = useValidationSchema(
+    microk8sOptions?.availableAddons || []
+  );
   const customTemplates =
     customTemplatesQuery.data?.filter((t) => t.Type === 3) || [];
 
   const isCredentialsFound = availableCredentials.length > 0;
 
-  if (credentialsQuery.isLoading) {
+  if (credentialsQuery.isLoading || microk8sOptionsQuery.isLoading) {
     return <Loading />;
   }
 
@@ -182,7 +187,7 @@ function formatMicrok8sPayload({
     ...values,
     masterNodes: formatNodeIPs(masterNodes),
     workerNodes: formatNodeIPs(workerNodes),
-    addons: addons.map((addon) => addon.name),
+    addons,
     kubernetesVersion,
   };
 }

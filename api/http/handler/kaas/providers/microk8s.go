@@ -21,10 +21,10 @@ type (
 	}
 
 	Microk8sProvisionPayload struct {
-		MasterNodes       []string `validate:"required" json:"masterNodes"`
-		WorkerNodes       []string `json:"workerNodes"`
-		KubernetesVersion string   `validate:"required" json:"kubernetesVersion"`
-		Addons            []string `json:"addons"`
+		MasterNodes       []string                    `validate:"required" json:"masterNodes"`
+		WorkerNodes       []string                    `json:"workerNodes"`
+		KubernetesVersion string                      `validate:"required" json:"kubernetesVersion"`
+		Addons            []portaineree.MicroK8sAddon `json:"addons"`
 
 		DefaultProvisionPayload
 	}
@@ -36,7 +36,7 @@ type (
 	}
 
 	Microk8sUpdateAddonsPayload struct {
-		Addons []string `json:"addons"`
+		Addons []portaineree.MicroK8sAddon `json:"addons"`
 	}
 )
 
@@ -132,8 +132,7 @@ func (payload *Microk8sProvisionPayload) GetCloudProvider(string) (*portaineree.
 	cloudProvider.CredentialID = payload.CredentialID
 	cloudProvider.NodeCount = payload.NodeCount
 	if payload.Addons != nil {
-		addons := strings.Join(payload.Addons, ", ")
-		cloudProvider.Addons = &addons
+		cloudProvider.AddonsWithArgs = payload.Addons
 	}
 
 	nodes := strings.Join(payload.MasterNodes, ",")
@@ -169,7 +168,7 @@ func (payload *Microk8sProvisionPayload) GetCloudProvisioningRequest(endpointID 
 		NodeCount:             len(masters) + len(workers),
 		MasterNodes:           masters,
 		WorkerNodes:           workers,
-		Addons:                payload.Addons,
+		AddonWithArgs:         payload.Addons,
 		CustomTemplateID:      payload.Meta.CustomTemplateID,
 		CustomTemplateContent: payload.Meta.CustomTemplateContent,
 		KubernetesVersion:     payload.KubernetesVersion,

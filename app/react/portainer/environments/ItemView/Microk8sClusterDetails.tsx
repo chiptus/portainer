@@ -1,7 +1,7 @@
 import Kube from '@/assets/ico/kube.svg?c';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useEnvironment } from '@/react/portainer/environments/queries';
-import { useAddonsQuery } from '@/react/kubernetes/cluster/microk8s/addons.service';
+import { useAddonsQuery } from '@/react/kubernetes/cluster/microk8s/addons/addons.service';
 import { useNodesQuery } from '@/react/kubernetes/cluster/HomeView/nodes.service';
 
 import { Widget, WidgetTitle, WidgetBody } from '@@/Widget';

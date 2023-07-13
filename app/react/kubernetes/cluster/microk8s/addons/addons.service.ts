@@ -6,7 +6,9 @@ import { EnvironmentStatus } from '@/react/portainer/environments/types';
 
 import { Option } from '@@/form-components/Input/Select';
 
-interface AddonsResponse {
+import { AddOnFormValue } from './types';
+
+export interface AddonsResponse {
   microk8s: {
     running: boolean;
   };
@@ -21,6 +23,7 @@ interface AddonsResponse {
     name: string;
     status: string;
     repository: string;
+    arguments?: string;
   }[];
   currentVersion: string;
   kubernetesVersions: Option<string>[];
@@ -54,7 +57,7 @@ async function upgradeCluster(environmentID: number, nextVersion: string) {
 
 async function updateAddons(
   environmentID: number,
-  payload: { addons: string[] }
+  payload: { addons: AddOnFormValue[] }
 ) {
   try {
     const { data } = await axios.post<AddonsResponse>(
@@ -85,7 +88,7 @@ export function useAddonsQuery<TSelect = AddonsResponse | null>(
 type UpdateAddOns = {
   environmentID: number;
   credentialID: number;
-  payload: { addons: string[] };
+  payload: { addons: AddOnFormValue[] };
 };
 
 type UpgradeRequest = {

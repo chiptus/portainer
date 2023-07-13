@@ -166,8 +166,17 @@ type (
 		NodeVolumeSize *int    `json:"NodeVolumeSize"`
 
 		// MicroK8S specific fields
-		Addons  *string `json:"Addons"`
-		NodeIPs *string `json:"NodeIPs"`
+		AddonsWithArgs []MicroK8sAddon `json:"AddonWithArgs"`
+		NodeIPs        *string         `json:"NodeIPs"`
+
+		// @deprecated
+		Addons *string `json:"-"` // Dont't send it back to the client
+	}
+
+	MicroK8sAddon struct {
+		Name       string `json:"name"`
+		Args       string `json:"arguments"`
+		Repository string `json:"repository"`
 	}
 
 	// CLIFlags represents the available flags on the CLI
@@ -1202,9 +1211,9 @@ type (
 		NodeVolumeSize int
 
 		// Microk8S specific fields
-		MasterNodes []string
-		WorkerNodes []string
-		Addons      []string
+		MasterNodes   []string
+		WorkerNodes   []string
+		AddonWithArgs []MicroK8sAddon
 
 		CustomTemplateID      CustomTemplateID
 		CustomTemplateContent string
@@ -1212,6 +1221,9 @@ type (
 		// --- Common portainer internal fields ---
 		// the userid of the user who created this request.
 		CreatedByUserID UserID
+
+		// @deprecated
+		Addons []string
 	}
 
 	CloudScalingRequest interface {

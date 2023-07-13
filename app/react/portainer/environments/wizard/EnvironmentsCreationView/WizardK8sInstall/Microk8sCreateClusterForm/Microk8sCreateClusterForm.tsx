@@ -1,6 +1,6 @@
 import { Field, useFormikContext } from 'formik';
 import { useMemo, useState } from 'react';
-import { ArrowLeftRight, Info } from 'lucide-react';
+import { ArrowLeftRight, Info, Plus } from 'lucide-react';
 import { partition } from 'lodash';
 
 import { Credential } from '@/react/portainer/settings/sharedCredentials/types';
@@ -12,10 +12,16 @@ import {
 import { NodeAddressInput } from '@/react/kubernetes/cluster/microk8s/NodeAddressInput';
 import { formatNodeIPs } from '@/react/kubernetes/cluster/microk8s/utils';
 import { NodeAddressTestResults } from '@/react/kubernetes/cluster/microk8s/NodeAddressTestResults';
+import {
+  AddOnFormValue,
+  AddOnOption,
+} from '@/react/kubernetes/cluster/microk8s/addons/types';
+import { AddOnSelector } from '@/react/kubernetes/cluster/microk8s/addons/AddonSelector';
+import { isErrorType } from '@/react/kubernetes/applications/CreateView/application-services/utils';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { TextTip } from '@@/Tip/TextTip';
-import { LoadingButton } from '@@/buttons';
+import { Button, LoadingButton } from '@@/buttons';
 import { Select } from '@@/form-components/Input/Select';
 
 import { CredentialsField } from '../../WizardKaaS/shared/CredentialsField';
@@ -26,7 +32,6 @@ import { K8sInstallFormValues } from '../types';
 import { useMicroK8sOptions } from '../queries';
 import { CustomTemplateSelector } from '../../shared/CustomTemplateSelector';
 
-import { AddOnOption, Microk8sAddOnSelector } from './AddonSelector';
 import { Microk8sActions } from './Microk8sActions';
 
 type Props = {
@@ -80,7 +85,7 @@ export function Microk8sCreateClusterForm({
     'kubernetesVersion'
   );
 
-  const addonOptions: AddOnOption[] = useMemo(() => {
+  const [addonOptions, filteredOptions]: AddOnOption[][] = useMemo(() => {
     const addonOptions: AddOnOption[] = [];
     microk8sOptions?.availableAddons.forEach((a) => {
       const kubeVersion = parseFloat(microk8s.kubernetesVersion.split('/')[0]);
@@ -90,15 +95,28 @@ export function Microk8sCreateClusterForm({
         kubeVersion >= versionAvailableFrom &&
         (Number.isNaN(versionAvailableTo) || kubeVersion <= versionAvailableTo)
       ) {
-        addonOptions.push({ name: a.label, type: a.type });
+        addonOptions.push({ ...a, name: a.label } as AddOnOption);
       }
     });
 
     addonOptions.sort(
-      (a, b) => b.type.localeCompare(a.type) || a.name.localeCompare(b.name)
+      (a, b) =>
+        b.repository?.localeCompare(a.repository || '') ||
+        a.label?.localeCompare(b.label)
     );
-    return addonOptions;
-  }, [microk8sOptions?.availableAddons, microk8s.kubernetesVersion]);
+
+    const addonOptionsWithoutExistingValues = addonOptions.filter(
+      (addonOption) =>
+        !values.microk8s.addons.some(
+          (addon) => addon.name === addonOption.label
+        )
+    );
+    return [addonOptions, addonOptionsWithoutExistingValues];
+  }, [
+    microk8sOptions?.availableAddons,
+    microk8s.kubernetesVersion,
+    values.microk8s.addons,
+  ]);
 
   return (
     <>
@@ -237,14 +255,44 @@ export function Microk8sCreateClusterForm({
         }
         inputId="microk8s-addons"
       >
-        <Microk8sAddOnSelector
-          value={values.microk8s.addons}
-          options={addonOptions}
-          onChange={(value: AddOnOption[]) => {
-            setFieldValue('microk8s.addons', value);
-          }}
-        />
+        {values.microk8s.addons.map((addon, index) => {
+          const error = errors.microk8s?.addons?.[index];
+          const addonError = isErrorType<AddOnFormValue>(error)
+            ? error
+            : undefined;
+          return (
+            <AddOnSelector
+              key={`addon${index}`}
+              value={addon}
+              options={addonOptions}
+              errors={addonError}
+              filteredOptions={filteredOptions}
+              onChange={(value: AddOnFormValue) => {
+                const addons = [...values.microk8s.addons];
+                addons[index] = value;
+                setFieldValue('microk8s.addons', addons);
+              }}
+              index={index}
+              onRemove={() => {
+                const addons = [...values.microk8s.addons];
+                addons.splice(index, 1);
+                setFieldValue('microk8s.addons', addons);
+              }}
+            />
+          );
+        })}
       </FormControl>
+
+      <div className="row mt-5 mb-5">
+        <Button
+          className="btn btn-sm btn-light !ml-0"
+          type="button"
+          onClick={addAddon}
+          icon={Plus}
+        >
+          Add addon
+        </Button>
+      </div>
 
       <MoreSettingsSection>
         <TextTip color="blue" className="mb-4">
@@ -264,6 +312,12 @@ export function Microk8sCreateClusterForm({
       />
     </>
   );
+
+  function addAddon() {
+    const addons = [...values.microk8s.addons];
+    addons.push({ name: '', repository: '' });
+    setFieldValue('microk8s.addons', addons);
+  }
 
   // handleTestConnection tests the SSH connection to the nodes and returns a boolean indicating whether the test was successful
   function handleTestConnection(): Promise<[boolean, number]> {

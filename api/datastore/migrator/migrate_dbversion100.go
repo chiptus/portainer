@@ -273,6 +273,35 @@ func (m *Migrator) enableCommunityAddonForDB100() error {
 	return nil
 }
 
+func (m *Migrator) migrateCloudProviderAddonsForDB100() error {
+	log.Info().Msg("migrating addons to addons with args for all MicroK8s environments")
+
+	// get all environments
+	environments, err := m.endpointService.Endpoints()
+
+	for _, env := range environments {
+		if env.CloudProvider != nil {
+			if env.CloudProvider.Provider == portaineree.CloudProviderMicrok8s {
+
+				if env.CloudProvider.Addons != nil {
+					addons := strings.Split(*env.CloudProvider.Addons, ",")
+					for _, addon := range addons {
+						env.CloudProvider.AddonsWithArgs = append(env.CloudProvider.AddonsWithArgs, portaineree.MicroK8sAddon{
+							Name: addon,
+						})
+					}
+
+					err = m.endpointService.UpdateEndpoint(env.ID, &env)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+	return nil
+}
+
 // rebuildStackFileSystemWithVersionForDB100 creates the regular stack version folder if needed.
 // This is needed for backward compatibility with regular stacks created before the
 // regular stack version folder was introduced.

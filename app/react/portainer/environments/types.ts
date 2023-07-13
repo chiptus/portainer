@@ -125,6 +125,11 @@ export type DeploymentOptions = {
   hideFileUpload: boolean;
 };
 
+type AddonWithArgs = {
+  Name: string;
+  Args?: string;
+};
+
 export enum K8sDistributionType {
   MICROK8S = 'microk8s',
 }
@@ -153,7 +158,7 @@ type CloudProviderSettings = {
   Size: number | null;
   NodeCount: number;
   CPU: number | null;
-  Addons: string | null;
+  AddonsWithArgs: AddonWithArgs[] | null;
   AmiType: number | null;
   CredentialID: number;
   DNSPrefix: string;

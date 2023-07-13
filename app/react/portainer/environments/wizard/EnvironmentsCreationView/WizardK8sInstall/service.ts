@@ -8,7 +8,7 @@ import { createKaasEnvironment } from '../WizardKaaS/kaas.service';
 import { CreateClusterPayload } from '../WizardKaaS/types';
 import { K8sDistributionType } from '../../../types';
 
-import { MicroK8sInfo, ProvisionOption, AddonOption } from './types';
+import { MicroK8sInfo, ProvisionOption } from './types';
 
 export function useInstallK8sCluster() {
   const client = useQueryClient();
@@ -47,10 +47,10 @@ function parseInfoResponse(response: MicroK8sInfo): MicroK8sInfo {
     buildOption(v.value, v.label)
   );
   const availableAddons = response.availableAddons.map((v) => {
-    const a = buildOption(v.value, v.label) as AddonOption;
-    a.versionAvailableFrom = v.versionAvailableFrom;
-    a.versionAvailableTo = v.versionAvailableTo;
-    a.type = v.type;
+    const a = { ...v };
+    const o = buildOption(v.label, v.label);
+    a.label = o.label;
+    a.value = o.value;
     return a;
   });
 

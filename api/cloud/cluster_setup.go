@@ -184,7 +184,7 @@ func (service *CloudManagementService) restoreTasks() {
 			log.Info().Msg("removing provisioning task, too old")
 
 			// Get the associated endpoint and set it's status to error and error detail to timed out
-			err := service.setStatus(task.EndpointID, 4)
+			err := service.setStatus(task.EndpointID, portaineree.EndpointStatusError)
 			if err != nil {
 				log.Error().Err(err).Msg("unable to update endpoint status in database")
 			}
@@ -261,7 +261,7 @@ func (service *CloudManagementService) setMessageHandler(id portaineree.Endpoint
 	}
 }
 
-func (service *CloudManagementService) setStatus(id portaineree.EndpointID, status int) error {
+func (service *CloudManagementService) setStatus(id portaineree.EndpointID, status portaineree.EndpointStatus) error {
 	endpoint, err := service.dataStore.Endpoint().Endpoint(id)
 	if err != nil {
 		return err
@@ -764,7 +764,7 @@ func (service *CloudManagementService) processCreateClusterRequest(request *port
 			Credentials:       credentials,
 			MasterNodes:       request.MasterNodes,
 			WorkerNodes:       request.WorkerNodes,
-			Addons:            request.Addons,
+			Addons:            request.AddonWithArgs,
 			KubernetesVersion: request.KubernetesVersion,
 		}
 		clusterID, provErr = service.Microk8sProvisionCluster(req)
