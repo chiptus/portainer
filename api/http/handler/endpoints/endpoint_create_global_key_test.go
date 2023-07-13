@@ -52,7 +52,7 @@ func mustSetupGlobalKeyHandler(t *testing.T) *Handler {
 		nil,
 	)
 
-	handler.ReverseTunnelService = chisel.NewService(store, shutdownCtx)
+	handler.ReverseTunnelService = chisel.NewService(store, shutdownCtx, nil)
 	handler.AuthorizationService = authorization.NewService(store)
 
 	return handler

@@ -9,8 +9,10 @@ import (
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/chisel/crypto"
 	mk8s "github.com/portainer/portainer-ee/api/cloud/microk8s"
 	sshUtil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/url"
 	"github.com/rs/zerolog/log"
 )
@@ -312,4 +314,51 @@ func (migrator *Migrator) rebuildStackFileSystemWithVersionForDB100() error {
 		}
 	}
 	return nil
+}
+
+func (m *Migrator) convertSeedToPrivateKeyForDB100() error {
+	var serverInfo *portaineree.TunnelServerInfo
+
+	serverInfo, err := m.TunnelServerService.Info()
+	if err != nil {
+		if dataservices.IsErrObjectNotFound(err) {
+			log.Info().Msg("ServerInfo object not found")
+			return nil
+		}
+		log.Error().
+			Err(err).
+			Msg("Failed to read ServerInfo from DB")
+		return err
+	}
+
+	if serverInfo.PrivateKeySeed != "" {
+		key, err := crypto.GenerateGo119CompatibleKey(serverInfo.PrivateKeySeed)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Msg("Failed to read ServerInfo from DB")
+			return err
+		}
+
+		err = m.fileService.StoreChiselPrivateKey(key)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Msg("Failed to save Chisel private key to disk")
+			return err
+		}
+	} else {
+		log.Info().Msg("PrivateKeySeed is blank")
+	}
+
+	serverInfo.PrivateKeySeed = ""
+	err = m.TunnelServerService.UpdateInfo(serverInfo)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Msg("Failed to clean private key seed in DB")
+	} else {
+		log.Info().Msg("Success to migrate private key seed to private key file")
+	}
+	return err
 }

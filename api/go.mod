@@ -1,6 +1,6 @@
 module github.com/portainer/portainer-ee/api
 
-go 1.19
+go 1.20
 
 require (
 	cloud.google.com/go/compute v1.18.0
@@ -56,7 +56,7 @@ require (
 	github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a
 	github.com/portainer/libhttp v0.0.0-20230615144939-a999f666d9a9
 	github.com/portainer/liblicense/v3 v3.0.0
-	github.com/portainer/portainer/api v0.0.0-20230712230624-b93aced176cc
+	github.com/portainer/portainer/api v0.0.0-20230713031940-b93624fa1fc8
 	github.com/portainer/portainer/pkg/featureflags v0.0.0-20230711022654-64b227b2e146
 	github.com/portainer/portainer/pkg/libhelm v0.0.0-20230711022654-64b227b2e146
 	github.com/portainer/portainer/pkg/libstack v0.0.0-20230711022654-64b227b2e146
@@ -145,7 +145,7 @@ require (
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/felixge/httpsnoop v1.0.1 // indirect
-	github.com/fsnotify/fsnotify v1.5.1 // indirect
+	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.1 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
@@ -219,3 +219,6 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
+
+// Remove below line when the "determinstic key" patch for Chisel merged
+replace github.com/jpillora/chisel => github.com/portainer/chisel v0.0.0-20230704222304-426f515c6c25

@@ -2141,7 +2141,7 @@
   "team_membership": null,
   "teams": null,
   "tunnel_server": {
-    "PrivateKeySeed": "Uk1duGh3A7KuyKpc"
+    "PrivateKeySeed": ""
   },
   "users": [
     {
@@ -2183,7 +2183,7 @@
     }
   ],
   "version": {
-    "VERSION": "{\"SchemaVersion\":\"2.19.0\",\"MigratorCount\":6,\"Edition\":3,\"InstanceID\":\"9abe1e4e-9e83-48a4-b3f5-91495f1e9c90\"}"
+    "VERSION": "{\"SchemaVersion\":\"2.19.0\",\"MigratorCount\":7,\"Edition\":3,\"InstanceID\":\"9abe1e4e-9e83-48a4-b3f5-91495f1e9c90\"}"
   },
   "webhooks": null
 }

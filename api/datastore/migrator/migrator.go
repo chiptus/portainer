@@ -1,6 +1,8 @@
 package migrator
 
 import (
+	"github.com/Masterminds/semver"
+	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudcredential"
@@ -25,13 +27,11 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/stack"
 	"github.com/portainer/portainer-ee/api/dataservices/tag"
 	"github.com/portainer/portainer-ee/api/dataservices/teammembership"
+	"github.com/portainer/portainer-ee/api/dataservices/tunnelserver"
 	"github.com/portainer/portainer-ee/api/dataservices/user"
 	"github.com/portainer/portainer-ee/api/dataservices/version"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	portainer "github.com/portainer/portainer/api"
-
-	"github.com/Masterminds/semver"
-	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -68,6 +68,7 @@ type (
 		podSecurityService      *podsecurity.Service
 		edgeUpdateService       *edgeupdateschedule.Service
 		edgeGroupService        *edgegroup.Service
+		TunnelServerService     *tunnelserver.Service
 	}
 
 	// MigratorParameters represents the required parameters to create a new Migrator instance.
@@ -100,6 +101,7 @@ type (
 		EdgeJobService           *edgejob.Service
 		EdgeUpdateService        *edgeupdateschedule.Service
 		EdgeGroupService         *edgegroup.Service
+		TunnelServerService      *tunnelserver.Service
 	}
 
 	Migrations struct {
@@ -140,6 +142,7 @@ func NewMigrator(parameters *MigratorParameters) *Migrator {
 		podSecurityService:      parameters.PodSecurityService,
 		edgeUpdateService:       parameters.EdgeUpdateService,
 		edgeGroupService:        parameters.EdgeGroupService,
+		TunnelServerService:     parameters.TunnelServerService,
 	}
 
 	migrator.initMigrations()
@@ -257,7 +260,9 @@ func (m *Migrator) initMigrations() {
 		m.updateTunnelServerAddressForDB100,
 		m.updateCloudProviderForDB100,
 		m.enableCommunityAddonForDB100,
-		m.rebuildStackFileSystemWithVersionForDB100)
+		m.rebuildStackFileSystemWithVersionForDB100,
+		m.convertSeedToPrivateKeyForDB100,
+	)
 
 	// Add new migrations above...
 

@@ -118,13 +118,13 @@ func mustSetupHandler(t *testing.T) *Handler {
 		security.NewRequestBouncer(store, nil, jwtService, apiKeyService, nil),
 		store,
 		fs,
-		chisel.NewService(store, shutdownCtx),
+		chisel.NewService(store, shutdownCtx, nil),
 		edgeService,
 		nil,
 		updateService,
 	)
 
-	handler.ReverseTunnelService = chisel.NewService(store, shutdownCtx)
+	handler.ReverseTunnelService = chisel.NewService(store, shutdownCtx, nil)
 
 	return handler
 }

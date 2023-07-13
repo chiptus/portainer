@@ -139,6 +139,7 @@ func (store *Store) newMigratorParameters(version *models.Version, flags *portai
 		EdgeUpdateService:        store.EdgeUpdateScheduleService,
 		EdgeGroupService:         store.EdgeGroupService,
 		FDOProfilesService:       store.FDOProfilesService,
+		TunnelServerService:      store.TunnelServerService,
 	}
 }
 
