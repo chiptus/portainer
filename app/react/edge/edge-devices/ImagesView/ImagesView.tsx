@@ -4,20 +4,15 @@ import { List } from 'lucide-react';
 import { useEnvironment } from '@/react/portainer/environments/queries';
 import { useDockerSnapshot } from '@/react/docker/queries/useDockerSnapshot';
 import { RowProvider } from '@/react/docker/images/ListView/ImagesDatatable/RowContext';
-import { id } from '@/react/docker/images/ListView/ImagesDatatable/columns/id';
-import { tags } from '@/react/docker/images/ListView/ImagesDatatable/columns/tags';
-import { size } from '@/react/docker/images/ListView/ImagesDatatable/columns/size';
-import { created } from '@/react/docker/images/ListView/ImagesDatatable/columns/created';
+import { columns } from '@/react/docker/images/ListView/ImagesDatatable/columns';
 import { EdgeDeviceViewsHeader } from '@/react/edge/components/EdgeDeviceViewsHeader';
 import { NoSnapshotAvailablePanel } from '@/react/edge/components/NoSnapshotAvailablePanel';
 
-import { Datatable } from '@@/datatables/Datatable';
+import { Datatable } from '@@/datatables';
 import { createPersistedStore } from '@@/datatables/types';
 import { useTableState } from '@@/datatables/useTableState';
 
 import { ImagesDatatableActions } from './ImagesDatatableActions';
-
-export const columns = [id, tags, size, created];
 
 const storageKey = 'edge_stack_images';
 const settingsStore = createPersistedStore(storageKey, 'created');
