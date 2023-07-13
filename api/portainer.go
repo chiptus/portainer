@@ -373,6 +373,14 @@ type (
 		SupportRelativePath bool `example:"false"`
 		// Local filesystem path
 		FilesystemPath string `example:"/tmp"`
+
+		// Whether the edge stack supports per device configs
+		SupportPerDeviceConfigs bool `example:"false"`
+		// Per device configs match type
+		PerDeviceConfigsMatchType portainer.PerDevConfigsFilterType `example:"file" enums:"file, dir"`
+		// Per device configs path
+		PerDeviceConfigsPath string `example:"configs"`
+
 		// StackFileVersion represents the version of the stack file, such yaml, hcl, manifest file
 		StackFileVersion int `json:"StackFileVersion"`
 		// PreviousDeploymentInfo represents the previous deployment info of the stack

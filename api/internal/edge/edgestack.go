@@ -64,3 +64,11 @@ func FetchEndpointRelationsConfig(tx dataservices.DataStoreTx) (*EndpointRelatio
 		EdgeGroups:     edgeGroups,
 	}, nil
 }
+
+func IsEdgeStackRelativePathEnabled(stack *portaineree.EdgeStack) bool {
+	return stack.SupportRelativePath && stack.FilesystemPath != ""
+}
+
+func IsEdgeStackPerDeviceConfigsEnabled(stack *portaineree.EdgeStack) bool {
+	return stack.SupportPerDeviceConfigs && stack.PerDeviceConfigsPath != ""
+}

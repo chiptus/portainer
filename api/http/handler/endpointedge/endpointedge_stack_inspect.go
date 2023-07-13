@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
+	internaledge "github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	"github.com/portainer/portainer-ee/api/kubernetes"
@@ -81,7 +82,16 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 		return httperror.InternalServerError("Unable to load repository", err)
 	}
 
-	if !edgeStack.SupportRelativePath || edgeStack.FilesystemPath == "" {
+	if internaledge.IsEdgeStackRelativePathEnabled(edgeStack) {
+		if internaledge.IsEdgeStackPerDeviceConfigsEnabled(edgeStack) {
+			dirEntries = filesystem.FilterDirForPerDevConfigs(
+				dirEntries,
+				endpoint.EdgeID,
+				edgeStack.PerDeviceConfigsPath,
+				edgeStack.PerDeviceConfigsMatchType,
+			)
+		}
+	} else {
 		dirEntries = filesystem.FilterDirForEntryFile(dirEntries, fileName)
 	}
 

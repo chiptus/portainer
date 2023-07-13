@@ -22,11 +22,13 @@ export function PathSelector({
   onChange,
   placeholder,
   model,
+  dirOnly,
 }: {
   value: string;
   onChange(value: string): void;
   placeholder: string;
   model: GitFormModel;
+  dirOnly?: boolean;
 }) {
   const [searchTerm, setSearchTerm] = useDebounce(value, onChange);
   const [selected, setSelected] = useState(false);
@@ -37,6 +39,7 @@ export function PathSelector({
     keyword: searchTerm,
     reference: model.RepositoryReferenceName,
     tlsSkipVerify: model.TLSSkipVerify,
+    dirOnly,
     ...creds,
   };
   const enabled = Boolean(

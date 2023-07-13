@@ -9,6 +9,7 @@ interface SearchPayload {
   username?: string;
   password?: string;
   tlsSkipVerify?: boolean;
+  dirOnly?: boolean;
 }
 
 export function useSearch(payload: SearchPayload, enabled: boolean) {

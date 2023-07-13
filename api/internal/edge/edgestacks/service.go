@@ -33,15 +33,18 @@ func NewService(dataStore dataservices.DataStore, edgeAsyncService *edgeasync.Se
 }
 
 type BuildEdgeStackArgs struct {
-	Registries            []portaineree.RegistryID
-	ScheduledTime         string
-	UseManifestNamespaces bool
-	PrePullImage          bool
-	RePullImage           bool
-	RetryDeploy           bool
-	SupportRelativePath   bool
-	FilesystemPath        string
-	EnvVars               []portainer.Pair
+	Registries                []portaineree.RegistryID
+	ScheduledTime             string
+	UseManifestNamespaces     bool
+	PrePullImage              bool
+	RePullImage               bool
+	RetryDeploy               bool
+	SupportRelativePath       bool
+	FilesystemPath            string
+	SupportPerDeviceConfigs   bool
+	PerDeviceConfigsMatchType portainer.PerDevConfigsFilterType
+	PerDeviceConfigsPath      string
+	EnvVars                   []portainer.Pair
 }
 
 // BuildEdgeStack builds the initial edge stack object
@@ -65,23 +68,26 @@ func (service *Service) BuildEdgeStack(
 
 	stackID := tx.EdgeStack().GetNextIdentifier()
 	return &portaineree.EdgeStack{
-		ID:                    portaineree.EdgeStackID(stackID),
-		Name:                  name,
-		DeploymentType:        deploymentType,
-		CreationDate:          time.Now().Unix(),
-		EdgeGroups:            edgeGroups,
-		Status:                make(map[portaineree.EndpointID]portainer.EdgeStackStatus),
-		Version:               1,
-		Registries:            args.Registries,
-		ScheduledTime:         args.ScheduledTime,
-		UseManifestNamespaces: args.UseManifestNamespaces,
-		PrePullImage:          args.PrePullImage,
-		RePullImage:           args.RePullImage,
-		RetryDeploy:           args.RetryDeploy,
-		SupportRelativePath:   args.SupportRelativePath,
-		FilesystemPath:        args.FilesystemPath,
-		EnvVars:               args.EnvVars,
-		StackFileVersion:      1,
+		ID:                        portaineree.EdgeStackID(stackID),
+		Name:                      name,
+		DeploymentType:            deploymentType,
+		CreationDate:              time.Now().Unix(),
+		EdgeGroups:                edgeGroups,
+		Status:                    make(map[portaineree.EndpointID]portainer.EdgeStackStatus),
+		Version:                   1,
+		Registries:                args.Registries,
+		ScheduledTime:             args.ScheduledTime,
+		UseManifestNamespaces:     args.UseManifestNamespaces,
+		PrePullImage:              args.PrePullImage,
+		RePullImage:               args.RePullImage,
+		RetryDeploy:               args.RetryDeploy,
+		SupportRelativePath:       args.SupportRelativePath,
+		FilesystemPath:            args.FilesystemPath,
+		SupportPerDeviceConfigs:   args.SupportPerDeviceConfigs,
+		PerDeviceConfigsMatchType: args.PerDeviceConfigsMatchType,
+		PerDeviceConfigsPath:      args.PerDeviceConfigsPath,
+		EnvVars:                   args.EnvVars,
+		StackFileVersion:          1,
 	}, nil
 }
 

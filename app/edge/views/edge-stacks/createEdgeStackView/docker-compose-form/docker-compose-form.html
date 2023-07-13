@@ -49,6 +49,8 @@
         <span class="text-muted">For relative path volumes use with Docker Swarm, you must have a network filesystem which all of your nodes can access.</span>
       </p>
     </span>
+
+    <!--Local filesystem path-->
     <div class="col-sm-12">
       <div class="form-group">
         <label class="col-sm-3 col-lg-2 control-label text-left"> Local filesystem path </label>
@@ -62,6 +64,62 @@
           </span>
         </div>
       </div>
+    </div>
+
+    <!-- Edge configurations-->
+    <div class="col-sm-12 mb-3">
+      <p class="small vertical-center">
+        <pr-icon icon="'info'" mode="'primary'"></pr-icon>
+        <span class="text-muted">When enabled, corresponding Edge ID will be passed through as an environment variable: PORTAINER_EDGE_ID.</span>
+      </p>
+      <por-switch-field
+        name="EnablePerDeviceConfigs"
+        checked="$ctrl.formValues.SupportPerDeviceConfigs"
+        label="'Edge configurations'"
+        label-class="'col-sm-3 col-lg-2'"
+        on-change="($ctrl.onEnablePerDeviceConfigsChange)"
+      ></por-switch-field>
+    </div>
+
+    <!--Configuration path-->
+    <div class="col-sm-12" ng-if="$ctrl.formValues.SupportPerDeviceConfigs">
+      <div class="form-group">
+        <label class="col-sm-3 col-lg-2 control-label text-left"> Configuration path </label>
+        <div class="col-sm-9 col-lg-10">
+          <path-selector value="$ctrl.formValues.PerDeviceConfigsPath" model="$ctrl.formValues" on-change="($ctrl.onPerDeviceConfigsPathChange)" dir-only="true"></path-selector>
+          <span class="help-block" ng-if="$ctrl.formValues.PerDeviceConfigsPath.length === 0">
+            <p class="text-warning small vertical-center">
+              <pr-icon icon="'alert-triangle'" mode="'warning'" size="'sm'"></pr-icon>
+              <span>Configuration path is required</span>
+            </p>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!--Matching Type-->
+    <div class="col-sm-12" ng-if="$ctrl.formValues.SupportPerDeviceConfigs">
+      <div class="form-group">
+        <label for="matching_type" class="control-label col-sm-3 col-lg-2 text-left"> Matching rule </label>
+        <div class="col-sm-9 col-lg-10">
+          <select ng-model="$ctrl.formValues.PerDeviceConfigsMatchType" id="matching_type" class="form-control">
+            <option value="file">Match file name with portainer edge id</option>
+            <option value="dir">Match folder name with portainer id</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!--Edge ID insights box-->
+    <div class="col-sm-12" ng-if="$ctrl.formValues.SupportPerDeviceConfigs">
+      <insights-box
+        type="'slim'"
+        header="'How to use PORTAINER_EDGE_ID as a dynamic environment variable?'"
+        content="$ctrl.edgeIdInsightsBoxContent"
+        insight-close-id="'edge_stack_creation_edge_id_env_variable'"
+      >
+        <div>content</div>
+      </insights-box>
     </div>
   </div>
 </div>

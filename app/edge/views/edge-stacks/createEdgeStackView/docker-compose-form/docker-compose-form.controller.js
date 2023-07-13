@@ -1,5 +1,7 @@
 import { editor, git, edgeStackTemplate, upload } from '@@/BoxSelector/common-options/build-methods';
 
+import { EdgeIdInsightsBoxContent } from './EdgeIdInsightsBoxContent';
+
 class DockerComposeFormController {
   /* @ngInject */
   constructor($async, EdgeTemplateService, Notifications, UserService, Authentication) {
@@ -15,6 +17,8 @@ class DockerComposeFormController {
     this.onChangeMethod = this.onChangeMethod.bind(this);
     this.onChangeFormValues = this.onChangeFormValues.bind(this);
     this.onEnableRelativePathsChange = this.onEnableRelativePathsChange.bind(this);
+    this.onEnablePerDeviceConfigsChange = this.onEnablePerDeviceConfigsChange.bind(this);
+    this.onPerDeviceConfigsPathChange = this.onPerDeviceConfigsPathChange.bind(this);
   }
 
   onChangeFormValues(newValues) {
@@ -62,8 +66,24 @@ class DockerComposeFormController {
     });
   }
 
+  onEnablePerDeviceConfigsChange(value) {
+    return this.$async(async () => {
+      this.formValues.SupportPerDeviceConfigs = value;
+    });
+  }
+
+  onPerDeviceConfigsPathChange(value) {
+    return this.$async(async () => {
+      this.formValues.PerDeviceConfigsPath = value;
+    });
+  }
+
   async $onInit() {
     return this.$async(async () => {
+      this.formValues.SupportPerDeviceConfigs = false;
+      this.formValues.PerDeviceConfigsMatchType = 'file';
+      this.edgeIdInsightsBoxContent = EdgeIdInsightsBoxContent();
+
       try {
         const templates = await this.EdgeTemplateService.edgeTemplates();
         this.templates = templates.map((template) => ({ ...template, label: `${template.title} - ${template.description}` }));

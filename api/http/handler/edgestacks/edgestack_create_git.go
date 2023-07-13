@@ -60,6 +60,12 @@ type edgeStackFromGitRepositoryPayload struct {
 	SupportRelativePath bool `example:"false"`
 	// Local filesystem path
 	FilesystemPath string `example:"/mnt"`
+	// Whether the edge stack supports per device configs
+	SupportPerDeviceConfigs bool `example:"false"`
+	// Per device configs match type
+	PerDeviceConfigsMatchType portainer.PerDevConfigsFilterType `example:"file" enums:"file, dir"`
+	// Per device configs path
+	PerDeviceConfigsPath string `example:"configs"`
 	// List of environment variables
 	EnvVars []portainer.Pair
 }
@@ -133,15 +139,18 @@ func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dat
 	}
 
 	buildEdgeStackArgs := edgestacks.BuildEdgeStackArgs{
-		Registries:            payload.Registries,
-		ScheduledTime:         "",
-		UseManifestNamespaces: payload.UseManifestNamespaces,
-		PrePullImage:          payload.PrePullImage,
-		RePullImage:           false,
-		RetryDeploy:           payload.RetryDeploy,
-		SupportRelativePath:   payload.SupportRelativePath,
-		FilesystemPath:        payload.FilesystemPath,
-		EnvVars:               payload.EnvVars,
+		Registries:                payload.Registries,
+		ScheduledTime:             "",
+		UseManifestNamespaces:     payload.UseManifestNamespaces,
+		PrePullImage:              payload.PrePullImage,
+		RePullImage:               false,
+		RetryDeploy:               payload.RetryDeploy,
+		SupportRelativePath:       payload.SupportRelativePath,
+		FilesystemPath:            payload.FilesystemPath,
+		EnvVars:                   payload.EnvVars,
+		SupportPerDeviceConfigs:   payload.SupportPerDeviceConfigs,
+		PerDeviceConfigsMatchType: payload.PerDeviceConfigsMatchType,
+		PerDeviceConfigsPath:      payload.PerDeviceConfigsPath,
 	}
 
 	stack, err := handler.edgeStacksService.BuildEdgeStack(tx, payload.Name, payload.DeploymentType, payload.EdgeGroups, buildEdgeStackArgs)

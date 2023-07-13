@@ -24,6 +24,8 @@ type repositoryFileSearchPayload struct {
 	Include string `json:"include" example:"json,yml"`
 	// TLSSkipVerify skips SSL verification when cloning the Git repository
 	TLSSkipVerify bool `example:"false"`
+	// DirOnly List directories only
+	DirOnly bool `json:"dirOnly" example:"false"`
 }
 
 func (payload *repositoryFileSearchPayload) Validate(r *http.Request) error {
@@ -58,7 +60,11 @@ func (handler *Handler) gitOperationRepoFilesSearch(w http.ResponseWriter, r *ht
 		payload.Reference = "refs/heads/main"
 	}
 
-	includedExtensions := []string{"yml", "yaml", "json", "hcl", "nomad"}
+	var includedExtensions []string
+
+	if !payload.DirOnly {
+		includedExtensions = []string{"yml", "yaml", "json", "hcl", "nomad"}
+	}
 	if payload.Include != "" {
 		includedExtensions = strings.Split(payload.Include, ",")
 	}
@@ -70,7 +76,12 @@ func (handler *Handler) gitOperationRepoFilesSearch(w http.ResponseWriter, r *ht
 		return httpErr
 	}
 
-	files, err := handler.GitService.ListFiles(payload.Repository, payload.Reference, repositoryUsername, repositoryPassword, hardRefresh, includedExtensions, payload.TLSSkipVerify)
+	files, err := handler.GitService.ListFiles(
+		payload.Repository, payload.Reference,
+		repositoryUsername, repositoryPassword,
+		payload.DirOnly, hardRefresh,
+		includedExtensions, payload.TLSSkipVerify,
+	)
 	if err != nil {
 		return httperror.InternalServerError("Git returned an error for listing files", err)
 	}
