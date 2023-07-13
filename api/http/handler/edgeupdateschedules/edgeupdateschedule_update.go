@@ -82,14 +82,9 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 	shouldUpdate := payload.GroupIDs != nil || payload.Type != nil || payload.Version != nil || payload.ScheduledTime != nil
 
 	if shouldUpdate {
-		canUpdate := true
-		for _, environmentStatus := range stack.Status {
-			if !environmentStatus.Details.Pending {
-				canUpdate = false
-			}
-		}
+		isActive := isUpdateActive(stack)
 
-		if !canUpdate {
+		if isActive {
 			return httperror.BadRequest("Unable to update Edge update schedule", errors.New("edge stack is not in pending state"))
 		}
 

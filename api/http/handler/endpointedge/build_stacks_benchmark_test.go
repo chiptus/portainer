@@ -54,8 +54,12 @@ func setupBuildEdgeStacksTest(b testing.TB, endpointsCount int) (*Handler, error
 		}
 
 		edgeStack.Status[endpointID] = portainer.EdgeStackStatus{
-			Details:    portainer.EdgeStackStatusDetails{Ok: true},
 			EndpointID: portainer.EndpointID(endpointID),
+			Status: []portainer.EdgeStackDeploymentStatus{
+				{
+					Type: portainer.EdgeStackStatusDeploymentReceived,
+				},
+			},
 		}
 
 		err = store.EdgeStack().UpdateEdgeStack(edgeStackID, edgeStack)

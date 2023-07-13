@@ -9,6 +9,8 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	"github.com/portainer/portainer-ee/api/internal/slices"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 )
 
@@ -45,8 +47,10 @@ func NewService(dataStore dataservices.DataStore) (*Service, error) {
 			}
 
 			// check if schedule is active
-			status := edgeStack.Status[endpointId]
-			if !status.Details.RemoteUpdateSuccess {
+			envStatus := edgeStack.Status[endpointId]
+			if !slices.ContainsFunc(envStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
+				return sts.Type == portainer.EdgeStackStatusRemoteUpdateSuccess
+			}) {
 				idxActiveSchedules[endpointId] = &edgetypes.EndpointUpdateScheduleRelation{
 					EnvironmentID: endpointId,
 					ScheduleID:    schedule.ID,

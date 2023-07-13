@@ -3,6 +3,7 @@ package edgestacks
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -10,6 +11,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	"github.com/portainer/portainer-ee/api/internal/slices"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/pkg/featureflags"
 
@@ -21,19 +23,24 @@ type updateStatusPayload struct {
 	Error      string
 	Status     *portainer.EdgeStackStatusType
 	EndpointID portaineree.EndpointID
+	Time       int64
 }
 
 func (payload *updateStatusPayload) Validate(r *http.Request) error {
 	if payload.Status == nil {
-		return errors.New("Invalid status")
+		return errors.New("invalid status")
 	}
 
 	if payload.EndpointID == 0 {
-		return errors.New("Invalid EnvironmentID")
+		return errors.New("invalid EnvironmentID")
 	}
 
 	if *payload.Status == portainer.EdgeStackStatusError && govalidator.IsNull(payload.Error) {
-		return errors.New("Error message is mandatory when status is error")
+		return errors.New("error message is mandatory when status is error")
+	}
+
+	if payload.Time == 0 {
+		payload.Time = time.Now().Unix()
 	}
 
 	return nil
@@ -46,6 +53,7 @@ func (payload *updateStatusPayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param id path int true "EdgeStack Id"
+// @param body body updateStatusPayload true "EdgeStack status payload"
 // @success 200 {object} portaineree.EdgeStack
 // @failure 500
 // @failure 400
@@ -89,11 +97,31 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *http.Request, stackID portaineree.EdgeStackID, payload updateStatusPayload) (*portaineree.EdgeStack, error) {
 	stack, err := tx.EdgeStack().EdgeStack(stackID)
 	if err != nil {
-		return nil, handler.handlerDBErr(err, "Unable to find a stack with the specified identifier inside the database")
+		if dataservices.IsErrObjectNotFound(err) {
+			// skip error because agent tries to report on deleted stack
+			log.Warn().
+				Err(err).
+				Int("stackID", int(stackID)).
+				Int("status", int(*payload.Status)).
+				Msg("Unable to find a stack inside the database, skipping error")
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	environmentStatus, ok := stack.Status[payload.EndpointID]
+	if !ok {
+		environmentStatus = portainer.EdgeStackStatus{
+			EndpointID: portainer.EndpointID(payload.EndpointID),
+			Status:     []portainer.EdgeStackDeploymentStatus{},
+		}
 	}
 
 	// if the stack represents a successful remote update - skip it
-	if endpointStatus, ok := stack.Status[payload.EndpointID]; ok && endpointStatus.Details.RemoteUpdateSuccess {
+	if slices.ContainsFunc(environmentStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
+		return sts.Type == portainer.EdgeStackStatusRemoteUpdateSuccess
+	}) {
 		return stack, nil
 	}
 
@@ -109,6 +137,11 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 
 	status := *payload.Status
 
+	log.Debug().
+		Int("stackID", int(stackID)).
+		Int("status", int(status)).
+		Msg("Updating stack status")
+
 	if stack.EdgeUpdateID != 0 {
 		if status == portainer.EdgeStackStatusError {
 			err := handler.edgeUpdateService.RemoveActiveSchedule(payload.EndpointID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
@@ -119,42 +152,14 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 			}
 		}
 
-		if status == portainer.EdgeStackStatusOk {
+		if status == portainer.EdgeStackStatusRunning {
 			handler.edgeUpdateService.EdgeStackDeployed(endpoint.ID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
 		}
 	}
 
 	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
 		err = tx.EdgeStack().UpdateEdgeStackFunc(stackID, func(edgeStack *portaineree.EdgeStack) {
-			details := edgeStack.Status[payload.EndpointID].Details
-			details.Pending = false
-
-			var deploymentInfo portainer.StackDeploymentInfo
-			switch status {
-			case portainer.EdgeStackStatusOk:
-				details.Ok = true
-
-				// if the edge stack is deployed successfully, we need to update the deployment info
-				deploymentInfo.FileVersion = edgeStack.StackFileVersion
-				if edgeStack.GitConfig != nil {
-					deploymentInfo.ConfigHash = edgeStack.GitConfig.ConfigHash
-				}
-			case portainer.EdgeStackStatusError:
-				details.Error = true
-			case portainer.EdgeStackStatusAcknowledged:
-				details.Acknowledged = true
-			case portainer.EdgeStackStatusRemove:
-				details.Remove = true
-			case portainer.EdgeStackStatusImagesPulled:
-				details.ImagesPulled = true
-			}
-
-			edgeStack.Status[payload.EndpointID] = portainer.EdgeStackStatus{
-				Details:        details,
-				Error:          payload.Error,
-				EndpointID:     portainer.EndpointID(payload.EndpointID),
-				DeploymentInfo: deploymentInfo,
-			}
+			updateEnvStatus(edgeStack, environmentStatus, status, payload)
 
 			stack = edgeStack
 		})
@@ -162,33 +167,7 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 			return nil, handler.handlerDBErr(err, "Unable to persist the stack changes inside the database")
 		}
 	} else {
-		details := stack.Status[payload.EndpointID].Details
-		details.Pending = false
-		var deploymentInfo portainer.StackDeploymentInfo
-		switch status {
-		case portainer.EdgeStackStatusOk:
-			details.Ok = true
-
-			deploymentInfo.FileVersion = stack.StackFileVersion
-			if stack.GitConfig != nil {
-				deploymentInfo.ConfigHash = stack.GitConfig.ConfigHash
-			}
-		case portainer.EdgeStackStatusError:
-			details.Error = true
-		case portainer.EdgeStackStatusAcknowledged:
-			details.Acknowledged = true
-		case portainer.EdgeStackStatusRemove:
-			details.Remove = true
-		case portainer.EdgeStackStatusImagesPulled:
-			details.ImagesPulled = true
-		}
-
-		stack.Status[payload.EndpointID] = portainer.EdgeStackStatus{
-			Details:        details,
-			Error:          payload.Error,
-			EndpointID:     portainer.EndpointID(payload.EndpointID),
-			DeploymentInfo: deploymentInfo,
-		}
+		updateEnvStatus(stack, environmentStatus, status, payload)
 
 		err = tx.EdgeStack().UpdateEdgeStack(stackID, stack)
 		if err != nil {
@@ -197,4 +176,26 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 	}
 
 	return stack, nil
+}
+
+func updateEnvStatus(edgeStack *portaineree.EdgeStack, environmentStatus portainer.EdgeStackStatus, status portainer.EdgeStackStatusType, payload updateStatusPayload) {
+	gitHash := ""
+	if edgeStack.GitConfig != nil {
+		gitHash = edgeStack.GitConfig.ConfigHash
+	}
+
+	environmentStatus.Status = append(environmentStatus.Status, portainer.EdgeStackDeploymentStatus{
+		Type:  status,
+		Error: payload.Error,
+		Time:  payload.Time,
+	})
+
+	if status == portainer.EdgeStackStatusRunning {
+		environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
+			FileVersion: edgeStack.StackFileVersion,
+			ConfigHash:  gitHash,
+		}
+	}
+
+	edgeStack.Status[payload.EndpointID] = environmentStatus
 }

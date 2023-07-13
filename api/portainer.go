@@ -339,10 +339,10 @@ type (
 		// EdgeStack Identifier
 		ID             EdgeStackID                              `json:"Id" example:"1"`
 		Name           string                                   `json:"Name"`
-		Status         map[EndpointID]portainer.EdgeStackStatus `json:"Status"`
 		CreationDate   int64                                    `json:"CreationDate"`
 		EdgeGroups     []EdgeGroupID                            `json:"EdgeGroups"`
 		Registries     []RegistryID                             `json:"Registries"`
+		Status         map[EndpointID]portainer.EdgeStackStatus `json:"Status"`
 		ProjectPath    string                                   `json:"ProjectPath"`
 		EntryPoint     string                                   `json:"EntryPoint"`
 		Version        int                                      `json:"Version"`

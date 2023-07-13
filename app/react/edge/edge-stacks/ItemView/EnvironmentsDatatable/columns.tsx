@@ -2,15 +2,19 @@ import { CellContext, createColumnHelper } from '@tanstack/react-table';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import clsx from 'clsx';
 import { useState } from 'react';
+import _ from 'lodash';
 
 import UpdatesAvailable from '@/assets/ico/icon_updates-available.svg?c';
 import UpToDate from '@/assets/ico/icon_up-to-date.svg?c';
+import { isoDateFromTimestamp } from '@/portainer/filters/filters';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
+import { getDashboardRoute } from '@/react/portainer/environments/utils';
 
 import { Button } from '@@/buttons';
 import { Icon } from '@@/Icon';
+import { Link } from '@@/Link';
 
-import { EdgeStackStatus } from '../../types';
+import { DeploymentStatus, EdgeStackStatus, StatusType } from '../../types';
 
 import { EnvironmentActions } from './EnvironmentActions';
 import { ActionStatus } from './ActionStatus';
@@ -18,14 +22,48 @@ import { EdgeStackEnvironment } from './types';
 
 const columnHelper = createColumnHelper<EdgeStackEnvironment>();
 
-export const columns = [
+export const columns = _.compact([
   columnHelper.accessor('Name', {
     id: 'name',
     header: 'Name',
+    cell({ row: { original: env } }) {
+      const { to, params } = getDashboardRoute(env);
+      return (
+        <Link to={to} params={params}>
+          {env.Name}
+        </Link>
+      );
+    },
   }),
-  columnHelper.accessor((env) => endpointStatusLabel(env.StackStatus), {
+  columnHelper.accessor((env) => endpointStatusLabel(env.StackStatus.Status), {
     id: 'status',
     header: 'Status',
+    cell({ row: { original: env } }) {
+      return (
+        <ul className="list-none space-y-2">
+          {env.StackStatus.Status.map((s) => (
+            <li key={`status-${s.Type}-${s.Time}`}>
+              <Status value={s.Type} />
+            </li>
+          ))}
+        </ul>
+      );
+    },
+  }),
+  columnHelper.accessor((env) => _.last(env.StackStatus.Status)?.Time, {
+    id: 'statusDate',
+    header: 'Time',
+    cell({ row: { original: env } }) {
+      return (
+        <ul className="list-none space-y-2">
+          {env.StackStatus.Status.map((s) => (
+            <li key={`time-${s.Type}-${s.Time}`}>
+              {isoDateFromTimestamp(s.Time)}
+            </li>
+          ))}
+        </ul>
+      );
+    },
   }),
   ...(isBE
     ? [
@@ -44,11 +82,15 @@ export const columns = [
         ),
       ]
     : []),
-  columnHelper.accessor((env) => env.StackStatus.Error, {
-    id: 'error',
-    header: 'Error',
-    cell: ErrorCell,
-  }),
+  columnHelper.accessor(
+    (env) =>
+      env.StackStatus.Status.find((s) => s.Type === StatusType.Error)?.Error,
+    {
+      id: 'error',
+      header: 'Error',
+      cell: ErrorCell,
+    }
+  ),
   ...(isBE
     ? [
         columnHelper.display({
@@ -67,7 +109,7 @@ export const columns = [
         }),
       ]
     : []),
-];
+]);
 
 function ErrorCell({ getValue }: CellContext<EdgeStackEnvironment, string>) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -96,32 +138,29 @@ function ErrorCell({ getValue }: CellContext<EdgeStackEnvironment, string>) {
   );
 }
 
-function endpointStatusLabel(status: EdgeStackStatus) {
-  const details = (status && status.Details) || {};
-
+function endpointStatusLabel(statusArray: Array<DeploymentStatus>) {
   const labels = [];
 
-  if (details.Acknowledged) {
-    labels.push('Acknowledged');
-  }
-
-  if (details.ImagesPulled) {
-    labels.push('Images pre-pulled');
-  }
-
-  if (details.Ok) {
-    labels.push('Deployed');
-  }
-
-  if (details.Error) {
-    labels.push('Failed');
-  }
+  statusArray.forEach((status) => {
+    if (status.Type === StatusType.Acknowledged) {
+      labels.push('Acknowledged');
+    }
+    if (status.Type === StatusType.ImagesPulled) {
+      labels.push('Images pre-pulled');
+    }
+    if (status.Type === StatusType.Running) {
+      labels.push('Deployed');
+    }
+    if (status.Type === StatusType.Error) {
+      labels.push('Failed');
+    }
+  });
 
   if (!labels.length) {
     labels.push('Pending');
   }
 
-  return labels.join(', ');
+  return _.uniq(labels).join(', ');
 }
 
 function TargetVersionCell({
@@ -205,8 +244,45 @@ function DeployedVersionCell({
 }
 
 function endpointDeployedVersionLabel(status: EdgeStackStatus) {
-  if (status.DeploymentInfo.ConfigHash) {
-    return status.DeploymentInfo.ConfigHash.slice(0, 7).toString();
+  if (status.DeploymentInfo?.ConfigHash) {
+    return status.DeploymentInfo?.ConfigHash.slice(0, 7).toString();
   }
-  return (status && status.DeploymentInfo.FileVersion.toString()) || '';
+  return status.DeploymentInfo?.FileVersion.toString() || '';
+}
+
+function Status({ value }: { value: StatusType }) {
+  const color = getStateColor(value);
+
+  return (
+    <div className="flex items-center gap-2">
+      <span
+        className={clsx('h-2 w-2 rounded-full', {
+          'bg-orange-5': color === 'orange',
+          'bg-green-5': color === 'green',
+          'bg-error-5': color === 'red',
+        })}
+      />
+
+      <span>{_.startCase(StatusType[value])}</span>
+    </div>
+  );
+}
+
+function getStateColor(type: StatusType): 'orange' | 'green' | 'red' {
+  switch (type) {
+    case StatusType.Acknowledged:
+    case StatusType.ImagesPulled:
+    case StatusType.DeploymentReceived:
+    case StatusType.Running:
+    case StatusType.RemoteUpdateSuccess:
+    case StatusType.Removed:
+      return 'green';
+    case StatusType.Error:
+      return 'red';
+    case StatusType.Pending:
+    case StatusType.Deploying:
+    case StatusType.Removing:
+    default:
+      return 'orange';
+  }
 }

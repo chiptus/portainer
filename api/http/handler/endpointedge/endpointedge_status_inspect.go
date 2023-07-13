@@ -19,6 +19,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge/cache"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	"github.com/portainer/portainer-ee/api/internal/slices"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/pkg/featureflags"
 
@@ -275,13 +276,16 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, edgeS
 	status, ok := edgeStack.Status[environmentID]
 	if !ok {
 		status = portainer.EdgeStackStatus{
-			EndpointID: portainer.EndpointID(environmentID),
+			Status:         []portainer.EdgeStackDeploymentStatus{},
+			EndpointID:     portainer.EndpointID(environmentID),
+			DeploymentInfo: portainer.StackDeploymentInfo{},
 		}
 	}
 
-	status.Details.RemoteUpdateSuccess = true
-	status.Details.Pending = false
-	status.Error = ""
+	status.Status = append(status.Status, portainer.EdgeStackDeploymentStatus{
+		Type: portainer.EdgeStackStatusRemoteUpdateSuccess,
+		Time: time.Now().Unix(),
+	})
 
 	edgeStack.Status[environmentID] = status
 
@@ -375,9 +379,21 @@ func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID 
 			}
 		}
 
-		// if the stack represents a successful remote update or failed - skip it
-		if endpointStatus, ok := stack.Status[endpointID]; ok && (endpointStatus.Details.RemoteUpdateSuccess || (stack.EdgeUpdateID != 0 && endpointStatus.Details.Error)) {
-			continue
+		if stack.EdgeUpdateID != 0 {
+			endpointStatus, ok := stack.Status[endpointID]
+			if !ok {
+				endpointStatus = portainer.EdgeStackStatus{
+					Status:     []portainer.EdgeStackDeploymentStatus{},
+					EndpointID: portainer.EndpointID(endpointID),
+				}
+			}
+
+			// if the stack represents a successful remote update or failed - skip it
+			if slices.ContainsFunc(endpointStatus.Status, func(s portainer.EdgeStackDeploymentStatus) bool {
+				return s.Type == portainer.EdgeStackStatusRemoteUpdateSuccess || s.Type == portainer.EdgeStackStatusError
+			}) {
+				continue
+			}
 		}
 
 		pastSchedule, err := shouldScheduleTrigger(stack.ScheduledTime, timeZone)

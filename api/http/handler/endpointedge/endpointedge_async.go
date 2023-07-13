@@ -16,6 +16,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	"github.com/portainer/portainer-ee/api/internal/slices"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/pkg/featureflags"
 
@@ -48,9 +49,9 @@ type snapshot struct {
 	KubernetesPatch jsonpatch.Patch                 `json:"kubernetesPatch,omitempty"`
 	KubernetesHash  *uint32                         `json:"kubernetesHash,omitempty"`
 
-	StackLogs   []portaineree.EdgeStackLog                            `json:"stackLogs,omitempty"`
-	StackStatus map[portaineree.EdgeStackID]portainer.EdgeStackStatus `json:"stackStatus,omitempty"`
-	JobsStatus  map[portaineree.EdgeJobID]portaineree.EdgeJobStatus   `json:"jobsStatus:,omitempty"`
+	StackLogs   []portaineree.EdgeStackLog                                        `json:"stackLogs,omitempty"`
+	StackStatus map[portaineree.EdgeStackID][]portainer.EdgeStackDeploymentStatus `json:"stackStatus,omitempty"`
+	JobsStatus  map[portaineree.EdgeJobID]portaineree.EdgeJobStatus               `json:"jobsStatus:,omitempty"`
 }
 
 type EdgeAsyncResponse struct {
@@ -528,13 +529,22 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 			continue
 		}
 
+		environmentStatus, ok := stack.Status[endpoint.ID]
+		if !ok {
+			environmentStatus = portainer.EdgeStackStatus{}
+		}
+
 		// if the stack represents a successful remote update - skip it
-		if endpointStatus, ok := stack.Status[endpoint.ID]; ok && endpointStatus.Details.RemoteUpdateSuccess {
+		if slices.ContainsFunc(environmentStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
+			return sts.Type == portainer.EdgeStackStatusRemoteUpdateSuccess
+		}) {
 			continue
 		}
 
 		if stack.EdgeUpdateID != 0 {
-			if status.Details.Error {
+			if slices.ContainsFunc(environmentStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
+				return sts.Type == portainer.EdgeStackStatusError
+			}) {
 				err = handler.edgeUpdateService.RemoveActiveSchedule(endpoint.ID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
 				if err != nil {
 					log.Warn().
@@ -543,29 +553,30 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 				}
 			}
 
-			if status.Details.Ok {
+			if slices.ContainsFunc(environmentStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
+				return sts.Type == portainer.EdgeStackStatusRunning
+			}) {
 				handler.edgeUpdateService.EdgeStackDeployed(endpoint.ID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
 			}
 		}
 
-		var deploymentInfo portainer.StackDeploymentInfo
-		if status.Details.Ok {
-			deploymentInfo.FileVersion = stack.StackFileVersion
+		environmentStatus.Status = status
+
+		if slices.ContainsFunc(environmentStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
+			return sts.Type == portainer.EdgeStackStatusRunning
+		}) {
+			gitHash := ""
 			if stack.GitConfig != nil {
-				deploymentInfo.ConfigHash = stack.GitConfig.ConfigHash
+				gitHash = stack.GitConfig.ConfigHash
+			}
+
+			environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
+				FileVersion: stack.StackFileVersion,
+				ConfigHash:  gitHash,
 			}
 		}
 
-		if status.Details.Remove {
-			delete(stack.Status, portaineree.EndpointID(status.EndpointID))
-		} else {
-			stack.Status[portaineree.EndpointID(status.EndpointID)] = portainer.EdgeStackStatus{
-				EndpointID:     status.EndpointID,
-				Details:        status.Details,
-				Error:          status.Error,
-				DeploymentInfo: deploymentInfo,
-			}
-		}
+		stack.Status[endpoint.ID] = environmentStatus
 
 		err = tx.EdgeStack().UpdateEdgeStack(stack.ID, stack)
 		if err != nil {

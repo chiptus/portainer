@@ -73,7 +73,7 @@ func (service *Service) BuildEdgeStack(
 		DeploymentType:            deploymentType,
 		CreationDate:              time.Now().Unix(),
 		EdgeGroups:                edgeGroups,
-		Status:                    make(map[portaineree.EndpointID]portainer.EdgeStackStatus),
+		Status:                    make(map[portaineree.EndpointID]portainer.EdgeStackStatus, 0),
 		Version:                   1,
 		Registries:                args.Registries,
 		ScheduledTime:             args.ScheduledTime,
@@ -153,6 +153,7 @@ func (service *Service) PersistEdgeStack(
 	stack.ProjectPath = projectPath
 	stack.EntryPoint = configPath
 	stack.NumDeployments = len(relatedEndpointIds)
+	stack.Status = NewStatus(nil, relatedEndpointIds)
 
 	err = service.updateEndpointRelations(tx, stack.ID, relatedEndpointIds)
 	if err != nil {

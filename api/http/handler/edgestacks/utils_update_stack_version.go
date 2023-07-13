@@ -6,6 +6,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	eefs "github.com/portainer/portainer-ee/api/filesystem"
+	edgestackutils "github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 
@@ -19,7 +20,7 @@ func (handler *Handler) updateStackVersion(stack *portaineree.EdgeStack,
 	relatedEnvironmentsIDs []portaineree.EndpointID,
 	rollbackTo *int) error {
 	stack.Version++
-	stack.Status = newStatus(stack.Status, relatedEnvironmentsIDs)
+	stack.Status = edgestackutils.NewStatus(stack.Status, relatedEnvironmentsIDs)
 
 	if stack.GitConfig != nil {
 		if rollbackTo != nil {
@@ -134,28 +135,6 @@ func (handler *Handler) storeStackFile(stack *portaineree.EdgeStack, deploymentT
 	}
 
 	return nil
-}
-
-func newStatus(oldStatus map[portaineree.EndpointID]portainer.EdgeStackStatus, relatedEnvironmentsIDs []portaineree.EndpointID) map[portaineree.EndpointID]portainer.EdgeStackStatus {
-	status := map[portaineree.EndpointID]portainer.EdgeStackStatus{}
-
-	for _, environmentID := range relatedEnvironmentsIDs {
-		newEnvStatus := portainer.EdgeStackStatus{
-			Details: portainer.EdgeStackStatusDetails{
-				Pending: true,
-			},
-			DeploymentInfo: portainer.StackDeploymentInfo{},
-		}
-
-		oldEnvStatus, ok := oldStatus[environmentID]
-		if ok {
-			newEnvStatus.DeploymentInfo = oldEnvStatus.DeploymentInfo
-		}
-
-		status[environmentID] = newEnvStatus
-	}
-
-	return status
 }
 
 // hasFileContentChanged checks if the file content has changed for non-git deployed stacks

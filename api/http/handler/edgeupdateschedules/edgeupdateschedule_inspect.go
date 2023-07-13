@@ -6,8 +6,11 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	"github.com/portainer/portainer-ee/api/internal/slices"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type inspectResponse struct {
@@ -43,13 +46,7 @@ func (handler *Handler) inspect(w http.ResponseWriter, r *http.Request) *httperr
 		return httperror.InternalServerError("unable to get edge stack", err)
 	}
 
-	isActive := false
-	for _, envStatus := range edgeStack.Status {
-		if !envStatus.Details.Pending {
-			isActive = true
-			break
-		}
-	}
+	isActive := isUpdateActive(edgeStack)
 
 	decoratedItem := &inspectResponse{
 		UpdateSchedule: item,
@@ -62,4 +59,16 @@ func (handler *Handler) inspect(w http.ResponseWriter, r *http.Request) *httperr
 	}
 
 	return response.JSON(w, decoratedItem)
+}
+
+func isUpdateActive(edgeStack *portaineree.EdgeStack) bool {
+	for _, envStatus := range edgeStack.Status {
+		if slices.ContainsFunc(envStatus.Status, func(s portainer.EdgeStackDeploymentStatus) bool {
+			return s.Type != portainer.EdgeStackStatusPending
+		}) {
+
+			return true
+		}
+	}
+	return false
 }

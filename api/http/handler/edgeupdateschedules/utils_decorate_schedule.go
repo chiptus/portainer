@@ -6,6 +6,8 @@ import (
 	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	"github.com/portainer/portainer-ee/api/internal/slices"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 )
@@ -53,20 +55,28 @@ func aggregateStatus(relatedEnvironmentsIDs map[portaineree.EndpointID]string, e
 			continue
 		}
 
-		if envStatus.Details.RemoteUpdateSuccess {
+		if slices.ContainsFunc(envStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
+			return sts.Type == portainer.EdgeStackStatusRemoteUpdateSuccess
+		}) {
 			continue
 		}
 
-		// if edge stack reported ok, the update either failed (and we have no way to know) or it's still pending
-		if !ok || envStatus.Details.Pending || envStatus.Details.Ok {
+		if slices.ContainsFunc(envStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
+			return sts.Type == portainer.EdgeStackStatusPending ||
+				sts.Type == portainer.EdgeStackStatusDeploymentReceived
+		}) {
 			hasPending = true
 		}
 
-		if envStatus.Details.Error {
-			return edgetypes.UpdateScheduleStatusError, fmt.Sprintf("Error on environment %d: %s", environmentID, envStatus.Error)
+		if errorStatus, ok := slices.Find(envStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
+			return sts.Type == portainer.EdgeStackStatusError
+		}); ok {
+			return edgetypes.UpdateScheduleStatusError, fmt.Sprintf("Error on environment %d: %s", environmentID, errorStatus.Error)
 		}
 
-		if envStatus.Details.Acknowledged {
+		if slices.ContainsFunc(envStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
+			return sts.Type == portainer.EdgeStackStatusAcknowledged
+		}) {
 			hasSent = true
 			break
 		}
