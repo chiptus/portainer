@@ -74,9 +74,10 @@ func (handler *Handler) customTemplateGitFetch(w http.ResponseWriter, r *http.Re
 		customTemplate.GitConfig.Authentication.Password = credential.Password
 	}
 
-	commitHash, err := stackutils.DownloadGitRepository(*customTemplate.GitConfig, handler.GitService, func() string {
-		return customTemplate.ProjectPath
-	})
+	commitHash, err := stackutils.DownloadGitRepository(*customTemplate.GitConfig, handler.GitService, false,
+		func(bool, string) string {
+			return customTemplate.ProjectPath
+		})
 	if err != nil {
 		log.Warn().Err(err).Msg("failed to download git repository")
 

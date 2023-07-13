@@ -16,7 +16,7 @@ var (
 
 // DownloadGitRepository downloads the target git repository on the disk
 // The first return value represents the commit hash of the downloaded git repository
-func DownloadGitRepository(config gittypes.RepoConfig, gitService portainer.GitService, getProjectPath func() string) (string, error) {
+func DownloadGitRepository(config gittypes.RepoConfig, gitService portainer.GitService, enableVersionFolder bool, getProjectPath func(enableVersionFolder bool, commitHash string) string) (string, error) {
 	username := ""
 	password := ""
 	if config.Authentication != nil {
@@ -24,8 +24,14 @@ func DownloadGitRepository(config gittypes.RepoConfig, gitService portainer.GitS
 		password = config.Authentication.Password
 	}
 
-	projectPath := getProjectPath()
-	err := gitService.CloneRepository(projectPath, config.URL, config.ReferenceName, username, password, config.TLSSkipVerify)
+	commitID, err := gitService.LatestCommitID(config.URL, config.ReferenceName, username, password, config.TLSSkipVerify)
+	if err != nil {
+		newErr := fmt.Errorf("unable to fetch git repository id: %w", err)
+		return "", newErr
+	}
+
+	projectPath := getProjectPath(enableVersionFolder, commitID)
+	err = gitService.CloneRepository(projectPath, config.URL, config.ReferenceName, username, password, config.TLSSkipVerify)
 	if err != nil {
 		if errors.Is(err, gittypes.ErrAuthenticationFailure) {
 			newErr := git.ErrInvalidGitCredential
@@ -36,10 +42,5 @@ func DownloadGitRepository(config gittypes.RepoConfig, gitService portainer.GitS
 		return "", newErr
 	}
 
-	commitID, err := gitService.LatestCommitID(config.URL, config.ReferenceName, username, password, config.TLSSkipVerify)
-	if err != nil {
-		newErr := fmt.Errorf("unable to fetch git repository id: %w", err)
-		return "", newErr
-	}
 	return commitID, nil
 }

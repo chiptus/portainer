@@ -33,10 +33,10 @@ angular.module('portainer.app').factory('StackService', [
       return deferred.promise;
     };
 
-    service.getStackFile = function (id) {
+    service.getStackFile = function (id, version, commitHash) {
       var deferred = $q.defer();
 
-      Stack.getStackFile({ id: id })
+      Stack.getStackFile({ id: id, version: version, commitHash: commitHash })
         .$promise.then(function success(data) {
           deferred.resolve(data.StackFileContent);
         })
@@ -256,7 +256,7 @@ angular.module('portainer.app').factory('StackService', [
       return deferred.promise;
     };
 
-    service.updateStack = function (stack, stackFile, env, prune, webhook, pullImage) {
+    service.updateStack = function (stack, stackFile, env, prune, webhook, pullImage, rollbackTo) {
       return Stack.update(
         { endpointId: stack.EndpointId },
         {
@@ -266,6 +266,7 @@ angular.module('portainer.app').factory('StackService', [
           Prune: prune,
           Webhook: webhook,
           PullImage: pullImage,
+          RollbackTo: rollbackTo,
         }
       ).$promise;
     };

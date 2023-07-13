@@ -15,6 +15,7 @@ import (
 	k "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/git"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/rs/zerolog/log"
@@ -182,21 +183,37 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	// If relative path feature is enabled, the git clone operation will be executed in portainer-unpacker
-	if !isRelativePathEnabled(stack) {
-		clean, err := git.CloneWithBackup(handler.GitService, handler.FileService, git.CloneOptions{
-			ProjectPath:   stack.ProjectPath,
-			URL:           stack.GitConfig.URL,
-			ReferenceName: stack.GitConfig.ReferenceName,
-			Username:      repositoryUsername,
-			Password:      repositoryPassword,
-			TLSSkipVerify: stack.GitConfig.TLSSkipVerify,
-		})
+	newHash, err := handler.GitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, repositoryUsername, repositoryPassword, stack.GitConfig.TLSSkipVerify)
+	if err != nil {
+		return httperror.InternalServerError("Unable get latest commit id", errors.WithMessagef(err, "failed to fetch latest commit id of the stack %v", stack.ID))
+	}
+
+	if stack.GitConfig.ConfigHash != newHash {
+		stack.PreviousDeploymentInfo = &portainer.StackDeploymentInfo{
+			ConfigHash:  stack.GitConfig.ConfigHash,
+			FileVersion: stack.StackFileVersion,
+		}
+		stack.GitConfig.ConfigHash = newHash
+		// When the commit hash is different, we consume the stack file different
+		stack.StackFileVersion++
+
+		// Although the git clone operation will be executed in portainer-unpacker if relative path feature is
+		// enabled, it is still necessasry to clone the repository in our data volume to keep the stack file
+		// consistency, especially after introducing the new feature of stack file versioning.
+		projectVersionPath := handler.FileService.FormProjectPathByVersion(stack.ProjectPath, 0, stack.GitConfig.ConfigHash)
+		err = handler.GitService.CloneRepository(projectVersionPath,
+			stack.GitConfig.URL,
+			stack.GitConfig.ReferenceName,
+			repositoryUsername,
+			repositoryPassword,
+			stack.GitConfig.TLSSkipVerify)
 		if err != nil {
+			if errors.Is(err, gittypes.ErrAuthenticationFailure) {
+				return httperror.InternalServerError("Unable to clone git repository directory", git.ErrInvalidGitCredential)
+			}
+
 			return httperror.InternalServerError("Unable to clone git repository directory", err)
 		}
-
-		defer clean()
 	}
 
 	log.Debug().Bool("pull_image_flag", payload.PullImage).Msg("")
@@ -205,12 +222,6 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 	if httpErr != nil {
 		return httpErr
 	}
-
-	newHash, err := handler.GitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, repositoryUsername, repositoryPassword, stack.GitConfig.TLSSkipVerify)
-	if err != nil {
-		return httperror.InternalServerError("Unable get latest commit id", errors.WithMessagef(err, "failed to fetch latest commit id of the stack %v", stack.ID))
-	}
-	stack.GitConfig.ConfigHash = newHash
 
 	user, err := handler.DataStore.User().Read(securityContext.UserID)
 	if err != nil {

@@ -23,6 +23,8 @@ import (
 
 type kubernetesFileStackUpdatePayload struct {
 	StackFileContent string
+	// RollbackTo specifies the stack file version to rollback to (only support to rollback to the last version currently)
+	RollbackTo *int
 }
 
 type kubernetesGitStackUpdatePayload struct {
@@ -127,10 +129,22 @@ func (handler *Handler) updateKubernetesStack(r *http.Request, stack *portainere
 		return deployError
 	}
 
+	// After deploying successfully, stack.ProjectPath should be set back
 	stackFolder := strconv.Itoa(int(stack.ID))
-	projectPath, err := handler.FileService.UpdateStoreStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
+	stack.ProjectPath = handler.FileService.GetStackProjectPath(stackFolder)
+
+	// update or rollback stack file version
+	err = handler.updateStackFileVersion(stack, payload.StackFileContent, payload.RollbackTo)
 	if err != nil {
-		if rollbackErr := handler.FileService.RollbackStackFile(stackFolder, stack.EntryPoint); rollbackErr != nil {
+		return httperror.BadRequest("Unable to update or rollback kubernetes stack file version", err)
+	}
+
+	_, err = handler.FileService.StoreStackFileFromBytesByVersion(stackFolder,
+		stack.EntryPoint,
+		stack.StackFileVersion,
+		[]byte(payload.StackFileContent))
+	if err != nil {
+		if rollbackErr := handler.FileService.RollbackStackFileByVersion(stackFolder, stack.StackFileVersion, stack.EntryPoint); rollbackErr != nil {
 			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
 		}
 
@@ -141,9 +155,8 @@ func (handler *Handler) updateKubernetesStack(r *http.Request, stack *portainere
 		errMsg := fmt.Sprintf("Unable to persist Kubernetes %s file on disk", fileType)
 		return httperror.InternalServerError(errMsg, err)
 	}
-	stack.ProjectPath = projectPath
 
-	handler.FileService.RemoveStackFileBackup(stackFolder, stack.EntryPoint)
+	handler.FileService.RemoveStackFileBackupByVersion(stackFolder, stack.StackFileVersion, stack.EntryPoint)
 
 	return nil
 }

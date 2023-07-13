@@ -22,7 +22,7 @@ type stackFileResponse struct {
 // @security jwt
 // @produce json
 // @param id path int true "EdgeStack Id"
-// @param version query int false "Stack version maintained by Portainer. If both version and commitHash are provided, the commitHash will be used"
+// @param version query int false "Stack file version maintained by Portainer. If both version and commitHash are provided, the commitHash will be used"
 // @param commitHash query string false "Git repository commit hash. If both version and commitHash are provided, the commitHash will be used"
 // @success 200 {object} stackFileResponse
 // @failure 500
@@ -52,7 +52,8 @@ func (handler *Handler) edgeStackFile(w http.ResponseWriter, r *http.Request) *h
 		// check if a commit hash is provided
 		commitHash, _ := request.RetrieveQueryParameter(r, "commitHash", true)
 		if commitHash != "" {
-			if commitHash != stack.PreviousDeploymentInfo.ConfigHash && commitHash != stack.GitConfig.ConfigHash {
+			if (stack.PreviousDeploymentInfo != nil && commitHash != stack.PreviousDeploymentInfo.ConfigHash) &&
+				commitHash != stack.GitConfig.ConfigHash {
 				return httperror.BadRequest("Only support latest two versions", fmt.Errorf("commit hash %s is not a valid commit hash for this stack", commitHash))
 			}
 			projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, stack.StackFileVersion, commitHash)
@@ -63,7 +64,8 @@ func (handler *Handler) edgeStackFile(w http.ResponseWriter, r *http.Request) *h
 		// check if a version is provided
 		version, _ := request.RetrieveNumericQueryParameter(r, "version", true)
 		if version != 0 {
-			if version != stack.PreviousDeploymentInfo.FileVersion && version != stack.StackFileVersion {
+			if (stack.PreviousDeploymentInfo != nil && version != stack.PreviousDeploymentInfo.FileVersion) &&
+				version != stack.StackFileVersion {
 				return httperror.BadRequest("Only support latest two versions", fmt.Errorf("version %d is not a valid version for this stack", version))
 			}
 			projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, version, "")

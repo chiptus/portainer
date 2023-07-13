@@ -24,6 +24,10 @@ angular.module('portainer.app').controller('StacksDatatableController', [
           label: 'Updated',
           display: false,
         },
+        deployedVersion: {
+          label: 'Deployed version',
+          display: true,
+        },
       },
     };
 

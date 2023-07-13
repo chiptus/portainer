@@ -72,7 +72,7 @@ func (b *K8sStackFileContentBuilder) SetFileContent(payload *StackPayload) FileC
 	}
 
 	stackFolder := strconv.Itoa(int(b.stack.ID))
-	projectPath, err := b.fileService.StoreStackFileFromBytes(stackFolder, b.stack.EntryPoint, []byte(payload.StackFileContent))
+	projectPath, err := b.fileService.StoreStackFileFromBytesByVersion(stackFolder, b.stack.EntryPoint, b.stack.StackFileVersion, []byte(payload.StackFileContent))
 	if err != nil {
 		fileType := "Manifest"
 		if b.stack.IsComposeFormat {

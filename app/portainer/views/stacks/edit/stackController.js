@@ -74,6 +74,7 @@ angular.module('portainer.app').controller('StackController', [
       showEditorTab: false,
       yamlError: false,
       isEditorDirty: false,
+      versions: [],
     };
 
     $scope.formValues = {
@@ -83,6 +84,7 @@ angular.module('portainer.app').controller('StackController', [
       AccessControlData: new AccessControlFormData(),
       WebhookURL: WebhookHelper.returnStackWebhookUrl(uuidv4()),
       EnableWebhook: false,
+      RollbackTo: undefined,
     };
 
     $scope.handleEnvVarChange = handleEnvVarChange;
@@ -94,6 +96,28 @@ angular.module('portainer.app').controller('StackController', [
       $scope.$evalAsync(() => {
         $scope.formValues.EnableWebhook = enable;
       });
+    };
+
+    $scope.onVersionChange = function (newVersion) {
+      const stackId = $transition$.params().id;
+      $q.all({
+        stackFile: StackService.getStackFile(stackId, newVersion),
+      })
+        .then(function success(data) {
+          if ($scope.state.versions.length > 1) {
+            if (newVersion < $scope.state.versions[0]) {
+              $scope.formValues.RollbackTo = newVersion;
+            } else {
+              $scope.formValues.RollbackTo = undefined;
+            }
+          }
+
+          $scope.editorUpdate(data.stackFile);
+          console.log($scope.formValues);
+        })
+        .catch(function error(err) {
+          Notifications.error('Failure', err, 'Unable to retrieve stack file');
+        });
     };
 
     $scope.onPruneChange = function (enable) {
@@ -268,9 +292,10 @@ angular.module('portainer.app').controller('StackController', [
         if (stack.EndpointId === 0) {
           stack.EndpointId = endpoint.Id;
         }
+        const rollbackTo = $scope.formValues.RollbackTo;
 
         $scope.state.actionInProgress = true;
-        StackService.updateStack(stack, stackFile, env, prune, webhook, result.pullImage)
+        StackService.updateStack(stack, stackFile, env, prune, webhook, result.pullImage, rollbackTo)
           .then(function success() {
             Notifications.success('Success', 'Stack successfully deployed');
             $scope.state.isEditorDirty = false;
@@ -373,8 +398,17 @@ angular.module('portainer.app').controller('StackController', [
               resourcesPromise = stack.Type === 1 ? retrieveSwarmStackResources(stack.Name, agentProxy) : retrieveComposeStackResources(stack.Name);
             }
 
+            $scope.state.versions.push(stack.StackFileVersion);
+            if (stack.PreviousDeploymentInfo) {
+              $scope.state.versions.push(stack.PreviousDeploymentInfo.FileVersion);
+            }
+
+            var commitHash = '';
+            if (stack.GitConfig) {
+              commitHash = stack.GitConfig.ConfigHash;
+            }
             return $q.all({
-              stackFile: StackService.getStackFile(id),
+              stackFile: StackService.getStackFile(id, stack.StackFileVersion, commitHash),
               resources: resourcesPromise,
             });
           })

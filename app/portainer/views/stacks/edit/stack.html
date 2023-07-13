@@ -164,6 +164,8 @@
                     on-change="(editorUpdate)"
                     value="stackFileContent"
                     read-only="editorReadOnly || orphaned"
+                    versions="state.versions"
+                    on-version-change="(onVersionChange)"
                   ></code-editor>
                 </div>
               </div>

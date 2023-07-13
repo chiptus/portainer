@@ -22,25 +22,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type updateComposeStackPayload struct {
-	// New content of the Stack file
-	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx"`
-	// A list of environment(endpoint) variables used during stack deployment
-	Env []portaineree.Pair
-	// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
-	Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
-	// Force a pulling to current image with the original tag though the image is already the latest
-	PullImage bool `example:"false"`
-}
-
-func (payload *updateComposeStackPayload) Validate(r *http.Request) error {
-	if govalidator.IsNull(payload.StackFileContent) {
-		return errors.New("Invalid stack file content")
-	}
-	return nil
-}
-
-type updateSwarmStackPayload struct {
+type updateStackPayload struct {
 	// New content of the Stack file
 	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx"`
 	// A list of environment(endpoint) variables used during stack deployment
@@ -51,9 +33,11 @@ type updateSwarmStackPayload struct {
 	Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
 	// Force a pulling to current image with the original tag though the image is already the latest
 	PullImage bool `example:"false"`
+	// RollbackTo specifies the stack file version to rollback to (only support to rollback to the last version currently)
+	RollbackTo *int
 }
 
-func (payload *updateSwarmStackPayload) Validate(r *http.Request) error {
+func (payload *updateStackPayload) Validate(r *http.Request) error {
 	if govalidator.IsNull(payload.StackFileContent) {
 		return errors.New("Invalid stack file content")
 	}
@@ -71,7 +55,7 @@ func (payload *updateSwarmStackPayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path int true "Stack identifier"
 // @param endpointId query int true "Environment identifier"
-// @param body body updateSwarmStackPayload true "Stack details"
+// @param body body updateStackPayload true "Stack details"
 // @success 200 {object} portaineree.Stack "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
@@ -174,97 +158,21 @@ func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *htt
 func (handler *Handler) updateAndDeployStack(r *http.Request, stack *portaineree.Stack, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 	if stack.Type == portaineree.DockerSwarmStack {
 		stack.Name = handler.SwarmStackManager.NormalizeStackName(stack.Name)
+		return handler.updateSwarmOrComposeStack(r, stack, endpoint)
 
-		return handler.updateSwarmStack(r, stack, endpoint)
 	} else if stack.Type == portaineree.DockerComposeStack {
 		stack.Name = handler.ComposeStackManager.NormalizeStackName(stack.Name)
+		return handler.updateSwarmOrComposeStack(r, stack, endpoint)
 
-		return handler.updateComposeStack(r, stack, endpoint)
 	} else if stack.Type == portaineree.KubernetesStack {
 		return handler.updateKubernetesStack(r, stack, endpoint)
+
 	} else {
 		return httperror.InternalServerError("Unsupported stack", errors.Errorf("unsupported stack type: %v", stack.Type))
 	}
 }
 
-func (handler *Handler) updateComposeStack(r *http.Request, stack *portaineree.Stack, endpoint *portaineree.Endpoint) *httperror.HandlerError {
-	// Must not be git based stack. stop the auto update job if there is any
-	if stack.AutoUpdate != nil {
-		deployments.StopAutoupdate(stack.ID, stack.AutoUpdate.JobID, handler.Scheduler)
-		stack.AutoUpdate = nil
-	}
-	if stack.GitConfig != nil {
-		stack.FromAppTemplate = true
-	}
-
-	var payload updateComposeStackPayload
-	err := request.DecodeAndValidateJSONPayload(r, &payload)
-	if err != nil {
-		return httperror.BadRequest("Invalid request payload", err)
-	}
-
-	stack.Env = payload.Env
-	stack.Webhook = payload.Webhook
-
-	if payload.Webhook != "" && stack.Webhook != payload.Webhook {
-		isUniqueError := handler.checkUniqueWebhookID(payload.Webhook)
-		if isUniqueError != nil {
-			return isUniqueError
-		}
-	}
-	stack.Webhook = payload.Webhook
-
-	stackFolder := strconv.Itoa(int(stack.ID))
-	_, err = handler.FileService.UpdateStoreStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
-	if err != nil {
-		if rollbackErr := handler.FileService.RollbackStackFile(stackFolder, stack.EntryPoint); rollbackErr != nil {
-			log.Warn().Err(err).Msg("rollback stack file error")
-		}
-
-		return httperror.InternalServerError("Unable to persist updated Compose file on disk", err)
-	}
-
-	// Create compose deployment config
-	securityContext, err := security.RetrieveRestrictedRequestContext(r)
-	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve info from request context", err)
-	}
-
-	composeDeploymentConfig, err := deployments.CreateComposeStackDeploymentConfig(securityContext,
-		stack,
-		endpoint,
-		handler.DataStore,
-		handler.FileService,
-		handler.StackDeployer,
-		payload.PullImage,
-		false)
-	if err != nil {
-		if rollbackErr := handler.FileService.RollbackStackFile(stackFolder, stack.EntryPoint); rollbackErr != nil {
-			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
-		}
-		return httperror.InternalServerError(err.Error(), err)
-	}
-
-	// Deploy the stack
-	err = composeDeploymentConfig.Deploy()
-	if err != nil {
-		if rollbackErr := handler.FileService.RollbackStackFile(stackFolder, stack.EntryPoint); rollbackErr != nil {
-			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
-		}
-		return httperror.InternalServerError(err.Error(), err)
-	}
-
-	handler.FileService.RemoveStackFileBackup(stackFolder, stack.EntryPoint)
-
-	go func() {
-		images.EvictImageStatus(stack.Name)
-		EvictComposeStackImageStatusCache(r.Context(), endpoint, stack.Name, handler.DockerClientFactory)
-	}()
-
-	return nil
-}
-
-func (handler *Handler) updateSwarmStack(r *http.Request, stack *portaineree.Stack, endpoint *portaineree.Endpoint) *httperror.HandlerError {
+func (handler *Handler) updateSwarmOrComposeStack(r *http.Request, stack *portaineree.Stack, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 
 	// Must not be git based stack. stop the auto update job if there is any
 	if stack.AutoUpdate != nil {
@@ -275,7 +183,7 @@ func (handler *Handler) updateSwarmStack(r *http.Request, stack *portaineree.Sta
 		stack.FromAppTemplate = true
 	}
 
-	var payload updateSwarmStackPayload
+	var payload updateStackPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
 		return httperror.BadRequest("Invalid request payload", err)
@@ -291,30 +199,56 @@ func (handler *Handler) updateSwarmStack(r *http.Request, stack *portaineree.Sta
 	}
 	stack.Webhook = payload.Webhook
 
-	stackFolder := strconv.Itoa(int(stack.ID))
-	_, err = handler.FileService.UpdateStoreStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent))
+	// update or rollback stack file version
+	err = handler.updateStackFileVersion(stack, payload.StackFileContent, payload.RollbackTo)
 	if err != nil {
-		if rollbackErr := handler.FileService.RollbackStackFile(stackFolder, stack.EntryPoint); rollbackErr != nil {
+		return httperror.BadRequest("Unable to update or rollback stack file version", err)
+	}
+
+	stackFolder := strconv.Itoa(int(stack.ID))
+	_, err = handler.FileService.StoreStackFileFromBytesByVersion(stackFolder,
+		stack.EntryPoint,
+		stack.StackFileVersion,
+		[]byte(payload.StackFileContent))
+	if err != nil {
+		if rollbackErr := handler.FileService.RollbackStackFileByVersion(stackFolder, stack.StackFileVersion, stack.EntryPoint); rollbackErr != nil {
 			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
 		}
 
 		return httperror.InternalServerError("Unable to persist updated Compose file on disk", err)
 	}
 
-	// Create swarm deployment config
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	swarmDeploymentConfig, err := deployments.CreateSwarmStackDeploymentConfig(securityContext,
-		stack,
-		endpoint,
-		handler.DataStore,
-		handler.FileService,
-		handler.StackDeployer,
-		payload.Prune,
-		payload.PullImage)
+	// Create deployment config based on the stack type
+	var stackDeploymentConfig deployments.StackDeploymentConfiger
+	switch stack.Type {
+	case portaineree.DockerSwarmStack:
+		stackDeploymentConfig, err = deployments.CreateSwarmStackDeploymentConfig(securityContext,
+			stack,
+			endpoint,
+			handler.DataStore,
+			handler.FileService,
+			handler.StackDeployer,
+			payload.Prune,
+			payload.PullImage)
+
+	case portaineree.DockerComposeStack:
+		stackDeploymentConfig, err = deployments.CreateComposeStackDeploymentConfig(securityContext,
+			stack,
+			endpoint,
+			handler.DataStore,
+			handler.FileService,
+			handler.StackDeployer,
+			payload.PullImage,
+			false)
+
+	default:
+		return httperror.InternalServerError("Invalid stack type", errors.New("invalid stack type"))
+	}
 	if err != nil {
 		if rollbackErr := handler.FileService.RollbackStackFile(stackFolder, stack.EntryPoint); rollbackErr != nil {
 			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
@@ -323,15 +257,15 @@ func (handler *Handler) updateSwarmStack(r *http.Request, stack *portaineree.Sta
 	}
 
 	// Deploy the stack
-	err = swarmDeploymentConfig.Deploy()
+	err = stackDeploymentConfig.Deploy()
 	if err != nil {
-		if rollbackErr := handler.FileService.RollbackStackFile(stackFolder, stack.EntryPoint); rollbackErr != nil {
+		if rollbackErr := handler.FileService.RollbackStackFileByVersion(stackFolder, stack.StackFileVersion, stack.EntryPoint); rollbackErr != nil {
 			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
 		}
 		return httperror.InternalServerError(err.Error(), err)
 	}
 
-	handler.FileService.RemoveStackFileBackup(stackFolder, stack.EntryPoint)
+	handler.FileService.RemoveStackFileBackupByVersion(stackFolder, stack.StackFileVersion, stack.EntryPoint)
 
 	go func() {
 		images.EvictImageStatus(stack.Name)

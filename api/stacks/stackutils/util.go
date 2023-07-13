@@ -26,9 +26,12 @@ func GetStackFilePaths(stack *portaineree.Stack, absolute bool) []string {
 		return append([]string{stack.EntryPoint}, stack.AdditionalFiles...)
 	}
 
+	projectPath := GetStackProjectPathByVersion(stack)
+
 	var filePaths []string
 	for _, file := range append([]string{stack.EntryPoint}, stack.AdditionalFiles...) {
-		filePaths = append(filePaths, filesystem.JoinPaths(stack.ProjectPath, file))
+
+		filePaths = append(filePaths, filesystem.JoinPaths(projectPath, file))
 	}
 	return filePaths
 }
@@ -47,4 +50,14 @@ func SanitizeLabel(value string) string {
 // IsGitStack checks if the stack is a git stack or not
 func IsGitStack(stack *portaineree.Stack) bool {
 	return stack.GitConfig != nil && len(stack.GitConfig.URL) != 0
+}
+
+// GetStackProjectPathByVersion returns the stack project path based on the version or commit hash
+func GetStackProjectPathByVersion(stack *portaineree.Stack) string {
+	if stack.GitConfig != nil {
+		return filesystem.JoinPaths(stack.ProjectPath, stack.GitConfig.ConfigHash)
+	} else if stack.StackFileVersion != 0 {
+		return filesystem.JoinPaths(stack.ProjectPath, fmt.Sprintf("v%d", stack.StackFileVersion))
+	}
+	return stack.ProjectPath
 }

@@ -14,5 +14,6 @@ angular.module('portainer.app').component('codeEditor', {
     value: '<',
     height: '@',
     versions: '<',
+    onVersionChange: '<',
   },
 });

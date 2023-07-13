@@ -140,7 +140,15 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 		}
 
 		if updated {
-			stack.GitConfig.ConfigHash = newHash
+			if stack.GitConfig.ConfigHash != newHash {
+				// Only when the config hash changed, we need to update the PreviousDeploymentInfo
+				stack.PreviousDeploymentInfo = &portainer.StackDeploymentInfo{
+					ConfigHash:  stack.GitConfig.ConfigHash,
+					FileVersion: stack.StackFileVersion,
+				}
+				stack.StackFileVersion++
+				stack.GitConfig.ConfigHash = newHash
+			}
 			stack.UpdateDate = time.Now().Unix()
 			gitCommitChangedOrForceUpdate = updated
 		}

@@ -27,6 +27,8 @@ export function StackViewModel(data) {
   this.AdditionalFiles = data.AdditionalFiles;
   this.AutoUpdate = data.AutoUpdate;
   this.Webhook = data.Webhook;
+  this.StackFileVersion = data.StackFileVersion;
+  this.PreviousDeploymentInfo = data.PreviousDeploymentInfo;
 }
 
 export function ExternalStackViewModel(name, type, creationDate) {

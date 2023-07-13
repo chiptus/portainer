@@ -1427,6 +1427,10 @@ type (
 		SupportRelativePath bool `example:"false"`
 		// Network(Swarm) or local(Standalone) filesystem path
 		FilesystemPath string `example:"/tmp"`
+		// StackFileVersion indicates the stack file version, such as yaml, hcl, and manifest
+		StackFileVersion int `example:"1"`
+		// The previous deployment info of the stack
+		PreviousDeploymentInfo *portainer.StackDeploymentInfo `json:"PreviousDeploymentInfo"`
 	}
 
 	// StackOption represents the options for stack deployment

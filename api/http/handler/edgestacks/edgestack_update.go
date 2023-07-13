@@ -30,7 +30,7 @@ type updateEdgeStackPayload struct {
 	Webhook *string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
 	// Environment variables to inject into the stack
 	EnvVars []portainer.Pair
-	// RollbackTo specifies the stack file version to rollback to
+	// RollbackTo specifies the stack file version to rollback to (only support to rollback to the last version currently)
 	RollbackTo *int
 }
 

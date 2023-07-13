@@ -56,10 +56,10 @@ require (
 	github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a
 	github.com/portainer/libhttp v0.0.0-20230615144939-a999f666d9a9
 	github.com/portainer/liblicense/v3 v3.0.0
-	github.com/portainer/portainer/api v0.0.0-20230707034845-801b7d43ee80
-	github.com/portainer/portainer/pkg/featureflags v0.0.0-20230209201943-d73622ed9cd4
-	github.com/portainer/portainer/pkg/libhelm v0.0.0-20230414025037-7a8a20e0cc3b
-	github.com/portainer/portainer/pkg/libstack v0.0.0-20230626042119-89c1d0e33707
+	github.com/portainer/portainer/api v0.0.0-20230712230624-b93aced176cc
+	github.com/portainer/portainer/pkg/featureflags v0.0.0-20230711022654-64b227b2e146
+	github.com/portainer/portainer/pkg/libhelm v0.0.0-20230711022654-64b227b2e146
+	github.com/portainer/portainer/pkg/libstack v0.0.0-20230711022654-64b227b2e146
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.29.0
 	github.com/sashabaranov/go-openai v1.9.3

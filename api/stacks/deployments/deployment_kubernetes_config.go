@@ -68,9 +68,16 @@ func (config *KubernetesStackDeploymentConfig) Deploy() error {
 	}
 	defer os.RemoveAll(tmpDir)
 
+	projectPath := stackutils.GetStackProjectPathByVersion(config.stack)
+	if strings.Contains(config.stack.ProjectPath, "kub_file_content") {
+		// The project path is a temporary path for updating k8s stack,
+		// we need to use the temporary path instead of the version path
+		projectPath = config.stack.ProjectPath
+	}
+
 	for _, fileName := range fileNames {
 		manifestFilePath := filesystem.JoinPaths(tmpDir, fileName)
-		manifestContent, err := os.ReadFile(filesystem.JoinPaths(config.stack.ProjectPath, fileName))
+		manifestContent, err := os.ReadFile(filesystem.JoinPaths(projectPath, fileName))
 		if err != nil {
 			return errors.Wrap(err, "failed to read manifest file")
 		}
@@ -152,9 +159,10 @@ func (config *KubernetesStackDeploymentConfig) Restart(resourceList []string) er
 	}
 	defer os.RemoveAll(tmpDir)
 
+	projectPath := stackutils.GetStackProjectPathByVersion(config.stack)
 	for _, fileName := range fileNames {
 		manifestFilePath := filesystem.JoinPaths(tmpDir, fileName)
-		manifestContent, err := os.ReadFile(filesystem.JoinPaths(config.stack.ProjectPath, fileName))
+		manifestContent, err := os.ReadFile(filesystem.JoinPaths(projectPath, fileName))
 		if err != nil {
 			return errors.Wrap(err, "failed to read manifest file")
 		}

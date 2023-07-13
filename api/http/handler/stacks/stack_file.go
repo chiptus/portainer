@@ -1,6 +1,7 @@
 package stacks
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -27,6 +28,8 @@ type stackFileResponse struct {
 // @security jwt
 // @produce json
 // @param id path int true "Stack identifier"
+// @param version query int false "Stack file version maintained by Portainer. If both version and commitHash are provided, the commitHash will be used"
+// @param commitHash query string false "Git repository commit hash. If both version and commitHash are provided, the commitHash will be used"
 // @success 200 {object} stackFileResponse "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
@@ -91,7 +94,35 @@ func (handler *Handler) stackFile(w http.ResponseWriter, r *http.Request) *httpe
 		return httperror.Forbidden(errMsg, errors.New(errMsg))
 	}
 
-	stackFileContent, err := handler.FileService.GetFileContent(stack.ProjectPath, stack.EntryPoint)
+	// Get project path
+	var projectPath string
+	if stack.GitConfig != nil {
+		projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, stack.StackFileVersion, stack.GitConfig.ConfigHash)
+
+		// check if a commit hash is provided
+		commitHash, _ := request.RetrieveQueryParameter(r, "commitHash", true)
+		if commitHash != "" {
+			if (stack.PreviousDeploymentInfo != nil && commitHash != stack.PreviousDeploymentInfo.ConfigHash) &&
+				commitHash != stack.GitConfig.ConfigHash {
+				return httperror.BadRequest("Only support latest two versions", fmt.Errorf("commit hash %s is not a valid commit hash for this stack", commitHash))
+			}
+			projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, stack.StackFileVersion, commitHash)
+		}
+	} else {
+		projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, stack.StackFileVersion, "")
+
+		// check if a version is provided
+		version, _ := request.RetrieveNumericQueryParameter(r, "version", true)
+		if version != 0 {
+			if (stack.PreviousDeploymentInfo != nil && version != stack.PreviousDeploymentInfo.FileVersion) &&
+				version != stack.StackFileVersion {
+				return httperror.BadRequest("Only support latest two versions", fmt.Errorf("version %d is not a valid version for this stack", version))
+			}
+			projectPath = handler.FileService.FormProjectPathByVersion(stack.ProjectPath, version, "")
+		}
+	}
+
+	stackFileContent, err := handler.FileService.GetFileContent(projectPath, stack.EntryPoint)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve Compose file from disk", err)
 	}

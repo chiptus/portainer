@@ -55,7 +55,7 @@ func (b *ComposeStackFileContentBuilder) SetFileContent(payload *StackPayload) F
 	}
 
 	stackFolder := strconv.Itoa(int(b.stack.ID))
-	projectPath, err := b.fileService.StoreStackFileFromBytes(stackFolder, b.stack.EntryPoint, []byte(payload.StackFileContent))
+	projectPath, err := b.fileService.StoreStackFileFromBytesByVersion(stackFolder, b.stack.EntryPoint, b.stack.StackFileVersion, []byte(payload.StackFileContent))
 	if err != nil {
 		b.err = httperror.InternalServerError("Unable to persist Compose file on disk", err)
 		return b

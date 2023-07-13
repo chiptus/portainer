@@ -1,7 +1,6 @@
 package stackbuilders
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
@@ -83,20 +82,23 @@ func (b *GitMethodStackBuilder) SetGitRepository(payload *StackPayload, userID p
 		repoConfig.ConfigFilePath = payload.ManifestFile
 	}
 
-	stackFolder := strconv.Itoa(int(b.stack.ID))
 	// Set the project path on the disk
-	b.stack.ProjectPath = b.fileService.GetStackProjectPath(stackFolder)
-
-	getProjectPath := func() string {
-		stackFolder := fmt.Sprintf("%d", b.stack.ID)
+	stackFolder := strconv.Itoa(int(b.stack.ID))
+	getProjectPath := func(enableVersionFolder bool, commitHash string) string {
+		if enableVersionFolder {
+			return b.fileService.GetStackProjectPathByVersion(stackFolder, 0, commitHash)
+		}
 		return b.fileService.GetStackProjectPath(stackFolder)
 	}
 
-	commitHash, err := stackutils.DownloadGitRepository(repoConfig, b.gitService, getProjectPath)
+	commitHash, err := stackutils.DownloadGitRepository(repoConfig, b.gitService, true, getProjectPath)
 	if err != nil {
 		b.err = httperror.InternalServerError(err.Error(), err)
 		return b
 	}
+
+	// This projectPath should be non-versioned project path. e.g. /data/compose/1
+	b.stack.ProjectPath = b.fileService.GetStackProjectPath(stackFolder)
 
 	// Update the latest commit id
 	repoConfig.ConfigHash = commitHash

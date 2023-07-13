@@ -2107,8 +2107,10 @@
       "Name": "redis",
       "Namespace": "",
       "Option": null,
+      "PreviousDeploymentInfo": null,
       "ProjectPath": "/home/prabhat/portainer/data/ee2.7/compose/2",
       "ResourceControl": null,
+      "StackFileVersion": 0,
       "Status": 1,
       "SupportRelativePath": false,
       "SwarmId": "",
@@ -2181,7 +2183,7 @@
     }
   ],
   "version": {
-    "VERSION": "{\"SchemaVersion\":\"2.19.0\",\"MigratorCount\":5,\"Edition\":3,\"InstanceID\":\"9abe1e4e-9e83-48a4-b3f5-91495f1e9c90\"}"
+    "VERSION": "{\"SchemaVersion\":\"2.19.0\",\"MigratorCount\":6,\"Edition\":3,\"InstanceID\":\"9abe1e4e-9e83-48a4-b3f5-91495f1e9c90\"}"
   },
   "webhooks": null
 }

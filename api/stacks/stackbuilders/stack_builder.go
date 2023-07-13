@@ -22,7 +22,9 @@ type StackBuilder struct {
 
 func CreateStackBuilder(dataStore dataservices.DataStore, fileService portainer.FileService, deployer deployments.StackDeployer) StackBuilder {
 	return StackBuilder{
-		stack:         &portaineree.Stack{},
+		stack: &portaineree.Stack{
+			StackFileVersion: 1, // when creating a stack, we always set the version to 1
+		},
 		dataStore:     dataStore,
 		fileService:   fileService,
 		stackDeployer: deployer,

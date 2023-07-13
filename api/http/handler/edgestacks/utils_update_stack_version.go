@@ -12,7 +12,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (handler *Handler) updateStackVersion(stack *portaineree.EdgeStack, deploymentType portaineree.EdgeStackDeploymentType, config []byte, oldGitHash string, relatedEnvironmentsIDs []portaineree.EndpointID, rollbackTo *int) error {
+func (handler *Handler) updateStackVersion(stack *portaineree.EdgeStack,
+	deploymentType portaineree.EdgeStackDeploymentType,
+	config []byte,
+	oldGitHash string,
+	relatedEnvironmentsIDs []portaineree.EndpointID,
+	rollbackTo *int) error {
 	stack.Version++
 	stack.Status = newStatus(stack.Status, relatedEnvironmentsIDs)
 

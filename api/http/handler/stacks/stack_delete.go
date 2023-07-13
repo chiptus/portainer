@@ -232,9 +232,10 @@ func (handler *Handler) deleteStack(userID portaineree.UserID, stack *portainere
 
 			defer os.RemoveAll(tmpDir)
 
+			projectPath := stackutils.GetStackProjectPathByVersion(stack)
 			for _, fileName := range fileNames {
 				manifestFilePath := filesystem.JoinPaths(tmpDir, fileName)
-				manifestContent, err := handler.FileService.GetFileContent(stack.ProjectPath, fileName)
+				manifestContent, err := handler.FileService.GetFileContent(projectPath, fileName)
 				if err != nil {
 					return errors.Wrap(err, "failed to read manifest file")
 				}

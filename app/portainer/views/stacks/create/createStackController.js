@@ -81,6 +81,7 @@ angular
         selectedTemplateFailedUpdate: false,
         templateLoadFailed: false,
         isEditorReadOnly: false,
+        versions: [1],
       };
 
       $window.onbeforeunload = () => {

@@ -270,3 +270,46 @@ func (m *Migrator) enableCommunityAddonForDB100() error {
 
 	return nil
 }
+
+// rebuildStackFileSystemWithVersionForDB100 creates the regular stack version folder if needed.
+// This is needed for backward compatibility with regular stacks created before the
+// regular stack version folder was introduced.
+func (migrator *Migrator) rebuildStackFileSystemWithVersionForDB100() error {
+	stacks, err := migrator.stackService.ReadAll()
+	if err != nil {
+		return err
+	}
+
+	for _, stack := range stacks {
+		commitHash := ""
+		if stack.GitConfig != nil {
+			commitHash = stack.GitConfig.ConfigHash
+		}
+
+		stackIdentifier := strconv.Itoa(int(stack.ID))
+		stackVersionFolder := migrator.fileService.GetEdgeStackProjectPathByVersion(stackIdentifier, stack.StackFileVersion, commitHash)
+
+		// Conduct the source folder checks to avoid unnecessary error return, same
+		// as the above edge stack migration.
+		sourceExists, err := migrator.fileService.FileExists(stack.ProjectPath)
+		if err != nil {
+			log.Warn().
+				Err(err).
+				Int("stackID", int(stack.ID)).
+				Msg("failed to check if stack project folder exists")
+			continue
+		}
+		if !sourceExists {
+			log.Debug().
+				Int("stackID", int(stack.ID)).
+				Msg("stack project folder does not exist, skipping")
+			continue
+		}
+
+		err = migrator.fileService.SafeMoveDirectory(stack.ProjectPath, stackVersionFolder)
+		if err != nil {
+			return fmt.Errorf("failed to copy stack %d project folder: %w", stack.ID, err)
+		}
+	}
+	return nil
+}

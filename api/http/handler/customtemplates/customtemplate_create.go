@@ -297,10 +297,10 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request, u
 		IsComposeFormat: payload.IsComposeFormat,
 	}
 
-	getProjectPath := func() string {
+	getProjectPath := func(bool, string) string {
 		return handler.FileService.GetCustomTemplateProjectPath(strconv.Itoa(customTemplateID))
 	}
-	projectPath := getProjectPath()
+	projectPath := getProjectPath(false, "")
 	customTemplate.ProjectPath = projectPath
 
 	gitConfig := &gittypes.RepoConfig{
@@ -343,7 +343,7 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request, u
 		}
 	}
 
-	commitHash, err := stackutils.DownloadGitRepository(*gitConfig, handler.GitService, getProjectPath)
+	commitHash, err := stackutils.DownloadGitRepository(*gitConfig, handler.GitService, false, getProjectPath)
 	if err != nil {
 		return nil, err
 	}
