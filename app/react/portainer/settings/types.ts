@@ -135,7 +135,7 @@ export interface Settings {
   AllowDeviceMappingForRegularUsers: boolean;
   AllowContainerCapabilitiesForRegularUsers: boolean;
   DefaultRegistry: DefaultRegistry;
-  ExperimentalFeatures: ExperimentalFeatures;
+  ExperimentalFeatures?: ExperimentalFeatures;
   GlobalDeploymentOptions?: GlobalDeploymentOptions;
   Edge: {
     PingInterval: number;
