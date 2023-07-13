@@ -473,6 +473,18 @@ var AllAddons = Addons{
 			"systemctl stop iscsid",
 		},
 	},
+	{
+		Name:                 "nfs",
+		VersionAvailableFrom: "1.25",
+		Tooltip:              "<a href='https://microk8s.io/docs/addon-nfs' target='_blank'>nfs</a> - Enables NFS Ganesha Server and Provisioner to MicroK8s, running as a pod.",
+
+		IsAvailable: true,
+		Repository:  "community",
+		RequiredOn:  "all",
+		InstallCommands: []string{
+			"apt install -y nfs-common",
+		},
+	},
 }
 
 func GetAllDefaultAddons() []string {
