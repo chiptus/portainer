@@ -19,6 +19,7 @@ import { GpusInsights } from '@/react/docker/host/SetupView/GpusInsights';
 import { InsightsBox } from '@/react/components/InsightsBox';
 import { ImagesDatatable } from '@/react/docker/images/ListView/ImagesDatatable/ImagesDatatable';
 import { EventsDatatable } from '@/react/docker/events/EventsDatatables';
+import { ConfigsDatatable } from '@/react/docker/configs/ListView/ConfigsDatatable';
 
 const ngModule = angular
   .module('portainer.docker.react.components', [])
@@ -107,6 +108,14 @@ const ngModule = angular
       'onDownload',
       'onRefresh',
       'onRemove',
+    ])
+  )
+  .component(
+    'dockerConfigsDatatable',
+    r2a(withUIRouter(ConfigsDatatable), [
+      'dataset',
+      'onRemoveClick',
+      'onRefresh',
     ])
   )
   .component('dockerEventsDatatable', r2a(EventsDatatable, ['dataset']));
