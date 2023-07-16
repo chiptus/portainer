@@ -4,7 +4,7 @@ import { envVarValidation } from '@@/form-components/EnvironmentVariablesFieldse
 
 import { FormValues } from './types';
 
-export function formValidation(): SchemaOf<FormValues> {
+export function validation(): SchemaOf<FormValues> {
   return object({
     content: string().required('Content is required'),
     deploymentType: number()

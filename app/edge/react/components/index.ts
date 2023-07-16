@@ -92,14 +92,7 @@ export const componentsModule = angular
   )
   .component(
     'editEdgeStackForm',
-    r2a(withUIRouter(withReactQuery(withCurrentUser(EditEdgeStackForm))), [
-      'edgeStack',
-      'fileContent',
-      'isSubmitting',
-      'onEditorChange',
-      'onSubmit',
-      'allowKubeToSelectCompose',
-    ])
+    r2a(withUIRouter(withReactQuery(withCurrentUser(EditEdgeStackForm))), [])
   )
   .component(
     'edgeGroupAssociationTable',

@@ -26,6 +26,7 @@ import { NomadForm } from './NomadForm';
 import { KubernetesForm } from './KubernetesForm';
 import { FormValues } from './types';
 import { useCachedContent } from './useCachedValue';
+import { useKubeAllowedToCompose } from './useKubeAllowedToCompose';
 
 const forms = {
   [DeploymentType.Compose]: ComposeForm,
@@ -34,22 +35,19 @@ const forms = {
 };
 
 export function InnerForm({
-  onEditorChange,
   edgeStack,
   isSubmitting,
-  allowKubeToSelectCompose,
   versionOptions,
 }: {
   edgeStack: EdgeStack;
   isSubmitting: boolean;
-  onEditorChange: (content: string) => void;
-  allowKubeToSelectCompose: boolean;
   versionOptions: number[];
 }) {
-  const { values, setFieldValue, isValid, errors, setFieldError } =
+  const { values, setFieldValue, isValid, errors, setFieldError, dirty } =
     useFormikContext<FormValues>();
   const { getCachedContent, setContentCache } = useCachedContent();
   const { hasType } = useValidateEnvironmentTypes(values.edgeGroups);
+  const allowKubeToSelectCompose = useKubeAllowedToCompose();
   const [selectedVersion, setSelectedVersion] = useState(versionOptions[0]);
 
   useEffect(() => {
@@ -196,9 +194,8 @@ export function InnerForm({
             <LoadingButton
               className="!ml-0"
               size="small"
-              disabled={!isValid}
+              disabled={!isValid || !dirty}
               isLoading={isSubmitting}
-              button-spinner="$ctrl.actionInProgress"
               loadingText="Update in progress..."
             >
               Update the stack
@@ -212,7 +209,6 @@ export function InnerForm({
   function handleContentChange(type: DeploymentType, content: string) {
     setFieldValue('content', content);
     setContentCache(type, content);
-    onEditorChange(content);
   }
 
   async function handleVersionChange(newVersion: number) {
