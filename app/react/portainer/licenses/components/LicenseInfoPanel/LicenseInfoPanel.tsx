@@ -4,7 +4,7 @@ import clsx from 'clsx';
 
 import { Icon } from '@@/Icon';
 import { ProgressBar } from '@@/ProgressBar';
-import { Badge } from '@@/Badge';
+import { Badge, BadgeType } from '@@/Badge';
 
 import { LicenseInfo, LicenseType } from '../../types';
 
@@ -240,19 +240,20 @@ function Details({
   untrustedDevices: number;
 }) {
   let nodesUsedMsg = `${used.toString()} / ${total.toString()} nodes used`;
-  if (total === 0 && valid) {
+  let iconColor = used > total ? 'var(--error-7)' : 'var(--blue-8)';
+  let waitingRoomType: BadgeType =
+    used + untrustedDevices > total ? 'warn' : 'info';
+  if (trial && valid) {
     nodesUsedMsg = `${used.toString()} out of unlimited nodes used`;
-  }
-  let color = used > total ? '#f04438' : '#0086c9';
-  if (trial) {
-    color = '#0086c9';
+    iconColor = 'var(--blue-8)';
+    waitingRoomType = 'info';
   }
 
   return (
     <div>
       <div className="flex">
         <b className="space-right">{nodesUsedMsg}</b>
-        <Badge type={used + untrustedDevices > total ? 'warn' : 'info'}>
+        <Badge type={waitingRoomType}>
           +{untrustedDevices} in waiting room
         </Badge>
       </div>
@@ -261,14 +262,11 @@ function Details({
         steps={[
           {
             value: used,
-            color,
+            color: iconColor,
           },
           {
             value: untrustedDevices,
-            color:
-              used + untrustedDevices > total
-                ? 'var(--ui-warning-3)'
-                : 'var(--ui-blue-3)',
+            color: iconColor,
           },
         ]}
         total={total}
