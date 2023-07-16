@@ -1,9 +1,9 @@
 import { useFormikContext } from 'formik';
 
+import { DeploymentType } from '@/react/edge/edge-stacks/types';
+
 import { TextTip } from '@@/Tip/TextTip';
 import { WebEditorForm } from '@@/WebEditorForm';
-
-import { DeploymentType } from '../../types';
 
 import { FormValues } from './types';
 
