@@ -83,21 +83,6 @@ function StateManagerFactory(
     LocalStorage.storeApplicationState(state.application);
   };
 
-  manager.updateTheme = function (theme) {
-    state.application.theme = theme;
-    LocalStorage.storeApplicationState(state.application);
-  };
-
-  manager.updateSnapshotInterval = function (interval) {
-    state.application.snapshotInterval = interval;
-    LocalStorage.storeApplicationState(state.application);
-  };
-
-  manager.updateEnableEdgeComputeFeatures = function updateEnableEdgeComputeFeatures(enableEdgeComputeFeatures) {
-    state.application.enableEdgeComputeFeatures = enableEdgeComputeFeatures;
-    LocalStorage.storeApplicationState(state.application);
-  };
-
   manager.updateEnableTelemetry = function updateEnableTelemetry(enableTelemetry) {
     state.application.enableTelemetry = enableTelemetry;
     $analytics.setOptOut(!enableTelemetry);
@@ -112,9 +97,7 @@ function StateManagerFactory(
 
     state.application.enableTelemetry = settings.EnableTelemetry;
     state.application.logo = settings.LogoURL;
-    state.application.theme = settings.Theme;
     state.application.snapshotInterval = settings.SnapshotInterval;
-    state.application.enableEdgeComputeFeatures = settings.EnableEdgeComputeFeatures;
     state.application.validity = moment().unix();
   }
 
@@ -142,10 +125,14 @@ function StateManagerFactory(
   manager.initialize = initialize;
   async function initialize() {
     return $async(async () => {
+      const now = Date.now();
+      console.log('starting', { passed: (Date.now() - now) / 1000 });
       const endpointState = LocalStorage.getEndpointState();
       if (endpointState) {
         state.endpoint = endpointState;
       }
+
+      console.log('endpoint state loaded', { passed: (Date.now() - now) / 1000 });
 
       const applicationState = LocalStorage.getApplicationState();
       if (isAppStateValid(applicationState)) {
@@ -153,6 +140,8 @@ function StateManagerFactory(
       } else {
         await loadApplicationState();
       }
+
+      console.log('app state loaded', { passed: (Date.now() - now) / 1000 });
 
       const UIState = LocalStorage.getUIState();
       if (UIState) {
@@ -164,9 +153,13 @@ function StateManagerFactory(
         }
       }
 
+      console.log('ui state loaded', { passed: (Date.now() - now) / 1000 });
+
       state.loading = false;
       $analytics.setPortainerStatus(state.application.instanceId, state.application.version);
       $analytics.setOptOut(!state.application.enableTelemetry);
+
+      console.log('analytics loaded', { passed: (Date.now() - now) / 1000 });
       return state;
     });
   }

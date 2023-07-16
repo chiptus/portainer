@@ -1,7 +1,7 @@
 angular.module('portainer.app').service('ThemeManager', ThemeManager);
 
 /* @ngInject */
-export function ThemeManager(StateManager) {
+export function ThemeManager() {
   return {
     setTheme,
     autoTheme,
@@ -13,7 +13,6 @@ export function ThemeManager(StateManager) {
       document.documentElement.removeAttribute('theme');
     } else {
       document.documentElement.setAttribute('theme', theme);
-      StateManager.updateTheme(theme);
     }
   }
 
