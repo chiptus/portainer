@@ -9,6 +9,7 @@ import { EdgeStackDeploymentTypeSelector } from '@/react/edge/edge-stacks/compon
 import { getEdgeStackFile } from '@/react/edge/edge-stacks/queries/useEdgeStackFile';
 import { EdgeStack, DeploymentType } from '@/react/edge/edge-stacks/types';
 import { WebhookSettings } from '@/react/portainer/gitops/AutoUpdateFieldset/WebhookSettings';
+import { useConfirmBeforeExit } from '@/react/hooks/useConfirmBeforeExitEditor';
 
 import { TextTip } from '@@/Tip/TextTip';
 import { LoadingButton } from '@@/buttons';
@@ -38,10 +39,14 @@ export function InnerForm({
   edgeStack,
   isSubmitting,
   versionOptions,
+  originalContent,
+  skipEditorExitCheck,
 }: {
   edgeStack: EdgeStack;
   isSubmitting: boolean;
   versionOptions: number[];
+  originalContent: string;
+  skipEditorExitCheck: boolean;
 }) {
   const { values, setFieldValue, isValid, errors, setFieldError, dirty } =
     useFormikContext<FormValues>();
@@ -49,6 +54,7 @@ export function InnerForm({
   const { hasType } = useValidateEnvironmentTypes(values.edgeGroups);
   const allowKubeToSelectCompose = useKubeAllowedToCompose();
   const [selectedVersion, setSelectedVersion] = useState(versionOptions[0]);
+  useConfirmBeforeExit(originalContent, values.content, skipEditorExitCheck);
 
   useEffect(() => {
     if (selectedVersion !== versionOptions[0]) {

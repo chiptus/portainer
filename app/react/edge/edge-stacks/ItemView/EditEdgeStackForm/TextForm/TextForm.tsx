@@ -2,6 +2,7 @@ import { Formik } from 'formik';
 // import { useState } from 'react';
 import { useRouter } from '@uirouter/react';
 import _ from 'lodash';
+import { useState } from 'react';
 
 import { DeploymentType, EdgeStack } from '@/react/edge/edge-stacks/types';
 import { createWebhookId } from '@/portainer/helpers/webhookHelper';
@@ -22,7 +23,7 @@ export function TextForm({ edgeStack }: Props) {
   const router = useRouter();
   const fileQuery = useEdgeStackFile(edgeStack.Id);
   const deployMutation = useUpdateEdgeStackMutation();
-  // const [skipConfirmExitCheck, setConfirmExitCheck] = useState(false);
+  const [skipConfirmExitCheck, setConfirmExitCheck] = useState(false);
   if (typeof fileQuery.data !== 'string') {
     return null;
   }
@@ -56,9 +57,9 @@ export function TextForm({ edgeStack }: Props) {
       <InnerForm
         edgeStack={edgeStack}
         isSubmitting={deployMutation.isLoading}
-        // originalContent={fileQuery.data}
+        originalContent={fileQuery.data}
         versionOptions={versionOptions}
-        // skipEditorExitCheck={skipConfirmExitCheck}
+        skipEditorExitCheck={skipConfirmExitCheck}
       />
     </Formik>
   );
@@ -109,7 +110,7 @@ export function TextForm({ edgeStack }: Props) {
       },
       {
         onSuccess() {
-          // setConfirmExitCheck(true);
+          setConfirmExitCheck(true);
           notifySuccess('Success', 'Stack successfully deployed');
           router.stateService.go('edge.stacks');
         },
