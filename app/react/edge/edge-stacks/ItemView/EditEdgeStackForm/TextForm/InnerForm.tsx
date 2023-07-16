@@ -17,10 +17,10 @@ import { FormError } from '@@/form-components/FormError';
 import { FormSection } from '@@/form-components/FormSection';
 import { SwitchField } from '@@/form-components/SwitchField';
 
-import { PrivateRegistryFieldsetWrapper } from '../PrivateRegistryFieldsetWrapper';
 import { atLeastTwo } from '../atLeastTwo';
-import { useValidateEnvironmentTypes } from '../useEdgeGroupHasType';
+import { useValidateEnvironmentTypes } from '../useValidateEnvironmentTypes';
 
+import { PrivateRegistryFieldsetWrapper } from './PrivateRegistryFieldsetWrapper';
 import { ComposeForm } from './ComposeForm';
 import { NomadForm } from './NomadForm';
 import { KubernetesForm } from './KubernetesForm';

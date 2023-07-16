@@ -2,7 +2,7 @@ import { EdgeStack } from '@/react/edge/edge-stacks/types';
 
 import { FormValues } from './TextForm/types';
 import { GitForm } from './GitForm';
-import { TextForm } from './TextForm/TextForm';
+import { TextForm } from './TextForm';
 
 interface Props {
   edgeStack: EdgeStack;

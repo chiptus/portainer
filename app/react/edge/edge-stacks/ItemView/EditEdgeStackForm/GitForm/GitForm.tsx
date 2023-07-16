@@ -34,7 +34,7 @@ import { FormError } from '@@/form-components/FormError';
 import { EnvironmentVariablesPanel } from '@@/form-components/EnvironmentVariablesFieldset';
 import { EnvVar } from '@@/form-components/EnvironmentVariablesFieldset/types';
 
-import { useValidateEnvironmentTypes } from '../useEdgeGroupHasType';
+import { useValidateEnvironmentTypes } from '../useValidateEnvironmentTypes';
 import { atLeastTwo } from '../atLeastTwo';
 
 import { useUpdateEdgeStackGitMutation } from './useUpdateEdgeStackGitMutation';

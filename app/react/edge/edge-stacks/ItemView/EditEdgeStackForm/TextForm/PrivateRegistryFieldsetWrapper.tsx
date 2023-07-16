@@ -5,7 +5,7 @@ import { PrivateRegistryFieldset } from '@/react/edge/edge-stacks/components/Pri
 import { useCreateStackFromFileContent } from '@/react/edge/edge-stacks/queries/useCreateStackFromFileContent';
 import { useRegistries } from '@/react/portainer/registries/queries/useRegistries';
 
-import { FormValues } from './TextForm/types';
+import { FormValues } from './types';
 
 export function PrivateRegistryFieldsetWrapper({
   value,
