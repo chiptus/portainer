@@ -41,6 +41,8 @@ export function ItemView() {
         <Widget>
           <Widget.Body>
             <NavTabs<number>
+              type="pills"
+              justified
               selectedId={tab}
               onSelect={setTab}
               options={[
