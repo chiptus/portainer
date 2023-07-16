@@ -9,20 +9,13 @@ import { EdgeScriptForm } from '@/react/edge/components/EdgeScriptForm';
 import { EdgeGroupsSelector } from '@/react/edge/edge-stacks/components/EdgeGroupsSelector';
 import { EdgeStackDeploymentTypeSelector } from '@/react/edge/edge-stacks/components/EdgeStackDeploymentTypeSelector';
 import { PrivateRegistryFieldset } from '@/react/edge/edge-stacks/components/PrivateRegistryFieldset';
-import { EditEdgeStackForm } from '@/react/edge/edge-stacks/ItemView/EditEdgeStackForm/EditEdgeStackForm';
-import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { EdgeGroupAssociationTable } from '@/react/edge/components/EdgeGroupAssociationTable';
 import { AssociatedEdgeEnvironmentsSelector } from '@/react/edge/components/AssociatedEdgeEnvironmentsSelector';
-import { EnvironmentsDatatable } from '@/react/edge/edge-stacks/ItemView/EnvironmentsDatatable';
 import { EdgeStackStatus } from '@/react/edge/edge-stacks/ListView/EdgeStackStatus';
 
 export const componentsModule = angular
   .module('portainer.edge.react.components', [])
   .component('edgeStacksDatatableStatus', r2a(EdgeStackStatus, ['edgeStack']))
-  .component(
-    'edgeStackEnvironmentsDatatable',
-    r2a(withUIRouter(withReactQuery(EnvironmentsDatatable)), [])
-  )
   .component(
     'edgeGroupsSelector',
     r2a(withUIRouter(withReactQuery(EdgeGroupsSelector)), [
@@ -90,10 +83,7 @@ export const componentsModule = angular
       'method',
     ])
   )
-  .component(
-    'editEdgeStackForm',
-    r2a(withUIRouter(withReactQuery(withCurrentUser(EditEdgeStackForm))), [])
-  )
+
   .component(
     'edgeGroupAssociationTable',
     r2a(withReactQuery(EdgeGroupAssociationTable), [

@@ -12,6 +12,7 @@ import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
 import { WaitingRoomView } from '@/react/edge/edge-devices/WaitingRoomView';
 import { ListView } from '@/react/edge/edge-stacks/ListView';
+import { ItemView as EdgeStackItemView } from '@/react/edge/edge-stacks/ItemView/ItemView';
 
 export const viewsModule = angular
   .module('portainer.edge.react.views', [])
@@ -42,6 +43,10 @@ export const viewsModule = angular
   .component(
     'edgeDeviceVolumesView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(VolumesView))), [])
+  )
+  .component(
+    'edgeStackView',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(EdgeStackItemView))), [])
   )
   .component(
     'edgeStacksView',

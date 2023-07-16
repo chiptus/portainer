@@ -72,7 +72,7 @@ angular
       url: '/:stackId?tab&status',
       views: {
         'content@': {
-          component: 'editEdgeStackView',
+          component: 'edgeStackView',
         },
       },
     };
