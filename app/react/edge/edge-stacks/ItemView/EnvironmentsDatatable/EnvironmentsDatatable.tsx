@@ -80,36 +80,41 @@ export function EnvironmentsDatatable() {
   );
 
   return (
-    <Datatable
-      columns={columns}
-      isLoading={endpointsQuery.isLoading}
-      dataset={environments}
-      settingsManager={tableState}
-      title="Environments Status"
-      titleIcon={HardDrive}
-      onPageChange={setPage}
-      emptyContentLabel="No environment available."
-      disableSelect
-      description={
-        isBE && (
-          <div className="w-1/4">
-            <PortainerSelect<StatusType | undefined>
-              isClearable
-              bindToBody
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e || undefined)}
-              options={[
-                { value: StatusType.Pending, label: 'Pending' },
-                { value: StatusType.Acknowledged, label: 'Acknowledged' },
-                { value: StatusType.ImagesPulled, label: 'Images pre-pulled' },
-                { value: StatusType.Running, label: 'Deployed' },
-                { value: StatusType.Error, label: 'Failed' },
-              ]}
-            />
-          </div>
-        )
-      }
-    />
+    <div className="-mx-4">
+      <Datatable
+        columns={columns}
+        isLoading={endpointsQuery.isLoading}
+        dataset={environments}
+        settingsManager={tableState}
+        title="Environments Status"
+        titleIcon={HardDrive}
+        onPageChange={setPage}
+        emptyContentLabel="No environment available."
+        disableSelect
+        description={
+          isBE && (
+            <div className="w-1/4">
+              <PortainerSelect<StatusType | undefined>
+                isClearable
+                bindToBody
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e || undefined)}
+                options={[
+                  { value: StatusType.Pending, label: 'Pending' },
+                  { value: StatusType.Acknowledged, label: 'Acknowledged' },
+                  {
+                    value: StatusType.ImagesPulled,
+                    label: 'Images pre-pulled',
+                  },
+                  { value: StatusType.Running, label: 'Deployed' },
+                  { value: StatusType.Error, label: 'Failed' },
+                ]}
+              />
+            </div>
+          )
+        }
+      />
+    </div>
   );
 }
 

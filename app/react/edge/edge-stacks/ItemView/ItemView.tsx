@@ -1,5 +1,5 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
-import { Layers } from 'lucide-react';
+import { HardDrive, Layers } from 'lucide-react';
 
 import { useParamState } from '@/react/hooks/useParamState';
 
@@ -11,6 +11,7 @@ import { Icon } from '@@/Icon';
 import { useEdgeStack } from '../queries/useEdgeStack';
 
 import { EditEdgeStackForm } from './EditEdgeStackForm/EditEdgeStackForm';
+import { EnvironmentsDatatable } from './EnvironmentsDatatable';
 
 export function ItemView() {
   const {
@@ -54,6 +55,15 @@ export function ItemView() {
                     </div>
                   ),
                   children: <EditEdgeStackForm />,
+                },
+                {
+                  id: 1,
+                  label: (
+                    <div className="vertical-center">
+                      <Icon icon={HardDrive} /> Environments
+                    </div>
+                  ),
+                  children: <EnvironmentsDatatable />,
                 },
               ]}
             />
