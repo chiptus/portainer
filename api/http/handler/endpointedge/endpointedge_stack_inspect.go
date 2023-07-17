@@ -82,6 +82,11 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 		return httperror.InternalServerError("Unable to load repository", err)
 	}
 
+	fileContent, err := filesystem.FilterDirForCompatibility(dirEntries, fileName, endpoint.Agent.Version)
+	if err != nil {
+		return httperror.InternalServerError("File not found", err)
+	}
+
 	if internaledge.IsEdgeStackRelativePathEnabled(edgeStack) {
 		if internaledge.IsEdgeStackPerDeviceConfigsEnabled(edgeStack) {
 			dirEntries = filesystem.FilterDirForPerDevConfigs(
@@ -100,6 +105,7 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 	return response.JSON(w, edge.StackPayload{
 		DirEntries:          dirEntries,
 		EntryFileName:       fileName,
+		StackFileContent:    fileContent,
 		SupportRelativePath: edgeStack.SupportRelativePath,
 		FilesystemPath:      edgeStack.FilesystemPath,
 		Name:                edgeStack.Name,
