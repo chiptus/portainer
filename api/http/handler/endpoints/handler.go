@@ -22,7 +22,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 
 	"github.com/gorilla/mux"
-	werrors "github.com/pkg/errors"
+	"github.com/pkg/errors"
 )
 
 func hideFields(endpoint *portaineree.Endpoint) {
@@ -119,11 +119,11 @@ func validateAutoUpdateSettings(autoUpdateWindow portaineree.EndpointChangeWindo
 	}
 
 	if !validTime24(autoUpdateWindow.StartTime) {
-		return werrors.New("AutoUpdateWindow.StartTime: invalid time format, expected HH:MM")
+		return errors.New("AutoUpdateWindow.StartTime: invalid time format, expected HH:MM")
 	}
 
 	if !validTime24(autoUpdateWindow.EndTime) {
-		return werrors.New("AutoUpdateWindow.EndTime: invalid time format, expected HH:MM")
+		return errors.New("AutoUpdateWindow.EndTime: invalid time format, expected HH:MM")
 	}
 
 	return nil

@@ -76,7 +76,6 @@ func (handler *Handler) stackCreate(w http.ResponseWriter, r *http.Request) *htt
 }
 
 func (handler *Handler) createComposeStack(w http.ResponseWriter, r *http.Request, method string, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
-
 	switch method {
 	case "string":
 		return handler.createComposeStackFromFileContent(w, r, endpoint, userID)
@@ -111,6 +110,7 @@ func (handler *Handler) createKubernetesStack(w http.ResponseWriter, r *http.Req
 	case "url":
 		return handler.createKubernetesStackFromManifestURL(w, r, endpoint)
 	}
+
 	return httperror.BadRequest("Invalid value for query parameter: method. Value must be one of: string or repository", errors.New(request.ErrInvalidQueryParameter))
 }
 

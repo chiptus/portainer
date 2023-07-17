@@ -60,7 +60,7 @@ func (handler *Handler) teamDelete(w http.ResponseWriter, r *http.Request) *http
 		}
 
 		accessPolicies, hasChange, err := handler.AuthorizationService.RemoveTeamNamespaceAccessPolicies(
-			teamID, int(endpoint.ID), accessPolicies,
+			handler.DataStore, teamID, int(endpoint.ID), accessPolicies,
 		)
 		if hasChange {
 			err = kcl.UpdateNamespaceAccessPolicies(accessPolicies)
@@ -80,7 +80,7 @@ func (handler *Handler) teamDelete(w http.ResponseWriter, r *http.Request) *http
 		return httperror.InternalServerError("Unable to delete associated team memberships from the database", err)
 	}
 
-	err = handler.AuthorizationService.RemoveTeamAccessPolicies(portaineree.TeamID(teamID))
+	err = handler.AuthorizationService.RemoveTeamAccessPolicies(handler.DataStore, portaineree.TeamID(teamID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to clean-up team access policies", err)
 	}

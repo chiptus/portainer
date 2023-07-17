@@ -9,13 +9,14 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer/api/edge"
+
 	log "github.com/rs/zerolog/log"
 )
 
-func GetRegistryCredentialsForEdgeStack(dataStore dataservices.DataStoreTx, stack *portaineree.EdgeStack, endpoint *portaineree.Endpoint) []edge.RegistryCredentials {
+func GetRegistryCredentialsForEdgeStack(tx dataservices.DataStoreTx, stack *portaineree.EdgeStack, endpoint *portaineree.Endpoint) []edge.RegistryCredentials {
 	registries := []edge.RegistryCredentials{}
 	for _, id := range stack.Registries {
-		registry, _ := dataStore.Registry().Read(id)
+		registry, _ := tx.Registry().Read(id)
 
 		registryCredential := GetRegistryCredential(registry)
 		if registryCredential != nil {

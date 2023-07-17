@@ -83,17 +83,18 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 
 	if tokenData.Role != portaineree.AdministratorRole {
 		// check if the user has console RW access in the environment(endpoint)
-		endpointRole, err := handler.authorizationService.GetUserEndpointRole(int(tokenData.ID), int(endpoint.ID))
+		endpointRole, err := handler.authorizationService.GetUserEndpointRoleTx(handler.DataStore, int(tokenData.ID), int(endpoint.ID))
 		if err != nil {
 			return httperror.Forbidden(permissionDeniedErr, err)
 		} else if !endpointRole.Authorizations[portaineree.OperationK8sApplicationConsoleRW] {
 			err = errors.New(permissionDeniedErr)
 			return httperror.Forbidden(permissionDeniedErr, err)
 		}
+
 		// will skip if user can access all namespaces
 		if !endpointRole.Authorizations[portaineree.OperationK8sAccessAllNamespaces] {
 			// check if the user has RW access to the namespace
-			namespaceAuthorizations, err := handler.authorizationService.GetNamespaceAuthorizations(int(tokenData.ID), *endpoint, cli)
+			namespaceAuthorizations, err := handler.authorizationService.GetNamespaceAuthorizations(handler.DataStore, int(tokenData.ID), *endpoint, cli)
 			if err != nil {
 				return httperror.Forbidden(permissionDeniedErr, err)
 			} else if auth, ok := namespaceAuthorizations[namespace]; !ok || !auth[portaineree.OperationK8sAccessNamespaceWrite] {

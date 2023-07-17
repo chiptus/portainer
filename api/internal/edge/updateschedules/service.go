@@ -26,7 +26,7 @@ type Service struct {
 func NewService(dataStore dataservices.DataStore) (*Service, error) {
 	idxActiveSchedules := map[portaineree.EndpointID]*edgetypes.EndpointUpdateScheduleRelation{}
 
-	schedules, err := dataStore.EdgeUpdateSchedule().List()
+	schedules, err := dataStore.EdgeUpdateSchedule().ReadAll()
 	if err != nil {
 		return nil, errors.WithMessage(err, "Unable to list schedules")
 	}
@@ -145,12 +145,12 @@ func (service *Service) EdgeStackDeployed(environmentID portaineree.EndpointID, 
 
 // Schedules returns all schedules
 func (service *Service) Schedules() ([]edgetypes.UpdateSchedule, error) {
-	return service.dataStore.EdgeUpdateSchedule().List()
+	return service.dataStore.EdgeUpdateSchedule().ReadAll()
 }
 
 // Schedule returns a schedule by ID
 func (service *Service) Schedule(scheduleID edgetypes.UpdateScheduleID) (*edgetypes.UpdateSchedule, error) {
-	return service.dataStore.EdgeUpdateSchedule().Item(scheduleID)
+	return service.dataStore.EdgeUpdateSchedule().Read(scheduleID)
 }
 
 // CreateSchedule creates a new schedule

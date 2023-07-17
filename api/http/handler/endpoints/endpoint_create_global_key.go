@@ -114,7 +114,7 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 		EdgeCheckinInterval:  settings.EdgeAgentCheckinInterval,
 	}
 
-	endpoint, hErr := handler.createEndpoint(p)
+	endpoint, hErr := handler.createEndpoint(handler.DataStore, p)
 	if hErr != nil {
 		return hErr
 	}

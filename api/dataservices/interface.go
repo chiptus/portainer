@@ -106,12 +106,7 @@ type (
 	}
 
 	EdgeUpdateScheduleService interface {
-		List() ([]edgetypes.UpdateSchedule, error)
-		Item(ID edgetypes.UpdateScheduleID) (*edgetypes.UpdateSchedule, error)
-		Create(edgeUpdateSchedule *edgetypes.UpdateSchedule) error
-		Update(ID edgetypes.UpdateScheduleID, edgeUpdateSchedule *edgetypes.UpdateSchedule) error
-		Delete(ID edgetypes.UpdateScheduleID) error
-		BucketName() string
+		BaseCRUD[edgetypes.UpdateSchedule, edgetypes.UpdateScheduleID]
 	}
 
 	// EdgeStackService represents a service to manage Edge stacks

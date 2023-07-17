@@ -65,7 +65,7 @@ func (handler *Handler) userNamespaces(w http.ResponseWriter, r *http.Request) *
 			break
 		}
 
-		namespaceAuthorizations, err := handler.AuthorizationService.GetNamespaceAuthorizations(userID, endpoint, kcl)
+		namespaceAuthorizations, err := handler.AuthorizationService.GetNamespaceAuthorizations(handler.DataStore, userID, endpoint, kcl)
 		if err != nil {
 			break
 		}

@@ -48,7 +48,7 @@ func TestConcurrentEndpointDelete(t *testing.T) {
 			TagIDs:               []portaineree.TagID{tagID},
 		}
 
-		endpoint, hErr := handler.createEndpoint(p)
+		endpoint, hErr := handler.createEndpoint(handler.DataStore, p)
 		if hErr != nil {
 			t.Fatal(hErr)
 		}

@@ -133,7 +133,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 	// if user is not a portainer admin, we might allow update k8s cluster config
 	if !isAdmin {
 		// check if the user can access cluster setup in the environment(endpoint) (environment admin)
-		endpointRole, err := handler.AuthorizationService.GetUserEndpointRole(int(tokenData.ID), int(endpoint.ID))
+		endpointRole, err := handler.AuthorizationService.GetUserEndpointRoleTx(handler.DataStore, int(tokenData.ID), int(endpoint.ID))
 		if err != nil {
 			return httperror.Forbidden(permissionDeniedErr, err)
 		} else if !endpointRole.Authorizations[portaineree.OperationK8sClusterSetupRW] {

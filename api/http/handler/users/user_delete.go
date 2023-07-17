@@ -94,7 +94,7 @@ func (handler *Handler) deleteUser(w http.ResponseWriter, user *portaineree.User
 		return httperror.InternalServerError("Unable to remove user k8s resources", err)
 	}
 
-	err = handler.AuthorizationService.RemoveUserAccessPolicies(user.ID)
+	err = handler.AuthorizationService.RemoveUserAccessPolicies(handler.DataStore, user.ID)
 	if err != nil {
 		return httperror.InternalServerError("Unable to clean-up user access policies", err)
 	}
@@ -169,7 +169,7 @@ func (handler *Handler) removeUserKubeResources(user *portaineree.User) error {
 		}
 
 		accessPolicies, hasChange, err := handler.AuthorizationService.RemoveUserNamespaceAccessPolicies(
-			int(user.ID), int(endpoint.ID), accessPolicies,
+			handler.DataStore, int(user.ID), int(endpoint.ID), accessPolicies,
 		)
 		if hasChange {
 			err = kcl.UpdateNamespaceAccessPolicies(accessPolicies)

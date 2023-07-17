@@ -63,9 +63,10 @@ func (handler *Handler) checkAuthorization(r *http.Request, endpoint *portainere
 	}
 
 	authService := authorization.NewService(handler.DataStore)
-	isAdminOrAuthorized, err := authService.UserIsAdminOrAuthorized(securityContext.UserID, endpoint.ID, authorizations)
+	isAdminOrAuthorized, err := authService.UserIsAdminOrAuthorized(handler.DataStore, securityContext.UserID, endpoint.ID, authorizations)
 	if err != nil {
 		return false, httperror.InternalServerError("Unable to get user authorizations", err)
 	}
+
 	return isAdminOrAuthorized, nil
 }

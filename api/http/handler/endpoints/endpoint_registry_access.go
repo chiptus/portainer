@@ -1,13 +1,16 @@
 package endpoints
 
 import (
+	"errors"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer/pkg/featureflags"
 )
 
 type registryAccessPayload struct {
@@ -48,8 +51,29 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 		return httperror.BadRequest("Invalid registry identifier route variable", err)
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if handler.DataStore.IsErrObjectNotFound(err) {
+	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
+		err = handler.updateRegistryAccess(handler.DataStore, r, portaineree.EndpointID(endpointID), portaineree.RegistryID(registryID))
+	} else {
+		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+			return handler.updateRegistryAccess(tx, r, portaineree.EndpointID(endpointID), portaineree.RegistryID(registryID))
+		})
+	}
+
+	if err != nil {
+		var httpErr *httperror.HandlerError
+		if errors.As(err, &httpErr) {
+			return httpErr
+		}
+
+		return httperror.InternalServerError("Unexpected error", err)
+	}
+
+	return response.Empty(w)
+}
+
+func (handler *Handler) updateRegistryAccess(tx dataservices.DataStoreTx, r *http.Request, endpointID portaineree.EndpointID, registryID portaineree.RegistryID) error {
+	endpoint, err := tx.Endpoint().Endpoint(endpointID)
+	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
@@ -60,7 +84,7 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 		return httperror.Forbidden("Permission denied to access environment", err)
 	}
 
-	isAdminOrEndpointAdmin, err := security.IsAdminOrEndpointAdmin(r, handler.DataStore, portaineree.EndpointID(endpointID))
+	isAdminOrEndpointAdmin, err := security.IsAdminOrEndpointAdmin(r, tx, endpointID)
 	if err != nil {
 		return httperror.InternalServerError("Unable to check user role", err)
 	}
@@ -68,8 +92,8 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 		return httperror.Forbidden("User is not authorized", err)
 	}
 
-	registry, err := handler.DataStore.Registry().Read(portaineree.RegistryID(registryID))
-	if handler.DataStore.IsErrObjectNotFound(err) {
+	registry, err := tx.Registry().Read(registryID)
+	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
@@ -105,9 +129,7 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 
 	registry.RegistryAccesses[portaineree.EndpointID(endpointID)] = registryAccess
 
-	handler.DataStore.Registry().Update(registry.ID, registry)
-
-	return response.Empty(w)
+	return tx.Registry().Update(registry.ID, registry)
 }
 
 func (handler *Handler) updateKubeAccess(endpoint *portaineree.Endpoint, registry *portaineree.Registry, oldNamespaces, newNamespaces []string) error {

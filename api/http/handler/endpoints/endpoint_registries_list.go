@@ -3,13 +3,16 @@ package endpoints
 import (
 	"net/http"
 
-	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	"github.com/portainer/portainer/pkg/featureflags"
+
+	"github.com/pkg/errors"
 )
 
 // @id endpointRegistriesList
@@ -26,48 +29,71 @@ import (
 // @failure 500 "Server error"
 // @router /endpoints/{id}/registries [get]
 func (handler *Handler) endpointRegistriesList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	securityContext, err := security.RetrieveRestrictedRequestContext(r)
-	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve info from request context", err)
-	}
-
-	user, err := handler.DataStore.User().Read(securityContext.UserID)
-	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve user from the database", err)
-	}
-
 	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
 		return httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if handler.DataStore.IsErrObjectNotFound(err) {
-		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
+	var registries []portaineree.Registry
+	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
+		registries, err = handler.listRegistries(handler.DataStore, r, portaineree.EndpointID(endpointID))
+	} else {
+		err = handler.DataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
+			registries, err = handler.listRegistries(tx, r, portaineree.EndpointID(endpointID))
+			return err
+		})
+	}
+
+	if err != nil {
+		var httpErr *httperror.HandlerError
+		if errors.As(err, &httpErr) {
+			return httpErr
+		}
+
+		return httperror.InternalServerError("Unexpected error", err)
+	}
+
+	return response.JSON(w, registries)
+}
+
+func (handler *Handler) listRegistries(tx dataservices.DataStoreTx, r *http.Request, endpointID portaineree.EndpointID) ([]portaineree.Registry, error) {
+	securityContext, err := security.RetrieveRestrictedRequestContext(r)
+	if err != nil {
+		return nil, httperror.InternalServerError("Unable to retrieve info from request context", err)
+	}
+
+	user, err := tx.User().Read(securityContext.UserID)
+	if err != nil {
+		return nil, httperror.InternalServerError("Unable to retrieve user from the database", err)
+	}
+
+	endpoint, err := tx.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	if tx.IsErrObjectNotFound(err) {
+		return nil, httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
-		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
+		return nil, httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
 	}
 
-	isAdminOrEndpointAdmin, err := security.IsAdminOrEndpointAdmin(r, handler.DataStore, endpoint.ID)
+	isAdminOrEndpointAdmin, err := security.IsAdminOrEndpointAdmin(r, tx, endpoint.ID)
 	if err != nil {
-		return httperror.InternalServerError("Unable to check user role", err)
+		return nil, httperror.InternalServerError("Unable to check user role", err)
 	}
 
-	registries, err := handler.DataStore.Registry().ReadAll()
+	registries, err := tx.Registry().ReadAll()
 	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve registries from the database", err)
+		return nil, httperror.InternalServerError("Unable to retrieve registries from the database", err)
 	}
 
 	registries, handleError := handler.filterRegistriesByAccess(r, registries, endpoint, user, securityContext.UserMemberships)
 	if handleError != nil {
-		return handleError
+		return nil, handleError
 	}
 
 	for idx := range registries {
 		hideRegistryFields(&registries[idx], !isAdminOrEndpointAdmin)
 	}
 
-	return response.JSON(w, registries)
+	return registries, err
 }
 
 func (handler *Handler) filterRegistriesByAccess(r *http.Request, registries []portaineree.Registry, endpoint *portaineree.Endpoint, user *portaineree.User, memberships []portaineree.TeamMembership) ([]portaineree.Registry, *httperror.HandlerError) {
@@ -177,7 +203,7 @@ func (handler *Handler) userNamespaces(endpoint *portaineree.Endpoint, user *por
 	if err != nil {
 		return nil, err
 	}
-	namespaceAuthorizations, err := handler.AuthorizationService.GetNamespaceAuthorizations(int(user.ID), *endpoint, kcl)
+	namespaceAuthorizations, err := handler.AuthorizationService.GetNamespaceAuthorizations(handler.DataStore, int(user.ID), *endpoint, kcl)
 	if err != nil {
 		return nil, err
 	}

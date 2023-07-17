@@ -20,7 +20,7 @@ import (
 )
 
 func (migrator *Migrator) assignEdgeGroupsToEdgeUpdatesForDB100() error {
-	updates, err := migrator.edgeUpdateService.List()
+	updates, err := migrator.edgeUpdateService.ReadAll()
 	if err != nil {
 		return err
 	}

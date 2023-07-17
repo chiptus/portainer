@@ -10,9 +10,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gofrs/uuid"
-	"gopkg.in/yaml.v3"
-
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
@@ -20,12 +17,16 @@ import (
 	"github.com/portainer/portainer-ee/api/agent"
 	"github.com/portainer/portainer-ee/api/cloud"
 	"github.com/portainer/portainer-ee/api/database/models"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/client"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
+
+	"github.com/gofrs/uuid"
+	"gopkg.in/yaml.v3"
 )
 
 type SelfContainedConfigExecError struct{}
@@ -398,7 +399,7 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
-	endpoint, endpointCreationError := handler.createEndpoint(payload)
+	endpoint, endpointCreationError := handler.createEndpoint(handler.DataStore, payload)
 	if endpointCreationError != nil {
 		return endpointCreationError
 	}
@@ -487,21 +488,21 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 	return response.JSON(w, endpoint)
 }
 
-func (handler *Handler) createEndpoint(payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
+func (handler *Handler) createEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
 	var err error
 
 	switch payload.EndpointCreationType {
 	case azureEnvironment:
-		return handler.createAzureEndpoint(payload)
+		return handler.createAzureEndpoint(tx, payload)
 
 	case edgeAgentEnvironment:
-		return handler.createEdgeAgentEndpoint(payload)
+		return handler.createEdgeAgentEndpoint(tx, payload)
 
 	case localKubernetesEnvironment:
-		return handler.createKubernetesEndpoint(payload)
+		return handler.createKubernetesEndpoint(tx, payload)
 
 	case kubeConfigEnvironment:
-		return handler.createKubeConfigEndpoint(payload)
+		return handler.createKubeConfigEndpoint(tx, payload)
 	}
 
 	endpointType := portaineree.DockerEnvironment
@@ -531,12 +532,13 @@ func (handler *Handler) createEndpoint(payload *endpointCreatePayload) (*portain
 	}
 
 	if payload.TLS {
-		return handler.createTLSSecuredEndpoint(payload, endpointType, agentVersion)
+		return handler.createTLSSecuredEndpoint(tx, payload, endpointType, agentVersion)
 	}
-	return handler.createUnsecuredEndpoint(payload)
+
+	return handler.createUnsecuredEndpoint(tx, payload)
 }
 
-func (handler *Handler) createAzureEndpoint(payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
+func (handler *Handler) createAzureEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
 	credentials := portaineree.AzureCredentials{
 		ApplicationID:     payload.AzureApplicationID,
 		TenantID:          payload.AzureTenantID,
@@ -549,7 +551,7 @@ func (handler *Handler) createAzureEndpoint(payload *endpointCreatePayload) (*po
 		return nil, httperror.InternalServerError("Unable to authenticate against Azure", err)
 	}
 
-	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
+	endpointID := tx.Endpoint().GetNextIdentifier()
 	endpoint := &portaineree.Endpoint{
 		ID:                 portaineree.EndpointID(endpointID),
 		Name:               payload.Name,
@@ -572,7 +574,7 @@ func (handler *Handler) createAzureEndpoint(payload *endpointCreatePayload) (*po
 		},
 	}
 
-	err = handler.saveEndpointAndUpdateAuthorizations(endpoint)
+	err = handler.saveEndpointAndUpdateAuthorizations(tx, endpoint)
 	if err != nil {
 		return nil, httperror.InternalServerError("An error occurred while trying to create the environment", err)
 	}
@@ -580,10 +582,10 @@ func (handler *Handler) createAzureEndpoint(payload *endpointCreatePayload) (*po
 	return endpoint, nil
 }
 
-func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
-	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
+func (handler *Handler) createEdgeAgentEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
+	endpointID := tx.Endpoint().GetNextIdentifier()
 
-	settings, err := handler.DataStore.Settings().Settings()
+	settings, err := tx.Settings().Settings()
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to retrieve the settings from the database", err)
 	}
@@ -652,12 +654,12 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 		endpoint.EdgeID = edgeID.String()
 	}
 
-	err = handler.saveEndpointAndUpdateAuthorizations(endpoint)
+	err = handler.saveEndpointAndUpdateAuthorizations(tx, endpoint)
 	if err != nil {
 		return nil, httperror.InternalServerError("An error occurred while trying to create the environment", err)
 	}
 
-	err = handler.DataStore.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint.ID})
+	err = tx.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint.ID})
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to create a snapshot object for the environment", err)
 	}
@@ -665,7 +667,7 @@ func (handler *Handler) createEdgeAgentEndpoint(payload *endpointCreatePayload) 
 	return endpoint, nil
 }
 
-func (handler *Handler) createUnsecuredEndpoint(payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
+func (handler *Handler) createUnsecuredEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
 	endpointType := portaineree.DockerEnvironment
 
 	if payload.URL == "" {
@@ -675,7 +677,7 @@ func (handler *Handler) createUnsecuredEndpoint(payload *endpointCreatePayload) 
 		}
 	}
 
-	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
+	endpointID := tx.Endpoint().GetNextIdentifier()
 	endpoint := &portaineree.Endpoint{
 		ID:        portaineree.EndpointID(endpointID),
 		Name:      payload.Name,
@@ -700,7 +702,7 @@ func (handler *Handler) createUnsecuredEndpoint(payload *endpointCreatePayload) 
 		EnableImageNotification: true,
 	}
 
-	err := handler.snapshotAndPersistEndpoint(endpoint)
+	err := handler.snapshotAndPersistEndpoint(tx, endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -708,12 +710,12 @@ func (handler *Handler) createUnsecuredEndpoint(payload *endpointCreatePayload) 
 	return endpoint, nil
 }
 
-func (handler *Handler) createKubernetesEndpoint(payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
+func (handler *Handler) createKubernetesEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
 	if payload.URL == "" {
 		payload.URL = "https://kubernetes.default.svc"
 	}
 
-	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
+	endpointID := tx.Endpoint().GetNextIdentifier()
 
 	endpoint := &portaineree.Endpoint{
 		ID:        portaineree.EndpointID(endpointID),
@@ -740,7 +742,7 @@ func (handler *Handler) createKubernetesEndpoint(payload *endpointCreatePayload)
 		},
 	}
 
-	err := handler.snapshotAndPersistEndpoint(endpoint)
+	err := handler.snapshotAndPersistEndpoint(tx, endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -748,7 +750,7 @@ func (handler *Handler) createKubernetesEndpoint(payload *endpointCreatePayload)
 	return endpoint, nil
 }
 
-func (handler *Handler) createKubeConfigEndpoint(payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
+func (handler *Handler) createKubeConfigEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
 	if payload.URL == "" {
 		payload.URL = "https://kubernetes.default.svc"
 	}
@@ -761,12 +763,13 @@ func (handler *Handler) createKubeConfigEndpoint(payload *endpointCreatePayload)
 			"kubeconfig": payload.KubeConfig,
 		},
 	}
-	err := handler.DataStore.CloudCredential().Create(&credentials)
+
+	err := tx.CloudCredential().Create(&credentials)
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to create kubeconfig environment", err)
 	}
 
-	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
+	endpointID := tx.Endpoint().GetNextIdentifier()
 	endpoint := &portaineree.Endpoint{
 		ID:      portaineree.EndpointID(endpointID),
 		Name:    payload.Name,
@@ -796,7 +799,7 @@ func (handler *Handler) createKubeConfigEndpoint(payload *endpointCreatePayload)
 		},
 	}
 
-	err = handler.saveEndpointAndUpdateAuthorizations(endpoint)
+	err = handler.saveEndpointAndUpdateAuthorizations(tx, endpoint)
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to create kubeconfig environment", err)
 	}
@@ -813,8 +816,8 @@ func (handler *Handler) createKubeConfigEndpoint(payload *endpointCreatePayload)
 	return endpoint, nil
 }
 
-func (handler *Handler) createTLSSecuredEndpoint(payload *endpointCreatePayload, endpointType portaineree.EndpointType, agentVersion string) (*portaineree.Endpoint, *httperror.HandlerError) {
-	endpointID := handler.DataStore.Endpoint().GetNextIdentifier()
+func (handler *Handler) createTLSSecuredEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload, endpointType portaineree.EndpointType, agentVersion string) (*portaineree.Endpoint, *httperror.HandlerError) {
+	endpointID := tx.Endpoint().GetNextIdentifier()
 	endpoint := &portaineree.Endpoint{
 		ID:        portaineree.EndpointID(endpointID),
 		Name:      payload.Name,
@@ -847,7 +850,7 @@ func (handler *Handler) createTLSSecuredEndpoint(payload *endpointCreatePayload,
 		return nil, err
 	}
 
-	err = handler.snapshotAndPersistEndpoint(endpoint)
+	err = handler.snapshotAndPersistEndpoint(tx, endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -855,7 +858,7 @@ func (handler *Handler) createTLSSecuredEndpoint(payload *endpointCreatePayload,
 	return endpoint, nil
 }
 
-func (handler *Handler) snapshotAndPersistEndpoint(endpoint *portaineree.Endpoint) *httperror.HandlerError {
+func (handler *Handler) snapshotAndPersistEndpoint(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 	err := handler.SnapshotService.SnapshotEndpoint(endpoint)
 	if err != nil {
 		if (endpoint.Type == portaineree.AgentOnDockerEnvironment && strings.Contains(err.Error(), "Invalid request signature")) ||
@@ -865,7 +868,7 @@ func (handler *Handler) snapshotAndPersistEndpoint(endpoint *portaineree.Endpoin
 		return httperror.InternalServerError("Unable to initiate communications with environment", err)
 	}
 
-	err = handler.saveEndpointAndUpdateAuthorizations(endpoint)
+	err = handler.saveEndpointAndUpdateAuthorizations(tx, endpoint)
 	if err != nil {
 		return httperror.InternalServerError("An error occurred while trying to create the environment", err)
 	}
@@ -873,7 +876,7 @@ func (handler *Handler) snapshotAndPersistEndpoint(endpoint *portaineree.Endpoin
 	return nil
 }
 
-func (handler *Handler) saveEndpointAndUpdateAuthorizations(endpoint *portaineree.Endpoint) error {
+func (handler *Handler) saveEndpointAndUpdateAuthorizations(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint) error {
 	endpoint.SecuritySettings = portaineree.EndpointSecuritySettings{
 		AllowVolumeBrowserForRegularUsers: false,
 		EnableHostManagementFeatures:      false,
@@ -887,12 +890,12 @@ func (handler *Handler) saveEndpointAndUpdateAuthorizations(endpoint *portainere
 		AllowStackManagementForRegularUsers:       true,
 	}
 
-	err := handler.DataStore.Endpoint().Create(endpoint)
+	err := tx.Endpoint().Create(endpoint)
 	if err != nil {
 		return err
 	}
 
-	group, err := handler.DataStore.EndpointGroup().Read(endpoint.GroupID)
+	group, err := tx.EndpointGroup().Read(endpoint.GroupID)
 	if err != nil {
 		return err
 	}

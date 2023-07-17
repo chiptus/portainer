@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -8,8 +9,11 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	"github.com/portainer/portainer/pkg/featureflags"
+
 	"github.com/rs/zerolog/log"
 )
 
@@ -33,26 +37,53 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		return httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 
+	// This is a Portainer provisioned cloud environment
+	deleteCluster, err := request.RetrieveBooleanQueryParameter(r, "deleteCluster", true)
+	if err != nil {
+		return httperror.BadRequest("Invalid boolean query parameter", err)
+	}
+
 	if handler.demoService.IsDemoEnvironment(portaineree.EndpointID(endpointID)) {
 		return httperror.Forbidden(httperrors.ErrNotAvailableInDemo.Error(), httperrors.ErrNotAvailableInDemo)
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if handler.DataStore.IsErrObjectNotFound(err) {
+	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
+		err = handler.deleteEndpoint(handler.DataStore, portaineree.EndpointID(endpointID), deleteCluster)
+	} else {
+		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+			return handler.deleteEndpoint(tx, portaineree.EndpointID(endpointID), deleteCluster)
+		})
+	}
+
+	if err != nil {
+		var handlerError *httperror.HandlerError
+		if errors.As(err, &handlerError) {
+			return handlerError
+		}
+
+		return httperror.InternalServerError("Unexpected error", err)
+	}
+
+	return response.Empty(w)
+}
+
+func (handler *Handler) deleteEndpoint(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, deleteCluster bool) error {
+	endpoint, err := tx.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to read the environment record from the database", err)
 	}
 
 	if endpoint.TLSConfig.TLS {
-		folder := strconv.Itoa(endpointID)
+		folder := strconv.Itoa(int(endpointID))
 		err = handler.FileService.DeleteTLSFiles(folder)
 		if err != nil {
 			log.Error().Err(err).Msgf("Unable to remove TLS files from disk when deleting endpoint %d", endpointID)
 		}
 	}
 
-	err = handler.DataStore.Snapshot().Delete(portaineree.EndpointID(endpointID))
+	err = tx.Snapshot().Delete(endpointID)
 	if err != nil {
 		log.Warn().Err(err).Msgf("Unable to remove the snapshot from the database")
 	}
@@ -66,7 +97,7 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 
 	// if edge endpoint, remove from edge update schedules
 	if endpointutils.IsEdgeEndpoint(endpoint) {
-		edgeUpdates, err := handler.DataStore.EdgeUpdateSchedule().List()
+		edgeUpdates, err := tx.EdgeUpdateSchedule().ReadAll()
 		if err != nil {
 			// skip
 			log.Warn().Err(err).Msg("Unable to retrieve edge update schedules from the database")
@@ -75,7 +106,7 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 				edgeUpdate := edgeUpdates[i]
 				if edgeUpdate.EnvironmentsPreviousVersions[endpoint.ID] != "" {
 					delete(edgeUpdate.EnvironmentsPreviousVersions, endpoint.ID)
-					err = handler.DataStore.EdgeUpdateSchedule().Update(edgeUpdate.ID, &edgeUpdate)
+					err = tx.EdgeUpdateSchedule().Update(edgeUpdate.ID, &edgeUpdate)
 					if err != nil {
 						// skip
 						log.Warn().Err(err).Msg("Unable to update edge update schedule")
@@ -86,36 +117,39 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 	}
 
 	if endpoint.CloudProvider != nil {
-		// This is a Portainer provisioned cloud environment
-		deleteCluster, err := request.RetrieveBooleanQueryParameter(r, "deleteCluster", true)
-		if err != nil {
-			return httperror.BadRequest("Invalid boolean query parameter", err)
-		}
-
 		if deleteCluster {
 			log.Info().Msgf("Deleting the remote cluster associated to environment %d (%s)", endpoint.ID, endpoint.Name)
-			handler.cloudManagementService.DeleteCluster(endpoint)
+			handler.cloudManagementService.DeleteCluster(tx, endpoint)
 		}
 	}
 
 	handler.ProxyManager.DeleteEndpointProxy(endpoint.ID)
 
 	if len(endpoint.UserAccessPolicies) > 0 || len(endpoint.TeamAccessPolicies) > 0 {
-		err = handler.AuthorizationService.UpdateUsersAuthorizations()
+		err = handler.AuthorizationService.UpdateUsersAuthorizationsTx(tx)
 		if err != nil {
 			log.Warn().Err(err).Msgf("Unable to update user authorizations")
 		}
 	}
 
-	err = handler.DataStore.EndpointRelation().DeleteEndpointRelation(endpoint.ID)
+	err = tx.EndpointRelation().DeleteEndpointRelation(endpoint.ID)
 	if err != nil {
 		log.Warn().Err(err).Msgf("Unable to remove environment relation from the database")
 	}
 
 	for _, tagID := range endpoint.TagIDs {
-		err = handler.DataStore.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
-			delete(tag.Endpoints, endpoint.ID)
-		})
+		if featureflags.IsEnabled(portaineree.FeatureNoTx) {
+			err = handler.DataStore.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
+				delete(tag.Endpoints, endpoint.ID)
+			})
+		} else {
+			var tag *portaineree.Tag
+			tag, err = tx.Tag().Read(tagID)
+			if err == nil {
+				delete(tag.Endpoints, endpoint.ID)
+				err = tx.Tag().Update(tagID, tag)
+			}
+		}
 
 		if handler.DataStore.IsErrObjectNotFound(err) {
 			log.Warn().Err(err).Msgf("Unable to find tag inside the database")
@@ -124,21 +158,27 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
-	edgeGroups, err := handler.DataStore.EdgeGroup().ReadAll()
+	edgeGroups, err := tx.EdgeGroup().ReadAll()
 	if err != nil {
 		log.Warn().Err(err).Msgf("Unable to retrieve edge groups from the database")
 	}
 
 	for _, edgeGroup := range edgeGroups {
-		err = handler.DataStore.EdgeGroup().UpdateEdgeGroupFunc(edgeGroup.ID, func(g *portaineree.EdgeGroup) {
-			g.Endpoints = removeElement(g.Endpoints, endpoint.ID)
-		})
+		if featureflags.IsEnabled(portaineree.FeatureNoTx) {
+			err = handler.DataStore.EdgeGroup().UpdateEdgeGroupFunc(edgeGroup.ID, func(g *portaineree.EdgeGroup) {
+				g.Endpoints = removeElement(g.Endpoints, endpoint.ID)
+			})
+		} else {
+			edgeGroup.Endpoints = removeElement(edgeGroup.Endpoints, endpoint.ID)
+			tx.EdgeGroup().Update(edgeGroup.ID, &edgeGroup)
+		}
+
 		if err != nil {
 			log.Warn().Err(err).Msgf("Unable to update edge group")
 		}
 	}
 
-	edgeStacks, err := handler.DataStore.EdgeStack().EdgeStacks()
+	edgeStacks, err := tx.EdgeStack().EdgeStacks()
 	if err != nil {
 		log.Warn().Err(err).Msgf("Unable to retrieve edge stacks from the database")
 	}
@@ -147,14 +187,14 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		edgeStack := &edgeStacks[idx]
 		if _, ok := edgeStack.Status[endpoint.ID]; ok {
 			delete(edgeStack.Status, endpoint.ID)
-			err = handler.DataStore.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack)
+			err = tx.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack)
 			if err != nil {
 				log.Warn().Err(err).Msgf("Unable to update edge stack")
 			}
 		}
 	}
 
-	registries, err := handler.DataStore.Registry().ReadAll()
+	registries, err := tx.Registry().ReadAll()
 	if err != nil {
 		log.Warn().Err(err).Msgf("Unable to retrieve registries from the database")
 	}
@@ -163,7 +203,7 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		registry := &registries[idx]
 		if _, ok := registry.RegistryAccesses[endpoint.ID]; ok {
 			delete(registry.RegistryAccesses, endpoint.ID)
-			err = handler.DataStore.Registry().Update(registry.ID, registry)
+			err = tx.Registry().Update(registry.ID, registry)
 			if err != nil {
 				log.Warn().Err(err).Msgf("Unable to update registry accesses")
 			}
@@ -181,9 +221,14 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		for idx := range edgeJobs {
 			edgeJob := &edgeJobs[idx]
 			if _, ok := edgeJob.Endpoints[endpoint.ID]; ok {
-				err = handler.DataStore.EdgeJob().UpdateEdgeJobFunc(edgeJob.ID, func(j *portaineree.EdgeJob) {
-					delete(j.Endpoints, endpoint.ID)
-				})
+				if featureflags.IsEnabled(portaineree.FeatureNoTx) {
+					err = tx.EdgeJob().UpdateEdgeJobFunc(edgeJob.ID, func(j *portaineree.EdgeJob) {
+						delete(j.Endpoints, endpoint.ID)
+					})
+				} else {
+					delete(edgeJob.Endpoints, endpoint.ID)
+					err = tx.EdgeJob().Update(edgeJob.ID, edgeJob)
+				}
 
 				if err != nil {
 					log.Warn().Err(err).Msgf("Unable to update edge job")
@@ -192,12 +237,12 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		}
 	}
 
-	err = handler.DataStore.Endpoint().DeleteEndpoint(portaineree.EndpointID(endpointID))
+	err = tx.Endpoint().DeleteEndpoint(portaineree.EndpointID(endpointID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to delete the environment from the database", err)
 	}
 
-	return response.Empty(w)
+	return nil
 }
 
 func removeElement(slice []portaineree.EndpointID, elem portaineree.EndpointID) []portaineree.EndpointID {

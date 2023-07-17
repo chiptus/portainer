@@ -62,7 +62,7 @@ func (manager *tokenManager) GetUserServiceAccountToken(
 			return "", err
 		}
 
-		endpointRole, err := manager.authService.GetUserEndpointRole(userID, endpointID)
+		endpointRole, err := manager.authService.GetUserEndpointRoleTx(manager.dataStore, userID, endpointID)
 		if err != nil || endpointRole == nil {
 			return "", err
 		}
@@ -83,7 +83,7 @@ func (manager *tokenManager) GetUserServiceAccountToken(
 		}
 		// update the namespace access policies based on user's role, also in configmap.
 		accessPolicies, hasChange, err := manager.authService.UpdateUserNamespaceAccessPolicies(
-			userID, endpoint, accessPolicies,
+			manager.dataStore, userID, endpoint, accessPolicies,
 		)
 		if hasChange {
 			err = manager.kubecli.UpdateNamespaceAccessPolicies(accessPolicies)
@@ -93,6 +93,7 @@ func (manager *tokenManager) GetUserServiceAccountToken(
 		}
 
 		namespaceRoles, err := manager.authService.GetUserNamespaceRoles(
+			manager.dataStore,
 			userID, int(endpointRole.ID), endpointID, accessPolicies, namespaces,
 			endpointRole.Authorizations, endpoint.Kubernetes.Configuration,
 		)

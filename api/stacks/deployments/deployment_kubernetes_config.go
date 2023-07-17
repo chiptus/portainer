@@ -288,7 +288,7 @@ func (config *KubernetesStackDeploymentConfig) checkEndpointPermission() error {
 	}
 
 	// check if the user has RW access to the namespace
-	namespaceAuthorizations, err := config.authorizationService.GetNamespaceAuthorizations(int(config.tokenData.ID), *config.endpoint, cli)
+	namespaceAuthorizations, err := config.authorizationService.GetNamespaceAuthorizations(nil, int(config.tokenData.ID), *config.endpoint, cli)
 	if err != nil {
 		return errors.Wrap(err, "failed to retrieve user namespace authorizations")
 	}

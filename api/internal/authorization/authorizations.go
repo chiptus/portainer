@@ -578,8 +578,8 @@ func populateDeployIngressAuthorizations(restricted bool, role portaineree.Role)
 }
 
 // RemoveTeamAccessPolicies will remove all existing access policies associated to the specified team
-func (service *Service) RemoveTeamAccessPolicies(teamID portaineree.TeamID) error {
-	endpoints, err := service.dataStore.Endpoint().Endpoints()
+func (service *Service) RemoveTeamAccessPolicies(tx dataservices.DataStoreTx, teamID portaineree.TeamID) error {
+	endpoints, err := tx.Endpoint().Endpoints()
 	if err != nil {
 		return err
 	}
@@ -589,7 +589,7 @@ func (service *Service) RemoveTeamAccessPolicies(teamID portaineree.TeamID) erro
 			if policyTeamID == teamID {
 				delete(endpoint.TeamAccessPolicies, policyTeamID)
 
-				err := service.dataStore.Endpoint().UpdateEndpoint(endpoint.ID, &endpoint)
+				err := tx.Endpoint().UpdateEndpoint(endpoint.ID, &endpoint)
 				if err != nil {
 					return err
 				}
@@ -599,7 +599,7 @@ func (service *Service) RemoveTeamAccessPolicies(teamID portaineree.TeamID) erro
 		}
 	}
 
-	endpointGroups, err := service.dataStore.EndpointGroup().ReadAll()
+	endpointGroups, err := tx.EndpointGroup().ReadAll()
 	if err != nil {
 		return err
 	}
@@ -609,7 +609,7 @@ func (service *Service) RemoveTeamAccessPolicies(teamID portaineree.TeamID) erro
 			if policyTeamID == teamID {
 				delete(endpointGroup.TeamAccessPolicies, policyTeamID)
 
-				err := service.dataStore.EndpointGroup().Update(endpointGroup.ID, &endpointGroup)
+				err := tx.EndpointGroup().Update(endpointGroup.ID, &endpointGroup)
 				if err != nil {
 					return err
 				}
@@ -619,7 +619,7 @@ func (service *Service) RemoveTeamAccessPolicies(teamID portaineree.TeamID) erro
 		}
 	}
 
-	registries, err := service.dataStore.Registry().ReadAll()
+	registries, err := tx.Registry().ReadAll()
 	if err != nil {
 		return err
 	}
@@ -629,7 +629,7 @@ func (service *Service) RemoveTeamAccessPolicies(teamID portaineree.TeamID) erro
 			if policyTeamID == teamID {
 				delete(registry.TeamAccessPolicies, policyTeamID)
 
-				err := service.dataStore.Registry().Update(registry.ID, &registry)
+				err := tx.Registry().Update(registry.ID, &registry)
 				if err != nil {
 					return err
 				}
@@ -639,12 +639,12 @@ func (service *Service) RemoveTeamAccessPolicies(teamID portaineree.TeamID) erro
 		}
 	}
 
-	return service.UpdateUsersAuthorizations()
+	return service.UpdateUsersAuthorizationsTx(tx)
 }
 
 // RemoveUserAccessPolicies will remove all existing access policies associated to the specified user
-func (service *Service) RemoveUserAccessPolicies(userID portaineree.UserID) error {
-	endpoints, err := service.dataStore.Endpoint().Endpoints()
+func (service *Service) RemoveUserAccessPolicies(tx dataservices.DataStoreTx, userID portaineree.UserID) error {
+	endpoints, err := tx.Endpoint().Endpoints()
 	if err != nil {
 		return err
 	}
@@ -654,7 +654,7 @@ func (service *Service) RemoveUserAccessPolicies(userID portaineree.UserID) erro
 			if policyUserID == userID {
 				delete(endpoint.UserAccessPolicies, policyUserID)
 
-				err := service.dataStore.Endpoint().UpdateEndpoint(endpoint.ID, &endpoint)
+				err := tx.Endpoint().UpdateEndpoint(endpoint.ID, &endpoint)
 				if err != nil {
 					return err
 				}
@@ -664,7 +664,7 @@ func (service *Service) RemoveUserAccessPolicies(userID portaineree.UserID) erro
 		}
 	}
 
-	endpointGroups, err := service.dataStore.EndpointGroup().ReadAll()
+	endpointGroups, err := tx.EndpointGroup().ReadAll()
 	if err != nil {
 		return err
 	}
@@ -674,7 +674,7 @@ func (service *Service) RemoveUserAccessPolicies(userID portaineree.UserID) erro
 			if policyUserID == userID {
 				delete(endpointGroup.UserAccessPolicies, policyUserID)
 
-				err := service.dataStore.EndpointGroup().Update(endpointGroup.ID, &endpointGroup)
+				err := tx.EndpointGroup().Update(endpointGroup.ID, &endpointGroup)
 				if err != nil {
 					return err
 				}
@@ -684,7 +684,7 @@ func (service *Service) RemoveUserAccessPolicies(userID portaineree.UserID) erro
 		}
 	}
 
-	registries, err := service.dataStore.Registry().ReadAll()
+	registries, err := tx.Registry().ReadAll()
 	if err != nil {
 		return err
 	}
@@ -694,7 +694,7 @@ func (service *Service) RemoveUserAccessPolicies(userID portaineree.UserID) erro
 			if policyUserID == userID {
 				delete(registry.UserAccessPolicies, policyUserID)
 
-				err := service.dataStore.Registry().Update(registry.ID, &registry)
+				err := tx.Registry().Update(registry.ID, &registry)
 				if err != nil {
 					return err
 				}
@@ -723,21 +723,7 @@ func (service *Service) UpdateUserAuthorizations(tx dataservices.DataStoreTx, us
 
 // UpdateUsersAuthorizations will trigger an update of the authorizations for all the users.
 func (service *Service) UpdateUsersAuthorizations() error {
-	users, err := service.dataStore.User().ReadAll()
-	if err != nil {
-		return err
-	}
-
-	for _, user := range users {
-		err := service.updateUserAuthorizations(service.dataStore, user.ID)
-		if err != nil {
-			return err
-		}
-	}
-
-	service.TriggerUsersAuthUpdate()
-
-	return nil
+	return service.UpdateUsersAuthorizationsTx(service.dataStore)
 }
 
 func (service *Service) UpdateUsersAuthorizationsTx(tx dataservices.DataStoreTx) error {
@@ -837,13 +823,14 @@ func getGroupPolicies(endpointGroups []portaineree.EndpointGroup) (
 // and updates it with the user and his team's environment(endpoint) roles.
 // Returns the updated policies and whether there is any update.
 func (service *Service) UpdateUserNamespaceAccessPolicies(
+	tx dataservices.DataStoreTx,
 	userID int, endpoint *portaineree.Endpoint,
 	policiesToUpdate map[string]portaineree.K8sNamespaceAccessPolicy,
 ) (map[string]portaineree.K8sNamespaceAccessPolicy, bool, error) {
 	endpointID := int(endpoint.ID)
 	restrictDefaultNamespace := endpoint.Kubernetes.Configuration.RestrictDefaultNamespace
 
-	userRole, err := service.GetUserEndpointRole(userID, endpointID)
+	userRole, err := service.GetUserEndpointRoleTx(tx, userID, endpointID)
 	if err != nil {
 		return nil, false, err
 	}
@@ -856,15 +843,14 @@ func (service *Service) UpdateUserNamespaceAccessPolicies(
 		usersEndpointRole[userID] = -1
 	}
 
-	userMemberships, err := service.dataStore.TeamMembership().
-		TeamMembershipsByUserID(portaineree.UserID(userID))
+	userMemberships, err := tx.TeamMembership().TeamMembershipsByUserID(portaineree.UserID(userID))
 	if err != nil {
 		return nil, false, err
 	}
 
 	teamIDs := make([]int, 0)
 	for _, membership := range userMemberships {
-		teamRole, err := service.GetTeamEndpointRole(int(membership.TeamID), endpointID)
+		teamRole, err := service.GetTeamEndpointRole(tx, int(membership.TeamID), endpointID)
 		if err != nil {
 			return nil, false, err
 		}
@@ -936,10 +922,11 @@ func (service *Service) updateNamespaceAccessPolicies(
 // and remove users/teams in it.
 // Returns the updated policies and whether there is any update.
 func (service *Service) RemoveUserNamespaceAccessPolicies(
+	tx dataservices.DataStoreTx,
 	userID int, endpointID int,
 	policiesToUpdate map[string]portaineree.K8sNamespaceAccessPolicy,
 ) (map[string]portaineree.K8sNamespaceAccessPolicy, bool, error) {
-	userRole, err := service.GetUserEndpointRole(userID, endpointID)
+	userRole, err := service.GetUserEndpointRoleTx(tx, userID, endpointID)
 	if err != nil {
 		return nil, false, err
 	}
@@ -982,10 +969,11 @@ func (service *Service) removeUserInNamespaceAccessPolicies(
 // and remove teams in it.
 // Returns the updated policies and whether there is any update.
 func (service *Service) RemoveTeamNamespaceAccessPolicies(
+	tx dataservices.DataStoreTx,
 	teamID int, endpointID int,
 	policiesToUpdate map[string]portaineree.K8sNamespaceAccessPolicy,
 ) (map[string]portaineree.K8sNamespaceAccessPolicy, bool, error) {
-	teamRole, err := service.GetTeamEndpointRole(teamID, endpointID)
+	teamRole, err := service.GetTeamEndpointRole(tx, teamID, endpointID)
 	if err != nil {
 		return nil, false, err
 	}
@@ -1018,31 +1006,32 @@ func (service *Service) RemoveTeamNamespaceAccessPolicies(
 
 // GetUserEndpointRole returns the environment(endpoint) role of the user.
 // It returns nil if there is no role assigned to the user at the environment(endpoint).
-func (service *Service) GetUserEndpointRole(
-	userID int,
-	endpointID int,
-) (*portaineree.Role, error) {
-	user, err := service.dataStore.User().Read(portaineree.UserID(userID))
+func (service *Service) GetUserEndpointRole(userID int, endpointID int) (*portaineree.Role, error) {
+	return service.GetUserEndpointRoleTx(service.dataStore, userID, endpointID)
+}
+
+func (service *Service) GetUserEndpointRoleTx(tx dataservices.DataStoreTx, userID int, endpointID int) (*portaineree.Role, error) {
+	user, err := tx.User().Read(portaineree.UserID(userID))
 	if err != nil {
 		return nil, err
 	}
 
-	userMemberships, err := service.dataStore.TeamMembership().TeamMembershipsByUserID(user.ID)
+	userMemberships, err := tx.TeamMembership().TeamMembershipsByUserID(user.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	endpoint, err := service.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := tx.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err != nil {
 		return nil, err
 	}
 
-	endpointGroups, err := service.dataStore.EndpointGroup().ReadAll()
+	endpointGroups, err := tx.EndpointGroup().ReadAll()
 	if err != nil {
 		return nil, err
 	}
 
-	roles, err := service.dataStore.Role().ReadAll()
+	roles, err := tx.Role().ReadAll()
 	if err != nil {
 		return nil, err
 	}
@@ -1054,6 +1043,7 @@ func (service *Service) GetUserEndpointRole(
 }
 
 func (service *Service) GetNamespaceAuthorizations(
+	tx dataservices.DataStoreTx,
 	userID int,
 	endpoint portaineree.Endpoint,
 	kcl portaineree.KubeClient,
@@ -1067,7 +1057,12 @@ func (service *Service) GetNamespaceAuthorizations(
 		return namespaceAuthorizations, nil
 	}
 
-	endpointRole, err := service.GetUserEndpointRole(userID, int(endpoint.ID))
+	// TODO: remove this once KubernetesStackDeploymentConfig.checkEndpointPermission() handles transactions
+	if tx == nil {
+		tx = service.dataStore
+	}
+
+	endpointRole, err := service.GetUserEndpointRoleTx(tx, userID, int(endpoint.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -1089,7 +1084,7 @@ func (service *Service) GetNamespaceAuthorizations(
 
 	// update the namespace access policies based on user's role, also in configmap.
 	accessPolicies, hasChange, err := service.UpdateUserNamespaceAccessPolicies(
-		userID, &endpoint, accessPolicies,
+		tx, userID, &endpoint, accessPolicies,
 	)
 	if hasChange {
 		err = kcl.UpdateNamespaceAccessPolicies(accessPolicies)
@@ -1099,6 +1094,7 @@ func (service *Service) GetNamespaceAuthorizations(
 	}
 
 	namespaceAuthorizations, err = service.GetUserNamespaceAuthorizations(
+		tx,
 		userID, int(endpointRole.ID), int(endpoint.ID), accessPolicies, namespaces, endpointRole.Authorizations,
 		endpoint.Kubernetes.Configuration,
 	)
@@ -1111,6 +1107,7 @@ func (service *Service) GetNamespaceAuthorizations(
 
 // GetUserNamespaceAuthorizations returns authorizations of a user's namespaces
 func (service *Service) GetUserNamespaceAuthorizations(
+	tx dataservices.DataStoreTx,
 	userID int,
 	userEndpointRoleID int,
 	endpointID int,
@@ -1119,7 +1116,7 @@ func (service *Service) GetUserNamespaceAuthorizations(
 	endpointAuthorizations portaineree.Authorizations,
 	endpointConfiguration portaineree.KubernetesConfiguration,
 ) (map[string]portaineree.Authorizations, error) {
-	namespaceRoles, err := service.GetUserNamespaceRoles(userID, userEndpointRoleID, endpointID,
+	namespaceRoles, err := service.GetUserNamespaceRoles(tx, userID, userEndpointRoleID, endpointID,
 		accessPolicies, namespaces, endpointAuthorizations, endpointConfiguration)
 	if err != nil {
 		return nil, err
@@ -1137,6 +1134,7 @@ func (service *Service) GetUserNamespaceAuthorizations(
 
 // GetUserNamespaceRoles returns the environment(endpoint) role of the user.
 func (service *Service) GetUserNamespaceRoles(
+	tx dataservices.DataStoreTx,
 	userID int,
 	userEndpointRoleID int,
 	endpointID int,
@@ -1152,17 +1150,17 @@ func (service *Service) GetUserNamespaceRoles(
 		return make(map[string]portaineree.Role), nil
 	}
 
-	user, err := service.dataStore.User().Read(portaineree.UserID(userID))
+	user, err := tx.User().Read(portaineree.UserID(userID))
 	if err != nil {
 		return nil, err
 	}
 
-	userMemberships, err := service.dataStore.TeamMembership().TeamMembershipsByUserID(user.ID)
+	userMemberships, err := tx.TeamMembership().TeamMembershipsByUserID(user.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	roles, err := service.dataStore.Role().ReadAll()
+	roles, err := tx.Role().ReadAll()
 	if err != nil {
 		return nil, err
 	}
@@ -1264,40 +1262,35 @@ func getUserNamespaceRole(
 //
 // If roles are found in any of the step, the search stops.
 // Then the role with the hightest priority is returned.
-func (service *Service) GetTeamEndpointRole(
-	teamID int, endpointID int,
-) (*portaineree.Role, error) {
-
-	memberships, err := service.dataStore.TeamMembership().TeamMembershipsByTeamID(portaineree.TeamID(teamID))
+func (service *Service) GetTeamEndpointRole(tx dataservices.DataStoreTx, teamID int, endpointID int) (*portaineree.Role, error) {
+	memberships, err := tx.TeamMembership().TeamMembershipsByTeamID(portaineree.TeamID(teamID))
 	if err != nil {
 		return nil, err
 	}
 
-	endpoint, err := service.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := tx.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
 	if err != nil {
 		return nil, err
 	}
 
-	endpointGroups, err := service.dataStore.EndpointGroup().ReadAll()
+	endpointGroups, err := tx.EndpointGroup().ReadAll()
 	if err != nil {
 		return nil, err
 	}
 
-	roles, err := service.dataStore.Role().ReadAll()
+	roles, err := tx.Role().ReadAll()
 	if err != nil {
 		return nil, err
 	}
 
 	_, groupTeamAccessPolicies := getGroupPolicies(endpointGroups)
 
-	role := getRoleFromTeamAccessPolicies(memberships,
-		endpoint.TeamAccessPolicies, roles)
+	role := getRoleFromTeamAccessPolicies(memberships, endpoint.TeamAccessPolicies, roles)
 	if role != nil {
 		return role, nil
 	}
 
-	role = getRoleFromTeamEndpointGroupPolicies(memberships, endpoint,
-		roles, groupTeamAccessPolicies)
+	role = getRoleFromTeamEndpointGroupPolicies(memberships, endpoint, roles, groupTeamAccessPolicies)
 
 	return role, nil
 }
@@ -1498,8 +1491,8 @@ func unionAuthorizations(auths ...portaineree.Authorizations) portaineree.Author
 	return authorizations
 }
 
-func (service *Service) UserIsAdminOrAuthorized(userID portaineree.UserID, endpointID portaineree.EndpointID, authorizations []portaineree.Authorization) (bool, error) {
-	user, err := service.dataStore.User().Read(userID)
+func (service *Service) UserIsAdminOrAuthorized(tx dataservices.DataStoreTx, userID portaineree.UserID, endpointID portaineree.EndpointID, authorizations []portaineree.Authorization) (bool, error) {
+	user, err := tx.User().Read(userID)
 	if err != nil {
 		return false, err
 	}

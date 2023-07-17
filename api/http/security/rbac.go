@@ -11,7 +11,7 @@ import (
 )
 
 // IsAdminOrEndpointAdmin checks if current request is for an admin or an environment(endpoint) admin
-func IsAdminOrEndpointAdmin(request *http.Request, dataStore dataservices.DataStore, endpointID portaineree.EndpointID) (bool, error) {
+func IsAdminOrEndpointAdmin(request *http.Request, tx dataservices.DataStoreTx, endpointID portaineree.EndpointID) (bool, error) {
 	tokenData, err := RetrieveTokenData(request)
 	if err != nil {
 		return false, err
@@ -21,7 +21,7 @@ func IsAdminOrEndpointAdmin(request *http.Request, dataStore dataservices.DataSt
 		return true, nil
 	}
 
-	user, err := dataStore.User().Read(tokenData.ID)
+	user, err := tx.User().Read(tokenData.ID)
 	if err != nil {
 		return false, err
 	}
