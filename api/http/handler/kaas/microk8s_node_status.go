@@ -25,9 +25,9 @@ import (
 // @failure 403 "Permission denied"
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
-// @router /cloud/endpoints/{environmentid}/nodes/nodestatus [get]
+// @router /cloud/endpoints/{endpointid}/nodes/nodestatus [get]
 func (handler *Handler) microk8sGetNodeStatus(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	environmentId, err := request.RetrieveNumericRouteVariableValue(r, "environmentid")
+	environmentId, err := request.RetrieveNumericRouteVariableValue(r, "endpointid")
 
 	nodeIP, err := request.RetrieveQueryParameter(r, "nodeIP", false)
 	if err != nil {

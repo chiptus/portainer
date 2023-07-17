@@ -1,4 +1,4 @@
-import { Activity } from 'lucide-react';
+import { Activity, Loader2 } from 'lucide-react';
 import { useCurrentStateAndParams } from '@uirouter/react';
 import { useEffect } from 'react';
 
@@ -8,6 +8,7 @@ import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { PageHeader } from '@@/PageHeader';
 import { Widget, WidgetBody, WidgetTitle } from '@@/Widget';
 import { Card } from '@@/Card';
+import { Icon } from '@@/Icon';
 
 import { useNodeQuery } from '../HomeView/nodes.service';
 import { getInternalNodeIpAddress } from '../HomeView/NodesDatatable/utils';
@@ -48,16 +49,21 @@ export function Microk8sNodeStatusView() {
         <div className="col-sm-12">
           <Widget>
             <WidgetTitle title="Node status" icon={Activity} />
-            <WidgetBody
-              loading={nodeQuery.isLoading || nodeStatusQuery.isLoading}
-            >
-              {nodeStatus && (
-                <Card>
+            <WidgetBody>
+              <Card>
+                {nodeQuery.isLoading ||
+                  (nodeStatusQuery.isLoading && (
+                    <div className="text-muted vertical-center text-sm">
+                      <Icon icon={Loader2} className="animate-spin-slow" />
+                      Loading MicroK8s node status
+                    </div>
+                  ))}
+                {nodeStatus && (
                   <code className="whitespace-pre-wrap break-words bg-inherit p-0">
                     {nodeStatus}
                   </code>
-                </Card>
-              )}
+                )}
+              </Card>
             </WidgetBody>
           </Widget>
         </div>

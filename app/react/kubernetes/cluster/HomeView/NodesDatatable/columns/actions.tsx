@@ -51,23 +51,24 @@ function ActionsCell({
           </Link>
         )}
 
+        {nodeIp && node.isApi && (
+          <Link
+            title="MicroK8s status"
+            to="kubernetes.cluster.node.microk8s-status"
+            params={{ nodeName }}
+            className="flex items-center"
+          >
+            <Icon icon={Activity} />
+          </Link>
+        )}
+
         {nodeIp && canSSH && (
-          <>
-            <Link
-              title="MicroK8s status"
-              to="kubernetes.cluster.node.microk8s-status"
-              params={{ nodeName }}
-              className="flex items-center"
-            >
-              <Icon icon={Activity} />
-            </Link>
-            <NodeShellButton
-              windowTitle="SSH Console"
-              btnTitle="SSH Console"
-              environmentId={environmentId}
-              nodeIp={nodeIp}
-            />
-          </>
+          <NodeShellButton
+            windowTitle="SSH Console"
+            btnTitle="SSH Console"
+            environmentId={environmentId}
+            nodeIp={nodeIp}
+          />
         )}
       </Authorized>
     </div>
