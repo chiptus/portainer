@@ -1,5 +1,4 @@
 import angular from 'angular';
-import { dropMessages } from 'react-chat-widget';
 
 class LogoutController {
   /* @ngInject */
@@ -55,7 +54,7 @@ class LogoutController {
     } catch (err) {
       this.Notifications.error('Failure', err, 'An error occurred during logout');
     } finally {
-      dropMessages();
+      // (await import('react-chat-widget')).dropMessages();
     }
   }
 

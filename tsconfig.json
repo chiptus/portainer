@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": "app",
     "outDir": "./dist/public",
-    "module": "es6",
+    "module": "es2020",
     // "module": "commonjs",
     // "module": "esnext",
     "incremental": true,

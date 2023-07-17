@@ -6,7 +6,7 @@ import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
 import { GitCredentialsDatatable } from '@/react/portainer/account/AccountView/GitCredentialsDatatable';
 import { LicenseInfoPanel } from '@/react/portainer/licenses/components/LicenseInfoPanel';
-import { ChatBotItem } from '@/react/portainer/chat/ChatBot';
+import { LazyLoadChatbot } from '@/react/portainer/chat/ChatBot/LazyLoadChatbot';
 import { TableColumnHeaderImageUpToDate } from '@/react/docker/components/datatables/TableColumnHeaderImageUpToDate';
 import { withFormValidation } from '@/react-tools/withFormValidation';
 import { BetaAlert } from '@/react/portainer/environments/update-schedules/common/BetaAlert';
@@ -157,7 +157,7 @@ export const ngModule = angular
   )
   .component(
     'chatBotItem',
-    r2a(withUIRouter(withReactQuery(withCurrentUser(ChatBotItem))), [])
+    r2a(withUIRouter(withReactQuery(withCurrentUser(LazyLoadChatbot))), [])
   )
   .component(
     'datatableSearchbar',
