@@ -10,6 +10,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	sshUtil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 )
@@ -391,6 +392,7 @@ func UpdateHostFile(
 }
 
 func SetupHostEntries(user, password, passphrase, privateKey string, nodeIps []string) error {
+
 	// hostEntries is a mapping of nodeIP to hostname.
 	hostEntries := make(map[string]string)
 
@@ -398,20 +400,30 @@ func SetupHostEntries(user, password, passphrase, privateKey string, nodeIps []s
 	for _, nodeIp := range nodeIps {
 		hostname, err := RetrieveHostname(user, password, passphrase, privateKey, nodeIp)
 		if err != nil {
-			return err
+			return fmt.Errorf("error retrieving hostname from host %s: %w", nodeIp, err)
 		}
 
 		hostEntries[nodeIp] = hostname
 	}
 
+	log.Debug().Msgf("SetupHostEntries: %+v\n", hostEntries)
+
+	var g errgroup.Group
+
 	// Update each of the nodes with the list of host entries.
 	for _, nodeIp := range nodeIps {
-		err := UpdateHostFile(user, password, passphrase, privateKey, nodeIp, hostEntries)
-		if err != nil {
-			return err
-		}
+		ip := nodeIp
+		g.Go(func() error {
+			err := UpdateHostFile(user, password, passphrase, privateKey, ip, hostEntries)
+			if err != nil {
+				return fmt.Errorf("failed to update host file on node %s: %w", ip, err)
+			}
+
+			return nil
+		})
 	}
-	return nil
+
+	return g.Wait()
 }
 
 // parseAddonResponse reads the command line response of `microk8s status` and

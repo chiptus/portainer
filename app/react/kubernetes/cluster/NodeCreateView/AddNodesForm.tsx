@@ -126,7 +126,6 @@ export function AddNodesForm() {
           setFieldValue,
           values,
           submitForm,
-          validateField,
           isSubmitting,
         }) => {
           const allNodeIPs = [
@@ -245,15 +244,7 @@ export function AddNodesForm() {
                     type="button"
                     color="default"
                     size="small"
-                    onClick={() => {
-                      setFieldValue('masterNodesToAdd', ['']);
-                      setFieldValue('workerNodesToAdd', ['']);
-                      // setTimeout is needed to make sure the validation is run after the values are reset
-                      setTimeout(() => {
-                        validateField('masterNodesToAdd');
-                        validateField('workerNodesToAdd');
-                      });
-                    }}
+                    onClick={() => router.stateService.go('kubernetes.cluster')}
                   >
                     Cancel
                   </Button>

@@ -73,7 +73,7 @@ type (
 	}
 )
 
-func NewCloudClusterManagementService(dataStore dataservices.DataStore, fileService portaineree.FileService, clientFactory *kubecli.ClientFactory, snapshotService portaineree.SnapshotService, authorizationService *authorization.Service, shutdownCtx context.Context, kubernetesDeployer portaineree.KubernetesDeployer) *CloudManagementService {
+func NewCloudManagementService(dataStore dataservices.DataStore, fileService portaineree.FileService, clientFactory *kubecli.ClientFactory, snapshotService portaineree.SnapshotService, authorizationService *authorization.Service, shutdownCtx context.Context, kubernetesDeployer portaineree.KubernetesDeployer) *CloudManagementService {
 	requests := make(chan portaineree.CloudManagementRequest, 10)
 	result := make(chan *cloudPrevisioningResult, 10)
 

@@ -550,7 +550,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 
 	kubernetesDeployer := initKubernetesDeployer(authorizationService, kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, reverseTunnelService, digitalSignatureService, proxyManager, *flags.Assets)
 
-	cloudManagementService := cloud.NewCloudClusterManagementService(dataStore, fileService, kubernetesClientFactory, snapshotService, authorizationService, shutdownCtx, kubernetesDeployer)
+	cloudManagementService := cloud.NewCloudManagementService(dataStore, fileService, kubernetesClientFactory, snapshotService, authorizationService, shutdownCtx, kubernetesDeployer)
 	cloudManagementService.Start()
 
 	cloudInfoService := cloud.NewCloudInfoService(dataStore, shutdownCtx)

@@ -12,6 +12,7 @@ import (
 	sshUtil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/types"
+	kubeModels "github.com/portainer/portainer-ee/api/http/models/kubernetes"
 	"github.com/portainer/portainer-ee/api/internal/slices"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
@@ -394,8 +395,27 @@ func (service *CloudManagementService) processMicrok8sUpgradeRequest(req *Microk
 	return err
 }
 
+func nodeListToIpList(nodes []kubeModels.K8sNodes) []string {
+	flat := []string{}
+	for _, node := range nodes {
+		flat = append(flat, node.Address)
+	}
+	return flat
+}
+
 func (service *CloudManagementService) microk8sAddNodes(endpoint *portaineree.Endpoint, credentials *models.CloudCredential, req *Microk8sScalingRequest) error {
 	log.Info().Msgf("Adding %d master nodes and %d worker nodes to microk8s cluster", len(req.MasterNodesToAdd), len(req.WorkerNodesToAdd))
+
+	// Get a list of all the existing nodes in the cluster
+	kubectl, err := service.clientFactory.GetKubeClient(endpoint)
+	if err != nil {
+		return fmt.Errorf("failed to get kube client: %w", err)
+	}
+
+	existingNodes, err := kubectl.GetNodes()
+	if err != nil {
+		return fmt.Errorf("failed to get nodes: %w", err)
+	}
 
 	masterNode := urlToMasterNode(endpoint.URL)
 	log.Debug().Msgf("Current masterNode: %s", masterNode)
@@ -450,11 +470,12 @@ func (service *CloudManagementService) microk8sAddNodes(endpoint *portaineree.En
 	}
 
 	log.Debug().Msgf("Creating host entries on nodes")
-
 	setMessage("Scaling cluster", "Adding host entries to all nodes", "processing")
-	err = mk8s.SetupHostEntries(user, password, passphrase, privateKey, nodes)
+
+	allNodes := append(nodeListToIpList(existingNodes), nodes...)
+	err = mk8s.SetupHostEntries(user, password, passphrase, privateKey, allNodes)
 	if err != nil {
-		return fmt.Errorf("failed to add host entries to node. %w", err)
+		return fmt.Errorf("error setting up host entries: %w", err)
 	}
 
 	sshClient, err := sshUtil.NewConnection(user, password, passphrase, privateKey, masterNode)
