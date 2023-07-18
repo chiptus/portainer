@@ -537,10 +537,13 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 	}
 
 	setMessage := service.setMessageHandler(req.EndpointID, "addons")
+	// defer just in case status message is not updated correctly
+	defer setMessage("Updating addons", "Addons updated", "")
 
 	setMessage("Updating addons", "Enabling/Disabling MicroK8s addons", "processing")
 	microK8sInfo, err := service.Microk8sGetAddons(endpoint.ID, credentials)
 	if err != nil {
+		log.Error().Msgf("Failed to get microk8s addons: %v", err)
 		return err
 	}
 
@@ -581,8 +584,8 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 		}
 	}
 
-	log.Info().Msgf("New addons: %v", newAddons)
-	log.Info().Msgf("Delete addons: %v", deletedAddons)
+	log.Info().Msgf("New addons requested: %v", newAddons)
+	log.Info().Msgf("Delete addons requested: %v", deletedAddons)
 
 	log.Debug().Msgf("Enabling addons")
 
@@ -592,7 +595,7 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 		return err
 	}
 	defer sshClient.Close()
-	// community addon should be enabled on all the master nodes.
+
 	nodes, err := mk8s.GetAllNodes(sshClient)
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to get all the nodes from node %s", masterNode)
@@ -602,6 +605,7 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 	allAvailableAddons := mk8s.GetAllAvailableAddons()
 
 	log.Debug().Msgf("Disabling addons")
+
 	setMessage("Updating addons", "Disabling MicroK8s addons", "processing")
 	errCount := 0
 	for _, addon := range deletedAddons {
@@ -702,10 +706,15 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 		log.Error().Msgf("failed to enable %d microk8s addons on node.  Please enable these manually", errCount)
 	}
 
-	setMessage("Updating addons", "Addons updated", "")
-
+	// Read endpoint again for fresh-copy
+	endpoint, err = service.dataStore.Endpoint().Endpoint(req.EndpointID)
+	if err != nil {
+		log.Error().Msgf("failed to read endpoint (%s - %d)", endpoint.Name, endpoint.ID)
+	}
 	// Update the endpoint with the new addons
 	endpoint.CloudProvider.AddonsWithArgs = req.Addons
+	endpoint.StatusMessage.OperationStatus = ""
+
 	err = service.dataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
 	if err != nil {
 		log.Error().Msgf("failed to update endpoint (%s - %d) addons", endpoint.Name, endpoint.ID)
@@ -792,7 +801,7 @@ func (service *CloudManagementService) GetSSHConnection(environmentID portainere
 	log.Debug().Str(
 		"provider",
 		portaineree.CloudProviderMicrok8s,
-	).Msg("processing upgrade request")
+	).Msgf("Creating ssh connection for environment %d", environmentID)
 
 	// Gather nodeIP from environmentID.
 	endpoint, err := service.dataStore.Endpoint().Endpoint(environmentID)
@@ -827,7 +836,7 @@ func (service *CloudManagementService) Microk8sGetAddons(environmentID portainer
 	log.Debug().Str(
 		"provider",
 		portaineree.CloudProviderMicrok8s,
-	).Msg("processing upgrade request")
+	).Msgf("Getting addons for environment %d", environmentID)
 
 	conn, err := service.GetSSHConnection(portaineree.EndpointID(environmentID), credential)
 	if err != nil {
@@ -848,7 +857,7 @@ func (service *CloudManagementService) Microk8sGetNodeIPs(credential *models.Clo
 	log.Debug().Str(
 		"provider",
 		portaineree.CloudProviderMicrok8s,
-	).Msg("processing upgrade request")
+	).Msgf("Getting nodes for environment %d", environmentID)
 
 	conn, err := service.GetSSHConnection(portaineree.EndpointID(environmentID), credential)
 	if err != nil {

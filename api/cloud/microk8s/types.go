@@ -324,6 +324,7 @@ var AllAddons = Addons{
 
 		IsAvailable: true,
 		Repository:  "community",
+		RequiredOn:  "masters",
 	},
 
 	{
