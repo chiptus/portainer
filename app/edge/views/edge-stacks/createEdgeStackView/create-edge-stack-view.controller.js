@@ -157,7 +157,7 @@ export default class CreateEdgeStackViewController {
   selectedRegistry(e) {
     return this.$async(async () => {
       const selectedRegistry = e;
-      this.registryID = selectedRegistry.Id;
+      this.registryID = selectedRegistry;
       this.formValues.Registries = [this.registryID];
     });
   }
