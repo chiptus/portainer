@@ -647,6 +647,13 @@
                     </div>
                     <!-- !has-override -->
                   </div>
+
+                  <div class="my-2 w-full">
+                    <p class="vertical-center text-muted text-xs" ng-if="ctrl.secrets.length === 0">
+                      <pr-icon icon="'info'" mode="'primary'"></pr-icon>
+                      There are no secrets available in this namespace.
+                    </p>
+                  </div>
                   <!-- !config-element -->
                   <div class="col-sm-12 !p-0">
                     <button
@@ -659,12 +666,6 @@
                     >
                       <pr-icon icon="'plus'" size="'sm'"></pr-icon> Add Secret
                     </button>
-                  </div>
-                  <div class="my-2 w-full">
-                    <p class="vertical-center text-muted text-xs" ng-if="ctrl.secrets.length === 0">
-                      <pr-icon icon="'info'" mode="'primary'"></pr-icon>
-                      There are no secrets available in this namespace.
-                    </p>
                   </div>
                   <!-- #endregion -->
 
