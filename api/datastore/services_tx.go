@@ -104,9 +104,13 @@ func (tx *StoreTx) TeamMembership() dataservices.TeamMembershipService {
 func (tx *StoreTx) Team() dataservices.TeamService                 { return nil }
 func (tx *StoreTx) PodSecurity() dataservices.PodSecurityService   { return nil }
 func (tx *StoreTx) TunnelServer() dataservices.TunnelServerService { return nil }
-func (tx *StoreTx) User() dataservices.UserService                 { return nil }
-func (tx *StoreTx) Version() dataservices.VersionService           { return nil }
-func (tx *StoreTx) Webhook() dataservices.WebhookService           { return nil }
+
+func (tx *StoreTx) User() dataservices.UserService {
+	return tx.store.UserService.Tx(tx.tx)
+}
+
+func (tx *StoreTx) Version() dataservices.VersionService { return nil }
+func (tx *StoreTx) Webhook() dataservices.WebhookService { return nil }
 
 func (tx *StoreTx) CloudCredential() dataservices.CloudCredentialService {
 	return tx.store.CloudCredentialService.Tx(tx.tx)
