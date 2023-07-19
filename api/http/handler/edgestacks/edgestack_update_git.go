@@ -30,6 +30,8 @@ type stackGitUpdatePayload struct {
 	// Update the stack file content from the git repository
 	UpdateVersion bool
 	EnvVars       []portainer.Pair
+	// List of Registries to use for this stack
+	Registries []portaineree.RegistryID
 }
 
 func (payload *stackGitUpdatePayload) Validate(r *http.Request) error {
@@ -151,6 +153,10 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 		edgeStack.GitConfig = gitConfig
 		edgeStack.EdgeGroups = groupIds
 		edgeStack.EnvVars = payload.EnvVars
+
+		if payload.Registries != nil {
+			edgeStack.Registries = payload.Registries
+		}
 
 		if payload.DeploymentType != nil {
 			edgeStack.DeploymentType = *payload.DeploymentType
