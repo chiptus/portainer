@@ -144,7 +144,7 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 
 		if payload.UpdateVersion {
 			projectPath := handler.FileService.FormProjectPathByVersion(edgeStack.ProjectPath, 0, gitConfig.ConfigHash)
-			err = handler.GitService.CloneRepository(projectPath, gitConfig.URL, payload.RefName, username, password, false)
+			err = handler.GitService.CloneRepository(projectPath, gitConfig.URL, payload.RefName, username, password, gitConfig.TLSSkipVerify)
 			if err != nil {
 				return httperror.InternalServerError("Failed cloning repository", err)
 			}
