@@ -28,8 +28,8 @@ function NameCell({
           {nodeName}
         </Link>
       </Authorized>
-      {node.isPublishedNode && <Badge type="success">connected</Badge>}
       {node.isApi && <Badge type="info">api</Badge>}
+      {node.isPublishedNode && <Badge type="success">environment IP</Badge>}
     </div>
   );
 }

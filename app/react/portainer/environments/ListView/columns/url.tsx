@@ -35,11 +35,11 @@ function Cell({
       <>
         {environment.URL}
         {status !== '' && ( // status is in a provisioning or error state
-          <div className="ml-2 inline-block">
+          <div className="inline-block">
             <span
               className={clsx(
                 'vertical-center inline-flex',
-                status === 'error' ? 'text-danger' : 'text-muted'
+                status === 'error' ? 'text-warning' : 'text-muted'
               )}
             >
               {environment.URL && status === 'error' && (
