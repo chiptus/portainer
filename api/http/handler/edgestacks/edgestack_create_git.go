@@ -80,7 +80,7 @@ func (payload *edgeStackFromGitRepositoryPayload) Validate(r *http.Request) erro
 	}
 
 	if payload.RepositoryAuthentication && govalidator.IsNull(payload.RepositoryPassword) && payload.RepositoryGitCredentialID == 0 {
-		return httperrors.NewInvalidPayloadError("Invalid repository credentials. Password must be specified when authentication is enabled")
+		return httperrors.NewInvalidPayloadError("Invalid repository credentials. Password or GitCredentialID must be specified when authentication is enabled")
 	}
 
 	if payload.DeploymentType != portaineree.EdgeStackDeploymentCompose && payload.DeploymentType != portaineree.EdgeStackDeploymentKubernetes && payload.DeploymentType != portaineree.EdgeStackDeploymentNomad {
@@ -171,8 +171,9 @@ func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dat
 
 	if payload.RepositoryAuthentication {
 		repoConfig.Authentication = &gittypes.GitAuthentication{
-			Username: payload.RepositoryUsername,
-			Password: payload.RepositoryPassword,
+			Username:        payload.RepositoryUsername,
+			Password:        payload.RepositoryPassword,
+			GitCredentialID: int(payload.RepositoryGitCredentialID),
 		}
 	}
 
