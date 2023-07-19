@@ -1,6 +1,6 @@
-<div class="col-sm-12">
+<div class="col-sm-12 pl-0">
   <div ng-if="$ctrl.state.changeWindow || !$ctrl.state.timeSet">
-    <div class="inline-flex flex-nowrap items-center gap-2" ng-if="!$ctrl.readOnly">
+    <div class="inline-flex flex-wrap items-center gap-2" ng-if="!$ctrl.readOnly">
       <div
         uib-timepicker
         readonly-input="true"
@@ -25,7 +25,7 @@
         </select>
       </div>
     </div>
-    <span class="text-warning small inline-flex gap-1 align-top">
+    <span class="text-warning small flex gap-1 align-top">
       <div class="icon icon-sm">
         <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>
       </div>
