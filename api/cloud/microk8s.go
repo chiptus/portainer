@@ -642,6 +642,13 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 				}
 				defer sshClientNode.Close()
 
+				if addon == "metrics-server" {
+					endpoint.Kubernetes.Configuration.UseServerMetrics = false
+					service.dataStore.Endpoint().UpdateEndpoint(
+						portaineree.EndpointID(endpoint.ID),
+						endpoint,
+					)
+				}
 				err = mk8s.DisableMicrok8sAddonsOnNode(sshClientNode, addon)
 				if err != nil {
 					// Rather than fail the whole thing.  Warn the user and allow them to manually try to enable the addon
