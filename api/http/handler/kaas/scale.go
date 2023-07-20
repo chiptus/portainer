@@ -22,7 +22,6 @@ import (
 // @security jwt
 // @produce json
 // @param environmentid path int true "Environment(Endpoint) identifier"
-// @param provider path string true "Cloud provider"
 // @success 200 "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"

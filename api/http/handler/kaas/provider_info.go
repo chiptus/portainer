@@ -20,6 +20,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
+// @param provider path string true "The cloud provider to get information about."
 // @param force query bool false "If true, get the up-to-date information (instead of cached information)."
 // @success 200 "Success"
 // @failure 400 "Invalid request"

@@ -9,7 +9,7 @@ ENV=development
 WEBPACK_CONFIG=webpack/webpack.$(ENV).js
 TAG=latest
 
-SWAG=go run github.com/swaggo/swag/cmd/swag@v1.8.11 
+SWAG=go run github.com/swaggo/swag/cmd/swag@v1.8.12
 GOTESTSUM=go run gotest.tools/gotestsum@v1.10.0
 
 # Don't change anything below this line unless you know what you're doing

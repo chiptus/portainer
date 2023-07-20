@@ -22,7 +22,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @param environmentID query int true "The environment ID of the cluster within Portainer."
+// @param environmentid path int true "Environment(Endpoint) identifier"
 // @success 200 "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
@@ -63,7 +63,7 @@ func (handler *Handler) microk8sGetAddons(w http.ResponseWriter, r *http.Request
 	return response.JSON(w, microK8sInfo)
 }
 
-// @id microk8sGetAddons
+// @id microk8sUpdateAddons
 // @summary Get a list of addons which are installed in a MicroK8s cluster.
 // @description The information returned can be used to query the MircoK8s cluster.
 // @description **Access policy**: authenticated
@@ -71,7 +71,8 @@ func (handler *Handler) microk8sGetAddons(w http.ResponseWriter, r *http.Request
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @param environmentID query int true "The environment ID of the cluster within Portainer."
+// @param environmentid path int true "Environment(Endpoint) identifier"
+// @param addons body providers.Microk8sUpdateAddonsPayload true "The list of addons to install in the cluster."
 // @success 200 "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
