@@ -92,34 +92,47 @@ export function AddonsForm({
           Optional addons
         </span>
       </div>
-      {values.addons.map((addon, index) => {
-        const error = errors.addons?.[index];
-        const addonError = isErrorType<AddOnFormValue>(error)
-          ? error
-          : undefined;
-        return (
-          <AddOnSelector
-            key={`addon${addon.name}}`}
-            value={addon}
-            options={addonOptions}
-            filteredOptions={filteredOptions}
-            index={index}
-            errors={addonError}
-            onChange={(value: AddOnFormValue) => {
-              const addons = [...values.addons];
-              addons[index] = value;
-              setFieldValue('addons', addons);
-            }}
-            onRemove={() => {
-              const addons = [...values.addons];
-              addons.splice(index, 1);
-              setFieldValue('addons', addons);
-            }}
-          />
-        );
-      })}
 
-      <div className="row mt-5 mb-5">
+      <div className="mb-2 flex w-full flex-col gap-y-2">
+        {values.addons.map((addon, index) => {
+          const error = errors.addons?.[index];
+          const addonError = isErrorType<AddOnFormValue>(error)
+            ? error
+            : undefined;
+          const initialAddonMatching = initialValues?.addons.find(
+            (addonOption) => addonOption.name === addon.name
+          );
+          const matchingAddonOption = microk8sOptions?.availableAddons.find(
+            (addonOption) => addonOption.label === addon.name
+          );
+          const isRequiredInitialArgumentEmpty =
+            initialAddonMatching?.arguments === '' &&
+            matchingAddonOption?.argumentsType === 'required';
+          return (
+            <AddOnSelector
+              key={`addon${index}`}
+              value={addon}
+              options={addonOptions}
+              filteredOptions={filteredOptions}
+              isRequiredInitialArgumentEmpty={isRequiredInitialArgumentEmpty}
+              index={index}
+              errors={addonError}
+              onChange={(value: AddOnFormValue) => {
+                const addons = [...values.addons];
+                addons[index] = value;
+                setFieldValue('addons', addons);
+              }}
+              onRemove={() => {
+                const addons = [...values.addons];
+                addons.splice(index, 1);
+                setFieldValue('addons', addons);
+              }}
+            />
+          );
+        })}
+      </div>
+
+      <div className="row mb-5 pt-2">
         <Button
           className="btn btn-sm btn-light !ml-0"
           type="button"

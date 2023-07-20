@@ -18,11 +18,13 @@ import {
 } from '@/react/kubernetes/cluster/microk8s/addons/types';
 import { AddOnSelector } from '@/react/kubernetes/cluster/microk8s/addons/AddonSelector';
 import { isErrorType } from '@/react/kubernetes/applications/CreateView/application-services/utils';
+import { BetaAlert } from '@/react/portainer/environments/update-schedules/common/BetaAlert';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { TextTip } from '@@/Tip/TextTip';
 import { Button, LoadingButton } from '@@/buttons';
 import { Select } from '@@/form-components/Input/Select';
+import { Tooltip } from '@@/Tip/Tooltip';
 
 import { CredentialsField } from '../../WizardKaaS/shared/CredentialsField';
 import { useSetAvailableOption } from '../../WizardKaaS/useSetAvailableOption';
@@ -236,25 +238,33 @@ export function Microk8sCreateClusterForm({
         />
       </FormControl>
 
-      <FormControl
-        label="Addons"
-        tooltip={
-          <>
-            You may specify{' '}
-            <a
-              href="https://microk8s.io/docs/addons"
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              addons
-            </a>{' '}
-            to be automatically installed in your cluster. The following addons
-            will also be installed by default: community, dns, ha-cluster, helm,
-            helm3 and rbac.
-          </>
-        }
-        inputId="microk8s-addons"
-      >
+      <div className="form-group">
+        <span className="col-sm-12 control-label text-left">
+          Addons
+          <Tooltip
+            message={
+              <>
+                You may specify{' '}
+                <a
+                  href="https://microk8s.io/docs/addons"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  addons
+                </a>{' '}
+                to be automatically installed in your cluster. The following
+                addons will also be installed by default: community, dns,
+                ha-cluster, helm, helm3 and rbac.
+              </>
+            }
+          />
+        </span>
+      </div>
+      <BetaAlert
+        className="mb-4"
+        message="Beta feature - so far, MicroK8s addons functionality has only been tested in a limited set of scenarios."
+      />
+      <div className="mb-2 flex w-full flex-col gap-y-2">
         {values.microk8s.addons.map((addon, index) => {
           const error = errors.microk8s?.addons?.[index];
           const addonError = isErrorType<AddOnFormValue>(error)
@@ -281,9 +291,8 @@ export function Microk8sCreateClusterForm({
             />
           );
         })}
-      </FormControl>
-
-      <div className="row mt-5 mb-5">
+      </div>
+      <div className="row mb-5 pt-2">
         <Button
           className="btn btn-sm btn-light !ml-0"
           type="button"
