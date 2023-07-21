@@ -4,27 +4,17 @@ import filesizeParser from 'filesize-parser';
 import KubernetesResourceReservationHelper from 'Kubernetes/helpers/resourceReservationHelper';
 import { KubernetesResourceReservation } from 'Kubernetes/models/resource-reservation/models';
 import { k8sInstallTitles } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/types';
+import { getMetricsForAllNodes } from '@/react/kubernetes/services/service.ts';
 
 class KubernetesClusterController {
   /* @ngInject */
-  constructor(
-    $async,
-    $state,
-    Notifications,
-    LocalStorage,
-    Authentication,
-    KubernetesNodeService,
-    KubernetesMetricsService,
-    KubernetesApplicationService,
-    KubernetesEndpointService
-  ) {
+  constructor($async, $state, Notifications, LocalStorage, Authentication, KubernetesNodeService, KubernetesApplicationService, KubernetesEndpointService) {
     this.$async = $async;
     this.$state = $state;
     this.Notifications = Notifications;
     this.LocalStorage = LocalStorage;
     this.Authentication = Authentication;
     this.KubernetesNodeService = KubernetesNodeService;
-    this.KubernetesMetricsService = KubernetesMetricsService;
     this.KubernetesApplicationService = KubernetesApplicationService;
     this.KubernetesEndpointService = KubernetesEndpointService;
     this.k8sInstallTitles = k8sInstallTitles;
@@ -110,7 +100,7 @@ class KubernetesClusterController {
 
   async getResourceUsage(endpointId) {
     try {
-      const nodeMetrics = await this.KubernetesMetricsService.getNodes(endpointId);
+      const nodeMetrics = await getMetricsForAllNodes(endpointId);
       const resourceUsageList = nodeMetrics.items.map((i) => i.usage);
       const clusterResourceUsage = resourceUsageList.reduce((total, u) => {
         total.CPU += KubernetesResourceReservationHelper.parseCPU(u.cpu);

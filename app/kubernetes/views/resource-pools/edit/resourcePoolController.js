@@ -19,6 +19,7 @@ import { getDeploymentOptions } from '@/react/portainer/environments/environment
 import { confirmUpdate } from '@@/modals/confirm';
 import KubernetesAnnotationsUtils from '@/kubernetes/converters/annotations';
 import { confirmUpdateNamespace } from '@/react/kubernetes/namespaces/ItemView/ConfirmUpdateNamespace';
+import { getMetricsForAllNodes, getMetricsForAllPods } from '@/react/kubernetes/services/service.ts';
 
 class KubernetesResourcePoolController {
   /* #region  CONSTRUCTOR */
@@ -31,8 +32,6 @@ class KubernetesResourcePoolController {
     Notifications,
     LocalStorage,
     EndpointService,
-    KubernetesNodeService,
-    KubernetesMetricsService,
     KubernetesResourceQuotaService,
     KubernetesResourcePoolService,
     KubernetesEventService,
@@ -50,8 +49,6 @@ class KubernetesResourcePoolController {
       Notifications,
       LocalStorage,
       EndpointService,
-      KubernetesNodeService,
-      KubernetesMetricsService,
       KubernetesResourceQuotaService,
       KubernetesResourcePoolService,
       KubernetesEventService,
@@ -374,7 +371,7 @@ class KubernetesResourcePoolController {
 
   async getResourceUsage(namespace) {
     try {
-      const namespaceMetrics = await this.KubernetesMetricsService.getPods(namespace);
+      const namespaceMetrics = await getMetricsForAllPods(this.$state.params.endpointId, namespace);
       // extract resource usage of all containers within each pod of the namespace
       const containerResourceUsageList = namespaceMetrics.items.flatMap((i) => i.containers.map((c) => c.usage));
       const namespaceResourceUsage = containerResourceUsageList.reduce((total, u) => {
@@ -444,7 +441,7 @@ class KubernetesResourcePoolController {
         const name = this.$state.params.id;
 
         const [nodes, pools, pool] = await Promise.all([
-          this.KubernetesNodeService.get(),
+          getMetricsForAllNodes,
           this.KubernetesResourcePoolService.get('', { getQuota: true }),
           this.KubernetesResourcePoolService.get(name),
         ]);
