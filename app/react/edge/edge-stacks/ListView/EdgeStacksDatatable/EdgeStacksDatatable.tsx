@@ -33,6 +33,7 @@ export function EdgeStacksDatatable() {
       titleIcon={Layers}
       columns={columns}
       dataset={edgeStacksQuery.data || []}
+      initialTableState={{ columnVisibility: { 'Target Version': false } }}
       settingsManager={tableState}
       emptyContentLabel="No stack available."
       isLoading={edgeStacksQuery.isLoading}
