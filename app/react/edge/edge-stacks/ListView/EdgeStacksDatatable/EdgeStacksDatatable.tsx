@@ -14,7 +14,7 @@ import { TableActions } from './TableActions';
 
 const tableKey = 'edge-stacks';
 
-const settingsStore = createStore(tableKey);
+const settingsStore = createStore(tableKey, ['Target Version']);
 
 export function EdgeStacksDatatable() {
   const tableState = useTableState(settingsStore, tableKey);
@@ -33,7 +33,11 @@ export function EdgeStacksDatatable() {
       titleIcon={Layers}
       columns={columns}
       dataset={edgeStacksQuery.data || []}
-      initialTableState={{ columnVisibility: { 'Target Version': false } }}
+      initialTableState={{
+        columnVisibility: Object.fromEntries(
+          tableState.hiddenColumns.map((col) => [col, false])
+        ),
+      }}
       settingsManager={tableState}
       emptyContentLabel="No stack available."
       isLoading={edgeStacksQuery.isLoading}

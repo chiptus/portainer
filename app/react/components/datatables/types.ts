@@ -47,10 +47,11 @@ export interface SettableColumnsTableSettings {
 }
 
 export function hiddenColumnsSettings<T extends SettableColumnsTableSettings>(
-  set: ZustandSetFunc<T>
+  set: ZustandSetFunc<T>,
+  initalHiddenColumns: string[] = []
 ): SettableColumnsTableSettings {
   return {
-    hiddenColumns: [],
+    hiddenColumns: initalHiddenColumns,
     setHiddenColumns: (hiddenColumns: string[]) =>
       set((s) => ({ ...s, hiddenColumns })),
   };

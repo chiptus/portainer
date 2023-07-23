@@ -12,9 +12,12 @@ export interface TableSettings
     SettableColumnsTableSettings,
     RefreshableTableSettings {}
 
-export function createStore(storageKey: string) {
+export function createStore(
+  storageKey: string,
+  initalHiddenColumns: string[] = []
+) {
   return createPersistedStore<TableSettings>(storageKey, 'name', (set) => ({
-    ...hiddenColumnsSettings(set),
+    ...hiddenColumnsSettings(set, initalHiddenColumns),
     ...refreshableSettings(set),
   }));
 }
