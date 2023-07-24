@@ -84,6 +84,7 @@ export type EdgeStack = {
   StackFileVersion?: number;
   PreviousDeploymentInfo: EdgeStackDeploymentInfo;
   EnvVars?: EnvVar[];
+  StaggerConfig?: StaggerConfig;
 };
 
 export enum EditorType {
@@ -91,3 +92,30 @@ export enum EditorType {
   Kubernetes,
   Nomad,
 }
+
+export enum StaggerOption {
+  AllAtOnce = 1,
+  Parallel,
+}
+
+export enum StaggerParallelOption {
+  Fixed = 1,
+  Incremental,
+}
+
+export enum UpdateFailureAction {
+  Continue = 1,
+  Pause,
+  Rollback,
+}
+
+export type StaggerConfig = {
+  StaggerOption: StaggerOption;
+  StaggerParallelOption?: StaggerParallelOption;
+  DeviceNumber?: number;
+  DeviceNumberStartFrom?: number;
+  DeviceNumberIncrementBy?: number;
+  Timeout?: string;
+  UpdateDelay?: string;
+  UpdateFailureAction?: UpdateFailureAction;
+};

@@ -33,6 +33,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
+	"github.com/portainer/portainer-ee/api/internal/edge/staggers"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/snapshot"
 	"github.com/portainer/portainer-ee/api/internal/ssl"
@@ -497,6 +498,8 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 
 	edgeStacksService := edgestacks.NewService(dataStore, edgeAsyncService)
 
+	edgeStaggerService := staggers.NewService(shutdownCtx, dataStore, edgeAsyncService)
+
 	sslService, err := initSSLService(*flags.AddrHTTPS,
 		*flags.SSLCert, *flags.SSLKey, *flags.SSLCACert,
 		*flags.MTLSCert, *flags.MTLSKey, *flags.MTLSCACert,
@@ -712,6 +715,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		DataStore:                   dataStore,
 		EdgeAsyncService:            edgeAsyncService,
 		EdgeStacksService:           edgeStacksService,
+		EdgeStaggerService:          edgeStaggerService,
 		LicenseService:              licenseService,
 		SwarmStackManager:           swarmStackManager,
 		ComposeStackManager:         composeStackManager,

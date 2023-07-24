@@ -56,7 +56,7 @@ require (
 	github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a
 	github.com/portainer/libhttp v0.0.0-20230615144939-a999f666d9a9
 	github.com/portainer/liblicense/v3 v3.0.0
-	github.com/portainer/portainer/api v0.0.0-20230719211138-ff1f54959019
+	github.com/portainer/portainer/api v0.0.0-20230723224802-e996d29d5282
 	github.com/portainer/portainer/pkg/featureflags v0.0.0-20230711022654-64b227b2e146
 	github.com/portainer/portainer/pkg/libhelm v0.0.0-20230711022654-64b227b2e146
 	github.com/portainer/portainer/pkg/libstack v0.0.0-20230713205552-0bcb57568c63

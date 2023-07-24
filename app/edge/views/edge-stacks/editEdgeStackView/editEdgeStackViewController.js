@@ -129,6 +129,7 @@ export class EditEdgeStackViewController {
         webhook: values.webhookEnabled ? this.stack.Webhook || createWebhookId() : '',
         envVars: values.envVars,
         rollbackTo: values.rollbackTo ? values.rollbackTo : undefined,
+        staggerConfig: values.staggerConfig !== undefined && values.staggerConfig.StaggerOption !== 1 ? values.staggerConfig : undefined,
       });
       this.Notifications.success('Success', 'Stack successfully deployed');
       this.state.isStackDeployed = true;

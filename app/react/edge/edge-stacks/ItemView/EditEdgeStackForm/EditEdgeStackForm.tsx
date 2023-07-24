@@ -4,7 +4,13 @@ import { array, boolean, number, object, SchemaOf, string } from 'yup';
 
 import { EdgeGroupsSelector } from '@/react/edge/edge-stacks/components/EdgeGroupsSelector';
 import { EdgeStackDeploymentTypeSelector } from '@/react/edge/edge-stacks/components/EdgeStackDeploymentTypeSelector';
-import { DeploymentType, EdgeStack } from '@/react/edge/edge-stacks/types';
+import {
+  DeploymentType,
+  EdgeStack,
+  StaggerOption,
+  StaggerParallelOption,
+  UpdateFailureAction,
+} from '@/react/edge/edge-stacks/types';
 import { EnvironmentType } from '@/react/portainer/environments/types';
 import { WebhookSettings } from '@/react/portainer/gitops/AutoUpdateFieldset/WebhookSettings';
 import { baseEdgeStackWebhookUrl } from '@/portainer/helpers/webhookHelper';
@@ -21,6 +27,10 @@ import {
 } from '@@/form-components/EnvironmentVariablesFieldset';
 
 import { getEdgeStackFile } from '../../queries/useEdgeStackFile';
+import {
+  StaggerFieldset,
+  staggerConfigValidation,
+} from '../../components/StaggerFieldset';
 
 import { PrivateRegistryFieldsetWrapper } from './PrivateRegistryFieldsetWrapper';
 import { FormValues } from './types';
@@ -69,6 +79,16 @@ export function EditEdgeStackForm({
     webhookEnabled: !!edgeStack.Webhook,
     envVars: edgeStack.EnvVars || [],
     rollbackTo: undefined,
+    staggerConfig: edgeStack.StaggerConfig || {
+      StaggerOption: StaggerOption.AllAtOnce,
+      StaggerParallelOption: StaggerParallelOption.Fixed,
+      DeviceNumber: 1,
+      DeviceNumberStartFrom: 0,
+      DeviceNumberIncrementBy: 2,
+      Timeout: '5s',
+      UpdateDelay: '5s',
+      UpdateFailureAction: UpdateFailureAction.Continue,
+    },
   };
 
   const versionOptions: number[] = edgeStack.StackFileVersion
@@ -249,6 +269,16 @@ function InnerForm({
               </div>
             </>
           )}
+
+          <StaggerFieldset
+            values={values.staggerConfig}
+            onChange={(value) =>
+              Object.entries(value).forEach(([key, value]) =>
+                setFieldValue(`staggerConfig.${key}`, value)
+              )
+            }
+            errors={errors.staggerConfig}
+          />
         </>
       )}
 
@@ -329,5 +359,6 @@ function formValidation(): SchemaOf<FormValues> {
     versions: array().of(number().optional()).optional(),
     envVars: envVarValidation(),
     rollbackTo: number().optional(),
+    staggerConfig: staggerConfigValidation(),
   });
 }

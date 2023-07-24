@@ -74,22 +74,26 @@ func NewService(dataStore dataservices.DataStore, fileService portainer.FileServ
 
 // Deprecated: use AddStackCommandTx instead.
 func (service *Service) AddStackCommand(endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, scheduledTime string) error {
-	return service.storeUpdateStackCommand(service.dataStore, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpAdd, scheduledTime)
+	return service.storeUpdateStackCommand(service.dataStore, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpAdd, scheduledTime, 0)
 }
 
 func (service *Service) AddStackCommandTx(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, scheduledTime string) error {
-	return service.storeUpdateStackCommand(tx, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpAdd, scheduledTime)
+	return service.storeUpdateStackCommand(tx, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpAdd, scheduledTime, 0)
 }
 
 func (service *Service) ReplaceStackCommand(endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID) error {
-	return service.storeUpdateStackCommand(service.dataStore, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpReplace, "")
+	return service.storeUpdateStackCommand(service.dataStore, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpReplace, "", 0)
 }
 
 func (service *Service) ReplaceStackCommandTx(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID) error {
-	return service.storeUpdateStackCommand(tx, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpReplace, "")
+	return service.storeUpdateStackCommand(tx, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpReplace, "", 0)
 }
 
-func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, commandOperation portaineree.EdgeAsyncCommandOperation, scheduledTime string) error {
+func (service *Service) ReplaceStackCommandWithVersion(endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, version int) error {
+	return service.storeUpdateStackCommand(service.dataStore, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpReplace, "", version)
+}
+
+func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, commandOperation portaineree.EdgeAsyncCommandOperation, scheduledTime string, targetVersion int) error {
 	if !endpoint.Edge.AsyncMode {
 		return nil
 	}
@@ -115,11 +119,31 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 		}
 	}
 
-	commitHash := ""
-	if edgeStack.GitConfig != nil {
-		commitHash = edgeStack.GitConfig.ConfigHash
+	var (
+		projectVersionPath string
+		stackFileVersion   int
+	)
+
+	rollbackTo := new(int)
+	// Check if the requested version is the previous version. If not, use the latest stack file version
+	if edgeStack.PreviousDeploymentInfo != nil && targetVersion == edgeStack.PreviousDeploymentInfo.FileVersion {
+		projectVersionPath = service.fileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.PreviousDeploymentInfo.FileVersion, edgeStack.PreviousDeploymentInfo.ConfigHash)
+		*rollbackTo = edgeStack.PreviousDeploymentInfo.FileVersion
+	} else {
+		if targetVersion != 0 && targetVersion != edgeStack.StackFileVersion {
+			log.Warn().Msgf("Invalid stack file version %d being requested, fallback to the latest stack file version %d", targetVersion, edgeStack.StackFileVersion)
+		}
+
+		// If the requested version is not the previous version, use the latest stack file version
+		commitHash := ""
+		if edgeStack.GitConfig != nil {
+			commitHash = edgeStack.GitConfig.ConfigHash
+		}
+		projectVersionPath = service.fileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.StackFileVersion, commitHash)
+		stackFileVersion = edgeStack.StackFileVersion
+		rollbackTo = nil
 	}
-	projectVersionPath := service.fileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.StackFileVersion, commitHash)
+
 	dirEntries, err := filesystem.LoadDir(projectVersionPath)
 	if err != nil {
 		return httperror.InternalServerError("Unable to load repository", err)
@@ -155,6 +179,12 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 		envVars = make([]portainer.Pair, 0)
 	}
 
+	// If the stack is not for updater, we use stack file version
+	version := stackFileVersion
+	if edgeStack.EdgeUpdateID > 0 {
+		version = edgeStack.Version
+	}
+
 	stackStatus := edge.StackPayload{
 		DirEntries:          dirEntries,
 		EntryFileName:       fileName,
@@ -163,7 +193,8 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 		FilesystemPath:      edgeStack.FilesystemPath,
 		Name:                edgeStack.Name,
 		ID:                  int(edgeStackID),
-		Version:             edgeStack.Version,
+		Version:             version,
+		RollbackTo:          rollbackTo,
 		RegistryCredentials: registryCredentials,
 		Namespace:           namespace,
 		PrePullImage:        edgeStack.PrePullImage,

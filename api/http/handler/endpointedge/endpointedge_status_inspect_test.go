@@ -122,6 +122,7 @@ func mustSetupHandler(t *testing.T) *Handler {
 		edgeService,
 		nil,
 		updateService,
+		nil,
 	)
 
 	handler.ReverseTunnelService = chisel.NewService(store, shutdownCtx, nil)
@@ -309,13 +310,14 @@ func TestEdgeStackStatus(t *testing.T) {
 				DeploymentInfo: portainer.StackDeploymentInfo{},
 			},
 		},
-		CreationDate:   time.Now().Unix(),
-		EdgeGroups:     []portaineree.EdgeGroupID{1, 2},
-		ProjectPath:    "/project/path",
-		EntryPoint:     "entrypoint",
-		Version:        237,
-		ManifestPath:   "/manifest/path",
-		DeploymentType: 1,
+		CreationDate:     time.Now().Unix(),
+		EdgeGroups:       []portaineree.EdgeGroupID{1, 2},
+		ProjectPath:      "/project/path",
+		EntryPoint:       "entrypoint",
+		Version:          237,
+		StackFileVersion: 238,
+		ManifestPath:     "/manifest/path",
+		DeploymentType:   1,
 	}
 
 	endpointRelation := portaineree.EndpointRelation{
@@ -353,7 +355,7 @@ func TestEdgeStackStatus(t *testing.T) {
 
 	assert.Len(t, data.Stacks, 1)
 	assert.Equal(t, edgeStack.ID, data.Stacks[0].ID)
-	assert.Equal(t, edgeStack.Version, data.Stacks[0].Version)
+	assert.Equal(t, edgeStack.StackFileVersion, data.Stacks[0].Version)
 }
 
 func TestEdgeJobsResponse(t *testing.T) {

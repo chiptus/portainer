@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
+	"github.com/portainer/portainer-ee/api/internal/edge/staggers"
 	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	"github.com/portainer/portainer-ee/api/license"
 	portainer "github.com/portainer/portainer/api"
@@ -29,10 +30,18 @@ type Handler struct {
 	EdgeService          *edgeasync.Service
 	edgeUpdateService    *updateschedules.Service
 	edgeStackCache       *cache.Cache
+	staggerService       *staggers.Service
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.
-func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStore, fileService portainer.FileService, reverseTunnelService portaineree.ReverseTunnelService, edgeService *edgeasync.Service, licenseService portaineree.LicenseService, edgeUpdateService *updateschedules.Service) *Handler {
+func NewHandler(bouncer security.BouncerService,
+	dataStore dataservices.DataStore,
+	fileService portainer.FileService,
+	reverseTunnelService portaineree.ReverseTunnelService,
+	edgeService *edgeasync.Service,
+	licenseService portaineree.LicenseService,
+	edgeUpdateService *updateschedules.Service,
+	staggerService *staggers.Service) *Handler {
 	h := &Handler{
 		Router:               mux.NewRouter(),
 		requestBouncer:       bouncer,
@@ -45,6 +54,7 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 			portaineree.DefaultEdgeAgentCheckinIntervalInSeconds*time.Second,
 			time.Minute,
 		),
+		staggerService: staggerService,
 	}
 
 	h.Handle("/api/endpoints/{id}/edge/status", bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeStatusInspect))).Methods(http.MethodGet)

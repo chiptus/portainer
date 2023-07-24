@@ -72,6 +72,7 @@ func setupHandler(t *testing.T) (*Handler, string) {
 		edgestacks.NewService(store, edgeAsyncService),
 		edgeUpdateService,
 		&scheduler.Scheduler{},
+		nil,
 	)
 
 	handler.FileService = fs

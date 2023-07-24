@@ -15,6 +15,7 @@ import (
 	"github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer/api/edge"
 	"github.com/portainer/portainer/api/filesystem"
+	"github.com/rs/zerolog/log"
 )
 
 // @summary Inspect an Edge Stack for an Environment(Endpoint)
@@ -24,6 +25,7 @@ import (
 // @produce json
 // @param id path int true "Environment(Endpoint) Id"
 // @param stackId path int true "EdgeStack Id"
+// @param version query int false "Stack file version maintained by Portainer"
 // @success 200 {object} edge.StackPayload
 // @failure 500
 // @failure 400
@@ -72,11 +74,33 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 		}
 	}
 
-	commitHash := ""
-	if edgeStack.GitConfig != nil {
-		commitHash = edgeStack.GitConfig.ConfigHash
+	var (
+		projectVersionPath string
+		stackFileVersion   int
+	)
+
+	version, _ := request.RetrieveNumericQueryParameter(r, "version", true)
+
+	rollbackTo := new(int)
+	// Check if the requested version is the previous version
+	if edgeStack.PreviousDeploymentInfo != nil && version == edgeStack.PreviousDeploymentInfo.FileVersion {
+		projectVersionPath = handler.FileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.PreviousDeploymentInfo.FileVersion, edgeStack.PreviousDeploymentInfo.ConfigHash)
+		*rollbackTo = edgeStack.PreviousDeploymentInfo.FileVersion
+	} else {
+		if version != 0 && version != edgeStack.StackFileVersion {
+			log.Warn().Msgf("Invalid stack file version %d being requested, fallback to the latest stack file version %d", version, edgeStack.StackFileVersion)
+		}
+
+		// If the requested version is not the previous version, use the latest stack file version
+		commitHash := ""
+		if edgeStack.GitConfig != nil {
+			commitHash = edgeStack.GitConfig.ConfigHash
+		}
+		projectVersionPath = handler.FileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.StackFileVersion, commitHash)
+		stackFileVersion = edgeStack.StackFileVersion
+		rollbackTo = nil
 	}
-	projectVersionPath := handler.FileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.StackFileVersion, commitHash)
+
 	dirEntries, err := filesystem.LoadDir(projectVersionPath)
 	if err != nil {
 		return httperror.InternalServerError("Unable to load repository", err)
@@ -111,6 +135,8 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 		Name:                edgeStack.Name,
 		RegistryCredentials: registryCredentials,
 		Namespace:           namespace,
+		Version:             stackFileVersion,
+		RollbackTo:          rollbackTo,
 		PrePullImage:        edgeStack.PrePullImage,
 		RePullImage:         edgeStack.RePullImage,
 		RetryDeploy:         edgeStack.RetryDeploy,

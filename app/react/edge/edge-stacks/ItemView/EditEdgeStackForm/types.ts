@@ -1,5 +1,5 @@
 import { EdgeGroup } from '@/react/edge/edge-groups/types';
-import { DeploymentType } from '@/react/edge/edge-stacks/types';
+import { DeploymentType, StaggerConfig } from '@/react/edge/edge-stacks/types';
 
 import { EnvVar } from '@@/form-components/EnvironmentVariablesFieldset/types';
 
@@ -14,4 +14,5 @@ export interface FormValues {
   webhookEnabled: boolean;
   envVars: EnvVar[];
   rollbackTo?: number;
+  staggerConfig: StaggerConfig;
 }

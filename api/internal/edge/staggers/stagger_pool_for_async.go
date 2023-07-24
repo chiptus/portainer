@@ -1,0 +1,330 @@
+package staggers
+
+import (
+	"context"
+	"errors"
+	"sync"
+	"time"
+
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/internal/set"
+	"github.com/portainer/portainer/pkg/featureflags"
+	"github.com/rs/zerolog/log"
+)
+
+type StaggerJobForAsyncRollback struct {
+	EdgeStackID portaineree.EdgeStackID
+	Version     int
+	Endpoints   map[portaineree.EndpointID]*portaineree.Endpoint
+}
+
+// StartStaggerJobForAsyncUpdate starts a background goroutine for managing potential async edge agents' stack
+// updates. If there are no async edge agents in the related endpoints, this function will return immediately.
+// The purpose of this function is to prevent from slowing down the api /edge_stacks/{id} endpoint.
+// Additionally, it is safe to process stagger job for async edge agents in an asynchrnous manner.
+func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.EdgeStackID,
+	relatedEndpointIds []portaineree.EndpointID,
+	endpointsToAdd set.Set[portaineree.EndpointID],
+	stackFileVersion int) {
+
+	err := retry(func(retryTime int) error {
+		if !service.IsStaggeredEdgeStack(edgeStackID, stackFileVersion) {
+			log.Debug().
+				Int("edgeStackID", int(edgeStackID)).
+				Int("file version", stackFileVersion).
+				Int("retry time", retryTime).
+				Msg("[Async] Stagger job is not started, skip")
+
+			return errors.New("stagger job not detected")
+		}
+		return nil
+	}, 3, 2*time.Second)
+	if err != nil {
+		log.Debug().Err(err).Msg("[Async] fallback to try replace stack command")
+
+		if featureflags.IsEnabled(portaineree.FeatureNoTx) {
+			err = service.replaceStackCommands(edgeStackID, relatedEndpointIds, endpointsToAdd)
+			if err != nil {
+				log.Error().Err(err).Msg("[Async] Failed to replace stack commands")
+			}
+		} else {
+			err = service.dataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
+				return service.replaceStackCommands(edgeStackID, relatedEndpointIds, endpointsToAdd)
+			})
+			if err != nil {
+				log.Error().Err(err).Msg("[Async] Failed to replace stack commands with transaction")
+			}
+		}
+
+		return
+	}
+
+	// Start stagger job for async update
+	ctx, cancel := context.WithCancel(context.TODO())
+
+	log.Info().
+		Int("edge stack ID", int(edgeStackID)).
+		Msg("Starting stagger job for edge stack")
+
+	defer func() {
+		log.Info().
+			Int("edge stack ID", int(edgeStackID)).
+			Msg("Stopping stagger job for edge stack")
+	}()
+
+	updateCompletedCh := make(chan struct{}, 1)
+	rollbackJobCh := make(chan StaggerJobForAsyncRollback, 1)
+	wg := sync.WaitGroup{}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-service.shutdownCtx.Done():
+				return
+			case <-time.After(30 * time.Second):
+				// todo: may trigger a check every time an async endpoint updates a snapshot
+				// Every time when the interval is reached, we need to check
+				// all below conditions. This is more like a simulation for
+				// regular edge agent polling
+				if service.MarkedAsCompleted(edgeStackID, stackFileVersion) {
+					log.Debug().
+						Int("edgeStackID", int(edgeStackID)).
+						Int("file version", stackFileVersion).
+						Msg("[Async] Stagger job completed")
+
+					updateCompletedCh <- struct{}{}
+					cancel()
+					return
+				}
+			}
+		}
+	}()
+
+	// To keep a list of endpoints that have been updated
+	// If a rollback is needed, we can only work on the endpoints in this list
+	updatedEndpoints := make(map[portaineree.EndpointID]*portaineree.Endpoint, 0)
+	updatedEndpointsMtx := sync.Mutex{}
+
+	endpoints := []*portaineree.Endpoint{}
+	_ = service.dataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
+		for _, endpointID := range relatedEndpointIds {
+			endpoint, dbErr := service.dataStore.Endpoint().Endpoint(endpointID)
+			if dbErr != nil {
+				log.Warn().Err(err).Msgf("Failed to retrieve endpoint: %d", endpointID)
+				continue
+			}
+
+			if !endpoint.Edge.AsyncMode {
+				// skip non-async edge agents
+				continue
+			}
+			endpoints = append(endpoints, endpoint)
+		}
+		return nil
+	})
+
+	for _, endpoint := range endpoints {
+		wg.Add(1)
+		go func(edgeStackID portaineree.EdgeStackID, stackFileVersion int, endpoint *portaineree.Endpoint) {
+			defer wg.Done()
+
+			nextCheckInterval := calculateNextStaggerCheckIntervalForAsyncUpdate(&endpoint.Edge)
+
+			ticker := time.NewTicker(time.Duration(nextCheckInterval) * time.Second)
+			defer ticker.Stop()
+
+			for {
+				select {
+				case <-ctx.Done():
+					// All groutines for async update will be cancelled when the
+					// edge stack is marked as rollback
+					log.Debug().
+						Int("edgeStackID", int(edgeStackID)).
+						Int("file version", stackFileVersion).
+						Msg("[Async] exit stagger job for async update")
+					return
+
+				case <-service.shutdownCtx.Done():
+					return
+
+				case <-ticker.C:
+					if service.MarkedAsRollback(edgeStackID, stackFileVersion) {
+						log.Debug().
+							Int("edgeStackID", int(edgeStackID)).
+							Int("file version", stackFileVersion).
+							Msg("[Async] Stagger job marked as rollback")
+
+						// trigger rollback workflow
+						rollbackJobCh <- StaggerJobForAsyncRollback{
+							EdgeStackID: edgeStackID,
+							Version:     stackFileVersion,
+							Endpoints:   updatedEndpoints,
+						}
+
+						// Must close the channel,
+						close(rollbackJobCh)
+						return
+					}
+
+					// If the edge stack is staggered, check if the endpoint is in the current stagger queue
+					if !service.CanProceedAsStaggerJob(edgeStackID, stackFileVersion, endpoint.ID) {
+						// It's not the turn for the endpoint, skip. Wait to check in next interval
+						log.Debug().
+							Int("edgeStackID", int(edgeStackID)).
+							Int("file version", stackFileVersion).
+							Int("endpointID", int(endpoint.ID)).
+							Msg("[Aysnc] Cannot proceed as stagger job, skip this interval")
+
+						break
+					}
+
+					// It's the turn for the endpoint, we can add the stack command
+					if !endpointsToAdd[endpoint.ID] {
+						err := service.edgeAsyncService.ReplaceStackCommand(endpoint, edgeStackID)
+						if err != nil {
+							log.Debug().Err(err).Msgf("Failed to store edge async command for endpoint: %d", endpoint.ID)
+							return
+						}
+
+						updatedEndpointsMtx.Lock()
+						updatedEndpoints[endpoint.ID] = endpoint
+						updatedEndpointsMtx.Unlock()
+
+						log.Debug().
+							Int("stackID", int(edgeStackID)).
+							Int("file version", stackFileVersion).
+							Int("endpointID", int(endpoint.ID)).
+							Msg("[Async] Stack command is replaced")
+						return
+					}
+				}
+			}
+		}(edgeStackID, stackFileVersion, endpoint)
+	}
+
+	//
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		select {
+		case <-updateCompletedCh:
+			log.Debug().
+				Int("edgeStackID", int(edgeStackID)).
+				Int("file version", stackFileVersion).
+				Msg("[Async] exit stagger job for async rollback")
+
+			return
+
+		case <-service.shutdownCtx.Done():
+			return
+
+		case job, ok := <-rollbackJobCh:
+			if !ok {
+				cancel()
+			}
+
+			log.Info().
+				Int("edge stack ID", int(job.EdgeStackID)).
+				Int("version", job.Version).
+				Msg("[Async] Start rollback process")
+
+		}
+	}()
+	wg.Wait()
+
+}
+
+func (service *Service) StartStaggerJobForAsyncRollback(wg *sync.WaitGroup, edgeStackID portaineree.EdgeStackID, stackFileVersion int, endpoints map[portaineree.EndpointID]*portaineree.Endpoint) {
+	edgeStack, err := service.dataStore.EdgeStack().EdgeStack(edgeStackID)
+	if err != nil {
+		log.Error().Err(err).
+			Msgf("Failed to retrieve edge stack: %d. Rollback process is stopped", edgeStackID)
+		return
+	}
+
+	rollbackTo := stackFileVersion
+	if edgeStack.PreviousDeploymentInfo != nil && stackFileVersion == edgeStack.StackFileVersion {
+		rollbackTo = edgeStack.PreviousDeploymentInfo.FileVersion
+	} else {
+		log.Warn().Int("latest stack file version", stackFileVersion).
+			Int("rollback to", stackFileVersion-1).
+			Msg("unsupported rollbackTo version, fallback to the latest version")
+	}
+
+	for endpointID, endpoint := range endpoints {
+		wg.Add(1)
+
+		go func(edgeStackID portaineree.EdgeStackID, rollbackTo int, endpointID portaineree.EndpointID, endpoint *portaineree.Endpoint) {
+			defer wg.Done()
+
+			nextCheckInterval := calculateNextStaggerCheckIntervalForAsyncUpdate(&endpoint.Edge)
+
+			ticker := time.NewTicker(time.Duration(nextCheckInterval) * time.Second)
+			defer ticker.Stop()
+
+			for {
+				select {
+				case <-service.shutdownCtx.Done():
+					return
+
+				case <-ticker.C:
+					if service.MarkedAsCompleted(edgeStackID, stackFileVersion) {
+						log.Debug().
+							Int("edgeStackID", int(edgeStackID)).
+							Int("file version", stackFileVersion).
+							Msg("[Async] Stagger job completed rollback")
+
+						return
+					}
+
+					// If the edge stack is staggered, check if the endpoint is in the current stagger queue
+					if !service.CanProceedAsStaggerJob(edgeStackID, stackFileVersion, endpoint.ID) {
+						// It's not the turn for the endpoint, skip. Wait to check in next interval
+						log.Debug().
+							Int("edgeStackID", int(edgeStackID)).
+							Int("file version", stackFileVersion).
+							Int("endpointID", int(endpoint.ID)).
+							Msg("[Aysnc] Cannot proceed as stagger job for rollback, skip this interval")
+
+						break
+					}
+
+					// It's the turn for the endpoint, we can add the stack command
+					err := service.edgeAsyncService.ReplaceStackCommandWithVersion(endpoint, edgeStackID, rollbackTo)
+					if err != nil {
+						log.Debug().Err(err).Msgf("Failed to store edge async command for endpoint: %d", endpoint.ID)
+						return
+					}
+
+					log.Debug().
+						Int("stackID", int(edgeStackID)).
+						Int("file version", stackFileVersion).
+						Int("endpointID", int(endpoint.ID)).
+						Msg("[Async] Stack command is replaced for rollback")
+					return
+				}
+			}
+		}(edgeStackID, rollbackTo, endpointID, endpoint)
+	}
+}
+
+func (service *Service) replaceStackCommands(edgeStackID portaineree.EdgeStackID, relatedEndpointIds []portaineree.EndpointID, endpointsToAdd set.Set[portaineree.EndpointID]) error {
+	for _, endpointID := range relatedEndpointIds {
+		endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
+		if err != nil {
+			return err
+		}
+
+		if !endpointsToAdd[endpoint.ID] {
+			err = service.edgeAsyncService.ReplaceStackCommand(endpoint, edgeStackID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}

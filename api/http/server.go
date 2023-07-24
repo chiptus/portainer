@@ -70,6 +70,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 	edgestackservice "github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
+	"github.com/portainer/portainer-ee/api/internal/edge/staggers"
 	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	"github.com/portainer/portainer-ee/api/internal/snapshot"
 	"github.com/portainer/portainer-ee/api/internal/ssl"
@@ -102,6 +103,7 @@ type Server struct {
 	SignatureService            portaineree.DigitalSignatureService
 	EdgeAsyncService            *edgeasync.Service
 	EdgeStacksService           *edgestackservice.Service
+	EdgeStaggerService          *staggers.Service
 	SnapshotService             portaineree.SnapshotService
 	FileService                 portaineree.FileService
 	DataStore                   dataservices.DataStore
@@ -211,6 +213,7 @@ func (server *Server) Start() error {
 		server.EdgeStacksService,
 		edgeUpdateService,
 		server.Scheduler,
+		server.EdgeStaggerService,
 	)
 	edgeStacksHandler.FileService = server.FileService
 	edgeStacksHandler.GitService = server.GitService
@@ -234,7 +237,14 @@ func (server *Server) Start() error {
 	endpointHandler.KubernetesDeployer = server.KubernetesDeployer
 	endpointHandler.AssetsPath = server.AssetsPath
 
-	var endpointEdgeHandler = endpointedge.NewHandler(requestBouncer, server.DataStore, server.FileService, server.ReverseTunnelService, server.EdgeAsyncService, server.LicenseService, edgeUpdateService)
+	var endpointEdgeHandler = endpointedge.NewHandler(requestBouncer,
+		server.DataStore,
+		server.FileService,
+		server.ReverseTunnelService,
+		server.EdgeAsyncService,
+		server.LicenseService,
+		edgeUpdateService,
+		server.EdgeStaggerService)
 
 	var endpointGroupHandler = endpointgroups.NewHandler(requestBouncer, server.UserActivityService)
 	endpointGroupHandler.AuthorizationService = server.AuthorizationService

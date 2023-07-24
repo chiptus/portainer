@@ -22,6 +22,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/slices"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/pkg/featureflags"
+	"github.com/rs/zerolog/log"
 
 	"github.com/pkg/errors"
 )
@@ -225,7 +226,7 @@ func (handler *Handler) inspectStatus(tx dataservices.DataStoreTx, r *http.Reque
 		// To do so, we verify that activeUpdateSchedule is not nil.
 		skipCache = true
 	}
-	edgeStacksStatus, handlerErr := handler.buildEdgeStacks(tx, endpoint.ID, location, skipCache)
+	edgeStacksStatus, handlerErr := handler.buildEdgeStacks(tx, endpoint.ID, location, &skipCache)
 	if handlerErr != nil {
 		return nil, skipCache, handlerErr
 	}
@@ -332,7 +333,7 @@ func (handler *Handler) buildSchedules(endpointID portaineree.EndpointID, tunnel
 	return schedules, nil
 }
 
-func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, timeZone *time.Location, skipCache bool) ([]stackStatusResponse, *httperror.HandlerError) {
+func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, timeZone *time.Location, skipCache *bool) ([]stackStatusResponse, *httperror.HandlerError) {
 	relation, err := tx.EndpointRelation().EndpointRelation(endpointID)
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to retrieve relation object from the database", err)
@@ -347,7 +348,7 @@ func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID 
 
 		var stack *portaineree.EdgeStack
 
-		if skipCache {
+		if skipCache != nil && *skipCache {
 			// If the edge stack is intended for the updater, there is a potential issue with the cachedStack.
 			// For instance, if a group of 5 agents is scheduled for an update and all 5 agents are updated successfully,
 			// the first newly added agent will query the "/endpoints/{id}/edge/status" API endpoint, as specified in this
@@ -408,6 +409,74 @@ func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID 
 		stackStatus := stackStatusResponse{
 			ID:      stackID,
 			Version: version,
+		}
+
+		if stack.EdgeUpdateID == 0 {
+			stackStatus.Version = stack.StackFileVersion
+		}
+
+		// Stagger configuration check
+		if handler.staggerService != nil && handler.staggerService.IsStaggeredEdgeStack(stackID, stack.StackFileVersion) {
+			if handler.staggerService.MarkedAsCompleted(stackID, stack.StackFileVersion) {
+				log.Debug().
+					Int("edgeStackID", int(stackID)).
+					Int("status version", stackStatus.Version).
+					Int("file version", stack.StackFileVersion).
+					Int("endpointID", int(endpointID)).
+					Msg("Marked as completed, skip")
+
+				if handler.staggerService.WasEndpointRolledBack(stackID, stack.StackFileVersion, endpointID) {
+					if stack.PreviousDeploymentInfo != nil {
+						// This will prevent rolled back edge stacks from being removed due to
+						// mismatched version numbers
+						stackStatus.Version = stack.PreviousDeploymentInfo.FileVersion
+						edgeStacksStatus = append(edgeStacksStatus, stackStatus)
+					}
+				}
+				continue
+			}
+
+			// If the edge stack is staggered, check if the endpoint is in the current stagger queue
+			if !handler.staggerService.CanProceedAsStaggerJob(stackID, stack.StackFileVersion, endpointID) {
+				// It's not the turn for the endpoint, skip
+				log.Debug().
+					Int("edgeStackID", int(stackID)).
+					Int("status version", stackStatus.Version).
+					Int("file version", stackStatus.Version).
+					Int("endpointID", int(endpointID)).
+					Msg("Cannot proceed as stagger job, skip")
+
+				// skip the cache, otherwise the edge agent will not be able to get the stack status when
+				// it's the turn for the stagger queue
+				*skipCache = true
+				continue
+
+			} else {
+				log.Debug().
+					Int("edgeStackID", int(stackID)).
+					Int("file version", stackStatus.Version).
+					Int("endpointID", int(endpointID)).
+					Msg("Can proceed as stagger job")
+			}
+
+			// If the deployed version for the endpoint is already rolled back, skip
+			if handler.staggerService.MarkedAsRollback(stackID, stack.StackFileVersion) {
+				log.Debug().
+					Int("edgeStackID", int(stackID)).
+					Int("file version", stackStatus.Version).
+					Int("endpointID", int(endpointID)).
+					Msg("Rollback edge stack")
+
+				*skipCache = true
+				// todo: if we support to store more versions of the stack file in the future,
+				// we can support to rollback to previous version against each endpoint
+				if stack.PreviousDeploymentInfo != nil {
+					stackStatus.Version = stack.PreviousDeploymentInfo.FileVersion
+				} else {
+					log.Warn().Msg("No previous deployment info found")
+				}
+			}
+
 		}
 
 		edgeStacksStatus = append(edgeStacksStatus, stackStatus)

@@ -32,6 +32,8 @@ type updateEdgeStackPayload struct {
 	EnvVars []portainer.Pair
 	// RollbackTo specifies the stack file version to rollback to (only support to rollback to the last version currently)
 	RollbackTo *int
+	// Configuration for stagger updates
+	StaggerConfig *portaineree.EdgeStaggerConfig
 }
 
 func (payload *updateEdgeStackPayload) Validate(r *http.Request) error {
@@ -166,12 +168,29 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 		}
 	}
 
+	stack.StaggerConfig = payload.StaggerConfig
+
+	if payload.StaggerConfig != nil {
+		// todo: check if the stack is already in the stagger pool
+		// if yes, check if it is completed or paused, if so, we can just update the stagger config
+		// if not, we need to reject the request
+		handler.staggerService.AddStaggerConfig(portaineree.EdgeStackID(stackID), stack.StackFileVersion, payload.StaggerConfig)
+	}
+
 	err = tx.EdgeStack().UpdateEdgeStack(stack.ID, stack)
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to persist the stack changes inside the database", err)
 	}
 
 	if payload.UpdateVersion {
+		// Stagger configuration check
+		if handler.staggerService != nil && payload.StaggerConfig != nil {
+
+			go handler.staggerService.StartStaggerJobForAsyncUpdate(stack.ID, relatedEndpointIds, endpointsToAdd, stack.StackFileVersion)
+
+			return stack, nil
+		}
+
 		for _, endpointID := range relatedEndpointIds {
 			endpoint, err := tx.Endpoint().Endpoint(endpointID)
 			if err != nil {

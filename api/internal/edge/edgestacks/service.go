@@ -26,6 +26,7 @@ type Service struct {
 
 // NewService returns a new instance of a service.
 func NewService(dataStore dataservices.DataStore, edgeAsyncService *edgeasync.Service) *Service {
+
 	return &Service{
 		dataStore:        dataStore,
 		edgeAsyncService: edgeAsyncService,

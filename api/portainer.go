@@ -334,7 +334,27 @@ type (
 		Endpoints      []EndpointID `json:"Endpoints"`
 	}
 
-	// EdgeStack represents an edge stack
+	// EdgeStaggerOption represents an Edge stack stagger option
+	EdgeStaggerOption int
+
+	// EdgeStaggerParallelOption represents an Edge stack stagger parallel option
+	EdgeStaggerParallelOption int
+
+	// EdgeUpdateFailureAction represents an Edge stack update failure action
+	EdgeUpdateFailureAction int
+
+	EdgeStaggerConfig struct {
+		StaggerOption           EdgeStaggerOption
+		StaggerParallelOption   EdgeStaggerParallelOption
+		DeviceNumber            int
+		DeviceNumberStartFrom   int
+		DeviceNumberIncrementBy int
+		Timeout                 string
+		UpdateDelay             string
+		UpdateFailureAction     EdgeUpdateFailureAction
+	}
+
+	//EdgeStack represents an edge stack
 	EdgeStack struct {
 		// EdgeStack Identifier
 		ID             EdgeStackID                              `json:"Id" example:"1"`
@@ -387,6 +407,8 @@ type (
 		PreviousDeploymentInfo *portainer.StackDeploymentInfo `json:"PreviousDeploymentInfo"`
 		// EnvVars is a list of environment variables to inject into the stack
 		EnvVars []portainer.Pair
+		// StaggerConfig is the configuration for staggered update
+		StaggerConfig *EdgeStaggerConfig
 
 		// Deprecated
 		Prune bool `json:"Prune"`
@@ -2135,6 +2157,32 @@ const (
 	EdgeJobLogsStatusPending
 	// EdgeJobLogsStatusCollected represents a completed log collection job
 	EdgeJobLogsStatusCollected
+)
+
+const (
+	_ EdgeStaggerOption = iota
+	// EdgeStaggerOptionAllAtOnce represents a staggered deployment where all nodes are updated at once
+	EdgeStaggerOptionAllAtOnce
+	// EdgeStaggerOptionOneByOne represents a staggered deployment where nodes are updated with parallel setting
+	EdgeStaggerOptionParallel
+)
+
+const (
+	_ EdgeStaggerParallelOption = iota
+	// EdgeStaggerParallelOptionFixed represents a staggered deployment where nodes are updated with a fixed number of nodes in parallel
+	EdgeStaggerParallelOptionFixed
+	// EdgeStaggerParallelOptionIncremental represents a staggered deployment where nodes are updated with an incremental number of nodes in parallel
+	EdgeStaggerParallelOptionIncremental
+)
+
+const (
+	_ EdgeUpdateFailureAction = iota
+	// EdgeUpdateFailureActionContinue represents that stagger update will continue regardless of whether the endpoint update status
+	EdgeUpdateFailureActionContinue
+	// EdgeUpdateFailureActionPause represents that stagger update will pause when the endpoint update status is failed
+	EdgeUpdateFailureActionPause
+	// EdgeUpdateFailureActionRollback represents that stagger update will rollback as long as one endpoint update status is failed
+	EdgeUpdateFailureActionRollback
 )
 
 const (

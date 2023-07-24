@@ -70,7 +70,7 @@ func setupBuildEdgeStacksTest(b testing.TB, endpointsCount int) (*Handler, error
 
 	edgeService := edgeasync.NewService(store, nil)
 
-	h := NewHandler(nil, store, nil, nil, edgeService, nil, nil)
+	h := NewHandler(nil, store, nil, nil, edgeService, nil, nil, nil)
 
 	return h, nil
 }
@@ -88,8 +88,9 @@ func BenchmarkBuildEdgeStacks(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
+	skipCache := false
 	for i := 0; i < b.N; i++ {
-		h.buildEdgeStacks(h.DataStore, portaineree.EndpointID(1), time.UTC, false)
+		h.buildEdgeStacks(h.DataStore, portaineree.EndpointID(1), time.UTC, &skipCache)
 	}
 }
 
@@ -108,9 +109,10 @@ func BenchmarkBuildEdgeStacksParallel(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
+	skipCache := false
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			h.buildEdgeStacks(h.DataStore, portaineree.EndpointID(1), time.UTC, false)
+			h.buildEdgeStacks(h.DataStore, portaineree.EndpointID(1), time.UTC, &skipCache)
 		}
 	})
 }

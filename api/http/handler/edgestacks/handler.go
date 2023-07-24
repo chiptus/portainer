@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 	edgestackservice "github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
+	"github.com/portainer/portainer-ee/api/internal/edge/staggers"
 	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	"github.com/portainer/portainer-ee/api/scheduler"
 	portainer "github.com/portainer/portainer/api"
@@ -34,6 +35,7 @@ type Handler struct {
 	edgeUpdateService   *updateschedules.Service
 	KubernetesDeployer  portaineree.KubernetesDeployer
 	scheduler           *scheduler.Scheduler
+	staggerService      *staggers.Service
 }
 
 const contextKey = "edgeStack_item"
@@ -47,6 +49,7 @@ func NewHandler(
 	edgeStacksService *edgestackservice.Service,
 	edgeUpdateService *updateschedules.Service,
 	scheduler *scheduler.Scheduler,
+	staggerService *staggers.Service,
 ) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
@@ -57,6 +60,7 @@ func NewHandler(
 		edgeStacksService:   edgeStacksService,
 		edgeUpdateService:   edgeUpdateService,
 		scheduler:           scheduler,
+		staggerService:      staggerService,
 	}
 
 	adminRouter := h.NewRoute().Subrouter()

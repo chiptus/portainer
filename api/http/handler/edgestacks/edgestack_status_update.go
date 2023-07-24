@@ -23,6 +23,8 @@ type updateStatusPayload struct {
 	Error      string
 	Status     *portainer.EdgeStackStatusType
 	EndpointID portaineree.EndpointID
+	// RollbackTo specifies the stack file version to rollback to (only support to rollback to the last version currently)
+	RollbackTo *int
 	Time       int64
 }
 
@@ -139,6 +141,7 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 
 	log.Debug().
 		Int("stackID", int(stackID)).
+		Int("endpointID", int(payload.EndpointID)).
 		Int("status", int(status)).
 		Msg("Updating stack status")
 
@@ -175,15 +178,18 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 		}
 	}
 
+	// stagger configuration check
+	if handler.staggerService != nil {
+		// We pass StackFileVersion instead of the file version that each agent is using intentionally
+		// because it is used to differentiate the stagger workflow for the same edge stack, not for telling
+		// stagger which version of the edge stack file each agent is using
+		handler.staggerService.UpdateStaggerStatusIfNeeds(stackID, stack.StackFileVersion, payload.RollbackTo, payload.EndpointID, status)
+	}
+
 	return stack, nil
 }
 
 func updateEnvStatus(edgeStack *portaineree.EdgeStack, environmentStatus portainer.EdgeStackStatus, status portainer.EdgeStackStatusType, payload updateStatusPayload) {
-	gitHash := ""
-	if edgeStack.GitConfig != nil {
-		gitHash = edgeStack.GitConfig.ConfigHash
-	}
-
 	environmentStatus.Status = append(environmentStatus.Status, portainer.EdgeStackDeploymentStatus{
 		Type:  status,
 		Error: payload.Error,
@@ -191,6 +197,30 @@ func updateEnvStatus(edgeStack *portaineree.EdgeStack, environmentStatus portain
 	})
 
 	if status == portainer.EdgeStackStatusRunning {
+		if payload.RollbackTo != nil && edgeStack.PreviousDeploymentInfo != nil {
+			if edgeStack.PreviousDeploymentInfo.FileVersion == *payload.RollbackTo {
+				// if the endpoint is rolled back successfully, we should update the endpoint's edge
+				// status's deploymentInfo to the previous version.
+				environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
+					FileVersion: edgeStack.PreviousDeploymentInfo.FileVersion,
+					ConfigHash:  edgeStack.PreviousDeploymentInfo.ConfigHash,
+				}
+				edgeStack.Status[payload.EndpointID] = environmentStatus
+
+				return
+			}
+
+			if edgeStack.StackFileVersion != *payload.RollbackTo {
+				log.Warn().Int("rollbackTo", *payload.RollbackTo).
+					Int("previousVersion", edgeStack.PreviousDeploymentInfo.FileVersion).
+					Msg("unsupported rollbackTo version, fallback to the latest version")
+			}
+		}
+
+		gitHash := ""
+		if edgeStack.GitConfig != nil {
+			gitHash = edgeStack.GitConfig.ConfigHash
+		}
 		environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
 			FileVersion: edgeStack.StackFileVersion,
 			ConfigHash:  gitHash,

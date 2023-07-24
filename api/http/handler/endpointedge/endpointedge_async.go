@@ -562,18 +562,51 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 
 		environmentStatus.Status = status
 
+		// This function is used to set edge stack deployment status by async edge agent
+		rollbackTo := new(int)
+		var expectStatus portainer.EdgeStackStatusType
 		if slices.ContainsFunc(environmentStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
-			return sts.Type == portainer.EdgeStackStatusRunning
+			rollbackTo = sts.RollbackTo
+			expectStatus = sts.Type
+			// If the edge stack is running or error, we should update the edge status's DeploymentInfo
+			return sts.Type == portainer.EdgeStackStatusRunning || sts.Type == portainer.EdgeStackStatusError
 		}) {
-			gitHash := ""
-			if stack.GitConfig != nil {
-				gitHash = stack.GitConfig.ConfigHash
+
+			if rollbackTo != nil && stack.PreviousDeploymentInfo != nil &&
+				stack.PreviousDeploymentInfo.FileVersion == *rollbackTo {
+				// if the endpoint is rolled back successfully, we should update the endpoint's edge
+				// status's DeploymentInfo to the previous version.
+				environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
+					FileVersion: stack.PreviousDeploymentInfo.FileVersion,
+					ConfigHash:  stack.PreviousDeploymentInfo.ConfigHash,
+				}
+
+			} else {
+				if rollbackTo != nil && stack.StackFileVersion != *rollbackTo {
+					log.Warn().Int("rollbackTo", *rollbackTo).
+						Int("previousVersion", stack.PreviousDeploymentInfo.FileVersion).
+						Msg("[Async] unsupported rollbackTo version, fallback to the latest version")
+				}
+
+				gitHash := ""
+				if stack.GitConfig != nil {
+					gitHash = stack.GitConfig.ConfigHash
+				}
+
+				environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
+					FileVersion: stack.StackFileVersion,
+					ConfigHash:  gitHash,
+				}
 			}
 
-			environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
-				FileVersion: stack.StackFileVersion,
-				ConfigHash:  gitHash,
+			// stagger configuration check
+			if handler.staggerService != nil {
+				// We pass StackFileVersion instead of the file version that each agent is using intentionally
+				// because it is used to differentiate the stagger workflow for the same edge stack, not for
+				// telling stagger which version of the edge stack file each agent is using
+				handler.staggerService.UpdateStaggerStatusIfNeeds(stackID, stack.StackFileVersion, rollbackTo, endpoint.ID, expectStatus)
 			}
+
 		}
 
 		stack.Status[endpoint.ID] = environmentStatus
