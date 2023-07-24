@@ -13,6 +13,7 @@ export type AddonsArgumentType = 'required' | 'optional' | '';
 
 export type AddOnOption = {
   label: string;
+  name: string;
   repository?: string;
 
   arguments?: string;

@@ -227,7 +227,7 @@ class KubernetesNodeController {
       if (this.endpoint && this.endpoint.Subsets) {
         _.forEach(this.endpoint.Subsets, (subset) => {
           return _.forEach(subset.Ips, (ip) => {
-            if (ip === this.node.IPAddress) {
+            if (this.node && ip === this.node.IPAddress) {
               this.node.Api = true;
               this.node.Port = subset.Port;
               return false;

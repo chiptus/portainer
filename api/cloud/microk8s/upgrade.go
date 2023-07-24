@@ -381,20 +381,22 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 		var ips []string
 		switch addonConfig.RequiredOn {
 		case "masters":
+			log.Debug().Msgf("Enabling addon (%s) on all the master nodes", addon)
 			for _, n := range u.nodes {
 				if n.IsMaster {
 					ips = append(ips, n.IP)
 				}
 			}
 		case "all":
+			log.Debug().Msgf("Enabling addon (%s) on all nodes", addon)
 			for _, n := range u.nodes {
 				ips = append(ips, n.IP)
 			}
 		default:
+			log.Debug().Msgf("Enabling addon (%s) one master node (%s)", addon, masterNode)
 			ips = append(ips, masterNode)
 		}
 
-		log.Debug().Msgf("Enabling addon (%s) on all the master nodes", addon)
 		for _, ip := range ips {
 			func() {
 				sshClientNode, err := sshUtil.NewConnection(

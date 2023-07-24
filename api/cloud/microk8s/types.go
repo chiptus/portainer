@@ -126,6 +126,7 @@ var AllAddons = Addons{
 		IsAvailable: true,
 
 		ArgumentsType:     "optional",
+		Placeholder:       "e.g. ip=10.0.1.2",
 		ArgumentSeparator: ":",
 	},
 	{
@@ -229,7 +230,7 @@ var AllAddons = Addons{
 	{
 		Name:                 "fluentd",
 		VersionAvailableFrom: "1.13",
-		Tooltip:              "<a href='https://microk8s.io/docs/addon-fluentd' target='_blank'>fluentd<a> - deploy the <a href='https://www.elastic.co/guide/en/kibana/current/discover.html' target='_blank'>Elasticsearch-Fluentd-Kibana</a> logging and monitoring solution.",
+		Tooltip:              "<a href='https://microk8s.io/docs/addon-fluentd' target='_blank'>fluentd</a> - deploy the <a href='https://www.elastic.co/guide/en/kibana/current/discover.html' target='_blank'>Elasticsearch-Fluentd-Kibana</a> logging and monitoring solution.",
 
 		IsAvailable: true,
 		Repository:  "community",
@@ -237,7 +238,7 @@ var AllAddons = Addons{
 	{
 		Name:                 "gopaddle-lite",
 		VersionAvailableFrom: "1.26",
-		Tooltip:              "<a href='https://microk8s.io/docs/addon-gopaddle-lite' target='_blank'>fluentd<a> - deploy the <a href='https://www.elastic.co/guide/en/kibana/current/discover.html' target='_blank'>Elasticsearch-Fluentd-Kibana</a> logging and monitoring solution.",
+		Tooltip:              "<a href='https://microk8s.io/docs/addon-gopaddle-lite' target='_blank'>fluentd</a> - deploy the <a href='https://www.elastic.co/guide/en/kibana/current/discover.html' target='_blank'>Elasticsearch-Fluentd-Kibana</a> logging and monitoring solution.",
 
 		IsAvailable: true,
 		Repository:  "community",
@@ -311,7 +312,7 @@ var AllAddons = Addons{
 	{
 		Name:                 "linkerd",
 		VersionAvailableFrom: "1.19",
-		Tooltip:              "linkerd - deploys the linkerd service mesh.",
+		Tooltip:              "<a href='https://microk8s.io/docs/addon-linkerd' target='_blank'>linkerd</a> - deploys the <a href='https://linkerd.io/2/overview/' target='_blank'>linkerd</a> service mesh.",
 
 		IsAvailable: true,
 		Repository:  "community",
@@ -320,7 +321,7 @@ var AllAddons = Addons{
 	{
 		Name:                 "multus",
 		VersionAvailableFrom: "1.19",
-		Tooltip:              "multus - adds Multus for multiple network capability.",
+		Tooltip:              "<a href='https://microk8s.io/docs/addon-multus' target='_blank'>multus</a> - adds <a href='https://github.com/k8snetworkplumbingwg/multus-cni' target='_blank'>Multus</a> for multiple network capability.",
 
 		IsAvailable: true,
 		Repository:  "community",
@@ -368,7 +369,7 @@ var AllAddons = Addons{
 	{
 		Name:                 "shifu",
 		VersionAvailableFrom: "1.27",
-		Tooltip:              "shifu - Kubernetes native IoT development framework.",
+		Tooltip:              "<a href='https://microk8s.io/docs/addon-shifu' target='_blank'>shifu</a> - Kubernetes native IoT development framework.",
 
 		IsAvailable: true,
 		Repository:  "community",
@@ -376,7 +377,7 @@ var AllAddons = Addons{
 	{
 		Name:                 "sosivio",
 		VersionAvailableFrom: "1.26",
-		Tooltip:              "sosivio - deploys Sosivio predictive troubleshooting for Kubernetes.",
+		Tooltip:              "<a href='https://microk8s.io/docs/addon-sosivio' target='_blank'>sosivio</a> - deploys <a href='https://docs.sosiv.io/' target='_blank'>Sosivio</a> predictive troubleshooting for Kubernetes.",
 
 		IsAvailable: true,
 		Repository:  "community",
@@ -384,7 +385,7 @@ var AllAddons = Addons{
 	{
 		Name:                 "traefik",
 		VersionAvailableFrom: "1.20",
-		Tooltip:              "traefik - adds the Traefik Kubernetes Ingress controller.",
+		Tooltip:              "<a href='https://microk8s.io/docs/addon-traefik' target='_blank'>traefik</a> - adds the <a href='https://doc.traefik.io/traefik/providers/kubernetes-ingress/' target='_blank'>Traefik Kubernetes Ingress controller</a>.",
 
 		IsAvailable: true,
 		Repository:  "community",
@@ -392,7 +393,7 @@ var AllAddons = Addons{
 	{
 		Name:                 "trivy",
 		VersionAvailableFrom: "1.26",
-		Tooltip:              "trivy - deploys the Trivy open source security scanner for Kubernetes.",
+		Tooltip:              "<a href='https://discuss.kubernetes.io/t/addon-trivy/23797' target='_blank'>trivy</a> - deploys the <a href='https://aquasecurity.github.io/trivy/' target='_blank'>Trivy</a> open source security scanner for Kubernetes.",
 
 		IsAvailable: true,
 		Repository:  "community",

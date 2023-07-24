@@ -273,7 +273,7 @@ func (service *CloudManagementService) Microk8sProvisionCluster(req mk8s.Microk8
 				ips = append(ips, req.MasterNodes[0])
 			}
 
-			log.Debug().Msgf("Enabling addon (%s) on all the master nodes", addon)
+			log.Debug().Msgf("Enabling addon (%s) on all the master nodes (ips: %s)", addon, strings.Join(ips[:], ", "))
 			for _, ip := range ips {
 				func() {
 					sshClientNode, err := sshUtil.NewConnection(user, password, passphrase, privateKey, ip)
@@ -675,21 +675,23 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 		var ips []string
 		switch addonConfig.RequiredOn {
 		case "masters":
+			log.Debug().Msgf("Enabling addon (%s) on all the master nodes", addon)
 			for _, n := range nodes {
 				if n.IsMaster {
 					ips = append(ips, n.IP)
 				}
 			}
 		case "all":
+			log.Debug().Msgf("Enabling addon (%s) on all nodes", addon)
 			for _, n := range nodes {
 				ips = append(ips, n.IP)
 			}
 		default:
+			log.Debug().Msgf("Enabling addon (%s) one master node (%s)", addon, masterNode)
 			ips = append(ips, masterNode)
 		}
 
 		// TODO: check MickoK8s version and validate the affected versions. (NOT SURE IF NEEDED)
-		log.Debug().Msgf("Enabling addon (%s) on all the master nodes", addon)
 		for _, ip := range ips {
 			func() {
 				sshClientNode, err := sshUtil.NewConnection(user, password, passphrase, privateKey, ip)

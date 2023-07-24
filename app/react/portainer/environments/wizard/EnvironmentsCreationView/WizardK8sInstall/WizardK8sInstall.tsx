@@ -171,7 +171,6 @@ export function WizardK8sInstall({ onCreate }: Props) {
           setFieldValue('name', '');
           setFieldValue('microk8s.masterNodes', ['']);
           setFieldValue('microk8s.workerNodes', ['']);
-          setFieldValue('microk8s.addons', ['']);
           setIsSSHTestSuccessful(undefined);
         },
       }

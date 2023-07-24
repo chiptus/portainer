@@ -88,18 +88,24 @@ export function Microk8sCreateClusterForm({
   );
 
   const [addonOptions, filteredOptions]: AddOnOption[][] = useMemo(() => {
-    const addonOptions: AddOnOption[] = [];
-    microk8sOptions?.availableAddons.forEach((a) => {
-      const kubeVersion = parseFloat(microk8s.kubernetesVersion.split('/')[0]);
-      const versionAvailableFrom = parseFloat(a.versionAvailableFrom);
-      const versionAvailableTo = parseFloat(a.versionAvailableTo);
-      if (
-        kubeVersion >= versionAvailableFrom &&
-        (Number.isNaN(versionAvailableTo) || kubeVersion <= versionAvailableTo)
-      ) {
-        addonOptions.push({ ...a, name: a.label } as AddOnOption);
-      }
-    });
+    const kubeVersion = parseFloat(microk8s.kubernetesVersion.split('/')[0]);
+    const addonOptions: AddOnOption[] =
+      microk8sOptions?.availableAddons
+        .filter((a) => {
+          const versionAvailableFrom = parseFloat(a.versionAvailableFrom);
+          const versionAvailableTo = parseFloat(a.versionAvailableTo);
+
+          return (
+            kubeVersion >= versionAvailableFrom &&
+            (Number.isNaN(versionAvailableTo) ||
+              kubeVersion <= versionAvailableTo)
+          );
+        })
+        .map((a) => ({
+          ...a,
+          name: a.label,
+          label: `${a.label} (${a.repository})`,
+        })) ?? [];
 
     addonOptions.sort(
       (a, b) =>

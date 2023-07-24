@@ -105,7 +105,7 @@ class KubernetesNodeStatsController {
       refreshRate: '30',
       viewReady: false,
       transition: {
-        nodeName: this.$transition$.params().name,
+        nodeName: this.$transition$.params().nodeName,
       },
       getMetrics: true,
     };

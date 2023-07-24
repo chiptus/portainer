@@ -26,6 +26,13 @@ func ParseSnapInstalledVersion(s string) (string, error) {
 				if len(words) < 4 {
 					return "", fmt.Errorf("invalid snap list output: %v", line)
 				}
+				if words[3] == "latest/stable" {
+					// Extract the major release from the second item
+					versionParts := strings.Split(words[1], ".")
+					majorRelease := versionParts[0][1:] + "." + versionParts[1] // Skip the 'v' character
+					// Replace "latest/stable" with "<major release>/stable"
+					words[3] = majorRelease + "/stable"
+				}
 				return words[3], nil
 			}
 		}

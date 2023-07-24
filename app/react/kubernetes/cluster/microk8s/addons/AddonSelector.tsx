@@ -1,6 +1,6 @@
 import { Trash2 } from 'lucide-react';
 import { FormikErrors } from 'formik';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SingleValue } from 'react-select';
 
 import { Select } from '@@/form-components/ReactSelect';
@@ -41,6 +41,11 @@ export function AddOnSelector({
   >(getSelectedOptionFromValue(options, value));
   const addonConfig = getAddonConfig(value.name);
 
+  // if the value changes, update the selected option
+  useEffect(() => {
+    setSelectedOption(getSelectedOptionFromValue(options, value));
+  }, [value, options]);
+
   return (
     <div className="flex flex-wrap gap-y-1 gap-x-2">
       <div className="inline-flex min-w-min grow basis-12 flex-col">
@@ -53,7 +58,7 @@ export function AddOnSelector({
             options={filteredOptions}
             onChange={(option) => {
               onChange({
-                name: option?.label ?? '',
+                name: option?.name ?? '',
                 arguments: option?.arguments ?? '',
                 repository: option?.repository ?? '',
               });
@@ -86,9 +91,7 @@ export function AddOnSelector({
                 onChange({ ...value, arguments: e.target.value ?? '' })
               }
               data-cy={`k8sAppCreate-argument-${index}`}
-              disabled={
-                addonConfig?.argumentsType === '' || !value.name || readonly
-              }
+              disabled={!value.name || readonly}
               placeholder={
                 addonConfig?.placeholder && `e.g. ${addonConfig?.placeholder}`
               }
@@ -120,7 +123,7 @@ export function AddOnSelector({
   );
 
   function getAddonConfig(name: string) {
-    return options.find((option) => option.label === name);
+    return options.find((option) => option.name === name);
   }
 }
 
@@ -128,5 +131,5 @@ function getSelectedOptionFromValue(
   addonOptions: AddOnOption[],
   value?: AddOnFormValue
 ) {
-  return addonOptions.find((option) => option.label === value?.name) ?? null;
+  return addonOptions.find((option) => option.name === value?.name) ?? null;
 }
