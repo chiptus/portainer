@@ -35,11 +35,11 @@ function Cell({
       <>
         {environment.URL}
         {status !== '' && ( // status is in a provisioning or error state
-          <div className="inline-block">
+          <div className="inline-block gap-2">
             <span
               className={clsx(
                 'vertical-center inline-flex',
-                status === 'error' ? 'text-warning' : 'text-muted'
+                status === 'error' ? 'text-danger' : 'text-muted'
               )}
             >
               {environment.URL && status === 'error' && (
@@ -80,7 +80,7 @@ function Cell({
               <span
                 className={clsx(
                   'vertical-center inline-flex text-base',
-                  status === 'error' ? 'text-warning' : 'text-muted'
+                  status === 'error' ? 'text-danger' : 'text-muted'
                 )}
               >
                 <HelpCircle className="lucide ml-1" aria-hidden="true" />
