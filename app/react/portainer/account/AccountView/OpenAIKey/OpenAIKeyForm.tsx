@@ -85,7 +85,16 @@ export function OpenAIKeyForm({ user }: Props) {
             >
               the GPT-3.5 model
             </a>{' '}
-            (<i>gpt-3.5-turbo</i>) from the OpenAI API.
+            (<i>gpt-3.5-turbo</i>) from the OpenAI API. For more information see
+            this{' '}
+            <a
+              href="https://www.portainer.io/blog/portainer-chatgpt"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Portainer chatbot blogpost
+            </a>
+            .
           </div>
 
           <OpenAIKeyField />

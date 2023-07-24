@@ -12,6 +12,19 @@ export function OpenAIKeyField() {
     <FormControl
       inputId={id}
       label="OpenAI key"
+      tooltip={
+        <p>
+          Set an OpenAI API key, copied from your{' '}
+          <a
+            href="https://platform.openai.com/account/api-keys"
+            target="_blank"
+            rel="noreferrer"
+          >
+            OpenAI Platform Account
+          </a>
+          .
+        </p>
+      }
       size="xsmall"
       errors={meta.error}
     >

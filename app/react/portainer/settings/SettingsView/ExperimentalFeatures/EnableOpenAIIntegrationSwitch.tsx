@@ -12,6 +12,7 @@ export function EnableOpenAIIntegrationSwitch() {
     <FormControl
       inputId="experimental_openAI"
       label="Enable OpenAI integration"
+      tooltip="Users can set their OpenAI API key via their User settings page (accessed via the My Account option from the top-right of the screen)."
       size="medium"
       errors={meta.error}
     >

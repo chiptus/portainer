@@ -84,6 +84,21 @@ export function ExperimentalFeaturesSettingsForm({ settings }: Props) {
             experimental feature will prevent access to it.
           </div>
 
+          <br />
+          <br />
+
+          <TextTip color="blue">
+            For more information about the OpenAI integration, see this{' '}
+            <a
+              href="https://www.portainer.io/blog/portainer-chatgpt"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Portainer chatbot blogpost
+            </a>
+            .
+          </TextTip>
+
           <EnableOpenAIIntegrationSwitch />
 
           <div className="form-group">
