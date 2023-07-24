@@ -428,12 +428,14 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 		messages = append(messages, node.String())
 	}
 
+	summary := "Upgrade completed"
 	operationStatus := ""
 	if isError {
+		summary = "Upgrade completed with errors"
 		operationStatus = "error"
 	}
 
-	u.setMessage(u.endpoint.ID, "Upgrade completed", "Check Portainer logs for more details<br/><br/>"+strings.Join(messages, "<br/>"), operationStatus)
+	u.setMessage(u.endpoint.ID, summary, "Check Portainer logs for more details<br/><br/>"+strings.Join(messages, "<br/>"), operationStatus)
 
 	log.Debug().Str("provider", portaineree.CloudProviderMicrok8s).Msgf("Upgrade status: %+v", u.nodes)
 

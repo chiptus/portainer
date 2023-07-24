@@ -15,6 +15,8 @@ import { Icon } from '@@/Icon';
 import { TextTip } from '@@/Tip/TextTip';
 import { Tooltip } from '@@/Tip/Tooltip';
 import { Button } from '@@/buttons';
+import { confirmDestructive } from '@@/modals/confirm';
+import { buildConfirmButton } from '@@/modals/utils';
 
 export function UpgradeStatus() {
   const [autoRefreshRate, setAutoRefreshRate] = useState<number | undefined>();
@@ -74,6 +76,7 @@ export function UpgradeStatus() {
             <Tooltip
               message={environment?.StatusMessage?.detail}
               position="top"
+              setHtmlMessage
             />
           </div>
           {operationStatus === 'error' && (
@@ -85,7 +88,35 @@ export function UpgradeStatus() {
               color="link"
               size="small"
               onClick={() => dismissMessage()}
+              title="Dismiss message"
             />
+          )}
+          {operationStatus === 'processing' && (
+            <Button
+              icon={X}
+              className={clsx('flex')}
+              color="dangerlight"
+              size="small"
+              onClick={() => {
+                confirmDestructive({
+                  title: 'Are you sure?',
+                  message:
+                    'You should only clear the status if any processing of your cluster has hung (e.g. processing of an upgrade or an enable/disable of an addon). This will not resolve any issues in the cluster, so, please then use the Status option on your nodes to determine their condition. Are you sure you want to clear the status?',
+                  cancelButtonLabel: 'Cancel',
+                  confirmButton: buildConfirmButton('Clear status', 'danger'),
+                })
+                  .then((confirmed) => {
+                    if (confirmed) {
+                      dismissMessage();
+                    }
+                    return true;
+                  })
+                  .catch(() => {});
+              }}
+              title="Dismiss message"
+            >
+              Clear `processing` status
+            </Button>
           )}
         </div>
         {operationStatus === 'processing' && (
