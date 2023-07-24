@@ -36,6 +36,7 @@ rcw-widget-container
 */
 
 .root {
+  @apply pb-20;
   --rcw-absolute-max-height: calc(100vh - 40px);
   --rcw-absolute-max-width: calc(60vw - 40px);
   --rcw-absolute-max-width-xs: calc(90vw - 40px);
