@@ -628,7 +628,7 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 				ips = append(ips, n.IP)
 			}
 		default:
-			ips = append(ips, nodes[0].IP)
+			ips = append(ips, masterNode)
 		}
 
 		log.Debug().Msgf("Disabling addon (%s) on all the master nodes", addon)
@@ -685,7 +685,7 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 				ips = append(ips, n.IP)
 			}
 		default:
-			ips = append(ips, nodes[0].IP)
+			ips = append(ips, masterNode)
 		}
 
 		// TODO: check MickoK8s version and validate the affected versions. (NOT SURE IF NEEDED)

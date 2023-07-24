@@ -110,7 +110,7 @@ export function AddonsForm({
             matchingAddonOption?.argumentsType === 'required';
           return (
             <AddOnSelector
-              key={`addon${index}`}
+              key={`addon${addon.name}`}
               value={addon}
               options={addonOptions}
               filteredOptions={filteredOptions}

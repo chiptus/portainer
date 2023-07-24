@@ -680,8 +680,8 @@
                       No storage option is available to persist data, contact your administrator to enable a storage option.
                     </div>
 
-                    <div class="row" ng-if="ctrl.storageClassAvailable()">
-                      <div class="col-sm-12" style="margin-top: 5px" ng-if="ctrl.allQuotasExhaustedAndNoVolumesAvailable()">
+                    <div class="row">
+                      <div class="col-sm-12" style="margin-top: 5px" ng-if="ctrl.storageClassAvailable() && ctrl.allQuotasExhaustedAndNoVolumesAvailable()">
                         <span class="small text-muted vertical-center">
                           <pr-icon icon="'alert-circle'" mode="'warning'"></pr-icon>
                           This namespace has exhausted its storage capacity. Contact your administrator to expand the capacity of the namespace.
@@ -881,15 +881,16 @@
                         </div>
                       </div>
 
-                      <div class="col-sm-12 mt-2">
-                        <span
+                      <div class="col-sm-12 mt-4">
+                        <button
+                          ng-disabled="!ctrl.storageClassAvailable()"
                           class="btn btn-primary btn-sm btn btn-sm btn-light mb-2 !ml-0"
                           ng-click="ctrl.addPersistedFolder()"
                           ng-if="ctrl.isAddPersistentFolderButtonShowed()"
                           data-cy="k8sAppCreate-addPersistentFolderButton"
                         >
                           <pr-icon icon="'plus'" size="'sm'"></pr-icon> Add persisted folder
-                        </span>
+                        </button>
                       </div>
                     </div>
                   </div>

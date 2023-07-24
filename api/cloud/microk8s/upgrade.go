@@ -89,8 +89,8 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 
 	u.setMessage(u.endpoint.ID, "Upgrading cluster", "Gathering information about cluster.", "processing")
 
-	nodeIP, _, _ := strings.Cut(u.endpoint.URL, ":")
-	u.endpointIP = nodeIP
+	masterNode, _, _ := strings.Cut(u.endpoint.URL, ":")
+	u.endpointIP = masterNode
 
 	credential, err := u.dataStore.CloudCredential().Read(u.endpoint.CloudProvider.CredentialID)
 	if err != nil {
@@ -104,7 +104,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 		credential.Credentials["password"],
 		credential.Credentials["passphrase"],
 		credential.Credentials["privateKey"],
-		nodeIP,
+		masterNode,
 	)
 	if err != nil {
 		log.Debug().Err(err).Msg("failed creating ssh client")
@@ -341,7 +341,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 				ips = append(ips, n.IP)
 			}
 		default:
-			ips = append(ips, u.nodes[0].IP)
+			ips = append(ips, masterNode)
 		}
 
 		log.Debug().Msgf("Disabling addon (%s) on all the master nodes", addon)
@@ -391,7 +391,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 				ips = append(ips, n.IP)
 			}
 		default:
-			ips = append(ips, u.nodes[0].IP)
+			ips = append(ips, masterNode)
 		}
 
 		log.Debug().Msgf("Enabling addon (%s) on all the master nodes", addon)
