@@ -29,11 +29,11 @@ func NewHandler(bouncer security.BouncerService, userActivityService portaineree
 	adminRouter := h.NewRoute().Subrouter()
 	adminRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
 
-	adminRouter.Handle("/cloudcredentials", httperror.LoggerHandler(h.getAll)).Methods(http.MethodGet)
-	adminRouter.Handle("/cloudcredentials", httperror.LoggerHandler(h.create)).Methods(http.MethodPost)
-	adminRouter.Handle("/cloudcredentials/{id}", httperror.LoggerHandler(h.getByID)).Methods(http.MethodGet)
-	adminRouter.Handle("/cloudcredentials/{id}", httperror.LoggerHandler(h.delete)).Methods(http.MethodDelete)
-	adminRouter.Handle("/cloudcredentials/{id}", httperror.LoggerHandler(h.update)).Methods(http.MethodPut)
+	adminRouter.Handle("/cloud/credentials", httperror.LoggerHandler(h.getAll)).Methods(http.MethodGet)
+	adminRouter.Handle("/cloud/credentials", httperror.LoggerHandler(h.create)).Methods(http.MethodPost)
+	adminRouter.Handle("/cloud/credentials/{id}", httperror.LoggerHandler(h.getByID)).Methods(http.MethodGet)
+	adminRouter.Handle("/cloud/credentials/{id}", httperror.LoggerHandler(h.delete)).Methods(http.MethodDelete)
+	adminRouter.Handle("/cloud/credentials/{id}", httperror.LoggerHandler(h.update)).Methods(http.MethodPut)
 
 	return h
 }

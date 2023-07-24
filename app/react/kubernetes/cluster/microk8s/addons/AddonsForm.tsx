@@ -127,39 +127,44 @@ export function AddonsForm({
                 addons.splice(index, 1);
                 setFieldValue('addons', addons);
               }}
+              readonly={!isAllowed}
             />
           );
         })}
       </div>
 
-      <div className="row mb-5 pt-2">
-        <Button
-          className="btn btn-sm btn-light !ml-0"
-          type="button"
-          onClick={addAddon}
-          icon={Plus}
-        >
-          Add addon
-        </Button>
-      </div>
-      <LoadingButton
-        isLoading={isSubmitting}
-        loadingText="Updating addons"
-        type="submit"
-        color="secondary"
-        className="!ml-0"
-        disabled={!isAllowed || isInitialValues || isProcessing || !isValid}
-      >
-        Apply Changes
-      </LoadingButton>
-      <Button
-        type="reset"
-        color="light"
-        className="ml-1"
-        disabled={isInitialValues}
-      >
-        Cancel
-      </Button>
+      {isAllowed && (
+        <>
+          <div className="row mb-5 pt-2">
+            <Button
+              className="btn btn-sm btn-light !ml-0"
+              type="button"
+              onClick={addAddon}
+              icon={Plus}
+            >
+              Add addon
+            </Button>
+          </div>
+          <LoadingButton
+            isLoading={isSubmitting}
+            loadingText="Updating addons"
+            type="submit"
+            color="secondary"
+            className="!ml-0"
+            disabled={!isAllowed || isInitialValues || isProcessing || !isValid}
+          >
+            Apply Changes
+          </LoadingButton>
+          <Button
+            type="reset"
+            color="light"
+            className="ml-1"
+            disabled={isInitialValues}
+          >
+            Cancel
+          </Button>
+        </>
+      )}
     </Form>
   );
 

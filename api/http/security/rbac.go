@@ -43,6 +43,8 @@ var k8sRule = regexp.MustCompile(`/kubernetes/(?P<identifier>\d+)(?P<operation>/
 var azureRule = regexp.MustCompile(`/(?P<identifier>\d+)/azure(?P<operation>/.*)`)
 var agentRule = regexp.MustCompile(`/(?P<identifier>\d+)/agent(?P<operation>/.*)`)
 
+// var cloudRule = regexp.MustCompile(`/cloud/endpoints/(?P<identifier>\d+)`)
+
 func extractMatches(regex *regexp.Regexp, str string) map[string]string {
 	match := regex.FindStringSubmatch(str)
 

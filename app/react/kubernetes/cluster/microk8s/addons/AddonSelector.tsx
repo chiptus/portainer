@@ -21,6 +21,8 @@ interface Props {
   onRemove(): void;
   isRequiredInitialArgumentEmpty?: boolean;
   errors?: FormikErrors<AddOnFormValue>;
+
+  readonly?: boolean;
 }
 
 export function AddOnSelector({
@@ -32,6 +34,7 @@ export function AddOnSelector({
   onRemove,
   isRequiredInitialArgumentEmpty,
   errors,
+  readonly,
 }: Props) {
   const [selectedOption, setSelectedOption] = useState<
     SingleValue<AddOnOption>
@@ -58,6 +61,7 @@ export function AddOnSelector({
             }}
             size="sm"
             value={selectedOption}
+            isDisabled={readonly}
           />
         </InputGroup>
         {errors?.name && <FormError>{errors.name}</FormError>}
@@ -82,7 +86,9 @@ export function AddOnSelector({
                 onChange({ ...value, arguments: e.target.value ?? '' })
               }
               data-cy={`k8sAppCreate-argument-${index}`}
-              disabled={addonConfig?.argumentsType === '' || !value.name}
+              disabled={
+                addonConfig?.argumentsType === '' || !value.name || readonly
+              }
               placeholder={
                 addonConfig?.placeholder && `e.g. ${addonConfig?.placeholder}`
               }
@@ -96,17 +102,19 @@ export function AddOnSelector({
             </TextTip>
           )}
         </div>
-        <div className="flex flex-none flex-col">
-          <Button
-            className="!ml-0"
-            size="medium"
-            color="dangerlight"
-            type="button"
-            data-cy={`k8sAppCreate-rmAddonButton_${index}`}
-            onClick={onRemove}
-            icon={Trash2}
-          />
-        </div>
+        {!readonly && (
+          <div className="flex flex-none flex-col">
+            <Button
+              className="!ml-0"
+              size="medium"
+              color="dangerlight"
+              type="button"
+              data-cy={`k8sAppCreate-rmAddonButton_${index}`}
+              onClick={onRemove}
+              icon={Trash2}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -49,7 +49,7 @@ func redactCredentials(credential models.CloudCredentialMap) models.CloudCredent
 // @success 200 {object} models.CloudCredential
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
-// @router /cloudcredentials [get]
+// @router /cloud/credentials [get]
 func (h *Handler) getAll(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
 	cloudCredentials, err := h.DataStore.CloudCredential().ReadAll()
@@ -81,7 +81,7 @@ func (h *Handler) getAll(w http.ResponseWriter, r *http.Request) *httperror.Hand
 // @success 200 {object} models.CloudCredential
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
-// @router /cloudcredentials [get]
+// @router /cloud/credentials [get]
 func (h *Handler) getByID(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
 	id, _ := request.RetrieveNumericRouteVariableValue(r, "id")

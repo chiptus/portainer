@@ -21,7 +21,7 @@ import (
 // @success 200 {object} models.CloudCredential
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
-// @router /cloudcredentials [post]
+// @router /cloud/credentials [post]
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
 	id, _ := request.RetrieveNumericRouteVariableValue(r, "id")

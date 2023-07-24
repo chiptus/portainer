@@ -84,25 +84,26 @@ export function UpgradeCluster() {
                   disabled
                 />
               </FormControl>
-              <LoadingButton
-                isLoading={isSubmitting}
-                loadingText="Upgrading..."
-                type="submit"
-                color="secondary"
-                className="!ml-0"
-                onClick={() => {}}
-                disabled={
-                  nextVersion === currentVersion ||
-                  upgradeClusterMutation.isLoading ||
-                  !isAllowed ||
-                  isProcessing ||
-                  statusQuery.isRefetching
-                }
-              >
-                {nextVersion === currentVersion
-                  ? 'No upgrade currently available'
-                  : `Upgrade to ${nextVersion}`}
-              </LoadingButton>
+              {isAllowed && (
+                <LoadingButton
+                  isLoading={isSubmitting}
+                  loadingText="Upgrading..."
+                  type="submit"
+                  color="secondary"
+                  className="!ml-0"
+                  onClick={() => {}}
+                  disabled={
+                    nextVersion === currentVersion ||
+                    upgradeClusterMutation.isLoading ||
+                    isProcessing ||
+                    statusQuery.isRefetching
+                  }
+                >
+                  {nextVersion === currentVersion
+                    ? 'No upgrade currently available'
+                    : `Upgrade to ${nextVersion}`}
+                </LoadingButton>
+              )}
             </Form>
           )}
         </Formik>

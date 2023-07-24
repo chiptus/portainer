@@ -13,13 +13,22 @@ import { getInternalNodeIpAddress } from '../utils';
 
 import { columnHelper } from './helper';
 
-export function getActions(metricsEnabled: boolean, canSSH: boolean) {
+export function getActions(
+  metricsEnabled: boolean,
+  canSSH: boolean,
+  canCheckStatus: boolean
+) {
   return columnHelper.accessor(() => '', {
     header: 'Actions',
     enableSorting: false,
     cell: (props) => (
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      <ActionsCell {...props} metricsEnabled={metricsEnabled} canSSH={canSSH} />
+      <ActionsCell
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        metricsEnabled={metricsEnabled}
+        canSSH={canSSH}
+        canCheckStatus={canCheckStatus}
+      />
     ),
   });
 }
@@ -28,9 +37,11 @@ function ActionsCell({
   row: { original: node },
   metricsEnabled,
   canSSH,
+  canCheckStatus,
 }: CellContext<NodeRowData, string> & {
   metricsEnabled: boolean;
   canSSH: boolean;
+  canCheckStatus: boolean;
 }) {
   const environmentId = useEnvironmentId();
   const nodeName = node.metadata?.name;
@@ -51,7 +62,7 @@ function ActionsCell({
           </Link>
         )}
 
-        {nodeIp && node.isApi && (
+        {nodeIp && node.isApi && canCheckStatus && (
           <Link
             title="MicroK8s status"
             to="kubernetes.cluster.node.microk8s-status"

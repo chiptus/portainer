@@ -24,7 +24,7 @@ import (
 // @success 200 {object} models.CloudCredential
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
-// @router /cloudcredentials [post]
+// @router /cloud/credentials [post]
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	var payload models.CloudCredential
 	err := request.DecodeAndValidateJSONPayload(r, &payload)

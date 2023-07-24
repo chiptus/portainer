@@ -56,18 +56,29 @@ export function NodesDatatable() {
     environmentUrl
   );
 
-  // currently only microk8s supports deleting nodes
-  const canScaleCluster = environment?.CloudProvider?.Provider === 'microk8s';
-  const canSSH = environment?.CloudProvider?.Provider === 'microk8s';
   const { data: credential, ...credentialQuery } = useCloudCredential(
     environment?.CloudProvider?.CredentialID ?? NaN
   );
-  const authorizedToWriteClusterNode = useAuthorizations('K8sClusterW');
+
+  const authorizedToWriteClusterNode = useAuthorizations('K8sClusterNodeW');
+  const authorizedToReadMicroK8sStatus = useAuthorizations('K8sClusterR');
+
+  // currently only microk8s supports deleting nodes
+  const canScaleCluster =
+    environment?.CloudProvider?.Provider === 'microk8s' &&
+    authorizedToWriteClusterNode;
+  const canSSH =
+    environment?.CloudProvider?.Provider === 'microk8s' &&
+    authorizedToWriteClusterNode;
+
+  const canCheckStatus =
+    environment?.CloudProvider?.Provider === 'microk8s' &&
+    authorizedToReadMicroK8sStatus;
 
   return (
     <Datatable<IndexOptional<NodeRowData>>
       dataset={nodeRowData ?? []}
-      columns={getColumns(isServerMetricsEnabled, canSSH)}
+      columns={getColumns(isServerMetricsEnabled, canSSH, canCheckStatus)}
       settingsManager={tableState}
       isLoading={
         nodesQuery.isLoading ||
@@ -85,7 +96,6 @@ export function NodesDatatable() {
           <TableActions
             selectedItems={selectedRows}
             environmentId={environmentId}
-            hasCredential={!!credential && credentialQuery.isSuccess}
             nodeRowData={nodeRowData}
           />
         )
@@ -101,6 +111,7 @@ export function NodesDatatable() {
       description={
         canScaleCluster &&
         !credential &&
+        authorizedToWriteClusterNode &&
         credentialQuery.isFetched && (
           <div className="w-full">
             <TextTip color="orange">
@@ -116,12 +127,10 @@ export function NodesDatatable() {
 function TableActions({
   selectedItems,
   environmentId,
-  hasCredential,
   nodeRowData,
 }: {
   selectedItems: IndexOptional<Node>[];
   environmentId: EnvironmentId;
-  hasCredential?: boolean;
   nodeRowData: NodeRowData[];
 }) {
   const router = useRouter();
@@ -134,13 +143,13 @@ function TableActions({
   );
 
   return (
-    <Authorized authorizations="K8sClusterW">
+    <Authorized authorizations="K8sClusterNodeW">
       <Link to="kubernetes.cluster.nodes.new" className="ml-1">
         <Button
           className="btn-wrapper"
           color="secondary"
           icon={Plus}
-          disabled={hasCredential === false || isProcessing}
+          disabled={isProcessing}
           data-cy="k8sNodes-addNodesButton"
         >
           Add nodes
@@ -149,9 +158,7 @@ function TableActions({
       <Button
         className="btn-wrapper"
         color="dangerlight"
-        disabled={
-          selectedItems.length === 0 || hasCredential === false || isProcessing
-        }
+        disabled={selectedItems.length === 0 || isProcessing}
         onClick={async () => {
           onRemoveClick(selectedItems);
         }}

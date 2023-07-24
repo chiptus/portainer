@@ -7,8 +7,12 @@ import { version } from './version';
 import { ip } from './ip';
 import { getActions } from './actions';
 
-export function getColumns(isServerMetricsEnabled: boolean, canSSH: boolean) {
-  if (!isServerMetricsEnabled && !canSSH) {
+export function getColumns(
+  isServerMetricsEnabled: boolean,
+  canSSH: boolean,
+  canCheckStatus: boolean
+) {
+  if (!isServerMetricsEnabled && !(canSSH || canCheckStatus)) {
     return [name, role, status, cpu, memory, version, ip];
   }
 
@@ -20,6 +24,6 @@ export function getColumns(isServerMetricsEnabled: boolean, canSSH: boolean) {
     memory,
     version,
     ip,
-    getActions(isServerMetricsEnabled, canSSH),
+    getActions(isServerMetricsEnabled, canSSH, canCheckStatus),
   ];
 }

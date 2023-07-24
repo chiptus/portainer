@@ -113,12 +113,6 @@ export function useCloudCredential(id: number) {
 export function useCloudCredentials() {
   return useQuery(queryKeys.allCredentials, () => getCloudCredentials(), {
     staleTime: 20,
-    meta: {
-      error: {
-        title: 'Failure',
-        message: 'Unable to retrieve cloud credentials',
-      },
-    },
   });
 }
 
@@ -140,7 +134,7 @@ export function useCreateCredentialMutation() {
 }
 
 function buildUrl(credentialId?: number) {
-  let url = 'cloudcredentials';
+  let url = 'cloud/credentials';
   if (credentialId) {
     url += `/${credentialId}`;
   }

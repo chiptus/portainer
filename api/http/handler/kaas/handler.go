@@ -46,6 +46,7 @@ func NewHandler(
 	}
 
 	endpointRouter := h.NewRoute().Subrouter()
+
 	endpointRouter.Use(bouncer.AuthenticatedAccess, middlewares.WithEndpoint(dataStore.Endpoint(), "endpointid"))
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/nodes/remove", httperror.LoggerHandler(h.removeNodes)).Methods(http.MethodPost)
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/nodes/add", httperror.LoggerHandler(h.addNodes)).Methods(http.MethodPost)
@@ -57,9 +58,12 @@ func NewHandler(
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/addons", httperror.LoggerHandler(h.microk8sGetAddons)).Methods(http.MethodGet)
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/addons", httperror.LoggerHandler(h.microk8sUpdateAddons)).Methods(http.MethodPost)
 
+	authenticatedRouter := h.NewRoute().Subrouter()
+	authenticatedRouter.Use(bouncer.AuthenticatedAccess)
+	authenticatedRouter.Handle("/cloud/{provider}/info", httperror.LoggerHandler(h.providerInfo)).Methods(http.MethodGet)
+
 	adminRouter := h.NewRoute().Subrouter()
 	adminRouter.Use(bouncer.AdminAccess)
-	adminRouter.Handle("/cloud/{provider}/info", httperror.LoggerHandler(h.providerInfo)).Methods(http.MethodGet)
 
 	loggedAdminRouter := h.NewRoute().Subrouter()
 	loggedAdminRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))

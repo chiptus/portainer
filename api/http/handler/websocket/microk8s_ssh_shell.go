@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
 	sshutil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
+	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	"github.com/rs/zerolog/log"
 
@@ -37,6 +38,25 @@ func (handler *Handler) websocketMicrok8sShell(w http.ResponseWriter, r *http.Re
 	endpointID, err := request.RetrieveNumericQueryParameter(r, "endpointId", false)
 	if err != nil {
 		return httperror.BadRequest("Invalid query parameter: endpointId", err)
+	}
+
+	securityContext, err := security.RetrieveRestrictedRequestContext(r)
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve info from request context", err)
+	}
+
+	user, err := handler.DataStore.User().Read(securityContext.UserID)
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve security context", err)
+	}
+
+	authorized, err := hasMicrok8sShellAccess(user, portaineree.EndpointID(endpointID))
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve user details from authentication token", err)
+	}
+
+	if !authorized {
+		return httperror.Forbidden("Permission denied to access ssh shell", err)
 	}
 
 	nodeIP, err := request.RetrieveQueryParameter(r, "nodeIp", false)
@@ -169,4 +189,11 @@ func hijackSSHSession(websocketConn *websocket.Conn, session *ssh.Session) error
 
 	log.Debug().Msgf("ssh session ended")
 	return nil
+}
+
+// Check if the user is an admin or can have sheel access
+func hasMicrok8sShellAccess(user *portaineree.User, endpointID portaineree.EndpointID) (bool, error) {
+	isAdmin := user.Role == portaineree.AdministratorRole
+	_, hasAccess := user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.OperationK8sClusterNodeW]
+	return isAdmin || hasAccess, nil
 }
