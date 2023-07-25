@@ -125,6 +125,7 @@ var AllAddons = Addons{
 		Repository:  "core",
 		IsAvailable: true,
 
+		RequiredOn:        "masters",
 		ArgumentsType:     "optional",
 		Placeholder:       "e.g. ip=10.0.1.2",
 		ArgumentSeparator: ":",
