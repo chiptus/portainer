@@ -50,7 +50,10 @@ func ScanAndCleanUpGhostUpdaterContainers(ctx context.Context) error {
 }
 
 func withCli(callback func(cli *client.Client) error) error {
-	cli, err := client.NewClientWithOpts(client.FromEnv)
+	cli, err := client.NewClientWithOpts(
+		client.FromEnv,
+		client.WithAPIVersionNegotiation(),
+	)
 	if err != nil {
 		return err
 	}
