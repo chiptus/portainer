@@ -144,7 +144,7 @@ func (service *Service) GetEdgeConfigDirEntries(edgeConfig *portaineree.EdgeConf
 
 		dirEntries = append(dirEntries, filesystem.DirEntry{
 			Name:        remotePath,
-			Content:     base64.RawStdEncoding.EncodeToString([]byte(content)),
+			Content:     base64.StdEncoding.EncodeToString([]byte(content)),
 			IsFile:      true,
 			Permissions: 0444,
 		})
