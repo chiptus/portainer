@@ -44,7 +44,7 @@ func Test_aggregateLicense_CalculateCorrectType(t *testing.T) {
 				liblicense.PortainerLicenseFree,
 				liblicense.PortainerLicenseSubscription,
 			},
-			expectedType: liblicense.PortainerLicenseFree,
+			expectedType: liblicense.PortainerLicenseSubscription,
 		},
 		{
 			name: "Trial and Subscriptions",

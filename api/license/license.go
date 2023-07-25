@@ -4,20 +4,17 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/portainer/liblicense/v3"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
-
-	"github.com/pkg/errors"
 )
 
 // Service represents a service for managing portainer licenses
 type Service struct {
-	info            *portaineree.LicenseInfo
+	licenses        []liblicense.PortainerLicense
 	dataStore       dataservices.DataStore
 	shutdownCtx     context.Context
 	snapshotService portaineree.SnapshotService
@@ -27,7 +24,7 @@ type Service struct {
 // NewService creates a new instance of Service
 func NewService(dataStore dataservices.DataStore, shutdownCtx context.Context, snapshotService portaineree.SnapshotService, expireAbsolute bool) *Service {
 	return &Service{
-		info:            nil,
+		licenses:        []liblicense.PortainerLicense{},
 		dataStore:       dataStore,
 		shutdownCtx:     shutdownCtx,
 		snapshotService: snapshotService,
@@ -40,31 +37,15 @@ func (service *Service) Start() error {
 	return service.startSyncLoop()
 }
 
-// Init initializes internal state
-func (service *Service) Init() error {
-	service.info = &portaineree.LicenseInfo{Valid: false}
-
-	licenses, err := service.Licenses()
-	if err != nil {
-		return err
-	}
-
-	service.info = service.aggregateLicenses(licenses)
-
-	return nil
-}
-
-// Info returns aggregation of the information about the existing licenses
-func (service *Service) Info() *portaineree.LicenseInfo {
-	return service.info
-}
-
 // Licenses returns the list of the existing licenses
-func (service *Service) Licenses() ([]liblicense.PortainerLicense, error) {
-	return service.dataStore.License().Licenses()
+func (service *Service) Licenses() []liblicense.PortainerLicense {
+	return service.licenses
 }
 
 // AddLicense attempts to add a license to instance.
+// If the license would conflict with an existing license a list of conflicting
+// licenses is returned. The force parameter can be used to indicate that the
+// conflicting licenses should be removed and the new license added.
 func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 	// Validate the given license key and parse it into a license object.
 	l := ParseLicense(key, service.expireAbsolute)
@@ -82,21 +63,13 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 		return nil, fmt.Errorf("license key is expired or revoked")
 	}
 
-	// Fetch a list of the existing licenses.
-	licenses, err := service.Licenses()
-	if err != nil {
-		return nil, err
-	}
-
 	// If there are no existing licenses we accept their given license.
-	if len(licenses) == 0 {
+	if len(service.licenses) == 0 {
 		err = service.dataStore.License().AddLicense(l.LicenseKey, &l)
 		if err != nil {
 			return nil, err
 		}
-		licenses = append(licenses, l)
-		service.info = service.aggregateLicenses(licenses)
-
+		service.licenses = append(service.licenses, l)
 		return nil, nil
 	}
 
@@ -109,7 +82,7 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 	case l.Type == liblicense.PortainerLicenseSubscription && l.Version == 3:
 		// V3 Subscription licenses can only be added if all existing licenses
 		// are also subscription licenses.
-		for _, l := range licenses {
+		for _, l := range service.licenses {
 			if l.Type != liblicense.PortainerLicenseSubscription {
 				if force {
 					err := service.dataStore.License().DeleteLicense(l.LicenseKey)
@@ -131,7 +104,7 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 	case l.Type == liblicense.PortainerLicenseSubscription && l.Version != 3:
 		// V2 Subscription licenses can be added if all existing licenses
 		// are subscription licenses OR V2 free licenses.
-		for _, l := range licenses {
+		for _, l := range service.licenses {
 			if l.Type == liblicense.PortainerLicenseSubscription ||
 				(l.Type == liblicense.PortainerLicenseFree && l.Version != 3) {
 				continue
@@ -155,7 +128,7 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 	case l.Type == liblicense.PortainerLicenseFree && l.Version != 3:
 		// V2 Free licenses are stackable with other V2 Free licenses or V2
 		// Subscription licenses.
-		for _, l := range licenses {
+		for _, l := range service.licenses {
 			if l.Version != 3 {
 				if l.Type == liblicense.PortainerLicenseSubscription {
 					continue
@@ -178,7 +151,7 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 			)
 		}
 	default:
-		for _, l := range licenses {
+		for _, l := range service.licenses {
 			if force {
 				err := service.dataStore.License().DeleteLicense(l.LicenseKey)
 				if err != nil {
@@ -205,14 +178,7 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// Fetch new list of licenses.
-	licenses, err = service.Licenses()
-	if err != nil {
-		return nil, err
-	}
-	service.info = service.aggregateLicenses(licenses)
-
+	service.licenses = append(service.licenses, l)
 	return conflicts, nil
 }
 
@@ -258,79 +224,39 @@ func (service *Service) DeleteLicense(licenseKey string) error {
 		return err
 	}
 
-	licenses, err := service.Licenses()
-	if err != nil {
-		return err
-	}
-
-	service.info = service.aggregateLicenses(licenses)
-
-	return nil
-}
-
-// revokeLicense attempts to mark a license in the database and in the running
-// info cache as revoked.
-func (service *Service) revokeLicense(licenseKey string) error {
-	var licenses []liblicense.PortainerLicense
-
-	license, err := service.dataStore.License().License(licenseKey)
-	if err != nil {
-		return errors.Wrap(err, "failed to fetch licenses to revoke")
-	}
-
-	license.Revoked = true
-
-	err = service.dataStore.License().UpdateLicense(licenseKey, license)
-	if err != nil {
-		return errors.Wrap(err, "failed to revoke a license")
-	}
-
-	licenses, err = service.Licenses()
-	if err != nil {
-		return errors.Wrap(err, "failed to fetch licenses")
-	}
-
-	service.info = service.aggregateLicenses(licenses)
-
-	return nil
-}
-
-// ReaggregateLicenseInfo re-calculates and updates the aggregated license
-func (service *Service) ReaggregateLicenseInfo() error {
-	licenses, err := service.Licenses()
-	if err == nil {
-		service.info = service.aggregateLicenses(licenses)
-	}
-
-	return errors.Wrap(err, "failed to fetch licenses to aggregate")
-}
-
-func RecalculateLicenseUsage(licenseService portaineree.LicenseService, next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(rw, r)
-
-		if licenseService != nil {
-			licenseService.ReaggregateLicenseInfo()
+	var updated []liblicense.PortainerLicense
+	for _, l := range service.licenses {
+		if l.LicenseKey != licenseKey {
+			updated = append(updated, l)
 		}
-	})
+	}
+
+	service.licenses = updated
+	return nil
 }
 
-// aggregateLicenses takes a list of licenses and calculates a single combined license value.
+// Info returns aggregation of the information about the existing licenses
+func (service *Service) Info() portaineree.LicenseInfo {
+	return service.aggregateLicenses(service.licenses)
+}
+
+// aggregateLicenses returns an aggregate value representing all of the user's
+// licenses.
 // If there are no valid licenses this license will be empty and invalid.
-func (service *Service) aggregateLicenses(licenses []liblicense.PortainerLicense) *portaineree.LicenseInfo {
+func (service *Service) aggregateLicenses(licenses []liblicense.PortainerLicense) portaineree.LicenseInfo {
 	// If we have no licenses return immediately.
 	if len(licenses) == 0 {
-		return &portaineree.LicenseInfo{Valid: false}
+		return portaineree.LicenseInfo{Valid: false}
 	}
 
 	// If we have any trial licenses use the first one.
 	if info, ok := trialLicenseInfo(licenses, service.expireAbsolute); ok {
-		return &info
+		return info
 	}
 
 	// If we have any subscription licenses use them.
 	if info, ok := subLicenseInfo(licenses, service.expireAbsolute); ok {
-		return &info
+		return info
 	}
 
 	// Otherwise, use the first remaining license.
@@ -353,17 +279,13 @@ func (service *Service) aggregateLicenses(licenses []liblicense.PortainerLicense
 		service.dataStore.Enforcement().UpdateOveruseStartedTimestamp(licenseOveruseTimestamp)
 	}
 
-	return &info
+	return info
 }
 
 func trialLicenseInfo(licenses []liblicense.PortainerLicense, expireAbsolute bool) (portaineree.LicenseInfo, bool) {
 	var info portaineree.LicenseInfo
 	for _, l := range licenses {
 		l := ParseLicense(l.LicenseKey, expireAbsolute)
-		valid, err := liblicense.ValidateLicense(&l)
-		if err != nil || !valid {
-			continue
-		}
 		if isExpiredOrRevoked(l) {
 			continue
 		}
@@ -392,10 +314,7 @@ func subLicenseInfo(licenses []liblicense.PortainerLicense, expireAbsolute bool)
 	var foundV3 bool
 	var freeV2Nodes int
 	for _, l := range licenses {
-		valid, err := liblicense.ValidateLicense(&l)
-		if err != nil || !valid {
-			continue
-		}
+		l := ParseLicense(l.LicenseKey, expireAbsolute)
 		if isExpiredOrRevoked(l) {
 			continue
 		}

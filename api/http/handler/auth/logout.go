@@ -6,6 +6,7 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
 	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/rs/zerolog/log"
 )
 
 // @id Logout
@@ -22,17 +23,17 @@ func (handler *Handler) logout(w http.ResponseWriter, r *http.Request) (*authMid
 	resp := &authMiddlewareResponse{
 		Username: tokenData.Username,
 	}
-
-	err = handler.LicenseService.ReaggregateLicenseInfo()
 	if err != nil {
-		return resp, httperror.InternalServerError("Unable to refresh license info", err)
+		log.Warn().Err(err).Msg("unable to retrieve user details from authentication token")
 	}
 
+	err = handler.LicenseService.SyncLicenses()
 	if err != nil {
-		return resp, httperror.InternalServerError("Unable to retrieve user details from authentication token", err)
+		log.Warn().Err(err).Msg("unable to refresh license info")
 	}
 
-	handler.KubernetesTokenCacheManager.RemoveUserFromCache(tokenData.ID)
-
+	if tokenData != nil {
+		handler.KubernetesTokenCacheManager.RemoveUserFromCache(tokenData.ID)
+	}
 	return resp, response.Empty(w)
 }

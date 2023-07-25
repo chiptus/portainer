@@ -51,7 +51,8 @@ func NotOverused(licenseService portaineree.LicenseService, dataStore dataservic
 	})
 }
 
-// ShouldEnforceOveruse returns true if the license limit was exceeded for longer than a grace period
+// ShouldEnforceOveruse returns true if the license limit was exceeded for
+// longer than a grace period.
 func (service *Service) ShouldEnforceOveruse() bool {
 	enforcementTimestamp := service.WillBeEnforcedAt()
 	if enforcementTimestamp == 0 {
@@ -61,10 +62,11 @@ func (service *Service) ShouldEnforceOveruse() bool {
 	return time.Now().Unix() > enforcementTimestamp
 }
 
-// WillBeEnforcedAt returns a timestamp when the license overuse will be enforced.
+// WillBeEnforcedAt returns a timestamp when the license overuse will be
+// enforced.
 // If the license isn't overused, it will return 0.
 func (service *Service) WillBeEnforcedAt() int64 {
-	overuserdStartedTimestamp := service.info.OveruseStartedTimestamp
+	overuserdStartedTimestamp := service.Info().OveruseStartedTimestamp
 	if overuserdStartedTimestamp == 0 {
 		return 0
 	}

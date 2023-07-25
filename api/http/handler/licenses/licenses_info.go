@@ -27,7 +27,7 @@ func (handler *Handler) licensesInfo(w http.ResponseWriter, r *http.Request) *ht
 	info := handler.LicenseService.Info()
 
 	result := &LicenseInfo{
-		LicenseInfo: info,
+		LicenseInfo: &info,
 		EnforcedAt:  handler.LicenseService.WillBeEnforcedAt(),
 	}
 

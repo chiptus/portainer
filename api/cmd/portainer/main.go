@@ -534,9 +534,6 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	snapshotService.Start()
 
 	licenseService := license.NewService(dataStore, shutdownCtx, snapshotService, *flags.LicenseExpireAbsolute)
-	if err = licenseService.Init(); err != nil {
-		log.Fatal().Err(err).Msg("failed initializing license service")
-	}
 
 	authorizationService := authorization.NewService(dataStore)
 	authorizationService.K8sClientFactory = kubernetesClientFactory

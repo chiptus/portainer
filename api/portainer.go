@@ -1969,11 +1969,10 @@ type (
 	LicenseService interface {
 		AddLicense(licenseKey string, force bool) ([]string, error)
 		DeleteLicense(licenseKey string) error
-		Info() *LicenseInfo
-		Init() error
-		Licenses() ([]liblicense.PortainerLicense, error)
-		ReaggregateLicenseInfo() error
+		Info() LicenseInfo
+		Licenses() []liblicense.PortainerLicense
 		ShouldEnforceOveruse() bool
+		SyncLicenses() error
 		Start() error
 		WillBeEnforcedAt() int64
 	}
