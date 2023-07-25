@@ -6,9 +6,10 @@ type Step = { value: number; color: string };
 interface Props {
   steps: Array<Step>;
   total: number;
+  className?: string;
 }
 
-export function ProgressBar({ steps, total }: Props) {
+export function ProgressBar({ steps, total, className }: Props) {
   const { steps: reducedSteps } = steps.reduce<{
     steps: Array<Step & { percent: number }>;
     total: number;
@@ -37,7 +38,8 @@ export function ProgressBar({ steps, total }: Props) {
     <div
       className={clsx(
         'progress shadow-none',
-        sum > 100 ? styles.progressAlert : styles.progressInfo
+        sum > 100 ? styles.progressAlert : styles.progressInfo,
+        className
       )}
       aria-valuemin={0}
       aria-valuemax={100}

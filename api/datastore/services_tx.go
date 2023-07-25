@@ -20,6 +20,14 @@ func (tx *StoreTx) EdgeAsyncCommand() dataservices.EdgeAsyncCommandService {
 	return tx.store.EdgeAsyncCommandService.Tx(tx.tx)
 }
 
+func (tx *StoreTx) EdgeConfig() dataservices.EdgeConfigService {
+	return tx.store.EdgeConfigService.Tx(tx.tx)
+}
+
+func (tx *StoreTx) EdgeConfigState() dataservices.EdgeConfigStateService {
+	return tx.store.EdgeConfigStateService.Tx(tx.tx)
+}
+
 func (tx *StoreTx) CloudProvisioning() dataservices.CloudProvisioningService { return nil }
 
 func (tx *StoreTx) EdgeGroup() dataservices.EdgeGroupService {

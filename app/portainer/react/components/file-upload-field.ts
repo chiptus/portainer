@@ -13,4 +13,6 @@ export const fileUploadField = r2a(FileUploadField, [
   'className',
   'color',
   'name',
+  'hideFilename',
+  'tooltip',
 ]);

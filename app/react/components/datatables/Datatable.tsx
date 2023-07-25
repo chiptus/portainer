@@ -54,7 +54,7 @@ export interface Props<
   pageCount?: number;
   highlightedItemId?: string;
   onPageChange?(page: number): void;
-
+  // onSearchChange?(oldValue: string): void;
   settingsManager: GlobalTableState<BasicTableSettings>;
   renderRow?(row: Row<D>, highlightedItemId?: string): ReactNode;
   getRowCanExpand?(row: Row<D>): boolean;
@@ -82,6 +82,7 @@ export function Datatable<
   description,
   pageCount,
   onPageChange = () => null,
+  // onSearchChange,
   settingsManager: settings,
   renderRow = defaultRenderRow,
   highlightedItemId,
@@ -120,6 +121,7 @@ export function Datatable<
     enableRowSelection,
     autoResetExpanded: false,
     globalFilterFn,
+    // onGlobalFilterChange: onSearchChange,
     getRowId,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),

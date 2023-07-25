@@ -147,6 +147,10 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 				continue
 			}
 
+			if err = handler.createEdgeConfigs(tx, endpoint, edgeGroup); err != nil {
+				return err
+			}
+
 			var operation string
 			if slices.Contains(newRelatedEndpoints, endpointID) && slices.Contains(oldRelatedEndpoints, endpointID) {
 				continue
@@ -244,6 +248,71 @@ func (handler *Handler) updateEndpointEdgeJobs(tx dataservices.DataStoreTx, edge
 			if err != nil {
 				return err
 			}
+		}
+	}
+
+	return nil
+}
+
+func (handler *Handler) createEdgeConfigs(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeGroup *portaineree.EdgeGroup) error {
+	edgeConfigs, err := tx.EdgeConfig().ReadAll()
+	if err != nil {
+		return err
+	}
+
+	var edgeConfigsToCreate []portaineree.EdgeConfigID
+	for _, edgeConfig := range edgeConfigs {
+		if slices.Contains(edgeConfig.EdgeGroupIDs, edgeGroup.ID) {
+			edgeConfigsToCreate = append(edgeConfigsToCreate, edgeConfig.ID)
+		}
+	}
+
+	edgeConfigsToCreate = unique.Unique(edgeConfigsToCreate)
+
+	for _, edgeConfigID := range edgeConfigsToCreate {
+		// Update the Edge Config
+		edgeConfig, err := tx.EdgeConfig().Read(edgeConfigID)
+		if err != nil {
+			return err
+		}
+
+		switch edgeConfig.State {
+		case portaineree.EdgeConfigFailureState, portaineree.EdgeConfigDeletingState:
+			continue
+		}
+
+		edgeConfig.Progress.Total++
+
+		if err := tx.EdgeConfig().Update(edgeConfigID, edgeConfig); err != nil {
+			return err
+		}
+
+		// Update or create the Edge Config State
+		edgeConfigState, err := tx.EdgeConfigState().Read(endpoint.ID)
+		if err != nil {
+			edgeConfigState = &portaineree.EdgeConfigState{
+				EndpointID: endpoint.ID,
+				States:     make(map[portaineree.EdgeConfigID]portaineree.EdgeConfigStateType),
+			}
+
+			if err := tx.EdgeConfigState().Create(edgeConfigState); err != nil {
+				return err
+			}
+		}
+
+		edgeConfigState.States[edgeConfigID] = portaineree.EdgeConfigSavingState
+
+		if err := tx.EdgeConfigState().Update(edgeConfigState.EndpointID, edgeConfigState); err != nil {
+			return err
+		}
+
+		dirEntries, err := handler.FileService.GetEdgeConfigDirEntries(edgeConfig, endpoint.EdgeID, portaineree.EdgeConfigCurrent)
+		if err != nil {
+			return httperror.InternalServerError("Unable to process the files for the edge configuration", err)
+		}
+
+		if err = handler.edgeAsyncService.AddConfigCommandTx(tx, endpoint.ID, edgeConfig, dirEntries); err != nil {
+			return httperror.InternalServerError("Unable to persist the edge configuration command inside the database", err)
 		}
 	}
 

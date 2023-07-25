@@ -22,6 +22,7 @@ type Handler struct {
 	userActivityService  portaineree.UserActivityService
 	ReverseTunnelService portaineree.ReverseTunnelService
 	edgeAsyncService     *edgeasync.Service
+	FileService          portaineree.FileService
 }
 
 // NewHandler creates a handler to manage environment(endpoint) group operations.

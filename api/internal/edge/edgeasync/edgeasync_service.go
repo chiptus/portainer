@@ -35,6 +35,14 @@ type edgeJobData struct {
 	Version           int
 }
 
+type edgeConfigData struct {
+	ID         portaineree.EdgeConfigID `json:"id"`
+	Name       string                   `json:"name"`
+	BaseDir    string                   `json:"baseDir"`
+	DirEntries []filesystem.DirEntry    `json:"dirEntries"`
+	Prev       *edgeConfigData          `json:"prev,omitempty"`
+}
+
 type containerCommandData struct {
 	ContainerName          string
 	ContainerStartOptions  types.ContainerStartOptions
@@ -529,4 +537,46 @@ func (service *Service) RemoveNormalStackCommand(endpointID portaineree.Endpoint
 	}
 
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
+}
+func (service *Service) AddConfigCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeConfig *portaineree.EdgeConfig, files []filesystem.DirEntry) error {
+	return service.storeUpdateConfigCommand(tx, endpointID, edgeConfig, portaineree.EdgeAsyncCommandOpAdd, files, nil)
+}
+
+func (service *Service) UpdateConfigCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeConfig *portaineree.EdgeConfig, files []filesystem.DirEntry, prevFiles []filesystem.DirEntry) error {
+	return service.storeUpdateConfigCommand(tx, endpointID, edgeConfig, portaineree.EdgeAsyncCommandOpReplace, files, prevFiles)
+}
+
+func (service *Service) DeleteConfigCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeConfig *portaineree.EdgeConfig, files []filesystem.DirEntry) error {
+	return service.storeUpdateConfigCommand(tx, endpointID, edgeConfig, portaineree.EdgeAsyncCommandOpRemove, files, nil)
+}
+
+func (service *Service) storeUpdateConfigCommand(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeConfig *portaineree.EdgeConfig, commandOperation portaineree.EdgeAsyncCommandOperation, files, prevFiles []filesystem.DirEntry) error {
+	endpoint, err := tx.Endpoint().Endpoint(endpointID)
+	if err != nil || !endpoint.Edge.AsyncMode {
+		return err
+	}
+
+	payload := &edgeConfigData{
+		ID:         edgeConfig.ID,
+		Name:       edgeConfig.Name,
+		BaseDir:    edgeConfig.BaseDir,
+		DirEntries: files,
+	}
+
+	if commandOperation == portaineree.EdgeAsyncCommandOpReplace {
+		payload.Prev = &edgeConfigData{
+			DirEntries: prevFiles,
+		}
+	}
+
+	asyncCommand := &portaineree.EdgeAsyncCommand{
+		Type:       portaineree.EdgeAsyncCommandTypeConfig,
+		EndpointID: endpointID,
+		Timestamp:  time.Now(),
+		Operation:  commandOperation,
+		Path:       fmt.Sprintf("/edgeconfig/%d", edgeConfig.ID),
+		Value:      payload,
+	}
+
+	return tx.EdgeAsyncCommand().Create(asyncCommand)
 }

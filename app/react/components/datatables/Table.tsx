@@ -27,10 +27,7 @@ function MainComponent({
     <div className="table-responsive">
       <table
         data-cy={dataCy}
-        className={clsx(
-          'table-hover table-filters nowrap-cells table',
-          className
-        )}
+        className={clsx('table-hover table-filters table', className)}
       >
         {children}
       </table>

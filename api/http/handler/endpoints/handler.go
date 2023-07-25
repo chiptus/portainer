@@ -39,7 +39,7 @@ type Handler struct {
 	AuthorizationService        *authorization.Service
 	DataStore                   dataservices.DataStore
 	demoService                 *demo.Service
-	FileService                 portainer.FileService
+	FileService                 portaineree.FileService
 	ProxyManager                *proxy.Manager
 	ReverseTunnelService        portaineree.ReverseTunnelService
 	SnapshotService             portaineree.SnapshotService

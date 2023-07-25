@@ -15,6 +15,8 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/customtemplate"
 	"github.com/portainer/portainer-ee/api/dataservices/dockerhub"
 	"github.com/portainer/portainer-ee/api/dataservices/edgeasynccommand"
+	"github.com/portainer/portainer-ee/api/dataservices/edgeconfig"
+	"github.com/portainer/portainer-ee/api/dataservices/edgeconfigstate"
 	"github.com/portainer/portainer-ee/api/dataservices/edgegroup"
 	"github.com/portainer/portainer-ee/api/dataservices/edgejob"
 	"github.com/portainer/portainer-ee/api/dataservices/edgestack"
@@ -62,6 +64,8 @@ type Store struct {
 	CustomTemplateService     *customtemplate.Service
 	DockerHubService          *dockerhub.Service
 	EdgeAsyncCommandService   *edgeasynccommand.Service
+	EdgeConfigService         *edgeconfig.Service
+	EdgeConfigStateService    *edgeconfigstate.Service
 	EdgeGroupService          *edgegroup.Service
 	EdgeJobService            *edgejob.Service
 	EdgeUpdateScheduleService *edgeupdateschedule.Service
@@ -127,6 +131,16 @@ func (store *Store) initServices() error {
 		return err
 	}
 	store.EdgeAsyncCommandService = edgeAsyncCommandService
+
+	store.EdgeConfigService, err = edgeconfig.NewService(store.connection)
+	if err != nil {
+		return err
+	}
+
+	store.EdgeConfigStateService, err = edgeconfigstate.NewService(store.connection)
+	if err != nil {
+		return err
+	}
 
 	edgeUpdateScheduleService, err := edgeupdateschedule.NewService(store.connection)
 	if err != nil {
@@ -331,6 +345,14 @@ func (store *Store) CustomTemplate() dataservices.CustomTemplateService {
 // EdgeAsyncCommand gives access to the EdgeAsyncCommand data management layer
 func (store *Store) EdgeAsyncCommand() dataservices.EdgeAsyncCommandService {
 	return store.EdgeAsyncCommandService
+}
+
+func (store *Store) EdgeConfig() dataservices.EdgeConfigService {
+	return store.EdgeConfigService
+}
+
+func (store *Store) EdgeConfigState() dataservices.EdgeConfigStateService {
+	return store.EdgeConfigStateService
 }
 
 func (store *Store) CloudProvisioning() dataservices.CloudProvisioningService {

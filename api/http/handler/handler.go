@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/cloudcredentials"
 	"github.com/portainer/portainer-ee/api/http/handler/customtemplates"
 	"github.com/portainer/portainer-ee/api/http/handler/docker"
+	"github.com/portainer/portainer-ee/api/http/handler/edgeconfigs"
 	"github.com/portainer/portainer-ee/api/http/handler/edgegroups"
 	"github.com/portainer/portainer-ee/api/http/handler/edgejobs"
 	"github.com/portainer/portainer-ee/api/http/handler/edgestacks"
@@ -57,6 +58,7 @@ type Handler struct {
 	ChatHandler               *chat.Handler
 	CustomTemplatesHandler    *customtemplates.Handler
 	DockerHandler             *docker.Handler
+	EdgeConfigHandler         *edgeconfigs.Handler
 	EdgeGroupsHandler         *edgegroups.Handler
 	EdgeJobsHandler           *edgejobs.Handler
 	EdgeUpdateScheduleHandler *edgeupdateschedules.Handler
@@ -212,6 +214,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.BackupHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/custom_templates"):
 		http.StripPrefix("/api", h.CustomTemplatesHandler).ServeHTTP(w, r)
+	case strings.HasPrefix(r.URL.Path, "/api/edge_configurations"):
+		http.StripPrefix("/api", h.EdgeConfigHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/edge_update_schedules"):
 		http.StripPrefix("/api", h.EdgeUpdateScheduleHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/edge_stacks"):

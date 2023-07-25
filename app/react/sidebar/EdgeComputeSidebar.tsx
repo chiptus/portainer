@@ -1,4 +1,4 @@
-import { Box, Clock, LayoutGrid, Layers } from 'lucide-react';
+import { Box, Clock, LayoutGrid, Layers, Puzzle } from 'lucide-react';
 
 import { isBE } from '../portainer/feature-flags/feature-flags.service';
 
@@ -26,6 +26,14 @@ export function EdgeComputeSidebar() {
         icon={Clock}
         data-cy="portainerSidebar-edgeJobs"
       />
+      {isBE && (
+        <SidebarItem
+          to="edge.configurations"
+          label="Edge Configurations"
+          icon={Puzzle}
+          data-cy="portainerSidebar-edgeConfigurations"
+        />
+      )}
       {isBE && (
         <SidebarItem
           to="edge.devices.waiting-room"

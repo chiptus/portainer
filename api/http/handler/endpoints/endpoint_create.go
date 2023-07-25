@@ -22,6 +22,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	"github.com/portainer/portainer-ee/api/internal/unique"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
 
@@ -664,6 +665,10 @@ func (handler *Handler) createEdgeAgentEndpoint(tx dataservices.DataStoreTx, pay
 		return nil, httperror.InternalServerError("Unable to create a snapshot object for the environment", err)
 	}
 
+	if err = handler.createEdgeConfigs(tx, endpoint); err != nil {
+		return nil, httperror.InternalServerError("Unable to create edge configs", err)
+	}
+
 	return endpoint, nil
 }
 
@@ -942,6 +947,95 @@ func (handler *Handler) storeTLSFiles(endpoint *portaineree.Endpoint, payload *e
 			return httperror.InternalServerError("Unable to persist TLS key file on disk", err)
 		}
 		endpoint.TLSConfig.TLSKeyPath = keyPath
+	}
+
+	return nil
+}
+
+func (handler *Handler) createEdgeConfigs(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint) error {
+	edgeConfigs, err := tx.EdgeConfig().ReadAll()
+	if err != nil {
+		return err
+	}
+
+	endpointGroups, err := tx.EndpointGroup().ReadAll()
+	if err != nil {
+		return err
+	}
+
+	edgeGroupsToEdgeConfigs := make(map[portaineree.EdgeGroupID][]portaineree.EdgeConfigID)
+	for _, edgeConfig := range edgeConfigs {
+		for _, edgeGroupID := range edgeConfig.EdgeGroupIDs {
+			edgeGroupsToEdgeConfigs[edgeGroupID] = append(edgeGroupsToEdgeConfigs[edgeGroupID], edgeConfig.ID)
+		}
+	}
+
+	endpoints := []portaineree.Endpoint{*endpoint}
+
+	var edgeConfigsToCreate []portaineree.EdgeConfigID
+
+	for edgeGroupID, edgeConfigIDs := range edgeGroupsToEdgeConfigs {
+		edgeGroup, err := tx.EdgeGroup().Read(edgeGroupID)
+		if err != nil {
+			return err
+		}
+
+		relatedEndpointIDs := edge.EdgeGroupRelatedEndpoints(edgeGroup, endpoints, endpointGroups)
+
+		if len(relatedEndpointIDs) < 1 {
+			continue
+		}
+
+		edgeConfigsToCreate = append(edgeConfigsToCreate, edgeConfigIDs...)
+	}
+
+	edgeConfigsToCreate = unique.Unique(edgeConfigsToCreate)
+
+	for _, edgeConfigID := range edgeConfigsToCreate {
+		// Update the Edge Config
+		edgeConfig, err := tx.EdgeConfig().Read(edgeConfigID)
+		if err != nil {
+			return err
+		}
+
+		switch edgeConfig.State {
+		case portaineree.EdgeConfigFailureState, portaineree.EdgeConfigDeletingState:
+			continue
+		}
+
+		edgeConfig.Progress.Total++
+
+		if err := tx.EdgeConfig().Update(edgeConfigID, edgeConfig); err != nil {
+			return err
+		}
+
+		// Update or create the Edge Config State
+		edgeConfigState, err := tx.EdgeConfigState().Read(endpoint.ID)
+		if err != nil {
+			edgeConfigState = &portaineree.EdgeConfigState{
+				EndpointID: endpoint.ID,
+				States:     make(map[portaineree.EdgeConfigID]portaineree.EdgeConfigStateType),
+			}
+
+			if err := tx.EdgeConfigState().Create(edgeConfigState); err != nil {
+				return err
+			}
+		}
+
+		edgeConfigState.States[edgeConfigID] = portaineree.EdgeConfigSavingState
+
+		if err := tx.EdgeConfigState().Update(edgeConfigState.EndpointID, edgeConfigState); err != nil {
+			return err
+		}
+
+		dirEntries, err := handler.FileService.GetEdgeConfigDirEntries(edgeConfig, endpoint.EdgeID, portaineree.EdgeConfigCurrent)
+		if err != nil {
+			return httperror.InternalServerError("Unable to process the files for the edge configuration", err)
+		}
+
+		if err = handler.edgeService.AddConfigCommandTx(tx, endpoint.ID, edgeConfig, dirEntries); err != nil {
+			return httperror.InternalServerError("Unable to persist the edge configuration command inside the database", err)
+		}
 	}
 
 	return nil

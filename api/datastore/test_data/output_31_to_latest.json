@@ -13,6 +13,8 @@
   "edge_stack": null,
   "edge_stack_log": null,
   "edge_update_schedule": null,
+  "edgeconfigs": null,
+  "edgeconfigstates": null,
   "edgegroups": null,
   "edgejobs": null,
   "endpoint_groups": [

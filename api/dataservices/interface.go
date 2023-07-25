@@ -18,6 +18,8 @@ type (
 		CloudProvisioning() CloudProvisioningService
 		CustomTemplate() CustomTemplateService
 		EdgeAsyncCommand() EdgeAsyncCommandService
+		EdgeConfig() EdgeConfigService
+		EdgeConfigState() EdgeConfigStateService
 		EdgeGroup() EdgeGroupService
 		EdgeJob() EdgeJobService
 		EdgeStack() EdgeStackService
@@ -89,6 +91,14 @@ type (
 
 	CloudCredentialService interface {
 		BaseCRUD[models.CloudCredential, models.CloudCredentialID]
+	}
+
+	EdgeConfigService interface {
+		BaseCRUD[portaineree.EdgeConfig, portaineree.EdgeConfigID]
+	}
+
+	EdgeConfigStateService interface {
+		BaseCRUD[portaineree.EdgeConfigState, portaineree.EndpointID]
 	}
 
 	// EdgeGroupService represents a service to manage Edge groups

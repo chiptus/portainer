@@ -4,8 +4,7 @@ import { Upload, XCircle } from 'lucide-react';
 
 import { Button } from '@@/buttons';
 import { Icon } from '@@/Icon';
-
-import styles from './FileUploadField.module.css';
+import { Tooltip } from '@@/Tip/Tooltip';
 
 export interface Props {
   onChange(value: File): void;
@@ -18,6 +17,8 @@ export interface Props {
   className?: string;
   color?: ComponentProps<typeof Button>['color'];
   name?: string;
+  hideFilename?: boolean;
+  tooltip?: string;
 }
 
 export function FileUploadField({
@@ -31,18 +32,20 @@ export function FileUploadField({
   className,
   color = 'primary',
   name,
+  hideFilename,
+  tooltip,
 }: Props) {
   const fileRef = createRef<HTMLInputElement>();
 
   return (
-    <div className="file-upload-field flex gap-2">
+    <div className="flex gap-2">
       <input
         id={inputId}
         ref={fileRef}
         type="file"
         accept={accept}
         required={required}
-        className={styles.fileInput}
+        className="!hidden"
         onChange={changeHandler}
         aria-label="file-input"
         name={name}
@@ -51,15 +54,23 @@ export function FileUploadField({
         size="small"
         color={color}
         onClick={handleButtonClick}
-        className={clsx(styles.fileButton, className)}
+        className={clsx('!ml-0', className)}
         data-cy={dataCy}
         icon={Upload}
       >
         {title}
       </Button>
+      {tooltip && <Tooltip message={tooltip} />}
 
-      <span className="vertical-center">
-        {value ? value.name : required && <Icon icon={XCircle} mode="danger" />}
+      <span
+        className={clsx(
+          'vertical-center',
+          hideFilename && !required ? 'hidden' : ''
+        )}
+      >
+        {value
+          ? !hideFilename && value.name
+          : required && <Icon icon={XCircle} mode="danger" />}
       </span>
     </div>
   );

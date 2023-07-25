@@ -131,7 +131,7 @@ func (service *Service) PersistEdgeStack(
 	stack *portaineree.EdgeStack,
 	storeManifest edgetypes.StoreManifestFunc,
 ) (*portaineree.EdgeStack, error) {
-	relationConfig, err := edge.FetchEndpointRelationsConfig(service.dataStore)
+	relationConfig, err := edge.FetchEndpointRelationsConfig(tx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to find environment relations in database: %w", err)
 	}

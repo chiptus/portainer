@@ -24,6 +24,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/cloudcredentials"
 	"github.com/portainer/portainer-ee/api/http/handler/customtemplates"
 	dockerhandler "github.com/portainer/portainer-ee/api/http/handler/docker"
+	"github.com/portainer/portainer-ee/api/http/handler/edgeconfigs"
 	"github.com/portainer/portainer-ee/api/http/handler/edgegroups"
 	"github.com/portainer/portainer-ee/api/http/handler/edgejobs"
 	"github.com/portainer/portainer-ee/api/http/handler/edgestacks"
@@ -189,9 +190,12 @@ func (server *Server) Start() error {
 
 	var customTemplatesHandler = customtemplates.NewHandler(requestBouncer, server.DataStore, server.FileService, server.GitService, server.UserActivityService)
 
+	var edgeConfigHandler = edgeconfigs.NewHandler(server.DataStore, requestBouncer, server.UserActivityService, server.EdgeAsyncService, server.FileService)
+
 	var edgeGroupsHandler = edgegroups.NewHandler(requestBouncer, server.UserActivityService, server.EdgeAsyncService)
 	edgeGroupsHandler.DataStore = server.DataStore
 	edgeGroupsHandler.ReverseTunnelService = server.ReverseTunnelService
+	edgeGroupsHandler.FileService = server.FileService
 
 	var edgeJobsHandler = edgejobs.NewHandler(requestBouncer, server.UserActivityService, server.EdgeAsyncService)
 	edgeJobsHandler.DataStore = server.DataStore
@@ -376,6 +380,7 @@ func (server *Server) Start() error {
 		ChatHandler:               chatHandler,
 		CustomTemplatesHandler:    customTemplatesHandler,
 		DockerHandler:             dockerHandler,
+		EdgeConfigHandler:         edgeConfigHandler,
 		EdgeGroupsHandler:         edgeGroupsHandler,
 		EdgeJobsHandler:           edgeJobsHandler,
 		EdgeUpdateScheduleHandler: edgeUpdateScheduleHandler,

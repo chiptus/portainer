@@ -60,6 +60,8 @@ type endpointEdgeStatusInspectResponse struct {
 	Credentials string `json:"credentials"`
 	// List of stacks to be deployed on the environments(endpoints)
 	Stacks []stackStatusResponse `json:"stacks"`
+	//
+	EdgeConfigurations map[portaineree.EdgeConfigID]portaineree.EdgeConfigStateType `json:"edge_configurations"`
 }
 
 // @id EndpointEdgeStatusInspect
@@ -231,6 +233,13 @@ func (handler *Handler) inspectStatus(tx dataservices.DataStoreTx, r *http.Reque
 		return nil, skipCache, handlerErr
 	}
 	statusResponse.Stacks = edgeStacksStatus
+
+	configState, err := handler.DataStore.EdgeConfigState().Read(endpoint.ID)
+	if err != nil && !handler.DataStore.IsErrObjectNotFound(err) {
+		return nil, skipCache, httperror.InternalServerError("Unable to retrieve edge config state from the database", err)
+	} else if err == nil {
+		statusResponse.EdgeConfigurations = configState.States
+	}
 
 	return &statusResponse, skipCache, nil
 }

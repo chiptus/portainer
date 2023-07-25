@@ -57,7 +57,7 @@ interface Props {
   hideTitle?: boolean;
   error?: string;
   versions?: number[];
-  onVersionChange: (version: number) => void;
+  onVersionChange?: (version: number) => void;
 }
 
 export function WebEditorForm({
@@ -103,7 +103,7 @@ export function WebEditorForm({
               value={value}
               onChange={onChange}
               versions={versions}
-              onVersionChange={onVersionChange}
+              onVersionChange={(v) => onVersionChange && onVersionChange(v)}
             />
           </div>
         </div>

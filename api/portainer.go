@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/database/models"
 	kubeModels "github.com/portainer/portainer-ee/api/http/models/kubernetes"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/portainer/portainer/pkg/featureflags"
 
@@ -1847,6 +1848,10 @@ type (
 		GetKaasFolder() string
 		StoreSSLClientCert(certData []byte) error
 		GetSSLClientCertPath() string
+		StoreEdgeConfigFile(ID EdgeConfigID, path string, r io.Reader) error
+		GetEdgeConfigFilepaths(ID EdgeConfigID, version EdgeConfigVersion) (basePath string, filepaths []string, err error)
+		GetEdgeConfigDirEntries(edgeConfig *EdgeConfig, edgeID string, version EdgeConfigVersion) (dirEntries []filesystem.DirEntry, err error)
+		RotateEdgeConfigs(ID EdgeConfigID) error
 	}
 
 	// OpenAMTService represents a service for managing OpenAMT
@@ -2390,6 +2395,7 @@ const (
 )
 
 const (
+	EdgeAsyncCommandTypeConfig      EdgeAsyncCommandType = "edgeConfig"
 	EdgeAsyncCommandTypeStack       EdgeAsyncCommandType = "edgeStack"
 	EdgeAsyncCommandTypeJob         EdgeAsyncCommandType = "edgeJob"
 	EdgeAsyncCommandTypeLog         EdgeAsyncCommandType = "edgeLog"
@@ -2763,3 +2769,65 @@ const (
 	CloudProviderMicrok8s          = "microk8s"
 	CloudProviderPreinstalledAgent = "agent"
 )
+
+// Edge Configs
+type (
+	EdgeConfigID        int
+	EdgeConfigType      int
+	EdgeConfigStateType int
+
+	EdgeConfigProgress struct {
+		Success int `json:"success"`
+		Total   int `json:"total"`
+	}
+
+	EdgeConfig struct {
+		ID           EdgeConfigID        `json:"id"`
+		Name         string              `json:"name"`
+		Type         EdgeConfigType      `json:"type"`
+		State        EdgeConfigStateType `json:"state"`
+		EdgeGroupIDs []EdgeGroupID       `json:"edgeGroupIDs"`
+		BaseDir      string              `json:"baseDir"`
+		Created      int64               `json:"created"`
+		CreatedBy    UserID              `json:"createdBy"`
+		Updated      int64               `json:"updated"`
+		UpdatedBy    UserID              `json:"updatedBy"`
+		Progress     EdgeConfigProgress  `json:"progress"`
+		Prev         *EdgeConfig         `json:"prev"`
+	}
+
+	EdgeConfigState struct {
+		EndpointID EndpointID                           `json:"endpointID"`
+		States     map[EdgeConfigID]EdgeConfigStateType `json:"states"`
+	}
+
+	EdgeConfigVersion string
+)
+
+const (
+	EdgeConfigIdleState EdgeConfigStateType = iota
+	EdgeConfigFailureState
+	EdgeConfigSavingState
+	EdgeConfigDeletingState
+	EdgeConfigUpdatingState
+
+	EdgeConfigCurrent  EdgeConfigVersion = "cur"
+	EdgeConfigPrevious EdgeConfigVersion = "prev"
+)
+
+func (e EdgeConfigStateType) String() string {
+	switch e {
+	case EdgeConfigIdleState:
+		return "Idle"
+	case EdgeConfigFailureState:
+		return "Failure"
+	case EdgeConfigSavingState:
+		return "Saving"
+	case EdgeConfigDeletingState:
+		return "Deleting"
+	case EdgeConfigUpdatingState:
+		return "Updating"
+	}
+
+	return "N/A"
+}
