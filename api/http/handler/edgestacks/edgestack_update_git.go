@@ -125,7 +125,7 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 		}
 
 		gitConfig := edgeStack.GitConfig
-		err = handler.updateGitSettings(gitConfig, payload.RefName, auth, true)
+		err = handler.updateGitSettings(gitConfig, payload.RefName, auth, false)
 		if err != nil {
 			return httperror.InternalServerError("Failed updating git settings", err)
 		}
