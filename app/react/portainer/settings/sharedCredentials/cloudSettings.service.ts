@@ -102,10 +102,10 @@ export function useDeleteCredentialMutation() {
   });
 }
 
-export function useCloudCredential(id: number) {
+export function useCloudCredential(id: number, authorized = true) {
   return useQuery(queryKeys.credential(id), () => getCloudCredential(id), {
     cacheTime: 0, // don't cache to make sure the Use SSH key authentication is correctly set
-    enabled: id >= 0,
+    enabled: id >= 0 && authorized,
     ...withError('Unable to retrieve cloud credential'),
   });
 }

@@ -5,7 +5,11 @@ import { useRouter } from '@uirouter/react';
 
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { createStore } from '@/react/kubernetes/datatables/default-kube-datatable-store';
-import { Authorized, useAuthorizations } from '@/react/hooks/useUser';
+import {
+  Authorized,
+  useAuthorizations,
+  useCurrentUser,
+} from '@/react/hooks/useUser';
 import { IndexOptional } from '@/react/kubernetes/configs/types';
 import { DefaultDatatableSettings } from '@/react/kubernetes/datatables/DefaultDatatableSettings';
 import { useEnvironment } from '@/react/portainer/environments/queries';
@@ -56,12 +60,15 @@ export function NodesDatatable() {
     environmentUrl
   );
 
-  const { data: credential, ...credentialQuery } = useCloudCredential(
-    environment?.CloudProvider?.CredentialID ?? NaN
-  );
+  const { isAdmin } = useCurrentUser();
 
   const authorizedToWriteClusterNode = useAuthorizations('K8sClusterNodeW');
   const authorizedToReadMicroK8sStatus = useAuthorizations('K8sClusterR');
+
+  const { data: credential, ...credentialQuery } = useCloudCredential(
+    environment?.CloudProvider?.CredentialID ?? NaN,
+    isAdmin // if the user is admin
+  );
 
   // currently only microk8s supports deleting nodes
   const canScaleCluster =
