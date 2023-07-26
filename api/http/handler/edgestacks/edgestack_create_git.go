@@ -197,9 +197,8 @@ func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dat
 	}
 
 	if jobID != "" {
-		err = handler.DataStore.EdgeStack().UpdateEdgeStackFunc(edgeStack.ID, func(edgeStack *portaineree.EdgeStack) {
-			edgeStack.AutoUpdate.JobID = jobID
-		})
+		edgeStack.AutoUpdate.JobID = jobID
+		err = tx.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack)
 		if err != nil {
 			return edgeStack, errors.WithMessage(err, "failed updating edge stack")
 		}
