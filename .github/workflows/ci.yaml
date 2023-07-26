@@ -1,0 +1,11 @@
+name: ci
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  build_images:
+    runs-on: ubuntu-latest
+    steps:
+    - name: "[preparation] checkout the current branch"
+      uses: actions/checkout@v3.5.3
