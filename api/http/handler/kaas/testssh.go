@@ -6,8 +6,11 @@ import (
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
+	portaineree "github.com/portainer/portainer-ee/api"
 	sshUtil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/providers"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/sshtest"
 )
 
@@ -31,6 +34,25 @@ func (handler *Handler) sshTestNodeIPs(w http.ResponseWriter, r *http.Request) *
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
 		return httperror.BadRequest("Invalid request payload", err)
+	}
+
+	endpoint, err := middlewares.FetchEndpoint(r)
+	if err == nil {
+		// validate if the user has access to the environment
+		securityContext, err := security.RetrieveRestrictedRequestContext(r)
+		if err != nil {
+			return httperror.InternalServerError("Unable to retrieve info from request context", err)
+		}
+
+		user, err := handler.dataStore.User().Read(securityContext.UserID)
+		if err != nil {
+			return httperror.InternalServerError("Unable to retrieve security context", err)
+		}
+
+		authorized := canWriteK8sClusterNode(user, portaineree.EndpointID(endpoint.ID))
+		if !authorized {
+			return httperror.Forbidden("Permission denied to remove nodes from the cluster", nil)
+		}
 	}
 
 	credentials, err := handler.dataStore.CloudCredential().Read(payload.CredentialID)

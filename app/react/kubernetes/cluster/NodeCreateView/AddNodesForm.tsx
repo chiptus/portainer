@@ -91,7 +91,7 @@ export function AddNodesForm() {
 
   // register mutations
   const addNodesMutation = useAddNodesMutation(environmentId);
-  const testSSHConnectionMutation = useTestSSHConnection();
+  const testSSHConnectionMutation = useTestSSHConnection(environmentId);
 
   if (nodesQuery.isLoading || environmentQuery.isLoading) {
     return null;

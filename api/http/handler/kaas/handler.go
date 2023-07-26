@@ -48,10 +48,14 @@ func NewHandler(
 	endpointRouter := h.NewRoute().Subrouter()
 
 	endpointRouter.Use(bouncer.AuthenticatedAccess, middlewares.WithEndpoint(dataStore.Endpoint(), "endpointid"))
+
+	// requires node write authorization: OperationK8sClusterNodeW
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/nodes/remove", httperror.LoggerHandler(h.removeNodes)).Methods(http.MethodPost)
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/nodes/add", httperror.LoggerHandler(h.addNodes)).Methods(http.MethodPost)
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/nodes/nodestatus", httperror.LoggerHandler(h.microk8sGetNodeStatus)).Methods(http.MethodGet)
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/upgrade", httperror.LoggerHandler(h.upgrade)).Methods(http.MethodPost)
+	endpointRouter.Handle("/cloud/endpoints/{endpointid}/testssh", license.NotOverused(licenseService, dataStore, httperror.LoggerHandler(h.sshTestNodeIPs))).Methods(http.MethodPost)
+
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/version", httperror.LoggerHandler(h.version)).Methods(http.MethodGet)
 
 	// microk8s only
@@ -71,4 +75,23 @@ func NewHandler(
 	loggedAdminRouter.Handle("/cloud/testssh", license.NotOverused(licenseService, dataStore, httperror.LoggerHandler(h.sshTestNodeIPs))).Methods(http.MethodPost)
 
 	return h
+}
+
+// Check if the user is an admin or can write to the cluster node
+func canWriteK8sClusterNode(user *portaineree.User, endpointID portaineree.EndpointID) bool {
+	isAdmin := user.Role == portaineree.AdministratorRole
+	hasAccess := false
+	if user.EndpointAuthorizations[portaineree.EndpointID(endpointID)] != nil {
+		_, hasAccess = user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.OperationK8sClusterNodeW]
+	}
+	return isAdmin || hasAccess
+}
+
+func canReadK8sCluster(user *portaineree.User, endpointID portaineree.EndpointID) bool {
+	isAdmin := user.Role == portaineree.AdministratorRole
+	hasAccess := false
+	if user.EndpointAuthorizations[portaineree.EndpointID(endpointID)] != nil {
+		_, hasAccess = user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.OperationK8sClusterR]
+	}
+	return isAdmin || hasAccess
 }

@@ -13,17 +13,21 @@ export type TestSSHConnectionResponse = {
   error?: string;
 }[];
 
-export function useTestSSHConnection() {
+export function useTestSSHConnection(endpointId?: number) {
   return useMutation(
-    (payload: TestSSHConnectionPayload) => testSSHConnection(payload),
+    (payload: TestSSHConnectionPayload) =>
+      testSSHConnection(payload, endpointId),
     withError('Unable to test SSH connection')
   );
 }
 
-async function testSSHConnection(payload: TestSSHConnectionPayload) {
+async function testSSHConnection(
+  payload: TestSSHConnectionPayload,
+  endpointId?: number
+) {
   try {
     const { data } = await axios.post<TestSSHConnectionResponse>(
-      `/cloud/testssh`,
+      endpointId ? `/cloud/endpoints/${endpointId}/testssh` : `/cloud/testssh`,
       payload
     );
     return data;

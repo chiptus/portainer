@@ -50,13 +50,9 @@ func (handler *Handler) websocketMicrok8sShell(w http.ResponseWriter, r *http.Re
 		return httperror.InternalServerError("Unable to retrieve security context", err)
 	}
 
-	authorized, err := hasMicrok8sShellAccess(user, portaineree.EndpointID(endpointID))
-	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve user details from authentication token", err)
-	}
-
+	authorized := canReadK8sCluster(user, portaineree.EndpointID(endpointID))
 	if !authorized {
-		return httperror.Forbidden("Permission denied to access ssh shell", err)
+		return httperror.Forbidden("Permission denied to access ssh shell", nil)
 	}
 
 	nodeIP, err := request.RetrieveQueryParameter(r, "nodeIp", false)
@@ -191,9 +187,12 @@ func hijackSSHSession(websocketConn *websocket.Conn, session *ssh.Session) error
 	return nil
 }
 
-// Check if the user is an admin or can have sheel access
-func hasMicrok8sShellAccess(user *portaineree.User, endpointID portaineree.EndpointID) (bool, error) {
+// Check if the user is an admin or can write to the cluster node
+func canReadK8sCluster(user *portaineree.User, endpointID portaineree.EndpointID) bool {
 	isAdmin := user.Role == portaineree.AdministratorRole
-	_, hasAccess := user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.OperationK8sClusterNodeW]
-	return isAdmin || hasAccess, nil
+	hasAccess := false
+	if user.EndpointAuthorizations[portaineree.EndpointID(endpointID)] != nil {
+		_, hasAccess = user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.OperationK8sClusterR]
+	}
+	return isAdmin || hasAccess
 }

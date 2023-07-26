@@ -9,6 +9,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/cloud"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id upgrade
@@ -34,6 +35,21 @@ func (handler *Handler) upgrade(w http.ResponseWriter, r *http.Request) *httperr
 
 	if endpoint.CloudProvider == nil {
 		return httperror.BadRequest("this is not a cloud environment", err)
+	}
+
+	securityContext, err := security.RetrieveRestrictedRequestContext(r)
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve info from request context", err)
+	}
+
+	user, err := handler.dataStore.User().Read(securityContext.UserID)
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve security context", err)
+	}
+
+	authorized := canWriteK8sClusterNode(user, portaineree.EndpointID(endpoint.ID))
+	if !authorized {
+		return httperror.Forbidden("Permission denied to upgrade the cluster", nil)
 	}
 
 	// And that the user has access to the environment
