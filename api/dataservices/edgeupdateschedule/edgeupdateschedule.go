@@ -11,7 +11,6 @@ const BucketName = "edge_update_schedule"
 
 // Service represents a service for managing Edge Update Schedule data.
 type Service struct {
-	connection portainer.Connection
 	dataservices.BaseDataService[edgetypes.UpdateSchedule, edgetypes.UpdateScheduleID]
 }
 
@@ -42,7 +41,7 @@ func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 
 // Create assign an ID to a new object and saves it.
 func (service *Service) Create(item *edgetypes.UpdateSchedule) error {
-	return service.connection.CreateObject(
+	return service.BaseDataService.Connection.CreateObject(
 		BucketName,
 		func(id uint64) (int, interface{}) {
 			item.ID = edgetypes.UpdateScheduleID(id)

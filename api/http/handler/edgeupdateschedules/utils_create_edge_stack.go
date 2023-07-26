@@ -108,38 +108,44 @@ func (handler *Handler) createUpdateEdgeStack(
 
 	stack.EdgeUpdateID = int(scheduleID)
 
-	_, err = handler.edgeStacksService.PersistEdgeStack(handler.dataStore, stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
-		skipPullAgentImage := ""
-		env := os.Getenv(skipPullAgentImageEnvVar)
-		if env != "" {
-			skipPullAgentImage = "1"
-		}
+	_, err = handler.edgeStacksService.PersistEdgeStack(
+		handler.dataStore,
+		stack,
+		func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
+			skipPullAgentImage := ""
+			env := os.Getenv(skipPullAgentImageEnvVar)
+			if env != "" {
+				skipPullAgentImage = "1"
+			}
 
-		updaterImage := os.Getenv(updaterImageEnvVar)
-		if updaterImage == "" && registryURL != "" {
-			updaterImage = fmt.Sprintf("%s/portainer-updater:latest", registryURL)
-		}
+			updaterImage := os.Getenv(updaterImageEnvVar)
+			if updaterImage == "" && registryURL != "" {
+				updaterImage = fmt.Sprintf("%s/portainer-updater:latest", registryURL)
+			}
 
-		deploymentFile, err := mustache.RenderFile(deploymentConfig.TemplatePath, map[string]string{
-			"agent_image_name":      agentImage,
-			"schedule_id":           strconv.Itoa(int(scheduleID)),
-			"skip_pull_agent_image": skipPullAgentImage,
-			"updater_image":         updaterImage,
+			deploymentFile, err := mustache.RenderFile(deploymentConfig.TemplatePath, map[string]string{
+				"agent_image_name":      agentImage,
+				"schedule_id":           strconv.Itoa(int(scheduleID)),
+				"skip_pull_agent_image": skipPullAgentImage,
+				"updater_image":         updaterImage,
+			})
+
+			if err != nil {
+				return "", "", "", errors.WithMessage(err, "failed to render edge stack template")
+			}
+
+			configPath = deploymentConfig.Path
+
+			initialStackFileVersion := 1 // When creating a new stack, the version is always 1
+			projectPath = handler.fileService.GetEdgeStackProjectPath(stackFolder)
+
+			_, err = handler.fileService.StoreEdgeStackFileFromBytesByVersion(stackFolder, configPath, initialStackFileVersion, []byte(deploymentFile))
+			if err != nil {
+				return "", "", "", err
+			}
+
+			return configPath, "", projectPath, nil
 		})
-
-		if err != nil {
-			return "", "", "", errors.WithMessage(err, "failed to render edge stack template")
-		}
-
-		configPath = deploymentConfig.Path
-
-		projectPath, err = handler.fileService.StoreEdgeStackFileFromBytes(stackFolder, configPath, []byte(deploymentFile))
-		if err != nil {
-			return "", "", "", err
-		}
-
-		return configPath, "", projectPath, nil
-	})
 
 	if err != nil {
 		return 0, err
