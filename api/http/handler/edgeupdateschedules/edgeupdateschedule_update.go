@@ -110,9 +110,9 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 			item.RegistryID = *payload.RegistryID
 		}
 
-		err := handler.dataStore.EdgeStack().DeleteEdgeStack(item.EdgeStackID)
+		err = handler.edgeStacksService.DeleteEdgeStack(handler.dataStore, item.EdgeStackID, stack.EdgeGroups)
 		if err != nil {
-			return httperror.InternalServerError("Unable to delete Edge stack", err)
+			return httperror.InternalServerError("Unable to delete Edge stack and its relations", err)
 		}
 
 		if len(stack.EdgeGroups) > 0 {

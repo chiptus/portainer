@@ -55,6 +55,12 @@ func aggregateStatus(relatedEnvironmentsIDs map[portaineree.EndpointID]string, e
 			continue
 		}
 
+		// if a update schedule task is scheduled for future date, it will not have any status
+		if len(envStatus.Status) == 0 {
+			hasPending = true
+			continue
+		}
+
 		if slices.ContainsFunc(envStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
 			return sts.Type == portainer.EdgeStackStatusRemoteUpdateSuccess
 		}) {
