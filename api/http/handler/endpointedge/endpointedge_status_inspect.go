@@ -436,8 +436,11 @@ func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID 
 						// mismatched version numbers
 						stackStatus.Version = stack.PreviousDeploymentInfo.FileVersion
 						edgeStacksStatus = append(edgeStacksStatus, stackStatus)
+						continue
 					}
 				}
+
+				edgeStacksStatus = append(edgeStacksStatus, stackStatus)
 				continue
 			}
 
