@@ -20,7 +20,7 @@ const (
 func (service *Service) startSyncLoop() error {
 	err := service.SyncLicenses()
 	if err != nil {
-		return err
+		log.Err(err).Msg("failed initial license sync")
 	}
 
 	ticker := time.NewTicker(syncInterval)
