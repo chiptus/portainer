@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, ReactNode, useCallback } from 'react';
 import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import { v4 as uuidv4 } from 'uuid';
-import { forEach, groupBy, debounce } from 'lodash';
+import { debounce } from 'lodash';
 
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useConfigurations } from '@/react/kubernetes/configs/queries';
@@ -35,6 +35,12 @@ import {
   prepareRuleFromIngress,
   checkIfPathExistsWithHost,
 } from './utils';
+
+const serviceTypeOrder: Record<string, number> = {
+  ClusterIP: 0,
+  NodePort: 1,
+  LoadBalancer: 2,
+};
 
 export function CreateIngressView() {
   const environmentId = useEnvironmentId();
@@ -139,23 +145,31 @@ export function CreateIngressView() {
 
   const allServices = servicesResults.data;
   const servicesOptions: Option<string>[] = useMemo(() => {
-    const options: Option<string>[] = [];
-    forEach(
-      groupBy(allServices, (s) => s.Type),
-      (services, type) => {
-        options.push({
-          label: `--- ${type} services ---`,
-          value: type,
-          disabled: true,
-        });
-        services.forEach((service) => {
-          options.push({
-            label: service.Name,
-            value: service.Name,
-          });
-        });
-      }
+    // sort services by Type in the order 'ClusterIP', 'Nodeport' then 'LoadBalancer'
+    const servicesByType = allServices?.sort(
+      (a, b) => serviceTypeOrder[a.Type] - serviceTypeOrder[b.Type]
     );
+    // create options by reducing the servicesByType, adding in group headers
+    const options =
+      servicesByType?.reduce<Option<string>[]>((options, service, index) => {
+        const optionsToAdd = [];
+        if (
+          options.length === 0 ||
+          servicesByType[index - 1].Type !== service.Type // when the ingress type changes
+        ) {
+          optionsToAdd.push({
+            label: `--- ${service.Type} services ---`,
+            value: service.Type,
+            disabled: true,
+          });
+        }
+        optionsToAdd.push({
+          label: service.Name,
+          value: service.Name,
+        });
+
+        return [...options, ...optionsToAdd];
+      }, [] as Option<string>[]) || [];
     return options;
   }, [allServices]);
 
