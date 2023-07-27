@@ -110,8 +110,9 @@ func (manager *ComposeStackManager) Pull(ctx context.Context, stack *portaineree
 	}
 
 	filePaths := stackutils.GetStackFilePaths(stack, true)
+	projectPath := stackutils.GetStackProjectPathByVersion(stack)
 	err = manager.deployer.Pull(ctx, filePaths, libstack.Options{
-		WorkingDir:  stack.ProjectPath,
+		WorkingDir:  projectPath,
 		EnvFilePath: envFilePath,
 		Host:        url,
 		ProjectName: stack.Name,
@@ -144,7 +145,8 @@ func createEnvFile(stack *portaineree.Stack) (string, error) {
 		return "", nil
 	}
 
-	envFilePath := path.Join(stack.ProjectPath, "stack.env")
+	projectPath := stackutils.GetStackProjectPathByVersion(stack)
+	envFilePath := path.Join(projectPath, "stack.env")
 	envfile, err := os.OpenFile(envFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return "", err
@@ -162,7 +164,8 @@ func createEnvFile(stack *portaineree.Stack) (string, error) {
 
 // copyDefaultEnvFile copies the default .env file if it exists to the provided writer
 func copyDefaultEnvFile(stack *portaineree.Stack, w io.Writer) {
-	defaultEnvFile, err := os.Open(path.Join(path.Join(stack.ProjectPath, path.Dir(stack.EntryPoint)), ".env"))
+	projectPath := stackutils.GetStackProjectPathByVersion(stack)
+	defaultEnvFile, err := os.Open(path.Join(path.Join(projectPath, path.Dir(stack.EntryPoint)), ".env"))
 	if err != nil {
 		// If cannot open a default file, then don't need to copy it.
 		// We could as well stat it and check if it exists, but this is more efficient.
