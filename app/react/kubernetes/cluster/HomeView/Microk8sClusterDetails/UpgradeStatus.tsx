@@ -115,7 +115,7 @@ export function UpgradeStatus() {
               }}
               title="Dismiss message"
             >
-              Clear `processing` status
+              Clear &apos;processing&apos; status
             </Button>
           )}
         </div>
