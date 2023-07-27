@@ -239,7 +239,7 @@ var AllAddons = Addons{
 	{
 		Name:                 "gopaddle-lite",
 		VersionAvailableFrom: "1.26",
-		Tooltip:              "<a href='https://microk8s.io/docs/addon-gopaddle-lite' target='_blank'>gopaddle-lite</a> - deploys the <a href='https://help.gopaddle.io/en/articles/6654354-install-gopaddle-lite-microk8s-addon-on-ubuntu' target='_blank'>gopaddle lite</a> no-code platform for Kubernetes developers.",
+		Tooltip:              "<a href='https://microk8s.io/docs/addon-gopaddle-lite' target='_blank'>gopaddle-lite</a> - deploys the <a href='https://help.gopaddle.io/overview/getting-started/installing-community-edition/microk8s-addon/on-ubuntu' target='_blank'>gopaddle lite</a> no-code platform for Kubernetes developers.",
 
 		IsAvailable: true,
 		Repository:  "community",
