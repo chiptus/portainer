@@ -190,6 +190,10 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 }
 
 func updateEnvStatus(edgeStack *portaineree.EdgeStack, environmentStatus portainer.EdgeStackStatus, status portainer.EdgeStackStatusType, payload updateStatusPayload) {
+	if status == portainer.EdgeStackStatusAcknowledged {
+		environmentStatus.Status = nil
+	}
+
 	environmentStatus.Status = append(environmentStatus.Status, portainer.EdgeStackDeploymentStatus{
 		Type:  status,
 		Error: payload.Error,

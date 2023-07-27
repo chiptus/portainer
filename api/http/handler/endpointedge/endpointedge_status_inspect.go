@@ -420,10 +420,6 @@ func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID 
 			Version: version,
 		}
 
-		if stack.EdgeUpdateID == 0 {
-			stackStatus.Version = stack.StackFileVersion
-		}
-
 		// Stagger configuration check
 		if handler.staggerService != nil && handler.staggerService.IsStaggeredEdgeStack(stackID, stack.StackFileVersion) {
 			if handler.staggerService.MarkedAsCompleted(stackID, stack.StackFileVersion) {

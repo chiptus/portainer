@@ -355,7 +355,7 @@ func TestEdgeStackStatus(t *testing.T) {
 
 	assert.Len(t, data.Stacks, 1)
 	assert.Equal(t, edgeStack.ID, data.Stacks[0].ID)
-	assert.Equal(t, edgeStack.StackFileVersion, data.Stacks[0].Version)
+	assert.Equal(t, edgeStack.Version, data.Stacks[0].Version)
 }
 
 func TestEdgeJobsResponse(t *testing.T) {

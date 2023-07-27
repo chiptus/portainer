@@ -63,7 +63,7 @@ function getTooltip(count: number, total: number, type?: StatusType) {
   function getLabel(type?: StatusType): ReactNode {
     switch (type) {
       case StatusType.Running:
-        return 'deployments running';
+        return 'deployments received';
       case StatusType.DeploymentReceived:
         return 'deployments received';
       case StatusType.Error:

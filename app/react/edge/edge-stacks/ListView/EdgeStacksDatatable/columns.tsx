@@ -93,7 +93,7 @@ export const columns = _.compact([
             />
             {count > 0 && (
               <Link
-                className="hover:no-underline"
+                className="whitespace-nowrap hover:no-underline"
                 to="edge.stacks.edit"
                 params={{
                   stackId: row.original.Id,
