@@ -115,9 +115,7 @@ export function Microk8sCreateClusterForm({
 
     const addonOptionsWithoutExistingValues = addonOptions.filter(
       (addonOption) =>
-        !values.microk8s.addons.some(
-          (addon) => addon.name === addonOption.label
-        )
+        !values.microk8s.addons.some((addon) => addon.name === addonOption.name)
     );
     return [addonOptions, addonOptionsWithoutExistingValues];
   }, [

@@ -61,7 +61,7 @@ export function AddonsForm({
 
     const addonOptionsWithoutExistingValues = addonOptions.filter(
       (addonOption) =>
-        !values.addons.some((addon) => addon.name === addonOption.label)
+        !values.addons.some((addon) => addon.name === addonOption.name)
     );
     return [addonOptions, addonOptionsWithoutExistingValues];
   }, [microk8sOptions?.availableAddons, values.addons, values.currentVersion]);

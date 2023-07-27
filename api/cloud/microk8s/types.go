@@ -127,7 +127,7 @@ var AllAddons = Addons{
 
 		RequiredOn:        "masters",
 		ArgumentsType:     "optional",
-		Placeholder:       "e.g. ip=10.0.1.2",
+		Placeholder:       "ip=10.0.1.2",
 		ArgumentSeparator: ":",
 	},
 	{
@@ -239,7 +239,7 @@ var AllAddons = Addons{
 	{
 		Name:                 "gopaddle-lite",
 		VersionAvailableFrom: "1.26",
-		Tooltip:              "<a href='https://microk8s.io/docs/addon-gopaddle-lite' target='_blank'>fluentd</a> - deploy the <a href='https://www.elastic.co/guide/en/kibana/current/discover.html' target='_blank'>Elasticsearch-Fluentd-Kibana</a> logging and monitoring solution.",
+		Tooltip:              "<a href='https://microk8s.io/docs/addon-gopaddle-lite' target='_blank'>gopaddle-lite</a> - deploys the <a href='https://help.gopaddle.io/en/articles/6654354-install-gopaddle-lite-microk8s-addon-on-ubuntu' target='_blank'>gopaddle lite</a> no-code platform for Kubernetes developers.",
 
 		IsAvailable: true,
 		Repository:  "community",
