@@ -39,7 +39,7 @@ export function WebhookHelperFactory() {
   };
 }
 
-function getBaseUrl() {
+export function getBaseUrl() {
   const protocol = window.location.protocol.toLowerCase().replace(':', '');
 
   if (protocol === 'file') {

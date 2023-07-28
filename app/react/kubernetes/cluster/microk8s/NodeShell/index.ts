@@ -1,1 +1,1 @@
-export { NodeShellButton } from './NodeShellButton';
+export { NodeShellView } from './NodeShellView';

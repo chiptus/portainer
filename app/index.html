@@ -35,10 +35,12 @@
     <div
       id="page-wrapper"
       ng-class="{
-        open: isSidebarOpen() && ['portainer.auth', 'portainer.internal-auth', 'portainer.init.admin', 'portainer.init.license'].indexOf($state.current.name) === -1,
+        open:
+          isSidebarOpen() &&
+          ['portainer.auth', 'portainer.internal-auth', 'portainer.init.admin', 'portainer.init.license', 'kubernetes.nodeshell'].indexOf($state.current.name) === -1,
         nopadding:
-          ['portainer.auth', 'portainer.internal-auth', 'portainer.init.admin', 'portainer.init.license', 'portainer.logout'].indexOf($state.current.name) > -1 ||
-          applicationState.loading
+          ['portainer.auth', 'portainer.internal-auth', 'portainer.init.admin', 'portainer.init.license', 'portainer.logout', 'kubernetes.nodeshell'].indexOf($state.current.name) >
+            -1 || applicationState.loading
       }"
       ng-cloak
     >
@@ -86,7 +88,7 @@
 
           <!-- Main Content -->
           <div id="view" ui-view="content" ng-if="!applicationState.loading"></div>
-          <div ng-if="showBotItem()" ui-view="chatBotItem"> </div>
+          <div ng-if="showBotItem() && $state.current.name !== 'kubernetes.nodeshell'" ui-view="chatBotItem"> </div>
         </div>
         <!-- End Page Content -->
       </div>

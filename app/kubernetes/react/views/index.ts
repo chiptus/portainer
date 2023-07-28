@@ -14,6 +14,7 @@ import { ConsoleView } from '@/react/kubernetes/applications/ConsoleView';
 import { ConfigmapsAndSecretsView } from '@/react/kubernetes/configs/ListView/ConfigmapsAndSecretsView';
 import { NodeCreateView } from '@/react/kubernetes/cluster/NodeCreateView/NodeCreateView';
 import { Microk8sNodeStatusView } from '@/react/kubernetes/cluster/NodeStatusView';
+import { NodeShellView } from '@/react/kubernetes/cluster/microk8s/NodeShell';
 
 export const viewsModule = angular
   .module('portainer.kubernetes.react.views', [])
@@ -59,6 +60,10 @@ export const viewsModule = angular
       withUIRouter(withReactQuery(withCurrentUser(Microk8sNodeStatusView))),
       []
     )
+  )
+  .component(
+    'microk8sNodeShellView',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(NodeShellView))), [])
   )
   .component(
     'kubernetesDashboardView',

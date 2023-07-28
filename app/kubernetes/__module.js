@@ -398,6 +398,20 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
       },
     };
 
+    const nodeShell = {
+      name: 'kubernetes.nodeshell',
+      url: '/node-shell?nodeIP',
+      views: {
+        'content@': {
+          component: 'microk8sNodeShellView',
+        },
+        'sidebar@': {},
+      },
+      params: {
+        nodeIP: null,
+      },
+    };
+
     const dashboard = {
       name: 'kubernetes.dashboard',
       url: '/dashboard',
@@ -563,6 +577,7 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
     $stateRegistryProvider.register(nodeCreate);
     $stateRegistryProvider.register(node);
     $stateRegistryProvider.register(nodeStats);
+    $stateRegistryProvider.register(nodeShell);
     $stateRegistryProvider.register(microk8sNodeStatus);
     $stateRegistryProvider.register(resourcePools);
     $stateRegistryProvider.register(resourcePoolCreation);

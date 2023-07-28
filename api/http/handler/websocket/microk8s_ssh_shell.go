@@ -1,8 +1,12 @@
 package websocket
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 	httperror "github.com/portainer/libhttp/error"
@@ -14,6 +18,14 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"golang.org/x/crypto/ssh"
+)
+
+const (
+	// Time allowed to write a message to the peer
+	writeWait = 10 * time.Second
+
+	// Send pings to peer with this period
+	pingPeriod = 50 * time.Second
 )
 
 // @summary Connect to a remote SSH Shell via a websocket
@@ -157,18 +169,19 @@ func hijackSSHSession(websocketConn *websocket.Conn, session *ssh.Session) error
 		return err
 	}
 
+	var mu sync.Mutex
 	go streamFromWebsocketToWriter(websocketConn, stdin, errorChan)
-	go streamFromReaderToWebsocket(websocketConn, stdout, errorChan)
-	go streamFromReaderToWebsocket(websocketConn, stderr, errorChan)
+	go streamFromSSHToWebsocket(websocketConn, &mu, stdout, errorChan)
+	go streamFromSSHToWebsocket(websocketConn, &mu, stderr, errorChan)
 
 	modes := ssh.TerminalModes{ssh.ECHO: 1}
 	if err := session.RequestPty("xterm-256color", 24, 80, modes); err != nil {
-		return fmt.Errorf("requestPty failed: %w", err)
+		return fmt.Errorf("failed to request pseudo terminal: %w", err)
 	}
 
 	err = session.Shell()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to start shell: %w", err)
 	}
 
 	log.Debug().Msgf("ssh session started")
@@ -190,4 +203,72 @@ func canWriteK8sClusterNode(user *portaineree.User, endpointID portaineree.Endpo
 		_, hasAccess = user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.OperationK8sClusterNodeW]
 	}
 	return isAdmin || hasAccess
+}
+
+func streamFromSSHToWebsocket(websocketConn *websocket.Conn, mu *sync.Mutex, reader io.Reader, errorChan chan error) {
+	out := make([]byte, readerBufferSize)
+	input := make(chan string)
+	pingTicker := time.NewTicker(pingPeriod)
+	defer pingTicker.Stop()
+	defer websocketConn.Close()
+
+	websocketConn.SetReadLimit(2048)
+	websocketConn.SetPongHandler(func(string) error {
+		return nil
+	})
+
+	websocketConn.SetPingHandler(func(data string) error {
+		websocketConn.SetWriteDeadline(time.Now().Add(writeWait))
+		return websocketConn.WriteMessage(websocket.PongMessage, []byte(data))
+	})
+
+	go func() {
+		for {
+			n, err := reader.Read(out)
+			if err != nil {
+				errorChan <- err
+				if !errors.Is(err, io.EOF) {
+					log.Debug().Msgf("error reading from ssh server: %v", err)
+				}
+				return
+			}
+
+			processedOutput := validString(string(out[:n]))
+			input <- string(processedOutput)
+		}
+	}()
+
+	for {
+		select {
+		case msg := <-input:
+			err := wswrite(websocketConn, mu, msg)
+			if err != nil {
+				log.Debug().Msgf("error writing to websocket: %v", err)
+				errorChan <- err
+				return
+			}
+		case <-pingTicker.C:
+			if err := wsping(websocketConn, mu); err != nil {
+				log.Debug().Msgf("error writing to websocket during pong response: %v", err)
+				errorChan <- err
+				return
+			}
+		}
+	}
+}
+
+func wswrite(websocketConn *websocket.Conn, mu *sync.Mutex, msg string) error {
+	mu.Lock()
+	defer mu.Unlock()
+
+	websocketConn.SetWriteDeadline(time.Now().Add(writeWait))
+	return websocketConn.WriteMessage(websocket.TextMessage, []byte(msg))
+}
+
+func wsping(websocketConn *websocket.Conn, mu *sync.Mutex) error {
+	mu.Lock()
+	defer mu.Unlock()
+
+	websocketConn.SetWriteDeadline(time.Now().Add(writeWait))
+	return websocketConn.WriteMessage(websocket.PingMessage, nil)
 }
