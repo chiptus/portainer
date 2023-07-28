@@ -199,10 +199,17 @@ func (handler *Handler) updateSwarmOrComposeStack(r *http.Request, stack *portai
 	}
 	stack.Webhook = payload.Webhook
 
-	// update or rollback stack file version
-	err = handler.updateStackFileVersion(stack, payload.StackFileContent, payload.RollbackTo)
-	if err != nil {
-		return httperror.BadRequest("Unable to update or rollback stack file version", err)
+	if stack.GitConfig != nil {
+		// detach from git
+		stack.GitConfig = nil
+		stack.PreviousDeploymentInfo = nil
+		stack.StackFileVersion = 1
+	} else {
+		// update or rollback stack file version
+		err = handler.updateStackFileVersion(stack, payload.StackFileContent, payload.RollbackTo)
+		if err != nil {
+			return httperror.BadRequest("Unable to update or rollback stack file version", err)
+		}
 	}
 
 	stackFolder := strconv.Itoa(int(stack.ID))
