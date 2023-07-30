@@ -138,9 +138,17 @@ func GetNamespace(manifestYaml []byte) (string, error) {
 		return "", errors.Wrap(err, "failed to unmarshal yaml manifest when obtaining namespace")
 	}
 
+	kind := m["kind"].(string)
+
 	if _, ok := m["metadata"]; ok {
-		if namespace, ok := m["metadata"].(map[string]interface{})["namespace"]; ok {
-			return namespace.(string), nil
+		if kind == "Namespace" {
+			if namespace, ok := m["metadata"].(map[string]interface{})["name"]; ok {
+				return namespace.(string), nil
+			}
+		} else {
+			if namespace, ok := m["metadata"].(map[string]interface{})["namespace"]; ok {
+				return namespace.(string), nil
+			}
 		}
 	}
 

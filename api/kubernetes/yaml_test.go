@@ -648,16 +648,24 @@ func Test_GetNamespace(t *testing.T) {
 		{
 			name: "valid namespace",
 			input: `apiVersion: v1
-kind: Namespace
+kind: Service
 metadata:
   namespace: test-namespace
 `,
 			want: "test-namespace",
 		},
 		{
-			name: "invalid namespace",
+			name: "Kind namespace",
 			input: `apiVersion: v1
 kind: Namespace
+metadata:
+  name: test-namespace
+`,
+			want: "test-namespace",
+		}, {
+			name: "invalid namespace",
+			input: `apiVersion: v1
+kind: Deployment
 `,
 			want: "",
 		},

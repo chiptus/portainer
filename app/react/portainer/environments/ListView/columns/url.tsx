@@ -35,7 +35,9 @@ function Cell({
       <>
         {environment.URL}
         {status !== '' && ( // status is in a provisioning or error state
-          <div className="inline-block gap-2">
+          <div
+            className={clsx('inline-block gap-2', environment.URL && 'ml-2')}
+          >
             <span
               className={clsx(
                 'vertical-center inline-flex',

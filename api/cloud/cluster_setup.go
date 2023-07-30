@@ -235,6 +235,7 @@ func (service *CloudManagementService) restoreTasks() {
 func (service *CloudManagementService) changeState(task *portaineree.CloudProvisioningTask, newState ProvisioningState, message string, operationStatus string) {
 	log.Debug().
 		Str("cluster_id", task.ClusterID).
+		Str("endpoint_id", strconv.Itoa(int(task.EndpointID))).
 		Str("state", newState.String()).
 		Msg("changed state of cluster setup task")
 
@@ -242,6 +243,7 @@ func (service *CloudManagementService) changeState(task *portaineree.CloudProvis
 	if err != nil {
 		log.Error().
 			Str("cluster_id", task.ClusterID).
+			Int("endpoint_id", int(task.EndpointID)).
 			Str("state", ProvisioningState(task.State).String()).
 			Err(err).
 			Msg("unable to update endpoint status message in database")
@@ -278,7 +280,7 @@ func (service *CloudManagementService) setStatus(id portaineree.EndpointID, stat
 func (service *CloudManagementService) seedCluster(task *portaineree.CloudProvisioningTask) (err error) {
 	customTemplate, err := service.dataStore.CustomTemplate().Read(portaineree.CustomTemplateID(task.CustomTemplateID))
 	if err != nil {
-		return clouderrors.NewFatalError("error getting custom template with id: %d, error: %v", task.CustomTemplateID, err)
+		return fmt.Errorf("error getting custom template with id: %d, error: %w", task.CustomTemplateID, err)
 	}
 
 	cluster, err := service.getKaasCluster(task)
@@ -288,7 +290,7 @@ func (service *CloudManagementService) seedCluster(task *portaineree.CloudProvis
 
 	owner, err := service.dataStore.User().Read(task.CreatedByUserID)
 	if err != nil {
-		return clouderrors.NewFatalError("unable to load user information from the database, error: %v", err)
+		return fmt.Errorf("unable to load user information from the database, error: %w", err)
 	}
 
 	namespace, err := kubernetes.GetNamespace([]byte(task.CustomTemplateContent))
@@ -311,13 +313,13 @@ func (service *CloudManagementService) seedCluster(task *portaineree.CloudProvis
 	stackFolder := strconv.Itoa(stackID)
 	projectPath, err := service.fileService.StoreStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(task.CustomTemplateContent))
 	if err != nil {
-		return clouderrors.NewFatalError("error copying stack manifest for endpoint: %d, error: %v", task.EndpointID, err)
+		return fmt.Errorf("error copying stack manifest for endpoint: %d, error: %w", task.EndpointID, err)
 	}
 	stack.ProjectPath = projectPath
 
 	err = service.dataStore.Stack().Create(&stack)
 	if err != nil {
-		return clouderrors.NewFatalError("error creating stack for endpoint: %d, error: %v", task.EndpointID, err)
+		return fmt.Errorf("error creating stack for endpoint: %d, error: %w", task.EndpointID, err)
 	}
 
 	labels := kubernetes.KubeAppLabels{
@@ -329,20 +331,20 @@ func (service *CloudManagementService) seedCluster(task *portaineree.CloudProvis
 
 	labeledManifest, err := kubernetes.AddAppLabels([]byte(task.CustomTemplateContent), labels.ToMap())
 	if err != nil {
-		return clouderrors.NewFatalError("error adding labels to manifest file: %s, error: %v", task.CustomTemplateContent, err)
+		return fmt.Errorf("error adding labels to manifest file: %s, error: %w", task.CustomTemplateContent, err)
 	}
 
 	// save the modified manifest to a temp file and deploy it
 	manifestFile, err := os.CreateTemp("", "portainer-seed")
 	if err != nil {
-		return clouderrors.NewFatalError("error creating temp file for manifest, error: %v", err)
+		return fmt.Errorf("error creating temp file for manifest, error: %w", err)
 	}
 	defer os.Remove(manifestFile.Name())
 
 	// write labeledManifest to manifestFile
 	_, err = manifestFile.Write(labeledManifest)
 	if err != nil {
-		return clouderrors.NewFatalError("error writing manifest, error: %v", err)
+		return fmt.Errorf("error writing manifest, error: %w", err)
 	}
 	manifestFile.Close()
 
@@ -358,9 +360,12 @@ func (service *CloudManagementService) seedCluster(task *portaineree.CloudProvis
 			task.CreatedByUserID,
 			endpoint,
 			manifests,
-			"default",
+			namespace,
 		)
-		return err
+		if err != nil {
+			return fmt.Errorf("error deploying manifest, error: %w", err)
+		}
+		return nil
 	}
 	return service.kubernetesDeployer.DeployViaKubeConfig(
 		cluster.KubeConfig,
@@ -472,6 +477,8 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 	}
 
 	setMessage := service.setMessageHandler(task.EndpointID, "")
+	errSummary := ""
+
 	for {
 		var fatal *clouderrors.FatalError
 		if errors.As(err, &fatal) {
@@ -491,6 +498,7 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 				state:      int(ProvisioningStateDone),
 				taskID:     task.ID,
 				provider:   task.Provider,
+				errSummary: errSummary,
 			}
 			return
 		}
@@ -527,7 +535,7 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 				service.changeState(&task, ProvisioningStateAgentSetup, "Deploying Portainer agent", "processing")
 			}
 
-			log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Msg("waiting for cluster")
+			log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Int("endpoint_id", int(task.EndpointID)).Msg("waiting for cluster")
 
 		case ProvisioningStateAgentSetup:
 			log.Info().Str("state", state.String()).Int("retries", task.Retries).Msg("process state")
@@ -605,12 +613,13 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 				Str("provider", task.Provider).
 				Str("cluster_id", task.ClusterID).
 				Str("service_ip", serviceIP).
+				Int("endpoint_id", int(task.EndpointID)).
 				Msg("portainer agent service is ready")
 
 			service.changeState(&task, ProvisioningStateUpdatingEnvironment, "Updating environment", "processing")
 
 		case ProvisioningStateUpdatingEnvironment:
-			log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Msg("updating environment")
+			log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Int("endpoint_id", int(task.EndpointID)).Msg("updating environment")
 			err = service.updateEndpoint(task.EndpointID, serviceIP)
 			if err != nil {
 				task.Retries++
@@ -626,11 +635,11 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 
 		case ProvisioningStateDeployingCustomTemplate:
 			if task.CustomTemplateID != 0 {
-				log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Msg("deploying custom template")
+				log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Int("endpoint_id", int(task.EndpointID)).Msg("deploying custom template")
 				err = service.seedCluster(&task)
 				if err != nil {
-					task.Retries++
-					break
+					errSummary = "Custom Template Deployment Error"
+					log.Error().Err(err).Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Int("endpoint_id", int(task.EndpointID)).Msg("while deploying custom template")
 				}
 			}
 
@@ -650,6 +659,7 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 				err:        err,
 				state:      int(ProvisioningStateDone),
 				taskID:     task.ID,
+				errSummary: errSummary,
 			}
 
 			return
