@@ -66,12 +66,6 @@ export function AddonsForm({
     return [addonOptions, addonOptionsWithoutExistingValues];
   }, [microk8sOptions?.availableAddons, values.addons, values.currentVersion]);
 
-  const requiredAddons: string[] = useMemo(
-    () =>
-      microk8sOptions?.requiredAddons.filter((a) => a !== 'portainer') || [],
-    [microk8sOptions?.requiredAddons]
-  );
-
   // check if values and initial values are the same (ignore the order)
   const isInitialValues = useMemo(() => {
     if (values.addons.length !== initialValues.addons.length) {
@@ -91,7 +85,7 @@ export function AddonsForm({
           Required addons (already installed)
         </span>
         <span className="col-sm-9 col-lg-10 text-muted">
-          {requiredAddons?.join(', ')}
+          {microk8sOptions?.requiredAddons?.join(', ')}
         </span>
       </div>
       <div className="form-group">

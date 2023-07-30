@@ -89,9 +89,9 @@ type Addon struct {
 	IsDefault   bool `json:"isDefault"`
 	IsAvailable bool `json:"-"`
 
-	MicroK8sVersionAvailableTo string `json:"microK8sVersionAvailableTo"` // microk8s version if the addon is unavailable from a specific version
-	Repository                 string `json:"repository"`                 // if core/community
-	VersionAvailableFrom       string `json:"versionAvailableFrom"`       // microk8s version if the addon is available from a specific version
+	VersionAvailableTo   string `json:"versionAvailableTo"`   // microk8s version if the addon is unavailable from a specific version
+	Repository           string `json:"repository"`           // if core/community
+	VersionAvailableFrom string `json:"versionAvailableFrom"` // microk8s version if the addon is available from a specific version
 
 	RequiredOn        string   `json:"-"` // Which nodes does this addon need installed on: "masters", "all", or a blank string for just the connected node.
 	InstallCommands   []string `json:"-"`
@@ -165,10 +165,10 @@ var AllAddons = Addons{
 		Repository:  "core",
 	},
 	{
-		Name:                       "prometheus",
-		VersionAvailableFrom:       "1.14",
-		MicroK8sVersionAvailableTo: "1.24",
-		Tooltip:                    "prometheus - deploys the <a href='https://prometheus.io/docs/' target='_blank'>Kubernetes Prometheus Operator</a>.",
+		Name:                 "prometheus",
+		VersionAvailableFrom: "1.14",
+		VersionAvailableTo:   "1.24",
+		Tooltip:              "prometheus - deploys the <a href='https://prometheus.io/docs/' target='_blank'>Kubernetes Prometheus Operator</a>.",
 
 		IsAvailable: true,
 		Repository:  "core",
