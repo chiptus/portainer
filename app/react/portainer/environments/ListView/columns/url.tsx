@@ -1,5 +1,11 @@
 import { CellContext } from '@tanstack/react-table';
-import { AlertCircle, HelpCircle, Loader2, Settings } from 'lucide-react';
+import {
+  AlertCircle,
+  AlertTriangle,
+  HelpCircle,
+  Loader2,
+  Settings,
+} from 'lucide-react';
 import clsx from 'clsx';
 import sanitize from 'sanitize-html';
 
@@ -32,27 +38,26 @@ function Cell({
     environment.Status !== EnvironmentStatus.Provisioning
   ) {
     return (
-      <>
-        {environment.URL}
+      <div className="inline-flex gap-2 whitespace-nowrap">
+        {environment.URL && <div>{environment.URL}</div>}
         {status !== '' && ( // status is in a provisioning or error state
           <div
-            className={clsx('inline-block gap-2', environment.URL && 'ml-2')}
+            className={clsx('vertical-center flex items-center', {
+              'text-danger': status === 'error',
+              'text-warning': status === 'warning',
+              'text-muted': status !== 'error' && status !== 'warning',
+            })}
           >
-            <span
-              className={clsx(
-                'vertical-center inline-flex',
-                status === 'error' ? 'text-danger' : 'text-muted'
-              )}
-            >
-              {environment.URL && status === 'error' && (
-                <Icon icon={AlertCircle} />
-              )}
-              {environment.URL && status === 'processing' && (
-                <Icon icon={Loader2} className="animate-spin-slow" />
-              )}
-
-              <span>{environment.StatusMessage?.summary}</span>
-            </span>
+            {environment.URL && status === 'error' && (
+              <Icon className="flex-none" icon={AlertCircle} />
+            )}
+            {environment.URL && status === 'warning' && (
+              <Icon className="flex-none" icon={AlertTriangle} />
+            )}
+            {environment.URL && status === 'processing' && (
+              <Icon className="flex-none animate-spin-slow" icon={Loader2} />
+            )}
+            {environment.StatusMessage?.summary}
             <TooltipWithChildren
               message={
                 <div>
@@ -62,7 +67,7 @@ function Cell({
                       __html: sanitize(environment.StatusMessage?.detail ?? ''),
                     }}
                   />
-                  {environment.URL && status === 'error' && (
+                  {environment.URL && status === 'warning' && (
                     <div className="mt-2 text-right">
                       <Button
                         color="link"
@@ -79,18 +84,13 @@ function Cell({
               }
               position="bottom"
             >
-              <span
-                className={clsx(
-                  'vertical-center inline-flex text-base',
-                  status === 'error' ? 'text-danger' : 'text-muted'
-                )}
-              >
-                <HelpCircle className="lucide ml-1" aria-hidden="true" />
+              <span className="vertical-center text-muted inline-flex whitespace-nowrap text-base">
+                <HelpCircle className="lucide" aria-hidden="true" />
               </span>
             </TooltipWithChildren>
           </div>
         )}
-      </>
+      </div>
     );
   }
 

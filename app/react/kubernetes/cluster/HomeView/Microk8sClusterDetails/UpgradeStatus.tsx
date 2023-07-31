@@ -53,20 +53,24 @@ export function UpgradeStatus() {
 
   return (
     <AlertContainer
-      className={
-        operationStatus === 'error'
-          ? alertSettings.error.container
-          : alertSettings.info.container
-      }
+      className={clsx(
+        operationStatus === 'warning' && alertSettings.warn.container,
+        operationStatus === 'error' && alertSettings.error.container,
+        operationStatus !== 'error' &&
+          operationStatus !== 'warning' &&
+          alertSettings.info.container
+      )}
     >
       <div className="flex flex-col gap-y-4 text-sm">
         <div className={clsx('flex items-center justify-between')}>
           <div
             className={clsx(
               'flex items-center',
-              operationStatus === 'error'
-                ? alertSettings.error.body
-                : alertSettings.info.body
+              operationStatus === 'error' && alertSettings.error.body,
+              operationStatus === 'warning' && alertSettings.warn.body,
+              operationStatus !== 'error' &&
+                operationStatus !== 'warning' &&
+                alertSettings.info.body
             )}
           >
             {operationStatus === 'processing' && (
@@ -79,7 +83,7 @@ export function UpgradeStatus() {
               setHtmlMessage
             />
           </div>
-          {operationStatus === 'error' && (
+          {operationStatus === 'warning' && (
             <Button
               icon={X}
               className={clsx(

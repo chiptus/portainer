@@ -20,7 +20,7 @@ function Cell({ getValue }: CellContext<Environment, EnvironmentType>) {
   const type = getValue();
 
   return (
-    <span className="flex items-center gap-1">
+    <span className="flex items-center gap-1 whitespace-nowrap">
       <Icon icon={environmentTypeIcon(type)} />
       {getPlatformTypeName(type)}
     </span>

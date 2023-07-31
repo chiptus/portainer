@@ -182,7 +182,7 @@ interface EndpointChangeWindow {
   EndTime: string;
 }
 
-export type OperationStatus = 'processing' | 'error' | '';
+export type OperationStatus = 'processing' | 'error' | 'warning' | '';
 
 export interface EnvironmentStatusMessage {
   detail: string;

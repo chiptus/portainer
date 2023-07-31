@@ -434,7 +434,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 	operationStatus := ""
 	if isError {
 		summary = "Upgrade completed with errors"
-		operationStatus = "error"
+		operationStatus = "warning"
 	}
 
 	u.setMessage(u.endpoint.ID, summary, "Check Portainer logs for more details<br/><br/>"+strings.Join(messages, "<br/>"), operationStatus)
