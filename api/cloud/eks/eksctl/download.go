@@ -7,6 +7,7 @@ import (
 	"path"
 	"runtime"
 	"sync"
+	"time"
 
 	"github.com/portainer/portainer-ee/api/cloud/util"
 	"github.com/rs/zerolog/log"
@@ -57,10 +58,9 @@ func downloadEksctl(outputPath string) error {
 	}
 
 	// Download the archive to temp and extract it to the cache directory
-	filename, err := util.DownloadToFile(eksUrl, os.TempDir(), checksum)
+	filename, err := util.DownloadToFile(eksUrl, os.TempDir(), checksum, 10*time.Minute)
 	if err != nil {
 		log.Error().Str("filename", filename).Err(err).Msg("failed to download file")
-
 		return err
 	}
 
@@ -73,14 +73,13 @@ func downloadAuthenticator(outputPath string) error {
 	authenticatorUrl, checksumFileUrl := getAuthenticatorDownloadUrl()
 	checksum, err := util.GetChecksum(checksumFileUrl, path.Base(authenticatorUrl), 30)
 	if err != nil {
-		log.Warn().Err(err).Msg("")
+		log.Warn().Err(err).Msg("failed to download authenticator checksum file")
 	}
 
 	// Download the archive to temp and extract it to the cache directory
-	filename, err := util.DownloadToFile(authenticatorUrl, os.TempDir(), checksum)
+	filename, err := util.DownloadToFile(authenticatorUrl, os.TempDir(), checksum, 10*time.Minute)
 	if err != nil {
 		log.Error().Str("filename", filename).Err(err).Msg("failed to download file")
-
 		return err
 	}
 
@@ -99,11 +98,11 @@ func downloadAuthenticator(outputPath string) error {
 }
 
 func getEksctlDownloadUrl() (eksctlUrl, checksumUrl string) {
-	// For the full list of available releases visit: https://github.com/weaveworks/eksctl/releases
+	// For the full list of available releases visit: https://github.com/eksctl-io/eksctl/releases
 
 	version := DefaultEksCtlVersion
-	format := "https://github.com/weaveworks/eksctl/releases/download/%s/eksctl_%s_%s.%s"
-	csFormat := "https://github.com/weaveworks/eksctl/releases/download/%s/eksctl_checksums.txt"
+	format := "https://github.com/eksctl-io/eksctl/releases/download/%s/eksctl_%s_%s.%s"
+	csFormat := "https://github.com/eksctl-io/eksctl/releases/download/%s/eksctl_checksums.txt"
 	checksumUrl = fmt.Sprintf(csFormat, version)
 
 	arch := runtime.GOARCH

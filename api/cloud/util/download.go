@@ -51,7 +51,7 @@ func downloadUrl(url string, timeout int) (string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("Failed to download file. Server responded: %d", resp.StatusCode)
+		return "", fmt.Errorf("failed to download file: server responded with statusCode: %d", resp.StatusCode)
 	}
 
 	bodyBytes, err := io.ReadAll(resp.Body)
@@ -64,7 +64,7 @@ func downloadUrl(url string, timeout int) (string, error) {
 
 // DownloadToFile attempts to download a file to dest from url. If non-empty,
 // the checksum will be used to verify the downloaded file.
-func DownloadToFile(url, dest string, checksum string) (string, error) {
+func DownloadToFile(url, dest string, checksum string, timeout time.Duration) (string, error) {
 	req, _ := grab.NewRequest(".", url)
 	req.Filename = dest
 
@@ -80,6 +80,13 @@ func DownloadToFile(url, dest string, checksum string) (string, error) {
 	log.Info().Stringer("URL", req.URL()).Msg("downloading")
 
 	client := grab.NewClient()
+	client.HTTPClient = &http.Client{
+		Timeout: timeout,
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+		},
+	}
+
 	resp := client.Do(req)
 
 	t := time.NewTicker(500 * time.Millisecond)
