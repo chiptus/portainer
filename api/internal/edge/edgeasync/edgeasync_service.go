@@ -241,10 +241,54 @@ func (service *Service) RemoveStackCommandTx(tx dataservices.DataStoreTx, endpoi
 		return err
 	}
 
+	fileName := edgeStack.EntryPoint
+	if endpointutils.IsDockerEndpoint(endpoint) {
+		if fileName == "" {
+			log.Error().Msg("Docker is not supported by this stack")
+
+			return nil
+		}
+	} else if endpointutils.IsKubernetesEndpoint(endpoint) {
+		fileName = edgeStack.ManifestPath
+		if fileName == "" {
+			log.Error().Msg("Kubernetes is not supported by this stack")
+
+			return nil
+		}
+	}
+
+	commitHash := ""
+	if edgeStack.GitConfig != nil {
+		commitHash = edgeStack.GitConfig.ConfigHash
+	}
+	projectVersionPath := service.fileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.StackFileVersion, commitHash)
+
+	dirEntries, err := filesystem.LoadDir(projectVersionPath)
+	if err != nil {
+		return httperror.InternalServerError("Unable to load repository", err)
+	}
+
+	if internaledge.IsEdgeStackRelativePathEnabled(edgeStack) {
+		if internaledge.IsEdgeStackPerDeviceConfigsEnabled(edgeStack) {
+			dirEntries = filesystem.FilterDirForPerDevConfigs(
+				dirEntries,
+				endpoint.EdgeID,
+				edgeStack.PerDeviceConfigsPath,
+				edgeStack.PerDeviceConfigsMatchType,
+			)
+		}
+	} else {
+		dirEntries = filesystem.FilterDirForEntryFile(dirEntries, fileName)
+	}
+
+	registryCredentials := registryutils.GetRegistryCredentialsForEdgeStack(tx, edgeStack, endpoint)
+
 	stackStatus := edge.StackPayload{
+		DirEntries:          dirEntries,
 		Name:                edgeStack.Name,
 		ID:                  int(edgeStackID),
 		Version:             edgeStack.Version,
+		RegistryCredentials: registryCredentials,
 		EntryFileName:       edgeStack.EntryPoint,
 		SupportRelativePath: edgeStack.SupportRelativePath,
 		FilesystemPath:      edgeStack.FilesystemPath,
