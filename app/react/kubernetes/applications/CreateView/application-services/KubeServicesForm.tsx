@@ -5,6 +5,11 @@ import { Annotation } from '@/react/kubernetes/annotations/types';
 import { AnnotationErrors } from '@/react/kubernetes/annotations/AnnotationsForm';
 import KubernetesAnnotationsUtils from '@/kubernetes/converters/annotations';
 import { KubernetesApplicationPublishingTypes } from '@/kubernetes/models/application/models';
+import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
+import {
+  useIngressControllers,
+  useIngresses,
+} from '@/react/kubernetes/ingresses/queries';
 
 import { FormSection } from '@@/form-components/FormSection';
 
@@ -55,6 +60,11 @@ export function KubeServicesForm({
   >([]);
   const [selectedServiceType, setSelectedServiceType] =
     useState<ServiceTypeValue>('ClusterIP');
+
+  // start loading ingresses and controllers early to reduce perceived loading time
+  const environmentId = useEnvironmentId();
+  useIngresses(environmentId, namespace ? [namespace] : []);
+  useIngressControllers(environmentId, namespace);
 
   // when the appName changes, update the names for each service
   // and the serviceNames for each service port
