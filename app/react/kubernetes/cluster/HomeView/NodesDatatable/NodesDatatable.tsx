@@ -63,7 +63,7 @@ export function NodesDatatable() {
   const { isAdmin } = useCurrentUser();
 
   const authorizedToWriteClusterNode = useAuthorizations('K8sClusterNodeW');
-  const authorizedToReadMicroK8sStatus = useAuthorizations('K8sClusterR');
+  const authorizedToReadMicroK8sStatus = useAuthorizations('K8sResourcePoolsR');
 
   const { data: credential, ...credentialQuery } = useCloudCredential(
     environment?.CloudProvider?.CredentialID ?? NaN,

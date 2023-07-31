@@ -86,12 +86,3 @@ func canWriteK8sClusterNode(user *portaineree.User, endpointID portaineree.Endpo
 	}
 	return isAdmin || hasAccess
 }
-
-func canReadK8sCluster(user *portaineree.User, endpointID portaineree.EndpointID) bool {
-	isAdmin := user.Role == portaineree.AdministratorRole
-	hasAccess := false
-	if user.EndpointAuthorizations[portaineree.EndpointID(endpointID)] != nil {
-		_, hasAccess = user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.OperationK8sClusterR]
-	}
-	return isAdmin || hasAccess
-}

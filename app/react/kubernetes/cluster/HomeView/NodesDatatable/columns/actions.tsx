@@ -54,9 +54,9 @@ function ActionsCell({
   const nodeIp = getInternalNodeIpAddress(node);
 
   return (
-    <div className="flex gap-1">
-      <Authorized authorizations="K8sClusterNodeR">
-        {metricsEnabled && (
+    <div className="flex gap-1.5">
+      {metricsEnabled && (
+        <Authorized authorizations="K8sClusterNodeR">
           <Link
             title="Stats"
             to="kubernetes.cluster.node.stats"
@@ -65,39 +65,38 @@ function ActionsCell({
           >
             <Icon icon={BarChart} />
           </Link>
-        )}
+        </Authorized>
+      )}
+      {nodeIp && node.isApi && canCheckStatus && (
+        <Link
+          title="MicroK8s status"
+          to="kubernetes.cluster.node.microk8s-status"
+          params={{ nodeName }}
+          className="flex items-center"
+        >
+          <Icon icon={Activity} />
+        </Link>
+      )}
 
-        {nodeIp && node.isApi && canCheckStatus && (
-          <Link
-            title="MicroK8s status"
-            to="kubernetes.cluster.node.microk8s-status"
-            params={{ nodeName }}
-            className="flex items-center p-1"
-          >
-            <Icon icon={Activity} />
-          </Link>
-        )}
-
-        {nodeIp && canSSH && (
-          <Button
-            title="SSH Console"
-            color="none"
-            size="small"
-            data-cy="nodeShellButton"
-            className="!ml-0 !p-1 !text-blue-8"
-            icon={Terminal}
-            onClick={() => {
-              window.open(
-                `${url}/#!/${environmentId}/kubernetes/node-shell?nodeIP=${nodeIp}`,
-                // give the window a unique name so that more than one can be opened
-                `node-shell-${nodeName}-${uuidv4()}`,
-                'width=800,height=600'
-              );
-              trackEvent('microk8s-shell', { category: 'kubernetes' });
-            }}
-          />
-        )}
-      </Authorized>
+      {nodeIp && canSSH && (
+        <Button
+          title="SSH Console"
+          color="none"
+          size="small"
+          data-cy="nodeShellButton"
+          className="!ml-0 !p-1 !text-blue-8"
+          icon={Terminal}
+          onClick={() => {
+            window.open(
+              `${url}#!/${environmentId}/kubernetes/node-shell?nodeIP=${nodeIp}`,
+              // give the window a unique name so that more than one can be opened
+              `node-shell-${nodeName}-${uuidv4()}`,
+              'width=800,height=600'
+            );
+            trackEvent('microk8s-shell', { category: 'kubernetes' });
+          }}
+        />
+      )}
     </div>
   );
 }

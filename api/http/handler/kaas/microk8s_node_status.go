@@ -9,7 +9,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/cloud/microk8s"
 	"github.com/portainer/portainer-ee/api/database/models"
-	"github.com/portainer/portainer-ee/api/http/security"
 )
 
 // @id microk8sGetNodeStatus
@@ -44,21 +43,6 @@ func (handler *Handler) microk8sGetNodeStatus(w http.ResponseWriter, r *http.Req
 		return httperror.NotFound("Unable to find the environment in the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find the environment in the database", err)
-	}
-
-	securityContext, err := security.RetrieveRestrictedRequestContext(r)
-	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve info from request context", err)
-	}
-
-	user, err := handler.dataStore.User().Read(securityContext.UserID)
-	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve security context", err)
-	}
-
-	authorized := canReadK8sCluster(user, portaineree.EndpointID(endpoint.ID))
-	if !authorized {
-		return httperror.Forbidden("Permission denied to get node status", nil)
 	}
 
 	credentialId := endpoint.CloudProvider.CredentialID
