@@ -13,6 +13,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices/edgeconfig"
 	"github.com/portainer/portainer/api/filesystem"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -101,6 +102,12 @@ func (service *Service) GetEdgeConfigFilepaths(ID portaineree.EdgeConfigID, vers
 	basePath = filesystem.JoinPaths(service.getStoreEdgeConfigPath(ID), string(version))
 
 	err = filepath.WalkDir(basePath, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			log.Warn().Err(err).Msg("error while retrieving the files for the edge configuration")
+
+			return nil
+		}
+
 		if d.IsDir() {
 			return nil
 		}

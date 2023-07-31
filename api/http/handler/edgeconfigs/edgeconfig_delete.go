@@ -83,6 +83,10 @@ func (h *Handler) transitionToState(tx dataservices.DataStoreTx, edgeConfigID po
 			return nil, httperror.InternalServerError("Unable to retrieve the endpoint", err)
 		}
 
+		if !endpoint.Edge.AsyncMode {
+			continue
+		}
+
 		dirEntries, err := h.fileService.GetEdgeConfigDirEntries(edgeConfig, endpoint.EdgeID, portaineree.EdgeConfigCurrent)
 		if err != nil {
 			return nil, httperror.InternalServerError("Unable to process the files for the edge configuration", err)

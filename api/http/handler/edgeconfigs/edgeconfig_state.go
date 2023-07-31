@@ -8,6 +8,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/internal/edge/cache"
 	"github.com/portainer/portainer-ee/api/internal/slices"
 )
 
@@ -106,10 +107,17 @@ func (h *Handler) edgeConfigState(w http.ResponseWriter, r *http.Request) *httpe
 		return httperror.InternalServerError("Could not update the edge config state", err)
 	}
 
+	cache.Del(endpointID)
+
 	return nil
 }
 
 func validTransition(current, next portaineree.EdgeConfigStateType) bool {
+	idleOrFailure := []portaineree.EdgeConfigStateType{
+		portaineree.EdgeConfigIdleState,
+		portaineree.EdgeConfigFailureState,
+	}
+
 	transitions := []edgeConfigStateTransition{
 		// Idle -> Saving | Updating | Deleting
 		{
@@ -124,27 +132,19 @@ func validTransition(current, next portaineree.EdgeConfigStateType) bool {
 		// Saving -> Idle | Failure
 		{
 			From: portaineree.EdgeConfigSavingState,
-			To: []portaineree.EdgeConfigStateType{
-				portaineree.EdgeConfigIdleState,
-				portaineree.EdgeConfigFailureState,
-			},
+			To:   idleOrFailure,
 		},
 
 		// Updating -> Idle | Failure
 		{
 			From: portaineree.EdgeConfigUpdatingState,
-			To: []portaineree.EdgeConfigStateType{
-				portaineree.EdgeConfigIdleState,
-				portaineree.EdgeConfigFailureState,
-			},
+			To:   idleOrFailure,
 		},
 
-		// Deleting -> Failure
+		// Deleting -> Idle | Failure
 		{
 			From: portaineree.EdgeConfigDeletingState,
-			To: []portaineree.EdgeConfigStateType{
-				portaineree.EdgeConfigFailureState,
-			},
+			To:   idleOrFailure,
 		},
 	}
 

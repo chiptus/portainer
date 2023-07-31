@@ -300,10 +300,18 @@ func (handler *Handler) createEdgeConfigs(tx dataservices.DataStoreTx, endpoint 
 			}
 		}
 
+		if _, ok := edgeConfigState.States[edgeConfigID]; ok {
+			continue
+		}
+
 		edgeConfigState.States[edgeConfigID] = portaineree.EdgeConfigSavingState
 
 		if err := tx.EdgeConfigState().Update(edgeConfigState.EndpointID, edgeConfigState); err != nil {
 			return err
+		}
+
+		if !endpoint.Edge.AsyncMode {
+			continue
 		}
 
 		dirEntries, err := handler.FileService.GetEdgeConfigDirEntries(edgeConfig, endpoint.EdgeID, portaineree.EdgeConfigCurrent)

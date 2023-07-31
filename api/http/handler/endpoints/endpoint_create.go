@@ -954,7 +954,7 @@ func (handler *Handler) storeTLSFiles(endpoint *portaineree.Endpoint, payload *e
 
 func (handler *Handler) createEdgeConfigs(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint) error {
 	edgeConfigs, err := tx.EdgeConfig().ReadAll()
-	if err != nil {
+	if err != nil || len(edgeConfigs) == 0 {
 		return err
 	}
 
@@ -982,11 +982,13 @@ func (handler *Handler) createEdgeConfigs(tx dataservices.DataStoreTx, endpoint 
 
 		relatedEndpointIDs := edge.EdgeGroupRelatedEndpoints(edgeGroup, endpoints, endpointGroups)
 
-		if len(relatedEndpointIDs) < 1 {
-			continue
-		}
+		for _, relEndpointID := range relatedEndpointIDs {
+			if relEndpointID == endpoint.ID {
+				edgeConfigsToCreate = append(edgeConfigsToCreate, edgeConfigIDs...)
 
-		edgeConfigsToCreate = append(edgeConfigsToCreate, edgeConfigIDs...)
+				break
+			}
+		}
 	}
 
 	edgeConfigsToCreate = unique.Unique(edgeConfigsToCreate)

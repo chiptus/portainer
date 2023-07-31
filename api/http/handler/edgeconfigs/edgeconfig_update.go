@@ -138,6 +138,10 @@ func (h *Handler) edgeConfigUpdate(w http.ResponseWriter, r *http.Request) *http
 				return httperror.InternalServerError("Unable to persist the edge configuration state inside the database", err)
 			}
 
+			if !endpoint.Edge.AsyncMode {
+				continue
+			}
+
 			dirEntries, err := h.fileService.GetEdgeConfigDirEntries(edgeConfig, endpoint.EdgeID, portaineree.EdgeConfigCurrent)
 			if err != nil {
 				return httperror.InternalServerError("Unable to process the files for the edge configuration", err)

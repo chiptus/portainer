@@ -238,7 +238,18 @@ func (handler *Handler) inspectStatus(tx dataservices.DataStoreTx, r *http.Reque
 	if err != nil && !handler.DataStore.IsErrObjectNotFound(err) {
 		return nil, skipCache, httperror.InternalServerError("Unable to retrieve edge config state from the database", err)
 	} else if err == nil {
-		statusResponse.EdgeConfigurations = configState.States
+		for edgeConfigID, state := range configState.States {
+			switch state {
+			case portaineree.EdgeConfigIdleState, portaineree.EdgeConfigFailureState:
+				continue
+			}
+
+			if statusResponse.EdgeConfigurations == nil {
+				statusResponse.EdgeConfigurations = make(map[portaineree.EdgeConfigID]portaineree.EdgeConfigStateType)
+			}
+
+			statusResponse.EdgeConfigurations[edgeConfigID] = state
+		}
 	}
 
 	return &statusResponse, skipCache, nil
