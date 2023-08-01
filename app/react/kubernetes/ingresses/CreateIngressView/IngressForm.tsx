@@ -1,18 +1,22 @@
-import { ChangeEvent, ReactNode } from 'react';
+import { ChangeEvent, ReactNode, useEffect } from 'react';
 import { Plus, RefreshCw, Trash2 } from 'lucide-react';
 
 import { Annotations } from '@/react/kubernetes/annotations';
 import { Annotation } from '@/react/kubernetes/annotations/types';
 
 import { Link } from '@@/Link';
-import { Select, Option } from '@@/form-components/Input/Select';
+import { Option } from '@@/form-components/Input/Select';
 import { FormError } from '@@/form-components/FormError';
 import { Widget, WidgetBody } from '@@/Widget';
 import { Tooltip } from '@@/Tip/Tooltip';
 import { Button } from '@@/buttons';
 import { TextTip } from '@@/Tip/TextTip';
+import { InlineLoader } from '@@/InlineLoader';
+import { Select } from '@@/form-components/ReactSelect';
+import { Card } from '@@/Card';
+import { InputGroup } from '@@/form-components/InputGroup';
 
-import { Rule, ServicePorts } from './types';
+import { GroupedServiceOptions, Rule, ServicePorts } from './types';
 
 import '../style.css';
 
@@ -37,9 +41,11 @@ interface Props {
 
   servicePorts: ServicePorts;
   ingressClassOptions: Option<string>[];
-  serviceOptions: Option<string>[];
+  isIngressClassOptionsLoading: boolean;
+  serviceOptions: GroupedServiceOptions;
   tlsOptions: Option<string>[];
   namespacesOptions: Option<string>[];
+  isNamespaceOptionsLoading: boolean;
 
   removeIngressRoute: (hostIndex: number, pathIndex: number) => void;
   removeIngressHost: (hostIndex: number) => void;
@@ -83,8 +89,10 @@ export function IngressForm({
   removeIngressHost,
   reloadTLSCerts,
   ingressClassOptions,
+  isIngressClassOptionsLoading,
   errors,
   namespacesOptions,
+  isNamespaceOptionsLoading,
   handleNamespaceChange,
   namespace,
   hideForm,
@@ -95,6 +103,25 @@ export function IngressForm({
     PlaceholderAnnotations[rule.IngressType || 'other'] ||
     PlaceholderAnnotations.other;
   const pathTypes = PathTypes[rule.IngressType || 'other'] || PathTypes.other;
+
+  // when the namespace options update the value to an available one
+  useEffect(() => {
+    const namespaces = namespacesOptions.map((option) => option.value);
+    if (!namespaces.includes(namespace) && namespaces.length > 0) {
+      handleNamespaceChange(namespaces[0]);
+    }
+  }, [namespacesOptions, namespace, handleNamespaceChange]);
+
+  // when the ingress class options update update the value to an available one
+  useEffect(() => {
+    const ingressClasses = ingressClassOptions.map((option) => option.value);
+    if (
+      !ingressClasses.includes(rule.IngressClassName) &&
+      ingressClasses.length > 0
+    ) {
+      handleIngressChange('IngressClassName', ingressClasses[0]);
+    }
+  }, [ingressClassOptions, rule.IngressClassName, handleIngressChange]);
 
   return (
     <Widget>
@@ -108,19 +135,30 @@ export function IngressForm({
               >
                 Namespace
               </label>
-              <div className={`col-sm-4 ${isEdit && 'control-label'}`}>
-                {isEdit ? (
-                  namespace
-                ) : (
-                  <Select
-                    name="namespaces"
-                    options={namespacesOptions || []}
-                    onChange={(e) => handleNamespaceChange(e.target.value)}
-                    defaultValue={namespace}
-                    disabled={isEdit}
-                  />
-                )}
-              </div>
+              {isNamespaceOptionsLoading && (
+                <div className="col-sm-4">
+                  <InlineLoader className="pt-2">
+                    Loading namespaces...
+                  </InlineLoader>
+                </div>
+              )}
+              {!isNamespaceOptionsLoading && (
+                <div className={`col-sm-4 ${isEdit && 'control-label'}`}>
+                  {isEdit ? (
+                    namespace
+                  ) : (
+                    <Select
+                      name="namespaces"
+                      options={namespacesOptions || []}
+                      value={{ value: namespace, label: namespace }}
+                      isDisabled={isEdit}
+                      onChange={(val) =>
+                        handleNamespaceChange(val?.value || '')
+                      }
+                    />
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -167,21 +205,35 @@ export function IngressForm({
                   Ingress class
                 </label>
                 <div className="col-sm-4">
-                  <Select
-                    name="ingress_class"
-                    className="form-control"
-                    placeholder="Ingress name"
-                    disabled={hideForm}
-                    defaultValue={rule.IngressClassName}
-                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                      handleIngressChange('IngressClassName', e.target.value)
-                    }
-                    options={ingressClassOptions}
-                  />
-                  {!hideForm && errors.className && (
-                    <FormError className="error-inline mt-1">
-                      {errors.className}
-                    </FormError>
+                  {isIngressClassOptionsLoading && (
+                    <InlineLoader className="pt-2">
+                      Loading ingress classes...
+                    </InlineLoader>
+                  )}
+                  {!isIngressClassOptionsLoading && (
+                    <>
+                      <Select
+                        name="ingress_class"
+                        placeholder="Ingress name"
+                        isDisabled={hideForm}
+                        options={ingressClassOptions}
+                        value={{
+                          label: rule.IngressClassName,
+                          value: rule.IngressClassName,
+                        }}
+                        onChange={(ingressClassOption) =>
+                          handleIngressChange(
+                            'IngressClassName',
+                            ingressClassOption?.value || ''
+                          )
+                        }
+                      />
+                      {!hideForm && errors.className && (
+                        <FormError className="error-inline mt-1">
+                          {errors.className}
+                        </FormError>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -203,9 +255,9 @@ export function IngressForm({
 
         {namespace &&
           rule?.Hosts?.map((host, hostIndex) => (
-            <div className="row rule bordered mb-5" key={host.Key}>
-              <div className="col-sm-12">
-                <div className="row rule-actions mt-5">
+            <Card key={host.Key} className="mb-5">
+              <div className="flex flex-col">
+                <div className="row rule-actions">
                   <div className="col-sm-3 p-0">
                     {!host.NoHost ? 'Rule' : 'Fallback rule'}
                   </div>
@@ -228,11 +280,9 @@ export function IngressForm({
                 {!host.NoHost && (
                   <div className="row">
                     <div className="form-group col-sm-6 col-lg-4 !pl-0 !pr-2">
-                      <div className="input-group input-group-sm">
-                        <span className="input-group-addon required">
-                          Hostname
-                        </span>
-                        <input
+                      <InputGroup size="small">
+                        <InputGroup.Addon required>Hostname</InputGroup.Addon>
+                        <InputGroup.Input
                           name={`ingress_host_${hostIndex}`}
                           type="text"
                           className="form-control form-control-sm"
@@ -243,7 +293,7 @@ export function IngressForm({
                           }
                           disabled={hideForm}
                         />
-                      </div>
+                      </InputGroup>
                       {errors[`hosts[${hostIndex}].host`] && (
                         <FormError className="mt-1 !mb-0">
                           {errors[`hosts[${hostIndex}].host`]}
@@ -252,18 +302,21 @@ export function IngressForm({
                     </div>
 
                     <div className="form-group col-sm-6 col-lg-4 !pr-0 !pl-2">
-                      <div className="input-group input-group-sm">
-                        <span className="input-group-addon">TLS secret</span>
+                      <InputGroup size="small">
+                        <InputGroup.Addon>TLS secret</InputGroup.Addon>
                         <Select
                           key={tlsOptions.toString() + host.Secret}
                           name={`ingress_tls_${hostIndex}`}
                           options={tlsOptions}
-                          onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                            handleTLSChange(hostIndex, e.target.value)
+                          value={{
+                            value: rule.Hosts[hostIndex].Secret,
+                            label: rule.Hosts[hostIndex].Secret || 'No TLS',
+                          }}
+                          onChange={(TLSOption) =>
+                            handleTLSChange(hostIndex, TLSOption?.value || '')
                           }
-                          defaultValue={host.Secret}
-                          disabled={hideForm}
-                          className="!rounded-r-none"
+                          isDisabled={hideForm}
+                          size="sm"
                         />
                         {!host.NoHost && !hideForm && (
                           <div className="input-group-btn">
@@ -275,7 +328,7 @@ export function IngressForm({
                             />
                           </div>
                         )}
-                      </div>
+                      </InputGroup>
                     </div>
 
                     {!hideForm && (
@@ -324,26 +377,28 @@ export function IngressForm({
                     key={`path_${path.Key}}`}
                   >
                     <div className="form-group col-sm-3 col-xl-2 !m-0 !pl-0">
-                      <div className="input-group input-group-sm">
-                        <span className="input-group-addon required">
-                          Service
-                        </span>
+                      <InputGroup size="small">
+                        <InputGroup.Addon required>Service</InputGroup.Addon>
                         <Select
                           key={serviceOptions.toString() + path.ServiceName}
                           name={`ingress_service_${hostIndex}_${pathIndex}`}
                           options={serviceOptions}
-                          onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                          value={{
+                            value: path.ServiceName,
+                            label: path.ServiceName || 'Select a service',
+                          }}
+                          onChange={(serviceOption) =>
                             handlePathChange(
                               hostIndex,
                               pathIndex,
                               'ServiceName',
-                              e.target.value
+                              serviceOption?.value || ''
                             )
                           }
-                          defaultValue={path.ServiceName}
-                          disabled={hideForm}
+                          size="sm"
+                          isDisabled={hideForm}
                         />
-                      </div>
+                      </InputGroup>
                       {errors[
                         `hosts[${hostIndex}].paths[${pathIndex}].servicename`
                       ] && (
@@ -360,36 +415,42 @@ export function IngressForm({
                     <div className="form-group col-sm-2 col-xl-2 !m-0 !pl-0">
                       {servicePorts && (
                         <>
-                          <div className="input-group input-group-sm">
-                            <span className="input-group-addon required">
+                          <InputGroup size="small">
+                            <InputGroup.Addon required>
                               Service port
-                            </span>
+                            </InputGroup.Addon>
                             <Select
                               key={servicePorts.toString() + path.ServicePort}
                               name={`ingress_servicePort_${hostIndex}_${pathIndex}`}
                               options={
-                                path.ServiceName &&
-                                servicePorts[path.ServiceName]
-                                  ? servicePorts[path.ServiceName]
-                                  : [
-                                      {
-                                        label: 'Select port',
-                                        value: '',
-                                      },
-                                    ]
+                                servicePorts[path.ServiceName]?.map(
+                                  (portOption) => ({
+                                    ...portOption,
+                                    value: portOption.value.toString(),
+                                  })
+                                ) || []
                               }
-                              onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                              onChange={(option) =>
                                 handlePathChange(
                                   hostIndex,
                                   pathIndex,
                                   'ServicePort',
-                                  e.target.value
+                                  option?.value || ''
                                 )
                               }
-                              defaultValue={path.ServicePort}
-                              disabled={hideForm}
+                              value={{
+                                label: (
+                                  path.ServicePort || 'Select a port'
+                                ).toString(),
+                                value:
+                                  rule.Hosts[hostIndex].Paths[
+                                    pathIndex
+                                  ].ServicePort.toString(),
+                              }}
+                              isDisabled={hideForm}
+                              size="sm"
                             />
-                          </div>
+                          </InputGroup>
                           {errors[
                             `hosts[${hostIndex}].paths[${pathIndex}].serviceport`
                           ] && (
@@ -406,31 +467,33 @@ export function IngressForm({
                     </div>
 
                     <div className="form-group col-sm-3 col-xl-2 !m-0 !pl-0">
-                      <div className="input-group input-group-sm">
-                        <span className="input-group-addon">Path type</span>
+                      <InputGroup size="small">
+                        <InputGroup.Addon>Path type</InputGroup.Addon>
                         <Select
                           key={servicePorts.toString() + path.PathType}
                           name={`ingress_pathType_${hostIndex}_${pathIndex}`}
                           options={
-                            pathTypes
-                              ? pathTypes.map((type) => ({
-                                  label: type,
-                                  value: type,
-                                }))
-                              : []
+                            pathTypes?.map((type) => ({
+                              label: type,
+                              value: type,
+                            })) || []
                           }
-                          onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                          onChange={(option) =>
                             handlePathChange(
                               hostIndex,
                               pathIndex,
                               'PathType',
-                              e.target.value
+                              option?.value || ''
                             )
                           }
-                          defaultValue={path.PathType}
-                          disabled={hideForm}
+                          value={{
+                            label: path.PathType || 'Select a path type',
+                            value: path.PathType || '',
+                          }}
+                          isDisabled={hideForm}
+                          size="sm"
                         />
-                      </div>
+                      </InputGroup>
                       {errors[
                         `hosts[${hostIndex}].paths[${pathIndex}].pathType`
                       ] && (
@@ -445,9 +508,9 @@ export function IngressForm({
                     </div>
 
                     <div className="form-group col-sm-3 col-xl-3 !m-0 !pl-0">
-                      <div className="input-group input-group-sm">
-                        <span className="input-group-addon required">Path</span>
-                        <input
+                      <InputGroup size="small">
+                        <InputGroup.Addon required>Path</InputGroup.Addon>
+                        <InputGroup.Input
                           className="form-control"
                           name={`ingress_route_${hostIndex}-${pathIndex}`}
                           placeholder="/example"
@@ -464,7 +527,7 @@ export function IngressForm({
                           }
                           disabled={hideForm}
                         />
-                      </div>
+                      </InputGroup>
                       {errors[
                         `hosts[${hostIndex}].paths[${pathIndex}].path`
                       ] && (
@@ -509,7 +572,7 @@ export function IngressForm({
                   </div>
                 )}
               </div>
-            </div>
+            </Card>
           ))}
 
         {namespace && (
