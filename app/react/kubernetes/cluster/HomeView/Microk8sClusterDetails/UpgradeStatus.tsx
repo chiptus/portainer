@@ -13,7 +13,6 @@ import { environmentQueryKeys } from '@/react/portainer/environments/queries/que
 import { AlertContainer, alertSettings } from '@@/Alert/Alert';
 import { Icon } from '@@/Icon';
 import { TextTip } from '@@/Tip/TextTip';
-import { Tooltip } from '@@/Tip/Tooltip';
 import { Button } from '@@/buttons';
 import { confirmDestructive } from '@@/modals/confirm';
 import { buildConfirmButton } from '@@/modals/utils';
@@ -33,7 +32,7 @@ export function UpgradeStatus() {
   useEffect(() => {
     // if operationStatus is processing, change the autorefresh rate to 10000ms, otherwise set it to undefined
     if (operationStatus === 'processing') {
-      setAutoRefreshRate(10000);
+      setAutoRefreshRate(3000);
     } else {
       setAutoRefreshRate(undefined);
     }
@@ -77,11 +76,6 @@ export function UpgradeStatus() {
               <Icon icon={Loader2} className="!mr-2 animate-spin-slow" />
             )}
             {environment?.StatusMessage?.summary}
-            <Tooltip
-              message={environment?.StatusMessage?.detail}
-              position="top"
-              setHtmlMessage
-            />
           </div>
           {operationStatus === 'warning' && (
             <Button
@@ -123,6 +117,9 @@ export function UpgradeStatus() {
             </Button>
           )}
         </div>
+        {environment?.StatusMessage?.detail && (
+          <p className="mb-0 text-xs">{environment?.StatusMessage?.detail}</p>
+        )}
         {operationStatus === 'processing' && (
           <TextTip color="blue">
             Further cluster management operations (upgrading, enabling/disabling

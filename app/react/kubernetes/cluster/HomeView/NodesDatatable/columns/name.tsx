@@ -19,7 +19,7 @@ function NameCell({
 }: CellContext<NodeRowData, string>) {
   const nodeName = node.metadata?.name;
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 whitespace-nowrap">
       <Authorized
         authorizations="K8sClusterNodeR"
         childrenUnauthorized={nodeName}

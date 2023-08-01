@@ -111,5 +111,18 @@ func (handler *Handler) microk8sUpdateAddons(w http.ResponseWriter, r *http.Requ
 	}
 
 	handler.cloudManagementService.SubmitRequest(updateAddonsRequest)
+
+	// update the environment status to processing before returning
+	endpoint.StatusMessage = portaineree.EndpointStatusMessage{
+		Summary:         "Updating addons",
+		Detail:          "Enabling/Disabling MicroK8s addons",
+		Operation:       "addons",
+		OperationStatus: "processing",
+	}
+	err = handler.dataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
+	if err != nil {
+		return httperror.InternalServerError("Unable to update the environment", err)
+	}
+
 	return response.JSON(w, updateAddonsRequest)
 }

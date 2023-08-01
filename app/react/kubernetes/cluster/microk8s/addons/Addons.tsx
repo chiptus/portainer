@@ -1,6 +1,5 @@
 import { Loader2 } from 'lucide-react';
 import { Formik } from 'formik';
-import { useRouter } from '@uirouter/react';
 import { useMemo } from 'react';
 import { SchemaOf, object, string } from 'yup';
 
@@ -32,8 +31,6 @@ export function addonsFormValidation(
 }
 
 export function Addons() {
-  const router = useRouter();
-
   const environmentId = useEnvironmentId();
   const { data: environment, ...environmentQuery } =
     useEnvironment(environmentId);
@@ -118,7 +115,13 @@ export function Addons() {
           validateOnMount
           enableReinitialize
         >
-          {AddonsForm}
+          {(formikProps) => (
+            <AddonsForm
+              // eslint-disable-next-line react/jsx-props-no-spreading
+              {...formikProps}
+              isRefetchingAddons={addonsQuery.isRefetching}
+            />
+          )}
         </Formik>
       )}
     </Card>
@@ -142,7 +145,6 @@ export function Addons() {
                   'Request to update addons successfully submitted'
                 );
                 queryClient.refetchQueries(['environments', environmentId]);
-                router.stateService.reload();
               },
               onError: (error) => {
                 notifyError('Error requesting addons update', error as Error);

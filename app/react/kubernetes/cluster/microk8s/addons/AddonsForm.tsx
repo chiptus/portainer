@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Form, FormikProps } from 'formik';
 import { Plus } from 'lucide-react';
+import clsx from 'clsx';
 
 import { useMicroK8sOptions } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/queries';
 import { useAuthorizations } from '@/react/hooks/useUser';
@@ -10,9 +11,14 @@ import { isErrorType } from '@/react/kubernetes/applications/CreateView/applicat
 
 import { Button, LoadingButton } from '@@/buttons';
 import { TextTip } from '@@/Tip/TextTip';
+import { InlineLoader } from '@@/InlineLoader';
 
 import { AddOnFormValue, AddOnOption, K8sAddOnsForm } from './types';
 import { AddOnSelector } from './AddonSelector';
+
+type Props = {
+  isRefetchingAddons: boolean;
+};
 
 export function AddonsForm({
   values,
@@ -21,7 +27,8 @@ export function AddonsForm({
   setFieldValue,
   isSubmitting,
   initialValues,
-}: FormikProps<K8sAddOnsForm>) {
+  isRefetchingAddons,
+}: FormikProps<K8sAddOnsForm> & Props) {
   const isAllowed = useAuthorizations(['K8sClusterW']);
   const environmentId = useEnvironmentId();
   const { data: isProcessing } = useEnvironment(
@@ -133,19 +140,29 @@ export function AddonsForm({
           );
         })}
       </div>
-
+      <div className="mb-5 flex items-center gap-x-4 pt-2">
+        {isAllowed && (
+          <Button
+            className="btn btn-sm btn-light !ml-0"
+            type="button"
+            onClick={addAddon}
+            icon={Plus}
+          >
+            Add addon
+          </Button>
+        )}
+        <div
+          // transition between opacity 0 and 1 for less jarring changes
+          className={clsx(
+            'flex w-full transition-opacity',
+            isRefetchingAddons ? 'opacity-100' : 'opacity-0'
+          )}
+        >
+          <InlineLoader size="xs">Refreshing addons...</InlineLoader>
+        </div>
+      </div>
       {isAllowed && (
         <>
-          <div className="row mb-5 pt-2">
-            <Button
-              className="btn btn-sm btn-light !ml-0"
-              type="button"
-              onClick={addAddon}
-              icon={Plus}
-            >
-              Add addon
-            </Button>
-          </div>
           <LoadingButton
             isLoading={isSubmitting}
             loadingText="Updating addons"
