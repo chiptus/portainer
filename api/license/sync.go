@@ -55,7 +55,7 @@ func (service *Service) SyncLicenses() error {
 		l := ParseLicense(l.LicenseKey, service.expireAbsolute)
 		valid, err := liblicense.ValidateLicense(&l)
 		if err != nil {
-			return err
+			log.Err(err).Msg("invalid license found")
 		}
 		if !valid {
 			l.Revoked = true

@@ -27,11 +27,6 @@ func (handler *Handler) logout(w http.ResponseWriter, r *http.Request) (*authMid
 		log.Warn().Err(err).Msg("unable to retrieve user details from authentication token")
 	}
 
-	err = handler.LicenseService.SyncLicenses()
-	if err != nil {
-		log.Warn().Err(err).Msg("unable to refresh license info")
-	}
-
 	if tokenData != nil {
 		handler.KubernetesTokenCacheManager.RemoveUserFromCache(tokenData.ID)
 	}

@@ -85,7 +85,7 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 		for _, l := range service.licenses {
 			if l.Type != liblicense.PortainerLicenseSubscription {
 				if force {
-					err := service.dataStore.License().DeleteLicense(l.LicenseKey)
+					err := service.DeleteLicense(l.LicenseKey)
 					if err != nil {
 						return nil, err
 					}
@@ -110,7 +110,7 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 				continue
 			}
 			if force {
-				err := service.dataStore.License().DeleteLicense(l.LicenseKey)
+				err := service.DeleteLicense(l.LicenseKey)
 				if err != nil {
 					return nil, err
 				}
@@ -135,7 +135,7 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 				}
 			}
 			if force {
-				err := service.dataStore.License().DeleteLicense(l.LicenseKey)
+				err := service.DeleteLicense(l.LicenseKey)
 				if err != nil {
 					return nil, err
 				}
@@ -153,7 +153,7 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 	default:
 		for _, l := range service.licenses {
 			if force {
-				err := service.dataStore.License().DeleteLicense(l.LicenseKey)
+				err := service.DeleteLicense(l.LicenseKey)
 				if err != nil {
 					return nil, err
 				}
@@ -224,7 +224,7 @@ func (service *Service) DeleteLicense(licenseKey string) error {
 		return err
 	}
 
-	var updated []liblicense.PortainerLicense
+	updated := make([]liblicense.PortainerLicense, 0)
 	for _, l := range service.licenses {
 		if l.LicenseKey != licenseKey {
 			updated = append(updated, l)
