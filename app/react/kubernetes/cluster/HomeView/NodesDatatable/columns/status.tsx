@@ -17,15 +17,22 @@ function StatusCell({
   const status = getStatus(node);
 
   const isDeleting =
-    node.metadata?.annotations?.['portainer.ip/removing-node'] === 'true';
+    node.metadata?.annotations?.['portainer.io/removing-node'] === 'true';
   if (isDeleting) {
     return <StatusBadge color="warning">Removing</StatusBadge>;
   }
 
   return (
-    <StatusBadge color={status === 'Ready' ? 'success' : 'warning'}>
-      {status}
-    </StatusBadge>
+    <>
+      <StatusBadge color={status === 'Ready' ? 'success' : 'warning'}>
+        {status}
+      </StatusBadge>
+      {node.spec?.unschedulable && (
+        <StatusBadge color="warning" className="mt-2">
+          SchedulingDisabled
+        </StatusBadge>
+      )}
+    </>
   );
 }
 

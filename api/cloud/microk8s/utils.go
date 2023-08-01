@@ -285,7 +285,7 @@ func ExecuteAnnotateNodeCommandOnNode(user, password, passphrase, privateKey, ma
 	defer sshClient.Close()
 
 	// Annotate the node with portainer.io/removing-node=true
-	annotateCommand := fmt.Sprintf("microk8s kubectl annotate --overwrite node %s portainer.ip/removing-node=true", nodeToAnnotate)
+	annotateCommand := fmt.Sprintf("microk8s kubectl annotate --overwrite node %s portainer.io/removing-node=true", nodeToAnnotate)
 
 	log.Debug().Msgf("Annotating node %s with command: %s", nodeToAnnotate, annotateCommand)
 	return sshClient.RunCommand(annotateCommand, os.Stdout)

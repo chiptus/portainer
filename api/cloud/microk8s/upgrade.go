@@ -279,22 +279,20 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 			// Added waiting to allow the microk8s refresh to complete/settle.
 			time.Sleep(4 * time.Second)
 
-			if !isSingleNodeCluster {
-				log.Info().Str("provider", portaineree.CloudProviderMicrok8s).Msgf("Resuming pod scheduling on node %s (IP %s).", node.HostName, node.IP)
-				u.setMessage(u.endpoint.ID, "Upgrading cluster", fmt.Sprintf("Resuming pod scheduling on node %s (IP %s).", node.HostName, node.IP), "processing")
+			log.Info().Str("provider", portaineree.CloudProviderMicrok8s).Msgf("Resuming pod scheduling on node %s (IP %s).", node.HostName, node.IP)
+			u.setMessage(u.endpoint.ID, "Upgrading cluster", fmt.Sprintf("Resuming pod scheduling on node %s (IP %s).", node.HostName, node.IP), "processing")
 
-				// Step 3: uncordon node
-				if err = sshClient.RunCommand(
-					"microk8s kubectl uncordon "+node.HostName,
-					os.Stdout,
-				); err != nil {
-					u.nodes[index].UpgradeStatus = "failed"
-					u.nodes[index].Error = err
+			// Step 3: uncordon node - no matter if the refresh was successful or not
+			if err = sshClient.RunCommand(
+				"microk8s kubectl uncordon "+node.HostName,
+				os.Stdout,
+			); err != nil {
+				u.nodes[index].UpgradeStatus = "failed"
+				u.nodes[index].Error = err
 
-					log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Err(err).Msgf("Error when resuming pod scheduling on node %s (IP %s). Continuing to next node.", node.HostName, node.IP)
-					u.setMessage(u.endpoint.ID, "Upgrading cluster", fmt.Sprintf("Error when resuming pod scheduling on node %s (IP %s). Continuing to next node.", node.HostName, node.IP), "processing")
-					continue
-				}
+				log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Err(err).Msgf("Error when resuming pod scheduling on node %s (IP %s). Continuing to next node.", node.HostName, node.IP)
+				u.setMessage(u.endpoint.ID, "Upgrading cluster", fmt.Sprintf("Error when resuming pod scheduling on node %s (IP %s). Continuing to next node.", node.HostName, node.IP), "processing")
+				continue
 			}
 		}
 		u.nodes[index].UpgradeStatus = "updated"
