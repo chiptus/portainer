@@ -5,9 +5,11 @@ import {
   type Icon as IconType,
   Loader2,
   XCircle,
+  MinusCircle,
 } from 'lucide-react';
 
 import { Icon, IconMode } from '@@/Icon';
+import { Tooltip } from '@@/Tip/Tooltip';
 
 import { DeploymentStatus, EdgeStack, StatusType } from '../../types';
 
@@ -15,7 +17,7 @@ export function EdgeStackStatus({ edgeStack }: { edgeStack: EdgeStack }) {
   const status = Object.values(edgeStack.Status);
   const lastStatus = _.compact(status.map((s) => _.last(s.Status)));
 
-  const { icon, label, mode, spin } = getStatus(
+  const { icon, label, mode, spin, tooltip } = getStatus(
     edgeStack.NumDeployments,
     lastStatus
   );
@@ -24,6 +26,7 @@ export function EdgeStackStatus({ edgeStack }: { edgeStack: EdgeStack }) {
     <div className="mx-auto inline-flex items-center gap-2">
       {icon && <Icon icon={icon} spin={spin} mode={mode} />}
       {label}
+      {tooltip && <Tooltip message={tooltip} />}
     </div>
   );
 }
@@ -36,7 +39,19 @@ function getStatus(
   icon?: IconType;
   spin?: boolean;
   mode?: IconMode;
+  tooltip?: string;
 } {
+  if (!numDeployments) {
+    return {
+      label: 'Unavailable',
+      icon: MinusCircle,
+      spin: false,
+      mode: 'secondary',
+      tooltip:
+        "Your edge stack's status is currently unavailable due to the absence of an available environment in your edge group",
+    };
+  }
+
   if (envStatus.length < numDeployments) {
     return {
       label: 'Deploying',
