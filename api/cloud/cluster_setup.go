@@ -155,21 +155,24 @@ func (service *CloudManagementService) restoreTasks() {
 		if endpoint.Status == portaineree.EndpointStatusProvisioning {
 			found := false
 			for _, task := range tasks {
-				found = task.EndpointID == endpoint.ID
+				if task.EndpointID == endpoint.ID {
+					found = true
+					break
+				}
 			}
 
 			if !found {
 				// Get the associated endpoint and set it's status to error and error detail to timed out
 				err := service.setStatus(endpoint.ID, 4)
 				if err != nil {
-					log.Error().Err(err).Msg("unable to update endpoint status in database")
+					log.Error().Err(err).Int("endpoint_id", int(endpoint.ID)).Msg("unable to update endpoint status in database")
 				}
 
 				summary := "Provisioning Error"
 				detail := "Provisioning of this environment has been interrupted and cannot be recovered. This may be due to a Portainer restart. Please check and delete the environment in the cloud platform's portal and remove here."
 				err = service.setMessageHandler(endpoint.ID, "")(summary, detail, "error")
 				if err != nil {
-					log.Error().Err(err).Msg("unable to update endpoint status message in database")
+					log.Error().Err(err).Int("endpoint_id", int(endpoint.ID)).Msg("unable to update endpoint status message in database")
 				}
 			}
 		}
@@ -186,18 +189,18 @@ func (service *CloudManagementService) restoreTasks() {
 			// Get the associated endpoint and set it's status to error and error detail to timed out
 			err := service.setStatus(task.EndpointID, portaineree.EndpointStatusError)
 			if err != nil {
-				log.Error().Err(err).Msg("unable to update endpoint status in database")
+				log.Error().Err(err).Int("endpoint_id", int(task.EndpointID)).Msg("unable to update endpoint status in database")
 			}
 
 			err = service.setMessageHandler(task.EndpointID, "")("Provisioning Error", "Timed out", "error")
 			if err != nil {
-				log.Error().Err(err).Msg("unable to update endpoint status message in database")
+				log.Error().Err(err).Int("endpoint_id", int(task.EndpointID)).Msg("unable to update endpoint status message in database")
 			}
 
 			// Remove the task from the database because it's too old
 			err = service.dataStore.CloudProvisioning().Delete(task.ID)
 			if err != nil {
-				log.Warn().Err(err).Msg("unable to remove task from the database")
+				log.Warn().Err(err).Int("endpoint_id", int(task.EndpointID)).Msg("unable to remove task from the database")
 			}
 
 			continue
@@ -220,10 +223,10 @@ func (service *CloudManagementService) restoreTasks() {
 				// endpoint has been deleted
 				err := service.dataStore.CloudProvisioning().Delete(task.ID)
 				if err != nil {
-					log.Warn().Err(err).Msg("unable to remove task from the database")
+					log.Warn().Err(err).Int("endpoint_id", int(task.EndpointID)).Msg("unable to remove task from the database")
 				}
 			} else {
-				log.Error().Err(err).Msg("unable to restore KaaS provisioning task")
+				log.Error().Err(err).Int("endpoint_id", int(task.EndpointID)).Msg("unable to restore KaaS provisioning task")
 			}
 		} else {
 			go service.provisionKaasClusterTask(task)
@@ -442,7 +445,7 @@ func (service *CloudManagementService) getKaasCluster(task *portaineree.CloudPro
 	}
 
 	if err != nil {
-		log.Error().Err(err).Msg("failed to get kaasCluster")
+		log.Error().Err(err).Int("endpoint_id", int(task.EndpointID)).Msg("failed to get kaasCluster")
 		err = fmt.Errorf("%s is not responding", task.Provider)
 	}
 
@@ -538,7 +541,7 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 			log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Int("endpoint_id", int(task.EndpointID)).Msg("waiting for cluster")
 
 		case ProvisioningStateAgentSetup:
-			log.Info().Str("state", state.String()).Int("retries", task.Retries).Msg("process state")
+			log.Info().Str("state", state.String()).Int("endpoint_id", int(task.EndpointID)).Int("retries", task.Retries).Msg("process state")
 
 			if kubeClient == nil {
 				kubeClient, err = service.clientFactory.CreateKubeClientFromKubeConfig(task.ClusterID, []byte(cluster.KubeConfig))
@@ -562,7 +565,7 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 			err = kubeClient.DeployPortainerAgent(useNodePort)
 			if err != nil {
 				log.Info().
-					Err(err).
+					Err(err).Int("endpoint_id", int(task.EndpointID)).
 					Msg("failed to deploy portainer agent")
 				err = checkFatal(err)
 				task.Retries++
@@ -590,6 +593,7 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 
 				log.Debug().
 					Err(err).
+					Int("endpoint_id", int(task.EndpointID)).
 					Msg("failed to get service ip or hostname")
 			}
 
@@ -668,7 +672,7 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 		// Print state errors and retry counter.
 		if err != nil {
 			stateStr := ProvisioningState(task.State).String()
-			log.Error().Str("state", stateStr).Err(err).Msg("failure in state")
+			log.Error().Str("state", stateStr).Int("endpoint_id", int(task.EndpointID)).Err(err).Msg("failure in state")
 
 			log.Info().
 				Str("state", stateStr).
@@ -864,11 +868,11 @@ func (service *CloudManagementService) processResult(result *cloudPrevisioningRe
 
 	setMessage := service.setMessageHandler(result.endpointID, "")
 	if result.err != nil {
-		log.Error().Err(result.err).Msg("unable to provision cluster")
+		log.Error().Err(result.err).Int("endpoint_id", int(result.endpointID)).Msg("unable to provision cluster")
 
 		err := service.setStatus(result.endpointID, 4)
 		if err != nil {
-			log.Error().Err(err).Msg("unable to update endpoint status in database")
+			log.Error().Err(err).Int("endpoint_id", int(result.endpointID)).Msg("unable to update endpoint status in database")
 		}
 
 		// Default error summary.
@@ -882,16 +886,16 @@ func (service *CloudManagementService) processResult(result *cloudPrevisioningRe
 
 		err = setMessage(result.errSummary, result.err.Error(), "error")
 		if err != nil {
-			log.Error().Err(err).Msg("unable to update endpoint status message in database")
+			log.Error().Err(err).Int("endpoint_id", int(result.endpointID)).Msg("unable to update endpoint status message in database")
 		}
 	} else {
 		err := service.setStatus(result.endpointID, 1)
 		if err != nil {
-			log.Error().Err(err).Msg("unable to update endpoint status in database")
+			log.Error().Err(err).Int("endpoint_id", int(result.endpointID)).Msg("unable to update endpoint status in database")
 		}
 		err = setMessage("", "", "")
 		if err != nil {
-			log.Error().Err(err).Msg("unable to update endpoint status message in database")
+			log.Error().Err(err).Int("endpoint_id", int(result.endpointID)).Msg("unable to update endpoint status message in database")
 		}
 	}
 
@@ -904,7 +908,7 @@ func (service *CloudManagementService) processResult(result *cloudPrevisioningRe
 
 	err := service.dataStore.CloudProvisioning().Delete(result.taskID)
 	if err != nil {
-		log.Error().Err(err).Msg("unable to remove task from the database")
+		log.Error().Err(err).Int("endpoint_id", int(result.endpointID)).Msg("unable to remove task from the database")
 	}
 }
 
