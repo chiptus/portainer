@@ -403,7 +403,7 @@ type (
 		PerDeviceConfigsPath string `example:"configs"`
 
 		// StackFileVersion represents the version of the stack file, such yaml, hcl, manifest file
-		StackFileVersion int `json:"StackFileVersion"`
+		StackFileVersion int `json:"StackFileVersion" example:"1"`
 		// PreviousDeploymentInfo represents the previous deployment info of the stack
 		PreviousDeploymentInfo *portainer.StackDeploymentInfo `json:"PreviousDeploymentInfo"`
 		// EnvVars is a list of environment variables to inject into the stack

@@ -82,6 +82,8 @@ func (migrator *Migrator) rebuildEdgeStackFileSystemWithVersionForDB100() error 
 		}
 
 		edgeStackIdentifier := strconv.Itoa(int(edgeStack.ID))
+
+		edgeStack.StackFileVersion = edgeStack.Version
 		edgeStackVersionFolder := migrator.fileService.GetEdgeStackProjectPathByVersion(edgeStackIdentifier, edgeStack.StackFileVersion, commitHash)
 
 		// Conduct the source folder checks to avoid unnecessary error return
@@ -124,6 +126,13 @@ func (migrator *Migrator) rebuildEdgeStackFileSystemWithVersionForDB100() error 
 		err = migrator.fileService.SafeMoveDirectory(edgeStack.ProjectPath, edgeStackVersionFolder)
 		if err != nil {
 			return fmt.Errorf("failed to copy edge stack %d project folder: %w", edgeStack.ID, err)
+		}
+
+		err = migrator.edgeStackService.UpdateEdgeStackFunc(edgeStack.ID, func(edgeStack *portaineree.EdgeStack) {
+			edgeStack.StackFileVersion = edgeStack.Version
+		})
+		if err != nil {
+			return fmt.Errorf("failed to update edge stack %d file version: %w", edgeStack.ID, err)
 		}
 	}
 	return nil
@@ -320,7 +329,9 @@ func (migrator *Migrator) rebuildStackFileSystemWithVersionForDB100() error {
 		}
 
 		stackIdentifier := strconv.Itoa(int(stack.ID))
-		stackVersionFolder := migrator.fileService.GetEdgeStackProjectPathByVersion(stackIdentifier, stack.StackFileVersion, commitHash)
+
+		stack.StackFileVersion = 1
+		stackVersionFolder := migrator.fileService.GetStackProjectPathByVersion(stackIdentifier, stack.StackFileVersion, commitHash)
 
 		// Conduct the source folder checks to avoid unnecessary error return, same
 		// as the above edge stack migration.
@@ -343,6 +354,12 @@ func (migrator *Migrator) rebuildStackFileSystemWithVersionForDB100() error {
 		if err != nil {
 			return fmt.Errorf("failed to copy stack %d project folder: %w", stack.ID, err)
 		}
+
+		err = migrator.stackService.Update(stack.ID, &stack)
+		if err != nil {
+			return fmt.Errorf("failed to update stack %d file version: %w", stack.ID, err)
+		}
+
 	}
 	return nil
 }
