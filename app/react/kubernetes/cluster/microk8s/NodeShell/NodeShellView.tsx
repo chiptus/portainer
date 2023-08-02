@@ -1,6 +1,3 @@
-// url should be somthing like /endpoints/:endpointid/node-shell?nodeIP=:nodeIP
-// window
-
 import { useCurrentStateAndParams } from '@uirouter/react';
 import { Terminal } from 'xterm';
 import { fit } from 'xterm/lib/addons/fit/fit';

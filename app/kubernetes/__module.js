@@ -28,6 +28,12 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
             PortainerEndpointTypes.EdgeAgentOnKubernetesEnvironment,
           ];
 
+          const nextTransition = $state.transition && $state.transition.to();
+          const nextTransitionName = nextTransition ? nextTransition.name : '';
+          if (nextTransitionName === 'kubernetes.nodeshell' && !endpoint) {
+            return;
+          }
+
           if (!kubeTypes.includes(endpoint.Type)) {
             $state.go('portainer.home');
             return;
@@ -63,6 +69,9 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
               params = { redirect: true, environmentId: endpoint.Id, environmentName: endpoint.Name, route: 'kubernetes.dashboard' };
             } else {
               Notifications.error('Failed loading environment', e);
+            }
+            if (nextTransitionName === 'kubernetes.nodeshell') {
+              return;
             }
             $state.go('portainer.home', params, { reload: true, inherit: false });
           }

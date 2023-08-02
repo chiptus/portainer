@@ -105,6 +105,11 @@ angular
 
                 return endpoint;
               } catch (e) {
+                const nextTransition = $state.transition && $state.transition.to();
+                const nextTransitionName = nextTransition ? nextTransition.name : '';
+                if (nextTransitionName === 'kubernetes.nodeshell') {
+                  return;
+                }
                 Notifications.error('Failed loading environment', e);
                 $state.go('portainer.home', {}, { reload: true });
                 return;
