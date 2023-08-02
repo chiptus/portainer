@@ -248,14 +248,42 @@ func (service *CloudManagementService) Microk8sProvisionCluster(req mk8s.Microk8
 		}
 	}
 
-	// We activate addons on the master node
-	if len(req.Addons) > 0 {
+	// Activate addons on relevant nodes.
+	service.activateAddons(
+		req.EnvironmentID,
+		req.Addons,
+		req.MasterNodes,
+		req.WorkerNodes,
+		user,
+		password,
+		passphrase,
+		privateKey,
+	)
+
+	// Microk8s clusters do not have a cloud provider cluster identifier
+	// We currently generate a random identifier for these clusters using UUIDv4
+	uid, err := uuid.NewV4()
+	if err != nil {
+		return "", err
+	}
+	return uid.String(), nil
+}
+
+func (service *CloudManagementService) activateAddons(
+	environmentID portaineree.EndpointID,
+	addons []portaineree.MicroK8sAddon,
+	masterNodes []string,
+	workerNodes []string,
+	user, password, passphrase, privateKey string,
+) {
+	setMessage := service.setMessageHandler(environmentID, "addons")
+	if len(addons) > 0 {
 		setMessage("Creating MicroK8s cluster", "Enabling MicroK8s addons", "processing")
 
 		allAvailableAddons := mk8s.GetAllAvailableAddons()
 
 		errCount := 0
-		for _, addon := range req.Addons {
+		for _, addon := range addons {
 			addonConfig := allAvailableAddons.GetAddon(addon.Name)
 			if addonConfig == nil {
 				log.Warn().Msgf("addon does not exists in the list of available addons: %s", addon)
@@ -265,12 +293,12 @@ func (service *CloudManagementService) Microk8sProvisionCluster(req mk8s.Microk8
 			var ips []string
 			switch addonConfig.RequiredOn {
 			case "masters":
-				ips = req.MasterNodes
+				ips = masterNodes
 			case "all":
-				ips = req.MasterNodes
-				ips = append(ips, req.WorkerNodes...)
+				ips = masterNodes
+				ips = append(ips, workerNodes...)
 			default:
-				ips = append(ips, req.MasterNodes[0])
+				ips = append(ips, masterNodes[0])
 			}
 
 			log.Debug().Msgf("Enabling addon (%s) on all the master nodes (ips: %s)", addon, strings.Join(ips[:], ", "))
@@ -286,7 +314,7 @@ func (service *CloudManagementService) Microk8sProvisionCluster(req mk8s.Microk8
 
 					err = mk8s.EnableMicrok8sAddonsOnNode(sshClientNode, addon)
 					if err != nil {
-						// Rather than fail the whole thing.  Warn the user and allow them to manually try to enable the addon
+						// Rather than fail the whole thing. Warn the user and allow them to manually try to enable the addon
 						log.Warn().AnErr("error", err).Msgf("failed to enable microk8s addon %s on node. error: ", addon)
 						errCount++
 					}
@@ -295,17 +323,9 @@ func (service *CloudManagementService) Microk8sProvisionCluster(req mk8s.Microk8
 		}
 
 		if errCount > 0 {
-			log.Error().Msgf("failed to enable %d microk8s addons on node.  Please enable these manually", errCount)
+			log.Error().Msgf("failed to enable %d microk8s addons on node. Please enable these manually", errCount)
 		}
 	}
-
-	// Microk8s clusters do not have a cloud provider cluster identifier
-	// We currently generate a random identifier for these clusters using UUIDv4
-	uid, err := uuid.NewV4()
-	if err != nil {
-		return "", err
-	}
-	return uid.String(), nil
 }
 
 func urlToMasterNode(url string) string {
@@ -501,6 +521,17 @@ func (service *CloudManagementService) microk8sAddNodes(endpoint *portaineree.En
 			return fmt.Errorf("failed to join node to cluster. %w", err)
 		}
 	}
+
+	service.activateAddons(
+		req.EndpointID,
+		endpoint.CloudProvider.AddonsWithArgs,
+		req.MasterNodesToAdd,
+		req.WorkerNodesToAdd,
+		user,
+		password,
+		passphrase,
+		privateKey,
+	)
 
 	return nil
 }
