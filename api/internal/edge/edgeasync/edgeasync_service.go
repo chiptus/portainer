@@ -139,7 +139,7 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 		*rollbackTo = edgeStack.PreviousDeploymentInfo.FileVersion
 	} else {
 		if targetVersion != 0 && targetVersion != edgeStack.StackFileVersion {
-			log.Warn().Msgf("Invalid stack file version %d being requested, fallback to the latest stack file version %d", targetVersion, edgeStack.StackFileVersion)
+			log.Debug().Msgf("Invalid stack file version %d being requested, fallback to the latest stack file version %d", targetVersion, edgeStack.StackFileVersion)
 		}
 
 		// If the requested version is not the previous version, use the latest stack file version

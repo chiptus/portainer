@@ -11,6 +11,7 @@ import (
 )
 
 type StaggerScheduleOperation struct {
+	edgeStackID portaineree.EdgeStackID
 	// currentIndex is used to track the current index of the stagger queue
 	currentIndex int
 	// length is used to track the length of the stagger queue
@@ -23,10 +24,17 @@ type StaggerScheduleOperation struct {
 	paused bool
 	// rollback is used to track if the stagger workflow should be rolled back
 	rollback bool
-
-	// todo: support the below two fields
-	timeout             time.Duration
-	updateDelay         time.Duration
+	// timeout represents the timeout duration for each endpoint to update
+	timeout time.Duration
+	// timeoutTimerMap is used to maintain a list of timeout timers for each endpoints
+	timeoutTimerMap map[portaineree.EndpointID]*time.Timer
+	// updateDelay represents the delay duration for each endpoint to update
+	updateDelay time.Duration
+	// updateDelayMap is used to maintain a list of update delay between each stagger queue
+	// the key is currentIndex. the value represents the minimum time delay required before
+	// the currentIndex stagger queue can be updated, meaning it cannot be updated before this time.
+	updateDelayMap map[int]time.Time
+	// updateFailureAction represents the action to be taken if one endpoint is failed to update
 	updateFailureAction portaineree.EdgeUpdateFailureAction
 }
 
@@ -83,46 +91,85 @@ func (sso *StaggerScheduleOperation) UpdateStaggerQueue(endpointID portaineree.E
 
 	isStaggeredEndpoint := false // it represents if the endpoint is in the current stagger queue
 	for _, staggeredEndpoint := range staggeredEndpoints {
-		// if we found a matched endpoint, we need to mark it
-		// and update the endpoint status later as we need to
-		// interate all current staggered endpoints to collect
-		// the status
 		if staggeredEndpoint == endpointID {
+			// if we found a matched endpoint, we need to mark it and update the endpoint status later
+			// as we need to walk all current staggered endpoints to collect the status
 			isStaggeredEndpoint = true
+
+			currentStatus := sso.endpointStatus[staggeredEndpoint]
+			if currentStatus != portainer.EdgeStackStatusPending {
+				// There is a chance that the timeout timer cannot be stopped in time, so we need to
+				// check if the endpoint status is pending before we update the status
+				return
+			}
 			sso.endpointStatus[staggeredEndpoint] = status
+			log.Debug().Int("status", int(status)).
+				Int("endpointID", int(endpointID)).
+				Msg("Update stagger queue status")
+
+			switch status {
+			case portainer.EdgeStackStatusRunning:
+				// stop the timeout timer
+				sso.StopTimer(staggeredEndpoint)
+
+			case portainer.EdgeStackStatusError:
+				// stop the timeout timer
+				sso.StopTimer(staggeredEndpoint)
+
+				if sso.updateFailureAction == portaineree.EdgeUpdateFailureActionContinue {
+					// ignore
+
+				} else if sso.updateFailureAction == portaineree.EdgeUpdateFailureActionPause {
+					log.Debug().Msg("An endpoint is failed to update, stagger workflow starts to pause")
+
+					// if the update failure action is pause and we found an error, it
+					// means we need to pause the entire stagger workflow
+					sso.SetPaused(true)
+					return
+
+				} else if sso.updateFailureAction == portaineree.EdgeUpdateFailureActionRollback {
+					log.Debug().Msg("An endpoint is failed to update, stagger workflow starts to rollback")
+
+					// if the update failure action is rollback, we need to rollback the
+					// entire stagger workflow
+					sso.SetRollback(true)
+
+					// with rolling back the current stagger queue, we need to overwrite the
+					// current endpoint status to pending from Error
+					sso.endpointStatus[staggeredEndpoint] = portainer.EdgeStackStatusPending
+					return
+
+				} else {
+					log.Error().Msgf("Unsupported update failure action: %d", sso.updateFailureAction)
+				}
+
+			case portainer.EdgeStackStatusPending:
+				allowToMoveToNextStaggerQueue = false
+			}
+
+			continue
 		}
 
 		endpointStatus := sso.endpointStatus[staggeredEndpoint]
+		log.Debug().Int("status", int(endpointStatus)).
+			Int("endpointID", int(staggeredEndpoint)).
+			Msg("Update stagger queue status")
+
 		switch endpointStatus {
 		case portainer.EdgeStackStatusRunning:
+			// ignore
 
 		case portainer.EdgeStackStatusError:
-			allowToMoveToNextStaggerQueue = false
-
 			if sso.updateFailureAction == portaineree.EdgeUpdateFailureActionContinue {
-				// if the update failure action is continue, we can ignore the error
+				// If there is error in other endpoint in the same stagger queue and
+				// the failure action is continue, we should ignore it
 				allowToMoveToNextStaggerQueue = true
+
 			} else if sso.updateFailureAction == portaineree.EdgeUpdateFailureActionPause {
-				log.Debug().Msg("Stagger workflow is paused after updating stagger queue, skip")
-
-				// if the update failure action is pause and we found an error, it
-				// means we need to pause the entire stagger workflow
-				sso.SetPaused(true)
-
-				return
+				allowToMoveToNextStaggerQueue = false
 
 			} else if sso.updateFailureAction == portaineree.EdgeUpdateFailureActionRollback {
-				log.Debug().Msg("An endpoint is failed to update, stagger workflow starts to rollback")
-
-				// if the update failure action is rollback, we need to rollback the
-				// entire stagger workflow
-				sso.SetRollback(true)
-
-				// with rolling back the current stagger queue, we need to overwrite the
-				// current endpoint status to pending from Error
-				sso.endpointStatus[staggeredEndpoint] = portainer.EdgeStackStatusPending
-
-				return
+				allowToMoveToNextStaggerQueue = false
 
 			} else {
 				log.Error().Msgf("Unsupported update failure action: %d", sso.updateFailureAction)
@@ -145,7 +192,16 @@ func (sso *StaggerScheduleOperation) UpdateStaggerQueue(endpointID portaineree.E
 		// if all the endpoints in the current stagger queue are okay,
 		// we can move to the next staggered queue
 		sso.MoveToNextQueue()
-		return
+		if sso.updateDelay > 0 {
+			// if there is update delay, we need to calculate the minimum time delay required before
+			// the next stagger queue(currentIndex) can be updated. That is, the next stagger queue
+			// cannot be updated before this time.
+			// We check the time delay in CanProcessStaggerJob method
+			sso.updateDelayMap[sso.currentIndex] = time.Now().Add(sso.updateDelay)
+			log.Debug().Int("currentIndex", sso.currentIndex).
+				Time("updateDelay", sso.updateDelayMap[sso.currentIndex]).
+				Msg("Set update delay for stagger queue")
+		}
 	}
 }
 
@@ -160,6 +216,9 @@ func (sso *StaggerScheduleOperation) RollbackStaggerQueue(endpointID portaineree
 		if staggeredEndpoint == endpointID {
 			isStaggeredEndpoint = true
 
+			log.Debug().Int("status", int(status)).
+				Int("endpointID", int(endpointID)).
+				Msg("Update stagger queue status")
 			switch status {
 			case portainer.EdgeStackStatusRunning:
 				if rollbackTo == nil {
@@ -168,6 +227,8 @@ func (sso *StaggerScheduleOperation) RollbackStaggerQueue(endpointID portaineree
 					// to update the endpoint status to Running so that it can be processed in the next
 					// round of stagger queue rollback
 					sso.endpointStatus[staggeredEndpoint] = portainer.EdgeStackStatusRunning
+					allowToRollbackStaggerQueue = false
+					break
 				}
 				// If the incoming status is Ok, it means that the endpoint is rolled back. We need to
 				// update the endpoint status to Pending
@@ -220,5 +281,14 @@ func (sso *StaggerScheduleOperation) RollbackStaggerQueue(endpointID portaineree
 	if allowToRollbackStaggerQueue {
 		sso.MoveToNextQueue()
 	}
+}
 
+func (sso *StaggerScheduleOperation) StopTimer(endpointID portaineree.EndpointID) {
+	timer, ok := sso.timeoutTimerMap[endpointID]
+	if ok {
+		log.Debug().Int("endpointID", int(endpointID)).
+			Msg("Stop timeout timer")
+		timer.Stop()
+		delete(sso.timeoutTimerMap, endpointID)
+	}
 }

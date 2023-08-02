@@ -183,7 +183,7 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 		// We pass StackFileVersion instead of the file version that each agent is using intentionally
 		// because it is used to differentiate the stagger workflow for the same edge stack, not for telling
 		// stagger which version of the edge stack file each agent is using
-		handler.staggerService.UpdateStaggerStatusIfNeeds(stackID, stack.StackFileVersion, payload.RollbackTo, payload.EndpointID, status)
+		handler.staggerService.UpdateStaggerEndpointStatusIfNeeds(stackID, stack.StackFileVersion, payload.RollbackTo, payload.EndpointID, status)
 	}
 
 	return stack, nil
@@ -202,6 +202,9 @@ func updateEnvStatus(edgeStack *portaineree.EdgeStack, environmentStatus portain
 
 	if status == portainer.EdgeStackStatusRunning {
 		if payload.RollbackTo != nil && edgeStack.PreviousDeploymentInfo != nil {
+			log.Debug().Int("rollbackTo", *payload.RollbackTo).
+				Int("endpointID", int(payload.EndpointID)).
+				Msg("rollback to the previous version")
 			if edgeStack.PreviousDeploymentInfo.FileVersion == *payload.RollbackTo {
 				// if the endpoint is rolled back successfully, we should update the endpoint's edge
 				// status's deploymentInfo to the previous version.
@@ -215,7 +218,7 @@ func updateEnvStatus(edgeStack *portaineree.EdgeStack, environmentStatus portain
 			}
 
 			if edgeStack.StackFileVersion != *payload.RollbackTo {
-				log.Warn().Int("rollbackTo", *payload.RollbackTo).
+				log.Debug().Int("rollbackTo", *payload.RollbackTo).
 					Int("previousVersion", edgeStack.PreviousDeploymentInfo.FileVersion).
 					Msg("unsupported rollbackTo version, fallback to the latest version")
 			}

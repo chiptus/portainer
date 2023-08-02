@@ -2,6 +2,7 @@ package staggers
 
 import (
 	"fmt"
+	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
@@ -18,14 +19,25 @@ func GetStaggerPoolKey(edgeStackID portaineree.EdgeStackID, stackFileVersion int
 
 func (service *Service) startStaggerPool() {
 	log.Debug().Msg("Starting stagger pool")
+
+	ticker := time.NewTicker(7 * time.Second)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-service.shutdownCtx.Done():
-			log.Debug().Msg("Stopping stagger pool")
 			// todo: if Stagger pool is not empty and there are unfinished stagger queues
 			// we need to save the current stagger queue state to the database
+			log.Debug().Msg("Stopping stagger pool")
 			close(service.staggerJobQueue)
 			close(service.staggerStatusJobQueue)
+
+			service.staggerPoolMtx.Lock()
+			for _, scheduleOperation := range service.staggerPool {
+				for _, timer := range scheduleOperation.timeoutTimerMap {
+					timer.Stop()
+				}
+			}
+			service.staggerPoolMtx.Unlock()
 			return
 
 		case newJob := <-service.staggerJobQueue:
@@ -39,27 +51,42 @@ func (service *Service) startStaggerPool() {
 				Int("edgeStackID", int(newJob.EdgeStackID)).
 				Msg("Received stagger job")
 
+			timeoutDuration, err := time.ParseDuration(newJob.Config.Timeout)
+			if err != nil {
+				log.Error().Err(err).
+					Msgf("Failed to parse timeout duration: %s", newJob.Config.Timeout)
+				break
+			}
+
+			updateDelayDuration, err := time.ParseDuration(newJob.Config.UpdateDelay)
+			if err != nil {
+				log.Error().Err(err).
+					Msgf("Failed to parse update delay duration: %s", newJob.Config.UpdateDelay)
+				break
+			}
+
 			scheduleOperation := StaggerScheduleOperation{
-				currentIndex:   0,
-				length:         0,
-				endpointStatus: make(map[portaineree.EndpointID]portainer.EdgeStackStatusType, 0),
-				// todo: assign actual timeout duration
-				timeout: 0,
-				// todo: assign actual update delay duration
-				updateDelay:         0,
+				edgeStackID:         newJob.EdgeStackID,
+				currentIndex:        0,
+				length:              0,
+				endpointStatus:      make(map[portaineree.EndpointID]portainer.EdgeStackStatusType, 0),
+				timeoutTimerMap:     make(map[portaineree.EndpointID]*time.Timer, 0),
+				timeout:             timeoutDuration,
+				updateDelay:         updateDelayDuration,
+				updateDelayMap:      make(map[int]time.Time, 0),
 				updateFailureAction: newJob.Config.UpdateFailureAction,
 			}
 
 			// 1. collect all related endpoints
 			endpointIDs := []portaineree.EndpointID{}
-			err := service.dataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
-				edgeStack, err := service.dataStore.EdgeStack().EdgeStack(newJob.EdgeStackID)
+			err = service.dataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
+				edgeStack, err := tx.EdgeStack().EdgeStack(newJob.EdgeStackID)
 				if err != nil {
 					return err
 				}
 
 				for _, edgeGroupID := range edgeStack.EdgeGroups {
-					edgeGroup, err := service.dataStore.EdgeGroup().Read(edgeGroupID)
+					edgeGroup, err := tx.EdgeGroup().Read(edgeGroupID)
 					if err != nil {
 						return err
 					}
@@ -111,51 +138,53 @@ func (service *Service) startStaggerPool() {
 				Int("endpointID", int(newStatusJob.EndpointID)).
 				Msgf("Received stagger status job: %d", newStatusJob.Status)
 
-			poolKey := GetStaggerPoolKey(newStatusJob.EdgeStackID, newStatusJob.StackFileVersion)
-			service.staggerPoolMtx.RLock()
+			service.ProcessStatusJob(newStatusJob)
 
-			scheduleOperation, ok := service.staggerPool[poolKey]
-			if !ok {
-				log.Debug().Msgf("Failed to retrieve stagger schedule operation for edge stack: %d", newStatusJob.EdgeStackID)
-				service.staggerPoolMtx.RUnlock()
-				break
-			}
-			service.staggerPoolMtx.RUnlock()
-
-			if scheduleOperation.IsPaused() {
-				log.Debug().Str("pool key", string(poolKey)).
-					Msg("Stagger workflow is paused, skip")
-				break
-			}
-
-			if scheduleOperation.IsCompleted() {
-				log.Debug().Str("pool key", string(poolKey)).
-					Msg("Stagger workflow is completed, skip")
-				break
-			}
-
-			if scheduleOperation.ShouldRollback() {
-				// Operation to rollback the edge stack of endpoints in the stagger queue one by one
-				// This operation corresponds to the failure action of "rollback"
-				log.Debug().Msg("Stagger workflow is rolling back")
-				scheduleOperation.RollbackStaggerQueue(newStatusJob.EndpointID, newStatusJob.Status, newStatusJob.StackFileVersion, newStatusJob.RollbackTo)
-
-			} else {
-				// Operation to update the edge stack of endpoints in the stagger queue one by one
-				// This operation corresponds to the failure action of "continue"
-				scheduleOperation.UpdateStaggerQueue(newStatusJob.EndpointID, newStatusJob.Status)
-
-			}
-
-			service.staggerPoolMtx.Lock()
-			service.staggerPool[poolKey] = scheduleOperation
-			service.staggerPoolMtx.Unlock()
-
+		case <-ticker.C:
 			service.DisplayStaggerInfo()
-
-			// case <-time.After(7 * time.Second):
-			// 	service.DisplayStaggerInfo()
 		}
+	}
+}
+
+func (service *Service) ProcessStatusJob(newStatusJob *StaggerStatusJob) {
+	poolKey := GetStaggerPoolKey(newStatusJob.EdgeStackID, newStatusJob.StackFileVersion)
+
+	service.staggerPoolMtx.Lock()
+	defer service.staggerPoolMtx.Unlock()
+
+	scheduleOperation, ok := service.staggerPool[poolKey]
+	if !ok {
+		log.Debug().Str("pool key", string(poolKey)).
+			Msg("Failed to retrieve stagger schedule operation for edge stack ")
+		return
+	}
+
+	if scheduleOperation.IsPaused() {
+		log.Debug().Str("pool key", string(poolKey)).
+			Msg("Stagger workflow is paused, skip")
+
+		return
+	}
+
+	if scheduleOperation.IsCompleted() {
+		log.Debug().Str("pool key", string(poolKey)).
+			Msg("Stagger workflow is completed, skip")
+
+		return
+	}
+
+	if scheduleOperation.ShouldRollback() {
+		// Operation to rollback the edge stack of endpoints in the stagger queue one by one
+		// This operation corresponds to the failure action of "rollback"
+		log.Debug().Msg("Stagger workflow is rolling back")
+		scheduleOperation.RollbackStaggerQueue(newStatusJob.EndpointID, newStatusJob.Status, newStatusJob.StackFileVersion, newStatusJob.RollbackTo)
+
+	} else {
+		// Operation to update the edge stack of endpoints in the stagger queue one by one
+		// This operation corresponds to the failure action of "continue" and "pause"
+		scheduleOperation.UpdateStaggerQueue(newStatusJob.EndpointID, newStatusJob.Status)
 
 	}
+
+	service.staggerPool[poolKey] = scheduleOperation
 }

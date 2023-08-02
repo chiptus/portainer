@@ -9,7 +9,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/set"
-	"github.com/portainer/portainer/pkg/featureflags"
 	"github.com/rs/zerolog/log"
 )
 
@@ -43,25 +42,20 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 	if err != nil {
 		log.Debug().Err(err).Msg("[Async] fallback to try replace stack command")
 
-		if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-			err = service.replaceStackCommands(edgeStackID, relatedEndpointIds, endpointsToAdd)
-			if err != nil {
-				log.Error().Err(err).Msg("[Async] Failed to replace stack commands")
-			}
-		} else {
-			err = service.dataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
-				return service.replaceStackCommands(edgeStackID, relatedEndpointIds, endpointsToAdd)
-			})
-			if err != nil {
-				log.Error().Err(err).Msg("[Async] Failed to replace stack commands with transaction")
-			}
+		err = service.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+			return service.replaceStackCommands(tx, edgeStackID, relatedEndpointIds, endpointsToAdd)
+		})
+		if err != nil {
+			log.Error().Err(err).Msg("[Async] Failed to replace stack commands with transaction")
 		}
-
 		return
 	}
 
 	// Start stagger job for async update
 	ctx, cancel := context.WithCancel(context.TODO())
+
+	// Store the current async pool terminator
+	service.setAsyncPoolTerminator(edgeStackID, stackFileVersion, cancel)
 
 	log.Info().
 		Int("edge stack ID", int(edgeStackID)).
@@ -73,35 +67,9 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 			Msg("Stopping stagger job for edge stack")
 	}()
 
-	updateCompletedCh := make(chan struct{}, 1)
 	rollbackJobCh := make(chan StaggerJobForAsyncRollback, 1)
+	stopUpdaterTimerCh := make(chan struct{}, 1)
 	wg := sync.WaitGroup{}
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		for {
-			select {
-			case <-service.shutdownCtx.Done():
-				return
-			case <-time.After(30 * time.Second):
-				// todo: may trigger a check every time an async endpoint updates a snapshot
-				// Every time when the interval is reached, we need to check
-				// all below conditions. This is more like a simulation for
-				// regular edge agent polling
-				if service.MarkedAsCompleted(edgeStackID, stackFileVersion) {
-					log.Debug().
-						Int("edgeStackID", int(edgeStackID)).
-						Int("file version", stackFileVersion).
-						Msg("[Async] Stagger job completed")
-
-					updateCompletedCh <- struct{}{}
-					cancel()
-					return
-				}
-			}
-		}
-	}()
 
 	// To keep a list of endpoints that have been updated
 	// If a rollback is needed, we can only work on the endpoints in this list
@@ -111,7 +79,7 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 	endpoints := []*portaineree.Endpoint{}
 	_ = service.dataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
 		for _, endpointID := range relatedEndpointIds {
-			endpoint, dbErr := service.dataStore.Endpoint().Endpoint(endpointID)
+			endpoint, dbErr := tx.Endpoint().Endpoint(endpointID)
 			if dbErr != nil {
 				log.Warn().Err(err).Msgf("Failed to retrieve endpoint: %d", endpointID)
 				continue
@@ -138,13 +106,17 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 
 			for {
 				select {
-				case <-ctx.Done():
+				case <-stopUpdaterTimerCh:
 					// All groutines for async update will be cancelled when the
 					// edge stack is marked as rollback
 					log.Debug().
 						Int("edgeStackID", int(edgeStackID)).
 						Int("file version", stackFileVersion).
 						Msg("[Async] exit stagger job for async update")
+					return
+
+				case <-ctx.Done():
+					log.Debug().Msg("[Async] terminate async update")
 					return
 
 				case <-service.shutdownCtx.Done():
@@ -208,15 +180,16 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 	//
 	wg.Add(1)
 	go func() {
+		// This goroutine is used to synchronize the rollback operation to make sure
+		// only one async pool can be created for processing the rollback workflow
 		defer wg.Done()
 
 		select {
-		case <-updateCompletedCh:
+		case <-ctx.Done():
 			log.Debug().
 				Int("edgeStackID", int(edgeStackID)).
 				Int("file version", stackFileVersion).
 				Msg("[Async] exit stagger job for async rollback")
-
 			return
 
 		case <-service.shutdownCtx.Done():
@@ -224,7 +197,9 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 
 		case job, ok := <-rollbackJobCh:
 			if !ok {
-				cancel()
+				// Once the stagger is marked as rollback, stop all update timer
+				stopUpdaterTimerCh <- struct{}{}
+				close(stopUpdaterTimerCh)
 			}
 
 			log.Info().
@@ -232,13 +207,15 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 				Int("version", job.Version).
 				Msg("[Async] Start rollback process")
 
+			service.StartStaggerJobForAsyncRollback(ctx, &wg, edgeStackID, stackFileVersion, updatedEndpoints)
+			return
 		}
 	}()
 	wg.Wait()
 
 }
 
-func (service *Service) StartStaggerJobForAsyncRollback(wg *sync.WaitGroup, edgeStackID portaineree.EdgeStackID, stackFileVersion int, endpoints map[portaineree.EndpointID]*portaineree.Endpoint) {
+func (service *Service) StartStaggerJobForAsyncRollback(ctx context.Context, wg *sync.WaitGroup, edgeStackID portaineree.EdgeStackID, stackFileVersion int, endpoints map[portaineree.EndpointID]*portaineree.Endpoint) {
 	edgeStack, err := service.dataStore.EdgeStack().EdgeStack(edgeStackID)
 	if err != nil {
 		log.Error().Err(err).
@@ -268,6 +245,10 @@ func (service *Service) StartStaggerJobForAsyncRollback(wg *sync.WaitGroup, edge
 
 			for {
 				select {
+				case <-ctx.Done():
+					log.Debug().Msg("[Async] terminate async rollback")
+					return
+
 				case <-service.shutdownCtx.Done():
 					return
 
@@ -312,15 +293,15 @@ func (service *Service) StartStaggerJobForAsyncRollback(wg *sync.WaitGroup, edge
 	}
 }
 
-func (service *Service) replaceStackCommands(edgeStackID portaineree.EdgeStackID, relatedEndpointIds []portaineree.EndpointID, endpointsToAdd set.Set[portaineree.EndpointID]) error {
+func (service *Service) replaceStackCommands(tx dataservices.DataStoreTx, edgeStackID portaineree.EdgeStackID, relatedEndpointIds []portaineree.EndpointID, endpointsToAdd set.Set[portaineree.EndpointID]) error {
 	for _, endpointID := range relatedEndpointIds {
-		endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
+		endpoint, err := tx.Endpoint().Endpoint(endpointID)
 		if err != nil {
 			return err
 		}
 
 		if !endpointsToAdd[endpoint.ID] {
-			err = service.edgeAsyncService.ReplaceStackCommand(endpoint, edgeStackID)
+			err = service.edgeAsyncService.ReplaceStackCommandTx(tx, endpoint, edgeStackID)
 			if err != nil {
 				return err
 			}

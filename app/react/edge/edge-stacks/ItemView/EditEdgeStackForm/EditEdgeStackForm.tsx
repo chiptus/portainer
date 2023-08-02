@@ -85,8 +85,8 @@ export function EditEdgeStackForm({
       DeviceNumber: 1,
       DeviceNumberStartFrom: 0,
       DeviceNumberIncrementBy: 2,
-      Timeout: '5s',
-      UpdateDelay: '5s',
+      Timeout: '0s',
+      UpdateDelay: '0s',
       UpdateFailureAction: UpdateFailureAction.Continue,
     },
   };

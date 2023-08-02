@@ -436,9 +436,9 @@ func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID 
 			if handler.staggerService.MarkedAsCompleted(stackID, stack.StackFileVersion) {
 				log.Debug().
 					Int("edgeStackID", int(stackID)).
-					Int("status version", stackStatus.Version).
-					Int("file version", stack.StackFileVersion).
 					Int("endpointID", int(endpointID)).
+					Int("statusVersion", stackStatus.Version).
+					Int("fileVersion", stack.StackFileVersion).
 					Msg("Marked as completed, skip")
 
 				if handler.staggerService.WasEndpointRolledBack(stackID, stack.StackFileVersion, endpointID) {
@@ -458,32 +458,30 @@ func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID 
 			// If the edge stack is staggered, check if the endpoint is in the current stagger queue
 			if !handler.staggerService.CanProceedAsStaggerJob(stackID, stack.StackFileVersion, endpointID) {
 				// It's not the turn for the endpoint, skip
-				log.Debug().
-					Int("edgeStackID", int(stackID)).
-					Int("status version", stackStatus.Version).
-					Int("file version", stackStatus.Version).
-					Int("endpointID", int(endpointID)).
-					Msg("Cannot proceed as stagger job, skip")
 
 				// skip the cache, otherwise the edge agent will not be able to get the stack status when
 				// it's the turn for the stagger queue
 				*skipCache = true
-				continue
 
-			} else {
-				log.Debug().
-					Int("edgeStackID", int(stackID)).
-					Int("file version", stackStatus.Version).
-					Int("endpointID", int(endpointID)).
-					Msg("Can proceed as stagger job")
+				// Be careful, if the edge stack on agent is deployed successfully, the response did not contain
+				// the corresponding stack status. The agent will remove the new created edge stack.
+				continue
 			}
+
+			log.Debug().
+				Int("edgeStackID", int(stackID)).
+				Int("endpointID", int(endpointID)).
+				Int("statusVersion", stackStatus.Version).
+				Int("fileVersion", stack.StackFileVersion).
+				Msg("Can proceed as stagger job")
 
 			// If the deployed version for the endpoint is already rolled back, skip
 			if handler.staggerService.MarkedAsRollback(stackID, stack.StackFileVersion) {
 				log.Debug().
 					Int("edgeStackID", int(stackID)).
-					Int("file version", stackStatus.Version).
 					Int("endpointID", int(endpointID)).
+					Int("statusVersion", stackStatus.Version).
+					Int("fileVersion", stack.StackFileVersion).
 					Msg("Rollback edge stack")
 
 				*skipCache = true

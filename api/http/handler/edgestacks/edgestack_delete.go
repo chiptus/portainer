@@ -69,6 +69,10 @@ func (handler *Handler) deleteEdgeStack(tx dataservices.DataStoreTx, edgeStackID
 		}
 	}
 
+	if edgeStack.StaggerConfig != nil && edgeStack.StaggerConfig.StaggerOption == portaineree.EdgeStaggerOptionParallel {
+		go handler.staggerService.StopAndRemoveStaggerScheduleOperation(edgeStack.ID)
+	}
+
 	err = handler.edgeStacksService.DeleteEdgeStack(tx, edgeStack.ID, edgeStack.EdgeGroups)
 	if err != nil {
 		return httperror.InternalServerError("Unable to delete edge stack", err)

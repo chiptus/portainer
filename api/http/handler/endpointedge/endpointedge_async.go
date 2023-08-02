@@ -583,7 +583,7 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 
 			} else {
 				if rollbackTo != nil && stack.StackFileVersion != *rollbackTo {
-					log.Warn().Int("rollbackTo", *rollbackTo).
+					log.Debug().Int("rollbackTo", *rollbackTo).
 						Int("previousVersion", stack.PreviousDeploymentInfo.FileVersion).
 						Msg("[Async] unsupported rollbackTo version, fallback to the latest version")
 				}
@@ -604,7 +604,7 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 				// We pass StackFileVersion instead of the file version that each agent is using intentionally
 				// because it is used to differentiate the stagger workflow for the same edge stack, not for
 				// telling stagger which version of the edge stack file each agent is using
-				handler.staggerService.UpdateStaggerStatusIfNeeds(stackID, stack.StackFileVersion, rollbackTo, endpoint.ID, expectStatus)
+				handler.staggerService.UpdateStaggerEndpointStatusIfNeeds(stackID, stack.StackFileVersion, rollbackTo, endpoint.ID, expectStatus)
 			}
 
 		}

@@ -2,6 +2,7 @@ package edgestacks
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/pkg/errors"
 	httperror "github.com/portainer/libhttp/error"
@@ -43,6 +44,47 @@ func (payload *updateEdgeStackPayload) Validate(r *http.Request) error {
 
 	if len(payload.EdgeGroups) == 0 {
 		return errors.New("edge groups are mandatory for an Edge stack")
+	}
+
+	if payload.StaggerConfig != nil && payload.StaggerConfig.StaggerOption != portaineree.EdgeStaggerOptionAllAtOnce {
+		if payload.StaggerConfig.StaggerOption != portaineree.EdgeStaggerOptionParallel {
+			return errors.New("invalid stagger option")
+		}
+
+		if payload.StaggerConfig.StaggerParallelOption != portaineree.EdgeStaggerParallelOptionFixed &&
+			payload.StaggerConfig.StaggerParallelOption != portaineree.EdgeStaggerParallelOptionIncremental {
+			return errors.New("invalid stagger parallel option")
+		}
+
+		if payload.StaggerConfig.StaggerParallelOption == portaineree.EdgeStaggerParallelOptionFixed &&
+			payload.StaggerConfig.DeviceNumber == 0 {
+			return errors.New("invalid device number")
+		}
+
+		if payload.StaggerConfig.StaggerParallelOption == portaineree.EdgeStaggerParallelOptionIncremental &&
+			payload.StaggerConfig.DeviceNumberStartFrom == 0 {
+			return errors.New("invalid device number start from")
+		}
+
+		if payload.StaggerConfig.UpdateFailureAction != portaineree.EdgeUpdateFailureActionContinue &&
+			payload.StaggerConfig.UpdateFailureAction != portaineree.EdgeUpdateFailureActionPause &&
+			payload.StaggerConfig.UpdateFailureAction != portaineree.EdgeUpdateFailureActionRollback {
+			return errors.New("invalid update failure action")
+		}
+
+		if payload.StaggerConfig.Timeout != "" && payload.StaggerConfig.Timeout != "0" {
+			_, err := time.ParseDuration(payload.StaggerConfig.Timeout)
+			if err != nil {
+				return errors.New("invalid timeout")
+			}
+		}
+
+		if payload.StaggerConfig.UpdateDelay != "" && payload.StaggerConfig.UpdateDelay != "0" {
+			_, err := time.ParseDuration(payload.StaggerConfig.UpdateDelay)
+			if err != nil {
+				return errors.New("invalid update delay")
+			}
+		}
 	}
 
 	return nil
@@ -156,6 +198,7 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 		stack.Webhook = *payload.Webhook
 	}
 
+	currentStackFileVersion := stack.StackFileVersion
 	if payload.UpdateVersion {
 		err := handler.updateStackVersion(stack,
 			payload.DeploymentType,
@@ -171,10 +214,15 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 	stack.StaggerConfig = payload.StaggerConfig
 
 	if payload.StaggerConfig != nil {
-		// todo: check if the stack is already in the stagger pool
-		// if yes, check if it is completed or paused, if so, we can just update the stagger config
-		// if not, we need to reject the request
-		handler.staggerService.AddStaggerConfig(portaineree.EdgeStackID(stackID), stack.StackFileVersion, payload.StaggerConfig)
+		if currentStackFileVersion == stack.StackFileVersion {
+			return nil, httperror.BadRequest("Unable to update stagger configuration without updating stack file", err)
+		}
+		// Only consider stagger configuration when stack file version has changed
+		// That means that the stack file has changed
+		err = handler.staggerService.AddStaggerConfig(portaineree.EdgeStackID(stackID), stack.StackFileVersion, payload.StaggerConfig)
+		if err != nil {
+			return nil, httperror.InternalServerError("Unable to add stagger configuration", err)
+		}
 	}
 
 	err = tx.EdgeStack().UpdateEdgeStack(stack.ID, stack)

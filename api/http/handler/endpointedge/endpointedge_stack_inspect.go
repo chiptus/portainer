@@ -88,7 +88,7 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 		*rollbackTo = edgeStack.PreviousDeploymentInfo.FileVersion
 	} else {
 		if version != 0 && version != edgeStack.StackFileVersion {
-			log.Warn().Msgf("Invalid stack file version %d being requested, fallback to the latest stack file version %d", version, edgeStack.StackFileVersion)
+			log.Debug().Msgf("Invalid stack file version %d being requested, fallback to the latest stack file version %d", version, edgeStack.StackFileVersion)
 		}
 
 		// If the requested version is not the previous version, use the latest stack file version
