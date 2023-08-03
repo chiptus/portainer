@@ -239,41 +239,43 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 				)
 				if err != nil {
 					log.Debug().Err(err).Msgf("failed creating ssh client for node %s (IP %s)", node.HostName, node.IP)
-				} else {
+					return
+				}
+
+				defer sshClientPerNode.Close()
+
+				if err = sshClientPerNode.RunCommand(
+					"snap refresh microk8s --channel="+u.nextVersion,
+					os.Stdout,
+				); err != nil {
+					u.nodes[index].UpgradeStatus = "failed"
+					u.nodes[index].Error = err
+
+					log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Msgf("Error in upgrading MicroK8s version on node %s (IP %s). Trying to revert MicroK8s version on this node.", node.HostName, node.IP)
+					u.setMessage(u.endpoint.ID, "Upgrading cluster", fmt.Sprintf("Error in upgrading MicroK8s version on node %s (IP %s). Trying to revert MicroK8s version on this node.", node.HostName, node.IP), "processing")
+
+					// Try reverting to previous version
 					if err = sshClientPerNode.RunCommand(
-						"snap refresh microk8s --channel="+u.nextVersion,
+						"snap revert microk8s",
 						os.Stdout,
 					); err != nil {
-						u.nodes[index].UpgradeStatus = "failed"
 						u.nodes[index].Error = err
 
-						log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Msgf("Error in upgrading MicroK8s version on node %s (IP %s). Trying to revert MicroK8s version on this node.", node.HostName, node.IP)
-						u.setMessage(u.endpoint.ID, "Upgrading cluster", fmt.Sprintf("Error in upgrading MicroK8s version on node %s (IP %s). Trying to revert MicroK8s version on this node.", node.HostName, node.IP), "processing")
-
-						// Try reverting to previous version
-						if err = sshClientPerNode.RunCommand(
-							"snap revert microk8s",
-							os.Stdout,
-						); err != nil {
-							u.nodes[index].Error = err
-
-							log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Err(err).Msgf("Error when reverting MicroK8s on node %s (IP %s). Continuing to next node.", node.HostName, node.IP)
-							u.setMessage(u.endpoint.ID, "Upgrading cluster", fmt.Sprintf("Error when reverting MicroK8s on node %s (IP %s). Continuing to next node.", node.HostName, node.IP), "processing")
-						}
-					}
-
-					if node.IsMaster {
-						err = sshClientPerNode.RunCommand("microk8s addons repo add core /snap/microk8s/current/addons/core --force", os.Stdout)
-						if err != nil {
-							log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Err(err).Msgf("Error updating core addons repositories on master node %s (IP %s). Continuing...", node.HostName, node.IP)
-						}
-						err = sshClientPerNode.RunCommand("microk8s addons repo add community /snap/microk8s/current/addons/community --force", os.Stdout)
-						if err != nil {
-							log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Err(err).Msgf("Error updating community addons repositories on master node %s (IP %s). Continuing...", node.HostName, node.IP)
-						}
+						log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Err(err).Msgf("Error when reverting MicroK8s on node %s (IP %s). Continuing to next node.", node.HostName, node.IP)
+						u.setMessage(u.endpoint.ID, "Upgrading cluster", fmt.Sprintf("Error when reverting MicroK8s on node %s (IP %s). Continuing to next node.", node.HostName, node.IP), "processing")
 					}
 				}
-				defer sshClientPerNode.Close()
+
+				if node.IsMaster {
+					err = sshClientPerNode.RunCommand("microk8s addons repo add core /snap/microk8s/current/addons/core --force", os.Stdout)
+					if err != nil {
+						log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Err(err).Msgf("Error updating core addons repositories on master node %s (IP %s). Continuing...", node.HostName, node.IP)
+					}
+					err = sshClientPerNode.RunCommand("microk8s addons repo add community /snap/microk8s/current/addons/community --force", os.Stdout)
+					if err != nil {
+						log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Err(err).Msgf("Error updating community addons repositories on master node %s (IP %s). Continuing...", node.HostName, node.IP)
+					}
+				}
 			}()
 
 			// Added waiting to allow the microk8s refresh to complete/settle.
