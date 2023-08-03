@@ -6,11 +6,11 @@ import (
 )
 
 func TestNewFatalError(t *testing.T) {
-	err := NewFatalError("test fatal error")
+	err := NewErrFatal("test fatal error")
 
-	var fatal *FatalError
+	var fatal *ErrFatal
 	if !errors.As(err, &fatal) {
-		t.Error("A FatalError was expected")
+		t.Error("An ErrFatal was expected")
 	}
 
 	nonFatal := errors.New("nonFatal error")

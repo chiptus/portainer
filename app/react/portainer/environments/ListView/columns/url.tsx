@@ -31,30 +31,31 @@ function Cell({
   row: { original: environment },
 }: CellContext<EnvironmentListItem, string>) {
   const mutation = useUpdateEnvironmentMutation();
-  const status = environment.StatusMessage?.operationStatus;
 
   if (
     environment.Type !== PortainerEndpointTypes.EdgeAgentOnDockerEnvironment &&
     environment.Status !== EnvironmentStatus.Provisioning
   ) {
+    const opStatus = environment.StatusMessage?.operationStatus;
+
     return (
       <div className="inline-flex gap-2 whitespace-nowrap">
         {environment.URL && <div>{environment.URL}</div>}
-        {status !== '' && ( // status is in a provisioning or error state
+        {opStatus !== '' && ( // status is in a provisioning, error or warning state
           <div
             className={clsx('vertical-center flex items-center', {
-              'text-danger': status === 'error',
-              'text-warning': status === 'warning',
-              'text-muted': status !== 'error' && status !== 'warning',
+              'text-danger': opStatus === 'error',
+              'text-warning': opStatus === 'warning',
+              'text-muted': opStatus !== 'error' && opStatus !== 'warning',
             })}
           >
-            {environment.URL && status === 'error' && (
+            {opStatus === 'error' && (
               <Icon className="flex-none" icon={AlertCircle} />
             )}
-            {environment.URL && status === 'warning' && (
+            {opStatus === 'warning' && (
               <Icon className="flex-none" icon={AlertTriangle} />
             )}
-            {environment.URL && status === 'processing' && (
+            {opStatus === 'processing' && (
               <Icon className="flex-none animate-spin-slow" icon={Loader2} />
             )}
             {environment.StatusMessage?.summary}
@@ -67,7 +68,7 @@ function Cell({
                       __html: sanitize(environment.StatusMessage?.detail ?? ''),
                     }}
                   />
-                  {environment.URL && status === 'warning' && (
+                  {environment.URL && opStatus === 'warning' && (
                     <div className="mt-2 text-right">
                       <Button
                         color="link"

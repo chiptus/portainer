@@ -76,7 +76,7 @@ func (e *EksProvisioner) GetCluster(name string) (*Cluster, error) {
 
 	kubeconfig, err := os.CreateTemp("", "")
 	if err != nil {
-		return nil, clouderrors.NewFatalError("could not create temp file for kubeconfig, err: %v", err)
+		return nil, clouderrors.NewErrFatal("could not create temp file for kubeconfig, err: %v", err)
 	}
 	defer os.Remove(kubeconfig.Name())
 
@@ -93,13 +93,13 @@ func (e *EksProvisioner) GetCluster(name string) (*Cluster, error) {
 
 	b, err := os.ReadFile(kubeconfig.Name())
 	if err != nil {
-		return nil, clouderrors.NewFatalError("read kubeconfig failed, err: %v", err)
+		return nil, clouderrors.NewErrFatal("read kubeconfig failed, err: %v", err)
 	}
 
 	var config Config
 	err = yaml.Unmarshal(b, &config)
 	if err != nil {
-		return nil, clouderrors.NewFatalError("unmarshal kubeconfig failed, err: %v", err)
+		return nil, clouderrors.NewErrFatal("unmarshal kubeconfig failed, err: %v", err)
 	}
 
 	config.Users[0].User.Exec.Env = append(config.Users[0].User.Exec.Env,
@@ -110,7 +110,7 @@ func (e *EksProvisioner) GetCluster(name string) (*Cluster, error) {
 
 	b, err = yaml.Marshal(config)
 	if err != nil {
-		return nil, clouderrors.NewFatalError("marshal kubeconfig failed, err: %v", err)
+		return nil, clouderrors.NewErrFatal("marshal kubeconfig failed, err: %v", err)
 	}
 
 	cluster := &Cluster{

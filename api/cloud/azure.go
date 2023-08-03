@@ -375,7 +375,7 @@ func (service *CloudManagementService) AzureGetCluster(credentials models.CloudC
 				Err(err).
 				Msg("error while getting cluster admin credentials")
 
-			return nil, clouderrors.NewFatalError("error while getting azure cluster admin credentials for resource (%s), err: %s", resourceName, err.Error())
+			return nil, clouderrors.NewErrFatal("error while getting azure cluster admin credentials for resource (%s), err: %s", resourceName, err.Error())
 		}
 
 		for _, c := range *adminCreds.Kubeconfigs {

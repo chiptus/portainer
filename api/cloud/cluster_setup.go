@@ -459,7 +459,7 @@ func checkFatal(err error) error {
 	if errors.As(err, &netError) {
 		if strings.Contains(err.Error(), "TLS handshake error") ||
 			strings.Contains(err.Error(), "connection refused") {
-			return clouderrors.NewFatalError(err.Error())
+			return clouderrors.NewErrFatal(err.Error())
 		}
 	}
 
@@ -483,9 +483,9 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 	errSummary := ""
 
 	for {
-		var fatal *clouderrors.FatalError
-		if errors.As(err, &fatal) {
-			task.Err = fatal
+		var fatalErr *clouderrors.ErrFatal
+		if errors.As(err, &fatalErr) {
+			task.Err = fatalErr
 		}
 
 		// Handle fatal provisioning errors (such as Quota reached etc)
@@ -642,6 +642,8 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 				log.Debug().Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Int("endpoint_id", int(task.EndpointID)).Msg("deploying custom template")
 				err = service.seedCluster(&task)
 				if err != nil {
+
+					err = clouderrors.NewErrSeedingCluster(err, service.getCustomTemplateName(task.CustomTemplateID))
 					errSummary = "Custom Template Deployment Error"
 					log.Error().Err(err).Str("provider", task.Provider).Str("cluster_id", task.ClusterID).Int("endpoint_id", int(task.EndpointID)).Msg("while deploying custom template")
 				}
@@ -683,6 +685,17 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 
 		time.Sleep(stateWaitTime)
 	}
+}
+
+// getCustomTemplateName get the name of the custom template. handle the error by logging it but always return something
+func (service *CloudManagementService) getCustomTemplateName(id portaineree.CustomTemplateID) string {
+	template, err := service.dataStore.CustomTemplate().Read(id)
+	if err != nil {
+		log.Error().Err(err).Msgf("unable to read template name from the database. id: %d", id)
+		return "id " + strconv.Itoa(int(id))
+	}
+
+	return template.Title
 }
 
 func (service *CloudManagementService) processManagementRequest(request portaineree.CloudManagementRequest) {
@@ -884,7 +897,13 @@ func (service *CloudManagementService) processResult(result *cloudPrevisioningRe
 			}
 		}
 
-		err = setMessage(result.errSummary, result.err.Error(), "error")
+		operationStatus := "error"
+		var seedingError *clouderrors.ErrSeedingCluster
+		if errors.As(result.err, &seedingError) {
+			operationStatus = "warning"
+		}
+
+		err = setMessage(result.errSummary, result.err.Error(), operationStatus)
 		if err != nil {
 			log.Error().Err(err).Int("endpoint_id", int(result.endpointID)).Msg("unable to update endpoint status message in database")
 		}
