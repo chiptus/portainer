@@ -190,6 +190,11 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 }
 
 func updateEnvStatus(edgeStack *portaineree.EdgeStack, environmentStatus portainer.EdgeStackStatus, status portainer.EdgeStackStatusType, payload updateStatusPayload) {
+	if status == portainer.EdgeStackStatusRemoved {
+		delete(edgeStack.Status, payload.EndpointID)
+		return
+	}
+
 	if status == portainer.EdgeStackStatusAcknowledged {
 		environmentStatus.Status = nil
 	}
