@@ -10,12 +10,12 @@ import { Button } from '@@/buttons';
 import { FormError } from '@@/form-components/FormError';
 import { TextTip } from '@@/Tip/TextTip';
 
-import { AddOnFormValue, AddOnOption } from './types';
+import { AddOnFormValue, AddOnOption, GroupedAddonOptions } from './types';
 
 interface Props {
   value: AddOnFormValue;
   onChange(newValue: AddOnFormValue): void;
-  filteredOptions: AddOnOption[]; // filtered options that don't include form values
+  groupedAddonOptions: GroupedAddonOptions; // filtered options that don't include form values
   options: AddOnOption[];
   index: number;
   onRemove(): void;
@@ -29,7 +29,7 @@ export function AddOnSelector({
   value,
   onChange,
   options,
-  filteredOptions,
+  groupedAddonOptions,
   index,
   onRemove,
   isRequiredInitialArgumentEmpty,
@@ -55,7 +55,7 @@ export function AddOnSelector({
             name={`addons_${index}`}
             placeholder="Select an addon..."
             className="min-w-[200px] [&>div]:!rounded-r-[5px] [&>div]:!rounded-l-none"
-            options={filteredOptions}
+            options={groupedAddonOptions}
             onChange={(option) => {
               onChange({
                 name: option?.name ?? '',

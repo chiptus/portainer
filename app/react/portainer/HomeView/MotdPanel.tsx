@@ -1,5 +1,6 @@
 import { useQuery } from 'react-query';
 import _ from 'lodash';
+import sanitize from 'sanitize-html';
 
 import { useUIState } from '@/react/hooks/useUIState';
 
@@ -31,7 +32,7 @@ export function MotdPanel() {
       >
         <span className="text-muted">
           {/* eslint-disable-next-line react/no-danger */}
-          <p dangerouslySetInnerHTML={{ __html: motd.Message }} />
+          <p dangerouslySetInnerHTML={{ __html: sanitize(motd.Message) }} />
         </span>
       </InformationPanel>
     </>

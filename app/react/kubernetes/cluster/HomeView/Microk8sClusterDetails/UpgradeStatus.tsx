@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Loader2, X } from 'lucide-react';
 import clsx from 'clsx';
+import sanitize from 'sanitize-html';
 
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useEnvironment } from '@/react/portainer/environments/queries';
@@ -40,7 +41,13 @@ export function UpgradeStatus() {
     if (currentOperationStatus === 'processing' && operationStatus === '') {
       notifySuccess('Success', 'Environment upgraded successfully');
       // all query keys I want to invalidate have ['envirnments', environmentId] as their first two elements
-      queryClient.invalidateQueries(environmentQueryKeys.item(environmentId));
+      setTimeout(
+        () =>
+          queryClient.invalidateQueries(
+            environmentQueryKeys.item(environmentId)
+          ),
+        2000 // there's a delay to show updated nodes from scaling, so wait before calling invalidateQueries
+      );
     }
     setCurrentOperationStatus(operationStatus);
   }, [currentOperationStatus, environmentId, operationStatus]);
@@ -118,7 +125,14 @@ export function UpgradeStatus() {
           )}
         </div>
         {environment?.StatusMessage?.detail && (
-          <p className="mb-0 text-xs">{environment?.StatusMessage?.detail}</p>
+          <p
+            className="mb-0 text-xs" // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{
+              __html: sanitize(
+                `<div>${environment.StatusMessage.detail}</div>`
+              ),
+            }}
+          />
         )}
         {operationStatus === 'processing' && (
           <TextTip color="blue">

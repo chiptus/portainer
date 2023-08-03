@@ -13,7 +13,12 @@ import { Button, LoadingButton } from '@@/buttons';
 import { TextTip } from '@@/Tip/TextTip';
 import { InlineLoader } from '@@/InlineLoader';
 
-import { AddOnFormValue, AddOnOption, K8sAddOnsForm } from './types';
+import {
+  AddOnFormValue,
+  AddOnOption,
+  GroupedAddonOptions,
+  K8sAddOnsForm,
+} from './types';
 import { AddOnSelector } from './AddonSelector';
 
 type Props = {
@@ -39,7 +44,7 @@ export function AddonsForm({
   const { data: microk8sOptions, ...microk8sOptionsQuery } =
     useMicroK8sOptions();
 
-  const [addonOptions, filteredOptions]: AddOnOption[][] = useMemo(() => {
+  const [addonOptions, groupedAddonOptions] = useMemo(() => {
     const kubeVersion = parseFloat(values.currentVersion.split('/')[0]);
     const addonOptions: AddOnOption[] =
       microk8sOptions?.availableAddons
@@ -57,20 +62,37 @@ export function AddonsForm({
         .map((a) => ({
           ...a,
           name: a.label,
-          label: `${a.label} (${a.repository})`,
         })) ?? [];
-
-    addonOptions.sort(
-      (a, b) =>
-        b.repository?.localeCompare(a.repository || '') ||
-        a.label?.localeCompare(b.label)
-    );
 
     const addonOptionsWithoutExistingValues = addonOptions.filter(
       (addonOption) =>
         !values.addons.some((addon) => addon.name === addonOption.name)
     );
-    return [addonOptions, addonOptionsWithoutExistingValues];
+
+    const groupedAddonOptions =
+      addonOptionsWithoutExistingValues
+        .reduce<GroupedAddonOptions>(
+          (groupedOptions, addon) => {
+            // add the current addon option to the groupOption with the same repository
+            const newGroupedOptions = groupedOptions.map((group) => {
+              if (group.label.toLowerCase() === addon.repository) {
+                return {
+                  ...group,
+                  options: [...group.options, addon],
+                };
+              }
+              return group;
+            });
+            return newGroupedOptions;
+          },
+          [
+            { label: 'Core', options: [] },
+            { label: 'Community', options: [] },
+          ]
+        )
+        .filter((optionsGroup) => optionsGroup.options.length) || [];
+
+    return [addonOptions, groupedAddonOptions];
   }, [microk8sOptions?.availableAddons, values.addons, values.currentVersion]);
 
   // check if values and initial values are the same (ignore the order)
@@ -121,7 +143,7 @@ export function AddonsForm({
               key={`addon${addon.name}`}
               value={addon}
               options={addonOptions}
-              filteredOptions={filteredOptions}
+              groupedAddonOptions={groupedAddonOptions}
               isRequiredInitialArgumentEmpty={isRequiredInitialArgumentEmpty}
               index={index}
               errors={addonError}

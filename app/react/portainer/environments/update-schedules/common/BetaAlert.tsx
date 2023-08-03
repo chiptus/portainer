@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import sanitize from 'sanitize-html';
 
 import betaIcon from '@/assets/ico/beta.svg?c';
 
@@ -16,7 +17,7 @@ export function BetaAlert({ message, className, isHtml }: Props) {
       <div className="text-warning">
         {isHtml && typeof message === 'string' ? (
           // eslint-disable-next-line react/no-danger
-          <span dangerouslySetInnerHTML={{ __html: message }} />
+          <span dangerouslySetInnerHTML={{ __html: sanitize(message) }} />
         ) : (
           message
         )}

@@ -21,3 +21,8 @@ export type AddOnOption = {
   placeholder?: string;
   argumentsType?: AddonsArgumentType;
 };
+
+export type GroupedAddonOptions = {
+  label: string;
+  options: AddOnOption[];
+}[];
