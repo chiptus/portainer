@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/liblicense/v3"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/rs/zerolog/log"
 )
 
 // Service represents a service for managing portainer licenses
@@ -48,10 +49,8 @@ func (service *Service) Licenses() []liblicense.PortainerLicense {
 // conflicting licenses should be removed and the new license added.
 func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 	// Validate the given license key and parse it into a license object.
-	l := ParseLicense(key, service.expireAbsolute)
-	if l.Revoked {
-		return nil, fmt.Errorf("license is invalid")
-	}
+	l := ParseLicense(key, service.expireAbsolute, false)
+	log.Debug().Str("license", l.Company).Msg("validating license with remote server")
 	valid, err := liblicense.ValidateLicense(&l)
 	if err != nil {
 		return nil, err
@@ -69,7 +68,11 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		service.licenses = append(service.licenses, l)
+		licenses, err := service.dataStore.License().Licenses()
+		if err != nil {
+			return nil, err
+		}
+		service.licenses = licenses
 		return nil, nil
 	}
 
@@ -178,7 +181,11 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	service.licenses = append(service.licenses, l)
+	licenses, err := service.dataStore.License().Licenses()
+	if err != nil {
+		return nil, err
+	}
+	service.licenses = licenses
 	return conflicts, nil
 }
 
@@ -285,7 +292,7 @@ func (service *Service) aggregateLicenses(licenses []liblicense.PortainerLicense
 func trialLicenseInfo(licenses []liblicense.PortainerLicense, expireAbsolute bool) (portaineree.LicenseInfo, bool) {
 	var info portaineree.LicenseInfo
 	for _, l := range licenses {
-		l := ParseLicense(l.LicenseKey, expireAbsolute)
+		l := ParseLicense(l.LicenseKey, expireAbsolute, l.Revoked)
 		if isExpiredOrRevoked(l) {
 			continue
 		}
@@ -314,7 +321,7 @@ func subLicenseInfo(licenses []liblicense.PortainerLicense, expireAbsolute bool)
 	var foundV3 bool
 	var freeV2Nodes int
 	for _, l := range licenses {
-		l := ParseLicense(l.LicenseKey, expireAbsolute)
+		l := ParseLicense(l.LicenseKey, expireAbsolute, l.Revoked)
 		if isExpiredOrRevoked(l) {
 			continue
 		}
@@ -329,7 +336,7 @@ func subLicenseInfo(licenses []liblicense.PortainerLicense, expireAbsolute bool)
 				foundV3 = true
 			}
 
-			l := ParseLicense(l.LicenseKey, expireAbsolute)
+			l := ParseLicense(l.LicenseKey, expireAbsolute, l.Revoked)
 			if isExpiredOrRevoked(l) {
 				continue
 			}
@@ -355,7 +362,7 @@ func subLicenseInfo(licenses []liblicense.PortainerLicense, expireAbsolute bool)
 	return info, found
 }
 
-func ParseLicense(key string, expireAbsolute bool) liblicense.PortainerLicense {
+func ParseLicense(key string, expireAbsolute bool, revoked bool) liblicense.PortainerLicense {
 	var l liblicense.PortainerLicense
 	l.LicenseKey = key
 	parsedLicense, err := liblicense.ParseLicenseKey(key)
@@ -373,6 +380,7 @@ func ParseLicense(key string, expireAbsolute bool) liblicense.PortainerLicense {
 	l.ProductEdition = parsedLicense.ProductEdition
 	l.Type = parsedLicense.Type
 	l.Version = parsedLicense.Version
+	l.Revoked = revoked
 
 	// ExpiresAt is normally rounded to the end of the nearest day.
 	// If we were given a command line flag requesting the absolute expiration
