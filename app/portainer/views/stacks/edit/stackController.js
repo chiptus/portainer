@@ -113,7 +113,6 @@ angular.module('portainer.app').controller('StackController', [
           }
 
           $scope.editorUpdate(data.stackFile);
-          console.log($scope.formValues);
         })
         .catch(function error(err) {
           Notifications.error('Failure', err, 'Unable to retrieve stack file');
