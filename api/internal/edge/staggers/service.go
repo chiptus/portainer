@@ -109,12 +109,19 @@ func (service *Service) AddStaggerConfig(id portaineree.EdgeStackID, stackFileVe
 
 func (service *Service) RemoveStaggerConfig(id portaineree.EdgeStackID) {
 	// remove the config from stagger configuration
+
+	service.staggerConfigsMtx.Lock()
+	defer service.staggerConfigsMtx.Unlock()
+
+	_, ok := service.staggerConfigs[id]
+	if !ok {
+		return
+	}
+
 	log.Debug().Int("edgeStackID", int(id)).
 		Msg("Remove stagger config")
 
-	service.staggerConfigsMtx.Lock()
 	delete(service.staggerConfigs, id)
-	service.staggerConfigsMtx.Unlock()
 }
 
 // IsStaggered is used to check if the edge stack is staggered for specific endpoint
@@ -272,25 +279,19 @@ func (service *Service) MarkedAsCompleted(id portaineree.EdgeStackID, fileVersio
 	if scheduleOperation.IsPaused() || scheduleOperation.IsCompleted() {
 		log.Debug().Msg("Stagger workflow is paused or completed, skip")
 
-		// It's intentionally to check without lock, because there is lock in each function.
-		// However, the map check is still helpful to avoid unnecessary goroutines invoked
-		_, terminatorExists := service.asyncPoolTerminators[poolKey]
-		_, configExists := service.staggerConfigs[id]
-		if terminatorExists || configExists {
-			go func() {
-				// If the stagger workflow is paused or completed, we still need to maintain the stagger queue
-				// for each stack. However, it is not necessary to keep its async pool, regardless of whether
-				// endpoints are async edge agents or not.
-				// The reason is that the way that the server notify async agents to update is by creating
-				// stack command based on the stagger configuration, instead of being polled by the agent.
-				// So terminating the async pool will not affect the stagger workflow.
-				// This operation can release the resources of the server.
-				service.terminateAsyncPool(poolKey)
+		go func() {
+			// If the stagger workflow is paused or completed, we still need to maintain the stagger queue
+			// for each stack. However, it is not necessary to keep its async pool, regardless of whether
+			// endpoints are async edge agents or not.
+			// The reason is that the way that the server notify async agents to update is by creating
+			// stack command based on the stagger configuration, instead of being polled by the agent.
+			// So terminating the async pool will not affect the stagger workflow.
+			// This operation can release the resources of the server.
+			service.terminateAsyncPool(poolKey)
 
-				// unblock edge stack update with stagger configuration
-				service.RemoveStaggerConfig(id)
-			}()
-		}
+			// unblock edge stack update with stagger configuration
+			service.RemoveStaggerConfig(id)
+		}()
 
 		return true
 	}
