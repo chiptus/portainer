@@ -31,13 +31,17 @@ body,
 #content-wrapper,
 .page-content,
 #view {
-  height: 100%;
+  min-height: 100%;
   width: 100%;
   overflow-y: initial;
 }
 
 #view {
   position: relative;
+}
+
+.page-content {
+  padding-bottom: 6em;
 }
 
 .logo {
