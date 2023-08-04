@@ -80,6 +80,7 @@ class DockerComposeFormController {
 
   async $onInit() {
     return this.$async(async () => {
+      this.formValues.PerDeviceConfigsPath = '';
       this.formValues.SupportPerDeviceConfigs = false;
       this.formValues.PerDeviceConfigsMatchType = 'file';
       this.edgeIdInsightsBoxContent = EdgeIdInsightsBoxContent();

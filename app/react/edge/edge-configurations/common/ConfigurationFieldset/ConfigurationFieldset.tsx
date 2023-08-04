@@ -61,7 +61,7 @@ export function ConfigurationFieldset() {
                   content: archive,
                 })
               }
-              tooltip="You can upload your configuration file as a compressed package in the following format: ZIP. This format allow you to bundle multiple files together into a single package, making it easier to transfer your configuration files."
+              tooltip="You can upload your configuration file as a compressed package in the following format: ZIP. This format allows you to bundle multiple files together into a single package, making it easier to transfer your configuration files."
               // tooltip="You can upload your configuration file as a compressed package in one of the following formats: ZIP, GZIP, TAR, TGZ. These formats allow you to bundle multiple files together into a single package, making it easier to transfer your configuration files."
             />
           </div>
