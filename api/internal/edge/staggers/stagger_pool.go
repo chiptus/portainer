@@ -51,14 +51,20 @@ func (service *Service) startStaggerPool() {
 				Int("edgeStackID", int(newJob.EdgeStackID)).
 				Msg("Received stagger job")
 
-			timeoutDuration, err := time.ParseDuration(newJob.Config.Timeout)
+			if newJob.Config.Timeout == "" {
+				newJob.Config.Timeout = "0"
+			}
+			timeoutDuration, err := time.ParseDuration(fmt.Sprintf("%sm", newJob.Config.Timeout))
 			if err != nil {
 				log.Error().Err(err).
 					Msgf("Failed to parse timeout duration: %s", newJob.Config.Timeout)
 				break
 			}
 
-			updateDelayDuration, err := time.ParseDuration(newJob.Config.UpdateDelay)
+			if newJob.Config.UpdateDelay == "" {
+				newJob.Config.UpdateDelay = "0"
+			}
+			updateDelayDuration, err := time.ParseDuration(fmt.Sprintf("%sm", newJob.Config.UpdateDelay))
 			if err != nil {
 				log.Error().Err(err).
 					Msgf("Failed to parse update delay duration: %s", newJob.Config.UpdateDelay)

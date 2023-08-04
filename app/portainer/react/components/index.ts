@@ -12,6 +12,10 @@ import { withFormValidation } from '@/react-tools/withFormValidation';
 import { BetaAlert } from '@/react/portainer/environments/update-schedules/common/BetaAlert';
 import { GroupAssociationTable } from '@/react/portainer/environments/environment-groups/components/GroupAssociationTable';
 import { AssociatedEnvironmentsSelector } from '@/react/portainer/environments/environment-groups/components/AssociatedEnvironmentsSelector';
+import {
+  StaggerFieldset,
+  staggerConfigValidation,
+} from '@/react/edge/edge-stacks/components/StaggerFieldset';
 
 import {
   EnvironmentVariablesFieldset,
@@ -291,4 +295,12 @@ withFormValidation(
   'environmentVariablesPanel',
   ['explanation', 'showHelpMessage'],
   envVarValidation
+);
+
+withFormValidation(
+  ngModule,
+  StaggerFieldset,
+  'staggerFieldset',
+  ['isEdit'],
+  staggerConfigValidation
 );

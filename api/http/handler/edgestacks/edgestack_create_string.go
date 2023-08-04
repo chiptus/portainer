@@ -11,6 +11,7 @@ import (
 	eefs "github.com/portainer/portainer-ee/api/filesystem"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
+	"github.com/portainer/portainer-ee/api/internal/edge/staggers"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 
@@ -43,6 +44,8 @@ type edgeStackFromStringPayload struct {
 	Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
 	// List of environment variables
 	EnvVars []portainer.Pair
+	// Configuration for stagger updates
+	StaggerConfig *portaineree.EdgeStaggerConfig
 }
 
 func (payload *edgeStackFromStringPayload) Validate(r *http.Request) error {
@@ -62,7 +65,7 @@ func (payload *edgeStackFromStringPayload) Validate(r *http.Request) error {
 		return httperrors.NewInvalidPayloadError("Invalid deployment type")
 	}
 
-	return nil
+	return staggers.ValidateStaggerConfig(payload.StaggerConfig)
 }
 
 // @id EdgeStackCreateString
@@ -116,6 +119,7 @@ func (handler *Handler) createEdgeStackFromFileContent(r *http.Request, tx datas
 	}
 
 	stack.Webhook = payload.Webhook
+	stack.StaggerConfig = payload.StaggerConfig
 
 	if dryrun {
 		return stack, nil

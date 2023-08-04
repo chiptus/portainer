@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
+	"github.com/portainer/portainer-ee/api/internal/edge/staggers"
 	portainer "github.com/portainer/portainer/api"
 
 	"github.com/pkg/errors"
@@ -36,6 +37,8 @@ type edgeStackFromFileUploadPayload struct {
 	Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
 	// List of environment variables
 	EnvVars []portainer.Pair
+	// Configuration for stagger updates
+	StaggerConfig *portaineree.EdgeStaggerConfig
 }
 
 func (payload *edgeStackFromFileUploadPayload) Validate(r *http.Request) error {
@@ -90,7 +93,7 @@ func (payload *edgeStackFromFileUploadPayload) Validate(r *http.Request) error {
 	}
 	payload.EnvVars = envVars
 
-	return nil
+	return staggers.ValidateStaggerConfig(payload.StaggerConfig)
 }
 
 // @id EdgeStackCreateFile
@@ -153,6 +156,7 @@ func (handler *Handler) createEdgeStackFromFileUpload(r *http.Request, tx datase
 	}
 
 	stack.Webhook = payload.Webhook
+	stack.StaggerConfig = payload.StaggerConfig
 
 	if dryrun {
 		return stack, nil

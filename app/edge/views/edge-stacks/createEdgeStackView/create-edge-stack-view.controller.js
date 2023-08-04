@@ -5,6 +5,7 @@ import { confirmWebEditorDiscard } from '@@/modals/confirm';
 import { baseEdgeStackWebhookUrl, createWebhookId } from '@/portainer/helpers/webhookHelper';
 import { parseAutoUpdateResponse, transformAutoUpdateViewModel } from '@/react/portainer/gitops/AutoUpdateFieldset/utils';
 import { EnvironmentType } from '@/react/portainer/environments/types';
+import { StaggerOption, StaggerParallelOption, UpdateFailureAction } from '@/react/edge/edge-stacks/types';
 
 export default class CreateEdgeStackViewController {
   /* @ngInject */
@@ -39,6 +40,16 @@ export default class CreateEdgeStackViewController {
       FilesystemPath: '',
       versions: [1],
       envVars: [],
+      staggerConfig: {
+        StaggerOption: StaggerOption.AllAtOnce,
+        StaggerParallelOption: StaggerParallelOption.Fixed,
+        DeviceNumber: 0,
+        DeviceNumberStartFrom: 0,
+        DeviceNumberIncrementBy: 2,
+        Timeout: '',
+        UpdateDelay: '',
+        UpdateFailureAction: UpdateFailureAction.Continue,
+      },
     };
 
     this.EditorType = EditorType;
@@ -53,6 +64,7 @@ export default class CreateEdgeStackViewController {
       endpointTypes: [],
       baseWebhookUrl: baseEdgeStackWebhookUrl(),
       webhookId: createWebhookId(),
+      isEdit: false,
     };
 
     this.edgeGroups = null;
@@ -75,11 +87,18 @@ export default class CreateEdgeStackViewController {
     this.onChangeRetryDeploy = this.onChangeRetryDeploy.bind(this);
     this.onChangeWebhookState = this.onChangeWebhookState.bind(this);
     this.onEnvVarChange = this.onEnvVarChange.bind(this);
+    this.onChangeStaggerConfig = this.onChangeStaggerConfig.bind(this);
   }
 
   onEnvVarChange(envVars) {
     return this.$scope.$evalAsync(() => {
       this.formValues.envVars = envVars;
+    });
+  }
+
+  onChangeStaggerConfig(staggerConfig) {
+    return this.$scope.$evalAsync(() => {
+      this.formValues.staggerConfig = { ...this.formValues.staggerConfig, ...staggerConfig };
     });
   }
 
@@ -293,7 +312,7 @@ export default class CreateEdgeStackViewController {
   }
 
   createStackFromFileContent(name, dryrun) {
-    const { StackFileContent, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy, webhookEnabled, envVars } = this.formValues;
+    const { StackFileContent, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy, webhookEnabled, envVars, staggerConfig } = this.formValues;
 
     let webhookId = '';
     if (webhookEnabled) {
@@ -312,13 +331,14 @@ export default class CreateEdgeStackViewController {
         RetryDeploy,
         webhook: webhookId,
         envVars,
+        staggerConfig,
       },
       dryrun
     );
   }
 
   createStackFromFileUpload(name, dryrun) {
-    const { StackFile, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy, webhookEnabled, envVars } = this.formValues;
+    const { StackFile, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy, webhookEnabled, envVars, staggerConfig } = this.formValues;
     let webhookId = '';
     if (webhookEnabled) {
       webhookId = this.state.webhookId;
@@ -335,6 +355,7 @@ export default class CreateEdgeStackViewController {
         RetryDeploy,
         webhook: webhookId,
         envVars,
+        staggerConfig,
       },
       StackFile,
       dryrun
@@ -355,6 +376,7 @@ export default class CreateEdgeStackViewController {
       PerDeviceConfigsMatchType,
       PerDeviceConfigsPath,
       envVars,
+      staggerConfig,
     } = this.formValues;
 
     if (this.formValues.SaveCredential && this.formValues.NewCredentialName) {
@@ -396,6 +418,7 @@ export default class CreateEdgeStackViewController {
         PerDeviceConfigsMatchType,
         PerDeviceConfigsPath,
         envVars,
+        staggerConfig,
       },
       repositoryOptions
     );

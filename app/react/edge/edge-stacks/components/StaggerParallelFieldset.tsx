@@ -59,16 +59,19 @@ export function StaggerParallelFieldset({ values, onChange, errors }: Props) {
         <div className="col-sm-9 col-lg-10">
           <Input
             name="DeviceNumber"
-            type="number"
             id="device-number"
-            min={1}
+            type="number"
             placeholder="eg. 1 or 10"
+            min={1}
             value={values.DeviceNumber}
-            onChange={(e) =>
+            onChange={(e) => {
               handleChange({
-                DeviceNumber: parseInt(e.currentTarget.value, 10),
-              })
-            }
+                DeviceNumber:
+                  e.currentTarget.value !== ''
+                    ? e.currentTarget.valueAsNumber
+                    : 0,
+              });
+            }}
           />
           {errors?.DeviceNumber && (
             <FormError>{errors?.DeviceNumber}</FormError>
@@ -90,7 +93,10 @@ export function StaggerParallelFieldset({ values, onChange, errors }: Props) {
                 value={values.DeviceNumberStartFrom}
                 onChange={(e) =>
                   handleChange({
-                    DeviceNumberStartFrom: parseInt(e.currentTarget.value, 10),
+                    DeviceNumberStartFrom:
+                      e.currentTarget.value !== ''
+                        ? e.currentTarget.valueAsNumber
+                        : 0,
                   })
                 }
               />

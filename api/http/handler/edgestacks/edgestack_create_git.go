@@ -14,6 +14,7 @@ import (
 	"github.com/portainer/portainer-ee/api/git/update"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
+	"github.com/portainer/portainer-ee/api/internal/edge/staggers"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
@@ -68,6 +69,8 @@ type edgeStackFromGitRepositoryPayload struct {
 	PerDeviceConfigsPath string `example:"configs"`
 	// List of environment variables
 	EnvVars []portainer.Pair
+	// Configuration for stagger updates
+	StaggerConfig *portaineree.EdgeStaggerConfig
 }
 
 func (payload *edgeStackFromGitRepositoryPayload) Validate(r *http.Request) error {
@@ -106,7 +109,7 @@ func (payload *edgeStackFromGitRepositoryPayload) Validate(r *http.Request) erro
 		return err
 	}
 
-	return nil
+	return staggers.ValidateStaggerConfig(payload.StaggerConfig)
 }
 
 // @id EdgeStackCreateRepository
@@ -179,6 +182,7 @@ func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dat
 
 	stack.AutoUpdate = payload.AutoUpdate
 	stack.GitConfig = &repoConfig
+	stack.StaggerConfig = payload.StaggerConfig
 
 	edgeStack, err := handler.edgeStacksService.PersistEdgeStack(
 		tx,

@@ -24,3 +24,7 @@
   box-shadow: none;
   -webkit-box-shadow: none;
 }
+
+.btn-box-shadow {
+  box-shadow: none !important;
+}

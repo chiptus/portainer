@@ -21,9 +21,15 @@ interface Props {
   values: StaggerConfig;
   onChange: (value: Partial<StaggerConfig>) => void;
   errors?: FormikErrors<StaggerConfig>;
+  isEdit?: boolean;
 }
 
-export function StaggerFieldset({ values, onChange, errors }: Props) {
+export function StaggerFieldset({
+  values,
+  onChange,
+  errors,
+  isEdit = true,
+}: Props) {
   const staggerOptions = [
     {
       value: StaggerOption.AllAtOnce.toString(),
@@ -37,6 +43,19 @@ export function StaggerFieldset({ values, onChange, errors }: Props) {
 
   return (
     <FormSection title="Update configurations">
+      {!isEdit && (
+        <div className="form-group">
+          <div className="col-sm-12">
+            <TextTip color="blue">
+              Please note that the &apos;Update Configuration&apos; setting
+              takes effect exclusively during edge stack updates, whether
+              triggered manually, through webhook events, or via GitOps updates
+              processes
+            </TextTip>
+          </div>
+        </div>
+      )}
+
       <div className="form-group">
         <div className="col-sm-12">
           <RadioGroup
@@ -75,14 +94,22 @@ export function StaggerFieldset({ values, onChange, errors }: Props) {
             inputId="timeout"
             errors={errors?.Timeout}
           >
-            <Input
-              name="Timeout"
-              id="stagger-timeout"
-              className="col-sm-3 col-lg-2"
-              placeholder="eg. 5s"
-              value={values.Timeout}
-              onChange={(e) => handleChange({ Timeout: e.currentTarget.value })}
-            />
+            <div>
+              <div style={{ display: 'inline-block', width: '150px' }}>
+                <Input
+                  name="Timeout"
+                  id="stagger-timeout"
+                  placeholder="eg. 5 (optional)"
+                  value={values.Timeout}
+                  onChange={(e) =>
+                    handleChange({
+                      Timeout: e.currentTarget.value,
+                    })
+                  }
+                />
+              </div>
+              <span> {' minute(s) '} </span>
+            </div>
           </FormControl>
 
           <FormControl
@@ -90,16 +117,22 @@ export function StaggerFieldset({ values, onChange, errors }: Props) {
             inputId="update-delay"
             errors={errors?.UpdateDelay}
           >
-            <Input
-              name="UpdateDelay"
-              id="stagger-update-delay"
-              className="col-sm-3 col-lg-2"
-              placeholder="eg. 10s"
-              value={values.UpdateDelay}
-              onChange={(e) =>
-                handleChange({ UpdateDelay: e.currentTarget.value })
-              }
-            />
+            <div>
+              <div style={{ display: 'inline-block', width: '150px' }}>
+                <Input
+                  name="UpdateDelay"
+                  id="stagger-update-delay"
+                  placeholder="eg. 5 (optional)"
+                  value={values.UpdateDelay}
+                  onChange={(e) =>
+                    handleChange({
+                      UpdateDelay: e.currentTarget.value,
+                    })
+                  }
+                />
+              </div>
+              <span> {' minute(s) '} </span>
+            </div>
           </FormControl>
 
           <FormControl
@@ -109,6 +142,7 @@ export function StaggerFieldset({ values, onChange, errors }: Props) {
           >
             <ButtonGroup>
               <Button
+                className="btn-box-shadow"
                 color={
                   values.UpdateFailureAction === UpdateFailureAction.Continue
                     ? 'primary'
@@ -123,6 +157,7 @@ export function StaggerFieldset({ values, onChange, errors }: Props) {
                 Continue
               </Button>
               <Button
+                className="btn-box-shadow"
                 color={
                   values.UpdateFailureAction === UpdateFailureAction.Pause
                     ? 'primary'
@@ -137,6 +172,7 @@ export function StaggerFieldset({ values, onChange, errors }: Props) {
                 Pause
               </Button>
               <Button
+                className="btn-box-shadow"
                 color={
                   values.UpdateFailureAction === UpdateFailureAction.Rollback
                     ? 'primary'
@@ -178,6 +214,7 @@ export function staggerConfigValidation(): SchemaOf<StaggerConfig> {
       })
       .optional(),
     DeviceNumber: number()
+      .default(0)
       .when('StaggerOption', {
         is: StaggerOption.Parallel,
         then: (schema) =>
@@ -222,14 +259,24 @@ export function staggerConfigValidation(): SchemaOf<StaggerConfig> {
       .default('')
       .when('StaggerOption', {
         is: StaggerOption.Parallel,
-        then: (schema) => schema.required('Timeout is required'),
+        then: (schema) =>
+          schema.test(
+            'is-number',
+            'Timeout must be a number',
+            (value) => !Number.isNaN(Number(value))
+          ),
       })
       .optional(),
     UpdateDelay: string()
       .default('')
       .when('StaggerOption', {
         is: StaggerOption.Parallel,
-        then: (schema) => schema.required('Update delay is required'),
+        then: (schema) =>
+          schema.test(
+            'is-number',
+            'Timeout must be a number',
+            (value) => !Number.isNaN(Number(value))
+          ),
       })
       .optional(),
     UpdateFailureAction: number()

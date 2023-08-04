@@ -350,9 +350,11 @@ type (
 		DeviceNumber            int
 		DeviceNumberStartFrom   int
 		DeviceNumberIncrementBy int
-		Timeout                 string
-		UpdateDelay             string
-		UpdateFailureAction     EdgeUpdateFailureAction
+		// Timeout unit is minute
+		Timeout string `example:"5"`
+		// UpdateDelay unit is minute
+		UpdateDelay         string `example:"5"`
+		UpdateFailureAction EdgeUpdateFailureAction
 	}
 
 	//EdgeStack represents an edge stack

@@ -82,11 +82,11 @@ export function EditEdgeStackForm({
     staggerConfig: edgeStack.StaggerConfig || {
       StaggerOption: StaggerOption.AllAtOnce,
       StaggerParallelOption: StaggerParallelOption.Fixed,
-      DeviceNumber: 1,
+      DeviceNumber: 0,
       DeviceNumberStartFrom: 0,
       DeviceNumberIncrementBy: 2,
-      Timeout: '0s',
-      UpdateDelay: '0s',
+      Timeout: '',
+      UpdateDelay: '',
       UpdateFailureAction: UpdateFailureAction.Continue,
     },
   };
