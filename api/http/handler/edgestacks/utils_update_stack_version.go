@@ -151,7 +151,12 @@ func (handler *Handler) hasFileContentChanged(stack *portaineree.EdgeStack, upda
 
 	projectVersionPath := handler.FileService.FormProjectPathByVersion(stack.ProjectPath, stack.StackFileVersion, "")
 
-	currentFileContent, err := handler.FileService.GetFileContent(projectVersionPath, stack.EntryPoint)
+	fileName := stack.EntryPoint
+	if stack.DeploymentType == portaineree.EdgeStackDeploymentKubernetes {
+		fileName = stack.ManifestPath
+	}
+
+	currentFileContent, err := handler.FileService.GetFileContent(projectVersionPath, fileName)
 	if err != nil {
 		return false, err
 	}
