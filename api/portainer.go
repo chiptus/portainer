@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/containerservice/mgmt/containerservice"
-	"github.com/portainer/liblicense/v3"
+	liblicense "github.com/portainer/liblicense/v3"
 	"github.com/portainer/portainer-ee/api/database/models"
 	kubeModels "github.com/portainer/portainer-ee/api/http/models/kubernetes"
 	portainer "github.com/portainer/portainer/api"
