@@ -21,7 +21,7 @@ interface Props {
   onRemove(): void;
   isRequiredInitialArgumentEmpty?: boolean;
   errors?: FormikErrors<AddOnFormValue>;
-
+  isProcessing?: boolean;
   readonly?: boolean;
 }
 
@@ -34,6 +34,7 @@ export function AddOnSelector({
   onRemove,
   isRequiredInitialArgumentEmpty,
   errors,
+  isProcessing,
   readonly,
 }: Props) {
   const [selectedOption, setSelectedOption] = useState<
@@ -66,7 +67,7 @@ export function AddOnSelector({
             }}
             size="sm"
             value={selectedOption}
-            isDisabled={readonly}
+            isDisabled={readonly || isProcessing || value.disableSelect}
           />
         </InputGroup>
         {errors?.name && <FormError>{errors.name}</FormError>}
@@ -91,7 +92,7 @@ export function AddOnSelector({
                 onChange({ ...value, arguments: e.target.value ?? '' })
               }
               data-cy={`k8sAppCreate-argument-${index}`}
-              disabled={!value.name || readonly}
+              disabled={!value.name || readonly || isProcessing}
               placeholder={
                 addonConfig?.placeholder && `e.g. ${addonConfig?.placeholder}`
               }

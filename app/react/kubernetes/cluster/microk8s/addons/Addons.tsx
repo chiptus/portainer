@@ -1,5 +1,5 @@
 import { Loader2 } from 'lucide-react';
-import { Formik } from 'formik';
+import { Formik, FormikHelpers } from 'formik';
 import { useMemo } from 'react';
 import { SchemaOf, object, string } from 'yup';
 
@@ -73,6 +73,7 @@ export function Addons() {
           name: addonInfo.name,
           arguments: addonInfo.arguments,
           repository: addonInfo.repository,
+          disableSelect: true,
         })) || // format to form values
       [],
     currentVersion,
@@ -127,7 +128,10 @@ export function Addons() {
     </Card>
   );
 
-  async function handleUpdateAddons(values: K8sAddOnsForm) {
+  async function handleUpdateAddons(
+    values: K8sAddOnsForm,
+    { setFieldValue }: FormikHelpers<K8sAddOnsForm>
+  ) {
     confirmUpdate(
       'Are you sure you want to apply changes to addons?',
       (confirmed) => {
@@ -145,6 +149,15 @@ export function Addons() {
                   'Request to update addons successfully submitted'
                 );
                 queryClient.refetchQueries(['environments', environmentId]);
+                // keep the new addons by not resetting the form
+                // and disabling the addons until the updated initial values are fetched after processing
+                setFieldValue(
+                  'addons',
+                  values.addons.map((addon) => ({
+                    ...addon,
+                    disableSelect: true,
+                  }))
+                );
               },
               onError: (error) => {
                 notifyError('Error requesting addons update', error as Error);

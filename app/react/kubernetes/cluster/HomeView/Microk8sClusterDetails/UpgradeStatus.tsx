@@ -7,7 +7,6 @@ import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useEnvironment } from '@/react/portainer/environments/queries';
 import { useUpdateEnvironmentMutation } from '@/react/portainer/environments/queries/useUpdateEnvironmentMutation';
 import { OperationStatus } from '@/react/portainer/environments/types';
-import { notifySuccess } from '@/portainer/services/notifications';
 import { queryClient } from '@/react-tools/react-query';
 import { environmentQueryKeys } from '@/react/portainer/environments/queries/query-keys';
 
@@ -39,7 +38,6 @@ export function UpgradeStatus() {
     }
     // when the operation finished processing, notify the user, and invalidate the cluster queries to force a refresh
     if (currentOperationStatus === 'processing' && operationStatus === '') {
-      notifySuccess('Success', 'Environment upgraded successfully');
       // all query keys I want to invalidate have ['envirnments', environmentId] as their first two elements
       setTimeout(
         () =>

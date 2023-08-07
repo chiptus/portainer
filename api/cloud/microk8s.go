@@ -663,6 +663,7 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 		}
 
 		log.Debug().Msgf("Disabling addon (%s) on all the master nodes", addon)
+		setMessage("Updating addons", "Disabling MicroK8s addon "+addon, "processing")
 		for _, ip := range ips {
 			func() {
 				sshClientNode, err := sshUtil.NewConnection(user, password, passphrase, privateKey, ip)
@@ -723,6 +724,7 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 		}
 
 		// TODO: check MickoK8s version and validate the affected versions. (NOT SURE IF NEEDED)
+		setMessage("Updating addons", "Enabling MicroK8s addon "+addon.Name, "processing")
 		for _, ip := range ips {
 			func() {
 				sshClientNode, err := sshUtil.NewConnection(user, password, passphrase, privateKey, ip)

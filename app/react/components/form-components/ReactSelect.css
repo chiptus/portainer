@@ -13,6 +13,10 @@
   --single-value-option-text-color: var(--white-color);
 }
 
+.portainer-selector-root .portainer-selector__control.portainer-selector__control--is-disabled {
+  background-color: var(--bg-form-control-disabled-color) !important;
+}
+
 .portainer-selector__placeholder {
   white-space: nowrap;
   text-overflow: ellipsis;

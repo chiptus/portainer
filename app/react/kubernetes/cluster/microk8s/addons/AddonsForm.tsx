@@ -157,6 +157,7 @@ export function AddonsForm({
                 addons.splice(index, 1);
                 setFieldValue('addons', addons);
               }}
+              isProcessing={isProcessing}
               readonly={!isAllowed}
             />
           );
@@ -169,6 +170,7 @@ export function AddonsForm({
             type="button"
             onClick={addAddon}
             icon={Plus}
+            disabled={isProcessing}
           >
             Add addon
           </Button>
@@ -199,7 +201,7 @@ export function AddonsForm({
             type="reset"
             color="light"
             className="ml-1"
-            disabled={isInitialValues}
+            disabled={isInitialValues || isProcessing}
           >
             Cancel
           </Button>

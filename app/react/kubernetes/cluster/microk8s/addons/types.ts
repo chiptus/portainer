@@ -2,6 +2,7 @@ export interface AddOnFormValue {
   name: string;
   arguments?: string;
   repository?: string;
+  disableSelect?: boolean;
 }
 
 export type K8sAddOnsForm = {

@@ -1,4 +1,4 @@
-import { SchemaOf, array, object, string } from 'yup';
+import { SchemaOf, array, boolean, object, string } from 'yup';
 
 import { AddonOptionInfo } from '@/react/portainer/environments/wizard/EnvironmentsCreationView/WizardK8sInstall/types';
 
@@ -11,6 +11,7 @@ export function addonsValidation(
   return array().of(
     object({
       name: string().required('Addon name is required'),
+      disableSelect: boolean(),
       arguments: string().test(
         'argument-required',
         'Argument is required',
