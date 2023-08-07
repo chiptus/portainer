@@ -31,7 +31,7 @@ body,
 #content-wrapper,
 .page-content,
 #view {
-  min-height: 100%;
+  height: 100%;
   width: 100%;
   overflow-y: initial;
 }
@@ -40,8 +40,17 @@ body,
   position: relative;
 }
 
-.page-content {
+.chatbot-enabled #view {
   padding-bottom: 6em;
+  min-height: 100% !important;
+  height: auto;
+}
+
+.chatbot-enabled kubernetes-view-loading {
+  display: block;
+  position: absolute;
+  top: calc(50% - 27.5px);
+  left: calc(50% - 27.5px);
 }
 
 .logo {

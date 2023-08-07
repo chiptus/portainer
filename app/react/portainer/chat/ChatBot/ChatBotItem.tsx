@@ -76,6 +76,15 @@ You can check the status of the OpenAI API at [https://status.openai.com](https:
     sendDisclaimer();
   }, []);
 
+  useEffect(() => {
+    if (canDisplayChatbot) {
+      document.body.classList.add('chatbot-enabled');
+    }
+    return () => {
+      document.body.classList.remove('chatbot-enabled');
+    };
+  }, [canDisplayChatbot]);
+
   if (!environmentId || environmentQuery.isLoading) {
     return null; // for now do not display the chat widget in views outside of environment
   }
