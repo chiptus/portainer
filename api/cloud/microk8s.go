@@ -298,7 +298,9 @@ func (service *CloudManagementService) activateAddons(
 				ips = masterNodes
 				ips = append(ips, workerNodes...)
 			default:
-				ips = append(ips, masterNodes[0])
+				if masterNodes != nil {
+					ips = append(ips, masterNodes[0])
+				}
 			}
 
 			log.Debug().Msgf("Enabling addon (%s) on all the master nodes (ips: %s)", addon, strings.Join(ips[:], ", "))
@@ -419,8 +421,13 @@ func (service *CloudManagementService) processMicrok8sUpgradeRequest(req *Microk
 		return fmt.Errorf("environment %d was not provisioned from Portainer", req.EndpointID)
 	}
 
+	setMessage := service.setMessageHandler(req.EndpointID, "upgrade")
 	mk8sUpgrade := mk8s.NewMicrok8sUpgrade(endpoint, service.dataStore)
 	_, err = mk8sUpgrade.Upgrade()
+	if err != nil {
+		log.Error().Int("endpoint_id", int(endpoint.ID)).Err(err).Msg("failed to upgrade microk8s cluster")
+		setMessage("Upgrading cluster", err.Error(), "warning")
+	}
 
 	return err
 }
