@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-mkdir -p dist
+BUILD_SOURCESDIRECTORY=${BUILD_SOURCESDIRECTORY:-$(pwd)}
+BINARY_VERSION_FILE="$BUILD_SOURCESDIRECTORY/binary-version.json"
+
+if [[ ! -f $BINARY_VERSION_FILE ]] ; then
+    echo 'File $BINARY_VERSION_FILE not found, aborting build.'
+    exit 1
+fi
 
 # populate tool versions
 BUILDNUMBER="N/A"
@@ -10,6 +16,8 @@ NODE_VERSION="0"
 YARN_VERSION="0"
 WEBPACK_VERSION="0"
 GO_VERSION="0"
+
+mkdir -p dist
 
 # copy templates
 cp -r "./mustache-templates" "./dist"
@@ -31,8 +39,6 @@ ldflags="-s -X 'github.com/portainer/liblicense/v3.LicenseServerBaseURL=https://
 if [ -n "${KAAS_AGENT_VERSION+1}" ]; then
   ldflags=$ldflags" -X github.com/portainer/portainer-ee/api/kubernetes/cli.DefaultAgentVersion=$KAAS_AGENT_VERSION"
 fi
-
-BINARY_VERSION_FILE="../binary-version.json"
 
 EKSCTL_VERSION=$(jq -r '.eksctl' < "${BINARY_VERSION_FILE}")
 if [ -n "${EKSCTL_VERSION+1}" ]; then

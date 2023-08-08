@@ -52,6 +52,11 @@ func ensureEksctl(outputPath string) error {
 
 func downloadEksctl(outputPath string) error {
 	eksUrl, checksumFileUrl := getEksctlDownloadUrl()
+
+	log.Debug().Msg("downloading eksctl")
+	log.Debug().Msgf("eksctl url: %s", eksUrl)
+	log.Debug().Msgf("eksctl checksum url: %s", checksumFileUrl)
+
 	checksum, err := util.GetChecksum(checksumFileUrl, path.Base(eksUrl), 30)
 	if err != nil {
 		log.Warn().Err(err).Msg("")
@@ -99,6 +104,7 @@ func downloadAuthenticator(outputPath string) error {
 
 func getEksctlDownloadUrl() (eksctlUrl, checksumUrl string) {
 	// For the full list of available releases visit: https://github.com/eksctl-io/eksctl/releases
+	log.Debug().Msgf("getEksctlDownloadUrl. eksctl version: %s", DefaultEksCtlVersion)
 
 	version := DefaultEksCtlVersion
 	format := "https://github.com/eksctl-io/eksctl/releases/download/%s/eksctl_%s_%s.%s"

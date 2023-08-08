@@ -6,6 +6,12 @@ ARCH=$2
 
 export GOPATH="/tmp/go"
 BUILD_SOURCESDIRECTORY=${BUILD_SOURCESDIRECTORY:-$(pwd)}
+BINARY_VERSION_FILE="$BUILD_SOURCESDIRECTORY/binary-version.json"
+
+if [[ ! -f $BINARY_VERSION_FILE ]] ; then
+    echo 'File $BINARY_VERSION_FILE not found, aborting build.'
+    exit 1
+fi
 
 mkdir -p dist
 mkdir -p ${GOPATH}/src/github.com/portainer/portainer-ee
@@ -30,8 +36,6 @@ if [ -n "${KAAS_AGENT_VERSION+1}" ]; then
   ldflags=$ldflags" -X github.com/portainer/portainer-ee/api/kubernetes/cli.DefaultAgentVersion=$KAAS_AGENT_VERSION"
 fi
 
-BINARY_VERSION_FILE="$BUILD_SOURCESDIRECTORY/binary-version.json"
-
 EKSCTL_VERSION=$(jq -r '.eksctl' < "${BINARY_VERSION_FILE}")
 if [ -n "${EKSCTL_VERSION+1}" ]; then
   ldflags=$ldflags" -X github.com/portainer/portainer-ee/api/cloud/eks/eksctl.DefaultEksCtlVersion=$EKSCTL_VERSION"
@@ -41,6 +45,7 @@ AWSAUTH_VERSION=$(jq -r '.awsAuth' < "${BINARY_VERSION_FILE}")
 if [ -n "${AWSAUTH_VERSION+1}" ]; then
   ldflags=$ldflags" -X github.com/portainer/portainer-ee/api/cloud/eks/eksctl.DefaultAwsIamAuthenticatorVersion=$AWSAUTH_VERSION"
 fi
+
 
 GOOS=${PLATFORM} GOARCH=${ARCH} CGO_ENABLED=0 go build -a -trimpath --installsuffix cgo --gcflags="-trimpath $(pwd)" --ldflags "$ldflags"
 
