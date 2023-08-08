@@ -100,7 +100,13 @@ export function AddonsForm({
     if (values.addons.length !== initialValues.addons.length) {
       return false;
     }
-    return values.addons.every((addon) => initialValues.addons.includes(addon));
+    const initialValuesNames = initialValues.addons.map((a) => a.name);
+    const initialValuesArgs = initialValues.addons.map((a) => a.arguments);
+    return values.addons.every(
+      (addon) =>
+        initialValuesNames.includes(addon.name) &&
+        initialValuesArgs.includes(addon.arguments)
+    );
   }, [values.addons, initialValues.addons]);
 
   if (microk8sOptionsQuery.isError) {
