@@ -10,9 +10,10 @@ import { useAnalytics } from '@/react/hooks/useAnalytics';
 import { Link } from '@@/Link';
 import { Icon } from '@@/Icon';
 import { Button } from '@@/buttons';
+import { TooltipWithChildren } from '@@/Tip/TooltipWithChildren';
 
 import { NodeRowData } from '../types';
-import { getInternalNodeIpAddress } from '../utils';
+import { getInternalNodeIpAddress, getRole } from '../utils';
 
 import { columnHelper } from './helper';
 
@@ -52,6 +53,7 @@ function ActionsCell({
   const nodeName = node.metadata?.name;
 
   const nodeIp = getInternalNodeIpAddress(node);
+  const nodeRole = getRole(node);
 
   return (
     <div className="flex gap-1.5">
@@ -67,15 +69,23 @@ function ActionsCell({
           </Link>
         </Authorized>
       )}
-      {nodeIp && node.isApi && canCheckStatus && (
+      {nodeIp && nodeRole === 'Control plane' && canCheckStatus && (
         <Link
           title="MicroK8s status"
           to="kubernetes.cluster.node.microk8s-status"
           params={{ nodeName }}
-          className="flex items-center"
+          className="flex items-center p-1"
         >
           <Icon icon={Activity} />
         </Link>
+      )}
+
+      {nodeIp && nodeRole === 'Worker' && canCheckStatus && (
+        <TooltipWithChildren message="Status - not available for worker nodes">
+          <div className="text-muted flex items-center p-1">
+            <Icon icon={Activity} />
+          </div>
+        </TooltipWithChildren>
       )}
 
       {nodeIp && canSSH && (
