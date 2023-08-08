@@ -392,7 +392,17 @@ func (service *CloudManagementService) processMicrok8sUpdateAddonsRequest(req *M
 		return fmt.Errorf("failed to retrieve credentials for endpoint %d. %w", req.EndpointID, err)
 	}
 
-	service.Microk8sUpdateAddons(endpoint, credentials, req)
+	err, warningSummary := service.Microk8sUpdateAddons(endpoint, credentials, req)
+
+	setMessage := service.setMessageHandler(req.EndpointID, "addons")
+	if err != nil {
+		setMessage("Failed to update addons", err.Error(), "warning")
+		return nil
+	}
+
+	if warningSummary != "" {
+		setMessage("Addons updated with errors", warningSummary, "warning")
+	}
 
 	return nil
 }
@@ -536,25 +546,25 @@ func (service *CloudManagementService) microk8sAddNodes(endpoint *portaineree.En
 	return nil
 }
 
-func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portaineree.Endpoint, credentials *models.CloudCredential, req *Microk8sUpdateAddonsRequest) error {
+func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portaineree.Endpoint, credentials *models.CloudCredential, req *Microk8sUpdateAddonsRequest) (error, string) {
 	log.Debug().Str("provider", "microk8s").Msg("Updating microk8s addons")
 
 	user, ok := credentials.Credentials["username"]
 	if !ok {
 		log.Debug().Str("provider", "microk8s").Msg("credentials are missing ssh username")
-		return fmt.Errorf("missing ssh username")
+		return fmt.Errorf("Missing SSH username"), ""
 	}
 	password := credentials.Credentials["password"]
 	passphrase, passphraseOK := credentials.Credentials["passphrase"]
 	privateKey, privateKeyOK := credentials.Credentials["privateKey"]
 	if passphraseOK && !privateKeyOK {
 		log.Debug().Str("provider", "microk8s").Msg("passphrase provided, but we are missing a private key")
-		return fmt.Errorf("missing private key, but given passphrase")
+		return fmt.Errorf("Missing private key, but given passphrase"), ""
 	}
 
 	nodeIPs, err := service.Microk8sGetNodeIPs(credentials, int(endpoint.ID))
 	if err != nil {
-		return fmt.Errorf("failed to get existing cluster ips: %w", err)
+		return fmt.Errorf("Failed to get existing cluster IPs: %w", err), ""
 	}
 
 	log.Debug().Msgf("Microk8s NodeIPs: %v", nodeIPs)
@@ -574,8 +584,8 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 	setMessage("Updating addons", "Enabling/Disabling MicroK8s addons", "processing")
 	microK8sInfo, err := service.Microk8sGetAddons(endpoint.ID, credentials)
 	if err != nil {
-		log.Error().Msgf("Failed to get microk8s addons: %v", err)
-		return err
+		log.Error().Msgf("Failed to get MicroK8s addons: %v", err)
+		return fmt.Errorf("Failed to get MicroK8s addons: %w", err), ""
 	}
 
 	allInstallableAddons := mk8s.GetAllAvailableAddons()
@@ -622,15 +632,15 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 
 	sshClient, err := sshUtil.NewConnection(user, password, passphrase, privateKey, masterNode)
 	if err != nil {
-		log.Error().Err(err).Msgf("Failed to create ssh connection for node %s", masterNode)
-		return err
+		log.Error().Err(err).Msgf("Failed to create SSH connection for node %s", masterNode)
+		return fmt.Errorf("Failed to create SSH connection for node %s", masterNode), ""
 	}
 	defer sshClient.Close()
 
 	nodes, err := mk8s.GetAllNodes(sshClient)
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to get all the nodes from node %s", masterNode)
-		return err
+		return fmt.Errorf("Failed to get all the nodes from node %s", masterNode), ""
 	}
 
 	allAvailableAddons := mk8s.GetAllAvailableAddons()
@@ -638,7 +648,7 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 	log.Debug().Msgf("Disabling addons")
 
 	setMessage("Updating addons", "Disabling MicroK8s addons", "processing")
-	errCount := 0
+	disableWarningAddonNames := []string{}
 	for _, addon := range deletedAddons {
 		addonConfig := allAvailableAddons.GetAddon(addon)
 		if addonConfig == nil {
@@ -664,12 +674,13 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 
 		log.Debug().Msgf("Disabling addon (%s) on all the master nodes", addon)
 		setMessage("Updating addons", "Disabling MicroK8s addon "+addon, "processing")
+		errorCount := 0
 		for _, ip := range ips {
 			func() {
 				sshClientNode, err := sshUtil.NewConnection(user, password, passphrase, privateKey, ip)
 				if err != nil {
-					log.Error().Err(err).Msgf("Failed to create ssh connection for node %s", masterNode)
-					errCount++
+					log.Error().Err(err).Msgf("Failed to create SSH connection for node %s", masterNode)
+					errorCount++
 					return
 				}
 				defer sshClientNode.Close()
@@ -685,18 +696,28 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 				if err != nil {
 					// Rather than fail the whole thing.  Warn the user and allow them to manually try to enable the addon
 					log.Warn().AnErr("error", err).Msgf("failed to disable microk8s addon %s on node. error: ", addon)
-					errCount++
+					errorCount++
 				}
 			}()
 		}
+		if errorCount > 0 {
+			disableWarningAddonNames = append(disableWarningAddonNames, addon)
+		}
 	}
 
-	if errCount > 0 {
-		log.Error().Msgf("failed to disable %d microk8s addons on node.  Please disable these manually", errCount)
+	var disableWarningSummary string
+	if len(disableWarningAddonNames) > 0 {
+		log.Error().Msgf("failed to disable microk8s addons.  Please disable the following addons manually: %s", strings.Join(disableWarningAddonNames[:], ", "))
+		disableWarningSummary = fmt.Sprintf("Failed to disable MicroK8s addon%s: %s", func() string {
+			if len(disableWarningAddonNames) > 1 {
+				return "s"
+			}
+			return ""
+		}(), strings.Join(disableWarningAddonNames[:], ", "))
 	}
 
 	setMessage("Updating addons", "Enabling MicroK8s addons", "processing")
-	errCount = 0
+	enableWarningAddonNames := []string{}
 	for _, addon := range newAddons {
 		addonConfig := allAvailableAddons.GetAddon(addon.Name)
 		if addonConfig == nil {
@@ -725,12 +746,13 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 
 		// TODO: check MickoK8s version and validate the affected versions. (NOT SURE IF NEEDED)
 		setMessage("Updating addons", "Enabling MicroK8s addon "+addon.Name, "processing")
+		errorCount := 0
 		for _, ip := range ips {
 			func() {
 				sshClientNode, err := sshUtil.NewConnection(user, password, passphrase, privateKey, ip)
 				if err != nil {
-					log.Error().Err(err).Msgf("Failed to create ssh connection for node %s", masterNode)
-					errCount++
+					log.Error().Err(err).Msgf("Failed to create SSH connection for node %s", masterNode)
+					errorCount++
 					return
 				}
 				defer sshClientNode.Close()
@@ -738,14 +760,30 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 				if err != nil {
 					// Rather than fail the whole thing.  Warn the user and allow them to manually try to enable the addon
 					log.Warn().AnErr("error", err).Msgf("failed to enable microk8s addon %s on node. error: ", addon)
-					errCount++
+					errorCount++
 				}
 			}()
 		}
+		if errorCount > 0 {
+			enableWarningAddonNames = append(enableWarningAddonNames, addon.Name)
+		}
 	}
 
-	if errCount > 0 {
-		log.Error().Msgf("failed to enable %d microk8s addons on node.  Please enable these manually", errCount)
+	var enableWarningSummary string
+	if len(enableWarningAddonNames) > 0 {
+		log.Error().Msgf("failed to enable microk8s addons.  Please disable the following addons manually: %s", strings.Join(enableWarningAddonNames[:], ", "))
+		enableWarningSummary = fmt.Sprintf("Failed to enable MicroK8s addon%s: %s", func() string {
+			if len(enableWarningAddonNames) > 1 {
+				return "s"
+			}
+			return ""
+		}(), strings.Join(enableWarningAddonNames[:], ", "))
+	}
+
+	// if all addons failed to enable / disable, then return an error
+	if len(enableWarningAddonNames) == len(newAddons) && len(disableWarningAddonNames) == len(deletedAddons) {
+		log.Error().Msg("failed to update all MicroK8s addons.")
+		return fmt.Errorf("Failed to update all MicroK8s addons. Please try to update them manually."), ""
 	}
 
 	// Read endpoint again for fresh-copy
@@ -761,7 +799,21 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 	if err != nil {
 		log.Error().Msgf("failed to update endpoint (%s - %d) addons", endpoint.Name, endpoint.ID)
 	}
-	return nil
+
+	// build a warningSummary with enableWarningSummary, disableWarningSummary separated by '<br/>'
+	var warningSummary string
+	separator := func() string {
+		if enableWarningSummary != "" && disableWarningSummary != "" {
+			return "<br/>"
+		}
+		return ""
+	}()
+	warningSummary = strings.Join([]string{enableWarningSummary, disableWarningSummary}, separator)
+	if warningSummary != "" {
+		return nil, warningSummary
+	}
+
+	return nil, ""
 }
 
 // Microk8sGetCluster simply connects to the first node IP and retrieves the cluster information (kubeconfig)
@@ -868,7 +920,8 @@ func (service *CloudManagementService) GetSSHConnection(environmentID portainere
 		nodeIP,
 	)
 	if err != nil {
-		log.Debug().Err(err).Msg("failed creating ssh client")
+		log.Debug().Err(err).Msg("failed creating SSH client")
+		return nil, fmt.Errorf("Failed creating SSH client: %w", err)
 	}
 
 	return sshClient, nil

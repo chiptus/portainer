@@ -37,7 +37,10 @@ export function UpgradeStatus() {
       setAutoRefreshRate(undefined);
     }
     // when the operation finished processing, notify the user, and invalidate the cluster queries to force a refresh
-    if (currentOperationStatus === 'processing' && operationStatus === '') {
+    if (
+      currentOperationStatus === 'processing' &&
+      operationStatus !== 'processing'
+    ) {
       // all query keys I want to invalidate have ['envirnments', environmentId] as their first two elements
       setTimeout(
         () =>

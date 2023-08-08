@@ -79,7 +79,7 @@ func GetNodeList(masterNode string, credentials *models.CloudCredential) ([]stri
 func UninstallMicrok8s(node string, credentials *models.CloudCredential) error {
 	conn, err := ssh.NewConnectionWithCredentials(node, credentials)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to uninstall MicroK8s: cannot create client connection: %w", err)
 	}
 	defer conn.Close()
 

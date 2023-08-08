@@ -75,13 +75,11 @@ func NewConnection(user, password, passphrase, privateKey, ip string) (*SSHConne
 		return nil, err
 	}
 
-	s := SSHConnection{
+	return &SSHConnection{
 		IP:        ip,
 		SSHConfig: config,
 		Client:    conn,
-	}
-
-	return &s, nil
+	}, nil
 }
 
 func NewConnectionWithCredentials(ip string, credentials *models.CloudCredential) (*SSHConnection, error) {

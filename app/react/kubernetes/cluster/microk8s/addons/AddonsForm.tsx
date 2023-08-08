@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Form, FormikProps } from 'formik';
 import { Plus } from 'lucide-react';
 import clsx from 'clsx';
@@ -8,6 +8,7 @@ import { useAuthorizations } from '@/react/hooks/useUser';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useEnvironment } from '@/react/portainer/environments/queries';
 import { isErrorType } from '@/react/kubernetes/applications/CreateView/application-services/utils';
+import { OperationStatus } from '@/react/portainer/environments/types';
 
 import { Button, LoadingButton } from '@@/buttons';
 import { TextTip } from '@@/Tip/TextTip';
@@ -33,13 +34,20 @@ export function AddonsForm({
   isSubmitting,
   initialValues,
   isRefetchingAddons,
+  resetForm,
 }: FormikProps<K8sAddOnsForm> & Props) {
+  const [currentOperationStatus, setCurrentOperationStatus] = useState<
+    OperationStatus | undefined
+  >('');
   const isAllowed = useAuthorizations(['K8sClusterW']);
   const environmentId = useEnvironmentId();
-  const { data: isProcessing } = useEnvironment(
-    environmentId,
-    (env) => env?.StatusMessage?.operationStatus === 'processing'
+  const { data: environment } = useEnvironment(environmentId);
+
+  const operationStatus = useMemo(
+    () => environment?.StatusMessage?.operationStatus,
+    [environment?.StatusMessage?.operationStatus]
   );
+  const isProcessing = operationStatus === 'processing';
 
   const { data: microk8sOptions, ...microk8sOptionsQuery } =
     useMicroK8sOptions();
@@ -108,6 +116,17 @@ export function AddonsForm({
         initialValuesArgs.includes(addon.arguments)
     );
   }, [values.addons, initialValues.addons]);
+
+  useEffect(() => {
+    // if the operation finishes in a warning state, reset the form
+    if (
+      currentOperationStatus === 'processing' &&
+      operationStatus === 'warning'
+    ) {
+      resetForm();
+    }
+    setCurrentOperationStatus(operationStatus);
+  }, [currentOperationStatus, environmentId, operationStatus, resetForm]);
 
   if (microk8sOptionsQuery.isError) {
     return <TextTip color="orange">Unable to get microk8s options.</TextTip>;
