@@ -140,7 +140,8 @@ export function AddonsForm({
             matchingAddonOption?.argumentsType === 'required';
           return (
             <AddOnSelector
-              key={`addon${addon.name}`}
+              // include the index in the key too, because the name is empty until an addon is selected
+              key={`addon${addon.name}${index}`}
               value={addon}
               options={addonOptions}
               groupedAddonOptions={groupedAddonOptions}
