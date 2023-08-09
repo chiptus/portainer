@@ -115,7 +115,7 @@
                 checked="$ctrl.formValues.PrePullImage"
                 name="'prePullImage'"
                 label="'Pre-pull images'"
-                tooltip="'When enabled, deployment will be executed when image(s) is pulled successfully'"
+                tooltip="'When enabled, the image will be pre-pulled before deployment is started. This is useful in scenarios where the image download may be delayed or  intermittent and would subsequently cause the deployment to fail'"
                 label-class="'col-sm-3 col-lg-2'"
                 on-change="($ctrl.onChangePrePullImage)"
               ></por-switch-field>
@@ -129,7 +129,7 @@
                 checked="$ctrl.formValues.RetryDeploy"
                 name="'retryDeploy'"
                 label="'Retry deployment'"
-                tooltip="'When enabled, this will allow edge agent keep retrying deployment if failure occur'"
+                tooltip="'When enabled, this will allow the edge agent to retry deployment if failed to deploy initially'"
                 label-class="'col-sm-3 col-lg-2'"
                 on-change="($ctrl.onChangeRetryDeploy)"
               ></por-switch-field>
