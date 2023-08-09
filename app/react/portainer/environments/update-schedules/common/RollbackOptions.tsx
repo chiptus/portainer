@@ -1,6 +1,7 @@
 import { useFormikContext } from 'formik';
 import _ from 'lodash';
 import { useMemo, useEffect } from 'react';
+import { useCurrentStateAndParams } from '@uirouter/react';
 
 import { useEdgeGroups } from '@/react/edge/edge-groups/queries/useEdgeGroups';
 
@@ -52,8 +53,15 @@ function useSelectVersionOnMount() {
 
   const environmentIdsQuery = useEdgeGroupsEnvironmentIds(groupIds);
 
+  const {
+    params: { id: idParam },
+  } = useCurrentStateAndParams();
+
+  const id = parseInt(idParam, 10);
+
   const previousVersionsQuery = usePreviousVersions<string[]>({
     enabled: !!environmentIdsQuery.data,
+    skipScheduleID: id,
   });
 
   const previousVersions = useMemo(

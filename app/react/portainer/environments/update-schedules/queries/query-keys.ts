@@ -11,5 +11,6 @@ export const queryKeys = {
     [...queryKeys.base(), 'active', { environmentIds }] as const,
   supportedAgentVersions: () =>
     [...queryKeys.base(), 'agent_versions'] as const,
-  previousVersions: () => [...queryKeys.base(), 'previous_versions'] as const,
+  previousVersions: (skipScheduleID: number) =>
+    [...queryKeys.base(), 'previous_versions', skipScheduleID] as const,
 };

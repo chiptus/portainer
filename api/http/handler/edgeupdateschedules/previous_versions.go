@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	httperror "github.com/portainer/libhttp/error"
+	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
@@ -18,17 +19,21 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
+// @param skipScheduleID query int false "Schedule ID, ignore the schedule which is being edited"
 // @success 200 {array} string
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /edge_update_schedules/previous_versions [get]
 func (handler *Handler) previousVersions(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+	skipScheduleIDRaw, _ := request.RetrieveNumericQueryParameter(r, "skipScheduleID", true)
+	skipScheduleID := edgetypes.UpdateScheduleID(skipScheduleIDRaw)
+
 	schedules, err := handler.updateService.Schedules()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve the edge update schedules list", err)
 	}
 
-	versionMap := previousVersions(schedules, handler.updateService.ActiveSchedule)
+	versionMap := previousVersions(schedules, handler.updateService.ActiveSchedule, skipScheduleID)
 
 	return response.JSON(w, versionMap)
 }
@@ -39,7 +44,11 @@ type EnvironmentVersionDetails struct {
 	skipReason string
 }
 
-func previousVersions(schedules []edgetypes.UpdateSchedule, activeScheduleGetter func(environmentID portaineree.EndpointID) *edgetypes.EndpointUpdateScheduleRelation) map[portaineree.EndpointID]string {
+func previousVersions(
+	schedules []edgetypes.UpdateSchedule,
+	activeScheduleGetter func(environmentID portaineree.EndpointID) *edgetypes.EndpointUpdateScheduleRelation,
+	skipScheduleID edgetypes.UpdateScheduleID,
+) map[portaineree.EndpointID]string {
 
 	sort.SliceStable(schedules, func(i, j int) bool {
 		return schedules[i].Created > schedules[j].Created
@@ -48,6 +57,9 @@ func previousVersions(schedules []edgetypes.UpdateSchedule, activeScheduleGetter
 	environmentMap := map[portaineree.EndpointID]*EnvironmentVersionDetails{}
 	// to all schedules[:schedule index -1].Created > schedule.Created
 	for _, schedule := range schedules {
+		if schedule.ID == skipScheduleID {
+			continue
+		}
 		for environmentId, version := range schedule.EnvironmentsPreviousVersions {
 			props, ok := environmentMap[environmentId]
 			if !ok {
@@ -67,7 +79,7 @@ func previousVersions(schedules []edgetypes.UpdateSchedule, activeScheduleGetter
 
 			activeSchedule := activeScheduleGetter(environmentId)
 
-			if activeSchedule != nil {
+			if activeSchedule != nil && activeSchedule.ScheduleID != skipScheduleID {
 				props.skip = true
 				props.skipReason = "has active schedule"
 				continue

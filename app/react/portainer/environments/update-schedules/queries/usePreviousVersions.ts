@@ -10,24 +10,35 @@ interface Options<T> {
   select?: (data: Record<EnvironmentId, string>) => T;
   onSuccess?(data: T): void;
   enabled?: boolean;
+  skipScheduleID?: number;
 }
 
 export function usePreviousVersions<T = Record<EnvironmentId, string>>({
   select,
   onSuccess,
   enabled,
+  skipScheduleID = 0,
 }: Options<T> = {}) {
-  return useQuery(queryKeys.previousVersions(), getPreviousVersions, {
-    select,
-    onSuccess,
-    enabled,
-  });
+  return useQuery(
+    queryKeys.previousVersions(skipScheduleID),
+    () => getPreviousVersions(skipScheduleID),
+    {
+      select,
+      onSuccess,
+      enabled,
+    }
+  );
 }
 
-async function getPreviousVersions() {
+async function getPreviousVersions(skipScheduleID: number) {
   try {
     const { data } = await axios.get<Record<EnvironmentId, string>>(
-      buildUrl(undefined, 'previous_versions')
+      buildUrl(undefined, 'previous_versions'),
+      {
+        params: {
+          skipScheduleID,
+        },
+      }
     );
     return data;
   } catch (err) {

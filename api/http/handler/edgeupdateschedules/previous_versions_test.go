@@ -42,9 +42,13 @@ func TestPreviousVersions(t *testing.T) {
 		},
 	}
 
-	actual := previousVersions(schedules, func(environmentID portaineree.EndpointID) *edgetypes.EndpointUpdateScheduleRelation {
-		return activeSchedulesMap[environmentID]
-	})
+	actual := previousVersions(
+		schedules,
+		func(environmentID portaineree.EndpointID) *edgetypes.EndpointUpdateScheduleRelation {
+			return activeSchedulesMap[environmentID]
+		},
+		0,
+	)
 
 	assert.Equal(t, map[portaineree.EndpointID]string{
 		2: "2.13.0",
