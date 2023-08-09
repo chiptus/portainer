@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/portainer/liblicense/v3"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
@@ -401,4 +402,19 @@ func licenseExpiresAt(license liblicense.PortainerLicense) time.Time {
 func isExpiredOrRevoked(license liblicense.PortainerLicense) bool {
 	now := time.Now()
 	return now.After(time.Unix(license.ExpiresAt, 0)) || license.Revoked
+}
+
+// revokeLicense attempts to mark a license as revoked.
+func (service *Service) revokeLicense(licenseKey string) error {
+	license, err := service.dataStore.License().License(licenseKey)
+	if err != nil {
+		return errors.Wrap(err, "failed to fetch licenses to revoke")
+	}
+	license.Revoked = true
+
+	err = service.dataStore.License().UpdateLicense(licenseKey, license)
+	if err != nil {
+		return errors.Wrap(err, "failed to revoke a license")
+	}
+	return nil
 }

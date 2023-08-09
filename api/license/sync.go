@@ -50,20 +50,27 @@ func (service *Service) SyncLicenses() error {
 		return err
 	}
 
-	var synced []liblicense.PortainerLicense
 	for _, l := range licenses {
 		l := ParseLicense(l.LicenseKey, service.expireAbsolute, l.Revoked)
+		if l.Revoked {
+			continue
+		}
+
 		log.Debug().Str("license", l.Company).Msg("validating license with remote server")
 		valid, err := liblicense.ValidateLicense(&l)
 		if err != nil {
 			log.Err(err).Msg("invalid license found")
 		}
 		if !valid {
-			l.Revoked = true
+			service.revokeLicense(l.LicenseKey)
 		}
-		synced = append(synced, l)
 	}
-	service.licenses = synced
+
+	licenses, err = service.dataStore.License().Licenses()
+	if err != nil {
+		return err
+	}
+	service.licenses = licenses
 	return nil
 }
 
