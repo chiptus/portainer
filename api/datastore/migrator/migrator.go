@@ -263,6 +263,7 @@ func (m *Migrator) initMigrations() {
 		m.rebuildStackFileSystemWithVersionForDB100,
 		m.convertSeedToPrivateKeyForDB100,
 		m.updateEdgeStackStatusForDB100,
+		m.fixPotentialUpdateScheduleDBCorruptionForDB100,
 	)
 
 	// Add new migrations above...

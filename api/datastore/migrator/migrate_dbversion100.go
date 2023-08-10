@@ -484,3 +484,44 @@ func (m *Migrator) updateEdgeStackStatusForDB100() error {
 
 	return nil
 }
+
+func (m *Migrator) fixPotentialUpdateScheduleDBCorruptionForDB100() error {
+	edgeStacks, err := m.edgeStackService.EdgeStacks()
+	if err != nil {
+		return err
+	}
+
+	edgeStackIDs := make(map[portaineree.EdgeStackID]bool, len(edgeStacks))
+
+	for _, edgeStack := range edgeStacks {
+		edgeStackIDs[edgeStack.ID] = true
+	}
+
+	endpointRelations, err := m.endpointRelationService.EndpointRelations()
+	if err != nil {
+		return err
+	}
+
+	for _, endpointRelation := range endpointRelations {
+		hasCorruptedEdgeStack := false
+		for edgeStackID := range endpointRelation.EdgeStacks {
+			if _, ok := edgeStackIDs[edgeStackID]; ok {
+				continue
+			}
+
+			// remove the edge stack ID from the endpoint relation if
+			// the edge stack does not exist
+			delete(endpointRelation.EdgeStacks, edgeStackID)
+			hasCorruptedEdgeStack = true
+		}
+
+		if hasCorruptedEdgeStack {
+			err = m.endpointRelationService.UpdateEndpointRelation(endpointRelation.EndpointID, &endpointRelation)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
