@@ -410,7 +410,7 @@ func (service *CloudManagementService) processMicrok8sUpdateAddonsRequest(req *M
 }
 
 func (service *CloudManagementService) processMicrok8sUpgradeRequest(req *Microk8sUpgradeRequest) error {
-	log.Debug().Msgf("Processing microk8s scaling request for environment %d", req.EndpointID)
+	log.Debug().Msgf("Processing microk8s upgrade request for environment %d", req.EndpointID)
 
 	endpoint, err := service.dataStore.Endpoint().Endpoint(req.EndpointID)
 	if err != nil {
@@ -418,7 +418,7 @@ func (service *CloudManagementService) processMicrok8sUpgradeRequest(req *Microk
 	}
 
 	if endpoint.CloudProvider == nil {
-		return fmt.Errorf("environment %d was not provisioned from Portainer", req.EndpointID)
+		return fmt.Errorf("environment %d was not provisioned by Portainer", req.EndpointID)
 	}
 
 	setMessage := service.setMessageHandler(req.EndpointID, "upgrade")

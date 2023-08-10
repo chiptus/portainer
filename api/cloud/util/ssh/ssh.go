@@ -1,14 +1,13 @@
 package ssh
 
 import (
+	"bufio"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"io"
-	"os"
+	"strings"
 	"time"
 
-	"github.com/pkg/sftp"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/ssh"
@@ -108,26 +107,54 @@ func (s *SSHConnection) RunCommand(command string, out io.Writer) error {
 	}
 	defer session.Close()
 
-	sftpClient, err := sftp.NewClient(s.Client)
+	sshStderr, err := session.StderrPipe()
 	if err != nil {
 		return err
 	}
-	defer sftpClient.Close()
 
-	passSFTP, _ := sftpClient.Create(".password")
-	defer sftpClient.Remove(".password")
-	err = sftpClient.Chmod(".password", 0o600)
+	sshStdout, err := session.StdoutPipe()
 	if err != nil {
 		return err
 	}
-	_, err = passSFTP.Write([]byte(s.SSHConfig.Password))
+
+	sshStdin, err := session.StdinPipe()
 	if err != nil {
-		return errors.New("failed to write password to file")
+		return err
 	}
-	passSFTP.Close()
 
-	session.Stdout = out
-	session.Stderr = os.Stderr
+	// sudo writes [sudo] password for <user>: to stderr.  We send the password to stdin
+	go s.handleSudoPassword(sshStdin, io.TeeReader(sshStderr, out))
 
-	return session.Run(fmt.Sprintf("cat '.password' | sudo -S %s", command))
+	err = session.Run(fmt.Sprintf("sudo -S %s", command))
+	if err != nil {
+		return err
+	}
+
+	io.Copy(out, sshStdout)
+	return nil
+}
+
+func (s *SSHConnection) handleSudoPassword(stdin io.WriteCloser, stderr io.Reader) {
+	var line string
+	r := bufio.NewReader(stderr)
+
+	for {
+		b, err := r.ReadByte()
+		if err != nil {
+			break
+		}
+
+		if b == byte('\n') {
+			line = ""
+			continue
+		}
+
+		line += string(b)
+		if strings.HasPrefix(line, "[sudo] password for ") && strings.HasSuffix(line, ": ") {
+			_, err = stdin.Write([]byte(s.SSHConfig.Password + "\n"))
+			if err != nil {
+				break
+			}
+		}
+	}
 }
