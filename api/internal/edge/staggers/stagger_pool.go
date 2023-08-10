@@ -18,7 +18,7 @@ func GetStaggerPoolKey(edgeStackID portaineree.EdgeStackID, stackFileVersion int
 }
 
 func (service *Service) startStaggerPool() {
-	log.Debug().Msg("Starting stagger pool")
+	log.Debug().Msg("[Stagger pool] Starting stagger pool")
 
 	ticker := time.NewTicker(7 * time.Second)
 	defer ticker.Stop()
@@ -27,7 +27,7 @@ func (service *Service) startStaggerPool() {
 		case <-service.shutdownCtx.Done():
 			// todo: if Stagger pool is not empty and there are unfinished stagger queues
 			// we need to save the current stagger queue state to the database
-			log.Debug().Msg("Stopping stagger pool")
+			log.Debug().Msg("[Stagger pool] Stopping stagger pool")
 			close(service.staggerJobQueue)
 			close(service.staggerStatusJobQueue)
 
@@ -43,13 +43,13 @@ func (service *Service) startStaggerPool() {
 		case newJob := <-service.staggerJobQueue:
 			// Build the stagger schedule operation based on the stagger config
 			if newJob.Config.StaggerOption == portaineree.EdgeStaggerOptionAllAtOnce {
-				log.Debug().Msg("Stagger option is all at once, skip")
+				log.Debug().Msg("[Stagger pool] Stagger option is all at once, skip")
 				break
 			}
 
 			log.Debug().
 				Int("edgeStackID", int(newJob.EdgeStackID)).
-				Msg("Received stagger job")
+				Msg("[Stagger pool] Received stagger job")
 
 			if newJob.Config.Timeout == "" {
 				newJob.Config.Timeout = "0"
@@ -57,7 +57,7 @@ func (service *Service) startStaggerPool() {
 			timeoutDuration, err := time.ParseDuration(fmt.Sprintf("%sm", newJob.Config.Timeout))
 			if err != nil {
 				log.Error().Err(err).
-					Msgf("Failed to parse timeout duration: %s", newJob.Config.Timeout)
+					Msgf("[Stagger pool] Failed to parse timeout duration: %s", newJob.Config.Timeout)
 				break
 			}
 
@@ -67,7 +67,7 @@ func (service *Service) startStaggerPool() {
 			updateDelayDuration, err := time.ParseDuration(fmt.Sprintf("%sm", newJob.Config.UpdateDelay))
 			if err != nil {
 				log.Error().Err(err).
-					Msgf("Failed to parse update delay duration: %s", newJob.Config.UpdateDelay)
+					Msgf("[Stagger pool] Failed to parse update delay duration: %s", newJob.Config.UpdateDelay)
 				break
 			}
 
@@ -103,7 +103,7 @@ func (service *Service) startStaggerPool() {
 			})
 			if err != nil {
 				log.Error().Err(err).
-					Msgf("Failed to collect all related endpoints of edge stack: %d", newJob.EdgeStackID)
+					Msgf("[Stagger pool] Failed to collect all related endpoints of edge stack: %d", newJob.EdgeStackID)
 				break
 			}
 
@@ -118,7 +118,7 @@ func (service *Service) startStaggerPool() {
 				scheduleOperation.staggerQueue = buildStaggerQueueWithIncrementalDeviceNumber(endpointIDs, config.DeviceNumberStartFrom, config.DeviceNumberIncrementBy)
 
 			} else {
-				log.Error().Msgf("Unsupported stagger parallel option: %d", config.StaggerParallelOption)
+				log.Error().Msgf("[Stagger pool] Unsupported stagger parallel option: %d", config.StaggerParallelOption)
 				break
 			}
 
@@ -142,7 +142,7 @@ func (service *Service) startStaggerPool() {
 				Int("edgeStackID", int(newStatusJob.EdgeStackID)).
 				Int("stackFileVersion", newStatusJob.StackFileVersion).
 				Int("endpointID", int(newStatusJob.EndpointID)).
-				Msgf("Received stagger status job: %d", newStatusJob.Status)
+				Msgf("[Stagger pool] Received stagger status job: %d", newStatusJob.Status)
 
 			service.ProcessStatusJob(newStatusJob)
 
@@ -161,20 +161,20 @@ func (service *Service) ProcessStatusJob(newStatusJob *StaggerStatusJob) {
 	scheduleOperation, ok := service.staggerPool[poolKey]
 	if !ok {
 		log.Debug().Str("pool key", string(poolKey)).
-			Msg("Failed to retrieve stagger schedule operation for edge stack ")
+			Msg("[Stagger pool] Failed to retrieve stagger schedule operation for edge stack ")
 		return
 	}
 
 	if scheduleOperation.IsPaused() {
 		log.Debug().Str("pool key", string(poolKey)).
-			Msg("Stagger workflow is paused, skip")
+			Msg("[Stagger pool] Stagger workflow is paused, skip")
 
 		return
 	}
 
 	if scheduleOperation.IsCompleted() {
 		log.Debug().Str("pool key", string(poolKey)).
-			Msg("Stagger workflow is completed, skip")
+			Msg("[Stagger pool] Stagger workflow is completed, skip")
 
 		return
 	}
@@ -182,7 +182,7 @@ func (service *Service) ProcessStatusJob(newStatusJob *StaggerStatusJob) {
 	if scheduleOperation.ShouldRollback() {
 		// Operation to rollback the edge stack of endpoints in the stagger queue one by one
 		// This operation corresponds to the failure action of "rollback"
-		log.Debug().Msg("Stagger workflow is rolling back")
+		log.Debug().Msg("[Stagger pool] Stagger workflow is rolling back")
 		scheduleOperation.RollbackStaggerQueue(newStatusJob.EndpointID, newStatusJob.Status, newStatusJob.StackFileVersion, newStatusJob.RollbackTo)
 
 	} else {

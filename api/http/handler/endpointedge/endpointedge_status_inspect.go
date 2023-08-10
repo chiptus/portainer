@@ -433,24 +433,24 @@ func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID 
 
 		// Stagger configuration check
 		if handler.staggerService != nil && handler.staggerService.IsStaggeredEdgeStack(stackID, stack.StackFileVersion) {
-			if handler.staggerService.MarkedAsCompleted(stackID, stack.StackFileVersion) {
-				log.Debug().
-					Int("edgeStackID", int(stackID)).
-					Int("endpointID", int(endpointID)).
-					Int("statusVersion", stackStatus.Version).
-					Int("fileVersion", stack.StackFileVersion).
-					Msg("Marked as completed, skip")
+			log.Debug().Int("edgeStackID", int(stackID)).
+				Int("endpointID", int(endpointID)).
+				Int("statusVersion", stackStatus.Version).
+				Int("fileVersion", stack.StackFileVersion).
+				Msg("[stagger status inspect] Staggered edge stack")
 
-				if handler.staggerService.WasEndpointRolledBack(stackID, stack.StackFileVersion, endpointID) {
-					if stack.PreviousDeploymentInfo != nil {
-						// This will prevent rolled back edge stacks from being removed due to
-						// mismatched version numbers
-						stackStatus.Version = stack.PreviousDeploymentInfo.FileVersion
-						edgeStacksStatus = append(edgeStacksStatus, stackStatus)
-						continue
-					}
+			if handler.staggerService.MarkedAsCompleted(stackID, stack.StackFileVersion) {
+				log.Debug().Msg("[stagger status inspect] Marked as completed, skip")
+
+				endpointStatus := stack.Status[endpointID]
+				if endpointStatus.DeploymentInfo.Version == 0 {
+					// The endpoint has never deployed an edge stack
+					continue
 				}
 
+				// if the stagger update is completed, we should always return the
+				// version that the endpoint has deployed
+				stackStatus.Version = endpointStatus.DeploymentInfo.Version
 				edgeStacksStatus = append(edgeStacksStatus, stackStatus)
 				continue
 			}
@@ -463,37 +463,48 @@ func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID 
 				// it's the turn for the stagger queue
 				*skipCache = true
 
-				// Be careful, if the edge stack on agent is deployed successfully, the response did not contain
-				// the corresponding stack status. The agent will remove the new created edge stack.
+				// prevent waiting edge agents from being removed before they got processed
+				endpointStatus := stack.Status[endpointID]
+				if endpointStatus.DeploymentInfo.Version == 0 {
+					continue
+				}
+
+				log.Debug().Int("endpointVersion", endpointStatus.DeploymentInfo.Version).
+					Msg("[stagger status inspect] Cannot proceed as stagger job")
+
+				stackStatus.Version = endpointStatus.DeploymentInfo.Version
+				edgeStacksStatus = append(edgeStacksStatus, stackStatus)
 				continue
 			}
 
-			log.Debug().
-				Int("edgeStackID", int(stackID)).
-				Int("endpointID", int(endpointID)).
-				Int("statusVersion", stackStatus.Version).
-				Int("fileVersion", stack.StackFileVersion).
-				Msg("Can proceed as stagger job")
+			log.Debug().Msg("[stagger status inspect] Can proceed as stagger job")
 
 			// If the deployed version for the endpoint is already rolled back, skip
 			if handler.staggerService.MarkedAsRollback(stackID, stack.StackFileVersion) {
-				log.Debug().
-					Int("edgeStackID", int(stackID)).
-					Int("endpointID", int(endpointID)).
-					Int("statusVersion", stackStatus.Version).
-					Int("fileVersion", stack.StackFileVersion).
-					Msg("Rollback edge stack")
+				if handler.staggerService.WasEndpointRolledBack(stackID, stack.StackFileVersion, endpointID) {
+					// if the endpoint was already rolled back, we need to return its current deployed version
+					endpointStatus := stack.Status[endpointID]
+					log.Debug().Int("endpointVersion", endpointStatus.DeploymentInfo.Version).
+						Msg("[stagger status inspect] was endpoint rolled back")
+
+					// if the endpoint was not updated yet, the version will be the stack version
+					// if the endpoint was updated and rolled back, the version will be
+					// the previous stack file version, which is different from stack version
+					stackStatus.Version = endpointStatus.DeploymentInfo.Version
+					edgeStacksStatus = append(edgeStacksStatus, stackStatus)
+					continue
+				}
 
 				*skipCache = true
 				// todo: if we support to store more versions of the stack file in the future,
 				// we can support to rollback to previous version against each endpoint
 				if stack.PreviousDeploymentInfo != nil {
+					// if the endpoint was not rolled back yet, we need to return the previous version
 					stackStatus.Version = stack.PreviousDeploymentInfo.FileVersion
 				} else {
 					log.Warn().Msg("No previous deployment info found")
 				}
 			}
-
 		}
 
 		edgeStacksStatus = append(edgeStacksStatus, stackStatus)

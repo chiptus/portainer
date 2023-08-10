@@ -21,6 +21,13 @@ func (handler *Handler) updateStackVersion(
 	relatedEnvironmentsIDs []portaineree.EndpointID,
 	rollbackTo *int,
 ) error {
+	if stack.PreviousDeploymentInfo == nil {
+		stack.PreviousDeploymentInfo = &portainer.StackDeploymentInfo{
+			Version: stack.Version,
+		}
+	} else {
+		stack.PreviousDeploymentInfo.Version = stack.Version
+	}
 	stack.Version++
 	stack.Status = edgestackutils.NewStatus(stack.Status, relatedEnvironmentsIDs)
 
@@ -36,10 +43,8 @@ func (handler *Handler) updateStackVersion(
 			// update operation
 			// Only update stack file version when git hash has changed
 			if oldGitHash != stack.GitConfig.ConfigHash {
-				stack.PreviousDeploymentInfo = &portainer.StackDeploymentInfo{
-					FileVersion: stack.StackFileVersion,
-					ConfigHash:  oldGitHash,
-				}
+				stack.PreviousDeploymentInfo.FileVersion = stack.StackFileVersion
+				stack.PreviousDeploymentInfo.ConfigHash = oldGitHash
 				stack.StackFileVersion++
 			}
 		}
@@ -98,9 +103,7 @@ func (handler *Handler) storeStackFile(stack *portaineree.EdgeStack, deploymentT
 				return nil
 			}
 
-			stack.PreviousDeploymentInfo = &portainer.StackDeploymentInfo{
-				FileVersion: stack.StackFileVersion,
-			}
+			stack.PreviousDeploymentInfo.FileVersion = stack.StackFileVersion
 			stack.StackFileVersion++
 		}
 	}
@@ -194,8 +197,12 @@ func rollbackVersion(stack *portaineree.EdgeStack, rollbackTo *int) error {
 		if stack.PreviousDeploymentInfo.FileVersion == 1 {
 			stack.PreviousDeploymentInfo = nil
 		} else {
-			stack.PreviousDeploymentInfo = &portainer.StackDeploymentInfo{
-				FileVersion: stack.PreviousDeploymentInfo.FileVersion - 1,
+			if stack.PreviousDeploymentInfo == nil {
+				stack.PreviousDeploymentInfo = &portainer.StackDeploymentInfo{
+					FileVersion: stack.PreviousDeploymentInfo.FileVersion - 1,
+				}
+			} else {
+				stack.PreviousDeploymentInfo.FileVersion = stack.PreviousDeploymentInfo.FileVersion - 1
 			}
 		}
 	}

@@ -7,7 +7,11 @@ import {
   GitAuthenticationResponse,
 } from '@/react/portainer/gitops/types';
 import { buildUrl } from '@/react/edge/edge-stacks/queries/buildUrl';
-import { DeploymentType, EdgeStack } from '@/react/edge/edge-stacks/types';
+import {
+  DeploymentType,
+  EdgeStack,
+  StaggerConfig,
+} from '@/react/edge/edge-stacks/types';
 import { EdgeGroup } from '@/react/edge/edge-groups/types';
 import { Registry } from '@/react/portainer/registries/types';
 
@@ -20,6 +24,7 @@ export interface UpdateEdgeStackGitPayload {
   deploymentType: DeploymentType;
   updateVersion: boolean;
   registries?: Array<Registry['Id']>;
+  staggerConfig: StaggerConfig;
 }
 
 export function useUpdateEdgeStackGitMutation() {

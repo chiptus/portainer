@@ -128,6 +128,7 @@ function getEnvStackStatus(
     status = {
       EndpointID: envId,
       DeploymentInfo: {
+        Version: 0,
         ConfigHash: '',
         FileVersion: 0,
       },

@@ -69,7 +69,9 @@ func (handler *Handler) deleteEdgeStack(tx dataservices.DataStoreTx, edgeStackID
 		}
 	}
 
-	if edgeStack.StaggerConfig != nil && edgeStack.StaggerConfig.StaggerOption == portaineree.EdgeStaggerOptionParallel {
+	if handler.staggerService != nil &&
+		edgeStack.StaggerConfig != nil &&
+		edgeStack.StaggerConfig.StaggerOption == portaineree.EdgeStaggerOptionParallel {
 		go handler.staggerService.StopAndRemoveStaggerScheduleOperation(edgeStack.ID)
 	}
 

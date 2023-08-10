@@ -56,7 +56,7 @@ require (
 	github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a
 	github.com/portainer/libhttp v0.0.0-20230615144939-a999f666d9a9
 	github.com/portainer/liblicense/v3 v3.0.0
-	github.com/portainer/portainer/api v0.0.0-20230723224802-e996d29d5282
+	github.com/portainer/portainer/api v0.0.0-20230809235840-598b8d0f28bb
 	github.com/portainer/portainer/pkg/featureflags v0.0.0-20230711022654-64b227b2e146
 	github.com/portainer/portainer/pkg/libhelm v0.0.0-20230711022654-64b227b2e146
 	github.com/portainer/portainer/pkg/libstack v0.0.0-20230713205552-0bcb57568c63
@@ -76,10 +76,10 @@ require (
 	google.golang.org/genproto v0.0.0-20230306155012-7f2fa6fef1f4
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.27.2
-	k8s.io/apimachinery v0.27.2
-	k8s.io/client-go v0.27.2
-	k8s.io/metrics v0.27.2
+	k8s.io/api v0.27.4
+	k8s.io/apimachinery v0.27.4
+	k8s.io/client-go v0.27.4
+	k8s.io/metrics v0.27.4
 	software.sslmate.com/src/go-pkcs12 v0.0.0-20210415151418-c5206de65a78
 )
 

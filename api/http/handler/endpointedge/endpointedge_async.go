@@ -577,6 +577,8 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 				// if the endpoint is rolled back successfully, we should update the endpoint's edge
 				// status's DeploymentInfo to the previous version.
 				environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
+					// !important. We should set the version as same as file version for rollback
+					Version:     stack.PreviousDeploymentInfo.FileVersion,
 					FileVersion: stack.PreviousDeploymentInfo.FileVersion,
 					ConfigHash:  stack.PreviousDeploymentInfo.ConfigHash,
 				}
@@ -594,6 +596,7 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 				}
 
 				environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
+					Version:     stack.Version,
 					FileVersion: stack.StackFileVersion,
 					ConfigHash:  gitHash,
 				}

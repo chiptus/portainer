@@ -119,7 +119,7 @@ func (service *Service) RemoveStaggerConfig(id portaineree.EdgeStackID) {
 	}
 
 	log.Debug().Int("edgeStackID", int(id)).
-		Msg("Remove stagger config")
+		Msg("[Stagger service] Remove stagger config")
 
 	delete(service.staggerConfigs, id)
 }
@@ -159,13 +159,13 @@ func (service *Service) StopAndRemoveStaggerScheduleOperation(id portaineree.Edg
 		delete(service.staggerPool, key)
 
 		log.Debug().Str("poolKey", string(key)).
-			Msg("Stagger schedule operation is removed")
+			Msg("[Stagger service] schedule operation is removed")
 	}
 	service.staggerPoolMtx.Unlock()
 
 	service.RemoveStaggerConfig(id)
 	log.Debug().Int("edgeStackID", int(id)).
-		Msg("Stagger configuration is removed")
+		Msg("[Stagger service] configuration is removed")
 }
 
 // CanProceedAsStaggerJob is used to check if the edge stack can proceed as stagger job for specific endpoint
@@ -174,50 +174,51 @@ func (service *Service) CanProceedAsStaggerJob(id portaineree.EdgeStackID, fileV
 
 	service.staggerPoolMtx.RLock()
 	scheduleOperation, ok := service.staggerPool[poolKey]
+	service.staggerPoolMtx.RUnlock()
 	if !ok {
-		service.staggerPoolMtx.RUnlock()
 		return false
 	}
-	service.staggerPoolMtx.RUnlock()
 
 	// Check if the stagger workflow is paused
 	if scheduleOperation.IsPaused() || scheduleOperation.IsCompleted() {
-		log.Debug().Msg("Stagger workflow is paused or completed, skip")
+		log.Debug().Msg("[Stagger service] update is paused or completed, skip")
 
 		return false
 	}
 
 	staggeringEndpoints := scheduleOperation.staggerQueue[scheduleOperation.currentIndex]
 	for _, staggeringEndpoint := range staggeringEndpoints {
-		if staggeringEndpoint == endpointID {
-			log.Debug().Int("endpointID", int(endpointID)).
-				Msg("Found endpoint in the stagger queue")
-
-			// check if the update delay is set
-			if scheduleOperation.updateDelay > 0 && !scheduleOperation.ShouldRollback() {
-				// check if the update delay is reached
-
-				delayTime, ok := scheduleOperation.updateDelayMap[scheduleOperation.currentIndex]
-				if ok {
-					// updateDelayMap starts to record delay time from index 1, so for the first
-					// stagger queue, there is no delay time, or the delay time is already reached,
-					// which has been removed from the map
-					if time.Now().Before(delayTime) {
-						log.Debug().Msg("Update delay is not reached, skip")
-						return false
-					}
-
-					go service.removeUpdateDelay(poolKey)
-				}
-			}
-
-			// check if the timeout is set
-			if scheduleOperation.timeout > 0 && !scheduleOperation.ShouldRollback() {
-				go service.setTimeout(id, fileVersion, endpointID)
-			}
-
-			return true
+		if staggeringEndpoint != endpointID {
+			continue
 		}
+
+		log.Debug().Int("endpointID", int(endpointID)).
+			Msg("[Stagger service] Found endpoint in the stagger queue")
+
+		// check if the update delay is set
+		if scheduleOperation.updateDelay > 0 && !scheduleOperation.ShouldRollback() {
+			// check if the update delay is reached
+
+			delayTime, ok := scheduleOperation.updateDelayMap[scheduleOperation.currentIndex]
+			if ok {
+				// updateDelayMap starts to record delay time from index 1, so for the first
+				// stagger queue, there is no delay time, or the delay time is already reached,
+				// which has been removed from the map
+				if time.Now().Before(delayTime) {
+					log.Debug().Msg("Update delay is not reached, skip")
+					return false
+				}
+
+				go service.removeUpdateDelay(poolKey)
+			}
+		}
+
+		// check if the timeout is set
+		if scheduleOperation.timeout > 0 && !scheduleOperation.ShouldRollback() {
+			go service.setTimeout(id, fileVersion, endpointID)
+		}
+
+		return true
 	}
 
 	return false
@@ -250,34 +251,33 @@ func (service *Service) WasEndpointRolledBack(id portaineree.EdgeStackID, fileVe
 		return false
 	}
 
-	if scheduleOperation.ShouldRollback() {
-		endpointStatus, ok := scheduleOperation.endpointStatus[endpointId]
-		if ok {
-			if endpointStatus == portainer.EdgeStackStatusPending {
-				// if the endpoint status is Pending and the stagger queue rollback is enabled,
-				// it means the endpoint is rolled back
-				return true
-			}
-		}
+	if !scheduleOperation.ShouldRollback() {
+		return false
 	}
-	return false
+
+	endpointStatus, ok := scheduleOperation.endpointStatus[endpointId]
+	if !ok {
+		return false
+	}
+
+	// if the endpoint status is Pending and the stagger queue rollback is enabled,
+	// it means the endpoint is rolled back or not updated yet
+	return endpointStatus == portainer.EdgeStackStatusPending
 }
 
 func (service *Service) MarkedAsCompleted(id portaineree.EdgeStackID, fileVersion int) bool {
 	poolKey := GetStaggerPoolKey(id, fileVersion)
 
 	service.staggerPoolMtx.RLock()
-
 	scheduleOperation, ok := service.staggerPool[poolKey]
+	service.staggerPoolMtx.RUnlock()
 	if !ok {
-		service.staggerPoolMtx.RUnlock()
 		return false
 	}
-	service.staggerPoolMtx.RUnlock()
 
 	// Must include IsPaused status, so that the updated edge stack on agent will not be removed
 	if scheduleOperation.IsPaused() || scheduleOperation.IsCompleted() {
-		log.Debug().Msg("Stagger workflow is paused or completed, skip")
+		log.Debug().Msg("[Stagger service] update is paused or completed, skip")
 
 		go func() {
 			// If the stagger workflow is paused or completed, we still need to maintain the stagger queue
@@ -340,14 +340,14 @@ func (service *Service) terminateAsyncPool(poolKey StaggerPoolKey) {
 
 	log.Debug().
 		Str("poolKey", string(poolKey)).
-		Msg("[Async] Stagger job completed")
+		Msg("[Stagger Async] Stagger job completed")
 
 	cancelFunc()
 	delete(service.asyncPoolTerminators, poolKey)
 }
 
 func (service *Service) removeUpdateDelay(poolKey StaggerPoolKey) {
-	log.Debug().Msg("========Update delay is reached, update delay is removed========")
+	log.Debug().Msg("[Stagger service] Update delay is expired, removed")
 
 	// remove the update delay after it is reached, preventing it from being used
 	// again in rollback workflow
@@ -370,51 +370,53 @@ func (service *Service) setTimeout(id portaineree.EdgeStackID, fileVersion int, 
 	defer service.staggerPoolMtx.Unlock()
 
 	scheduleOperation, ok := service.staggerPool[poolKey]
-	if ok {
-		endpoint := new(portaineree.Endpoint)
-		err := service.dataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
-			var err error
-			endpoint, err = tx.Endpoint().Endpoint(endpointID)
-			return err
-		})
-		if err != nil {
-			log.Error().Err(err).
-				Int("endpointID", int(endpointID)).
-				Msg("Failed to get endpoint check interval for stagger job")
-		}
-
-		timeout := scheduleOperation.timeout
-		if endpoint != nil {
-			// If the stagger configuration timeout is shorter than the endpoint checkin
-			// interval or snapshot interval, it's meaningless to set the timeout.
-			// To avoid such case, we add the interval to the timeout
-			if endpoint.Edge.AsyncMode {
-				timeout += time.Duration(endpoint.Edge.SnapshotInterval) * time.Second
-			} else {
-				timeout += time.Duration(endpoint.EdgeCheckinInterval) * time.Second
-			}
-		}
-
-		// start timeout timer
-		timer := time.AfterFunc(timeout, func() {
-			log.Warn().Int("endpointID", int(endpointID)).
-				Int("edgeStackID", int(id)).
-				Int("fileVersion", fileVersion).
-				Msg("Stagger job timeout, update endpoint status to Error")
-
-			// If timeout is reached, explicitly update endpoint status to Error
-			service.UpdateStaggerEndpointStatusIfNeeds(id, fileVersion, nil, endpointID, portainer.EdgeStackStatusError)
-		})
-
-		log.Debug().Int("endpointID", int(endpointID)).
-			Str("poolKey", string(poolKey)).
-			Int("timeout", int(timeout)).
-			Msg("========Set timeout for stagger job")
-
-		scheduleOperation.timeoutTimerMap[endpointID] = timer
-
-		service.staggerPool[poolKey] = scheduleOperation
+	if !ok {
+		return
 	}
+
+	endpoint := new(portaineree.Endpoint)
+	err := service.dataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
+		var err error
+		endpoint, err = tx.Endpoint().Endpoint(endpointID)
+		return err
+	})
+	if err != nil {
+		log.Error().Err(err).
+			Int("endpointID", int(endpointID)).
+			Msg("[Stagger service] Failed to get endpoint check interval for stagger job")
+	}
+
+	timeout := scheduleOperation.timeout
+	if endpoint != nil {
+		// If the stagger configuration timeout is shorter than the endpoint checkin
+		// interval or snapshot interval, it's meaningless to set the timeout.
+		// To avoid such case, we add the interval to the timeout
+		if endpoint.Edge.AsyncMode {
+			timeout += time.Duration(endpoint.Edge.SnapshotInterval) * time.Second
+		} else {
+			timeout += time.Duration(endpoint.EdgeCheckinInterval) * time.Second
+		}
+	}
+
+	// start timeout timer
+	timer := time.AfterFunc(timeout, func() {
+		log.Warn().Int("endpointID", int(endpointID)).
+			Int("edgeStackID", int(id)).
+			Int("fileVersion", fileVersion).
+			Msg("[Stagger service] job timeout, update endpoint status to Error")
+
+		// If timeout is reached, explicitly update endpoint status to Error
+		service.UpdateStaggerEndpointStatusIfNeeds(id, fileVersion, nil, endpointID, portainer.EdgeStackStatusError)
+	})
+
+	log.Debug().Int("endpointID", int(endpointID)).
+		Str("poolKey", string(poolKey)).
+		Int("timeout", int(timeout)).
+		Msg("[Stagger service] Set timeout for stagger job")
+
+	scheduleOperation.timeoutTimerMap[endpointID] = timer
+
+	service.staggerPool[poolKey] = scheduleOperation
 }
 
 // DisplayStaggerInfo is used to display the stagger info for debugging purpose
@@ -429,6 +431,6 @@ func (service *Service) DisplayStaggerInfo() {
 		log.Debug().
 			Str("edgeStackID-fileVersion", string(key)).
 			Str("schedule operation", scheduleOperation.Info()).
-			Msg("Stagger pool")
+			Msg("[Stagger service] pool info")
 	}
 }

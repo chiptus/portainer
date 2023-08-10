@@ -15,10 +15,12 @@ import (
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/edge/staggers"
 	"github.com/portainer/portainer-ee/api/internal/set"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/git"
 	gittypes "github.com/portainer/portainer/api/git/types"
+	"github.com/rs/zerolog/log"
 )
 
 type stackGitUpdatePayload struct {
@@ -28,10 +30,14 @@ type stackGitUpdatePayload struct {
 	RefName        string
 	Authentication *gittypes.GitAuthentication
 	// Update the stack file content from the git repository
+	// If this is set to true, it indicates that the stack is being redeployed,
+	// if it is false, it indicates that the stack is being updated
 	UpdateVersion bool
 	EnvVars       []portainer.Pair
 	// List of Registries to use for this stack
 	Registries []portaineree.RegistryID
+	// Configuration for stagger updates
+	StaggerConfig *portaineree.EdgeStaggerConfig
 }
 
 func (payload *stackGitUpdatePayload) Validate(r *http.Request) error {
@@ -47,7 +53,7 @@ func (payload *stackGitUpdatePayload) Validate(r *http.Request) error {
 		return httperrors.NewInvalidPayloadError("Invalid Edge group IDs. Must contain at least one Edge group ID")
 	}
 
-	return nil
+	return staggers.ValidateStaggerConfig(payload.StaggerConfig)
 }
 
 // @id edgeStackUpdateFromGit
@@ -125,7 +131,7 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 		}
 
 		gitConfig := edgeStack.GitConfig
-		err = handler.updateGitSettings(gitConfig, payload.RefName, auth, false)
+		err = handler.updateGitSettings(gitConfig, payload.RefName, auth, payload.UpdateVersion)
 		if err != nil {
 			return httperror.InternalServerError("Failed updating git settings", err)
 		}
@@ -164,11 +170,27 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 
 		edgeStack.AutoUpdate = updateSettings
 		edgeStack.NumDeployments = len(relatedEndpointIds)
+		edgeStack.StaggerConfig = payload.StaggerConfig
 
-		var rollbackTo *int = nil // update git doesn't support rollback now (v2.19.0)
-		err = handler.updateStackVersion(edgeStack, edgeStack.DeploymentType, nil, oldCommitHash, relatedEndpointIds, rollbackTo)
-		if err != nil {
-			return fmt.Errorf("unable to update stack version: %w", err)
+		if payload.UpdateVersion {
+			var rollbackTo *int = nil // update git API doesn't support rollback now (v2.19.0)
+			err = handler.updateStackVersion(edgeStack, edgeStack.DeploymentType, nil, oldCommitHash, relatedEndpointIds, rollbackTo)
+			if err != nil {
+				return fmt.Errorf("unable to update stack version: %w", err)
+			}
+
+			if edgeStack.StaggerConfig != nil && edgeStack.StaggerConfig.StaggerOption != portaineree.EdgeStaggerOptionAllAtOnce {
+				if oldCommitHash == edgeStack.GitConfig.ConfigHash {
+					log.Info().Msg("Stack file version has not changed")
+				}
+				// User may update the env vars, so we still need to redeploy the stack
+				err = handler.staggerService.AddStaggerConfig(edgeStack.ID,
+					edgeStack.StackFileVersion,
+					edgeStack.StaggerConfig)
+				if err != nil {
+					return httperror.InternalServerError("Unable to update git edge stack", err)
+				}
+			}
 		}
 
 		err = tx.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack)
@@ -177,6 +199,18 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 		}
 
 		if payload.UpdateVersion {
+			// Stagger configuration check
+			if handler.staggerService != nil &&
+				payload.StaggerConfig != nil &&
+				payload.StaggerConfig.StaggerOption != portaineree.EdgeStaggerOptionAllAtOnce {
+				go handler.staggerService.StartStaggerJobForAsyncUpdate(edgeStack.ID,
+					relatedEndpointIds,
+					endpointsToAdd,
+					edgeStack.StackFileVersion)
+
+				return nil
+			}
+
 			for _, endpointID := range relatedEndpointIds {
 				endpoint, err := tx.Endpoint().Endpoint(endpointID)
 				if err != nil {
@@ -239,12 +273,16 @@ func (handler *Handler) updateGitSettings(originalGitConfig *gittypes.RepoConfig
 
 	username, password := extractGitCredentials(auth)
 
+	// This can be used to verify if the authentication is valid
 	newHash, err := handler.GitService.LatestCommitID(originalGitConfig.URL, originalGitConfig.ReferenceName, username, password, originalGitConfig.TLSSkipVerify)
 	if err != nil {
 		return errors.WithMessage(err, "Unable to fetch git repository")
 	}
 
 	if updateHash {
+		// When the updateHash is true, it means that the stack is being redeployed
+		// In case case, we need to update the latest commit id used for determining
+		// if the stack file version should be updated later
 		originalGitConfig.ConfigHash = newHash
 	}
 

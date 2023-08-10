@@ -179,10 +179,10 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 	}
 
 	// stagger configuration check
-	if handler.staggerService != nil {
-		// We pass StackFileVersion instead of the file version that each agent is using intentionally
-		// because it is used to differentiate the stagger workflow for the same edge stack, not for telling
-		// stagger which version of the edge stack file each agent is using
+	if handler.staggerService != nil &&
+		stack.StaggerConfig != nil &&
+		stack.StaggerConfig.StaggerOption != portaineree.EdgeStaggerOptionAllAtOnce {
+		// StackFileVersion is used to differentiate the stagger workflow for the same edge stack
 		handler.staggerService.UpdateStaggerEndpointStatusIfNeeds(stackID, stack.StackFileVersion, payload.RollbackTo, payload.EndpointID, status)
 	}
 
@@ -214,6 +214,8 @@ func updateEnvStatus(edgeStack *portaineree.EdgeStack, environmentStatus portain
 				// if the endpoint is rolled back successfully, we should update the endpoint's edge
 				// status's deploymentInfo to the previous version.
 				environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
+					// !important. We should set the version as same as file version for rollback
+					Version:     edgeStack.PreviousDeploymentInfo.FileVersion,
 					FileVersion: edgeStack.PreviousDeploymentInfo.FileVersion,
 					ConfigHash:  edgeStack.PreviousDeploymentInfo.ConfigHash,
 				}
@@ -234,6 +236,7 @@ func updateEnvStatus(edgeStack *portaineree.EdgeStack, environmentStatus portain
 			gitHash = edgeStack.GitConfig.ConfigHash
 		}
 		environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
+			Version:     edgeStack.Version,
 			FileVersion: edgeStack.StackFileVersion,
 			ConfigHash:  gitHash,
 		}

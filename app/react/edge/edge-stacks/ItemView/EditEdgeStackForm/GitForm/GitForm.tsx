@@ -19,7 +19,14 @@ import {
   transformGitAuthenticationViewModel,
 } from '@/react/portainer/gitops/AuthFieldset/utils';
 import { EdgeGroup } from '@/react/edge/edge-groups/types';
-import { DeploymentType, EdgeStack } from '@/react/edge/edge-stacks/types';
+import {
+  DeploymentType,
+  EdgeStack,
+  StaggerConfig,
+  StaggerOption,
+  StaggerParallelOption,
+  UpdateFailureAction,
+} from '@/react/edge/edge-stacks/types';
 import { EdgeGroupsSelector } from '@/react/edge/edge-stacks/components/EdgeGroupsSelector';
 import { EdgeStackDeploymentTypeSelector } from '@/react/edge/edge-stacks/components/EdgeStackDeploymentTypeSelector';
 import { useCurrentUser } from '@/react/hooks/useUser';
@@ -36,6 +43,7 @@ import { FormError } from '@@/form-components/FormError';
 import { EnvironmentVariablesPanel } from '@@/form-components/EnvironmentVariablesFieldset';
 import { EnvVar } from '@@/form-components/EnvironmentVariablesFieldset/types';
 
+import { StaggerFieldset } from '../../../components/StaggerFieldset';
 import { useValidateEnvironmentTypes } from '../useEdgeGroupHasType';
 import { atLeastTwo } from '../atLeastTwo';
 import { PrivateRegistryFieldset } from '../../../components/PrivateRegistryFieldset';
@@ -53,6 +61,7 @@ interface FormValues {
   authentication: GitAuthModel;
   envVars: EnvVar[];
   privateRegistryId?: Registry['Id'];
+  staggerConfig: StaggerConfig;
 }
 
 export function GitForm({ stack }: { stack: EdgeStack }) {
@@ -74,6 +83,16 @@ export function GitForm({ stack }: { stack: EdgeStack }) {
     refName: stack.GitConfig.ReferenceName,
     authentication: parseAuthResponse(stack.GitConfig.Authentication),
     envVars: stack.EnvVars || [],
+    staggerConfig: stack.StaggerConfig || {
+      StaggerOption: StaggerOption.AllAtOnce,
+      StaggerParallelOption: StaggerParallelOption.Fixed,
+      DeviceNumber: 0,
+      DeviceNumberStartFrom: 0,
+      DeviceNumberIncrementBy: 2,
+      Timeout: '',
+      UpdateDelay: '',
+      UpdateFailureAction: UpdateFailureAction.Continue,
+    },
   };
 
   const webhookId = stack.AutoUpdate?.Webhook || createWebhookId();
@@ -290,6 +309,16 @@ function InnerForm({
         formInvalid={!isValid}
         method="repository"
         errorMessage={errors.privateRegistryId}
+      />
+
+      <StaggerFieldset
+        values={values.staggerConfig}
+        onChange={(value) =>
+          Object.entries(value).forEach(([key, value]) =>
+            setFieldValue(`staggerConfig.${key}`, value)
+          )
+        }
+        errors={errors.staggerConfig}
       />
 
       <FormSection title="Actions">

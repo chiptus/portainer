@@ -76,9 +76,8 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 
 	var (
 		projectVersionPath string
-		stackFileVersion   int
+		deployedVersion    int
 	)
-
 	version, _ := request.RetrieveNumericQueryParameter(r, "version", true)
 
 	rollbackTo := new(int)
@@ -86,9 +85,10 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 	if edgeStack.PreviousDeploymentInfo != nil && version == edgeStack.PreviousDeploymentInfo.FileVersion {
 		projectVersionPath = handler.FileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.PreviousDeploymentInfo.FileVersion, edgeStack.PreviousDeploymentInfo.ConfigHash)
 		*rollbackTo = edgeStack.PreviousDeploymentInfo.FileVersion
+		deployedVersion = edgeStack.PreviousDeploymentInfo.FileVersion
 	} else {
 		if version != 0 && version != edgeStack.StackFileVersion {
-			log.Debug().Msgf("Invalid stack file version %d being requested, fallback to the latest stack file version %d", version, edgeStack.StackFileVersion)
+			log.Debug().Msgf("[Stagger] Invalid stack file version %d being requested, fallback to the latest stack file version %d", version, edgeStack.StackFileVersion)
 		}
 
 		// If the requested version is not the previous version, use the latest stack file version
@@ -97,8 +97,8 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 			commitHash = edgeStack.GitConfig.ConfigHash
 		}
 		projectVersionPath = handler.FileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.StackFileVersion, commitHash)
-		stackFileVersion = edgeStack.StackFileVersion
 		rollbackTo = nil
+		deployedVersion = version
 	}
 
 	dirEntries, err := filesystem.LoadDir(projectVersionPath)
@@ -135,7 +135,7 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 		Name:                edgeStack.Name,
 		RegistryCredentials: registryCredentials,
 		Namespace:           namespace,
-		Version:             stackFileVersion,
+		Version:             deployedVersion,
 		RollbackTo:          rollbackTo,
 		PrePullImage:        edgeStack.PrePullImage,
 		RePullImage:         edgeStack.RePullImage,

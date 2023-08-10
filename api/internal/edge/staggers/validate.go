@@ -34,14 +34,14 @@ func ValidateStaggerConfig(config *portaineree.EdgeStaggerConfig) error {
 			return errors.New("invalid update failure action")
 		}
 
-		if config.Timeout != "" {
+		if config.Timeout != "" && config.Timeout != "0" {
 			regex := regexp.MustCompile(`^[1-9][0-9]*$`)
 			if !regex.MatchString(config.Timeout) {
 				return errors.New("invalid timeout")
 			}
 		}
 
-		if config.UpdateDelay != "" {
+		if config.UpdateDelay != "" && config.UpdateDelay != "0" {
 			regex := regexp.MustCompile(`^[1-9][0-9]*$`)
 			if !regex.MatchString(config.UpdateDelay) {
 				return errors.New("invalid update delay")

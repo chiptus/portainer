@@ -9,6 +9,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/set"
 	consts "github.com/portainer/portainer-ee/api/useractivity"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/git/update"
@@ -86,9 +87,32 @@ func (handler *Handler) autoUpdate(edgeStackId portaineree.EdgeStackID, envVars 
 			return fmt.Errorf("unable to update stack version: %w", err)
 		}
 
+		if edgeStack.StaggerConfig != nil && edgeStack.StaggerConfig.StaggerOption != portaineree.EdgeStaggerOptionAllAtOnce {
+			if oldHash == edgeStack.GitConfig.ConfigHash {
+				log.Info().Msg("Stack file version has not changed")
+			}
+			err = handler.staggerService.AddStaggerConfig(edgeStack.ID, edgeStack.StackFileVersion, edgeStack.StaggerConfig)
+			if err != nil {
+				return httperror.InternalServerError("Unable to update git edge stack", err)
+			}
+		}
+
 		err = tx.EdgeStack().UpdateEdgeStack(edgeStackId, edgeStack)
 		if err != nil {
 			return fmt.Errorf("failed updating edge stack: %w", err)
+		}
+
+		// Stagger configuration check
+		if handler.staggerService != nil &&
+			edgeStack.StaggerConfig != nil &&
+			edgeStack.StaggerConfig.StaggerOption != portaineree.EdgeStaggerOptionAllAtOnce {
+
+			go handler.staggerService.StartStaggerJobForAsyncUpdate(edgeStack.ID,
+				relatedEndpointIds,
+				set.Set[portaineree.EndpointID]{},
+				edgeStack.StackFileVersion)
+
+			return nil
 		}
 
 		for _, endpointID := range relatedEndpointIds {

@@ -129,7 +129,7 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 
 	var (
 		projectVersionPath string
-		stackFileVersion   int
+		deployedVersion    int
 	)
 
 	rollbackTo := new(int)
@@ -137,9 +137,10 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 	if edgeStack.PreviousDeploymentInfo != nil && targetVersion == edgeStack.PreviousDeploymentInfo.FileVersion {
 		projectVersionPath = service.fileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.PreviousDeploymentInfo.FileVersion, edgeStack.PreviousDeploymentInfo.ConfigHash)
 		*rollbackTo = edgeStack.PreviousDeploymentInfo.FileVersion
+		deployedVersion = edgeStack.PreviousDeploymentInfo.FileVersion
 	} else {
 		if targetVersion != 0 && targetVersion != edgeStack.StackFileVersion {
-			log.Debug().Msgf("Invalid stack file version %d being requested, fallback to the latest stack file version %d", targetVersion, edgeStack.StackFileVersion)
+			log.Debug().Msgf("[Stagger] Invalid stack file version %d being requested, fallback to the latest stack file version %d", targetVersion, edgeStack.StackFileVersion)
 		}
 
 		// If the requested version is not the previous version, use the latest stack file version
@@ -148,7 +149,7 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 			commitHash = edgeStack.GitConfig.ConfigHash
 		}
 		projectVersionPath = service.fileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.StackFileVersion, commitHash)
-		stackFileVersion = edgeStack.StackFileVersion
+		deployedVersion = targetVersion
 		rollbackTo = nil
 	}
 
@@ -187,12 +188,6 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 		envVars = make([]portainer.Pair, 0)
 	}
 
-	// If the stack is not for updater, we use stack file version
-	version := stackFileVersion
-	if edgeStack.EdgeUpdateID > 0 {
-		version = edgeStack.Version
-	}
-
 	stackStatus := edge.StackPayload{
 		DirEntries:          dirEntries,
 		EntryFileName:       fileName,
@@ -201,7 +196,7 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 		FilesystemPath:      edgeStack.FilesystemPath,
 		Name:                edgeStack.Name,
 		ID:                  int(edgeStackID),
-		Version:             version,
+		Version:             deployedVersion,
 		RollbackTo:          rollbackTo,
 		RegistryCredentials: registryCredentials,
 		Namespace:           namespace,

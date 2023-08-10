@@ -33,20 +33,20 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 				Int("edgeStackID", int(edgeStackID)).
 				Int("file version", stackFileVersion).
 				Int("retry time", retryTime).
-				Msg("[Async] Stagger job is not started, skip")
+				Msg("[Stagger Async] Stagger job is not started, skip")
 
 			return errors.New("stagger job not detected")
 		}
 		return nil
 	}, 3, 2*time.Second)
 	if err != nil {
-		log.Debug().Err(err).Msg("[Async] fallback to try replace stack command")
+		log.Debug().Err(err).Msg("[Stagger Async] fallback to try replace stack command")
 
 		err = service.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
 			return service.replaceStackCommands(tx, edgeStackID, relatedEndpointIds, endpointsToAdd)
 		})
 		if err != nil {
-			log.Error().Err(err).Msg("[Async] Failed to replace stack commands with transaction")
+			log.Error().Err(err).Msg("[Stagger Async] Failed to replace stack commands with transaction")
 		}
 		return
 	}
@@ -59,12 +59,12 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 
 	log.Info().
 		Int("edge stack ID", int(edgeStackID)).
-		Msg("Starting stagger job for edge stack")
+		Msg("[Stagger Async] Starting stagger job for edge stack")
 
 	defer func() {
 		log.Info().
 			Int("edge stack ID", int(edgeStackID)).
-			Msg("Stopping stagger job for edge stack")
+			Msg("[Stagger Async] Stopping stagger job for edge stack")
 	}()
 
 	rollbackJobCh := make(chan StaggerJobForAsyncRollback, 1)
@@ -112,11 +112,11 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 					log.Debug().
 						Int("edgeStackID", int(edgeStackID)).
 						Int("file version", stackFileVersion).
-						Msg("[Async] exit stagger job for async update")
+						Msg("[Stagger Async] exit stagger job for async update")
 					return
 
 				case <-ctx.Done():
-					log.Debug().Msg("[Async] terminate async update")
+					log.Debug().Msg("[Stagger Async] terminate async update")
 					return
 
 				case <-service.shutdownCtx.Done():
@@ -127,7 +127,7 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 						log.Debug().
 							Int("edgeStackID", int(edgeStackID)).
 							Int("file version", stackFileVersion).
-							Msg("[Async] Stagger job marked as rollback")
+							Msg("[Stagger Async] Stagger job marked as rollback")
 
 						// trigger rollback workflow
 						rollbackJobCh <- StaggerJobForAsyncRollback{
@@ -148,7 +148,7 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 							Int("edgeStackID", int(edgeStackID)).
 							Int("file version", stackFileVersion).
 							Int("endpointID", int(endpoint.ID)).
-							Msg("[Aysnc] Cannot proceed as stagger job, skip this interval")
+							Msg("[Stagger Aysnc] Cannot proceed as stagger job, skip this interval")
 
 						break
 					}
@@ -169,7 +169,7 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 							Int("stackID", int(edgeStackID)).
 							Int("file version", stackFileVersion).
 							Int("endpointID", int(endpoint.ID)).
-							Msg("[Async] Stack command is replaced")
+							Msg("[Stagger Async] Stack command is replaced")
 						return
 					}
 				}
@@ -189,7 +189,7 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 			log.Debug().
 				Int("edgeStackID", int(edgeStackID)).
 				Int("file version", stackFileVersion).
-				Msg("[Async] exit stagger job for async rollback")
+				Msg("[Stagger Async] exit stagger job for async rollback")
 			return
 
 		case <-service.shutdownCtx.Done():
@@ -205,7 +205,7 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 			log.Info().
 				Int("edge stack ID", int(job.EdgeStackID)).
 				Int("version", job.Version).
-				Msg("[Async] Start rollback process")
+				Msg("[Stagger Async] Start rollback process")
 
 			service.StartStaggerJobForAsyncRollback(ctx, &wg, edgeStackID, stackFileVersion, updatedEndpoints)
 			return
@@ -219,7 +219,7 @@ func (service *Service) StartStaggerJobForAsyncRollback(ctx context.Context, wg 
 	edgeStack, err := service.dataStore.EdgeStack().EdgeStack(edgeStackID)
 	if err != nil {
 		log.Error().Err(err).
-			Msgf("Failed to retrieve edge stack: %d. Rollback process is stopped", edgeStackID)
+			Msgf("[Stagger Async] Failed to retrieve edge stack: %d. Rollback process is stopped", edgeStackID)
 		return
 	}
 
@@ -229,7 +229,7 @@ func (service *Service) StartStaggerJobForAsyncRollback(ctx context.Context, wg 
 	} else {
 		log.Warn().Int("latest stack file version", stackFileVersion).
 			Int("rollback to", stackFileVersion-1).
-			Msg("unsupported rollbackTo version, fallback to the latest version")
+			Msg("[Stagger Async] unsupported rollbackTo version, fallback to the latest version")
 	}
 
 	for endpointID, endpoint := range endpoints {
@@ -246,7 +246,7 @@ func (service *Service) StartStaggerJobForAsyncRollback(ctx context.Context, wg 
 			for {
 				select {
 				case <-ctx.Done():
-					log.Debug().Msg("[Async] terminate async rollback")
+					log.Debug().Msg("[Stagger Async] terminate async rollback")
 					return
 
 				case <-service.shutdownCtx.Done():
@@ -257,7 +257,7 @@ func (service *Service) StartStaggerJobForAsyncRollback(ctx context.Context, wg 
 						log.Debug().
 							Int("edgeStackID", int(edgeStackID)).
 							Int("file version", stackFileVersion).
-							Msg("[Async] Stagger job completed rollback")
+							Msg("[Stagger Async] Stagger job completed rollback")
 
 						return
 					}
@@ -269,7 +269,7 @@ func (service *Service) StartStaggerJobForAsyncRollback(ctx context.Context, wg 
 							Int("edgeStackID", int(edgeStackID)).
 							Int("file version", stackFileVersion).
 							Int("endpointID", int(endpoint.ID)).
-							Msg("[Aysnc] Cannot proceed as stagger job for rollback, skip this interval")
+							Msg("[Stagger Aysnc] Cannot proceed as stagger job for rollback, skip this interval")
 
 						break
 					}
@@ -277,7 +277,7 @@ func (service *Service) StartStaggerJobForAsyncRollback(ctx context.Context, wg 
 					// It's the turn for the endpoint, we can add the stack command
 					err := service.edgeAsyncService.ReplaceStackCommandWithVersion(endpoint, edgeStackID, rollbackTo)
 					if err != nil {
-						log.Debug().Err(err).Msgf("Failed to store edge async command for endpoint: %d", endpoint.ID)
+						log.Debug().Err(err).Msgf("[Stagger Async] Failed to store edge async command for endpoint: %d", endpoint.ID)
 						return
 					}
 
@@ -285,7 +285,7 @@ func (service *Service) StartStaggerJobForAsyncRollback(ctx context.Context, wg 
 						Int("stackID", int(edgeStackID)).
 						Int("file version", stackFileVersion).
 						Int("endpointID", int(endpoint.ID)).
-						Msg("[Async] Stack command is replaced for rollback")
+						Msg("[Stagger Async] Stack command is replaced for rollback")
 					return
 				}
 			}

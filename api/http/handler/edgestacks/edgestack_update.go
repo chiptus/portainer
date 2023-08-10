@@ -14,6 +14,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/set"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/pkg/featureflags"
+	"github.com/rs/zerolog/log"
 )
 
 type updateEdgeStackPayload struct {
@@ -157,6 +158,8 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 		stack.Webhook = *payload.Webhook
 	}
 
+	stack.StaggerConfig = payload.StaggerConfig
+
 	currentStackFileVersion := stack.StackFileVersion
 	if payload.UpdateVersion {
 		err := handler.updateStackVersion(stack,
@@ -168,19 +171,18 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 		if err != nil {
 			return nil, httperror.InternalServerError("Unable to update stack version", err)
 		}
-	}
 
-	stack.StaggerConfig = payload.StaggerConfig
-
-	if stack.StaggerConfig != nil {
-		if currentStackFileVersion == stack.StackFileVersion {
-			return nil, httperror.BadRequest("Unable to update stagger configuration without updating stack file", err)
-		}
-		// Only consider stagger configuration when stack file version has changed
-		// That means that the stack file has changed
-		err = handler.staggerService.AddStaggerConfig(portaineree.EdgeStackID(stackID), stack.StackFileVersion, payload.StaggerConfig)
-		if err != nil {
-			return nil, httperror.InternalServerError("Unable to add stagger configuration", err)
+		if stack.StaggerConfig != nil && stack.StaggerConfig.StaggerOption != portaineree.EdgeStaggerOptionAllAtOnce {
+			if currentStackFileVersion == stack.StackFileVersion {
+				log.Info().Msg("Stack file version has not changed")
+			}
+			// User may update the env vars, so we still need to redeploy the stack
+			err = handler.staggerService.AddStaggerConfig(portaineree.EdgeStackID(stackID),
+				stack.StackFileVersion,
+				stack.StaggerConfig)
+			if err != nil {
+				return nil, httperror.InternalServerError("Unable to add stagger configuration", err)
+			}
 		}
 	}
 
@@ -191,9 +193,14 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 
 	if payload.UpdateVersion {
 		// Stagger configuration check
-		if handler.staggerService != nil && payload.StaggerConfig != nil {
+		if handler.staggerService != nil &&
+			payload.StaggerConfig != nil &&
+			payload.StaggerConfig.StaggerOption != portaineree.EdgeStaggerOptionAllAtOnce {
 
-			go handler.staggerService.StartStaggerJobForAsyncUpdate(stack.ID, relatedEndpointIds, endpointsToAdd, stack.StackFileVersion)
+			go handler.staggerService.StartStaggerJobForAsyncUpdate(stack.ID,
+				relatedEndpointIds,
+				endpointsToAdd,
+				stack.StackFileVersion)
 
 			return stack, nil
 		}
