@@ -85,7 +85,7 @@ func (handler *Handler) deleteEdgeStackStatus(tx dataservices.DataStoreTx, stack
 
 	stack.Status[endpoint.ID] = environmentStatus
 
-	err = tx.EdgeStack().UpdateEdgeStack(stack.ID, stack)
+	err = tx.EdgeStack().UpdateEdgeStack(stack.ID, stack, true)
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to persist the stack changes inside the database", err)
 	}

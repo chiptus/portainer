@@ -62,7 +62,7 @@ func setupBuildEdgeStacksTest(b testing.TB, endpointsCount int) (*Handler, error
 			},
 		}
 
-		err = store.EdgeStack().UpdateEdgeStack(edgeStackID, edgeStack)
+		err = store.EdgeStack().UpdateEdgeStack(edgeStackID, edgeStack, true)
 		if err != nil {
 			return nil, err
 		}

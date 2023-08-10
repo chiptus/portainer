@@ -97,7 +97,7 @@ func (handler *Handler) autoUpdate(edgeStackId portaineree.EdgeStackID, envVars 
 			}
 		}
 
-		err = tx.EdgeStack().UpdateEdgeStack(edgeStackId, edgeStack)
+		err = tx.EdgeStack().UpdateEdgeStack(edgeStackId, edgeStack, true)
 		if err != nil {
 			return fmt.Errorf("failed updating edge stack: %w", err)
 		}

@@ -310,7 +310,7 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, edgeS
 
 	edgeStack.Status[environmentID] = status
 
-	return tx.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack)
+	return tx.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack, true)
 }
 
 func (handler *Handler) handleSuccessfulUpdate(tx dataservices.DataStoreTx, activeUpdateSchedule *edgetypes.EndpointUpdateScheduleRelation) error {

@@ -114,7 +114,7 @@ func (service *Service) Create(id portaineree.EdgeStackID, edgeStack *portainere
 }
 
 // Deprecated: Use UpdateEdgeStackFunc instead.
-func (service *Service) UpdateEdgeStack(ID portaineree.EdgeStackID, edgeStack *portaineree.EdgeStack) error {
+func (service *Service) UpdateEdgeStack(ID portaineree.EdgeStackID, edgeStack *portaineree.EdgeStack, cleanupCache bool) error {
 	service.mu.Lock()
 	defer service.mu.Unlock()
 
@@ -126,7 +126,10 @@ func (service *Service) UpdateEdgeStack(ID portaineree.EdgeStackID, edgeStack *p
 	}
 
 	service.idxVersion[ID] = edgeStack.Version
-	service.cacheInvalidationFn(ID)
+
+	if cleanupCache {
+		service.cacheInvalidationFn(ID)
+	}
 
 	return nil
 }

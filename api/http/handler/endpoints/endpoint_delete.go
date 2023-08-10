@@ -187,7 +187,7 @@ func (handler *Handler) deleteEndpoint(tx dataservices.DataStoreTx, endpointID p
 		edgeStack := &edgeStacks[idx]
 		if _, ok := edgeStack.Status[endpoint.ID]; ok {
 			delete(edgeStack.Status, endpoint.ID)
-			err = tx.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack)
+			err = tx.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack, true)
 			if err != nil {
 				log.Warn().Err(err).Msgf("Unable to update edge stack")
 			}

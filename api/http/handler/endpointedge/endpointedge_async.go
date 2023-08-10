@@ -614,7 +614,7 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 
 		stack.Status[endpoint.ID] = environmentStatus
 
-		err = tx.EdgeStack().UpdateEdgeStack(stack.ID, stack)
+		err = tx.EdgeStack().UpdateEdgeStack(stack.ID, stack, true)
 		if err != nil {
 			log.Error().Err(err).Int("stack_id", int(stackID)).Msg("update edge stack")
 		}

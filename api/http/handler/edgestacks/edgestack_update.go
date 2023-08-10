@@ -186,7 +186,7 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 		}
 	}
 
-	err = tx.EdgeStack().UpdateEdgeStack(stack.ID, stack)
+	err = tx.EdgeStack().UpdateEdgeStack(stack.ID, stack, true)
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to persist the stack changes inside the database", err)
 	}

@@ -57,7 +57,7 @@ func (migrator *Migrator) assignEdgeGroupsToEdgeUpdatesForDB100() error {
 		}
 
 		edgeStack.EdgeGroups = []portaineree.EdgeGroupID{edgeGroup.ID}
-		err = migrator.edgeStackService.UpdateEdgeStack(edgeStack.ID, edgeStack)
+		err = migrator.edgeStackService.UpdateEdgeStack(edgeStack.ID, edgeStack, true)
 		if err != nil {
 			return err
 		}
@@ -476,7 +476,7 @@ func (m *Migrator) updateEdgeStackStatusForDB100() error {
 			edgeStack.Status[environmentID] = environmentStatus
 		}
 
-		err = m.edgeStackService.UpdateEdgeStack(edgeStack.ID, &edgeStack)
+		err = m.edgeStackService.UpdateEdgeStack(edgeStack.ID, &edgeStack, true)
 		if err != nil {
 			return err
 		}

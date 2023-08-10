@@ -193,7 +193,7 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 			}
 		}
 
-		err = tx.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack)
+		err = tx.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack, payload.UpdateVersion)
 		if err != nil {
 			return httperror.InternalServerError("Failed updating edge stack", err)
 		}

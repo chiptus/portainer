@@ -809,7 +809,7 @@ func (store *Store) Import(filename string) (err error) {
 	}
 
 	for _, v := range backup.EdgeStack {
-		store.EdgeStack().UpdateEdgeStack(v.ID, &v)
+		store.EdgeStack().UpdateEdgeStack(v.ID, &v, true)
 	}
 
 	for _, v := range backup.Endpoint {

@@ -202,7 +202,7 @@ func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dat
 
 	if jobID != "" {
 		edgeStack.AutoUpdate.JobID = jobID
-		err = tx.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack)
+		err = tx.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack, true)
 		if err != nil {
 			return edgeStack, errors.WithMessage(err, "failed updating edge stack")
 		}

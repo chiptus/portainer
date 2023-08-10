@@ -172,7 +172,7 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 	} else {
 		updateEnvStatus(stack, environmentStatus, status, payload)
 
-		err = tx.EdgeStack().UpdateEdgeStack(stackID, stack)
+		err = tx.EdgeStack().UpdateEdgeStack(stackID, stack, true)
 		if err != nil {
 			return nil, handler.handlerDBErr(err, "Unable to persist the stack changes inside the database")
 		}
