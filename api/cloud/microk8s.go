@@ -298,7 +298,7 @@ func (service *CloudManagementService) activateAddons(
 				ips = masterNodes
 				ips = append(ips, workerNodes...)
 			default:
-				if masterNodes != nil {
+				if len(masterNodes) > 0 {
 					ips = append(ips, masterNodes[0])
 				}
 			}
