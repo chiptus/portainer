@@ -204,7 +204,7 @@ func (handler *Handler) createEdgeJobFromFile(w http.ResponseWriter, r *http.Req
 		edgeJob, err = handler.createEdgeJob(handler.DataStore, &payload.edgeJobBasePayload, payload.File)
 	} else {
 		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			edgeJob, err = handler.createEdgeJob(handler.DataStore, &payload.edgeJobBasePayload, payload.File)
+			edgeJob, err = handler.createEdgeJob(tx, &payload.edgeJobBasePayload, payload.File)
 
 			return err
 		})
