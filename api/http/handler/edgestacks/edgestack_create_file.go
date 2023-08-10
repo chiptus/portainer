@@ -93,6 +93,13 @@ func (payload *edgeStackFromFileUploadPayload) Validate(r *http.Request) error {
 	}
 	payload.EnvVars = envVars
 
+	staggerConfig := &portaineree.EdgeStaggerConfig{}
+	err = request.RetrieveMultiPartFormJSONValue(r, "StaggerConfig", staggerConfig, true)
+	if err != nil {
+		return httperrors.NewInvalidPayloadError("Invalid stagger config")
+	}
+	payload.StaggerConfig = staggerConfig
+
 	return staggers.ValidateStaggerConfig(payload.StaggerConfig)
 }
 
