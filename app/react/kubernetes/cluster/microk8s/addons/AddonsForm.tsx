@@ -118,10 +118,10 @@ export function AddonsForm({
   }, [values.addons, initialValues.addons]);
 
   useEffect(() => {
-    // if the operation finishes in a warning state, reset the form
+    // when the operation finishes, reset the form
     if (
       currentOperationStatus === 'processing' &&
-      operationStatus === 'warning'
+      operationStatus !== 'processing'
     ) {
       resetForm();
     }

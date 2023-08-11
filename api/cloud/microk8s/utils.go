@@ -149,6 +149,14 @@ func DisableMicrok8sAddonsOnNode(sshClient *sshUtil.SSHConnection, addon string)
 		}
 	}
 
+	// hostpath storage is the only addon that requires keyboard input by default.
+	// https://github.com/canonical/microk8s-core-addons/blob/a33482b8daef3b81e311decb567af2162b76dbff/addons/hostpath-storage/disable#L17
+	// We need to add the "destroy-storage" argument to the command to avoid the prompt.
+	// No other addons require this workaround, so I've done this in a hacky way. If we come across this again, it could be worth adding a disableArgs field to addons
+	if addon == "hostpath-storage" {
+		addon = addon + " destroy-storage"
+	}
+
 	command := "microk8s disable " + addon
 	return sshClient.RunCommand(command, os.Stdout)
 }

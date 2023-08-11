@@ -701,8 +701,8 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 				}
 				err = mk8s.DisableMicrok8sAddonsOnNode(sshClientNode, addon)
 				if err != nil {
-					// Rather than fail the whole thing.  Warn the user and allow them to manually try to enable the addon
-					log.Warn().AnErr("error", err).Msgf("failed to disable microk8s addon %s on node. error: ", addon)
+					// Rather than fail the whole thing.  Warn the user and allow them to manually try to disable the addon
+					log.Warn().AnErr("error", err).Msgf("error while disabling microk8s addon %s on node with ip %s. error: ", addon, ip)
 					errorCount++
 				}
 			}()
@@ -714,8 +714,8 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 
 	var disableWarningSummary string
 	if len(disableWarningAddonNames) > 0 {
-		log.Error().Msgf("failed to disable microk8s addons.  Please disable the following addons manually: %s", strings.Join(disableWarningAddonNames[:], ", "))
-		disableWarningSummary = fmt.Sprintf("Failed to disable MicroK8s addon%s: %s", func() string {
+		log.Error().Msgf("error while disabling microk8s addons.  Please disable the following addons manually: %s", strings.Join(disableWarningAddonNames[:], ", "))
+		disableWarningSummary = fmt.Sprintf("Errors found while disabling MicroK8s addon%s: %s", func() string {
 			if len(disableWarningAddonNames) > 1 {
 				return "s"
 			}
@@ -766,7 +766,7 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 				err = mk8s.EnableMicrok8sAddonsOnNode(sshClientNode, addon)
 				if err != nil {
 					// Rather than fail the whole thing.  Warn the user and allow them to manually try to enable the addon
-					log.Warn().AnErr("error", err).Msgf("failed to enable microk8s addon %s on node. error: ", addon)
+					log.Warn().AnErr("error", err).Msgf("error while enabling microk8s addon %s on node with ip %s. error: ", addon, ip)
 					errorCount++
 				}
 			}()
@@ -778,8 +778,8 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 
 	var enableWarningSummary string
 	if len(enableWarningAddonNames) > 0 {
-		log.Error().Msgf("failed to enable microk8s addons.  Please disable the following addons manually: %s", strings.Join(enableWarningAddonNames[:], ", "))
-		enableWarningSummary = fmt.Sprintf("Failed to enable MicroK8s addon%s: %s", func() string {
+		log.Error().Msgf("errors found while enabling microk8s addons.  Please enable the following addons manually: %s", strings.Join(enableWarningAddonNames[:], ", "))
+		enableWarningSummary = fmt.Sprintf("Errors found while enabling MicroK8s addon%s: %s", func() string {
 			if len(enableWarningAddonNames) > 1 {
 				return "s"
 			}
@@ -790,7 +790,7 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 	// if all addons failed to enable / disable, then return an error
 	if len(enableWarningAddonNames) == len(newAddons) && len(disableWarningAddonNames) == len(deletedAddons) {
 		log.Error().Msg("failed to update all MicroK8s addons.")
-		return fmt.Errorf("Failed to update all MicroK8s addons. Please try to update them manually."), ""
+		return fmt.Errorf("Errors found while updating all MicroK8s addons. Please check their status, and try to update them manually."), ""
 	}
 
 	// Read endpoint again for fresh-copy
