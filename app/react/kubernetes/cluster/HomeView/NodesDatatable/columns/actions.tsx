@@ -10,7 +10,6 @@ import { useAnalytics } from '@/react/hooks/useAnalytics';
 import { Link } from '@@/Link';
 import { Icon } from '@@/Icon';
 import { Button } from '@@/buttons';
-import { TooltipWithChildren } from '@@/Tip/TooltipWithChildren';
 
 import { NodeRowData } from '../types';
 import { getInternalNodeIpAddress, getRole } from '../utils';
@@ -81,11 +80,12 @@ function ActionsCell({
       )}
 
       {nodeIp && nodeRole === 'Worker' && canCheckStatus && (
-        <TooltipWithChildren message="Status - not available for worker nodes">
-          <div className="text-muted flex items-center p-1">
-            <Icon icon={Activity} />
-          </div>
-        </TooltipWithChildren>
+        <div
+          className="text-muted flex items-center p-1"
+          title="Status - not available for worker nodes"
+        >
+          <Icon icon={Activity} />
+        </div>
       )}
 
       {nodeIp && canSSH && (
