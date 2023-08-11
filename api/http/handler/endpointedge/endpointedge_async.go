@@ -51,7 +51,7 @@ type snapshot struct {
 
 	StackLogs   []portaineree.EdgeStackLog                                        `json:"stackLogs,omitempty"`
 	StackStatus map[portaineree.EdgeStackID][]portainer.EdgeStackDeploymentStatus `json:"stackStatus,omitempty"`
-	JobsStatus  map[portaineree.EdgeJobID]portaineree.EdgeJobStatus               `json:"jobsStatus:,omitempty"`
+	JobsStatus  map[portaineree.EdgeJobID]portaineree.EdgeJobStatus               `json:"jobsStatus,omitempty"`
 }
 
 type EdgeAsyncResponse struct {
