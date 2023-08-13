@@ -47,6 +47,7 @@ import { StaggerFieldset } from '../../../components/StaggerFieldset';
 import { useValidateEnvironmentTypes } from '../useEdgeGroupHasType';
 import { atLeastTwo } from '../atLeastTwo';
 import { PrivateRegistryFieldset } from '../../../components/PrivateRegistryFieldset';
+import { useStaggerUpdateStatus } from '../useStaggerUpdateStatus';
 
 import {
   UpdateEdgeStackGitPayload,
@@ -109,6 +110,7 @@ export function GitForm({ stack }: { stack: EdgeStack }) {
             gitCommitHash={gitConfig.ConfigHash}
             isLoading={updateStackMutation.isLoading}
             isUpdateVersion={!!updateStackMutation.variables?.updateVersion}
+            stackId={stack.Id}
           />
         );
 
@@ -196,6 +198,7 @@ function InnerForm({
   isUpdateVersion,
   onUpdateSettingsClick,
   webhookId,
+  stackId,
 }: {
   gitUrl: string;
   gitPath: string;
@@ -205,16 +208,24 @@ function InnerForm({
   isUpdateVersion: boolean;
   onUpdateSettingsClick(): void;
   webhookId: string;
+  stackId: number;
 }) {
   const registriesQuery = useRegistries();
   const { values, setFieldValue, isValid, handleSubmit, errors, dirty } =
     useFormikContext<FormValues>();
 
   const { hasType } = useValidateEnvironmentTypes(values.groupIds);
+  const staggerUpdateStatus = useStaggerUpdateStatus(stackId);
 
   const hasKubeEndpoint = hasType(EnvironmentType.EdgeAgentOnKubernetes);
   const hasDockerEndpoint = hasType(EnvironmentType.EdgeAgentOnDocker);
   const hasNomadEndpoint = hasType(EnvironmentType.EdgeAgentOnNomad);
+
+  if (staggerUpdateStatus && !staggerUpdateStatus.isSuccess) {
+    return null;
+  }
+
+  const staggerUpdating = staggerUpdateStatus.data === 'updating';
 
   return (
     <Form className="form-horizontal" onSubmit={handleSubmit}>
@@ -323,9 +334,10 @@ function InnerForm({
 
       <FormSection title="Actions">
         <LoadingButton
-          disabled={dirty || !isValid || isLoading}
+          disabled={dirty || !isValid || isLoading || staggerUpdating}
           isLoading={isUpdateVersion && isLoading}
           loadingText="updating stack..."
+          className="btn-no-left-margin"
         >
           Pull and update stack
         </LoadingButton>
@@ -340,6 +352,14 @@ function InnerForm({
           Update settings
         </LoadingButton>
       </FormSection>
+
+      {staggerUpdating && (
+        <div className="col-sm-12 pl-0">
+          <FormError>
+            Concurrent updates in progress, stack update temporarily unavailable
+          </FormError>
+        </div>
+      )}
     </Form>
   );
 }

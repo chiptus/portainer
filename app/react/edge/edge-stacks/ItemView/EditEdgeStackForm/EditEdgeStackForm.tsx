@@ -40,6 +40,7 @@ import { NomadForm } from './NomadForm';
 import { GitForm } from './GitForm';
 import { useValidateEnvironmentTypes } from './useEdgeGroupHasType';
 import { atLeastTwo } from './atLeastTwo';
+import { useStaggerUpdateStatus } from './useStaggerUpdateStatus';
 
 interface Props {
   edgeStack: EdgeStack;
@@ -132,6 +133,7 @@ function InnerForm({
     useFormikContext<FormValues>();
   const { getCachedContent, setContentCache } = useCachedContent();
   const { hasType } = useValidateEnvironmentTypes(values.edgeGroups);
+  const staggerUpdateStatus = useStaggerUpdateStatus(edgeStack.Id);
   const [selectedVersion, setSelectedVersion] = useState(versionOptions[0]);
 
   useEffect(() => {
@@ -145,6 +147,12 @@ function InnerForm({
   const hasKubeEndpoint = hasType(EnvironmentType.EdgeAgentOnKubernetes);
   const hasDockerEndpoint = hasType(EnvironmentType.EdgeAgentOnDocker);
   const hasNomadEndpoint = hasType(EnvironmentType.EdgeAgentOnNomad);
+
+  if (staggerUpdateStatus && !staggerUpdateStatus.isSuccess) {
+    return null;
+  }
+
+  const staggerUpdating = staggerUpdateStatus.data === 'updating';
 
   const DeploymentForm = forms[values.deploymentType];
 
@@ -288,7 +296,7 @@ function InnerForm({
             <LoadingButton
               className="!ml-0"
               size="small"
-              disabled={!isValid}
+              disabled={!isValid || staggerUpdating}
               isLoading={isSubmitting}
               button-spinner="$ctrl.actionInProgress"
               loadingText="Update in progress..."
@@ -296,6 +304,14 @@ function InnerForm({
               Update the stack
             </LoadingButton>
           </div>
+          {staggerUpdating && (
+            <div className="col-sm-12">
+              <FormError>
+                Concurrent updates in progress, stack update temporarily
+                unavailable
+              </FormError>
+            </div>
+          )}
         </div>
       </FormSection>
     </Form>

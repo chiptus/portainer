@@ -85,6 +85,7 @@ func NewHandler(
 	adminRouter.Handle("/edge_stacks/{id}", httperror.LoggerHandler(h.edgeStackUpdate)).Methods(http.MethodPut)
 	adminRouter.Handle("/edge_stacks/{id}", httperror.LoggerHandler(h.edgeStackDelete)).Methods(http.MethodDelete)
 	adminRouter.Handle("/edge_stacks/{id}/file", httperror.LoggerHandler(h.edgeStackFile)).Methods(http.MethodGet)
+	adminRouter.Handle("/edge_stacks/{id}/stagger/status", httperror.LoggerHandler(h.edgeStackStaggerStatusInspect)).Methods(http.MethodGet)
 
 	adminRouter.Handle("/edge_stacks/{id}/logs/{endpoint_id}", httperror.LoggerHandler(h.edgeStackLogsStatusGet)).Methods(http.MethodGet)
 	adminRouter.Handle("/edge_stacks/{id}/logs/{endpoint_id}", httperror.LoggerHandler(h.edgeStackLogsCollect)).Methods(http.MethodPut)

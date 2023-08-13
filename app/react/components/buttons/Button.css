@@ -28,3 +28,7 @@
 .btn-box-shadow {
   box-shadow: none !important;
 }
+
+.btn-no-left-margin {
+  margin-left: 0 !important;
+}

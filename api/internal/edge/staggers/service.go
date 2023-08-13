@@ -124,6 +124,14 @@ func (service *Service) RemoveStaggerConfig(id portaineree.EdgeStackID) {
 	delete(service.staggerConfigs, id)
 }
 
+func (service *Service) IsEdgeStackUpdating(id portaineree.EdgeStackID) bool {
+	service.staggerConfigsMtx.RLock()
+	defer service.staggerConfigsMtx.RUnlock()
+
+	_, ok := service.staggerConfigs[id]
+	return ok
+}
+
 // IsStaggered is used to check if the edge stack is staggered for specific endpoint
 func (service *Service) IsStaggeredEdgeStack(id portaineree.EdgeStackID, fileVersion int) bool {
 	poolKey := GetStaggerPoolKey(id, fileVersion)
