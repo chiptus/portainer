@@ -105,7 +105,7 @@ func (service *CloudManagementService) Start() {
 				service.processResult(result)
 
 			case <-service.shutdownCtx.Done():
-				log.Debug().Msg("shutting down KaaS setup queue")
+				log.Debug().Msg("shutting down cloud management task queue")
 				return
 			}
 		}
@@ -930,7 +930,7 @@ func (service *CloudManagementService) processResult(result *cloudPrevisioningRe
 	if result.provider == portaineree.CloudProviderKubeConfig {
 		log.Info().Int("endpoint_id", int(result.endpointID)).Msg("removing cluster import task")
 	} else {
-		log.Info().Int("endpoint_id", int(result.endpointID)).Msg("removing KaaS provisioning task")
+		log.Info().Int("endpoint_id", int(result.endpointID)).Msg("removing task")
 	}
 
 	err := service.dataStore.CloudProvisioning().Delete(result.taskID)

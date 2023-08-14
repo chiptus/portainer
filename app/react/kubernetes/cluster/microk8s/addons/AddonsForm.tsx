@@ -67,8 +67,10 @@ export function AddonsForm({
               kubeVersion <= versionAvailableTo)
           );
         })
+        // explicitely show if the addon is core or community
         .map((a) => ({
           ...a,
+          selectedLabel: `${a.label} (${a.repository})`,
           name: a.label,
         })) ?? [];
 

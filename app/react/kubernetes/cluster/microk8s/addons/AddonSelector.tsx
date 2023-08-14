@@ -66,7 +66,14 @@ export function AddOnSelector({
               setSelectedOption(option);
             }}
             size="sm"
-            value={selectedOption}
+            value={
+              selectedOption
+                ? {
+                    ...selectedOption,
+                    label: selectedOption.selectedLabel || '',
+                  }
+                : null
+            }
             isDisabled={readonly || isProcessing || value.disableSelect}
           />
         </InputGroup>
@@ -114,6 +121,7 @@ export function AddOnSelector({
               color="dangerlight"
               type="button"
               data-cy={`k8sAppCreate-rmAddonButton_${index}`}
+              disabled={isProcessing}
               onClick={onRemove}
               icon={Trash2}
             />

@@ -1,11 +1,5 @@
 import { CellContext } from '@tanstack/react-table';
-import {
-  AlertCircle,
-  AlertTriangle,
-  HelpCircle,
-  Loader2,
-  Settings,
-} from 'lucide-react';
+import { AlertCircle, AlertTriangle, HelpCircle, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 import sanitize from 'sanitize-html';
 
@@ -16,6 +10,7 @@ import { PortainerEndpointTypes } from '@/portainer/models/endpoint/models';
 import { TooltipWithChildren } from '@@/Tip/TooltipWithChildren';
 import { Button } from '@@/buttons';
 import { Icon } from '@@/Icon';
+import { Tooltip } from '@@/Tip/Tooltip';
 
 import { EnvironmentListItem } from '../types';
 import { useUpdateEnvironmentMutation } from '../../queries/useUpdateEnvironmentMutation';
@@ -102,22 +97,14 @@ function Cell({
   }
 
   if (environment.Status === EnvironmentStatus.Provisioning) {
-    const status = (
-      <span className="vertical-center inline-flex text-base">
-        <Settings className="lucide animate-spin-slow" />
-        {environment.StatusMessage?.summary}
-      </span>
-    );
-    if (!environment.StatusMessage?.detail) {
-      return status;
-    }
     return (
-      <TooltipWithChildren
-        message={environment.StatusMessage?.detail}
-        position="bottom"
-      >
-        {status}
-      </TooltipWithChildren>
+      <div className="inline-flex items-center text-base">
+        <Icon icon={Loader2} className="!mr-1 animate-spin-slow" />
+        {environment.StatusMessage?.summary}
+        {environment.StatusMessage?.detail && (
+          <Tooltip message={environment.StatusMessage?.detail} />
+        )}
+      </div>
     );
   }
 

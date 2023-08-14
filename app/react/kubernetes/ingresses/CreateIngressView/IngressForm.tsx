@@ -405,7 +405,10 @@ export function IngressForm({
                             path.ServiceName
                               ? {
                                   value: path.ServiceName,
-                                  label: path.ServiceName,
+                                  label: getServiceLabel(
+                                    serviceOptions,
+                                    path.ServiceName
+                                  ),
                                 }
                               : null
                           }
@@ -648,4 +651,10 @@ export function IngressForm({
       </WidgetBody>
     </Widget>
   );
+}
+
+function getServiceLabel(options: GroupedServiceOptions, value: string) {
+  const allOptions = options.flatMap((group) => group.options);
+  const option = allOptions.find((o) => o.value === value);
+  return option?.selectedLabel || '';
 }

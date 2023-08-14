@@ -137,7 +137,11 @@ export function CreateIngressView() {
                 ...group,
                 options: [
                   ...group.options,
-                  { label: service.Name, value: service.Name },
+                  {
+                    label: service.Name,
+                    selectedLabel: `${service.Name} (${service.Type})`,
+                    value: service.Name,
+                  },
                 ],
               };
             }

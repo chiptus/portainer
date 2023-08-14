@@ -64,18 +64,23 @@ export function Addons() {
     addons:
       addonInfo?.addons
         .filter((addonInfo) => addonInfo.status === 'enabled')
+        // show only installable addons (not the required ones)
         .filter((addonInfo) =>
           addonOptions.find(
             (addonOption) => addonOption.label === addonInfo.name
           )
-        ) // show only installable addons (not the required ones)
+        )
+        // initial addons should show as disabled
         .map((addonInfo) => ({
-          name: addonInfo.name,
-          arguments: addonInfo.arguments,
-          repository: addonInfo.repository,
+          ...addonInfo,
           disableSelect: true,
-        })) || // format to form values
-      [],
+        }))
+        // sort so that the addons by repository with the 'core' repository before all other repositories
+        .sort(
+          (a, b) =>
+            (a.repository === 'core' ? -1 : 1) -
+            (b.repository === 'core' ? -1 : 1)
+        ) || [],
     currentVersion,
   };
 

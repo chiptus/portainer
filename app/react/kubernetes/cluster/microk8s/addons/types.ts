@@ -21,6 +21,7 @@ export type AddOnOption = {
   tooltip?: string;
   placeholder?: string;
   argumentsType?: AddonsArgumentType;
+  selectedLabel?: string;
 };
 
 export type GroupedAddonOptions = {
