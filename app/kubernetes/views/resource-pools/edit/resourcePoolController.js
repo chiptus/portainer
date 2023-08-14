@@ -19,7 +19,7 @@ import { getDeploymentOptions } from '@/react/portainer/environments/environment
 import { confirmUpdate } from '@@/modals/confirm';
 import KubernetesAnnotationsUtils from '@/kubernetes/converters/annotations';
 import { confirmUpdateNamespace } from '@/react/kubernetes/namespaces/ItemView/ConfirmUpdateNamespace';
-import { getMetricsForAllNodes, getMetricsForAllPods } from '@/react/kubernetes/services/service.ts';
+import { getMetricsForAllPods } from '@/react/kubernetes/services/service.ts';
 
 class KubernetesResourcePoolController {
   /* #region  CONSTRUCTOR */
@@ -39,7 +39,8 @@ class KubernetesResourcePoolController {
     KubernetesApplicationService,
     KubernetesIngressService,
     KubernetesVolumeService,
-    KubernetesNamespaceService
+    KubernetesNamespaceService,
+    KubernetesNodeService
   ) {
     Object.assign(this, {
       $async,
@@ -57,6 +58,7 @@ class KubernetesResourcePoolController {
       KubernetesIngressService,
       KubernetesVolumeService,
       KubernetesNamespaceService,
+      KubernetesNodeService,
     });
 
     this.IngressClassTypes = KubernetesIngressClassTypes;
@@ -441,7 +443,7 @@ class KubernetesResourcePoolController {
         const name = this.$state.params.id;
 
         const [nodes, pools, pool] = await Promise.all([
-          getMetricsForAllNodes,
+          this.KubernetesNodeService.get(),
           this.KubernetesResourcePoolService.get('', { getQuota: true }),
           this.KubernetesResourcePoolService.get(name),
         ]);
