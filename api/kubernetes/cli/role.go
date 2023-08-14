@@ -140,7 +140,7 @@ func getPortainerDefaultK8sRoles() map[portaineree.K8sRole]k8sRoleConfig {
 				},
 				{
 					Verbs:     []string{"patch"},
-					Resources: []string{"deployments"},
+					Resources: []string{"deployments", "daemonsets", "statefulsets"},
 					APIGroups: []string{"apps"},
 				},
 				{

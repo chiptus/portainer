@@ -2697,6 +2697,7 @@ const (
 	OperationK8sApplicationsW                    Authorization = "K8sApplicationsW"
 	OperationK8sApplicationDetailsR              Authorization = "K8sApplicationDetailsR"
 	OperationK8sApplicationDetailsW              Authorization = "K8sApplicationDetailsW"
+	OperationK8sApplicationP                     Authorization = "K8sApplicationsP" // Patching gives the ability to rollout restart or rollout undo deployments, daemonsets and statefulsets
 	OperationK8sPodDelete                        Authorization = "K8sPodDelete"
 	OperationK8sApplicationConsoleRW             Authorization = "K8sApplicationConsoleRW"
 	OperationK8sApplicationsAdvancedDeploymentRW Authorization = "K8sApplicationsAdvancedDeploymentRW"

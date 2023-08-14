@@ -35,7 +35,7 @@ export function RestartApplicationButton({
   );
 
   return (
-    <Authorized authorizations="K8sPodRestart">
+    <Authorized authorizations="K8sApplicationsP">
       <Button
         type="button"
         size="small"

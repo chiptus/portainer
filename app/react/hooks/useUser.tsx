@@ -154,7 +154,7 @@ export function UserProvider({ children }: UserProviderProps) {
   const tokenPayload = useMemo(() => jwtDecode(jwt) as { id: number }, [jwt]);
 
   const userQuery = useLoadUser(tokenPayload.id, {
-    staleTime: Infinity, // should reload te user details only on page load
+    staleTime: Infinity, // should reload the user details only on page load
   });
 
   const providerState = useMemo(

@@ -61,7 +61,7 @@ export function RollbackApplicationButton({
   );
 
   return (
-    <Authorized authorizations="K8sApplicationDetailsW">
+    <Authorized authorizations="K8sApplicationsP">
       <Button
         ng-if="!ctrl.isExternalApplication()"
         type="button"
