@@ -102,7 +102,7 @@ function buildAlertWidget(
 
   let exceededMsg =
     'You have exceeded the node allowance of your current license.';
-  if (licenseInfo.nodes === 0) {
+  if (licenseInfo.nodes === 0 || licenseInfo.type === LicenseType.Trial) {
     exceededMsg = 'You have no current license or node allowance.';
   }
 
@@ -116,18 +116,16 @@ function buildAlertWidget(
         trial={licenseInfo.type === 1}
         untrustedDevices={untrustedDevices}
       />
-
-      {licenseInfo.type !== LicenseType.Trial && (
-        <div className={styles.alertExtra}>
-          <Icon
-            icon={AlertCircle}
-            className={clsx('icon-danger', 'space-right')}
-          />
-          <span className={styles.alertExtraText}>
-            {exceededMsg} Please contact Portainer to upgrade your license.
-          </span>
-        </div>
-      )}
+      <div className={styles.alertExtra}>
+        <Icon
+          icon={AlertCircle}
+          className={clsx('icon-danger', 'space-right')}
+        />
+        <span className={styles.alertExtraText}>
+          {exceededMsg} Please contact Portainer to upgrade your license.
+        </span>
+      </div>
+      )
     </div>
   );
 }
