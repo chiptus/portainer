@@ -1,12 +1,11 @@
 import { Formik, Form, Field } from 'formik';
-import { useRouter } from '@uirouter/react';
-import { Loader2 } from 'lucide-react';
 
 import { notifySuccess } from '@/portainer/services/notifications';
 import { useAuthorizations } from '@/react/hooks/useUser';
 import { useAnalytics } from '@/react/hooks/useAnalytics';
 import { useCurrentEnvironment } from '@/react/hooks/useCurrentEnvironment';
 import { K8sDistributionType } from '@/react/portainer/environments/types';
+import { queryClient } from '@/react-tools/react-query';
 
 import { confirm } from '@@/modals/confirm';
 import { Input } from '@@/form-components/Input';
@@ -15,7 +14,7 @@ import { FormControl } from '@@/form-components/FormControl';
 import { LoadingButton } from '@@/buttons';
 import { ModalType } from '@@/modals';
 import { TextTip } from '@@/Tip/TextTip';
-import { Icon } from '@@/Icon';
+import { InlineLoader } from '@@/InlineLoader';
 
 import {
   useAddonsQuery,
@@ -27,8 +26,6 @@ export type K8sUpgradeType = {
 };
 
 export function UpgradeCluster() {
-  const router = useRouter();
-
   const { data: environment, ...environmentQuery } = useCurrentEnvironment();
   const statusQuery = useAddonsQuery(environment?.Id, environment?.Status);
   const { currentVersion, kubernetesVersions } = statusQuery.data || {};
@@ -58,10 +55,7 @@ export function UpgradeCluster() {
         <TextTip color="red">Unable to load environment</TextTip>
       )}
       {(statusQuery.isLoading || environmentQuery.isLoading) && (
-        <div className="vertical-center text-muted text-sm">
-          <Icon icon={Loader2} className="animate-spin-slow" />
-          Loading Kubernetes version...
-        </div>
+        <InlineLoader>Loading Kubernetes version...</InlineLoader>
       )}
       {statusQuery.isSuccess && environment && (
         <Formik
@@ -133,7 +127,7 @@ export function UpgradeCluster() {
                 nextVersion,
               },
             });
-            router.stateService.reload();
+            queryClient.invalidateQueries(['environments', environment.Id]);
           },
         }
       );

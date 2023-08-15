@@ -21,7 +21,7 @@ export function Microk8sClusterDetails() {
   const { data: nodes, ...nodesQuery } = useNodesQuery(environmentId);
   const currentVersion = addonResponse?.currentVersion;
   const addonNames = addonResponse?.addons
-    .filter((addon) => addon.status === 'enabled')
+    ?.filter((addon) => addon.status === 'enabled')
     .map((addon) => addon.name);
 
   if (environmentQuery.isError) {

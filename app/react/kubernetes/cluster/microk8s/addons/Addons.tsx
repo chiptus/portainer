@@ -1,4 +1,3 @@
-import { Loader2 } from 'lucide-react';
 import { Formik, FormikHelpers } from 'formik';
 import { useMemo } from 'react';
 import { SchemaOf, object, string } from 'yup';
@@ -13,7 +12,7 @@ import { AddonOptionInfo } from '@/react/portainer/environments/wizard/Environme
 import { TextTip } from '@@/Tip/TextTip';
 import { Card } from '@@/Card';
 import { confirmUpdate } from '@@/modals/confirm';
-import { Icon } from '@@/Icon';
+import { InlineLoader } from '@@/InlineLoader';
 
 import { K8sAddOnsForm } from './types';
 import { useAddonsQuery, useUpdateAddonsMutation } from './addons.service';
@@ -63,8 +62,7 @@ export function Addons() {
   const initialValues: K8sAddOnsForm = {
     addons:
       addonInfo?.addons
-        .filter((addonInfo) => addonInfo.status === 'enabled')
-        // show only installable addons (not the required ones)
+        ?.filter((addonInfo) => addonInfo.status === 'enabled')
         .filter((addonInfo) =>
           addonOptions.find(
             (addonOption) => addonOption.label === addonInfo.name
@@ -87,15 +85,16 @@ export function Addons() {
   if (addonsQuery.isLoading || microk8sOptionsQuery.isLoading) {
     return (
       <Card>
-        <div className="vertical-center text-muted text-sm">
-          <Icon icon={Loader2} className="animate-spin-slow" />
-          Loading addons...
-        </div>
+        <InlineLoader>Loading addons...</InlineLoader>
       </Card>
     );
   }
 
-  if (microk8sOptionsQuery.isError || addonsQuery.isError) {
+  if (
+    environmentQuery.isError ||
+    microk8sOptionsQuery.isError ||
+    addonsQuery.isError
+  ) {
     return (
       <Card>
         {microk8sOptionsQuery.isError && (
@@ -153,7 +152,7 @@ export function Addons() {
                   'Success',
                   'Request to update addons successfully submitted'
                 );
-                queryClient.refetchQueries(['environments', environmentId]);
+                queryClient.invalidateQueries(['environments', environmentId]);
                 // keep the new addons by not resetting the form
                 // and disabling the addons until the updated initial values are fetched after processing
                 setFieldValue(

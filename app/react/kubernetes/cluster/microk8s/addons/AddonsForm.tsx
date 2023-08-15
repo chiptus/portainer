@@ -213,7 +213,8 @@ export function AddonsForm({
           // transition between opacity 0 and 1 for less jarring changes
           className={clsx(
             'flex w-full transition-opacity',
-            isRefetchingAddons ? 'opacity-100' : 'opacity-0'
+            // this loadeer shows often, don't show it when processing a request
+            isRefetchingAddons && !isProcessing ? 'opacity-100' : 'opacity-0'
           )}
         >
           <InlineLoader size="xs">Refreshing addons...</InlineLoader>

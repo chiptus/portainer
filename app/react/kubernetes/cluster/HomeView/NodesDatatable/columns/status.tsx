@@ -23,7 +23,7 @@ function StatusCell({
   }
 
   return (
-    <>
+    <div className="whitespace-nowrap">
       <StatusBadge color={status === 'Ready' ? 'success' : 'warning'}>
         {status}
       </StatusBadge>
@@ -32,7 +32,7 @@ function StatusCell({
           SchedulingDisabled
         </StatusBadge>
       )}
-    </>
+    </div>
   );
 }
 

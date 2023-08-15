@@ -19,7 +19,7 @@ export interface AddonsResponse {
       role: string;
     }[];
   };
-  addons: {
+  addons?: {
     name: string;
     status: string;
     repository: string;
