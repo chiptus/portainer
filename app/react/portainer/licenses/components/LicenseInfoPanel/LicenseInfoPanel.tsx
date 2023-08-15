@@ -125,7 +125,6 @@ function buildAlertWidget(
           {exceededMsg} Please contact Portainer to upgrade your license.
         </span>
       </div>
-      )
     </div>
   );
 }
