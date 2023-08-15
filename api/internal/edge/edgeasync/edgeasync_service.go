@@ -555,7 +555,13 @@ func (service *Service) RemoveNormalStackCommand(endpointID portaineree.Endpoint
 		return err
 	}
 
-	fileContent, err := service.fileService.GetFileContent(stack.ProjectPath, stack.EntryPoint)
+	commitHash := ""
+	if stack.GitConfig != nil {
+		commitHash = stack.GitConfig.ConfigHash
+	}
+
+	projectVersionPath := service.fileService.FormProjectPathByVersion(stack.ProjectPath, stack.StackFileVersion, commitHash)
+	fileContent, err := service.fileService.GetFileContent(projectVersionPath, stack.EntryPoint)
 	if err != nil {
 		return err
 	}

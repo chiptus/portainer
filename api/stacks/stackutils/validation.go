@@ -67,7 +67,14 @@ func IsValidStackFile(stackFileContent []byte, securitySettings *portaineree.End
 
 func ValidateStackFiles(stack *portaineree.Stack, securitySettings *portaineree.EndpointSecuritySettings, fileService portainer.FileService) error {
 	for _, file := range GetStackFilePaths(stack, false) {
-		stackContent, err := fileService.GetFileContent(stack.ProjectPath, file)
+		commitHash := ""
+		if stack.GitConfig != nil {
+			commitHash = stack.GitConfig.ConfigHash
+		}
+
+		projectVersionPath := fileService.FormProjectPathByVersion(stack.ProjectPath, stack.StackFileVersion, commitHash)
+
+		stackContent, err := fileService.GetFileContent(projectVersionPath, file)
 		if err != nil {
 			return errors.Wrap(err, "failed to get stack file content")
 		}
@@ -77,5 +84,6 @@ func ValidateStackFiles(stack *portaineree.Stack, securitySettings *portaineree.
 			return errors.Wrap(err, "stack config file is invalid")
 		}
 	}
+
 	return nil
 }
