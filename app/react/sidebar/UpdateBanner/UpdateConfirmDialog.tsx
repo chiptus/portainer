@@ -34,6 +34,8 @@ export function UpdateConfirmDialog({
           <Form noValidate>
             <Modal.Body>
               <p className="font-semibold text-gray-7">
+                Updating Portainer will necessitate a restart. You will be
+                logged out and need to log in again once the update is complete.
                 Are you sure you want to update Portainer?
               </p>
             </Modal.Body>
