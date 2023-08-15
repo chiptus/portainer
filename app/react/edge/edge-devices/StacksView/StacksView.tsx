@@ -10,6 +10,7 @@ import { EdgeDeviceViewsHeader } from '@/react/edge/components/EdgeDeviceViewsHe
 import { useDockerSnapshot } from '@/react/docker/queries/useDockerSnapshot';
 import { useStacks } from '@/react/common/stacks/queries/useStacks';
 import { filterUniqueContainersBasedOnStack } from '@/react/docker/snapshots/utils';
+import { useSettings } from '@/react/portainer/settings/queries';
 
 import { Datatable } from '@@/datatables';
 import { TableSettingsProvider } from '@@/datatables/useTableSettings';
@@ -32,7 +33,13 @@ export function StacksView() {
 
   const tableState = useTableState(settingsStore, storageKey);
 
-  const edgeStackQuery = useEdgeStacks();
+  const edgeComputEnabledQuery = useSettings(
+    (settings) => settings.EnableEdgeComputeFeatures
+  );
+
+  const edgeStackQuery = useEdgeStacks({
+    edgeComputEnabled: edgeComputEnabledQuery.data,
+  });
 
   const stackQuery = useStacks();
 

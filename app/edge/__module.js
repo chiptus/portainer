@@ -177,7 +177,7 @@ angular
 
     $stateRegistryProvider.register({
       name: 'edge.browse.stacks',
-      url: '/:environmentId/stacks?edgeStackId',
+      url: '/stacks?edgeStackId',
       views: {
         'content@': {
           component: 'edgeDeviceStacksView',
