@@ -76,9 +76,9 @@ export function StaggerFieldset({
             {values.StaggerParallelOption ===
               StaggerParallelOption.Incremental && (
               <div className="mb-2">
-                For example, if you set this start from 2 by 5, the update will
-                initially cover 2 edge devices, then expand to 10 edge devices
-                (2 x 5), followed by 50 edge devices (10 x 5) and so on.
+                For example, if you start with 2 devices and multiply by 5, the
+                update will initially cover 2 edge devices, then 10 devices (2 x
+                5), followed by 50 devices (10 x 5), and so on.
               </div>
             )}
           </TextTip>

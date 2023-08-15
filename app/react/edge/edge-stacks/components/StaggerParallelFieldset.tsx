@@ -19,7 +19,7 @@ export function StaggerParallelFieldset({ values, onChange, errors }: Props) {
     },
     {
       value: StaggerParallelOption.Incremental.toString(),
-      label: 'Number of increment',
+      label: 'Exponential rollout',
     },
   ];
 
@@ -82,7 +82,7 @@ export function StaggerParallelFieldset({ values, onChange, errors }: Props) {
       {values.StaggerParallelOption === StaggerParallelOption.Incremental && (
         <div className="col-sm-9 col-lg-10">
           <div>
-            <span> {' start from '} </span>
+            <span> {' start with '} </span>
             <div style={{ display: 'inline-block', width: '150px' }}>
               <Input
                 name="DeviceNumberStartFrom"
@@ -101,7 +101,7 @@ export function StaggerParallelFieldset({ values, onChange, errors }: Props) {
                 }
               />
             </div>
-            <span> {' device(s) by '} </span>
+            <span> {' device(s) and multiply the group size by '} </span>
             <Select
               id="device-number-incremental"
               value={values.DeviceNumberIncrementBy}
@@ -113,7 +113,7 @@ export function StaggerParallelFieldset({ values, onChange, errors }: Props) {
               }
               options={deviceNumberIncrementBy}
             />
-            <span>{' times '} </span>
+            <span>{' for each rollout '} </span>
           </div>
           {errors?.DeviceNumberStartFrom && (
             <FormError>{errors?.DeviceNumberStartFrom}</FormError>
