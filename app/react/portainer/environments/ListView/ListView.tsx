@@ -43,6 +43,12 @@ export function ListView() {
       return;
     }
 
+    // If we're deleting the current endpoint, then clean the endpoint store
+    const selectedEnvId = constCurrentEnvironmentStore.environmentId;
+    if (environmentsToDelete.some((e) => e.Id === selectedEnvId)) {
+      constCurrentEnvironmentStore.clear();
+    }
+
     // track the number of environments to delete
     trackEvent('delete-environments', {
       category: 'portainer',
@@ -88,16 +94,7 @@ export function ListView() {
           };
         }
         return { id: e.Id, deleteCluster: false, name: e.Name };
-      }),
-      {
-        onSuccess() {
-          // If the current endpoint was deleted, then clean the endpoint store
-          const id = constCurrentEnvironmentStore.environmentId;
-          if (environmentsToDelete.some((e) => e.Id === id)) {
-            constCurrentEnvironmentStore.clear();
-          }
-        },
-      }
+      })
     );
   }
 }
