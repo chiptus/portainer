@@ -54,6 +54,7 @@ export interface Props<
   description?: ReactNode;
   pageCount?: number;
   highlightedItemId?: string;
+  page?: number;
   onPageChange?(page: number): void;
   // onSearchChange?(oldValue: string): void;
   settingsManager: GlobalTableState<BasicTableSettings>;
@@ -82,6 +83,7 @@ export function Datatable<
   totalCount = dataset.length,
   description,
   pageCount,
+  page,
   onPageChange = () => null,
   // onSearchChange,
   settingsManager: settings,
@@ -109,6 +111,7 @@ export function Datatable<
     initialState: {
       pagination: {
         pageSize: settings.pageSize,
+        pageIndex: page,
       },
       sorting: settings.sortBy ? [settings.sortBy] : [],
       globalFilter: settings.search,
@@ -174,7 +177,7 @@ export function Datatable<
       <DatatableFooter
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
-        page={tableState.pagination.pageIndex}
+        page={typeof page === 'number' ? page : tableState.pagination.pageIndex}
         pageSize={tableState.pagination.pageSize}
         totalCount={totalCount}
         totalSelected={selectedItems.length}

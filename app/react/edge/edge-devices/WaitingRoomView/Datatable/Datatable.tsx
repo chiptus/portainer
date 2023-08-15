@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 import { Datatable as GenericDatatable } from '@@/datatables';
 import { createPersistedStore } from '@@/datatables/types';
 import { useTableState } from '@@/datatables/useTableState';
@@ -14,13 +12,17 @@ const storageKey = 'edge-devices-waiting-room';
 const settingsStore = createPersistedStore(storageKey);
 
 export function Datatable() {
-  const [page, setPage] = useState(0);
   const tableState = useTableState(settingsStore, storageKey);
   const {
     data: environments,
     totalCount,
     isLoading,
-  } = useEnvironments({ page: page + 1, pageLimit: tableState.pageSize });
+    page,
+    setPage,
+  } = useEnvironments({
+    pageLimit: tableState.pageSize,
+    search: tableState.search,
+  });
 
   const pageCount = Math.ceil(totalCount / tableState.pageSize);
 
@@ -37,6 +39,7 @@ export function Datatable() {
       isLoading={isLoading}
       totalCount={totalCount}
       pageCount={pageCount}
+      page={page}
       onPageChange={setPage}
       description={<Filter />}
     />
