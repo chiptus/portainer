@@ -100,7 +100,13 @@ export function AddonsForm({
             { label: 'Community', options: [] },
           ]
         )
-        .filter((optionsGroup) => optionsGroup.options.length) || [];
+        // if a group has no options, remove it
+        .filter((optionsGroup) => optionsGroup.options.length)
+        // sort each options array by alphabetical order
+        .map((group) => ({
+          ...group,
+          options: group.options.sort((a, b) => a.label.localeCompare(b.label)),
+        })) || [];
 
     return [addonOptions, groupedAddonOptions];
   }, [microk8sOptions?.availableAddons, values.addons, values.currentVersion]);

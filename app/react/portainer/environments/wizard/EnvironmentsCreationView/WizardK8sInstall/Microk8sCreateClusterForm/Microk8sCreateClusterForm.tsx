@@ -88,10 +88,11 @@ export function Microk8sCreateClusterForm({
     'kubernetesVersion'
   );
 
-  const [addonOptions, filteredOptions] = useMemo(() => {
+  const [addonOptions, groupedAddonOptions] = useMemo(() => {
     const kubeVersion = parseFloat(microk8s.kubernetesVersion.split('/')[0]);
     const addonOptions: AddOnOption[] =
       microk8sOptions?.availableAddons
+        // filter addons that are not available for the current kubernetes version
         .filter((a) => {
           const versionAvailableFrom = parseFloat(a.versionAvailableFrom);
           const versionAvailableTo = parseFloat(a.versionAvailableTo);
@@ -102,8 +103,10 @@ export function Microk8sCreateClusterForm({
               kubeVersion <= versionAvailableTo)
           );
         })
+        // explicitely show if the addon is core or community
         .map((a) => ({
           ...a,
+          selectedLabel: `${a.label} (${a.repository})`,
           name: a.label,
         })) ?? [];
 
@@ -133,7 +136,13 @@ export function Microk8sCreateClusterForm({
             { label: 'Community', options: [] },
           ]
         )
-        .filter((optionsGroup) => optionsGroup.options.length) || [];
+        // if a group has no options, remove it
+        .filter((optionsGroup) => optionsGroup.options.length)
+        // sort each options array by alphabetical order
+        .map((group) => ({
+          ...group,
+          options: group.options.sort((a, b) => a.label.localeCompare(b.label)),
+        })) || [];
 
     return [addonOptions, groupedAddonOptions];
   }, [
@@ -298,7 +307,7 @@ export function Microk8sCreateClusterForm({
               value={addon}
               options={addonOptions}
               errors={addonError}
-              groupedAddonOptions={filteredOptions}
+              groupedAddonOptions={groupedAddonOptions}
               onChange={(value: AddOnFormValue) => {
                 const addons = [...values.microk8s.addons];
                 addons[index] = value;

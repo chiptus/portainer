@@ -75,11 +75,11 @@ export function Addons() {
           ...addonInfo,
           disableSelect: true,
         }))
-        // sort so that the addons by repository with the 'core' repository before all other repositories
+        // sort so that the addons by repository with the 'core' repository before all other repositories, and then in alphabetical order
         .sort(
           (a, b) =>
             (a.repository === 'core' ? -1 : 1) -
-            (b.repository === 'core' ? -1 : 1)
+              (b.repository === 'core' ? -1 : 1) || a.name.localeCompare(b.name)
         ) || [],
     currentVersion,
   };
