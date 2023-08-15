@@ -58,7 +58,7 @@ func NewSSHConfig(user, password, passphrase, privateKey string) (*SSHConfig, er
 				auth,
 			},
 			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-			Timeout:         time.Duration(5) * time.Second,
+			Timeout:         20 * time.Second,
 		},
 	}, nil
 }
@@ -127,7 +127,7 @@ func (s *SSHConnection) RunCommand(command string, out io.Writer) error {
 
 	err = session.Run(fmt.Sprintf("sudo -S %s", command))
 	if err != nil {
-		return err
+		return fmt.Errorf("error running ssh command: %s : %w", command, err)
 	}
 
 	io.Copy(out, sshStdout)

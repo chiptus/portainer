@@ -279,22 +279,31 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 			}()
 
 			// Added waiting to allow the microk8s refresh to complete/settle.
-			time.Sleep(4 * time.Second)
+			time.Sleep(5 * time.Second)
 
 			log.Info().Str("provider", portaineree.CloudProviderMicrok8s).Msgf("Resuming pod scheduling on node %s (IP %s).", node.HostName, node.IP)
 			u.setMessage(u.endpoint.ID, "Upgrading cluster", fmt.Sprintf("Resuming pod scheduling on node %s (IP %s).", node.HostName, node.IP), "processing")
 
-			// Step 3: uncordon node - no matter if the refresh was successful or not
-			if err = sshClient.RunCommand(
-				"microk8s kubectl uncordon "+node.HostName,
-				os.Stdout,
-			); err != nil {
-				u.nodes[index].UpgradeStatus = "failed"
-				u.nodes[index].Error = err
+			if !isSingleNodeCluster {
+				for retries := 0; retries < 3; retries++ {
+					// Step 3: uncordon node - no matter if the refresh was successful or not
+					err = sshClient.RunCommand("microk8s kubectl uncordon "+node.HostName, os.Stdout)
+					if err == nil {
+						break
+					}
 
-				log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Err(err).Msgf("Error when resuming pod scheduling on node %s (IP %s). Continuing to next node.", node.HostName, node.IP)
-				u.setMessage(u.endpoint.ID, "Upgrading cluster", fmt.Sprintf("Error when resuming pod scheduling on node %s (IP %s). Continuing to next node.", node.HostName, node.IP), "processing")
-				continue
+					log.Debug().Err(err).Msgf("failed to uncordon node %s (IP %s), retrying...", node.HostName, node.IP)
+					time.Sleep(10 * time.Second)
+				}
+
+				if err != nil {
+					u.nodes[index].UpgradeStatus = "failed"
+					u.nodes[index].Error = err
+
+					log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Err(err).Msgf("Error when resuming pod scheduling on node %s (IP %s). Continuing to next node.", node.HostName, node.IP)
+					u.setMessage(u.endpoint.ID, "Upgrading cluster", fmt.Sprintf("Error when resuming pod scheduling on node %s (IP %s). Continuing to next node.", node.HostName, node.IP), "processing")
+					continue
+				}
 			}
 		}
 		u.nodes[index].UpgradeStatus = "updated"
@@ -324,7 +333,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 	for _, addon := range u.addons {
 		addonConfig := allAvailableAddons.GetAddon(addon.Name)
 		if addonConfig == nil {
-			log.Warn().Msgf("Skipping addon (%s). Could be required or does not exists.", addon)
+			log.Warn().Msgf("Skipping addon (%s). Could be required or does not exist", addon)
 			continue
 		}
 
@@ -363,7 +372,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 				err = DisableMicrok8sAddonsOnNode(sshClientNode, addon.Name)
 				if err != nil {
 					// Rather than fail the whole thing.  Warn the user and allow them to manually try to disable the addon
-					log.Warn().Err(err).Msgf("failed to disable microk8s addon %s on node. error: ", addon)
+					log.Warn().Err(err).Msgf("Failed to disable microk8s addon %s on node", addon)
 				}
 			}()
 		}
@@ -374,7 +383,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 	for _, addon := range u.addons {
 		addonConfig := allAvailableAddons.GetAddon(addon.Name)
 		if addonConfig == nil {
-			log.Warn().Msgf("Skipping addon (%s). Could be required or does not exists.", addon)
+			log.Warn().Msgf("Skipping addon (%s). Could be required or does not exist", addon)
 			continue
 		}
 
@@ -415,7 +424,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 				err = EnableMicrok8sAddonsOnNode(sshClientNode, addon)
 				if err != nil {
 					// Rather than fail the whole thing.  Warn the user and allow them to manually try to enable the addon
-					log.Warn().Err(err).Msgf("failed to enable microk8s addon %s on node. error: ", addon)
+					log.Warn().Err(err).Msgf("Failed to enable microk8s addon %s on node", addon)
 				}
 			}()
 		}
@@ -438,7 +447,6 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 	}
 
 	u.setMessage(u.endpoint.ID, summary, "Check Portainer logs for more details<br/><br/>"+strings.Join(messages, "<br/>"), operationStatus)
-
 	log.Debug().Str("provider", portaineree.CloudProviderMicrok8s).Msgf("Upgrade status: %+v", u.nodes)
 
 	return u.nextVersion, err
@@ -448,7 +456,7 @@ func (service *Microk8sUpgrade) setMessage(id portaineree.EndpointID, summary, d
 	status := portaineree.EndpointStatusMessage{Summary: summary, Detail: detail, OperationStatus: operationStatus, Operation: "upgrade"}
 	err := service.dataStore.Endpoint().SetMessage(id, status)
 	if err != nil {
-		return fmt.Errorf("unable to update endpoint in database")
+		return fmt.Errorf("unable to update endpoint in database: %w", err)
 	}
 	return nil
 }
