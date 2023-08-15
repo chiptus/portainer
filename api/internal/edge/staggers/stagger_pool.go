@@ -193,4 +193,17 @@ func (service *Service) ProcessStatusJob(newStatusJob *StaggerStatusJob) {
 	}
 
 	service.staggerPool[poolKey] = scheduleOperation
+
+	// It is necessary to check the status of the stagger schedule operation after each update,
+	// in order to notify async pool to terminate when the stagger schedule operation is completed
+	if scheduleOperation.IsPaused() || scheduleOperation.IsCompleted() {
+		log.Debug().Msg("[Stagger service] update is paused or completed, skip")
+
+		go func() {
+			service.terminateAsyncPool(poolKey)
+
+			// unblock edge stack update with stagger configuration
+			service.RemoveStaggerConfig(newStatusJob.EdgeStackID)
+		}()
+	}
 }

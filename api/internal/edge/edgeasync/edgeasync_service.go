@@ -149,7 +149,7 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 			commitHash = edgeStack.GitConfig.ConfigHash
 		}
 		projectVersionPath = service.fileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.StackFileVersion, commitHash)
-		deployedVersion = targetVersion
+		deployedVersion = edgeStack.Version
 		rollbackTo = nil
 	}
 
