@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"os"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/cloud/util/ssh"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
 )
 
-func DeleteCluster(endpoint *portaineree.Endpoint, credentials *models.CloudCredential) error {
+func DeleteCluster(masterNode string, credentials *models.CloudCredential) error {
 
 	// Get a list of all nodes addresses in the cluster
 	// for each node:
@@ -20,7 +19,6 @@ func DeleteCluster(endpoint *portaineree.Endpoint, credentials *models.CloudCred
 	// there is no need to gracefully remove the node from the cluster since we're destroying it anyway
 
 	// The uninstall process should happen on all nodes in parallel
-	masterNode := UrlToMasterNode(endpoint.URL)
 
 	nodes, err := GetNodeList(masterNode, credentials)
 	if err != nil {
@@ -42,7 +40,7 @@ func DeleteCluster(endpoint *portaineree.Endpoint, credentials *models.CloudCred
 
 	err = g.Wait()
 	if err != nil {
-		return fmt.Errorf("unable to uninstall microk8s from some nodes, see portainer log for details")
+		return fmt.Errorf("unable to uninstall microk8s from some nodes, see portainer log for details: %w", err)
 	}
 
 	return nil
