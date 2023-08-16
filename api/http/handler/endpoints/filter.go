@@ -216,9 +216,12 @@ func endpointStatusInStackMatchesFilter(stackStatus map[portaineree.EndpointID]p
 	status, ok := stackStatus[envId]
 
 	// consider that if the env has no status in the stack it is in Pending state
-	// workaround because Stack.Status[EnvId].Details.Pending is never set to True in the codebase
-	if !ok && statusFilter == portainer.EdgeStackStatusPending {
-		return true
+	if statusFilter == portainer.EdgeStackStatusPending {
+		return !ok || len(status.Status) == 0
+	}
+
+	if !ok {
+		return false
 	}
 
 	return slices.ContainsFunc(status.Status, func(s portainer.EdgeStackDeploymentStatus) bool {
