@@ -46,6 +46,7 @@ interface Props {
   tlsOptions: Option<string>[];
   namespacesOptions: Option<string>[];
   isNamespaceOptionsLoading: boolean;
+  isIngressNamesLoading: boolean;
 
   removeIngressRoute: (hostIndex: number, pathIndex: number) => void;
   removeIngressHost: (hostIndex: number) => void;
@@ -93,6 +94,7 @@ export function IngressForm({
   errors,
   namespacesOptions,
   isNamespaceOptionsLoading,
+  isIngressNamesLoading,
   handleNamespaceChange,
   namespace,
   hideForm,
@@ -107,10 +109,21 @@ export function IngressForm({
   // when the namespace options update the value to an available one
   useEffect(() => {
     const namespaces = namespacesOptions.map((option) => option.value);
-    if (!namespaces.includes(namespace) && namespaces.length > 0) {
+    if (
+      !namespaces.includes(namespace) &&
+      namespaces.length > 0 &&
+      (!isIngressNamesLoading || isEdit)
+    ) {
       handleNamespaceChange(namespaces[0]);
     }
-  }, [namespacesOptions, namespace, handleNamespaceChange]);
+  }, [
+    namespacesOptions,
+    namespace,
+    handleNamespaceChange,
+    isNamespaceOptionsLoading,
+    isEdit,
+    isIngressNamesLoading,
+  ]);
 
   return (
     <Widget>
@@ -443,7 +456,7 @@ export function IngressForm({
                       )}
                     </div>
 
-                    <div className="form-group col-sm-2 col-xl-2 !m-0 !pl-0">
+                    <div className="form-group col-sm-2 col-xl-2 !m-0 min-w-[170px] !pl-0">
                       {servicePorts && (
                         <>
                           <InputGroup size="small">
@@ -590,13 +603,14 @@ export function IngressForm({
                     {!hideForm && (
                       <div className="form-group col-sm-1 !m-0 !pl-0">
                         <Button
-                          className="btn btn-sm btn-only-icon vertical-center !ml-0"
+                          className="!ml-0 h-[30px]"
                           color="dangerlight"
                           type="button"
                           data-cy={`k8sAppCreate-rmPortButton_${hostIndex}-${pathIndex}`}
                           onClick={() =>
                             removeIngressRoute(hostIndex, pathIndex)
                           }
+                          size="small"
                           icon={Trash2}
                           disabled={host.Paths.length === 1 && host.NoHost}
                         />
