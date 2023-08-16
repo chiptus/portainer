@@ -38,6 +38,14 @@ func (b *StackBuilder) SaveStack() (*portaineree.Stack, *httperror.HandlerError)
 		return nil, b.err
 	}
 
+	if b.stack.GitConfig != nil && b.stack.GitConfig.Authentication != nil &&
+		b.stack.GitConfig.Authentication.GitCredentialID != 0 {
+		// prevent the username and password from saving into db if the git
+		// credential is used
+		b.stack.GitConfig.Authentication.Username = ""
+		b.stack.GitConfig.Authentication.Password = ""
+	}
+
 	err := b.dataStore.Stack().Create(b.stack)
 	if err != nil {
 		b.err = httperror.InternalServerError("Unable to persist the stack inside the database", err)

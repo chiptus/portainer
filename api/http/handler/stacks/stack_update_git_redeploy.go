@@ -231,12 +231,21 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 	stack.UpdateDate = time.Now().Unix()
 	stack.Status = portaineree.StackStatusActive
 
+	if stack.GitConfig != nil && stack.GitConfig.Authentication != nil &&
+		stack.GitConfig.Authentication.GitCredentialID != 0 {
+		// prevent the username and password from saving into db if the git
+		// credential is used
+		stack.GitConfig.Authentication.Username = ""
+		stack.GitConfig.Authentication.Password = ""
+	}
+
 	err = handler.DataStore.Stack().Update(stack.ID, stack)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist the stack changes inside the database", errors.Wrap(err, "failed to update the stack"))
 	}
 
-	if stack.GitConfig != nil && stack.GitConfig.Authentication != nil && stack.GitConfig.Authentication.Password != "" {
+	if stack.GitConfig != nil && stack.GitConfig.Authentication != nil &&
+		stack.GitConfig.Authentication.Password != "" {
 		// sanitize password in the http response to minimise possible security leaks
 		stack.GitConfig.Authentication.Password = ""
 	}

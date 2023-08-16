@@ -211,13 +211,22 @@ func (handler *Handler) stackUpdateGit(w http.ResponseWriter, r *http.Request) *
 		stack.AutoUpdate.JobID = jobID
 	}
 
+	if stack.GitConfig != nil && stack.GitConfig.Authentication != nil &&
+		stack.GitConfig.Authentication.GitCredentialID != 0 {
+		// prevent the username and password from saving into db if the git
+		// credential is used
+		stack.GitConfig.Authentication.Username = ""
+		stack.GitConfig.Authentication.Password = ""
+	}
+
 	//save the updated stack to DB
 	err = handler.DataStore.Stack().Update(stack.ID, stack)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist the stack changes inside the database", err)
 	}
 
-	if stack.GitConfig != nil && stack.GitConfig.Authentication != nil && stack.GitConfig.Authentication.Password != "" {
+	if stack.GitConfig != nil && stack.GitConfig.Authentication != nil &&
+		stack.GitConfig.Authentication.Password != "" {
 		// sanitize password in the http response to minimise possible security leaks
 		stack.GitConfig.Authentication.Password = ""
 	}

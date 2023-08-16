@@ -161,6 +161,14 @@ func (service *Service) PersistEdgeStack(
 		return nil, fmt.Errorf("unable to update endpoint relations: %w", err)
 	}
 
+	if stack.GitConfig != nil && stack.GitConfig.Authentication != nil &&
+		stack.GitConfig.Authentication.GitCredentialID != 0 {
+		// prevent the username and password from saving into db if the git
+		// credential is used
+		stack.GitConfig.Authentication.Username = ""
+		stack.GitConfig.Authentication.Password = ""
+	}
+
 	err = tx.EdgeStack().Create(stack.ID, stack)
 	if err != nil {
 		return nil, err

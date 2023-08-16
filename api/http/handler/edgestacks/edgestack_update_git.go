@@ -193,6 +193,14 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 			}
 		}
 
+		if edgeStack.GitConfig != nil && edgeStack.GitConfig.Authentication != nil &&
+			edgeStack.GitConfig.Authentication.GitCredentialID != 0 {
+			// prevent the username and password from saving into db if the git
+			// credential is used
+			edgeStack.GitConfig.Authentication.Username = ""
+			edgeStack.GitConfig.Authentication.Password = ""
+		}
+
 		err = tx.EdgeStack().UpdateEdgeStack(edgeStack.ID, edgeStack, payload.UpdateVersion)
 		if err != nil {
 			return httperror.InternalServerError("Failed updating edge stack", err)

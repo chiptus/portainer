@@ -142,6 +142,14 @@ func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *htt
 	stack.UpdateDate = time.Now().Unix()
 	stack.Status = portaineree.StackStatusActive
 
+	if stack.GitConfig != nil && stack.GitConfig.Authentication != nil &&
+		stack.GitConfig.Authentication.GitCredentialID != 0 {
+		// prevent the username and password from saving into db if the git
+		// credential is used
+		stack.GitConfig.Authentication.Username = ""
+		stack.GitConfig.Authentication.Password = ""
+	}
+
 	err = handler.DataStore.Stack().Update(stack.ID, stack)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist the stack changes inside the database", err)
