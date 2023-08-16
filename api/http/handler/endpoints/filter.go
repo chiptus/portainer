@@ -36,6 +36,7 @@ type EnvironmentsQuery struct {
 	edgeCheckInPassedSeconds int
 	edgeStackId              portaineree.EdgeStackID
 	edgeStackStatus          *portainer.EdgeStackStatusType
+	excludeIds               []portaineree.EndpointID
 }
 
 func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
@@ -73,6 +74,11 @@ func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
 		return EnvironmentsQuery{}, err
 	}
 
+	excludeIDs, err := getNumberArrayQueryParameter[portaineree.EndpointID](r, "excludeIds")
+	if err != nil {
+		return EnvironmentsQuery{}, err
+	}
+
 	agentVersions := getArrayQueryParameter(r, "agentVersions")
 
 	name, _ := request.RetrieveQueryParameter(r, "name", true)
@@ -101,6 +107,7 @@ func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
 		types:                    endpointTypes,
 		tagIds:                   tagIDs,
 		endpointIds:              endpointIDs,
+		excludeIds:               excludeIDs,
 		tagsPartialMatch:         tagsPartialMatch,
 		groupIds:                 groupIDs,
 		status:                   status,
@@ -121,6 +128,12 @@ func (handler *Handler) filterEndpointsByQuery(filteredEndpoints []portaineree.E
 
 	if len(query.endpointIds) > 0 {
 		filteredEndpoints = filteredEndpointsByIds(filteredEndpoints, query.endpointIds)
+	}
+
+	if len(query.excludeIds) > 0 {
+		filteredEndpoints = filter(filteredEndpoints, func(endpoint portaineree.Endpoint) bool {
+			return !slices.Contains(query.excludeIds, endpoint.ID)
+		})
 	}
 
 	if len(query.groupIds) > 0 {
