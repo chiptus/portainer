@@ -174,8 +174,11 @@ function buildCountdownWidget(licenseInfo: LicenseInfo, usedNodes: number) {
 }
 
 function buildInfoContent(info: LicenseInfo, usedNodes: number) {
+  const nodeAllowanceExceeded =
+    usedNodes > info.nodes && info.type !== LicenseType.Trial;
+
   const icon =
-    usedNodes > info.nodes && info.type !== LicenseType.Trial ? (
+    nodeAllowanceExceeded || !info.valid ? (
       <AlertCircle className="icon-danger icon-nested-red" aria-hidden="true" />
     ) : (
       <Award className="icon-primary icon-nested-blue" aria-hidden="true" />

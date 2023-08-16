@@ -1,5 +1,6 @@
 import moment from 'moment';
 import { confirmDelete } from '@@/modals/confirm';
+import { LicenseType } from '@/react/portainer/licenses/types';
 import { getEnvironments } from '@/react/portainer/environments/environment.service';
 import { EdgeTypes } from '@/react/portainer/environments/types';
 
@@ -75,7 +76,10 @@ export default class LicensesViewController {
       try {
         this.LicenseService.resetState();
         this.info = await this.LicenseService.info();
-        if (this.usedNodes > this.info.nodes) {
+
+        const nodeAllowanceExceeded = this.usedNodes > this.info.nodes && this.info.type != LicenseType.Trial;
+
+        if (nodeAllowanceExceeded || !this.info.valid) {
           this.template = 'alert';
         }
 
