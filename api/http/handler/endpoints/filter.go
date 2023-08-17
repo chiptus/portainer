@@ -123,7 +123,13 @@ func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
 	}, nil
 }
 
-func (handler *Handler) filterEndpointsByQuery(filteredEndpoints []portaineree.Endpoint, query EnvironmentsQuery, groups []portaineree.EndpointGroup, settings *portaineree.Settings) ([]portaineree.Endpoint, int, error) {
+func (handler *Handler) filterEndpointsByQuery(
+	filteredEndpoints []portaineree.Endpoint,
+	query EnvironmentsQuery,
+	groups []portaineree.EndpointGroup,
+	edgeGroups []portaineree.EdgeGroup,
+	settings *portaineree.Settings,
+) ([]portaineree.Endpoint, int, error) {
 	totalAvailableEndpoints := len(filteredEndpoints)
 
 	if len(query.endpointIds) > 0 {
@@ -195,7 +201,7 @@ func (handler *Handler) filterEndpointsByQuery(filteredEndpoints []portaineree.E
 			tagsMap[tag.ID] = tag.Name
 		}
 
-		filteredEndpoints = filterEndpointsBySearchCriteria(filteredEndpoints, groups, tagsMap, query.search)
+		filteredEndpoints = filterEndpointsBySearchCriteria(filteredEndpoints, groups, edgeGroups, tagsMap, query.search)
 	}
 
 	if len(query.types) > 0 {
@@ -293,7 +299,13 @@ func filterEndpointsByGroupIDs(endpoints []portaineree.Endpoint, endpointGroupID
 	return endpoints[:n]
 }
 
-func filterEndpointsBySearchCriteria(endpoints []portaineree.Endpoint, endpointGroups []portaineree.EndpointGroup, tagsMap map[portaineree.TagID]string, searchCriteria string) []portaineree.Endpoint {
+func filterEndpointsBySearchCriteria(
+	endpoints []portaineree.Endpoint,
+	endpointGroups []portaineree.EndpointGroup,
+	edgeGroups []portaineree.EdgeGroup,
+	tagsMap map[portaineree.TagID]string,
+	searchCriteria string,
+) []portaineree.Endpoint {
 	n := 0
 	for _, endpoint := range endpoints {
 		endpointTags := convertTagIDsToTags(tagsMap, endpoint.TagIDs)
@@ -305,6 +317,11 @@ func filterEndpointsBySearchCriteria(endpoints []portaineree.Endpoint, endpointG
 		}
 
 		if endpointGroupMatchSearchCriteria(&endpoint, endpointGroups, tagsMap, searchCriteria) {
+			endpoints[n] = endpoint
+			n++
+		}
+
+		if edgeGroupMatchSearchCriteria(&endpoint, edgeGroups, searchCriteria) {
 			endpoints[n] = endpoint
 			n++
 		}
@@ -377,6 +394,24 @@ func endpointGroupMatchSearchCriteria(endpoint *portaineree.Endpoint, endpointGr
 			tags := convertTagIDsToTags(tagsMap, group.TagIDs)
 			for _, tag := range tags {
 				if strings.Contains(strings.ToLower(tag), searchCriteria) {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}
+
+func edgeGroupMatchSearchCriteria(
+	endpoint *portaineree.Endpoint,
+	edgeGroups []portaineree.EdgeGroup,
+	searchCriteria string,
+) bool {
+	for _, edgeGroup := range edgeGroups {
+		for _, endpointID := range edgeGroup.Endpoints {
+			if endpointID == endpoint.ID {
+				if strings.Contains(strings.ToLower(edgeGroup.Name), searchCriteria) {
 					return true
 				}
 			}

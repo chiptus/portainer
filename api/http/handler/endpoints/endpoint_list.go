@@ -72,6 +72,11 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 		return httperror.InternalServerError("Unable to retrieve environment groups from the database", err)
 	}
 
+	edgeGroups, err := handler.DataStore.EdgeGroup().ReadAll()
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve edge groups from the database", err)
+	}
+
 	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve environments from the database", err)
@@ -100,7 +105,7 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 
 	filteredEndpoints := security.FilterEndpoints(endpoints, endpointGroups, securityContext)
 
-	filteredEndpoints, totalAvailableEndpoints, err := handler.filterEndpointsByQuery(filteredEndpoints, query, endpointGroups, settings)
+	filteredEndpoints, totalAvailableEndpoints, err := handler.filterEndpointsByQuery(filteredEndpoints, query, endpointGroups, edgeGroups, settings)
 	if err != nil {
 		return httperror.InternalServerError("Unable to filter endpoints", err)
 	}

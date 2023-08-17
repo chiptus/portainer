@@ -158,7 +158,13 @@ func runTests(tests []filterTest, t *testing.T, handler *Handler, endpoints []po
 func runTest(t *testing.T, test filterTest, handler *Handler, endpoints []portaineree.Endpoint) {
 	is := assert.New(t)
 
-	filteredEndpoints, _, err := handler.filterEndpointsByQuery(endpoints, test.query, []portaineree.EndpointGroup{}, &portaineree.Settings{})
+	filteredEndpoints, _, err := handler.filterEndpointsByQuery(
+		endpoints,
+		test.query,
+		[]portaineree.EndpointGroup{},
+		[]portaineree.EdgeGroup{},
+		&portaineree.Settings{},
+	)
 
 	is.NoError(err)
 
