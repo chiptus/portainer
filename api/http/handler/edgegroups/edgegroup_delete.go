@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/internal/slices"
 	"github.com/portainer/portainer/pkg/featureflags"
 )
 
@@ -80,6 +81,17 @@ func deleteEdgeGroup(tx dataservices.DataStoreTx, ID portaineree.EdgeGroupID) er
 			if groupID == ID {
 				return httperror.NewError(http.StatusConflict, "Edge group is used by an Edge job", errors.New("edge group is used by an Edge job"))
 			}
+		}
+	}
+
+	edgeConfigs, err := tx.EdgeConfig().ReadAll()
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve Edge configs from the database", err)
+	}
+
+	for _, edgeConfig := range edgeConfigs {
+		if slices.Contains(edgeConfig.EdgeGroupIDs, ID) {
+			return httperror.NewError(http.StatusConflict, "Edge group is used by an Edge config", errors.New("edge group is used by an Edge config"))
 		}
 	}
 
