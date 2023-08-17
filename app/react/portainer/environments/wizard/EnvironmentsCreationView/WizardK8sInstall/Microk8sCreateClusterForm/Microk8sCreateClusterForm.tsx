@@ -162,6 +162,16 @@ export function Microk8sCreateClusterForm({
           Only nodes with an operating system of Ubuntu 20.04 LTS and above are
           supported (although other distributions and versions may work).
         </p>
+        <p>
+          For more information, see this{' '}
+          <a
+            target="_blank"
+            href="https://www.portainer.io/blog/portainer-microk8s"
+            rel="noreferrer"
+          >
+            blogpost on creating and managing a MicroK8s cluster from Portainer.
+          </a>
+        </p>
       </TextTip>
       <NameField
         tooltip="Name of the cluster and environment."

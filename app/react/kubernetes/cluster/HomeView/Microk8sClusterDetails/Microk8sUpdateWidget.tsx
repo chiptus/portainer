@@ -28,7 +28,10 @@ export function Microk8sUpdateWidget() {
               <ErrorStatus />
             ) : (
               <>
-                <BetaAlert message="Beta feature - so far, MicroK8s cluster management functionality has only been tested in a limited set of scenarios." />
+                <BetaAlert
+                  isHtml
+                  message="Beta feature - so far, MicroK8s cluster management functionality has only been tested in a limited set of scenarios. For more information, see this <a target='_blank' href='https://www.portainer.io/blog/portainer-microk8s'>blogpost on creating and managing a MicroK8s cluster from Portainer.</a>"
+                />
                 <Authorized authorizations="K8sClusterW">
                   <TextTip color="blue">
                     You can upgrade your cluster version, enable/disable addons,
