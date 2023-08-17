@@ -58,6 +58,7 @@ interface Props {
   error?: string;
   versions?: number[];
   onVersionChange?: (version: number) => void;
+  height?: string;
 }
 
 export function WebEditorForm({
@@ -72,6 +73,7 @@ export function WebEditorForm({
   error,
   versions,
   onVersionChange,
+  height,
 }: PropsWithChildren<Props>) {
   return (
     <div>
@@ -104,6 +106,7 @@ export function WebEditorForm({
               onChange={onChange}
               versions={versions}
               onVersionChange={(v) => onVersionChange && onVersionChange(v)}
+              height={height}
             />
           </div>
         </div>

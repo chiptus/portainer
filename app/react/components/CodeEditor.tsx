@@ -104,32 +104,32 @@ export function CodeEditor({
   return (
     <>
       <div className="mb-2 flex flex-col">
-        <div className="flex">
-          <div className="flex-1">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
             {!!placeholder && <TextTip color="blue">{placeholder}</TextTip>}
           </div>
 
-          {versions && (
-            <div className="flex-2 ml-auto mr-2">
-              <StackVersionSelector
-                versions={versions}
-                onChange={handleVersionChange}
-              />
-            </div>
-          )}
-        </div>
-        <div className="flex">
-          <div className="ml-auto mr-2">
+          <div className="flex-2 ml-auto mr-2 flex items-center gap-x-2">
             <CopyButton
               copyText={value}
-              color="none"
-              className="!text-sm !font-medium text-blue-9 hover:!text-blue-11 th-highcontrast:text-blue-7 hover:th-highcontrast:!text-blue-6 th-dark:text-blue-7 hover:th-dark:!text-blue-6"
+              color="link"
+              className="!pr-0 !text-sm !font-medium hover:no-underline focus:no-underline"
               indicatorPosition="left"
             >
               Copy to clipboard
             </CopyButton>
           </div>
         </div>
+        {versions && (
+          <div className="mt-2 flex">
+            <div className="ml-auto mr-2">
+              <StackVersionSelector
+                versions={versions}
+                onChange={handleVersionChange}
+              />
+            </div>
+          </div>
+        )}
       </div>
       <CodeMirror
         className={styles.root}

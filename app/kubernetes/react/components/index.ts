@@ -16,7 +16,8 @@ import { KubeServicesForm } from '@/react/kubernetes/applications/CreateView/app
 import { kubeServicesValidation } from '@/react/kubernetes/applications/CreateView/application-services/kubeServicesValidation';
 import { KubeApplicationDeploymentTypeSelector } from '@/react/kubernetes/applications/CreateView/KubeApplicationDeploymentTypeSelector';
 import { Annotations } from '@/react/kubernetes/annotations';
-import { YAMLReplace } from '@/react/kubernetes/common/YAMLReplace';
+import { YAMLReplace } from '@/react/kubernetes/components/YAMLReplace';
+import { YAMLInspector } from '@/react/kubernetes/components/YAMLInspector';
 import {
   ApplicationSummaryWidget,
   ApplicationDetailsWidget,
@@ -135,6 +136,15 @@ export const ngModule = angular
       'yml',
       'originalYml',
       'disabled',
+    ])
+  )
+  .component(
+    'kubeYamlInspector',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(YAMLInspector))), [
+      'identifier',
+      'data',
+      'authorised',
+      'system',
     ])
   )
   .component(
