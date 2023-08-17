@@ -52,7 +52,7 @@ type (
 		Credentials       *models.CloudCredential
 		MasterNodes       []string
 		WorkerNodes       []string
-		Addons            []portaineree.MicroK8sAddon
+		Addons            AddonsWithArgs
 		KubernetesVersion string `json:"kubernetesVersion"`
 		Scale             bool
 	}
@@ -490,7 +490,7 @@ var AllAddons = Addons{
 	},
 }
 
-func GetAllDefaultAddons() []string {
+func GetDefaultAddons() []string {
 	var addons []string
 	for _, addon := range AllAddons {
 		if addon.IsAvailable && addon.IsDefault {
@@ -508,40 +508,4 @@ func GetAllAvailableAddons() Addons {
 		}
 	}
 	return addons
-}
-
-func (a Addons) GetMicroK8sAddon() []portaineree.MicroK8sAddon {
-	var addons []portaineree.MicroK8sAddon
-	for _, addon := range a {
-		if addon.IsAvailable && !addon.IsDefault {
-			addons = append(addons, portaineree.MicroK8sAddon{Name: addon.Name})
-		}
-	}
-	return addons
-}
-
-func (a Addons) GetNames() []string {
-	var names []string
-	for _, addon := range a {
-		names = append(names, addon.Name)
-	}
-	return names
-}
-
-func (a Addons) GetAddon(name string) *Addon {
-	for _, addon := range a {
-		if addon.Name == name {
-			return &addon
-		}
-	}
-	return nil
-}
-
-func (a Addons) IndexOf(element string) int {
-	for k, v := range a {
-		if element == v.Name {
-			return k
-		}
-	}
-	return -1 // not found.
 }

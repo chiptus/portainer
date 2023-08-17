@@ -126,11 +126,9 @@ func (handler *Handler) handleSSHRequest(w http.ResponseWriter, r *http.Request,
 		return err
 	}
 
-	conn, err := sshutil.NewConnection(credential.Credentials["username"],
-		credential.Credentials["password"],
-		credential.Credentials["passphrase"],
-		credential.Credentials["privateKey"],
+	conn, err := sshutil.NewConnectionWithCredentials(
 		nodeIP,
+		credential,
 	)
 	if err != nil {
 		return err

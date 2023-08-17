@@ -8,7 +8,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/cloud"
+	mk8s "github.com/portainer/portainer-ee/api/cloud/microk8s"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/providers"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
@@ -66,7 +66,7 @@ func (handler *Handler) addNodes(w http.ResponseWriter, r *http.Request) *httper
 		var p providers.Microk8sScaleClusterPayload
 		err = request.DecodeAndValidateJSONPayload(r, &p)
 
-		scalingRequest = &cloud.Microk8sScalingRequest{
+		scalingRequest = &mk8s.Microk8sScalingRequest{
 			EndpointID:       endpoint.ID,
 			MasterNodesToAdd: p.MasterNodesToAdd,
 			WorkerNodesToAdd: p.WorkerNodesToAdd,
@@ -126,7 +126,7 @@ func (handler *Handler) removeNodes(w http.ResponseWriter, r *http.Request) *htt
 		var p providers.Microk8sScaleClusterPayload
 		err = request.DecodeAndValidateJSONPayload(r, &p)
 
-		scalingRequest = &cloud.Microk8sScalingRequest{
+		scalingRequest = &mk8s.Microk8sScalingRequest{
 			EndpointID:    endpoint.ID,
 			NodesToRemove: p.NodesToRemove,
 		}

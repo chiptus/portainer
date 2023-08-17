@@ -264,6 +264,7 @@ func (m *Migrator) initMigrations() {
 		m.convertSeedToPrivateKeyForDB100,
 		m.updateEdgeStackStatusForDB100,
 		m.fixPotentialUpdateScheduleDBCorruptionForDB100,
+		m.migrateCloudProviderAddonsForDB100,
 	)
 
 	// Add new migrations above...

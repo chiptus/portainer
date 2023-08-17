@@ -9,6 +9,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	sshUtil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
+	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
@@ -176,8 +177,8 @@ func GetAllNodes(sshClient *sshUtil.SSHConnection) ([]MicroK8sMasterWorkerNode, 
 	return nodeIps, nil
 }
 
-func InstallMicrok8sOnNode(user, password, passphrase, privateKey, nodeIp, kubernetesVersion string) error {
-	sshClient, err := sshUtil.NewConnection(user, password, passphrase, privateKey, nodeIp)
+func InstallMicrok8sOnNode(credential *models.CloudCredential, nodeIp, kubernetesVersion string) error {
+	sshClient, err := sshUtil.NewConnectionWithCredentials(nodeIp, credential)
 	if err != nil {
 		return err
 	}
@@ -223,7 +224,7 @@ func InstallMicrok8sOnNode(user, password, passphrase, privateKey, nodeIp, kuber
 			}
 			for _, node := range nodeIps {
 				err := func() error {
-					sshClientForNode, err := sshUtil.NewConnection(user, password, passphrase, privateKey, node.IP)
+					sshClientForNode, err := sshUtil.NewConnectionWithCredentials(node.IP, credential)
 					if err != nil {
 						return err
 					}
@@ -246,8 +247,8 @@ func InstallMicrok8sOnNode(user, password, passphrase, privateKey, nodeIp, kuber
 	return nil
 }
 
-func ExecuteJoinClusterCommandOnNode(user, password, passphrase, privateKey, nodeIp string, joinInfo *microk8sClusterJoinInfo, asWorkerNode bool) error {
-	sshClient, err := sshUtil.NewConnection(user, password, passphrase, privateKey, nodeIp)
+func ExecuteJoinClusterCommandOnNode(credentials *models.CloudCredential, nodeIp string, joinInfo *microk8sClusterJoinInfo, asWorkerNode bool) error {
+	sshClient, err := sshUtil.NewConnectionWithCredentials(nodeIp, credentials)
 	if err != nil {
 		return err
 	}
@@ -263,8 +264,8 @@ func ExecuteJoinClusterCommandOnNode(user, password, passphrase, privateKey, nod
 	return sshClient.RunCommand(joinClusterCommand, os.Stdout)
 }
 
-func ExecuteLeaveClusterCommandOnNode(user, password, passphrase, privateKey, nodeIp string) error {
-	sshClient, err := sshUtil.NewConnection(user, password, passphrase, privateKey, nodeIp)
+func ExecuteLeaveClusterCommandOnNode(credentials *models.CloudCredential, nodeIp string) error {
+	sshClient, err := sshUtil.NewConnectionWithCredentials(nodeIp, credentials)
 	if err != nil {
 		return err
 	}
@@ -285,8 +286,8 @@ func ExecuteLeaveClusterCommandOnNode(user, password, passphrase, privateKey, no
 	return sshClient.RunCommand("snap remove microk8s --purge", os.Stdout)
 }
 
-func ExecuteAnnotateNodeCommandOnNode(user, password, passphrase, privateKey, masterNodeIp, nodeToAnnotate string) error {
-	sshClient, err := sshUtil.NewConnection(user, password, passphrase, privateKey, masterNodeIp)
+func ExecuteAnnotateNodeCommandOnNode(credentials *models.CloudCredential, masterNodeIp, nodeToAnnotate string) error {
+	sshClient, err := sshUtil.NewConnectionWithCredentials(masterNodeIp, credentials)
 	if err != nil {
 		return err
 	}
@@ -299,8 +300,8 @@ func ExecuteAnnotateNodeCommandOnNode(user, password, passphrase, privateKey, ma
 	return sshClient.RunCommand(annotateCommand, os.Stdout)
 }
 
-func ExecuteRemoveNodeCommandOnNode(user, password, passphrase, privateKey, masterNodeIp, nodeToRemove string, force bool) error {
-	sshClient, err := sshUtil.NewConnection(user, password, passphrase, privateKey, masterNodeIp)
+func ExecuteRemoveNodeCommandOnNode(credentials *models.CloudCredential, masterNodeIp, nodeToRemove string, force bool) error {
+	sshClient, err := sshUtil.NewConnectionWithCredentials(masterNodeIp, credentials)
 	if err != nil {
 		return err
 	}
@@ -315,8 +316,8 @@ func ExecuteRemoveNodeCommandOnNode(user, password, passphrase, privateKey, mast
 	return sshClient.RunCommand(removeNodeCmd, os.Stdout)
 }
 
-func ExecuteDrainNodeCommandOnNode(user, password, passphrase, privateKey, masterNodeIp, nodeToDrain string) error {
-	sshClient, err := sshUtil.NewConnection(user, password, passphrase, privateKey, masterNodeIp)
+func ExecuteDrainNodeCommandOnNode(credentials *models.CloudCredential, masterNodeIp, nodeToDrain string) error {
+	sshClient, err := sshUtil.NewConnectionWithCredentials(masterNodeIp, credentials)
 	if err != nil {
 		return err
 	}
@@ -345,8 +346,8 @@ func RetrieveClusterJoinInformation(sshClient *sshUtil.SSHConnection) (*microk8s
 	return joinInfo, nil
 }
 
-func RetrieveHostname(user, password, passphrase, privateKey, nodeIp string) (string, error) {
-	sshClient, err := sshUtil.NewConnection(user, password, passphrase, privateKey, nodeIp)
+func RetrieveHostname(credential *models.CloudCredential, nodeIp string) (string, error) {
+	sshClient, err := sshUtil.NewConnectionWithCredentials(nodeIp, credential)
 	if err != nil {
 		return "", err
 	}
@@ -363,10 +364,11 @@ func RetrieveHostname(user, password, passphrase, privateKey, nodeIp string) (st
 }
 
 func UpdateHostFile(
-	user, password, passphrase, privateKey, nodeIp string,
+	credential *models.CloudCredential,
+	nodeIp string,
 	hostEntries map[string]string,
 ) error {
-	sshClient, err := sshUtil.NewConnection(user, password, passphrase, privateKey, nodeIp)
+	sshClient, err := sshUtil.NewConnectionWithCredentials(nodeIp, credential)
 	if err != nil {
 		return err
 	}
@@ -406,14 +408,14 @@ func UpdateHostFile(
 	return nil
 }
 
-func SetupHostEntries(user, password, passphrase, privateKey string, nodeIps []string) error {
+func SetupHostEntries(credential *models.CloudCredential, nodeIps []string) error {
 
 	// hostEntries is a mapping of nodeIP to hostname.
 	hostEntries := make(map[string]string)
 
 	// Build the list of all host entries.
 	for _, nodeIp := range nodeIps {
-		hostname, err := RetrieveHostname(user, password, passphrase, privateKey, nodeIp)
+		hostname, err := RetrieveHostname(credential, nodeIp)
 		if err != nil {
 			return fmt.Errorf("error retrieving hostname from host %s: %w", nodeIp, err)
 		}
@@ -429,7 +431,7 @@ func SetupHostEntries(user, password, passphrase, privateKey string, nodeIps []s
 	for _, nodeIp := range nodeIps {
 		ip := nodeIp
 		g.Go(func() error {
-			err := UpdateHostFile(user, password, passphrase, privateKey, ip, hostEntries)
+			err := UpdateHostFile(credential, ip, hostEntries)
 			if err != nil {
 				return fmt.Errorf("failed to update host file on node %s: %w", ip, err)
 			}

@@ -228,12 +228,9 @@ func (m *Migrator) enableCommunityAddonForDB100() error {
 
 				// Get all the Nodes
 				// Create ssh client with one of the master nodes.
-				sshClient, err := sshUtil.NewConnection(
-					credential.Credentials["username"],
-					credential.Credentials["password"],
-					credential.Credentials["passphrase"],
-					credential.Credentials["privateKey"],
+				sshClient, err := sshUtil.NewConnectionWithCredentials(
 					nodeIP,
+					credential,
 				)
 				if err != nil {
 					log.Error().Err(err).Msgf("failed creating ssh client for node %s", nodeIP)
@@ -257,12 +254,9 @@ func (m *Migrator) enableCommunityAddonForDB100() error {
 
 				for _, node := range nodeIps {
 					if node.IsMaster {
-						sshClientForNode, err := sshUtil.NewConnection(
-							credential.Credentials["username"],
-							credential.Credentials["password"],
-							credential.Credentials["passphrase"],
-							credential.Credentials["privateKey"],
+						sshClientForNode, err := sshUtil.NewConnectionWithCredentials(
 							node.IP,
+							credential,
 						)
 						if err != nil {
 							log.Error().Err(err).Msgf("failed to create ssh client for node %s (IP %s)", node.HostName, node.IP)

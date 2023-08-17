@@ -399,10 +399,7 @@ func (service *CloudManagementService) getKaasCluster(task *portaineree.CloudPro
 
 	case portaineree.CloudProviderMicrok8s:
 		cluster, err = service.Microk8sGetCluster(
-			credentials.Credentials["username"],
-			credentials.Credentials["password"],
-			credentials.Credentials["passphrase"],
-			credentials.Credentials["privateKey"],
+			credentials,
 			task.ClusterID,
 			task.MasterNodes[0],
 		)
@@ -748,9 +745,11 @@ func (service *CloudManagementService) processScalingRequest(request portaineree
 	var err error
 	switch request.Provider() {
 	case portaineree.CloudProviderMicrok8s:
-		req := request.(*Microk8sScalingRequest)
+		req := request.(*mk8s.Microk8sScalingRequest)
+		setMessage := service.setMessageHandler(req.EndpointID, "")
+		mk8sScale := mk8s.NewMicrok8sScalingRequestFactory(service.dataStore, service.clientFactory, req, setMessage)
 		go func() {
-			err = service.processMicrok8sScalingRequest(req)
+			err = mk8sScale.Process()
 		}()
 
 	default:

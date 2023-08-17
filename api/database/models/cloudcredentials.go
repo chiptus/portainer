@@ -18,6 +18,26 @@ type CloudCredential struct {
 	Created     int64              `json:"created" example:"1650000000"`
 }
 
+func (cc *CloudCredential) Username() (string, bool) {
+	val, ok := cc.Credentials["username"]
+	return val, ok
+}
+
+func (cc *CloudCredential) Password() (string, bool) {
+	val, ok := cc.Credentials["username"]
+	return val, ok
+}
+
+func (cc *CloudCredential) Passphrase() (string, bool) {
+	val, ok := cc.Credentials["passphrase"]
+	return val, ok
+}
+
+func (cc *CloudCredential) PrivateKey() (string, bool) {
+	val, ok := cc.Credentials["privateKey"]
+	return val, ok
+}
+
 func (cr *CloudCredential) Validate(request *http.Request) error {
 	if cr.Name == "" {
 		return errors.New("missing kubernetes cluster name from the request payload")
