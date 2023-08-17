@@ -15,6 +15,7 @@ type decoratedEdgeGroup struct {
 	portaineree.EdgeGroup
 	HasEdgeStack  bool `json:"HasEdgeStack"`
 	HasEdgeJob    bool `json:"HasEdgeJob"`
+	HasEdgeConfig bool `json:"HasEdgeConfig"`
 	EndpointTypes []portaineree.EndpointType
 }
 
@@ -84,6 +85,19 @@ func getEdgeGroupList(tx dataservices.DataStoreTx) ([]decoratedEdgeGroup, error)
 			}
 		}
 
+		usedByEdgeConfig := false
+		edgeConfigs, err := tx.EdgeConfig().ReadAll()
+		if err != nil {
+			return nil, httperror.InternalServerError("Unable to retrieve Edge configs from the database", err)
+		}
+
+		for _, edgeConfig := range edgeConfigs {
+			if slices.Contains(edgeConfig.EdgeGroupIDs, portaineree.EdgeGroupID(orgEdgeGroup.ID)) {
+				usedByEdgeConfig = true
+				break
+			}
+		}
+
 		edgeGroup := decoratedEdgeGroup{
 			EdgeGroup:     orgEdgeGroup,
 			EndpointTypes: []portaineree.EndpointType{},
@@ -105,6 +119,7 @@ func getEdgeGroupList(tx dataservices.DataStoreTx) ([]decoratedEdgeGroup, error)
 		edgeGroup.EndpointTypes = endpointTypes
 		edgeGroup.HasEdgeStack = usedEdgeGroups[edgeGroup.ID]
 		edgeGroup.HasEdgeJob = usedByEdgeJob
+		edgeGroup.HasEdgeConfig = usedByEdgeConfig
 
 		decoratedEdgeGroups = append(decoratedEdgeGroups, edgeGroup)
 	}
