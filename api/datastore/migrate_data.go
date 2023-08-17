@@ -3,6 +3,7 @@ package datastore
 import (
 	"fmt"
 	"runtime/debug"
+	"strconv"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/cli"
@@ -191,6 +192,20 @@ func (store *Store) rollbackToCE(forceUpdate bool) error {
 		return err
 	}
 
+	err = store.downgradeStackFileSystem()
+	if err != nil {
+		log.Error().Err(err).Msg("an error occurred with rolling back stack file system")
+
+		return err
+	}
+
+	err = store.downgradeEdgeStackFileSystem()
+	if err != nil {
+		log.Error().Err(err).Msg("an error occurred with rolling back edge stack file system")
+
+		return err
+	}
+
 	log.Info().Msg("rolled back to CE Edition")
 
 	return nil
@@ -206,6 +221,85 @@ func (store *Store) downgradeLDAPSettings() error {
 	if len(urls) > 0 {
 		legacySettings.LDAPSettings.URL = urls[0] // use the first URL
 		return store.SettingsService.UpdateSettings(legacySettings)
+	}
+
+	return nil
+}
+
+func (store *Store) downgradeStackFileSystem() error {
+	// this operation corresponds to rebuildStackFileSystemWithVersionForDB100 during db migration
+	stacks, err := store.StackService.ReadAll()
+	if err != nil {
+		return err
+	}
+
+	for _, stack := range stacks {
+		commitHash := ""
+		if stack.GitConfig != nil {
+			commitHash = stack.GitConfig.ConfigHash
+		}
+
+		stackIdentifier := strconv.Itoa(int(stack.ID))
+		stackVersionFolder := store.fileService.GetStackProjectPathByVersion(stackIdentifier, stack.StackFileVersion, commitHash)
+		sourceExists, err := store.fileService.FileExists(stackVersionFolder)
+		if err != nil {
+			log.Warn().
+				Err(err).
+				Int("stackID", int(stack.ID)).
+				Msg("failed to check if stack project folder exists")
+			continue
+		}
+		if !sourceExists {
+			log.Debug().
+				Int("stackID", int(stack.ID)).
+				Msg("stack project folder does not exist, skipping")
+			continue
+		}
+
+		err = store.fileService.SafeMoveDirectory(stackVersionFolder, stack.ProjectPath)
+		if err != nil {
+			return fmt.Errorf("failed to copy stack %d project folder: %w", stack.ID, err)
+		}
+
+	}
+	return nil
+}
+
+func (store *Store) downgradeEdgeStackFileSystem() error {
+	// this operation corresponds to rebuildEdgeStackFileSystemWithVersionForDB100 during db migration
+	edgeStacks, err := store.EdgeStackService.EdgeStacks()
+	if err != nil {
+		return err
+	}
+
+	for _, edgeStack := range edgeStacks {
+		commitHash := ""
+		if edgeStack.GitConfig != nil {
+			commitHash = edgeStack.GitConfig.ConfigHash
+		}
+
+		edgeStackIdentifier := strconv.Itoa(int(edgeStack.ID))
+		edgeStackVersionFolder := store.fileService.GetEdgeStackProjectPathByVersion(edgeStackIdentifier, edgeStack.StackFileVersion, commitHash)
+
+		sourceExists, err := store.fileService.FileExists(edgeStackVersionFolder)
+		if err != nil {
+			log.Warn().
+				Err(err).
+				Int("edgeStackID", int(edgeStack.ID)).
+				Msg("failed to check if edge stack project folder exists")
+			continue
+		}
+		if !sourceExists {
+			log.Debug().
+				Int("edgeStackID", int(edgeStack.ID)).
+				Msg("edge stack project folder does not exist, skipping")
+			continue
+		}
+
+		err = store.fileService.SafeMoveDirectory(edgeStackVersionFolder, edgeStack.ProjectPath)
+		if err != nil {
+			return fmt.Errorf("failed to copy edge stack %d project folder: %w", edgeStack.ID, err)
+		}
 	}
 
 	return nil
