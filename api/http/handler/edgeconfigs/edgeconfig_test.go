@@ -742,3 +742,102 @@ func TestEnvTagsAddRm(t *testing.T) {
 	_, ok = configState.States[config.ID]
 	require.False(t, ok)
 }
+
+func TestDeleteEmptyConfig(t *testing.T) {
+	_, store := datastore.MustNewTestStore(t, true, true)
+
+	fileService, err := filesystem.NewService(t.TempDir(), "")
+	require.NoError(t, err)
+
+	edgeAsyncService := edgeasync.NewService(store, fileService)
+
+	jwtService, err := jwt.NewService("1h", store)
+	require.NoError(t, err)
+
+	usr := &portaineree.User{ID: 1, Username: "admin", Role: portaineree.AdministratorRole}
+	err = store.User().Create(usr)
+	require.NoError(t, err)
+
+	token, err := jwtService.GenerateToken(&portaineree.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
+	require.NoError(t, err)
+
+	settings, err := store.Settings().Settings()
+	require.NoError(t, err)
+
+	settings.EnableEdgeComputeFeatures = true
+	err = store.Settings().UpdateSettings(settings)
+	require.NoError(t, err)
+
+	configID := portaineree.EdgeConfigID(1)
+
+	err = store.EndpointGroup().Create(&portaineree.EndpointGroup{
+		ID:   1,
+		Name: "endpoint-group-1",
+	})
+	require.NoError(t, err)
+
+	err = store.EdgeGroup().Create(&portaineree.EdgeGroup{
+		ID:        1,
+		Name:      "edge-group-1",
+		Endpoints: []portaineree.EndpointID{},
+	})
+	require.NoError(t, err)
+
+	bouncer := security.NewRequestBouncer(store, testhelpers.Licenseservice{}, jwtService, nil, nil)
+
+	h := NewHandler(store, bouncer, testhelpers.NewUserActivityService(), edgeAsyncService, fileService)
+
+	// Create Edge Config
+	body := &bytes.Buffer{}
+
+	writer := multipart.NewWriter(body)
+
+	configPart, err := writer.CreateFormField("edgeConfiguration")
+	require.NoError(t, err)
+
+	err = json.NewEncoder(configPart).Encode(edgeConfigCreatePayload{
+		Name:         "test",
+		BaseDir:      "/tmp",
+		Type:         "foldername",
+		EdgeGroupIDs: []portaineree.EdgeGroupID{1},
+	})
+	require.NoError(t, err)
+
+	filePart, err := writer.CreateFormFile("file", "test.zip")
+	require.NoError(t, err)
+
+	content, err := generateEdgeConfigFile()
+	require.NoError(t, err)
+
+	_, err = filePart.Write(content)
+	require.NoError(t, err)
+
+	err = writer.Close()
+	require.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/edge_configurations", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	h.ServeHTTP(rr, req)
+	require.Equal(t, http.StatusNoContent, rr.Result().StatusCode)
+
+	config, err := store.EdgeConfig().Read(configID)
+	require.NoError(t, err)
+	require.Equal(t, portaineree.EdgeConfigIdleState, config.State)
+	require.Equal(t, 0, config.Progress.Success)
+	require.Equal(t, 0, config.Progress.Total)
+
+	// Delete the edge config
+
+	rr = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodDelete, "/edge_configurations/1", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	h.ServeHTTP(rr, req)
+	require.Equal(t, http.StatusNoContent, rr.Result().StatusCode)
+
+	_, err = store.EdgeConfig().Read(configID)
+	require.ErrorIs(t, err, errors.ErrObjectNotFound)
+}

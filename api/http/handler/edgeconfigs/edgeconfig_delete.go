@@ -97,6 +97,10 @@ func (h *Handler) transitionToState(tx dataservices.DataStoreTx, edgeConfigID po
 		}
 	}
 
+	if len(relatedEndpointIDs) == 0 {
+		return relatedEndpointIDs, tx.EdgeConfig().Delete(edgeConfig.ID)
+	}
+
 	edgeConfig.State = portaineree.EdgeConfigDeletingState
 	edgeConfig.Progress.Success = 0
 
