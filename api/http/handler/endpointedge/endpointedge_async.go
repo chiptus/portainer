@@ -14,6 +14,7 @@ import (
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/http/handler/edgeconfigs"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	"github.com/portainer/portainer-ee/api/internal/slices"
@@ -49,9 +50,10 @@ type snapshot struct {
 	KubernetesPatch jsonpatch.Patch                 `json:"kubernetesPatch,omitempty"`
 	KubernetesHash  *uint32                         `json:"kubernetesHash,omitempty"`
 
-	StackLogs   []portaineree.EdgeStackLog                                        `json:"stackLogs,omitempty"`
-	StackStatus map[portaineree.EdgeStackID][]portainer.EdgeStackDeploymentStatus `json:"stackStatus,omitempty"`
-	JobsStatus  map[portaineree.EdgeJobID]portaineree.EdgeJobStatus               `json:"jobsStatus,omitempty"`
+	StackLogs        []portaineree.EdgeStackLog                                        `json:"stackLogs,omitempty"`
+	StackStatus      map[portaineree.EdgeStackID][]portainer.EdgeStackDeploymentStatus `json:"stackStatus,omitempty"`
+	JobsStatus       map[portaineree.EdgeJobID]portaineree.EdgeJobStatus               `json:"jobsStatus,omitempty"`
+	EdgeConfigStates map[portaineree.EdgeConfigID]portaineree.EdgeConfigStateType      `json:"edgeConfigStates,omitempty"`
 }
 
 type EdgeAsyncResponse struct {
@@ -660,6 +662,18 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 		err = tx.EdgeJob().Update(edgeJob.ID, edgeJob)
 		if err != nil {
 			log.Error().Err(err).Int("job", int(jobID)).Msg("fetch edge job")
+		}
+	}
+
+	// Update edge config state
+	for edgeConfigID, state := range snapshotPayload.EdgeConfigStates {
+		err := edgeconfigs.TransitionToState(tx, edgeConfigID, endpoint.ID, state)
+		if err != nil {
+			log.Error().Err(err).
+				Int("edge_config_id", int(edgeConfigID)).
+				Int("endpoint_id", int(endpoint.ID)).
+				Stringer("state", state).
+				Msg("unable to transition the state of the edge config")
 		}
 	}
 

@@ -9,6 +9,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	"github.com/portainer/portainer-ee/api/internal/edge/cache"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/slices"
 	"github.com/portainer/portainer-ee/api/internal/unique"
@@ -147,10 +148,6 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 				continue
 			}
 
-			if err = handler.createEdgeConfigs(tx, endpoint, edgeGroup); err != nil {
-				return err
-			}
-
 			var operation string
 			if slices.Contains(newRelatedEndpoints, endpointID) && slices.Contains(oldRelatedEndpoints, endpointID) {
 				continue
@@ -160,6 +157,10 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 				operation = "remove"
 			} else {
 				continue
+			}
+
+			if err = handler.updateEdgeConfigs(tx, endpoint, edgeGroup, operation); err != nil {
+				return err
 			}
 
 			err = handler.updateEndpointEdgeJobs(tx, edgeGroup.ID, endpoint, edgeJobs, operation)
@@ -254,7 +255,7 @@ func (handler *Handler) updateEndpointEdgeJobs(tx dataservices.DataStoreTx, edge
 	return nil
 }
 
-func (handler *Handler) createEdgeConfigs(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeGroup *portaineree.EdgeGroup) error {
+func (handler *Handler) updateEdgeConfigs(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeGroup *portaineree.EdgeGroup, op string) error {
 	edgeConfigs, err := tx.EdgeConfig().ReadAll()
 	if err != nil {
 		return err
@@ -270,7 +271,6 @@ func (handler *Handler) createEdgeConfigs(tx dataservices.DataStoreTx, endpoint 
 	edgeConfigsToCreate = unique.Unique(edgeConfigsToCreate)
 
 	for _, edgeConfigID := range edgeConfigsToCreate {
-		// Update the Edge Config
 		edgeConfig, err := tx.EdgeConfig().Read(edgeConfigID)
 		if err != nil {
 			return err
@@ -281,13 +281,6 @@ func (handler *Handler) createEdgeConfigs(tx dataservices.DataStoreTx, endpoint 
 			continue
 		}
 
-		edgeConfig.Progress.Total++
-
-		if err := tx.EdgeConfig().Update(edgeConfigID, edgeConfig); err != nil {
-			return err
-		}
-
-		// Update or create the Edge Config State
 		edgeConfigState, err := tx.EdgeConfigState().Read(endpoint.ID)
 		if err != nil {
 			edgeConfigState = &portaineree.EdgeConfigState{
@@ -300,11 +293,19 @@ func (handler *Handler) createEdgeConfigs(tx dataservices.DataStoreTx, endpoint 
 			}
 		}
 
-		if _, ok := edgeConfigState.States[edgeConfigID]; ok {
-			continue
-		}
+		switch op {
+		case "add":
+			edgeConfig.Progress.Total++
 
-		edgeConfigState.States[edgeConfigID] = portaineree.EdgeConfigSavingState
+			if err := tx.EdgeConfig().Update(edgeConfigID, edgeConfig); err != nil {
+				return err
+			}
+
+			edgeConfigState.States[edgeConfigID] = portaineree.EdgeConfigSavingState
+
+		case "remove":
+			edgeConfigState.States[edgeConfigID] = portaineree.EdgeConfigDeletingState
+		}
 
 		if err := tx.EdgeConfigState().Update(edgeConfigState.EndpointID, edgeConfigState); err != nil {
 			return err
@@ -323,6 +324,8 @@ func (handler *Handler) createEdgeConfigs(tx dataservices.DataStoreTx, endpoint 
 			return httperror.InternalServerError("Unable to persist the edge configuration command inside the database", err)
 		}
 	}
+
+	cache.Del(endpoint.ID)
 
 	return nil
 }

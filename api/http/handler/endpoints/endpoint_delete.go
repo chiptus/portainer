@@ -237,6 +237,10 @@ func (handler *Handler) deleteEndpoint(tx dataservices.DataStoreTx, endpointID p
 		}
 	}
 
+	if err = handler.deleteEdgeConfigs(tx, endpoint); err != nil {
+		return httperror.InternalServerError("Unable to update edge configurations", err)
+	}
+
 	err = tx.Endpoint().DeleteEndpoint(portaineree.EndpointID(endpointID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to delete the environment from the database", err)
@@ -285,4 +289,30 @@ func (handler *Handler) deleteAccessPolicies(endpoint portaineree.Endpoint) erro
 	}()
 
 	return nil
+}
+
+func (handler *Handler) deleteEdgeConfigs(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint) error {
+	configState, err := tx.EdgeConfigState().Read(endpoint.ID)
+	if dataservices.IsErrObjectNotFound(err) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	for configID, state := range configState.States {
+		config, err := tx.EdgeConfig().Read(configID)
+		if err != nil {
+			return err
+		}
+
+		if state == portaineree.EdgeConfigIdleState {
+			config.Progress.Success--
+		}
+
+		config.Progress.Total--
+
+		tx.EdgeConfig().Update(config.ID, config)
+	}
+
+	return tx.EdgeConfigState().Delete(endpoint.ID)
 }

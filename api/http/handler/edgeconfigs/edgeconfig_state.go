@@ -47,61 +47,7 @@ func (h *Handler) edgeConfigState(w http.ResponseWriter, r *http.Request) *httpe
 	}
 
 	err = h.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		// Environment state
-		edgeConfigState, err := tx.EdgeConfigState().Read(endpointID)
-		if err != nil {
-			return err
-		}
-
-		currentState, ok := edgeConfigState.States[portaineree.EdgeConfigID(edgeConfigID)]
-		if !ok {
-			return errors.New("current state not found for edge config")
-		}
-
-		if !validTransition(currentState, portaineree.EdgeConfigStateType(state)) {
-			return errors.New("invalid transition")
-		}
-
-		edgeConfigState.States[portaineree.EdgeConfigID(edgeConfigID)] = portaineree.EdgeConfigStateType(state)
-
-		err = tx.EdgeConfigState().Update(endpointID, edgeConfigState)
-		if err != nil {
-			return err
-		}
-
-		// Edge Config state
-		edgeConfig, err := tx.EdgeConfig().Read(portaineree.EdgeConfigID(edgeConfigID))
-		if err != nil {
-			return err
-		}
-
-		switch portaineree.EdgeConfigStateType(state) {
-		case portaineree.EdgeConfigIdleState:
-			edgeConfig.Progress.Success++
-
-			if edgeConfig.Progress.Success != edgeConfig.Progress.Total {
-				break
-			}
-
-			switch edgeConfig.State {
-			// Deleting -> Deleted
-			case portaineree.EdgeConfigDeletingState:
-				if err := removeEdgeConfigStates(tx, edgeConfig.ID); err != nil {
-					return err
-				}
-
-				return tx.EdgeConfig().Delete(edgeConfig.ID)
-
-			// Saving | Updating -> Idle
-			case portaineree.EdgeConfigSavingState, portaineree.EdgeConfigUpdatingState:
-				edgeConfig.State = portaineree.EdgeConfigIdleState
-			}
-
-		case portaineree.EdgeConfigFailureState:
-			edgeConfig.State = portaineree.EdgeConfigFailureState
-		}
-
-		return tx.EdgeConfig().Update(edgeConfig.ID, edgeConfig)
+		return TransitionToState(tx, portaineree.EdgeConfigID(edgeConfigID), portaineree.EndpointID(endpointID), portaineree.EdgeConfigStateType(state))
 	})
 	if err != nil {
 		return httperror.InternalServerError("Could not update the edge config state", err)
@@ -110,6 +56,90 @@ func (h *Handler) edgeConfigState(w http.ResponseWriter, r *http.Request) *httpe
 	cache.Del(endpointID)
 
 	return nil
+}
+
+func TransitionToState(
+	tx dataservices.DataStoreTx,
+	edgeConfigID portaineree.EdgeConfigID,
+	endpointID portaineree.EndpointID,
+	state portaineree.EdgeConfigStateType) error {
+
+	// Environment state
+	edgeConfigState, err := tx.EdgeConfigState().Read(endpointID)
+	if err != nil {
+		return err
+	}
+
+	currentState, ok := edgeConfigState.States[portaineree.EdgeConfigID(edgeConfigID)]
+	if !ok {
+		return errors.New("current state not found for edge config")
+	}
+
+	if !validTransition(currentState, portaineree.EdgeConfigStateType(state)) {
+		return errors.New("invalid transition")
+	}
+
+	edgeConfigState.States[portaineree.EdgeConfigID(edgeConfigID)] = portaineree.EdgeConfigStateType(state)
+
+	err = tx.EdgeConfigState().Update(endpointID, edgeConfigState)
+	if err != nil {
+		return err
+	}
+
+	// Edge Config state
+	edgeConfig, err := tx.EdgeConfig().Read(portaineree.EdgeConfigID(edgeConfigID))
+	if err != nil {
+		return err
+	}
+
+	switch portaineree.EdgeConfigStateType(state) {
+	case portaineree.EdgeConfigIdleState:
+
+		switch edgeConfig.State {
+		// Idle -> Idle (a single environment is being added/removed from the edge config)
+		case portaineree.EdgeConfigIdleState:
+			if currentState == portaineree.EdgeConfigDeletingState {
+				delete(edgeConfigState.States, edgeConfig.ID)
+
+				err = tx.EdgeConfigState().Update(endpointID, edgeConfigState)
+				if err != nil {
+					return err
+				}
+
+				edgeConfig.Progress.Success--
+				edgeConfig.Progress.Total--
+			} else if currentState == portaineree.EdgeConfigSavingState {
+				edgeConfig.Progress.Success++
+			}
+
+		// Deleting -> Deleted
+		case portaineree.EdgeConfigDeletingState:
+			edgeConfig.Progress.Success++
+
+			if edgeConfig.Progress.Success != edgeConfig.Progress.Total {
+				break
+			}
+
+			if err := removeEdgeConfigStates(tx, edgeConfig.ID); err != nil {
+				return err
+			}
+
+			return tx.EdgeConfig().Delete(edgeConfig.ID)
+
+		// Saving | Updating -> Idle
+		case portaineree.EdgeConfigSavingState, portaineree.EdgeConfigUpdatingState:
+			edgeConfig.Progress.Success++
+
+			if edgeConfig.Progress.Success == edgeConfig.Progress.Total {
+				edgeConfig.State = portaineree.EdgeConfigIdleState
+			}
+		}
+
+	case portaineree.EdgeConfigFailureState:
+		edgeConfig.State = portaineree.EdgeConfigFailureState
+	}
+
+	return tx.EdgeConfig().Update(edgeConfig.ID, edgeConfig)
 }
 
 func validTransition(current, next portaineree.EdgeConfigStateType) bool {

@@ -72,6 +72,11 @@ func (h *Handler) edgeConfigUpdate(w http.ResponseWriter, r *http.Request) *http
 
 	var relatedEndpointIDs []portaineree.EndpointID
 	err = h.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		relatedEndpointIDs, err = h.getRelatedEndpointIDs(tx, payload.EdgeGroupIDs)
+		if err != nil {
+			return err
+		}
+
 		edgeConfig, err := tx.EdgeConfig().Read(portaineree.EdgeConfigID(edgeConfigID))
 		if err != nil {
 			return err
@@ -86,9 +91,12 @@ func (h *Handler) edgeConfigUpdate(w http.ResponseWriter, r *http.Request) *http
 			EdgeGroupIDs: edgeConfig.EdgeGroupIDs,
 		}
 
+		edgeConfig.State = portaineree.EdgeConfigUpdatingState
 		edgeConfig.Type = edgeConfigTypeMap[payload.Type]
 		edgeConfig.EdgeGroupIDs = payload.EdgeGroupIDs
 		edgeConfig.UpdatedBy = token.ID
+		edgeConfig.Progress.Success = 0
+		edgeConfig.Progress.Total = len(relatedEndpointIDs)
 
 		if err = tx.EdgeConfig().Update(edgeConfig.ID, edgeConfig); err != nil {
 			return err
@@ -102,11 +110,6 @@ func (h *Handler) edgeConfigUpdate(w http.ResponseWriter, r *http.Request) *http
 			if err = h.processEdgeConfigFile(edgeConfig.ID, file); err != nil {
 				return err
 			}
-		}
-
-		relatedEndpointIDs, err = h.getRelatedEndpointIDs(tx, payload.EdgeGroupIDs)
-		if err != nil {
-			return err
 		}
 
 		for _, endpointID := range relatedEndpointIDs {
