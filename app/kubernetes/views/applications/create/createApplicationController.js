@@ -1315,21 +1315,33 @@ class KubernetesCreateApplicationController {
           this.state.nodes.cpu += item.CPU;
         });
 
+        var namespace = '';
         if (this.resourcePools.length) {
-          const namespaceWithQuota = await this.KubernetesResourcePoolService.get(this.resourcePools[0].Namespace.Name);
+          this.formValues.ResourcePool = this.resourcePools[0];
+
+          if (this.state.isEdit) {
+            namespace = this.$state.params.namespace;
+            this.formValues.ResourcePool = _.find(this.resourcePools, ['Namespace.Name', namespace]);
+          }
+
+          namespace = this.formValues.ResourcePool.Namespace.Name;
+          const namespaceWithQuota = await this.KubernetesResourcePoolService.get(namespace);
           this.formValues.ResourcePool.Quota = namespaceWithQuota.Quota;
+
+          this.savedFormValues = angular.copy(this.formValues);
+          delete this.formValues.ApplicationType;
+
           this.updateNamespaceLimits(namespaceWithQuota);
           this.updateSliders(namespaceWithQuota);
         }
-        this.formValues.ResourcePool = this.resourcePools[0];
-        if (!this.formValues.ResourcePool) {
+
+        if (!this.formValues.ResourcePool || !namespace) {
           return;
         }
 
         this.nodesLabels = KubernetesNodeHelper.generateNodeLabelsFromNodes(nodes);
         this.nodeNumber = nodes.length;
 
-        const namespace = this.state.isEdit ? this.$state.params.namespace : this.formValues.ResourcePool.Namespace.Name;
         await this.refreshNamespaceData(namespace);
 
         if (this.state.isEdit) {
