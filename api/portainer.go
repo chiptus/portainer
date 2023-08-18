@@ -612,8 +612,8 @@ type (
 		// TODO: in future versions, we should think about removing these fields and
 		// create a separate bucket to store cluster operation messages instead or try to find a better way.
 		// Operation/OperationStatus blank means, nothing is happening
-		Operation       string `json:"operation"`       // ,scale,upgrade,addons
-		OperationStatus string `json:"operationStatus"` // ,processing,error
+		Operation       string                  `json:"operation"`       // ,scale,upgrade,addons
+		OperationStatus EndpointOperationStatus `json:"operationStatus"` // ,processing,error
 	}
 
 	// EndpointSyncJob represents a scheduled job that synchronize environments(endpoints) based on an external file
@@ -2112,6 +2112,15 @@ const (
 	TimeFormat24 = "15:04"
 	// Date-Time format that we use in Portainer app
 	DateTimeFormat = "2006-01-02 15:04:05"
+)
+
+type EndpointOperationStatus string
+
+const (
+	EndpointOperationStatusProcessing EndpointOperationStatus = "processing"
+	EndpointOperationStatusWarning    EndpointOperationStatus = "warning"
+	EndpointOperationStatusError      EndpointOperationStatus = "error"
+	EndpointOperationStatusDone       EndpointOperationStatus = ""
 )
 
 // List of supported features

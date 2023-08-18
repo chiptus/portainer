@@ -88,7 +88,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 	).Msg("processing upgrade request")
 
 	setMessage := u.setMessageHandler(u.endpoint.ID, "upgrade")
-	setMessage("Upgrading cluster", "Gathering information about cluster.", "processing")
+	setMessage("Upgrading cluster", "Gathering information about cluster.", portaineree.EndpointOperationStatusProcessing)
 
 	masterNode, _, _ := strings.Cut(u.endpoint.URL, ":")
 	u.endpointIP = masterNode
@@ -131,7 +131,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 		return u.currentVersion, nil
 	}
 
-	setMessage("Upgrading cluster", fmt.Sprintf("Current MicroK8s version: %s, upgrading to: %s", u.currentVersion, u.nextVersion), "processing")
+	setMessage("Upgrading cluster", fmt.Sprintf("Current MicroK8s version: %s, upgrading to: %s", u.currentVersion, u.nextVersion), portaineree.EndpointOperationStatusProcessing)
 
 	// Get all the nodes in the cluster.
 	// We need to know which nodes are masters and which are workers.
@@ -163,7 +163,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 
 	for index, node := range u.nodes {
 		if node.Status == "Ready" {
-			setMessage("Upgrading cluster", fmt.Sprintf("Upgrading node %s (IP %s).", node.HostName, node.IP), "processing")
+			setMessage("Upgrading cluster", fmt.Sprintf("Upgrading node %s (IP %s).", node.HostName, node.IP), portaineree.EndpointOperationStatusProcessing)
 			log.Info().Str("provider", portaineree.CloudProviderMicrok8s).Msgf("Upgrading node %s (IP %s)", node.HostName, node.IP)
 
 			// Upgrade node
@@ -171,7 +171,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 			u.nodes[index].Error = nil
 
 			if !isSingleNodeCluster {
-				setMessage("Upgrading cluster", fmt.Sprintf("Draining node %s (IP %s).", node.HostName, node.IP), "processing")
+				setMessage("Upgrading cluster", fmt.Sprintf("Draining node %s (IP %s).", node.HostName, node.IP), portaineree.EndpointOperationStatusProcessing)
 				log.Info().Str("provider", portaineree.CloudProviderMicrok8s).Msgf("Draining node %s (IP %s).", node.HostName, node.IP)
 				// Step 1: drain node
 				if err = sshClient.RunCommand(
@@ -182,11 +182,11 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 					u.nodes[index].Error = err
 
 					log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Err(err).Msgf("Error in draining node %s (IP %s). Continuing to next node.", node.HostName, node.IP)
-					setMessage("Upgrading cluster", fmt.Sprintf("Error in draining node %s (IP %s). Continuing to next node.", node.HostName, node.IP), "processing")
+					setMessage("Upgrading cluster", fmt.Sprintf("Error in draining node %s (IP %s). Continuing to next node.", node.HostName, node.IP), portaineree.EndpointOperationStatusProcessing)
 					continue
 				}
 
-				setMessage("Upgrading cluster", fmt.Sprintf("Checking status, node %s (IP %s).", node.HostName, node.IP), "processing")
+				setMessage("Upgrading cluster", fmt.Sprintf("Checking status, node %s (IP %s).", node.HostName, node.IP), portaineree.EndpointOperationStatusProcessing)
 				log.Info().Str("provider", portaineree.CloudProviderMicrok8s).Msgf("Checking status node %s (IP %s).", node.HostName, node.IP)
 
 				count := 0
@@ -207,7 +207,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 					} else if !u.nodes[index].Unschedulable {
 						log.Debug().Err(err).Msgf("Node is not set to SchedulingDisabled. checking again in 5 seconds")
 					} else {
-						setMessage("Upgrading cluster", fmt.Sprintf("Node %s (IP %s) status is SchedulingDisabled.", node.HostName, node.IP), "processing")
+						setMessage("Upgrading cluster", fmt.Sprintf("Node %s (IP %s) status is SchedulingDisabled.", node.HostName, node.IP), portaineree.EndpointOperationStatusProcessing)
 						log.Info().Str("provider", portaineree.CloudProviderMicrok8s).Msgf("Node %s (IP %s) status is SchedulingDisabled.", node.HostName, node.IP)
 						break
 					}
@@ -220,7 +220,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 				}
 			}
 
-			setMessage("Upgrading cluster", fmt.Sprintf("Upgrading MicroK8s version on node %s (IP %s).", node.HostName, node.IP), "processing")
+			setMessage("Upgrading cluster", fmt.Sprintf("Upgrading MicroK8s version on node %s (IP %s).", node.HostName, node.IP), portaineree.EndpointOperationStatusProcessing)
 			log.Info().Str("provider", portaineree.CloudProviderMicrok8s).Msgf("Upgrading MicroK8s version on node %s (IP %s).", node.HostName, node.IP)
 			// Step 2: refresh node
 
@@ -240,7 +240,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 					u.nodes[index].Error = err
 
 					log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Msgf("Error in upgrading MicroK8s version on node %s (IP %s). Trying to revert MicroK8s version on this node.", node.HostName, node.IP)
-					setMessage("Upgrading cluster", fmt.Sprintf("Error in upgrading MicroK8s version on node %s (IP %s). Trying to revert MicroK8s version on this node.", node.HostName, node.IP), "processing")
+					setMessage("Upgrading cluster", fmt.Sprintf("Error in upgrading MicroK8s version on node %s (IP %s). Trying to revert MicroK8s version on this node.", node.HostName, node.IP), portaineree.EndpointOperationStatusProcessing)
 
 					// Try reverting to previous version
 					if err = sshClientPerNode.RunCommand(
@@ -250,7 +250,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 						u.nodes[index].Error = err
 
 						log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Msgf("Error in upgrading MicroK8s version on node %s (IP %s). Trying to revert MicroK8s version on this node.", node.HostName, node.IP)
-						setMessage("Upgrading cluster", fmt.Sprintf("Error in upgrading MicroK8s version on node %s (IP %s). Trying to revert MicroK8s version on this node.", node.HostName, node.IP), "processing")
+						setMessage("Upgrading cluster", fmt.Sprintf("Error in upgrading MicroK8s version on node %s (IP %s). Trying to revert MicroK8s version on this node.", node.HostName, node.IP), portaineree.EndpointOperationStatusProcessing)
 
 						// Try reverting to previous version
 						if err = sshClientPerNode.RunCommand(
@@ -260,7 +260,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 							u.nodes[index].Error = err
 
 							log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Err(err).Msgf("Error when reverting MicroK8s on node %s (IP %s). Continuing to next node.", node.HostName, node.IP)
-							setMessage("Upgrading cluster", fmt.Sprintf("Error when reverting MicroK8s on node %s (IP %s). Continuing to next node.", node.HostName, node.IP), "processing")
+							setMessage("Upgrading cluster", fmt.Sprintf("Error when reverting MicroK8s on node %s (IP %s). Continuing to next node.", node.HostName, node.IP), portaineree.EndpointOperationStatusProcessing)
 						}
 					}
 
@@ -281,7 +281,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 			time.Sleep(5 * time.Second)
 
 			log.Info().Str("provider", portaineree.CloudProviderMicrok8s).Msgf("Resuming pod scheduling on node %s (IP %s).", node.HostName, node.IP)
-			setMessage("Upgrading cluster", fmt.Sprintf("Resuming pod scheduling on node %s (IP %s).", node.HostName, node.IP), "processing")
+			setMessage("Upgrading cluster", fmt.Sprintf("Resuming pod scheduling on node %s (IP %s).", node.HostName, node.IP), portaineree.EndpointOperationStatusProcessing)
 
 			if !isSingleNodeCluster {
 				for retries := 0; retries < 3; retries++ {
@@ -300,7 +300,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 					u.nodes[index].Error = err
 
 					log.Error().Str("provider", portaineree.CloudProviderMicrok8s).Err(err).Msgf("Error when resuming pod scheduling on node %s (IP %s). Continuing to next node.", node.HostName, node.IP)
-					setMessage("Upgrading cluster", fmt.Sprintf("Error when resuming pod scheduling on node %s (IP %s). Continuing to next node.", node.HostName, node.IP), "processing")
+					setMessage("Upgrading cluster", fmt.Sprintf("Error when resuming pod scheduling on node %s (IP %s). Continuing to next node.", node.HostName, node.IP), portaineree.EndpointOperationStatusProcessing)
 					continue
 				}
 			}
@@ -336,7 +336,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 		}
 	}
 
-	setMessage("Upgrading cluster", "Disabling addons", "processing")
+	setMessage("Upgrading cluster", "Disabling addons", portaineree.EndpointOperationStatusProcessing)
 	// Disable addons
 	u.addons.DisableAddons(
 		masterNodes,
@@ -345,7 +345,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 		setMessage,
 	)
 
-	setMessage("Upgrading cluster", "Enabling addons", "processing")
+	setMessage("Upgrading cluster", "Enabling addons", portaineree.EndpointOperationStatusProcessing)
 	// Enable addons
 	u.addons.EnableAddons(
 		masterNodes,
@@ -364,10 +364,10 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 	}
 
 	summary := "Upgrade completed"
-	operationStatus := ""
+	operationStatus := portaineree.EndpointOperationStatusDone
 	if isError {
 		summary = "Upgrade completed with errors"
-		operationStatus = "warning"
+		operationStatus = portaineree.EndpointOperationStatusWarning
 	}
 
 	setMessage(summary, "Check Portainer logs for more details<br/><br/>"+strings.Join(messages, "<br/>"), operationStatus)
@@ -376,8 +376,8 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 	return u.nextVersion, err
 }
 
-func (service *Microk8sUpgrade) setMessageHandler(id portaineree.EndpointID, operation string) func(summary, detail, operationStatus string) error {
-	return func(summary, detail, operationStatus string) error {
+func (service *Microk8sUpgrade) setMessageHandler(id portaineree.EndpointID, operation string) func(summary, detail string, operationStatus portaineree.EndpointOperationStatus) error {
+	return func(summary, detail string, operationStatus portaineree.EndpointOperationStatus) error {
 		status := portaineree.EndpointStatusMessage{Summary: summary, Detail: detail, OperationStatus: operationStatus, Operation: operation}
 		err := service.dataStore.Endpoint().SetMessage(id, status)
 		if err != nil {

@@ -42,7 +42,7 @@ func TestChangeState(t *testing.T) {
 		task            *portaineree.CloudProvisioningTask
 		state           ProvisioningState
 		message         string
-		operationStatus string
+		operationStatus portaineree.EndpointOperationStatus
 	}{
 		{
 			endpoint: &portaineree.Endpoint{},
@@ -53,7 +53,7 @@ func TestChangeState(t *testing.T) {
 			},
 			state:           ProvisioningStateWaitingForCluster,
 			message:         "Creating KaaS Cluster",
-			operationStatus: "processing",
+			operationStatus: portaineree.EndpointOperationStatusProcessing,
 		},
 		{
 			endpoint: &portaineree.Endpoint{},
@@ -64,7 +64,7 @@ func TestChangeState(t *testing.T) {
 			},
 			state:           ProvisioningStateAgentSetup,
 			message:         "Deploying portainer agent",
-			operationStatus: "processing",
+			operationStatus: portaineree.EndpointOperationStatusProcessing,
 		},
 		{
 			endpoint: &portaineree.Endpoint{},
@@ -75,7 +75,7 @@ func TestChangeState(t *testing.T) {
 			},
 			state:           ProvisioningStateWaitingForAgent,
 			message:         "Waiting for agent response",
-			operationStatus: "processing",
+			operationStatus: portaineree.EndpointOperationStatusProcessing,
 		},
 		{
 			endpoint: &portaineree.Endpoint{},
@@ -86,7 +86,7 @@ func TestChangeState(t *testing.T) {
 			},
 			state:           ProvisioningStateUpdatingEnvironment,
 			message:         "Updating environment",
-			operationStatus: "processing",
+			operationStatus: portaineree.EndpointOperationStatusProcessing,
 		},
 		{
 			endpoint: &portaineree.Endpoint{},
@@ -97,7 +97,7 @@ func TestChangeState(t *testing.T) {
 			},
 			state:           ProvisioningStateDone,
 			message:         "Connecting",
-			operationStatus: "processing",
+			operationStatus: portaineree.EndpointOperationStatusProcessing,
 		},
 	}
 

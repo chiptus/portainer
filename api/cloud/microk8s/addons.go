@@ -61,7 +61,7 @@ func (addons AddonsWithArgs) EnableAddons(
 	masterNodes []string,
 	workerNodes []string,
 	credential *models.CloudCredential,
-	setMessage func(a, b, c string) error,
+	setMessage func(a, b string, c portaineree.EndpointOperationStatus) error,
 ) AddonsWithArgs {
 	log.Info().Msgf("Enabling addons")
 
@@ -123,7 +123,7 @@ func (addons AddonsWithArgs) DisableAddons(
 	masterNodes []string,
 	workerNodes []string,
 	credential *models.CloudCredential,
-	setMessage func(a, b, c string) error,
+	setMessage func(a, b string, c portaineree.EndpointOperationStatus) error,
 ) AddonsWithArgs {
 
 	failedAddons := []portaineree.MicroK8sAddon{}

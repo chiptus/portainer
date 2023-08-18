@@ -1,6 +1,7 @@
 package kaas
 
 import (
+	"fmt"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
@@ -26,6 +27,25 @@ type Handler struct {
 	userActivityService    portaineree.UserActivityService
 }
 
+func verifyEndpointStatus() mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(rw http.ResponseWriter, request *http.Request) {
+			endpoint, err := middlewares.FetchEndpoint(request)
+			if err != nil {
+				httperror.WriteError(rw, http.StatusNotFound, "Unable to find an environment", err)
+				return
+			}
+
+			if endpoint.StatusMessage.OperationStatus == portaineree.EndpointOperationStatusProcessing {
+				httperror.WriteError(rw, http.StatusForbidden, "Forbidden", fmt.Errorf("Server is in the middle of processing previous request for this environment."))
+				return
+			}
+
+			next.ServeHTTP(rw, request)
+		})
+	}
+}
+
 // NewHandler creates a handler to manage tag operations.
 func NewHandler(
 	bouncer security.BouncerService,
@@ -46,21 +66,24 @@ func NewHandler(
 	}
 
 	endpointRouter := h.NewRoute().Subrouter()
-
 	endpointRouter.Use(bouncer.AuthenticatedAccess, middlewares.WithEndpoint(dataStore.Endpoint(), "endpointid"))
 
 	// requires node write authorization: OperationK8sClusterNodeW
-	endpointRouter.Handle("/cloud/endpoints/{endpointid}/nodes/remove", httperror.LoggerHandler(h.removeNodes)).Methods(http.MethodPost)
-	endpointRouter.Handle("/cloud/endpoints/{endpointid}/nodes/add", httperror.LoggerHandler(h.addNodes)).Methods(http.MethodPost)
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/nodes/nodestatus", httperror.LoggerHandler(h.microk8sGetNodeStatus)).Methods(http.MethodGet)
-	endpointRouter.Handle("/cloud/endpoints/{endpointid}/upgrade", httperror.LoggerHandler(h.upgrade)).Methods(http.MethodPost)
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/testssh", license.NotOverused(licenseService, dataStore, httperror.LoggerHandler(h.sshTestNodeIPs))).Methods(http.MethodPost)
-
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/version", httperror.LoggerHandler(h.version)).Methods(http.MethodGet)
-
 	// microk8s only
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/addons", httperror.LoggerHandler(h.microk8sGetAddons)).Methods(http.MethodGet)
-	endpointRouter.Handle("/cloud/endpoints/{endpointid}/addons", httperror.LoggerHandler(h.microk8sUpdateAddons)).Methods(http.MethodPost)
+
+	endpointScalingRouter := h.NewRoute().Subrouter()
+	endpointScalingRouter.Use(bouncer.AuthenticatedAccess, middlewares.WithEndpoint(dataStore.Endpoint(), "endpointid"), verifyEndpointStatus())
+
+	// requires node write authorization: OperationK8sClusterNodeW
+	endpointScalingRouter.Handle("/cloud/endpoints/{endpointid}/nodes/remove", httperror.LoggerHandler(h.removeNodes)).Methods(http.MethodPost)
+	endpointScalingRouter.Handle("/cloud/endpoints/{endpointid}/nodes/add", httperror.LoggerHandler(h.addNodes)).Methods(http.MethodPost)
+	endpointScalingRouter.Handle("/cloud/endpoints/{endpointid}/upgrade", httperror.LoggerHandler(h.upgrade)).Methods(http.MethodPost)
+	// microk8s only
+	endpointScalingRouter.Handle("/cloud/endpoints/{endpointid}/addons", httperror.LoggerHandler(h.microk8sUpdateAddons)).Methods(http.MethodPost)
 
 	authenticatedRouter := h.NewRoute().Subrouter()
 	authenticatedRouter.Use(bouncer.AuthenticatedAccess)

@@ -68,10 +68,10 @@ type endpointUpdatePayload struct {
 
 	IsSetStatusMessage bool `json:"IsSetStatusMessage"`
 	StatusMessage      struct {
-		Detail          string `json:"Detail" example:"Error message"`
-		Summary         string `json:"Summary" example:"Error"`
-		Operation       string `json:"operation" example:"scale"`       // 'scale', 'upgrade', 'addons'
-		OperationStatus string `json:"operationStatus" example:"error"` // '', 'error', 'processing'
+		Detail          string                              `json:"Detail" example:"Error message"`
+		Summary         string                              `json:"Summary" example:"Error"`
+		Operation       string                              `json:"operation" example:"scale"`       // 'scale', 'upgrade', 'addons'
+		OperationStatus portaineree.EndpointOperationStatus `json:"operationStatus" example:"error"` // '', 'error', 'processing'
 	}
 }
 

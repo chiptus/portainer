@@ -235,7 +235,7 @@ func (service *CloudManagementService) restoreTasks() {
 }
 
 // changeState changes the state of a task and updates the db
-func (service *CloudManagementService) changeState(task *portaineree.CloudProvisioningTask, newState ProvisioningState, message string, operationStatus string) {
+func (service *CloudManagementService) changeState(task *portaineree.CloudProvisioningTask, newState ProvisioningState, message string, operationStatus portaineree.EndpointOperationStatus) {
 	log.Debug().
 		Str("cluster_id", task.ClusterID).
 		Str("endpoint_id", strconv.Itoa(int(task.EndpointID))).
@@ -255,8 +255,8 @@ func (service *CloudManagementService) changeState(task *portaineree.CloudProvis
 	task.Retries = 0
 }
 
-func (service *CloudManagementService) setMessageHandler(id portaineree.EndpointID, operation string) func(summary, detail, operationStatus string) error {
-	return func(summary, detail, operationStatus string) error {
+func (service *CloudManagementService) setMessageHandler(id portaineree.EndpointID, operation string) func(summary, detail string, operationStatus portaineree.EndpointOperationStatus) error {
+	return func(summary, detail string, operationStatus portaineree.EndpointOperationStatus) error {
 		status := portaineree.EndpointStatusMessage{Summary: summary, Detail: detail, OperationStatus: operationStatus, Operation: operation}
 		err := service.dataStore.Endpoint().SetMessage(id, status)
 		if err != nil {
@@ -515,13 +515,13 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 			switch task.Provider {
 			case portaineree.CloudProviderMicrok8s:
 				// pendingState logic is completed outside of this function, but this is the initial state
-				service.changeState(&task, ProvisioningStateWaitingForCluster, "Waiting for MicroK8s cluster to become available", "processing")
+				service.changeState(&task, ProvisioningStateWaitingForCluster, "Waiting for MicroK8s cluster to become available", portaineree.EndpointOperationStatusProcessing)
 			case portaineree.CloudProviderKubeConfig:
-				service.changeState(&task, ProvisioningStateWaitingForCluster, "Importing Kubeconfig", "processing")
+				service.changeState(&task, ProvisioningStateWaitingForCluster, "Importing Kubeconfig", portaineree.EndpointOperationStatusProcessing)
 			case portaineree.CloudProviderPreinstalledAgent:
-				service.changeState(&task, ProvisioningStateDeployingCustomTemplate, "Deploying Custom Template", "processing")
+				service.changeState(&task, ProvisioningStateDeployingCustomTemplate, "Deploying Custom Template", portaineree.EndpointOperationStatusProcessing)
 			default:
-				service.changeState(&task, ProvisioningStateWaitingForCluster, "Creating KaaS cluster", "processing")
+				service.changeState(&task, ProvisioningStateWaitingForCluster, "Creating KaaS cluster", portaineree.EndpointOperationStatusProcessing)
 			}
 
 			continue
@@ -534,7 +534,7 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 			}
 
 			if cluster.Ready {
-				service.changeState(&task, ProvisioningStateAgentSetup, "Deploying Portainer agent", "processing")
+				service.changeState(&task, ProvisioningStateAgentSetup, "Deploying Portainer agent", portaineree.EndpointOperationStatusProcessing)
 				continue
 			}
 
@@ -572,7 +572,7 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 				break
 			}
 
-			service.changeState(&task, ProvisioningStateWaitingForAgent, "Waiting for agent response", "processing")
+			service.changeState(&task, ProvisioningStateWaitingForAgent, "Waiting for agent response", portaineree.EndpointOperationStatusProcessing)
 			fallthrough
 
 		case ProvisioningStateWaitingForAgent:
@@ -609,7 +609,7 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 
 			err = kubeClient.CheckRunningPortainerAgentDeployment(task.MasterNodes)
 			if err != nil {
-				setMessage("Waiting for agent response", "Waiting for the Portainer agent deployment to be ready (attempt "+strconv.Itoa(task.Retries+1)+" of "+strconv.Itoa(maxAttempts)+")", "processing")
+				setMessage("Waiting for agent response", "Waiting for the Portainer agent deployment to be ready (attempt "+strconv.Itoa(task.Retries+1)+" of "+strconv.Itoa(maxAttempts)+")", portaineree.EndpointOperationStatusProcessing)
 				err = checkFatal(err)
 				task.Retries++
 				break
@@ -622,7 +622,7 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 				Int("endpoint_id", int(task.EndpointID)).
 				Msg("portainer agent service is ready")
 
-			service.changeState(&task, ProvisioningStateUpdatingEnvironment, "Updating environment", "processing")
+			service.changeState(&task, ProvisioningStateUpdatingEnvironment, "Updating environment", portaineree.EndpointOperationStatusProcessing)
 			fallthrough
 
 		case ProvisioningStateUpdatingEnvironment:
@@ -635,9 +635,9 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 
 			// If custom template is used, we need to deploy custom template
 			if task.CustomTemplateID != 0 {
-				service.changeState(&task, ProvisioningStateDeployingCustomTemplate, "Deploying Custom Template", "processing")
+				service.changeState(&task, ProvisioningStateDeployingCustomTemplate, "Deploying Custom Template", portaineree.EndpointOperationStatusProcessing)
 			} else {
-				service.changeState(&task, ProvisioningStateDone, "Connecting", "processing")
+				service.changeState(&task, ProvisioningStateDone, "Connecting", portaineree.EndpointOperationStatusProcessing)
 			}
 
 			continue
@@ -653,7 +653,7 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 				}
 			}
 
-			service.changeState(&task, ProvisioningStateDone, "Connecting", "processing")
+			service.changeState(&task, ProvisioningStateDone, "Connecting", portaineree.EndpointOperationStatusProcessing)
 			fallthrough
 
 		case ProvisioningStateDone:
@@ -904,10 +904,10 @@ func (service *CloudManagementService) processResult(result *cloudPrevisioningRe
 			}
 		}
 
-		operationStatus := "error"
+		operationStatus := portaineree.EndpointOperationStatusError
 		var seedingError *clouderrors.ErrSeedingCluster
 		if errors.As(result.err, &seedingError) {
-			operationStatus = "warning"
+			operationStatus = portaineree.EndpointOperationStatusWarning
 		}
 
 		err = setMessage(result.errSummary, result.err.Error(), operationStatus)

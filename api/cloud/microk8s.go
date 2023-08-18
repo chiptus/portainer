@@ -107,7 +107,7 @@ func (service *CloudManagementService) Microk8sProvisionCluster(req mk8s.Microk8
 	setMessage := service.setMessageHandler(req.EnvironmentID, "")
 
 	// The first step is to install microk8s on all nodes concurrently.
-	setMessage("Creating MicroK8s cluster", "Installing MicroK8s on each node", "processing")
+	setMessage("Creating MicroK8s cluster", "Installing MicroK8s on each node", portaineree.EndpointOperationStatusProcessing)
 	nodes := append(req.MasterNodes, req.WorkerNodes...)
 	for _, nodeIp := range nodes {
 		func(credentials *models.CloudCredential, ip string) {
@@ -138,14 +138,14 @@ func (service *CloudManagementService) Microk8sProvisionCluster(req mk8s.Microk8
 		// Right now, we extract the hostname/IP from all the nodes after the first
 		// and we setup the /etc/hosts file on the first node (where the microk8s add-node command will be run)
 		// To be determined whether that is an infrastructure requirement and not something that Portainer should orchestrate.
-		setMessage("Creating MicroK8s cluster", "Adding host entries to all nodes", "processing")
+		setMessage("Creating MicroK8s cluster", "Adding host entries to all nodes", portaineree.EndpointOperationStatusProcessing)
 		err = mk8s.SetupHostEntries(req.Credentials, nodes)
 		if err != nil {
 			return "", err
 		}
 
 		for i := 1; i < len(nodes); i++ {
-			setMessage("Creating MicroK8s cluster", "Joining nodes to the cluster", "processing")
+			setMessage("Creating MicroK8s cluster", "Joining nodes to the cluster", portaineree.EndpointOperationStatusProcessing)
 			token, err := mk8s.RetrieveClusterJoinInformation(sshClient)
 			if err != nil {
 				return "", err
@@ -161,7 +161,7 @@ func (service *CloudManagementService) Microk8sProvisionCluster(req mk8s.Microk8
 	}
 
 	setMessageAddons := service.setMessageHandler(req.EnvironmentID, "addons")
-	setMessageAddons("Creating MicroK8s cluster", "Enabling addons", "processing")
+	setMessageAddons("Creating MicroK8s cluster", "Enabling addons", portaineree.EndpointOperationStatusProcessing)
 	// Activate addons on relevant nodes.
 	req.Addons.EnableAddons(
 		req.MasterNodes,
@@ -266,7 +266,7 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 	// defer just in case status message is not updated correctly
 	defer setMessage("Updating addons", "Addons updated", "")
 
-	setMessage("Updating addons", "Enabling/Disabling MicroK8s addons", "processing")
+	setMessage("Updating addons", "Enabling/Disabling MicroK8s addons", portaineree.EndpointOperationStatusProcessing)
 	microK8sInfo, err := service.Microk8sGetAddons(endpoint.ID, credentials)
 	if err != nil {
 		log.Error().Msgf("Failed to get MicroK8s addons: %v", err)
@@ -338,9 +338,9 @@ func (service *CloudManagementService) Microk8sUpdateAddons(endpoint *portainere
 		}
 	}
 
-	setMessage("Updating addons", "Disabling addons", "processing")
+	setMessage("Updating addons", "Disabling addons", portaineree.EndpointOperationStatusProcessing)
 	disableWarningAddons := deletedAddons.DisableAddons(masterNodes, workerNodes, credentials, setMessage)
-	setMessage("Updating addons", "Enabling addons", "processing")
+	setMessage("Updating addons", "Enabling addons", portaineree.EndpointOperationStatusProcessing)
 	enableWarningAddons := newAddons.EnableAddons(masterNodes, workerNodes, credentials, setMessage)
 
 	// Read endpoint again for fresh-copy

@@ -20,7 +20,7 @@ type (
 	Microk8sCluster struct {
 		DataStore         dataservices.DataStore
 		KubeClientFactory *kubecli.ClientFactory
-		SetMessage        func(title, message, status string) error
+		SetMessage        func(title, message string, status portaineree.EndpointOperationStatus) error
 	}
 )
 
@@ -127,7 +127,7 @@ func (service *Microk8sCluster) AddNodes(endpoint *portaineree.Endpoint, credent
 	var g errgroup.Group
 
 	// The first step is to install microk8s on all nodes concurrently.
-	service.SetMessage("Scaling cluster", "Installing MicroK8s on each node", "processing")
+	service.SetMessage("Scaling cluster", "Installing MicroK8s on each node", portaineree.EndpointOperationStatusProcessing)
 	nodes := append(req.MasterNodesToAdd, req.WorkerNodesToAdd...)
 
 	for _, node := range nodes {
@@ -144,7 +144,7 @@ func (service *Microk8sCluster) AddNodes(endpoint *portaineree.Endpoint, credent
 	}
 
 	log.Debug().Msgf("Creating host entries on nodes")
-	service.SetMessage("Scaling cluster", "Adding host entries to all nodes", "processing")
+	service.SetMessage("Scaling cluster", "Adding host entries to all nodes", portaineree.EndpointOperationStatusProcessing)
 
 	allNodes := append(util.NodeListToIpList(existingNodes), nodes...)
 	err = SetupHostEntries(credentials, allNodes)
@@ -161,7 +161,7 @@ func (service *Microk8sCluster) AddNodes(endpoint *portaineree.Endpoint, credent
 	for i := 0; i < len(nodes); i++ {
 		log.Info().Msgf("Joining nodes to cluster")
 
-		service.SetMessage("Scaling cluster", "Adding nodes to the cluster", "processing")
+		service.SetMessage("Scaling cluster", "Adding nodes to the cluster", portaineree.EndpointOperationStatusProcessing)
 		token, err := RetrieveClusterJoinInformation(sshClient)
 		if err != nil {
 			return fmt.Errorf("failed to get cluster join information %w", err)
@@ -176,7 +176,7 @@ func (service *Microk8sCluster) AddNodes(endpoint *portaineree.Endpoint, credent
 		}
 	}
 
-	service.SetMessage("Scaling cluster", "Enabling addons", "processing")
+	service.SetMessage("Scaling cluster", "Enabling addons", portaineree.EndpointOperationStatusProcessing)
 	addons := make(AddonsWithArgs, 0, len(endpoint.CloudProvider.AddonsWithArgs))
 	for _, addon := range endpoint.CloudProvider.AddonsWithArgs {
 		addons = append(addons, addon)

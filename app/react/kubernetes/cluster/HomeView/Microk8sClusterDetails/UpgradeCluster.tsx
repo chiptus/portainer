@@ -89,8 +89,7 @@ export function UpgradeCluster() {
                   disabled={
                     nextVersion === currentVersion ||
                     upgradeClusterMutation.isLoading ||
-                    isProcessing ||
-                    statusQuery.isRefetching
+                    isProcessing
                   }
                 >
                   {nextVersion === currentVersion
