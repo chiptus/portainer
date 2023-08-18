@@ -194,6 +194,14 @@ func (service *Service) CanProceedAsStaggerJob(id portaineree.EdgeStackID, fileV
 		return false
 	}
 
+	if !scheduleOperation.ShouldRollback() {
+		if scheduleOperation.endpointStatus[endpointID] == portainer.EdgeStackStatusRunning {
+			log.Debug().Msg("[Stagger service] Endpoint is already updated, skip")
+
+			return true
+		}
+	}
+
 	staggeringEndpoints := scheduleOperation.staggerQueue[scheduleOperation.currentIndex]
 	for _, staggeringEndpoint := range staggeringEndpoints {
 		if staggeringEndpoint != endpointID {

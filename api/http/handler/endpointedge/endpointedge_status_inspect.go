@@ -442,6 +442,14 @@ func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID 
 			if handler.staggerService.MarkedAsCompleted(stackID, stack.StackFileVersion) {
 				log.Debug().Msg("[stagger status inspect] Marked as completed, skip")
 
+				// There is a chance that endpoint status has updated in the databse, but the
+				// cached stack is still the previous one. So we need to retrieve the latest
+				// stack from the database
+				edgeStack, err := tx.EdgeStack().EdgeStack(stackID)
+				if err == nil {
+					stack = edgeStack
+				}
+
 				endpointStatus := stack.Status[endpointID]
 				if endpointStatus.DeploymentInfo.Version == 0 {
 					// The endpoint has never deployed an edge stack
