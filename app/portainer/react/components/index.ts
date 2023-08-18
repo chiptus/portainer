@@ -243,7 +243,7 @@ export const ngModule = angular
   )
   .component(
     'licenseInfoPanel',
-    r2a(LicenseInfoPanel, [
+    r2a(withReactQuery(withCurrentUser(LicenseInfoPanel)), [
       'template',
       'licenseInfo',
       'usedNodes',

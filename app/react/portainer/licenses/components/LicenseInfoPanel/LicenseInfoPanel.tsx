@@ -2,6 +2,8 @@ import moment from 'moment';
 import { Award, AlertCircle, AlertTriangle, ArrowUpRight } from 'lucide-react';
 import clsx from 'clsx';
 
+import { usePublicSettings } from '@/react/portainer/settings/queries';
+
 import { Icon } from '@@/Icon';
 import { ProgressBar } from '@@/ProgressBar';
 import { Badge, BadgeType } from '@@/Badge';
@@ -24,13 +26,32 @@ export function LicenseInfoPanel({
   usedNodes,
   untrustedDevices = 0,
 }: Props) {
+  const { data: settings, ...settingsQuery } = usePublicSettings();
+
+  if (!settingsQuery.isLoading && !settings) {
+    return null;
+  }
+
+  // if TrustOnFirstConnect hides the waiting room, then add this as a check here too
+  const showWaitingRoomDevices = !!settings?.EnableEdgeComputeFeatures;
+
   let widget = null;
   switch (template) {
     case 'info':
-      widget = buildInfoWidget(licenseInfo, usedNodes, untrustedDevices);
+      widget = buildInfoWidget(
+        licenseInfo,
+        usedNodes,
+        untrustedDevices,
+        showWaitingRoomDevices
+      );
       break;
     case 'alert':
-      widget = buildAlertWidget(licenseInfo, usedNodes, untrustedDevices);
+      widget = buildAlertWidget(
+        licenseInfo,
+        usedNodes,
+        untrustedDevices,
+        showWaitingRoomDevices
+      );
       break;
     case 'enforcement':
       widget = buildCountdownWidget(licenseInfo, usedNodes);
@@ -49,7 +70,8 @@ export function LicenseInfoPanel({
 function buildInfoWidget(
   licenseInfo: LicenseInfo,
   usedNodes: number,
-  untrustedDevices: number
+  untrustedDevices: number,
+  showWaitingRoomDevices: boolean
 ) {
   const contentSection = buildInfoContent(licenseInfo, usedNodes);
   const expiredAt = moment.unix(licenseInfo.expiresAt);
@@ -85,6 +107,7 @@ function buildInfoWidget(
           valid={licenseInfo.valid}
           trial={licenseInfo.type === 1}
           untrustedDevices={untrustedDevices}
+          showWaitingRoomDevices={showWaitingRoomDevices}
         />
       </div>
       <hr className={styles.divider} />
@@ -96,7 +119,8 @@ function buildInfoWidget(
 function buildAlertWidget(
   licenseInfo: LicenseInfo,
   usedNodes: number,
-  untrustedDevices: number
+  untrustedDevices: number,
+  showWaitingRoomDevices: boolean
 ) {
   const contentSection = buildInfoContent(licenseInfo, usedNodes);
 
@@ -115,6 +139,7 @@ function buildAlertWidget(
         valid={licenseInfo.valid}
         trial={licenseInfo.type === 1}
         untrustedDevices={untrustedDevices}
+        showWaitingRoomDevices={showWaitingRoomDevices}
       />
       <div className={styles.alertExtra}>
         <Icon
@@ -232,41 +257,51 @@ function Details({
   valid,
   trial,
   untrustedDevices,
+  showWaitingRoomDevices,
 }: {
   used: number;
   total: number;
   valid: boolean;
   trial: boolean;
   untrustedDevices: number;
+  showWaitingRoomDevices: boolean;
 }) {
   let nodesUsedMsg = `${used.toString()} / ${total.toString()} nodes used`;
-  let iconColor = used > total ? 'var(--error-7)' : 'var(--blue-8)';
+  let iconColor = used > total ? '!bg-error-7' : '!bg-blue-7';
   let waitingRoomType: BadgeType =
     used + untrustedDevices > total ? 'warn' : 'info';
+  let untrustedDevicesColor =
+    used + untrustedDevices > total
+      ? '!bg-warning-3 th-dark:!bg-warning-10 th-highcontrast:!bg-warning-10'
+      : '!bg-blue-4 th-dark:!bg-blue-10 th-highcontrast:!bg-blue-10';
   if (trial && valid) {
     nodesUsedMsg = `${used.toString()} out of unlimited nodes used`;
-    iconColor = 'var(--blue-8)';
+    iconColor = '!bg-blue-8 th-dark:!bg-blue-6 th-highcontrast:!bg-blue-6';
+    untrustedDevicesColor =
+      '!bg-blue-4 th-dark:!bg-blue-10 th-highcontrast:!bg-blue-10';
     waitingRoomType = 'info';
   }
 
   return (
     <div>
       <div className="flex">
-        <b className="space-right">{nodesUsedMsg}</b>
-        <Badge type={waitingRoomType}>
-          +{untrustedDevices} in waiting room
-        </Badge>
+        <b>{nodesUsedMsg}</b>
+        {showWaitingRoomDevices && (
+          <Badge className="space-left" type={waitingRoomType}>
+            +{untrustedDevices} in waiting room
+          </Badge>
+        )}
       </div>
 
       <ProgressBar
         steps={[
           {
             value: used,
-            color: iconColor,
+            className: iconColor,
           },
           {
-            value: untrustedDevices,
-            color: iconColor,
+            value: showWaitingRoomDevices ? untrustedDevices : 0,
+            className: untrustedDevicesColor,
           },
         ]}
         total={total}

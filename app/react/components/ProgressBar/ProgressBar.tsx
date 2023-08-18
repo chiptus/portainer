@@ -2,7 +2,8 @@ import clsx from 'clsx';
 
 import styles from './ProgressBar.module.css';
 
-type Step = { value: number; color: string };
+type Step = { value: number; color?: string; className?: string };
+type StepWithPercent = Step & { percent: number };
 interface Props {
   steps: Array<Step>;
   total: number;
@@ -11,25 +12,32 @@ interface Props {
 
 export function ProgressBar({ steps, total, className }: Props) {
   const { steps: reducedSteps } = steps.reduce<{
-    steps: Array<Step & { percent: number }>;
+    steps: Array<StepWithPercent>;
     total: number;
+    totalPercent: number;
   }>(
     (acc, cur) => {
       const value =
         acc.total + cur.value > total ? total - acc.total : cur.value;
+      // If the remaining acc.total + the current value adds up to the total, then make sure the percentage will fill the remaining bar space
+      const percent =
+        acc.total + value === total
+          ? 100 - acc.totalPercent
+          : Math.floor((value / total) * 100);
       return {
         steps: [
           ...acc.steps,
           {
             ...cur,
             value,
-            percent: Math.floor((value / total) * 100),
+            percent,
           },
         ],
         total: acc.total + value,
+        totalPercent: acc.totalPercent + percent,
       };
     },
-    { steps: [], total: 0 }
+    { steps: [], total: 0, totalPercent: 0 }
   );
 
   const sum = steps.reduce((sum, s) => sum + s.value, 0);
@@ -48,7 +56,7 @@ export function ProgressBar({ steps, total, className }: Props) {
       {reducedSteps.map((step, index) => (
         <div
           key={index}
-          className="progress-bar shadow-none"
+          className={clsx('progress-bar shadow-none', step.className)}
           style={{
             width: `${step.percent}%`,
             backgroundColor: step.color,

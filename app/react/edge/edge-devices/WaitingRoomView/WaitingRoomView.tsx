@@ -33,10 +33,12 @@ function WaitingRoomView() {
         <div className="row">
           <div className="col-sm-12">
             <Alert color="warn">
-              Associating all nodes in waiting room will exceed the node limit
-              of your current license. Go to{' '}
-              <Link to="portainer.licenses">Licenses</Link> page to view the
-              current usage.
+              <div>
+                Associating all nodes in waiting room will exceed the node limit
+                of your current license. Go to{' '}
+                <Link to="portainer.licenses">Licenses</Link> page to view the
+                current usage.
+              </div>
             </Alert>
           </div>
         </div>
