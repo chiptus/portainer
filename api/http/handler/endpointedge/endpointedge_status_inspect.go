@@ -447,6 +447,15 @@ func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID 
 				// stack from the database
 				edgeStack, err := tx.EdgeStack().EdgeStack(stackID)
 				if err == nil {
+					if edgeStack.StackFileVersion != stack.StackFileVersion {
+						// If the stack file version is not the latest one, we need to skip the cache
+						// ETag for the current status request.
+						// This case can happen when the user quickly redeploy a new stagger update right
+						// after the previous stagger update is completed. In the middle of the update, the
+						// agent polls the status of the edge stack with the previous file version. This is
+						// an edge case
+						*skipCache = true
+					}
 					stack = edgeStack
 				}
 
