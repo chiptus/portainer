@@ -76,6 +76,10 @@ func (migrator *Migrator) rebuildEdgeStackFileSystemWithVersionForDB100() error 
 	}
 
 	for _, edgeStack := range edgeStacks {
+		if edgeStack.StackFileVersion > 0 {
+			continue
+		}
+
 		commitHash := ""
 		if edgeStack.GitConfig != nil {
 			commitHash = edgeStack.GitConfig.ConfigHash
@@ -317,6 +321,10 @@ func (migrator *Migrator) rebuildStackFileSystemWithVersionForDB100() error {
 	}
 
 	for _, stack := range stacks {
+		if stack.StackFileVersion > 0 {
+			continue
+		}
+
 		commitHash := ""
 		if stack.GitConfig != nil {
 			commitHash = stack.GitConfig.ConfigHash
