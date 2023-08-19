@@ -50,8 +50,10 @@ type snapshot struct {
 	KubernetesPatch jsonpatch.Patch                 `json:"kubernetesPatch,omitempty"`
 	KubernetesHash  *uint32                         `json:"kubernetesHash,omitempty"`
 
-	StackLogs        []portaineree.EdgeStackLog                                        `json:"stackLogs,omitempty"`
-	StackStatus      map[portaineree.EdgeStackID][]portainer.EdgeStackDeploymentStatus `json:"stackStatus,omitempty"`
+	StackLogs []portaineree.EdgeStackLog `json:"stackLogs,omitempty"`
+	// Deprecated: StackStatus is deprecated, use StackStatusArray instead
+	StackStatus      map[portaineree.EdgeStackID]portainer.EdgeStackStatus             `json:"stackStatus,omitempty"`
+	StackStatusArray map[portaineree.EdgeStackID][]portainer.EdgeStackDeploymentStatus `json:"stackStatusArray,omitempty"`
 	JobsStatus       map[portaineree.EdgeJobID]portaineree.EdgeJobStatus               `json:"jobsStatus,omitempty"`
 	EdgeConfigStates map[portaineree.EdgeConfigID]portaineree.EdgeConfigStateType      `json:"edgeConfigStates,omitempty"`
 }
@@ -522,8 +524,13 @@ func (handler *Handler) updateKubernetesSnapshot(tx dataservices.DataStoreTx, en
 }
 
 func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, snapshotPayload *snapshot, needFullSnapshot *bool) {
+	// Save edge stacks status (handle old status structure < 2.19.0)
+	if snapshotPayload.StackStatus != nil && snapshotPayload.StackStatusArray == nil {
+		snapshotPayload.StackStatusArray = convertOldStackStatus(snapshotPayload.StackStatus)
+	}
+
 	// Save edge stacks status
-	for stackID, status := range snapshotPayload.StackStatus {
+	for stackID, status := range snapshotPayload.StackStatusArray {
 		stack, err := tx.EdgeStack().EdgeStack(stackID)
 		if err != nil {
 			log.Error().Err(err).Int("stack_id", int(stackID)).Msg("fetch edge stack")
@@ -777,4 +784,53 @@ func snapshotHash(snapshot []byte) uint32 {
 	h.Write(snapshot)
 
 	return h.Sum32()
+}
+
+func convertOldStackStatus(stackStatus map[portaineree.EdgeStackID]portainer.EdgeStackStatus) map[portaineree.EdgeStackID][]portainer.EdgeStackDeploymentStatus {
+	stackStatusArray := make(map[portaineree.EdgeStackID][]portainer.EdgeStackDeploymentStatus)
+
+	for endpointID, status := range stackStatus {
+
+		statuses := []portainer.EdgeStackDeploymentStatus{}
+
+		if status.Details.Acknowledged {
+			statuses = append(statuses, portainer.EdgeStackDeploymentStatus{
+				Type: portainer.EdgeStackStatusAcknowledged,
+				Time: time.Now().Unix(),
+			})
+		}
+
+		if status.Details.ImagesPulled {
+			statuses = append(statuses, portainer.EdgeStackDeploymentStatus{
+				Time: time.Now().Unix(),
+				Type: portainer.EdgeStackStatusImagesPulled,
+			})
+		}
+
+		if status.Details.Error {
+			statuses = append(statuses, portainer.EdgeStackDeploymentStatus{
+				Time:  time.Now().Unix(),
+				Type:  portainer.EdgeStackStatusError,
+				Error: status.Error,
+			})
+		}
+
+		if status.Details.Ok {
+			statuses = append(statuses, portainer.EdgeStackDeploymentStatus{
+				Time: time.Now().Unix(),
+				Type: portainer.EdgeStackStatusDeploymentReceived,
+			})
+		}
+
+		if status.Details.Remove {
+			statuses = append(statuses, portainer.EdgeStackDeploymentStatus{
+				Time: time.Now().Unix(),
+				Type: portainer.EdgeStackStatusRemoving,
+			})
+		}
+
+		stackStatusArray[endpointID] = statuses
+	}
+
+	return stackStatusArray
 }
