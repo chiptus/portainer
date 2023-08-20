@@ -34,4 +34,10 @@
       <span> {{ $ctrl.cpuUsage | kubernetesApplicationCPUValue }} / {{ $ctrl.cpuLimit }} - {{ $ctrl.cpuUsagePercent }}% </span>
     </div>
   </div>
+  <div class="form-group">
+    <span class="col-sm-12 text-warning small vertical-center" ng-if="$ctrl.displayWarning">
+      <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon>
+      {{ $ctrl.warningMessage }}
+    </span>
+  </div>
 </div>

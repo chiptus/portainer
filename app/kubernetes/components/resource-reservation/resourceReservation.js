@@ -10,5 +10,7 @@ angular.module('portainer.kubernetes').component('kubernetesResourceReservation'
     memoryUsage: '<',
     memoryLimit: '<',
     displayUsage: '<',
+    displayWarning: '<',
+    warningMessage: '@',
   },
 });

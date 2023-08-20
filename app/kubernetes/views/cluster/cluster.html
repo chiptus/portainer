@@ -15,9 +15,11 @@
               cpu-limit="ctrl.CPULimit"
               memory-reservation="ctrl.resourceReservation.Memory"
               memory-limit="ctrl.MemoryLimit"
-              display-usage="ctrl.hasResourceUsageAccess()"
+              display-usage="ctrl.showResourceUsage"
               cpu-usage="ctrl.resourceUsage.CPU"
               memory-usage="ctrl.resourceUsage.Memory"
+              display-warning="!ctrl.isMetricsServerResponding"
+              warning-message="Metrics server is not responding. Resource usage is not available."
             >
             </kubernetes-resource-reservation>
           </form>

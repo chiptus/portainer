@@ -108,9 +108,12 @@ class KubernetesClusterController {
         return total;
       }, new KubernetesResourceReservation());
       this.resourceUsage = clusterResourceUsage;
+      this.isMetricsServerResponding = true;
     } catch (err) {
-      this.Notifications.error('Failure', err, 'Unable to retrieve cluster resource usage');
+      this.isMetricsServerResponding = false;
     }
+
+    console.log('this.isMetricsServerResponding', this.isMetricsServerResponding);
   }
 
   /**
@@ -135,6 +138,8 @@ class KubernetesClusterController {
       await this.getEndpoints();
     }
     await this.getApplications();
+
+    this.showResourceUsage = this.hasResourceUsageAccess() && this.isMetricsServerResponding;
 
     this.state.viewReady = true;
   }

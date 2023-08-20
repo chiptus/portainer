@@ -1,6 +1,7 @@
 package microk8s
 
 import (
+	"os"
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -169,6 +170,11 @@ func (addons AddonsWithArgs) DisableAddons(
 						// Rather than fail the whole thing. Warn the user and allow them to manually try to disable the addon
 						log.Warn().AnErr("error", err).Msgf("failed to disable microk8s addon %s on node. error: ", addon)
 						failedAddons = append(failedAddons, addon)
+					}
+
+					if addon.Name == "metrics-server" {
+						// Wait until the metrics-server pod in the kube-system namespace exits or timeout after 5 minutes
+						sshClientNode.RunCommand("kubectl wait pod -l k8s-app=metrics-server --for=delete -n kube-system --timeout=300s", os.Stdout)
 					}
 				}()
 			}
