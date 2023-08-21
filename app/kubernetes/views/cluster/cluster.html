@@ -18,8 +18,8 @@
               display-usage="ctrl.showResourceUsage"
               cpu-usage="ctrl.resourceUsage.CPU"
               memory-usage="ctrl.resourceUsage.Memory"
-              display-warning="!ctrl.isMetricsServerResponding"
-              warning-message="Metrics server is not responding. Resource usage is not available."
+              display-warning="ctrl.hasResourceUsageAccess() && !ctrl.isMetricsServerResponding"
+              warning-message="Resource usage is not currently available as Metrics Server is not responding. If you've recently upgraded, Metrics Server may take a while to restart, so please check back shortly."
             >
             </kubernetes-resource-reservation>
           </form>

@@ -112,8 +112,6 @@ class KubernetesClusterController {
     } catch (err) {
       this.isMetricsServerResponding = false;
     }
-
-    console.log('this.isMetricsServerResponding', this.isMetricsServerResponding);
   }
 
   /**

@@ -174,7 +174,7 @@ func (addons AddonsWithArgs) DisableAddons(
 
 					if addon.Name == "metrics-server" {
 						// Wait until the metrics-server pod in the kube-system namespace exits or timeout after 5 minutes
-						sshClientNode.RunCommand("kubectl wait pod -l k8s-app=metrics-server --for=delete -n kube-system --timeout=300s", os.Stdout)
+						sshClientNode.RunCommand("microk8s kubectl wait pod -l k8s-app=metrics-server --for=delete -n kube-system --timeout=300s", os.Stdout)
 					}
 				}()
 			}
