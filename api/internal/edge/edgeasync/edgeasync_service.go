@@ -70,10 +70,10 @@ type normalStackData struct {
 
 type Service struct {
 	dataStore   dataservices.DataStore
-	fileService portainer.FileService
+	fileService portaineree.FileService
 }
 
-func NewService(dataStore dataservices.DataStore, fileService portainer.FileService) *Service {
+func NewService(dataStore dataservices.DataStore, fileService portaineree.FileService) *Service {
 	return &Service{
 		dataStore:   dataStore,
 		fileService: fileService,
@@ -583,6 +583,42 @@ func (service *Service) RemoveNormalStackCommand(endpointID portaineree.Endpoint
 
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
 }
+
+func (service *Service) PushConfigCommand(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeConfig *portaineree.EdgeConfig, edgeConfigState *portaineree.EdgeConfigState) error {
+	if !endpoint.Edge.AsyncMode {
+		return nil
+	}
+
+	dirEntries, err := service.fileService.GetEdgeConfigDirEntries(edgeConfig, endpoint.EdgeID, portaineree.EdgeConfigCurrent)
+	if err != nil {
+		return err
+	}
+
+	switch edgeConfigState.States[edgeConfig.ID] {
+	case portaineree.EdgeConfigUpdatingState:
+		prevDirEntries, err := service.fileService.GetEdgeConfigDirEntries(edgeConfig, endpoint.EdgeID, portaineree.EdgeConfigPrevious)
+		if err != nil {
+			return err
+		}
+
+		if err = service.UpdateConfigCommandTx(tx, endpoint.ID, edgeConfig, dirEntries, prevDirEntries); err != nil {
+			return err
+		}
+
+	case portaineree.EdgeConfigSavingState:
+		if err = service.AddConfigCommandTx(tx, endpoint.ID, edgeConfig, dirEntries); err != nil {
+			return err
+		}
+
+	case portaineree.EdgeConfigDeletingState:
+		if err = service.DeleteConfigCommandTx(tx, endpoint.ID, edgeConfig, dirEntries); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (service *Service) AddConfigCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeConfig *portaineree.EdgeConfig, files []filesystem.DirEntry) error {
 	return service.storeUpdateConfigCommand(tx, endpointID, edgeConfig, portaineree.EdgeAsyncCommandOpAdd, files, nil)
 }

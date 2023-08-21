@@ -12,10 +12,10 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/chisel"
 	"github.com/portainer/portainer-ee/api/datastore"
+	"github.com/portainer/portainer-ee/api/filesystem"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
-	"github.com/portainer/portainer/api/filesystem"
 )
 
 func mustSetupGlobalKeyHandler(t *testing.T) *Handler {

@@ -138,7 +138,7 @@ func (handler *Handler) updateEdgeConfigs(tx dataservices.DataStoreTx, endpoint 
 
 		edgeConfig.Progress.Total++
 
-		if err := tx.EdgeConfig().Update(edgeConfigID, edgeConfig); err != nil {
+		if err = tx.EdgeConfig().Update(edgeConfigID, edgeConfig); err != nil {
 			return err
 		}
 
@@ -150,23 +150,18 @@ func (handler *Handler) updateEdgeConfigs(tx dataservices.DataStoreTx, endpoint 
 				States:     make(map[portaineree.EdgeConfigID]portaineree.EdgeConfigStateType),
 			}
 
-			if err := tx.EdgeConfigState().Create(edgeConfigState); err != nil {
+			if err = tx.EdgeConfigState().Create(edgeConfigState); err != nil {
 				return err
 			}
 		}
 
 		edgeConfigState.States[edgeConfigID] = portaineree.EdgeConfigSavingState
 
-		if err := tx.EdgeConfigState().Update(edgeConfigState.EndpointID, edgeConfigState); err != nil {
+		if err = tx.EdgeConfigState().Update(edgeConfigState.EndpointID, edgeConfigState); err != nil {
 			return err
 		}
 
-		dirEntries, err := handler.FileService.GetEdgeConfigDirEntries(edgeConfig, endpoint.EdgeID, portaineree.EdgeConfigCurrent)
-		if err != nil {
-			return httperror.InternalServerError("Unable to process the files for the edge configuration", err)
-		}
-
-		if err = handler.edgeService.AddConfigCommandTx(tx, endpoint.ID, edgeConfig, dirEntries); err != nil {
+		if err = handler.edgeService.PushConfigCommand(tx, endpoint, edgeConfig, edgeConfigState); err != nil {
 			return httperror.InternalServerError("Unable to persist the edge configuration command inside the database", err)
 		}
 	}

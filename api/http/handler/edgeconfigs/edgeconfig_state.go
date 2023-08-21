@@ -62,81 +62,79 @@ func TransitionToState(
 	tx dataservices.DataStoreTx,
 	edgeConfigID portaineree.EdgeConfigID,
 	endpointID portaineree.EndpointID,
-	state portaineree.EdgeConfigStateType) error {
+	nextEnvState portaineree.EdgeConfigStateType) error {
 
-	// Environment state
 	edgeConfigState, err := tx.EdgeConfigState().Read(endpointID)
 	if err != nil {
 		return err
 	}
 
-	currentState, ok := edgeConfigState.States[portaineree.EdgeConfigID(edgeConfigID)]
+	currentEnvState, ok := edgeConfigState.States[portaineree.EdgeConfigID(edgeConfigID)]
 	if !ok {
 		return errors.New("current state not found for edge config")
 	}
 
-	if !validTransition(currentState, portaineree.EdgeConfigStateType(state)) {
+	if !validTransition(currentEnvState, nextEnvState) {
 		return errors.New("invalid transition")
 	}
 
-	edgeConfigState.States[portaineree.EdgeConfigID(edgeConfigID)] = portaineree.EdgeConfigStateType(state)
+	edgeConfigState.States[portaineree.EdgeConfigID(edgeConfigID)] = nextEnvState
 
 	err = tx.EdgeConfigState().Update(endpointID, edgeConfigState)
 	if err != nil {
 		return err
 	}
 
-	// Edge Config state
 	edgeConfig, err := tx.EdgeConfig().Read(portaineree.EdgeConfigID(edgeConfigID))
 	if err != nil {
 		return err
 	}
 
-	switch portaineree.EdgeConfigStateType(state) {
-	case portaineree.EdgeConfigIdleState:
+	if nextEnvState == portaineree.EdgeConfigFailureState {
+		edgeConfig.State = portaineree.EdgeConfigFailureState
 
-		switch edgeConfig.State {
-		// Idle -> Idle (a single environment is being added/removed from the edge config)
-		case portaineree.EdgeConfigIdleState:
-			if currentState == portaineree.EdgeConfigDeletingState {
-				delete(edgeConfigState.States, edgeConfig.ID)
+		return tx.EdgeConfig().Update(edgeConfig.ID, edgeConfig)
+	} else if nextEnvState != portaineree.EdgeConfigIdleState {
+		return nil
+	}
 
-				err = tx.EdgeConfigState().Update(endpointID, edgeConfigState)
-				if err != nil {
-					return err
-				}
+	switch edgeConfig.State {
+	// Saving | Updating | Idle | Failure -> Idle
+	case portaineree.EdgeConfigSavingState, portaineree.EdgeConfigUpdatingState, portaineree.EdgeConfigIdleState, portaineree.EdgeConfigFailureState:
+		if currentEnvState == portaineree.EdgeConfigDeletingState {
+			delete(edgeConfigState.States, edgeConfig.ID)
 
-				edgeConfig.Progress.Success--
-				edgeConfig.Progress.Total--
-			} else if currentState == portaineree.EdgeConfigSavingState {
-				edgeConfig.Progress.Success++
-			}
-
-		// Deleting -> Deleted
-		case portaineree.EdgeConfigDeletingState:
-			edgeConfig.Progress.Success++
-
-			if edgeConfig.Progress.Success != edgeConfig.Progress.Total {
-				break
-			}
-
-			if err := removeEdgeConfigStates(tx, edgeConfig.ID); err != nil {
+			if err = tx.EdgeConfigState().Update(endpointID, edgeConfigState); err != nil {
 				return err
 			}
 
-			return tx.EdgeConfig().Delete(edgeConfig.ID)
-
-		// Saving | Updating -> Idle
-		case portaineree.EdgeConfigSavingState, portaineree.EdgeConfigUpdatingState:
-			edgeConfig.Progress.Success++
-
-			if edgeConfig.Progress.Success == edgeConfig.Progress.Total {
-				edgeConfig.State = portaineree.EdgeConfigIdleState
+			// Environment being removed indirectly
+			if edgeConfig.State == portaineree.EdgeConfigIdleState {
+				edgeConfig.Progress.Success--
 			}
+
+			edgeConfig.Progress.Total--
+		} else if currentEnvState == portaineree.EdgeConfigSavingState || currentEnvState == portaineree.EdgeConfigUpdatingState {
+			edgeConfig.Progress.Success++
 		}
 
-	case portaineree.EdgeConfigFailureState:
-		edgeConfig.State = portaineree.EdgeConfigFailureState
+		if edgeConfig.Progress.Success == edgeConfig.Progress.Total {
+			edgeConfig.State = portaineree.EdgeConfigIdleState
+		}
+
+	// Deleting -> Deleted
+	case portaineree.EdgeConfigDeletingState:
+		edgeConfig.Progress.Success++
+
+		if edgeConfig.Progress.Success != edgeConfig.Progress.Total {
+			break
+		}
+
+		if err = removeEdgeConfigStates(tx, edgeConfig.ID); err != nil {
+			return err
+		}
+
+		return tx.EdgeConfig().Delete(edgeConfig.ID)
 	}
 
 	return tx.EdgeConfig().Update(edgeConfig.ID, edgeConfig)

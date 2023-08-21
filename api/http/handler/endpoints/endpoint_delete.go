@@ -311,6 +311,10 @@ func (handler *Handler) deleteEdgeConfigs(tx dataservices.DataStoreTx, endpoint 
 
 		config.Progress.Total--
 
+		if config.Progress.Success == config.Progress.Total {
+			config.State = portaineree.EdgeConfigIdleState
+		}
+
 		tx.EdgeConfig().Update(config.ID, config)
 	}
 

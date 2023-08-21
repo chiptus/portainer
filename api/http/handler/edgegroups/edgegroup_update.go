@@ -311,16 +311,7 @@ func (handler *Handler) updateEdgeConfigs(tx dataservices.DataStoreTx, endpoint 
 			return err
 		}
 
-		if !endpoint.Edge.AsyncMode {
-			continue
-		}
-
-		dirEntries, err := handler.FileService.GetEdgeConfigDirEntries(edgeConfig, endpoint.EdgeID, portaineree.EdgeConfigCurrent)
-		if err != nil {
-			return httperror.InternalServerError("Unable to process the files for the edge configuration", err)
-		}
-
-		if err = handler.edgeAsyncService.AddConfigCommandTx(tx, endpoint.ID, edgeConfig, dirEntries); err != nil {
+		if err = handler.edgeAsyncService.PushConfigCommand(tx, endpoint, edgeConfig, edgeConfigState); err != nil {
 			return httperror.InternalServerError("Unable to persist the edge configuration command inside the database", err)
 		}
 	}

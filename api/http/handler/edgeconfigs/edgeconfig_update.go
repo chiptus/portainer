@@ -11,6 +11,8 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/edge/cache"
+	"github.com/portainer/portainer-ee/api/internal/slices"
+	"github.com/portainer/portainer-ee/api/internal/unique"
 )
 
 type edgeConfigUpdatePayload struct {
@@ -70,9 +72,9 @@ func (h *Handler) edgeConfigUpdate(w http.ResponseWriter, r *http.Request) *http
 		return httperror.BadRequest("Invalid JWT token", err)
 	}
 
-	var relatedEndpointIDs []portaineree.EndpointID
+	var endpointIDsToUpdate []portaineree.EndpointID
 	err = h.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		relatedEndpointIDs, err = h.getRelatedEndpointIDs(tx, payload.EdgeGroupIDs)
+		nextRelatedEndpointIDs, err := h.getRelatedEndpointIDs(tx, payload.EdgeGroupIDs)
 		if err != nil {
 			return err
 		}
@@ -82,8 +84,17 @@ func (h *Handler) edgeConfigUpdate(w http.ResponseWriter, r *http.Request) *http
 			return err
 		}
 
-		if edgeConfig.State != portaineree.EdgeConfigIdleState {
-			return errors.New("edge configuration cannot be updated unless it has been succesfully deployed first")
+		currentRelatedEndpointIDs, err := h.getRelatedEndpointIDs(tx, edgeConfig.EdgeGroupIDs)
+		if err != nil {
+			return err
+		}
+
+		endpointIDsToUpdate = append(endpointIDsToUpdate, nextRelatedEndpointIDs...)
+		endpointIDsToUpdate = append(endpointIDsToUpdate, currentRelatedEndpointIDs...)
+		endpointIDsToUpdate = unique.Unique(endpointIDsToUpdate)
+
+		if edgeConfig.State != portaineree.EdgeConfigIdleState && edgeConfig.State != portaineree.EdgeConfigFailureState {
+			return errors.New("edge configuration cannot be updated while a deployment is in progress")
 		}
 
 		edgeConfig.Prev = &portaineree.EdgeConfig{
@@ -96,7 +107,7 @@ func (h *Handler) edgeConfigUpdate(w http.ResponseWriter, r *http.Request) *http
 		edgeConfig.EdgeGroupIDs = payload.EdgeGroupIDs
 		edgeConfig.UpdatedBy = token.ID
 		edgeConfig.Progress.Success = 0
-		edgeConfig.Progress.Total = len(relatedEndpointIDs)
+		edgeConfig.Progress.Total = len(endpointIDsToUpdate)
 
 		if err = tx.EdgeConfig().Update(edgeConfig.ID, edgeConfig); err != nil {
 			return err
@@ -112,7 +123,7 @@ func (h *Handler) edgeConfigUpdate(w http.ResponseWriter, r *http.Request) *http
 			}
 		}
 
-		for _, endpointID := range relatedEndpointIDs {
+		for _, endpointID := range endpointIDsToUpdate {
 			endpoint, err := tx.Endpoint().Endpoint(endpointID)
 			if err != nil {
 				return httperror.BadRequest("Unable to retrieve endpoint", err)
@@ -131,7 +142,14 @@ func (h *Handler) edgeConfigUpdate(w http.ResponseWriter, r *http.Request) *http
 				}
 			}
 
-			if _, ok := edgeConfigState.States[edgeConfig.ID]; ok {
+			if s, ok := edgeConfigState.States[edgeConfig.ID]; ok &&
+				(s != portaineree.EdgeConfigIdleState && s != portaineree.EdgeConfigFailureState) {
+				return errors.New("edge configuration cannot be updated while a deployment is in progress")
+			}
+
+			if !slices.Contains(nextRelatedEndpointIDs, endpoint.ID) {
+				edgeConfigState.States[edgeConfig.ID] = portaineree.EdgeConfigDeletingState
+			} else if _, ok := edgeConfigState.States[edgeConfig.ID]; ok {
 				edgeConfigState.States[edgeConfig.ID] = portaineree.EdgeConfigUpdatingState
 			} else {
 				edgeConfigState.States[edgeConfig.ID] = portaineree.EdgeConfigSavingState
@@ -141,22 +159,8 @@ func (h *Handler) edgeConfigUpdate(w http.ResponseWriter, r *http.Request) *http
 				return httperror.InternalServerError("Unable to persist the edge configuration state inside the database", err)
 			}
 
-			if !endpoint.Edge.AsyncMode {
-				continue
-			}
-
-			dirEntries, err := h.fileService.GetEdgeConfigDirEntries(edgeConfig, endpoint.EdgeID, portaineree.EdgeConfigCurrent)
-			if err != nil {
-				return httperror.InternalServerError("Unable to process the files for the edge configuration", err)
-			}
-
-			prevDirEntries, err := h.fileService.GetEdgeConfigDirEntries(edgeConfig, endpoint.EdgeID, portaineree.EdgeConfigPrevious)
-			if err != nil {
-				return httperror.InternalServerError("Unable to process the files for the edge configuration", err)
-			}
-
-			if err = h.edgeAsyncService.UpdateConfigCommandTx(tx, endpoint.ID, edgeConfig, dirEntries, prevDirEntries); err != nil {
-				return httperror.InternalServerError("Unable to persist the edge configuration command inside the database", err)
+			if err = h.edgeAsyncService.PushConfigCommand(tx, endpoint, edgeConfig, edgeConfigState); err != nil {
+				return httperror.InternalServerError("Unable to persist the edge configuration async command", err)
 			}
 		}
 
@@ -166,7 +170,7 @@ func (h *Handler) edgeConfigUpdate(w http.ResponseWriter, r *http.Request) *http
 		return httperror.BadRequest("Unable to update the edge configuration in the database", err)
 	}
 
-	for _, endpointID := range relatedEndpointIDs {
+	for _, endpointID := range endpointIDsToUpdate {
 		cache.Del(endpointID)
 	}
 
