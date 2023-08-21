@@ -486,7 +486,9 @@ func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID 
 					continue
 				}
 
-				log.Debug().Int("endpointVersion", endpointStatus.DeploymentInfo.Version).
+				log.Debug().
+					Int("endpointID", int(endpointID)).
+					Int("endpointVersion", endpointStatus.DeploymentInfo.Version).
 					Msg("[stagger status inspect] Cannot proceed as stagger job")
 
 				stackStatus.Version = endpointStatus.DeploymentInfo.Version
@@ -499,9 +501,14 @@ func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID 
 			// If the deployed version for the endpoint is already rolled back, skip
 			if handler.staggerService.MarkedAsRollback(stackID, stack.StackFileVersion) {
 				if handler.staggerService.WasEndpointRolledBack(stackID, stack.StackFileVersion, endpointID) {
+					edgeStack, err := tx.EdgeStack().EdgeStack(stackID)
+					if err == nil {
+						stack = edgeStack
+					}
 					// if the endpoint was already rolled back, we need to return its current deployed version
 					endpointStatus := stack.Status[endpointID]
-					log.Debug().Int("endpointVersion", endpointStatus.DeploymentInfo.Version).
+					log.Debug().Int("endpointID", int(endpointID)).
+						Int("endpointVersion", endpointStatus.DeploymentInfo.Version).
 						Msg("[stagger status inspect] was endpoint rolled back")
 
 					// if the endpoint was not updated yet, the version will be the stack version

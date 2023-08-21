@@ -22,6 +22,7 @@ interface Props {
   onChange: (value: Partial<StaggerConfig>) => void;
   errors?: FormikErrors<StaggerConfig>;
   isEdit?: boolean;
+  onParallelOptionChange?: (value: boolean) => void;
 }
 
 export function StaggerFieldset({
@@ -29,6 +30,7 @@ export function StaggerFieldset({
   onChange,
   errors,
   isEdit = true,
+  onParallelOptionChange,
 }: Props) {
   const staggerOptions = [
     {
@@ -61,9 +63,16 @@ export function StaggerFieldset({
           <RadioGroup
             options={staggerOptions}
             selectedOption={values.StaggerOption.toString()}
-            onOptionChange={(value) =>
-              handleChange({ StaggerOption: parseInt(value, 10) })
-            }
+            onOptionChange={(value) => {
+              handleChange({ StaggerOption: parseInt(value, 10) });
+              if (onParallelOptionChange) {
+                if (value === StaggerOption.Parallel.toString()) {
+                  onParallelOptionChange(true);
+                } else {
+                  onParallelOptionChange(false);
+                }
+              }
+            }}
             name="StaggerOption"
           />
         </div>

@@ -135,7 +135,9 @@ function InnerForm({
   const { hasType } = useValidateEnvironmentTypes(values.edgeGroups);
   const staggerUpdateStatus = useStaggerUpdateStatus(edgeStack.Id);
   const [selectedVersion, setSelectedVersion] = useState(versionOptions[0]);
-
+  const [selectedParallelOption, setSelectedParallelOption] = useState(
+    values.staggerConfig.StaggerOption === StaggerOption.Parallel
+  );
   useEffect(() => {
     if (selectedVersion !== versionOptions[0]) {
       setFieldValue('rollbackTo', selectedVersion);
@@ -152,7 +154,8 @@ function InnerForm({
     return null;
   }
 
-  const staggerUpdating = staggerUpdateStatus.data === 'updating';
+  const staggerUpdating =
+    staggerUpdateStatus.data === 'updating' && selectedParallelOption;
 
   const DeploymentForm = forms[values.deploymentType];
 
@@ -286,6 +289,9 @@ function InnerForm({
               )
             }
             errors={errors.staggerConfig}
+            onParallelOptionChange={(value) => {
+              setSelectedParallelOption(value);
+            }}
           />
         </>
       )}

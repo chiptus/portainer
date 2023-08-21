@@ -200,6 +200,12 @@ func (service *Service) CanProceedAsStaggerJob(id portaineree.EdgeStackID, fileV
 
 			return true
 		}
+	} else {
+		if scheduleOperation.endpointStatus[endpointID] == portainer.EdgeStackStatusPending {
+			log.Debug().Msg("[Stagger service] Endpoint is already rolled back, skip")
+
+			return true
+		}
 	}
 
 	staggeringEndpoints := scheduleOperation.staggerQueue[scheduleOperation.currentIndex]
@@ -445,6 +451,7 @@ func (service *Service) DisplayStaggerInfo() {
 			continue
 		}
 		log.Debug().
+			Bool("Rollback", scheduleOperation.ShouldRollback()).
 			Str("edgeStackID-fileVersion", string(key)).
 			Str("schedule operation", scheduleOperation.Info()).
 			Msg("[Stagger service] pool info")

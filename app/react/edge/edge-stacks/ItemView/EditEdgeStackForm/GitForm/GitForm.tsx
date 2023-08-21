@@ -1,5 +1,6 @@
 import { Form, Formik, useFormikContext } from 'formik';
 import { useRouter } from '@uirouter/react';
+import { useState } from 'react';
 
 import { AuthFieldset } from '@/react/portainer/gitops/AuthFieldset';
 import { AutoUpdateFieldset } from '@/react/portainer/gitops/AutoUpdateFieldset';
@@ -220,12 +221,16 @@ function InnerForm({
   const hasKubeEndpoint = hasType(EnvironmentType.EdgeAgentOnKubernetes);
   const hasDockerEndpoint = hasType(EnvironmentType.EdgeAgentOnDocker);
   const hasNomadEndpoint = hasType(EnvironmentType.EdgeAgentOnNomad);
+  const [selectedParallelOption, setSelectedParallelOption] = useState(
+    values.staggerConfig.StaggerOption === StaggerOption.Parallel
+  );
 
   if (staggerUpdateStatus && !staggerUpdateStatus.isSuccess) {
     return null;
   }
 
-  const staggerUpdating = staggerUpdateStatus.data === 'updating';
+  const staggerUpdating =
+    staggerUpdateStatus.data === 'updating' && selectedParallelOption;
 
   return (
     <Form className="form-horizontal" onSubmit={handleSubmit}>
@@ -330,6 +335,7 @@ function InnerForm({
           )
         }
         errors={errors.staggerConfig}
+        onParallelOptionChange={(value) => setSelectedParallelOption(value)}
       />
 
       <FormSection title="Actions">

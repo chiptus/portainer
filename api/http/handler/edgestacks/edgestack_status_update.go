@@ -207,10 +207,10 @@ func updateEnvStatus(edgeStack *portaineree.EdgeStack, environmentStatus portain
 
 	if status == portainer.EdgeStackStatusRunning {
 		if payload.RollbackTo != nil && edgeStack.PreviousDeploymentInfo != nil {
-			log.Debug().Int("rollbackTo", *payload.RollbackTo).
-				Int("endpointID", int(payload.EndpointID)).
-				Msg("rollback to the previous version")
 			if edgeStack.PreviousDeploymentInfo.FileVersion == *payload.RollbackTo {
+				log.Debug().Int("rollbackTo", *payload.RollbackTo).
+					Int("endpointID", int(payload.EndpointID)).
+					Msg("[stagger status update] rollback to the previous version")
 				// if the endpoint is rolled back successfully, we should update the endpoint's edge
 				// status's deploymentInfo to the previous version.
 				environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
