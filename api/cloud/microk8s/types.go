@@ -96,6 +96,8 @@ type Addon struct {
 	RequiredOn        string   `json:"-"` // Which nodes does this addon need installed on: "masters", "all", or a blank string for just the connected node.
 	InstallCommands   []string `json:"-"`
 	UninstallCommands []string `json:"-"`
+
+	SkipUpgrade bool `json:"skipUpgrade"`
 }
 
 type Addons []Addon
@@ -155,6 +157,8 @@ var AllAddons = Addons{
 
 		IsAvailable: true,
 		Repository:  "core",
+
+		SkipUpgrade: true,
 	},
 	{
 		Name:                 "observability",

@@ -318,6 +318,13 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 
 	// Fill with arguments from endpoint.CloudProvider.AddonsWithArgs
 	for i, addon := range u.addons {
+		addonConfig := GetAllAvailableAddons().GetAddon(addon.Name)
+		if addonConfig != nil && addonConfig.SkipUpgrade {
+			log.Info().Msgf("Skipping disabling addon (%s) as SkipUpgrade is set to true.", addon.Name)
+			u.addons = append(u.addons[:i], u.addons[i+1:]...)
+			continue
+		}
+
 		for _, endAddon := range endpoint.CloudProvider.AddonsWithArgs {
 			if addon.Name == endAddon.Name {
 				u.addons[i].Args = endAddon.Args
