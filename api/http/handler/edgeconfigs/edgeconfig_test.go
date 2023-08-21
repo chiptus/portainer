@@ -107,33 +107,36 @@ func TestStdFlow(t *testing.T) {
 	endpointID := portaineree.EndpointID(1)
 	edgeID := "edge-id-1"
 	err = store.Endpoint().Create(&portaineree.Endpoint{
-		ID:      endpointID,
-		Name:    "endpoint-1",
-		EdgeID:  edgeID,
-		GroupID: 1,
-		Type:    portaineree.EdgeAgentOnDockerEnvironment,
+		ID:          endpointID,
+		Name:        "endpoint-1",
+		EdgeID:      edgeID,
+		GroupID:     1,
+		Type:        portaineree.EdgeAgentOnDockerEnvironment,
+		UserTrusted: true,
 	})
 	require.NoError(t, err)
 
 	endpointIDtoRemove := portaineree.EndpointID(2)
 	edgeIDtoRemove := "edge-id-2"
 	err = store.Endpoint().Create(&portaineree.Endpoint{
-		ID:      endpointIDtoRemove,
-		Name:    "endpoint-2",
-		EdgeID:  edgeIDtoRemove,
-		GroupID: 1,
-		Type:    portaineree.EdgeAgentOnDockerEnvironment,
+		ID:          endpointIDtoRemove,
+		Name:        "endpoint-2",
+		EdgeID:      edgeIDtoRemove,
+		GroupID:     1,
+		Type:        portaineree.EdgeAgentOnDockerEnvironment,
+		UserTrusted: true,
 	})
 	require.NoError(t, err)
 
 	endpointIDtoAddRm := portaineree.EndpointID(3)
 	edgeIDtoAddRm := "edge-id-3"
 	err = store.Endpoint().Create(&portaineree.Endpoint{
-		ID:      endpointIDtoAddRm,
-		Name:    "endpoint-3",
-		EdgeID:  edgeIDtoAddRm,
-		GroupID: 1,
-		Type:    portaineree.EdgeAgentOnDockerEnvironment,
+		ID:          endpointIDtoAddRm,
+		Name:        "endpoint-3",
+		EdgeID:      edgeIDtoAddRm,
+		GroupID:     1,
+		Type:        portaineree.EdgeAgentOnDockerEnvironment,
+		UserTrusted: true,
 	})
 	require.NoError(t, err)
 
@@ -286,6 +289,11 @@ func TestStdFlow(t *testing.T) {
 	require.NoError(t, err)
 	requireState(t, portaineree.EdgeConfigIdleState, config.State)
 	requireProgress(t, config, 1, 1)
+
+	configState, err = store.EdgeConfigState().Read(endpointID)
+	require.NoError(t, err)
+	require.Equal(t, endpointID, configState.EndpointID)
+	requireState(t, portaineree.EdgeConfigIdleState, configState.States[config.ID])
 
 	// Update the edge group to include the second endpoint
 
@@ -659,11 +667,12 @@ func TestEnvTagsAddRm(t *testing.T) {
 	endpointID := portaineree.EndpointID(1)
 	edgeID := "edge-id-1"
 	err = store.Endpoint().Create(&portaineree.Endpoint{
-		ID:      endpointID,
-		Name:    "endpoint-1",
-		EdgeID:  edgeID,
-		GroupID: 1,
-		Type:    portaineree.EdgeAgentOnDockerEnvironment,
+		ID:          endpointID,
+		Name:        "endpoint-1",
+		EdgeID:      edgeID,
+		GroupID:     1,
+		Type:        portaineree.EdgeAgentOnDockerEnvironment,
+		UserTrusted: true,
 	})
 	require.NoError(t, err)
 
@@ -986,11 +995,12 @@ func TestEndpointDelete(t *testing.T) {
 	endpointID := portaineree.EndpointID(1)
 	edgeID := "edge-id-1"
 	err = store.Endpoint().Create(&portaineree.Endpoint{
-		ID:      endpointID,
-		Name:    "endpoint-1",
-		EdgeID:  edgeID,
-		GroupID: 1,
-		Type:    portaineree.EdgeAgentOnDockerEnvironment,
+		ID:          endpointID,
+		Name:        "endpoint-1",
+		EdgeID:      edgeID,
+		GroupID:     1,
+		Type:        portaineree.EdgeAgentOnDockerEnvironment,
+		UserTrusted: true,
 	})
 	require.NoError(t, err)
 

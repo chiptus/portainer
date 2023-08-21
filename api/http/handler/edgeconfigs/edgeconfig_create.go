@@ -176,6 +176,15 @@ func (h *Handler) getRelatedEndpointIDs(tx dataservices.DataStoreTx, edgeGroupID
 		return nil, fmt.Errorf("unable to retrieve endpoints: %w", err)
 	}
 
+	n := 0
+	for _, endpoint := range endpoints {
+		if endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment {
+			endpoints[n] = endpoint
+			n++
+		}
+	}
+	endpoints = endpoints[:n]
+
 	endpointGroups, err := tx.EndpointGroup().ReadAll()
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve endpoint groups: %w", err)

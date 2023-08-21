@@ -19,12 +19,13 @@ type edgeConfigStateTransition struct {
 
 // @id EdgeConfigState
 // @summary Update the state of an Edge configuration
-// @description Update the state of an Edge configuration.
+// @description Used by the standard edge agent to update the state of an Edge configuration.
 // @tags edge_configs
 // @param id path int true "Edge configuration identifier"
 // @param state path int true "Edge configuration state"
 // @success 204 "Success"
 // @failure 400 "Invalid request"
+// @failure 403 "Permission denied to access environment"
 // @failure 404 "Edge configuration not found"
 // @failure 500 "Server error"
 // @router /edge_configurations/{id}/{state} [put]
@@ -44,6 +45,25 @@ func (h *Handler) edgeConfigState(w http.ResponseWriter, r *http.Request) *httpe
 	state, err := request.RetrieveNumericRouteVariableValue(r, "state")
 	if err != nil {
 		return httperror.BadRequest("Invalid edge configuration state route variable", err)
+	}
+
+	endpoint, err := h.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve environment", err)
+	}
+
+	if endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment {
+		return httperror.BadRequest("Invalid environment type", errors.New("invalid environment type"))
+	}
+
+	err = h.bouncer.AuthorizedEdgeEndpointOperation(r, endpoint)
+	if err != nil {
+		return httperror.Forbidden("Permission denied to access environment", err)
+	}
+
+	err = h.bouncer.TrustedEdgeEnvironmentAccess(h.dataStore, endpoint)
+	if err != nil {
+		return httperror.Forbidden("Permission denied to access environment", err)
 	}
 
 	err = h.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {

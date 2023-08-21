@@ -16,6 +16,7 @@ import (
 type Handler struct {
 	*mux.Router
 	dataStore           dataservices.DataStore
+	bouncer             security.BouncerService
 	userActivityService portaineree.UserActivityService
 	edgeAsyncService    *edgeasync.Service
 	fileService         portaineree.FileService
@@ -25,6 +26,7 @@ func NewHandler(dataStore dataservices.DataStore, bouncer security.BouncerServic
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		dataStore:           dataStore,
+		bouncer:             bouncer,
 		edgeAsyncService:    edgeAsyncService,
 		fileService:         fileService,
 		userActivityService: userActivityService,

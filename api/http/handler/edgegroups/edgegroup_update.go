@@ -256,8 +256,12 @@ func (handler *Handler) updateEndpointEdgeJobs(tx dataservices.DataStoreTx, edge
 }
 
 func (handler *Handler) updateEdgeConfigs(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeGroup *portaineree.EdgeGroup, op string) error {
+	if endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment {
+		return nil
+	}
+
 	edgeConfigs, err := tx.EdgeConfig().ReadAll()
-	if err != nil {
+	if err != nil || len(edgeConfigs) == 0 {
 		return err
 	}
 

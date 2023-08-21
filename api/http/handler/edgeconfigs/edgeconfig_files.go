@@ -1,6 +1,7 @@
 package edgeconfigs
 
 import (
+	"errors"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
@@ -20,14 +21,12 @@ type edgeConfigFilesPayload struct {
 
 // @id EdgeConfigFiles
 // @summary Get the files for an Edge configuration
-// @description Retrieve the files for an Edge configuration.
-// @description **Access policy**: authenticated
+// @description Used by the standard edge agent to retrieve the files for an Edge configuration.
 // @tags edge_configs
-// @security ApiKeyAuth
-// @security jwt
 // @param id path int true "Edge configuration identifier"
 // @success 200 {object} string "Success"
 // @failure 400 "Invalid request"
+// @failure 403 "Permission denied to access environment"
 // @failure 404 "Edge configuration not found"
 // @failure 500 "Server error"
 // @router /edge_configurations/{id}/files [get]
@@ -42,6 +41,25 @@ func (h *Handler) edgeConfigFiles(w http.ResponseWriter, r *http.Request) *httpe
 	edgeConfigID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
 		return httperror.BadRequest("Invalid edge configuration identifier route variable", err)
+	}
+
+	endpoint, err := h.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve environment", err)
+	}
+
+	if endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment {
+		return httperror.BadRequest("Invalid environment type", errors.New("invalid environment type"))
+	}
+
+	err = h.bouncer.AuthorizedEdgeEndpointOperation(r, endpoint)
+	if err != nil {
+		return httperror.Forbidden("Permission denied to access environment", err)
+	}
+
+	err = h.bouncer.TrustedEdgeEnvironmentAccess(h.dataStore, endpoint)
+	if err != nil {
+		return httperror.Forbidden("Permission denied to access environment", err)
 	}
 
 	edgeConfig, err := h.dataStore.EdgeConfig().Read(portaineree.EdgeConfigID(edgeConfigID))

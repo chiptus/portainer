@@ -83,6 +83,10 @@ func (handler *Handler) updateEdgeRelations(tx dataservices.DataStoreTx, endpoin
 }
 
 func (handler *Handler) updateEdgeConfigs(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint) error {
+	if endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment {
+		return nil
+	}
+
 	edgeConfigs, err := tx.EdgeConfig().ReadAll()
 	if err != nil || len(edgeConfigs) == 0 {
 		return err
