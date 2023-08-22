@@ -91,7 +91,10 @@ func (handler *Handler) autoUpdate(edgeStackId portaineree.EdgeStackID, envVars 
 			if oldHash == edgeStack.GitConfig.ConfigHash {
 				log.Info().Msg("Stack file version has not changed")
 			}
-			err = handler.staggerService.AddStaggerConfig(edgeStack.ID, edgeStack.StackFileVersion, edgeStack.StaggerConfig)
+			err = handler.staggerService.AddStaggerConfig(edgeStack.ID,
+				edgeStack.StackFileVersion,
+				edgeStack.StaggerConfig,
+				relatedEndpointIds)
 			if err != nil {
 				return httperror.InternalServerError("Unable to update git edge stack", err)
 			}

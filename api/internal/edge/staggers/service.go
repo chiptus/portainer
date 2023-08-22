@@ -14,9 +14,10 @@ import (
 )
 
 type StaggerJob struct {
-	EdgeStackID      portaineree.EdgeStackID
-	StackFileVersion int
-	Config           *portaineree.EdgeStaggerConfig
+	EdgeStackID        portaineree.EdgeStackID
+	StackFileVersion   int
+	RelatedEndpointIDs []portaineree.EndpointID
+	Config             *portaineree.EdgeStaggerConfig
 }
 
 type StaggerStatusJob struct {
@@ -83,7 +84,7 @@ func NewService(ctx context.Context, dataStore dataservices.DataStore, edgeAsync
 
 // AddStaggerConfig is used to add a new stagger config for specific edge stack. If the edge stack is still running
 // under the existing stagger config, it will return an error
-func (service *Service) AddStaggerConfig(id portaineree.EdgeStackID, stackFileVersion int, config *portaineree.EdgeStaggerConfig) error {
+func (service *Service) AddStaggerConfig(id portaineree.EdgeStackID, stackFileVersion int, config *portaineree.EdgeStaggerConfig, endpointIDs []portaineree.EndpointID) error {
 	if config.StaggerOption == portaineree.EdgeStaggerOptionAllAtOnce {
 		return nil
 	}
@@ -98,9 +99,10 @@ func (service *Service) AddStaggerConfig(id portaineree.EdgeStackID, stackFileVe
 	service.staggerConfigsMtx.Unlock()
 
 	newJob := &StaggerJob{
-		EdgeStackID:      id,
-		StackFileVersion: stackFileVersion,
-		Config:           config,
+		EdgeStackID:        id,
+		StackFileVersion:   stackFileVersion,
+		Config:             config,
+		RelatedEndpointIDs: endpointIDs,
 	}
 
 	service.staggerJobQueue <- newJob

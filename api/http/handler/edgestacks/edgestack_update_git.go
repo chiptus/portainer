@@ -186,7 +186,8 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 				// User may update the env vars, so we still need to redeploy the stack
 				err = handler.staggerService.AddStaggerConfig(edgeStack.ID,
 					edgeStack.StackFileVersion,
-					edgeStack.StaggerConfig)
+					edgeStack.StaggerConfig,
+					relatedEndpointIds)
 				if err != nil {
 					return httperror.InternalServerError("Unable to update git edge stack", err)
 				}

@@ -179,7 +179,8 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 			// User may update the env vars, so we still need to redeploy the stack
 			err = handler.staggerService.AddStaggerConfig(portaineree.EdgeStackID(stackID),
 				stack.StackFileVersion,
-				stack.StaggerConfig)
+				stack.StaggerConfig,
+				relatedEndpointIds)
 			if err != nil {
 				return nil, httperror.InternalServerError("Unable to add stagger configuration", err)
 			}

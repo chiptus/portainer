@@ -5,7 +5,6 @@ import (
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/unique"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
@@ -84,30 +83,8 @@ func (service *Service) startStaggerPool() {
 			}
 
 			// 1. collect all related endpoints
-			endpointIDs := []portaineree.EndpointID{}
-			err = service.dataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
-				edgeStack, err := tx.EdgeStack().EdgeStack(newJob.EdgeStackID)
-				if err != nil {
-					return err
-				}
 
-				for _, edgeGroupID := range edgeStack.EdgeGroups {
-					edgeGroup, err := tx.EdgeGroup().Read(edgeGroupID)
-					if err != nil {
-						return err
-					}
-
-					endpointIDs = append(endpointIDs, edgeGroup.Endpoints...)
-				}
-				return nil
-			})
-			if err != nil {
-				log.Error().Err(err).
-					Msgf("[Stagger pool] Failed to collect all related endpoints of edge stack: %d", newJob.EdgeStackID)
-				break
-			}
-
-			endpointIDs = unique.Unique(endpointIDs)
+			endpointIDs := unique.Unique(newJob.RelatedEndpointIDs)
 
 			// 2. build stagger queue based on the stagger config
 			config := newJob.Config
