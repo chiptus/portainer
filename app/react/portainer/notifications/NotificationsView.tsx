@@ -45,7 +45,6 @@ export function NotificationsView() {
         dataset={userNotifications}
         settingsManager={tableState}
         emptyContentLabel="No notifications found"
-        totalCount={userNotifications.length}
         renderTableActions={(selectedRows) => (
           <TableActions selectedRows={selectedRows} />
         )}

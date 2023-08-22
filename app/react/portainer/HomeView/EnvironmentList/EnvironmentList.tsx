@@ -238,7 +238,7 @@ export function EnvironmentList({ onClickBrowse, onRefresh }: Props) {
               pageLimit={pageLimit}
               page={page}
               onPageChange={setPage}
-              totalCount={totalCount}
+              pageCount={Math.ceil(totalCount / pageLimit)}
               onPageLimitChange={setPageLimit}
             />
           </TableFooter>
