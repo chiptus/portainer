@@ -256,6 +256,10 @@ func (sso *StaggerScheduleOperation) RollbackStaggerQueue(endpointID portaineree
 		// the below block is used to check if the other endpoints in the current stagger
 		// queue are rolled back or not
 		endpointStatus := sso.endpointStatus[staggeredEndpoint]
+		log.Debug().Int("status", int(endpointStatus)).
+			Int("endpointID", int(staggeredEndpoint)).
+			Msg("[Stagger operation] Rollback stagger queue endpoint status")
+
 		switch endpointStatus {
 		case portainer.EdgeStackStatusRunning:
 			// !! important

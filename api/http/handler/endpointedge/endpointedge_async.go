@@ -575,39 +575,47 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 		rollbackTo := new(int)
 		var expectStatus portainer.EdgeStackStatusType
 		if slices.ContainsFunc(environmentStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
-			rollbackTo = sts.RollbackTo
 			expectStatus = sts.Type
+			if sts.RollbackTo != nil {
+				log.Debug().Int("rollbackTo", *rollbackTo).
+					Int("status", int(expectStatus)).
+					Int("endpointID", int(endpoint.ID)).
+					Msg("[Stagger Async] Compare edge stack status")
+				rollbackTo = sts.RollbackTo
+			}
 			// If the edge stack is running or error, we should update the edge status's DeploymentInfo
 			return sts.Type == portainer.EdgeStackStatusRunning || sts.Type == portainer.EdgeStackStatusError
 		}) {
 
-			if rollbackTo != nil && stack.PreviousDeploymentInfo != nil &&
-				stack.PreviousDeploymentInfo.FileVersion == *rollbackTo {
-				// if the endpoint is rolled back successfully, we should update the endpoint's edge
-				// status's DeploymentInfo to the previous version.
-				environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
-					// !important. We should set the version as same as file version for rollback
-					Version:     stack.PreviousDeploymentInfo.FileVersion,
-					FileVersion: stack.PreviousDeploymentInfo.FileVersion,
-					ConfigHash:  stack.PreviousDeploymentInfo.ConfigHash,
-				}
+			if expectStatus == portainer.EdgeStackStatusRunning {
+				if rollbackTo != nil && stack.PreviousDeploymentInfo != nil &&
+					stack.PreviousDeploymentInfo.FileVersion == *rollbackTo {
+					// if the endpoint is rolled back successfully, we should update the endpoint's edge
+					// status's DeploymentInfo to the previous version.
+					environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
+						// !important. We should set the version as same as file version for rollback
+						Version:     stack.PreviousDeploymentInfo.FileVersion,
+						FileVersion: stack.PreviousDeploymentInfo.FileVersion,
+						ConfigHash:  stack.PreviousDeploymentInfo.ConfigHash,
+					}
 
-			} else {
-				if rollbackTo != nil && stack.StackFileVersion != *rollbackTo {
-					log.Debug().Int("rollbackTo", *rollbackTo).
-						Int("previousVersion", stack.PreviousDeploymentInfo.FileVersion).
-						Msg("[Async] unsupported rollbackTo version, fallback to the latest version")
-				}
+				} else {
+					if rollbackTo != nil && stack.StackFileVersion != *rollbackTo {
+						log.Debug().Int("rollbackTo", *rollbackTo).
+							Int("previousVersion", stack.PreviousDeploymentInfo.FileVersion).
+							Msg("[Async] unsupported rollbackTo version, fallback to the latest version")
+					}
 
-				gitHash := ""
-				if stack.GitConfig != nil {
-					gitHash = stack.GitConfig.ConfigHash
-				}
+					gitHash := ""
+					if stack.GitConfig != nil {
+						gitHash = stack.GitConfig.ConfigHash
+					}
 
-				environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
-					Version:     stack.Version,
-					FileVersion: stack.StackFileVersion,
-					ConfigHash:  gitHash,
+					environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
+						Version:     stack.Version,
+						FileVersion: stack.StackFileVersion,
+						ConfigHash:  gitHash,
+					}
 				}
 			}
 
