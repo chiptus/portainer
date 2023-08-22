@@ -267,11 +267,9 @@ func (m *Migrator) initMigrations() {
 		m.updateMigrateGateKeeperFieldForEnvDB90)
 	m.addMigrations("2.19",
 		m.assignEdgeGroupsToEdgeUpdatesForDB100,
-		m.rebuildEdgeStackFileSystemWithVersionForDB100,
 		m.updateTunnelServerAddressForDB100,
 		m.updateCloudProviderForDB100,
 		m.enableCommunityAddonForDB100,
-		m.rebuildStackFileSystemWithVersionForDB100,
 		m.convertSeedToPrivateKeyForDB100,
 		m.updateEdgeStackStatusForDB100,
 		m.fixPotentialUpdateScheduleDBCorruptionForDB100,
@@ -303,6 +301,16 @@ func (m *Migrator) Always() error {
 	err = m.refreshRBACRoles()
 	if err != nil {
 		return errors.Wrap(err, "failed refreshing RBAC roles")
+	}
+
+	err = m.rebuildEdgeStackFileSystemWithVersion()
+	if err != nil {
+		return errors.Wrap(err, "failed rebuilding edge stack file system with version")
+	}
+
+	err = m.rebuildStackFileSystemWithVersion()
+	if err != nil {
+		return errors.Wrap(err, "failed rebuilding stack file system with version")
 	}
 
 	return nil
