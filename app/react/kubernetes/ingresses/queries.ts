@@ -55,7 +55,8 @@ export function useIngress(
 
 export function useIngresses(
   environmentId: EnvironmentId,
-  namespaces?: string[]
+  namespaces?: string[],
+  options?: { autoRefreshRate?: number }
 ) {
   return useQuery(
     [
@@ -116,6 +117,9 @@ export function useIngresses(
     },
     {
       enabled: !!namespaces?.length,
+      refetchInterval() {
+        return options?.autoRefreshRate ?? false;
+      },
     }
   );
 }

@@ -3,11 +3,7 @@ import { Lock, Plus, Trash2 } from 'lucide-react';
 import { Secret } from 'kubernetes-types/core/v1';
 
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
-import {
-  Authorized,
-  useAuthorizations,
-  useCurrentUser,
-} from '@/react/hooks/useUser';
+import { Authorized, useAuthorizations } from '@/react/hooks/useUser';
 import { useNamespaces } from '@/react/kubernetes/namespaces/queries';
 import { DefaultDatatableSettings } from '@/react/kubernetes/datatables/DefaultDatatableSettings';
 import { createStore } from '@/react/kubernetes/datatables/default-kube-datatable-store';
@@ -40,7 +36,9 @@ const settingsStore = createStore(storageKey);
 export function SecretsDatatable() {
   const tableState = useTableState(settingsStore, storageKey);
   const readOnly = !useAuthorizations(['K8sSecretsW']);
-  const { isAdmin } = useCurrentUser();
+  const canAccessSystemResources = useAuthorizations(
+    'K8sAccessSystemNamespaces'
+  );
   const isAddSecretHidden = useIsDeploymentOptionHidden('form');
 
   const environmentId = useEnvironmentId();
@@ -65,10 +63,10 @@ export function SecretsDatatable() {
     () =>
       secrets?.filter(
         (secret) =>
-          (isAdmin && tableState.showSystemResources) ||
+          (canAccessSystemResources && tableState.showSystemResources) ||
           !isSystemNamespace(secret.metadata?.namespace ?? '')
       ) || [],
-    [secrets, tableState, isAdmin]
+    [secrets, tableState, canAccessSystemResources]
   );
   const secretRowData = useSecretRowData(
     filteredSecrets,
@@ -100,13 +98,15 @@ export function SecretsDatatable() {
         <TableSettingsMenu>
           <DefaultDatatableSettings
             settings={tableState}
-            hideShowSystemResources={!isAdmin}
+            hideShowSystemResources={!canAccessSystemResources}
           />
         </TableSettingsMenu>
       )}
       description={
         <SystemResourceDescription
-          showSystemResources={tableState.showSystemResources || !isAdmin}
+          showSystemResources={
+            tableState.showSystemResources || !canAccessSystemResources
+          }
         />
       }
     />
