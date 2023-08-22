@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 
 	"github.com/gorilla/mux"
 )
@@ -19,13 +20,15 @@ type Handler struct {
 	AuthorizationService *authorization.Service
 	DataStore            dataservices.DataStore
 	userActivityService  portaineree.UserActivityService
+	edgeAsyncService     *edgeasync.Service
 }
 
 // NewHandler creates a handler to manage environment(endpoint) group operations.
-func NewHandler(bouncer security.BouncerService, userActivityService portaineree.UserActivityService) *Handler {
+func NewHandler(bouncer security.BouncerService, userActivityService portaineree.UserActivityService, edgeAsyncService *edgeasync.Service) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),
 		userActivityService: userActivityService,
+		edgeAsyncService:    edgeAsyncService,
 	}
 
 	h.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))

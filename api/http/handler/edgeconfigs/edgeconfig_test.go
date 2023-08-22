@@ -15,6 +15,7 @@ import (
 	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/filesystem"
 	"github.com/portainer/portainer-ee/api/http/handler/edgegroups"
+	"github.com/portainer/portainer-ee/api/http/handler/endpointgroups"
 	"github.com/portainer/portainer-ee/api/http/handler/endpoints"
 	"github.com/portainer/portainer-ee/api/http/proxy"
 	"github.com/portainer/portainer-ee/api/http/security"
@@ -695,6 +696,13 @@ func TestEnvTagsAddRm(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	err = store.Tag().Create(&portaineree.Tag{
+		ID:        2,
+		Name:      "unrelated-tag",
+		Endpoints: make(map[portaineree.EndpointID]bool),
+	})
+	require.NoError(t, err)
+
 	err = store.EdgeGroup().Create(&portaineree.EdgeGroup{
 		ID:      1,
 		Name:    "edge-group-1",
@@ -816,6 +824,43 @@ func TestEnvTagsAddRm(t *testing.T) {
 	require.Equal(t, endpointID, configState.EndpointID)
 	requireState(t, portaineree.EdgeConfigIdleState, configState.States[config.ID])
 
+	// Add the unrelated tag to the environment
+
+	body.Reset()
+	err = json.NewEncoder(body).Encode(endpointUpdatePayload{
+		TagIDs: []portaineree.TagID{1, 2},
+	})
+	require.NoError(t, err)
+
+	rr = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodPut, "/endpoints/1", body)
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	endpointHandler.ServeHTTP(rr, req)
+	require.Equal(t, http.StatusOK, rr.Result().StatusCode)
+
+	endpoint, err = store.Endpoint().Endpoint(endpointID)
+	require.NoError(t, err)
+	require.ElementsMatch(t, []portaineree.TagID{1, 2}, endpoint.TagIDs)
+
+	config, err = store.EdgeConfig().Read(configID)
+	require.NoError(t, err)
+	requireState(t, portaineree.EdgeConfigIdleState, config.State)
+	requireProgress(t, config, 1, 1)
+
+	configState, err = store.EdgeConfigState().Read(endpointID)
+	require.NoError(t, err)
+	require.Equal(t, endpointID, configState.EndpointID)
+	requireState(t, portaineree.EdgeConfigIdleState, configState.States[config.ID])
+
+	_, ok = cache.Get(endpointID)
+	require.False(t, ok)
+
+	cache.Set(endpointID, []byte("fake-cache"))
+
+	_, ok = cache.Get(endpointID)
+	require.True(t, ok)
+
 	// Remove the tag from the environment
 
 	body.Reset()
@@ -832,6 +877,243 @@ func TestEnvTagsAddRm(t *testing.T) {
 	require.Equal(t, http.StatusOK, rr.Result().StatusCode)
 
 	endpoint, err = store.Endpoint().Endpoint(endpointID)
+	require.NoError(t, err)
+	require.ElementsMatch(t, []portaineree.TagID{}, endpoint.TagIDs)
+
+	config, err = store.EdgeConfig().Read(configID)
+	require.NoError(t, err)
+	requireState(t, portaineree.EdgeConfigIdleState, config.State)
+	requireProgress(t, config, 1, 1)
+
+	configState, err = store.EdgeConfigState().Read(endpointID)
+	require.NoError(t, err)
+	require.Equal(t, endpointID, configState.EndpointID)
+	requireState(t, portaineree.EdgeConfigDeletingState, configState.States[config.ID])
+
+	_, ok = cache.Get(endpointID)
+	require.False(t, ok)
+
+	cache.Set(endpointID, []byte("fake-cache"))
+
+	_, ok = cache.Get(endpointID)
+	require.True(t, ok)
+
+	// Simulate progress
+
+	rr = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodPut, fmt.Sprintf("/edge_configurations/1/%d", portaineree.EdgeConfigIdleState), nil)
+	req.Header.Set(portaineree.PortainerAgentEdgeIDHeader, edgeID)
+	h.ServeHTTP(rr, req)
+	require.Equal(t, http.StatusOK, rr.Result().StatusCode)
+
+	config, err = store.EdgeConfig().Read(configID)
+	require.NoError(t, err)
+	requireState(t, portaineree.EdgeConfigIdleState, config.State)
+	requireProgress(t, config, 0, 0)
+
+	configState, err = store.EdgeConfigState().Read(endpointID)
+	require.NoError(t, err)
+	require.Equal(t, endpointID, configState.EndpointID)
+
+	_, ok = configState.States[config.ID]
+	require.False(t, ok)
+}
+
+func TestEnvGroups(t *testing.T) {
+	_, store := datastore.MustNewTestStore(t, true, true)
+
+	fileService, err := filesystem.NewService(t.TempDir(), "")
+	require.NoError(t, err)
+
+	edgeAsyncService := edgeasync.NewService(store, fileService)
+
+	jwtService, err := jwt.NewService("1h", store)
+	require.NoError(t, err)
+
+	usr := &portaineree.User{ID: 1, Username: "admin", Role: portaineree.AdministratorRole}
+	err = store.User().Create(usr)
+	require.NoError(t, err)
+
+	token, err := jwtService.GenerateToken(&portaineree.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
+	require.NoError(t, err)
+
+	settings, err := store.Settings().Settings()
+	require.NoError(t, err)
+
+	settings.EnableEdgeComputeFeatures = true
+	err = store.Settings().UpdateSettings(settings)
+	require.NoError(t, err)
+
+	configID := portaineree.EdgeConfigID(1)
+
+	endpointID := portaineree.EndpointID(1)
+	edgeID := "edge-id-1"
+	err = store.Endpoint().Create(&portaineree.Endpoint{
+		ID:          endpointID,
+		Name:        "endpoint-1",
+		EdgeID:      edgeID,
+		GroupID:     1,
+		Type:        portaineree.EdgeAgentOnDockerEnvironment,
+		UserTrusted: true,
+	})
+	require.NoError(t, err)
+
+	err = store.EndpointRelation().Create(&portaineree.EndpointRelation{
+		EndpointID: endpointID,
+		EdgeStacks: make(map[portaineree.EdgeStackID]bool),
+	})
+	require.NoError(t, err)
+
+	err = store.EndpointGroup().Create(&portaineree.EndpointGroup{
+		ID:   1,
+		Name: "endpoint-group-1",
+	})
+	require.NoError(t, err)
+
+	err = store.Tag().Create(&portaineree.Tag{
+		ID:             1,
+		Name:           "tag-1",
+		Endpoints:      make(map[portaineree.EndpointID]bool),
+		EndpointGroups: map[portaineree.EndpointGroupID]bool{},
+	})
+	require.NoError(t, err)
+
+	err = store.EdgeGroup().Create(&portaineree.EdgeGroup{
+		ID:      1,
+		Name:    "edge-group-1",
+		Dynamic: true,
+		TagIDs:  []portaineree.TagID{1},
+	})
+	require.NoError(t, err)
+
+	bouncer := security.NewRequestBouncer(store, testhelpers.Licenseservice{}, jwtService, nil, nil)
+
+	groupHandler := endpointgroups.NewHandler(bouncer, testhelpers.NewUserActivityService(), edgeAsyncService)
+	groupHandler.DataStore = store
+	require.NoError(t, err)
+
+	h := NewHandler(store, bouncer, testhelpers.NewUserActivityService(), edgeAsyncService, fileService)
+
+	cache.Set(endpointID, []byte("fake-cache"))
+
+	_, ok := cache.Get(endpointID)
+	require.True(t, ok)
+
+	// Create Edge Config
+	body := &bytes.Buffer{}
+
+	writer := multipart.NewWriter(body)
+
+	configPart, err := writer.CreateFormField("edgeConfiguration")
+	require.NoError(t, err)
+
+	err = json.NewEncoder(configPart).Encode(edgeConfigCreatePayload{
+		Name:         "test",
+		BaseDir:      "/tmp",
+		Type:         "foldername",
+		EdgeGroupIDs: []portaineree.EdgeGroupID{1},
+	})
+	require.NoError(t, err)
+
+	filePart, err := writer.CreateFormFile("file", "test.zip")
+	require.NoError(t, err)
+
+	content, err := generateEdgeConfigFile()
+	require.NoError(t, err)
+
+	_, err = filePart.Write(content)
+	require.NoError(t, err)
+
+	err = writer.Close()
+	require.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/edge_configurations", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("Authorization", "Bearer "+token)
+	h.ServeHTTP(rr, req)
+	require.Equal(t, http.StatusNoContent, rr.Result().StatusCode)
+
+	config, err := store.EdgeConfig().Read(configID)
+	require.NoError(t, err)
+	requireState(t, portaineree.EdgeConfigIdleState, config.State)
+	requireProgress(t, config, 0, 0)
+
+	// Add the tag to the group
+
+	type endpointGroupUpdatePayload struct {
+		TagIDs []portaineree.TagID
+	}
+
+	body.Reset()
+	err = json.NewEncoder(body).Encode(endpointGroupUpdatePayload{
+		TagIDs: []portaineree.TagID{1},
+	})
+	require.NoError(t, err)
+
+	rr = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodPut, "/endpoint_groups/1", body)
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	groupHandler.ServeHTTP(rr, req)
+	require.Equal(t, http.StatusOK, rr.Result().StatusCode)
+
+	group, err := store.EndpointGroup().Read(1)
+	require.NoError(t, err)
+	require.ElementsMatch(t, []portaineree.TagID{1}, group.TagIDs)
+
+	config, err = store.EdgeConfig().Read(configID)
+	require.NoError(t, err)
+	requireState(t, portaineree.EdgeConfigIdleState, config.State)
+	requireProgress(t, config, 0, 1)
+
+	configState, err := store.EdgeConfigState().Read(endpointID)
+	require.NoError(t, err)
+	require.Equal(t, endpointID, configState.EndpointID)
+	requireState(t, portaineree.EdgeConfigSavingState, configState.States[config.ID])
+
+	_, ok = cache.Get(endpointID)
+	require.False(t, ok)
+
+	cache.Set(endpointID, []byte("fake-cache"))
+
+	_, ok = cache.Get(endpointID)
+	require.True(t, ok)
+
+	// Simulate progress
+
+	rr = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodPut, fmt.Sprintf("/edge_configurations/1/%d", portaineree.EdgeConfigIdleState), nil)
+	req.Header.Set(portaineree.PortainerAgentEdgeIDHeader, edgeID)
+	h.ServeHTTP(rr, req)
+	require.Equal(t, http.StatusOK, rr.Result().StatusCode)
+
+	config, err = store.EdgeConfig().Read(configID)
+	require.NoError(t, err)
+	requireState(t, portaineree.EdgeConfigIdleState, config.State)
+	requireProgress(t, config, 1, 1)
+
+	configState, err = store.EdgeConfigState().Read(endpointID)
+	require.NoError(t, err)
+	require.Equal(t, endpointID, configState.EndpointID)
+	requireState(t, portaineree.EdgeConfigIdleState, configState.States[config.ID])
+
+	// Remove the tag from the group
+
+	body.Reset()
+	err = json.NewEncoder(body).Encode(endpointGroupUpdatePayload{
+		TagIDs: []portaineree.TagID{},
+	})
+	require.NoError(t, err)
+
+	rr = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodPut, "/endpoint_groups/1", body)
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	groupHandler.ServeHTTP(rr, req)
+	require.Equal(t, http.StatusOK, rr.Result().StatusCode)
+
+	endpoint, err := store.Endpoint().Endpoint(endpointID)
 	require.NoError(t, err)
 	require.ElementsMatch(t, []portaineree.TagID{}, endpoint.TagIDs)
 

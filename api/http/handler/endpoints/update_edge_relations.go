@@ -1,16 +1,17 @@
 package endpoints
 
 import (
-	"github.com/pkg/errors"
-	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/edge/cache"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/set"
 	"github.com/portainer/portainer-ee/api/internal/slices"
 	"github.com/portainer/portainer-ee/api/internal/unique"
+
+	"github.com/pkg/errors"
 )
 
 // updateEdgeRelations updates the edge stacks associated to an edge endpoint
@@ -74,7 +75,7 @@ func (handler *Handler) updateEdgeRelations(tx dataservices.DataStoreTx, endpoin
 		return errors.WithMessage(err, "Unable to persist environment relation changes inside the database")
 	}
 
-	err = handler.updateEdgeConfigs(tx, endpoint)
+	err = UpdateEdgeConfigs(tx, handler.edgeService, endpoint)
 	if err != nil {
 		return errors.WithMessage(err, "Unable to update edge configurations")
 	}
@@ -82,7 +83,7 @@ func (handler *Handler) updateEdgeRelations(tx dataservices.DataStoreTx, endpoin
 	return nil
 }
 
-func (handler *Handler) updateEdgeConfigs(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint) error {
+func UpdateEdgeConfigs(tx dataservices.DataStoreTx, edgeAsyncService *edgeasync.Service, endpoint *portaineree.Endpoint) error {
 	if endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment {
 		return nil
 	}
@@ -140,12 +141,6 @@ func (handler *Handler) updateEdgeConfigs(tx dataservices.DataStoreTx, endpoint 
 			continue
 		}
 
-		edgeConfig.Progress.Total++
-
-		if err = tx.EdgeConfig().Update(edgeConfigID, edgeConfig); err != nil {
-			return err
-		}
-
 		// Update or create the Edge Config State
 		edgeConfigState, err := tx.EdgeConfigState().Read(endpoint.ID)
 		if err != nil {
@@ -159,14 +154,24 @@ func (handler *Handler) updateEdgeConfigs(tx dataservices.DataStoreTx, endpoint 
 			}
 		}
 
+		if _, ok := edgeConfigState.States[edgeConfigID]; ok {
+			continue
+		}
+
+		edgeConfig.Progress.Total++
+
+		if err = tx.EdgeConfig().Update(edgeConfigID, edgeConfig); err != nil {
+			return err
+		}
+
 		edgeConfigState.States[edgeConfigID] = portaineree.EdgeConfigSavingState
 
 		if err = tx.EdgeConfigState().Update(edgeConfigState.EndpointID, edgeConfigState); err != nil {
 			return err
 		}
 
-		if err = handler.edgeService.PushConfigCommand(tx, endpoint, edgeConfig, edgeConfigState); err != nil {
-			return httperror.InternalServerError("Unable to persist the edge configuration command inside the database", err)
+		if err = edgeAsyncService.PushConfigCommand(tx, endpoint, edgeConfig, edgeConfigState); err != nil {
+			return err
 		}
 	}
 
@@ -193,6 +198,10 @@ func (handler *Handler) updateEdgeConfigs(tx dataservices.DataStoreTx, endpoint 
 		}
 
 		edgeConfigState.States[edgeConfig.ID] = portaineree.EdgeConfigDeletingState
+
+		if err = edgeAsyncService.PushConfigCommand(tx, endpoint, edgeConfig, edgeConfigState); err != nil {
+			return err
+		}
 	}
 
 	if err := tx.EdgeConfigState().Update(edgeConfigState.EndpointID, edgeConfigState); err != nil {

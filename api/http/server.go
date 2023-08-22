@@ -250,7 +250,7 @@ func (server *Server) Start() error {
 		edgeUpdateService,
 		server.EdgeStaggerService)
 
-	var endpointGroupHandler = endpointgroups.NewHandler(requestBouncer, server.UserActivityService)
+	var endpointGroupHandler = endpointgroups.NewHandler(requestBouncer, server.UserActivityService, server.EdgeAsyncService)
 	endpointGroupHandler.AuthorizationService = server.AuthorizationService
 	endpointGroupHandler.DataStore = server.DataStore
 

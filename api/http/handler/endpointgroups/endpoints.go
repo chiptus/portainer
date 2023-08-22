@@ -3,6 +3,7 @@ package endpointgroups
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/http/handler/endpoints"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 )
@@ -42,6 +43,10 @@ func (handler *Handler) updateEndpointRelations(tx dataservices.DataStoreTx, end
 		stacksSet[edgeStackID] = true
 	}
 	endpointRelation.EdgeStacks = stacksSet
+
+	if err := endpoints.UpdateEdgeConfigs(tx, handler.edgeAsyncService, endpoint); err != nil {
+		return err
+	}
 
 	return tx.EndpointRelation().UpdateEndpointRelation(endpoint.ID, endpointRelation)
 }
