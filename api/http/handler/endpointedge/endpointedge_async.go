@@ -601,8 +601,12 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 
 				} else {
 					if rollbackTo != nil && stack.StackFileVersion != *rollbackTo {
+						prevVersion := 0
+						if stack.PreviousDeploymentInfo != nil {
+							prevVersion = stack.PreviousDeploymentInfo.FileVersion
+						}
 						log.Debug().Int("rollbackTo", *rollbackTo).
-							Int("previousVersion", stack.PreviousDeploymentInfo.FileVersion).
+							Int("previousVersion", prevVersion).
 							Msg("[Async] unsupported rollbackTo version, fallback to the latest version")
 					}
 
