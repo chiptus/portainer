@@ -63,7 +63,7 @@ func NewMicrok8sUpgrade(endpoint *portaineree.Endpoint, dataStore dataservices.D
 }
 
 func (service *Microk8sUpgrade) getNextVersion(current string) string {
-	if current == "1.27/stable" {
+	if current == MicroK8sVersions[0].Value {
 		return current
 	}
 

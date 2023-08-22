@@ -277,6 +277,12 @@ export function Microk8sCreateClusterForm({
           data-cy="microk8sCreateForm-kubernetesVersionSelect"
           options={kubernetesVersions}
         />
+        {microk8s.kubernetesVersion === '1.28/stable' && (
+          <BetaAlert
+            className="mt-2"
+            message="Beta feature - MicroK8s 1.28 has not been fully tested for use with the Portainer 2.19 release."
+          />
+        )}
       </FormControl>
 
       <div className="form-group">

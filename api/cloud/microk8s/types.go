@@ -60,6 +60,9 @@ type (
 
 var MicroK8sVersions = []portaineree.Pair{
 	{
+		Name:  "1.28/stable",
+		Value: "1.28/stable",
+	}, {
 		Name:  "1.27/stable",
 		Value: "1.27/stable",
 	},
