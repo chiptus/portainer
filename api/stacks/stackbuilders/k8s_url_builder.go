@@ -79,7 +79,7 @@ func (b *KubernetesStackUrlBuilder) SetURL(payload *StackPayload) UrlMethodStack
 	}
 
 	stackFolder := strconv.Itoa(int(b.stack.ID))
-	projectPath, err := b.fileService.StoreStackFileFromBytes(stackFolder, b.stack.EntryPoint, manifestContent)
+	projectPath, err := b.fileService.StoreStackFileFromBytesByVersion(stackFolder, b.stack.EntryPoint, b.stack.StackFileVersion, manifestContent)
 	if err != nil {
 		b.err = httperror.InternalServerError("Unable to persist Kubernetes manifest file on disk", err)
 		return b
