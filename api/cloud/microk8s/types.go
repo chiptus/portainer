@@ -81,9 +81,8 @@ var MicroK8sVersions = []portaineree.Pair{
 }
 
 type Addon struct {
-	Name        string `json:"label"`       // FE uses label as the addon name for dropdown
-	Description string `json:"description"` // Notes/Extra info
-	Tooltip     string `json:"tooltip"`     // used as a tooltip on the Addon page
+	Name    string `json:"label"`   // FE uses label as the addon name for dropdown
+	Tooltip string `json:"tooltip"` // used as a tooltip on the Addon page
 
 	ArgumentsType     string `json:"argumentsType"` // "": not required, optional: optional arguments, required: required arguments
 	ArgumentSeparator string `json:"-"`             // used to separate arguments
@@ -100,7 +99,8 @@ type Addon struct {
 	InstallCommands   []string `json:"-"`
 	UninstallCommands []string `json:"-"`
 
-	SkipUpgrade bool `json:"skipUpgrade"`
+	SkipUpgrade bool   `json:"skipUpgrade"`
+	Info        string `json:"info"` // used to display additional information on the Addon page
 }
 
 type Addons []Addon
@@ -482,6 +482,20 @@ var AllAddons = Addons{
 			"systemctl disable iscsid",
 			"systemctl stop iscsid",
 		},
+	},
+	{
+		Name:                 "mayastor",
+		VersionAvailableFrom: "1.24",
+		Tooltip:              "<a href='https://microk8s.io/docs/addon-mayastor' target='_blank'>mayastor</a> - multi-node zero-ops storage option powered by < href='https://github.com/openebs/mayastor' target='_blank'>Mayastor</a>.",
+
+		IsAvailable: true,
+		Repository:  "core",
+		RequiredOn:  "all",
+
+		ArgumentsType: "required",
+		Placeholder:   "--default-pool-size 20G",
+
+		Info: "To enable mayastor, ensure all nodes meet <a href='https://microk8s.io/docs/addon-mayastor' target='_blank'>requirements</a>, such as enabling HugePages with at least 1024 MB.",
 	},
 	{
 		Name:                 "nfs",

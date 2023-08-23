@@ -16,7 +16,7 @@ export type AddonOptionInfo = {
   repository: string;
 
   tooltip?: string;
-  description?: string;
+  info?: string;
   version?: string;
   placeholder?: string;
   argumentsType: AddonsArgumentType;

@@ -2,6 +2,7 @@ import { Trash2 } from 'lucide-react';
 import { FormikErrors } from 'formik';
 import { useEffect, useState } from 'react';
 import { SingleValue } from 'react-select';
+import sanitize from 'sanitize-html';
 
 import { Select } from '@@/form-components/ReactSelect';
 import { InputGroup } from '@@/form-components/InputGroup';
@@ -23,6 +24,8 @@ interface Props {
   errors?: FormikErrors<AddOnFormValue>;
   isProcessing?: boolean;
   readonly?: boolean;
+
+  info?: string;
 }
 
 export function AddOnSelector({
@@ -36,6 +39,7 @@ export function AddOnSelector({
   errors,
   isProcessing,
   readonly,
+  info,
 }: Props) {
   const [selectedOption, setSelectedOption] = useState<
     SingleValue<AddOnOption>
@@ -78,6 +82,12 @@ export function AddOnSelector({
           />
         </InputGroup>
         {errors?.name && <FormError>{errors.name}</FormError>}
+        {info && (
+          <TextTip color="blue" className="mt-1">
+            {/* eslint-disable-next-line react/no-danger */}
+            <span dangerouslySetInnerHTML={{ __html: sanitize(info) }} />
+          </TextTip>
+        )}
       </div>
       <div className="inline-flex min-w-min grow basis-12 gap-x-2">
         <div className="flex grow flex-col">
