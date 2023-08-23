@@ -12,6 +12,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/handler/edgegroups"
+	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/slices"
 	"github.com/portainer/portainer-ee/api/internal/unique"
@@ -319,11 +320,15 @@ func filterEndpointsBySearchCriteria(
 		if endpointGroupMatchSearchCriteria(&endpoint, endpointGroups, tagsMap, searchCriteria) {
 			endpoints[n] = endpoint
 			n++
+
+			continue
 		}
 
-		if edgeGroupMatchSearchCriteria(&endpoint, edgeGroups, searchCriteria) {
+		if edgeGroupMatchSearchCriteria(&endpoint, edgeGroups, searchCriteria, endpoints, endpointGroups) {
 			endpoints[n] = endpoint
 			n++
+
+			continue
 		}
 	}
 
@@ -403,13 +408,22 @@ func endpointGroupMatchSearchCriteria(endpoint *portaineree.Endpoint, endpointGr
 	return false
 }
 
+// search endpoint's related edgegroups
 func edgeGroupMatchSearchCriteria(
 	endpoint *portaineree.Endpoint,
 	edgeGroups []portaineree.EdgeGroup,
 	searchCriteria string,
+	endpoints []portaineree.Endpoint,
+	endpointGroups []portaineree.EndpointGroup,
 ) bool {
 	for _, edgeGroup := range edgeGroups {
-		for _, endpointID := range edgeGroup.Endpoints {
+		if edgeGroup.EdgeUpdateID != 0 {
+			continue
+		}
+
+		relatedEndpointIDs := edge.EdgeGroupRelatedEndpoints(&edgeGroup, endpoints, endpointGroups)
+
+		for _, endpointID := range relatedEndpointIDs {
 			if endpointID == endpoint.ID {
 				if strings.Contains(strings.ToLower(edgeGroup.Name), searchCriteria) {
 					return true
