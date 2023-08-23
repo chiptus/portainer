@@ -231,8 +231,8 @@ export function staggerConfigValidation(): SchemaOf<StaggerConfig> {
             is: StaggerParallelOption.Fixed,
             then: (schema) =>
               schema
-                .min(1, 'Devices number is at least 1')
-                .required('Devices number is required'),
+                .required('Devices number is at least 1')
+                .min(1, 'Devices number is at least 1'),
           }),
       })
       .optional(),

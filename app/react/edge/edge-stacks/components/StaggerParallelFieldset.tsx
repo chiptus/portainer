@@ -63,13 +63,10 @@ export function StaggerParallelFieldset({ values, onChange, errors }: Props) {
             type="number"
             placeholder="eg. 1 or 10"
             min={1}
-            value={values.DeviceNumber}
+            value={values.DeviceNumber || ''}
             onChange={(e) => {
               handleChange({
-                DeviceNumber:
-                  e.currentTarget.value !== ''
-                    ? e.currentTarget.valueAsNumber
-                    : 0,
+                DeviceNumber: e.currentTarget.valueAsNumber || undefined,
               });
             }}
           />

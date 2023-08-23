@@ -1,6 +1,7 @@
 import { Form, Formik, useFormikContext } from 'formik';
 import { useRouter } from '@uirouter/react';
 import { useState } from 'react';
+import { array, number, object } from 'yup';
 
 import { AuthFieldset } from '@/react/portainer/gitops/AuthFieldset';
 import { AutoUpdateFieldset } from '@/react/portainer/gitops/AutoUpdateFieldset';
@@ -44,7 +45,10 @@ import { FormError } from '@@/form-components/FormError';
 import { EnvironmentVariablesPanel } from '@@/form-components/EnvironmentVariablesFieldset';
 import { EnvVar } from '@@/form-components/EnvironmentVariablesFieldset/types';
 
-import { StaggerFieldset } from '../../../components/StaggerFieldset';
+import {
+  staggerConfigValidation,
+  StaggerFieldset,
+} from '../../../components/StaggerFieldset';
 import { useValidateEnvironmentTypes } from '../useEdgeGroupHasType';
 import { atLeastTwo } from '../atLeastTwo';
 import { PrivateRegistryFieldset } from '../../../components/PrivateRegistryFieldset';
@@ -88,7 +92,7 @@ export function GitForm({ stack }: { stack: EdgeStack }) {
     staggerConfig: stack.StaggerConfig || {
       StaggerOption: StaggerOption.AllAtOnce,
       StaggerParallelOption: StaggerParallelOption.Fixed,
-      DeviceNumber: 0,
+      DeviceNumber: 1,
       DeviceNumberStartFrom: 0,
       DeviceNumberIncrementBy: 2,
       Timeout: '',
@@ -100,7 +104,11 @@ export function GitForm({ stack }: { stack: EdgeStack }) {
   const webhookId = stack.AutoUpdate?.Webhook || createWebhookId();
 
   return (
-    <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+    <Formik
+      initialValues={initialValues}
+      onSubmit={handleSubmit}
+      validationSchema={formValidation()}
+    >
       {({ values, isValid }) => {
         return (
           <InnerForm
@@ -368,4 +376,14 @@ function InnerForm({
       )}
     </Form>
   );
+}
+
+function formValidation() {
+  return object({
+    groupIds: array()
+      .of(number().required())
+      .required()
+      .min(1, 'At least one edge group is required'),
+    staggerConfig: staggerConfigValidation(),
+  });
 }

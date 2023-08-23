@@ -301,6 +301,6 @@ withFormValidation(
   ngModule,
   StaggerFieldset,
   'staggerFieldset',
-  ['isEdit', 'onParallelOptionChange'],
+  ['values', 'onChange', 'errors', 'isEdit', 'onParallelOptionChange'],
   staggerConfigValidation
 );

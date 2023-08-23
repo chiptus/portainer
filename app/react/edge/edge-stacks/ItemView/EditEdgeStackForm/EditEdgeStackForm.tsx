@@ -83,7 +83,7 @@ export function EditEdgeStackForm({
     staggerConfig: edgeStack.StaggerConfig || {
       StaggerOption: StaggerOption.AllAtOnce,
       StaggerParallelOption: StaggerParallelOption.Fixed,
-      DeviceNumber: 0,
+      DeviceNumber: 1,
       DeviceNumberStartFrom: 0,
       DeviceNumberIncrementBy: 2,
       Timeout: '',
