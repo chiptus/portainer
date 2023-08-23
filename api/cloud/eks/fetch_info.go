@@ -299,7 +299,6 @@ func supportedVersions() []portaineree.Pair {
 		withValue("1.25", "1.25"),
 		withValue("1.24", "1.24"),
 		withValue("1.23", "1.23"),
-		withValue("1.22", "1.22"),
 	}
 }
 
