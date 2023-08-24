@@ -143,12 +143,24 @@ func (handler *Handler) startStack(
 	endpoint *portaineree.Endpoint,
 	securityContext *security.RestrictedRequestContext,
 ) error {
+	user, err := handler.DataStore.User().Read(securityContext.UserID)
+	if err != nil {
+		return fmt.Errorf("unable to load user information from the database: %w", err)
+	}
+
+	registries, err := handler.DataStore.Registry().ReadAll()
+	if err != nil {
+		return fmt.Errorf("unable to retrieve registries from the database: %w", err)
+	}
+
+	filteredRegistries := security.FilterRegistries(registries, user, securityContext.UserMemberships, endpoint.ID)
+
 	switch stack.Type {
 	case portaineree.DockerComposeStack:
 		stack.Name = handler.ComposeStackManager.NormalizeStackName(stack.Name)
 
 		if stackutils.IsGitStack(stack) {
-			return handler.StackDeployer.StartRemoteComposeStack(stack, endpoint)
+			return handler.StackDeployer.StartRemoteComposeStack(stack, endpoint, filteredRegistries)
 		}
 
 		return handler.ComposeStackManager.Up(context.TODO(), stack, endpoint, false)
@@ -156,20 +168,8 @@ func (handler *Handler) startStack(
 		stack.Name = handler.SwarmStackManager.NormalizeStackName(stack.Name)
 
 		if stackutils.IsGitStack(stack) {
-			return handler.StackDeployer.StartRemoteSwarmStack(stack, endpoint)
+			return handler.StackDeployer.StartRemoteSwarmStack(stack, endpoint, filteredRegistries)
 		}
-
-		user, err := handler.DataStore.User().Read(securityContext.UserID)
-		if err != nil {
-			return fmt.Errorf("unable to load user information from the database: %w", err)
-		}
-
-		registries, err := handler.DataStore.Registry().ReadAll()
-		if err != nil {
-			return fmt.Errorf("unable to retrieve registries from the database: %w", err)
-		}
-
-		filteredRegistries := security.FilterRegistries(registries, user, securityContext.UserMemberships, endpoint.ID)
 
 		return handler.StackDeployer.DeploySwarmStack(stack, endpoint, filteredRegistries, true, true)
 	}

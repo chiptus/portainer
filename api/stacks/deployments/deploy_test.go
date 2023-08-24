@@ -51,7 +51,7 @@ func (s *noopDeployer) UndeployRemoteComposeStack(stack *portaineree.Stack, endp
 	return nil
 }
 
-func (s *noopDeployer) StartRemoteComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
+func (s *noopDeployer) StartRemoteComposeStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry) error {
 	return nil
 }
 
@@ -69,7 +69,7 @@ func (s *noopDeployer) UndeployRemoteSwarmStack(stack *portaineree.Stack, endpoi
 	return nil
 }
 
-func (s *noopDeployer) StartRemoteSwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint) error {
+func (s *noopDeployer) StartRemoteSwarmStack(stack *portaineree.Stack, endpoint *portaineree.Endpoint, registries []portaineree.Registry) error {
 	return nil
 }
 
