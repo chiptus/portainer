@@ -15,7 +15,6 @@ import { withUIRouter } from '@/react-tools/withUIRouter';
 import { DockerfileDetails } from '@/react/docker/images/ItemView/DockerfileDetails';
 import { HealthStatus } from '@/react/docker/containers/ItemView/HealthStatus';
 import { GpusList } from '@/react/docker/host/SetupView/GpusList';
-import { GpusInsights } from '@/react/docker/host/SetupView/GpusInsights';
 import { InsightsBox } from '@/react/components/InsightsBox';
 import { ImagesDatatable } from '@/react/docker/images/ListView/ImagesDatatable/ImagesDatatable';
 import { EventsDatatable } from '@/react/docker/events/EventsDatatables';
@@ -98,7 +97,6 @@ const ngModule = angular
       'className',
     ])
   )
-  .component('gpusInsights', r2a(GpusInsights, []))
   .component(
     'dockerImagesDatatable',
     r2a(withUIRouter(withCurrentUser(ImagesDatatable)), [
