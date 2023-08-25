@@ -304,17 +304,18 @@ func (service *CloudManagementService) seedCluster(task *portaineree.CloudProvis
 	stackID := service.dataStore.Stack().GetNextIdentifier()
 
 	stack := portaineree.Stack{
-		ID:              portaineree.StackID(stackID),
-		Name:            "seed" + strconv.Itoa(int(task.EndpointID)),
-		IsComposeFormat: false,
-		Type:            portaineree.KubernetesStack,
-		EndpointID:      task.EndpointID,
-		Namespace:       namespace,
-		EntryPoint:      filesystem.ManifestFileDefaultName,
+		ID:               portaineree.StackID(stackID),
+		Name:             "seed" + strconv.Itoa(int(task.EndpointID)),
+		IsComposeFormat:  false,
+		Type:             portaineree.KubernetesStack,
+		EndpointID:       task.EndpointID,
+		Namespace:        namespace,
+		EntryPoint:       filesystem.ManifestFileDefaultName,
+		StackFileVersion: 1,
 	}
 
 	stackFolder := strconv.Itoa(stackID)
-	projectPath, err := service.fileService.StoreStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(task.CustomTemplateContent))
+	projectPath, err := service.fileService.StoreStackFileFromBytesByVersion(stackFolder, stack.EntryPoint, 1, []byte(task.CustomTemplateContent))
 	if err != nil {
 		return fmt.Errorf("error copying stack manifest for endpoint: %d, error: %w", task.EndpointID, err)
 	}

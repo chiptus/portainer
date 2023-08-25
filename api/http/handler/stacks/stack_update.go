@@ -265,7 +265,7 @@ func (handler *Handler) updateSwarmOrComposeStack(r *http.Request, stack *portai
 		return httperror.InternalServerError("Invalid stack type", errors.New("invalid stack type"))
 	}
 	if err != nil {
-		if rollbackErr := handler.FileService.RollbackStackFile(stackFolder, stack.EntryPoint); rollbackErr != nil {
+		if rollbackErr := handler.FileService.RollbackStackFileByVersion(stackFolder, stack.StackFileVersion, stack.EntryPoint); rollbackErr != nil {
 			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
 		}
 		return httperror.InternalServerError(err.Error(), err)
