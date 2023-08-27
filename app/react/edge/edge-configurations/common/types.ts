@@ -18,7 +18,7 @@ export enum FormValuesEdgeConfigurationMatchingRule {
 export type FormValues = {
   name: string;
   groupIds: EdgeGroup['Id'][];
-  directory?: string;
+  directory: string;
   type: FormValuesEdgeConfigurationType;
   matchingRule?: FormValuesEdgeConfigurationMatchingRule;
   file:

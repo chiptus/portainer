@@ -102,6 +102,7 @@ function ItemView() {
                       label="Directory"
                       placeholder="/etc/edge"
                       tooltip="A designated folder on each edge node for storing read-only configuration files."
+                      required
                       disabled
                     />
 

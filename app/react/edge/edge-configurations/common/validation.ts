@@ -12,7 +12,7 @@ export function validationBase(): SchemaOf<Omit<FormValues, 'file'>> {
       .of(number().default(0))
       .min(1, 'At least one group is required'),
     name: string().required('This field is required'),
-    directory: string(),
+    directory: string().required('This field is required'),
     type: mixed<FormValuesEdgeConfigurationType>()
       .oneOf(Object.values(FormValuesEdgeConfigurationType))
       .required(),
