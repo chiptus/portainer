@@ -16,9 +16,16 @@ type Props = {
   data: string;
   authorised: boolean;
   system?: boolean;
+  hideMessage?: boolean;
 };
 
-export function YAMLInspector({ identifier, data, authorised, system }: Props) {
+export function YAMLInspector({
+  identifier,
+  data,
+  authorised,
+  system,
+  hideMessage,
+}: Props) {
   const [expanded, setExpanded] = useState(false);
   const [yaml, setYaml] = useState(cleanYamlUnwantedFields(data));
   const originalYaml = useMemo(() => cleanYamlUnwantedFields(data), [data]);
@@ -35,7 +42,11 @@ export function YAMLInspector({ identifier, data, authorised, system }: Props) {
     <div>
       <WebEditorForm
         value={yaml}
-        placeholder="Define or paste the content of your manifest here"
+        placeholder={
+          hideMessage
+            ? undefined
+            : 'Define or paste the content of your manifest here'
+        }
         readonly={!isAllowedToEdit || system}
         hideTitle
         onChange={(value) => setYaml(value)}

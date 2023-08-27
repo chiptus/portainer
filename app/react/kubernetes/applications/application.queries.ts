@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from 'react-query';
+import { UseQueryResult, useMutation, useQuery } from 'react-query';
 import { Pod } from 'kubernetes-types/core/v1';
 
 import { queryClient, withError } from '@/react-tools/react-query';
@@ -28,7 +28,8 @@ const queryKeys = {
   application: (
     environmentId: EnvironmentId,
     namespace: string,
-    name: string
+    name: string,
+    yaml?: boolean
   ) => [
     'environments',
     environmentId,
@@ -36,6 +37,7 @@ const queryKeys = {
     'applications',
     namespace,
     name,
+    yaml,
   ],
   applicationRevisions: (
     environmentId: EnvironmentId,
@@ -121,18 +123,23 @@ export function useApplicationsForCluster(
   );
 }
 
-// useQuery to get an application by environmentId, namespace and name
-export function useApplication(
+// when yaml is set to true, the expected return type is a string
+export function useApplication<T extends Application | string = Application>(
   environmentId: EnvironmentId,
   namespace: string,
   name: string,
-  appKind?: AppKind
-) {
+  appKind?: AppKind,
+  options?: { autoRefreshRate?: number; yaml?: boolean }
+): UseQueryResult<T> {
   return useQuery(
-    queryKeys.application(environmentId, namespace, name),
-    () => getApplication(environmentId, namespace, name, appKind),
+    queryKeys.application(environmentId, namespace, name, options?.yaml),
+    () =>
+      getApplication<T>(environmentId, namespace, name, appKind, options?.yaml),
     {
       ...withError('Unable to retrieve application'),
+      refetchInterval() {
+        return options?.autoRefreshRate ?? false;
+      },
     }
   );
 }
@@ -213,7 +220,7 @@ export function useApplicationServices(
 }
 
 // useApplicationHorizontalPodAutoscalers returns a query for horizontal pod autoscalers that are related to the application
-export function useApplicationHorizontalPodAutoscalers(
+export function useApplicationHorizontalPodAutoscaler(
   environmentId: EnvironmentId,
   namespace: string,
   appName: string,
@@ -232,7 +239,7 @@ export function useApplicationHorizontalPodAutoscalers(
 
       const horizontalPodAutoscalers =
         await getNamespaceHorizontalPodAutoscalers(environmentId, namespace);
-      const filteredHorizontalPodAutoscalers =
+      const matchingHorizontalPodAutoscaler =
         horizontalPodAutoscalers.find((horizontalPodAutoscaler) => {
           const scaleTargetRef = horizontalPodAutoscaler.spec?.scaleTargetRef;
           if (scaleTargetRef) {
@@ -246,11 +253,11 @@ export function useApplicationHorizontalPodAutoscalers(
           }
           return false;
         }) || null;
-      return filteredHorizontalPodAutoscalers;
+      return matchingHorizontalPodAutoscaler;
     },
     {
       ...withError(
-        `Unable to get horizontal pod autoscalers${
+        `Unable to get horizontal pod autoscaler${
           app ? ` for ${app.metadata?.name}` : ''
         }`
       ),
@@ -264,7 +271,8 @@ export function useApplicationPods(
   environmentId: EnvironmentId,
   namespace: string,
   appName: string,
-  app?: Application
+  app?: Application,
+  options?: { autoRefreshRate?: number }
 ) {
   return useQuery(
     queryKeys.applicationPods(environmentId, namespace, appName),
@@ -288,6 +296,9 @@ export function useApplicationPods(
     {
       ...withError(`Unable to get pods for ${appName}`),
       enabled: !!app,
+      refetchInterval() {
+        return options?.autoRefreshRate ?? false;
+      },
     }
   );
 }

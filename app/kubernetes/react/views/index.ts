@@ -15,6 +15,7 @@ import { ConfigmapsAndSecretsView } from '@/react/kubernetes/configs/ListView/Co
 import { NodeCreateView } from '@/react/kubernetes/cluster/NodeCreateView/NodeCreateView';
 import { Microk8sNodeStatusView } from '@/react/kubernetes/cluster/NodeStatusView';
 import { NodeShellView } from '@/react/kubernetes/cluster/microk8s/NodeShell';
+import { ApplicationDetailsView } from '@/react/kubernetes/applications/DetailsView/ApplicationDetailsView';
 
 export const viewsModule = angular
   .module('portainer.kubernetes.react.views', [])
@@ -47,6 +48,13 @@ export const viewsModule = angular
     'kubernetesConfigMapsAndSecretsView',
     r2a(
       withUIRouter(withReactQuery(withCurrentUser(ConfigmapsAndSecretsView))),
+      []
+    )
+  )
+  .component(
+    'applicationDetailsView',
+    r2a(
+      withUIRouter(withReactQuery(withCurrentUser(ApplicationDetailsView))),
       []
     )
   )

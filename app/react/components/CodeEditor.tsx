@@ -111,6 +111,7 @@ export function CodeEditor({
 
           <div className="flex-2 ml-auto mr-2 flex items-center gap-x-2">
             <CopyButton
+              fadeDelay={2500}
               copyText={value}
               color="link"
               className="!pr-0 !text-sm !font-medium hover:no-underline focus:no-underline"

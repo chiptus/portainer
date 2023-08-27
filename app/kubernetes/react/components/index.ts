@@ -26,7 +26,6 @@ import {
 import { ApplicationContainersDatatable } from '@/react/kubernetes/applications/DetailsView/ApplicationContainersDatatable';
 import { withFormValidation } from '@/react-tools/withFormValidation';
 import { withCurrentUser } from '@/react-tools/withCurrentUser';
-import { PlacementsDatatable } from '@/react/kubernetes/applications/ItemView/PlacementsDatatable';
 
 export const ngModule = angular
   .module('portainer.kubernetes.react.components', [])
@@ -145,6 +144,7 @@ export const ngModule = angular
       'data',
       'authorised',
       'system',
+      'hideMessage',
     ])
   )
   .component(
@@ -176,13 +176,6 @@ export const ngModule = angular
       withUIRouter(withReactQuery(withCurrentUser(ApplicationEventsDatatable))),
       []
     )
-  )
-  .component(
-    'kubernetesApplicationPlacementsDatatable',
-    r2a(withUIRouter(withCurrentUser(PlacementsDatatable)), [
-      'dataset',
-      'onRefresh',
-    ])
   );
 
 export const componentsModule = ngModule.name;

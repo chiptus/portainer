@@ -15,6 +15,7 @@ const apiKindMap = {
 const apiVersionMap = {
   v1: 'api/v1',
   'apps/v1': 'apis/apps/v1',
+  'autoscaling/v1': 'apis/autoscaling/v1',
 } as const;
 
 export async function applyPatch(

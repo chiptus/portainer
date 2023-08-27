@@ -46,8 +46,12 @@ export function ApplicationDetailsWidget() {
   const hideEditButton = deploymentOptions && deploymentOptions?.hideWebEditor;
 
   // get app info
-  const appQuery = useApplication(environmentId, namespace, name, resourceType);
-  const app = appQuery.data;
+  const { data: app } = useApplication(
+    environmentId,
+    namespace,
+    name,
+    resourceType
+  );
   const externalApp = app && isExternalApplication(app);
   const appStackId = Number(app?.metadata?.labels?.[appStackIdLabel]);
   const appStackFileQuery = useStackFile(appStackId);
@@ -59,97 +63,101 @@ export function ApplicationDetailsWidget() {
   );
 
   return (
-    <Widget>
-      <WidgetBody>
-        {!isSystemNamespace(namespace) && (
-          <div className="mb-4 flex flex-wrap gap-2">
-            <Authorized authorizations="K8sApplicationDetailsW">
-              {!hideEditButton && (
-                <Link to="kubernetes.applications.application.edit">
-                  <Button
-                    type="button"
-                    color="light"
-                    size="small"
-                    className="hover:decoration-none !ml-0"
-                    data-cy="k8sAppDetail-editAppButton"
+    <div className="row">
+      <div className="col-sm-12">
+        <Widget>
+          <WidgetBody>
+            {!isSystemNamespace(namespace) && (
+              <div className="mb-4 flex flex-wrap gap-2">
+                <Authorized authorizations="K8sApplicationDetailsW">
+                  {!hideEditButton && (
+                    <Link to="kubernetes.applications.application.edit">
+                      <Button
+                        type="button"
+                        color="light"
+                        size="small"
+                        className="hover:decoration-none !ml-0"
+                        data-cy="k8sAppDetail-editAppButton"
+                      >
+                        <Icon icon={Pencil} className="mr-1" />
+                        {externalApp
+                          ? 'Edit external application'
+                          : 'Edit this application'}
+                      </Button>
+                    </Link>
+                  )}
+                </Authorized>
+                {!applicationIsKind<Pod>('Pod', app) && (
+                  <>
+                    <RestartApplicationButton
+                      environmentId={environmentId}
+                      namespace={namespace}
+                      appName={name}
+                      appKind={app?.kind}
+                    />
+                    <RedeployApplicationButton
+                      environmentId={environmentId}
+                      namespace={namespace}
+                      appName={name}
+                      app={app}
+                    />
+                  </>
+                )}
+                {!externalApp && (
+                  <RollbackApplicationButton
+                    environmentId={environmentId}
+                    namespace={namespace}
+                    appName={name}
+                    app={app}
+                  />
+                )}
+                {appStackFileQuery.data && !hideEditButton && (
+                  <Link
+                    to="kubernetes.templates.custom.new"
+                    params={{
+                      fileContent: appStackFileQuery.data.StackFileContent,
+                    }}
                   >
-                    <Icon icon={Pencil} className="mr-1" />
-                    {externalApp
-                      ? 'Edit external application'
-                      : 'Edit this application'}
-                  </Button>
-                </Link>
-              )}
-            </Authorized>
-            {!applicationIsKind<Pod>('Pod', app) && (
-              <>
-                <RestartApplicationButton
-                  environmentId={environmentId}
-                  namespace={namespace}
-                  appName={name}
-                  appKind={app?.kind}
-                />
-                <RedeployApplicationButton
-                  environmentId={environmentId}
-                  namespace={namespace}
-                  appName={name}
-                  app={app}
-                />
-              </>
+                    <Button
+                      type="button"
+                      color="primary"
+                      size="small"
+                      className="hover:decoration-none !ml-0"
+                      data-cy="k8sAppDetail-createCustomTemplateButton"
+                    >
+                      <Icon icon={Plus} className="mr-1" />
+                      Create template from application
+                    </Button>
+                  </Link>
+                )}
+              </div>
             )}
-            {!externalApp && (
-              <RollbackApplicationButton
-                environmentId={environmentId}
-                namespace={namespace}
-                appName={name}
-                app={app}
-              />
-            )}
-            {appStackFileQuery.data && !hideEditButton && (
-              <Link
-                to="kubernetes.templates.custom.new"
-                params={{
-                  fileContent: appStackFileQuery.data.StackFileContent,
-                }}
-              >
-                <Button
-                  type="button"
-                  color="primary"
-                  size="small"
-                  className="hover:decoration-none !ml-0"
-                  data-cy="k8sAppDetail-createCustomTemplateButton"
-                >
-                  <Icon icon={Plus} className="mr-1" />
-                  Create template from application
-                </Button>
-              </Link>
-            )}
-          </div>
-        )}
-        <ApplicationServicesTable
-          environmentId={environmentId}
-          appServices={appServices}
-        />
-        <ApplicationIngressesTable
-          appServices={appServices}
-          environmentId={environmentId}
-          namespace={namespace}
-        />
-        <ApplicationAutoScalingTable
-          environmentId={environmentId}
-          namespace={namespace}
-          appName={name}
-          app={app}
-        />
-        <ApplicationEnvVarsTable namespace={namespace} app={app} />
-        <ApplicationVolumeConfigsTable namespace={namespace} app={app} />
-        <ApplicationPersistentDataTable
-          environmentId={environmentId}
-          namespace={namespace}
-          appName={name}
-          app={app}
-        />
-      </WidgetBody>
-    </Widget>
+            <ApplicationServicesTable
+              environmentId={environmentId}
+              appServices={appServices}
+            />
+            <ApplicationIngressesTable
+              appServices={appServices}
+              environmentId={environmentId}
+              namespace={namespace}
+            />
+            <ApplicationAutoScalingTable
+              environmentId={environmentId}
+              namespace={namespace}
+              appName={name}
+              app={app}
+            />
+            <ApplicationEnvVarsTable namespace={namespace} app={app} />
+            <ApplicationVolumeConfigsTable namespace={namespace} app={app} />
+            <ApplicationPersistentDataTable
+              environmentId={environmentId}
+              namespace={namespace}
+              appName={name}
+              app={app}
+            />
+          </WidgetBody>
+        </Widget>
+      </div>
+    </div>
   );
 }

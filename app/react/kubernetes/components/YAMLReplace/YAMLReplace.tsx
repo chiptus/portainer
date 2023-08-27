@@ -1,6 +1,7 @@
 import YAML from 'yaml';
 import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import * as JsonPatch from 'fast-json-patch';
+import { useQueryClient } from 'react-query';
 
 import { useAuthorizations } from '@/react/hooks/useUser';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
@@ -22,6 +23,7 @@ export function YAMLReplace({ yml, originalYml, disabled }: Props) {
   const { params } = useCurrentStateAndParams();
   const router = useRouter();
   const canWrite = useAuthorizations(['K8sYAMLW']);
+  const queryClient = useQueryClient();
 
   function getOriginalResource(k: string, n: string, ns: string) {
     try {
@@ -87,8 +89,8 @@ export function YAMLReplace({ yml, originalYml, disabled }: Props) {
         return successFlag;
       })
     );
-
     if (res.indexOf(false) === -1) {
+      queryClient.invalidateQueries(['environments', `${environmentId}`]); //
       router.stateService.reload();
     }
   }
