@@ -127,7 +127,7 @@ func (handler *Handler) stopStack(stack *portaineree.Stack, endpoint *portainere
 	case portaineree.DockerComposeStack:
 		stack.Name = handler.ComposeStackManager.NormalizeStackName(stack.Name)
 
-		if stackutils.IsGitStack(stack) {
+		if stackutils.IsRelativePathStack(stack) {
 			return handler.StackDeployer.StopRemoteComposeStack(stack, endpoint)
 		}
 
@@ -135,7 +135,7 @@ func (handler *Handler) stopStack(stack *portaineree.Stack, endpoint *portainere
 	case portaineree.DockerSwarmStack:
 		stack.Name = handler.SwarmStackManager.NormalizeStackName(stack.Name)
 
-		if stackutils.IsGitStack(stack) {
+		if stackutils.IsRelativePathStack(stack) {
 			return handler.StackDeployer.StopRemoteSwarmStack(stack, endpoint)
 		}
 

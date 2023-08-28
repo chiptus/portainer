@@ -52,6 +52,11 @@ func IsGitStack(stack *portaineree.Stack) bool {
 	return stack.GitConfig != nil && len(stack.GitConfig.URL) != 0
 }
 
+// IsRelativePathStack checks if the stack is a git stack or not
+func IsRelativePathStack(stack *portaineree.Stack) bool {
+	return stack.SupportRelativePath && stack.FilesystemPath != ""
+}
+
 // GetStackProjectPathByVersion returns the stack project path based on the version or commit hash
 func GetStackProjectPathByVersion(stack *portaineree.Stack) string {
 	if stack.GitConfig != nil {

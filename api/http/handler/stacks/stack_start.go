@@ -159,7 +159,7 @@ func (handler *Handler) startStack(
 	case portaineree.DockerComposeStack:
 		stack.Name = handler.ComposeStackManager.NormalizeStackName(stack.Name)
 
-		if stackutils.IsGitStack(stack) {
+		if stackutils.IsRelativePathStack(stack) {
 			return handler.StackDeployer.StartRemoteComposeStack(stack, endpoint, filteredRegistries)
 		}
 
@@ -167,7 +167,7 @@ func (handler *Handler) startStack(
 	case portaineree.DockerSwarmStack:
 		stack.Name = handler.SwarmStackManager.NormalizeStackName(stack.Name)
 
-		if stackutils.IsGitStack(stack) {
+		if stackutils.IsRelativePathStack(stack) {
 			return handler.StackDeployer.StartRemoteSwarmStack(stack, endpoint, filteredRegistries)
 		}
 
