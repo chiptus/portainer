@@ -432,7 +432,7 @@ func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID 
 		}
 
 		// Stagger configuration check
-		if handler.staggerService != nil && handler.staggerService.IsStaggeredEdgeStack(stackID, stack.StackFileVersion) {
+		if handler.staggerService != nil && handler.staggerService.IsStaggeredEdgeStack(stackID, stack.StackFileVersion, endpointID) {
 			log.Debug().Int("edgeStackID", int(stackID)).
 				Int("endpointID", int(endpointID)).
 				Int("statusVersion", stackStatus.Version).
@@ -459,9 +459,16 @@ func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID 
 					stack = edgeStack
 				}
 
-				endpointStatus := stack.Status[endpointID]
+				endpointStatus, ok := stack.Status[endpointID]
+				if !ok {
+					// If the endpoint was updated in the stagger flow, and then removed from the
+					// edge group and added back, the endpoint status will be removed from the
+					// stack. In this case, we need to treat it as a new endpoint
+					edgeStacksStatus = append(edgeStacksStatus, stackStatus)
+					continue
+				}
 				if endpointStatus.DeploymentInfo.Version == 0 {
-					// The endpoint has never deployed an edge stack
+					// The endpoint has never deployed an edge stack, such as, a failure endpoint
 					continue
 				}
 

@@ -28,7 +28,7 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 	stackFileVersion int) {
 
 	err := retry(func(retryTime int) error {
-		if !service.IsStaggeredEdgeStack(edgeStackID, stackFileVersion) {
+		if !service.IsStaggeredEdgeStack(edgeStackID, stackFileVersion, 0) {
 			log.Debug().
 				Int("edgeStackID", int(edgeStackID)).
 				Int("file version", stackFileVersion).

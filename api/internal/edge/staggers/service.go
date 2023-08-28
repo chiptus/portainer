@@ -135,13 +135,24 @@ func (service *Service) IsEdgeStackUpdating(id portaineree.EdgeStackID) bool {
 }
 
 // IsStaggered is used to check if the edge stack is staggered for specific endpoint
-func (service *Service) IsStaggeredEdgeStack(id portaineree.EdgeStackID, fileVersion int) bool {
+func (service *Service) IsStaggeredEdgeStack(id portaineree.EdgeStackID, fileVersion int, endpointID portaineree.EndpointID) bool {
 	poolKey := GetStaggerPoolKey(id, fileVersion)
 
 	service.staggerPoolMtx.RLock()
 	defer service.staggerPoolMtx.RUnlock()
 
-	_, ok := service.staggerPool[poolKey]
+	pool, ok := service.staggerPool[poolKey]
+	if !ok {
+		return false
+	}
+
+	if endpointID == 0 {
+		return true
+	}
+	// If an endpoint is added into the edge group after the stagger workflow is started,
+	// it will not be included in the stagger workflow
+	_, ok = pool.endpointStatus[endpointID]
+
 	return ok
 }
 
