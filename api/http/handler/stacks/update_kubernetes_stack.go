@@ -11,6 +11,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/git/update"
 	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	k "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	"github.com/portainer/portainer/api/filesystem"
@@ -113,6 +114,14 @@ func (handler *Handler) updateKubernetesStack(r *http.Request, stack *portainere
 
 	if err := filesystem.WriteToFile(filesystem.JoinPaths(tempFileDir, stack.EntryPoint), []byte(payload.StackFileContent)); err != nil {
 		return httperror.InternalServerError("Failed to persist deployment file in a temp directory", err)
+	}
+
+	// Refresh ECR registry secret if needed
+	// RefreshEcrSecret method checks if the namespace has any ECR registry
+	// otherwise return nil
+	cli, err := handler.KubernetesClientFactory.GetKubeClient(endpoint)
+	if err == nil {
+		registryutils.RefreshEcrSecret(cli, endpoint, handler.DataStore, stack.Namespace)
 	}
 
 	//use temp dir as the stack project path for deployment

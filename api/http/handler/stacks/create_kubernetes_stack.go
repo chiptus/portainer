@@ -14,6 +14,7 @@ import (
 	"github.com/portainer/portainer-ee/api/git/update"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	k "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	"github.com/portainer/portainer-ee/api/stacks/stackbuilders"
@@ -181,6 +182,14 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 		tokenData,
 		handler.AuthorizationService,
 		handler.KubernetesClientFactory)
+
+	// Refresh ECR registry secret if needed
+	// RefreshEcrSecret method checks if the namespace has any ECR registry
+	// otherwise return nil
+	cli, err := handler.KubernetesClientFactory.GetKubeClient(endpoint)
+	if err == nil {
+		registryutils.RefreshEcrSecret(cli, endpoint, handler.DataStore, payload.Namespace)
+	}
 
 	stackBuilderDirector := stackbuilders.NewStackBuilderDirector(k8sStackBuilder)
 	_, httpErr := stackBuilderDirector.Build(&stackPayload, endpoint, tokenData.ID)
