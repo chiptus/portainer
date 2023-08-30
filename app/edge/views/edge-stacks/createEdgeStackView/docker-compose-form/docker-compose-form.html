@@ -94,20 +94,29 @@
 
     <!--Configuration path-->
     <div class="col-sm-12" ng-if="$ctrl.formValues.SupportPerDeviceConfigs">
+      <p class="small vertical-center">
+        <pr-icon icon="'info'" mode="'primary'"></pr-icon>
+        <span class="text-muted">
+          Specify the directory name where your configuration will be located. This will allow you to manage device configuration settings with a Git repo as your template.
+        </span>
+      </p>
+
       <div class="form-group">
-        <label class="col-sm-3 col-lg-2 control-label text-left"> Configuration path </label>
+        <label class="col-sm-3 col-lg-2 control-label text-left"> Directory </label>
+
         <div class="col-sm-9 col-lg-10">
           <path-selector
             value="$ctrl.formValues.PerDeviceConfigsPath"
             model="$ctrl.formValues"
             on-change="($ctrl.onPerDeviceConfigsPathChange)"
             dir-only="true"
-            placeholder="'/config'"
+            placeholder="'config'"
           ></path-selector>
+
           <span class="help-block" ng-if="$ctrl.formValues.PerDeviceConfigsPath.length === 0">
             <p class="text-warning small vertical-center">
               <pr-icon icon="'alert-triangle'" mode="'warning'" size="'sm'"></pr-icon>
-              <span>Configuration path is required</span>
+              <span>Directory is required</span>
             </p>
           </span>
         </div>
