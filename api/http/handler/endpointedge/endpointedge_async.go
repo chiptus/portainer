@@ -576,7 +576,7 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 		var expectStatus portainer.EdgeStackStatusType
 		if slices.ContainsFunc(environmentStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
 			expectStatus = sts.Type
-			if sts.RollbackTo != nil {
+			if sts.RollbackTo != nil && *sts.RollbackTo != 0 {
 				log.Debug().Int("rollbackTo", *rollbackTo).
 					Int("status", int(expectStatus)).
 					Int("endpointID", int(endpoint.ID)).
@@ -589,7 +589,8 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 
 			if expectStatus == portainer.EdgeStackStatusRunning {
 				if rollbackTo != nil && stack.PreviousDeploymentInfo != nil &&
-					stack.PreviousDeploymentInfo.FileVersion == *rollbackTo {
+					stack.PreviousDeploymentInfo.FileVersion == *rollbackTo &&
+					*rollbackTo != 0 {
 					// if the endpoint is rolled back successfully, we should update the endpoint's edge
 					// status's DeploymentInfo to the previous version.
 					environmentStatus.DeploymentInfo = portainer.StackDeploymentInfo{
@@ -600,7 +601,8 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 					}
 
 				} else {
-					if rollbackTo != nil && stack.StackFileVersion != *rollbackTo {
+					if rollbackTo != nil && stack.StackFileVersion != *rollbackTo &&
+						*rollbackTo != 0 {
 						prevVersion := 0
 						if stack.PreviousDeploymentInfo != nil {
 							prevVersion = stack.PreviousDeploymentInfo.FileVersion

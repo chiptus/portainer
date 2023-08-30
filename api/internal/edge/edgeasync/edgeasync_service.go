@@ -134,7 +134,9 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 
 	rollbackTo := new(int)
 	// Check if the requested version is the previous version. If not, use the latest stack file version
-	if edgeStack.PreviousDeploymentInfo != nil && targetVersion == edgeStack.PreviousDeploymentInfo.FileVersion {
+	if edgeStack.PreviousDeploymentInfo != nil &&
+		targetVersion == edgeStack.PreviousDeploymentInfo.FileVersion &&
+		targetVersion != 0 {
 		projectVersionPath = service.fileService.FormProjectPathByVersion(edgeStack.ProjectPath, edgeStack.PreviousDeploymentInfo.FileVersion, edgeStack.PreviousDeploymentInfo.ConfigHash)
 		*rollbackTo = edgeStack.PreviousDeploymentInfo.FileVersion
 		deployedVersion = edgeStack.PreviousDeploymentInfo.FileVersion
