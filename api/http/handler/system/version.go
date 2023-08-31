@@ -18,6 +18,7 @@ type versionResponse struct {
 	LatestVersion string `json:"LatestVersion" example:"2.0.0"`
 
 	ServerVersion   string
+	ServerEdition   string `json:"ServerEdition" example:"CE/EE"`
 	DatabaseVersion string
 	Build           BuildInfo
 }
@@ -43,15 +44,17 @@ type BuildInfo struct {
 // @router /system/version [get]
 func (handler *Handler) version(w http.ResponseWriter, r *http.Request) {
 
-	dbVer := ""
+	var dbVer, edition string
 	vs := handler.dataStore.Version()
 	v, err := vs.Version()
 	if err == nil {
 		dbVer = v.SchemaVersion
+		edition = portaineree.SoftwareEdition(v.Edition).GetEditionLabel()
 	}
 
 	result := &versionResponse{
 		ServerVersion:   portaineree.APIVersion,
+		ServerEdition:   edition,
 		DatabaseVersion: dbVer,
 		Build: BuildInfo{
 			BuildNumber:    build.BuildNumber,
