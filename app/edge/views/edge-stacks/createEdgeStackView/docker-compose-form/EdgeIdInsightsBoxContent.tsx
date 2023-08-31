@@ -7,7 +7,10 @@ export function EdgeIdInsightsBoxContent() {
       <b>- ./config/$&#123;PORTAINER_EDGE_ID&#125;:/myapp/config</b>.
       <br />
       More documentation can be found{' '}
-      <a href="https://docs.portainer.io/user/edge/configurations">here</a>.
+      <a href="https://docs.portainer.io/user/edge/stacks/add#gitops-edge-configurations">
+        here
+      </a>
+      .
     </div>
   );
 }
