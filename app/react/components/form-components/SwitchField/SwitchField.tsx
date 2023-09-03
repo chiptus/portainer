@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import { ComponentProps } from 'react';
+import uuid from 'uuid';
 
 import { FeatureId } from '@/react/portainer/feature-flags/enums';
 
@@ -30,7 +31,7 @@ export function SwitchField({
   checked,
   label,
   index,
-  name,
+  name = uuid(),
   labelClass,
   fieldClass,
   dataCy,
@@ -42,15 +43,16 @@ export function SwitchField({
 }: Props) {
   const toggleName = name ? `toggle_${name}` : '';
   return (
-    <label className={clsx(styles.root, fieldClass)}>
-      <span
+    <div className={clsx(styles.root, fieldClass)}>
+      <label
         className={clsx('space-right control-label !p-0 text-left', labelClass)}
+        htmlFor={toggleName}
       >
         {label}
         {tooltip && (
           <Tooltip message={tooltip} setHtmlMessage={setTooltipHtmlMessage} />
         )}
-      </span>
+      </label>
       <Switch
         className={clsx('space-right shrink-0', switchClass)}
         name={toggleName}
@@ -62,6 +64,6 @@ export function SwitchField({
         index={index}
         dataCy={dataCy}
       />
-    </label>
+    </div>
   );
 }
