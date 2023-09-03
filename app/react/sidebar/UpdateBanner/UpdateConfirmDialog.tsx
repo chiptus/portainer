@@ -5,6 +5,7 @@ import { notifySuccess } from '@/portainer/services/notifications';
 
 import { Button, LoadingButton } from '@@/buttons';
 import { Modal } from '@@/modals/Modal';
+import { TextTip } from '@@/Tip/TextTip';
 
 const initialValues = {};
 
@@ -38,6 +39,11 @@ export function UpdateConfirmDialog({
                 logged out and need to log in again once the update is complete.
                 Are you sure you want to update Portainer?
               </p>
+
+              <TextTip color="blue">
+                Before updating to the new Portainer version, please ensure you
+                have backed up your current system.
+              </TextTip>
             </Modal.Body>
             <Modal.Footer>
               <div className="flex w-full gap-2 [&>*]:w-1/2">
