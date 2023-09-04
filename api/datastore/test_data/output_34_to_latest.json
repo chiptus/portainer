@@ -93,6 +93,7 @@
       "Nomad": {
         "Snapshots": []
       },
+      "PendingActions": null,
       "PostInitMigrations": {
         "MigrateGPUs": true,
         "MigrateGateKeeper": false,

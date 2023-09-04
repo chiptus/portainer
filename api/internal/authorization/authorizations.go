@@ -9,13 +9,13 @@ import (
 // Service represents a service used to
 // update authorizations associated to a user or team.
 type Service struct {
-	dataStore         dataservices.DataStore
+	dataStore         dataservices.DataStoreTx
 	authEventHandlers map[string]portaineree.AuthEventHandler
 	K8sClientFactory  *cli.ClientFactory
 }
 
 // NewService returns a point to a new Service instance.
-func NewService(dataStore dataservices.DataStore) *Service {
+func NewService(dataStore dataservices.DataStoreTx) *Service {
 	return &Service{
 		dataStore:         dataStore,
 		authEventHandlers: make(map[string]portaineree.AuthEventHandler),

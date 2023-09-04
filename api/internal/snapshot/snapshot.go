@@ -9,6 +9,8 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/agent"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/http/utils"
+	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
@@ -302,6 +304,11 @@ func updateEndpointStatus(tx dataservices.DataStoreTx, endpoint *portaineree.End
 			Str("endpoint", endpoint.Name).
 			Str("URL", endpoint.URL).Err(err).
 			Msg("background schedule error (environment snapshot), unable to update environment")
+	}
+
+	// Run the pending actions
+	if latestEndpointReference.Status == portaineree.EndpointStatusUp {
+		utils.RunPendingActions(latestEndpointReference, tx, authorization.NewService(tx))
 	}
 }
 

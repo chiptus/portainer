@@ -7,6 +7,7 @@ import (
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/utils"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/kubernetes/podsecurity"
 	"github.com/rs/zerolog/log"
@@ -118,6 +119,9 @@ func (handler *Handler) endpointInspect(w http.ResponseWriter, r *http.Request) 
 			}
 		}
 	}
+
+	// Run the pending actions
+	utils.RunPendingActions(endpoint, handler.DataStore, handler.AuthorizationService)
 
 	return response.JSON(w, endpoint)
 }
