@@ -3,7 +3,7 @@ import { RegistryTypes } from 'Portainer/models/registryTypes';
 import { RepositoryShortTag, RepositoryTagViewModel } from '@/portainer/registry-management/models/repositoryTag';
 import { trimSHA } from '@/docker/filters/utils';
 import EndpointHelper from '@/portainer/helpers/endpointHelper';
-import { getInfo } from '@/docker/services/system.service';
+import { getInfo } from '@/react/docker/proxy/queries/useInfo';
 import { confirmDelete } from '@@/modals/confirm';
 
 angular.module('portainer.app').controller('RegistryRepositoryController', RegistryRepositoryController);

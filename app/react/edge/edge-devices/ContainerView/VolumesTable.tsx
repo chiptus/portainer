@@ -23,9 +23,12 @@ export function VolumesTable({ mounts = [] }: Props) {
             <DetailsTable headers={['Host/Volume', 'Path in container']}>
               {mounts.map((mount) => {
                 const name = mount.Type === 'bind' ? mount.Source : mount.Name;
+                if (!name) {
+                  return null;
+                }
 
                 return (
-                  <DetailsTable.Row label={name || mount.Source} key={name}>
+                  <DetailsTable.Row label={name} key={name}>
                     {mount.Destination}
                   </DetailsTable.Row>
                 );

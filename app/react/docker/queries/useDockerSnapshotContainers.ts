@@ -4,7 +4,7 @@ import { withError } from '@/react-tools/react-query';
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 import { Environment } from '@/react/portainer/environments/types';
 import { DockerContainerResponse } from '@/react/docker/containers/types/response';
-import { parseViewModel } from '@/react/docker/containers/utils';
+import { parseListViewModel } from '@/react/docker/containers/utils';
 
 import {
   buildDockerSnapshotContainersUrl,
@@ -34,7 +34,7 @@ export async function getEnvironmentSnapshotContainers(
       buildDockerSnapshotContainersUrl(environmentId),
       { params }
     );
-    return data && data.map((c) => parseViewModel(c));
+    return data && data.map((c) => parseListViewModel(c));
   } catch (e) {
     throw parseAxiosError(e as Error);
   }

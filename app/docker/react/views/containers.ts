@@ -9,7 +9,7 @@ import { withUIRouter } from '@/react-tools/withUIRouter';
 import { LogView } from '@/react/docker/containers/LogView';
 
 export const containersModule = angular
-  .module('portainer.docker.containers', [])
+  .module('portainer.docker.react.views.containers', [])
   .component(
     'containersView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(ListView))), ['endpoint'])
