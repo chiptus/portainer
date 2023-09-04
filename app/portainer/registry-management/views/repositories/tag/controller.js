@@ -79,9 +79,15 @@ export class RegistryRepositoryTagController {
     try {
       this.registry = await this.RegistryService.registry(this.context.registryId, this.context.endpointId);
       this.tag = await this.RegistryServiceSelector.tag(this.registry, this.context.endpointId, this.context.repository, this.context.tag);
+
       const length = this.tag.History.length;
-      this.history = _.map(this.tag.History, (layer, idx) => new RegistryImageLayerViewModel(length - idx, layer));
-      _.forEach(this.history, (item) => (item.CreatedBy = this.imagelayercommandFilter(item.CreatedBy)));
+
+      this.history = _.map(this.tag.History, (history, idx) => new RegistryImageLayerViewModel(length - idx, history));
+
+      _.forEach(this.history, (item) => {
+        item.CreatedBy = this.imagelayercommandFilter(item.CreatedBy);
+      });
+
       this.details = new RegistryImageDetailsViewModel(this.tag.History[0]);
     } catch (error) {
       this.Notifications.error('Failure', error, 'Unable to retrieve tag');

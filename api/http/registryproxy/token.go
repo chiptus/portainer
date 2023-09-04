@@ -27,12 +27,12 @@ type (
 )
 
 func newTokenSecuredRegistryProxy(uri string, config *portaineree.RegistryManagementConfiguration, httpTransport http.RoundTripper) (http.Handler, error) {
-	url, err := url.Parse("https://" + uri)
+	parsedURL, err := url.Parse("https://" + uri)
 	if err != nil {
 		return nil, err
 	}
 
-	proxy := newSingleHostReverseProxyWithHostHeader(url)
+	proxy := newSingleHostReverseProxyWithHostHeader(parsedURL)
 	proxy.Transport = &tokenSecuredTransport{
 		config:        config,
 		httpTransport: httpTransport,
@@ -83,6 +83,16 @@ func (transport *tokenSecuredTransport) RoundTrip(request *http.Request) (*http.
 			return nil, err
 		}
 
+	}
+
+	if response.StatusCode == http.StatusTemporaryRedirect {
+		redirectedURL := response.Header.Get("Location")
+		if redirectedURL != "" {
+			response, err = http.Get(redirectedURL)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return response, nil

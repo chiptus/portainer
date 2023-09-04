@@ -6,12 +6,12 @@ import genericAsyncGenerator from './genericAsyncGenerator';
 
 angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
   '$q',
-  '$async',
   'RegistryCatalog',
   'RegistryTags',
   'RegistryManifestsJquery',
+  'RegistryBlobsJquery',
   'RegistryV2Helper',
-  function RegistryV2ServiceFactory($q, $async, RegistryCatalog, RegistryTags, RegistryManifestsJquery, RegistryV2Helper) {
+  function RegistryV2ServiceFactory($q, RegistryCatalog, RegistryTags, RegistryManifestsJquery, RegistryBlobsJquery, RegistryV2Helper) {
     'use strict';
     var service = {};
 
@@ -167,8 +167,31 @@ angular.module('portainer.registrymanagement').factory('RegistryV2Service', [
           tag: tag,
         }),
       };
+
       $q.all(promises)
-        .then(function success(data) {
+        .then(async function success(data) {
+          try {
+            const responseBody = await RegistryBlobsJquery.get({
+              id: id,
+              endpointId: endpointId,
+              repository: repository,
+              tag: tag,
+              digest: data.v2.config.digest,
+            });
+
+            data.imageConfigs = typeof responseBody === 'string' ? JSON.parse(responseBody) : responseBody;
+
+            // prefer image configs than manifest v1
+            data.v1 = null;
+          } catch (e) {
+            // empty
+          }
+
+          if (data.v1 && data.v1.schemaVersion === 2) {
+            // Registry returns manifest v2 while we request manifest v1
+            data.v1 = null;
+          }
+
           var tagDetails = RegistryV2Helper.manifestsToTag(data);
           tagDetails.Name = tagDetails.Name || tag;
           deferred.resolve(tagDetails);
