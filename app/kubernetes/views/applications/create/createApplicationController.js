@@ -1328,7 +1328,10 @@ class KubernetesCreateApplicationController {
           const namespaceWithQuota = await this.KubernetesResourcePoolService.get(namespace);
           this.formValues.ResourcePool.Quota = namespaceWithQuota.Quota;
 
-          this.savedFormValues = angular.copy(this.formValues);
+          // this.savedFormValues is being used in updateNamespaceLimits behind a check to see isEdit
+          if (this.state.isEdit) {
+            this.savedFormValues = angular.copy(this.formValues);
+          }
           delete this.formValues.ApplicationType;
 
           this.updateNamespaceLimits(namespaceWithQuota);
