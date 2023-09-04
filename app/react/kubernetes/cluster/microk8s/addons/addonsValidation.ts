@@ -12,6 +12,7 @@ export function addonsValidation(
     object({
       name: string().required('Addon name is required'),
       disableSelect: boolean(),
+      info: string(),
       arguments: string().test(
         'argument-required',
         'Argument is required',

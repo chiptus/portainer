@@ -486,7 +486,7 @@ var AllAddons = Addons{
 	{
 		Name:                 "mayastor",
 		VersionAvailableFrom: "1.24",
-		Tooltip:              "<a href='https://microk8s.io/docs/addon-mayastor' target='_blank'>mayastor</a> - multi-node zero-ops storage option powered by < href='https://github.com/openebs/mayastor' target='_blank'>Mayastor</a>.",
+		Tooltip:              "<a href='https://microk8s.io/docs/addon-mayastor' target='_blank'>mayastor</a> - multi-node zero-ops storage option powered by <a href='https://github.com/openebs/mayastor' target='_blank'>Mayastor</a>.",
 
 		IsAvailable: true,
 		Repository:  "core",

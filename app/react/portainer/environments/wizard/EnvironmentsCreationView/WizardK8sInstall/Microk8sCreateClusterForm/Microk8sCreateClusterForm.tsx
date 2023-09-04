@@ -317,6 +317,9 @@ export function Microk8sCreateClusterForm({
           const addonError = isErrorType<AddOnFormValue>(error)
             ? error
             : undefined;
+          const matchingAddonOption = microk8sOptions?.availableAddons.find(
+            (addonOption) => addonOption.label === addon.name
+          );
           return (
             <AddOnSelector
               key={`addon${index}`}
@@ -335,6 +338,7 @@ export function Microk8sCreateClusterForm({
                 addons.splice(index, 1);
                 setFieldValue('microk8s.addons', addons);
               }}
+              info={matchingAddonOption?.info}
             />
           );
         })}

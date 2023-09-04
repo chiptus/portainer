@@ -193,7 +193,7 @@ export function AddonsForm({
               }}
               isProcessing={isProcessing}
               readonly={!isAllowed}
-              info={matchingAddonOption?.info}
+              info={(!initialAddonMatching && matchingAddonOption?.info) || ''}
             />
           );
         })}
