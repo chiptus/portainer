@@ -1,6 +1,6 @@
 import { sortOptionsFromColumns } from '@/react/common/api/sort.types';
 
-import { buildNameColumn } from '@@/datatables/NameCell';
+import { buildNameColumn } from '@@/datatables/buildNameColumn';
 
 import { EdgeConfiguration } from '../../types';
 
@@ -10,7 +10,7 @@ import { progress } from './progress';
 import { updated } from './updated';
 
 export const columns = [
-  buildNameColumn<EdgeConfiguration>('name', 'id', '.item'),
+  buildNameColumn<EdgeConfiguration>('name', '.item'),
   groups,
   created,
   updated,

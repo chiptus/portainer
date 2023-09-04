@@ -7,14 +7,15 @@ import {
   Props as DatatableProps,
   PaginationProps,
 } from './Datatable';
+import { DefaultType } from './types';
 
-interface Props<D extends Record<string, unknown>>
-  extends Omit<DatatableProps<D>, 'renderRow'> {
+interface Props<D extends DefaultType>
+  extends Omit<DatatableProps<D>, 'renderRow' | 'expandable'> {
   renderSubRow(row: Row<D>): ReactNode;
   expandOnRowClick?: boolean;
 }
 
-export function ExpandableDatatable<D extends Record<string, unknown>>({
+export function ExpandableDatatable<D extends DefaultType>({
   renderSubRow,
   getRowCanExpand = () => true,
   expandOnRowClick,

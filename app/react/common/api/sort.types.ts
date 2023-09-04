@@ -133,6 +133,13 @@ export function withSortQuery<T extends SortOptions>(
   sortBy: SortableTableSettings['sortBy'],
   sortOptions: T
 ): SortQuery<T> {
+  if (!sortBy) {
+    return {
+      sort: undefined,
+      order: 'asc',
+    };
+  }
+
   const isSortType = makeIsSortTypeFunc(sortOptions);
   return {
     sort: isSortType(sortBy.id) ? sortBy.id : undefined,

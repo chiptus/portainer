@@ -31,7 +31,7 @@ interface SelectedIngress {
 }
 const storageKey = 'ingressClassesNameSpace';
 
-const settingsStore = createStore(storageKey);
+const settingsStore = createStore(storageKey, 'name');
 
 export function IngressDatatable() {
   const tableState = useTableState(settingsStore, storageKey);
