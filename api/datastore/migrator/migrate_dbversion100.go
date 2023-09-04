@@ -76,12 +76,7 @@ func (migrator *Migrator) updateTunnelServerAddressForDB100() error {
 			return err
 		}
 
-		host, _, err := net.SplitHostPort(u.Host)
-		if err != nil {
-			return err
-		}
-
-		settings.Edge.TunnelServerAddress = net.JoinHostPort(host, *migrator.flags.TunnelPort)
+		settings.Edge.TunnelServerAddress = net.JoinHostPort(u.Hostname(), *migrator.flags.TunnelPort)
 		log.
 			Info().
 			Str("EdgePortainerURL", settings.EdgePortainerURL).
