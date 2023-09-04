@@ -509,6 +509,15 @@ var AllAddons = Addons{
 			"apt install -y nfs-common",
 		},
 	},
+	{
+		Name:                 "minio",
+		VersionAvailableFrom: "1.26",
+		Tooltip:              "<a href='https://microk8s.io/docs/addon-minio' target='_blank'>minio</a> - Enables Minio High Performance Object Storage.",
+
+		IsAvailable: true,
+		Repository:  "community",
+		RequiredOn:  "all",
+	},
 }
 
 func GetDefaultAddons() []string {
