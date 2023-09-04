@@ -492,7 +492,7 @@ var AllAddons = Addons{
 		Repository:  "core",
 		RequiredOn:  "all",
 
-		ArgumentsType: "required",
+		ArgumentsType: "optional",
 		Placeholder:   "--default-pool-size 20G",
 
 		Info: "To enable mayastor, ensure all nodes meet <a href='https://microk8s.io/docs/addon-mayastor' target='_blank'>requirements</a>, such as enabling HugePages with at least 1024 MB.",
