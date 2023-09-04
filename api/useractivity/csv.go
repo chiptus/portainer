@@ -4,14 +4,19 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 )
 
+func sanitizeCSVField(s string) string {
+	return strings.TrimLeft(s, "=+-@\t\r")
+}
+
 // MarshalAuthLogsToCSV converts a list of logs to a CSV string
 func MarshalAuthLogsToCSV(w io.Writer, logs []*portaineree.AuthActivityLog) error {
-	var headers = []string{
+	headers := []string{
 		"Time",
 		"Origin",
 		"Context",
@@ -20,7 +25,6 @@ func MarshalAuthLogsToCSV(w io.Writer, logs []*portaineree.AuthActivityLog) erro
 	}
 
 	csvw := csv.NewWriter(w)
-
 	err := csvw.Write(headers)
 	if err != nil {
 		return err
@@ -52,11 +56,13 @@ func MarshalAuthLogsToCSV(w io.Writer, logs []*portaineree.AuthActivityLog) erro
 			timestamp.Year(), timestamp.Month(), timestamp.Day(),
 			timestamp.Hour(), timestamp.Minute(), timestamp.Second())
 
+		sanitizedUsername := sanitizeCSVField(log.Username)
+
 		err := csvw.Write([]string{
 			formattedTimestamp,
 			log.Origin,
 			context,
-			log.Username,
+			sanitizedUsername,
 			result,
 		})
 		if err != nil {
@@ -71,7 +77,7 @@ func MarshalAuthLogsToCSV(w io.Writer, logs []*portaineree.AuthActivityLog) erro
 
 // MarshalLogsToCSV converts a list of logs to a CSV string
 func MarshalLogsToCSV(w io.Writer, logs []*portaineree.UserActivityLog) error {
-	var headers = []string{
+	headers := []string{
 		"Time",
 		"Username",
 		"Environment",
@@ -80,7 +86,6 @@ func MarshalLogsToCSV(w io.Writer, logs []*portaineree.UserActivityLog) error {
 	}
 
 	csvw := csv.NewWriter(w)
-
 	err := csvw.Write(headers)
 	if err != nil {
 		return err
@@ -93,9 +98,11 @@ func MarshalLogsToCSV(w io.Writer, logs []*portaineree.UserActivityLog) error {
 			timestamp.Year(), timestamp.Month(), timestamp.Day(),
 			timestamp.Hour(), timestamp.Minute(), timestamp.Second())
 
+		sanitizedUsername := sanitizeCSVField(log.Username)
+
 		err := csvw.Write([]string{
 			formattedTimestamp,
-			log.Username,
+			sanitizedUsername,
 			log.Context,
 			log.Action,
 			string(log.Payload),
