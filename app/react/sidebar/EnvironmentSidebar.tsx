@@ -48,7 +48,7 @@ export function EnvironmentSidebar() {
         <div
           className={clsx(
             styles.root,
-            '!mb-0 rounded-t border-x border-t border-b-0 border-dotted py-2'
+            '!mb-0 rounded-t border-x border-b-0 border-t border-dotted py-2'
           )}
         >
           <SnapshotBrowseSection />

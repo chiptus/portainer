@@ -144,7 +144,7 @@
               <div ng-if="ctrl.formValues.DeploymentOptions.overrideGlobalOptions">
                 <div class="form-group">
                   <div class="col-sm-12">
-                    <label class="control-label col-sm-5 col-lg-4 pr-0 !pl-4 text-left" for="hideAddWithForm">
+                    <label class="control-label col-sm-5 col-lg-4 !pl-4 pr-0 text-left" for="hideAddWithForm">
                       Enforce code-based deployment
                       <portainer-tooltip message="'Hides the \'Add with form\' buttons and prevents adding/editing of resources via forms'"></portainer-tooltip
                     ></label>
@@ -157,7 +157,7 @@
                         class-name="'slider round'"
                         data-cy="'kubesetup-hideAddWithForm'"
                       ></por-switch>
-                      <em class="control-label h-full w-max pl-10 !pt-0 align-middle text-[0.9em]"
+                      <em class="control-label h-full w-max !pt-0 pl-10 align-middle text-[0.9em]"
                         >{{
                           ctrl.formValues.DeploymentOptions.hideAddWithForm === ctrl.globalSettings.GlobalDeploymentOptions.hideAddWithForm
                             ? 'same as global setting: '
@@ -170,7 +170,7 @@
                 </div>
                 <div class="form-group flex flex-col gap-y-1" ng-if="ctrl.formValues.DeploymentOptions.hideAddWithForm">
                   <div class="col-sm-12">
-                    <label class="control-label col-sm-5 col-lg-4 pr-0 !pl-8 text-left" for="hideWebEditor">Allow web editor and custom template use</label>
+                    <label class="control-label col-sm-5 col-lg-4 !pl-8 pr-0 text-left" for="hideWebEditor">Allow web editor and custom template use</label>
                     <div class="switch col-sm-8">
                       <por-switch
                         id="'hideWebEditor'"
@@ -180,7 +180,7 @@
                         class-name="'slider round'"
                         data-cy="'kubesetup-allowWebEditor'"
                       ></por-switch>
-                      <em class="control-label h-full w-max pl-10 !pt-0 align-middle text-[0.9em]"
+                      <em class="control-label h-full w-max !pt-0 pl-10 align-middle text-[0.9em]"
                         >{{
                           ctrl.formValues.DeploymentOptions.hideWebEditor === ctrl.globalSettings.GlobalDeploymentOptions.hideWebEditor
                             ? 'same as global setting: '
@@ -191,7 +191,7 @@
                     </div>
                   </div>
                   <div class="col-sm-12">
-                    <label class="control-label col-sm-5 col-lg-4 pr-0 !pl-8 text-left" for="hideFileUpload">Allow specifying of a manifest via a URL</label>
+                    <label class="control-label col-sm-5 col-lg-4 !pl-8 pr-0 text-left" for="hideFileUpload">Allow specifying of a manifest via a URL</label>
                     <div class="switch col-sm-8">
                       <por-switch
                         id="'hideFileUpload'"
@@ -201,7 +201,7 @@
                         class-name="'slider round'"
                         data-cy="'kubesetup-allowFileUpload'"
                       ></por-switch>
-                      <em class="control-label h-full w-max pl-10 !pt-0 align-middle text-[0.9em]"
+                      <em class="control-label h-full w-max !pt-0 pl-10 align-middle text-[0.9em]"
                         >{{
                           ctrl.formValues.DeploymentOptions.hideFileUpload === ctrl.globalSettings.GlobalDeploymentOptions.hideFileUpload
                             ? 'same as global setting: '
@@ -220,7 +220,7 @@
 
             <div
               ng-if="!ctrl.isRBACEnabled"
-              class="small mt-1 mb-6 flex w-full gap-1 rounded-lg border border-solid border-warning-5 bg-warning-2 p-4 text-warning-8 th-highcontrast:bg-yellow-11 th-highcontrast:text-white th-dark:bg-yellow-11 th-dark:text-white"
+              class="small mb-6 mt-1 flex w-full gap-1 rounded-lg border border-solid border-warning-5 bg-warning-2 p-4 text-warning-8 th-highcontrast:bg-yellow-11 th-highcontrast:text-white th-dark:bg-yellow-11 th-dark:text-white"
             >
               <div class="mt-0.5">
                 <pr-icon icon="'alert-triangle'" feather="true" class-name="'text-warning-7 th-dark:text-white th-highcontrast:text-white'"></pr-icon>
@@ -398,7 +398,7 @@
                     <tr ng-repeat="class in ctrl.StorageClasses">
                       <td>
                         <div class="flex h-full flex-row items-center">
-                          <label class="switch mr-2 mb-0">
+                          <label class="switch mb-0 mr-2">
                             <input type="checkbox" ng-model="class.selected" /><span class="slider round" data-cy="kubeSetup-storageToggle{{ class.Name }}"></span>
                           </label>
                           <span>{{ class.Name }}</span>
@@ -414,7 +414,7 @@
                       </td>
                       <td>
                         <div class="flex h-full flex-row items-center">
-                          <label class="switch mr-2 mb-0"
+                          <label class="switch mb-0 mr-2"
                             ><input type="checkbox" ng-model="class.AllowVolumeExpansion" /><span
                               class="slider round"
                               data-cy="kubeSetup-storageExpansionToggle{{ class.Name }}"

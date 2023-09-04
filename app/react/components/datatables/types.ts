@@ -85,7 +85,7 @@ export function createPersistedStore<T extends BasicTableSettings>(
   storageKey: string,
   initialSortBy?: string | { id: string; desc: boolean },
   create: (set: ZustandSetFunc<T>) => Omit<T, keyof BasicTableSettings> = () =>
-    ({} as T)
+    ({}) as T
 ) {
   return createStore<T>()(
     persist(
@@ -94,7 +94,7 @@ export function createPersistedStore<T extends BasicTableSettings>(
           ...sortableSettings<T>(set, initialSortBy),
           ...paginationSettings<T>(set),
           ...create(set),
-        } as T),
+        }) as T,
       {
         name: `datatable_settings_${keyBuilder(storageKey)}`,
       }

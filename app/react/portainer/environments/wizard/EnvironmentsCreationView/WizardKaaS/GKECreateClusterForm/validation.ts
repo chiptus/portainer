@@ -58,8 +58,10 @@ export function validationSchema(
     nodeSize: string().required('Node size is required.'),
     cpu: cpuSchema
       .integer('CPUs must be an integer.')
-      .test('2 increments', 'Number of vCPUs must a multiple of 2.', (number) =>
-        number ? number % 2 === 0 : false
+      .test(
+        '2 increments',
+        'Number of vCPUs must a multiple of 2.',
+        (number) => (number ? number % 2 === 0 : false)
       )
       .required('CPUs are required.'),
     ram: ramSchema

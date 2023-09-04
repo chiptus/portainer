@@ -23,7 +23,9 @@ test('Network details values should be visible', async () => {
   await expect(findByText(network.Driver)).resolves.toBeVisible();
   await expect(findByText(network.Scope)).resolves.toBeVisible();
   await expect(
-    findByText(network.IPAM?.Config[0].Gateway || 'not found', { exact: false })
+    findByText(network.IPAM?.Config[0].Gateway || 'not found', {
+      exact: false,
+    })
   ).resolves.toBeVisible();
   await expect(
     findByText(network.IPAM?.Config[0].Subnet || 'not found', { exact: false })

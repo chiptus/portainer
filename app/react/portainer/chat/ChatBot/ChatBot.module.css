@@ -44,7 +44,7 @@ rcw-widget-container
 }
 .root :global(.rcw-widget-container) {
   @apply flex flex-col justify-end;
-  @apply m-0 mr-5 mb-5; /* override lib media query for small screen */
+  @apply m-0 mb-5 mr-5; /* override lib media query for small screen */
   @apply h-[var(--rcw-absolute-max-height)] max-h-[var(--rcw-absolute-max-height)];
   @apply w-[var(--rcw-absolute-max-width-xs)] max-w-[var(--rcw-absolute-max-width-xs)];
   @apply lg:w-[var(--rcw-absolute-max-width)] lg:max-w-[var(--rcw-absolute-max-width)];
@@ -75,7 +75,7 @@ rcw-widget-container
 .root :global(.rcw-messages-container) {
   @apply h-auto max-h-full grow; /* override lib fixed value and let the messages take all the remaining available space */
   background-color: var(--bg-widget-color);
-  @apply border-y border-x-0 border-solid;
+  @apply border-x-0 border-y border-solid;
   border-color: var(--border-widget);
 }
 .root :global(.rcw-message) {

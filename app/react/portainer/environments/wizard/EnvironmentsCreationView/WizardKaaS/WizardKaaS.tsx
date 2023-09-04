@@ -102,9 +102,10 @@ export function WizardKaaS({ onCreate }: Props) {
 
   const providerCredentials = useMemo(
     () =>
-      credentials?.filter((c) =>
-        // use only the credentials that have a type that support the selected provider
-        credentialTypeToProvidersMap[c.provider]?.includes(provider)
+      credentials?.filter(
+        (c) =>
+          // use only the credentials that have a type that support the selected provider
+          credentialTypeToProvidersMap[c.provider]?.includes(provider)
       ) || [],
     [credentials, provider]
   );

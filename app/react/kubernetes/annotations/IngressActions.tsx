@@ -19,7 +19,7 @@ export function IngressActions({
       <TooltipWithChildren message="Use annotations to configure options for an ingress. Review Nginx or Traefik documentation to find the annotations supported by your choice of ingress type.">
         <span>
           <Button
-            className="btn btn-sm btn-light mb-2 !ml-0"
+            className="btn btn-sm btn-light !ml-0 mb-2"
             onClick={() => addNewAnnotation()}
             icon={Plus}
           >

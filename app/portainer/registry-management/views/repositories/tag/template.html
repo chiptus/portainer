@@ -185,7 +185,7 @@
                     {{ layer.CreatedBy }}
                   </span>
                   <span id="layer-command-{{ $index }}-short">
-                    {{ layer.CreatedBy | truncate : 130 }}
+                    {{ layer.CreatedBy | truncate: 130 }}
                     <span ng-if="layer.CreatedBy.length > 130" style="margin-left: 5px">
                       <a id="layer-command-expander{{ $index }}" class="btn" ng-click="$ctrl.toggleLayerCommand($index)">
                         <pr-icon icon="'plus-circle'"></pr-icon>

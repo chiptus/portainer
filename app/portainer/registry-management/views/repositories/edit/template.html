@@ -51,12 +51,12 @@
       <button class="btn btn-sm btn-danger" ng-if="state.tagsRetrieval.running" ng-click="startStopRetrieval()">Cancel</button>
 
       <span ng-if="state.tagsRetrieval.running && state.tagsRetrieval.progression !== '100'">
-        &nbsp; Retrieval progress : {{ state.tagsRetrieval.progression }}% - {{ state.tagsRetrieval.elapsedTime | number : 0 }}s
+        &nbsp; Retrieval progress : {{ state.tagsRetrieval.progression }}% - {{ state.tagsRetrieval.elapsedTime | number: 0 }}s
       </span>
 
       <span ng-if="!state.tagsRetrieval.running && state.tagsRetrieval.progression === '100'" class="vertical-center">
         <pr-icon icon="'check'" mode="'success'"></pr-icon>
-        Retrieval completed in {{ state.tagsRetrieval.elapsedTime | number : 0 }}s
+        Retrieval completed in {{ state.tagsRetrieval.elapsedTime | number: 0 }}s
       </span>
     </div>
   </information-panel>

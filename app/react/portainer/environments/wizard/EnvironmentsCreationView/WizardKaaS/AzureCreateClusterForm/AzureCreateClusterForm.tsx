@@ -332,11 +332,12 @@ export function AzureCreateClusterForm({
                   closeMenuOnSelect={false}
                   value={
                     availabilityZones
-                      ? availabilityZones.find((o) =>
-                          availabilityZoneOptions?.includes({
-                            value: o,
-                            label: o,
-                          })
+                      ? availabilityZones.find(
+                          (o) =>
+                            availabilityZoneOptions?.includes({
+                              value: o,
+                              label: o,
+                            })
                         )
                       : ''
                   }

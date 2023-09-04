@@ -64,7 +64,7 @@ export function AnnotationsForm({
               />
             </div>
             {errors[`annotations.key[${i}]`] && (
-              <FormError className="mt-1 !mb-0">
+              <FormError className="!mb-0 mt-1">
                 {errors[`annotations.key[${i}]`]}
               </FormError>
             )}
@@ -92,7 +92,7 @@ export function AnnotationsForm({
               />
             </div>
             {errors[`annotations.value[${i}]`] && (
-              <FormError className="mt-1 !mb-0">
+              <FormError className="!mb-0 mt-1">
                 {errors[`annotations.value[${i}]`]}
               </FormError>
             )}

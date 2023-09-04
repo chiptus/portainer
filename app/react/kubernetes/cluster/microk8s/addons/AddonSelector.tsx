@@ -52,14 +52,14 @@ export function AddOnSelector({
   }, [value, options]);
 
   return (
-    <div className="flex flex-wrap gap-y-1 gap-x-2">
+    <div className="flex flex-wrap gap-x-2 gap-y-1">
       <div className="inline-flex min-w-min grow basis-12 flex-col">
         <InputGroup size="small">
           <InputGroup.Addon>Addon</InputGroup.Addon>
           <Select
             name={`addons_${index}`}
             placeholder="Select an addon..."
-            className="min-w-[200px] [&>div]:!rounded-r-[5px] [&>div]:!rounded-l-none"
+            className="min-w-[200px] [&>div]:!rounded-l-none [&>div]:!rounded-r-[5px]"
             options={groupedAddonOptions}
             onChange={(option) => {
               onChange({

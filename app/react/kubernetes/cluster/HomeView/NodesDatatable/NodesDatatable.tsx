@@ -243,8 +243,9 @@ function useNodeRowData(
     if (!nodes || !kubernetesEndpoints) {
       return [];
     }
-    const subsetAddresses = kubernetesEndpoints?.flatMap((endpoint) =>
-      endpoint.subsets?.flatMap((subset) => subset.addresses ?? [])
+    const subsetAddresses = kubernetesEndpoints?.flatMap(
+      (endpoint) =>
+        endpoint.subsets?.flatMap((subset) => subset.addresses ?? [])
     );
     const nodeRowData = nodes.map((node) => {
       const nodeAddress = getInternalNodeIpAddress(node);

@@ -147,7 +147,7 @@ export function CreateView() {
                     Adding this license will remove your current{' '}
                     {pluralize(data.conflictingKeys.length, 'license')}:
                   </div>
-                  <ul className="ml-4 mb-2">
+                  <ul className="mb-2 ml-4">
                     {data.conflictingKeys.map((key) => (
                       <li key={key}>{key}</li>
                     ))}

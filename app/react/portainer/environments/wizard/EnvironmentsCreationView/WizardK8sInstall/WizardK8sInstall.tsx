@@ -81,8 +81,11 @@ export function WizardK8sInstall({ onCreate }: Props) {
   const credentials = credentialsQuery.data;
   const availableCredentials = useMemo(
     () =>
-      credentials?.filter((c) =>
-        credentialTypeToProvidersMap[c.provider]?.includes(k8sDistributionType)
+      credentials?.filter(
+        (c) =>
+          credentialTypeToProvidersMap[c.provider]?.includes(
+            k8sDistributionType
+          )
       ) || [],
     [credentials, k8sDistributionType]
   );

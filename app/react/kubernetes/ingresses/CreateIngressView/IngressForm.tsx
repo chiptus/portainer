@@ -317,13 +317,13 @@ export function IngressForm({
                         />
                       </InputGroup>
                       {errors[`hosts[${hostIndex}].host`] && (
-                        <FormError className="mt-1 !mb-0">
+                        <FormError className="!mb-0 mt-1">
                           {errors[`hosts[${hostIndex}].host`]}
                         </FormError>
                       )}
                     </div>
 
-                    <div className="form-group col-sm-6 col-lg-4 !pr-0 !pl-2">
+                    <div className="form-group col-sm-6 col-lg-4 !pl-2 !pr-0">
                       <InputGroup size="small">
                         <InputGroup.Addon>TLS secret</InputGroup.Addon>
                         <Select
@@ -405,7 +405,7 @@ export function IngressForm({
 
                 {host.Paths.map((path, pathIndex) => (
                   <div
-                    className="row path mt-5 !mb-5"
+                    className="row path !mb-5 mt-5"
                     key={`path_${path.Key}}`}
                   >
                     <div className="form-group col-sm-3 col-xl-2 !m-0 !pl-0">
@@ -447,7 +447,7 @@ export function IngressForm({
                       {errors[
                         `hosts[${hostIndex}].paths[${pathIndex}].servicename`
                       ] && (
-                        <FormError className="error-inline mt-1 !mb-0">
+                        <FormError className="error-inline !mb-0 mt-1">
                           {
                             errors[
                               `hosts[${hostIndex}].paths[${pathIndex}].servicename`
@@ -504,7 +504,7 @@ export function IngressForm({
                           {errors[
                             `hosts[${hostIndex}].paths[${pathIndex}].serviceport`
                           ] && (
-                            <FormError className="mt-1 !mb-0">
+                            <FormError className="!mb-0 mt-1">
                               {
                                 errors[
                                   `hosts[${hostIndex}].paths[${pathIndex}].serviceport`
@@ -557,7 +557,7 @@ export function IngressForm({
                       {errors[
                         `hosts[${hostIndex}].paths[${pathIndex}].pathType`
                       ] && (
-                        <FormError className="mt-1 !mb-0">
+                        <FormError className="!mb-0 mt-1">
                           {
                             errors[
                               `hosts[${hostIndex}].paths[${pathIndex}].pathType`
@@ -591,7 +591,7 @@ export function IngressForm({
                       {errors[
                         `hosts[${hostIndex}].paths[${pathIndex}].path`
                       ] && (
-                        <FormError className="mt-1 !mb-0">
+                        <FormError className="!mb-0 mt-1">
                           {
                             errors[
                               `hosts[${hostIndex}].paths[${pathIndex}].path`

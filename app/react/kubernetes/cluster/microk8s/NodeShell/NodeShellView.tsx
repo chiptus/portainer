@@ -116,7 +116,7 @@ export function NodeShellView() {
   }, [environmentId, jwt, terminal, nodeIP, resizeTerminal]);
 
   return (
-    <div className="fixed top-0 bottom-0 left-0 right-0 z-[10000] bg-black text-white">
+    <div className="fixed bottom-0 left-0 right-0 top-0 z-[10000] bg-black text-white">
       {shellState === 'loading' && (
         <div className="px-4 pt-2">Loading Terminal...</div>
       )}

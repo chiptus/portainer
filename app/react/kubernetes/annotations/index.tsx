@@ -103,7 +103,7 @@ export function Annotations({
       {!hideForm && !screen && (
         <div className="col-sm-12 p-0">
           <Button
-            className="btn btn-sm btn-light mb-2 !ml-0"
+            className="btn btn-sm btn-light !ml-0 mb-2"
             onClick={() => addNewAnnotation()}
             icon={Plus}
           >

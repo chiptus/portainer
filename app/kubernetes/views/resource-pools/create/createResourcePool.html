@@ -293,7 +293,7 @@
               <div ng-repeat-start="sc in $ctrl.formValues.StorageClasses track by sc.Name">
                 <div class="form-section-title text-muted col-sm-12">
                   <span class="vertical-center"><pr-icon icon="'database'"></pr-icon> {{ sc.Name }}</span>
-                  <hr class="mt-2 mb-0" />
+                  <hr class="mb-0 mt-2" />
                 </div>
                 <storage-class-switch on-change="($ctrl.onToggleStorageQuota)" value="sc.Selected" name="sc.Name"></storage-class-switch>
               </div>
