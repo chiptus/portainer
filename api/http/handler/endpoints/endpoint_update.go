@@ -213,8 +213,8 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		if payload.GroupID != nil {
 			groupID := portaineree.EndpointGroupID(*payload.GroupID)
 
-			endpoint.GroupID = groupID
 			updateRelations = updateRelations || groupID != endpoint.GroupID
+			endpoint.GroupID = groupID
 		}
 
 		if payload.TagIDs != nil {
