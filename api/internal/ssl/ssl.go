@@ -9,10 +9,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/portainer/libcrypto"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/ssl/revoke"
+	"github.com/portainer/portainer/pkg/libcrypto"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
