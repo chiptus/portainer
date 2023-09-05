@@ -3,11 +3,10 @@ package edgeupdateschedules
 import (
 	"net/http"
 
-	httperror "github.com/portainer/libhttp/error"
-	"github.com/portainer/libhttp/response"
-	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
-
 	"github.com/portainer/portainer-ee/api/http/middlewares"
+	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	httperror "github.com/portainer/portainer/pkg/libhttp/error"
+	"github.com/portainer/portainer/pkg/libhttp/response"
 )
 
 // @id EdgeUpdateScheduleDelete

@@ -1,6 +1,6 @@
 module github.com/portainer/portainer-ee
 
-go 1.21.0
+go 1.21
 
 require (
 	cloud.google.com/go/compute v1.18.0
@@ -52,7 +52,6 @@ require (
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/portainer/libhttp v0.0.0-20230615144939-a999f666d9a9
 	github.com/portainer/liblicense/v3 v3.0.0
 	github.com/portainer/portainer v0.6.1-0.20230901222702-8cc5e0796c4a
 	github.com/robfig/cron/v3 v3.0.1

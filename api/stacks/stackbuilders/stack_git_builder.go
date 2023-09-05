@@ -4,7 +4,6 @@ import (
 	"strconv"
 	"time"
 
-	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/scheduler"
@@ -13,6 +12,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
+	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 )
 
 type GitMethodStackBuildProcess interface {

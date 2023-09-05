@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/build"
 	system "github.com/portainer/portainer/api/http/handler/system"
+	"github.com/portainer/portainer/pkg/libhttp/response"
+
 	"github.com/rs/zerolog/log"
 )
 

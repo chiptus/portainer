@@ -2,19 +2,19 @@ package endpoints
 
 import (
 	"context"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/portainer/portainer-ee/api/docker/consts"
-	"github.com/portainer/portainer-ee/api/docker/images"
 	"net/http"
 	"strings"
 
-	dockertypes "github.com/docker/docker/api/types"
+	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/docker/consts"
+	"github.com/portainer/portainer-ee/api/docker/images"
+	httperror "github.com/portainer/portainer/pkg/libhttp/error"
+	"github.com/portainer/portainer/pkg/libhttp/request"
+	"github.com/portainer/portainer/pkg/libhttp/response"
 
 	"github.com/docker/docker/api/types"
-	httperror "github.com/portainer/libhttp/error"
-	"github.com/portainer/libhttp/request"
-	"github.com/portainer/libhttp/response"
-	portaineree "github.com/portainer/portainer-ee/api"
+	dockertypes "github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 )
 
 type forceUpdateServicePayload struct {

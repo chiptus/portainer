@@ -5,10 +5,11 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/pkg/errors"
-	httperror "github.com/portainer/libhttp/error"
-	"github.com/portainer/libhttp/request"
 	operations "github.com/portainer/portainer-ee/api/backup"
+	httperror "github.com/portainer/portainer/pkg/libhttp/error"
+	"github.com/portainer/portainer/pkg/libhttp/request"
+
+	"github.com/pkg/errors"
 )
 
 type restorePayload struct {

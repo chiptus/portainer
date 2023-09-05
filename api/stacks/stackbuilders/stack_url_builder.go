@@ -3,8 +3,8 @@ package stackbuilders
 import (
 	"time"
 
-	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
+	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 )
 
 type UrlMethodStackBuildProcess interface {

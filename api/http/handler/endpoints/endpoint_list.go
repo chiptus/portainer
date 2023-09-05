@@ -6,15 +6,15 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/portainer/libhttp/request"
-	"golang.org/x/mod/semver"
-
-	httperror "github.com/portainer/libhttp/error"
-	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/handler/edgeupdateschedules"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	httperror "github.com/portainer/portainer/pkg/libhttp/error"
+	"github.com/portainer/portainer/pkg/libhttp/request"
+	"github.com/portainer/portainer/pkg/libhttp/response"
+
+	"golang.org/x/mod/semver"
 )
 
 const (

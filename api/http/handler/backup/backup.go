@@ -6,10 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
-	httperror "github.com/portainer/libhttp/error"
-	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
 	operations "github.com/portainer/portainer-ee/api/backup"
+	httperror "github.com/portainer/portainer/pkg/libhttp/error"
+	"github.com/portainer/portainer/pkg/libhttp/request"
 
 	"github.com/pkg/errors"
 )

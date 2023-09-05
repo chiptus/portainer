@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer/pkg/libhttp/request"
 )
 
 type SearchFieldGetters = []func(portaineree.EdgeConfig) string

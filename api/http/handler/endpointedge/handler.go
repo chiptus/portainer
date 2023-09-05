@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
@@ -14,6 +13,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	"github.com/portainer/portainer-ee/api/license"
 	portainer "github.com/portainer/portainer/api"
+	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"

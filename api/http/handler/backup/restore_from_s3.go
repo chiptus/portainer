@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"time"
 
-	httperror "github.com/portainer/libhttp/error"
-	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
 	operations "github.com/portainer/portainer-ee/api/backup"
 	s3 "github.com/portainer/portainer-ee/api/s3"
+	httperror "github.com/portainer/portainer/pkg/libhttp/error"
+	"github.com/portainer/portainer/pkg/libhttp/request"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"

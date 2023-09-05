@@ -5,16 +5,14 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pkg/errors"
-	"github.com/portainer/libhttp/response"
-	portainer "github.com/portainer/portainer/api"
-
 	portaineree "github.com/portainer/portainer-ee/api"
-
-	httperror "github.com/portainer/libhttp/error"
-	"github.com/portainer/libhttp/request"
+	portainer "github.com/portainer/portainer/api"
+	httperror "github.com/portainer/portainer/pkg/libhttp/error"
+	"github.com/portainer/portainer/pkg/libhttp/request"
+	"github.com/portainer/portainer/pkg/libhttp/response"
 
 	"github.com/gofrs/uuid"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 

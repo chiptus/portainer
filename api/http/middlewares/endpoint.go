@@ -8,17 +8,16 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
-	httperror "github.com/portainer/libhttp/error"
-	requesthelpers "github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	httperror "github.com/portainer/portainer/pkg/libhttp/error"
+	requesthelpers "github.com/portainer/portainer/pkg/libhttp/request"
+
+	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 )
 
-const (
-	contextEndpoint = "endpoint"
-)
+const contextEndpoint = "endpoint"
 
 func WithEndpoint(endpointService dataservices.EndpointService, endpointIDParam string) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {

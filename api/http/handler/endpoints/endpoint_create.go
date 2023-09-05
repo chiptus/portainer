@@ -10,9 +10,6 @@ import (
 	"strconv"
 	"strings"
 
-	httperror "github.com/portainer/libhttp/error"
-	"github.com/portainer/libhttp/request"
-	"github.com/portainer/libhttp/response"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/agent"
 	"github.com/portainer/portainer-ee/api/cloud"
@@ -25,6 +22,9 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/unique"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
+	httperror "github.com/portainer/portainer/pkg/libhttp/error"
+	"github.com/portainer/portainer/pkg/libhttp/request"
+	"github.com/portainer/portainer/pkg/libhttp/response"
 
 	"github.com/gofrs/uuid"
 	"gopkg.in/yaml.v3"

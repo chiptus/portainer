@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	httperror "github.com/portainer/libhttp/error"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/adminmonitor"
 	operations "github.com/portainer/portainer-ee/api/backup"
@@ -13,6 +12,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/offlinegate"
 	"github.com/portainer/portainer-ee/api/http/security"
+	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
 	"github.com/gorilla/mux"
 )

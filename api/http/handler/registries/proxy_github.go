@@ -2,11 +2,12 @@ package registries
 
 import (
 	"fmt"
-	httperror "github.com/portainer/libhttp/error"
-	"github.com/portainer/libhttp/request"
-	"github.com/portainer/libhttp/response"
-	"github.com/portainer/portainer-ee/api/github/packages"
 	"net/http"
+
+	"github.com/portainer/portainer-ee/api/github/packages"
+	httperror "github.com/portainer/portainer/pkg/libhttp/error"
+	"github.com/portainer/portainer/pkg/libhttp/request"
+	"github.com/portainer/portainer/pkg/libhttp/response"
 )
 
 type catalogPayload struct {

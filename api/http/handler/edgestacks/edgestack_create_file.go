@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"net/http"
 
-	"github.com/portainer/libhttp/request"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
 	"github.com/portainer/portainer-ee/api/internal/edge/staggers"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/pkg/libhttp/request"
 
 	"github.com/pkg/errors"
 )
