@@ -7,7 +7,7 @@ on:
       - edited
     paths:
       - 'package.json'
-      - 'api/go.mod'
+      - 'go.mod'
       - 'gruntfile.js'
       - 'build/linux/Dockerfile'
       - 'build/linux/alpine.Dockerfile'
@@ -91,7 +91,7 @@ jobs:
       - name: install Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.19.5'
+          go-version: '1.21.0'
 
       - name: configure git for private modules
         run: git config --global url."git@github.com:".insteadOf "https://github.com"
@@ -105,7 +105,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
           yarn global add snyk
-          snyk test --file=./api/go.mod --json-file-output=snyk.json 2>/dev/null || :
+          snyk test --file=./go.mod --json-file-output=snyk.json 2>/dev/null || :
 
       - name: upload scan result as pull-request artifact
         uses: actions/upload-artifact@v3
@@ -160,10 +160,10 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.DEPLOY_KEY_LIBLICENSE }}
 
-      - name: install Go 1.19.5
+      - name: install Go 1.21.0
         uses: actions/setup-go@v3
         with:
-          go-version: '1.19.5'
+          go-version: '1.21.0'
 
       - name: configure git for private modules
         run: git config --global url."git@github.com:".insteadOf "https://github.com"

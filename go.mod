@@ -1,6 +1,6 @@
 module github.com/portainer/portainer-ee
 
-go 1.20
+go 1.21.0
 
 require (
 	cloud.google.com/go/compute v1.18.0
@@ -26,7 +26,7 @@ require (
 	github.com/containers/image/v5 v5.25.0
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
 	github.com/digitalocean/godo v1.75.0
-	github.com/distribution/distribution v2.8.1+incompatible
+	github.com/distribution/distribution v2.8.2+incompatible
 	github.com/docker/cli v20.10.12+incompatible
 	github.com/docker/docker v23.0.3+incompatible
 	github.com/evanphx/json-patch/v5 v5.6.0
@@ -52,7 +52,6 @@ require (
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/portainer/libcrypto v0.0.0-20220506221303-1f4fb3b30f9a
 	github.com/portainer/libhttp v0.0.0-20230615144939-a999f666d9a9
 	github.com/portainer/liblicense/v3 v3.0.0
 	github.com/portainer/portainer v0.6.1-0.20230901222702-8cc5e0796c4a
@@ -115,7 +114,7 @@ require (
 	github.com/containers/storage v1.46.0 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/docker/distribution v2.8.1+incompatible // indirect
+	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.7.0 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
