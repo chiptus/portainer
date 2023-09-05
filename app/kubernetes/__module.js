@@ -542,9 +542,7 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
       url: '/configure',
       views: {
         'content@': {
-          templateUrl: './views/configure/configure.html',
-          controller: 'KubernetesConfigureController',
-          controllerAs: 'ctrl',
+          component: 'kubernetesConfigureView',
         },
       },
     };

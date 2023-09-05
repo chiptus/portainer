@@ -7,7 +7,7 @@ import { KubernetesFormValidationReferences } from 'Kubernetes/models/applicatio
 import { KubernetesIngressClassTypes } from 'Kubernetes/ingress/constants';
 import KubernetesStorageClassConverter from 'Kubernetes/converters/storageClass';
 import { FeatureId } from '@/react/portainer/feature-flags/enums';
-import { getIngressControllerClassMap, updateIngressControllerClassMap } from '@/react/kubernetes/cluster/ingressClass/utils';
+import { getIngressControllerClassMap, updateIngressControllerClassMap } from '@/react/kubernetes/cluster/ingressClass/useIngressControllerClassMap';
 import KubernetesAnnotationsUtils from '@/kubernetes/converters/annotations';
 
 class KubernetesCreateResourcePoolController {
@@ -227,6 +227,7 @@ class KubernetesCreateResourcePoolController {
         this.ingressControllers = [];
         if (this.state.ingressAvailabilityPerNamespace) {
           this.ingressControllers = await getIngressControllerClassMap({ environmentId: this.endpoint.Id, allowedOnly: true });
+          this.initialIngressControllers = structuredClone(this.ingressControllers);
         }
 
         const sliderMaxResources = KubernetesResourceReservationHelper.computeSliderMaxResources(

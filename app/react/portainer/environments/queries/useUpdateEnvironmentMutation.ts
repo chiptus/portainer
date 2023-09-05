@@ -5,6 +5,9 @@ import {
   EnvironmentId,
   EnvironmentStatusMessage,
   Environment,
+  KubernetesSettings,
+  DeploymentOptions,
+  EndpointChangeWindow,
 } from '@/react/portainer/environments/types';
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 import { TagId } from '@/portainer/tags/types';
@@ -22,7 +25,7 @@ export function useUpdateEnvironmentMutation() {
   });
 }
 
-export interface UpdatePayload {
+export interface UpdateEnvironmentPayload extends Partial<Environment> {
   TLSCACert?: File;
   TLSCert?: File;
   TLSKey?: File;
@@ -42,15 +45,18 @@ export interface UpdatePayload {
   AzureAuthenticationKey: string;
 
   IsSetStatusMessage: boolean;
-  StatusMessage: Partial<EnvironmentStatusMessage>;
+  StatusMessage: EnvironmentStatusMessage;
+  Kubernetes?: KubernetesSettings;
+  DeploymentOptions?: DeploymentOptions | null;
+  ChangeWindow?: EndpointChangeWindow;
 }
 
-async function updateEnvironment({
+export async function updateEnvironment({
   id,
   payload,
 }: {
   id: EnvironmentId;
-  payload: Partial<UpdatePayload>;
+  payload: Partial<UpdateEnvironmentPayload>;
 }) {
   try {
     await uploadTLSFilesForEndpoint(

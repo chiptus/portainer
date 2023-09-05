@@ -14,7 +14,7 @@ import KubernetesStorageClassConverter from 'Kubernetes/converters/storageClass'
 import KubernetesResourceQuotaHelper from 'Kubernetes/helpers/resourceQuotaHelper';
 import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
 import { FeatureId } from '@/react/portainer/feature-flags/enums';
-import { updateIngressControllerClassMap, getIngressControllerClassMap } from '@/react/kubernetes/cluster/ingressClass/utils';
+import { updateIngressControllerClassMap, getIngressControllerClassMap } from '@/react/kubernetes/cluster/ingressClass/useIngressControllerClassMap';
 import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 import { confirmUpdate } from '@@/modals/confirm';
 import KubernetesAnnotationsUtils from '@/kubernetes/converters/annotations';
@@ -451,6 +451,7 @@ class KubernetesResourcePoolController {
         this.ingressControllers = [];
         if (this.state.ingressAvailabilityPerNamespace) {
           this.ingressControllers = await getIngressControllerClassMap({ environmentId: this.endpoint.Id, namespace: name });
+          this.initialIngressControllers = structuredClone(this.ingressControllers);
         }
 
         this.pool = pool;

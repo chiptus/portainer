@@ -5,7 +5,7 @@ import { IngressClassDatatable } from '@/react/kubernetes/cluster/ingressClass/I
 import { withReactQuery } from '@/react-tools/withReactQuery';
 import { NamespacesSelector } from '@/react/kubernetes/cluster/RegistryAccessView/NamespacesSelector';
 import { withUIRouter } from '@/react-tools/withUIRouter';
-import { StorageAccessModeSelector } from '@/react/kubernetes/cluster/ConfigureView/StorageAccessModeSelector';
+import { StorageAccessModeSelector } from '@/react/kubernetes/cluster/ConfigureView/ConfigureForm/StorageAccessModeSelector';
 import { NamespaceAccessUsersSelector } from '@/react/kubernetes/namespaces/AccessView/NamespaceAccessUsersSelector';
 import { Microk8sUpdateWidget } from '@/react/kubernetes/cluster/HomeView/Microk8sClusterDetails';
 import { Microk8sClusterDetails } from '@/react/portainer/environments/ItemView/Microk8sClusterDetails';
@@ -35,6 +35,7 @@ export const ngModule = angular
       'onChangeControllers',
       'description',
       'ingressControllers',
+      'initialIngressControllers',
       'allowNoneIngressClass',
       'isLoading',
       'noIngressControllerLabel',

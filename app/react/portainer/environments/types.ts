@@ -176,7 +176,7 @@ type CloudProviderSettings = {
 /**
  *  EndpointChangeWindow determine when automatic stack/app updates may occur
  */
-interface EndpointChangeWindow {
+export interface EndpointChangeWindow {
   Enabled: boolean;
   StartTime: string;
   EndTime: string;
