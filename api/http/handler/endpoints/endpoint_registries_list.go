@@ -7,7 +7,6 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
-	"github.com/portainer/portainer/pkg/featureflags"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -35,15 +34,10 @@ func (handler *Handler) endpointRegistriesList(w http.ResponseWriter, r *http.Re
 	}
 
 	var registries []portaineree.Registry
-	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-		registries, err = handler.listRegistries(handler.DataStore, r, portaineree.EndpointID(endpointID))
-	} else {
-		err = handler.DataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
-			registries, err = handler.listRegistries(tx, r, portaineree.EndpointID(endpointID))
-			return err
-		})
-	}
-
+	err = handler.DataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
+		registries, err = handler.listRegistries(tx, r, portaineree.EndpointID(endpointID))
+		return err
+	})
 	if err != nil {
 		var httpErr *httperror.HandlerError
 		if errors.As(err, &httpErr) {

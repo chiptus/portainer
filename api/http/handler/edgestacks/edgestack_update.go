@@ -9,7 +9,6 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/edge/staggers"
 	"github.com/portainer/portainer-ee/api/internal/set"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/pkg/featureflags"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -79,15 +78,10 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 	}
 
 	var stack *portaineree.EdgeStack
-	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-		stack, err = handler.updateEdgeStack(handler.DataStore, portaineree.EdgeStackID(stackID), payload)
-	} else {
-		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			stack, err = handler.updateEdgeStack(tx, portaineree.EdgeStackID(stackID), payload)
-			return err
-		})
-	}
-
+	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		stack, err = handler.updateEdgeStack(tx, portaineree.EdgeStackID(stackID), payload)
+		return err
+	})
 	if err != nil {
 		var httpErr *httperror.HandlerError
 		if errors.As(err, &httpErr) {

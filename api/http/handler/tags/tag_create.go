@@ -6,7 +6,6 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/portainer/portainer/pkg/featureflags"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 
@@ -47,14 +46,10 @@ func (handler *Handler) tagCreate(w http.ResponseWriter, r *http.Request) *httpe
 	}
 
 	var tag *portaineree.Tag
-	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-		tag, err = createTag(handler.DataStore, payload)
-	} else {
-		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			tag, err = createTag(tx, payload)
-			return err
-		})
-	}
+	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		tag, err = createTag(tx, payload)
+		return err
+	})
 
 	return txResponse(w, tag, err)
 }

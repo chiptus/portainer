@@ -9,7 +9,6 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/utils"
 	"github.com/portainer/portainer-ee/api/internal/tag"
-	"github.com/portainer/portainer/pkg/featureflags"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -61,15 +60,10 @@ func (handler *Handler) endpointGroupUpdate(w http.ResponseWriter, r *http.Reque
 	}
 
 	var endpointGroup *portaineree.EndpointGroup
-	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-		endpointGroup, err = handler.updateEndpointGroup(handler.DataStore, portaineree.EndpointGroupID(endpointGroupID), payload)
-	} else {
-		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			endpointGroup, err = handler.updateEndpointGroup(tx, portaineree.EndpointGroupID(endpointGroupID), payload)
-			return err
-		})
-	}
-
+	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		endpointGroup, err = handler.updateEndpointGroup(tx, portaineree.EndpointGroupID(endpointGroupID), payload)
+		return err
+	})
 	if err != nil {
 		var httpErr *httperror.HandlerError
 		if errors.As(err, &httpErr) {
@@ -110,20 +104,6 @@ func (handler *Handler) updateEndpointGroup(tx dataservices.DataStoreTx, endpoin
 			removeTags := tag.Difference(endpointGroupTagSet, payloadTagSet)
 
 			for tagID := range removeTags {
-				if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-					err = tx.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
-						delete(tag.EndpointGroups, endpointGroup.ID)
-					})
-
-					if tx.IsErrObjectNotFound(err) {
-						return nil, httperror.InternalServerError("Unable to find a tag inside the database", err)
-					} else if err != nil {
-						return nil, httperror.InternalServerError("Unable to persist tag changes inside the database", err)
-					}
-
-					continue
-				}
-
 				tag, err := tx.Tag().Read(portaineree.TagID(tagID))
 				if tx.IsErrObjectNotFound(err) {
 					return nil, httperror.InternalServerError("Unable to find a tag inside the database", err)
@@ -139,20 +119,6 @@ func (handler *Handler) updateEndpointGroup(tx dataservices.DataStoreTx, endpoin
 
 			endpointGroup.TagIDs = payload.TagIDs
 			for _, tagID := range payload.TagIDs {
-				if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-					err = tx.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
-						tag.EndpointGroups[endpointGroup.ID] = true
-					})
-
-					if tx.IsErrObjectNotFound(err) {
-						return nil, httperror.InternalServerError("Unable to find a tag inside the database", err)
-					} else if err != nil {
-						return nil, httperror.InternalServerError("Unable to persist tag changes inside the database", err)
-					}
-
-					continue
-				}
-
 				tag, err := tx.Tag().Read(portaineree.TagID(tagID))
 				if tx.IsErrObjectNotFound(err) {
 					return nil, httperror.InternalServerError("Unable to find a tag inside the database", err)

@@ -18,7 +18,6 @@ import (
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	"github.com/portainer/portainer-ee/api/internal/slices"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/pkg/featureflags"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -114,15 +113,10 @@ func (handler *Handler) endpointEdgeStatusInspect(w http.ResponseWriter, r *http
 
 	var statusResponse *endpointEdgeStatusInspectResponse
 	var skipCache bool
-	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-		statusResponse, skipCache, err = handler.inspectStatus(handler.DataStore, r, endpoint.ID)
-	} else {
-		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			statusResponse, skipCache, err = handler.inspectStatus(tx, r, endpoint.ID)
-			return err
-		})
-	}
-
+	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		statusResponse, skipCache, err = handler.inspectStatus(tx, r, endpoint.ID)
+		return err
+	})
 	if err != nil {
 		var httpErr *httperror.HandlerError
 		if errors.As(err, &httpErr) {

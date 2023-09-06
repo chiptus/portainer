@@ -2134,13 +2134,11 @@ const (
 
 // List of supported features
 const (
-	FeatureFdo  = "fdo"
-	FeatureNoTx = "noTx"
+	FeatureFdo = "fdo"
 )
 
 var SupportedFeatureFlags = []featureflags.Feature{
 	FeatureFdo,
-	FeatureNoTx,
 }
 
 const (

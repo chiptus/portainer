@@ -7,7 +7,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/slices"
-	"github.com/portainer/portainer/pkg/featureflags"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -30,14 +29,9 @@ func (handler *Handler) edgeGroupDelete(w http.ResponseWriter, r *http.Request) 
 		return httperror.BadRequest("Invalid Edge group identifier route variable", err)
 	}
 
-	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-		err = deleteEdgeGroup(handler.DataStore, portaineree.EdgeGroupID(edgeGroupID))
-	} else {
-		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			return deleteEdgeGroup(tx, portaineree.EdgeGroupID(edgeGroupID))
-		})
-	}
-
+	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return deleteEdgeGroup(tx, portaineree.EdgeGroupID(edgeGroupID))
+	})
 	if err != nil {
 		var httpErr *httperror.HandlerError
 		if errors.As(err, &httpErr) {

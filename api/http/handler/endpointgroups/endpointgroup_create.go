@@ -6,7 +6,6 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/portainer/portainer/pkg/featureflags"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -58,15 +57,10 @@ func (handler *Handler) endpointGroupCreate(w http.ResponseWriter, r *http.Reque
 	}
 
 	var endpointGroup *portaineree.EndpointGroup
-	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-		endpointGroup, err = handler.createEndpointGroup(handler.DataStore, payload)
-	} else {
-		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			endpointGroup, err = handler.createEndpointGroup(tx, payload)
-			return err
-		})
-	}
-
+	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		endpointGroup, err = handler.createEndpointGroup(tx, payload)
+		return err
+	})
 	if err != nil {
 		var httpErr *httperror.HandlerError
 		if errors.As(err, &httpErr) {
@@ -119,20 +113,6 @@ func (handler *Handler) createEndpointGroup(tx dataservices.DataStoreTx, payload
 	}
 
 	for _, tagID := range endpointGroup.TagIDs {
-		if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-			err = tx.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
-				tag.EndpointGroups[endpointGroup.ID] = true
-			})
-
-			if tx.IsErrObjectNotFound(err) {
-				return nil, httperror.InternalServerError("Unable to find a tag inside the database", err)
-			} else if err != nil {
-				return nil, httperror.InternalServerError("Unable to persist tag changes inside the database", err)
-			}
-
-			continue
-		}
-
 		tag, err := tx.Tag().Read(tagID)
 		if tx.IsErrObjectNotFound(err) {
 			return nil, httperror.InternalServerError("Unable to find a tag inside the database", err)

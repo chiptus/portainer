@@ -16,7 +16,6 @@ import (
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	"github.com/portainer/portainer-ee/api/internal/slices"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/pkg/featureflags"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -102,15 +101,10 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 	}
 
 	var asyncResponse *EdgeAsyncResponse
-	if featureflags.IsEnabled(portainer.FeatureNoTx) {
-		asyncResponse, err = handler.getStatusAsync(handler.DataStore, edgeID, payload, r)
-	} else {
-		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			asyncResponse, err = handler.getStatusAsync(tx, edgeID, payload, r)
-			return err
-		})
-	}
-
+	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		asyncResponse, err = handler.getStatusAsync(tx, edgeID, payload, r)
+		return err
+	})
 	if err != nil {
 		var httpErr *httperror.HandlerError
 		if errors.As(err, &httpErr) {
@@ -376,17 +370,6 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(tx dataservices.DataStoreTx
 	}
 
 	for _, tagID := range endpoint.TagIDs {
-		if featureflags.IsEnabled(portainer.FeatureNoTx) {
-			err = tx.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
-				tag.Endpoints[endpoint.ID] = true
-			})
-			if err != nil {
-				return endpoint, httperror.InternalServerError("Unable to associate the environment to the specified tag", err)
-			}
-
-			continue
-		}
-
 		tag, err := tx.Tag().Read(tagID)
 		if err != nil {
 			return nil, httperror.InternalServerError("Unable to retrieve tag from the database", err)

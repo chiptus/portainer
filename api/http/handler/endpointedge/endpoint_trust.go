@@ -8,7 +8,6 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
-	"github.com/portainer/portainer/pkg/featureflags"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 )
@@ -30,14 +29,9 @@ func (handler *Handler) endpointTrust(w http.ResponseWriter, r *http.Request) *h
 		return httperror.BadRequest("Unable to find an environment on request context", err)
 	}
 
-	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-		err = handler.trustEndpoint(handler.DataStore, endpoint.ID)
-	} else {
-		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			return handler.trustEndpoint(tx, endpoint.ID)
-		})
-	}
-
+	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return handler.trustEndpoint(tx, endpoint.ID)
+	})
 	if err != nil {
 		var httpErr *httperror.HandlerError
 		if errors.As(err, &httpErr) {

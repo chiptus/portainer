@@ -12,7 +12,6 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/maps"
-	"github.com/portainer/portainer/pkg/featureflags"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 
@@ -92,15 +91,11 @@ func (handler *Handler) createEdgeJobFromFileContent(w http.ResponseWriter, r *h
 	}
 
 	var edgeJob *portaineree.EdgeJob
-	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-		edgeJob, err = handler.createEdgeJob(handler.DataStore, &payload.edgeJobBasePayload, []byte(payload.FileContent))
-	} else {
-		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			edgeJob, err = handler.createEdgeJob(tx, &payload.edgeJobBasePayload, []byte(payload.FileContent))
+	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		edgeJob, err = handler.createEdgeJob(tx, &payload.edgeJobBasePayload, []byte(payload.FileContent))
 
-			return err
-		})
-	}
+		return err
+	})
 
 	return txResponse(w, edgeJob, err)
 }
@@ -201,15 +196,11 @@ func (handler *Handler) createEdgeJobFromFile(w http.ResponseWriter, r *http.Req
 	}
 
 	var edgeJob *portaineree.EdgeJob
-	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-		edgeJob, err = handler.createEdgeJob(handler.DataStore, &payload.edgeJobBasePayload, payload.File)
-	} else {
-		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			edgeJob, err = handler.createEdgeJob(tx, &payload.edgeJobBasePayload, payload.File)
+	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		edgeJob, err = handler.createEdgeJob(tx, &payload.edgeJobBasePayload, payload.File)
 
-			return err
-		})
-	}
+		return err
+	})
 
 	return txResponse(w, edgeJob, err)
 }

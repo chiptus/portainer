@@ -7,7 +7,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/slices"
-	"github.com/portainer/portainer/pkg/featureflags"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 )
 
@@ -34,14 +33,10 @@ func (handler *Handler) edgeGroupList(w http.ResponseWriter, r *http.Request) *h
 	var decoratedEdgeGroups []decoratedEdgeGroup
 	var err error
 
-	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-		decoratedEdgeGroups, err = getEdgeGroupList(handler.DataStore)
-	} else {
-		err = handler.DataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
-			decoratedEdgeGroups, err = getEdgeGroupList(tx)
-			return err
-		})
-	}
+	err = handler.DataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
+		decoratedEdgeGroups, err = getEdgeGroupList(tx)
+		return err
+	})
 
 	return txResponse(w, decoratedEdgeGroups, err)
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/maps"
-	"github.com/portainer/portainer/pkg/featureflags"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -35,14 +34,9 @@ func (handler *Handler) edgeJobDelete(w http.ResponseWriter, r *http.Request) *h
 		return httperror.BadRequest("Invalid Edge job identifier route variable", err)
 	}
 
-	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-		err = handler.deleteEdgeJob(handler.DataStore, portaineree.EdgeJobID(edgeJobID))
-	} else {
-		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			return handler.deleteEdgeJob(tx, portaineree.EdgeJobID(edgeJobID))
-		})
-	}
-
+	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return handler.deleteEdgeJob(tx, portaineree.EdgeJobID(edgeJobID))
+	})
 	if err != nil {
 		var handlerError *httperror.HandlerError
 		if errors.As(err, &handlerError) {

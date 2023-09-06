@@ -8,7 +8,6 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/maps"
-	"github.com/portainer/portainer/pkg/featureflags"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 )
@@ -39,14 +38,10 @@ func (handler *Handler) edgeJobTasksList(w http.ResponseWriter, r *http.Request)
 	}
 
 	var tasks []taskContainer
-	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-		tasks, err = listEdgeJobTasks(handler.DataStore, portaineree.EdgeJobID(edgeJobID))
-	} else {
-		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			tasks, err = listEdgeJobTasks(tx, portaineree.EdgeJobID(edgeJobID))
-			return err
-		})
-	}
+	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		tasks, err = listEdgeJobTasks(tx, portaineree.EdgeJobID(edgeJobID))
+		return err
+	})
 
 	return txResponse(w, tasks, err)
 }

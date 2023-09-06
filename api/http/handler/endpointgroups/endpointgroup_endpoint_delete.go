@@ -6,7 +6,6 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/portainer/portainer/pkg/featureflags"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -36,14 +35,9 @@ func (handler *Handler) endpointGroupDeleteEndpoint(w http.ResponseWriter, r *ht
 		return httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 
-	if featureflags.IsEnabled(portaineree.FeatureNoTx) {
-		err = handler.removeEndpoint(handler.DataStore, portaineree.EndpointGroupID(endpointGroupID), portaineree.EndpointID(endpointID))
-	} else {
-		err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			return handler.removeEndpoint(tx, portaineree.EndpointGroupID(endpointGroupID), portaineree.EndpointID(endpointID))
-		})
-	}
-
+	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return handler.removeEndpoint(tx, portaineree.EndpointGroupID(endpointGroupID), portaineree.EndpointID(endpointID))
+	})
 	if err != nil {
 		var httpErr *httperror.HandlerError
 		if errors.As(err, &httpErr) {
