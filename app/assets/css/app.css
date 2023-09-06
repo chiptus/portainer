@@ -40,17 +40,17 @@ body,
   position: relative;
 }
 
-.chatbot-enabled #view {
+/* Padding to ensure that the chatbot icon (bottom right) doesn't overlap with page elements */
+/* For react views, the r2a element is the only child of #view, and has the .ng-isolate-scope class. 
+Within that view, add padding to the last component */
+.chatbot-enabled #view > .ng-isolate-scope:only-child > :last-child,
+/* For angular views where the last child is an angular component (not and r2a react component),
+add padding to that last element */
+.chatbot-enabled #view > :last-child:not(.ng-isolate-scope:only-child),
+/* For angular views where the last child is a r2a react component, 
+add padding to to last element within that react component */
+.chatbot-enabled #view > .ng-isolate-scope:last-child:not(:only-child) > :last-child {
   padding-bottom: 6em;
-  min-height: 100% !important;
-  height: auto;
-}
-
-.chatbot-enabled kubernetes-view-loading {
-  display: block;
-  position: absolute;
-  top: calc(50% - 27.5px);
-  left: calc(50% - 27.5px);
 }
 
 .logo {
