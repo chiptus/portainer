@@ -7,6 +7,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/git"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	consts "github.com/portainer/portainer-ee/api/useractivity"
@@ -134,7 +135,18 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 
 	var gitCommitChangedOrForceUpdate bool
 	if !stack.FromAppTemplate {
-		updated, newHash, err := update.UpdateGitObject(gitService, fmt.Sprintf("stack:%d", stackID), stack.GitConfig, stack.AutoUpdate != nil && stack.AutoUpdate.ForceUpdate, true, stack.ProjectPath)
+
+		gitConfig, err := git.GetGitConfigWithPassword(stack.GitConfig, datastore)
+		if err != nil {
+			return err
+		}
+
+		updated, newHash, err := update.UpdateGitObject(gitService,
+			fmt.Sprintf("stack: %d", stackID),
+			gitConfig,
+			stack.AutoUpdate != nil && stack.AutoUpdate.ForceUpdate,
+			true,
+			stack.ProjectPath)
 		if err != nil {
 			return err
 		}

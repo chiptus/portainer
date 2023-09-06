@@ -6,6 +6,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/git"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/set"
 	consts "github.com/portainer/portainer-ee/api/useractivity"
@@ -29,10 +30,16 @@ func (handler *Handler) autoUpdate(edgeStackId portaineree.EdgeStackID, envVars 
 		oldHash := ""
 		// if the stack is not using git, we force redeploy
 		if edgeStack.GitConfig != nil {
+
+			gitConfig, err := git.GetGitConfigWithPassword(edgeStack.GitConfig, tx)
+			if err != nil {
+				return err
+			}
+
 			updated, newHash, err := update.UpdateGitObject(
 				handler.GitService,
-				fmt.Sprintf("edge_stack:%d", edgeStack.ID),
-				edgeStack.GitConfig,
+				fmt.Sprintf("edge_stack: %d", edgeStack.ID),
+				gitConfig,
 				edgeStack.AutoUpdate != nil && edgeStack.AutoUpdate.ForceUpdate,
 				true,
 				edgeStack.ProjectPath)
