@@ -2,11 +2,11 @@ package edgeupdateschedules
 
 import (
 	"net/http"
+	"slices"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
-	"github.com/portainer/portainer-ee/api/internal/slices"
 	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -70,5 +70,6 @@ func isUpdateActive(edgeStack *portaineree.EdgeStack) bool {
 			return true
 		}
 	}
+
 	return false
 }

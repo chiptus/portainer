@@ -2,17 +2,17 @@ package microk8s
 
 import (
 	"os"
+	"slices"
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	sshUtil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
 	"github.com/portainer/portainer-ee/api/database/models"
+	pslices "github.com/portainer/portainer-ee/api/internal/slices"
 	"github.com/rs/zerolog/log"
 )
 
-type (
-	AddonsWithArgs []portaineree.MicroK8sAddon
-)
+type AddonsWithArgs []portaineree.MicroK8sAddon
 
 func (a Addons) GetAddonsWithArgs() AddonsWithArgs {
 	var addons []portaineree.MicroK8sAddon
@@ -25,11 +25,7 @@ func (a Addons) GetAddonsWithArgs() AddonsWithArgs {
 }
 
 func (a Addons) GetNames() []string {
-	var names []string
-	for _, addon := range a {
-		names = append(names, addon.Name)
-	}
-	return names
+	return pslices.Map(a, func(addon Addon) string { return addon.Name })
 }
 
 func (a Addons) GetAddon(name string) *Addon {
@@ -38,24 +34,16 @@ func (a Addons) GetAddon(name string) *Addon {
 			return &addon
 		}
 	}
+
 	return nil
 }
 
 func (a Addons) IndexOf(element string) int {
-	for k, v := range a {
-		if element == v.Name {
-			return k
-		}
-	}
-	return -1 // not found.
+	return slices.IndexFunc(a, func(addon Addon) bool { return element == addon.Name })
 }
 
 func (addons AddonsWithArgs) GetNames() []string {
-	var names []string
-	for _, addon := range addons {
-		names = append(names, addon.Name)
-	}
-	return names
+	return pslices.Map(addons, func(addon portaineree.MicroK8sAddon) string { return addon.Name })
 }
 
 func (addons AddonsWithArgs) EnableAddons(

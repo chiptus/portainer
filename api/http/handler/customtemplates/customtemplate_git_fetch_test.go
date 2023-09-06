@@ -19,7 +19,6 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
-	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
 	portainer "github.com/portainer/portainer/api"
 	gittypes "github.com/portainer/portainer/api/git/types"
@@ -132,7 +131,7 @@ func Test_customTemplateGitFetch(t *testing.T) {
 	}
 	fileService := &TestFileService{}
 
-	h := NewHandler(requestBouncer, store, fileService, gitService, helper.NewUserActivityService())
+	h := NewHandler(requestBouncer, store, fileService, gitService, testhelpers.NewUserActivityService())
 
 	// generate two standard users' tokens
 	jwt1, _ := jwtService.GenerateToken(&portaineree.TokenData{ID: user1.ID, Username: user1.Username, Role: user1.Role})

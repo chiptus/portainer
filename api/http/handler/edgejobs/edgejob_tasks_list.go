@@ -2,12 +2,12 @@ package edgejobs
 
 import (
 	"fmt"
+	"maps"
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
-	"github.com/portainer/portainer-ee/api/internal/maps"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 )

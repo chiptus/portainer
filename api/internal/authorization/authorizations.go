@@ -1,6 +1,8 @@
 package authorization
 
 import (
+	"maps"
+
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
@@ -1346,19 +1348,16 @@ func getUserEndpointRoles(user *portaineree.User, endpoints []portaineree.Endpoi
 	for _, endpoint := range endpoints {
 		role := getUserEndpointRole(user, endpoint, groupUserAccessPolicies,
 			groupTeamAccessPolicies, roles, userMemberships)
+
 		if role != nil {
-			var authorizations = make(map[portaineree.Authorization]bool, len(role.Authorizations))
-			for k, v := range role.Authorizations {
-				authorizations[k] = v
-			}
-			var newRole = portaineree.Role{
+			authorizations := maps.Clone(role.Authorizations)
+			results[endpoint.ID] = portaineree.Role{
 				ID:             role.ID,
 				Name:           role.Name,
 				Authorizations: authorizations,
 				Description:    role.Description,
 				Priority:       role.Priority,
 			}
-			results[endpoint.ID] = newRole
 		}
 	}
 

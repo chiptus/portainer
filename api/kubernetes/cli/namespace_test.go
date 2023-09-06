@@ -9,9 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	core "k8s.io/api/core/v1"
-	ktypes "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kfake "k8s.io/client-go/kubernetes/fake"
 )
 
@@ -141,8 +139,8 @@ func Test_ToggleSystemState(t *testing.T) {
 			systemNamespaceLabel: "false",
 		}}}
 
-		config := &ktypes.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
+		config := &core.ConfigMap{
+			ObjectMeta: meta.ObjectMeta{
 				Name:      portainerConfigMapName,
 				Namespace: portainerNamespace,
 			},

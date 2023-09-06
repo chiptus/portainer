@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"slices"
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/portainer/portainer-ee/api/internal/slices"
 
 	"github.com/distribution/distribution/reference"
 	"github.com/pkg/errors"

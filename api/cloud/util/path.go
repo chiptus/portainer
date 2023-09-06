@@ -2,9 +2,8 @@ package util
 
 import (
 	"os"
+	"slices"
 	"strings"
-
-	"github.com/portainer/portainer-ee/api/internal/slices"
 )
 
 const pathKey = "PATH"

@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"net/http"
+	"slices"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 )
@@ -78,10 +79,5 @@ func (r Microk8sAddonsPayload) Validate(request *http.Request) error {
 }
 
 func (r Microk8sAddonsPayload) IndexOf(element string) int {
-	for k, v := range r.Addons {
-		if element == v.Name {
-			return k
-		}
-	}
-	return -1 // not found.
+	return slices.IndexFunc(r.Addons, func(addon portaineree.MicroK8sAddon) bool { return element == addon.Name })
 }

@@ -4,15 +4,15 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"maps"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/vmware-labs/yaml-jsonpath/pkg/yamlpath"
 	"gopkg.in/yaml.v3"
-
-	"github.com/portainer/portainer-ee/api/internal/slices"
 )
 
 const (
@@ -262,9 +262,7 @@ func addLabels(obj map[string]interface{}, appLabels map[string]string) {
 	}
 
 	// merge app labels with existing labels
-	for k, v := range appLabels {
-		labels[k] = v
-	}
+	maps.Copy(labels, appLabels)
 
 	metadata["labels"] = labels
 	obj["metadata"] = metadata

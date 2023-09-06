@@ -3,11 +3,12 @@ package edgeupdateschedules
 import (
 	"errors"
 	"net/http"
+	"slices"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
-	"github.com/portainer/portainer-ee/api/internal/slices"
+	pslices "github.com/portainer/portainer-ee/api/internal/slices"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -127,7 +128,7 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 			return httperror.InternalServerError("Unable to fetch related environments", err)
 		}
 
-		relatedEnvironmentsIDs := slices.Map(relatedEnvironments, func(environment portaineree.Endpoint) portaineree.EndpointID {
+		relatedEnvironmentsIDs := pslices.Map(relatedEnvironments, func(environment portaineree.Endpoint) portaineree.EndpointID {
 			return environment.ID
 		})
 

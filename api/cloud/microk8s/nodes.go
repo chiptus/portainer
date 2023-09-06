@@ -3,6 +3,7 @@ package microk8s
 import (
 	"bytes"
 	"fmt"
+	"slices"
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -10,8 +11,8 @@ import (
 	sshUtil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/portainer/portainer-ee/api/internal/slices"
 	kubecli "github.com/portainer/portainer-ee/api/kubernetes/cli"
+
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
 )

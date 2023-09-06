@@ -1,16 +1,17 @@
 package updateschedules
 
 import (
+	"slices"
 	"sort"
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
-	"github.com/portainer/portainer-ee/api/internal/slices"
 	portainer "github.com/portainer/portainer/api"
+
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 

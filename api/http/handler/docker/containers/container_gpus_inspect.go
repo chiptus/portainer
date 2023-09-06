@@ -2,11 +2,11 @@ package containers
 
 import (
 	"net/http"
+	"slices"
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
-	"github.com/portainer/portainer-ee/api/internal/slices"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"

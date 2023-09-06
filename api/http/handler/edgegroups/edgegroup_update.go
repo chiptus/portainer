@@ -3,13 +3,13 @@ package edgegroups
 import (
 	"errors"
 	"net/http"
+	"slices"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/edge/cache"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
-	"github.com/portainer/portainer-ee/api/internal/slices"
 	"github.com/portainer/portainer-ee/api/internal/unique"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"

@@ -2,14 +2,14 @@ package edgeupdateschedules
 
 import (
 	"fmt"
+	"slices"
 
-	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
-	"github.com/portainer/portainer-ee/api/internal/slices"
 	portainer "github.com/portainer/portainer/api"
 
-	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/pkg/errors"
 )
 
 type decoratedUpdateSchedule struct {
@@ -74,10 +74,10 @@ func aggregateStatus(relatedEnvironmentsIDs map[portaineree.EndpointID]string, e
 			hasPending = true
 		}
 
-		if errorStatus, ok := slices.Find(envStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
+		if idx := slices.IndexFunc(envStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
 			return sts.Type == portainer.EdgeStackStatusError
-		}); ok {
-			return edgetypes.UpdateScheduleStatusError, fmt.Sprintf("Error on environment %d: %s", environmentID, errorStatus.Error)
+		}); idx >= 0 {
+			return edgetypes.UpdateScheduleStatusError, fmt.Sprintf("Error on environment %d: %s", environmentID, envStatus.Status[idx].Error)
 		}
 
 		if slices.ContainsFunc(envStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {

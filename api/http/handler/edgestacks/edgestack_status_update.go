@@ -3,12 +3,12 @@ package edgestacks
 import (
 	"errors"
 	"net/http"
+	"slices"
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
-	"github.com/portainer/portainer-ee/api/internal/slices"
 	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"net/http"
+	"slices"
 	"strconv"
 	"time"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/edgeconfigs"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
-	"github.com/portainer/portainer-ee/api/internal/slices"
 	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"

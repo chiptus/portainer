@@ -2,6 +2,7 @@ package edgejobs
 
 import (
 	"errors"
+	"maps"
 	"net/http"
 	"strconv"
 	"strings"
@@ -11,7 +12,6 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
-	"github.com/portainer/portainer-ee/api/internal/maps"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 
