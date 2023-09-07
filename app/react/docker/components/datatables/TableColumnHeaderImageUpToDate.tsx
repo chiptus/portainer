@@ -42,26 +42,24 @@ export function ImageUpToDateTooltip() {
   }
 
   return (
-    <div>
-      <Tooltip
-        position="top"
-        message={
-          <div className="flex flex-col gap-y-2 p-2">
-            <div>
-              <Icon icon={UpToDate} className="!mr-2" />
-              Images are up to date
-            </div>
-            <div>
-              <Icon icon={UpdatesAvailable} className="!mr-2" />
-              Updates are available
-            </div>
-            <div>
-              <Icon icon={UpdatesUnknown} className="!mr-2" />
-              Updates availability unknown
-            </div>
+    <Tooltip
+      position="top"
+      message={
+        <div className="flex flex-col gap-y-2 p-2">
+          <div className="flex items-center gap-2">
+            <Icon icon={UpToDate} />
+            Images are up to date
           </div>
-        }
-      />
-    </div>
+          <div className="flex items-center gap-2">
+            <Icon icon={UpdatesAvailable} />
+            Updates are available
+          </div>
+          <div className="flex items-center gap-2">
+            <Icon icon={UpdatesUnknown} />
+            Updates availability unknown
+          </div>
+        </div>
+      }
+    />
   );
 }

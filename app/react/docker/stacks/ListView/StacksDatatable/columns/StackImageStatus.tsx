@@ -3,10 +3,11 @@ import { Loader2 } from 'lucide-react';
 
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import { useEnvironment } from '@/react/portainer/environments/queries';
-import { getStackImagesStatus } from '@/portainer/services/api/stack.service';
 import { statusIcon } from '@/react/docker/components/ImageStatus/helpers';
 
 import { Icon } from '@@/Icon';
+
+import { getStackImagesStatus } from './getStackImagesStatus';
 
 export interface Props {
   stackId: number;

@@ -3,7 +3,6 @@ import angular from 'angular';
 import { r2a } from '@/react-tools/react2angular';
 import { withControlledInput } from '@/react-tools/withControlledInput';
 import { StackContainersDatatable } from '@/react/common/stacks/ItemView/StackContainersDatatable';
-import { StackImageStatus } from '@/react/docker/stacks/ListView/StackImageStatus';
 import { ContainerQuickActions } from '@/react/docker/containers/components/ContainerQuickActions';
 import { ImageStatus } from '@/react/docker/components/ImageStatus';
 import { TemplateListDropdown } from '@/react/docker/app-templates/TemplateListDropdown';
@@ -24,6 +23,7 @@ import { AgentVolumeBrowser } from '@/react/docker/volumes/BrowseView/AgentVolum
 import { ProcessesDatatable } from '@/react/docker/containers/StatsView/ProcessesDatatable';
 import { ScaleServiceButton } from '@/react/docker/services/ListView/ServicesDatatable/columns/schedulingMode/ScaleServiceButton';
 import { SecretsDatatable } from '@/react/docker/secrets/ListView/SecretsDatatable';
+import { StacksDatatable } from '@/react/docker/stacks/ListView/StacksDatatable';
 
 import { containersModule } from './containers';
 import { servicesModule } from './services';
@@ -35,10 +35,6 @@ const ngModule = angular
   ])
   .component('dockerfileDetails', r2a(DockerfileDetails, ['image']))
   .component('dockerHealthStatus', r2a(HealthStatus, ['health']))
-  .component(
-    'stackImageStatus',
-    r2a(withReactQuery(StackImageStatus), ['stackId', 'environmentId'])
-  )
   .component(
     'containerQuickActions',
     r2a(withUIRouter(withCurrentUser(ContainerQuickActions)), [
@@ -167,6 +163,15 @@ const ngModule = angular
   .component(
     'dockerSecretsDatatable',
     r2a(withUIRouter(SecretsDatatable), ['dataset', 'onRefresh', 'onRemove'])
+  )
+  .component(
+    'dockerStacksDatatable',
+    r2a(withUIRouter(withCurrentUser(StacksDatatable)), [
+      'dataset',
+      'isImageNotificationEnabled',
+      'onReload',
+      'onRemove',
+    ])
   );
 
 export const componentsModule = ngModule.name;

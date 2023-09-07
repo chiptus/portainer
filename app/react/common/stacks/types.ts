@@ -33,7 +33,7 @@ export enum StackStatus {
 export interface Stack {
   Id: number;
   Name: string;
-  Type: number;
+  Type: StackType;
   EndpointID: number;
   SwarmID: string;
   EntryPoint: string;
@@ -42,7 +42,7 @@ export interface Stack {
     value: string;
   }[];
   ResourceControl?: ResourceControlResponse;
-  Status: number;
+  Status: StackStatus;
   ProjectPath: string;
   CreationDate: number;
   CreatedBy: string;
@@ -61,6 +61,8 @@ export interface Stack {
   Webhook?: string;
   SupportRelativePath: boolean;
   FilesystemPath: string;
+  StackFileVersion: string;
+  PreviousDeploymentInfo: unknown;
 }
 
 export type StackFile = {
