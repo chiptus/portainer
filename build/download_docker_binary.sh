@@ -31,11 +31,15 @@ rm -rf "${DOWNLOAD_FOLDER}"
 mkdir -pv "${DOWNLOAD_FOLDER}"
 
 if [[ ${PLATFORM} == "windows" ]]; then
-    wget -O "${DOWNLOAD_FOLDER}/docker-binaries.zip" "https://download.docker.com/win/static/stable/${ARCH}/docker-${DOCKER_VERSION}.zip"
+    # if [[ ! -f "dist/docker.exe" ]]; then
+    wget --tries=3 --waitretry=30 --quiet -O "${DOWNLOAD_FOLDER}/docker-binaries.zip" "https://download.docker.com/win/static/stable/${ARCH}/docker-${DOCKER_VERSION}.zip"
     unzip "${DOWNLOAD_FOLDER}/docker-binaries.zip" -d "${DOWNLOAD_FOLDER}"
     mv "${DOWNLOAD_FOLDER}/docker/docker.exe" dist/
+    # fi
 else
-    wget -O "${DOWNLOAD_FOLDER}/docker-binaries.tgz" "https://download.docker.com/${PLATFORM}/static/stable/${ARCH}/docker-${DOCKER_VERSION}.tgz"
+    # if [[ ! -f "dist/docker" ]]; then
+    wget --tries=3 --waitretry=30 --quiet -O "${DOWNLOAD_FOLDER}/docker-binaries.tgz" "https://download.docker.com/${PLATFORM}/static/stable/${ARCH}/docker-${DOCKER_VERSION}.tgz"
     tar -xf "${DOWNLOAD_FOLDER}/docker-binaries.tgz" -C "${DOWNLOAD_FOLDER}"
     mv "${DOWNLOAD_FOLDER}/docker/docker" dist/
+    # fi
 fi

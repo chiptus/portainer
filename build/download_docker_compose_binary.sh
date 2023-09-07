@@ -21,10 +21,14 @@ fi
 
 
 if [[ "$PLATFORM" == "windows" ]]; then
-    wget -O "dist/docker-compose.exe" "https://github.com/docker/compose/releases/download/$COMPOSE_VERSION/docker-compose-windows-${ARCH}.exe"
+    # if [[ ! -f "dist/docker-compose.exe" ]]; then
+    wget --tries=3 --waitretry=30 --quiet -O "dist/docker-compose.exe" "https://github.com/docker/compose/releases/download/$COMPOSE_VERSION/docker-compose-windows-${ARCH}.exe"
     chmod +x "dist/docker-compose.exe"
+    # fi
 else
-    wget -O "dist/docker-compose" "https://github.com/docker/compose/releases/download/$COMPOSE_VERSION/docker-compose-${PLATFORM}-${ARCH}"
+    # if [[ ! -f "dist/docker-compose" ]]; then
+    wget --tries=3 --waitretry=30 --quiet -O "dist/docker-compose" "https://github.com/docker/compose/releases/download/$COMPOSE_VERSION/docker-compose-${PLATFORM}-${ARCH}"
     chmod +x "dist/docker-compose"
+    # fi
 fi
 

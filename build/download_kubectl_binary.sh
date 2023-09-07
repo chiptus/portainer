@@ -12,9 +12,13 @@ KUBECTL_VERSION=$3
 
 
 if [[ ${PLATFORM} == "windows" ]]; then
-  wget -O "dist/kubectl.exe" "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/windows/amd64/kubectl.exe"
+  # if [[ ! -f "dist/kubectl.exe" ]]; then
+  wget --tries=3 --waitretry=30 --quiet -O "dist/kubectl.exe" "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/windows/amd64/kubectl.exe"
   chmod +x "dist/kubectl.exe"
+  # fi
 else
-  wget -O "dist/kubectl" "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/${PLATFORM}/${ARCH}/kubectl"
+  # if [[ ! -f "dist/kubectl" ]]; then
+  wget --tries=3 --waitretry=30 --quiet -O "dist/kubectl" "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/${PLATFORM}/${ARCH}/kubectl"
   chmod +x "dist/kubectl"
+  # fi
 fi
