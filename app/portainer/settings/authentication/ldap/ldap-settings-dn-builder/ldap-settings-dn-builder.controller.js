@@ -51,7 +51,7 @@ export default class LdapSettingsBaseDnBuilderController {
         ouValues.push({ type, value });
       }
       left = left.replace(regex, '');
-      match = left.match(/(\w+)=(\w+),?/);
+      match = left.match(regex);
     }
     return ouValues;
   }
