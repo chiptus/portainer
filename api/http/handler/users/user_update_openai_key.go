@@ -1,7 +1,6 @@
 package users
 
 import (
-	"errors"
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -10,8 +9,6 @@ import (
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
-
-	"github.com/asaskevich/govalidator"
 )
 
 type userUpdateOpenAIConfigPayload struct {
@@ -20,9 +17,6 @@ type userUpdateOpenAIConfigPayload struct {
 }
 
 func (payload *userUpdateOpenAIConfigPayload) Validate(r *http.Request) error {
-	if govalidator.IsNull(payload.ApiKey) {
-		return errors.New("missing mandatory payload parameter: apiKey")
-	}
 	return nil
 }
 
