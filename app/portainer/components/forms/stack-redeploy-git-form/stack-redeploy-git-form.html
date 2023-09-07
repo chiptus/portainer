@@ -69,6 +69,7 @@
     explanation="'These values will be used as substitutions in the stack file. To reference the .env file in your compose file, use ‘stack.env’.'"
     on-change="($ctrl.onChangeEnvVar)"
     show-help-message="true"
+    is-foldable="true"
   ></environment-variables-panel>
 
   <div ng-if="$ctrl.stack.Type === 1 && $ctrl.endpoint.apiVersion >= 1.27">
