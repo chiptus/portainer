@@ -122,8 +122,8 @@ func (s *SSHConnection) RunCommand(command string, out io.Writer) error {
 		return err
 	}
 
-	// sudo writes [sudo] password for <user>: to stderr.  We send the password to stdin
-	go s.handleSudoPassword(sshStdin, io.TeeReader(sshStderr, out))
+	// sudo writes [sudo] password for <user>: to stderr.  We send the password via stdin
+	go s.handleSudoPassword(sshStdin, sshStderr)
 
 	err = session.Run(fmt.Sprintf("sudo -S %s", command))
 	if err != nil {
