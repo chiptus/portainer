@@ -264,7 +264,6 @@ function InnerForm({
                 featureId={FeatureId.HIDE_AUTO_UPDATE_WINDOW}
                 onChange={(checked) => {
                   setFieldValue('changeWindow.Enabled', checked);
-                  // when enabled
                   if (checked) {
                     // enable time window edit mode when the change window is enabled
                     setIsTimeWindowEditMode(true);

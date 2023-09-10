@@ -6,10 +6,10 @@ import { ConfigureFormValues } from './types';
 
 // Define Yup schema for DeploymentOptions
 const deploymentOptionsSchema = object().shape({
-  overrideGlobalOptions: boolean().required(),
-  hideAddWithForm: boolean().required(),
-  hideWebEditor: boolean().required(),
-  hideFileUpload: boolean().required(),
+  overrideGlobalOptions: boolean(),
+  hideAddWithForm: boolean(),
+  hideWebEditor: boolean(),
+  hideFileUpload: boolean(),
 });
 
 // Define Yup schema for AccessMode
