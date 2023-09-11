@@ -88,15 +88,17 @@ export function LogViewer({
 
   return (
     <LogViewerProvider value={context}>
-      <Widget
-        className={clsx(styles.logViewerWidget, 'mx-4 flex flex-col')}
-        mRef={logViewerRef}
-      >
-        <LogController />
-        <Widget.Body className="no-padding flex-auto">
-          <LogList logs={filteredLogs} />
-        </Widget.Body>
-      </Widget>
+      <div className="h-full">
+        <Widget
+          className={clsx(styles.logViewerWidget, 'mx-4 flex flex-col')}
+          mRef={logViewerRef}
+        >
+          <LogController />
+          <Widget.Body className="no-padding flex-auto">
+            <LogList logs={filteredLogs} />
+          </Widget.Body>
+        </Widget>
+      </div>
     </LogViewerProvider>
   );
 }

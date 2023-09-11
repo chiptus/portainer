@@ -1,5 +1,5 @@
 .log-viewer-widget {
-  height: calc(100% - 100px);
+  height: calc(100% - 20px);
 }
 
 .log-viewer-widget :global(.widget-content) {
