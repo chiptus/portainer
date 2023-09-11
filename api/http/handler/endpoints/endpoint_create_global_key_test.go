@@ -63,6 +63,17 @@ func TestGlobalKey(t *testing.T) {
 
 	portainerURL := "https://portainer.domain.tld:9443"
 
+	settings, err := handler.DataStore.Settings().Settings()
+	if err != nil {
+		t.Fatal("could not retrieve settings:", err)
+	}
+
+	settings.EnableEdgeComputeFeatures = true
+
+	if err = handler.DataStore.Settings().UpdateSettings(settings); err != nil {
+		t.Fatal("could not update settings:", err)
+	}
+
 	doRequest := func() *endpointCreateGlobalKeyResponse {
 		edgeID := "test-edge-id"
 

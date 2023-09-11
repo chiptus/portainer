@@ -75,6 +75,10 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 		return httperror.InternalServerError("Unable to retrieve the settings from the database", err)
 	}
 
+	if !settings.EnableEdgeComputeFeatures {
+		return httperror.NewError(http.StatusServiceUnavailable, "Edge compute features are disabled", errors.New("Edge compute features are disabled"))
+	}
+
 	// validate the environment group
 	_, err = handler.DataStore.EndpointGroup().Read(payload.EnvironmentGroupID)
 	if err != nil {
