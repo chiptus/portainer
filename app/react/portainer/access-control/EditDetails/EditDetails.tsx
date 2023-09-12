@@ -32,7 +32,7 @@ export function EditDetails({
 }: Props) {
   const { user, isAdmin } = useUser();
 
-  const { users, teams, isLoading } = useLoadState(environmentId);
+  const { users, teams, isLoading } = useLoadState(environmentId, isAdmin);
 
   const handleChange = useCallback(
     (partialValues: Partial<typeof values>) => {
@@ -42,7 +42,7 @@ export function EditDetails({
     [values, onChange]
   );
 
-  if (isLoading || !teams || !users) {
+  if (isLoading || !teams || (isAdmin && !users) || !values.authorizedUsers) {
     return null;
   }
 
@@ -62,7 +62,7 @@ export function EditDetails({
           {isAdmin && (
             <UsersField
               name={withNamespace('authorizedUsers')}
-              users={users}
+              users={users || []}
               onChange={(authorizedUsers) => handleChange({ authorizedUsers })}
               value={values.authorizedUsers}
               errors={errors?.authorizedUsers}
