@@ -32,6 +32,7 @@ var filesToBackup = []string{
 	"portainer.key",
 	"portainer.pub",
 	"tls",
+	"chisel",
 }
 
 func BackupToS3(settings portaineree.S3BackupSettings, gate *offlinegate.OfflineGate, datastore dataservices.DataStore, userActivityStore portaineree.UserActivityStore, filestorePath string) error {
