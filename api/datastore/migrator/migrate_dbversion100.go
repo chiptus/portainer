@@ -70,19 +70,21 @@ func (migrator *Migrator) updateTunnelServerAddressForDB100() error {
 		return err
 	}
 
-	if settings.EdgePortainerURL != "" && settings.Edge.TunnelServerAddress == "" {
-		u, err := url.ParseURL(settings.EdgePortainerURL)
-		if err != nil {
-			return err
-		}
-
-		settings.Edge.TunnelServerAddress = net.JoinHostPort(u.Hostname(), *migrator.flags.TunnelPort)
-		log.
-			Info().
-			Str("EdgePortainerURL", settings.EdgePortainerURL).
-			Str("TunnelServerAddress", settings.Edge.TunnelServerAddress).
-			Msg("TunnelServerAddress updated")
+	if !settings.EnableEdgeComputeFeatures || settings.EdgePortainerURL == "" || settings.Edge.TunnelServerAddress != "" {
+		return nil
 	}
+
+	url, err := url.ParseURL(settings.EdgePortainerURL)
+	if err != nil {
+		return err
+	}
+
+	settings.Edge.TunnelServerAddress = net.JoinHostPort(url.Hostname(), *migrator.flags.TunnelPort)
+	log.
+		Info().
+		Str("EdgePortainerURL", settings.EdgePortainerURL).
+		Str("TunnelServerAddress", settings.Edge.TunnelServerAddress).
+		Msg("TunnelServerAddress updated")
 
 	return migrator.settingsService.UpdateSettings(settings)
 }
