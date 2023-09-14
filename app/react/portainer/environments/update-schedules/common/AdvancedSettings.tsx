@@ -54,10 +54,12 @@ export function AdvancedSettings({
         registries={options}
       />
       <TextTip className="mb-2" color="blue">
-        Please make sure that you have the required version of the agent image
-        for upgrading, along with the portainer-updater image, available in your
-        private registry for the airgap environment. These images will be pulled
-        from the selected registry.
+        To update using a private registry, you must already be running Edge
+        Agent version 2.18.1 or later. Please ensure that both the required
+        agent image and the latest portainer-updater image are stored in your
+        nominated private registry, as these will be the image files used during
+        the upgrade process. This process is applicable in air-gapped systems or
+        where Docker Hub is not accessible by internet.
       </TextTip>
     </FormSection>
   );
