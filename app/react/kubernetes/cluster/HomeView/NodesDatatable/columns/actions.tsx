@@ -2,7 +2,6 @@ import { CellContext } from '@tanstack/react-table';
 import { Activity, BarChart, Terminal } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
-import { Authorized } from '@/react/hooks/useUser';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { getBaseUrl } from '@/portainer/helpers/webhookHelper';
 import { useAnalytics } from '@/react/hooks/useAnalytics';
@@ -57,16 +56,14 @@ function ActionsCell({
   return (
     <div className="flex gap-1.5">
       {metricsEnabled && (
-        <Authorized authorizations="K8sClusterNodeR">
-          <Link
-            title="Stats"
-            to="kubernetes.cluster.node.stats"
-            params={{ nodeName }}
-            className="flex items-center p-1"
-          >
-            <Icon icon={BarChart} />
-          </Link>
-        </Authorized>
+        <Link
+          title="Stats"
+          to="kubernetes.cluster.node.stats"
+          params={{ nodeName }}
+          className="flex items-center p-1"
+        >
+          <Icon icon={BarChart} />
+        </Link>
       )}
       {nodeIp && nodeRole === 'Control plane' && canCheckStatus && (
         <Link
