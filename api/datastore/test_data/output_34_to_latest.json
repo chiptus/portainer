@@ -93,7 +93,6 @@
       "Nomad": {
         "Snapshots": []
       },
-      "PendingActions": null,
       "PostInitMigrations": {
         "MigrateGPUs": true,
         "MigrateGateKeeper": false,
@@ -139,6 +138,7 @@
   "git_credentials": null,
   "helm_user_repository": null,
   "license": null,
+  "pending_actions": null,
   "podsecurity": null,
   "registries": null,
   "resource_control": null,

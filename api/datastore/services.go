@@ -31,6 +31,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/gitcredential"
 	"github.com/portainer/portainer-ee/api/dataservices/helmuserrepository"
 	"github.com/portainer/portainer-ee/api/dataservices/license"
+	"github.com/portainer/portainer-ee/api/dataservices/pendingactions"
 	"github.com/portainer/portainer-ee/api/dataservices/podsecurity"
 	"github.com/portainer/portainer-ee/api/dataservices/registry"
 	"github.com/portainer/portainer-ee/api/dataservices/resourcecontrol"
@@ -48,6 +49,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/user"
 	"github.com/portainer/portainer-ee/api/dataservices/version"
 	"github.com/portainer/portainer-ee/api/dataservices/webhook"
+
 	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
@@ -99,6 +101,7 @@ type Store struct {
 	VersionService            *version.Service
 	WebhookService            *webhook.Service
 	CloudCredentialService    *cloudcredential.Service
+	PendingActionsService     *pendingactions.Service
 }
 
 func (store *Store) initServices() error {
@@ -334,7 +337,18 @@ func (store *Store) initServices() error {
 	}
 	store.CloudCredentialService = cloudCredentialService
 
+	pendingActionsService, err := pendingactions.NewService(store.connection)
+	if err != nil {
+		return err
+	}
+	store.PendingActionsService = pendingActionsService
+
 	return nil
+}
+
+// PendingActions gives access to the PendingActions data management layer
+func (store *Store) PendingActions() dataservices.PendingActionsService {
+	return store.PendingActionsService
 }
 
 // CustomTemplate gives access to the CustomTemplate data management layer

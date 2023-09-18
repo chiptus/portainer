@@ -40,7 +40,7 @@ func Test_getLicenseOveruseTimestamp(t *testing.T) {
 		store.Endpoint().Create(endpoint)
 		store.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint.ID, Docker: &portainer.DockerSnapshot{NodeCount: 10}})
 
-		snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil)
+		snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil, nil)
 		service := NewService(store, nil, snapshotService, false)
 
 		enforcement, _ := service.dataStore.Enforcement().LicenseEnforcement()
@@ -58,7 +58,7 @@ func Test_getLicenseOveruseTimestamp(t *testing.T) {
 		store.Endpoint().Create(endpoint)
 		store.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint.ID, Docker: &portainer.DockerSnapshot{NodeCount: 10}})
 
-		snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil)
+		snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil, nil)
 		service := NewService(store, nil, snapshotService, false)
 		originalValue := time.Now().Add(-time.Hour * 24).Unix()
 		service.dataStore.Enforcement().UpdateOveruseStartedTimestamp(originalValue)
@@ -75,7 +75,7 @@ func Test_getLicenseOveruseTimestamp(t *testing.T) {
 		store.Endpoint().Create(endpoint)
 		store.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint.ID, Docker: &portainer.DockerSnapshot{NodeCount: 10}})
 
-		snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil)
+		snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil, nil)
 		service := NewService(store, nil, snapshotService, false)
 		originalTimestamp := time.Now().Add(-time.Hour * 24).Unix()
 		service.dataStore.Enforcement().UpdateOveruseStartedTimestamp(originalTimestamp)
@@ -92,7 +92,7 @@ func Test_getLicenseOveruseTimestamp(t *testing.T) {
 		store.Endpoint().Create(endpoint)
 		store.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint.ID, Docker: &portainer.DockerSnapshot{NodeCount: 10}})
 
-		snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil)
+		snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil, nil)
 		service := NewService(store, nil, snapshotService, false)
 		originalTimestamp := time.Now().Add(-time.Hour * 24).Unix()
 		service.dataStore.Enforcement().UpdateOveruseStartedTimestamp(originalTimestamp)
@@ -154,7 +154,7 @@ func Test_NotOverused(t *testing.T) {
 		Type:  liblicense.PortainerLicenseFree,
 		Nodes: 5,
 	})
-	snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil)
+	snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil, nil)
 
 	r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(``))
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

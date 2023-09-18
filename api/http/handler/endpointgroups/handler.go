@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
+	"github.com/portainer/portainer-ee/api/pendingactions"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
 	"github.com/gorilla/mux"
@@ -17,10 +18,11 @@ import (
 // Handler is the HTTP handler used to handle environment(endpoint) group operations.
 type Handler struct {
 	*mux.Router
-	AuthorizationService *authorization.Service
-	DataStore            dataservices.DataStore
-	userActivityService  portaineree.UserActivityService
-	edgeAsyncService     *edgeasync.Service
+	AuthorizationService  *authorization.Service
+	DataStore             dataservices.DataStore
+	userActivityService   portaineree.UserActivityService
+	edgeAsyncService      *edgeasync.Service
+	PendingActionsService *pendingactions.PendingActionsService
 }
 
 // NewHandler creates a handler to manage environment(endpoint) group operations.

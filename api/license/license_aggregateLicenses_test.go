@@ -103,7 +103,7 @@ func Test_aggregateLicenses_shouldSetOveruseTimestamp(t *testing.T) {
 	store.Endpoint().Create(endpoint)
 	store.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint.ID, Docker: &portainer.DockerSnapshot{NodeCount: 10}})
 
-	snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil)
+	snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil, nil)
 
 	service := NewService(store, nil, snapshotService, false)
 	enforcement, _ := service.dataStore.Enforcement().LicenseEnforcement()

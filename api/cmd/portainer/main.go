@@ -47,6 +47,7 @@ import (
 	"github.com/portainer/portainer-ee/api/nomad/clientFactory"
 	nomadSnapshot "github.com/portainer/portainer-ee/api/nomad/snapshot"
 	"github.com/portainer/portainer-ee/api/oauth"
+	"github.com/portainer/portainer-ee/api/pendingactions"
 	"github.com/portainer/portainer-ee/api/scheduler"
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	"github.com/portainer/portainer-ee/api/useractivity"
@@ -324,16 +325,16 @@ func initSnapshotService(
 	kubernetesClientFactory *kubecli.ClientFactory,
 	nomadClientFactory *clientFactory.ClientFactory,
 	shutdownCtx context.Context,
+	pendingActionsService *pendingactions.PendingActionsService,
 ) (portaineree.SnapshotService, error) {
 	dockerSnapshotter := docker.NewSnapshotter(dockerClientFactory)
 	kubernetesSnapshotter := kubernetes.NewSnapshotter(kubernetesClientFactory)
 	nomadSnapshotter := nomadSnapshot.NewSnapshotter(nomadClientFactory)
 
-	snapshotService, err := snapshot.NewService(snapshotInterval, dataStore, dockerSnapshotter, kubernetesSnapshotter, nomadSnapshotter, shutdownCtx)
+	snapshotService, err := snapshot.NewService(snapshotInterval, dataStore, dockerSnapshotter, kubernetesSnapshotter, nomadSnapshotter, shutdownCtx, pendingActionsService)
 	if err != nil {
 		return nil, err
 	}
-
 	return snapshotService, nil
 }
 
@@ -547,16 +548,18 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	}
 	nomadClientFactory := initNomadClientFactory(digitalSignatureService, reverseTunnelService, dataStore, instanceID)
 
-	snapshotService, err := initSnapshotService(*flags.SnapshotInterval, dataStore, dockerClientFactory, kubernetesClientFactory, nomadClientFactory, shutdownCtx)
+	authorizationService := authorization.NewService(dataStore)
+	authorizationService.K8sClientFactory = kubernetesClientFactory
+
+	pendingActionsService := pendingactions.NewService(dataStore, kubernetesClientFactory, authorizationService, shutdownCtx)
+
+	snapshotService, err := initSnapshotService(*flags.SnapshotInterval, dataStore, dockerClientFactory, kubernetesClientFactory, nomadClientFactory, shutdownCtx, pendingActionsService)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed initializing snapshot service")
 	}
 	snapshotService.Start()
 
 	licenseService := license.NewService(dataStore, shutdownCtx, snapshotService, *flags.LicenseExpireAbsolute)
-
-	authorizationService := authorization.NewService(dataStore)
-	authorizationService.K8sClientFactory = kubernetesClientFactory
 
 	kubernetesTokenCacheManager := kubeproxy.NewTokenCacheManager()
 
@@ -766,6 +769,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 		DemoService:                 demoService,
 		UpdateService:               updateService,
 		AdminCreationDone:           adminCreationDone,
+		PendingActionsService:       pendingActionsService,
 	}
 }
 

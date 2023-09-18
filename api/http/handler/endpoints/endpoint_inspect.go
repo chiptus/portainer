@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/http/utils"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/kubernetes/podsecurity"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
@@ -121,8 +120,8 @@ func (handler *Handler) endpointInspect(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	// Run the pending actions
-	utils.RunPendingActions(endpoint, handler.DataStore, handler.AuthorizationService)
+	// Execute endpoint pending actions
+	handler.PendingActionsService.Execute(endpoint.ID)
 
 	return response.JSON(w, endpoint)
 }

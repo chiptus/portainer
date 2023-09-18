@@ -715,7 +715,7 @@ func TestEnvTagsAddRm(t *testing.T) {
 
 	endpointHandler := endpoints.NewHandler(bouncer, testhelpers.NewUserActivityService(), store, edgeAsyncService, nil, nil, testhelpers.Licenseservice{})
 	endpointHandler.FileService = fileService
-	endpointHandler.SnapshotService, err = snapshot.NewService("1h", store, nil, nil, nil, nil)
+	endpointHandler.SnapshotService, err = snapshot.NewService("1h", store, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	h := NewHandler(store, bouncer, testhelpers.NewUserActivityService(), edgeAsyncService, fileService)
@@ -1306,7 +1306,7 @@ func TestEndpointDelete(t *testing.T) {
 	endpointHandler.FileService = fileService
 	endpointHandler.ProxyManager = proxy.NewManager(store, nil, nil, nil, nil, nil, nil, nil, nil)
 	endpointHandler.AuthorizationService = authorization.NewService(store)
-	endpointHandler.SnapshotService, err = snapshot.NewService("1h", store, nil, nil, nil, nil)
+	endpointHandler.SnapshotService, err = snapshot.NewService("1h", store, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	h := NewHandler(store, bouncer, testhelpers.NewUserActivityService(), edgeAsyncService, fileService)

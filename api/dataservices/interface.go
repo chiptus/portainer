@@ -51,6 +51,7 @@ type (
 		Version() VersionService
 		Webhook() WebhookService
 		CloudCredential() CloudCredentialService
+		PendingActions() PendingActionsService
 	}
 
 	DataStore interface {
@@ -73,6 +74,11 @@ type (
 	// CustomTemplateService represents a service to manage custom templates
 	CustomTemplateService interface {
 		BaseCRUD[portaineree.CustomTemplate, portaineree.CustomTemplateID]
+		GetNextIdentifier() int
+	}
+
+	PendingActionsService interface {
+		BaseCRUD[portaineree.PendingActions, portaineree.PendingActionsID]
 		GetNextIdentifier() int
 	}
 

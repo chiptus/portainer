@@ -15,6 +15,7 @@ import (
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
+	"github.com/rs/zerolog/log"
 
 	"github.com/pkg/errors"
 )
@@ -343,7 +344,12 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		if endpoint.Type == portaineree.KubernetesLocalEnvironment || endpoint.Type == portaineree.AgentOnKubernetesEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
 			err = handler.AuthorizationService.CleanNAPWithOverridePolicies(handler.DataStore, endpoint, nil)
 			if err != nil {
-				return httperror.InternalServerError("Unable to update user authorizations", err)
+				handler.PendingActionsService.Create(portaineree.PendingActions{
+					EndpointID: endpoint.ID,
+					Action:     "CleanNAPWithOverridePolicies",
+					ActionData: nil,
+				})
+				log.Warn().Err(err).Msgf("Unable to clean NAP with override policies for endpoint (%d). Will try to update when endpoint is online.", endpoint.ID)
 			}
 		}
 	}
@@ -376,7 +382,12 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 			err = kubeClient.UpsertPortainerK8sClusterRoles(endpoint.Kubernetes.Configuration)
 			if err != nil {
-				return httperror.InternalServerError("Unable to update Kubernetes cluster roles", err)
+				handler.PendingActionsService.Create(portaineree.PendingActions{
+					EndpointID: endpoint.ID,
+					Action:     "UpsertPortainerK8sClusterRoles",
+					ActionData: nil,
+				})
+				log.Warn().Err(err).Msgf("Unable to update kubernetes cluster roles for endpoint (%d). Will try to update when endpoint is online.", endpoint.ID)
 			}
 
 			// Refresh token manager cache

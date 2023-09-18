@@ -18,6 +18,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	"github.com/portainer/portainer-ee/api/license"
+	"github.com/portainer/portainer-ee/api/pendingactions"
 	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
@@ -54,6 +55,7 @@ type Handler struct {
 	KubernetesTokenCacheManager *kubernetes.TokenCacheManager
 	KubernetesDeployer          portaineree.KubernetesDeployer
 	AssetsPath                  string
+	PendingActionsService       *pendingactions.PendingActionsService
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.

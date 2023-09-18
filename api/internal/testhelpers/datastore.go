@@ -46,6 +46,7 @@ type testDatastore struct {
 	version                 dataservices.VersionService
 	webhook                 dataservices.WebhookService
 	cloudCredential         dataservices.CloudCredentialService
+	pendingActionsService   dataservices.PendingActionsService
 	connection              portainer.Connection
 }
 
@@ -113,6 +114,9 @@ func (d *testDatastore) TunnelServer() dataservices.TunnelServerService     { re
 func (d *testDatastore) User() dataservices.UserService                     { return d.user }
 func (d *testDatastore) Version() dataservices.VersionService               { return d.version }
 func (d *testDatastore) Webhook() dataservices.WebhookService               { return d.webhook }
+func (d *testDatastore) PendingActions() dataservices.PendingActionsService {
+	return d.pendingActionsService
+}
 func (d *testDatastore) Connection() portainer.Connection {
 	return d.connection
 }

@@ -79,6 +79,7 @@ import (
 	k8s "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	"github.com/portainer/portainer-ee/api/nomad/clientFactory"
+	"github.com/portainer/portainer-ee/api/pendingactions"
 	"github.com/portainer/portainer-ee/api/scheduler"
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	portainer "github.com/portainer/portainer/api"
@@ -137,6 +138,7 @@ type Server struct {
 	DemoService                 *demo.Service
 	UpdateService               update.Service
 	AdminCreationDone           chan struct{}
+	PendingActionsService       *pendingactions.PendingActionsService
 }
 
 // Start starts the HTTP server
@@ -240,6 +242,7 @@ func (server *Server) Start() error {
 	endpointHandler.KubernetesTokenCacheManager = server.KubernetesTokenCacheManager
 	endpointHandler.KubernetesDeployer = server.KubernetesDeployer
 	endpointHandler.AssetsPath = server.AssetsPath
+	endpointHandler.PendingActionsService = server.PendingActionsService
 
 	var endpointEdgeHandler = endpointedge.NewHandler(requestBouncer,
 		server.DataStore,
@@ -253,6 +256,7 @@ func (server *Server) Start() error {
 	var endpointGroupHandler = endpointgroups.NewHandler(requestBouncer, server.UserActivityService, server.EdgeAsyncService)
 	endpointGroupHandler.AuthorizationService = server.AuthorizationService
 	endpointGroupHandler.DataStore = server.DataStore
+	endpointGroupHandler.PendingActionsService = server.PendingActionsService
 
 	var endpointProxyHandler = endpointproxy.NewHandler(requestBouncer)
 	endpointProxyHandler.DataStore = server.DataStore
