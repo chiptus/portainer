@@ -20,6 +20,7 @@ import (
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 
+	"github.com/Masterminds/semver"
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -236,6 +237,15 @@ func (handler *Handler) getStatusAsync(tx dataservices.DataStoreTx, edgeID strin
 		}
 
 		asyncResponse.Commands = commands
+	}
+
+	// WORKAROUND: EE-6122, avoid requesting a full snapshot if there are
+	//             pending commands for agents v2.18.2 or earlier
+	if len(asyncResponse.Commands) > 0 {
+		agentVersion, err := semver.NewVersion(endpoint.Agent.Version)
+		if err != nil || agentVersion.LessThan(semver.MustParse("2.18.3")) {
+			asyncResponse.NeedFullSnapshot = false
+		}
 	}
 
 	return &asyncResponse, nil
