@@ -9,7 +9,7 @@ import (
 	"github.com/portainer/portainer/pkg/libhttp/response"
 )
 
-// @id delete
+// @id cloudCredsDelete
 // @summary delete delete a cloud credential by ID
 // @description delete delete a cloud credential by ID
 // @description **Access policy**: authenticated
@@ -17,11 +17,11 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @param id query string true "ID of the cloud credential"
+// @param id path string true "ID of the cloud credential"
 // @success 200 {object} models.CloudCredential
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
-// @router /cloud/credentials [post]
+// @router /cloud/credentials/{id} [post]
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
 	id, _ := request.RetrieveNumericRouteVariableValue(r, "id")

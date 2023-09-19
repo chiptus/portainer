@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/docker/client"
 	"github.com/portainer/portainer-ee/api/docker/consts"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
@@ -74,6 +75,7 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 	publicRouter.Use(bouncer.PublicAccess)
 
 	authenticatedRouter.Handle("/stacks/create/{type}/{method}", httperror.LoggerHandler(h.stackCreate)).Methods(http.MethodPost)
+	authenticatedRouter.Handle("/stacks", middlewares.Deprecated(authenticatedRouter, deprecatedStackCreateUrlParser)).Methods(http.MethodPost) // Deprecated
 	authenticatedRouter.Handle("/stacks", httperror.LoggerHandler(h.stackList)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/stacks/{id}", httperror.LoggerHandler(h.stackInspect)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/stacks/{id}", httperror.LoggerHandler(h.stackDelete)).Methods(http.MethodDelete)

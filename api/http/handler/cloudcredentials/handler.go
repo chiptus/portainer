@@ -5,6 +5,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
@@ -34,6 +35,13 @@ func NewHandler(bouncer security.BouncerService, userActivityService portaineree
 	adminRouter.Handle("/cloud/credentials/{id}", httperror.LoggerHandler(h.getByID)).Methods(http.MethodGet)
 	adminRouter.Handle("/cloud/credentials/{id}", httperror.LoggerHandler(h.delete)).Methods(http.MethodDelete)
 	adminRouter.Handle("/cloud/credentials/{id}", httperror.LoggerHandler(h.update)).Methods(http.MethodPut)
+
+	// Deprecated
+	adminRouter.Handle("/cloudcredentials", middlewares.Deprecated(adminRouter, deprecatedCloudCredentialsParser)).Methods(http.MethodGet)
+	adminRouter.Handle("/cloudcredentials", middlewares.Deprecated(adminRouter, deprecatedCloudCredentialsParser)).Methods(http.MethodPost)
+	adminRouter.Handle("/cloudcredentials/{id}", middlewares.Deprecated(adminRouter, deprecatedCloudCredentialsIdParser)).Methods(http.MethodGet)
+	adminRouter.Handle("/cloudcredentials/{id}", middlewares.Deprecated(adminRouter, deprecatedCloudCredentialsIdParser)).Methods(http.MethodDelete)
+	adminRouter.Handle("/cloudcredentials/{id}", middlewares.Deprecated(adminRouter, deprecatedCloudCredentialsIdParser)).Methods(http.MethodPut)
 
 	return h
 }

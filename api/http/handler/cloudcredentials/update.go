@@ -10,7 +10,7 @@ import (
 	"github.com/portainer/portainer/pkg/libhttp/response"
 )
 
-// @id Update
+// @id cloudCredsUpdate
 // @summary Update a cloud credential
 // @description Update a cloud credential
 // @description **Access policy**: authenticated
@@ -19,13 +19,14 @@ import (
 // @security jwt
 // @accept json,multipart/form-data
 // @produce json
+// @param id path string true "ID of the cloud credential"
 // @param provider formData string true "cloud provider such as aws, aks, civo, digitalocean, etc."
 // @param name formData string true "name of the credentials such as rnd-test-credential"
 // @param credentials formData string true "credentials in json format"
 // @success 200 {object} models.CloudCredential
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
-// @router /cloud/credentials [put]
+// @router /cloud/credentials/{id} [put]
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
 	id, _ := request.RetrieveNumericRouteVariableValue(r, "id")

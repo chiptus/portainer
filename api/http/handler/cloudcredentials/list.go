@@ -38,6 +38,19 @@ func redactCredentials(credential models.CloudCredentialMap) models.CloudCredent
 	return credential
 }
 
+// @id getAllDeprecated
+// @summary getAll cloud credentials
+// @description getAll cloud credential
+// @description **Access policy**: authenticated
+// @tags cloud_credentials
+// @security ApiKeyAuth
+// @security jwt
+// @produce json
+// @success 200 {object} models.CloudCredential
+// @failure 400 "Invalid request"
+// @failure 500 "Server error"
+// @router /cloud/credentials [get]
+
 // @id getAll
 // @summary getAll cloud credentials
 // @description getAll cloud credential
@@ -69,7 +82,7 @@ func (h *Handler) getAll(w http.ResponseWriter, r *http.Request) *httperror.Hand
 	return response.JSON(w, filteredCredentials)
 }
 
-// @id getByID
+// @id cloudCredsGetByID
 // @summary getByID gets a cloud credential by ID
 // @description getByID gets a cloud credential by ID
 // @description **Access policy**: authenticated
@@ -77,11 +90,11 @@ func (h *Handler) getAll(w http.ResponseWriter, r *http.Request) *httperror.Hand
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @param id query string true "ID of the cloud credential"
+// @param id path string true "ID of the cloud credential"
 // @success 200 {object} models.CloudCredential
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
-// @router /cloud/credentials [get]
+// @router /cloud/credentials/{id} [get]
 func (h *Handler) getByID(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
 	id, _ := request.RetrieveNumericRouteVariableValue(r, "id")

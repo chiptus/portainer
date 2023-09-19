@@ -22,13 +22,13 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @param environmentid path int true "Environment(Endpoint) identifier"
+// @param environmentId path int true "Environment(Endpoint) identifier"
 // @success 200 "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
-// @router /cloud/endpoints/{environmentid}/nodes/add [post]
+// @router /cloud/endpoints/{environmentId}/nodes/add [post]
 func (handler *Handler) addNodes(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {
@@ -92,13 +92,13 @@ func (handler *Handler) addNodes(w http.ResponseWriter, r *http.Request) *httper
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @param environmentid path int true "Environment(Endpoint) identifier"
+// @param environmentId path int true "Environment(Endpoint) identifier"
 // @success 200 "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
-// @router /cloud/endpoints/{environmentid}/nodes/remove [post]
+// @router /cloud/endpoints/{environmentId}/nodes/remove [post]
 func (handler *Handler) removeNodes(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {

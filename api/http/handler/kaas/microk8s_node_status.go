@@ -19,7 +19,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @param environmentid path int true "Environment(Endpoint) identifier"
+// @param endpointid path int true "Environment(Endpoint) identifier"
 // @param nodeIP query string true "The external node ip of the control plane node."
 // @success 200 "Success"
 // @failure 400 "Invalid request"

@@ -22,13 +22,13 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @param environmentid path int true "Environment(Endpoint) identifier"
+// @param environmentId path int true "Environment(Endpoint) identifier"
 // @success 200 "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
-// @router /cloud/endpoints/{environmentid}/addons [get]
+// @router /cloud/endpoints/{environmentId}/addons [get]
 func (handler *Handler) microk8sGetAddons(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {
@@ -71,14 +71,14 @@ func (handler *Handler) microk8sGetAddons(w http.ResponseWriter, r *http.Request
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @param environmentid path int true "Environment(Endpoint) identifier"
+// @param environmentId path int true "Environment(Endpoint) identifier"
 // @param addons body providers.Microk8sUpdateAddonsPayload true "The list of addons to install in the cluster."
 // @success 200 "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
-// @router /cloud/endpoints/{environmentid}/addons [post]
+// @router /cloud/endpoints/{environmentId}/addons [post]
 func (handler *Handler) microk8sUpdateAddons(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {
@@ -125,4 +125,30 @@ func (handler *Handler) microk8sUpdateAddons(w http.ResponseWriter, r *http.Requ
 	}
 
 	return response.JSON(w, updateAddonsRequest)
+}
+
+// @id microk8sAddons
+// @summary Get a list of addons which are installed in a MicroK8s cluster.
+// @description The information returned can be used to query the MircoK8s cluster.
+// @description **Access policy**: authenticated
+// @tags kaas
+// @security ApiKeyAuth
+// @security jwt
+// @produce json
+// @param environmentID query int true "The environment ID of the cluster within Portainer."
+// @param credentialID query int true "The credential ID to use to connect to a node in the MicroK8s cluster."
+// @success 200 "Success"
+// @failure 400 "Invalid request"
+// @failure 403 "Permission denied"
+// @failure 500 "Server error"
+// @failure 503 "Missing configuration"
+// @deprecated
+// @router /cloud/microk8s/addons [get]
+func deprecatedMicrok8sAddonsUrlParser(w http.ResponseWriter, r *http.Request) (string, *httperror.HandlerError) {
+	environmentID, err := request.RetrieveNumericQueryParameter(r, "environmentID", false)
+	if err != nil {
+		return "", httperror.BadRequest("Invalid environment identifier", err)
+	}
+
+	return fmt.Sprintf("/cloud/endpoints/%d/addons", environmentID), nil
 }

@@ -72,7 +72,9 @@ func NewHandler(
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/nodes/nodestatus", httperror.LoggerHandler(h.microk8sGetNodeStatus)).Methods(http.MethodGet)
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/testssh", license.NotOverused(licenseService, dataStore, httperror.LoggerHandler(h.sshTestNodeIPs))).Methods(http.MethodPost)
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/version", httperror.LoggerHandler(h.version)).Methods(http.MethodGet)
+
 	// microk8s only
+	h.Handle("/cloud/microk8s/addons", middlewares.Deprecated(h, deprecatedMicrok8sAddonsUrlParser)).Methods(http.MethodGet) // deprecated
 	endpointRouter.Handle("/cloud/endpoints/{endpointid}/addons", httperror.LoggerHandler(h.microk8sGetAddons)).Methods(http.MethodGet)
 
 	endpointScalingRouter := h.NewRoute().Subrouter()

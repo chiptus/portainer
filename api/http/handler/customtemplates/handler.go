@@ -6,6 +6,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	portainer "github.com/portainer/portainer/api"
@@ -38,6 +39,7 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 	h.Use(bouncer.AuthenticatedAccess, useractivity.LogUserActivity(h.userActivityService))
 
 	h.Handle("/custom_templates/create/{method}", httperror.LoggerHandler(h.customTemplateCreate)).Methods(http.MethodPost)
+	h.Handle("/custom_templates", middlewares.Deprecated(h, deprecatedCustomTemplateCreateUrlParser)).Methods(http.MethodPost) // Deprecated
 	h.Handle("/custom_templates", httperror.LoggerHandler(h.customTemplateList)).Methods(http.MethodGet)
 	h.Handle("/custom_templates/{id}", httperror.LoggerHandler(h.customTemplateInspect)).Methods(http.MethodGet)
 	h.Handle("/custom_templates/{id}/file", httperror.LoggerHandler(h.customTemplateFile)).Methods(http.MethodGet)

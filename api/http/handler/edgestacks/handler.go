@@ -72,6 +72,7 @@ func NewHandler(
 	publicWebhookRouter := h.NewRoute().Subrouter()
 
 	adminRouter.Handle("/edge_stacks/create/{method}", httperror.LoggerHandler(h.edgeStackCreate)).Methods(http.MethodPost)
+	adminRouter.Handle("/edge_stacks", middlewares.Deprecated(adminRouter, deprecatedEdgeStackCreateUrlParser)).Methods(http.MethodPost) // Deprecated
 	adminRouter.Handle("/edge_stacks", httperror.LoggerHandler(h.edgeStackList)).Methods(http.MethodGet)
 
 	edgeStackAdminRouter := adminRouter.PathPrefix("/edge_stacks/{id}").Subrouter()

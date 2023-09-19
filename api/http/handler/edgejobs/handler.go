@@ -6,6 +6,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
@@ -37,6 +38,7 @@ func NewHandler(bouncer security.BouncerService, userActivityService portaineree
 	h.Use(bouncer.AdminAccess, bouncer.EdgeComputeOperation, useractivity.LogUserActivity(h.userActivityService))
 
 	h.Handle("/edge_jobs", httperror.LoggerHandler(h.edgeJobList)).Methods(http.MethodGet)
+	h.Handle("/edge_jobs", middlewares.Deprecated(h, deprecatedEdgeJobCreateUrlParser)).Methods(http.MethodPost) // Deprecated
 	h.Handle("/edge_jobs/create/{method}", httperror.LoggerHandler(h.edgeJobCreate)).Methods(http.MethodPost)
 	h.Handle("/edge_jobs/{id}", httperror.LoggerHandler(h.edgeJobInspect)).Methods(http.MethodGet)
 	h.Handle("/edge_jobs/{id}", httperror.LoggerHandler(h.edgeJobUpdate)).Methods(http.MethodPut)

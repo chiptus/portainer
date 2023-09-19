@@ -19,13 +19,13 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @param environmentid path int true "Environment(Endpoint) identifier"
+// @param environmentId path int true "Environment(Endpoint) identifier"
 // @success 200 "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
-// @router /cloud/endpoints/{environmentid}/version [get]
+// @router /cloud/endpoints/{environmentId}/version [get]
 func (handler *Handler) version(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {
