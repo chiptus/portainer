@@ -47,7 +47,7 @@ const initialValues: K8sInstallFormValues = {
     masterNodes: [''],
     workerNodes: [''],
     addons: [],
-    kubernetesVersion: '1.27/stable',
+    kubernetesVersion: '1.28/stable',
   },
 };
 
