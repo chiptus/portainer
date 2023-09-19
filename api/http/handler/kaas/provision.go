@@ -67,7 +67,7 @@ import (
 func (handler *Handler) provisionCluster(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	provider, err := request.RetrieveRouteVariableValue(r, "provider")
 	if err != nil {
-		return httperror.BadRequest("Invalid user identifier route variable", err)
+		return httperror.BadRequest("Invalid provider route variable", err)
 	}
 
 	var cloudProvider *portaineree.CloudProvider
@@ -163,4 +163,31 @@ func (handler *Handler) createEndpoint(name string, provider portaineree.CloudPr
 	}
 
 	return endpoint, nil
+}
+
+// @id provisionKaaSCluster
+// @summary Provision a new KaaS cluster and create an environment
+// @description Provision a new KaaS cluster and create an environment.
+// @description **Access policy**: administrator
+// @tags kaas
+// @security ApiKeyAuth
+// @security jwt
+// @accept json
+// @produce json
+// @param provider path int true "Provider" Enum("azure", "gke", "amazon", "civo", "digitalocean", "linode")
+// @param body body object true "for body documentation see the relevant /cloud/{provider}/provision endpoint"
+// @success 200 {object} portaineree.Endpoint "Success"
+// @failure 400 "Invalid request"
+// @failure 500 "Server error"
+// @failure 503 "Missing configuration"
+// @deprecated
+// @router /cloud/{provider}/cluster [post]
+func deprecatedProvisionUrlParser(w http.ResponseWriter, r *http.Request) (string, *httperror.HandlerError) {
+	provider, err := request.RetrieveRouteVariableValue(r, "provider")
+	if err != nil {
+		return "", httperror.BadRequest("Invalid provider route variable", err)
+	}
+
+	return fmt.Sprintf("/cloud/%s/provision", provider), nil
+
 }

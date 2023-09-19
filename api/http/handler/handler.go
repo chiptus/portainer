@@ -228,7 +228,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.EdgeTemplatesHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/endpoint_groups"):
 		http.StripPrefix("/api", h.EndpointGroupHandler).ServeHTTP(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/cloud/credentials"):
+	case strings.HasPrefix(r.URL.Path, "/api/cloud/credentials"), strings.HasPrefix(r.URL.Path, "/api/cloudcredentials"):
 		http.StripPrefix("/api", h.CloudCredentialsHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/cloud"):
 		http.StripPrefix("/api", h.KaasHandler).ServeHTTP(w, r)
