@@ -1,11 +1,12 @@
 package edge
 
 import (
+	"slices"
+
+	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/set"
-
-	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -94,4 +95,55 @@ func AddEnvironmentToEdgeGroups(tx dataservices.DataStoreTx, endpoint *portainer
 	}
 
 	return nil
+}
+
+// EndpointInEdgeGroup returns true and the edge group name if the endpoint in the edge group
+func EndpointInEdgeGroup(
+	tx dataservices.DataStoreTx,
+	endpointID portaineree.EndpointID,
+	edgeGroupID portaineree.EdgeGroupID,
+) (bool, string, error) {
+	endpointIDs, err := GetEndpointsFromEdgeGroups(
+		[]portaineree.EdgeGroupID{edgeGroupID},
+		tx,
+	)
+	if err != nil {
+		return false, "", err
+	}
+
+	if slices.Contains(endpointIDs, endpointID) {
+		edgeGroup, err := tx.EdgeGroup().Read(edgeGroupID)
+		if err != nil {
+			log.Warn().
+				Err(err).
+				Int("edgeGroupID", int(edgeGroupID)).
+				Msg("Unable to retrieve edge group")
+			return false, "", err
+		}
+
+		return true, edgeGroup.Name, nil
+	}
+
+	return false, "", nil
+}
+
+// GetEndpointEdgeGroupNames returns edge group names where endpointID is in
+func GetEndpointEdgeGroupNames(
+	tx dataservices.DataStoreTx,
+	endpointID portaineree.EndpointID,
+	edgeGroupIDs []portaineree.EdgeGroupID,
+) ([]string, error) {
+	edgeGroupNames := []string{}
+	for _, edgeGroupID := range edgeGroupIDs {
+		in, edgeGroupName, err := EndpointInEdgeGroup(tx, endpointID, edgeGroupID)
+		if err != nil {
+			return edgeGroupNames, err
+		}
+
+		if in {
+			edgeGroupNames = append(edgeGroupNames, edgeGroupName)
+		}
+	}
+
+	return edgeGroupNames, nil
 }

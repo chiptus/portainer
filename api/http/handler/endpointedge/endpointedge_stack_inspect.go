@@ -112,17 +112,15 @@ func (handler *Handler) endpointEdgeStackInspect(w http.ResponseWriter, r *http.
 		return httperror.InternalServerError("File not found", err)
 	}
 
-	if internaledge.IsEdgeStackRelativePathEnabled(edgeStack) {
-		if internaledge.IsEdgeStackPerDeviceConfigsEnabled(edgeStack) {
-			dirEntries = filesystem.FilterDirForPerDevConfigs(
-				dirEntries,
-				endpoint.EdgeID,
-				edgeStack.PerDeviceConfigsPath,
-				edgeStack.PerDeviceConfigsMatchType,
-			)
-		}
-	} else {
-		dirEntries = filesystem.FilterDirForEntryFile(dirEntries, fileName)
+	dirEntries, err = internaledge.FilterEntriesForEdgeStack(
+		handler.DataStore,
+		edgeStack,
+		endpoint,
+		dirEntries,
+		fileName,
+	)
+	if err != nil {
+		return httperror.InternalServerError("Unable to filter dir entries for edge stack", err)
 	}
 
 	registryCredentials := registryutils.GetRegistryCredentialsForEdgeStack(handler.DataStore, edgeStack, endpoint)

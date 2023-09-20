@@ -6,6 +6,8 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/filesystem"
 )
 
 var ErrEdgeGroupNotFound = errors.New("Edge group was not found")
@@ -71,4 +73,42 @@ func IsEdgeStackRelativePathEnabled(stack *portaineree.EdgeStack) bool {
 
 func IsEdgeStackPerDeviceConfigsEnabled(stack *portaineree.EdgeStack) bool {
 	return stack.SupportPerDeviceConfigs && stack.PerDeviceConfigsPath != ""
+}
+
+func FilterEntriesForEdgeStack(
+	dataStore dataservices.DataStore,
+	edgeStack *portaineree.EdgeStack,
+	endpoint *portaineree.Endpoint,
+	dirEntries []filesystem.DirEntry,
+	fileName string,
+) ([]filesystem.DirEntry, error) {
+	if IsEdgeStackRelativePathEnabled(edgeStack) {
+		if IsEdgeStackPerDeviceConfigsEnabled(edgeStack) {
+			edgeGroupNames, err := GetEndpointEdgeGroupNames(dataStore, endpoint.ID, edgeStack.EdgeGroups)
+			if err != nil {
+				return dirEntries, err
+			}
+			if len(edgeGroupNames) == 0 {
+				return dirEntries, fmt.Errorf("endpoint does not belone to any edge group")
+			}
+
+			edgeGroupEnvVar := portainer.Pair{Name: "PORTAINER_EDGE_GROUP", Value: edgeGroupNames[0]}
+			edgeStack.EnvVars = append(edgeStack.EnvVars, edgeGroupEnvVar)
+
+			args := filesystem.MultiFilterArgs{
+				{endpoint.EdgeID, edgeStack.PerDeviceConfigsMatchType},
+				{edgeGroupNames[0], edgeStack.PerDeviceConfigsGroupMatchType},
+			}
+
+			dirEntries = filesystem.MultiFilterDirForPerDevConfigs(
+				dirEntries,
+				edgeStack.PerDeviceConfigsPath,
+				args,
+			)
+		}
+	} else {
+		dirEntries = filesystem.FilterDirForEntryFile(dirEntries, fileName)
+	}
+
+	return dirEntries, nil
 }

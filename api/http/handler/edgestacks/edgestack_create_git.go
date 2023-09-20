@@ -66,6 +66,8 @@ type edgeStackFromGitRepositoryPayload struct {
 	SupportPerDeviceConfigs bool `example:"false"`
 	// Per device configs match type
 	PerDeviceConfigsMatchType portainer.PerDevConfigsFilterType `example:"file" enums:"file, dir"`
+	// Per device configs group match type
+	PerDeviceConfigsGroupMatchType portainer.PerDevConfigsFilterType `example:"file" enums:"file, dir"`
 	// Per device configs path
 	PerDeviceConfigsPath string `example:"configs"`
 	// List of environment variables
@@ -143,18 +145,19 @@ func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dat
 	}
 
 	buildEdgeStackArgs := edgestacks.BuildEdgeStackArgs{
-		Registries:                payload.Registries,
-		ScheduledTime:             "",
-		UseManifestNamespaces:     payload.UseManifestNamespaces,
-		PrePullImage:              payload.PrePullImage,
-		RePullImage:               false,
-		RetryDeploy:               payload.RetryDeploy,
-		SupportRelativePath:       payload.SupportRelativePath,
-		FilesystemPath:            payload.FilesystemPath,
-		EnvVars:                   payload.EnvVars,
-		SupportPerDeviceConfigs:   payload.SupportPerDeviceConfigs,
-		PerDeviceConfigsMatchType: payload.PerDeviceConfigsMatchType,
-		PerDeviceConfigsPath:      payload.PerDeviceConfigsPath,
+		Registries:                     payload.Registries,
+		ScheduledTime:                  "",
+		UseManifestNamespaces:          payload.UseManifestNamespaces,
+		PrePullImage:                   payload.PrePullImage,
+		RePullImage:                    false,
+		RetryDeploy:                    payload.RetryDeploy,
+		SupportRelativePath:            payload.SupportRelativePath,
+		FilesystemPath:                 payload.FilesystemPath,
+		EnvVars:                        payload.EnvVars,
+		SupportPerDeviceConfigs:        payload.SupportPerDeviceConfigs,
+		PerDeviceConfigsMatchType:      payload.PerDeviceConfigsMatchType,
+		PerDeviceConfigsGroupMatchType: payload.PerDeviceConfigsGroupMatchType,
+		PerDeviceConfigsPath:           payload.PerDeviceConfigsPath,
 	}
 
 	stack, err := handler.edgeStacksService.BuildEdgeStack(tx, payload.Name, payload.DeploymentType, payload.EdgeGroups, buildEdgeStackArgs)

@@ -165,17 +165,15 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 		return httperror.InternalServerError("File not found", err)
 	}
 
-	if internaledge.IsEdgeStackRelativePathEnabled(edgeStack) {
-		if internaledge.IsEdgeStackPerDeviceConfigsEnabled(edgeStack) {
-			dirEntries = filesystem.FilterDirForPerDevConfigs(
-				dirEntries,
-				endpoint.EdgeID,
-				edgeStack.PerDeviceConfigsPath,
-				edgeStack.PerDeviceConfigsMatchType,
-			)
-		}
-	} else {
-		dirEntries = filesystem.FilterDirForEntryFile(dirEntries, fileName)
+	dirEntries, err = internaledge.FilterEntriesForEdgeStack(
+		service.dataStore,
+		edgeStack,
+		endpoint,
+		dirEntries,
+		fileName,
+	)
+	if err != nil {
+		return httperror.InternalServerError("Unable to filter dir entries for edge stack", err)
 	}
 
 	registryCredentials := registryutils.GetRegistryCredentialsForEdgeStack(tx, edgeStack, endpoint)
@@ -265,17 +263,15 @@ func (service *Service) RemoveStackCommandTx(tx dataservices.DataStoreTx, endpoi
 		return httperror.InternalServerError("Unable to load repository", err)
 	}
 
-	if internaledge.IsEdgeStackRelativePathEnabled(edgeStack) {
-		if internaledge.IsEdgeStackPerDeviceConfigsEnabled(edgeStack) {
-			dirEntries = filesystem.FilterDirForPerDevConfigs(
-				dirEntries,
-				endpoint.EdgeID,
-				edgeStack.PerDeviceConfigsPath,
-				edgeStack.PerDeviceConfigsMatchType,
-			)
-		}
-	} else {
-		dirEntries = filesystem.FilterDirForEntryFile(dirEntries, fileName)
+	dirEntries, err = internaledge.FilterEntriesForEdgeStack(
+		service.dataStore,
+		edgeStack,
+		endpoint,
+		dirEntries,
+		fileName,
+	)
+	if err != nil {
+		return httperror.InternalServerError("Unable to filter dir entries for edge stack", err)
 	}
 
 	registryCredentials := registryutils.GetRegistryCredentialsForEdgeStack(tx, edgeStack, endpoint)

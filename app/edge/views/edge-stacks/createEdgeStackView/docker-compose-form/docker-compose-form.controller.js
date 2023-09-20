@@ -1,7 +1,5 @@
 import { editor, git, edgeStackTemplate, upload } from '@@/BoxSelector/common-options/build-methods';
 
-import { EdgeIdInsightsBoxContent } from './EdgeIdInsightsBoxContent';
-
 class DockerComposeFormController {
   /* @ngInject */
   constructor($async, EdgeTemplateService, Notifications, UserService, Authentication) {
@@ -83,7 +81,7 @@ class DockerComposeFormController {
       this.formValues.PerDeviceConfigsPath = '';
       this.formValues.SupportPerDeviceConfigs = false;
       this.formValues.PerDeviceConfigsMatchType = 'file';
-      this.edgeIdInsightsBoxContent = EdgeIdInsightsBoxContent();
+      this.formValues.PerDeviceConfigsGroupMatchType = 'file';
 
       try {
         const templates = await this.EdgeTemplateService.edgeTemplates();

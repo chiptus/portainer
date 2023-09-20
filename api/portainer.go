@@ -401,6 +401,8 @@ type (
 		SupportPerDeviceConfigs bool `example:"false"`
 		// Per device configs match type
 		PerDeviceConfigsMatchType portainer.PerDevConfigsFilterType `example:"file" enums:"file, dir"`
+		// Per device configs group match type
+		PerDeviceConfigsGroupMatchType portainer.PerDevConfigsFilterType `example:"file" enums:"file, dir"`
 		// Per device configs path
 		PerDeviceConfigsPath string `example:"configs"`
 
