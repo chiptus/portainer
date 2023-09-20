@@ -63,8 +63,10 @@ class KubernetesResourcePoolController {
 
     this.IngressClassTypes = KubernetesIngressClassTypes;
     this.ResourceQuotaDefaults = KubernetesResourceQuotaDefaults;
+    this.EndpointService = EndpointService;
 
     this.LBQuotaFeatureId = FeatureId.K8S_RESOURCE_POOL_LB_QUOTA;
+    this.StorageQuotaFeatureId = FeatureId.K8S_RESOURCE_POOL_STORAGE_QUOTA;
     this.StorageQuotaFeatureId = FeatureId.K8S_RESOURCE_POOL_STORAGE_QUOTA;
 
     this.updateResourcePoolAsync = this.updateResourcePoolAsync.bind(this);
@@ -403,6 +405,8 @@ class KubernetesResourcePoolController {
   $onInit() {
     return this.$async(async () => {
       try {
+        this.endpoint = await this.EndpointService.endpoint(this.endpoint.Id);
+
         this.isAdmin = this.Authentication.isAdmin();
         this.canEdit = this.Authentication.hasAuthorizations(['K8sResourcePoolDetailsW']);
 
