@@ -11,7 +11,6 @@ import {
   useCurrentUser,
 } from '@/react/hooks/useUser';
 import { IndexOptional } from '@/react/kubernetes/configs/types';
-import { DefaultDatatableSettings } from '@/react/kubernetes/datatables/DefaultDatatableSettings';
 import { useEnvironment } from '@/react/portainer/environments/queries';
 import { pluralize } from '@/portainer/helpers/strings';
 import {
@@ -28,6 +27,7 @@ import { Button } from '@@/buttons';
 import { confirmDelete } from '@@/modals/confirm';
 import { Link } from '@@/Link';
 import { TextTip } from '@@/Tip/TextTip';
+import { TableSettingsMenuAutoRefresh } from '@@/datatables/TableSettingsMenuAutoRefresh';
 
 import { useNodesQuery, useRemoveNodesMutation } from '../nodes.service';
 import { useKubernetesEndpointsQuery } from '../../kubernetesEndpoint.service';
@@ -109,9 +109,9 @@ export function NodesDatatable() {
       }
       renderTableSettings={() => (
         <TableSettingsMenu>
-          <DefaultDatatableSettings
-            settings={tableState}
-            hideShowSystemResources
+          <TableSettingsMenuAutoRefresh
+            value={tableState.autoRefreshRate}
+            onChange={(value) => tableState.setAutoRefreshRate(value)}
           />
         </TableSettingsMenu>
       )}

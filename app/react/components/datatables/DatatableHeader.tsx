@@ -9,10 +9,10 @@ type Props = {
   title?: string;
   titleIcon?: IconProps['icon'];
   searchValue: string;
-  description?: ReactNode;
   onSearchChange(value: string): void;
   renderTableSettings?(): ReactNode;
   renderTableActions?(): ReactNode;
+  description?: ReactNode;
 };
 
 export function DatatableHeader({
@@ -28,15 +28,19 @@ export function DatatableHeader({
     return null;
   }
 
+  const searchBar = <SearchBar value={searchValue} onChange={onSearchChange} />;
+  const tableActions = !!renderTableActions && (
+    <Table.Actions>{renderTableActions()}</Table.Actions>
+  );
+  const tableTitleSettings = !!renderTableSettings && (
+    <Table.TitleActions>{renderTableSettings()}</Table.TitleActions>
+  );
+
   return (
     <Table.Title label={title} icon={titleIcon} description={description}>
-      <SearchBar value={searchValue} onChange={onSearchChange} />
-      {renderTableActions && (
-        <Table.Actions>{renderTableActions()}</Table.Actions>
-      )}
-      <Table.TitleActions>
-        {!!renderTableSettings && renderTableSettings()}
-      </Table.TitleActions>
+      {searchBar}
+      {tableActions}
+      {tableTitleSettings}
     </Table.Title>
   );
 }
