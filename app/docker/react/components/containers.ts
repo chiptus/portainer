@@ -14,13 +14,17 @@ import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { ContainerNetworksDatatable } from '@/react/docker/containers/ItemView/ContainerNetworksDatatable';
 import {
   EnvVarsTab,
-  Values as EnvVarsTabValues,
   envVarsTabUtils,
 } from '@/react/docker/containers/CreateView/EnvVarsTab';
 import {
   VolumesTab,
   volumesTabUtils,
 } from '@/react/docker/containers/CreateView/VolumesTab';
+import {
+  networkTabUtils,
+  NetworkTab,
+  type NetworkTabValues,
+} from '@/react/docker/containers/CreateView/NetworkTab';
 
 const ngModule = angular
   .module('portainer.docker.react.components.containers', [])
@@ -43,7 +47,7 @@ withFormValidation<ComponentProps<typeof CommandsTab>, CommandsTabValues>(
   commandsTabValidation
 );
 
-withFormValidation<ComponentProps<typeof EnvVarsTab>, EnvVarsTabValues>(
+withFormValidation(
   ngModule,
   withUIRouter(withReactQuery(EnvVarsTab)),
   'dockerCreateContainerEnvVarsTab',
@@ -57,4 +61,12 @@ withFormValidation(
   'dockerCreateContainerVolumesTab',
   ['allowBindMounts'],
   volumesTabUtils.validation
+);
+
+withFormValidation<ComponentProps<typeof NetworkTab>, NetworkTabValues>(
+  ngModule,
+  withUIRouter(withReactQuery(NetworkTab)),
+  'dockerCreateContainerNetworkTab',
+  [],
+  networkTabUtils.validation
 );
