@@ -213,6 +213,23 @@ class StackRedeployGitFormController {
     });
   }
 
+  disablePullAndRedeployButton() {
+    return this.isSubmitButtonDisabled() || this.state.hasUnsavedChanges || !this.redeployGitForm.$valid;
+  }
+
+  disableSaveSettingsButton() {
+    return (
+      this.isSubmitButtonDisabled() ||
+      !this.state.hasUnsavedChanges ||
+      !this.redeployGitForm.$valid ||
+      (this.formValues.RepositoryAuthentication && !this.formValues.RepositoryPassword && this.formValues.RepositoryGitCredentialID === 0 && !this.formValues.StackID === 0) ||
+      (this.formValues.RepositoryAuthentication &&
+        this.formValues.RepositoryPassword &&
+        this.formValues.SaveCredential &&
+        (!this.formValues.NewCredentialName || this.formValues.NewCredentialNameExist || this.formValues.NewCredentialNameInvalid))
+    );
+  }
+
   isSubmitButtonDisabled() {
     return this.state.inProgress || this.state.redeployInProgress;
   }
