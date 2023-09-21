@@ -203,7 +203,7 @@ angular.module('portainer.app').controller('StackController', [
       // The EndpointID property is not available for these stacks, we can pass
       // the current endpoint identifier as a part of the migrate request. It will be used if
       // the EndpointID property is not defined on the stack.
-      if (stack.EndpointId === 0) {
+      if (!stack.EndpointId) {
         stack.EndpointId = endpoint.Id;
       }
 
@@ -288,7 +288,7 @@ angular.module('portainer.app').controller('StackController', [
         // The EndpointID property is not available for these stacks, we can pass
         // the current endpoint identifier as a part of the update request. It will be used if
         // the EndpointID property is not defined on the stack.
-        if (stack.EndpointId === 0) {
+        if (!stack.EndpointId) {
           stack.EndpointId = endpoint.Id;
         }
         const rollbackTo = $scope.formValues.RollbackTo;
@@ -406,6 +406,12 @@ angular.module('portainer.app').controller('StackController', [
             if (stack.GitConfig) {
               commitHash = stack.GitConfig.ConfigHash;
             }
+
+            // Workaround for EE-6118
+            if (!stack.EndpointId) {
+              stack.EndpointId = endpoint.Id;
+            }
+
             return $q.all({
               stackFile: StackService.getStackFile(id, stack.StackFileVersion, commitHash),
               resources: resourcesPromise,
