@@ -6,6 +6,7 @@ import { confirmDestructive } from '@@/modals/confirm';
 import { buildConfirmButton } from '@@/modals/utils';
 
 import { commandsTabUtils } from '@/react/docker/containers/CreateView/CommandsTab';
+import { volumesTabUtils } from '@/react/docker/containers/CreateView/VolumesTab';
 import { ContainerCapabilities, ContainerCapability } from '@/docker/models/containerCapabilities';
 import { AccessControlFormData } from '@/portainer/components/accessControlForm/porAccessControlFormModel';
 import { ContainerDetailsViewModel } from '@/docker/models/container';
@@ -24,7 +25,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
   'Container',
   'ContainerHelper',
   'ImageHelper',
-  'Volume',
   'NetworkService',
   'ResourceControlService',
   'Authentication',
@@ -49,7 +49,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
     Container,
     ContainerHelper,
     ImageHelper,
-    Volume,
     NetworkService,
     ResourceControlService,
     Authentication,
@@ -76,7 +75,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
         selectedGPUs: ['all'],
         capabilities: ['compute', 'utility'],
       },
-      Volumes: [],
       NetworkContainer: null,
       Labels: [],
       ExtraHosts: [],
@@ -97,6 +95,7 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       EnableWebhook: false,
       commands: commandsTabUtils.getDefaultViewModel(),
       envVars: envVarsTabUtils.getDefaultViewModel(),
+      volumes: volumesTabUtils.getDefaultViewModel(),
     };
 
     $scope.extraNetworks = {};
@@ -129,6 +128,12 @@ angular.module('portainer.docker').controller('CreateContainerController', [
         $scope.formValues.envVars = value;
       });
     }
+
+    $scope.onVolumesChange = function (volumes) {
+      return $scope.$evalAsync(() => {
+        $scope.formValues.volumes = volumes;
+      });
+    };
 
     function onAlwaysPullChange(checked) {
       return $scope.$evalAsync(() => {
@@ -227,14 +232,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       Labels: {},
     };
 
-    $scope.addVolume = function () {
-      $scope.formValues.Volumes.push({ name: '', containerPath: '', readOnly: false, type: 'volume' });
-    };
-
-    $scope.removeVolume = function (index) {
-      $scope.formValues.Volumes.splice(index, 1);
-    };
-
     $scope.addPortBinding = function () {
       $scope.config.HostConfig.PortBindings.push({ hostPort: '', containerPort: '', protocol: 'tcp' });
     };
@@ -293,26 +290,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       config.ExposedPorts = {};
       _.forEach(bindings, (_, key) => (config.ExposedPorts[key] = {}));
       config.HostConfig.PortBindings = bindings;
-    }
-
-    function prepareVolumes(config) {
-      var binds = [];
-      var volumes = {};
-
-      $scope.formValues.Volumes.forEach(function (volume) {
-        var name = volume.name;
-        var containerPath = volume.containerPath;
-        if (name && containerPath) {
-          var bind = name + ':' + containerPath;
-          volumes[containerPath] = {};
-          if (volume.readOnly) {
-            bind += ':ro';
-          }
-          binds.push(bind);
-        }
-      });
-      config.HostConfig.Binds = binds;
-      config.Volumes = volumes;
     }
 
     function prepareNetworkConfig(config) {
@@ -473,11 +450,11 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       var config = angular.copy($scope.config);
       config = commandsTabUtils.toRequest(config, $scope.formValues.commands);
       config = envVarsTabUtils.toRequest(config, $scope.formValues.envVars);
+      config = volumesTabUtils.toRequest(config, $scope.formValues.volumes);
 
       prepareNetworkConfig(config);
       prepareImageConfig(config);
       preparePortBindings(config);
-      prepareVolumes(config);
       prepareLabels(config);
       prepareDevices(config);
       prepareResources(config);
@@ -490,21 +467,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
     function loadFromContainerPortBindings() {
       const bindings = ContainerHelper.sortAndCombinePorts($scope.config.HostConfig.PortBindings);
       $scope.config.HostConfig.PortBindings = bindings;
-    }
-
-    function loadFromContainerVolumes(d) {
-      for (var v in d.Mounts) {
-        if ({}.hasOwnProperty.call(d.Mounts, v)) {
-          var mount = d.Mounts[v];
-          var volume = {
-            type: mount.Type,
-            name: mount.Name || mount.Source,
-            containerPath: mount.Destination,
-            readOnly: mount.RW === false,
-          };
-          $scope.formValues.Volumes.push(volume);
-        }
-      }
     }
 
     $scope.resetNetworkConfig = function () {
@@ -705,9 +667,10 @@ angular.module('portainer.docker').controller('CreateContainerController', [
 
           $scope.formValues.commands = commandsTabUtils.toViewModel(d);
           $scope.formValues.envVars = envVarsTabUtils.toViewModel(d);
+          $scope.formValues.volumes = volumesTabUtils.toViewModel(d);
 
           loadFromContainerPortBindings(d);
-          loadFromContainerVolumes(d);
+
           loadFromContainerNetworkConfig(d);
 
           loadFromContainerLabels(d);
@@ -734,18 +697,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       $scope.isAdmin = Authentication.isAdmin();
       $scope.showDeviceMapping = shouldShowDevices();
       $scope.areContainerCapabilitiesEnabled = checkIfContainerCapabilitiesEnabled();
-
-      Volume.query(
-        {},
-        function (d) {
-          $scope.availableVolumes = d.Volumes.sort((vol1, vol2) => {
-            return vol1.Name.localeCompare(vol2.Name);
-          });
-        },
-        function (e) {
-          Notifications.error('Failure', e, 'Unable to retrieve volumes');
-        }
-      );
 
       var provider = $scope.applicationState.endpoint.mode.provider;
       var apiVersion = $scope.applicationState.endpoint.apiVersion;

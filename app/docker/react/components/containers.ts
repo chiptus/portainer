@@ -17,6 +17,10 @@ import {
   Values as EnvVarsTabValues,
   envVarsTabUtils,
 } from '@/react/docker/containers/CreateView/EnvVarsTab';
+import {
+  VolumesTab,
+  volumesTabUtils,
+} from '@/react/docker/containers/CreateView/VolumesTab';
 
 const ngModule = angular
   .module('portainer.docker.react.components.containers', [])
@@ -45,4 +49,12 @@ withFormValidation<ComponentProps<typeof EnvVarsTab>, EnvVarsTabValues>(
   'dockerCreateContainerEnvVarsTab',
   [],
   envVarsTabUtils.validation
+);
+
+withFormValidation(
+  ngModule,
+  withUIRouter(withReactQuery(VolumesTab)),
+  'dockerCreateContainerVolumesTab',
+  ['allowBindMounts'],
+  volumesTabUtils.validation
 );
