@@ -7,7 +7,6 @@ import { ContainerQuickActions } from '@/react/docker/containers/components/Cont
 import { ImageStatus } from '@/react/docker/components/ImageStatus';
 import { TemplateListDropdown } from '@/react/docker/app-templates/TemplateListDropdown';
 import { TemplateListSort } from '@/react/docker/app-templates/TemplateListSort';
-import { Gpu } from '@/react/docker/containers/CreateView/Gpu';
 import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
@@ -79,17 +78,6 @@ const ngModule = angular
       withUIRouter(withReactQuery(withCurrentUser(StackContainersDatatable))),
       ['environment', 'stackName']
     )
-  )
-  .component(
-    'gpu',
-    r2a(Gpu, [
-      'values',
-      'onChange',
-      'gpus',
-      'usedGpus',
-      'usedAllGpus',
-      'enableGpuManagement',
-    ])
   )
   .component(
     'gpusList',
