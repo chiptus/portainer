@@ -31,7 +31,7 @@ func (handler *Handler) userList(w http.ResponseWriter, r *http.Request) *httper
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	if !securityContext.IsAdmin {
+	if !securityContext.IsAdmin && !securityContext.IsTeamLeader {
 		return httperror.Forbidden("Permission denied to access users list", err)
 	}
 
@@ -42,6 +42,9 @@ func (handler *Handler) userList(w http.ResponseWriter, r *http.Request) *httper
 
 	endpointID, _ := request.RetrieveNumericQueryParameter(r, "environmentId", true)
 	if endpointID == 0 {
+		if securityContext.IsAdmin {
+			sanitizeUsers(users)
+		}
 		return response.JSON(w, users)
 	}
 
@@ -60,6 +63,9 @@ func (handler *Handler) userList(w http.ResponseWriter, r *http.Request) *httper
 	for _, user := range users {
 		// the users who have the endpoint authorization
 		if _, ok := user.EndpointAuthorizations[endpoint.ID]; ok {
+			if securityContext.IsAdmin {
+				sanitizeUser(&user)
+			}
 			canAccessEndpoint = append(canAccessEndpoint, user)
 			continue
 		}
@@ -71,9 +77,28 @@ func (handler *Handler) userList(w http.ResponseWriter, r *http.Request) *httper
 		}
 
 		if security.AuthorizedEndpointAccess(endpoint, endpointGroup, user.ID, teamMemberships) {
+			if securityContext.IsAdmin {
+				sanitizeUser(&user)
+			}
 			canAccessEndpoint = append(canAccessEndpoint, user)
 		}
 	}
 
 	return response.JSON(w, canAccessEndpoint)
+}
+
+func sanitizeUser(user *portaineree.User) {
+	user.Password = ""
+	user.EndpointAuthorizations = nil
+	user.ThemeSettings = portaineree.UserThemeSettings{}
+	user.OpenAIApiKey = ""
+	user.PortainerAuthorizations = nil
+	user.UserTheme = ""
+	user.TokenIssueAt = 0
+}
+
+func sanitizeUsers(users []portaineree.User) {
+	for i := range users {
+		sanitizeUser(&users[i])
+	}
 }

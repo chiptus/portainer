@@ -12,13 +12,13 @@ export function ListView() {
   const { isAdmin } = useUser();
 
   const usersQuery = useUsers(false);
-  const teamsQuery = useTeams(!isAdmin, 0, { enabled: !!usersQuery.data });
+  const teamsQuery = useTeams(!isAdmin, 0);
 
   return (
     <>
       <PageHeader title="Teams" breadcrumbs={[{ label: 'Teams management' }]} />
 
-      {usersQuery.data && teamsQuery.data && (
+      {isAdmin && usersQuery.data && teamsQuery.data && (
         <CreateTeamForm users={usersQuery.data} teams={teamsQuery.data} />
       )}
 
