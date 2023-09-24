@@ -78,7 +78,7 @@ export async function removeContainer(
     ContainerRemoveOptions: {
       RemoveVolumes: removeVolumes,
       RemoveLinks: false,
-      Force: false,
+      Force: true,
     },
   };
   await axios.post<void>(urlBuilder(endpointId), payload);
