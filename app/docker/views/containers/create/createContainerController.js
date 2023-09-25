@@ -8,7 +8,7 @@ import { buildConfirmButton } from '@@/modals/utils';
 import { commandsTabUtils } from '@/react/docker/containers/CreateView/CommandsTab';
 import { volumesTabUtils } from '@/react/docker/containers/CreateView/VolumesTab';
 import { networkTabUtils } from '@/react/docker/containers/CreateView/NetworkTab';
-import { ContainerCapabilities, ContainerCapability } from '@/docker/models/containerCapabilities';
+import { capabilitiesTabUtils } from '@/react/docker/containers/CreateView/CapabilitiesTab';
 import { AccessControlFormData } from '@/portainer/components/accessControlForm/porAccessControlFormModel';
 import { ContainerDetailsViewModel } from '@/docker/models/container';
 
@@ -86,7 +86,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       DnsSecondary: '',
       AccessControlData: new AccessControlFormData(),
       NodeName: null,
-      capabilities: [],
       RegistryModel: new PorImageRegistryModel(),
       EnableWebhook: false,
       commands: commandsTabUtils.getDefaultViewModel(),
@@ -94,6 +93,7 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       volumes: volumesTabUtils.getDefaultViewModel(),
       network: networkTabUtils.getDefaultViewModel(),
       resources: resourcesTabUtils.getDefaultViewModel(),
+      capabilities: capabilitiesTabUtils.getDefaultViewModel(),
     };
 
     $scope.state = {
@@ -140,6 +140,12 @@ angular.module('portainer.docker').controller('CreateContainerController', [
     $scope.onResourcesChange = function (resources) {
       return $scope.$evalAsync(() => {
         $scope.formValues.resources = resources;
+      });
+    };
+
+    $scope.onCapabilitiesChange = function (capabilities) {
+      return $scope.$evalAsync(() => {
+        $scope.formValues.capabilities = capabilities;
       });
     };
 
@@ -314,21 +320,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       config.Labels = labels;
     }
 
-    function prepareCapabilities(config) {
-      var allowed = $scope.formValues.capabilities.filter(function (item) {
-        return item.allowed === true;
-      });
-      var notAllowed = $scope.formValues.capabilities.filter(function (item) {
-        return item.allowed === false;
-      });
-
-      var getCapName = function (item) {
-        return item.capability;
-      };
-      config.HostConfig.CapAdd = allowed.map(getCapName);
-      config.HostConfig.CapDrop = notAllowed.map(getCapName);
-    }
-
     function prepareConfiguration() {
       var config = angular.copy($scope.config);
       config = commandsTabUtils.toRequest(config, $scope.formValues.commands);
@@ -336,11 +327,11 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       config = volumesTabUtils.toRequest(config, $scope.formValues.volumes);
       config = networkTabUtils.toRequest(config, $scope.formValues.network, $scope.fromContainer.Id);
       config = resourcesTabUtils.toRequest(config, $scope.formValues.resources);
+      config = capabilitiesTabUtils.toRequest(config, $scope.formValues.capabilities);
 
       prepareImageConfig(config);
       preparePortBindings(config);
       prepareLabels(config);
-      prepareCapabilities(config);
       return config;
     }
 
@@ -365,35 +356,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
         .catch(function error(err) {
           Notifications.error('Failure', err, 'Unable to retrieve registry');
         });
-    }
-
-    function loadFromContainerCapabilities(d) {
-      if (d.HostConfig.CapAdd) {
-        d.HostConfig.CapAdd.forEach(function (cap) {
-          $scope.formValues.capabilities.push(new ContainerCapability(cap, true));
-        });
-      }
-      if (d.HostConfig.CapDrop) {
-        d.HostConfig.CapDrop.forEach(function (cap) {
-          $scope.formValues.capabilities.push(new ContainerCapability(cap, false));
-        });
-      }
-
-      function hasCapability(item) {
-        return item.capability === cap.capability;
-      }
-
-      var capabilities = new ContainerCapabilities();
-      for (var i = 0; i < capabilities.length; i++) {
-        var cap = capabilities[i];
-        if (!_.find($scope.formValues.capabilities, hasCapability)) {
-          $scope.formValues.capabilities.push(cap);
-        }
-      }
-
-      $scope.formValues.capabilities.sort(function (a, b) {
-        return a.capability < b.capability ? -1 : 1;
-      });
     }
 
     function loadFromContainerWebhook(d) {
@@ -431,13 +393,12 @@ angular.module('portainer.docker').controller('CreateContainerController', [
           $scope.formValues.volumes = volumesTabUtils.toViewModel(d);
           $scope.formValues.network = networkTabUtils.toViewModel(d, $scope.availableNetworks, $scope.runningContainers);
           $scope.formValues.resources = resourcesTabUtils.toViewModel(d);
+          $scope.formValues.capabilities = capabilitiesTabUtils.toViewModel(d);
 
           loadFromContainerWebhook(d);
           loadFromContainerPortBindings(d);
           loadFromContainerLabels(d);
           loadFromContainerImageConfig(d);
-
-          loadFromContainerCapabilities(d);
         })
         .then(() => {
           $scope.state.containerIsLoaded = true;
@@ -478,7 +439,9 @@ angular.module('portainer.docker').controller('CreateContainerController', [
           } else {
             $scope.state.containerIsLoaded = true;
             $scope.fromContainer = {};
-            $scope.formValues.capabilities = $scope.areContainerCapabilitiesEnabled ? new ContainerCapabilities() : [];
+            if ($scope.areContainerCapabilitiesEnabled) {
+              $scope.formValues.capabilities = capabilitiesTabUtils.getDefaultViewModel();
+            }
           }
         })
         .catch((e) => {
