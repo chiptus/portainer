@@ -16,6 +16,7 @@ import './createcontainer.css';
 import { envVarsTabUtils } from '@/react/docker/containers/CreateView/EnvVarsTab';
 import { getContainers } from '@/react/docker/containers/queries/containers';
 import { resourcesTabUtils } from '@/react/docker/containers/CreateView/ResourcesTab';
+import { restartPolicyTabUtils } from '@/react/docker/containers/CreateView/RestartPolicyTab';
 
 angular.module('portainer.docker').controller('CreateContainerController', [
   '$q',
@@ -88,12 +89,14 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       NodeName: null,
       RegistryModel: new PorImageRegistryModel(),
       EnableWebhook: false,
+
       commands: commandsTabUtils.getDefaultViewModel(),
       envVars: envVarsTabUtils.getDefaultViewModel(),
       volumes: volumesTabUtils.getDefaultViewModel(),
       network: networkTabUtils.getDefaultViewModel(),
       resources: resourcesTabUtils.getDefaultViewModel(),
       capabilities: capabilitiesTabUtils.getDefaultViewModel(),
+      restartPolicy: restartPolicyTabUtils.getDefaultViewModel(),
     };
 
     $scope.state = {
@@ -134,6 +137,11 @@ angular.module('portainer.docker').controller('CreateContainerController', [
     $scope.onNetworkChange = function (network) {
       return $scope.$evalAsync(() => {
         $scope.formValues.network = network;
+      });
+    };
+    $scope.onRestartPolicyChange = function (restartPolicy) {
+      return $scope.$evalAsync(() => {
+        $scope.formValues.restartPolicy = restartPolicy;
       });
     };
 
@@ -328,6 +336,7 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       config = networkTabUtils.toRequest(config, $scope.formValues.network, $scope.fromContainer.Id);
       config = resourcesTabUtils.toRequest(config, $scope.formValues.resources);
       config = capabilitiesTabUtils.toRequest(config, $scope.formValues.capabilities);
+      config = restartPolicyTabUtils.toRequest(config, $scope.formValues.restartPolicy);
 
       prepareImageConfig(config);
       preparePortBindings(config);
@@ -394,8 +403,10 @@ angular.module('portainer.docker').controller('CreateContainerController', [
           $scope.formValues.network = networkTabUtils.toViewModel(d, $scope.availableNetworks, $scope.runningContainers);
           $scope.formValues.resources = resourcesTabUtils.toViewModel(d);
           $scope.formValues.capabilities = capabilitiesTabUtils.toViewModel(d);
+          $scope.formValues.restartPolicy = restartPolicyTabUtils.toViewModel(d);
 
           loadFromContainerWebhook(d);
+
           loadFromContainerPortBindings(d);
           loadFromContainerLabels(d);
           loadFromContainerImageConfig(d);
