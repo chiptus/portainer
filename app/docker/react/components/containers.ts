@@ -38,6 +38,10 @@ import {
   RestartPolicyTab,
   restartPolicyTabUtils,
 } from '@/react/docker/containers/CreateView/RestartPolicyTab';
+import {
+  LabelsTab,
+  labelsTabUtils,
+} from '@/react/docker/containers/CreateView/LabelsTab';
 
 const ngModule = angular
   .module('portainer.docker.react.components.containers', [])
@@ -107,10 +111,19 @@ withFormValidation(
   [],
   capabilitiesTabUtils.validation
 );
+
 withFormValidation(
   ngModule,
   RestartPolicyTab,
   'dockerCreateContainerRestartPolicyTab',
   [],
   restartPolicyTabUtils.validation
+);
+
+withFormValidation(
+  ngModule,
+  withUIRouter(withReactQuery(LabelsTab)),
+  'dockerCreateContainerLabelsTab',
+  [],
+  labelsTabUtils.validation
 );

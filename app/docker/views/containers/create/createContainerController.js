@@ -11,6 +11,7 @@ import { networkTabUtils } from '@/react/docker/containers/CreateView/NetworkTab
 import { capabilitiesTabUtils } from '@/react/docker/containers/CreateView/CapabilitiesTab';
 import { AccessControlFormData } from '@/portainer/components/accessControlForm/porAccessControlFormModel';
 import { ContainerDetailsViewModel } from '@/docker/models/container';
+import { labelsTabUtils } from '@/react/docker/containers/CreateView/LabelsTab';
 
 import './createcontainer.css';
 import { envVarsTabUtils } from '@/react/docker/containers/CreateView/EnvVarsTab';
@@ -78,7 +79,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
         selectedGPUs: ['all'],
         capabilities: ['compute', 'utility'],
       },
-      Labels: [],
       ExtraHosts: [],
       MacAddress: '',
       IPv4: '',
@@ -97,6 +97,7 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       resources: resourcesTabUtils.getDefaultViewModel(),
       capabilities: capabilitiesTabUtils.getDefaultViewModel(),
       restartPolicy: restartPolicyTabUtils.getDefaultViewModel(),
+      labels: labelsTabUtils.getDefaultViewModel(),
     };
 
     $scope.state = {
@@ -139,9 +140,16 @@ angular.module('portainer.docker').controller('CreateContainerController', [
         $scope.formValues.network = network;
       });
     };
+
     $scope.onRestartPolicyChange = function (restartPolicy) {
       return $scope.$evalAsync(() => {
         $scope.formValues.restartPolicy = restartPolicy;
+      });
+    };
+
+    $scope.onLabelsChange = function (labels) {
+      return $scope.$evalAsync(() => {
+        $scope.formValues.labels = labels;
       });
     };
 
@@ -262,14 +270,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       $scope.config.HostConfig.PortBindings.splice(index, 1);
     };
 
-    $scope.addLabel = function () {
-      $scope.formValues.Labels.push({ name: '', value: '' });
-    };
-
-    $scope.removeLabel = function (index) {
-      $scope.formValues.Labels.splice(index, 1);
-    };
-
     $scope.addExtraHost = function () {
       $scope.formValues.ExtraHosts.push({ value: '' });
     };
@@ -314,20 +314,6 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       config.HostConfig.PortBindings = bindings;
     }
 
-    function prepareLabels(config) {
-      var labels = {};
-      $scope.formValues.Labels.forEach(function (label) {
-        if (label.name) {
-          if (label.value) {
-            labels[label.name] = label.value;
-          } else {
-            labels[label.name] = '';
-          }
-        }
-      });
-      config.Labels = labels;
-    }
-
     function prepareConfiguration() {
       var config = angular.copy($scope.config);
       config = commandsTabUtils.toRequest(config, $scope.formValues.commands);
@@ -337,24 +323,17 @@ angular.module('portainer.docker').controller('CreateContainerController', [
       config = resourcesTabUtils.toRequest(config, $scope.formValues.resources);
       config = capabilitiesTabUtils.toRequest(config, $scope.formValues.capabilities);
       config = restartPolicyTabUtils.toRequest(config, $scope.formValues.restartPolicy);
+      config = labelsTabUtils.toRequest(config, $scope.formValues.labels);
 
       prepareImageConfig(config);
       preparePortBindings(config);
-      prepareLabels(config);
+
       return config;
     }
 
     function loadFromContainerPortBindings() {
       const bindings = ContainerHelper.sortAndCombinePorts($scope.config.HostConfig.PortBindings);
       $scope.config.HostConfig.PortBindings = bindings;
-    }
-
-    function loadFromContainerLabels() {
-      for (var l in $scope.config.Labels) {
-        if ({}.hasOwnProperty.call($scope.config.Labels, l)) {
-          $scope.formValues.Labels.push({ name: l, value: $scope.config.Labels[l] });
-        }
-      }
     }
 
     function loadFromContainerImageConfig() {
@@ -404,11 +383,11 @@ angular.module('portainer.docker').controller('CreateContainerController', [
           $scope.formValues.resources = resourcesTabUtils.toViewModel(d);
           $scope.formValues.capabilities = capabilitiesTabUtils.toViewModel(d);
           $scope.formValues.restartPolicy = restartPolicyTabUtils.toViewModel(d);
+          $scope.formValues.labels = labelsTabUtils.toViewModel(d);
 
           loadFromContainerWebhook(d);
 
           loadFromContainerPortBindings(d);
-          loadFromContainerLabels(d);
           loadFromContainerImageConfig(d);
         })
         .then(() => {
