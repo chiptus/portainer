@@ -21,6 +21,7 @@ const (
 	testRepo     string = "https://github.com/portainer/git-test.git"
 	testUsername string = "test-username"
 	testPassword string = "test-password"
+	targetURL    string = "/gitops/repo/refs"
 )
 
 type TestGitService struct {
@@ -32,6 +33,19 @@ func (g *TestGitService) ListRefs(repositoryURL, username, password string, hard
 		return []string{"refs/head/main", "refs/head/test"}, nil
 	}
 	return nil, gittypes.ErrAuthenticationFailure
+}
+
+func listWithNoError(rr *httptest.ResponseRecorder, is *assert.Assertions) {
+	is.Equal(http.StatusOK, rr.Code)
+
+	body, err := io.ReadAll(rr.Body)
+	is.NoError(err, "ReadAll should not return error")
+
+	var resp []string
+	err = json.Unmarshal(body, &resp)
+	is.NoError(err, "response should be list json")
+
+	is.GreaterOrEqual(len(resp), 1)
 }
 
 func Test_gitOperationRepoRefs(t *testing.T) {
@@ -49,13 +63,20 @@ func Test_gitOperationRepoRefs(t *testing.T) {
 	err = store.GitCredentialService.Create(gitCredential)
 	is.NoError(err, "error creating git credential")
 
-	// create stack
-	stack := &portaineree.Stack{ID: 1, GitConfig: &gittypes.RepoConfig{Authentication: &gittypes.GitAuthentication{
+	// create stack with git username/password
+	stackWithGitPassword := &portaineree.Stack{ID: 1, GitConfig: &gittypes.RepoConfig{Authentication: &gittypes.GitAuthentication{
 		Username: testUsername,
 		Password: testPassword,
 	}}}
-	err = store.StackService.Create(stack)
-	is.NoError(err, "error creating stack")
+	err = store.StackService.Create(stackWithGitPassword)
+	is.NoError(err, "error creating stack with git username/password")
+
+	// create stack with git credential
+	stackWithGitCredential := &portaineree.Stack{ID: 2, GitConfig: &gittypes.RepoConfig{Authentication: &gittypes.GitAuthentication{
+		GitCredentialID: 1,
+	}}}
+	err = store.StackService.Create(stackWithGitCredential)
+	is.NoError(err, "error creating stack with git credential")
 
 	// setup services
 	gitService := &TestGitService{}
@@ -72,7 +93,7 @@ func Test_gitOperationRepoRefs(t *testing.T) {
 		payload, err := json.Marshal(data)
 		is.NoError(err)
 
-		req := httptest.NewRequest(http.MethodPost, "/gitops/repo/refs", bytes.NewBuffer(payload))
+		req := httptest.NewRequest(http.MethodPost, targetURL, bytes.NewBuffer(payload))
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
 
@@ -86,7 +107,7 @@ func Test_gitOperationRepoRefs(t *testing.T) {
 		payload, err := json.Marshal(data)
 		is.NoError(err)
 
-		req := httptest.NewRequest(http.MethodPost, "/gitops/repo/refs", bytes.NewBuffer(payload))
+		req := httptest.NewRequest(http.MethodPost, targetURL, bytes.NewBuffer(payload))
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
 
@@ -101,7 +122,7 @@ func Test_gitOperationRepoRefs(t *testing.T) {
 		is.Equal(gittypes.ErrAuthenticationFailure.Error(), resp.Details)
 	})
 
-	t.Run("authenticated user can list refs with username/password", func(t *testing.T) {
+	t.Run("list refs with git username/password", func(t *testing.T) {
 		data := repositoryReferenceListPayload{
 			Repository: testRepo,
 			Username:   testUsername,
@@ -111,68 +132,74 @@ func Test_gitOperationRepoRefs(t *testing.T) {
 		payload, err := json.Marshal(data)
 		is.NoError(err)
 
-		req := httptest.NewRequest(http.MethodPost, "/gitops/repo/refs", bytes.NewBuffer(payload))
+		req := httptest.NewRequest(http.MethodPost, targetURL, bytes.NewBuffer(payload))
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
 
-		is.Equal(http.StatusOK, rr.Code)
-
-		body, err := io.ReadAll(rr.Body)
-		is.NoError(err, "ReadAll should not return error")
-
-		var resp []string
-		err = json.Unmarshal(body, &resp)
-		is.NoError(err, "response should be list json")
-
-		is.GreaterOrEqual(len(resp), 1)
+		listWithNoError(rr, is)
 	})
 
-	t.Run("authenticated user can list refs with git credential ID", func(t *testing.T) {
+	t.Run("list refs with git credential ID", func(t *testing.T) {
 		data := repositoryReferenceListPayload{
 			Repository:      testRepo,
-			GitCredentialID: 1,
+			GitCredentialID: int(gitCredential.ID),
 		}
 		payload, err := json.Marshal(data)
 		is.NoError(err)
 
-		req := httptest.NewRequest(http.MethodPost, "/gitops/repo/refs", bytes.NewBuffer(payload))
+		req := httptest.NewRequest(http.MethodPost, targetURL, bytes.NewBuffer(payload))
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
 
-		is.Equal(http.StatusOK, rr.Code)
-
-		body, err := io.ReadAll(rr.Body)
-		is.NoError(err, "ReadAll should not return error")
-
-		var resp []string
-		err = json.Unmarshal(body, &resp)
-		is.NoError(err, "response should be list json")
-
-		is.GreaterOrEqual(len(resp), 1)
+		listWithNoError(rr, is)
 	})
 
-	t.Run("authenticated user can list refs with stack ID", func(t *testing.T) {
+	t.Run("list refs with stack ID when stack is configured with git password", func(t *testing.T) {
 		data := repositoryReferenceListPayload{
 			Repository: testRepo,
-			StackID:    1,
+			StackID:    stackWithGitPassword.ID,
 		}
 
 		payload, err := json.Marshal(data)
 		is.NoError(err)
 
-		req := httptest.NewRequest(http.MethodPost, "/gitops/repo/refs", bytes.NewBuffer(payload))
+		req := httptest.NewRequest(http.MethodPost, targetURL, bytes.NewBuffer(payload))
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
 
-		is.Equal(http.StatusOK, rr.Code)
+		listWithNoError(rr, is)
+	})
 
-		body, err := io.ReadAll(rr.Body)
-		is.NoError(err, "ReadAll should not return error")
+	t.Run("list refs with stack ID if the stack is configured with git credential", func(t *testing.T) {
+		data := repositoryReferenceListPayload{
+			Repository: testRepo,
+			StackID:    stackWithGitCredential.ID,
+		}
 
-		var resp []string
-		err = json.Unmarshal(body, &resp)
-		is.NoError(err, "response should be list json")
+		payload, err := json.Marshal(data)
+		is.NoError(err)
 
-		is.GreaterOrEqual(len(resp), 1)
+		req := httptest.NewRequest(http.MethodPost, targetURL, bytes.NewBuffer(payload))
+		rr := httptest.NewRecorder()
+		h.ServeHTTP(rr, req)
+
+		listWithNoError(rr, is)
+	})
+
+	t.Run("list refs with both stack ID and git credentialID even if the stack is configured with git credential", func(t *testing.T) {
+		data := repositoryReferenceListPayload{
+			Repository:      testRepo,
+			StackID:         stackWithGitCredential.ID,
+			GitCredentialID: int(gitCredential.ID),
+		}
+
+		payload, err := json.Marshal(data)
+		is.NoError(err)
+
+		req := httptest.NewRequest(http.MethodPost, targetURL, bytes.NewBuffer(payload))
+		rr := httptest.NewRecorder()
+		h.ServeHTTP(rr, req)
+
+		listWithNoError(rr, is)
 	})
 }

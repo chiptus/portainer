@@ -54,23 +54,8 @@ func (handler *Handler) gitOperationRepoRefs(w http.ResponseWriter, r *http.Requ
 	hardRefresh, _ := request.RetrieveBooleanQueryParameter(r, "force", true)
 
 	var repositoryUsername, repositoryPassword string
-	if payload.StackID != 0 {
-		stack, err := handler.dataStore.Stack().Read(portaineree.StackID(payload.StackID))
-		if handler.dataStore.IsErrObjectNotFound(err) {
-			return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
-		} else if err != nil {
-			return httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
-		} else if stack.GitConfig == nil {
-			msg := "No Git config in the found stack"
-			return httperror.InternalServerError(msg, errors.New(msg))
-		} else if stack.GitConfig.Authentication == nil {
-			msg := "No Git credential in the found stack"
-			return httperror.InternalServerError(msg, errors.New(msg))
-		}
 
-		repositoryUsername = stack.GitConfig.Authentication.Username
-		repositoryPassword = stack.GitConfig.Authentication.Password
-	} else {
+	if payload.Password != "" || payload.GitCredentialID != 0 {
 		username, password, httpErr := handler.extractGitCredential(payload.Username, payload.Password, payload.GitCredentialID)
 		if httpErr != nil {
 			return httpErr
@@ -78,6 +63,29 @@ func (handler *Handler) gitOperationRepoRefs(w http.ResponseWriter, r *http.Requ
 
 		repositoryUsername = username
 		repositoryPassword = password
+	}
+
+	if payload.StackID != 0 && repositoryPassword == "" {
+		stack, err := handler.dataStore.Stack().Read(portaineree.StackID(payload.StackID))
+		if err != nil {
+			if handler.dataStore.IsErrObjectNotFound(err) {
+				return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
+			}
+			return httperror.InternalServerError("Failed to locate the stack", err)
+		}
+
+		if stack.GitConfig != nil && stack.GitConfig.Authentication != nil {
+			username, password, httpErr := handler.extractGitCredential(
+				stack.GitConfig.Authentication.Username,
+				stack.GitConfig.Authentication.Password,
+				stack.GitConfig.Authentication.GitCredentialID,
+			)
+			if httpErr != nil {
+				return httpErr
+			}
+			repositoryUsername = username
+			repositoryPassword = password
+		}
 	}
 
 	refs, err := handler.GitService.ListRefs(payload.Repository, repositoryUsername, repositoryPassword, hardRefresh, payload.TLSSkipVerify)
