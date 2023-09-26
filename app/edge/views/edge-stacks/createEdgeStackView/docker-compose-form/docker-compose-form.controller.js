@@ -80,8 +80,8 @@ class DockerComposeFormController {
     return this.$async(async () => {
       this.formValues.PerDeviceConfigsPath = '';
       this.formValues.SupportPerDeviceConfigs = false;
-      this.formValues.PerDeviceConfigsMatchType = 'file';
-      this.formValues.PerDeviceConfigsGroupMatchType = 'file';
+      this.formValues.PerDeviceConfigsMatchType = '';
+      this.formValues.PerDeviceConfigsGroupMatchType = '';
 
       try {
         const templates = await this.EdgeTemplateService.edgeTemplates();

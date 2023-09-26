@@ -137,6 +137,7 @@
         <label for="matching_type" class="control-label col-sm-3 col-lg-2 text-left"> Device matching rule </label>
         <div class="col-sm-9 col-lg-10">
           <select ng-model="$ctrl.formValues.PerDeviceConfigsMatchType" id="matching_type" class="form-control">
+            <option value=""></option>
             <option value="file">Match file name with Portainer Edge ID</option>
             <option value="dir">Match folder name with Portainer Edge ID</option>
           </select>
@@ -148,6 +149,7 @@
         <label for="matching_type" class="control-label col-sm-3 col-lg-2 text-left"> Group matching rule </label>
         <div class="col-sm-9 col-lg-10">
           <select ng-model="$ctrl.formValues.PerDeviceConfigsGroupMatchType" id="matching_type_group" class="form-control">
+            <option value=""></option>
             <option value="file">Match file name with Edge Group</option>
             <option value="dir">Match folder name with Edge Group</option>
           </select>
