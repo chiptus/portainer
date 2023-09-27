@@ -25,7 +25,6 @@ func IsValidStackFile(stackFileContent []byte, securitySettings *portaineree.End
 
 	composeConfig, err := loader.Load(composeConfigDetails, func(options *loader.Options) {
 		options.SkipValidation = true
-		options.SkipInterpolation = true
 	})
 	if err != nil {
 		return err
