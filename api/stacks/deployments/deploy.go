@@ -234,11 +234,13 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 		}
 
 		if err != nil {
-			return errors.WithMessagef(err, "failed to %s a kubternetes app stack %v", action, stackID)
+			return errors.WithMessagef(err, "failed to %s a kubernetes app stack %v", action, stackID)
 		}
 	default:
 		return errors.Errorf("cannot update stack, type %v is unsupported", stack.Type)
 	}
+
+	stack.Status = portaineree.StackStatusActive
 
 	if err := datastore.Stack().Update(stack.ID, stack); err != nil {
 		return errors.WithMessagef(err, "failed to update the stack %v", stack.ID)
