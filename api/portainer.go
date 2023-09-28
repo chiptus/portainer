@@ -1700,6 +1700,7 @@ type (
 		Username            string
 		Role                UserRole
 		ForceChangePassword bool
+		Token               string
 	}
 
 	// TunnelDetails represents information associated to a tunnel

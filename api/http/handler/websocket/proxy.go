@@ -1,15 +1,20 @@
 package websocket
 
 import (
+	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/logoutcontext"
 	"github.com/portainer/portainer/api/crypto"
 
 	"github.com/gorilla/websocket"
 	"github.com/koding/websocketproxy"
+	"github.com/rs/zerolog/log"
 )
 
 func (handler *Handler) proxyEdgeAgentWebsocketRequest(w http.ResponseWriter, r *http.Request, params *webSocketRequestParams) error {
@@ -18,33 +23,12 @@ func (handler *Handler) proxyEdgeAgentWebsocketRequest(w http.ResponseWriter, r 
 		return err
 	}
 
-	endpointURL, err := url.Parse(fmt.Sprintf("http://127.0.0.1:%d", tunnel.Port))
+	agentURL, err := url.Parse(fmt.Sprintf("http://127.0.0.1:%d", tunnel.Port))
 	if err != nil {
 		return err
 	}
 
-	endpointURL.Scheme = "ws"
-	proxy := websocketproxy.NewProxy(endpointURL)
-
-	signature, err := handler.SignatureService.CreateSignature(portaineree.PortainerAgentSignatureMessage)
-	if err != nil {
-		return err
-	}
-
-	proxy.Director = func(incoming *http.Request, out http.Header) {
-		out.Set(portaineree.PortainerAgentPublicKeyHeader, handler.SignatureService.EncodedPublicKey())
-		out.Set(portaineree.PortainerAgentSignatureHeader, signature)
-		out.Set(portaineree.PortainerAgentTargetHeader, params.nodeName)
-		out.Set(portaineree.PortainerAgentKubernetesSATokenHeader, params.token)
-	}
-
-	handler.ReverseTunnelService.SetTunnelStatusToActive(params.endpoint.ID)
-
-	handler.ReverseTunnelService.KeepTunnelAlive(params.endpoint.ID, r.Context(), portaineree.WebSocketKeepAlive)
-
-	proxy.ServeHTTP(w, r)
-
-	return nil
+	return handler.doProxyWebsocketRequest(w, r, params, agentURL, true)
 }
 
 func (handler *Handler) proxyAgentWebsocketRequest(w http.ResponseWriter, r *http.Request, params *webSocketRequestParams) error {
@@ -58,18 +42,41 @@ func (handler *Handler) proxyAgentWebsocketRequest(w http.ResponseWriter, r *htt
 		return err
 	}
 
+	return handler.doProxyWebsocketRequest(w, r, params, agentURL, false)
+}
+
+func (handler *Handler) doProxyWebsocketRequest(
+	w http.ResponseWriter,
+	r *http.Request,
+	params *webSocketRequestParams,
+	agentURL *url.URL,
+	isEdge bool,
+) error {
+	tokenData, err := security.RetrieveTokenData(r)
+	if err != nil {
+		log.
+			Warn().
+			Err(err).
+			Msg("unable to retrieve user details from authentication token")
+		return err
+	}
+
+	enableTLS := !isEdge && (params.endpoint.TLSConfig.TLS || params.endpoint.TLSConfig.TLSSkipVerify)
+
 	agentURL.Scheme = "ws"
-	proxy := websocketproxy.NewProxy(agentURL)
-
-	if params.endpoint.TLSConfig.TLS || params.endpoint.TLSConfig.TLSSkipVerify {
+	if enableTLS {
 		agentURL.Scheme = "wss"
+	}
 
+	proxy := websocketproxy.NewProxy(agentURL)
+	proxyDialer := *websocket.DefaultDialer
+	proxy.Dialer = &proxyDialer
+
+	if enableTLS {
 		tlsConfig := crypto.CreateTLSConfiguration()
 		tlsConfig.InsecureSkipVerify = params.endpoint.TLSConfig.TLSSkipVerify
 
-		proxy.Dialer = &websocket.Dialer{
-			TLSClientConfig: tlsConfig,
-		}
+		proxyDialer.TLSClientConfig = tlsConfig
 	}
 
 	signature, err := handler.SignatureService.CreateSignature(portaineree.PortainerAgentSignatureMessage)
@@ -84,7 +91,46 @@ func (handler *Handler) proxyAgentWebsocketRequest(w http.ResponseWriter, r *htt
 		out.Set(portaineree.PortainerAgentKubernetesSATokenHeader, params.token)
 	}
 
+	if isEdge {
+		handler.ReverseTunnelService.SetTunnelStatusToActive(params.endpoint.ID)
+		handler.ReverseTunnelService.KeepTunnelAlive(params.endpoint.ID, r.Context(), portaineree.WebSocketKeepAlive)
+	}
+
+	abortProxyOnLogout(r.Context(), proxy, tokenData.Token)
+
 	proxy.ServeHTTP(w, r)
 
 	return nil
+}
+
+func abortProxyOnLogout(ctx context.Context, proxy *websocketproxy.WebsocketProxy, token string) {
+	var wsConn net.Conn
+
+	proxy.Dialer.NetDial = func(network, addr string) (net.Conn, error) {
+		netDialer := &net.Dialer{}
+
+		conn, err := netDialer.DialContext(context.Background(), network, addr)
+		wsConn = conn
+
+		return conn, err
+	}
+
+	logoutCtx := logoutcontext.GetContext(token)
+
+	go func() {
+		log.Debug().
+			Msg("logout watcher for websocket proxy started")
+
+		select {
+		case <-logoutCtx.Done():
+			log.Debug().
+				Msg("logout watcher for websocket proxy stopped as user logged out")
+			if wsConn != nil {
+				wsConn.Close()
+			}
+		case <-ctx.Done():
+			log.Debug().
+				Msg("logout watcher for websocket proxy stopped as the ws connection closed")
+		}
+	}()
 }

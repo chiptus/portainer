@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/logoutcontext"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 
@@ -31,5 +32,8 @@ func (handler *Handler) logout(w http.ResponseWriter, r *http.Request) (*authMid
 	if tokenData != nil {
 		handler.KubernetesTokenCacheManager.RemoveUserFromCache(tokenData.ID)
 	}
+
+	logoutcontext.Cancel(tokenData.Token)
+
 	return resp, response.Empty(w)
 }

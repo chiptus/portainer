@@ -181,7 +181,7 @@ angular
         url: '/logout',
         params: {
           error: '',
-          performApiLogout: false,
+          performApiLogout: true,
         },
         views: {
           'content@': {

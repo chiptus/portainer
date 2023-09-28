@@ -136,6 +136,7 @@ func (service *Service) ParseAndVerifyToken(token string) (*portaineree.TokenDat
 				ID:       portaineree.UserID(cl.UserID),
 				Username: cl.Username,
 				Role:     portaineree.UserRole(cl.Role),
+				Token:    token,
 			}, nil
 		}
 	}
