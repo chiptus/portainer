@@ -86,6 +86,12 @@ export type EdgeStack = {
   PreviousDeploymentInfo: EdgeStackDeploymentInfo;
   EnvVars?: EnvVar[];
   StaggerConfig?: StaggerConfig;
+  SupportRelativePath: boolean;
+  FilesystemPath?: string;
+  SupportPerDeviceConfigs?: boolean;
+  PerDeviceConfigsPath?: string;
+  PerDeviceConfigsMatchType?: string;
+  PerDeviceConfigsGroupMatchType?: string;
 };
 
 export enum EditorType {

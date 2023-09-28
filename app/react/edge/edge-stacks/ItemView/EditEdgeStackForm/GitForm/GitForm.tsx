@@ -11,7 +11,11 @@ import {
 } from '@/react/portainer/gitops/AutoUpdateFieldset/utils';
 import { InfoPanel } from '@/react/portainer/gitops/InfoPanel';
 import { RefField } from '@/react/portainer/gitops/RefField';
-import { AutoUpdateModel, GitAuthModel } from '@/react/portainer/gitops/types';
+import {
+  AutoUpdateModel,
+  GitAuthModel,
+  RelativePathModel,
+} from '@/react/portainer/gitops/types';
 import {
   baseEdgeStackWebhookUrl,
   createWebhookId,
@@ -37,6 +41,8 @@ import { notifyError, notifySuccess } from '@/portainer/services/notifications';
 import { EnvironmentType } from '@/react/portainer/environments/types';
 import { Registry } from '@/react/portainer/registries/types';
 import { useRegistries } from '@/react/portainer/registries/queries/useRegistries';
+import { RelativePathFieldset } from '@/react/portainer/gitops/RelativePathFieldset/RelativePathFieldset';
+import { parseRelativePathResponse } from '@/react/portainer/gitops/RelativePathFieldset/utils';
 
 import { LoadingButton } from '@@/buttons';
 import { FormSection } from '@@/form-components/FormSection';
@@ -68,6 +74,7 @@ interface FormValues {
   envVars: EnvVar[];
   privateRegistryId?: Registry['Id'];
   staggerConfig: StaggerConfig;
+  relativePath: RelativePathModel;
 }
 
 export function GitForm({ stack }: { stack: EdgeStack }) {
@@ -88,6 +95,7 @@ export function GitForm({ stack }: { stack: EdgeStack }) {
     autoUpdate: parseAutoUpdateResponse(stack.AutoUpdate),
     refName: stack.GitConfig.ReferenceName,
     authentication: parseAuthResponse(stack.GitConfig.Authentication),
+    relativePath: parseRelativePathResponse(stack),
     envVars: stack.EnvVars || [],
     staggerConfig: stack.StaggerConfig || {
       StaggerOption: StaggerOption.AllAtOnce,
@@ -316,6 +324,8 @@ function InnerForm({
           }
           errors={errors.authentication}
         />
+
+        <RelativePathFieldset value={values.relativePath} readonly />
 
         {values.deploymentType === DeploymentType.Compose && (
           <EnvironmentVariablesPanel

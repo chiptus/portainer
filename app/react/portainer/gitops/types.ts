@@ -70,3 +70,12 @@ export interface GitFormModel extends GitAuthModel {
    */
   AutoUpdate?: AutoUpdateModel;
 }
+
+export interface RelativePathModel {
+  SupportRelativePath: boolean;
+  FilesystemPath?: string;
+  SupportPerDeviceConfigs?: boolean;
+  PerDeviceConfigsPath?: string;
+  PerDeviceConfigsMatchType?: string;
+  PerDeviceConfigsGroupMatchType?: string;
+}
