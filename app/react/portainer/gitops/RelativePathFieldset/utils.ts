@@ -1,6 +1,6 @@
 import { EdgeStack } from '@/react/edge/edge-stacks/types';
 
-import { RelativePathModel } from '../types';
+import { GitFormModel, RelativePathModel } from '../types';
 
 export function parseRelativePathResponse(stack: EdgeStack): RelativePathModel {
   return {
@@ -12,3 +12,17 @@ export function parseRelativePathResponse(stack: EdgeStack): RelativePathModel {
     PerDeviceConfigsPath: stack.PerDeviceConfigsPath,
   };
 }
+
+export const dummyGitForm: GitFormModel = {
+  RepositoryURL: '',
+  RepositoryURLValid: false,
+  RepositoryAuthentication: false,
+  RepositoryUsername: '',
+  RepositoryPassword: '',
+  AdditionalFiles: [],
+  RepositoryReferenceName: '',
+  ComposeFilePathInRepository: '',
+  NewCredentialName: '',
+  SaveCredential: false,
+  TLSSkipVerify: false,
+};

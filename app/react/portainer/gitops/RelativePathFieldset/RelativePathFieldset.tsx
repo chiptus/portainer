@@ -1,4 +1,11 @@
-import { RelativePathModel } from '@/react/portainer/gitops/types';
+import { useCallback } from 'react';
+
+import {
+  GitFormModel,
+  RelativePathModel,
+} from '@/react/portainer/gitops/types';
+import { PathSelector } from '@/react/portainer/gitops/ComposePathField/PathSelector';
+import { dummyGitForm } from '@/react/portainer/gitops/RelativePathFieldset/utils';
 
 import { SwitchField } from '@@/form-components/SwitchField';
 import { TextTip } from '@@/Tip/TextTip';
@@ -7,12 +14,33 @@ import { Input, Select } from '@@/form-components/Input';
 
 interface Props {
   value: RelativePathModel;
+  gitModel?: GitFormModel;
+  onChange?: (value: Partial<RelativePathModel>) => void;
   readonly?: boolean;
 }
 
-export function RelativePathFieldset({ value, readonly }: Props) {
+export function RelativePathFieldset({
+  value,
+  gitModel,
+  onChange,
+  readonly,
+}: Props) {
+  const innerOnChange = useCallback(
+    (value: Partial<RelativePathModel>) => onChange && onChange(value),
+    [onChange]
+  );
+
   return (
     <>
+      <div className="form-group">
+        <div className="col-sm-12">
+          <TextTip color="blue">
+            &apos;Gitops Edge Configuration&apos; requires relative path volumes
+            to be enabled first, as it uses this feature as the base mechanism.
+          </TextTip>
+        </div>
+      </div>
+
       <div className="form-group">
         <div className="col-sm-12">
           <SwitchField
@@ -22,7 +50,7 @@ export function RelativePathFieldset({ value, readonly }: Props) {
             tooltip="Enabling this means you can specify relative path volumes in your Compose files, with Portainer pulling the content from your git repository to the environment the stack is deployed to."
             disabled={readonly}
             checked={value.SupportRelativePath}
-            onChange={(value) => value}
+            onChange={(value) => innerOnChange({ SupportRelativePath: value })}
           />
         </div>
       </div>
@@ -46,7 +74,9 @@ export function RelativePathFieldset({ value, readonly }: Props) {
                   placeholder="/mnt"
                   disabled={readonly}
                   value={value.FilesystemPath}
-                  onChange={(value) => value}
+                  onChange={(e) =>
+                    innerOnChange({ FilesystemPath: e.target.value })
+                  }
                 />
               </FormControl>
             </div>
@@ -72,7 +102,9 @@ export function RelativePathFieldset({ value, readonly }: Props) {
             tooltip="By enabling the GitOps Edge Configurations feature, you gain the ability to define relative path volumes in your configuration files. Portainer will then automatically fetch the content from your git repository by matching the folder name or file name with the Portainer Edge ID, and apply it to the environment where the stack is deployed"
             disabled={readonly}
             checked={!!value.SupportPerDeviceConfigs}
-            onChange={(value) => value}
+            onChange={(value) =>
+              innerOnChange({ SupportPerDeviceConfigs: value })
+            }
           />
         </div>
       </div>
@@ -92,10 +124,15 @@ export function RelativePathFieldset({ value, readonly }: Props) {
           <div className="form-group">
             <div className="col-sm-12">
               <FormControl label="Directory">
-                <Input
+                <PathSelector
+                  value={value.PerDeviceConfigsPath || ''}
+                  onChange={(value) =>
+                    innerOnChange({ PerDeviceConfigsPath: value })
+                  }
                   placeholder="config"
-                  disabled={readonly}
-                  value={value.PerDeviceConfigsPath}
+                  model={gitModel || dummyGitForm}
+                  readOnly={readonly}
+                  dirOnly
                 />
               </FormControl>
             </div>
@@ -119,6 +156,9 @@ export function RelativePathFieldset({ value, readonly }: Props) {
               <FormControl label="Device matching rule">
                 <Select
                   value={value.PerDeviceConfigsMatchType}
+                  onChange={(e) =>
+                    innerOnChange({ PerDeviceConfigsMatchType: e.target.value })
+                  }
                   options={[
                     {
                       label: '',
@@ -144,6 +184,11 @@ export function RelativePathFieldset({ value, readonly }: Props) {
               <FormControl label="Group matching rule">
                 <Select
                   value={value.PerDeviceConfigsGroupMatchType}
+                  onChange={(e) =>
+                    innerOnChange({
+                      PerDeviceConfigsGroupMatchType: e.target.value,
+                    })
+                  }
                   options={[
                     {
                       label: '',
@@ -167,17 +212,24 @@ export function RelativePathFieldset({ value, readonly }: Props) {
           <div className="form-group">
             <div className="col-sm-12">
               <TextTip color="blue">
-                You can use it as an environment variable with an image:
-                myapp:$&#123;PORTAINER_EDGE_ID&#125; or
-                myapp:$&#123;PORTAINER_EDGE_GROUP&#125;. You can also use it
-                with the relative path for volumes -
-                ./config/$&#123;PORTAINER_EDGE_ID&#125;:/myapp/config or
-                ./config/$&#123;EDGE_GROUP&#125;:/myapp/groupconfig. More
-                documentation can be found{' '}
-                <a href="https://docs.portainer.io/user/edge/stacks/add#gitops-edge-configurations">
-                  here
-                </a>
-                .
+                <div>
+                  You can use it as an environment variable with an image:{' '}
+                  <code>myapp:$&#123;PORTAINER_EDGE_ID&#125;</code> or{' '}
+                  <code>myapp:$&#123;PORTAINER_EDGE_GROUP&#125;</code>. You can
+                  also use it with the relative path for volumes:{' '}
+                  <code>
+                    ./config/$&#123;PORTAINER_EDGE_ID&#125;:/myapp/config
+                  </code>{' '}
+                  or{' '}
+                  <code>
+                    ./config/$&#123;PORTAINER_EDGE_GROUP&#125;:/myapp/groupconfig
+                  </code>
+                  . More documentation can be found{' '}
+                  <a href="https://docs.portainer.io/user/edge/stacks/add#gitops-edge-configurations">
+                    here
+                  </a>
+                  .
+                </div>
               </TextTip>
             </div>
           </div>

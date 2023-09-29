@@ -23,12 +23,14 @@ export function PathSelector({
   placeholder,
   model,
   dirOnly,
+  readOnly,
 }: {
   value: string;
   onChange(value: string): void;
   placeholder: string;
   model: GitFormModel;
   dirOnly?: boolean;
+  readOnly?: boolean;
 }) {
   const [searchTerm, setSearchTerm] = useDebounce(value, onChange);
   const [selected, setSelected] = useState(false);
@@ -59,6 +61,7 @@ export function PathSelector({
         className="form-control"
         onChange={handleChange}
         placeholder={placeholder}
+        readOnly={readOnly}
       />
       {!selected && searchResults && searchResults.length > 0 && (
         <ComboboxPopover>

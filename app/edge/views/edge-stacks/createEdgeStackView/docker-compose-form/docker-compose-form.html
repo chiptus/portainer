@@ -31,179 +31,48 @@
   docs-links
 ></git-form>
 
-<div ng-if="$ctrl.state.Method == 'repository'" class="form-group">
-  <!--Discover GitOps Edge Configurations-->
-  <div class="col-sm-12 mb-3">
-    <insights-box
-      type="'slim'"
-      header="'Discover GitOps Edge Configurations'"
-      content="'To use GitOps Edge Configurations Feature, enable &quot;Relative Path Volumes&quot;. Which will allow you to manage device configuration settings with a Git repo as your template.'"
-      insight-close-id="'edge_stack_discover_edge_config'"
-    >
-    </insights-box>
-  </div>
-  <div class="col-sm-12 mb-3">
-    <por-switch-field
-      name="EnableRelativePaths"
-      checked="$ctrl.formValues.SupportRelativePath"
-      label="'Enable relative path volumes'"
-      label-class="'col-sm-3 col-lg-2'"
-      tooltip="'Enabling this means you can specify relative path volumes in your Compose files, with Portainer pulling the content from your git repository to the environment the stack is deployed to.'"
-      on-change="($ctrl.onEnableRelativePathsChange)"
-    ></por-switch-field>
-  </div>
-  <div ng-if="$ctrl.formValues.SupportRelativePath">
-    <span ng-if="!isDockerStandalone" class="col-sm-12">
-      <p class="small vertical-center">
-        <pr-icon icon="'info'" mode="'primary'"></pr-icon>
-        <span class="text-muted">For relative path volumes use with Docker Swarm, you must have a network filesystem which all of your nodes can access.</span>
-      </p>
-    </span>
+<div ng-if="$ctrl.state.Method == 'repository'">
+  <div class="form-section-title"> Advanced configurations </div>
 
-    <!--Local filesystem path-->
-    <div class="col-sm-12">
-      <div class="form-group">
-        <label class="col-sm-3 col-lg-2 control-label text-left"> Local filesystem path </label>
-        <div class="col-sm-9 col-lg-10">
-          <input type="text" class="form-control" ng-model="$ctrl.formValues.FilesystemPath" placeholder="/mnt" />
-          <span class="help-block" ng-if="$ctrl.formValues.FilesystemPath.length === 0">
-            <p class="text-warning small vertical-center">
-              <pr-icon icon="'alert-triangle'" mode="'warning'" size="'sm'"></pr-icon>
-              <span>Local filesystem path is required</span>
-            </p>
-          </span>
-        </div>
-      </div>
-    </div>
+  <relative-path-fieldset value="$ctrl.formValues" git-model="$ctrl.formValues" on-change="($ctrl.onChangeFormValues)"></relative-path-fieldset>
+</div>
 
-    <!-- Edge configurations-->
-    <div class="col-sm-12 mb-3">
-      <p class="small vertical-center">
-        <pr-icon icon="'info'" mode="'primary'"></pr-icon>
-        <span class="text-muted">When enabled, corresponding Edge ID will be passed through as an environment variable: PORTAINER_EDGE_ID.</span>
-      </p>
-      <por-switch-field
-        name="EnablePerDeviceConfigs"
-        checked="$ctrl.formValues.SupportPerDeviceConfigs"
-        label="'GitOps Edge configurations'"
-        tooltip="'By enabling the GitOps Edge Configurations feature, you gain the ability to define relative path volumes in your configuration files. Portainer will then automatically fetch the content from your git repository by matching the folder name or file name with the Portainer Edge ID, and apply it to the environment where the stack is deployed'"
-        label-class="'col-sm-3 col-lg-2'"
-        on-change="($ctrl.onEnablePerDeviceConfigsChange)"
-      ></por-switch-field>
-    </div>
-
-    <!--Configuration path-->
-    <div class="col-sm-12" ng-if="$ctrl.formValues.SupportPerDeviceConfigs">
-      <p class="small vertical-center">
-        <pr-icon icon="'info'" mode="'primary'"></pr-icon>
-        <span class="text-muted">
-          Specify the directory name where your configuration will be located. This will allow you to manage device configuration settings with a Git repo as your template.
-        </span>
-      </p>
-
-      <div class="form-group">
-        <label class="col-sm-3 col-lg-2 control-label text-left"> Directory </label>
-
-        <div class="col-sm-9 col-lg-10">
-          <path-selector
-            value="$ctrl.formValues.PerDeviceConfigsPath"
-            model="$ctrl.formValues"
-            on-change="($ctrl.onPerDeviceConfigsPathChange)"
-            dir-only="true"
-            placeholder="'config'"
-          ></path-selector>
-
-          <span class="help-block" ng-if="$ctrl.formValues.PerDeviceConfigsPath.length === 0">
-            <p class="text-warning small vertical-center">
-              <pr-icon icon="'alert-triangle'" mode="'warning'" size="'sm'"></pr-icon>
-              <span>Directory is required</span>
-            </p>
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-sm-12" ng-if="$ctrl.formValues.SupportPerDeviceConfigs">
-      <p class="small vertical-center">
-        <pr-icon icon="'info'" mode="'primary'"></pr-icon>
-        <span class="text-muted">
-          Select which rule to use when matching configuration with Portainer Edge ID either on a per-device basis or group-wide with an Edge Group. Only configurations that match
-          the selected rule will be accessible through their corresponding paths. Deployments that rely on accessing the configuration may experience errors.
-        </span>
-      </p>
-
-      <!-- Device matching rule -->
-      <div class="form-group">
-        <label for="matching_type" class="control-label col-sm-3 col-lg-2 text-left"> Device matching rule </label>
-        <div class="col-sm-9 col-lg-10">
-          <select ng-model="$ctrl.formValues.PerDeviceConfigsMatchType" id="matching_type" class="form-control">
-            <option value=""></option>
-            <option value="file">Match file name with Portainer Edge ID</option>
-            <option value="dir">Match folder name with Portainer Edge ID</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Group matching rule -->
-      <div class="form-group">
-        <label for="matching_type" class="control-label col-sm-3 col-lg-2 text-left"> Group matching rule </label>
-        <div class="col-sm-9 col-lg-10">
-          <select ng-model="$ctrl.formValues.PerDeviceConfigsGroupMatchType" id="matching_type_group" class="form-control">
-            <option value=""></option>
-            <option value="file">Match file name with Edge Group</option>
-            <option value="dir">Match folder name with Edge Group</option>
-          </select>
-        </div>
-      </div>
-
-      <p class="small vertical-center">
-        <pr-icon icon="'info'" mode="'primary'"></pr-icon>
-        <span class="text-muted">
-          You can use it as an environment variable with an image: myapp:${PORTAINER_EDGE_ID} or myapp:${PORTAINER_EDGE_GROUP}. You can also use it with the relative path for
-          volumes - ./config/${PORTAINER_EDGE_ID}:/myapp/config or ./config/${EDGE_GROUP}:/myapp/groupconfig. More documentation can be found
-          <a href="https://docs.portainer.io/user/edge/stacks/add#gitops-edge-configurations">here</a>.
-        </span>
-      </p>
+<!-- template -->
+<div ng-if="$ctrl.state.Method === 'template'">
+  <div class="form-group">
+    <label for="stack_template" class="col-sm-1 control-label text-left"> Template </label>
+    <div class="col-sm-11">
+      <select
+        class="form-control"
+        ng-model="$ctrl.selectedTemplate"
+        ng-options="template as template.label for template in $ctrl.templates"
+        ng-change="$ctrl.onChangeTemplate($ctrl.selectedTemplate)"
+      >
+        <option value="" label="Select an Edge stack template" disabled selected="selected"> </option>
+      </select>
     </div>
   </div>
-
-  <!-- template -->
-  <div ng-if="$ctrl.state.Method === 'template'">
+  <!-- description -->
+  <div ng-if="$ctrl.selectedTemplate.note">
+    <div class="col-sm-12 form-section-title"> Information </div>
     <div class="form-group">
-      <label for="stack_template" class="col-sm-1 control-label text-left"> Template </label>
-      <div class="col-sm-11">
-        <select
-          class="form-control"
-          ng-model="$ctrl.selectedTemplate"
-          ng-options="template as template.label for template in $ctrl.templates"
-          ng-change="$ctrl.onChangeTemplate($ctrl.selectedTemplate)"
-        >
-          <option value="" label="Select an Edge stack template" disabled selected="selected"> </option>
-        </select>
+      <div class="col-sm-12">
+        <div class="template-note" ng-bind-html="$ctrl.selectedTemplate.note"></div>
       </div>
     </div>
-    <!-- description -->
-    <div ng-if="$ctrl.selectedTemplate.note">
-      <div class="col-sm-12 form-section-title"> Information </div>
-      <div class="form-group">
-        <div class="col-sm-12">
-          <div class="template-note" ng-bind-html="$ctrl.selectedTemplate.note"></div>
-        </div>
-      </div>
-    </div>
-    <!-- !description -->
-
-    <web-editor-form
-      ng-if="$ctrl.selectedTemplate && $ctrl.formValues.StackFileContent"
-      identifier="template-content-editor"
-      value="$ctrl.formValues.StackFileContent"
-      on-change="($ctrl.onChangeFileContent)"
-      yml="true"
-      placeholder="Define or paste the content of your docker compose file here"
-      ng-required="true"
-    >
-    </web-editor-form>
-
-    <!-- !template -->
   </div>
+  <!-- !description -->
+
+  <web-editor-form
+    ng-if="$ctrl.selectedTemplate && $ctrl.formValues.StackFileContent"
+    identifier="template-content-editor"
+    value="$ctrl.formValues.StackFileContent"
+    on-change="($ctrl.onChangeFileContent)"
+    yml="true"
+    placeholder="Define or paste the content of your docker compose file here"
+    ng-required="true"
+  >
+  </web-editor-form>
+
+  <!-- !template -->
 </div>
