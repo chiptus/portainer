@@ -42,7 +42,9 @@ func (service *Service) DeleteProxy(key string) {
 func (service *Service) createProxy(key, uri string, config *portaineree.RegistryManagementConfiguration) (http.Handler, error) {
 	var proxy http.Handler
 	var err error
-	transport := &http.Transport{}
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+	}
 
 	switch config.Type {
 	case portaineree.AzureRegistry, portaineree.EcrRegistry:

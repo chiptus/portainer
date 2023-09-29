@@ -14,7 +14,8 @@ const defaultClientTimeout = 30 * time.Second
 
 func New() *http.Client {
 	return &http.Client{
-		Timeout: defaultClientTimeout,
+		Timeout:   defaultClientTimeout,
+		Transport: http.DefaultTransport,
 	}
 }
 
@@ -33,7 +34,8 @@ func NewWithOptions(options ...HttpClientOption) *http.Client {
 	}
 
 	client := &http.Client{
-		Timeout: conf.Timeout,
+		Timeout:   conf.Timeout,
+		Transport: http.DefaultTransport,
 	}
 
 	if conf.ExtraClientCert != "" || conf.InsecureSkipVerify {
@@ -42,6 +44,7 @@ func NewWithOptions(options ...HttpClientOption) *http.Client {
 				InsecureSkipVerify: conf.InsecureSkipVerify,
 				RootCAs:            getRoots(conf.ExtraClientCert),
 			},
+			Proxy: http.ProxyFromEnvironment,
 		}
 	}
 
