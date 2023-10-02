@@ -244,7 +244,7 @@ function buildInfoContent(info: LicenseInfo, usedNodes: number) {
           rel="noreferrer"
         >
           <ArrowUpRight aria-hidden="true" size={12} />
-          Upgrade licenses
+          Buy more nodes
         </a>
       </div>
     </div>
