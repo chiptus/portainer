@@ -49,6 +49,24 @@ func GetEndpointsByTags(tx dataservices.DataStoreTx, tagIDs []portaineree.TagID,
 	return results, nil
 }
 
+func getTrustedEndpoints(tx dataservices.DataStoreTx, endpointIDs []portaineree.EndpointID) ([]portaineree.EndpointID, error) {
+	results := []portaineree.EndpointID{}
+	for _, endpointID := range endpointIDs {
+		endpoint, err := tx.Endpoint().Endpoint(endpointID)
+		if err != nil {
+			return nil, err
+		}
+
+		if !endpoint.UserTrusted {
+			continue
+		}
+
+		results = append(results, endpoint.ID)
+	}
+
+	return results, nil
+}
+
 func mapEndpointGroupToEndpoints(endpoints []portaineree.Endpoint) map[portaineree.EndpointGroupID]endpointSetType {
 	groupEndpoints := map[portaineree.EndpointGroupID]endpointSetType{}
 
