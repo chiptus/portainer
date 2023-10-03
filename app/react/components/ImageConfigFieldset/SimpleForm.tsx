@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 
 import DockerIcon from '@/assets/ico/vendor/docker.svg?c';
 import { RegistryTypes } from '@/portainer/models/registryTypes';
-import { useImages } from '@/react/docker/images/queries/useImages';
+import { useImages } from '@/react/docker/proxy/queries/images/useImages';
 import {
   imageContainsURL,
   getUniqueTagListFromImages,

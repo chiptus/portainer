@@ -3,14 +3,14 @@ import { Trash2 } from 'lucide-react';
 
 import * as notifications from '@/portainer/services/notifications';
 import type { EnvironmentId } from '@/react/portainer/environments/types';
-import { DockerImage } from '@/react/docker/images/types';
+import { ImagesListResponse } from '@/react/docker/images/queries/useImages';
 
 import { ButtonGroup, Button } from '@@/buttons';
 
 import { removeImage } from './images.service';
 
 interface Props {
-  selectedItems: DockerImage[];
+  selectedItems: ImagesListResponse[];
   endpointId: EnvironmentId;
 }
 
@@ -32,16 +32,19 @@ export function ImagesDatatableActions({ selectedItems, endpointId }: Props) {
     </ButtonGroup>
   );
 
-  async function onRemoveClick(selectedItems: DockerImage[], force?: boolean) {
+  async function onRemoveClick(
+    selectedItems: ImagesListResponse[],
+    force?: boolean
+  ) {
     const images = selectedItems;
 
     for (let i = 0; i < images.length; i += 1) {
       const image = images[i];
       try {
-        await removeImage(endpointId, image, force);
+        await removeImage(endpointId, image.id, force);
         notifications.success(
           'Image removal successfully planned',
-          image.RepoTags[0]
+          image.tags[0]
         );
       } catch (err) {
         notifications.error(

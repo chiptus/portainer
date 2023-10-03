@@ -96,13 +96,10 @@ const ngModule = angular
   .component(
     'dockerImagesDatatable',
     r2a(withUIRouter(withCurrentUser(ImagesDatatable)), [
-      'dataset',
-      'environment',
       'onRemove',
       'isExportInProgress',
       'isHostColumnVisible',
       'onDownload',
-      'onRefresh',
       'onRemove',
     ])
   )

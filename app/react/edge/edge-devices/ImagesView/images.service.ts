@@ -1,6 +1,5 @@
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import axios from '@/portainer/services/axios';
-import { DockerImage } from '@/react/docker/images/types';
 
 interface ImageRemoveOptions {
   Force: boolean;
@@ -15,12 +14,12 @@ interface ImageCommandCreateRequest {
 
 export async function removeImage(
   endpointId: EnvironmentId,
-  image: DockerImage,
+  imageId: string,
   force?: boolean,
   pruneChildren?: boolean
 ) {
   const payload: ImageCommandCreateRequest = {
-    ImageName: image.Id,
+    ImageName: imageId,
     ImageOperation: 'delete',
     ImageRemoveOptions: {
       Force: force ?? false,

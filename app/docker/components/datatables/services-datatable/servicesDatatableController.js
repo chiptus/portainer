@@ -1,5 +1,5 @@
 import _ from 'lodash-es';
-import { ResourceType } from '@/react/docker/images/types';
+import { ResourceType } from '@/react/docker/components/ImageStatus/types';
 
 angular.module('portainer.docker').controller('ServicesDatatableController', [
   '$scope',

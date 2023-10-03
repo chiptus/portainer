@@ -8,6 +8,7 @@ import (
 	"github.com/portainer/portainer-ee/api/docker"
 	"github.com/portainer/portainer-ee/api/docker/client"
 	"github.com/portainer/portainer-ee/api/http/handler/docker/containers"
+	"github.com/portainer/portainer-ee/api/http/handler/docker/images"
 	"github.com/portainer/portainer-ee/api/http/handler/docker/services"
 	"github.com/portainer/portainer-ee/api/http/handler/dockersnapshot"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
@@ -54,6 +55,9 @@ func NewHandler(bouncer security.BouncerService, authorizationService *authoriza
 
 	servicesHandler := services.NewHandler("/{id}/services", bouncer, dataStore, dockerClientFactory)
 	endpointRouter.PathPrefix("/services").Handler(servicesHandler)
+
+	imagesHandler := images.NewHandler("/{id}/images", bouncer, dockerClientFactory)
+	endpointRouter.PathPrefix("/images").Handler(imagesHandler)
 	return h
 }
 
