@@ -143,7 +143,8 @@ func (handler *Handler) stackMigrate(w http.ResponseWriter, r *http.Request) *ht
 	}
 
 	if !isUnique {
-		return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: fmt.Sprintf("A stack with the name '%s' is already running on endpoint '%s'", stack.Name, targetEndpoint.Name), Err: stackutils.ErrStackAlreadyExists}
+		errorMessage := fmt.Sprintf("A stack with the name '%s' is already running on endpoint '%s'", stack.Name, targetEndpoint.Name)
+		return httperror.Conflict(errorMessage, stackutils.ErrStackAlreadyExists)
 	}
 
 	migrationError := handler.migrateStack(r, stack, targetEndpoint)

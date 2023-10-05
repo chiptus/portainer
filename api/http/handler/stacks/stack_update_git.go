@@ -162,12 +162,12 @@ func (handler *Handler) stackUpdateGit(w http.ResponseWriter, r *http.Request) *
 		if payload.RepositoryGitCredentialID != 0 {
 			credential, err := handler.DataStore.GitCredential().Read(portaineree.GitCredentialID(payload.RepositoryGitCredentialID))
 			if err != nil {
-				return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Git credential not found", Err: err}
+				return httperror.InternalServerError("Git credential not found", err)
 			}
 
 			// Only check the ownership of git credential when it is updated
-			if stack.GitConfig != nil && stack.GitConfig.Authentication != nil && payload.RepositoryGitCredentialID != stack.GitConfig.Authentication.GitCredentialID && credential.UserID != user.ID {
-				return &httperror.HandlerError{StatusCode: http.StatusForbidden, Message: "Couldn't update the git credential for another user", Err: httperrors.ErrUnauthorized}
+			if stack.GitConfig != nil && stack.GitConfig.Authentication != nil && payload.RepositoryGitCredentialID != stack.GitConfig.Authentication.GitCredentialID && credential.UserID != securityContext.UserID {
+				return httperror.Forbidden("Couldn't update the git credential for another user", httperrors.ErrUnauthorized)
 			}
 
 			repositoryUsername = credential.Username

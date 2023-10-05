@@ -165,7 +165,7 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 		return httperror.InternalServerError("Unable to check for name collision", err)
 	}
 	if !isUnique {
-		return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: fmt.Sprintf("A stack with the name '%s' already exists", payload.StackName), Err: stackutils.ErrStackAlreadyExists}
+		return httperror.Conflict(fmt.Sprintf("A stack with the name '%s' already exists", payload.StackName), stackutils.ErrStackAlreadyExists)
 	}
 
 	tokenData, err := security.RetrieveTokenData(r)
@@ -233,7 +233,7 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 		return httperror.InternalServerError("Unable to check for name collision", err)
 	}
 	if !isUnique {
-		return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: fmt.Sprintf("A stack with the name '%s' already exists", payload.StackName), Err: stackutils.ErrStackAlreadyExists}
+		return httperror.Conflict(fmt.Sprintf("A stack with the name '%s' already exists", payload.StackName), stackutils.ErrStackAlreadyExists)
 	}
 
 	tokenData, err := security.RetrieveTokenData(r)
@@ -248,7 +248,7 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 			return httperror.InternalServerError("Unable to check for webhook ID collision", err)
 		}
 		if !isUnique {
-			return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: fmt.Sprintf("Webhook ID: %s already exists", payload.AutoUpdate.Webhook), Err: stackutils.ErrWebhookIDAlreadyExists}
+			return httperror.Conflict(fmt.Sprintf("Webhook ID: %s already exists", payload.AutoUpdate.Webhook), stackutils.ErrWebhookIDAlreadyExists)
 		}
 	}
 
@@ -316,7 +316,7 @@ func (handler *Handler) createKubernetesStackFromManifestURL(w http.ResponseWrit
 		return httperror.InternalServerError("Unable to check for name collision", err)
 	}
 	if !isUnique {
-		return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: fmt.Sprintf("A stack with the name '%s' already exists", payload.StackName), Err: stackutils.ErrStackAlreadyExists}
+		return httperror.Conflict(fmt.Sprintf("A stack with the name '%s' already exists", payload.StackName), stackutils.ErrStackAlreadyExists)
 	}
 
 	tokenData, err := security.RetrieveTokenData(r)

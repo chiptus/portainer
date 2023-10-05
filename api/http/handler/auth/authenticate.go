@@ -81,12 +81,12 @@ func (handler *Handler) authenticate(rw http.ResponseWriter, r *http.Request) (*
 		(settings.AuthenticationMethod == portaineree.AuthenticationInternal ||
 			settings.AuthenticationMethod == portaineree.AuthenticationOAuth ||
 			(settings.AuthenticationMethod == portaineree.AuthenticationLDAP && !settings.LDAPSettings.AutoCreateUsers)) {
-		return resp, &httperror.HandlerError{StatusCode: http.StatusUnprocessableEntity, Message: "Invalid credentials", Err: httperrors.ErrUnauthorized}
+		return resp, httperror.NewError(http.StatusUnprocessableEntity, "Invalid credentials", httperrors.ErrUnauthorized)
 	}
 
 	// If the free subscription license is enforced, the standard user are not allowed to log in
 	if user != nil && user.Role != portaineree.AdministratorRole && handler.LicenseService.ShouldEnforceOveruse() {
-		return resp, &httperror.HandlerError{StatusCode: http.StatusPaymentRequired, Message: "Node limit exceeds the 5 node free license, please contact your administrator", Err: httperrors.ErrLicenseOverused}
+		return resp, httperror.NewError(http.StatusPaymentRequired, "Node limit exceeds the 5 node free license, please contact your administrator", httperrors.ErrLicenseOverused)
 	}
 
 	if user != nil && isUserInitialAdmin(user) || settings.AuthenticationMethod == portaineree.AuthenticationInternal {
@@ -95,14 +95,14 @@ func (handler *Handler) authenticate(rw http.ResponseWriter, r *http.Request) (*
 
 	if settings.AuthenticationMethod == portaineree.AuthenticationOAuth {
 		resp.Method = portaineree.AuthenticationOAuth
-		return resp, &httperror.HandlerError{StatusCode: http.StatusUnprocessableEntity, Message: "Only initial admin is allowed to login without oauth", Err: httperrors.ErrUnauthorized}
+		return resp, httperror.NewError(http.StatusUnprocessableEntity, "Only initial admin is allowed to login without oauth", httperrors.ErrUnauthorized)
 	}
 
 	if settings.AuthenticationMethod == portaineree.AuthenticationLDAP {
 		return handler.authenticateLDAP(rw, user, payload.Username, payload.Password, &settings.LDAPSettings)
 	}
 
-	return resp, &httperror.HandlerError{StatusCode: http.StatusUnprocessableEntity, Message: "Login method is not supported", Err: httperrors.ErrUnauthorized}
+	return resp, httperror.NewError(http.StatusUnprocessableEntity, "Login method is not supported", httperrors.ErrUnauthorized)
 }
 
 func isUserInitialAdmin(user *portaineree.User) bool {
@@ -148,7 +148,7 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 
 			if err := handler.updateUserRole(user, userRole); err != nil {
 				return resp,
-					&httperror.HandlerError{StatusCode: http.StatusUnprocessableEntity, Message: "Failed to update user role", Err: err}
+					httperror.NewError(http.StatusUnprocessableEntity, "Failed to update user role", err)
 			}
 		}
 	}
@@ -172,7 +172,7 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 
 		if handler.LicenseService.ShouldEnforceOveruse() {
 			// If the free subscription license is enforced, the LDAP standard user are not allowed to log in
-			return resp, &httperror.HandlerError{StatusCode: http.StatusPaymentRequired, Message: "Node limit exceeds the 5 node free license, please contact your administrator", Err: httperrors.ErrLicenseOverused}
+			return resp, httperror.NewError(http.StatusPaymentRequired, "Node limit exceeds the 5 node free license, please contact your administrator", httperrors.ErrLicenseOverused)
 		}
 	}
 
@@ -188,7 +188,7 @@ func (handler *Handler) authenticateInternal(w http.ResponseWriter, user *portai
 	err := handler.CryptoService.CompareHashAndData(user.Password, password)
 	if err != nil {
 		return resp,
-			&httperror.HandlerError{StatusCode: http.StatusUnprocessableEntity, Message: "Invalid credentials", Err: httperrors.ErrUnauthorized}
+			httperror.NewError(http.StatusUnprocessableEntity, "Invalid credentials", httperrors.ErrUnauthorized)
 	}
 
 	info := handler.LicenseService.Info()
@@ -200,7 +200,7 @@ func (handler *Handler) authenticateInternal(w http.ResponseWriter, user *portai
 
 		if handler.LicenseService.ShouldEnforceOveruse() {
 			// If the free subscription license is enforced, the standard user are not allowed to log in
-			return resp, &httperror.HandlerError{StatusCode: http.StatusPaymentRequired, Message: "Node limit exceeds the 5 node free license, please contact your administrator", Err: httperrors.ErrLicenseOverused}
+			return resp, httperror.NewError(http.StatusPaymentRequired, "Node limit exceeds the 5 node free license, please contact your administrator", httperrors.ErrLicenseOverused)
 		}
 	}
 

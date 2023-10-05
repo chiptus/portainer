@@ -146,7 +146,7 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 
 		if handler.LicenseService.ShouldEnforceOveruse() {
 			// If the free subscription license is enforced, the OAuth standard user are not allowed to log in
-			return resp, &httperror.HandlerError{StatusCode: http.StatusPaymentRequired, Message: "Node limit exceeds the 5 node free license, please contact your administrator", Err: httperrors.ErrLicenseOverused}
+			return resp, httperror.NewError(http.StatusPaymentRequired, "Node limit exceeds the 5 node free license, please contact your administrator", httperrors.ErrLicenseOverused)
 		}
 	}
 

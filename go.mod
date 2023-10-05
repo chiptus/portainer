@@ -53,7 +53,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/portainer/liblicense/v3 v3.0.0
-	github.com/portainer/portainer v0.6.1-0.20230928231309-56ab19433a63
+	github.com/portainer/portainer v0.6.1-0.20231005082624-95f3cf6e5b85
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.30.0
 	github.com/sashabaranov/go-openai v1.9.3

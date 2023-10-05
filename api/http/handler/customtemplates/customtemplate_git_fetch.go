@@ -67,7 +67,7 @@ func (handler *Handler) customTemplateGitFetch(w http.ResponseWriter, r *http.Re
 	if customTemplate.GitConfig.Authentication != nil && customTemplate.GitConfig.Authentication.GitCredentialID != 0 {
 		credential, err := handler.DataStore.GitCredential().Read(portaineree.GitCredentialID(customTemplate.GitConfig.Authentication.GitCredentialID))
 		if err != nil {
-			return &httperror.HandlerError{StatusCode: http.StatusInternalServerError, Message: "Git credential not found", Err: err}
+			return httperror.InternalServerError("Git credential not found", err)
 		}
 
 		customTemplate.GitConfig.Authentication.Username = credential.Username

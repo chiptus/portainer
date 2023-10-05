@@ -69,7 +69,7 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 	if payload.Name != nil && *payload.Name != item.Name {
 		err = handler.validateUniqueName(*payload.Name, item.ID)
 		if err != nil {
-			return httperror.NewError(http.StatusConflict, "Edge update schedule name already in use", err)
+			return httperror.Conflict("Edge update schedule name already in use", err)
 		}
 
 		item.Name = *payload.Name

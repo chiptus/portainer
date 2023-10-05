@@ -388,7 +388,7 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 	}
 
 	if !isUnique {
-		return httperror.NewError(http.StatusConflict, "Name is not unique", nil)
+		return httperror.Conflict("Name is not unique", nil)
 	}
 
 	payload.InitialStatus = portaineree.EndpointStatusUp

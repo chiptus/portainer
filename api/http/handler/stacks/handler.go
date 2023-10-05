@@ -51,7 +51,7 @@ type Handler struct {
 func stackExistsError(name string) *httperror.HandlerError {
 	msg := fmt.Sprintf("A stack with the normalized name '%s' already exists", name)
 	err := errors.New(msg)
-	return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: msg, Err: err}
+	return httperror.Conflict(msg, err)
 }
 
 // NewHandler creates a handler to manage stack operations.
@@ -251,7 +251,7 @@ func (handler *Handler) checkUniqueWebhookID(webhookID string) *httperror.Handle
 		return httperror.InternalServerError("Unable to check for webhook ID collision", err)
 	}
 	if !isUnique {
-		return &httperror.HandlerError{StatusCode: http.StatusConflict, Message: fmt.Sprintf("Webhook ID: %s already exists", webhookID), Err: stackutils.ErrWebhookIDAlreadyExists}
+		return httperror.Conflict(fmt.Sprintf("Webhook ID: %s already exists", webhookID), stackutils.ErrWebhookIDAlreadyExists)
 	}
 	return nil
 
