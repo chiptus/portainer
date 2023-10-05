@@ -70,14 +70,14 @@
 
 <div class="form-group" style="margin-top: 10px">
   <div class="col-sm-12">
-    <button class="label label-default interactive vertical-center" style="border: 0" ng-click="$ctrl.onAddClick()">
-      <pr-icon icon="'plus-circle'"></pr-icon>
-      add group search configuration
+    <button class="btn btn-sm btn-light vertical-center !ml-0" ng-click="$ctrl.onAddClick()">
+      <pr-icon icon="'plus'"></pr-icon>
+      Add group search configuration
     </button>
   </div>
   <div class="col-sm-12 vertical-center mt-2">
     <button
-      class="btn btm-sm btn-primary"
+      class="btn btm-sm btn-primary !ml-0"
       type="button"
       ng-click="$ctrl.search()"
       limited-feature-dir="{{ $ctrl.limitedFeatureId }}"

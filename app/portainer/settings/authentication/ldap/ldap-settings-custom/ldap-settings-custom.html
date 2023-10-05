@@ -18,21 +18,7 @@
 </div>
 
 <div class="form-group">
-  <label for="ldap_url" class="col-sm-3 col-lg-2 control-label text-left" style="display: flex; flex-wrap: wrap">
-    LDAP Server
-    <button
-      type="button"
-      class="label label-default interactive vertical-center"
-      style="border: 0"
-      ng-click="$ctrl.addLDAPUrl()"
-      limited-feature-dir="{{ $ctrl.limitedFeatureId }}"
-      limited-feature-disabled
-      limited-feature-class="limited-be"
-    >
-      <pr-icon icon="'plus-circle'"></pr-icon>
-      Add additional server
-    </button>
-  </label>
+  <label for="ldap_url" class="col-sm-3 col-lg-2 control-label text-left" style="display: flex; flex-wrap: wrap"> LDAP Server </label>
   <div class="col-sm-9 col-lg-10">
     <div ng-repeat="url in $ctrl.settings.URLs track by $index" style="display: flex; margin-bottom: 10px">
       <!-- Attribute required will change the ng-model value to undefined if the input value is empty. -->
@@ -41,6 +27,19 @@
         <pr-icon icon="'trash-2'" size="'md'"></pr-icon>
       </button>
     </div>
+  </div>
+  <div class="col-sm-12">
+    <button
+      type="button"
+      class="btn btn-sm btn-default !ml-0"
+      ng-click="$ctrl.addLDAPUrl()"
+      limited-feature-dir="{{ $ctrl.limitedFeatureId }}"
+      limited-feature-disabled
+      limited-feature-class="limited-be"
+    >
+      <pr-icon icon="'plus'"></pr-icon>
+      Add additional server
+    </button>
   </div>
 </div>
 
