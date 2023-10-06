@@ -31,17 +31,8 @@ export function UpdateScheduleDetailsFieldset({
 
   return (
     <>
-      {environments.length > 0 ? (
-        !!version && (
-          <TextTip color="blue">
-            {environments.length} environment(s) will be updated to {version}
-          </TextTip>
-        )
-      ) : (
-        <TextTip color="orange">
-          No environments options for the selected edge groups
-        </TextTip>
-      )}
+      <EnvironmentInfo environments={environments} version={version} />
+
       <VersionSelect minVersion={minVersion} />
 
       {hasTimeZone && hasGroupSelected && <ScheduledTimeField />}
@@ -52,5 +43,59 @@ export function UpdateScheduleDetailsFieldset({
         </TextTip>
       )}
     </>
+  );
+}
+
+function EnvironmentInfo({
+  environments,
+  version,
+}: {
+  environments: Environment[];
+  version: string;
+}) {
+  if (!environments.length) {
+    return (
+      <TextTip color="orange">
+        No environments options for the selected edge groups
+      </TextTip>
+    );
+  }
+
+  if (!version) {
+    return null;
+  }
+
+  const environmentsAlreadyOnVersion = environments.filter(
+    (env) =>
+      !env.Agent.Version || semverCompare(version, env.Agent.Version) <= 0
+  ).length;
+
+  const environmentsToUpdate =
+    environments.length - environmentsAlreadyOnVersion;
+
+  if (environmentsToUpdate === 0) {
+    return (
+      <TextTip color="orange">
+        All edge agents are already running version {version}
+      </TextTip>
+    );
+  }
+
+  return (
+    <TextTip color="blue">
+      {environmentsAlreadyOnVersion > 0 && (
+        <>
+          {environmentsAlreadyOnVersion} edge agent
+          {environmentsAlreadyOnVersion > 1 ? 's are' : ' is'} currently running
+          version greater than or equal to {version}, and{' '}
+        </>
+      )}
+      {environmentsToUpdate > 0 && (
+        <>
+          {environments.length - environmentsAlreadyOnVersion} will be updated
+          to version {version}
+        </>
+      )}
+    </TextTip>
   );
 }

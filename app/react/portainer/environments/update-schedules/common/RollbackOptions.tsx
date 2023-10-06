@@ -59,24 +59,32 @@ function useSelectVersionOnMount() {
 
   const id = parseInt(idParam, 10);
 
-  const previousVersionsQuery = usePreviousVersions<string[]>({
+  const previousVersionsQuery = usePreviousVersions({
     enabled: !!environmentIdsQuery.data,
     skipScheduleID: id,
   });
 
-  const previousVersions = useMemo(
-    () =>
-      previousVersionsQuery.data
-        ? _.uniq(
-            _.compact(
-              environmentIdsQuery.data?.map(
-                (envId) => previousVersionsQuery.data[envId]
-              )
-            )
-          )
-        : [],
-    [environmentIdsQuery.data, previousVersionsQuery.data]
-  );
+  const { previousVersions, count } = useMemo(() => {
+    const previousVersions = previousVersionsQuery.data;
+    const environmentIds = environmentIdsQuery.data;
+
+    if (!previousVersions || !environmentIds) {
+      return { previousVersions: [], count: 0 };
+    }
+
+    const filteredVersions = Object.fromEntries(
+      environmentIds
+        .map((envId) => [envId, previousVersions[envId]])
+        .filter(([, version]) => !!version)
+    );
+
+    return {
+      previousVersions: _.uniq(
+        _.compact(Object.values(filteredVersions).flat())
+      ),
+      count: Object.keys(filteredVersions).length,
+    };
+  }, [environmentIdsQuery.data, previousVersionsQuery.data]);
 
   useEffect(() => {
     switch (previousVersions.length) {
@@ -99,7 +107,7 @@ function useSelectVersionOnMount() {
     isLoading: previousVersionsQuery.isLoading,
     versionError,
     version,
-    count: environmentIdsQuery.data?.length,
+    count,
   };
 }
 

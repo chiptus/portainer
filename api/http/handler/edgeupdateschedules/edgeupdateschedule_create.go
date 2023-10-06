@@ -7,11 +7,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
-	"github.com/portainer/portainer-ee/api/internal/edge"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
-	"github.com/portainer/portainer-ee/api/internal/endpointutils"
-	"github.com/portainer/portainer-ee/api/internal/set"
-	pslices "github.com/portainer/portainer-ee/api/internal/slices"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -113,19 +109,9 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 		EdgeGroupIDs: payload.GroupIDs,
 	}
 
-	relatedEnvironments, err := handler.fetchRelatedEnvironments(payload.GroupIDs)
+	relatedEnvironmentsIDs, previousVersions, envType, err := handler.filterEnvironments(payload.GroupIDs, payload.Version, payload.Type == edgetypes.UpdateScheduleRollback, 0)
 	if err != nil {
 		return httperror.InternalServerError("Unable to fetch related environments", err)
-	}
-
-	edgeEnvironmentType, err := handler.validateRelatedEnvironments(relatedEnvironments)
-	if err != nil {
-		return httperror.BadRequest("Fail to validate related environment", err)
-	}
-
-	previousVersions := handler.getPreviousVersions(relatedEnvironments)
-	if err != nil {
-		return httperror.InternalServerError("Unable to fetch previous versions for related endpoints", err)
 	}
 
 	item.EnvironmentsPreviousVersions = previousVersions
@@ -137,17 +123,13 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 
 	scheduleID = item.ID
 
-	relatedEnvironmentsIDs := pslices.Map(relatedEnvironments, func(environment portaineree.Endpoint) portaineree.EndpointID {
-		return environment.ID
-	})
-
 	edgeStackID, err = handler.createUpdateEdgeStack(
 		item.ID,
 		relatedEnvironmentsIDs,
 		payload.RegistryID,
 		payload.Version,
 		payload.ScheduledTime,
-		edgeEnvironmentType,
+		envType,
 	)
 	if err != nil {
 		return httperror.InternalServerError("Unable to create edge stack", err)
@@ -161,100 +143,4 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 
 	needCleanup = false
 	return response.JSON(w, item)
-}
-
-func (handler *Handler) validateRelatedEnvironments(relatedEnvironments []portaineree.Endpoint) (portaineree.EndpointType, error) {
-	if len(relatedEnvironments) == 0 {
-		return 0, errors.New("No related environments")
-	}
-
-	first := relatedEnvironments[0].Type
-	for _, environment := range relatedEnvironments {
-		err := handler.isUpdateSupported(&environment)
-		if err != nil {
-			return 0, err
-		}
-
-		// Make sure that all environments in one edge group are same type
-		if environment.Type != first {
-			return 0, errors.New("Environment type is not unified")
-		}
-	}
-
-	return first, nil
-}
-
-func (handler *Handler) fetchRelatedEnvironments(edgeGroupIds []portaineree.EdgeGroupID) ([]portaineree.Endpoint, error) {
-	relationConfig, err := edge.FetchEndpointRelationsConfig(handler.dataStore)
-	if err != nil {
-		return nil, errors.WithMessage(err, "unable to fetch environment relations config")
-	}
-
-	relatedEnvironmentsIds, err := edge.EdgeStackRelatedEndpoints(edgeGroupIds, relationConfig.Endpoints, relationConfig.EndpointGroups, relationConfig.EdgeGroups)
-	if err != nil {
-		return nil, errors.WithMessage(err, "unable to fetch related environments")
-	}
-
-	environments, err := handler.dataStore.Endpoint().Endpoints()
-	if err != nil {
-		return nil, errors.WithMessage(err, "unable to fetch environments")
-	}
-
-	relatedEnvironmentIdsSet := set.ToSet(relatedEnvironmentsIds)
-
-	relatedEnvironments := []portaineree.Endpoint{}
-
-	for _, environment := range environments {
-		if !relatedEnvironmentIdsSet.Contains(environment.ID) {
-			continue
-		}
-
-		relatedEnvironments = append(relatedEnvironments, environment)
-	}
-
-	return relatedEnvironments, nil
-}
-
-func (handler *Handler) getPreviousVersions(relatedEnvironments []portaineree.Endpoint) map[portaineree.EndpointID]string {
-	prevVersions := map[portaineree.EndpointID]string{}
-
-	for _, environment := range relatedEnvironments {
-		prevVersions[environment.ID] = environment.Agent.Version
-	}
-
-	return prevVersions
-}
-
-func (handler *Handler) isUpdateSupported(environment *portaineree.Endpoint) error {
-	if !endpointutils.IsEdgeEndpoint(environment) {
-		return errors.New("environment is not an edge endpoint, this feature is limited to edge endpoints")
-	}
-
-	if endpointutils.IsNomadEndpoint(environment) {
-		// Nomad does not need to check snapshot
-		return nil
-	}
-
-	if endpointutils.IsDockerEndpoint(environment) {
-		snapshot, err := handler.dataStore.Snapshot().Read(environment.ID)
-		if err != nil {
-			handler.ReverseTunnelService.SetTunnelStatusToRequired(environment.ID)
-
-			return errors.WithMessage(err, "unable to fetch snapshot, please try again later")
-		}
-
-		if snapshot.Docker == nil {
-			handler.ReverseTunnelService.SetTunnelStatusToRequired(environment.ID)
-
-			return errors.New("missing docker snapshot, please try again later")
-		}
-
-		if snapshot.Docker.Swarm {
-			return errors.New("swarm is not supported")
-		}
-
-		return nil
-	}
-
-	return errors.New("environment is not a docker/nomad endpoint, this feature is limited to docker/nomad endpoints")
 }

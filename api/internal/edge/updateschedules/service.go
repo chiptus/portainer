@@ -15,6 +15,18 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type EdgeUpdateService interface {
+	ActiveSchedule(environmentID portaineree.EndpointID) *edgetypes.EndpointUpdateScheduleRelation
+	ActiveSchedules(environmentsIDs []portaineree.EndpointID) []edgetypes.EndpointUpdateScheduleRelation
+	RemoveActiveSchedule(environmentID portaineree.EndpointID, scheduleID edgetypes.UpdateScheduleID) error
+	EdgeStackDeployed(environmentID portaineree.EndpointID, updateID edgetypes.UpdateScheduleID)
+	Schedules() ([]edgetypes.UpdateSchedule, error)
+	Schedule(scheduleID edgetypes.UpdateScheduleID) (*edgetypes.UpdateSchedule, error)
+	CreateSchedule(schedule *edgetypes.UpdateSchedule) error
+	UpdateSchedule(id edgetypes.UpdateScheduleID, item *edgetypes.UpdateSchedule) error
+	DeleteSchedule(id edgetypes.UpdateScheduleID) error
+}
+
 // Service manages schedules for edge device updates
 type Service struct {
 	dataStore dataservices.DataStore

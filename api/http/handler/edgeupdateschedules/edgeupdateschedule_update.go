@@ -8,7 +8,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
-	pslices "github.com/portainer/portainer-ee/api/internal/slices"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -111,6 +110,11 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 			item.RegistryID = *payload.RegistryID
 		}
 
+		relatedEnvironmentsIDs, previousVersions, envType, err := handler.filterEnvironments(payload.GroupIDs, *payload.Version, *payload.Type == edgetypes.UpdateScheduleRollback, item.ID)
+		if err != nil {
+			return httperror.InternalServerError("Unable to fetch related environments", err)
+		}
+
 		err = handler.edgeStacksService.DeleteEdgeStack(handler.dataStore, item.EdgeStackID, stack.EdgeGroups)
 		if err != nil {
 			return httperror.InternalServerError("Unable to delete Edge stack and its relations", err)
@@ -123,28 +127,9 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 			}
 		}
 
-		relatedEnvironments, err := handler.fetchRelatedEnvironments(payload.GroupIDs)
-		if err != nil {
-			return httperror.InternalServerError("Unable to fetch related environments", err)
-		}
-
-		relatedEnvironmentsIDs := pslices.Map(relatedEnvironments, func(environment portaineree.Endpoint) portaineree.EndpointID {
-			return environment.ID
-		})
-
-		edgeEnvironmentType, err := handler.validateRelatedEnvironments(relatedEnvironments)
-		if err != nil {
-			return httperror.BadRequest("Fail to validate related environment", err)
-		}
-
-		previousVersions := handler.getPreviousVersions(relatedEnvironments)
-		if err != nil {
-			return httperror.InternalServerError("Unable to fetch previous versions for related endpoints", err)
-		}
-
 		item.EnvironmentsPreviousVersions = previousVersions
 
-		stackID, err := handler.createUpdateEdgeStack(item.ID, relatedEnvironmentsIDs, *payload.RegistryID, item.Version, scheduledTime, edgeEnvironmentType)
+		stackID, err := handler.createUpdateEdgeStack(item.ID, relatedEnvironmentsIDs, *payload.RegistryID, item.Version, scheduledTime, envType)
 		if err != nil {
 			return httperror.InternalServerError("Unable to create Edge stack", err)
 		}

@@ -23,14 +23,14 @@ type Handler struct {
 	requestBouncer       security.BouncerService
 	dataStore            dataservices.DataStore
 	fileService          portainer.FileService
-	updateService        *updateschedules.Service
+	updateService        updateschedules.EdgeUpdateService
 	assetsPath           string
 	edgeStacksService    *edgestacks.Service
 	ReverseTunnelService portaineree.ReverseTunnelService
 }
 
 // NewHandler creates a handler to manage environment update operations.
-func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStore, fileService portainer.FileService, assetsPath string, edgeStacksService *edgestacks.Service, updateService *updateschedules.Service) *Handler {
+func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStore, fileService portainer.FileService, assetsPath string, edgeStacksService *edgestacks.Service, updateService updateschedules.EdgeUpdateService) *Handler {
 	h := &Handler{
 		Router:            mux.NewRouter(),
 		requestBouncer:    bouncer,

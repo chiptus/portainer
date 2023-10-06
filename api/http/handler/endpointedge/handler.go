@@ -28,7 +28,7 @@ type Handler struct {
 	FileService          portainer.FileService
 	ReverseTunnelService portaineree.ReverseTunnelService
 	EdgeService          *edgeasync.Service
-	edgeUpdateService    *updateschedules.Service
+	edgeUpdateService    updateschedules.EdgeUpdateService
 	edgeStackCache       *cache.Cache
 	staggerService       *staggers.Service
 }
@@ -40,7 +40,7 @@ func NewHandler(bouncer security.BouncerService,
 	reverseTunnelService portaineree.ReverseTunnelService,
 	edgeService *edgeasync.Service,
 	licenseService portaineree.LicenseService,
-	edgeUpdateService *updateschedules.Service,
+	edgeUpdateService updateschedules.EdgeUpdateService,
 	staggerService *staggers.Service) *Handler {
 	h := &Handler{
 		Router:               mux.NewRouter(),

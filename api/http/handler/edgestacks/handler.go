@@ -32,7 +32,7 @@ type Handler struct {
 	userActivityService portaineree.UserActivityService
 	edgeAsyncService    *edgeasync.Service
 	edgeStacksService   *edgestackservice.Service
-	edgeUpdateService   *updateschedules.Service
+	edgeUpdateService   updateschedules.EdgeUpdateService
 	KubernetesDeployer  portaineree.KubernetesDeployer
 	scheduler           *scheduler.Scheduler
 	staggerService      *staggers.Service
@@ -47,7 +47,7 @@ func NewHandler(
 	dataStore dataservices.DataStore,
 	edgeAsyncService *edgeasync.Service,
 	edgeStacksService *edgestackservice.Service,
-	edgeUpdateService *updateschedules.Service,
+	edgeUpdateService updateschedules.EdgeUpdateService,
 	scheduler *scheduler.Scheduler,
 	staggerService *staggers.Service,
 ) *Handler {
