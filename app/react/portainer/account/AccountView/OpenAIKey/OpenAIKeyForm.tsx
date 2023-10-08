@@ -92,7 +92,7 @@ export function OpenAIKeyForm({ user }: Props) {
               target="_blank"
               rel="noreferrer"
             >
-              Portainer chatbot blogpost
+              Portainer chatbot blog post
             </a>
             .
           </div>

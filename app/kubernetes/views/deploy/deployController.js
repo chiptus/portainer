@@ -8,7 +8,7 @@ import { renderTemplate } from '@/react/portainer/custom-templates/components/ut
 import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { kubernetes } from '@@/BoxSelector/common-options/deployment-methods';
-import { editor, git, customTemplate, url } from '@@/BoxSelector/common-options/build-methods';
+import { editor, git, customTemplate, url, helm } from '@@/BoxSelector/common-options/build-methods';
 import { confirmWebEditorDiscard } from '@@/modals/confirm';
 import { parseAutoUpdateResponse, transformAutoUpdateViewModel } from '@/react/portainer/gitops/AutoUpdateFieldset/utils';
 import { baseStackWebhookUrl, createWebhookId } from '@/portainer/helpers/webhookHelper';
@@ -37,9 +37,13 @@ class KubernetesDeployController {
       id: null,
     };
 
+    let buildMethod = Number(this.$state.params.buildMethod) || KubernetesDeployBuildMethods.GIT;
+    if (buildMethod > Object.keys(KubernetesDeployBuildMethods).length) {
+      buildMethod = KubernetesDeployBuildMethods.GIT;
+    }
     this.state = {
       DeployType: KubernetesDeployManifestTypes.KUBERNETES,
-      BuildMethod: KubernetesDeployBuildMethods.GIT,
+      BuildMethod: buildMethod,
       tabLogsDisabled: true,
       activeTab: 0,
       viewReady: false,
@@ -387,6 +391,8 @@ class KubernetesDeployController {
           { ...git, value: KubernetesDeployBuildMethods.GIT },
           { ...customTemplate, description: 'Use custom template', value: KubernetesDeployBuildMethods.CUSTOM_TEMPLATE }
         );
+
+        this.Authentication.hasAuthorizations(['HelmInstallChart']) && this.methodOptions.push({ ...helm, value: KubernetesDeployBuildMethods.HELM });
 
         // the selected method must be available
         if (!this.methodOptions.map((option) => option.value).includes(this.state.Method)) {

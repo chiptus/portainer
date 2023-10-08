@@ -2,6 +2,8 @@ module github.com/portainer/portainer-ee
 
 go 1.21
 
+toolchain go1.21.1
+
 require (
 	cloud.google.com/go/compute v1.18.0
 	github.com/Azure/azure-sdk-for-go v63.4.0+incompatible

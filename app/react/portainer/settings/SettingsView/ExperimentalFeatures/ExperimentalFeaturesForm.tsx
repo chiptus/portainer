@@ -94,7 +94,7 @@ export function ExperimentalFeaturesSettingsForm({ settings }: Props) {
               target="_blank"
               rel="noreferrer"
             >
-              Portainer chatbot blogpost
+              Portainer chatbot blog post
             </a>
             .
           </TextTip>

@@ -169,7 +169,8 @@ export function Microk8sCreateClusterForm({
             href="https://www.portainer.io/blog/portainer-microk8s"
             rel="noreferrer"
           >
-            blogpost on creating and managing a MicroK8s cluster from Portainer.
+            blog post on creating and managing a MicroK8s cluster from
+            Portainer.
           </a>
         </p>
       </TextTip>

@@ -358,6 +358,7 @@ func (server *Server) Start() error {
 	userHandler.CryptoService = server.CryptoService
 	userHandler.K8sClientFactory = server.KubernetesClientFactory
 	userHandler.AdminCreationDone = server.AdminCreationDone
+	userHandler.FileService = server.FileService
 
 	var userActivityHandler = useractivity.NewHandler(requestBouncer)
 	userActivityHandler.UserActivityStore = server.UserActivityStore

@@ -5,6 +5,7 @@ import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
 import { GitCredentialsDatatable } from '@/react/portainer/account/AccountView/GitCredentialsDatatable';
+import { HelmRepositoryDatatable } from '@/react/portainer/account/AccountView/HelmRepositoryDatatable';
 import { LicenseInfoPanel } from '@/react/portainer/licenses/components/LicenseInfoPanel';
 import { ChatBotItem } from '@/react/portainer/chat/ChatBot';
 import { TableColumnHeaderImageUpToDate } from '@/react/docker/components/datatables/TableColumnHeaderImageUpToDate';
@@ -160,6 +161,7 @@ export const ngModule = angular
       'isLoading',
       'isRefetching',
       'dataCy',
+      'iconClass',
     ])
   )
   .component(
@@ -177,7 +179,7 @@ export const ngModule = angular
       'className',
     ])
   )
-  .component('badgeIcon', r2a(BadgeIcon, ['icon', 'size']))
+  .component('badgeIcon', r2a(BadgeIcon, ['icon', 'size', 'iconClass']))
   .component(
     'teamsSelector',
     r2a(TeamsSelector, [
@@ -242,6 +244,13 @@ export const ngModule = angular
     'gitCredentialsDatatable',
     r2a(
       withUIRouter(withReactQuery(withCurrentUser(GitCredentialsDatatable))),
+      []
+    )
+  )
+  .component(
+    'helmRepositoryDatatable',
+    r2a(
+      withUIRouter(withReactQuery(withCurrentUser(HelmRepositoryDatatable))),
       []
     )
   )

@@ -99,6 +99,7 @@ type Handler struct {
 	NomadHandler              *nomad.Handler
 	CloudCredentialsHandler   *cloudcredentials.Handler
 	SSHKeyHandler             *sshkey.Handler
+	UserHelmHandler           *helm.Handler
 }
 
 // @title PortainerEE API
