@@ -1487,6 +1487,8 @@ type (
 		StackFileVersion int `example:"1"`
 		// The previous deployment info of the stack
 		PreviousDeploymentInfo *portainer.StackDeploymentInfo `json:"PreviousDeploymentInfo"`
+		// Whether the stack is detached from git
+		IsDetachedFromGit bool `example:"false"`
 	}
 
 	// StackOption represents the options for stack deployment

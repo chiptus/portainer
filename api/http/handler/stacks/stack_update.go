@@ -12,6 +12,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
+	"github.com/portainer/portainer/api/filesystem"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -186,9 +187,6 @@ func (handler *Handler) updateSwarmOrComposeStack(r *http.Request, stack *portai
 		deployments.StopAutoupdate(stack.ID, stack.AutoUpdate.JobID, handler.Scheduler)
 		stack.AutoUpdate = nil
 	}
-	if stack.GitConfig != nil {
-		stack.FromAppTemplate = true
-	}
 
 	var payload updateStackPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
@@ -207,29 +205,15 @@ func (handler *Handler) updateSwarmOrComposeStack(r *http.Request, stack *portai
 	stack.Webhook = payload.Webhook
 
 	if stack.GitConfig != nil {
-		// detach from git
-		stack.GitConfig = nil
-		stack.PreviousDeploymentInfo = nil
-		stack.StackFileVersion = 1
+		httpErr := handler.updateStackDeployedByGitRepo(payload, stack)
+		if httpErr != nil {
+			return httpErr
+		}
 	} else {
-		// update or rollback stack file version
-		err = handler.updateStackFileVersion(stack, payload.StackFileContent, payload.RollbackTo)
-		if err != nil {
-			return httperror.BadRequest("Unable to update or rollback stack file version", err)
+		httpErr := handler.updateStackDeployedByFileContent(payload, stack)
+		if httpErr != nil {
+			return httpErr
 		}
-	}
-
-	stackFolder := strconv.Itoa(int(stack.ID))
-	_, err = handler.FileService.StoreStackFileFromBytesByVersion(stackFolder,
-		stack.EntryPoint,
-		stack.StackFileVersion,
-		[]byte(payload.StackFileContent))
-	if err != nil {
-		if rollbackErr := handler.FileService.RollbackStackFileByVersion(stackFolder, stack.StackFileVersion, stack.EntryPoint); rollbackErr != nil {
-			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
-		}
-
-		return httperror.InternalServerError("Unable to persist updated Compose file on disk", err)
 	}
 
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
@@ -264,26 +248,135 @@ func (handler *Handler) updateSwarmOrComposeStack(r *http.Request, stack *portai
 		return httperror.InternalServerError("Invalid stack type", errors.New("invalid stack type"))
 	}
 	if err != nil {
-		if rollbackErr := handler.FileService.RollbackStackFileByVersion(stackFolder, stack.StackFileVersion, stack.EntryPoint); rollbackErr != nil {
-			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
-		}
 		return httperror.InternalServerError(err.Error(), err)
 	}
 
 	// Deploy the stack
 	err = stackDeploymentConfig.Deploy()
 	if err != nil {
-		if rollbackErr := handler.FileService.RollbackStackFileByVersion(stackFolder, stack.StackFileVersion, stack.EntryPoint); rollbackErr != nil {
-			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
-		}
 		return httperror.InternalServerError(err.Error(), err)
 	}
-
-	handler.FileService.RemoveStackFileBackupByVersion(stackFolder, stack.StackFileVersion, stack.EntryPoint)
 
 	go func() {
 		images.EvictImageStatus(stack.Name)
 		EvictSwarmStackImageStatusCache(r.Context(), endpoint, stack.Name, handler.DockerClientFactory)
 	}()
+	return nil
+}
+
+func isFromAppTemplateStackMode(stack *portaineree.Stack) bool {
+	return stack.FromAppTemplate && stack.GitConfig != nil
+}
+
+// updateStackDeployedByGitRepo updates the stack deployed from git repo
+// There are two situations that a stack deployed from git repo will be
+// updated by this function:
+// 1. the stack is deployed from app template stack mode
+// 2. the git repo is detached from the stack
+// After the first time update, the stack will be detached from git repo
+// and treated as a regular stack deployed from file content
+func (handler *Handler) updateStackDeployedByGitRepo(payload updateStackPayload, stack *portaineree.Stack) *httperror.HandlerError {
+	if stack.GitConfig == nil {
+		return httperror.BadRequest("Invalid stack", errors.New("stack is not deployed from git repo"))
+	}
+
+	stackFolder := strconv.Itoa(int(stack.ID))
+
+	// folder structure before update: "/data/compose/1/f94735d43bc9a046bc0f6a794f588140db860742"
+	oldProjectPath := handler.FileService.GetStackProjectPathByVersion(stackFolder, stack.StackFileVersion, stack.GitConfig.ConfigHash)
+
+	// update or rollback stack file version
+	err := handler.updateStackFileVersion(stack, payload.StackFileContent, payload.RollbackTo)
+	if err != nil {
+		return httperror.BadRequest("Unable to update or rollback stack file version", err)
+	}
+
+	// folder structure after update: "/data/compose/1/v1"
+	newProjectPath := handler.FileService.GetStackProjectPathByVersion(stackFolder, stack.StackFileVersion, "")
+
+	// rename "f94735d43bc9a046bc0f6a794f588140db860742" to "v1"
+	err = handler.FileService.SafeMoveDirectory(oldProjectPath, newProjectPath)
+	if err != nil {
+		return httperror.InternalServerError("Failed to move the stack folder", err)
+	}
+
+	_, err = handler.FileService.UpdateStoreStackFileFromBytesByVersion(stackFolder,
+		stack.EntryPoint,
+		stack.StackFileVersion,
+		"",
+		[]byte(payload.StackFileContent))
+	if err != nil {
+		if rollbackErr := handler.FileService.RollbackStackFileByVersion(stackFolder, stack.StackFileVersion, stack.EntryPoint); rollbackErr != nil {
+			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
+		}
+
+		return httperror.InternalServerError("Unable to persist updated Compose file on disk", err)
+	}
+
+	stack.GitConfig = nil
+	stack.PreviousDeploymentInfo = nil
+	stack.IsDetachedFromGit = true
+
+	handler.FileService.RemoveStackFileBackupByVersion(stackFolder, stack.StackFileVersion, stack.EntryPoint)
+
+	return nil
+}
+
+// updateStackDeployedByFileContent updates the stack deployed from file
+// content (non-git repo method)
+func (handler *Handler) updateStackDeployedByFileContent(payload updateStackPayload, stack *portaineree.Stack) *httperror.HandlerError {
+	if stack.GitConfig != nil {
+		return httperror.BadRequest("Invalid stack", errors.New("stack is deployed from git repo"))
+	}
+
+	stackFolder := strconv.Itoa(int(stack.ID))
+
+	folderToBeRemoved := ""
+	if stack.PreviousDeploymentInfo != nil && payload.RollbackTo == nil && stack.IsDetachedFromGit {
+		folderToBeRemoved = handler.FileService.GetStackProjectPathByVersion(stackFolder, stack.PreviousDeploymentInfo.FileVersion, "")
+	}
+
+	// 1. Record the current stack version folder
+	// file structure before update: "/data/compose/1/v5"
+	oldProjectPath := handler.FileService.GetStackProjectPathByVersion(stackFolder, stack.StackFileVersion, "")
+
+	// 2. update stack file version
+	err := handler.updateStackFileVersion(stack, payload.StackFileContent, payload.RollbackTo)
+	if err != nil {
+		return httperror.BadRequest("Unable to update or rollback stack file version", err)
+	}
+
+	// 3. Copy the existing folder to the new stack version folder
+	// file structure after update: "/data/compose/1/v6"
+	newProjectPath := handler.FileService.GetStackProjectPathByVersion(stackFolder, stack.StackFileVersion, "")
+	err = filesystem.CopyDir(oldProjectPath, newProjectPath, false)
+	if err != nil {
+		return httperror.InternalServerError("Failed to copy the stack folder", err)
+	}
+
+	// 4. Update the stack file content in the new stack version folder
+	_, err = handler.FileService.UpdateStoreStackFileFromBytesByVersion(stackFolder,
+		stack.EntryPoint,
+		stack.StackFileVersion,
+		"",
+		[]byte(payload.StackFileContent))
+	if err != nil {
+		if rollbackErr := handler.FileService.RollbackStackFileByVersion(stackFolder, stack.StackFileVersion, stack.EntryPoint); rollbackErr != nil {
+			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
+		}
+
+		return httperror.InternalServerError("Unable to persist updated Compose file on disk", err)
+	}
+
+	// 5. Remove the stack version folders except current and previous version
+	if folderToBeRemoved != "" {
+		err = handler.FileService.RemoveDirectory(folderToBeRemoved)
+		if err != nil {
+			log.Info().Err(err).Msg("failed to remove the stack version folder")
+		}
+	}
+
+	handler.FileService.RemoveStackFileBackupByVersion(stackFolder, stack.StackFileVersion, stack.EntryPoint)
+
 	return nil
 }

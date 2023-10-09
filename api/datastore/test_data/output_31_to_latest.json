@@ -2110,6 +2110,7 @@
       },
       "Id": 2,
       "IsComposeFormat": false,
+      "IsDetachedFromGit": false,
       "Name": "redis",
       "Namespace": "",
       "Option": null,
