@@ -7,12 +7,12 @@ import { useMicroK8sOptions } from '@/react/portainer/environments/wizard/Enviro
 import { useAuthorizations } from '@/react/hooks/useUser';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useEnvironment } from '@/react/portainer/environments/queries';
-import { isErrorType } from '@/react/kubernetes/applications/CreateView/application-services/utils';
 import { OperationStatus } from '@/react/portainer/environments/types';
 
 import { Button, LoadingButton } from '@@/buttons';
 import { TextTip } from '@@/Tip/TextTip';
 import { InlineLoader } from '@@/InlineLoader';
+import { isErrorType } from '@@/form-components/formikUtils';
 
 import {
   AddOnFormValue,

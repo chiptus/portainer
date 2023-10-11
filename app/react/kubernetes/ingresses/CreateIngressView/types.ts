@@ -1,4 +1,9 @@
-import { Annotation } from '@/react/kubernetes/annotations/types';
+import { ReactNode } from 'react';
+
+import {
+  Annotation,
+  AnnotationErrors,
+} from '@/react/kubernetes/annotations/types';
 
 import { Option } from '@@/form-components/Input/Select';
 
@@ -40,3 +45,7 @@ export type GroupedServiceOptions = {
   label: string;
   options: ServiceOption[];
 }[];
+
+export type IngressErrors = Record<string, ReactNode> & {
+  annotations?: AnnotationErrors;
+};

@@ -6,9 +6,9 @@ import { debounce } from 'lodash';
 import { Button } from '@@/buttons';
 import { Tooltip } from '@@/Tip/Tooltip';
 
-import { Annotation } from './types';
+import { Annotation, AnnotationErrors } from './types';
 import { IngressActions } from './IngressActions';
-import { AnnotationErrors, AnnotationsForm } from './AnnotationsForm';
+import { AnnotationsForm } from './AnnotationsForm';
 
 interface Props {
   index?: number;
@@ -29,7 +29,7 @@ interface Props {
 export function Annotations({
   initialAnnotations,
   hideForm,
-  errors = {},
+  errors = [],
   placeholder = ['e.g. app.kubernetes.io/name', 'e.g. examplename'],
   ingressType,
   handleUpdateAnnotations = () => {},

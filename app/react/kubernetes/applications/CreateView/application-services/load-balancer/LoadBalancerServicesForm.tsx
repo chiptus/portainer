@@ -1,9 +1,11 @@
 import { Plus, RefreshCw } from 'lucide-react';
 import { FormikErrors } from 'formik';
 
-import { AnnotationErrors } from '@/react/kubernetes/annotations/AnnotationsForm';
 import { KubernetesApplicationPublishingTypes } from '@/kubernetes/models/application/models';
-import { Annotation } from '@/react/kubernetes/annotations/types';
+import {
+  Annotation,
+  AnnotationErrors,
+} from '@/react/kubernetes/annotations/types';
 import { useCurrentUser } from '@/react/hooks/useUser';
 import { useEnvironment } from '@/react/portainer/environments/queries';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
@@ -148,7 +150,7 @@ export function LoadBalancerServicesForm({
               newService.Ports = [newServicePort];
               newService.Selector = selector;
               onChangeService([...services, newService]);
-              setAnnotationsErrors([...annotationsErrors, {}]);
+              setAnnotationsErrors([...annotationsErrors, []]);
             }}
             disabled={!loadBalancerEnabled}
             data-cy="k8sAppCreate-createServiceButton"

@@ -3,16 +3,19 @@ import { ChangeEvent } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 
 import { Annotations } from '@/react/kubernetes/annotations';
-import { AnnotationErrors } from '@/react/kubernetes/annotations/AnnotationsForm';
-import { Annotation } from '@/react/kubernetes/annotations/types';
+import {
+  Annotation,
+  AnnotationErrors,
+} from '@/react/kubernetes/annotations/types';
 
 import { FormError } from '@@/form-components/FormError';
 import { ButtonSelector } from '@@/form-components/ButtonSelector/ButtonSelector';
 import { Button } from '@@/buttons';
 import { Card } from '@@/Card';
 import { Widget } from '@@/Widget';
+import { isErrorType } from '@@/form-components/formikUtils';
 
-import { isErrorType, newPort } from '../utils';
+import { newPort } from '../utils';
 import {
   ServiceFormValues,
   ServicePort,

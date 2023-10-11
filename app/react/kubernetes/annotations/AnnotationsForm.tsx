@@ -1,14 +1,13 @@
-import { ChangeEvent, ReactNode } from 'react';
+import { ChangeEvent } from 'react';
 import { Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 
 import { FormError } from '@@/form-components/FormError';
 import { Button } from '@@/buttons';
+import { isArrayErrorType } from '@@/form-components/formikUtils';
 
 import { ReadOnly } from './ReadOnly';
-import { Annotation } from './types';
-
-export type AnnotationErrors = Record<string, ReactNode>;
+import { Annotation, AnnotationErrors } from './types';
 
 interface Props {
   annotations: Annotation[];
@@ -18,9 +17,9 @@ interface Props {
     val: string
   ) => void;
   removeAnnotation: (index: number) => void;
-  errors: AnnotationErrors;
   placeholder: string[];
   disabled?: boolean;
+  errors?: AnnotationErrors;
   screen?: string;
 }
 
@@ -36,6 +35,10 @@ export function AnnotationsForm({
   if (disabled && screen !== 'ingress') {
     return <ReadOnly annotations={annotations} />;
   }
+
+  const annotationErrors = isArrayErrorType<Annotation>(errors)
+    ? errors
+    : undefined;
 
   return (
     <>
@@ -63,9 +66,9 @@ export function AnnotationsForm({
                 disabled={disabled}
               />
             </div>
-            {errors[`annotations.key[${i}]`] && (
-              <FormError className="!mb-0 mt-1">
-                {errors[`annotations.key[${i}]`]}
+            {annotationErrors?.[i]?.Key && (
+              <FormError className="mt-1 !mb-0">
+                {annotationErrors[i]?.Key}
               </FormError>
             )}
           </div>
@@ -91,9 +94,9 @@ export function AnnotationsForm({
                 disabled={disabled}
               />
             </div>
-            {errors[`annotations.value[${i}]`] && (
-              <FormError className="!mb-0 mt-1">
-                {errors[`annotations.value[${i}]`]}
+            {annotationErrors?.[i]?.Value && (
+              <FormError className="mt-1 !mb-0">
+                {annotationErrors[i]?.Value}
               </FormError>
             )}
           </div>

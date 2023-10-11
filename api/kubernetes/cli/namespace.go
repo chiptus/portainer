@@ -8,7 +8,9 @@ import (
 	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	models "github.com/portainer/portainer-ee/api/http/models/kubernetes"
+	"github.com/rs/zerolog/log"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -62,14 +64,78 @@ func (kcl *KubeClient) GetNamespace(name string) (portaineree.K8sNamespaceInfo, 
 
 // CreateNamespace creates a new ingress in a given namespace in a k8s endpoint.
 func (kcl *KubeClient) CreateNamespace(info models.K8sNamespaceDetails) error {
-	client := kcl.cli.CoreV1().Namespaces()
 
 	var ns v1.Namespace
 	ns.Name = info.Name
 	ns.Annotations = info.Annotations
 
-	_, err := client.Create(context.Background(), &ns, metav1.CreateOptions{})
-	return err
+	resourceQuota := &v1.ResourceQuota{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "portainer-rq-" + info.Name,
+			Namespace: info.Name,
+		},
+		Spec: v1.ResourceQuotaSpec{
+			Hard: v1.ResourceList{},
+		},
+	}
+
+	_, err := kcl.cli.CoreV1().Namespaces().Create(context.Background(), &ns, metav1.CreateOptions{})
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("Namespace", info.Name).
+			Interface("ResourceQuota", resourceQuota).
+			Msg("Failed to create the namespace due to a resource quota issue.")
+		return err
+	}
+
+	if (info.ResourceQuota != nil && info.ResourceQuota.Enabled) || (info.LoadBalancerQuota != nil && info.LoadBalancerQuota.Enabled) {
+		log.Info().Msgf("Creating resource quota for namespace %s", info.Name)
+		log.Debug().Msgf("Creating resource quota with details: %+v", info.ResourceQuota)
+
+		if info.ResourceQuota.Enabled {
+			memory := resource.MustParse(info.ResourceQuota.Memory)
+			cpu := resource.MustParse(info.ResourceQuota.CPU)
+			if memory.Value() > 0 {
+				memQuota := memory
+				resourceQuota.Spec.Hard[v1.ResourceLimitsMemory] = memQuota
+				resourceQuota.Spec.Hard[v1.ResourceRequestsMemory] = memQuota
+			}
+
+			if cpu.Value() > 0 {
+				cpuQuota := cpu
+				resourceQuota.Spec.Hard[v1.ResourceLimitsCPU] = cpuQuota
+				resourceQuota.Spec.Hard[v1.ResourceRequestsCPU] = cpuQuota
+			}
+		}
+
+		if info.LoadBalancerQuota.Enabled {
+			loadbalancer := resource.NewQuantity(info.LoadBalancerQuota.Limit, resource.DecimalSI)
+			if loadbalancer.Value() >= 0 {
+				lbQuota := *loadbalancer
+				resourceQuota.Spec.Hard[v1.ResourceServicesLoadBalancers] = lbQuota
+			}
+		}
+
+		for className, storageClass := range info.StorageQuotas {
+			if storageClass.Enabled {
+				storage := resource.MustParse(storageClass.Limit)
+				if storage.Value() >= 0 {
+					storageQuota := storage
+					quotaField := fmt.Sprintf("%s.storageclass.storage.k8s.io/requests.storage", className)
+					resourceQuota.Spec.Hard[v1.ResourceName(quotaField)] = storageQuota
+				}
+			}
+		}
+
+		_, err := kcl.cli.CoreV1().ResourceQuotas(info.Name).Create(context.Background(), resourceQuota, metav1.CreateOptions{})
+		if err != nil {
+			log.Error().Msgf("Failed to create resource quota for namespace %s: %s", info.Name, err)
+			return err
+		}
+	}
+
+	return nil
 }
 
 func isSystemNamespace(namespace v1.Namespace) bool {

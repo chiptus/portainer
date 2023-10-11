@@ -4,7 +4,6 @@ import { Secret } from 'kubernetes-types/core/v1';
 
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { Authorized, useAuthorizations } from '@/react/hooks/useUser';
-import { useNamespaces } from '@/react/kubernetes/namespaces/queries';
 import { DefaultDatatableSettings } from '@/react/kubernetes/datatables/DefaultDatatableSettings';
 import { createStore } from '@/react/kubernetes/datatables/default-kube-datatable-store';
 import { isSystemNamespace } from '@/react/kubernetes/namespaces/utils';
@@ -13,6 +12,7 @@ import { useApplicationsForCluster } from '@/react/kubernetes/applications/appli
 import { Application } from '@/react/kubernetes/applications/types';
 import { useIsDeploymentOptionHidden } from '@/react/hooks/useIsDeploymentOptionHidden';
 import { pluralize } from '@/portainer/helpers/strings';
+import { useNamespacesQuery } from '@/react/kubernetes/namespaces/queries/useNamespacesQuery';
 
 import { Datatable, TableSettingsMenu } from '@@/datatables';
 import { confirmDelete } from '@@/modals/confirm';
@@ -42,7 +42,7 @@ export function SecretsDatatable() {
   const isAddSecretHidden = useIsDeploymentOptionHidden('form');
 
   const environmentId = useEnvironmentId();
-  const { data: namespaces, ...namespacesQuery } = useNamespaces(
+  const { data: namespaces, ...namespacesQuery } = useNamespacesQuery(
     environmentId,
     {
       autoRefreshRate: tableState.autoRefreshRate * 1000,

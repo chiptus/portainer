@@ -10,12 +10,12 @@ import {
 import { buildUrl } from './utils';
 
 export async function updateEnvironmentRegistryAccess(
-  id: EnvironmentId,
+  environmentId: EnvironmentId,
   registryId: RegistryId,
-  access: RegistryAccess
+  access: Partial<RegistryAccess>
 ) {
   try {
-    await axios.put<void>(buildRegistryUrl(id, registryId), access);
+    await axios.put<void>(buildRegistryUrl(environmentId, registryId), access);
   } catch (e) {
     throw parseAxiosError(e as Error);
   }

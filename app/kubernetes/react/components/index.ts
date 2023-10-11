@@ -1,7 +1,7 @@
 import angular from 'angular';
 
 import { r2a } from '@/react-tools/react2angular';
-import { IngressClassDatatable } from '@/react/kubernetes/cluster/ingressClass/IngressClassDatatable';
+import { IngressClassDatatableAngular } from '@/react/kubernetes/cluster/ingressClass/IngressClassDatatable/IngressClassDatatableAngular';
 import { withReactQuery } from '@/react-tools/withReactQuery';
 import { NamespacesSelector } from '@/react/kubernetes/cluster/RegistryAccessView/NamespacesSelector';
 import { withUIRouter } from '@/react-tools/withUIRouter';
@@ -10,7 +10,7 @@ import { NamespaceAccessUsersSelector } from '@/react/kubernetes/namespaces/Acce
 import { Microk8sUpdateWidget } from '@/react/kubernetes/cluster/HomeView/Microk8sClusterDetails';
 import { Microk8sClusterDetails } from '@/react/portainer/environments/ItemView/Microk8sClusterDetails';
 import { NodesDatatable } from '@/react/kubernetes/cluster/HomeView/NodesDatatable';
-import { CreateNamespaceRegistriesSelector } from '@/react/kubernetes/namespaces/CreateView/CreateNamespaceRegistriesSelector';
+import { RegistriesSelector } from '@/react/kubernetes/namespaces/components/RegistriesFormSection/RegistriesSelector';
 import { KubeApplicationAccessPolicySelector } from '@/react/kubernetes/applications/CreateView/KubeApplicationAccessPolicySelector';
 import { KubeServicesForm } from '@/react/kubernetes/applications/CreateView/application-services/KubeServicesForm';
 import { kubeServicesValidation } from '@/react/kubernetes/applications/CreateView/application-services/kubeServicesValidation';
@@ -32,7 +32,7 @@ export const ngModule = angular
   .module('portainer.kubernetes.react.components', [])
   .component(
     'ingressClassDatatable',
-    r2a(IngressClassDatatable, [
+    r2a(IngressClassDatatableAngular, [
       'onChangeControllers',
       'description',
       'ingressControllers',
@@ -94,12 +94,7 @@ export const ngModule = angular
   )
   .component(
     'createNamespaceRegistriesSelector',
-    r2a(CreateNamespaceRegistriesSelector, [
-      'inputId',
-      'onChange',
-      'options',
-      'value',
-    ])
+    r2a(RegistriesSelector, ['inputId', 'onChange', 'options', 'value'])
   )
   .component(
     'kubeApplicationAccessPolicySelector',

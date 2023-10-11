@@ -398,7 +398,7 @@ class KubernetesResourcePoolController {
   }
 
   isAnnotationsValid() {
-    return Object.keys(this.state.annotationsErrors).length === 0;
+    return !this.state.annotationsErrors;
   }
 
   /* #region  ON INIT */

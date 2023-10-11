@@ -2,8 +2,10 @@ import { FormikErrors } from 'formik';
 import { ChangeEvent, useRef } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 
-import { AnnotationErrors } from '@/react/kubernetes/annotations/AnnotationsForm';
-import { Annotation } from '@/react/kubernetes/annotations/types';
+import {
+  Annotation,
+  AnnotationErrors,
+} from '@/react/kubernetes/annotations/types';
 import { Annotations } from '@/react/kubernetes/annotations';
 
 import { FormError } from '@@/form-components/FormError';
@@ -12,8 +14,9 @@ import { Button } from '@@/buttons';
 import { Widget } from '@@/Widget';
 import { Card } from '@@/Card';
 import { InputGroup } from '@@/form-components/InputGroup';
+import { isErrorType } from '@@/form-components/formikUtils';
 
-import { isErrorType, newPort } from '../utils';
+import { newPort } from '../utils';
 import { ContainerPortInput } from '../components/ContainerPortInput';
 import {
   ServiceFormValues,

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FormikErrors } from 'formik';
 
-import { Annotation } from '@/react/kubernetes/annotations/types';
-import { AnnotationErrors } from '@/react/kubernetes/annotations/AnnotationsForm';
+import {
+  Annotation,
+  AnnotationErrors,
+} from '@/react/kubernetes/annotations/types';
 import KubernetesAnnotationsUtils from '@/kubernetes/converters/annotations';
 import { KubernetesApplicationPublishingTypes } from '@/kubernetes/models/application/models';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
@@ -192,9 +194,8 @@ export function KubeServicesForm({
     onChange(newServices);
 
     // update the annotation errors
-    annotationsErrors[index] = {
-      ...KubernetesAnnotationsUtils.validateAnnotations(annotations),
-    };
+    annotationsErrors[index] =
+      KubernetesAnnotationsUtils.validateAnnotations(annotations);
     setAnnotationsErrors(annotationsErrors);
   }
 }

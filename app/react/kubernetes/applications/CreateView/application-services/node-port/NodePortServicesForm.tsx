@@ -1,8 +1,10 @@
 import { FormikErrors } from 'formik';
 import { Plus } from 'lucide-react';
 
-import { AnnotationErrors } from '@/react/kubernetes/annotations/AnnotationsForm';
-import { Annotation } from '@/react/kubernetes/annotations/types';
+import {
+  Annotation,
+  AnnotationErrors,
+} from '@/react/kubernetes/annotations/types';
 import { KubernetesApplicationPublishingTypes } from '@/kubernetes/models/application/models';
 
 import { Card } from '@@/Card';
@@ -100,7 +102,7 @@ export function NodePortServicesForm({
               newService.Ports = [newServicePort];
               newService.Selector = selector;
               onChangeService([...services, newService]);
-              setAnnotationsErrors([...annotationsErrors, {}]);
+              setAnnotationsErrors([...annotationsErrors, []]);
             }}
             data-cy="k8sAppCreate-createServiceButton"
           >

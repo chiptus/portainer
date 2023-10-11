@@ -1,4 +1,4 @@
-import { ChangeEvent, ReactNode, useEffect } from 'react';
+import { ChangeEvent, useEffect } from 'react';
 import { Plus, RefreshCw, Trash2 } from 'lucide-react';
 
 import { Annotations } from '@/react/kubernetes/annotations';
@@ -16,7 +16,12 @@ import { Select } from '@@/form-components/ReactSelect';
 import { Card } from '@@/Card';
 import { InputGroup } from '@@/form-components/InputGroup';
 
-import { GroupedServiceOptions, Rule, ServicePorts } from './types';
+import {
+  GroupedServiceOptions,
+  IngressErrors,
+  Rule,
+  ServicePorts,
+} from './types';
 
 import '../style.css';
 
@@ -35,7 +40,7 @@ interface Props {
   environmentID: number;
   rule: Rule;
 
-  errors: Record<string, ReactNode>;
+  errors: IngressErrors;
   isEdit: boolean;
   namespace: string;
 
@@ -264,7 +269,7 @@ export function IngressForm({
             <Annotations
               placeholder={placeholderAnnotation}
               initialAnnotations={rule.Annotations || []}
-              errors={errors}
+              errors={errors.annotations}
               hideForm={hideForm}
               handleUpdateAnnotations={handleUpdateAnnotations}
               ingressType={rule.IngressType}

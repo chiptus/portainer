@@ -1,9 +1,11 @@
 import { Plus } from 'lucide-react';
 import { FormikErrors } from 'formik';
 
-import { AnnotationErrors } from '@/react/kubernetes/annotations/AnnotationsForm';
 import { KubernetesApplicationPublishingTypes } from '@/kubernetes/models/application/models';
-import { Annotation } from '@/react/kubernetes/annotations/types';
+import {
+  Annotation,
+  AnnotationErrors,
+} from '@/react/kubernetes/annotations/types';
 
 import { Card } from '@@/Card';
 import { TextTip } from '@@/Tip/TextTip';
@@ -102,7 +104,7 @@ export function ClusterIpServicesForm({
               newService.Ports = [newServicePort];
               newService.Selector = selector;
               onChangeService([...services, newService]);
-              setAnnotationsErrors([...annotationsErrors, {}]);
+              setAnnotationsErrors([...annotationsErrors, []]);
             }}
             data-cy="k8sAppCreate-createServiceButton"
           >

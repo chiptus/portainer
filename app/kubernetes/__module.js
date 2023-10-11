@@ -1,6 +1,6 @@
 import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 import { EnvironmentStatus } from '@/react/portainer/environments/types';
-import { getSelfSubjectAccessReview } from '@/react/kubernetes/namespaces/service';
+import { getSelfSubjectAccessReview } from '@/react/kubernetes/namespaces/getSelfSubjectAccessReview';
 
 import { PortainerEndpointTypes } from 'Portainer/models/endpoint/models';
 
@@ -484,26 +484,13 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
       },
     };
 
-    const resourcePoolCreation = {
+    const namespaceCreation = {
       name: 'kubernetes.resourcePools.new',
       url: '/new',
       views: {
         'content@': {
-          component: 'kubernetesCreateResourcePoolView',
+          component: 'kubernetesCreateNamespaceView',
         },
-      },
-      onEnter: /* @ngInject */ function endpoint($async, $state, $transition$, Notifications) {
-        return $async(async () => {
-          try {
-            const endpointId = +$transition$.params().endpointId;
-            const deploymentOptions = await getDeploymentOptions(endpointId);
-            if (deploymentOptions.hideAddWithForm) {
-              $state.go('kubernetes.resourcePools', { endpointId });
-            }
-          } catch (err) {
-            Notifications.error('Failed to get deployment options', err);
-          }
-        });
       },
     };
 
@@ -629,7 +616,7 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
     $stateRegistryProvider.register(nodeShell);
     $stateRegistryProvider.register(microk8sNodeStatus);
     $stateRegistryProvider.register(resourcePools);
-    $stateRegistryProvider.register(resourcePoolCreation);
+    $stateRegistryProvider.register(namespaceCreation);
     $stateRegistryProvider.register(resourcePool);
     $stateRegistryProvider.register(resourcePoolAccess);
     $stateRegistryProvider.register(volumes);

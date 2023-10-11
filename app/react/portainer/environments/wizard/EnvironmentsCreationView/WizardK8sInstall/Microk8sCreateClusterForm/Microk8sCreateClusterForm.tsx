@@ -18,7 +18,6 @@ import {
   GroupedAddonOptions,
 } from '@/react/kubernetes/cluster/microk8s/addons/types';
 import { AddOnSelector } from '@/react/kubernetes/cluster/microk8s/addons/AddonSelector';
-import { isErrorType } from '@/react/kubernetes/applications/CreateView/application-services/utils';
 import { BetaAlert } from '@/react/portainer/environments/update-schedules/common/BetaAlert';
 
 import { FormControl } from '@@/form-components/FormControl';
@@ -26,6 +25,7 @@ import { TextTip } from '@@/Tip/TextTip';
 import { Button, LoadingButton } from '@@/buttons';
 import { Select } from '@@/form-components/Input/Select';
 import { Tooltip } from '@@/Tip/Tooltip';
+import { isErrorType } from '@@/form-components/formikUtils';
 
 import { CredentialsField } from '../../WizardKaaS/shared/CredentialsField';
 import { useSetAvailableOption } from '../../WizardKaaS/useSetAvailableOption';

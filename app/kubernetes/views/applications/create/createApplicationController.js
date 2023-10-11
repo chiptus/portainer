@@ -595,9 +595,11 @@ class KubernetesCreateApplicationController {
     let count = 0;
     services.reduce((acc, service) => {
       const serviceAnnotationsErrors = KubernetesAnnotationsUtils.validateAnnotations(service.Annotations);
-      acc += Object.keys(serviceAnnotationsErrors).forEach((key) => {
-        count += Object.keys(serviceAnnotationsErrors[key]).length;
-      });
+      if (serviceAnnotationsErrors) {
+        acc += Object.keys(serviceAnnotationsErrors).forEach((key) => {
+          count += serviceAnnotationsErrors ? Object.keys(serviceAnnotationsErrors[key]).length : 0;
+        });
+      }
       return acc;
     }, count);
     return count === 0;
@@ -1264,7 +1266,7 @@ class KubernetesCreateApplicationController {
   }
 
   isAnnotationsValid() {
-    return Object.keys(this.state.annotationsErrors).length === 0 && this.state.isServiceAnnotationsValid;
+    return !this.state.annotationsErrors && this.state.isServiceAnnotationsValid;
   }
 
   isNoteValid() {

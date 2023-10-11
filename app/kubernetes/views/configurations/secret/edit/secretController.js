@@ -248,7 +248,7 @@ class KubernetesSecretController {
   }
 
   isAnnotationsValid() {
-    return Object.keys(this.state.annotationsErrors).length === 0;
+    return !this.state.annotationsErrors;
   }
 
   async onInit() {

@@ -1921,6 +1921,7 @@ type (
 		GetServices(namespace string, lookupApplications bool) ([]kubeModels.K8sServiceInfo, error)
 		DeleteServices(reqs kubeModels.K8sServiceDeleteRequests) error
 		GetNodesLimits() (K8sNodesLimits, error)
+		GetMaxResourceLimits(name string, overCommitEnabled bool, resourceOverCommitPercent int) (K8sNodeLimits, error)
 		RemoveUserServiceAccount(userID int) error
 		RemoveUserNamespaceBindings(
 			userID int,
