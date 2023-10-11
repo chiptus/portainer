@@ -1,6 +1,5 @@
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import axios from '@/portainer/services/axios';
-import { DockerVolume } from '@/react/docker/volumes/types';
 
 interface VolumeCommandCreateRequest {
   VolumeName: string;
@@ -10,10 +9,10 @@ interface VolumeCommandCreateRequest {
 
 export async function removeVolume(
   endpointId: EnvironmentId,
-  volume: DockerVolume
+  volumeId: string
 ) {
   const payload: VolumeCommandCreateRequest = {
-    VolumeName: volume.Id,
+    VolumeName: volumeId,
     VolumeOperation: 'delete',
     ForceRemove: false,
   };

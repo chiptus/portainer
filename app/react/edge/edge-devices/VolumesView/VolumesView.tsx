@@ -4,7 +4,7 @@ import { Database } from 'lucide-react';
 import { useEnvironment } from '@/react/portainer/environments/queries';
 import { useDockerSnapshot } from '@/react/docker/queries/useDockerSnapshot';
 import { RowProvider } from '@/react/docker/volumes/ListView/VolumesDatatable/RowContext';
-import { id } from '@/react/docker/volumes/ListView/VolumesDatatable/columns/id';
+import { name } from '@/react/docker/volumes/ListView/VolumesDatatable/columns/name';
 import { stackName } from '@/react/docker/volumes/ListView/VolumesDatatable/columns/stackName';
 import { driver } from '@/react/docker/volumes/ListView/VolumesDatatable/columns/driver';
 import { mountPoint } from '@/react/docker/volumes/ListView/VolumesDatatable/columns/mountpoint';
@@ -21,7 +21,7 @@ import { VolumesDatatableActions } from './VolumesDatatableActions';
 const storageKey = 'edge_stack_volumes';
 const settingsStore = createPersistedStore(storageKey, 'created');
 
-export const columns = [id, stackName, driver, mountPoint, created];
+export const columns = [name, stackName, driver, mountPoint, created];
 
 export function VolumesView() {
   const tableState = useTableState(settingsStore, storageKey);
@@ -69,7 +69,7 @@ export function VolumesView() {
 
   const transformedVolumes = volumes.map((v) => ({
     ...v,
-    Used: containers.some((c) => c.Mounts.some((m) => m.Name === v.Id)),
+    dangling: containers.every((c) => c.Mounts.some((m) => m.Name !== v.Id)),
   }));
 
   return (
@@ -94,7 +94,7 @@ export function VolumesView() {
           dataset={transformedVolumes}
           columns={columns}
           emptyContentLabel="No volumes found"
-          isRowSelectable={(row) => !row.original.Used}
+          isRowSelectable={(row) => row.original.dangling}
         />
       </RowProvider>
     </>

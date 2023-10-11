@@ -4,10 +4,10 @@ import {
   COMPOSE_STACK_NAME_LABEL,
   SWARM_STACK_NAME_LABEL,
 } from '@/react/constants';
+import { VolumeViewModel } from '@/docker/models/volume';
 
 import { parseListViewModel as parseContainer } from '../containers/utils';
 import { parseViewModel as parseImage } from '../images/utils';
-import { parseViewModel as parseVolume } from '../volumes/utils';
 
 import { DockerContainerSnapshot, DockerSnapshotRaw } from './types';
 import {
@@ -21,7 +21,7 @@ export function parseViewModel(
   return {
     Containers: response.Containers.map(parseDockerContainerSnapshot),
     Images: response.Images.map(parseImage),
-    Volumes: response.Volumes.Volumes.map(parseVolume),
+    Volumes: response.Volumes.Volumes.map((v) => new VolumeViewModel(v)),
     Info: response.Info,
   };
 }
