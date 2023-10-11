@@ -17,7 +17,7 @@ import { ListView as EnvironmentsListView } from '@/react/portainer/environments
 import { BackupSettingsPanel } from '@/react/portainer/settings/SettingsView/BackupSettingsView/BackupSettingsPanel';
 import { CreateView as licenseCreateView } from '@/react/portainer/licenses/CreateView/CreateView';
 import { SettingsView } from '@/react/portainer/settings/SettingsView/SettingsView';
-import { CreateHelmRepositoriesView } from '@/react/portainer/account/help-repositories/CreateHelmRepositoryView';
+import { CreateHelmRepositoriesView } from '@/react/portainer/account/helm-repositories/CreateHelmRepositoryView';
 
 import { wizardModule } from './wizard';
 import { teamsModule } from './teams';

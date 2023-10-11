@@ -77,6 +77,7 @@ class KubernetesDeployController {
     this.ManifestDeployTypes = KubernetesDeployManifestTypes;
     this.BuildMethods = KubernetesDeployBuildMethods;
 
+    this.onSelectHelmChart = this.onSelectHelmChart.bind(this);
     this.onChangeTemplateId = this.onChangeTemplateId.bind(this);
     this.deployAsync = this.deployAsync.bind(this);
     this.onChangeFileContent = this.onChangeFileContent.bind(this);
@@ -92,6 +93,10 @@ class KubernetesDeployController {
       this.formValues.EditorContent = manifestData;
       this.state.BuildMethod = KubernetesDeployBuildMethods.WEB_EDITOR;
     }
+  }
+
+  onSelectHelmChart(chart) {
+    this.state.selectedHelmChart = chart;
   }
 
   onChangeTemplateVariables(value) {
