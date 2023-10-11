@@ -29,10 +29,6 @@ export function PageHeader({
 }: PropsWithChildren<Props>) {
   const router = useRouter();
 
-  function onClickedRefresh() {
-    return onReload ? onReload() : router.stateService.reload();
-  }
-
   return (
     <HeaderContainer id={id}>
       <Breadcrumbs breadcrumbs={breadcrumbs} />
@@ -53,4 +49,8 @@ export function PageHeader({
       </HeaderTitle>
     </HeaderContainer>
   );
+
+  function onClickedRefresh() {
+    return onReload ? onReload() : router.stateService.reload();
+  }
 }

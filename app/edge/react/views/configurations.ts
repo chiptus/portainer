@@ -37,6 +37,9 @@ function config($stateRegistryProvider: StateRegistry) {
           component: 'edgeConfigurationsListView',
         },
       },
+      data: {
+        docs: '/user/edge/configurations',
+      },
     });
 
     $stateRegistryProvider.register({

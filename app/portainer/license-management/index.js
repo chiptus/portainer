@@ -15,6 +15,9 @@ function config($stateRegistryProvider) {
         component: 'licensesView',
       },
     },
+    data: {
+      docs: '/admin/licenses',
+    },
     onEnter: /* @ngInject */ function onEnter($async, $state, Authentication) {
       return $async(async () => {
         if (!Authentication.isAdmin()) {

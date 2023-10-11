@@ -41,6 +41,9 @@ function config($stateRegistryProvider) {
         }
       });
     },
+    data: {
+      docs: '/user/kubernetes/templates',
+    },
   };
 
   const customTemplatesNew = {
