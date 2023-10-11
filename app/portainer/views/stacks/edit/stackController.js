@@ -378,7 +378,7 @@ angular.module('portainer.app').controller('StackController', [
         $q.all({
           stack: StackService.stack(id),
           groups: GroupService.groups(),
-          containers: ContainerService.containers(true),
+          containers: ContainerService.containers(endpoint.Id, true),
         })
           .then(function success(data) {
             var stack = data.stack;
@@ -446,7 +446,7 @@ angular.module('portainer.app').controller('StackController', [
       return $q.all({
         services: ServiceService.services(stackFilter),
         tasks: TaskService.tasks(stackFilter),
-        containers: agentProxy ? ContainerService.containers(1) : [],
+        containers: agentProxy ? ContainerService.containers(endpoint.Id, 1) : [],
         nodes: NodeService.nodes(),
       });
     }
@@ -479,7 +479,7 @@ angular.module('portainer.app').controller('StackController', [
       };
 
       return $q.all({
-        containers: ContainerService.containers(1, stackFilter),
+        containers: ContainerService.containers(endpoint.Id, 1, stackFilter),
       });
     }
 

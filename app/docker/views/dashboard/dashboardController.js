@@ -80,8 +80,8 @@ angular.module('portainer.docker').controller('DashboardController', [
       $scope.showStacks = await shouldShowStacks();
 
       $q.all({
-        containers: ContainerService.containers(1),
-        images: ImageService.images(false),
+        containers: ContainerService.containers(endpoint.Id, 1),
+        images: ImageService.images(),
         volumes: VolumeService.volumes(),
         networks: NetworkService.networks(true, true, true),
         services: endpointMode.provider === 'DOCKER_SWARM_MODE' && endpointMode.role === 'MANAGER' ? ServiceService.services() : [],

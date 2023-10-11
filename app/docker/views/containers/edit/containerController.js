@@ -165,7 +165,7 @@ angular.module('portainer.docker').controller('ContainerController', [
       HttpRequestHelper.setPortainerAgentTargetHeader(nodeName);
       $scope.nodeName = nodeName;
 
-      ContainerService.container($transition$.params().id)
+      ContainerService.container(endpoint.Id, $transition$.params().id)
         .then(function success(data) {
           var container = data;
           $scope.container = container;
@@ -235,7 +235,7 @@ angular.module('portainer.docker').controller('ContainerController', [
     };
 
     function executeContainerAction(id, action, successMessage, errorMessage) {
-      action(id)
+      action(endpoint.Id, id)
         .then(function success() {
           Notifications.success(successMessage, id);
           update();
@@ -287,7 +287,7 @@ angular.module('portainer.docker').controller('ContainerController', [
         $scope.container.edit = false;
         return;
       }
-      ContainerService.renameContainer($transition$.params().id, container.newContainerName)
+      ContainerService.renameContainer(endpoint.Id, $transition$.params().id, container.newContainerName)
         .then(function success() {
           container.Name = container.newContainerName;
           Notifications.success('Container successfully renamed', container.Name);
@@ -369,7 +369,7 @@ angular.module('portainer.docker').controller('ContainerController', [
     };
 
     function removeContainer(cleanAssociatedVolumes) {
-      ContainerService.remove($scope.container, cleanAssociatedVolumes)
+      ContainerService.remove(endpoint.Id, $scope.container.Id, cleanAssociatedVolumes)
         .then(function success() {
           return $q.when($scope.WebhookID && WebhookService.deleteWebhook($scope.WebhookID));
         })
@@ -386,7 +386,7 @@ angular.module('portainer.docker').controller('ContainerController', [
       var container = $scope.container;
       $scope.state.recreateContainerInProgress = true;
 
-      return ContainerService.recreateContainer(container.Id, pullImage).then(notifyAndChangeView).catch(notifyOnError);
+      return ContainerService.recreateContainer(endpoint.Id, container.Id, pullImage).then(notifyAndChangeView).catch(notifyOnError);
 
       function notifyAndChangeView() {
         Notifications.success('Success', 'Container successfully re-created');
@@ -413,7 +413,7 @@ angular.module('portainer.docker').controller('ContainerController', [
     function updateRestartPolicy(restartPolicy, maximumRetryCount) {
       maximumRetryCount = restartPolicy === 'on-failure' ? maximumRetryCount : undefined;
 
-      return ContainerService.updateRestartPolicy($scope.container.Id, restartPolicy, maximumRetryCount).then(onUpdateSuccess).catch(notifyOnError);
+      return ContainerService.updateRestartPolicy(endpoint.Id, $scope.container.Id, restartPolicy, maximumRetryCount).then(onUpdateSuccess).catch(notifyOnError);
 
       function onUpdateSuccess() {
         $scope.container.HostConfig.RestartPolicy = {
