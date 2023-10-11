@@ -43,6 +43,7 @@ import { Registry } from '@/react/portainer/registries/types';
 import { useRegistries } from '@/react/portainer/registries/queries/useRegistries';
 import { RelativePathFieldset } from '@/react/portainer/gitops/RelativePathFieldset/RelativePathFieldset';
 import { parseRelativePathResponse } from '@/react/portainer/gitops/RelativePathFieldset/utils';
+import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 
 import { LoadingButton } from '@@/buttons';
 import { FormSection } from '@@/form-components/FormSection';
@@ -325,7 +326,7 @@ function InnerForm({
           errors={errors.authentication}
         />
 
-        <RelativePathFieldset value={values.relativePath} readonly />
+        {isBE && <RelativePathFieldset value={values.relativePath} readonly />}
 
         {values.deploymentType === DeploymentType.Compose && (
           <EnvironmentVariablesPanel
