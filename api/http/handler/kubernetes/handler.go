@@ -78,12 +78,21 @@ func NewHandler(bouncer security.BouncerService, authorizationService *authoriza
 	endpointRouter.Handle("/ingresscontrollers", httperror.LoggerHandler(h.updateKubernetesIngressControllers)).Methods(http.MethodPut)
 	endpointRouter.Handle("/ingresses/delete", httperror.LoggerHandler(h.deleteKubernetesIngresses)).Methods(http.MethodPost)
 	endpointRouter.Handle("/services/delete", httperror.LoggerHandler(h.deleteKubernetesServices)).Methods(http.MethodPost)
+	endpointRouter.Handle("/service_accounts/delete", httperror.LoggerHandler(h.deleteKubernetesServiceAccounts)).Methods(http.MethodPost)
+	endpointRouter.Handle("/roles/delete", httperror.LoggerHandler(h.deleteRoles)).Methods(http.MethodPost)
+	endpointRouter.Handle("/role_bindings/delete", httperror.LoggerHandler(h.deleteRoleBindings)).Methods(http.MethodPost)
 	endpointRouter.Path("/rbac_enabled").Handler(httperror.LoggerHandler(h.isRBACEnabled)).Methods(http.MethodGet)
 	endpointRouter.Path("/namespaces").Handler(httperror.LoggerHandler(h.createKubernetesNamespace)).Methods(http.MethodPost)
 	endpointRouter.Path("/namespaces").Handler(httperror.LoggerHandler(h.updateKubernetesNamespace)).Methods(http.MethodPut)
 	endpointRouter.Path("/namespaces").Handler(httperror.LoggerHandler(h.getKubernetesNamespaces)).Methods(http.MethodGet)
 	endpointRouter.Path("/namespaces/{namespace}").Handler(httperror.LoggerHandler(h.deleteKubernetesNamespace)).Methods(http.MethodDelete)
 	endpointRouter.Path("/namespaces/{namespace}").Handler(httperror.LoggerHandler(h.getKubernetesNamespace)).Methods(http.MethodGet)
+
+	/** Cluster Roles */
+	endpointRouter.Path("/cluster_roles").Handler(httperror.LoggerHandler(h.getClusterRoles)).Methods(http.MethodGet)
+	endpointRouter.Path("/cluster_roles/delete").Handler(httperror.LoggerHandler(h.deleteClusterRoles)).Methods(http.MethodPost)
+	endpointRouter.Path("/cluster_role_bindings").Handler(httperror.LoggerHandler(h.getClusterRoleBindings)).Methods(http.MethodGet)
+	endpointRouter.Path("/cluster_role_bindings/delete").Handler(httperror.LoggerHandler(h.deleteClusterRoleBindings)).Methods(http.MethodPost)
 
 	// namespaces
 	namespaceRouter := endpointRouter.PathPrefix("/namespaces/{namespace}").Subrouter()
@@ -100,6 +109,9 @@ func NewHandler(bouncer security.BouncerService, authorizationService *authoriza
 	namespaceRouter.Handle("/services", httperror.LoggerHandler(h.getKubernetesServices)).Methods(http.MethodGet)
 	namespaceRouter.Handle("/applications", httperror.LoggerHandler(h.getKubernetesApplications)).Methods(http.MethodGet)
 	namespaceRouter.Handle("/applications/{kind}/{name}", httperror.LoggerHandler(h.getKubernetesApplication)).Methods(http.MethodGet)
+	namespaceRouter.Handle("/service_accounts", httperror.LoggerHandler(h.getKubernetesServiceAccounts)).Methods(http.MethodGet)
+	namespaceRouter.Path("/roles").Handler(httperror.LoggerHandler(h.getRoles)).Methods(http.MethodGet)
+	namespaceRouter.Path("/role_bindings").Handler(httperror.LoggerHandler(h.getRoleBindings)).Methods(http.MethodGet)
 
 	return h
 }

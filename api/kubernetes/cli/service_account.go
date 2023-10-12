@@ -5,9 +5,12 @@ import (
 	"fmt"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	models "github.com/portainer/portainer-ee/api/http/models/kubernetes"
+	"github.com/portainer/portainer-ee/api/internal/errorlist"
 	v1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	labels "k8s.io/apimachinery/pkg/labels"
 )
 
 // GetServiceAccount returns the portainer ServiceAccount associated to the specified user.
@@ -26,6 +29,86 @@ func (kcl *KubeClient) GetServiceAccount(tokenData *portaineree.TokenData) (*v1.
 	}
 
 	return serviceAccount, nil
+}
+
+// GetServiceAccounts returns a list of ServiceAccounts in the given namespace
+func (kcl *KubeClient) GetServiceAccounts(namespace string) ([]models.K8sServiceAccount, error) {
+	serviceAccountList, err := kcl.cli.CoreV1().ServiceAccounts(namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	serviceAccounts := make([]models.K8sServiceAccount, len(serviceAccountList.Items))
+	for i, item := range serviceAccountList.Items {
+		sa := models.K8sServiceAccount{
+			Name:         item.Name,
+			Namespace:    item.Namespace,
+			CreationDate: item.CreationTimestamp.Time,
+			UID:          string(item.UID),
+			IsSystem:     kcl.isSystemServiceAccount(&item),
+			IsUnused:     kcl.isServiceAccountUnused(&item),
+		}
+
+		serviceAccounts[i] = sa
+	}
+
+	return serviceAccounts, nil
+}
+
+func (kcl *KubeClient) isSystemServiceAccount(sa *v1.ServiceAccount) bool {
+	return kcl.isSystemNamespace(sa.Namespace)
+}
+
+func (kcl *KubeClient) isServiceAccountUnused(sa *v1.ServiceAccount) bool {
+	selectors := map[string]string{
+		"spec.serviceAccountName": sa.Name,
+	}
+
+	selectorLabels := labels.SelectorFromSet(selectors).String()
+
+	// Check if service account is used by any pods
+	podList, err := kcl.cli.CoreV1().Pods(sa.Namespace).List(context.TODO(),
+		metav1.ListOptions{
+			FieldSelector: selectorLabels,
+			Limit:         1,
+		},
+	)
+
+	if err != nil {
+		return true
+	}
+
+	return len(podList.Items) == 0
+}
+
+// DeleteServices processes a K8sServiceDeleteRequest by deleting each service
+// in its given namespace.
+func (kcl *KubeClient) DeleteServiceAccounts(reqs models.K8sServiceAccountDeleteRequests) error {
+	var errors []error
+	for namespace := range reqs {
+		for _, serviceName := range reqs[namespace] {
+			client := kcl.cli.CoreV1().ServiceAccounts(namespace)
+
+			sa, err := client.Get(context.Background(), serviceName, metav1.GetOptions{})
+			if err != nil {
+				if k8serrors.IsNotFound(err) {
+					continue
+				}
+				return err
+			}
+
+			if kcl.isSystemServiceAccount(sa) {
+				return fmt.Errorf("cannot delete system service account %q", namespace+"/"+serviceName)
+			}
+
+			err = client.Delete(context.Background(), serviceName, metav1.DeleteOptions{})
+			if err != nil {
+				errors = append(errors, err)
+			}
+		}
+	}
+
+	return errorlist.Combine(errors)
 }
 
 // GetServiceAccountBearerToken returns the ServiceAccountToken associated to the specified user.
@@ -163,7 +246,6 @@ func (kcl *KubeClient) ensureServiceAccountHasPortainerRoles(
 	rolesMapping := getPortainerK8sRoleMapping()
 
 	for namespace := range namespaces {
-
 		// remove the namespace access from the service account
 		err := kcl.removeRoleBinding(serviceAccountName, namespace)
 		if err != nil {

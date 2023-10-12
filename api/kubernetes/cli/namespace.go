@@ -38,7 +38,7 @@ func (kcl *KubeClient) GetNamespaces() (map[string]portaineree.K8sNamespaceInfo,
 
 	for _, ns := range namespaces.Items {
 		results[ns.Name] = portaineree.K8sNamespaceInfo{
-			IsSystem:  isSystemNamespace(ns),
+			IsSystem:  isSystemNamespace(&ns),
 			IsDefault: ns.Name == defaultNamespace,
 		}
 	}
@@ -54,7 +54,7 @@ func (kcl *KubeClient) GetNamespace(name string) (portaineree.K8sNamespaceInfo, 
 	}
 
 	result := portaineree.K8sNamespaceInfo{
-		IsSystem:  isSystemNamespace(*namespace),
+		IsSystem:  isSystemNamespace(namespace),
 		IsDefault: namespace.Name == defaultNamespace,
 		Status:    namespace.Status,
 	}
@@ -138,7 +138,7 @@ func (kcl *KubeClient) CreateNamespace(info models.K8sNamespaceDetails) error {
 	return nil
 }
 
-func isSystemNamespace(namespace v1.Namespace) bool {
+func isSystemNamespace(namespace *v1.Namespace) bool {
 	systemLabelValue, hasSystemLabel := namespace.Labels[systemNamespaceLabel]
 	if hasSystemLabel {
 		return systemLabelValue == "true"
@@ -147,8 +147,16 @@ func isSystemNamespace(namespace v1.Namespace) bool {
 	systemNamespaces := defaultSystemNamespaces()
 
 	_, isSystem := systemNamespaces[namespace.Name]
-
 	return isSystem
+}
+
+func (kcl *KubeClient) isSystemNamespace(namespace string) bool {
+	ns, err := kcl.cli.CoreV1().Namespaces().Get(context.TODO(), namespace, metav1.GetOptions{})
+	if err != nil {
+		return false
+	}
+
+	return isSystemNamespace(ns)
 }
 
 // ToggleSystemState will set a namespace as a system namespace, or remove this state
@@ -160,13 +168,12 @@ func (kcl *KubeClient) ToggleSystemState(namespaceName string, isSystem bool) er
 	}
 
 	nsService := kcl.cli.CoreV1().Namespaces()
-
 	namespace, err := nsService.Get(context.TODO(), namespaceName, metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed fetching namespace object")
 	}
 
-	if isSystemNamespace(*namespace) == isSystem {
+	if isSystemNamespace(namespace) == isSystem {
 		return nil
 	}
 
@@ -186,7 +193,6 @@ func (kcl *KubeClient) ToggleSystemState(namespaceName string, isSystem bool) er
 	}
 
 	return nil
-
 }
 
 // UpdateIngress updates an ingress in a given namespace in a k8s endpoint.

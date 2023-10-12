@@ -1898,6 +1898,8 @@ type (
 		) error
 		IsRBACEnabled() (bool, error)
 		GetServiceAccount(tokendata *TokenData) (*v1.ServiceAccount, error)
+		GetServiceAccounts(namespace string) ([]kubeModels.K8sServiceAccount, error)
+		DeleteServiceAccounts(reqs kubeModels.K8sServiceAccountDeleteRequests) error
 		GetServiceAccountBearerToken(userID int) (string, error)
 		CreateUserShellPod(ctx context.Context, serviceAccountName, shellPodImage string) (*KubernetesShellPod, error)
 		StartExecProcess(token string, useAdminToken bool, namespace, podName, containerName string, command []string, stdin io.Reader, stdout io.Writer, errChan chan error)
@@ -1939,6 +1941,16 @@ type (
 		UpsertPortainerK8sClusterRoles(clusterConfig KubernetesConfiguration) error
 		GetPortainerAgentAddress(nodeIPs []string) (string, error)
 		CheckRunningPortainerAgentDeployment(nodeIPs []string) error
+
+		GetClusterRoles() ([]kubeModels.K8sClusterRole, error)
+		DeleteClusterRoles(kubeModels.K8sClusterRoleDeleteRequests) error
+		GetClusterRoleBindings() ([]kubeModels.K8sClusterRoleBinding, error)
+		DeleteClusterRoleBindings(kubeModels.K8sClusterRoleBindingDeleteRequests) error
+
+		GetRoles(namespace string) ([]kubeModels.K8sRole, error)
+		DeleteRoles(kubeModels.K8sRoleDeleteRequests) error
+		GetRoleBindings(namespace string) ([]kubeModels.K8sRoleBinding, error)
+		DeleteRoleBindings(kubeModels.K8sRoleBindingDeleteRequests) error
 	}
 
 	// NomadClient represents a service used to query a Nomad environment(endpoint)
@@ -2746,11 +2758,22 @@ const (
 	OperationK8sIngressesR Authorization = "K8sIngressesR"
 	OperationK8sIngressesW Authorization = "K8sIngressesW"
 
+	OperationK8sServiceAccountsW     Authorization = "K8sServiceAccountsW"
+	OperationK8sServiceAccountsR     Authorization = "K8sServiceAccountsR"
+	OperationK8sClusterRolesW        Authorization = "K8sClusterRolesW"
+	OperationK8sClusterRolesR        Authorization = "K8sClusterRolesR"
+	OperationK8sClusterRoleBindingsW Authorization = "K8sClusterRoleBindingsW"
+	OperationK8sClusterRoleBindingsR Authorization = "K8sClusterRoleBindingsR"
+	OperationK8sRolesW               Authorization = "K8sRolesW"
+	OperationK8sRolesR               Authorization = "K8sRolesR"
+	OperationK8sRoleBindingsW        Authorization = "K8sRoleBindingsW"
+	OperationK8sRoleBindingsR        Authorization = "K8sRoleBindingsR"
+
 	OperationK8sYAMLR Authorization = "K8sYAMLR"
 	OperationK8sYAMLW Authorization = "K8sYAMLW"
 
-	OperationK8sServiceR Authorization = "K8sServiceR"
-	OperationK8sServiceW Authorization = "K8sServiceW"
+	OperationK8sServicesR Authorization = "K8sServicesR"
+	OperationK8sServicesW Authorization = "K8sServicesW"
 
 	// Helm operations
 	OperationHelmRepoList       Authorization = "HelmRepoList"

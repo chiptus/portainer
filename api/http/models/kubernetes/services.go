@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"net/http"
+	"time"
 )
 
 type (
@@ -12,7 +13,7 @@ type (
 		Type                          string
 		Namespace                     string
 		Annotations                   map[string]string
-		CreationTimestamp             string
+		CreationDate                  time.Time
 		Labels                        map[string]string
 		AllocateLoadBalancerNodePorts *bool `json:",omitempty"`
 		Ports                         []K8sServicePort

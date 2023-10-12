@@ -36,7 +36,7 @@ export type Service = {
   IngressStatus?: Array<IngressStatus>;
   ExternalName?: string;
   ExternalIPs?: Array<string>;
-  CreationTimestamp: string;
+  CreationDate: string;
   Applications?: Application[];
 };
 

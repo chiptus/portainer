@@ -463,8 +463,6 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/portainer/liblicense/v3 v3.0.0 h1:BELxUtHdUGhMa9EnXO1KPJz17+aoAb33lZXYp8e1feg=
 github.com/portainer/liblicense/v3 v3.0.0/go.mod h1:rDiC5UI1EJvJabscD1pj735+8o9K3JHwaWcBay0hmVw=
-github.com/portainer/portainer v0.6.1-0.20231005082624-95f3cf6e5b85 h1:NFLwqz1IT0BLBiduVL5ON5gfIHD/ffLfKmyKk8ndHOY=
-github.com/portainer/portainer v0.6.1-0.20231005082624-95f3cf6e5b85/go.mod h1:uys7M2fkc88DwVYMMtWYZPjBLOjbog3d7wXO+rUE6xE=
 github.com/portainer/portainer v0.6.1-0.20231005200822-9885694df665 h1:sftpXIW/0IOO14nPwruRXMyYd0AyIJ9j2aVvSTtqG6U=
 github.com/portainer/portainer v0.6.1-0.20231005200822-9885694df665/go.mod h1:uys7M2fkc88DwVYMMtWYZPjBLOjbog3d7wXO+rUE6xE=
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=

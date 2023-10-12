@@ -43,6 +43,14 @@ func (handler *Handler) getKubernetesServices(w http.ResponseWriter, r *http.Req
 		)
 	}
 
+	lookup, err := request.RetrieveBooleanQueryParameter(r, "lookupapplications", true)
+	if err != nil {
+		return httperror.BadRequest(
+			"Invalid lookupapplications query parameter",
+			err,
+		)
+	}
+
 	cli, ok := handler.KubernetesClientFactory.GetProxyKubeClient(
 		strconv.Itoa(endpointID), r.Header.Get("Authorization"),
 	)
@@ -50,14 +58,6 @@ func (handler *Handler) getKubernetesServices(w http.ResponseWriter, r *http.Req
 		return httperror.InternalServerError(
 			"Failed to lookup KubeClient",
 			nil,
-		)
-	}
-
-	lookup, err := request.RetrieveBooleanQueryParameter(r, "lookupapplications", true)
-	if err != nil {
-		return httperror.BadRequest(
-			"Invalid lookupapplications query parameter",
-			err,
 		)
 	}
 

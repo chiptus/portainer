@@ -1,4 +1,12 @@
-import { Box, Edit, Layers, Lock, Network, Server } from 'lucide-react';
+import {
+  Box,
+  Edit,
+  Layers,
+  LayoutList,
+  Lock,
+  Network,
+  Server,
+} from 'lucide-react';
 
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import { Authorized } from '@/react/hooks/useUser';
@@ -98,6 +106,48 @@ export function KubernetesSidebar({ environmentId }: Props) {
         platformPath="kubernetes"
         data-cy="k8sSidebar-volumes"
       />
+
+      <Authorized
+        authorizations={[
+          'K8sServiceAccountsW',
+          'K8sClusterRolesW',
+          'K8sClusterRoleBindingsW',
+          'K8sRolesW',
+          'K8sRoleBindingsW',
+        ]}
+        adminOnlyCE
+        environmentId={environmentId}
+      >
+        <SidebarParent
+          label="More Resources"
+          to="kubernetes.moreResources.serviceAccounts"
+          icon={LayoutList}
+          params={{ endpointId: environmentId }}
+          data-cy="k8sSidebar-moreResources"
+        >
+          <SidebarItem
+            to="kubernetes.moreResources.serviceAccounts"
+            params={{ endpointId: environmentId }}
+            label="Service Accounts"
+            data-cy="k8sSidebar-serviceAccounts"
+            isSubMenu
+          />
+          <SidebarItem
+            to="kubernetes.moreResources.clusterRoles"
+            params={{ endpointId: environmentId }}
+            label="Cluster Roles"
+            data-cy="k8sSidebar-clusterRoles"
+            isSubMenu
+          />
+          <SidebarItem
+            to="kubernetes.moreResources.roles"
+            params={{ endpointId: environmentId }}
+            label="Roles"
+            data-cy="k8sSidebar-Roles"
+            isSubMenu
+          />
+        </SidebarParent>
+      </Authorized>
 
       <SidebarParent
         label="Cluster"

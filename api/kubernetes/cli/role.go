@@ -2,11 +2,18 @@ package cli
 
 import (
 	"context"
+	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	models "github.com/portainer/portainer-ee/api/http/models/kubernetes"
+	"github.com/portainer/portainer-ee/api/internal/concurrent"
+	"github.com/portainer/portainer-ee/api/internal/errorlist"
+	"github.com/rs/zerolog/log"
+
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type (
@@ -62,6 +69,17 @@ func getPortainerK8sRoleMapping() map[portaineree.RoleID]k8sRoleSet {
 				portaineree.K8sRolePortainerView,
 			},
 		},
+	}
+}
+
+func getPortainerDefaultK8sRoleNames() []string {
+	return []string{
+		string(portaineree.K8sRoleClusterAdmin),
+		string(portaineree.K8sRolePortainerBasic),
+		string(portaineree.K8sRolePortainerHelpdesk),
+		string(portaineree.K8sRolePortainerOperator),
+		string(portaineree.K8sRolePortainerView),
+		string(portaineree.K8sRolePortainerEdit),
 	}
 }
 
@@ -480,4 +498,98 @@ func (kcl *KubeClient) createClusterRoleBindings(serviceAccountName string,
 
 	_, err = kcl.cli.RbacV1().ClusterRoleBindings().Update(context.TODO(), clusterRoleBinding, metav1.UpdateOptions{})
 	return err
+}
+
+func (kcl *KubeClient) GetRoles(namespace string) ([]models.K8sRole, error) {
+
+	listRoles := func(ctx context.Context) (interface{}, error) {
+		return kcl.cli.RbacV1().Roles(namespace).List(ctx, metav1.ListOptions{})
+	}
+
+	listRoleBindings := func(ctx context.Context) (interface{}, error) {
+		return kcl.cli.RbacV1().RoleBindings(namespace).List(ctx, metav1.ListOptions{})
+	}
+
+	results, err := concurrent.Run(context.Background(), listRoles, listRoleBindings)
+	if err != nil {
+		return nil, err
+	}
+
+	var roleList *rbacv1.RoleList
+	var roleBindingList *rbacv1.RoleBindingList
+	for _, r := range results {
+		switch v := r.Result.(type) {
+		case *rbacv1.RoleList:
+			roleList = v
+		case *rbacv1.RoleBindingList:
+			roleBindingList = v
+		}
+	}
+
+	roles := make([]models.K8sRole, len(roleList.Items))
+	for i, role := range roleList.Items {
+		roles[i] = models.K8sRole{
+			Name:            role.Name,
+			Namespace:       role.Namespace,
+			UID:             role.UID,
+			ResourceVersion: role.ResourceVersion,
+			Annotations:     role.Annotations,
+			CreationDate:    role.CreationTimestamp.Time,
+
+			Rules: role.Rules,
+
+			IsUnused: true,
+			IsSystem: kcl.isSystemRole(&role),
+		}
+	}
+
+	// then mark the roles that are used by a role binding
+	for _, roleBinding := range roleBindingList.Items {
+		for i, role := range roles {
+			if role.Name == roleBinding.RoleRef.Name {
+				roles[i].IsUnused = false
+			}
+		}
+	}
+
+	return roles, err
+}
+
+func (kcl *KubeClient) isSystemRole(role *rbacv1.Role) bool {
+	if strings.HasPrefix(role.Name, "system:") {
+		return true
+	}
+
+	return kcl.isSystemNamespace(role.Namespace)
+}
+
+// DeleteRoles processes a K8sServiceDeleteRequest by deleting each role
+// in its given namespace.
+func (kcl *KubeClient) DeleteRoles(reqs models.K8sRoleDeleteRequests) error {
+	var errors []error
+	for namespace := range reqs {
+		for _, name := range reqs[namespace] {
+			client := kcl.cli.RbacV1().Roles(namespace)
+
+			role, err := client.Get(context.Background(), name, v1.GetOptions{})
+			if err != nil {
+				if k8serrors.IsNotFound(err) {
+					continue
+				}
+				// this is a more serious error to do with the client so we return right away
+				return err
+			}
+
+			if kcl.isSystemRole(role) {
+				log.Error().Msgf("Ignoring delete of 'system' role %q. Not allowed", name)
+			}
+
+			err = client.Delete(context.Background(), name, metav1.DeleteOptions{})
+			if err != nil {
+				errors = append(errors, err)
+			}
+		}
+	}
+
+	return errorlist.Combine(errors)
 }

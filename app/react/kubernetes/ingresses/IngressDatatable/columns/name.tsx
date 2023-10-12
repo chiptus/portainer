@@ -38,7 +38,7 @@ function Cell({ row, getValue }: CellContext<Ingress, string>) {
       </Authorized>
       {isSystemIngress && (
         <Badge type="success" className="ml-2">
-          system
+          System
         </Badge>
       )}
     </div>

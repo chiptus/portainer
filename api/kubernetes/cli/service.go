@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"fmt"
 
 	models "github.com/portainer/portainer-ee/api/http/models/kubernetes"
 	v1 "k8s.io/api/core/v1"
@@ -23,11 +22,6 @@ func (kcl *KubeClient) GetServices(namespace string, lookupApplications bool) ([
 	var result []models.K8sServiceInfo
 
 	for _, service := range services.Items {
-
-		if service.Name == "my-service1" {
-			fmt.Printf("Found service %s in namespace %s, with details %+v\n", service.Name, service.Namespace, service)
-		}
-
 		servicePorts := make([]models.K8sServicePort, 0)
 		for _, port := range service.Spec.Ports {
 			servicePorts = append(servicePorts, models.K8sServicePort{
@@ -57,7 +51,7 @@ func (kcl *KubeClient) GetServices(namespace string, lookupApplications bool) ([
 			UID:                           string(service.GetUID()),
 			Type:                          string(service.Spec.Type),
 			Namespace:                     service.Namespace,
-			CreationTimestamp:             service.GetCreationTimestamp().String(),
+			CreationDate:                  service.CreationTimestamp.Time,
 			AllocateLoadBalancerNodePorts: service.Spec.AllocateLoadBalancerNodePorts,
 			Ports:                         servicePorts,
 			IngressStatus:                 ingressStatus,
