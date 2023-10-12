@@ -2,8 +2,8 @@ import { CellContext } from '@tanstack/react-table';
 
 import { Tooltip } from '@@/Tip/Tooltip';
 
-import { EdgeUpdateListItemResponse } from '../../queries/list';
 import { StatusType } from '../../types';
+import { DecoratedItem } from '../types';
 
 import { columnHelper } from './helper';
 
@@ -66,10 +66,7 @@ function StatusCell({
   row: {
     original: { statusMessage },
   },
-}: CellContext<
-  EdgeUpdateListItemResponse,
-  EdgeUpdateListItemResponse['status']
->) {
+}: CellContext<DecoratedItem, DecoratedItem['status']>) {
   const status = getValue();
 
   switch (status) {
