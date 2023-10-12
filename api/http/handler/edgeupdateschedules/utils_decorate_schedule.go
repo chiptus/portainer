@@ -30,7 +30,7 @@ func decorateSchedule(schedule edgetypes.UpdateSchedule, edgeStackGetter middlew
 
 	decoratedItem := &decoratedUpdateSchedule{
 		UpdateSchedule: schedule,
-		EdgeGroupIds:   edgeStack.EdgeGroups,
+		EdgeGroupIds:   schedule.EdgeGroupIDs,
 		Status:         status,
 		StatusMessage:  statusMessage,
 		ScheduledTime:  edgeStack.ScheduledTime,
