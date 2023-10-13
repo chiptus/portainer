@@ -2,7 +2,6 @@ package kubernetes
 
 import (
 	"net/http"
-	"strconv"
 
 	models "github.com/portainer/portainer-ee/api/http/models/kubernetes"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
@@ -10,7 +9,7 @@ import (
 	"github.com/portainer/portainer/pkg/libhttp/response"
 )
 
-// @id GetRoles
+// @id GetServiceAccounts
 // @summary Get a list of service accounts
 // @description Get a list of service accounts for the given kubernetes environment in the given namespace
 // @description **Access policy**: administrator
@@ -22,15 +21,8 @@ import (
 // @param namespace path string true "Kubernetes namespace"
 // @success 200 "Success"
 // @failure 500 "Server error"
-// @router /kubernetes/{id}/namespaces/{namespace/service_accounts [get]
-func (handler *Handler) getKubernetesServiceAccounts(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
-	if err != nil {
-		return httperror.BadRequest(
-			"Invalid environment identifier route variable",
-			err,
-		)
-	}
+// @router /kubernetes/{id}/namespaces/{namespace}/service_accounts [get]
+func (h *Handler) getKubernetesServiceAccounts(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
 	namespace, err := request.RetrieveRouteVariableValue(r, "namespace")
 	if err != nil {
@@ -40,14 +32,9 @@ func (handler *Handler) getKubernetesServiceAccounts(w http.ResponseWriter, r *h
 		)
 	}
 
-	cli, ok := handler.KubernetesClientFactory.GetProxyKubeClient(
-		strconv.Itoa(endpointID), r.Header.Get("Authorization"),
-	)
-	if !ok {
-		return httperror.InternalServerError(
-			"Failed to lookup KubeClient",
-			nil,
-		)
+	cli, handlerErr := h.getProxyKubeClient(r)
+	if handlerErr != nil {
+		return handlerErr
 	}
 
 	services, err := cli.GetServiceAccounts(namespace)
@@ -61,7 +48,7 @@ func (handler *Handler) getKubernetesServiceAccounts(w http.ResponseWriter, r *h
 	return response.JSON(w, services)
 }
 
-// @id DeleteKubernetesServiceAccounts
+// @id DeleteServiceAccounts
 // @summary Delete the provided service accounts
 // @description Delete the provided roles for the given Kubernetes environment
 // @description **Access policy**: administrator
@@ -75,39 +62,21 @@ func (handler *Handler) getKubernetesServiceAccounts(w http.ResponseWriter, r *h
 // @failure 500 "Server error"
 // @router /kubernetes/{id}/service_accounts/delete [POST]
 func (handler *Handler) deleteKubernetesServiceAccounts(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
-	if err != nil {
-		return httperror.BadRequest(
-			"Invalid environment identifier route variable",
-			err,
-		)
-	}
-
-	cli, ok := handler.KubernetesClientFactory.GetProxyKubeClient(
-		strconv.Itoa(endpointID), r.Header.Get("Authorization"),
-	)
-	if !ok {
-		return httperror.InternalServerError(
-			"Failed to lookup KubeClient",
-			nil,
-		)
-	}
-
 	var payload models.K8sServiceAccountDeleteRequests
-	err = request.DecodeAndValidateJSONPayload(r, &payload)
+	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return httperror.BadRequest(
-			"Invalid request payload",
-			err,
-		)
+		return httperror.BadRequest("Invalid request payload", err)
+	}
+
+	cli, handlerErr := handler.getProxyKubeClient(r)
+	if handlerErr != nil {
+		return handlerErr
 	}
 
 	err = cli.DeleteServiceAccounts(payload)
 	if err != nil {
-		return httperror.InternalServerError(
-			"Unable to delete service accounts",
-			err,
-		)
+		return httperror.InternalServerError("Unable to delete service accounts", err)
 	}
+
 	return nil
 }

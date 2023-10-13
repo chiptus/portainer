@@ -2,7 +2,6 @@ package kubernetes
 
 import (
 	"net/http"
-	"strconv"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
@@ -32,21 +31,14 @@ import (
 // @failure 500 "Server error"
 // @router /kubernetes/{id}/namespaces/{namespace}/applications [get]
 func (handler *Handler) getKubernetesApplications(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
-	if err != nil {
-		return httperror.BadRequest("Invalid environment identifier route variable", err)
-	}
-
-	cli, ok := handler.KubernetesClientFactory.GetProxyKubeClient(
-		strconv.Itoa(endpointID), r.Header.Get("Authorization"),
-	)
-	if !ok {
-		return httperror.InternalServerError("Failed to lookup KubeClient", nil)
-	}
-
 	namespace, err := request.RetrieveRouteVariableValue(r, "namespace")
 	if err != nil {
 		return httperror.BadRequest("Invalid namespace identifier route variable", err)
+	}
+
+	cli, handlerErr := handler.getProxyKubeClient(r)
+	if handlerErr != nil {
+		return handlerErr
 	}
 
 	applications, err := cli.GetApplications(namespace, "")
@@ -79,18 +71,6 @@ func (handler *Handler) getKubernetesApplications(w http.ResponseWriter, r *http
 // @failure 500 "Server error"
 // @router /kubernetes/{id}/namespaces/{namespace}/applications/{kind}/{name} [get]
 func (handler *Handler) getKubernetesApplication(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
-	if err != nil {
-		return httperror.BadRequest("Invalid environment identifier route variable", err)
-	}
-
-	cli, ok := handler.KubernetesClientFactory.GetProxyKubeClient(
-		strconv.Itoa(endpointID), r.Header.Get("Authorization"),
-	)
-	if !ok {
-		return httperror.InternalServerError("Failed to get KubeClient", nil)
-	}
-
 	namespace, err := request.RetrieveRouteVariableValue(r, "namespace")
 	if err != nil {
 		return httperror.BadRequest("Invalid namespace identifier route variable", err)
@@ -104,6 +84,11 @@ func (handler *Handler) getKubernetesApplication(w http.ResponseWriter, r *http.
 	name, err := request.RetrieveRouteVariableValue(r, "name")
 	if err != nil {
 		return httperror.BadRequest("Invalid application identifier route variable", err)
+	}
+
+	cli, handlerErr := handler.getProxyKubeClient(r)
+	if handlerErr != nil {
+		return handlerErr
 	}
 
 	// Ensure the application exists
@@ -123,10 +108,16 @@ func (handler *Handler) getKubernetesApplication(w http.ResponseWriter, r *http.
 			return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 		}
 
+		endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
+		if err != nil {
+			return httperror.BadRequest("Invalid environment identifier route variable", err)
+		}
+
 		output, httperr := handler.restartKubernetesApplication(tokenData.ID, portaineree.EndpointID(endpointID), namespace, kind, name)
 		if httperr != nil {
 			return httperr
 		}
+
 		log.Debug().Str("output", output).Msg("Restarted application")
 	}
 

@@ -10,7 +10,7 @@ import (
 	"github.com/portainer/portainer/pkg/libhttp/response"
 )
 
-// @id getKubernetesNamespaces
+// @id GetKubernetesNamespaces
 // @summary Get a list of kubernetes namespaces
 // @description Get a list of all kubernetes namespaces in the cluster
 // @description **Access policy**: authenticated
@@ -54,7 +54,7 @@ func (handler *Handler) getKubernetesNamespaces(w http.ResponseWriter, r *http.R
 	return response.JSON(w, namespaces)
 }
 
-// @id getKubernetesNamespace
+// @id GetKubernetesNamespace
 // @summary Get kubernetes namespace details
 // @description Get kubernetes namespace details for the provided namespace within the given environment
 // @description **Access policy**: authenticated
@@ -106,7 +106,7 @@ func (handler *Handler) getKubernetesNamespace(w http.ResponseWriter, r *http.Re
 	return response.JSON(w, namespace)
 }
 
-// @id createKubernetesNamespace
+// @id CreateKubernetesNamespace
 // @summary Create a kubernetes namespace
 // @description Create a kubernetes namespace within the given environment
 // @description **Access policy**: authenticated
@@ -123,45 +123,26 @@ func (handler *Handler) getKubernetesNamespace(w http.ResponseWriter, r *http.Re
 // @failure 500 "Server error"
 // @router /kubernetes/{id}/namespaces [post]
 func (handler *Handler) createKubernetesNamespace(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
-	if err != nil {
-		return httperror.BadRequest(
-			"Invalid environment identifier route variable",
-			err,
-		)
-	}
-
-	cli, ok := handler.KubernetesClientFactory.GetProxyKubeClient(
-		strconv.Itoa(endpointID), r.Header.Get("Authorization"),
-	)
-	if !ok {
-		return httperror.InternalServerError(
-			"Failed to lookup KubeClient",
-			nil,
-		)
-	}
-
 	var payload models.K8sNamespaceDetails
-	err = request.DecodeAndValidateJSONPayload(r, &payload)
+	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return httperror.BadRequest(
-			"Invalid request payload",
-			err,
-		)
+		return httperror.BadRequest("Invalid request payload", err)
+	}
+
+	cli, handlerErr := handler.getProxyKubeClient(r)
+	if handlerErr != nil {
+		return handlerErr
 	}
 
 	err = cli.CreateNamespace(payload)
 	if err != nil {
-		return httperror.InternalServerError(
-			"Unable to create namespace",
-			err,
-		)
+		return httperror.InternalServerError("Unable to create namespace", err)
 	}
 
 	return nil
 }
 
-// @id deleteKubernetesNamespace
+// @id DeleteKubernetesNamespace
 // @summary Delete kubernetes namespace
 // @description Delete a kubernetes namespace within the given environment
 // @description **Access policy**: authenticated
@@ -177,44 +158,25 @@ func (handler *Handler) createKubernetesNamespace(w http.ResponseWriter, r *http
 // @failure 500 "Server error"
 // @router /kubernetes/{id}/namespaces/{namespace} [delete]
 func (handler *Handler) deleteKubernetesNamespace(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
-	if err != nil {
-		return httperror.BadRequest(
-			"Invalid environment identifier route variable",
-			err,
-		)
-	}
-
-	cli, ok := handler.KubernetesClientFactory.GetProxyKubeClient(
-		strconv.Itoa(endpointID), r.Header.Get("Authorization"),
-	)
-	if !ok {
-		return httperror.InternalServerError(
-			"Failed to lookup KubeClient",
-			nil,
-		)
-	}
-
 	namespace, err := request.RetrieveRouteVariableValue(r, "namespace")
 	if err != nil {
-		return httperror.BadRequest(
-			"Invalid namespace identifier route variable",
-			err,
-		)
+		return httperror.BadRequest("Invalid namespace identifier route variable", err)
+	}
+
+	cli, handlerErr := handler.getProxyKubeClient(r)
+	if handlerErr != nil {
+		return handlerErr
 	}
 
 	err = cli.DeleteNamespace(namespace)
 	if err != nil {
-		return httperror.InternalServerError(
-			"Unable to delete namespace",
-			err,
-		)
+		return httperror.InternalServerError("Unable to delete namespace", err)
 	}
 
 	return nil
 }
 
-// @id updateKubernetesNamespace
+// @id UpdateKubernetesNamespace
 // @summary Updates a kubernetes namespace
 // @description Update a kubernetes namespace within the given environment
 // @description **Access policy**: authenticated
@@ -231,28 +193,15 @@ func (handler *Handler) deleteKubernetesNamespace(w http.ResponseWriter, r *http
 // @failure 500 "Server error"
 // @router /kubernetes/{id}/namespaces/{namespace} [put]
 func (handler *Handler) updateKubernetesNamespace(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
-	if err != nil {
-		return httperror.BadRequest(
-			"Invalid environment identifier route variable",
-			err,
-		)
-	}
-
-	cli, ok := handler.KubernetesClientFactory.GetProxyKubeClient(
-		strconv.Itoa(endpointID), r.Header.Get("Authorization"),
-	)
-	if !ok {
-		return httperror.InternalServerError(
-			"Failed to lookup KubeClient",
-			nil,
-		)
-	}
-
 	var payload models.K8sNamespaceDetails
-	err = request.DecodeAndValidateJSONPayload(r, &payload)
+	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
 		return httperror.BadRequest("Invalid request payload", err)
+	}
+
+	cli, handlerErr := handler.getProxyKubeClient(r)
+	if handlerErr != nil {
+		return handlerErr
 	}
 
 	err = cli.UpdateNamespace(payload)

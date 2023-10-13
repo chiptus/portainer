@@ -3,7 +3,6 @@ package kubernetes
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	models "github.com/portainer/portainer-ee/api/http/models/kubernetes"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -22,49 +21,21 @@ import (
 // @success 200 "Success"
 // @failure 500 "Server error"
 // @router /kubernetes/{id}/cluster_role_bindings [get]
-func (h *Handler) getClusterRoleBindings(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-
-	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
-	if err != nil {
-		return httperror.BadRequest(
-			"Invalid environment identifier route variable",
-			err,
-		)
-	}
-
-	endpoint, err := h.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if h.DataStore.IsErrObjectNotFound(err) {
-		return httperror.NotFound(
-			"Unable to find an environment with the specified identifier inside the database",
-			err,
-		)
-	} else if err != nil {
-		return httperror.InternalServerError(
-			"Unable to find an environment with the specified identifier inside the database",
-			err,
-		)
-	}
-
-	cli, err := h.KubernetesClientFactory.GetKubeClient(endpoint)
-	if err != nil {
-		return httperror.InternalServerError(
-			"Unable to create Kubernetes client",
-			err,
-		)
+func (handler *Handler) getClusterRoleBindings(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+	cli, handlerErr := handler.getProxyKubeClient(r)
+	if handlerErr != nil {
+		return handlerErr
 	}
 
 	clusterRoleBindings, err := cli.GetClusterRoleBindings()
 	if err != nil {
-		return httperror.InternalServerError(
-			"Failed to fetch cluster role bindings",
-			err,
-		)
+		return httperror.InternalServerError("Failed to fetch cluster roles", err)
 	}
 
 	return response.JSON(w, clusterRoleBindings)
 }
 
-// @id deleteClusterRoleBindings
+// @id DeleteClusterRoleBindings
 // @summary Delete the provided cluster role bindings
 // @description Delete the provided cluster role bindings for the given Kubernetes environment
 // @description **Access policy**: administrator
@@ -77,52 +48,21 @@ func (h *Handler) getClusterRoleBindings(w http.ResponseWriter, r *http.Request)
 // @success 200 "Success"
 // @failure 500 "Server error"
 // @router /kubernetes/{id}/cluster_role_bindings/delete [POST]
-func (h *Handler) deleteClusterRoleBindings(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-
-	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
-	if err != nil {
-		return httperror.BadRequest(
-			"Invalid environment identifier route variable",
-			err,
-		)
-	}
-
+func (handler *Handler) deleteClusterRoleBindings(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	var payload models.K8sClusterRoleBindingDeleteRequests
-	err = request.DecodeAndValidateJSONPayload(r, &payload)
+	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
-		return httperror.BadRequest(
-			"Invalid request payload",
-			err,
-		)
+		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	endpoint, err := h.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if h.DataStore.IsErrObjectNotFound(err) {
-		return httperror.NotFound(
-			"Unable to find an environment with the specified identifier inside the database",
-			err,
-		)
-	} else if err != nil {
-		return httperror.InternalServerError(
-			"Unable to find an environment with the specified identifier inside the database",
-			err,
-		)
-	}
-
-	cli, err := h.KubernetesClientFactory.GetKubeClient(endpoint)
-	if err != nil {
-		return httperror.InternalServerError(
-			"Unable to create Kubernetes client",
-			err,
-		)
+	cli, handlerErr := handler.getProxyKubeClient(r)
+	if handlerErr != nil {
+		return handlerErr
 	}
 
 	err = cli.DeleteClusterRoleBindings(payload)
 	if err != nil {
-		return httperror.InternalServerError(
-			"Failed to delete cluster role bindings",
-			err,
-		)
+		return httperror.InternalServerError("Failed to delete cluster role bindings", err)
 	}
 
 	return nil

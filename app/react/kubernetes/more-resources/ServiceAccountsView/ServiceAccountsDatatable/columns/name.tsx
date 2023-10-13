@@ -15,7 +15,7 @@ export const name = columnHelper.accessor(
   },
   {
     header: 'Name',
-    id: 'Name',
+    id: 'name',
     cell: ({ row }) => (
       <div className="flex">
         <div>{row.original.name}</div>

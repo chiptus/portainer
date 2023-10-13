@@ -79,7 +79,7 @@ func (client *KubeClient) GetMaxResourceLimits(skipNamespace string, overCommitE
 			// minus accumulated resourcequotas for all namespaces except the one we're editing
 			resourceQuota, err := client.cli.CoreV1().ResourceQuotas(namespace.Name).List(context.TODO(), metav1.ListOptions{})
 			if err != nil {
-				log.Debug().Msgf("error getting resourcequota for namespace %s: %s", namespace.Name, err)
+				log.Debug().Msgf("error getting resource quota for namespace %s: %s", namespace.Name, err)
 				continue // skip it
 			}
 

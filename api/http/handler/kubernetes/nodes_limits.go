@@ -3,13 +3,12 @@ package kubernetes
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/middlewares"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
-	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 )
 
-// @id getKubernetesNodesLimits
+// @id GetKubernetesNodesLimits
 // @summary Get CPU and memory limits of all nodes within k8s cluster
 // @description Get CPU and memory limits of all nodes within k8s cluster
 // @description **Access policy**: authenticated
@@ -27,26 +26,14 @@ import (
 // @failure 500 "Server error"
 // @router /kubernetes/{id}/nodes_limits [get]
 func (handler *Handler) getKubernetesNodesLimits(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
+	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {
-		return httperror.BadRequest(
-			"Invalid environment identifier route variable",
-			err,
-		)
-	}
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if handler.DataStore.IsErrObjectNotFound(err) {
-		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
-	} else if err != nil {
-		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
+		return httperror.InternalServerError(err.Error(), err)
 	}
 
 	cli, err := handler.KubernetesClientFactory.GetKubeClient(endpoint)
 	if err != nil {
-		return httperror.InternalServerError(
-			"Failed to lookup KubeClient",
-			err,
-		)
+		return httperror.InternalServerError("Failed to lookup KubeClient", err)
 	}
 
 	nodesLimits, err := cli.GetNodesLimits()
@@ -57,27 +44,32 @@ func (handler *Handler) getKubernetesNodesLimits(w http.ResponseWriter, r *http.
 	return response.JSON(w, nodesLimits)
 }
 
+// @id GetKubernetesMaxResourceLimits
+// @summary Get max unused CPU and memory limits of all nodes within k8s cluster
+// @description Get max unused CPU and memory limits of all nodes within the cluster
+// @description **Access policy**: authenticated
+// @tags kubernetes
+// @security ApiKeyAuth
+// @security jwt
+// @accept json
+// @produce json
+// @param id path int true "Environment(Endpoint) identifier"
+// @success 200 {object} portaineree.K8sNodesLimits "Success"
+// @failure 400 "Invalid request"
+// @failure 401 "Unauthorized"
+// @failure 403 "Permission denied"
+// @failure 404 "Environment(Endpoint) not found"
+// @failure 500 "Server error"
+// @router /kubernetes/{id}/nodes_limits [get]
 func (handler *Handler) getKubernetesMaxResourceLimits(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
+	endpoint, err := middlewares.FetchEndpoint(r)
 	if err != nil {
-		return httperror.BadRequest(
-			"Invalid environment identifier route variable",
-			err,
-		)
-	}
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
-	if handler.DataStore.IsErrObjectNotFound(err) {
-		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
-	} else if err != nil {
-		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
+		return httperror.InternalServerError(err.Error(), err)
 	}
 
 	cli, err := handler.KubernetesClientFactory.GetKubeClient(endpoint)
 	if err != nil {
-		return httperror.InternalServerError(
-			"Failed to lookup KubeClient",
-			err,
-		)
+		return httperror.InternalServerError("Failed to lookup KubeClient", err)
 	}
 
 	overCommit := endpoint.Kubernetes.Configuration.EnableResourceOverCommit
