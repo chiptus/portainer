@@ -17,6 +17,7 @@ import (
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
 	"github.com/docker/docker/api/types"
+	"github.com/mitchellh/mapstructure"
 	"github.com/rs/zerolog/log"
 )
 
@@ -41,6 +42,7 @@ type edgeConfigData struct {
 	BaseDir    string                   `json:"baseDir"`
 	DirEntries []filesystem.DirEntry    `json:"dirEntries"`
 	Prev       *edgeConfigData          `json:"prev,omitempty"`
+	Invalid    bool                     `json:"invalid"`
 }
 
 type containerCommandData struct {
@@ -658,4 +660,16 @@ func (service *Service) storeUpdateConfigCommand(tx dataservices.DataStoreTx, en
 	}
 
 	return tx.EdgeAsyncCommand().Create(asyncCommand)
+}
+
+func (service *Service) InvalidEdgeConfigData(data interface{}) interface{} {
+	var edgeConfigData edgeConfigData
+
+	err := mapstructure.Decode(data, &edgeConfigData)
+	if err == nil {
+		edgeConfigData.Invalid = true
+		edgeConfigData.DirEntries = nil
+	}
+
+	return edgeConfigData
 }

@@ -11,6 +11,7 @@ import { PageHeader } from '@@/PageHeader';
 import { Button } from '@@/buttons';
 import { Link } from '@@/Link';
 import { useTableState } from '@@/datatables/useTableState';
+import { Tab, WidgetTabs, useCurrentTabIndex } from '@@/Widget/WidgetTabs';
 
 import { useList } from '../queries/list/list';
 import { EdgeConfiguration } from '../types';
@@ -26,10 +27,33 @@ export default withLimitToBE(ListView);
 
 // const initialPage = 0;
 
+const tabs: Tab[] = [
+  {
+    name: 'Configurations',
+    widget: <div />,
+    selectedTabParam: 'configurations',
+  },
+  {
+    name: 'Secrets',
+    widget: <div />,
+    selectedTabParam: 'secrets',
+  },
+];
+
+const categories = ['configuration', 'secret'];
+
 export function ListView() {
   // const [page, setPage] = useState(initialPage);
   const tableState = useTableState(settingsStore, storageKey);
+
+  const [currentTabIndex] = useCurrentTabIndex(tabs);
+
+  const title = `${tabs[currentTabIndex].name} list`;
+
+  const category = categories[currentTabIndex];
+
   const { data: configurations, isLoading } = useList({
+    category,
     // page,
     // pageLimit: tableState.pageSize,
     // search: tableState.search,
@@ -50,15 +74,17 @@ export function ListView() {
         reload
       />
 
+      <WidgetTabs tabs={tabs} currentTabIndex={currentTabIndex} />
+
       <Datatable
         dataset={configurations}
         columns={columns}
         settingsManager={tableState}
-        title="Edge configurations list"
+        title={title}
         titleIcon={Puzzle}
-        emptyContentLabel="No edge configurations found"
+        emptyContentLabel={`No edge ${category}s found`}
         renderTableActions={(selectedRows) => (
-          <TableActions selectedRows={selectedRows} />
+          <TableActions selectedRows={selectedRows} category={category} />
         )}
         isLoading={isLoading}
         // totalCount={totalCount}
@@ -70,7 +96,13 @@ export function ListView() {
   );
 }
 
-function TableActions({ selectedRows }: { selectedRows: EdgeConfiguration[] }) {
+function TableActions({
+  selectedRows,
+  category,
+}: {
+  selectedRows: EdgeConfiguration[];
+  category: string;
+}) {
   const removeMutation = useRemoveMutation();
   return (
     <>
@@ -83,15 +115,15 @@ function TableActions({ selectedRows }: { selectedRows: EdgeConfiguration[] }) {
         Remove
       </Button>
 
-      <Link to=".create">
-        <Button icon={Plus}>Add configuration</Button>
+      <Link to=".create" params={{ category }}>
+        <Button icon={Plus}>Add {category}</Button>
       </Link>
     </>
   );
 
   async function handleRemove() {
     const confirmed = await confirmDelete(
-      'Do you want to remove the selected configuration(s) from all devices within the edge groups corresponding to these configuration(s)?'
+      `Do you want to remove the selected ${category}(s) from all devices within the edge groups corresponding to these ${category}(s)?`
     );
     if (!confirmed) {
       return;
@@ -99,7 +131,10 @@ function TableActions({ selectedRows }: { selectedRows: EdgeConfiguration[] }) {
 
     removeMutation.mutate(selectedRows, {
       onSuccess: () => {
-        notifySuccess('Success', 'Configurations successfully removed');
+        const upCategory =
+          category.slice(0, 1).toUpperCase() + category.slice(1);
+
+        notifySuccess('Success', `${upCategory}s successfully removed`);
       },
     });
   }

@@ -24,6 +24,7 @@ type edgeConfigCreatePayload struct {
 	Name         string
 	BaseDir      string
 	Type         string
+	Category     portaineree.EdgeConfigCategory
 	EdgeGroupIDs []portaineree.EdgeGroupID
 }
 
@@ -44,6 +45,10 @@ func (p *edgeConfigCreatePayload) Validate(r *http.Request) error {
 
 	if _, ok := edgeConfigTypeMap[p.Type]; !ok {
 		return errors.New("invalid type")
+	}
+
+	if p.Category != portaineree.EdgeConfigCategoryConfig && p.Category != portaineree.EdgeConfigCategorySecret {
+		return errors.New("invalid category")
 	}
 
 	if len(p.EdgeGroupIDs) == 0 {
@@ -91,6 +96,7 @@ func (h *Handler) edgeConfigCreate(w http.ResponseWriter, r *http.Request) *http
 		Name:         payload.Name,
 		BaseDir:      payload.BaseDir,
 		Type:         edgeConfigTypeMap[payload.Type],
+		Category:     payload.Category,
 		State:        portaineree.EdgeConfigSavingState,
 		EdgeGroupIDs: payload.EdgeGroupIDs,
 		CreatedBy:    token.ID,

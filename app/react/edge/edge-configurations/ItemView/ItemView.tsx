@@ -1,8 +1,13 @@
-import { Formik, Form as FormikForm } from 'formik';
+import { Form as FormikForm, Formik } from 'formik';
 import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
 
 import { notifySuccess } from '@/portainer/services/notifications';
 import { withLimitToBE } from '@/react/hooks/useLimitToBE';
+import { EdgeConfigurationCategoryString } from '@/react/edge/edge-configurations/queries/create/types';
+import {
+  HttpsWarning,
+  isHttps,
+} from '@/react/edge/edge-configurations/common/HttpsWarning';
 
 import { PageHeader } from '@@/PageHeader';
 import { Widget } from '@@/Widget';
@@ -19,7 +24,7 @@ import { EdgeConfigurationTypeSelectorField } from '../common/EdgeConfigurationT
 import { ConfigurationFieldset } from '../common/ConfigurationFieldset';
 import { InputField } from '../common/InputField';
 import { useEdgeConfiguration } from '../queries/item/item';
-import { EdgeConfigurationType } from '../types';
+import { EdgeConfigurationCategory, EdgeConfigurationType } from '../types';
 
 import { validation } from './validation';
 
@@ -57,12 +62,17 @@ function ItemView() {
     return null;
   }
 
-  const { name, edgeGroupIDs, type, baseDir } = edgeConfigQuery.data;
+  const { name, edgeGroupIDs, type, category, baseDir } = edgeConfigQuery.data;
+
+  const showHttpsWarning =
+    !isHttps() &&
+    category === EdgeConfigurationCategory.EdgeConfigCategorySecret;
 
   const initialValues: FormValues = {
     name,
     groupIds: edgeGroupIDs,
     ...buildFormValuesType(type),
+    category: EdgeConfigurationCategoryString.Configuration,
     directory: baseDir,
     file: { name: '' },
   };
@@ -70,10 +80,10 @@ function ItemView() {
   return (
     <>
       <PageHeader
-        title="Edit edge configuration"
+        title={`Edit edge ${category}`}
         breadcrumbs={[
           { label: 'Edge configurations', link: 'edge.configurations' },
-          { label: 'Edit edge configuration' },
+          { label: `Edit edge ${category}` },
         ]}
         reload
       />
@@ -101,23 +111,25 @@ function ItemView() {
                       fieldName="directory"
                       label="Directory"
                       placeholder="/etc/edge"
-                      tooltip="A designated folder on each edge node for storing read-only configuration files."
+                      tooltip={`A designated folder on each edge node for storing read-only ${category} files.`}
                       required
                       disabled
                     />
 
                     <div className="mt-2">
-                      <EdgeConfigurationTypeSelectorField />
+                      <EdgeConfigurationTypeSelectorField category={category} />
                     </div>
 
-                    <ConfigurationFieldset />
+                    <ConfigurationFieldset category={category} />
 
                     <FormActions
-                      submitLabel="Update configuration and push"
+                      submitLabel={`Update ${category} and push`}
                       loadingText="Updating..."
-                      isValid={isValid}
+                      isValid={isValid && !showHttpsWarning}
                       isLoading={updateMutation.isLoading}
                     />
+
+                    {showHttpsWarning && <HttpsWarning />}
                   </FormikForm>
                 )}
               </Formik>
@@ -133,7 +145,7 @@ function ItemView() {
       { id, values },
       {
         onSuccess() {
-          notifySuccess('Success', 'Successfully updated edge configuration');
+          notifySuccess('Success', `Successfully updated edge ${category}`);
           router.stateService.reload();
         },
       }

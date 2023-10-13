@@ -8,6 +8,11 @@ export enum EdgeConfigurationType {
   EdgeConfigTypeSpecificFolder,
 }
 
+export enum EdgeConfigurationCategory {
+  EdgeConfigCategoryConfiguration = 'configuration',
+  EdgeConfigCategorySecret = 'secret',
+}
+
 type EdgeConfigurationProgress = {
   success: number;
   total: number;
@@ -17,6 +22,7 @@ export type EdgeConfiguration = {
   id: number;
   name: string;
   type: EdgeConfigurationType;
+  category: EdgeConfigurationCategory;
   // state:        EdgeConfigStateType ;
   edgeGroupIDs: EdgeGroup['Id'][];
   baseDir: string;

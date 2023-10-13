@@ -115,7 +115,20 @@ func (handler *Handler) endpointEdgeAsync(w http.ResponseWriter, r *http.Request
 		return httperror.InternalServerError("Uexpected error", err)
 	}
 
+	if r.TLS == nil {
+		handler.invalidEdgeSecretCommands(asyncResponse)
+	}
+
 	return response.JSON(w, asyncResponse)
+}
+
+func (handler *Handler) invalidEdgeSecretCommands(asyncResponse *EdgeAsyncResponse) {
+	for idx, cmd := range asyncResponse.Commands {
+		if cmd.Type == portaineree.EdgeAsyncCommandTypeConfig {
+			cmd.Value = handler.EdgeService.InvalidEdgeConfigData(cmd.Value)
+			asyncResponse.Commands[idx] = cmd
+		}
+	}
 }
 
 func (handler *Handler) getStatusAsync(tx dataservices.DataStoreTx, edgeID string, payload EdgeAsyncRequest, r *http.Request) (*EdgeAsyncResponse, error) {

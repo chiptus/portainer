@@ -45,7 +45,7 @@ func (p *edgeConfigUpdatePayload) Validate(r *http.Request) error {
 // @param File formData file true "File"
 // @success 204
 // @failure 400 "Invalid request"
-// @router /edge_configurations [put]
+// @router /edge_configurations/{id} [put]
 func (h *Handler) edgeConfigUpdate(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	edgeConfigID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {

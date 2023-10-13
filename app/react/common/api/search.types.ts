@@ -56,4 +56,5 @@ export type SearchQueryParams = {
  */
 export type SearchQuery = {
   search?: string;
+  category?: string;
 };

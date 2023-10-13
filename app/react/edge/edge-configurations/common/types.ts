@@ -1,4 +1,5 @@
 import { EdgeGroup } from '@/react/edge/edge-groups/types';
+import { EdgeConfigurationCategoryString } from '@/react/edge/edge-configurations/queries/create/types';
 
 export enum FormValuesFileMethod {
   File = 'file',
@@ -20,6 +21,7 @@ export type FormValues = {
   groupIds: EdgeGroup['Id'][];
   directory: string;
   type: FormValuesEdgeConfigurationType;
+  category: EdgeConfigurationCategoryString;
   matchingRule?: FormValuesEdgeConfigurationMatchingRule;
   file:
     | {

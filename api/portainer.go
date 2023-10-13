@@ -2822,6 +2822,7 @@ type (
 	EdgeConfigID        int
 	EdgeConfigType      int
 	EdgeConfigStateType int
+	EdgeConfigCategory  string
 
 	EdgeConfigProgress struct {
 		Success int `json:"success"`
@@ -2832,6 +2833,7 @@ type (
 		ID           EdgeConfigID        `json:"id"`
 		Name         string              `json:"name"`
 		Type         EdgeConfigType      `json:"type"`
+		Category     EdgeConfigCategory  `json:"category"`
 		State        EdgeConfigStateType `json:"state"`
 		EdgeGroupIDs []EdgeGroupID       `json:"edgeGroupIDs"`
 		BaseDir      string              `json:"baseDir"`
@@ -2860,6 +2862,9 @@ const (
 
 	EdgeConfigCurrent  EdgeConfigVersion = "cur"
 	EdgeConfigPrevious EdgeConfigVersion = "prev"
+
+	EdgeConfigCategoryConfig EdgeConfigCategory = "configuration"
+	EdgeConfigCategorySecret EdgeConfigCategory = "secret"
 )
 
 func (e EdgeConfigStateType) String() string {

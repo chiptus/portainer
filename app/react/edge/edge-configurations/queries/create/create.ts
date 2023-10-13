@@ -51,6 +51,7 @@ function createPayload(values: FormValues): EdgeConfigurationCreatePayload {
       baseDir: values.directory,
       edgeGroupIDs: values.groupIds,
       type: translateType(values.type, values.matchingRule),
+      category: values.category,
     };
 
   if (values.file.method === FormValuesFileMethod.Archive) {

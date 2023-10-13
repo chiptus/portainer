@@ -6,11 +6,17 @@ export enum EdgeConfigurationTypeString {
   DeviceSpecificFolder = 'foldername',
 }
 
+export enum EdgeConfigurationCategoryString {
+  Configuration = 'configuration',
+  Secret = 'secret',
+}
+
 type EdgeConfigurationPayloadField = {
   name: string;
   baseDir?: string;
   edgeGroupIDs: EdgeGroup['Id'][];
   type: EdgeConfigurationTypeString;
+  category: EdgeConfigurationCategoryString;
 };
 
 type WebEditor = {

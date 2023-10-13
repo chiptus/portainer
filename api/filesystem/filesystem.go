@@ -149,11 +149,16 @@ func (service *Service) GetEdgeConfigDirEntries(edgeConfig *portaineree.EdgeConf
 			return nil, fmt.Errorf("unable to read the content of the file: %w", err)
 		}
 
+		var perm os.FileMode = 0444
+		if edgeConfig.Category == portaineree.EdgeConfigCategorySecret {
+			perm = 0400
+		}
+
 		dirEntries = append(dirEntries, filesystem.DirEntry{
 			Name:        remotePath,
 			Content:     base64.StdEncoding.EncodeToString([]byte(content)),
 			IsFile:      true,
-			Permissions: 0444,
+			Permissions: perm,
 		})
 	}
 

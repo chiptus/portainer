@@ -206,6 +206,7 @@ func TestStdFlow(t *testing.T) {
 		Name:         "edge-config-1",
 		BaseDir:      "/tmp",
 		Type:         "general",
+		Category:     "configuration",
 		EdgeGroupIDs: []portaineree.EdgeGroupID{1, 2},
 	})
 	require.NoError(t, err)
@@ -419,6 +420,7 @@ func TestStdFlow(t *testing.T) {
 
 	err = json.NewEncoder(configPart).Encode(edgeConfigCreatePayload{
 		Type:         "foldername",
+		Category:     "configuration",
 		EdgeGroupIDs: []portaineree.EdgeGroupID{1, 2, 3},
 	})
 	require.NoError(t, err)
@@ -518,6 +520,7 @@ func TestStdFlow(t *testing.T) {
 
 	err = json.NewEncoder(configPart).Encode(edgeConfigCreatePayload{
 		Type:         "foldername",
+		Category:     "configuration",
 		EdgeGroupIDs: []portaineree.EdgeGroupID{1, 2},
 	})
 	require.NoError(t, err)
@@ -737,6 +740,7 @@ func TestEnvTagsAddRm(t *testing.T) {
 		Name:         "test",
 		BaseDir:      "/tmp",
 		Type:         "foldername",
+		Category:     "configuration",
 		EdgeGroupIDs: []portaineree.EdgeGroupID{1},
 	})
 	require.NoError(t, err)
@@ -1011,6 +1015,7 @@ func TestEnvGroups(t *testing.T) {
 		Name:         "test",
 		BaseDir:      "/tmp",
 		Type:         "foldername",
+		Category:     "configuration",
 		EdgeGroupIDs: []portaineree.EdgeGroupID{1},
 	})
 	require.NoError(t, err)
@@ -1207,6 +1212,7 @@ func TestDeleteEmptyConfig(t *testing.T) {
 		Name:         "test",
 		BaseDir:      "/tmp",
 		Type:         "foldername",
+		Category:     "configuration",
 		EdgeGroupIDs: []portaineree.EdgeGroupID{1},
 	})
 	require.NoError(t, err)
@@ -1328,6 +1334,7 @@ func TestEndpointDelete(t *testing.T) {
 		Name:         "test",
 		BaseDir:      "/tmp",
 		Type:         "foldername",
+		Category:     "configuration",
 		EdgeGroupIDs: []portaineree.EdgeGroupID{1},
 	})
 	require.NoError(t, err)

@@ -21,12 +21,14 @@ import (
 // @router /edge_configurations [get]
 func (h *Handler) edgeConfigList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
-	// params := extractListModifiersQueryParams(r)
+	params := extractListModifiersQueryParams(r)
 
 	edgeConfigurations, err := h.dataStore.EdgeConfig().ReadAll()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve the edge configurations", err)
 	}
+
+	edgeConfigurations = filterConfigCategory(edgeConfigurations, params)
 
 	// TODO(LP): implement more fields to search on
 	// searchGetters := SearchFieldGetters{

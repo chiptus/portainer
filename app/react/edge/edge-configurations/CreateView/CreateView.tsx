@@ -1,8 +1,15 @@
-import { Formik, Form as FormikForm } from 'formik';
+import { Form as FormikForm, Formik } from 'formik';
 import { useRouter } from '@uirouter/react';
 
 import { notifySuccess } from '@/portainer/services/notifications';
 import { withLimitToBE } from '@/react/hooks/useLimitToBE';
+import { useCategory } from '@/react/edge/edge-configurations/CreateView/useCategory';
+import { EdgeConfigurationCategoryString } from '@/react/edge/edge-configurations/queries/create/types';
+import {
+  HttpsWarning,
+  isHttps,
+} from '@/react/edge/edge-configurations/common/HttpsWarning';
+import { EdgeConfigurationCategory } from '@/react/edge/edge-configurations/types';
 
 import { PageHeader } from '@@/PageHeader';
 import { Widget } from '@@/Widget';
@@ -23,6 +30,7 @@ const initialValues: FormValues = {
   name: '',
   groupIds: [],
   type: FormValuesEdgeConfigurationType.General,
+  category: EdgeConfigurationCategoryString.Configuration,
   directory: '',
   file: { name: '' },
 };
@@ -31,13 +39,21 @@ function CreateView() {
   const createMutation = useCreateMutation();
   const router = useRouter();
 
+  const [category] = useCategory();
+
+  initialValues.category = category;
+
+  const showHttpsWarning =
+    !isHttps() &&
+    category === EdgeConfigurationCategory.EdgeConfigCategorySecret;
+
   return (
     <>
       <PageHeader
-        title="Create edge configuration"
+        title={`Create edge ${category}`}
         breadcrumbs={[
-          { label: 'Edge configurations', link: 'edge.configurations' },
-          { label: 'Create edge configuration' },
+          { label: `Edge ${category}s`, link: 'edge.configurations' },
+          { label: `Create edge ${category}` },
         ]}
         reload
       />
@@ -60,22 +76,24 @@ function CreateView() {
                       fieldName="directory"
                       label="Directory"
                       placeholder="/etc/edge"
-                      tooltip="A designated folder on each edge node for storing read-only configuration files."
+                      tooltip={`A designated folder on each edge node for storing read-only ${category} files.`}
                       required
                     />
 
                     <div className="mt-2">
-                      <EdgeConfigurationTypeSelectorField />
+                      <EdgeConfigurationTypeSelectorField category={category} />
                     </div>
 
-                    <ConfigurationFieldset />
+                    <ConfigurationFieldset category={category} />
 
                     <FormActions
-                      submitLabel="Create configuration and push"
+                      submitLabel={`Create ${category} and push`}
                       loadingText="Creating..."
-                      isValid={isValid}
+                      isValid={isValid && !showHttpsWarning}
                       isLoading={createMutation.isLoading}
                     />
+
+                    {showHttpsWarning && <HttpsWarning />}
                   </FormikForm>
                 )}
               </Formik>
@@ -89,7 +107,7 @@ function CreateView() {
   function handleSubmit(values: FormValues) {
     createMutation.mutate(values, {
       onSuccess() {
-        notifySuccess('Success', 'Successfully created edge configuration');
+        notifySuccess('Success', `Successfully created edge ${category}`);
         router.stateService.go('^');
       },
     });

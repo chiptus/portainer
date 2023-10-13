@@ -15,6 +15,10 @@ type SearchQueryParams struct {
 	search string
 }
 
+type ConfigCategoryQueryParams struct {
+	configCategory portaineree.EdgeConfigCategory
+}
+
 func searchFn(configs []portaineree.EdgeConfig, params SearchQueryParams, getters SearchFieldGetters) []portaineree.EdgeConfig {
 	search := params.search
 
@@ -86,6 +90,7 @@ func paginateFn(configs []portaineree.EdgeConfig, params PaginationQueryParams) 
 }
 
 type QueryParams struct {
+	ConfigCategoryQueryParams
 	SearchQueryParams
 	SortQueryParams
 	PaginationQueryParams
@@ -97,8 +102,12 @@ func extractListModifiersQueryParams(r *http.Request) QueryParams {
 	sortOrder, _ := request.RetrieveQueryParameter(r, "order", true)
 	start, _ := request.RetrieveNumericQueryParameter(r, "start", true)
 	limit, _ := request.RetrieveNumericQueryParameter(r, "limit", true)
+	configCategory, _ := request.RetrieveQueryParameter(r, "category", true)
 
 	return QueryParams{
+		ConfigCategoryQueryParams{
+			configCategory: portaineree.EdgeConfigCategory(configCategory),
+		},
 		SearchQueryParams{
 			search: search,
 		},
@@ -133,6 +142,25 @@ func searchOrderAndPaginate(configs []portaineree.EdgeConfig, params QueryParams
 		totalCount:     totalCount,
 		totalAvailable: totalAvailable,
 	}
+}
+
+func filterConfigCategory(configs []portaineree.EdgeConfig, params QueryParams) []portaineree.EdgeConfig {
+	configCategory := params.configCategory
+
+	if configCategory == "" {
+		return configs
+	}
+
+	results := []portaineree.EdgeConfig{}
+
+	for confIdx := range configs {
+		config := configs[confIdx]
+		if configCategory == config.Category {
+			results = append(results, config)
+		}
+	}
+
+	return results
 }
 
 func applyFilterResultsHeaders(w *http.ResponseWriter, result FilterResult) {

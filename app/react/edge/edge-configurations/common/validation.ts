@@ -1,5 +1,7 @@
 import { array, object, SchemaOf, string, number, mixed } from 'yup';
 
+import { EdgeConfigurationCategoryString } from '@/react/edge/edge-configurations/queries/create/types';
+
 import {
   FormValues,
   FormValuesEdgeConfigurationMatchingRule,
@@ -13,6 +15,9 @@ export function validationBase(): SchemaOf<Omit<FormValues, 'file'>> {
       .min(1, 'At least one group is required'),
     name: string().required('This field is required'),
     directory: string().required('This field is required'),
+    category: mixed<EdgeConfigurationCategoryString>()
+      .oneOf(Object.values(EdgeConfigurationCategoryString))
+      .required(),
     type: mixed<FormValuesEdgeConfigurationType>()
       .oneOf(Object.values(FormValuesEdgeConfigurationType))
       .required(),

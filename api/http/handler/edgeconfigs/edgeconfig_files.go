@@ -69,6 +69,10 @@ func (h *Handler) edgeConfigFiles(w http.ResponseWriter, r *http.Request) *httpe
 		return httperror.InternalServerError("Unable to find an edge configuration with the specified identifier inside the database", err)
 	}
 
+	if edgeConfig.Category == portaineree.EdgeConfigCategorySecret && r.TLS == nil {
+		return httperror.Forbidden("Unable to getting secret over HTTP", nil)
+	}
+
 	dirEntries, err := h.fileService.GetEdgeConfigDirEntries(edgeConfig, edgeID, portaineree.EdgeConfigCurrent)
 	if err != nil {
 		return httperror.InternalServerError("Unable to process the files for the edge configuration", err)

@@ -1,6 +1,8 @@
 import { useField } from 'formik';
 import { Info } from 'lucide-react';
 
+import { useCategory } from '@/react/edge/edge-configurations/CreateView/useCategory';
+
 import { FormSection } from '@@/form-components/FormSection';
 import { TextTip } from '@@/Tip/TextTip';
 import { FormControl } from '@@/form-components/FormControl';
@@ -20,13 +22,15 @@ const options: Option<FormValuesEdgeConfigurationMatchingRule>[] = [
 ];
 
 export function DeviceSpecificConfigurationFields() {
+  const [category] = useCategory();
+
   const [{ value }, { error }, { setValue }] =
     useField<FormValues['matchingRule']>('matchingRule');
 
   return (
     <FormSection title="Target devices">
       <TextTip color="blue" icon={Info}>
-        Select the rule that you want to use for matching configuration with
+        Select the rule that you want to use for matching {category} with
         Portainer Edge ID
       </TextTip>
       <FormControl label="Matching rule" errors={error}>

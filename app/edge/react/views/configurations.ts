@@ -31,7 +31,7 @@ function config($stateRegistryProvider: StateRegistry) {
   if (process.env.PORTAINER_EDITION === 'BE') {
     $stateRegistryProvider.register({
       name: 'edge.configurations',
-      url: '/configurations',
+      url: '/configurations?tab',
       views: {
         'content@': {
           component: 'edgeConfigurationsListView',
@@ -40,15 +40,21 @@ function config($stateRegistryProvider: StateRegistry) {
       data: {
         docs: '/user/edge/configurations',
       },
+      params: {
+        tab: null,
+      },
     });
 
     $stateRegistryProvider.register({
       name: 'edge.configurations.create',
-      url: '/new',
+      url: '/new?category',
       views: {
         'content@': {
           component: 'edgeConfigurationsCreateView',
         },
+      },
+      params: {
+        category: null,
       },
     });
 
